@@ -908,10 +908,26 @@ export class ConfigExercisePage implements OnInit {
 
     if (!currentExerciseObj?._id) return;
 
+    const impact = this.getExerciseDeleteImpact(currentExerciseObj._id);
+    const impactLines: string[] = [
+      'Se eliminará permanentemente este ejercicio creado por ti.',
+      'También se borrarán todas sus series y todas las instancias (customExercises) donde se use.',
+      'Se quitará automáticamente de favoritos y de cualquier entrenamiento/microciclo donde aparezca.',
+    ];
+
+    if (impact.occurrences > 0) {
+      impactLines.push(
+        `En tu rutina actual afecta a ${impact.occurrences} instancia${
+          impact.occurrences === 1 ? '' : 's'
+        }, ${impact.workouts} entrenamiento${
+          impact.workouts === 1 ? '' : 's'
+        } y ${impact.splits} micro-ciclo${impact.splits === 1 ? '' : 's'}.`
+      );
+    }
+
     const alertOptions: any = {
       header: 'Eliminar ejercicio',
-      message:
-        '¿Estás seguro de que quieres eliminar este ejercicio creado por ti? Se borrará de todas tus rutinas y ya no podrás acceder a él.',
+      message: impactLines.join(' '),
       buttons: [
         {
           text: 'CANCELAR',
@@ -924,52 +940,59 @@ export class ConfigExercisePage implements OnInit {
           handler: () => {
             this.exerciseService
               .deleteExercise(currentExerciseObj._id)
-              .subscribe(() => {
-                // Update local user archived exercises if needed
-                if (this.user?.archivedExercises) {
-                  this.user.archivedExercises =
-                    this.user.archivedExercises.filter(
-                      (id) => id !== currentExerciseObj._id
-                    );
-                }
+              .subscribe({
+                next: () => {
+                  if (this.user?.archivedExercises) {
+                    this.user.archivedExercises =
+                      this.user.archivedExercises.filter(
+                        (id) => id !== currentExerciseObj._id
+                      );
+                  }
 
-                // Remove from the current table if in use (Cascade delete emulation on frontend)
-                if (this.tableInUse && this.tableInUse.splits) {
-                  let shouldUpdateTable = false;
-                  this.tableInUse.splits.forEach((s) => {
-                    s.workouts.forEach((w: any) => {
-                      if (w.exercises) {
-                        const originalLength = w.exercises.length;
-                        w.exercises = w.exercises.filter(
-                          (ce: any) =>
-                            ce.exercise?._id !== currentExerciseObj._id
-                        );
-                        if (w.exercises.length !== originalLength) {
-                          shouldUpdateTable = true;
+                  if (this.tableInUse && this.tableInUse.splits) {
+                    let shouldUpdateTable = false;
+                    this.tableInUse.splits.forEach((s) => {
+                      s.workouts.forEach((w: any) => {
+                        if (w.exercises) {
+                          const originalLength = w.exercises.length;
+                          w.exercises = w.exercises.filter(
+                            (ce: any) =>
+                              ce.exercise?._id !== currentExerciseObj._id
+                          );
+                          if (w.exercises.length !== originalLength) {
+                            shouldUpdateTable = true;
+                          }
                         }
-                      }
+                      });
                     });
+
+                    if (shouldUpdateTable) {
+                      this.tableService.setCurrentTable = this.tableInUse;
+                    }
+                  }
+
+                  this.ionicUtilService.showToast({
+                    message: 'Ejercicio eliminado',
+                    duration: 2000,
                   });
 
-                  if (shouldUpdateTable) {
-                    this.tableService.setCurrentTable = this.tableInUse;
-                  }
-                }
-
-                this.ionicUtilService.showToast({
-                  message: 'Ejercicio eliminado',
-                  duration: 2000,
-                });
-                this.modalController.dismiss({
-                  setChangeInfo: {
-                    exerciseDeleted: true,
-                    exerciseIndex:
-                      this.workoutIndex !== undefined
-                        ? this.workoutIndex
-                        : null,
-                    tableInUse: this.tableInUse,
-                  },
-                });
+                  this.modalController.dismiss({
+                    setChangeInfo: {
+                      exerciseDeleted: true,
+                      exerciseIndex:
+                        this.workoutIndex !== undefined
+                          ? this.workoutIndex
+                          : null,
+                      tableInUse: this.tableInUse,
+                    },
+                  });
+                },
+                error: () => {
+                  this.ionicUtilService.showToast({
+                    message: 'No se pudo eliminar el ejercicio',
+                    duration: 2500,
+                  });
+                },
               });
           },
         },
@@ -977,5 +1000,49 @@ export class ConfigExercisePage implements OnInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private getExerciseDeleteImpact(exerciseId: string): {
+    occurrences: number;
+    workouts: number;
+    splits: number;
+  } {
+    const splitIds = new globalThis.Set<string>();
+    const workoutIds = new globalThis.Set<string>();
+    let occurrences = 0;
+
+    if (!this.tableInUse?.splits?.length) {
+      return { occurrences: 0, workouts: 0, splits: 0 };
+    }
+
+    this.tableInUse.splits.forEach((split) => {
+      let splitHasMatch = false;
+
+      split.workouts?.forEach((workout) => {
+        let workoutHasMatch = false;
+
+        workout.exercises?.forEach((customExercise) => {
+          if (customExercise?.exercise?._id === exerciseId) {
+            occurrences += 1;
+            workoutHasMatch = true;
+            splitHasMatch = true;
+          }
+        });
+
+        if (workoutHasMatch) {
+          workoutIds.add(workout._id);
+        }
+      });
+
+      if (splitHasMatch) {
+        splitIds.add(split._id);
+      }
+    });
+
+    return {
+      occurrences,
+      workouts: workoutIds.size,
+      splits: splitIds.size,
+    };
   }
 }
