@@ -1,0 +1,309 @@
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { DietDay } from 'src/app/core/models/dietDay';
+import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { UserService } from 'src/app/core/services/user/user.service';
+import { UtilService } from 'src/app/core/services/util/util.service';
+// Removed Swiper type import due to module resolution issues
+import { DateRange } from '../../../../shared/models/dateRange';
+
+@Component({
+  selector: 'app-calendar',
+  templateUrl: './calendar.component.html',
+  styleUrls: ['./calendar.component.scss'],
+})
+export class CalendarComponent implements OnInit, AfterViewInit {
+  @Output()
+  public selectDate = new EventEmitter();
+  @Output()
+  public monthYear = new EventEmitter();
+  @Output()
+  public loading = new EventEmitter();
+  @ViewChild('calendar')
+  public swiperCalendar: ElementRef | undefined;
+  public swiper: any;
+
+  public idDiet: string;
+  public currentDate: Date = new Date();
+  public selectedDate: Date = new Date();
+  public today: Date = new Date();
+
+  public currentMonth: any[] = [];
+  public previousMonth: any[] = [];
+  public nextMonth: any[] = [];
+  public months: any[][] = [];
+  public currentMonthYear: string = '';
+
+  public dietDays: DietDay[] = [];
+
+  constructor(
+    public modalController: ModalController,
+    private dietDayService: DietDayService,
+    private userService: UserService,
+    private utilService: UtilService,
+    private cdRef: ChangeDetectorRef
+  ) {
+    this.idDiet = this.userService.getLocalUser.dietInUse;
+    this.updateCalendar();
+    this.updateCurrentMonthYear();
+  }
+
+  public ngOnInit(): void {
+    this.fetchDietDaysForMonth(); // Traer los DietDays para el mes actual
+  }
+
+  public ngAfterViewInit(): void {
+    this.swiperReady();
+  }
+
+  public selectDay(day: Date, week: any, month: any): void {
+    const weekDays = week.days;
+    const monthDays = month.flatMap((dTemp) => dTemp.days);
+
+    if (day) {
+      this.selectedDate = day;
+      this.selectDate.emit({
+        selectedDate: this.selectedDate,
+        weekDays,
+        monthDays,
+      });
+      this.cdRef.detectChanges();
+    }
+  }
+
+  public datesAreOnSameDay(first: Date, second: Date): boolean {
+    return this.utilService.datesAreOnSameDay(first, second);
+  }
+
+  private updateCurrentMonthYear(): void {
+    const monthNames = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    const month = monthNames[this.currentDate.getMonth()];
+    const year = this.currentDate.getFullYear();
+    this.currentMonthYear = `${month} ${year}`; // Mes + Año
+  }
+
+  private swiperReady(): void {
+    setTimeout(() => {
+      this.swiper = this.swiperCalendar.nativeElement.swiper;
+      this.swiper.on('slideChangeTransitionEnd', () => this.slide());
+    });
+  }
+
+  private slide(): void {
+    const realIndex = this.swiper.realIndex;
+    const totalSlides = this.months.length;
+
+    // Deslizó hacia la izquierda (mes anterior)
+    if (realIndex === 0) {
+      this.currentDate = new Date(
+        this.currentDate.getFullYear(),
+        this.currentDate.getMonth() - 1,
+        1
+      );
+    }
+    // Deslizó hacia la derecha (mes siguiente)
+    else if (realIndex === totalSlides - 1) {
+      this.currentDate = new Date(
+        this.currentDate.getFullYear(),
+        this.currentDate.getMonth() + 1,
+        1
+      );
+    }
+
+    this.updateCalendar(); // Actualizar los meses
+    this.updateCurrentMonthYear(); // Actualizar el nombre del mes
+    this.cdRef.detectChanges();
+    this.swiper.slideTo(1, 0);
+
+    // Llamar a la API para obtener los DietDays para el mes siguiente
+    this.fetchDietDaysForMonth();
+  }
+
+  private fetchDietDaysForMonth(): void {
+    const firstDayOfMonth = new Date(
+      this.currentDate.getFullYear(),
+      this.currentDate.getMonth(),
+      1
+    );
+    const lastDayOfMonth = new Date(
+      this.currentDate.getFullYear(),
+      this.currentDate.getMonth() + 1,
+      0
+    );
+
+    this.loading.emit(true);
+
+    this.dietDayService
+      .getDietDaysBetweenDatesByIdDiet(
+        this.idDiet,
+        new DateRange(firstDayOfMonth, lastDayOfMonth)
+      )
+      .subscribe({
+        next: (dietDays) => {
+          this.dietDays = dietDays;
+          this.populateDietDaysInCalendar();
+        },
+        error: () => {
+          this.dietDays = [];
+          this.populateDietDaysInCalendar();
+        },
+      });
+  }
+
+  private updateCalendar(): void {
+    const calendar = this.generateCalendar();
+    this.currentMonth = this.chunkArray(calendar.currentMonth, 7);
+    this.previousMonth = this.chunkArray(calendar.previousMonth, 7);
+    this.nextMonth = this.chunkArray(calendar.nextMonth, 7);
+    this.months = [this.previousMonth, this.currentMonth, this.nextMonth];
+  }
+
+  private generateCalendar(): {
+    currentMonth: { date: Date | null; weight?: number; notes?: string }[];
+    previousMonth: { date: Date | null; weight?: number; notes?: string }[];
+    nextMonth: { date: Date | null; weight?: number; notes?: string }[];
+  } {
+    const currentDate = new Date(
+      this.currentDate.getFullYear(),
+      this.currentDate.getMonth()
+    );
+    const previousMonthDate = new Date(
+      this.currentDate.getFullYear(),
+      this.currentDate.getMonth() - 1
+    );
+    const nextMonthDate = new Date(
+      this.currentDate.getFullYear(),
+      this.currentDate.getMonth() + 1
+    );
+
+    return {
+      currentMonth: this.generateDaysForMonth(currentDate),
+      previousMonth: this.generateDaysForMonth(previousMonthDate),
+      nextMonth: this.generateDaysForMonth(nextMonthDate),
+    };
+  }
+
+  private generateDaysForMonth(date: Date): {
+    date: Date | null;
+    weight?: number;
+    notes?: string;
+  }[] {
+    const days: { date: Date | null; weight?: number }[] = [];
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+    // Ajustar inicio del calendario
+    const adjustedFirstDay =
+      (firstDay.getDay() === 0 ? 7 : firstDay.getDay()) - 1;
+
+    // Días en blanco al inicio
+    for (let i = 0; i < adjustedFirstDay; i++) {
+      days.push({ date: null });
+    }
+
+    // Días del mes
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const currentDate = new Date(date.getFullYear(), date.getMonth(), day);
+      days.push({ date: currentDate });
+    }
+
+    // Días en blanco al final
+    const adjustedLastDay = (lastDay.getDay() === 0 ? 7 : lastDay.getDay()) - 1;
+    for (let i = adjustedLastDay + 1; i < 7; i++) {
+      days.push({ date: null });
+    }
+
+    return days;
+  }
+
+  public chunkArray(array: any[], chunkSize: number): any[] {
+    const results = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      const chunk = array.slice(i, i + chunkSize);
+
+      results.push({
+        days: chunk, // Mantener la estructura de días
+      });
+    }
+    return results;
+  }
+
+  private populateDietDaysInCalendar(): void {
+    const dietDaysMap = new Map<string, DietDay>();
+
+    // Mapeamos los días obtenidos del servicio de dieta por su fecha.
+    this.dietDays.forEach((dietDay) => {
+      const dateKey = this.formatDateKey(new Date(dietDay.date));
+      dietDaysMap.set(dateKey, dietDay);
+    });
+
+    // Actualizar todos los meses con los pesos de DietDays
+    const allMonths = [this.previousMonth, this.currentMonth, this.nextMonth];
+
+    // Recorremos todos los meses
+    for (const month of allMonths) {
+      for (const week of month) {
+        let totalWeight = 0;
+        let daysWithWeight = 0; // Contador para los días con peso
+
+        // Recorremos todos los días de la semana
+        for (const day of week.days) {
+          if (day?.date) {
+            const dateKey = this.formatDateKey(day.date);
+            const dietDay = dietDaysMap.get(dateKey);
+
+            // Si encontramos un día con peso, lo asignamos
+            if (dietDay && typeof dietDay.weight === 'number') {
+              day.weight = dietDay.weight;
+              day.notes = dietDay.notes;
+
+              // Sumar el peso para calcular la media
+              totalWeight += dietDay.weight;
+              daysWithWeight++; // Contar el día con peso
+            } else day.weight = 0;
+          }
+        }
+
+        // Calcular el promedio de peso de la semana si existen días con peso
+        if (daysWithWeight > 0) {
+          week.averageWeight = totalWeight / daysWithWeight; // Promedio semanal
+        } else {
+          week.averageWeight = null; // Si no hay peso, dejar como null
+        }
+      }
+    }
+
+    this.monthYear.emit(this.currentMonthYear);
+    this.loading.emit(false);
+    // Forzamos la actualización de la vista para reflejar los cambios
+    this.cdRef.detectChanges();
+  }
+
+  private formatDateKey(date: Date): string {
+    return `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+  }
+}

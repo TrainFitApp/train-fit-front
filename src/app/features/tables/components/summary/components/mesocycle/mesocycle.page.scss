@@ -1,0 +1,785 @@
+// Navigation Header Styles
+.navigation-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  background: var(--ion-color-light);
+  border-bottom: 1px solid var(--ion-color-medium);
+  gap: 24px;
+
+  .nav-arrow {
+    --color: var(--ion-color-primary);
+    --padding-start: 8px;
+    --padding-end: 8px;
+    min-width: 40px;
+    height: 40px;
+
+    &[disabled] {
+      --color: var(--ion-color-medium);
+    }
+  }
+}
+
+ion-accordion-group.current-workout-group {
+  border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.35);
+}
+
+// Estilos para skeleton loader detallado
+.workout-skeleton-accordion {
+  background: #141414;
+  margin-bottom: 1px;
+}
+
+.skeleton-workout-header {
+  padding: 9px;
+  background: #141414;
+}
+
+.skeleton-meal-name {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-header-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.skeleton-exercise-info {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.skeleton-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+}
+
+.skeleton-workout-content {
+  padding: 16px;
+  background: rgba(20, 20, 20, 0.8);
+}
+
+.skeleton-exercise {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-exercise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.skeleton-exercise-title {
+  display: flex;
+  align-items: center;
+}
+
+.skeleton-exercise-info-detail {
+  margin-bottom: 16px;
+}
+
+.skeleton-sets-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-set {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skeleton-set-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+// Animación suave para los skeletons
+ion-skeleton-text {
+  --background: rgba(255, 255, 255, 0.1);
+  --background-rgb: 255, 255, 255;
+
+  &[animated] {
+    animation: skeleton-loading 1.5s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Estilos para action-sheet-button-inner de splits completados con ::ng-deep
+.completed-split ::ng-deep .action-sheet-button-inner {
+  color: var(--ion-color-success) !important;
+}
+
+// Estilos para action-sheet-button-inner de splits no completados con ::ng-deep
+.not-completed-split ::ng-deep .action-sheet-button-inner {
+  color: white !important;
+}
+
+// Estilos adicionales con diferentes selectores
+::ng-deep .completed-split .action-sheet-button-inner {
+  color: var(--ion-color-success) !important;
+}
+
+::ng-deep .not-completed-split .action-sheet-button-inner {
+  color: white !important;
+}
+
+// Estilos globales para ion-action-sheet
+::ng-deep ion-action-sheet .completed-split .action-sheet-button-inner {
+  color: var(--ion-color-success) !important;
+}
+
+::ng-deep ion-action-sheet .not-completed-split .action-sheet-button-inner {
+  color: white !important;
+}
+
+// Estilos para el botón cancelar del action sheet
+::ng-deep ion-action-sheet .action-sheet-cancel .action-sheet-button-inner {
+  color: white !important;
+}
+
+::ng-deep ion-action-sheet .action-sheet-cancel {
+  color: white !important;
+}
+
+.vertical-scroll-container {
+  overflow-y: auto;
+  margin-bottom: 2em;
+}
+
+.fixed {
+  bottom: 10em;
+}
+
+// Minimalist Header Styles
+.minimal-header {
+  --background: rgba(20, 20, 20, 0.98);
+  --border-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.minimal-toolbar {
+  --background: transparent;
+  --color: #ffffff;
+  --border-color: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  min-height: 60px;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 100%;
+    max-width: 100%;
+  }
+
+  .title-container {
+    flex: 1;
+
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .actions-container {
+    display: flex;
+    align-items: center;
+  }
+
+  .exit-button {
+    --color: var(--ion-color-medium);
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --border-radius: 50%;
+    margin: 0;
+    width: 40px;
+    height: 40px;
+
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+// Micro Cycle Header Styles
+.micro-cycle-header {
+  margin: 16px 0;
+  padding: 0 16px;
+
+  .micro-cycle-content {
+    background: #141414;
+    border: 1px solid #252525;
+    border-radius: 16px;
+    padding: 20px 24px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 16px;
+
+    .micro-cycle-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .micro-cycle-navigation {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      column-gap: 12px;
+      margin: 3px 0;
+
+      .navigation-divider {
+        width: 1px;
+        height: 24px;
+        background-color: grey;
+        opacity: 0.5;
+      }
+    }
+
+    .nav-arrow {
+      --color: var(--ion-color-primary);
+      --background: rgba(var(--ion-color-primary-rgb), 0.08);
+      --background-activated: rgba(var(--ion-color-primary-rgb), 0.16);
+      --border-radius: 10px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 6px;
+      --padding-bottom: 6px;
+      min-width: 96px;
+      width: 100%;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.15s ease-out;
+
+      &[disabled] {
+        --color: var(--ion-color-medium);
+        --background: rgba(var(--ion-color-medium-rgb), 0.06);
+        --background-activated: rgba(var(--ion-color-medium-rgb), 0.06);
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      // Icono con transición suave
+      ion-icon {
+        font-size: 20px;
+        color: var(--color);
+        transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+      }
+
+      // Estilos específicos para cada flecha
+      &.nav-arrow-left {
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+        grid-column: 1 / 2;
+
+        &.animating {
+          transform: scale(0.95);
+
+          ion-icon {
+            animation: slide-left 0.3s ease-out forwards;
+          }
+        }
+      }
+
+      &.nav-arrow-right {
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+        grid-column: 3 / 4;
+
+        &.animating {
+          transform: scale(0.95);
+
+          ion-icon {
+            animation: slide-right 0.3s ease-out forwards;
+          }
+        }
+      }
+    }
+
+    // Animación carrusel hacia la izquierda
+    @keyframes slide-left {
+      0% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      40% {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      41% {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    // Animación carrusel hacia la derecha
+    @keyframes slide-right {
+      0% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      40% {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      41% {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .micro-cycle-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .micro-cycle-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .micro-cycle-info {
+    .cycle-number {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(
+        135deg,
+        var(--ion-color-primary) 0%,
+        var(--ion-color-primary-shade) 100%
+      );
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+
+      &.completed {
+        background: linear-gradient(
+          135deg,
+          var(--ion-color-success) 0%,
+          var(--ion-color-success-shade) 100%
+        );
+      }
+    }
+
+    .cycle-title {
+      .micro-cycle-selector {
+        color: white;
+        --placeholder-color: white;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        --padding-start: 0;
+        --padding-end: 0;
+        --padding-top: 0;
+        --padding-bottom: 0;
+        margin: 0;
+        min-height: 0;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+
+      .cycle-subtitle {
+        font-size: 0.85rem;
+        color: var(--ion-color-medium);
+        font-weight: 500;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .micro-cycle-actions {
+    .action-btn {
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      --border-radius: 14px;
+      width: 52px;
+      height: 52px;
+      margin: 0;
+
+      ion-icon {
+        font-size: 1.3rem;
+      }
+    }
+
+    .copy-btn {
+      --color: var(--ion-color-tertiary);
+      --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
+    }
+
+    .menu-btn {
+      --color: var(--ion-color-dark);
+      --background: rgba(var(--ion-color-medium-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+    }
+
+    .delete-btn {
+      --color: var(--ion-color-danger);
+      --background: rgba(var(--ion-color-danger-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .minimal-toolbar {
+    min-height: 56px;
+
+    .header-content {
+      padding: 0 16px;
+    }
+
+    .title-container .page-title {
+      font-size: 1.1rem;
+    }
+
+    .exit-button {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  .micro-cycle-header {
+    margin: 12px 0;
+    padding: 0 12px;
+
+    .micro-cycle-content {
+      padding: 16px 20px 0;
+      border-radius: 12px;
+    }
+
+    .micro-cycle-info {
+      gap: 12px;
+      color: #ffffff;
+
+      .cycle-number {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        border-radius: 10px;
+      }
+
+      .micro-cycle-header {
+        .micro-cycle-content {
+          background: #141414;
+          border: 1px solid #252525;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .micro-cycle-info {
+          .cycle-title h2 {
+            color: #ffffff;
+          }
+        }
+      }
+
+      .cycle-subtitle {
+        font-size: 0.8rem;
+      }
+    }
+
+    .micro-cycle-actions {
+      .action-btn {
+        width: 40px;
+        height: 40px;
+        --border-radius: 12px;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+        color: #ffffff;
+
+        ion-icon {
+          font-size: 1.2rem;
+        }
+      }
+
+      .copy-btn {
+        --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+        --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
+      }
+
+      .delete-btn {
+        --background: rgba(var(--ion-color-danger-rgb), 0.15);
+        --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+      }
+    }
+  }
+}
+
+// Ion Accordion Group Styles (similar to summary cards)
+ion-accordion-group {
+  background: #141414;
+  border-radius: 12px;
+  margin: 12px;
+  border: 1px solid #252525;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.t-add-workout {
+  --background: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary-shade);
+  --color: white;
+  --border-radius: 16px;
+  border-radius: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 16px;
+
+  ion-icon {
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
+}
+
+.t-add-micro {
+  --background: var(--ion-color-primary);
+  --background-activated: var(--ion-color-primary-shade);
+  --color: white;
+  --border-radius: 16px;
+  border-radius: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 16px;
+
+  ion-icon {
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
+}
+
+.search-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    min-height: 60px;
+    gap: 12px;
+
+    .back-section {
+      flex-shrink: 0;
+
+      .back-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .search-section {
+      flex: 1;
+      min-width: 0;
+
+      .custom-searchbar {
+        --background: rgba(255, 255, 255, 0.05);
+        --border-radius: 8px;
+        --box-shadow: none;
+        --color: rgba(255, 255, 255, 0.9);
+        --placeholder-color: rgba(255, 255, 255, 0.5);
+        --icon-color: rgba(255, 255, 255, 0.7);
+        --clear-button-color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+        padding: 0;
+
+        &.searchbar-has-focus {
+          --background: rgba(255, 255, 255, 0.08);
+        }
+      }
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .action-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}
+
+// Responsividad móvil
+@media (max-width: 768px) {
+  .search-header {
+    .header-content {
+      padding: 12px 16px;
+      min-height: 56px;
+
+      .back-section .back-button,
+      .actions-section .action-button {
+        width: 36px;
+        height: 36px;
+
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+
+.title-section {
+  flex: 1;
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+}
+
+// Info Explainer Card
+.info-explainer {
+  margin: 1rem 1rem 1rem 1rem;
+
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--ion-color-primary-rgb), 0.08) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.04) 100%
+    );
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .info-icon {
+      font-size: 1.25rem;
+      color: var(--ion-color-warning);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .info-text {
+      .info-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--ion-color-warning);
+        letter-spacing: 0.2px;
+        margin-bottom: 6px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}

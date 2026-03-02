@@ -1,0 +1,920 @@
+// Variables de colores - Idénticas a nutrition_goals_v2.html
+:root {
+  --bg-primary: #0a0a0b;
+  --bg-secondary: #111111;
+  --bg-tertiary: #141414;
+  --border-primary: #252525;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --accent-primary: #fe9000;
+}
+
+.mobile-container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+// Main content
+.main-content {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// Cards
+.card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    color: var(--accent-primary);
+    font-size: 1rem;
+  }
+}
+
+// Calories card
+.calories-card {
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: border-color 0.2s ease;
+
+    &:focus-within {
+      border-color: var(--accent-primary);
+    }
+  }
+
+  .calories-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+
+    &::placeholder {
+      color: var(--text-secondary);
+    }
+
+    &[readonly] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .calories-label {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+}
+
+// Macros card
+.macros-card {
+  .macro-adjuster-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-primary);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    gap: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.locked {
+      background: rgba(0, 0, 0, 0.15);
+      border-color: rgba(255, 255, 255, 0.05);
+
+      .macro-dot,
+      .macro-name,
+      .macro-kcal-info,
+      .input-field input {
+        opacity: 0.5;
+      }
+    }
+
+    // Nutrient specific colors
+    &.protein {
+      --macro-color: #3880ff;
+      --macro-bg-glow: rgba(56, 128, 255, 0.1);
+    }
+
+    &.carbs {
+      --macro-color: #2dd36f;
+      --macro-bg-glow: rgba(45, 211, 111, 0.1);
+    }
+
+    &.fat {
+      --macro-color: #ffc409;
+      --macro-bg-glow: rgba(255, 196, 9, 0.1);
+    }
+  }
+
+  .macro-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 90px;
+
+    .macro-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--macro-color);
+      box-shadow: 0 0 8px var(--macro-bg-glow);
+    }
+
+    .macro-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .macro-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .macro-kcal-info {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+  }
+
+  .macro-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .input-field {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding-right: 8px;
+    transition: all 0.2s ease;
+
+    input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      width: 52px;
+      padding: 10px 4px 10px 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: right;
+      outline: none;
+      appearance: none;
+      -moz-appearance: textfield;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        appearance: none;
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+
+    .unit {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-left: 2px;
+    }
+
+    &:focus-within {
+      border-color: var(--macro-color);
+      box-shadow: 0 0 0 3px var(--macro-bg-glow);
+    }
+
+    &.percentage {
+      input {
+        width: 52px;
+      }
+    }
+  }
+
+  .lock-toggle {
+    background: transparent;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &.is-locked {
+      background: var(--macro-color);
+      border-color: var(--macro-color);
+      color: white;
+      box-shadow: 0 2px 8px var(--macro-bg-glow);
+    }
+
+    &:active {
+      transform: scale(0.9);
+    }
+
+    i {
+      font-size: 0.85rem;
+    }
+  }
+
+  // Estilos para el slider unificado
+  .unified-slider-container {
+    position: relative;
+    width: 100%;
+    height: 48px;
+    margin: 20px 0;
+    touch-action: none; // Prevents scrolling while dragging
+
+    // Área sensible más grande para facilitar el toque
+    padding: 10px 0;
+  }
+
+  .unified-slider-track {
+    position: relative;
+    width: 100%;
+    height: 24px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    overflow: visible; // Handles must be visible outside!
+    border: 1px solid var(--border-primary);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .slider-segments-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px; // Match parent
+    overflow: hidden; // This is what clips the bar!
+  }
+
+  .slider-segment {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    will-change: width, left;
+
+    // Etiquetas de porcentaje dentro de la barra
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    white-space: nowrap;
+
+    &.segment-p {
+      background-color: var(--protein-color);
+      // border radius handled by wrapper
+    }
+
+    &.segment-c {
+      background-color: var(--carbs-color);
+    }
+
+    &.segment-f {
+      background-color: var(--fat-color);
+      // border radius handled by wrapper
+    }
+  }
+
+  .slider-handle {
+    position: absolute;
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    background: #ffffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    cursor: grab;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--bg-tertiary);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    touch-action: none;
+
+    // Hit area extension for mobile
+    &::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      right: -15px;
+      bottom: -15px;
+    }
+
+    &:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%);
+      border-color: var(--accent-primary);
+    }
+
+    &::after {
+      content: '';
+      width: 4px;
+      height: 14px;
+      background: #ccc;
+      border-radius: 2px;
+    }
+  }
+
+  // Estilos específicos para sliders de cada macronutriente
+  .protein input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--protein-color) !important;
+  }
+
+  .carbs input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--carbs-color) !important;
+  }
+
+  .fat input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--fat-color) !important;
+  }
+
+  .protein input[type="range"]::-moz-range-thumb {
+    background-color: var(--protein-color) !important;
+  }
+
+  .carbs input[type="range"]::-moz-range-thumb {
+    background-color: var(--carbs-color) !important;
+  }
+
+  .fat input[type="range"]::-moz-range-thumb {
+    background-color: var(--fat-color) !important;
+  }
+}
+
+// Lock buttons
+.lock-button {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+
+  &.locked {
+    background: var(--accent-primary);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+  }
+
+  i {
+    font-size: 0.9rem;
+  }
+}
+
+// Distribution card
+
+.distribution-card {
+  .distribution-chart {
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+  }
+
+  .chart-bar-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+
+    &.chart-protein {
+      background: var(--protein-color);
+    }
+
+    &.chart-carbs {
+      background: var(--carbs-color);
+    }
+
+    &.chart-fat {
+      background: var(--fat-color);
+    }
+  }
+}
+
+// Footer
+.footer-action {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  flex-wrap: nowrap;
+  border-top: 1px solid var(--border-primary);
+}
+
+// Estilos base unificados para ambos botones
+.save-button,
+.recalculate-button {
+  height: 48px;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-transform: none;
+  flex: 1;
+  min-width: 140px;
+
+  @media (max-width: 768px) {
+    flex: 1;
+    max-width: none;
+    width: 100%;
+  }
+}
+
+.save-button {
+  background: var(--accent-primary);
+  color: white;
+
+  &:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.recalculate-button {
+  background: rgba(var(--ion-color-success-rgb), 0.2);
+  color: var(--ion-color-success);
+}
+
+// Responsive Design - Mobile First
+
+// Base styles (Mobile - 320px+)
+.mobile-container {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.main-content {
+  padding: 12px;
+  width: 100%;
+}
+
+.card {
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+}
+
+.calories-input {
+  font-size: 2rem;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+}
+
+.macro-adjuster-card {
+  @media (max-width: 480px) {
+    padding: 10px;
+
+    .macro-info {
+      flex: 0 0 90px;
+    }
+
+    .macro-inputs {
+      gap: 4px;
+    }
+
+    .input-field {
+      input {
+        width: 42px;
+        padding: 8px 2px 8px 6px;
+      }
+    }
+  }
+}
+
+// Small Mobile (up to 374px)
+@media (max-width: 374px) {
+  .main-content {
+    padding: 8px;
+  }
+
+  .card {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .calories-input {
+    font-size: 1.8rem;
+    max-width: 180px;
+  }
+
+  .macro-name {
+    font-size: 14px;
+  }
+}
+
+// Large Mobile (375px - 479px)
+@media (min-width: 375px) and (max-width: 479px) {
+  .main-content {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .calories-input {
+    font-size: 2.2rem;
+    max-width: 220px;
+  }
+
+  .macro-adjuster .macro-values {
+    gap: 12px;
+  }
+
+  .grams-input,
+  .percent-input {
+    width: 65px;
+    font-size: 15px;
+  }
+}
+
+// Small Tablet (480px - 767px)
+@media (min-width: 480px) and (max-width: 767px) {
+  .mobile-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .card {
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .calories-input {
+    font-size: 2.5rem;
+    max-width: 250px;
+  }
+}
+
+
+// Large Tablet (768px - 1023px)
+@media (min-width: 768px) and (max-width: 1023px) {
+  .mobile-container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .main-content {
+    padding: 24px;
+  }
+
+  .card {
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .calories-input {
+    font-size: 2.8rem;
+    max-width: 280px;
+  }
+}
+
+// Desktop (1024px+)
+@media (min-width: 1024px) {
+  .mobile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .main-content {
+    padding: 32px;
+  }
+
+  .card {
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .calories-input {
+    font-size: 3rem;
+    max-width: 300px;
+  }
+}
+
+// Secciones del resumen
+.summary-section {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.summary-subtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    color: var(--accent-primary);
+    font-size: 0.875rem;
+  }
+}
+
+// Balance calórico
+.calories-summary {
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-primary);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .summary-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .summary-value {
+    font-weight: 600;
+    font-size: 0.875rem;
+
+    &.target-kcal {
+      color: var(--text-primary);
+    }
+
+    &.total-kcal {
+      color: var(--text-primary);
+
+      &.excess {
+        color: #ef4444;
+      }
+    }
+
+    &.difference-kcal {
+      &.positive {
+        color: #ef4444;
+      }
+
+      &.negative {
+        color: var(--carbs-color);
+      }
+    }
+  }
+}
+
+// Desglose por macronutriente
+.macros-breakdown {
+  .macro-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-primary);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .macro-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .macro-color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .macro-summary-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+  }
+
+  .macro-summary-details {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .macro-summary-grams {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .macro-summary-percent {
+    color: var(--text-secondary);
+    min-width: 45px;
+    text-align: right;
+  }
+
+  .macro-summary-kcal {
+    color: var(--text-secondary);
+    min-width: 55px;
+    text-align: right;
+  }
+}
+
+// Distribución visual
+.visual-distribution {
+  .distribution-chart {
+    height: 8px;
+    background: var(--border-primary);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 0.75rem;
+  }
+
+  .chart-bar-segment {
+    height: 100%;
+    transition: all 0.3s ease;
+    cursor: help;
+
+    &.chart-protein {
+      background: var(--protein-color);
+    }
+
+    &.chart-carbs {
+      background: var(--carbs-color);
+    }
+
+    &.chart-fat {
+      background: var(--fat-color);
+    }
+  }
+
+  .percentage-total {
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+
+    &.excess {
+      color: #f59e0b;
+    }
+  }
+}
+
+// Info/Warning Card (Style matching manage-set)
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-primary-rgb), 0.08) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.04) 100%);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  &.warning-card {
+    background: linear-gradient(135deg,
+        rgba(var(--ion-color-warning-rgb), 0.1) 0%,
+        rgba(var(--ion-color-warning-rgb), 0.05) 100%);
+    border-color: rgba(var(--ion-color-warning-rgb), 0.25);
+
+    .info-icon,
+    .info-title {
+      color: var(--ion-color-warning);
+    }
+  }
+
+  .info-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .info-text {
+    .info-title {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-bottom: 4px;
+
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+  }
+}
+
+// Responsive adjustments para el resumen
+@media (max-width: 480px) {
+  .macro-summary-details {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+  }
+
+  .warnings {
+    .info-card {
+      padding: 12px;
+      gap: 10px;
+
+      .info-icon {
+        font-size: 1.1rem;
+      }
+
+      .info-title {
+        font-size: 0.85rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+}

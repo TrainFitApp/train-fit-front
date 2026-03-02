@@ -1,0 +1,85 @@
+<ion-header class="filter-header">
+  <div class="filter-toolbar">
+    <div class="header-content">
+      <div class="title-section">
+        <ion-title class="filter-title">Ordenar Ejercicios</ion-title>
+      </div>
+      <ion-buttons slot="end">
+        <button
+          class="close-action-button ripple-effect"
+          (click)="dismissModal()"
+        >
+          <ion-icon name="close" color="primary"></ion-icon>
+        </button>
+      </ion-buttons>
+    </div>
+  </div>
+  <ion-progress-bar *ngIf="loading" type="indeterminate"></ion-progress-bar>
+</ion-header>
+
+<ion-content class="content-modern">
+  <div class="container-elegant">
+    <!-- Header Info with External Button -->
+    <div class="header-with-button">
+      <div class="info-section">
+        <div class="info-content">
+          <ion-icon name="swap-vertical" class="info-icon"></ion-icon>
+          <p class="info-text">Cambiar orden</p>
+        </div>
+      </div>
+      <ion-button
+        fill="clear"
+        class="action-btn menu-btn ripple-effect external-refresh-btn"
+        (click)="refreshOrder()"
+      >
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Exercise List -->
+    <ion-list class="list-elegant">
+      <ion-reorder-group
+        *ngIf="showReorderGroup"
+        [disabled]="false"
+        (ionItemReorder)="handleReorder($any($event))"
+        class="reorder-group-modern"
+      >
+        <ion-item
+          *ngFor="let customExercise of auxCustomExercises; let i = index"
+          class="exercise-card"
+          lines="none"
+        >
+          <div class="exercise-card-content">
+            <div class="exercise-number">{{ i + 1 }}</div>
+            <div class="exercise-info">
+              <div class="exercise-name">
+                {{ customExercise.exercise.name }}
+              </div>
+            </div>
+            <div class="exercise-icons">
+              <ion-reorder class="reorder-modern">
+                <ion-icon name="swap-vertical" class="reorder-icon"></ion-icon>
+              </ion-reorder>
+            </div>
+          </div>
+        </ion-item>
+      </ion-reorder-group>
+    </ion-list>
+  </div>
+</ion-content>
+
+<ion-footer
+  ><!-- Action Button -->
+  <div *ngIf="showReorderGroup" class="action-section">
+    <ion-button
+      *ngIf="!loading"
+      expand="block"
+      (click)="dismissModal()"
+      class="save-button-elegant"
+      fill="solid"
+    >
+      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+      Guardar Orden
+    </ion-button>
+  </div></ion-footer
+>

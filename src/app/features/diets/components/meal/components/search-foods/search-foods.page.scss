@@ -1,0 +1,427 @@
+.search-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    min-height: 56px;
+    gap: 12px;
+
+    .back-section {
+      flex-shrink: 0;
+
+      .back-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .search-section {
+      flex: 1;
+      min-width: 0;
+
+      ion-searchbar {
+        --background: rgba(255, 255, 255, 0.05);
+        --border-radius: 8px;
+        --box-shadow: none;
+        --color: rgba(255, 255, 255, 0.9);
+        --placeholder-color: rgba(255, 255, 255, 0.5);
+        --icon-color: rgba(255, 255, 255, 0.7);
+        --clear-button-color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+        padding: 0;
+
+        &.searchbar-has-focus {
+          --background: rgba(255, 255, 255, 0.08);
+        }
+
+        // Fix para evitar solapamiento del icono en móviles
+        &::part(icon) {
+          left: 12px !important;
+          position: absolute !important;
+          width: 18px;
+          height: 18px;
+        }
+
+        &::part(input) {
+          padding-inline-start: 38px !important;
+          padding-inline-end: 8px !important;
+        }
+      }
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .action-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  .filter-icons-container {
+    margin-top: 4px;
+  }
+}
+
+// Responsividad móvil
+@media (max-width: 768px) {
+  .search-header {
+    .header-content {
+      padding: 12px 16px;
+      min-height: 56px;
+
+      .back-section .back-button,
+      .actions-section .action-button {
+        width: 36px;
+        height: 36px;
+
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}
+
+.fixed {
+  bottom: 6em;
+}
+
+.ios {
+  .fixed {
+    bottom: 8em;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+// Skeleton Product Styles
+.skeleton-product-card {
+  background-color: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin: 6px 4px;
+  padding: 12px;
+}
+
+.skeleton-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.skeleton-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-product-name {
+  width: 120px;
+  height: 18px;
+  border-radius: 4px;
+  --background: rgba(255, 255, 255, 0.15);
+}
+
+.skeleton-product-quantity {
+  width: 40px;
+  height: 14px;
+  border-radius: 4px;
+  --background: rgba(255, 255, 255, 0.08);
+}
+
+.skeleton-product-brand {
+  width: 80px;
+  height: 12px;
+  border-radius: 4px;
+  margin-top: 4px;
+  --background: rgba(255, 255, 255, 0.05);
+}
+
+.skeleton-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  --background: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.skeleton-macro-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.skeleton-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.5;
+
+  &.primary {
+    background: var(--ion-color-primary);
+  }
+
+  &.alternative {
+    background: var(--ion-color-alternative);
+  }
+
+  &.success {
+    background: var(--ion-color-success);
+  }
+
+  &.secondary {
+    background: var(--ion-color-secondary);
+  }
+}
+
+.skeleton-macro-value {
+  width: 30px;
+  height: 14px;
+  border-radius: 3px;
+  --background: rgba(255, 255, 255, 0.1);
+}
+
+// Footer Controls Row
+.search-foods-footer {
+  position: relative;
+}
+
+.footer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px 6px;
+  background: #141414;
+  border-top: 1px solid #252525;
+  gap: 8px;
+}
+
+.mode-toggle {
+  position: relative;
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex: 1;
+}
+
+.mode-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color 0.3s ease;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &.is-active {
+    color: #121212;
+  }
+}
+
+.mode-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+  border-radius: 10px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.recipes-active {
+    transform: translateX(100%);
+  }
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--ion-color-primary);
+  border: 1px solid var(--ion-color-primary);
+  color: #121212;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  height: 40px;
+  width: 40px;
+  min-width: 40px;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:active {
+    background: var(--ion-color-primary-shade);
+    transform: scale(0.98);
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// Legacy ingredient macros (kept for backwards compatibility)
+.ingredient-macros {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #141414;
+  border-top: 1px solid #252525;
+
+  // Row 2: Add button
+  .add-btn-full {
+    flex-shrink: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: var(--ion-color-primary);
+    border: 1px solid var(--ion-color-primary);
+    color: #121212;
+    transition: background 0.2s ease, transform 0.2s ease;
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    &:active {
+      background: var(--ion-color-primary-shade);
+      transform: scale(0.98);
+    }
+  }
+
+  // Row 3: Macros row (single line)
+  .macros-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  .macro-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    .macro-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+
+      &.kcal {
+        background: var(--ion-color-primary, #fe9000);
+      }
+
+      &.protein {
+        background: var(--ion-color-tertiary, #5260ff);
+      }
+
+      &.carbs {
+        background: var(--ion-color-success, #2dd36f);
+      }
+
+      &.fat {
+        background: var(--ion-color-secondary, #ff6b35);
+      }
+    }
+
+    .macro-value {
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .macro-label {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
+  }
+}

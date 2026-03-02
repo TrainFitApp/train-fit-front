@@ -1,0 +1,207 @@
+// Contenedor principal del calendario
+.calendar-container {
+  background-color: #141414;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+// Encabezado del calendario con días de la semana
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #d4af37;
+}
+
+.weekday-header {
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: #ffffff;
+  padding: 8px 4px;
+  
+  &.average-header {
+    color: #d4af37;
+    font-weight: 700;
+  }
+}
+
+// Swiper del calendario
+.calendar-swiper {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  
+  // Estilos personalizados para el scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d4af37;
+    border-radius: 3px;
+  }
+}
+
+.calendar-slide {
+  padding: 4px 0;
+}
+
+// Grid del calendario
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  align-items: center;
+}
+
+// Días del calendario
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 6px 2px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  &.selected-day {
+    background-color: #d4af37;
+    color: #141414;
+    border-color: #d4af37;
+    font-weight: 600;
+    
+    .day-weight {
+      color: #141414;
+    }
+  }
+  
+  &.current-day {
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+  }
+  
+  &.empty-day {
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+
+.day-number {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.day-weight {
+  font-size: 11px;
+  font-weight: 600;
+  color: #d4af37;
+  text-align: center;
+  line-height: 1.2;
+}
+
+// Media semanal
+.week-average {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 6px 8px;
+  background-color: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4af37;
+  text-align: center;
+}
+
+// Spinner de carga
+ion-spinner {
+  width: 32px;
+  height: 32px;
+  color: #d4af37;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 12px;
+    margin: 4px 0;
+  }
+  
+  .weekday-header {
+    font-size: 11px;
+    padding: 8px 2px;
+  }
+  
+  .calendar-day {
+    min-height: 44px;
+    padding: 4px 1px;
+  }
+  
+  .day-number {
+    font-size: 12px;
+  }
+  
+  .day-weight {
+    font-size: 10px;
+  }
+  
+  .week-average {
+    min-height: 44px;
+    font-size: 11px;
+    padding: 4px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    padding: 8px;
+  }
+  
+  .weekday-header {
+    font-size: 10px;
+    padding: 6px 1px;
+  }
+  
+  .calendar-day {
+    min-height: 40px;
+    padding: 2px 1px;
+  }
+  
+  .day-number {
+    font-size: 11px;
+  }
+  
+  .day-weight {
+    font-size: 9px;
+  }
+  
+  .week-average {
+    min-height: 40px;
+    font-size: 10px;
+    padding: 2px 2px;
+  }
+}

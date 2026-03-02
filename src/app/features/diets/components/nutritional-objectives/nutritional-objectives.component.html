@@ -1,0 +1,272 @@
+<ion-header>
+    <app-page-header title="Información detallada" [customBackAction]="true" (backClick)="dismiss()">
+    </app-page-header>
+</ion-header>
+
+<ion-content>
+    <!-- Calorías Hero -->
+    <div class="calories-hero" [ngClass]="getProgressClass(nutritionalData.energyKcal, user.kcalTotal, 'limit')">
+        <div class="calories-hero-content">
+            <div class="calories-label">Calorías Diarias</div>
+            <div class="calories-display">
+                <span class="calories-number">{{ nutritionalData.energyKcal | number:'1.0-0' }}</span>
+                <span class="calories-goal">/ {{ user.kcalTotal | number:'1.0-0' }}</span>
+            </div>
+            <div class="calories-bar">
+                <div class="calories-bar-fill"
+                    [style.width.%]="animateBars ? getPercent(nutritionalData.energyKcal, user.kcalTotal) : 0">
+                </div>
+            </div>
+            <div class="calories-remaining" *ngIf="user.kcalTotal - nutritionalData.energyKcal >= 0; else overGoal">
+                Quedan <strong>{{ user.kcalTotal - nutritionalData.energyKcal | number:'1.0-0' }}</strong> kcal para
+                completar tu objetivo
+            </div>
+            <ng-template #overGoal>
+                <div class="calories-remaining">Has superado tu objetivo por <strong>{{ nutritionalData.energyKcal -
+                        user.kcalTotal | number:'1.0-0' }}</strong> kcal</div>
+            </ng-template>
+        </div>
+    </div>
+
+    <!-- Macronutrientes Grid (6 cards) -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon"></div>
+            <h2 class="section-title">Macronutrientes</h2>
+        </div>
+        <div class="macros-grid">
+            <!-- Proteína -->
+            <div class="macro-card protein"
+                [ngClass]="getProgressClass(nutritionalData.protein, user.proteinsGTotal, 'limit')">
+                <div class="macro-header">
+                    <div class="macro-name">Proteínas</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.protein | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ user.proteinsGTotal | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.protein, user.proteinsGTotal, 'limit')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.protein, user.proteinsGTotal) : 0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carbohidratos -->
+            <div class="macro-card carbs"
+                [ngClass]="getProgressClass(nutritionalData.carbohydrate, user.carbohydratesGTotal, 'limit')">
+                <div class="macro-header">
+                    <div class="macro-name">Carbohidratos</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.carbohydrate | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ user.carbohydratesGTotal | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.carbohydrate, user.carbohydratesGTotal, 'limit')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.carbohydrate, user.carbohydratesGTotal) : 0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grasas -->
+            <div class="macro-card fat" [ngClass]="getProgressClass(nutritionalData.fat, user.fatGTotal, 'limit')">
+                <div class="macro-header">
+                    <div class="macro-name">Grasas</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.fat | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ user.fatGTotal | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.fat, user.fatGTotal, 'limit')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.fat, user.fatGTotal) : 0"></div>
+                </div>
+            </div>
+
+            <!-- Fibra (Requirement) -->
+            <div class="macro-card fiber"
+                [ngClass]="getProgressClass(nutritionalData.fiber, references.fiber, 'requirement')">
+                <div class="macro-header">
+                    <div class="macro-name">Fibra</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.fiber | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.fiber | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.fiber, references.fiber, 'requirement')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.fiber, references.fiber) : 0"></div>
+                </div>
+            </div>
+
+            <!-- Azúcar (Limit) -->
+            <div class="macro-card sugar"
+                [ngClass]="getProgressClass(nutritionalData.sugar, references.sugar, 'limit')">
+                <div class="macro-header">
+                    <div class="macro-name">Azúcar</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.sugar | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.sugar | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.sugar, references.sugar, 'limit')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.sugar, references.sugar) : 0"></div>
+                </div>
+            </div>
+
+            <!-- Sal (Limit) -->
+            <div class="macro-card salt" [ngClass]="getProgressClass(nutritionalData.salt, references.salt, 'limit')">
+                <div class="macro-header">
+                    <div class="macro-name">Sal</div>
+                </div>
+                <div class="macro-values">
+                    <span class="macro-current">{{ nutritionalData.salt | number:'1.0-0' }}</span>
+                    <span class="macro-goal-inline">/ {{ references.salt | number:'1.0-0' }} g</span>
+                </div>
+                <div class="macro-progress">
+                    <div class="macro-progress-fill"
+                        [ngClass]="getProgressClass(nutritionalData.salt, references.salt, 'limit')"
+                        [style.width.%]="animateBars ? getPercent(nutritionalData.salt, references.salt) : 0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="custom-divider"></div>
+
+    <!-- Minerales (Requirement) -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon"></div>
+            <h2 class="section-title">Minerales</h2>
+        </div>
+        <div class="micro-grid">
+            <ng-container *ngFor="let m of [
+                {n: 'Calcio', v: nutritionalData.calcium * 1000, g: references.calcium * 1000, u: 'mg'},
+                {n: 'Hierro', v: nutritionalData.iron * 1000, g: references.iron * 1000, u: 'mg'},
+                {n: 'Magnesio', v: nutritionalData.magnesium * 1000, g: references.magnesium * 1000, u: 'mg'},
+                {n: 'Fósforo', v: nutritionalData.phosphorus * 1000, g: references.phosphorus * 1000, u: 'mg'},
+                {n: 'Potasio', v: nutritionalData.potassium * 1000, g: references.potassium * 1000, u: 'mg'},
+                {n: 'Zinc', v: nutritionalData.zinc * 1000, g: references.zinc * 1000, u: 'mg'},
+                {n: 'Sodio', v: nutritionalData.sodium * 1000, g: references.sodium * 1000, u: 'mg'},
+                {n: 'Cobre', v: nutritionalData.copper * 1000, g: references.copper * 1000, u: 'mg'},
+                {n: 'Manganeso', v: nutritionalData.manganese * 1000, g: references.manganese * 1000, u: 'mg'},
+                {n: 'Selenio', v: nutritionalData.selenium * 1000000, g: references.selenium * 1000000, u: 'µg'},
+                {n: 'Yodo', v: nutritionalData.iodine * 1000000, g: references.iodine * 1000000, u: 'µg'}
+            ]">
+                <div class="micro-item" [ngClass]="getProgressClass(m.v, m.g, 'requirement')">
+                    <div class="micro-left">
+                        <div class="micro-name-label">{{ m.n }}</div>
+                        <div class="micro-progress-container">
+                            <div class="micro-bar-wrapper">
+                                <div class="micro-bar-fill" [ngClass]="getProgressClass(m.v, m.g, 'requirement')"
+                                    [style.width.%]="animateBars ? getPercent(m.v, m.g) : 0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="micro-right-values">
+                        <div class="micro-values-set">
+                            <span class="micro-current-val">{{ m.v | number:'1.0-0' }}</span>
+                            <span class="micro-unit-label"> {{ m.u }}</span>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <div class="custom-divider"></div>
+
+    <!-- Vitaminas (Requirement) -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon"></div>
+            <h2 class="section-title">Vitaminas</h2>
+        </div>
+        <div class="micro-grid">
+            <ng-container *ngFor="let v of [
+                {n: 'Vitamina A', v: nutritionalData.vitaminA * 1000000, g: references.vitaminA * 1000000, u: 'µg'},
+                {n: 'Vitamina C', v: nutritionalData.vitaminC * 1000, g: references.vitaminC * 1000, u: 'mg'},
+                {n: 'Vitamina D', v: nutritionalData.vitaminD * 1000000, g: references.vitaminD * 1000000, u: 'µg'},
+                {n: 'Vitamina E', v: nutritionalData.vitaminE * 1000, g: references.vitaminE * 1000, u: 'mg'},
+                {n: 'Vitamina K', v: nutritionalData.vitaminK * 1000000, g: references.vitaminK * 1000000, u: 'µg'},
+                {n: 'Vitamina B1', v: nutritionalData.vitaminB1 * 1000, g: references.vitaminB1 * 1000, u: 'mg'},
+                {n: 'Vitamina B2', v: nutritionalData.vitaminB2 * 1000, g: references.vitaminB2 * 1000, u: 'mg'},
+                {n: 'Vitamina B3', v: nutritionalData.vitaminB3 * 1000, g: references.vitaminB3 * 1000, u: 'mg'},
+                {n: 'Vitamina B5', v: nutritionalData.vitaminB5 * 1000, g: references.vitaminB5 * 1000, u: 'mg'},
+                {n: 'Vitamina B6', v: nutritionalData.vitaminB6 * 1000, g: references.vitaminB6 * 1000, u: 'mg'},
+                {n: 'Vitamina B9', v: nutritionalData.vitaminB9 * 1000000, g: references.vitaminB9 * 1000000, u: 'µg'},
+                {n: 'Vitamina B12', v: nutritionalData.vitaminB12 * 1000000, g: references.vitaminB12 * 1000000, u: 'µg'},
+                {n: 'Biotina', v: nutritionalData.biotin * 1000000, g: references.biotin * 1000000, u: 'µg'}
+            ]">
+                <div class="micro-item" [ngClass]="getProgressClass(v.v, v.g, 'requirement')">
+                    <div class="micro-left">
+                        <div class="micro-name-label">{{ v.n }}</div>
+                        <div class="micro-progress-container">
+                            <div class="micro-bar-wrapper">
+                                <div class="micro-bar-fill" [ngClass]="getProgressClass(v.v, v.g, 'requirement')"
+                                    [style.width.%]="animateBars ? getPercent(v.v, v.g) : 0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="micro-right-values">
+                        <div class="micro-values-set">
+                            <span class="micro-current-val">{{ v.v | number:'1.0-0' }}</span>
+                            <span class="micro-unit-label"> {{ v.u }}</span>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <div class="custom-divider"></div>
+
+    <!-- Otros Nutrientes -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon"></div>
+            <h2 class="section-title">Otros Nutrientes</h2>
+        </div>
+        <div class="micro-grid">
+            <ng-container *ngFor="let o of [
+                {n: 'Omega-3', v: nutritionalData.omega3, g: 1.6, u: 'g', t: 'requirement'},
+                {n: 'Omega-6', v: nutritionalData.omega6, g: 17, u: 'g', t: 'requirement'},
+                {n: 'Omega-9', v: nutritionalData.omega9, g: 12, u: 'g', t: 'requirement'},
+                {n: 'Grasa Saturada', v: nutritionalData.saturatedFat, g: references.saturatedFat, u: 'g', t: 'limit'},
+                {n: 'Grasa Trans', v: nutritionalData.transFat, g: 2, u: 'g', t: 'limit'},
+                {n: 'Colesterol', v: nutritionalData.cholesterol * 1000, g: references.cholesterol * 1000, u: 'mg', t: 'limit'},
+                {n: 'Cafeína', v: nutritionalData.caffeine * 1000, g: 400, u: 'mg', t: 'limit'},
+                {n: 'Taurina', v: nutritionalData.taurine * 1000, g: 1000, u: 'mg', t: 'limit'},
+                {n: 'Alcohol', v: nutritionalData.alcohol, g: 10, u: 'g', t: 'limit'}
+            ]">
+                <div class="micro-item" [ngClass]="getProgressClass(o.v, o.g, o.t)">
+                    <div class="micro-left">
+                        <div class="micro-name-label">{{ o.n }}</div>
+                        <div class="micro-progress-container">
+                            <div class="micro-bar-wrapper">
+                                <div class="micro-bar-fill" [ngClass]="getProgressClass(o.v, o.g, o.t)"
+                                    [style.width.%]="animateBars ? getPercent(o.v, o.g) : 0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="micro-right-values">
+                        <div class="micro-values-set">
+                            <span class="micro-current-val">{{ o.v | number:'1.0-0' }}</span>
+                            <span class="micro-unit-label"> {{ o.u }}</span>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <div style="height: 40px;"></div>
+</ion-content>

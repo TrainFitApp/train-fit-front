@@ -1,0 +1,444 @@
+<ion-header>
+  <app-page-header
+    title="Editar"
+    [customBackAction]="true"
+    [showProgress]="loading"
+    (backClick)="close()"
+  >
+  </app-page-header>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <form [formGroup]="userForm">
+      <ion-card class="profile-card">
+        <ion-card-header>
+          <ion-card-title color="primary"> DATOS PERSONALES </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="form-container">
+            <div class="input-row">
+              <div class="input-group">
+                <label class="input-label">Nombre *</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    formControlName="name"
+                    class="modern-input"
+                    placeholder="Tu nombre"
+                    appCursorEnd
+                  />
+                  <ion-icon name="person-outline" class="input-icon"></ion-icon>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Apellido</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    formControlName="lastname"
+                    class="modern-input"
+                    placeholder="Tu apellido"
+                    appCursorEnd
+                  />
+                  <ion-icon name="people-outline" class="input-icon"></ion-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label class="input-label">Peso (kg)</label>
+                <div class="input-wrapper">
+                  <input
+                     type="text" inputmode="decimal"
+                    formControlName="weight"
+                    class="modern-input"
+                    placeholder="70"
+                    appCursorEnd
+                    appDecimalInput
+                  />
+                  <ion-icon
+                    name="fitness-outline"
+                    class="input-icon"
+                  ></ion-icon>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Altura (cm) *</label>
+                <div class="input-wrapper">
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    formControlName="height"
+                    class="modern-input"
+                    placeholder="175"
+                    appCursorEnd
+                  />
+                  <ion-icon name="resize-outline" class="input-icon"></ion-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group full-width">
+                <ion-label class="input-label">Sexo *</ion-label>
+                <div class="select-wrapper">
+                  <ion-select
+                    formControlName="sex"
+                    interface="action-sheet"
+                    mode="ios"
+                    cancelText="Cancelar"
+                    placeholder="Selecciona tu sexo"
+                  >
+                    <ion-select-option [value]="SEX_TYPES.female"
+                      >Mujer</ion-select-option
+                    >
+                    <ion-select-option [value]="SEX_TYPES.male"
+                      >Hombre</ion-select-option
+                    >
+                  </ion-select>
+                  <ion-icon
+                    name="chevron-down-outline"
+                    class="select-icon"
+                  ></ion-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group full-width">
+                <label class="input-label">Fecha de nacimiento *</label>
+                <div class="datetime-enhanced-wrapper">
+                  <div class="datetime-display" (click)="openDatePicker()">
+                    <span
+                      class="date-text"
+                      [class.placeholder]="!userForm.get('birth')?.value"
+                    >
+                      {{ getFormattedBirthDate() || 'Selecciona tu fecha de
+                      nacimiento' }}
+                    </span>
+                    <div
+                      class="age-indicator"
+                      *ngIf="userForm.get('birth')?.value"
+                    >
+                      <span class="age-text">{{ calculateAge() }} años</span>
+                    </div>
+                  </div>
+                  <ion-icon
+                    name="calendar-outline"
+                    class="calendar-icon"
+                  ></ion-icon>
+                  <ion-datetime-button
+                    id="datetime-button"
+                    datetime="datetime"
+                    class="hidden-datetime-button"
+                  ></ion-datetime-button>
+
+                  <ion-modal
+                    [keepContentsMounted]="true"
+                    [showBackdrop]="true"
+                    class="datetime-modal"
+                    trigger="datetime-button"
+                    (willPresent)="isDateModalOpen = true"
+                    (willDismiss)="isDateModalOpen = false"
+                  >
+                    <ng-template>
+                      <ion-datetime
+                        id="datetime"
+                        mode="ios"
+                        presentation="date"
+                        [preferWheel]="true"
+                        [doneText]="'CONFIRMAR'"
+                        [cancelText]="'CANCELAR'"
+                        formControlName="birth"
+                        [max]="getMaxDate()"
+                        [min]="getMinDate()"
+                        [showDefaultButtons]="true"
+                        locale="es-ES"
+                        (ionChange)="onDateChange($event)"
+                      >
+                        <div slot="title" class="datetime-title">
+                          <ion-icon name="calendar-outline"></ion-icon>
+                          <span>&nbsp;Fecha de nacimiento</span>
+                        </div>
+                      </ion-datetime>
+                    </ng-template>
+                  </ion-modal>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="profile-card">
+        <ion-card-header>
+          <ion-card-title color="primary"> ACTIVIDAD FÍSICA </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="input-group full-width">
+            <ion-label class="input-label">Cantidad de pasos diarios</ion-label>
+            <div class="select-wrapper">
+              <ion-select
+                formControlName="steps"
+                interface="action-sheet"
+                mode="ios"
+                cancelText="Cancelar"
+                placeholder="Selecciona tu nivel de pasos"
+              >
+                <ion-select-option
+                  *ngFor="let stepValue of STEPS_VALUES"
+                  [value]="stepValue.value"
+                >
+                  {{ stepValue.name }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon
+                name="chevron-down-outline"
+                class="select-icon"
+              ></ion-icon>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card
+        *ngIf="userForm.controls.steps.value && userForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
+        class="profile-card"
+        [id]="'activity-card'"
+        [class.highlight-card]="shouldHighlightActivity"
+      >
+        <ion-card-header>
+          <ion-card-title color="primary"> NIVEL DE ACTIVIDAD </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div
+            class="input-group full-width"
+            *ngIf="userForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
+          >
+            <ion-label class="input-label"
+              >Selecciona tu nivel de actividad<span> *</span></ion-label
+            >
+            <div class="select-wrapper">
+              <ion-select
+                formControlName="activity"
+                interface="action-sheet"
+                mode="ios"
+                cancelText="Cancelar"
+                placeholder="Selecciona tu nivel de actividad"
+              >
+                <ion-select-option
+                  *ngFor="let activity of ACTIVITY_FACTOR_VALUES"
+                  [value]="activity.value"
+                >
+                  {{ activity.name }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon
+                name="chevron-down-outline"
+                class="select-icon"
+              ></ion-icon>
+            </div>
+          </div>
+
+          <ion-card class="info-card" *ngIf="userForm.controls.activity.value">
+            <ion-card-content>
+              <ion-label class="info-title" color="primary"
+                >{{ activityType?.name }}</ion-label
+              >
+              <p class="info-description">{{ activityType?.description }}</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="profile-card">
+        <ion-card-header>
+          <ion-card-title color="primary">
+            FRECUENCIA DE ENTRENAMIENTO
+          </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="input-group full-width">
+            <ion-label class="input-label"
+              >Frecuencia de entrenamiento</ion-label
+            >
+            <div class="select-wrapper">
+              <ion-select
+                formControlName="training"
+                interface="action-sheet"
+                mode="ios"
+                cancelText="Cancelar"
+                placeholder="Selecciona tu frecuencia de entrenamiento"
+              >
+                <ion-select-option
+                  *ngFor="let training of TRAINING_TYPE_VALUES"
+                  [value]="training.value"
+                >
+                  {{ training.name }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon
+                name="chevron-down-outline"
+                class="select-icon"
+              ></ion-icon>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="profile-card">
+        <ion-card-header>
+          <ion-card-title color="primary"> OBJETIVO </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="input-group full-width">
+            <ion-label class="input-label">Selecciona tu objetivo</ion-label>
+            <div class="select-wrapper">
+              <ion-select
+                formControlName="objetiveType"
+                interface="action-sheet"
+                mode="ios"
+                cancelText="Cancelar"
+                placeholder="Selecciona tu objetivo"
+                (ionChange)="selectObjetiveFromSelect($event)"
+              >
+                <ion-select-option
+                  *ngFor="let objetive of OBJETIVES_VALUES"
+                  [value]="objetive.id"
+                >
+                  {{ objetive.name }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon
+                name="chevron-down-outline"
+                class="select-icon"
+              ></ion-icon>
+            </div>
+          </div>
+
+          <ion-card class="info-card">
+            <ion-card-content>
+              <ion-label class="info-title" color="primary"
+                >{{ objetiveSelected.name }}</ion-label
+              >
+              <p class="info-description">
+                Te encontrarás en {{ objetiveSelected.key }} calórico
+                <ng-container
+                  *ngIf="objetiveSelected.key !== OBJETIVES[OBJETIVE_TYPES.maintenance].key"
+                >
+                  de
+                  <strong
+                    >{{ Math.abs(userForm.controls.objetive.value) }}
+                    kcal</strong
+                  >
+                </ng-container>
+              </p>
+            </ion-card-content>
+          </ion-card>
+
+          <div
+            *ngIf="objetiveSelected.key !== OBJETIVES[OBJETIVE_TYPES.maintenance].key"
+            class="objective-slider"
+          >
+            <ion-label class="section-label">
+              Selecciona tu
+              <strong
+                >{{ OBJETIVES[OBJETIVE_TYPES.gain].key === objetiveSelected.key
+                ? 'superávit energético' : 'déficit energético' }}</strong
+              >
+              (kcal)
+            </ion-label>
+            <ion-range
+              formControlName="objetive"
+              mode="ios"
+              [min]="50"
+              [max]="500"
+              [pin]="true"
+              [step]="50"
+              [ticks]="true"
+              [snaps]="true"
+              (ionChange)="changeObjetive($event)"
+              (ionKnobMoveStart)="changeObjetive($event)"
+              (ionKnobMoveEnd)="changeObjetive($event)"
+              class="custom-range"
+            ></ion-range>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="profile-card macros-card">
+        <ion-card-header>
+          <ion-card-title color="primary"> MACRONUTRIENTES </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <ion-item *ngIf="calculationError" class="error-message">
+            <ion-icon
+              name="warning-outline"
+              slot="start"
+              color="danger"
+            ></ion-icon>
+            <ion-label class="ion-text-wrap" color="danger">
+              Proteínas, CBH y Grasas deben coincidir con el total de kcal
+              (margen de error: 25 kcal)
+            </ion-label>
+          </ion-item>
+
+          <!-- Resumen visual de macros -->
+          <div
+            class="macros-summary"
+            style="
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 12px;
+            "
+          >
+            <div class="kpi">
+              <div class="title">Kcal</div>
+              <div class="value">
+                {{ userForm.controls.kcalTotal.value?.toFixed(0) || 0 }}
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="title">Proteínas</div>
+              <div class="value">
+                {{ userForm.controls.proteinsGTotal.value?.toFixed(0) || 0 }}g
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="title">Hidratos</div>
+              <div class="value">
+                {{ userForm.controls.carbohydratesGTotal.value?.toFixed(0) || 0
+                }}g
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="title">Grasas</div>
+              <div class="value">
+                {{ userForm.controls.fatGTotal.value?.toFixed(0) || 0 }}g
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Botones de acción -->
+      <div>
+        <ion-button
+          class="save-button-global"
+          expand="block"
+          (click)="updateUser()"
+          [disabled]="loading"
+        >
+          Guardar Cambios
+        </ion-button>
+      </div>
+    </form>
+  </ion-list>
+</ion-content>
+
+<ion-footer />

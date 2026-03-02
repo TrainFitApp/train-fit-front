@@ -1,0 +1,401 @@
+<ion-header>
+    <app-page-header title="Estadísticas de Rutina" [customBackAction]="true" (backClick)="goBack()">
+    </app-page-header>
+</ion-header>
+
+<ion-content>
+    <div class="content">
+
+        <!-- Global Calendar (Always Visible) -->
+        <ion-card class="calendar-card">
+            <ion-card-header>
+                <ion-card-subtitle>
+                    <span class="section-icon"></span>
+                    Calendario de Rutina
+                </ion-card-subtitle>
+            </ion-card-header>
+
+            <ion-card-content>
+                <div class="calendar-header">
+                    <ion-button fill="clear" (click)="changeMonth(-1)">
+                        <ion-icon name="chevron-back-outline"></ion-icon>
+                    </ion-button>
+                    <div class="month-label">{{ monthYearString }}</div>
+                    <ion-button fill="clear" (click)="changeMonth(1)">
+                        <ion-icon name="chevron-forward-outline"></ion-icon>
+                    </ion-button>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="day-header" *ngFor="let d of weekDaysHeader">{{ d }}</div>
+                    <div class="day-cell" *ngFor="let day of calendarDays" [class.inactive]="day.inactive"
+                        [class.completed]="day.completed">
+                        <span class="day-number">{{ day.day }}</span>
+                        <div class="workout-indicators" *ngIf="day.completed && day.workouts">
+                            <div class="workout-dot" *ngFor="let w of day.workouts" [style.background-color]="w.color"
+                                [title]="w.name"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calendar-legend" *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0">
+                    <ion-text color="medium">
+                        <p class="legend-title">Tipos de Entrenamiento:</p>
+                    </ion-text>
+                    <div class="legend-items">
+                        <ion-chip *ngFor="let type of uniqueWorkoutTypes" class="legend-chip">
+                            <div class="workout-dot" [style.background-color]="type.color"></div>
+                            <ion-label>{{ type.name }}</ion-label>
+                        </ion-chip>
+                    </div>
+                </div>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Workout Selector -->
+        <ion-card>
+            <ion-card-header>
+                <ion-card-subtitle>
+                    <span class="section-icon"></span>
+                    Seleccionar Entrenamiento
+                </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item lines="none">
+                    <ion-select mode="ios" interface="action-sheet"
+                        [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }" placeholder="Elige un entrenamiento"
+                        [value]="selectedWorkoutName" (ionChange)="onWorkoutChange($event)">
+                        <ion-select-option *ngFor="let w of workouts" [value]="w.name">
+                            {{ w.name }} ({{ w.exercises.length }} ejercicios)
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Exercise Selector -->
+        <ion-card [class.disabled-card]="!selectedWorkoutName">
+            <ion-card-header>
+                <ion-card-subtitle>
+                    <span class="section-icon"></span>
+                    Seleccionar Ejercicio
+                </ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-item lines="none">
+                    <ion-select mode="ios" interface="action-sheet"
+                        [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }" placeholder="Elige un ejercicio"
+                        [disabled]="!selectedWorkoutName" [value]="selectedExerciseId"
+                        (ionChange)="onExerciseChange($event)">
+                        <ion-select-option *ngFor="let ex of exercises" [value]="ex._id">
+                            {{ ex.exercise?.name }}
+                        </ion-select-option>
+                    </ion-select>
+                </ion-item>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Stats Grid -->
+        <ion-grid *ngIf="selectedExerciseId && historyData.length > 0">
+            <ion-row>
+                <ion-col size="6">
+                    <ion-card class="stat-card">
+                        <ion-card-content>
+                            <div class="stat-label">{{ isCardio ? 'Mejor Velocidad' : 'Récord Personal' }}</div>
+                            <div class="stat-value">
+                                {{ personalRecord | number:'1.0-1' }}<small>{{ isCardio ? 'km/h' : 'kg' }}</small>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-card class="stat-card">
+                        <ion-card-content>
+                            <div class="stat-label">{{ isCardio ? 'Tiempo Total' : '1RM Estimado' }}</div>
+                            <div class="stat-value">
+                                {{ isCardio ? (metrics.max1RM | number:'1.0-0') : (metrics.max1RM | number:'1.0-1') }}
+                                <small>{{ isCardio ? 'min' : 'kg' }}</small>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-card class="stat-card">
+                        <ion-card-content>
+                            <div class="stat-label">{{ isCardio ? 'Sesiones Realizadas' : 'Volumen Real' }}</div>
+                            <div class="stat-value">
+                                {{ metrics.totalVolume | number:'1.0-0' }}
+                                <small *ngIf="!isCardio">kg</small>
+                            </div>
+                            <div class="stat-change">
+                                <ion-text color="medium">{{ isCardio ? 'este mes' : 'acumulado' }}</ion-text>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+                <ion-col size="6">
+                    <ion-card class="stat-card">
+                        <ion-card-content>
+                            <div class="stat-label">{{ isCardio ? 'Sesiones Totales' : 'Veces Completado' }}</div>
+                            <div class="stat-value">{{ workoutCompletionCount }}</div>
+                            <div class="stat-change">
+                                <ion-text color="medium">sesiones</ion-text>
+                            </div>
+                        </ion-card-content>
+                    </ion-card>
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+
+        <!-- Comparison Card -->
+        <ion-card class="comparison-card" *ngIf="filteredHistory.length >= 2 && selectedExerciseId">
+            <ion-card-header>
+                <div class="comparison-header">
+                    <ion-card-title>Comparativa</ion-card-title>
+                    <div class="comparison-selectors">
+                        <ion-select mode="ios" interface="action-sheet" class="compare-select"
+                            [(ngModel)]="compareIndexA" (ionChange)="onCompareChange()">
+                            <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
+                                M{{ o.splitIndex }}
+                            </ion-select-option>
+                        </ion-select>
+                        <ion-icon name="arrow-forward-outline" class="compare-arrow"></ion-icon>
+                        <ion-select mode="ios" interface="action-sheet" class="compare-select"
+                            [(ngModel)]="compareIndexB" (ionChange)="onCompareChange()">
+                            <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
+                                M{{ o.splitIndex }}
+                            </ion-select-option>
+                        </ion-select>
+                    </div>
+                </div>
+            </ion-card-header>
+            <ion-card-content>
+                <div class="comparison-grid">
+
+                    <!-- Peso máximo -->
+                    <div class="comparison-item" *ngIf="!isCardio">
+                        <div class="comparison-item-label">
+                            <ion-icon name="barbell-outline"></ion-icon>
+                            Mejor serie
+                        </div>
+                        <div class="comparison-item-values">
+                            <span class="prev-val">{{ comparisonData.prevMaxWeight }} kg</span>
+                            <ion-icon [name]="getDiffIcon(comparisonData.weightDiff)"
+                                [class]="getDiffClass(comparisonData.weightDiff)"></ion-icon>
+                            <span class="curr-val">{{ comparisonData.currMaxWeight }} kg</span>
+                        </div>
+                        <div class="comparison-item-pct" [class]="getDiffClass(comparisonData.weightDiff)">
+                            <span *ngIf="comparisonData.weightDiff !== 0">
+                                {{ comparisonData.weightDiff > 0 ? '+' : '' }}{{ comparisonData.weightPct |
+                                number:'1.0-1' }}%
+                            </span>
+                            <span *ngIf="comparisonData.weightDiff === 0" class="neutral">Sin cambio</span>
+                        </div>
+                    </div>
+
+                    <!-- Series -->
+                    <div class="comparison-item">
+                        <div class="comparison-item-label">
+                            <ion-icon name="list-outline"></ion-icon>
+                            Series
+                        </div>
+                        <div class="comparison-item-values">
+                            <span class="prev-val">{{ comparisonData.prevSets }}</span>
+                            <ion-icon [name]="getDiffIcon(comparisonData.setsDiff)"
+                                [class]="getDiffClass(comparisonData.setsDiff)"></ion-icon>
+                            <span class="curr-val">{{ comparisonData.currSets }}</span>
+                        </div>
+                        <div class="comparison-item-pct" [class]="getDiffClass(comparisonData.setsDiff)">
+                            <span *ngIf="comparisonData.setsDiff !== 0">
+                                {{ comparisonData.setsDiff > 0 ? '+' : '' }}{{ comparisonData.setsDiff }} series
+                            </span>
+                            <span *ngIf="comparisonData.setsDiff === 0" class="neutral">Igual</span>
+                        </div>
+                    </div>
+
+
+                    <!-- Técnicas avanzadas (full width) -->
+                    <div class="comparison-item comparison-item-full"
+                        *ngIf="comparisonData.prevDropSets + comparisonData.currDropSets + comparisonData.prevRestPauses + comparisonData.currRestPauses > 0">
+                        <div class="comparison-item-label">
+                            <ion-icon name="flash-outline"></ion-icon>
+                            Técnicas avanzadas
+                        </div>
+                        <div class="technique-row">
+                            <span class="technique-chip ds"
+                                *ngIf="comparisonData.prevDropSets > 0 || comparisonData.currDropSets > 0">
+                                <span class="t-label">DS</span>
+                                {{ comparisonData.prevDropSets }} → {{ comparisonData.currDropSets }}
+                                <ion-icon
+                                    [name]="getDiffIcon(comparisonData.currDropSets - comparisonData.prevDropSets)"
+                                    [class]="getDiffClass(comparisonData.currDropSets - comparisonData.prevDropSets)"></ion-icon>
+                            </span>
+                            <span class="technique-chip rp"
+                                *ngIf="comparisonData.prevRestPauses > 0 || comparisonData.currRestPauses > 0">
+                                <span class="t-label">RP</span>
+                                {{ comparisonData.prevRestPauses }} → {{ comparisonData.currRestPauses }}
+                                <ion-icon
+                                    [name]="getDiffIcon(comparisonData.currRestPauses - comparisonData.prevRestPauses)"
+                                    [class]="getDiffClass(comparisonData.currRestPauses - comparisonData.prevRestPauses)"></ion-icon>
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </ion-card-content>
+        </ion-card>
+
+
+        <!-- Chart Section -->
+        <ion-card class="chart-card" *ngIf="selectedExerciseId && historyData.length > 0">
+            <ion-card-header class="chart-card-header">
+                <ion-card-title>Evolución</ion-card-title>
+                <div class="chart-tabs">
+                    <button class="chart-tab" [class.active]="chartMode === 'topset'"
+                        (click)="selectChartMode('topset')">
+                        <ion-icon name="trophy-outline"></ion-icon>
+                        Top Set
+                    </button>
+                    <button class="chart-tab" [class.active]="chartMode === 'sets'" (click)="selectChartMode('sets')">
+                        <ion-icon name="trending-up-outline"></ion-icon>
+                        Series
+                    </button>
+                    <button class="chart-tab" [class.active]="chartMode === 'rir'" (click)="selectChartMode('rir')">
+                        <ion-icon name="flame-outline"></ion-icon>
+                        RIR
+                    </button>
+                </div>
+            </ion-card-header>
+            <ion-card-content>
+                <!-- Chart Mode Description -->
+                <div class="chart-mode-desc">
+                    <span *ngIf="chartMode === 'topset'">Peso de la mejor serie por microciclo</span>
+                    <span *ngIf="chartMode === 'sets'">Peso de cada serie por microciclo</span>
+                    <span *ngIf="chartMode === 'rir'">Intensidad media · RIR bajo = más cerca del fallo 🔥</span>
+                </div>
+                <div class="chart-container">
+                    <canvas #progressionCanvas></canvas>
+                </div>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Data Table -->
+        <ion-card *ngIf="selectedExerciseId && historyData.length > 0">
+            <ion-card-header>
+                <ion-card-title>Historial Detallado</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+                <!-- Table Header -->
+                <div class="history-table-header">
+                    <span class="header-col-session">Sesión</span>
+
+                    <ng-container *ngIf="!isCardio">
+                        <span class="header-col-weight">Peso</span>
+                        <span class="header-col-reps">Reps</span>
+                        <span class="header-col-rir">RIR</span>
+                    </ng-container>
+
+                    <ng-container *ngIf="isCardio">
+                        <span class="header-col-weight">Veloc.</span>
+                        <span class="header-col-reps">Tiempo</span>
+                        <span class="header-col-rir"></span>
+                    </ng-container>
+
+                    <span class="header-col-notes"></span>
+                </div>
+
+                <ion-list lines="none" class="history-list">
+                    <div *ngFor="let session of filteredHistory">
+                        <!-- Session Header Row -->
+                        <div class="session-divider">
+                            <ion-badge color="medium" class="week-badge">M{{ session.splitIndex }}</ion-badge>
+                            <span class="session-date">{{ session.date | date:'dd/MM/yyyy' }}</span>
+                            <ion-icon *ngIf="session.notes" name="document-text-outline" color="medium"
+                                class="session-note-icon"></ion-icon>
+                        </div>
+
+                        <!-- Sets Rows -->
+                        <ion-item *ngFor="let set of session.sets; let i = index" class="history-item">
+                            <div class="history-row-content">
+                                <div class="col-session">
+                                    <span class="set-index">Set {{ i + 1 }}</span>
+                                </div>
+
+                                <!-- Strength Content -->
+                                <ng-container *ngIf="!isCardio">
+                                    <div class="col-weight">
+                                        <span>{{ set.weight }}</span>
+                                        <small>kg</small>
+                                    </div>
+                                    <div class="col-reps">
+                                        <span>{{ set.reps }}</span>
+                                    </div>
+                                    <div class="col-rir">
+                                        <span [class.fail-rir]="set.rir == -1">{{ set.rir == -1 ? 'FALLO' : set.rir
+                                            }}</span>
+                                    </div>
+                                </ng-container>
+
+                                <!-- Cardio Content -->
+                                <ng-container *ngIf="isCardio">
+                                    <div class="col-weight">
+                                        <span>{{ set.velocity }}</span>
+                                        <small>km/h</small>
+                                    </div>
+                                    <div class="col-reps">
+                                        <span>{{ set.timeMin }}:{{ set.timeSec | number:'2.0-0' }}</span>
+                                        <small>min</small>
+                                    </div>
+                                    <div class="col-rir"></div>
+                                </ng-container>
+
+                                <div class="col-notes">
+                                    <div class="session-indicators">
+                                        <span class="type-dot drop" *ngIf="set.isDropSet" title="Drop Set">DS</span>
+                                        <span class="type-dot rest" *ngIf="set.isRestPause" title="Rest Pause">RP</span>
+                                        <span class="type-dot fail" *ngIf="set.isFail" title="Fallo">F</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Drop Set sub-series -->
+                            <div class="subseries-container" *ngIf="set.isDropSet && set.dropSeries?.length > 0">
+                                <div class="subseries-item" *ngFor="let ds of set.dropSeries; let j = index">
+                                    <span class="subseries-label">↓ Drop {{ j + 1 }}</span>
+                                    <span class="subseries-val">{{ ds.weight }} kg</span>
+                                    <span class="subseries-val">× {{ ds.reps }}</span>
+                                    <span class="subseries-rir" *ngIf="ds.rir !== undefined">RIR {{ ds.rir }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Rest Pause sub-series -->
+                            <div class="subseries-container" *ngIf="set.isRestPause && set.restPauseSeries?.length > 0">
+                                <div class="subseries-item" *ngFor="let rp of set.restPauseSeries; let j = index">
+                                    <span class="subseries-label">↺ RP {{ j + 1 }}</span>
+                                    <span class="subseries-val">{{ rp.weight }} kg</span>
+                                    <span class="subseries-val">× {{ rp.reps }}</span>
+                                    <span class="subseries-rir" *ngIf="rp.rir !== undefined">RIR {{ rp.rir }}</span>
+                                </div>
+                            </div>
+                        </ion-item>
+                    </div>
+                </ion-list>
+            </ion-card-content>
+        </ion-card>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="!selectedWorkoutName || !selectedExerciseId">
+            <ion-icon name="stats-chart-outline"></ion-icon>
+            <h3>Selecciona Rutina y Ejercicio</h3>
+            <p>Para ver estadísticas detalladas de tu progreso.</p>
+        </div>
+
+        <div class="empty-state" *ngIf="selectedExerciseId && historyData.length === 0">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <h3>Sin Datos</h3>
+            <p>No se ha registrado actividad para este ejercicio aún.</p>
+        </div>
+
+    </div>
+
+</ion-content>

@@ -1,0 +1,703 @@
+ion-checkbox {
+  margin-left: 0.5rem;
+  --size: 28px;
+  --checkbox-background-checked: var(--ion-color-success);
+}
+
+ion-input {
+  font-size: small;
+  --background: #0e0e0e !important;
+  --border-radius: 10px 10px 0 0;
+  font-size: 1rem;
+}
+
+// Main Form Container
+form {
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+// Premium Set Header
+.premium-set-header {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 16px;
+
+  &.doned {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+  }
+
+  .set-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    .expected-values-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .expected-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .serie-number {
+          font-size: 0.8rem;
+          font-weight: 700;
+          padding: 4px 8px;
+          border-radius: 4px;
+          margin-right: 4px;
+
+          &.serie-pending {
+            color: var(--ion-color-primary);
+            background: rgba(var(--ion-color-primary-rgb), 0.1);
+          }
+
+          &.serie-completed {
+            color: var(--ion-color-success);
+            background: rgba(var(--ion-color-success-rgb), 0.1);
+          }
+        }
+
+        .objective-text {
+          font-size: 0.7rem;
+          color: gray;
+        }
+
+        .expected-label {
+          font-size: 0.65rem;
+          font-weight: 600;
+          color: #9ca3af;
+          text-transform: none;
+          letter-spacing: 0.5px;
+        }
+
+        .cardio-expected {
+          display: flex;
+          gap: 8px;
+
+          .time-value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            background: rgba(var(--ion-color-medium-rgb), 0.1);
+            padding: 2px 6px;
+          }
+        }
+
+        .weight-expected {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+
+          .reps-value,
+          .rir-value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            background: rgba(var(--ion-color-medium-rgb), 0.1);
+            padding: 2px 6px;
+          }
+
+          .fail-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--ion-color-danger);
+            background: rgba(var(--ion-color-danger-rgb), 0.15);
+            padding: 2px 6px;
+          }
+
+          .drop-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 2px 6px;
+          }
+
+          .rest-pause-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2563eb;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 2px 6px;
+          }
+
+          .rir-after-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            background: rgba(var(--ion-color-medium-rgb), 0.1);
+            padding: 2px 6px;
+          }
+        }
+      }
+    }
+
+    .set-actions {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .options-btn {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+        height: 36px;
+        width: 36px;
+        --color: #e2e8f0;
+        --background-activated: rgba(var(--ion-color-medium-rgb), 0.1);
+      }
+
+      .delete-btn {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --padding-top: 8px;
+        --padding-bottom: 8px;
+        height: 36px;
+        width: 36px;
+        --color: var(--ion-color-danger);
+        --background-activated: rgba(var(--ion-color-danger-rgb), 0.1);
+      }
+    }
+  }
+}
+
+// Serie Number Column Styles
+.serie-number-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+
+  .serie-number-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Premium Input Section
+.premium-input-section {
+  .table-row-inputs {
+    padding: 0.5rem 0.75rem;
+    background: #141414;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    ion-col {
+      ion-input {
+        --background: #0e0e0e;
+        --border-color: #252525;
+        --padding-start: 0.5rem;
+        --padding-end: 0;
+        margin-bottom: 0.25rem;
+        --placeholder-font-size: 0.7rem;
+        --placeholder-color: rgba(156, 163, 175, 0.8);
+        padding: 0.75rem;
+        text-align: center;
+        height: 44px;
+
+        &.ng-invalid.ng-touched {
+          --border-color: var(--ion-color-danger);
+          --color: var(--ion-color-danger);
+        }
+      }
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      ion-col {
+        padding: 0 0.25rem;
+
+        ion-select {
+          --padding-start: 0.75rem;
+          --padding-end: 0.75rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          height: 2.5rem;
+        }
+      }
+    }
+
+    .labels-row {
+      margin-top: 0.5rem;
+
+      .drop-set-label,
+      .rest-pause-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #9ca3af;
+        text-align: center;
+      }
+    }
+  }
+}
+
+// Estilos específicos cuando la serie está completada (doned)
+form.doned .premium-input-section .table-row-inputs ion-col ion-input {
+  --border-color: var(--ion-color-success) !important;
+  border-bottom: 2px solid var(--ion-color-success) !important;
+  // Resaltar color del label (flotante) y del highlight
+  --highlight-color: var(--ion-color-success) !important;
+  --highlight-color-focused: var(--ion-color-success) !important;
+  // Colorea el texto del label-text-wrapper a través de la variable de host
+  --color: var(--ion-color-success) !important;
+}
+
+// Ensure success border for custom styled inputs when set is done
+form.doned .premium-input-section .table-row-inputs .numeric-input-wrapper {
+  border-color: var(--ion-color-success) !important;
+}
+
+form.doned .premium-input-section .table-row-inputs .numeric-input-wrapper .numeric-value-input {
+  color: var(--ion-color-success) !important;
+}
+
+form.doned .premium-input-section .table-row-inputs .rir-input-wrapper {
+  border-color: var(--ion-color-success) !important;
+}
+
+form.doned .premium-input-section .table-row-inputs .rir-input-wrapper .rir-value {
+  color: var(--ion-color-success) !important;
+}
+
+// Color del label en estado completado
+form.doned .premium-input-section .table-row-inputs ion-col ion-input::part(label) {
+  /* IonLabel interno usa --color; esto colorea .label-text-wrapper */
+  --color: var(--ion-color-success) !important;
+  color: var(--ion-color-success) !important;
+  /* fallback si el tema lo permite */
+  opacity: 1 !important;
+}
+
+// Premium Complete Button
+.premium-complete-section {
+  padding: 1rem;
+  background: var(--ion-color-light-tint);
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  .complete-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .action-btn {
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      width: 52px;
+      height: 52px;
+      margin: 0;
+
+      ion-icon {
+        font-size: 1.3rem;
+      }
+
+      &.delete-btn {
+        --color: #ef4444;
+        --background: rgba(239, 68, 68, 0.15);
+        --background-activated: rgba(239, 68, 68, 0.25);
+      }
+    }
+  }
+}
+
+// Premium Input Section
+.premium-input-section {
+  .table-row-inputs {
+    ion-grid {
+      padding: 0;
+
+      ion-row {
+        margin: 0;
+        padding: 0;
+
+        &.weight-inputs {
+          align-items: center;
+
+          .reps-col,
+          .weight-col,
+          .intensity-col,
+          .complete-col {
+            padding: 0 2px;
+          }
+
+          .complete-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+          }
+        }
+
+        &.cardio-inputs {
+          align-items: center;
+
+          .velocity-col,
+          .minutes-col,
+          .seconds-col,
+          .complete-col {
+            padding: 0 2px;
+          }
+
+          .complete-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+          }
+        }
+      }
+    }
+  }
+
+  ion-item {
+    --background: transparent;
+    --border-color: transparent;
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    --min-height: auto;
+
+    ion-grid {
+      padding: 1rem 0;
+
+      ion-row {
+        margin-bottom: 0.5rem;
+
+        &:first-child {
+          ion-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--ion-color-dark);
+            text-transform: uppercase;
+
+            &[color="danger"] {
+              color: #ef4444 !important;
+              background: rgba(239, 68, 68, 0.1);
+              padding: 0.25rem 0.5rem;
+              border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+
+            &[color="alternative"] {
+              color: #f59e0b !important;
+              background: rgba(245, 158, 11, 0.1);
+              padding: 0.25rem 0.5rem;
+              border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+          }
+        }
+
+        ion-col {
+          ion-item {
+            --background: #0e0e0e;
+            --border-color: #252525;
+            --padding-start: 0.5rem;
+            --padding-end: 0.5rem;
+            --padding-top: 0.25rem;
+            --padding-bottom: 0.25rem;
+            --min-height: 40px;
+            margin-bottom: 0.25rem;
+
+            ion-label {
+              font-size: 0.7rem;
+              font-weight: 600;
+              color: var(--ion-color-dark) !important;
+              text-transform: uppercase;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Cardio Specific Styles
+.cardio-inputs {
+  ion-col {
+    ion-item {
+      ion-label {
+        // Color removed for neutral styling
+      }
+    }
+  }
+}
+
+// Weight Training Specific Styles
+.weight-inputs {
+  ion-col {
+    &:first-child {
+      ion-item {
+        ion-label {
+          // Color removed for neutral styling
+        }
+      }
+    }
+
+    &:nth-child(2) {
+      ion-item {
+        ion-label {
+          // Color removed for neutral styling
+        }
+      }
+    }
+
+    &:nth-child(3) {
+      ion-item {
+        ion-label {
+          // Color removed for neutral styling
+        }
+      }
+    }
+  }
+}
+
+// Premium Action Buttons
+.premium-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--ion-color-light-tint);
+  border-top: 1px solid var(--ion-color-light-shade);
+
+  ion-buttons {
+    margin-left: auto;
+  }
+
+  ion-icon {
+    font-size: 1.2rem;
+    color: var(--ion-color-dark);
+  }
+
+  .topset-btn {
+    --min-height: 32px;
+    --min-width: 80px;
+    --background: var(--ion-color-tertiary);
+    --color: #ffffff;
+    --padding-start: 0.75rem;
+    --padding-end: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .options-btn {
+    --min-height: 32px;
+    --min-width: 32px;
+    --background: #0e0e0e;
+    --color: var(--ion-color-dark);
+    --padding-start: 0.5rem;
+    --padding-end: 0.5rem;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+  }
+}
+
+// Enhanced Input Section Styles
+.premium-input-section {
+  ion-item {
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    --min-height: auto;
+
+    ion-grid {
+      padding: 1rem 0;
+
+      ion-row {
+        margin-bottom: 0.5rem;
+
+        &:first-child {
+          ion-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--ion-color-dark);
+            text-transform: uppercase;
+
+            &[color="danger"] {
+              color: #ef4444 !important;
+              background: rgba(239, 68, 68, 0.1);
+              padding: 0.25rem 0.5rem;
+              border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+
+            &[color="alternative"] {
+              color: #f59e0b !important;
+              background: rgba(245, 158, 11, 0.1);
+              padding: 0.25rem 0.5rem;
+              border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+          }
+        }
+
+        ion-col {
+          ion-input {
+            --background: #0e0e0e;
+            --border-color: #252525;
+            --padding-start: 0.75rem;
+            --padding-end: 0;
+            margin-bottom: 0.5rem;
+            --placeholder-font-size: 0.7rem;
+            --placeholder-color: rgba(156, 163, 175, 0.8);
+            padding: 1rem;
+            text-align: center;
+            height: 50px;
+
+            &.ng-invalid.ng-touched {
+              --border-color: var(--ion-color-danger);
+              --color: var(--ion-color-danger);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Estilos especiales para inputs actuales
+  // Eliminados para mantener colores consistentes en todas las series
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .premium-set-header {
+    ion-item {
+      --padding-start: 1rem;
+      --padding-end: 1rem;
+      --min-height: 3.5rem;
+
+      ion-label {
+        font-size: 1rem;
+      }
+
+      ion-grid {
+        ion-row {
+          ion-label {
+            font-size: 0.75rem;
+
+            p {
+              font-size: 0.8rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .premium-complete-section {
+    padding: 0.75rem;
+
+    ion-button {
+      --padding-top: 0.75rem;
+      --padding-bottom: 0.75rem;
+
+      ion-grid {
+        ion-row {
+          ion-col {
+            ion-label {
+              font-size: 0.9rem;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .premium-input-section {
+    ion-item {
+      --padding-start: 1rem;
+      --padding-end: 1rem;
+
+      ion-grid {
+        padding: 0.75rem 0;
+
+        ion-row {
+          ion-col {
+            ion-item {
+              --padding-start: 0.75rem;
+              --padding-end: 0.75rem;
+
+              ion-label {
+                font-size: 0.75rem;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .premium-action-buttons {
+    padding: 0.75rem 1rem;
+
+    .topset-btn {
+      --padding-start: 0.75rem;
+      --padding-end: 0.75rem;
+      --min-height: 2.25rem;
+      font-size: 0.8rem;
+    }
+
+    .options-btn {
+      --min-height: 2.25rem;
+      --min-width: 2.25rem;
+
+      ion-icon {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-set-header {
+    ion-item {
+      ion-grid {
+        ion-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25rem;
+        }
+      }
+    }
+  }
+
+  .premium-action-buttons {
+    padding: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .topset-btn {
+      width: 100%;
+      --min-height: 2rem;
+      font-size: 0.75rem;
+    }
+
+    .options-btn {
+      --min-height: 2rem;
+      --min-width: 2rem;
+
+      ion-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+}

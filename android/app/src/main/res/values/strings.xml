@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TrainFit</string>
+    <string name="title_activity_main">TrainFit</string>
+    <string name="package_name">com.trainfit.trainfit</string>
+    <string name="custom_url_scheme">com.trainfit.trainfit</string>
+    <string name="admob_app_id">ca-app-pub-7032025540653355~4952559993</string>
+    <string name="server_client_id">775987417074-s1e767h7tps05ectmrb85uqh7hhp9p8n.apps.googleusercontent.com</string>
+</resources>

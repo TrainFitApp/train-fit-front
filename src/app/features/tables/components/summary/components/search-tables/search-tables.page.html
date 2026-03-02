@@ -1,0 +1,88 @@
+<ion-header [translucent]="true" class="modern-search-header">
+  <app-page-header title="Buscar rutinas" (backClick)="close()">
+  </app-page-header>
+</ion-header>
+
+<ion-content>
+  <ng-container *ngIf="load else notLoad">
+    <ng-container *ngIf="tableList.length > 0; else noTables">
+      <app-table-card
+        *ngFor="let tableCard of tableList; let i = index"
+        [user]="user"
+        [ownFilter]="searchFilterGroup.ownFilter"
+        [own]="tableCard._id === user.tableInUse"
+        [tableCard]="tableCard"
+        (copyOwnTableEv)="copyOwnTable($event)"
+        (deletedTable)="deleteTable($event)"
+      ></app-table-card>
+    </ng-container>
+
+    <ng-template #noTables>
+      <ion-item>
+        <ion-label>No hay coincidencias</ion-label>
+      </ion-item>
+    </ng-template>
+  </ng-container>
+
+  <ng-template #notLoad>
+    <!-- Skeleton cards que replican la estructura de table-card -->
+    <div class="skeleton-table-card" *ngFor="let i of [1, 2, 3]">
+      <div class="skeleton-overlay">
+        <!-- Header Section -->
+        <div class="skeleton-header-section">
+          <div class="skeleton-header-top">
+            <div class="skeleton-title-section">
+              <ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text>
+              <ion-skeleton-text [animated]="true" class="skeleton-underline"></ion-skeleton-text>
+            </div>
+          </div>
+
+          <!-- Status and Actions Row -->
+          <div class="skeleton-status-actions-row">
+            <div class="skeleton-status-section">
+              <!-- Badge o botón según ownFilter -->
+              <ion-skeleton-text 
+                [animated]="true" 
+                [class.skeleton-badge]="searchFilterGroup.ownFilter"
+                [class.skeleton-select-btn]="!searchFilterGroup.ownFilter"
+              ></ion-skeleton-text>
+            </div>
+            <div class="skeleton-action-buttons">
+              <ion-skeleton-text 
+                [animated]="true" 
+                [class.skeleton-menu-btn]="searchFilterGroup.ownFilter"
+                [class.skeleton-acquire-btn]="!searchFilterGroup.ownFilter"
+              ></ion-skeleton-text>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="skeleton-stats-container">
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-top-row">
+              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
+              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
+            </div>
+            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
+          </div>
+
+          <div class="skeleton-stat-divider"></div>
+
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-top-row">
+              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
+              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
+            </div>
+            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content loadingSpinner="crescent">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

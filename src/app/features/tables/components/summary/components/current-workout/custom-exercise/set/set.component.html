@@ -1,0 +1,228 @@
+<form [formGroup]="setForm" [class.doned]="set.doned">
+  <!-- Set Header with Expected Values and Actions -->
+  <div class="premium-set-header" [class.doned]="set.doned">
+    <div class="set-header-row">
+      <!-- Expected Values Section -->
+      <div class="expected-values-section" (click)="editSet()">
+        <div class="expected-header">
+          <span
+            class="serie-number"
+            [ngClass]="{
+              'serie-completed': set.doned,
+              'serie-pending': !set.doned
+            }"
+            >{{ index + 1 }}º</span
+          >
+          <span class="objective-text">Objetivo:</span>
+          <ng-container
+            *ngIf="
+              this.currentWorkout.exercises[this.indexCustomExercise].exercise
+                .isCardio;
+              else nottCardio
+            "
+          >
+            <div class="cardio-expected">
+              <span *ngIf="set.expectedMin" class="time-value"
+                >{{ set.expectedMin }} MIN</span
+              >
+              <span *ngIf="set.expectedSec" class="time-value"
+                >{{ set.expectedSec }} SEG</span
+              >
+            </div>
+          </ng-container>
+          <ng-template #nottCardio>
+            <div class="weight-expected">
+              <span class="reps-value">{{
+                set.expectedReps | expected : "REP"
+              }}</span>
+
+              <!-- FAIL label (always show if expectedRir contains -1) -->
+              <span
+                *ngIf="isFail(set)"
+                class="fail-label"
+                >FALLO</span
+              >
+
+              <!-- DROP SET label (always show if drop is true) -->
+              <span *ngIf="set.drop" class="drop-label">DS</span>
+
+              <!-- REST PAUSE label (always show if restPause is set) -->
+              <span *ngIf="set.restPause" class="rest-pause-label"
+                >RP ({{ set.restPause }}s)</span
+              >
+
+              <!-- RIR value (only if no fail, no drop, no restPause) -->
+              <span
+                *ngIf="
+                  !isFail(set) &&
+                  set.expectedRir &&
+                  !set.drop &&
+                  !set.restPause &&
+                  ((set.expectedRir[0] !== null &&
+                    set.expectedRir[0] !== undefined) ||
+                    (set.expectedRir[1] !== null &&
+                      set.expectedRir[1] !== undefined))
+                "
+                class="rir-value"
+                >{{ set.expectedRir | expected : "RIR" }}</span
+              >
+
+              <!-- RIR after DROP SET (only if no fail) -->
+              <span
+                *ngIf="
+                  !isFail(set) &&
+                  set.expectedRir &&
+                  set.drop &&
+                  set.expectedRir.length > 0 &&
+                  ((set.expectedRir[0] !== null &&
+                    set.expectedRir[0] !== undefined) ||
+                    (set.expectedRir[1] !== null &&
+                      set.expectedRir[1] !== undefined))
+                "
+                class="rir-after-label"
+              >
+                {{ set.expectedRir | expected : "RIR" }}</span
+              >
+
+              <!-- RIR after REST PAUSE (only if no fail) -->
+              <span
+                *ngIf="
+                  !isFail(set) &&
+                  set.expectedRir &&
+                  set.restPause &&
+                  set.expectedRir.length > 0 &&
+                  ((set.expectedRir[0] !== null &&
+                    set.expectedRir[0] !== undefined) ||
+                    (set.expectedRir[1] !== null &&
+                      set.expectedRir[1] !== undefined))
+                "
+                class="rir-after-label"
+              >
+                {{ set.expectedRir | expected : "RIR" }}</span
+              >
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="set-actions">
+        <ion-button
+          fill="clear"
+          size="small"
+          class="options-btn"
+          (click)="showPopoverOptions($event, set)"
+        >
+          <ion-icon name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Section Aligned with Table Headers -->
+  <div class="premium-input-section">
+    <div class="table-row-inputs">
+      <ion-grid>
+        <ion-row
+          [ngClass]="{
+            'cardio-inputs':
+              this.currentWorkout.exercises[this.indexCustomExercise].exercise
+                .isCardio,
+            'weight-inputs':
+              !this.currentWorkout.exercises[this.indexCustomExercise].exercise
+                .isCardio
+          }"
+        >
+          <!-- Serie Number Column -->
+          <!-- Eliminado: columna de número de serie -->
+
+          <ng-container
+            *ngIf="
+              this.currentWorkout.exercises[this.indexCustomExercise].exercise
+                .isCardio;
+              else nCardio
+            "
+          >
+            <!-- Cardio Inputs -->
+            <ion-col size="3.33" class="velocity-col">
+              <app-numeric-input
+                [inputControl]="getFormControl('velocity')"
+                label="Vel"
+                placeholder="0.0"
+                [isDone]="set.doned"
+                (valueChange)="onFormValueChange('velocity', $event)"
+              ></app-numeric-input>
+            </ion-col>
+            <ion-col size="3.33" class="minutes-col">
+              <app-numeric-input
+                [inputControl]="getFormControl('timeMin')"
+                label="Min"
+                placeholder="0"
+                [isDone]="set.doned"
+                (valueChange)="onFormValueChange('timeMin', $event)"
+              ></app-numeric-input>
+            </ion-col>
+            <ion-col size="3.33" class="seconds-col">
+              <app-numeric-input
+                [inputControl]="getFormControl('timeSec')"
+                label="Seg"
+                placeholder="0"
+                [isDone]="set.doned"
+                (valueChange)="onFormValueChange('timeSec', $event)"
+              ></app-numeric-input>
+            </ion-col>
+            <ion-col size="2" class="complete-col">
+              <ion-checkbox
+                [ngClass]="{
+                  completed: set.doned
+                }"
+                formControlName="doned"
+                mode="ios"
+                color="success"
+              ></ion-checkbox>
+            </ion-col>
+          </ng-container>
+
+          <ng-template #nCardio>
+            <!-- Weight Training Inputs -->
+            <ion-col size="3.33" class="weight-col">
+              <app-numeric-input
+                [inputControl]="getFormControl('weight')"
+                label="Peso"
+                placeholder="0.0"
+                [isDone]="set.doned"
+                (valueChange)="onFormValueChange('weight', $event)"
+              ></app-numeric-input>
+            </ion-col>
+            <ion-col size="3.33" class="reps-col">
+              <app-numeric-input
+                [inputControl]="getFormControl('reps')"
+                label="Reps"
+                placeholder="0"
+                [isDone]="set.doned"
+                (valueChange)="onFormValueChange('reps', $event)"
+              ></app-numeric-input>
+            </ion-col>
+            <ion-col size="3.33" class="intensity-col">
+              <app-rir-picker
+                [rirControl]="rirFormControl"
+                [isDone]="set.doned"
+                (rirChange)="onRirValueChange($event)"
+              ></app-rir-picker>
+            </ion-col>
+            <ion-col size="2" class="complete-col">
+              <ion-checkbox
+                [ngClass]="{
+                  completed: set.doned
+                }"
+                formControlName="doned"
+                mode="ios"
+                color="success"
+              ></ion-checkbox>
+            </ion-col>
+          </ng-template>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
+</form>

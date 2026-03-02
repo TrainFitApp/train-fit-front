@@ -1,0 +1,87 @@
+<div
+  class="product-card"
+  [class.product-selected]="isChecked"
+  [class.ingredient-mode]="ingredientMode"
+  (click)="ingredientMode ? onRowClickIngredientMode() : openAddProduct()"
+>
+  <div class="product-content">
+    <!-- Header: Name, Qty and Checkbox -->
+    <div class="product-header">
+      <div class="product-info">
+        <div class="name-row">
+          <span class="product-name">{{ product.name }}</span>
+          <span
+            class="product-qty"
+            [ngStyle]="{ 'font-weight': !!customProduct ? 'bolder' : '' }"
+            [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
+          >
+            {{
+              (customProduct?.quantity ?? productQuantity | number : "1.0-0")
+                ? "(" +
+                  (customProduct?.quantity ?? productQuantity
+                    | number : "1.0-0") +
+                  "g)"
+                : "-"
+            }}
+          </span>
+        </div>
+        <span *ngIf="brand" class="product-brand">[{{ brand }}]</span>
+      </div>
+
+      <div
+        *ngIf="meal || ingredientMode"
+        class="checkbox-container"
+        (click)="$event.stopPropagation()"
+      >
+        <ion-checkbox
+          mode="ios"
+          [checked]="isChecked"
+          [disabled]="loading.value"
+          (ionChange)="
+            ingredientMode
+              ? onCheckboxChangeIngredientMode($event)
+              : toggleProduct($event)
+          "
+        ></ion-checkbox>
+      </div>
+    </div>
+
+    <!-- Macros Row -->
+    <div class="product-macros">
+      <!-- Calorías -->
+      <div class="macro-item">
+        <div class="macro-dot kcal"></div>
+        <span class="macro-value">{{
+          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.energy
+        }}</span>
+      </div>
+      <!-- Proteínas -->
+      <div class="macro-item">
+        <div class="macro-dot protein"></div>
+        <span class="macro-value">{{
+          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.protein
+        }}</span>
+      </div>
+      <!-- Carbohidratos -->
+      <div class="macro-item">
+        <div class="macro-dot carbs"></div>
+        <span class="macro-value">{{
+          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.carbohydrates
+        }}</span>
+      </div>
+      <!-- Grasas -->
+      <div class="macro-item">
+        <div class="macro-dot fat"></div>
+        <span class="macro-value">{{
+          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.fat
+        }}</span>
+      </div>
+    </div>
+
+    <!-- Info warning -->
+    <div class="info-warning" *ngIf="checkIfInfoExist()">
+      No hay información
+      {{ MEASURE_FILTER[MEASURE_FILTER[this.measureFilter].id].name }}
+    </div>
+  </div>
+</div>

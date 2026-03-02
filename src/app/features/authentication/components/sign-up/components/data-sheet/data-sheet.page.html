@@ -1,0 +1,126 @@
+<ion-header>
+  <app-page-header title="Ficha" [customBackAction]="true" (backClick)="goBack()">
+  </app-page-header>
+</ion-header>
+
+<ion-content class="compact-content">
+  <ng-container *ngIf="!codeSended">
+    <!-- Características físicas compactas con nombre como título -->
+    <ion-card class="stats-card">
+      <div class="card-header">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <span class="card-title">{{ user.name }} {{ user.lastname }}</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <ion-icon name="body-outline"></ion-icon>
+          <div class="stat-value">{{ user.weight }} kg</div>
+          <div class="stat-label">Peso</div>
+        </div>
+        <div class="stat-item">
+          <ion-icon name="resize-outline"></ion-icon>
+          <div class="stat-value">{{ user.height }} cm</div>
+          <div class="stat-label">Altura</div>
+        </div>
+        <div class="stat-item">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <div class="stat-value">{{ getAge(user.birth) }} años</div>
+          <div class="stat-label">Edad</div>
+        </div>
+        <div class="stat-item">
+          <ion-icon name="person-outline"></ion-icon>
+          <div class="stat-value">{{ SEX[user.sex] }}</div>
+          <div class="stat-label">Sexo</div>
+        </div>
+      </div>
+    </ion-card>
+
+    <!-- Actividad -->
+    <ion-card class="info-card" *ngIf="activityType">
+      <div class="card-header">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span class="card-title">NIVEL DE ACTIVIDAD</span>
+      </div>
+      <div class="card-content">
+        <div class="activity-name">{{ activityType.name }}</div>
+      </div>
+    </ion-card>
+
+    <!-- Objetivo -->
+    <ion-card class="info-card objective-card">
+      <div class="card-header">
+        <ion-icon name="rocket-outline"></ion-icon>
+        <span class="card-title">OBJETIVO DIARIO</span>
+      </div>
+      <div class="card-content objective-content">
+        <div class="objective-message">{{ objetiveMessage }}</div>
+        <div class="calories">{{ user.kcalTotal }} <span class="unit">kcal</span></div>
+      </div>
+    </ion-card>
+
+    <!-- Advertencia -->
+    <ion-card class="info-card warning-card">
+      <div class="warning-content">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <div class="warning-text">
+          <h5 class="card-title">ADVERTENCIA</h5>
+          <p>Te enviaremos un correo con un código de verificación</p>
+        </div>
+      </div>
+    </ion-card>
+
+    <!-- Botón -->
+    <div class="action-container">
+      <ion-button *ngIf="!isProcessing" (click)="register()" expand="block" class="submit-button">
+        DEFEAT YOUR LIMITS
+      </ion-button>
+
+      <ion-button *ngIf="isProcessing" expand="block" [disabled]="true" class="submit-button">
+        <div class="loading-container">
+          Procesando
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+      </ion-button>
+    </div>
+  </ng-container>
+
+  <!-- PANTALLA DE CÓDIGO (Estilo Restore Password) -->
+  <ng-container *ngIf="codeSended">
+    <div class="content-wrapper">
+      <div class="verification-message">
+        <ion-label>
+          Introduce el <strong>código de verificación</strong> que hemos
+          enviado a <strong>{{ user.email }}</strong>
+        </ion-label>
+        <p
+          style="font-size: 0.85em; color: var(--text-secondary); margin-top: 12px; margin-bottom: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <ion-icon name="alert-circle-outline" style="font-size: 16px;"></ion-icon>
+          <span>Revisa la carpeta de <strong>Spam</strong> si no lo encuentras</span>
+        </p>
+      </div>
+
+      <div class="form-fields">
+        <div class="input-group">
+          <div class="input-wrapper verification-input">
+            <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
+            <input type="text" placeholder="Código" class="input-field verification-field" #codeInput />
+          </div>
+        </div>
+      </div>
+
+      <ion-button expand="block" class="login-button" (click)="verifyCode()" [disabled]="isProcessing">
+        <span *ngIf="!isProcessing">VERIFICAR CÓDIGO</span>
+        <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
+      </ion-button>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <p style="font-size: 0.9em; color: var(--ion-color-medium);">
+          ¿No has recibido el código?
+        </p>
+        <ion-button fill="clear" size="small" (click)="resendCode()" [disabled]="isProcessing || resendDisabled">
+          {{ resendDisabled ? 'Reenviar en ' + resendCountdown + 's' : 'Reenviar código' }}
+        </ion-button>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>

@@ -1,0 +1,68 @@
+<ion-header>
+  <app-page-header
+    title="Anuncios"
+    [customBackAction]="true"
+    (backClick)="modalController.dismiss()"
+  >
+  </app-page-header>
+</ion-header>
+
+<ion-content>
+  <div class="content-wrapper">
+    <ion-card class="consent-card">
+      <ion-card-content>
+        <ion-list>
+          <ion-item lines="none">
+            <ion-text>
+              <p>
+                Para mejorar tu experiencia y mantener esta aplicación gratuita,
+                utilizamos servicios de publicidad proporcionados por AdMob.
+              </p>
+              <!-- <p>
+                Tienes la opción de aceptar o rechazar los anuncios personalizados:
+              </p> -->
+            </ion-text>
+          </ion-item>
+
+          <ion-item lines="none">
+            <ion-text>
+              <ul>
+                <li>
+                  <strong>&nbsp;Anuncios personalizados:</strong> Estos anuncios
+                  están basados en tu actividad y tus intereses.
+                </li>
+                <li>
+                  <strong>&nbsp;Anuncios no personalizados:</strong> Estos
+                  anuncios no se basan en tu actividad y serán menos relevantes.
+                </li>
+              </ul>
+            </ion-text>
+          </ion-item>
+        </ion-list>
+
+        <ion-radio-group
+          [value]="selectedOption"
+          (ionChange)="selectedOption = $event.detail.value"
+        >
+          <ion-item>
+            <ion-label>Anuncios personalizados</ion-label>
+            <ion-radio slot="start" [value]="true"></ion-radio>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Anuncios no personalizados</ion-label>
+            <ion-radio slot="start" [value]="false"></ion-radio>
+          </ion-item>
+        </ion-radio-group>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-button expand="block" (click)="dismiss()"
+    ><strong>ACEPTAR</strong>&nbsp;<ion-icon
+      name="arrow-forward-outline"
+    ></ion-icon
+  ></ion-button>
+</ion-footer>

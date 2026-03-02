@@ -1,0 +1,429 @@
+<ion-header class="manage-set-header">
+  <div class="manage-set-toolbar">
+    <div class="header-content">
+      <div class="title-section">
+        <ion-title class="manage-set-title"
+          >Serie <ion-text color="secondary">objetivo</ion-text></ion-title
+        >
+      </div>
+      <ion-buttons slot="end">
+        <button class="close-action-button ripple-effect" (click)="close()">
+          <ion-icon name="close" color="primary"></ion-icon>
+        </button>
+      </ion-buttons>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content *ngIf="setForm" class="manage-set-content">
+  <form [formGroup]="setForm">
+    <div class="form-container">
+      <ng-container *ngIf="isCardio; else notCardio">
+        <div class="field-section">
+          <div class="field-label">
+            <span class="label-text"
+              >TIEMPO <ion-text color="secondary">ESPERADO</ion-text></span
+            >
+          </div>
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="expectedMin"
+                type="number"
+                inputmode="decimal"
+                fill="outline"
+                placeholder="MIN"
+                appCursorEnd
+              ></ion-input>
+            </div>
+            <div class="input-field">
+              <ion-input
+                formControlName="expectedSec"
+                type="number"
+                inputmode="decimal"
+                fill="outline"
+                placeholder="SEG"
+                appCursorEnd
+              ></ion-input>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="field-label">
+            <span class="label-text">VELOCIDAD</span>
+          </div>
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="velocity"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                placeholder="Velocidad"
+                appCursorEnd
+                appDecimalInput
+              ></ion-input>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #notCardio>
+        <div class="field-section">
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="weight"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                placeholder="Peso"
+                appCursorEnd
+                appDecimalInput
+              >
+                <div slot="end" class="input-suffix">KG</div>
+              </ion-input>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="field-label">
+            <span class="label-text">RANGO DE REPETICIONES</span>
+          </div>
+
+          <div class="input-row">
+            <div class="counter-field">
+              <ion-button
+                *ngIf="setForm.get('rangeREPStart').value > 1"
+                fill="clear"
+                class="counter-btn"
+                (click)="decrementCounter('rangeREPStart', 1)"
+              >
+                <ion-icon
+                  name="remove"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+              <ion-input
+                formControlName="rangeREPStart"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                class="counter-input"
+                appCursorEnd
+                appDecimalInput
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="counter-btn"
+                (click)="incrementCounter('rangeREPStart', 1)"
+              >
+                <ion-icon
+                  name="add"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+            </div>
+
+            <div class="counter-field">
+              <ion-button
+                *ngIf="setForm.get('rangeREPEnd').value > 0"
+                fill="clear"
+                class="counter-btn"
+                (click)="decrementCounter('rangeREPEnd', 1)"
+              >
+                <ion-icon
+                  name="remove"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+              <ion-input
+                formControlName="rangeREPEnd"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                class="counter-input"
+                appCursorEnd
+                appDecimalInput
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="counter-btn"
+                (click)="incrementEndCounter('rangeREPStart', 'rangeREPEnd', 1)"
+              >
+                <ion-icon
+                  name="add"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- Error: rango de repeticiones inválido -->
+          <div class="error-explainer" *ngIf="isRepsRangeInvalid">
+            <div class="error-card">
+              <ion-icon
+                name="alert-circle-outline"
+                class="error-icon"
+              ></ion-icon>
+              <span class="error-text"
+                >El valor final debe ser mayor al inicial</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="field-section"
+          [class.disabled]="setForm.controls.expectedFail.value"
+        >
+          <div class="field-label">
+            <span class="label-text">RANGO DE RIR</span>
+          </div>
+
+          <div class="input-row">
+            <div class="counter-field">
+              <ion-button
+                *ngIf="setForm.get('rangeRIRStart').value > 0"
+                fill="clear"
+                class="counter-btn"
+                [disabled]="setForm.controls.expectedFail.value"
+                (click)="decrementCounter('rangeRIRStart')"
+              >
+                <ion-icon
+                  name="remove"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+              <ion-input
+                formControlName="rangeRIRStart"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                class="counter-input"
+                [disabled]="setForm.controls.expectedFail.value"
+                appCursorEnd
+                appDecimalInput
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="counter-btn"
+                [disabled]="setForm.controls.expectedFail.value"
+                (click)="incrementCounter('rangeRIRStart')"
+              >
+                <ion-icon
+                  name="add"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+            </div>
+
+            <div class="counter-field">
+              <ion-button
+                *ngIf="setForm.get('rangeRIREnd').value > 0"
+                fill="clear"
+                class="counter-btn"
+                [disabled]="setForm.controls.expectedFail.value"
+                (click)="decrementCounter('rangeRIREnd')"
+              >
+                <ion-icon
+                  name="remove"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+              <ion-input
+                formControlName="rangeRIREnd"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                class="counter-input"
+                [disabled]="setForm.controls.expectedFail.value"
+                appCursorEnd
+                appDecimalInput
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="counter-btn"
+                [disabled]="setForm.controls.expectedFail.value"
+                (click)="incrementEndCounter('rangeRIRStart', 'rangeRIREnd')"
+              >
+                <ion-icon
+                  name="add"
+                  slot="icon-only"
+                  color="primary"
+                ></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- Error: rango de RIR inválido -->
+          <div class="error-explainer" *ngIf="isRirRangeInvalid">
+            <div class="error-card">
+              <ion-icon
+                name="alert-circle-outline"
+                class="error-icon"
+              ></ion-icon>
+              <span class="error-text"
+                >El valor final debe ser mayor al inicial</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-section">
+          <div class="checkbox-item" (click)="toggleCheckbox('expectedFail')">
+            <ion-checkbox
+              formControlName="expectedFail"
+              mode="ios"
+              class="modern-checkbox"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
+            <span class="checkbox-label">FALLO</span>
+            <ion-icon
+              name="skull-outline"
+              class="checkbox-icon"
+              color="primary"
+            ></ion-icon>
+          </div>
+
+          <!-- <ion-item>
+          <ion-label>RPE</ion-label>
+          <ion-buttons slot="end">
+            <ion-button
+              *ngIf="setForm.get('rpe').value > 0"
+              (click)="
+                setForm.get('rpe').setValue(setForm.get('rpe').value - 1)
+              "
+            >
+              <ion-icon
+                slot="icon-only"
+                name="remove-circle-outline"
+              ></ion-icon>
+            </ion-button>
+            <ion-input style="width: 2em" formControlName="rpe"></ion-input>
+            <ion-button
+              (click)="
+                setForm.get('rpe').setValue(setForm.get('rpe').value + 1)
+              "
+            >
+              <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-item> -->
+
+          <div class="checkbox-item" (click)="toggleCheckbox('drop')">
+            <ion-checkbox
+              formControlName="drop"
+              mode="ios"
+              class="modern-checkbox"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
+            <span class="checkbox-label">DROP SET</span>
+            <ion-icon
+              name="analytics-outline"
+              class="checkbox-icon"
+              color="primary"
+            ></ion-icon>
+          </div>
+
+          <!-- <ion-item-divider>
+          <ion-label> TIPO DE SERIE </ion-label>
+          <ion-icon
+            color="secondary"
+            name="albums-outline"
+            style="margin-right: 1em"
+            slot="end"
+          ></ion-icon>
+        </ion-item-divider> -->
+
+          <!-- <ion-item>
+          <ion-label>TOP SET</ion-label>
+          <ion-checkbox formControlName="top"></ion-checkbox>
+        </ion-item> -->
+
+          <!-- <ion-item>
+          <ion-label>PAP</ion-label>
+          <ion-checkbox formControlName="pap"></ion-checkbox>
+        </ion-item> -->
+          <div class="checkbox-item" (click)="toggleRestPause()">
+            <ion-checkbox
+              #restPauseCheckbox
+              formControlName="restPauseEnabled"
+              mode="ios"
+              class="modern-checkbox"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
+            <span class="checkbox-label">REST PAUSE</span>
+            <ion-icon
+              name="hourglass-outline"
+              class="checkbox-icon"
+              color="primary"
+            ></ion-icon>
+          </div>
+        </div>
+
+        <div
+          class="field-section"
+          *ngIf="setForm.get('restPauseEnabled')?.value"
+        >
+          <div class="field-label">
+            <span class="label-text">TIEMPO DE DESCANSO (SEGS)</span>
+          </div>
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="restPause"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                placeholder="SEGS"
+                appCursorEnd
+                appDecimalInput
+              >
+              </ion-input>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Card explicativo: configuraci├│n de serie objetivo -->
+    <div class="info-explainer">
+      <div class="info-card">
+        <ion-icon
+          name="information-circle-outline"
+          class="info-icon"
+        ></ion-icon>
+        <div class="info-text">
+          <span class="info-title">Serie objetivo esperada</span>
+          <p>
+            Define aquí la marca que esperas alcanzar en la serie. Durante el
+            entrenamiento podrás registrar lo realizado y establecerla como
+            completada.
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-button
+    expand="block"
+    shape="round"
+    class="ion-margin t-add-workout"
+    (click)="submit()"
+  >
+    <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+    <strong>GUARDAR</strong>
+  </ion-button>
+</ion-footer>

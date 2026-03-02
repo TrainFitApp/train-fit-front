@@ -1,0 +1,185 @@
+.recipe-card {
+    background-color: #141414;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    margin: 6px 4px;
+    padding: 12px 14px;
+    transition: all 0.2s ease;
+
+    &.is-checked {
+        border-color: var(--ion-color-primary);
+        background-color: rgba(var(--ion-color-primary-rgb), 0.04);
+    }
+}
+
+.recipe-card:active {
+    transform: scale(0.98);
+    background-color: #1a1a1a;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.recipe-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+// Header
+.recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.recipe-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.recipe-name {
+    display: block;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    word-wrap: break-word;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .recipe-quantity {
+        color: var(--ion-color-primary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-left: 4px;
+    }
+}
+
+.recipe-ingredients {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+.recipe-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.edit-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--ion-color-primary);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+        font-size: 16px;
+    }
+
+    &:hover {
+        background: rgba(var(--ion-color-primary-rgb), 0.15);
+        border-color: rgba(var(--ion-color-primary-rgb), 0.3);
+    }
+
+    &:active {
+        transform: scale(0.9);
+    }
+}
+
+// Checkbox styling to make it more square-like
+::ng-deep .checkbox-container {
+    ion-checkbox {
+        --border-radius: 8px;
+        --size: 24px;
+    }
+}
+
+// Macros
+.recipe-macros {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.macro-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+}
+
+.macro-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.kcal {
+        background: var(--ion-color-primary);
+    }
+
+    &.protein {
+        background: var(--ion-color-alternative);
+    }
+
+    &.carbs {
+        background: var(--ion-color-success);
+    }
+
+    &.fat {
+        background: var(--ion-color-secondary);
+    }
+}
+
+.macro-value {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+// Badges
+.recipe-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+
+    ion-icon {
+        font-size: 12px;
+    }
+
+    &.verified {
+        background: rgba(var(--ion-color-success-rgb), 0.15);
+        color: var(--ion-color-success);
+    }
+}

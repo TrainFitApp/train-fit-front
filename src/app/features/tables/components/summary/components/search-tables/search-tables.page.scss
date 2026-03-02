@@ -1,0 +1,337 @@
+// Header moderno y elegante
+.modern-search-header {
+  --background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-bottom: none;
+
+  .header-toolbar {
+    --background: transparent;
+    --border-width: 0;
+    --min-height: 120px;
+    padding: 0;
+
+    .header-content {
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: 100%;
+
+      .back-section {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .modern-back-button {
+          --background: rgba(var(--ion-color-primary-rgb), 0.1);
+          --background-activated: rgba(var(--ion-color-primary-rgb), 0.2);
+          --color: var(--ion-color-primary);
+          --border-radius: 12px;
+          --padding-start: 12px;
+          --padding-end: 12px;
+          --box-shadow: none;
+
+          ion-icon {
+            font-size: 1.5rem;
+            font-weight: 600;
+
+          }
+        }
+
+        .header-title {
+          margin: 0;
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+        }
+      }
+    }
+  }
+}
+
+ion-content {
+  --background: #f8f9fa;
+
+  app-table-card {
+    margin: 16px 24px;
+
+    &:first-child {
+      margin-top: 24px;
+    }
+
+    &:last-child {
+      margin-bottom: 100px;
+    }
+  }
+
+  ion-item {
+    --background: transparent;
+    --border-color: transparent;
+    text-align: center;
+    margin: 60px 24px;
+
+    ion-label {
+      color: #6c757d;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  }
+}
+
+ion-infinite-scroll {
+  ion-infinite-scroll-content {
+    --color: var(--ion-color-primary);
+  }
+}
+
+app-skeleton-loader {
+  margin: 24px;
+}
+
+@media (max-width: 576px) {
+  .modern-search-header {
+    .header-toolbar {
+      --min-height: 100px;
+
+      .header-content {
+        padding: 16px 20px;
+        gap: 16px;
+
+        .back-section {
+          gap: 12px;
+
+          .modern-back-button {
+            --padding-start: 10px;
+            --padding-end: 10px;
+
+            ion-icon {
+              font-size: 1.4rem;
+            }
+          }
+
+          .header-title {
+            font-size: 1.5rem;
+          }
+        }
+      }
+    }
+  }
+
+  ion-content {
+    app-table-card {
+      margin: 12px 20px;
+
+      &:first-child {
+        margin-top: 20px;
+      }
+    }
+  }
+}
+
+.modern-search-header {
+  --background: #252525;
+
+  .header-toolbar {
+    .header-content {
+      .back-section {
+        .modern-back-button {
+          --background: rgba(var(--ion-color-primary-rgb), 0.15);
+          --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+          --color: var(--ion-color-primary-tint);
+        }
+
+        .header-title {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}
+
+ion-content {
+  --background: var(--bg-primary);
+
+  ion-item {
+    ion-label {
+      color: #8e8e93;
+    }
+  }
+}
+
+// Skeleton Table Card Styles
+.skeleton-table-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-secondary, #1c1c1e);
+  position: relative;
+  margin: 16px 24px;
+  border: 1px solid #252525;
+  min-height: 280px;
+
+  &:first-child {
+    margin-top: 24px;
+  }
+}
+
+.skeleton-overlay {
+  height: 100%;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.skeleton-header-section {
+  padding: 24px 20px 16px;
+  flex-shrink: 0;
+}
+
+.skeleton-header-top {
+  margin-bottom: 16px;
+}
+
+.skeleton-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 28px;
+  border-radius: 6px;
+  --background: rgba(255, 255, 255, 0.1);
+  --background-rgb: 255, 255, 255;
+}
+
+.skeleton-underline {
+  width: 40px;
+  height: 3px;
+  border-radius: 2px;
+  --background: rgba(var(--ion-color-primary-rgb), 0.3);
+  --background-rgb: var(--ion-color-primary-rgb);
+}
+
+.skeleton-status-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-status-section {
+  flex: 1;
+}
+
+.skeleton-badge {
+  width: 120px;
+  height: 32px;
+  border-radius: 16px;
+  --background: rgba(var(--ion-color-success-rgb), 0.15);
+  --background-rgb: var(--ion-color-success-rgb);
+}
+
+.skeleton-select-btn {
+  width: 160px;
+  height: 40px;
+  border-radius: 12px;
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --background-rgb: var(--ion-color-primary-rgb);
+}
+
+.skeleton-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.skeleton-menu-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  --background: rgba(255, 255, 255, 0.1);
+  --background-rgb: 255, 255, 255;
+}
+
+.skeleton-acquire-btn {
+  width: 100px;
+  height: 40px;
+  border-radius: 12px;
+  --background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  --background-rgb: var(--ion-color-secondary-rgb);
+}
+
+.skeleton-stats-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  margin-top: auto;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  margin: auto 16px 16px 16px;
+}
+
+.skeleton-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton-stat-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-stat-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  --background: rgba(255, 255, 255, 0.15);
+  --background-rgb: 255, 255, 255;
+}
+
+.skeleton-stat-number {
+  width: 30px;
+  height: 24px;
+  border-radius: 4px;
+  --background: rgba(255, 255, 255, 0.2);
+  --background-rgb: 255, 255, 255;
+}
+
+.skeleton-stat-label {
+  width: 80px;
+  height: 16px;
+  border-radius: 4px;
+  --background: rgba(255, 255, 255, 0.1);
+  --background-rgb: 255, 255, 255;
+}
+
+.skeleton-stat-divider {
+  width: 1px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 576px) {
+  .skeleton-table-card {
+    margin: 12px 20px;
+
+    &:first-child {
+      margin-top: 20px;
+    }
+  }
+
+  .skeleton-title {
+    height: 24px;
+  }
+
+  .skeleton-select-btn {
+    width: 140px;
+    height: 36px;
+  }
+}

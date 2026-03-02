@@ -1,0 +1,80 @@
+<div class="filter-icons-container">
+  <div class="filter-chips-scroll">
+    <div class="filter-chips">
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="isAllSelected()"
+        [disabled]="disabled"
+        (click)="selectAllFilter()"
+      >
+        <ion-icon name="apps-outline"></ion-icon>
+        <span class="label">{{
+          currentMode === "products" ? "Todos" : "Todas"
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="ownFilter"
+        [class.is-disabled]="shieldFilter"
+        [disabled]="disabled"
+        (click)="onOwnChipClick()"
+      >
+        <ion-icon name="person"></ion-icon>
+        <span class="label">{{
+          currentMode === "products" ? "Añadidos por mí" : "Añadidas por mí"
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="shieldFilter"
+        [class.is-disabled]="ownFilter"
+        [disabled]="disabled"
+        (click)="onShieldChipClick()"
+      >
+        <ion-icon name="shield"></ion-icon>
+        <span class="label">{{
+          currentMode === "products" ? "Verificados" : "Verificadas"
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="favFilter"
+        [disabled]="disabled"
+        (click)="addFilter(PRODUCT_FILTERS.fav)"
+      >
+        <ion-icon name="bookmark"></ion-icon>
+        <span class="label">{{
+          currentMode === "products" ? "Favoritos" : "Favoritas"
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+    </div>
+  </div>
+  <div class="filter-info-row">
+    <button type="button" class="modern-pill info-pill">
+      <span class="label">{{ filterDescription }}</span>
+      <ion-icon name="search-outline" color="primary"></ion-icon>
+      <ion-ripple-effect></ion-ripple-effect>
+    </button>
+    <button
+      type="button"
+      class="modern-pill info-pill t-diets-meal-filter-measure"
+      *ngIf="!tablesMode && currentMode === 'products'"
+      (click)="setFilterMeasure()"
+    >
+      <span class="label">{{ measureFilter }}</span>
+      <ion-icon name="funnel-outline" color="primary"></ion-icon>
+      <ion-ripple-effect></ion-ripple-effect>
+    </button>
+  </div>
+</div>

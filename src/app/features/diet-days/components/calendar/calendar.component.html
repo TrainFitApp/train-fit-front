@@ -1,0 +1,43 @@
+<div class="calendar-container">
+  <!-- Encabezado del calendario -->
+  <div class="calendar-header">
+    <div class="weekday-header">L</div>
+    <div class="weekday-header">M</div>
+    <div class="weekday-header">X</div>
+    <div class="weekday-header">J</div>
+    <div class="weekday-header">V</div>
+    <div class="weekday-header">S</div>
+    <div class="weekday-header">D</div>
+    <div class="weekday-header average-header">Media</div>
+  </div>
+
+  <!-- Swiper del calendario -->
+  <swiper-container [initialSlide]="1" #calendar class="calendar-swiper">
+    <swiper-slide *ngFor="let month of months" class="calendar-slide">
+      <div class="calendar-grid">
+        <div *ngFor="let week of month" class="calendar-week">
+          <div
+            *ngFor="let day of week.days"
+            class="calendar-day"
+            [class.selected-day]="day.date && datesAreOnSameDay(selectedDate, day.date)"
+            [class.current-day]="day.date && today.getDate() === day.date.getDate() && today.getMonth() === day.date.getMonth()"
+            [class.empty-day]="!day.date"
+            (click)="selectDay(day.date, week, month)"
+          >
+            <div class="day-number">{{ day?.date?.getDate() || "" }}</div>
+            <div class="day-weight" *ngIf="day?.weight !== undefined; else noWeight">
+              {{ day.weight !== 0 ? day.weight.toFixed(2) : "-" }}
+            </div>
+            <ng-template #noWeight>
+              <div class="day-weight">-</div>
+            </ng-template>
+          </div>
+
+          <div class="week-average">
+            {{ week?.averageWeight?.toFixed(2) || "-" }}
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+  </swiper-container>
+</div>

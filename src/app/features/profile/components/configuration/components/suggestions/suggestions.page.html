@@ -1,0 +1,79 @@
+<ion-header>
+  <app-page-header
+    title="Reportes y sugerencias"
+    [customBackAction]="true"
+    (backClick)="close()"
+  >
+  </app-page-header>
+</ion-header>
+
+<ion-content>
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-info">
+        <h3 class="page-subtitle">Tus comentarios nos ayudan a mejorar</h3>
+      </div>
+      <div class="header-icon">
+        <ion-icon name="chatbubbles-outline" class="main-icon"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Divider -->
+  <div class="section-divider"></div>
+
+  <!-- Feedback Section -->
+  <div class="feedback-section">
+    <div class="feedback-content"></div>
+    <ion-textarea
+      #ionTextArea
+      placeholder="Comparte tus sugerencias o reporta algún problema..."
+      rows="4"
+      class="feedback-textarea"
+    ></ion-textarea>
+
+    <div
+      class="textarea-helper"
+      *ngIf="(ionTextArea?.value?.trim()?.length || 0) < 20"
+    >
+      <ion-icon name="information-circle-outline" color="warning"></ion-icon>
+      <ion-text color="medium">Mínimo 20 caracteres</ion-text>
+    </div>
+  </div>
+
+  <!-- Action Section -->
+  <div class="action-section" *ngIf="!isSending; else sendingTpl">
+    <ion-button
+      fill="solid"
+      color="primary"
+      expand="block"
+      [disabled]="isSending || ((ionTextArea?.value?.trim()?.length || 0) < 20)"
+      (click)="sendSuggestions()"
+      class="send-button"
+    >
+      <ion-icon name="send-outline" slot="start"></ion-icon>
+      <strong>ENVIAR</strong>
+    </ion-button>
+  </div>
+
+  <ng-template #sendingTpl>
+    <div class="action-section">
+      <ion-button expand="block" disabled>
+        <ion-spinner name="crescent" color="light"></ion-spinner>
+        <strong style="margin-left: 8px">Procesando...</strong>
+      </ion-button>
+    </div>
+  </ng-template>
+
+  <!-- Footer Info -->
+  <div class="footer-info">
+    <div class="info-card">
+      <ion-icon name="heart-outline" class="info-icon"></ion-icon>
+      <div class="info-text">
+        <h3>¡Gracias por tu feedback!</h3>
+        <p>Cada comentario nos ayuda a crear una mejor experiencia para ti</p>
+      </div>
+    </div>
+  </div>
+</ion-content>

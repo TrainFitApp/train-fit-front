@@ -1,0 +1,470 @@
+img {
+  border-radius: 3px;
+}
+
+// Basic animations (if needed)
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// Minimalist Header Styles
+.minimal-header {
+  --background: rgba(255, 255, 255, 0.98);
+  --border-color: rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.minimal-toolbar {
+  --background: transparent;
+  --color: var(--ion-color-dark);
+  --border-color: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  min-height: 60px;
+}
+
+// Workout Header (similar to micro-cycle-header)
+.workout-header {
+  margin: 16px 0;
+  padding: 0 16px;
+
+  .workout-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+
+    .workout-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+  }
+
+  .workout-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+
+    .workout-title {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      h2 {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--ion-color-medium);
+        margin: 0;
+        letter-spacing: 0.01em;
+        line-height: 1.3;
+        text-transform: uppercase;
+        opacity: 0.8;
+      }
+
+      .workout-name {
+        display: flex;
+        align-items: center;
+
+        .workout-name-text {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: var(--ion-color-secondary);
+          letter-spacing: 0.3px;
+          line-height: 1.4;
+          position: relative;
+
+          &::after {
+            content: "";
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--ion-color-secondary), var(--ion-color-secondary-shade));
+            border-radius: 2px;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+  }
+
+  .workout-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .action-btn {
+      --padding-start: 14px;
+      --padding-end: 14px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      --border-radius: 14px;
+      width: 52px;
+      height: 52px;
+      margin: 0;
+
+      ion-icon {
+        font-size: 1.3rem;
+      }
+    }
+
+    .back-btn {
+      --color: var(--ion-color-dark);
+      --background: rgba(var(--ion-color-medium-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+    }
+
+    .play-btn {
+      --color: var(--ion-color-success);
+      --background: rgba(var(--ion-color-success-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-success-rgb), 0.25);
+    }
+
+    .stop-btn {
+      --color: var(--ion-color-danger);
+      --background: rgba(var(--ion-color-danger-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+    }
+
+    .finish-btn {
+      --color: var(--ion-color-danger);
+      --background: rgba(var(--ion-color-danger-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+    }
+
+    .note-btn {
+      --color: var(--ion-color-primary);
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+    }
+  }
+}
+
+// Finish Workout Row Styles
+.finish-workout-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(var(--ion-color-success-rgb), 0.15);
+  border-radius: 8px;
+  width: 100%;
+
+  .finish-icon {
+    font-size: 20px;
+    color: var(--ion-color-success);
+  }
+
+  .finish-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ion-color-success);
+    text-align: center;
+  }
+}
+
+// Premium Accordion Header Styles for Custom Exercises
+.premium-accordion-header {
+  --background: rgba(30, 30, 30, 0.95);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --color: #ffffff;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --min-height: 4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  &.completed-exercise {
+    --background: rgba(var(--ion-color-success-rgb), 0.12);
+    --border-color: rgba(var(--ion-color-success-rgb), 0.4);
+  }
+
+  &.in-progress-exercise {
+    --background: rgba(var(--ion-color-primary-rgb), 0.12);
+    --border-color: rgba(var(--ion-color-primary-rgb), 0.4);
+  }
+
+  .premium-accordion-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    gap: 1rem;
+    width: 100%;
+
+    .premium-exercise-thumbnail {
+      flex-shrink: 0;
+
+      .premium-thumbnail-img {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    .premium-exercise-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+
+      .premium-exercise-name {
+        .exercise-name-text {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #ffffff;
+          text-transform: uppercase;
+          letter-spacing: 0.025em;
+
+          &.completed {
+            color: var(--ion-color-success);
+          }
+        }
+      }
+
+      .premium-exercise-progress {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .progress-badge {
+          font-size: 0.6rem;
+          font-weight: 600;
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.1);
+          padding: 0.3rem 0.6rem;
+          border-radius: 6px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-status {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+
+          &.in-progress {
+            color: var(--ion-color-primary);
+            background: rgba(var(--ion-color-primary-rgb), 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
+          }
+
+          &.completed {
+            color: var(--ion-color-success);
+            background: rgba(var(--ion-color-success-rgb), 0.15);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(var(--ion-color-success-rgb), 0.3);
+          }
+        }
+      }
+    }
+  }
+}
+
+.workout-header {
+  .workout-content {
+    background: #141414;
+    border: 1px solid #252525;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .workout-info {
+    .workout-title {
+      h2 {
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .workout-header {
+    margin: 12px 0;
+    padding: 0 12px;
+
+    .workout-content {
+      background: #141414;
+      border: 1px solid #252525;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .workout-info {
+      gap: 12px;
+
+      .workout-title {
+        gap: 6px;
+
+        h2 {
+          font-size: 0.6rem;
+        }
+      }
+    }
+
+    .workout-actions {
+      .action-btn {
+        width: 48px;
+        height: 48px;
+        --border-radius: 12px;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+
+        ion-icon {
+          font-size: 1.2rem;
+        }
+      }
+    }
+  }
+
+  .workout-content {
+    gap: 10px;
+    padding: 14px;
+
+    .workout-row {
+      gap: 8px;
+    }
+  }
+
+  .finish-workout-row {
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 6px;
+
+    .finish-icon {
+      font-size: 18px;
+    }
+
+    .finish-text {
+      font-size: 13px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .workout-header {
+    margin: 8px 0;
+    padding: 0 8px;
+
+    .workout-content {
+      background: #141414;
+      border: 1px solid #252525;
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+      gap: 8px;
+
+      .workout-row {
+        gap: 6px;
+      }
+    }
+
+    .workout-info {
+      gap: 8px;
+
+      .workout-title {
+        gap: 4px;
+
+        h2 {
+          font-size: 0.6rem;
+        }
+      }
+    }
+
+    .workout-actions {
+      .action-btn {
+        width: 44px;
+        height: 44px;
+        --border-radius: 10px;
+        --padding-start: 10px;
+        --padding-end: 10px;
+        --padding-top: 10px;
+        --padding-bottom: 10px;
+
+        ion-icon {
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+
+  .finish-workout-row {
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 6px;
+
+    .finish-icon {
+      font-size: 16px;
+    }
+
+    .finish-text {
+      font-size: 12px;
+    }
+  }
+}
+
+// Previous Workout Notes Container
+.previous-workout-notes-container {
+  margin: 8px 16px;
+  background: rgba(var(--ion-color-light-rgb), 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .previous-session-title {
+    padding: 8px 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    background: rgba(var(--ion-color-tertiary-rgb), 0.08);
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: rgba(var(--ion-color-tertiary-rgb), 0.25);
+    }
+
+    .previous-title-text {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ion-color-tertiary);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+  }
+
+  app-notes {
+    display: block;
+    padding: 8px 12px;
+  }
+}

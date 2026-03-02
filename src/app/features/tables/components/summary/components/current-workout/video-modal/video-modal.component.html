@@ -1,0 +1,95 @@
+<ion-header class="minimal-header">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="close()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="title-section">
+        <h1 class="page-title">{{ exercise?.name || 'Video' }}</h1>
+      </div>
+
+      <div class="actions-section">
+        <!-- Placeholder for symmetry -->
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="video-modal-content" [fullscreen]="true">
+  <div *ngIf="videoEmbedSrcSafe; else noVideo" class="elegant-card video-card">
+    <div class="video-header">
+      <div class="video-info">
+        <div class="video-icon">
+          <ion-icon name="play-circle-outline"></ion-icon>
+        </div>
+        <h3 class="video-title">Video demostrativo</h3>
+      </div>
+    </div>
+    <div class="video-container">
+      <iframe
+        class="video-frame"
+        [src]="videoEmbedSrcSafe"
+        title="YouTube video player"
+        frameborder="0"
+        referrerpolicy="origin"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        playsinline>
+      </iframe>
+    </div>
+  </div>
+
+  <ng-template #noVideo>
+    <div class="no-video">Video no disponible</div>
+  </ng-template>
+
+  <!-- Muscle Groups Section -->
+  <div class="elegant-card muscle-groups-card" *ngIf="getValidMuscleGroups().length > 0">
+    <div class="card-content">
+      <!-- Title Row -->
+      <div class="muscle-groups-header">
+        <div class="muscle-groups-info">
+          <div class="muscle-groups-icon">
+            <ion-icon name="body-outline"></ion-icon>
+          </div>
+          <h3 class="muscle-groups-title">Grupos musculares</h3>
+        </div>
+      </div>
+
+      <!-- Chips Row -->
+      <div class="muscle-groups-chips">
+        <button type="button" class="modern-pill modern-pill--sm" *ngFor="let mg of getValidMuscleGroups()">
+          <ion-icon name="barbell-outline"></ion-icon>
+          <span class="label">{{ mg }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description Section -->
+  <div class="elegant-card description-card" *ngIf="exercise?.description">
+    <div class="card-content">
+      <!-- Title Row -->
+      <div class="description-header">
+        <div class="description-info">
+          <div class="description-icon">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <h3 class="description-title">Descripción</h3>
+        </div>
+      </div>
+
+      <!-- Description Content Row -->
+      <div class="exercise-description">
+        <p class="description-text">
+          {{ exercise?.description }}
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

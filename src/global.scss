@@ -1,0 +1,1254 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* Global Macro Colors */
+:root {
+  --protein-color: #3b82f6;
+  --carbs-color: #10b981;
+  --fat-color: #eab308;
+}
+
+/*
+ * Unificación de estilos para ion-datetime en popovers/modales (global)
+ * - Evita contenido cortado estableciendo overflow visible en el contenedor
+ * - Alinea dimensiones del popover con diets.page.scss
+ * - Usa variables de Ionic para coherencia visual (tema claro/oscuro)
+ */
+ion-popover {
+  --backdrop-opacity: 0.4;
+  --border-radius: 16px;
+  --width: 320px;
+  --max-width: 90vw;
+}
+
+/* Asegura que el contenido del popover no recorte el ion-datetime */
+ion-popover::part(content) {
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* Estilo base del ion-datetime (tema claro) */
+ion-popover ion-datetime,
+ion-modal ion-datetime {
+  --background: var(--ion-color-light);
+  --color: var(--ion-color-dark);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Tema oscuro coherente */
+body[color-theme="dark"] ion-popover ion-datetime,
+body[color-theme="dark"] ion-modal ion-datetime {
+  --background: var(--ion-color-dark);
+  --color: var(--ion-color-light);
+}
+
+/* Estilo elegante para el título del datetime con icono */
+.datetime-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+
+  span {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.35px;
+  }
+
+  ion-icon {
+    font-size: 22px;
+    color: #ffffff;
+  }
+}
+
+/* Dark theme macro colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --protein-color: #007aff;
+    --carbs-color: #34c759;
+    --fat-color: #ff9500;
+  }
+
+  // Desactivar ripple effect y todos los efectos de interacción en botones
+  ion-button {
+    --ripple-color: transparent !important;
+    --background-hover: var(--background) !important;
+    --background-activated: var(--background) !important;
+    --background-focused: var(--background) !important;
+    --color-hover: var(--color) !important;
+    --color-activated: var(--color) !important;
+    --color-focused: var(--color) !important;
+    --box-shadow: none !important;
+    --box-shadow-activated: none !important;
+    --box-shadow-focused: none !important;
+  }
+
+  swiper-container {
+    --swiper-pagination-bullet-inactive-color: var(--ion-color-step-200, #cccccc);
+    --swiper-pagination-color: var(--ion-color-primary, #3880ff);
+    --swiper-pagination-progressbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.25);
+    --swiper-scrollbar-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.1);
+    --swiper-scrollbar-drag-bg-color: rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.5);
+  }
+
+  .alert-grid-buttons .alert-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .alert-grid-buttons .alert-button {
+    flex-basis: calc(50% - 10px);
+    /* 2 botones por fila con espacio */
+    width: calc(50% - 10px);
+    margin: 5px !important;
+    text-align: center;
+  }
+}
+
+/* Force dark macro colors when color-theme="dark" regardless of OS */
+body[color-theme="dark"] {
+  --protein-color: #007aff;
+  --carbs-color: #34c759;
+  --fat-color: #ff9500;
+}
+
+// Alert controller
+.alert-head {
+  background-color: var(--ion-color-primary);
+}
+
+.no-translucent {
+  background-color: var(--ion-color-light);
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+ion-range::part(pin) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--ion-color-primary);
+  color: var(--ion-color-light);
+  font-weight: bold;
+
+  border-radius: 50%;
+  transform: scale(1.01);
+
+  top: -20px;
+
+  min-width: 28px;
+  height: 28px;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+ion-range::part(pin)::before {
+  content: none;
+}
+
+.input-big-display {
+  font-size: large;
+  font-weight: bold;
+}
+
+.input-tiny-display {
+  font-size: small;
+}
+
+.fixed {
+  position: fixed;
+  right: 0;
+}
+
+.divider {
+  border-top: 1px solid var(--ion-color-secondary);
+  opacity: 0.6;
+  /* Cambia el color y grosor según tus preferencias */
+  margin: 0.2em 0;
+  /* Añade margen superior e inferior según sea necesario */
+}
+
+ion-searchbar {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+// SATUS BAR Y NAVIGATION BAR SAFE AREAS
+ion-header {
+  margin-top: env(safe-area-inset-top);
+}
+
+.ios ion-footer {
+  margin-bottom: calc(env(safe-area-inset-bottom));
+}
+
+.ios ion-tab-bar {
+  margin-bottom: calc(env(safe-area-inset-bottom) - 22px);
+}
+
+// ACTION SHEET
+.action-sheet-custom .action-sheet-title {
+  font-weight: bold;
+  color: var(--ion-color-secondary);
+}
+
+.action-sheet-custom .action-sheet-icon {
+  color: var(--ion-color-primary);
+}
+
+.shadow-form {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.shadow-text {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.radius-header {
+  border-radius: 0 0 20px 20px;
+}
+
+.shepherd-button {
+  background-color: var(--ion-color-primary) !important;
+}
+
+// ===== ESTILOS MEJORADOS PARA ALERTS =====
+.custom-alert,
+.notes-alert {
+  .alert-wrapper {
+    --background: #141414;
+    --backdrop-opacity: 0.6;
+    --box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    --max-width: 90%;
+    --width: 340px;
+
+    background: #141414 !important;
+    border: 1px solid #252525 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+
+    // Shimmer effect removido para móvil
+    &::before {
+      display: none !important;
+    }
+
+    // Header del alert
+    .alert-head {
+      background: #252525 !important;
+      color: #ffffff !important;
+      padding: 20px 24px !important;
+      margin: 0 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      position: relative !important;
+
+      .alert-title {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 1.2rem !important;
+        margin: 0 !important;
+        letter-spacing: 0.3px !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    // Mensaje del alert
+    .alert-message {
+      line-height: 1.6 !important;
+      font-size: 0.85rem !important;
+      margin: 0 !important;
+    }
+
+    // Contenedor de inputs
+    .alert-input-wrapper {
+      background: #141414 !important;
+      padding: 0 24px 0 24px !important;
+
+      .alert-input {
+        background: #252525 !important;
+        border: 2px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+        padding: 14px 16px !important;
+        font-size: 1rem !important;
+        color: #ffffff !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        margin-bottom: 12px !important;
+
+        &:focus {
+          border-color: var(--ion-color-primary) !important;
+          box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.2) !important;
+          background: rgba(var(--ion-color-primary-rgb), 0.05) !important;
+          transform: translateY(-1px);
+        }
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.5) !important;
+          opacity: 1;
+        }
+      }
+
+      // Textarea específico
+      .alert-input[type="textarea"] {
+        min-height: 100px !important;
+        resize: vertical !important;
+        font-family: inherit !important;
+        line-height: 1.5 !important;
+      }
+    }
+
+    // Contenedor de botones
+    .alert-button-group {
+      background: #141414 !important;
+      padding: 16px 24px 24px 24px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 12px !important;
+      justify-content: center !important;
+      align-items: center !important;
+
+      .alert-button {
+        border-radius: 12px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.3px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+        position: relative !important;
+        overflow: hidden !important;
+        flex: 1 !important;
+        max-width: 140px !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+
+        // Botón primario (GUARDAR, ACEPTAR, etc.)
+        &:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
+          background: var(--ion-color-primary) !important;
+          color: #ffffff !important;
+        }
+
+        // Botón de cancelar
+        &.alert-button-role-cancel {
+          background: rgba(255, 255, 255, 0.1) !important;
+          color: rgba(255, 255, 255, 0.8) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+
+          &:active {
+            transform: translateY(0px);
+            background: rgba(255, 255, 255, 0.05) !important;
+          }
+        }
+
+        // Botón destructivo (ELIMINAR)
+        &.alert-button-role-destructive {
+          background: var(--ion-color-danger) !important;
+          color: #ffffff !important;
+        }
+      }
+    }
+  }
+
+  // Animación de entrada mejorada
+  .alert-wrapper {
+    animation: alert-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes alert-slide-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85) translateY(-30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes alert-shimmer {
+
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translateX(-100%);
+    }
+
+    50% {
+      opacity: 1;
+      transform: translateX(100%);
+    }
+  }
+}
+
+// ===== ESTILOS ELEGANTES PARA IONIC ALERTS (LEGACY) =====
+.legacy-alert {
+
+  // Contenedor principal del alert
+  .alert-wrapper {
+    --background: rgba(var(--ion-background-color-rgb, 255, 255, 255), 0.95);
+    --backdrop-opacity: 0.4;
+    --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    --max-width: 90%;
+    --width: 320px;
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
+    overflow: hidden;
+    position: relative;
+
+    // Efecto de brillo sutil
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--ion-color-primary), transparent);
+      animation: alert-shimmer 3s infinite;
+    }
+  }
+
+  // Header del alert
+  .alert-head {
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)) !important;
+    color: white !important;
+    padding: 20px 24px 16px 24px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    position: relative;
+    overflow: hidden;
+
+    // Efecto de ondas en el header
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg,
+          var(--ion-color-primary-tint) 0%,
+          var(--ion-color-secondary) 50%,
+          var(--ion-color-primary-tint) 100%);
+    }
+  }
+
+  // Título del alert
+  .alert-title {
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
+    margin: 0 !important;
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  // Mensaje del alert
+  .alert-message {
+    padding: 16px 20px 8px 20px !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    color: var(--ion-text-color) !important;
+    margin: 0 !important;
+  }
+
+  // Contenedor de inputs
+  .alert-input-wrapper {
+    padding: 0 20px 12px 20px !important;
+
+    .alert-input {
+      background: rgba(var(--ion-color-light-rgb), 0.8) !important;
+      border: 2px solid rgba(var(--ion-color-medium-rgb), 0.3) !important;
+      border-radius: 12px !important;
+      padding: 12px 16px !important;
+      font-size: 1rem !important;
+      transition: all 0.3s ease !important;
+      margin-bottom: 8px !important;
+
+      &:focus {
+        border-color: var(--ion-color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.1) !important;
+        background: var(--ion-background-color) !important;
+        transform: translateY(-1px);
+      }
+
+      &::placeholder {
+        color: var(--ion-color-medium) !important;
+        opacity: 0.7;
+      }
+    }
+
+    // Textarea específico
+    .alert-input[type="textarea"] {
+      min-height: 80px !important;
+      resize: vertical !important;
+      font-family: inherit !important;
+    }
+  }
+
+  // Contenedor de botones
+  .alert-button-group {
+    padding: 12px 20px 20px 20px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+
+    .alert-button {
+      border-radius: 8px !important;
+      padding: 10px 16px !important;
+      font-weight: 500 !important;
+      font-size: 0.85rem !important;
+      letter-spacing: 0.2px !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      border: none !important;
+      position: relative !important;
+      overflow: hidden !important;
+      flex: 1 !important;
+      max-width: 120px !important;
+      min-width: 80px !important;
+      text-align: center !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      // Efecto ripple
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition:
+          width 0.3s,
+          height 0.3s;
+      }
+
+      &:active::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    // Botón cancelar
+    .alert-button.alert-button-role-cancel {
+      background: rgba(var(--ion-color-medium-rgb), 0.1) !important;
+      color: var(--ion-color-medium) !important;
+    }
+
+    // Botón primario
+    .alert-button:not(.alert-button-role-cancel) {
+      background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade)) !important;
+      color: white !important;
+    }
+
+    // Botón de peligro
+    .alert-button.alert-button-role-destructive {
+      background: linear-gradient(135deg, var(--ion-color-danger), var(--ion-color-danger-shade)) !important;
+      color: white !important;
+    }
+  }
+
+  // Animación de entrada
+  .alert-wrapper {
+    animation: alert-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes alert-slide-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+}
+
+/* Loading orange style for spinner */
+ion-loading.loading-orange {
+  ion-spinner {
+    color: #fe9000 !important;
+  }
+}
+
+// ===== ESTILOS MEJORADOS PARA IONIC ALERTS (MOBILE OPTIMIZED) =====
+.custom-alert,
+.notes-alert {
+
+  // Contenedor principal del alert
+  .alert-wrapper {
+    --background: #252525;
+    --backdrop-opacity: 0.4;
+    --max-width: 90%;
+    --width: 320px;
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  // Cabecera del alert
+  .alert-head {
+    background: #252525 !important;
+    color: var(--ion-color-light) !important;
+    padding: 20px 20px 16px 20px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    letter-spacing: 0.3px !important;
+    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1) !important;
+  }
+
+  // Título del alert
+  .alert-title {
+    color: var(--ion-color-light) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    text-align: center !important;
+  }
+
+  // Mensaje del alert
+  .alert-message {
+    padding: 16px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    margin: 0 !important;
+  }
+
+  .alert-input-group {
+    padding: 0;
+  }
+
+  .alert-button-group {
+    padding: 0 !important;
+  }
+
+  .alert-input-wrapper {
+    background: #141414 !important;
+    padding: 0 20px 0 20px !important;
+
+    .alert-input {
+      background: rgba(var(--ion-color-dark-tint-rgb), 0.6) !important;
+      border: 1px solid rgba(var(--ion-color-medium-rgb), 0.3) !important;
+      border-radius: 12px !important;
+      padding: 12px 16px !important;
+      color: var(--ion-color-light) !important;
+      font-size: 0.9rem !important;
+      margin-bottom: 12px !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+      &:focus {
+        background: var(--ion-color-dark-tint) !important;
+        border-color: var(--ion-color-primary) !important;
+        outline: none !important;
+      }
+
+      &::placeholder {
+        color: var(--ion-color-medium) !important;
+      }
+
+      &[type="textarea"] {
+        min-height: 80px !important;
+        resize: vertical !important;
+      }
+    }
+  }
+
+  // Grupo de botones
+  .alert-button-group {
+    padding: 12px 20px 20px 20px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background: #141414 !important;
+    border-radius: 0 0 20px 20px !important;
+
+    .alert-button {
+      border-radius: 12px !important;
+      padding: 12px 20px !important;
+      font-weight: 600 !important;
+      font-size: 0.9rem !important;
+      letter-spacing: 0.2px !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      border: none !important;
+      position: relative !important;
+      overflow: hidden !important;
+      flex: 1 !important;
+      max-width: 120px !important;
+      min-width: 80px !important;
+      text-align: center !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+
+      // Asegurar que el texto esté centrado
+      span {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+      }
+
+      // Botón primario (por defecto)
+      &:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
+        background: var(--ion-color-primary) !important;
+        color: white !important;
+      }
+
+      // Botón cancelar
+      &.alert-button-role-cancel {
+        background: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+        color: var(--ion-color-medium-tint) !important;
+      }
+
+      // Botón destructivo
+      &.alert-button-role-destructive {
+        background: var(--ion-color-danger) !important;
+        color: white !important;
+      }
+    }
+  }
+
+  // Animación de entrada
+  .alert-wrapper {
+    animation: alert-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes alert-slide-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  // ===== ESTILOS PARA MODO OSCURO =====
+  .dark {
+    .alert-wrapper {
+      --background: #252525;
+      border-color: rgba(var(--ion-color-medium-rgb), 0.3);
+    }
+
+    .alert-head {
+      background: #252525 !important;
+    }
+
+    .alert-input-wrapper {
+      background: #141414 !important;
+
+      .alert-input {
+        background: rgba(var(--ion-color-dark-tint-rgb), 0.8) !important;
+        border-color: rgba(var(--ion-color-medium-tint-rgb), 0.3) !important;
+        color: var(--ion-color-light) !important;
+
+        &:focus {
+          background: var(--ion-color-dark-tint) !important;
+          border-color: var(--ion-color-primary-tint) !important;
+        }
+
+        &::placeholder {
+          color: var(--ion-color-medium-tint) !important;
+        }
+      }
+    }
+
+    .alert-button-group {
+      background: #141414 !important;
+
+      .alert-button.alert-button-role-cancel {
+        background: rgba(var(--ion-color-medium-tint-rgb), 0.1) !important;
+        color: var(--ion-color-medium-tint) !important;
+
+        &:active {
+          background: rgba(var(--ion-color-medium-tint-rgb), 0.2) !important;
+        }
+      }
+    }
+  }
+}
+
+/* ===== CLASES UTILITARIAS PARA ESTILOS COMUNES ===== */
+
+.radius-sm {
+  border-radius: 8px !important;
+}
+
+.radius-md {
+  border-radius: 12px !important;
+}
+
+.radius-top-md {
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* Background Utilities */
+.bg-dark-primary {
+  background: #141414 !important;
+}
+
+.bg-dark-secondary {
+  background: #111111 !important;
+}
+
+/* Padding Utilities */
+.p-xs {
+  padding: 8px !important;
+}
+
+.p-sm {
+  padding: 12px !important;
+}
+
+.p-md {
+  padding: 16px !important;
+}
+
+.px-xs {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+.px-sm {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.px-md {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.py-xs {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.py-sm {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.py-md {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+/* Margin Utilities */
+.m-xs {
+  margin: 8px !important;
+}
+
+.m-sm {
+  margin: 12px !important;
+}
+
+.m-md {
+  margin: 16px !important;
+}
+
+.mx-xs {
+  margin-left: 8px !important;
+  margin-right: 8px !important;
+}
+
+.mx-sm {
+  margin-left: 12px !important;
+  margin-right: 12px !important;
+}
+
+.mx-md {
+  margin-left: 16px !important;
+  margin-right: 16px !important;
+}
+
+.my-xs {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.my-sm {
+  margin-top: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.my-md {
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Flexbox Utilities */
+.flex {
+  display: flex !important;
+}
+
+.flex-center {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.flex-center-v {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.flex-center-h {
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.flex-between {
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.flex-around {
+  display: flex !important;
+  justify-content: space-around !important;
+}
+
+.flex-end {
+  display: flex !important;
+  justify-content: flex-end !important;
+}
+
+.flex-start {
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+
+.flex-column {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.flex-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+/* Reset Utilities */
+.m-0 {
+  margin: 0 !important;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+/* Combined Common Styles */
+.card-dark {
+  background: #141414 !important;
+  border-radius: 12px !important;
+}
+
+.card-dark-sm {
+  background: #141414 !important;
+  border-radius: 8px !important;
+}
+
+.input-dark {
+  background: #141414 !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+}
+
+.button-dark {
+  background: #141414 !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+}
+
+/* Modern pill buttons (chips-like) */
+.modern-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  min-height: 32px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(120%) blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.modern-pill .label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.modern-pill ion-icon {
+  font-size: 18px;
+}
+
+.modern-pill.is-active {
+  background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+  color: #121212;
+  border-color: transparent;
+}
+
+.modern-pill[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.modern-pill.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Compact variant for dense layouts */
+.modern-pill--sm {
+  gap: 6px;
+  padding: 4px 8px;
+  min-height: 26px;
+  border-radius: 12px;
+}
+
+.modern-pill--sm .label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.modern-pill--sm ion-icon {
+  font-size: 16px;
+}
+
+/* Ripple Effect Global Class */
+.ripple-effect {
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.3s ease !important;
+
+  &::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: radial-gradient(circle, rgba(254, 144, 0, 0.3) 0%, transparent 70%) !important;
+    border-radius: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    transition: all 0.6s ease !important;
+    z-index: 0 !important;
+  }
+
+  &:active {
+    transform: scale(0.95) !important;
+
+    &::before {
+      width: 200% !important;
+      height: 200% !important;
+      animation: ripple-drop-effect 0.6s ease-out !important;
+    }
+  }
+
+  // Asegurar que el contenido esté por encima del ripple
+  >* {
+    position: relative !important;
+    z-index: 1 !important;
+  }
+}
+
+/* Específico para botones de Ionic - respeta su border-radius */
+ion-button.ripple-effect {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Ripple Effect Animation - Exactamente igual que en profile */
+@keyframes ripple-drop-effect {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+
+  50% {
+    width: 150%;
+    height: 150%;
+    opacity: 0.8;
+  }
+
+  100% {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+  }
+}
+
+ion-fab-button {
+  --border-radius: 12px;
+}
+
+ion-fab-button ion-icon {
+  font-size: xx-large;
+}
+
+.white-text-action-sheet .action-sheet-button {
+  color: white !important;
+}
+
+/* Create Action Sheet - Elegant Design */
+.create-action-sheet {
+  --background: #1a1a1a;
+  --backdrop-opacity: 0.6;
+
+  .action-sheet-group {
+    background: #1a1a1a !important;
+    border-radius: 16px 16px 0 0;
+    padding: 8px 0 !important;
+
+    &:last-child {
+      border-radius: 0;
+    }
+  }
+
+  .action-sheet-button {
+    --background: transparent;
+    --color: #ffffff;
+    font-size: 1.05rem;
+    font-weight: 500;
+    padding: 16px 24px;
+    min-height: 60px;
+
+    &::after {
+      display: none;
+    }
+
+    .action-sheet-icon {
+      font-size: 24px;
+      margin-right: 16px;
+      color: var(--ion-color-primary);
+    }
+
+    &:active {
+      --background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .action-sheet-product .action-sheet-icon {
+    color: var(--ion-color-primary);
+  }
+
+  .action-sheet-recipe .action-sheet-icon {
+    color: var(--ion-color-secondary);
+  }
+}
+
+/* Toast Styles */
+.toast-safe-area {
+  --padding-bottom: 32px;
+  --min-width: 280px;
+  --max-width: 95vw;
+
+  ion-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+  }
+}
+
+/* Error Toast */
+.error-toast {
+  --background: rgba(239, 68, 68, 0.95);
+  --color: #ffffff;
+
+  ion-text {
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  ion-icon {
+    color: #fecaca;
+  }
+}
+
+/* Success Toast */
+.success-toast {
+  --background: rgba(34, 197, 94, 0.95);
+  --color: #ffffff;
+
+  ion-icon {
+    color: #bbf7d0;
+  }
+}
+
+/* Warning Toast */
+.warning-toast {
+  --background: rgba(234, 179, 8, 0.95);
+  --color: #1f2937;
+
+  ion-icon {
+    color: #fcd34d;
+  }
+}
+
+.fullscreen-modal {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+}

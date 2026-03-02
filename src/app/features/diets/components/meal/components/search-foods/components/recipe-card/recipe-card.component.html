@@ -1,0 +1,63 @@
+<div class="recipe-card" [class.is-checked]="isChecked" (click)="onCardClick()">
+  <div class="recipe-content">
+    <!-- Header: Name and Actions -->
+    <div class="recipe-header">
+      <div class="recipe-info">
+        <span class="recipe-name">
+          {{ recipe.name }}
+          <span *ngIf="isChecked && instanceQuantity" class="recipe-quantity"
+            >({{ instanceQuantity }}g)</span
+          >
+        </span>
+        <span class="recipe-ingredients">{{ topIngredients }}</span>
+      </div>
+      <div class="recipe-actions">
+        <div
+          *ngIf="meal"
+          class="checkbox-container"
+          (click)="onCheckboxClick($event)"
+        >
+          <ion-checkbox
+            mode="ios"
+            [checked]="isChecked"
+            style="pointer-events: none"
+          ></ion-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <!-- Macros Row -->
+    <div class="recipe-macros">
+      <!-- Calories -->
+      <div class="macro-item">
+        <div class="macro-dot kcal"></div>
+        <span class="macro-value">{{ macros.kcal | number : "1.0-0" }}</span>
+      </div>
+      <!-- Protein -->
+      <div class="macro-item">
+        <div class="macro-dot protein"></div>
+        <span class="macro-value"
+          >{{ macros.protein | number : "1.0-1" }}g</span
+        >
+      </div>
+      <!-- Carbs -->
+      <div class="macro-item">
+        <div class="macro-dot carbs"></div>
+        <span class="macro-value">{{ macros.carbs | number : "1.0-1" }}g</span>
+      </div>
+      <!-- Fat -->
+      <div class="macro-item">
+        <div class="macro-dot fat"></div>
+        <span class="macro-value">{{ macros.fat | number : "1.0-1" }}g</span>
+      </div>
+    </div>
+
+    <!-- Verified Badge -->
+    <div class="recipe-badges" *ngIf="recipe.verified">
+      <span class="badge verified">
+        <ion-icon name="shield-checkmark"></ion-icon>
+        Verificada
+      </span>
+    </div>
+  </div>
+</div>

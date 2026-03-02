@@ -1,0 +1,241 @@
+// Configuration Page Styles
+.configuration-content {
+  --background: var(--ion-color-light);
+
+  .config-sections {
+    padding: 0 16px 24px;
+
+    .section-group {
+      margin-bottom: 24px;
+
+      .section-header {
+        margin-top: 12px;
+
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 0 4px;
+
+        ion-icon {
+          font-size: 20px;
+          color: var(--ion-color-primary);
+          margin-right: 8px;
+        }
+
+        span {
+          font-size: 16px;
+          font-weight: 600;
+          color: #8b8b8b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+
+      .config-card {
+        margin: 0;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+
+        .config-item {
+          --padding-start: 20px;
+          --padding-end: 20px;
+          --min-height: 72px;
+          --border-radius: 0;
+          --background: var(--ion-card-background);
+
+          .item-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            margin-right: 16px;
+
+            ion-icon {
+              font-size: 24px;
+            }
+
+            &.theme-icon {
+              background: rgba(var(--ion-color-warning-rgb), 0.1);
+            }
+
+            &.security-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.1);
+            }
+
+            &.privacy-icon {
+              background: rgba(var(--ion-color-tertiary-rgb), 0.1);
+            }
+
+            &.logout-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.1);
+            }
+
+            &.danger-icon {
+              background: rgba(var(--ion-color-danger-rgb), 0.1);
+            }
+
+            &.profile-icon {
+              background: rgba(var(--ion-color-secondary-rgb), 0.1);
+            }
+
+            &.help-icon {
+              background: rgba(var(--ion-color-tertiary-rgb), 0.1);
+            }
+
+            &.legal-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.1);
+            }
+          }
+
+          ion-label {
+            h3 {
+              margin: 0 0 4px 0;
+              font-size: 16px;
+              font-weight: 600;
+              color: var(--ion-text-color);
+            }
+
+            p {
+              margin: 0;
+              font-size: 14px;
+              color: var(--ion-color-medium);
+              line-height: 1.4;
+            }
+          }
+
+          .chevron-icon {
+            font-size: 20px;
+            color: var(--ion-color-medium);
+          }
+
+          &.theme-item {
+            ion-toggle {
+              --handle-background: var(--ion-color-light);
+              --handle-background-checked: var(--ion-color-primary-contrast);
+              --background: var(--ion-color-medium);
+              --background-checked: var(--ion-color-primary);
+            }
+          }
+
+          &.danger-item {
+            ion-label h3 {
+              color: var(--ion-color-danger);
+            }
+          }
+        }
+
+        .divider {
+          margin: 0 20px;
+          border-top: 1px solid var(--ion-color-light-shade);
+          opacity: 0.6;
+        }
+      }
+    }
+  }
+}
+
+// Dark Theme Specific Styles
+body[color-theme="dark"] {
+  .configuration-content {
+    --background: var(--ion-background-color);
+
+    .config-sections {
+      .section-group {
+        .config-card {
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+
+          .config-item .item-icon-container {
+            &.theme-icon {
+              background: rgba(var(--ion-color-primary-rgb), 0.2);
+            }
+
+            &.security-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.2);
+            }
+
+            &.privacy-icon {
+              background: rgba(var(--ion-color-tertiary-rgb), 0.2);
+            }
+
+            &.logout-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.2);
+            }
+
+            &.danger-icon {
+              background: rgba(var(--ion-color-danger-rgb), 0.2);
+            }
+
+            &.profile-icon {
+              background: rgba(var(--ion-color-secondary-rgb), 0.2);
+            }
+
+            &.help-icon {
+              background: rgba(var(--ion-color-tertiary-rgb), 0.2);
+            }
+
+            &.legal-icon {
+              background: rgba(var(--ion-color-medium-rgb), 0.2);
+            }
+          }
+
+          .divider {
+            border-top-color: var(--ion-color-step-200);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .configuration-content {
+    .user-profile-section {
+      padding: 20px 16px;
+
+      .user-avatar ion-icon {
+        font-size: 56px;
+      }
+
+      .user-info h2 {
+        font-size: 22px;
+      }
+    }
+
+    .config-sections {
+      padding: 0 12px 20px;
+
+      .section-group .config-card .config-item {
+        --min-height: 64px;
+        --padding-start: 16px;
+        --padding-end: 16px;
+
+        .item-icon-container {
+          width: 40px;
+          height: 40px;
+          margin-right: 12px;
+
+          ion-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .configuration-content {
+    .config-sections .section-group .config-card {
+      border: 2px solid var(--ion-color-medium);
+
+      .config-item .item-icon-container {
+        border: 1px solid var(--ion-color-medium);
+      }
+    }
+  }
+}

@@ -1,0 +1,164 @@
+.product-card {
+  background-color: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin: 6px 4px;
+  padding: 12px 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+
+  &.product-selected {
+    border-color: var(--ion-color-primary);
+    background-color: rgba(var(--ion-color-primary-rgb), 0.04);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    background-color: #1a1a1a;
+  }
+}
+
+.product-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Header
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.product-qty {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.product-brand {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+ion-checkbox {
+  --size: 24px;
+  --checkbox-background-checked: var(--ion-color-primary);
+  --border-color: #444;
+  --border-color-checked: var(--ion-color-primary);
+
+  &::part(container) {
+    border-radius: 6px;
+  }
+}
+
+// Macros Row
+.product-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.macro-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.macro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.kcal {
+    background: var(--ion-color-primary);
+  }
+
+  &.protein {
+    background: var(--ion-color-alternative);
+  }
+
+  &.carbs {
+    background: var(--ion-color-success);
+  }
+
+  &.fat {
+    background: var(--ion-color-secondary);
+  }
+}
+
+.macro-value {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+// Info Warning
+.info-warning {
+  font-size: 0.75rem;
+  color: var(--ion-color-warning);
+  margin-top: 4px;
+  text-align: center;
+}
+
+// Ingredient Mode refinements
+.ingredient-mode {
+  ion-checkbox {
+    --size: 28px;
+
+    &::part(container) {
+      border-radius: 8px;
+    }
+  }
+}
+
+// Animations when selected
+.product-selected {
+  .macro-dot {
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+  }
+
+  .product-name {
+    color: var(--ion-color-primary);
+  }
+}

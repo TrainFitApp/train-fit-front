@@ -1,0 +1,378 @@
+<ion-header>
+  <!-- Scrollable Header (replaces fixed ion-header) -->
+  <div class="minimal-header">
+    <div class="search-header">
+      <div class="header-content">
+        <div class="back-section">
+          <button class="back-button" (click)="close()">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="title-section">
+          <h1 class="page-title" (click)="editTableName()">
+            {{ tableInUse?.name }}
+          </h1>
+        </div>
+        <div class="actions-section" *ngIf="!pasteMode">
+          <button class="action-button ripple-effect" (click)="unlinkTable()">
+            <ion-icon name="close" color="primary"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-header>
+<ion-content>
+  <!-- Split Content -->
+  <div
+    class="split-content-container"
+    [style.height]="tableInUseAux?.splits.length > 0 ? 'initial': '100%'"
+  >
+    <ng-container
+      *ngIf="tableInUseAux?.splits.length > 0 && currentSplit; else emptySplits;"
+    >
+      <ng-container *ngIf="currentSplit.workouts?.length > 0 && !loadingSplit">
+        <ng-container
+          *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
+        >
+          <div
+            class="info-explainer"
+            *ngIf="pasteMode && workoutIndexPaste === ind"
+          >
+            <div class="info-card">
+              <ion-icon
+                name="information-circle-outline"
+                class="info-icon"
+              ></ion-icon>
+              <div class="info-text">
+                <span class="info-title">Modo copia activado</span>
+                <p>
+                  Ahora puedes navegar entre micro-ciclos y pegar este
+                  entrenamiento para otro día
+                  <ion-label color="tertiary"
+                    ><strong>{{ workout.name }}</strong></ion-label
+                  >.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <ion-accordion-group
+            [id]="'workout-' + ind"
+            [multiple]="true"
+            [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
+            (ionChange)="toggleAccordion($event, ind)"
+            [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
+            [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
+          >
+            <app-workout
+              [user]="user"
+              [split]="currentSplit"
+              [splitIndex]="currentSplitIndex"
+              [tableInUse]="tableInUse"
+              [workout]="workout"
+              [workoutColor]="user?.workoutInUse === workout._id ? 'var(--ion-color-secondary)' : 'var(--ion-color-medium)'"
+              [workoutIndex]="ind"
+              [stateSelected]="stateSelected"
+              [pasteMode]="pasteMode"
+              (pasteEvent)="paste($event)"
+              (exerciseAddedEvent)="onExerciseAdded($event)"
+              (setAddedEvent)="onSetAdded($event)"
+              (setUpdatedEvent)="onSetUpdated($event)"
+              (setDeletedEvent)="onSetDeleted($event)"
+              (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
+            ></app-workout>
+          </ion-accordion-group>
+        </ng-container>
+      </ng-container>
+
+      <!-- Skeleton Loader con acordeones detallados -->
+      <ng-container *ngIf="loadingSplit">
+        <ion-accordion-group
+          *ngFor="let item of [1,2,3]; let ind = index"
+          [multiple]="true"
+          [value]="ind"
+        >
+          <ion-accordion
+            [style.border-top-left-radius]="ind === 0 ? '16px' : '0'"
+            [style.border-top-right-radius]="ind === 0 ? '16px' : '0'"
+            [style.border-bottom-left-radius]="ind === 2 ? '16px' : '0'"
+            [style.border-bottom-right-radius]="ind === 2 ? '16px' : '0'"
+            class="workout-skeleton-accordion"
+          >
+            <ion-grid slot="header" class="skeleton-workout-header">
+              <ion-row>
+                <ion-col class="ion-no-padding" size="9.6">
+                  <!-- Primera fila: Botón menú + Texto "Hoy" + Nombre workout + Chevron -->
+                  <ion-row>
+                    <ion-col class="skeleton-meal-name">
+                      <div class="skeleton-header-row">
+                        <!-- Nombre del workout - font-size: x-large equivale a ~24px -->
+                        <ion-skeleton-text
+                          animated
+                          style="
+                            width: 140px;
+                            height: 24px;
+                            border-radius: 14px;
+                            margin-right: 14px;
+                          "
+                        ></ion-skeleton-text>
+                      </div>
+                    </ion-col>
+                  </ion-row>
+
+                  <!-- Segunda fila: Información de ejercicios y series -->
+                  <ion-row>
+                    <ion-col>
+                      <div class="skeleton-exercise-info">
+                        <!-- Texto cantidad de ejercicios - font-size: default (~16px) -->
+                        <ion-skeleton-text
+                          animated
+                          style="
+                            width: 90px;
+                            height: 16px;
+                            border-radius: 4px;
+                            margin-right: 12px;
+                          "
+                        ></ion-skeleton-text>
+                        <!-- Texto series totales - font-size: small (~14px) -->
+                        <ion-skeleton-text
+                          animated
+                          style="width: 70px; height: 14px; border-radius: 4px"
+                        ></ion-skeleton-text>
+                      </div>
+                    </ion-col>
+                  </ion-row>
+
+                  <!-- Tercera fila: Fecha del workout - font-size: x-small (~10px) -->
+                  <ion-row>
+                    <ion-col>
+                      <ion-skeleton-text
+                        animated
+                        style="
+                          width: 80px;
+                          height: 10px;
+                          border-radius: 3px;
+                          margin-top: 4px;
+                        "
+                      ></ion-skeleton-text>
+                    </ion-col>
+                  </ion-row>
+                </ion-col>
+
+                <!-- Columna de botones de acción -->
+                <ion-col class="ion-no-padding" size="2.4">
+                  <div class="skeleton-action-buttons">
+                    <!-- Botón play/stop - font-size: xx-large equivale a ~32px -->
+                    <ion-skeleton-text
+                      animated
+                      style="width: 52px; height: 52px; border-radius: 14px"
+                    ></ion-skeleton-text>
+                    <!-- Botón clipboard - font-size: xx-large equivale a ~32px -->
+                    <ion-skeleton-text
+                      animated
+                      style="width: 52px; height: 52px; border-radius: 14px"
+                    ></ion-skeleton-text>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- Contenido del acordeón: ejercicios detallados -->
+            <div slot="content" class="skeleton-workout-content">
+              <div class="skeleton-exercise" *ngFor="let exercise of [1,2,3]">
+                <!-- Header del ejercicio -->
+                <div class="skeleton-exercise-header">
+                  <div class="skeleton-exercise-title">
+                    <!-- Nombre del ejercicio - Tamaño más realista -->
+                    <ion-skeleton-text
+                      animated
+                      style="width: 45%; height: 18px; border-radius: 14px"
+                    ></ion-skeleton-text>
+                  </div>
+                  <!-- Botón de menú del ejercicio - Tamaño real del ion-button -->
+                  <ion-skeleton-text
+                    animated
+                    style="width: 32px; height: 32px; border-radius: 16px"
+                  ></ion-skeleton-text>
+                </div>
+
+                <!-- Información del ejercicio -->
+                <div class="skeleton-exercise-info-detail">
+                  <!-- Músculos trabajados - Tamaño más realista -->
+                  <ion-skeleton-text
+                    animated
+                    style="
+                      width: 70%;
+                      height: 14px;
+                      border-radius: 6px;
+                      margin-top: 14px;
+                    "
+                  ></ion-skeleton-text>
+                  <!-- Tipo de ejercicio - Tamaño más realista -->
+                  <ion-skeleton-text
+                    animated
+                    style="
+                      width: 50px;
+                      height: 12px;
+                      border-radius: 6px;
+                      margin-top: 4px;
+                    "
+                  ></ion-skeleton-text>
+                </div>
+
+                <!-- Series del ejercicio -->
+                <div class="skeleton-sets-container">
+                  <div class="skeleton-set" *ngFor="let set of [1,2,3]">
+                    <div class="skeleton-set-row">
+                      <!-- Número de serie - font-size: 11px (td) -->
+                      <ion-skeleton-text
+                        animated
+                        style="width: 24px; height: 11px; border-radius: 4px"
+                      ></ion-skeleton-text>
+                      <!-- Peso - font-size: 11px (td) -->
+                      <ion-skeleton-text
+                        animated
+                        style="width: 45px; height: 11px; border-radius: 4px"
+                      ></ion-skeleton-text>
+                      <!-- Repeticiones - font-size: 11px (td) -->
+                      <ion-skeleton-text
+                        animated
+                        style="width: 35px; height: 11px; border-radius: 4px"
+                      ></ion-skeleton-text>
+                      <!-- RIR - font-size: 11px (td) -->
+                      <ion-skeleton-text
+                        animated
+                        style="width: 30px; height: 11px; border-radius: 4px"
+                      ></ion-skeleton-text>
+                      <!-- Botón check - Tamaño real del ion-button -->
+                      <ion-skeleton-text
+                        animated
+                        style="width: 24px; height: 24px; border-radius: 12px"
+                      ></ion-skeleton-text>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </ng-container>
+
+      <ion-button
+        *ngIf="!loadingSplit && !pasteMode"
+        expand="block"
+        shape="round"
+        class="ion-margin t-add-workout"
+        (click)="addWorkout()"
+        ><strong>CREAR ENTRENAMIENTO</strong>
+      </ion-button>
+    </ng-container>
+  </div>
+</ion-content>
+
+<ng-template #loadingSwiper>
+  <ion-spinner name="crescent"></ion-spinner>
+</ng-template>
+
+<app-actions-fab
+  class="fixed"
+  *ngIf="tableMode === TABLE_MODE_TYPES.mesocycle && pasteMode"
+  [currentWorkoutMode]="!!user.workoutInUse"
+  [tableInUse]="tableInUse"
+  [loading]="loadingFab"
+  (onClose)="onCloseFab($event)"
+></app-actions-fab>
+
+<ng-template #emptySplits>
+  <ion-button
+    expand="block"
+    shape="round"
+    class="ion-margin t-add-micro"
+    (click)="addFirstSplitToTable()"
+    ><strong>AÑADIR MICRO-CICLO</strong></ion-button
+  >
+</ng-template>
+
+<ion-footer *ngIf="tableInUse?.splits.length > 0">
+  <div class="micro-cycle-header">
+    <div class="micro-cycle-content">
+      <!-- Top Row: Info and Actions -->
+      <div class="micro-cycle-top-row">
+        <div class="micro-cycle-info">
+          <div
+            class="cycle-number"
+            [class.completed]="isCurrentSplitCompleted(currentSplit)"
+          >
+            {{ currentSplitIndex + 1 }}
+          </div>
+          <div class="cycle-title">
+            <ion-select
+              class="micro-cycle-selector"
+              [(ngModel)]="currentSplitIndex"
+              interface="action-sheet"
+              [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+              mode="ios"
+              cancelText="Cancelar"
+              placeholder="MICRO-CICLO"
+            >
+              <ion-select-option
+                *ngFor="let splitItem of reversedSplitsWithIndex"
+                [value]="splitItem.originalIndex"
+                [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
+              >
+                MICRO-CICLO {{ splitItem.originalIndex + 1 }}
+                <span
+                  *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])"
+                >
+                  ✓</span
+                >
+              </ion-select-option>
+            </ion-select>
+            <div class="cycle-subtitle">Semana {{ currentSplitIndex + 1 }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="!pasteMode" class="micro-cycle-actions">
+          <ion-button
+            fill="clear"
+            class="action-btn menu-btn ripple-effect"
+            (click)="showSplitMenu($event)"
+          >
+            <ion-icon
+              name="ellipsis-vertical-outline"
+              slot="icon-only"
+            ></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Navigation Arrows -->
+      <div class="micro-cycle-navigation">
+        <ion-button
+          fill="clear"
+          class="nav-arrow nav-arrow-left ripple-effect"
+          [class.animating]="animatingLeft"
+          mode="md"
+          [disabled]="currentSplitIndex === 0 || loadingSplit"
+          (click)="navigateToPreviousSplit()"
+        >
+          <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
+        <div class="navigation-divider"></div>
+
+        <ion-button
+          fill="clear"
+          class="nav-arrow nav-arrow-right ripple-effect"
+          [class.animating]="animatingRight"
+          mode="md"
+          [disabled]="currentSplitIndex === tableInUseAux?.splits.length - 1 || loadingSplit"
+          (click)="navigateToNextSplit()"
+        >
+          <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-footer>

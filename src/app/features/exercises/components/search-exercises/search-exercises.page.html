@@ -1,0 +1,189 @@
+<ion-header class="minimal-header">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="modalController.dismiss()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="search-section">
+        <ion-searchbar
+          #searchbar
+          placeholder="Buscar..."
+          debounce="500"
+          mode="ios"
+          (ionInput)="searchExercise($event)"
+          class="custom-searchbar"
+        ></ion-searchbar>
+      </div>
+
+      <div class="actions-section">
+        <button class="action-button ripple-effect" (click)="openFilterModal()">
+          <ion-icon name="filter-outline" color="primary"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="filters-section"
+    *ngIf="searchFilterGroupExercises.category.length > 0"
+  >
+    <div class="filter-group">
+      <div class="filter-header">
+        <ion-icon name="grid-outline" class="filter-icon"></ion-icon>
+        <span class="filter-title">CATEGORÍAS GENERALES</span>
+      </div>
+      <div class="chips-container">
+        <ion-chip
+          *ngFor="let category of searchFilterGroupExercises.category"
+          class="modern-chip"
+          [outline]="searchFilterGroupExercises.category.includes(category)"
+          color="primary"
+        >
+          <ion-label>{{ category }}</ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="spliceCategory(category)"
+          ></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="filters-section"
+    *ngIf="searchFilterGroupExercises?.muscleGroups1.length > 0"
+  >
+    <div class="filter-group">
+      <div class="filter-header">
+        <ion-icon name="barbell-outline" class="filter-icon"></ion-icon>
+        <span class="filter-title">MÚSCULOS PRINCIPALES</span>
+      </div>
+      <div class="chips-container">
+        <ion-chip
+          *ngFor="let muscle of searchFilterGroupExercises.muscleGroups1"
+          class="modern-chip"
+          [outline]="searchFilterGroupExercises.muscleGroups1.includes(muscle)"
+          color="primary"
+        >
+          <ion-label>{{ muscle }}</ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="spliceMuscleGroup1(muscle)"
+          ></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="filters-section"
+    *ngIf="searchFilterGroupExercises.muscleGroups2.length > 0"
+  >
+    <div class="filter-group">
+      <div class="filter-header">
+        <ion-icon name="fitness-outline" class="filter-icon"></ion-icon>
+        <span class="filter-title">MÚSCULOS SECUNDARIOS</span>
+      </div>
+      <div class="chips-container">
+        <ion-chip
+          *ngFor="let muscle of searchFilterGroupExercises.muscleGroups2"
+          class="modern-chip"
+          [outline]="searchFilterGroupExercises.muscleGroups2.includes(muscle)"
+          color="primary"
+          (click)="spliceMuscleGroup2(muscle)"
+        >
+          <ion-label>{{ muscle }}</ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="spliceMuscleGroup2(muscle)"
+          ></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="exercises-content">
+  <div class="exercises-list" *ngIf="exercises.length > 0; else emptyExercises">
+    <div
+      class="translucent-card exercise-card"
+      *ngFor="let exercise of exercises, let i = index"
+      [ngClass]="{'t-exercise': i === 0}"
+      (click)="addExerciseModal(exercise)"
+    >
+      <div class="exercise-image">
+        <img
+          [src]="exercise?.gifUrl ? exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT  | safe"
+          alt="{{ exercise?.name }}"
+        />
+      </div>
+
+      <div class="exercise-info">
+        <div class="exercise-header">
+          <h3 class="exercise-name">{{ exercise?.name }}</h3>
+          <span class="exercise-category">
+            {{ exercise?.category | category }}
+          </span>
+        </div>
+
+        <div
+          class="muscle-groups"
+          *ngIf="getValidMuscleGroups(exercise).length > 0"
+        >
+          <button
+            type="button"
+            class="modern-pill modern-pill--sm"
+            *ngFor="let mg of getValidMuscleGroups(exercise)"
+          >
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span class="label">{{ mg }}</span>
+            <ion-ripple-effect></ion-ripple-effect>
+          </button>
+        </div>
+      </div>
+
+      <div class="exercise-action">
+        <ion-icon name="chevron-forward-outline" class="action-icon"></ion-icon>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptyExercises>
+    <ng-container *ngIf="load">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="search-outline"></ion-icon>
+        </div>
+        <h3 class="empty-title">No hay coincidencias</h3>
+        <p class="empty-message">
+          Intenta ajustar los filtros o buscar con otros términos
+        </p>
+      </div>
+    </ng-container>
+  </ng-template>
+
+  <div class="skeleton-container" *ngIf="!load">
+    <app-skeleton-loader
+      [rows]="2"
+      [detailColumns]="CUSTOM_PRODUCT_VALUES.length"
+    ></app-skeleton-loader>
+  </div>
+
+  <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
+    <ion-infinite-scroll-content loadingSpinner="crescent">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
+
+<ion-footer *ngIf="isChangeMode" class="change-mode-footer">
+  <div class="footer-container">
+    <ion-icon name="swap-horizontal-outline" class="footer-icon"></ion-icon>
+    <div class="footer-text">
+      <strong>Sustituir ejercicio</strong>
+      <span>Toca un ejercicio para reemplazarlo</span>
+    </div>
+  </div>
+</ion-footer>

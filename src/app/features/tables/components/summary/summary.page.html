@@ -1,0 +1,165 @@
+<ion-header class="t-init-tables" [ngClass]="backgroundClass">
+  <div class="toolbar-calendar-container">
+    <div class="main-toolbar">
+      <div class="toolbar-content">
+        <div class="title-section">
+          <div class="title-content">
+            <strong class="brand-name">
+              <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content #ionContent class="t-init-tables" [ngClass]="backgroundClass" id="background-content">
+  <div class="container">
+    <div class="main-content">
+      <!-- Botones de navegación principales -->
+      <div class="nav-buttons">
+        <button class="nav-btn" (click)="openSearchTables(true)">
+          <ion-icon name="library-outline" class="nav-icon"></ion-icon>
+          Mis Rutinas
+        </button>
+        <button class="nav-btn" (click)="openSearchTables()">
+          <ion-icon name="search-outline" class="nav-icon"></ion-icon>
+          Buscar Rutinas
+        </button>
+        <button class="nav-btn" (click)="createTableAndAddToUser()">
+          <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
+          Crear Rutina
+        </button>
+
+      </div>
+
+      <!-- Rutina Actual -->
+      <div class="section current-routine">
+        <div class="info-card info-card--primary" (click)="openMesocycle(); $event.stopPropagation()">
+          <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
+          <div class="info-text">
+            <span class="info-title">Rutina actual</span>
+          </div>
+        </div>
+        <div *ngIf="tableInUse; else notTableInUse">
+          <div class="routine-name">{{ tableInUse.name }}</div>
+          <div class="routine-description">
+            Microciclo {{ countDoneSplits() + 1 }} de {{
+            tableInUse.splits.length }}
+          </div>
+
+          <!-- Indicadores de splits -->
+          <div class="split-indicators" *ngIf="tableInUse?.splits?.length">
+            <div class="split-rect" *ngFor="let split of tableInUse.splits" [ngClass]="getSplitClass(split)"></div>
+          </div>
+
+          <div class="info-card info-card--orange stats-card-btn" (click)="goToStatistics(); $event.stopPropagation()">
+            <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
+            <div class="info-text">
+              <span class="info-title">Estadísticas</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #notTableInUse>
+          <div class="routine-name" (click)="openSearchTables()">
+            No hay rutina en uso
+          </div>
+          <div class="routine-description">
+            Selecciona una rutina para comenzar
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Entrenamiento en Uso -->
+      <div *ngIf="user.tableInUse" class="section" (click)="handleWorkoutSectionClick(); $event.stopPropagation()">
+
+
+        <div *ngIf="tableInUse && workout && user.workoutInUse; else notWorkoutInUse" class="workout-card">
+          <div class="workout-header">
+            <div>
+              <div class="workout-title">Día {{ workout.name }}</div>
+            </div>
+            <div class="workout-status">En Progreso</div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getWorkoutProgress()"></div>
+          </div>
+
+          <!-- Cards de estadísticas en la misma fila -->
+          <div class="stats-row">
+            <!-- Card para ejercicios completados -->
+            <div class="translucent-card">
+              <div class="stat-card">
+                <div class="stat-content">
+                  <div class="stat-value"
+                    [ngClass]="getCompletedExercises() === workout.exercises.length ? 'completed' : 'incomplete'">
+                    {{ getCompletedExercises() }}/{{ workout.exercises.length }}
+                  </div>
+                  <div class="stat-label">ejercicios</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card para series completadas -->
+            <div class="translucent-card">
+              <div class="stat-card">
+                <div class="stat-content">
+                  <div class="stat-value"
+                    [ngClass]="getCompletedSets() === getTotalSets() ? 'completed' : 'incomplete'">
+                    {{ getCompletedSets() }}/{{ getTotalSets() }}
+                  </div>
+                  <div class="stat-label">series</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de ejercicios en accordion -->
+          <app-notes *ngIf="workout && workout.notes" [notes]="workout.notes" [object]="workout"
+            type="Nota del entrenamiento" [isPrevious]="false" (click)="$event.stopPropagation()"></app-notes>
+          <ion-accordion-group *ngIf="workout.exercises.length > 0" (click)="$event.stopPropagation()">
+            <ion-accordion value="exercises">
+              <ion-item slot="header" color="light">
+                <ion-label>Lista de Ejercicios ({{ workout.exercises.length
+                  }})</ion-label>
+              </ion-item>
+              <div class="exercises-list" slot="content">
+                <div class="exercise-item" *ngFor="let exercise of workout.exercises">
+                  <div class="exercise-info">
+                    <div class="exercise-name" [class.completed]="isCustomExerciseCompleted(exercise)">
+                      {{ exercise.exercise.name }}
+                    </div>
+                    <div class="exercise-icons">
+                      <ion-icon *ngIf="exercise.notes" name="create-outline" color="primary"
+                        (click)="showExerciseNoteAlert(exercise); $event.stopPropagation()"></ion-icon>
+                      <ion-icon [color]="isCustomExerciseCompleted(exercise) ? 'success' : 'medium'"
+                        [name]="isCustomExerciseCompleted(exercise) ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ion-accordion>
+          </ion-accordion-group>
+
+          <div *ngIf="tableInUse && workout && user.workoutInUse" class="info-card info-card--orange summary-info-card"
+            (click)="selectWorkout(); $event.stopPropagation()">
+            <div class="info-text">
+              <span class="info-title">Reanudar entrenamiento</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #notWorkoutInUse>
+          <div class="routine-empty" (click)="openMesocycle(); $event.stopPropagation()">
+            <div class="routine-name">Sin entrenamiento en uso</div>
+            <div class="routine-description">
+              Selecciona un entrenamiento para comenzar
+            </div>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</ion-content>

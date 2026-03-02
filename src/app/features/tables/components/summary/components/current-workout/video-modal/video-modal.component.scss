@@ -1,0 +1,237 @@
+// Header styles
+.minimal-header {
+  --background: rgba(20, 20, 20, 0.98);
+  --border-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-header {
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    min-height: 60px;
+    gap: 12px;
+
+    .back-section {
+      flex-shrink: 0;
+
+      .back-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .title-section {
+      flex: 1;
+      text-align: center;
+
+      .page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    .actions-section {
+      flex-shrink: 0;
+      width: 40px; // Same as back-section for symmetry
+    }
+  }
+}
+
+// Content styles
+.video-modal-content {
+  --background: #0f0f0f;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+// Card base style
+.elegant-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+// Video Card
+.video-card {
+  .video-header {
+    margin-bottom: 16px;
+
+    .video-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .video-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--ion-color-success) 0%, var(--ion-color-success-shade) 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          font-size: 1.1rem;
+          color: white;
+        }
+      }
+
+      .video-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+      }
+    }
+  }
+
+  .video-container {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; // 16:9 aspect ratio
+
+    .video-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  }
+}
+
+// Muscle Groups Card
+.muscle-groups-card {
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .muscle-groups-header {
+    margin-bottom: 16px;
+
+    .muscle-groups-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .muscle-groups-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--ion-color-warning) 0%, var(--ion-color-warning-shade) 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          font-size: 1.1rem;
+          color: white;
+        }
+      }
+
+      .muscle-groups-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
+      }
+    }
+  }
+
+  .muscle-groups-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+// Description Card
+.description-card {
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .description-header {
+    margin-bottom: 16px;
+
+    .description-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .description-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--ion-color-tertiary) 0%, var(--ion-color-tertiary-shade) 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          font-size: 1.2rem;
+          color: white;
+        }
+      }
+
+      .description-title {
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+  }
+
+  .exercise-description {
+    .description-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+}
+
+.no-video {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 0.95rem;
+}

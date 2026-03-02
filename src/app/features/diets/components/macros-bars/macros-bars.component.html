@@ -1,0 +1,102 @@
+<div [hidden]="isFooterHidden" class="macros-container" [ngClass]="{ 'dark-theme': theme === 'dark' }"
+  (click)="openNutritionalObjectives()">
+  <div class="macros-flex-container">
+    <!-- Kcal -->
+    <div *ngIf="!macrosBars?.hideBars && !macrosBars?.hideMinKcal" class="macro-item">
+      <div class="macro-header">
+        <div class="macro-icon calories-icon">
+          <ion-icon name="flash-outline"></ion-icon>
+        </div>
+        <div class="macro-values">
+          <div class="macro-value">
+            {{ macrosData.kcal | number : "1.0-0" }}
+          </div>
+          <div class="macro-goal">
+            / {{ user.kcalTotal | number : "1.0-0" }}
+          </div>
+        </div>
+      </div>
+      <ion-progress-bar class="calories-bar" [value]="
+          this.macrosData.kcal > this.user.kcalTotal
+            ? 1
+            : this.macrosData.kcal / this.user.kcalTotal
+        " [ngClass]="{
+          'progress-complete': this.macrosData.kcal >= this.user.kcalTotal
+        }"></ion-progress-bar>
+    </div>
+
+    <!-- Proteínas -->
+    <div *ngIf="!macrosBars?.hideBars && !macrosBars?.hideMinProtein" class="macro-item">
+      <div class="macro-header">
+        <div class="macro-icon protein-icon">
+          <span>P</span>
+        </div>
+        <div class="macro-values">
+          <div class="macro-value">
+            {{ macrosData.protein | number : "1.1-1" }}
+          </div>
+          <div class="macro-goal">
+            / {{ user.proteinsGTotal | number : "1.0-0" }} g
+          </div>
+        </div>
+      </div>
+      <ion-progress-bar class="protein-bar" [value]="
+          this.macrosData.protein > this.user.proteinsGTotal
+            ? 1
+            : this.macrosData.protein / this.user.proteinsGTotal
+        " [ngClass]="{
+          'progress-complete':
+            this.macrosData.protein >= this.user.proteinsGTotal
+        }"></ion-progress-bar>
+    </div>
+
+    <!-- Carbohidratos -->
+    <div *ngIf="!macrosBars?.hideBars && !macrosBars?.hideMinCarbohydrates" class="macro-item">
+      <div class="macro-header">
+        <div class="macro-icon carbs-icon">
+          <span>H</span>
+        </div>
+        <div class="macro-values">
+          <div class="macro-value">
+            {{ macrosData.carbohydrate | number : "1.1-1" }}
+          </div>
+          <div class="macro-goal">
+            / {{ user.carbohydratesGTotal | number : "1.0-0" }} g
+          </div>
+        </div>
+      </div>
+      <ion-progress-bar class="carbs-bar" [value]="
+          this.macrosData.carbohydrate > this.user.carbohydratesGTotal
+            ? 1
+            : this.macrosData.carbohydrate / this.user.carbohydratesGTotal
+        " [ngClass]="{
+          'progress-complete':
+            this.macrosData.carbohydrate >= this.user.carbohydratesGTotal
+        }"></ion-progress-bar>
+    </div>
+
+    <!-- Grasas -->
+    <div *ngIf="!macrosBars?.hideBars && !macrosBars?.hideMinFat" class="macro-item">
+      <div class="macro-header">
+        <div class="macro-icon fat-icon">
+          <span>G</span>
+        </div>
+        <div class="macro-values">
+          <div class="macro-value">
+            {{ macrosData.fat | number : "1.1-1" }}
+          </div>
+          <div class="macro-goal">
+            / {{ user.fatGTotal | number : "1.0-0" }} g
+          </div>
+        </div>
+      </div>
+      <ion-progress-bar class="fat-bar" [value]="
+          this.macrosData.fat > this.user.fatGTotal
+            ? 1
+            : this.macrosData.fat / this.user.fatGTotal
+        " [ngClass]="{
+          'progress-complete': this.macrosData.fat >= this.user.fatGTotal
+        }"></ion-progress-bar>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,323 @@
+<div class="meal-card">
+  <ion-progress-bar *ngIf="loadPaste" type="indeterminate"></ion-progress-bar>
+
+  <!-- Skeleton Loader -->
+  <ng-container *ngIf="!load">
+    <ion-accordion class="meal-skeleton-accordion">
+      <ion-grid slot="header" class="skeleton-meal-header">
+        <ion-row>
+          <ion-col class="ion-no-padding" size="9.6">
+            <!-- Primera fila: Botón menú + Nombre del meal + Chevron -->
+            <ion-row>
+              <ion-col class="skeleton-meal-name">
+                <div class="skeleton-header-row">
+                  <!-- Nombre del meal - font-size: x-large equivale a ~24px -->
+                  <ion-skeleton-text
+                    animated
+                    style="height: 24px; border-radius: 6px; margin-right: 8px"
+                  ></ion-skeleton-text>
+                </div>
+              </ion-col>
+            </ion-row>
+
+            <!-- Segunda fila: Chips de macros -->
+            <ion-row class="macros-grid" style="margin-top: 8px">
+              <ion-col size="3" class="macro-col">
+                <!-- Chip de calorías -->
+                <ion-skeleton-text
+                  animated
+                  style="height: 20px; border-radius: 6px"
+                ></ion-skeleton-text>
+              </ion-col>
+              <ion-col size="3" class="macro-col">
+                <!-- Chip de proteína -->
+                <ion-skeleton-text
+                  animated
+                  style="height: 20px; border-radius: 6px"
+                ></ion-skeleton-text>
+              </ion-col>
+              <ion-col size="3" class="macro-col">
+                <!-- Chip de carbohidratos -->
+                <ion-skeleton-text
+                  animated
+                  style="height: 20px; border-radius: 6px"
+                ></ion-skeleton-text>
+              </ion-col>
+              <ion-col size="3" class="macro-col">
+                <!-- Chip de grasas -->
+                <ion-skeleton-text
+                  animated
+                  style="height: 20px; border-radius: 6px"
+                ></ion-skeleton-text>
+              </ion-col>
+            </ion-row>
+          </ion-col>
+
+          <!-- Columna de botones de acción -->
+          <ion-col class="ion-no-padding" size="2.4">
+            <div class="skeleton-action-buttons">
+              <!-- Botón add/paste - font-size: xx-large equivale a ~32px -->
+              <ion-skeleton-text
+                animated
+                style="width: 46px; height: 46px; border-radius: 26px"
+              ></ion-skeleton-text>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-accordion>
+  </ng-container>
+
+  <!-- Contenido real -->
+  <ion-accordion *ngIf="load" (click)="arrowRotate = !arrowRotate">
+    <ion-grid class="t-meal" slot="header">
+      <ion-row>
+        <ion-col class="ion-no-padding" size="9.6">
+          <ion-row>
+            <ion-col class="meal-name">
+              <ion-buttons>
+                <ion-button
+                  class="ripple-effect"
+                  style="height: 100%; font-size: large"
+                  (click)="openPopoverOptions($event); $event.stopPropagation()"
+                >
+                  <ion-icon
+                    style="border-radius: 20px"
+                    [color]="
+                      meal.customProducts.length > 0 ||
+                      (meal.customRecipeInstances &&
+                        meal.customRecipeInstances.length > 0)
+                        ? 'primary'
+                        : ''
+                    "
+                    name="ellipsis-vertical-outline"
+                  ></ion-icon>
+                </ion-button>
+              </ion-buttons>
+              <span style="font-size: x-large">{{ meal.name }}</span> &nbsp;
+              <ion-icon
+                *ngIf="
+                  meal.customProducts.length > 0 ||
+                  (meal.customRecipeInstances &&
+                    meal.customRecipeInstances.length > 0)
+                "
+                style="font-size: x-large"
+                name="chevron-down-outline"
+                [ngClass]="arrowRotate ? 'rotate' : 'start'"
+              ></ion-icon>
+            </ion-col>
+          </ion-row>
+          <ion-row
+            class="macros-grid"
+            style="font-size: small; text-align: center; color: gray"
+            *ngIf="
+              meal.customProducts.length > 0 ||
+              (meal.customRecipeInstances &&
+                meal.customRecipeInstances.length > 0)
+            "
+          >
+            <ion-col size="3" class="macro-col">
+              <ion-chip
+                style="font-size: smaller"
+                class="ion-no-margin macro-chip"
+                color="primary"
+                >{{ mealKcal | number : "1.0-0" }}</ion-chip
+              >
+            </ion-col>
+            <ion-col size="3" class="macro-col">
+              <ion-chip
+                style="font-size: smaller"
+                class="ion-no-margin macro-chip protein-chip"
+                color="alternative"
+                >{{ mealProtein | number : "1.1-1" }}</ion-chip
+              >
+            </ion-col>
+            <ion-col size="3" class="macro-col">
+              <ion-chip
+                style="font-size: smaller"
+                class="ion-no-margin macro-chip"
+                color="success"
+                >{{ mealCarbs | number : "1.1-1" }}</ion-chip
+              >
+            </ion-col>
+            <ion-col size="3" class="macro-col">
+              <ion-chip
+                style="font-size: smaller"
+                class="ion-no-margin macro-chip"
+                color="secondary"
+                >{{ mealFat | number : "1.1-1" }}</ion-chip
+              >
+            </ion-col>
+          </ion-row>
+        </ion-col>
+        <ion-col
+          class="ion-no-padding"
+          style="display: flex; justify-content: center; align-items: center"
+          size="2.4"
+        >
+          <ion-buttons style="height: 100%">
+            <ion-button
+              *ngIf="pasteMode && !loadPaste"
+              class="paste-day-button"
+              style="height: 100%; margin-left: -5%"
+              (click)="createMealFromClipboard(meal); $event.stopPropagation()"
+              ><ion-icon color="tertiary" name="clipboard-outline"></ion-icon
+            ></ion-button>
+            <ion-spinner
+              *ngIf="loadPaste"
+              name="crescent"
+              color="primary"
+            ></ion-spinner>
+
+            <ion-button
+              *ngIf="!pasteMode && !loadPaste"
+              style="height: 100%; margin-left: -5%; font-size: xx-large"
+              (click)="openSearchFoods(); $event.stopPropagation()"
+              ><ion-icon color="primary" name="add-circle-outline"></ion-icon
+            ></ion-button>
+          </ion-buttons>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-list
+      *ngIf="
+        meal.customProducts.length > 0 ||
+        (meal.customRecipeInstances && meal.customRecipeInstances.length > 0)
+      "
+      slot="content"
+      (click)="$event.stopPropagation()"
+    >
+      <app-notes
+        *ngIf="meal?.notes"
+        [notes]="meal.notes"
+        [object]="meal"
+      ></app-notes>
+
+      <!-- Recipes Section -->
+      <div
+        *ngIf="
+          meal.customRecipeInstances && meal.customRecipeInstances.length > 0
+        "
+        class="section-header"
+      >
+        <ion-label color="primary">
+          <strong>Recetas</strong>
+        </ion-label>
+      </div>
+
+      <div
+        *ngFor="let instance of getCustomRecipeInstancesOrdered(meal)"
+        class="meal-item recipe-item"
+        (click)="editCustomRecipeInstance(instance)"
+      >
+        <div class="item-content">
+          <div class="item-header">
+            <h3 class="item-name">
+              {{ getRecipeName(instance) }}
+            </h3>
+            <span class="item-quantity">{{ instance.quantity }}g</span>
+          </div>
+
+          <div class="nutrition-info">
+            <div class="nutrition-item calories">
+              <span class="nutrition-value">{{
+                getInstanceMacros(instance).kcal | number : "1.0-0"
+              }}</span>
+            </div>
+            <div class="nutrition-item protein">
+              <span class="nutrition-value">{{
+                getInstanceMacros(instance).protein | number : "1.1-1"
+              }}</span>
+            </div>
+            <div class="nutrition-item carbs">
+              <span class="nutrition-value">{{
+                getInstanceMacros(instance).carbs | number : "1.1-1"
+              }}</span>
+            </div>
+            <div class="nutrition-item fat">
+              <span class="nutrition-value">{{
+                getInstanceMacros(instance).fat | number : "1.1-1"
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="item-actions">
+          <ion-button
+            fill="clear"
+            size="small"
+            class="delete-button"
+            (click)="deleteRecipe(meal, instance); $event.stopPropagation()"
+          >
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Products Section -->
+      <div
+        *ngIf="meal.customProducts.length > 0"
+        class="section-header"
+        style="margin-top: 10px"
+      >
+        <ion-label color="primary">
+          <strong>Productos</strong>
+        </ion-label>
+      </div>
+
+      <div
+        *ngFor="let product of getProductsAndOwnProductsOrdered(meal)"
+        class="meal-item product-item"
+        (click)="editCustomProduct(product)"
+      >
+        <div class="item-content">
+          <div class="item-header">
+            <h3 class="item-name">
+              {{ product.product?.name }}
+            </h3>
+            <span class="item-quantity">{{ product.quantity }}g</span>
+          </div>
+
+          <div class="nutrition-info">
+            <div class="nutrition-item calories">
+              <span class="nutrition-value">{{
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy)
+                  | number : "1.0-0"
+              }}</span>
+            </div>
+            <div class="nutrition-item protein">
+              <span class="nutrition-value">{{
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein)
+                  | number : "1.1-1"
+              }}</span>
+            </div>
+            <div class="nutrition-item carbs">
+              <span class="nutrition-value">{{
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates)
+                  | number : "1.1-1"
+              }}</span>
+            </div>
+            <div class="nutrition-item fat">
+              <span class="nutrition-value">{{
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat)
+                  | number : "1.1-1"
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="item-actions">
+          <ion-button
+            fill="clear"
+            size="small"
+            class="delete-button"
+            (click)="deleteProduct(meal, product); $event.stopPropagation()"
+          >
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </ion-list>
+  </ion-accordion>
+</div>

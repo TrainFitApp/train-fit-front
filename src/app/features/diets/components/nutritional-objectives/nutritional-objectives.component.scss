@@ -1,0 +1,519 @@
+:host {
+    --black: #0d0d0d;
+    --dark-gray: #1a1a1a;
+    --medium-gray: #2a2a2a;
+    --light-gray: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #9a9a9a;
+    --text-tertiary: #6a6a6a;
+
+    // Brand colors from app
+    --primary: var(--ion-color-primary, #ff6b35);
+    --primary-glow: rgba(var(--ion-color-primary-rgb, 255, 107, 53), 0.3);
+    --success: var(--ion-color-success, #2dd36f);
+    --danger: var(--ion-color-danger, #eb445a);
+
+    --background: var(--black);
+    display: block;
+    height: 100%;
+}
+
+
+ion-content {
+    --background: var(--black);
+    --padding-top: 0;
+    --padding-bottom: 40px;
+}
+
+/* Calorías Hero */
+.calories-hero {
+    background: #141414;
+    border: 1px solid #252525;
+    border-radius: 16px;
+    margin: 20px 20px 24px 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    /* Card glow effect */
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 16px;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+        mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Brand top line */
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary);
+        opacity: 0.8;
+        box-shadow: 0 1px 10px var(--primary-glow);
+        z-index: 10;
+    }
+
+    /* Danger state override */
+    &.danger {
+        border-color: rgba(var(--ion-color-danger-rgb), 0.3);
+
+        &::before {
+            background: linear-gradient(135deg, rgba(var(--ion-color-danger-rgb), 0.6), rgba(var(--ion-color-danger-rgb), 0.1));
+        }
+
+        &::after {
+            background: var(--danger);
+            box-shadow: 0 1px 10px rgba(var(--ion-color-danger-rgb), 0.4);
+        }
+
+        .calories-number {
+            color: var(--danger);
+        }
+
+        .calories-bar-fill {
+            background: var(--danger);
+            box-shadow: 0 0 10px rgba(var(--ion-color-danger-rgb), 0.4);
+        }
+    }
+}
+
+.calories-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.calories-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.calories-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.calories-number {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--primary);
+}
+
+.calories-goal {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+}
+
+.calories-bar {
+    height: 8px;
+    background: var(--light-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.calories-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--primary-glow);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+}
+
+.calories-remaining {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+
+    strong {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+}
+
+/* Sections */
+.section {
+    margin: 0 20px 32px 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.section-icon {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Macros Grid */
+.macros-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.macro-card {
+
+    // Macro specific colors
+    &.protein {
+        --macro-color: #3880ff; // Alternative Blue
+        --macro-glow: rgba(56, 128, 255, 0.2);
+    }
+
+    &.carbs {
+        --macro-color: #2dd36f; // Success Green
+        --macro-glow: rgba(45, 211, 111, 0.2);
+    }
+
+    &.fat {
+        --macro-color: #ffc409; // Warning Yellow/Gold
+        --macro-glow: rgba(255, 196, 9, 0.2);
+    }
+
+    &.fiber {
+        --macro-color: #a78bfa; // Purple
+        --macro-glow: rgba(167, 139, 250, 0.2);
+    }
+
+    &.sugar {
+        --macro-color: #fb7185; // Rose/Pink
+        --macro-glow: rgba(251, 113, 133, 0.2);
+    }
+
+    &.salt {
+        --macro-color: #94a3b8; // Slate
+        --macro-glow: rgba(148, 163, 184, 0.2);
+    }
+
+    background: var(--dark-gray);
+    border: 1px solid var(--medium-gray);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    animation: fadeInUp 0.6s ease backwards;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--macro-color, var(--primary));
+        opacity: 0.8;
+        box-shadow: 0 1px 10px var(--macro-glow);
+        z-index: 10;
+    }
+
+    &.danger::before {
+        opacity: 1;
+        background: var(--danger);
+        box-shadow: 0 1px 10px rgba(235, 68, 90, 0.4);
+    }
+}
+
+.macro-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.macro-name {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--macro-color, var(--text-secondary));
+}
+
+.macro-percentage {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--macro-color, var(--primary));
+
+    .danger & {
+        color: var(--danger);
+    }
+}
+
+.macro-values {
+    margin-bottom: 12px;
+}
+
+.macro-current {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text-primary);
+}
+
+.macro-goal-inline {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-left: 4px;
+}
+
+.macro-progress {
+    height: 6px;
+    background: var(--light-gray);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.macro-progress-fill {
+    height: 100%;
+    background: var(--macro-color, var(--primary));
+    border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+
+    &.danger {
+        background: var(--danger);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+        animation: shimmer 2.5s infinite;
+    }
+}
+
+/* Micronutrientes (Micro Items) */
+.micro-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.micro-item {
+    background: var(--dark-gray);
+    border: 1px solid var(--medium-gray);
+    border-radius: 16px;
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeInUp 0.5s ease backwards;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary);
+        opacity: 0.3;
+        z-index: 10;
+        transition: opacity 0.3s ease;
+    }
+
+    &.requirement::before {
+        background: var(--success);
+    }
+
+    &.limit::before {
+        background: var(--primary);
+    }
+
+    &.danger::before {
+        background: var(--danger);
+        opacity: 0.8;
+    }
+}
+
+.micro-left {
+    flex: 1;
+}
+
+.micro-name-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
+}
+
+.micro-progress-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.micro-bar-wrapper {
+    flex: 1;
+    height: 4px;
+    background: var(--light-gray);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.micro-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--primary);
+    position: relative;
+    overflow: hidden;
+
+    &.success {
+        background: var(--success);
+    }
+
+    &.danger {
+        background: var(--danger);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        animation: shimmer 3s infinite;
+    }
+}
+
+.micro-percentage-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    min-width: 38px;
+    text-align: right;
+
+    .success & {
+        color: var(--success);
+    }
+}
+
+.micro-right-values {
+    text-align: right;
+    min-width: 90px;
+}
+
+.micro-values-set {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.micro-current-val {
+    color: var(--primary);
+    font-weight: 700;
+
+    .success & {
+        color: var(--success);
+    }
+}
+
+.micro-unit-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Divider */
+.custom-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--medium-gray), transparent);
+    margin: 32px 20px;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+// Delays for cards
+@for $i from 1 through 40 {
+    .macro-card:nth-child(#{$i}) {
+        animation-delay: #{0.05s * $i};
+    }
+
+    .micro-item:nth-child(#{$i}) {
+        animation-delay: #{0.03s * $i};
+    }
+}

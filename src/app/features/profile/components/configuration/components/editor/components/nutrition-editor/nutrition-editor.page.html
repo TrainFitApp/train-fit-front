@@ -1,0 +1,238 @@
+<ion-header>
+  <app-page-header title="Ajustar Objetivos" [customBackAction]="true" (backClick)="closeModal()">
+  </app-page-header>
+</ion-header>
+
+<ion-content role="main" aria-label="Editor de objetivos nutricionales">
+  <div class="main-content">
+    <!-- Objetivo de Calorías -->
+    <div class="card calories-card">
+      <h2 class="card-title">
+        <i class="fa fa-bullseye"></i>Objetivo de Calorías
+      </h2>
+      <div class="input-group">
+        <input type="number" id="caloriesInput" class="calories-input" [value]="state.targetKcal"
+          [readonly]="state.lock.calories" (input)="onTargetKcalChange($event)" inputmode="numeric" pattern="[0-9]*"
+          aria-label="Objetivo de calorías" placeholder="0" appCursorEnd />
+        <span class="calories-label">kcal</span>
+        <button id="caloriesLock" class="lock-button calories-lock-button" [class.locked]="state.lock.calories"
+          (click)="toggleCaloriesLock()">
+          <i class="fa" [class.fa-lock]="state.lock.calories" [class.fa-unlock]="!state.lock.calories"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Distribución de Macronutrientes -->
+    <div class="card macros-card">
+      <h2 class="card-title">
+        <i class="fa fa-pie-chart"></i>Distribución de Macronutrientes
+      </h2>
+
+      <!-- SINGLE UNIFIED SLIDER -->
+      <div class="unified-slider-container" #sliderContainer (pointerdown)="onTrackPointerDown($event)">
+        <div class="unified-slider-track">
+          <!-- Wrapper para recorte de segmentos (overflow: hidden) -->
+          <div class="slider-segments-wrapper">
+            <!-- Segmentos -->
+            <div class="slider-segment segment-p" [style.width.%]="state.pct.p">
+              <span id="labelP">{{round1(state.pct.p)}}%</span>
+            </div>
+            <div class="slider-segment segment-c" [style.left.%]="state.pct.p" [style.width.%]="state.pct.c">
+              <span id="labelC">{{round1(state.pct.c)}}%</span>
+            </div>
+            <div class="slider-segment segment-f" [style.left.%]="(state.pct.p + state.pct.c)"
+              [style.width.%]="state.pct.f">
+              <span id="labelF">{{round1(state.pct.f)}}%</span>
+            </div>
+          </div>
+
+          <!-- Handles (Separadores) -->
+          <!-- Handle 1: Entre P y C -->
+          <div class="slider-handle handle-1" [style.left.%]="state.pct.p" (pointerdown)="startDrag('h1', $event)">
+          </div>
+
+          <!-- Handle 2: Entre C y F -->
+          <div class="slider-handle handle-2" [style.left.%]="(state.pct.p + state.pct.c)"
+            (pointerdown)="startDrag('h2', $event)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Proteínas Adjuster Card -->
+      <div class="macro-adjuster-card protein" [class.locked]="state.lock.p">
+        <div class="macro-info">
+          <span class="macro-dot"></span>
+          <div class="macro-text">
+            <span class="macro-name">Proteínas</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('p') }} kcal</span>
+          </div>
+        </div>
+        <div class="macro-inputs">
+          <div class="input-field grams">
+            <input type="number" id="proteinGramsInput" [value]="state.grams.p" [readonly]="state.lock.p"
+              (input)="onMacroInput('p', $event)" inputmode="numeric" pattern="[0-9]*" placeholder="0" appCursorEnd />
+            <span class="unit">g</span>
+          </div>
+          <div class="input-field percentage">
+            <input type="text" id="proteinPercentInput" [value]="round1(state.pct.p)" [readonly]="state.lock.p"
+              (input)="onPercentInput('p', $event)" inputmode="decimal" pattern="[0-9]*" placeholder="0" appCursorEnd
+              appDecimalInput />
+            <span class="unit">%</span>
+          </div>
+          <button class="lock-toggle" [class.is-locked]="state.lock.p" (click)="toggleLock('p')"
+            [title]="state.lock.p ? 'Desbloquear' : 'Bloquear'">
+            <i class="fa" [class.fa-lock]="state.lock.p" [class.fa-unlock]="!state.lock.p"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Carbohidratos Adjuster Card -->
+      <div class="macro-adjuster-card carbs" [class.locked]="state.lock.c">
+        <div class="macro-info">
+          <span class="macro-dot"></span>
+          <div class="macro-text">
+            <span class="macro-name">Hidratos</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('c') }} kcal</span>
+          </div>
+        </div>
+        <div class="macro-inputs">
+          <div class="input-field grams">
+            <input type="number" id="carbsGramsInput" [value]="state.grams.c" [readonly]="state.lock.c"
+              (input)="onMacroInput('c', $event)" inputmode="numeric" pattern="[0-9]*" placeholder="0" appCursorEnd />
+            <span class="unit">g</span>
+          </div>
+          <div class="input-field percentage">
+            <input type="text" id="carbsPercentInput" [value]="round1(state.pct.c)" [readonly]="state.lock.c"
+              (input)="onPercentInput('c', $event)" inputmode="decimal" pattern="[0-9]*" placeholder="0" appCursorEnd
+              appDecimalInput />
+            <span class="unit">%</span>
+          </div>
+          <button class="lock-toggle" [class.is-locked]="state.lock.c" (click)="toggleLock('c')"
+            [title]="state.lock.c ? 'Desbloquear' : 'Bloquear'">
+            <i class="fa" [class.fa-lock]="state.lock.c" [class.fa-unlock]="!state.lock.c"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grasas Adjuster Card -->
+      <div class="macro-adjuster-card fat" [class.locked]="state.lock.f">
+        <div class="macro-info">
+          <span class="macro-dot"></span>
+          <div class="macro-text">
+            <span class="macro-name">Grasas</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('f') }} kcal</span>
+          </div>
+        </div>
+        <div class="macro-inputs">
+          <div class="input-field grams">
+            <input type="number" id="fatGramsInput" [value]="state.grams.f" [readonly]="state.lock.f"
+              (input)="onMacroInput('f', $event)" inputmode="numeric" pattern="[0-9]*" placeholder="0" appCursorEnd />
+            <span class="unit">g</span>
+          </div>
+          <div class="input-field percentage">
+            <input type="text" id="fatPercentInput" [value]="round1(state.pct.f)" [readonly]="state.lock.f"
+              (input)="onPercentInput('f', $event)" inputmode="decimal" pattern="[0-9]*" placeholder="0" appCursorEnd
+              appDecimalInput />
+            <span class="unit">%</span>
+          </div>
+          <button class="lock-toggle" [class.is-locked]="state.lock.f" (click)="toggleLock('f')"
+            [title]="state.lock.f ? 'Desbloquear' : 'Bloquear'">
+            <i class="fa" [class.fa-lock]="state.lock.f" [class.fa-unlock]="!state.lock.f"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen Detallado -->
+    <div class="card summary-card">
+      <!-- Avisos de Exceso -->
+      <div class="warnings" *ngIf="hasKcalExcess() || hasPercentageExcess()">
+        <div class="info-card warning-card" *ngIf="hasKcalExcess()">
+          <i class="fa fa-exclamation-triangle info-icon"></i>
+          <div class="info-text">
+            <span class="info-title">Exceso de Calorías</span>
+            <p>
+              Los macronutrientes exceden el objetivo en
+              {{ round1(Math.abs(getKcalDifference())) }} kcal
+            </p>
+          </div>
+        </div>
+
+        <div class="info-card warning-card" *ngIf="hasPercentageExcess()">
+          <i class="fa fa-exclamation-triangle info-icon"></i>
+          <div class="info-text">
+            <span class="info-title">Exceso de Porcentaje</span>
+            <p>
+              La suma de porcentajes excede el 100% ({{ getPercentageSum() }}%)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información de Calorías -->
+      <div class="summary-section calories-summary">
+        <h3 class="summary-subtitle">
+          <i class="fa fa-fire"></i>Balance Calórico
+        </h3>
+        <div class="summary-row">
+          <span class="summary-label">Objetivo:</span>
+          <span class="summary-value target-kcal">{{ state.targetKcal }} kcal</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Total de macros:</span>
+          <span class="summary-value total-kcal" [class.excess]="hasKcalExcess()">{{ getTotalKcalFromMacros() }}
+            kcal</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Diferencia:</span>
+          <span class="summary-value difference-kcal" [class.positive]="getKcalDifference() > 0"
+            [class.negative]="getKcalDifference() < 0">
+            {{ getKcalDifference() > 0 ? '+' : '' }}{{
+            round1(getKcalDifference()) }} kcal
+          </span>
+        </div>
+      </div>
+
+      <!-- Desglose por Macronutriente -->
+      <div class="summary-section macros-breakdown">
+        <div class="macro-summary-item" *ngFor="let macro of ['p', 'c', 'f']; let i = index">
+          <div class="macro-summary-header">
+            <div class="macro-color-indicator" [style.background-color]="getMacroColor(macro)"></div>
+            <span class="macro-summary-name">{{ getMacroName(macro) }}</span>
+          </div>
+          <div class="macro-summary-details">
+            <span class="macro-summary-grams">{{ Math.round(state.grams[macro]) }}g</span>
+            <span class="macro-summary-percent">({{ round1(state.pct[macro]) }}%)</span>
+            <span class="macro-summary-kcal">{{ getKcalByMacro(macro) }} kcal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Distribución Visual -->
+      <div class="summary-section visual-distribution">
+        <div class="distribution-chart">
+          <div class="chart-bar-segment chart-protein" [style.width.%]="state.pct.p"
+            [title]="'Proteínas: ' + round1(state.pct.p) + '%'"></div>
+          <div class="chart-bar-segment chart-carbs" [style.width.%]="state.pct.c"
+            [title]="'Carbohidratos: ' + round1(state.pct.c) + '%'"></div>
+          <div class="chart-bar-segment chart-fat" [style.width.%]="state.pct.f"
+            [title]="'Grasas: ' + round1(state.pct.f) + '%'"></div>
+        </div>
+        <div class="percentage-total" [class.excess]="hasPercentageExcess()">
+          Total: {{ getPercentageSum() }}%
+        </div>
+      </div>
+
+      <div class="footer-action">
+        <button class="save-button" (click)="save()" [disabled]="!isValidConfiguration()">
+          GUARDAR
+        </button>
+
+        <button class="recalculate-button" (click)="autoCalculate()">
+          RECALCULAR
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>
+<ion-footer />

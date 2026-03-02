@@ -1,0 +1,895 @@
+// Variables locales - Ajustadas para móvil con colores modernos
+:host {
+  --border-radius: 12px;
+  --shadow-elevation: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --input-border-radius: 12px;
+  --input-padding: 12px 16px;
+  --card-background: #141414;
+  --card-border: #252525;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #888888;
+}
+
+// Estilos para botones de acción (copiados de current-workout)
+.action-btn {
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --border-radius: 14px;
+  width: 45px;
+  height: 45px;
+  margin: 0;
+
+  ion-icon {
+    font-size: 1.3rem;
+  }
+}
+
+.note-btn {
+  --color: var(--ion-color-primary);
+  --background: rgba(var(--ion-color-primary-rgb), 0.15);
+  --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+}
+
+// Contenido principal
+.create-product-page {
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --background: #0a0a0a;
+}
+
+// Content styles
+.elegant-content {
+  padding: 16px;
+
+  // Form container
+  .form-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .elegant-form {
+    .form-sections {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+// Tarjetas principales
+.product-header-card,
+.nutrition-card,
+.additional-info-card,
+.quantity-card {
+  background: #141414 !important;
+  border: 1px solid #252525 !important;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-elevation);
+  margin-bottom: 12px;
+  overflow: hidden;
+
+  ion-card-content {
+    padding: 16px;
+    background: transparent !important;
+  }
+
+  ion-card-header {
+    padding-bottom: 6px;
+    background: transparent !important;
+  }
+}
+
+// Card styles
+ion-card {
+  margin: 16px 0;
+  background: #141414 !important;
+  border: 1px solid #252525 !important;
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 16px 8px 16px;
+
+    ion-icon {
+      font-size: 1.3rem;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  .card-note {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    margin: 0;
+    padding: 0 16px 8px 40px;
+    font-style: italic;
+  }
+}
+
+// Títulos de tarjetas
+.card-title,
+.nutrition-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+
+  ion-icon {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+  }
+
+  ion-note {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}
+
+// Inputs personalizados - Más compactos con diseño moderno
+.custom-input-container {
+  margin-bottom: 16px;
+  position: relative;
+}
+
+// Estilos específicos para el acordeón de información adicional
+ion-accordion[value="additional-info"] {
+  .custom-input-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    .custom-label {
+      margin-bottom: 0; // Quitar margen inferior cuando están alineados horizontalmente
+    }
+
+    .input-wrapper {
+      width: 50%; // Ancho fijo para el input en esta sección
+    }
+  }
+}
+
+.custom-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--text-secondary);
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #141414 !important;
+  border: 1px solid #252525 !important;
+  border-radius: var(--input-border-radius);
+  transition: var(--transition);
+  overflow: hidden;
+
+  &:focus-within {
+    border-color: var(--ion-color-primary) !important;
+    box-shadow: 0 0 0 2px rgba(254, 144, 0, 0.1);
+    transform: translateY(-1px);
+  }
+}
+
+.custom-input {
+  --background: transparent;
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --padding-start: 16px;
+  --padding-end: 0;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+}
+
+.input-unit {
+  padding: 16px 16px 12px 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(37, 37, 37, 0.3) !important;
+  border-left: 1px solid #252525 !important;
+}
+
+// Input styles
+.elegant-input {
+
+  ion-input,
+  ion-select {
+    --background: var(--ion-color-step-50, #fafafa);
+    --border-width: 1px;
+    --border-color: rgba(var(--ion-color-primary-rgb), 0.2);
+    --color: var(--ion-text-color);
+    --placeholder-color: var(--ion-color-medium);
+    --padding-start: 16px;
+    --padding-end: 16px;
+    font-weight: 500;
+
+    &:focus-within {
+      --border-color: var(--ion-color-primary);
+      --background: var(--ion-item-background);
+    }
+  }
+
+  ion-label {
+    font-weight: 600;
+    color: var(--ion-text-color);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .input-icon {
+    color: var(--ion-color-primary);
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
+
+  .unit-label {
+    font-size: 0.9rem;
+    color: var(--ion-color-secondary);
+    font-weight: 600;
+    margin-left: 8px;
+  }
+}
+
+// Sección de cantidad - Compacta con mejor visibilidad
+.quantity-section {
+
+  // Input de cantidad con fuente más grande
+  .custom-input {
+    font-size: 1.2rem !important;
+    font-weight: 600;
+    color: var(--text-primary) !important;
+  }
+
+  .custom-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .input-unit {
+    color: var(--text-secondary);
+    background: rgba(37, 37, 37, 0.3);
+  }
+}
+
+// Sección de calorías destacada
+.calories-section {
+  margin-bottom: 20px;
+  width: 100%;
+
+  .calories-input {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    .custom-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: White;
+      margin-bottom: 0;
+      flex: 1;
+
+      ion-icon {
+        font-size: 1.3rem;
+        margin-right: 8px;
+        color: var(--ion-color-primary);
+      }
+    }
+
+    .calories-wrapper {
+      flex: 0 0 180px;
+      min-width: 180px;
+      border: 1px solid var(--ion-color-primary) !important;
+
+      .calories-value {
+        font-size: 1.4rem !important;
+        font-weight: 700;
+        color: var(--ion-color-primary) !important;
+      }
+
+      .primary-unit {
+        background: var(--ion-color-primary) !important;
+        color: var(--ion-color-primary-contrast) !important;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+// Media queries para calorías (consistencia con macros)
+@media (min-width: 768px) {
+  .calories-section .calories-input .calories-wrapper {
+    flex: 0 0 200px;
+    min-width: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .calories-section .calories-input .calories-wrapper {
+    flex: 0 0 220px;
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calories-section .calories-input .calories-wrapper {
+    flex: 0 0 160px;
+    min-width: 160px;
+  }
+}
+
+// Macronutrientes
+.macros-section {
+  .macros-header {
+    margin-bottom: 16px;
+
+    .macros-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+
+      ion-icon {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+      }
+    }
+  }
+
+  .macros-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    .macro-item {
+      .custom-input-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        .custom-label {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+        }
+
+        .input-wrapper {
+          flex: 0 0 180px;
+          min-width: 180px;
+
+          .custom-input {
+            text-align: right;
+            --padding-end: 12px;
+            --padding-start: 12px;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            color: var(--text-primary) !important;
+          }
+        }
+      }
+    }
+
+    // Subcategorías más estrechas para simular etiqueta nutricional
+    .saturated-fat-macro,
+    .sugars-macro {
+      grid-column: span 1;
+
+      .custom-input-container {
+        max-width: 100%;
+        margin-left: 20px; // Indentación para mostrar jerarquía
+        display: flex;
+        align-items: center;
+        gap: 8px; // Menor espacio entre etiqueta e input
+
+        .custom-label {
+          font-size: 0.8rem;
+          color: var(--text-secondary);
+          font-weight: 500;
+          flex: 1;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+
+          .macro-dot {
+            width: 6px;
+            height: 6px;
+          }
+        }
+
+        .input-wrapper {
+          flex: 0 0 140px; // Más estrecho que los principales
+          min-width: 140px;
+
+          .custom-input {
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            text-align: right;
+            --padding-end: 8px;
+            --padding-start: 8px;
+            color: var(--text-primary) !important;
+          }
+
+          .input-unit {
+            font-size: 0.8rem;
+            padding: 14px 12px 12px 4px;
+            min-width: 32px;
+            text-align: center;
+          }
+        }
+      }
+    }
+
+    // Media queries para mantener consistencia en todas las pantallas
+    @media (min-width: 768px) {
+      .macro-item {
+        .custom-input-container {
+          .input-wrapper {
+            flex: 0 0 200px;
+            min-width: 200px;
+          }
+        }
+      }
+
+      .saturated-fat-macro,
+      .sugars-macro {
+        .custom-input-container {
+          margin-left: 20px;
+          gap: 8px;
+
+          .input-wrapper {
+            flex: 0 0 160px;
+            min-width: 160px;
+          }
+        }
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .macro-item {
+        .custom-input-container {
+          .input-wrapper {
+            flex: 0 0 220px;
+            min-width: 220px;
+          }
+        }
+      }
+
+      .saturated-fat-macro,
+      .sugars-macro {
+        .custom-input-container {
+          margin-left: 20px;
+          gap: 8px;
+
+          .input-wrapper {
+            flex: 0 0 180px;
+            min-width: 180px;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 480px) {
+      .macro-item {
+        .custom-input-container {
+          .input-wrapper {
+            flex: 0 0 160px;
+            min-width: 160px;
+          }
+        }
+      }
+
+      .saturated-fat-macro,
+      .sugars-macro {
+        .custom-input-container {
+          margin-left: 16px;
+          gap: 6px;
+
+          .input-wrapper {
+            flex: 0 0 120px;
+            min-width: 120px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Macro dots y colores
+.macro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.fat-dot {
+  background-color: var(--ion-color-secondary);
+}
+
+.carbs-dot {
+  background-color: var(--ion-color-success);
+}
+
+.protein-dot {
+  background-color: var(--ion-color-alternative);
+}
+
+.fiber-dot {
+  background-color: #96ceb4;
+}
+
+.saturated-fat-dot {
+  background-color: #ff8a80;
+}
+
+.sugars-dot {
+  background-color: #ffb74d;
+}
+
+// Unidades secundarias
+.secondary-unit {
+  background: rgba(37, 37, 37, 0.3) !important;
+  color: var(--text-secondary) !important;
+}
+
+// Botón de acción
+.action-section {
+  margin-top: 20px;
+
+  .save-button {
+    --border-radius: var(--border-radius);
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+
+    ion-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Specific card types
+.quantity-card {
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-primary-rgb), 0.05) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.02) 100%);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.info-card {
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-secondary-rgb), 0.05) 0%,
+      rgba(var(--ion-color-secondary-rgb), 0.02) 100%);
+  border-left: 4px solid var(--ion-color-secondary);
+}
+
+.nutrition-card {
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-tertiary-rgb), 0.05) 0%,
+      rgba(var(--ion-color-tertiary-rgb), 0.02) 100%);
+  border-left: 4px solid var(--ion-color-tertiary);
+}
+
+.quantities-card {
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-primary-rgb), 0.05) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.02) 100%);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.additional-nutrition-card {
+  background: linear-gradient(135deg,
+      rgba(var(--ion-color-secondary-rgb), 0.05) 0%,
+      rgba(var(--ion-color-secondary-rgb), 0.02) 100%);
+  border-left: 4px solid var(--ion-color-secondary);
+}
+
+// Footer styles
+.elegant-footer {
+  background: var(--ion-card-background);
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+
+  &.dark-theme {
+    background: var(--ion-color-step-100) !important;
+    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.3) !important;
+  }
+
+  .footer-content {
+    padding: 16px;
+
+    ion-button {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-primary-contrast);
+      font-weight: 600;
+      font-size: 1rem;
+      height: 48px;
+      margin: 0;
+
+      &.button-disabled {
+        --background: var(--ion-color-medium);
+        --color: var(--ion-color-medium-contrast);
+      }
+
+      .loading-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        ion-spinner {
+          width: 20px;
+          height: 20px;
+          --color: var(--ion-color-primary-contrast);
+        }
+
+        .loading-text {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}
+
+// Grid layouts
+.input-grid {
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nutrition-grid {
+  display: grid;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.quantities-grid {
+  display: grid;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.additional-grid {
+  display: grid;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Button enhancements
+.create-button {
+  .button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+// Enhanced input styles
+.nutrition-input {
+  ion-label {
+    font-size: 0.9rem;
+  }
+}
+
+// Card content padding
+ion-card-content {
+  padding: 16px;
+}
+
+// Removed animations for mobile app
+
+// Responsive design
+// Dark theme specific styles
+.dark-theme {
+  ion-card {
+    background: #141414 !important;
+    border: 1px solid #252525 !important;
+  }
+
+  .product-header-card,
+  .nutrition-card,
+  .additional-info-card {
+    background: #141414 !important;
+    border: 1px solid #252525 !important;
+  }
+
+  .input-wrapper {
+    background: #141414 !important;
+    border: 1px solid #252525 !important;
+
+    &:focus-within {
+      border-color: #252525 !important;
+    }
+  }
+
+  .input-unit {
+    background: rgba(37, 37, 37, 0.3) !important;
+    border-left: 1px solid #252525 !important;
+  }
+
+  .elegant-input {
+
+    ion-input,
+    ion-select {
+      --background: #141414 !important;
+      --border-color: #252525 !important;
+
+      &:focus-within {
+        --background: #141414 !important;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .create-product-page {
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+
+  .custom-input-container {
+    margin-bottom: 12px;
+  }
+
+  .macros-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Secciones de texto (Ingredientes, etc.)
+.text-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.text-info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #252525;
+  border-radius: 12px;
+  overflow: hidden;
+
+  .text-info-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 16px;
+    border-bottom: 1px solid #252525;
+
+    ion-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .custom-info-textarea {
+    --background: transparent;
+    --color: #b0b0b0;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+// Características Dietéticas
+.section-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 20px 0 12px 0;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+.dietary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dietary-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 1.2rem;
+    color: #666;
+  }
+
+  ion-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #b0b0b0;
+  }
+
+  &.active {
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    border-color: var(--ion-color-primary);
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+
+    ion-label {
+      color: white;
+    }
+  }
+}

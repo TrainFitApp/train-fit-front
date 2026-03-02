@@ -1,0 +1,224 @@
+<ion-header>
+  <app-page-header
+    title="Configuración"
+    [customBackAction]="true"
+    (backClick)="close()"
+  >
+  </app-page-header>
+</ion-header>
+
+<ion-content class="configuration-content">
+  <!-- Configuration Sections -->
+  <div class="config-sections">
+    <!-- Profile Options Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="settings-outline"></ion-icon>
+        <span>Opciones del Perfil</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="editNutritionalGoals()">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="restaurant-outline" color="secondary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Objetivos nutricionales</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="editPersonalData()">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="person-outline" color="secondary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Editar perfil</h3>
+          </ion-label>
+        </ion-item>
+
+        <div class="divider"></div>
+      </ion-card>
+    </div>
+
+    <!-- Privacy Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="eye-outline"></ion-icon>
+        <span>Privacidad</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="goToAdConsent()">
+          <div slot="start" class="item-icon-container privacy-icon">
+            <ion-icon name="pricetags-outline" color="tertiary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Preferencias de anuncios</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Help & Resources Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="help-circle-outline"></ion-icon>
+        <span>Ayuda y Recursos</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="openConcepts()">
+          <div slot="start" class="item-icon-container help-icon">
+            <ion-icon name="library-outline" color="tertiary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Diccionario</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <!--      <div class="divider"></div>
+        
+        <ion-item button class="config-item" (click)="openTutorialsModal()">
+          <div slot="start" class="item-icon-container help-icon">
+            <ion-icon name="color-wand-outline" color="tertiary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Tutoriales</h3>
+          </ion-label>
+         <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> 
+        </ion-item> -->
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="openSuggestions()">
+          <div slot="start" class="item-icon-container help-icon">
+            <ion-icon name="mail-open-outline" color="tertiary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Reportes y sugerencias</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Legal & Information Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>Legal e Información</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" [href]="LINKS.privacyAndPolicy">
+          <div slot="start" class="item-icon-container legal-icon">
+            <ion-icon name="file-tray-full-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Política y privacidad</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" [href]="LINKS.us">
+          <div slot="start" class="item-icon-container legal-icon">
+            <ion-icon name="people-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Nosotros</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" [href]="LINKS.termsAndConditions">
+          <div slot="start" class="item-icon-container legal-icon">
+            <ion-icon
+              name="information-circle-outline"
+              color="medium"
+            ></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Términos y condiciones</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="openReferences()">
+          <div slot="start" class="item-icon-container legal-icon">
+            <ion-icon name="link-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Referencias</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+      </ion-card>
+    </div>
+    <!-- Security Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>Seguridad</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="goToRestorePassword()">
+          <div slot="start" class="item-icon-container security-icon">
+            <ion-icon name="key-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Cambiar contraseña</h3>
+          </ion-label>
+          <!--  <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Account Actions Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Cuenta</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item logout-item" (click)="logout()">
+          <div slot="start" class="item-icon-container logout-icon">
+            <ion-icon name="log-out-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Cerrar sesión</h3>
+          </ion-label>
+          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item
+          button
+          class="config-item danger-item"
+          (click)="deleteAccount()"
+        >
+          <div slot="start" class="item-icon-container danger-icon">
+            <ion-icon name="trash-outline" color="danger"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Eliminar cuenta</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>
+<ion-footer />

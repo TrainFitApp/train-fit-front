@@ -1,0 +1,177 @@
+.content-wrapper {
+  padding: 16px;
+  height: 100%;
+}
+
+.consent-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+
+  ion-card-content {
+    padding: 20px;
+  }
+
+  ion-list {
+    background: transparent;
+
+    ion-item {
+      --background: transparent;
+      --color: #ffffff;
+
+      ion-text {
+        color: #ffffff;
+
+        p {
+          margin: 12px 0;
+          line-height: 1.5;
+        }
+
+        ul {
+          margin: 12px 0;
+          padding-left: 20px;
+
+          li {
+            margin: 8px 0;
+            line-height: 1.4;
+
+            strong {
+              color: var(--ion-color-primary);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  ion-radio-group {
+    margin-top: 16px;
+
+    ion-item {
+      --background: transparent;
+      --color: #ffffff;
+      border-radius: 8px;
+      margin: 8px 0;
+
+      ion-label {
+        color: #ffffff;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Estilos para el footer y botón responsive
+ion-footer {
+  padding: 16px;
+  background: var(--ion-background-color);
+
+  ion-button {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-primary-contrast);
+    --border-radius: 12px;
+    height: 48px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+    width: 100%;
+
+    ion-icon {
+      font-size: 1.2rem;
+      margin-left: 4px;
+    }
+  }
+}
+
+// Estilos originales para los radio buttons
+ion-radio::part(container) {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 8px;
+  border: 2px solid #ddd;
+}
+
+ion-radio::part(mark) {
+  background: none;
+  transition: none;
+  transform: none;
+  border-radius: 0;
+}
+
+ion-radio.radio-checked::part(container) {
+  background: var(--ion-color-primary);
+  border-color: transparent;
+}
+
+ion-radio.radio-checked::part(mark) {
+  width: 6px;
+  height: 10px;
+
+  border-width: 0px 2px 2px 0px;
+  border-style: solid;
+  border-color: #fff;
+
+  transform: rotate(45deg);
+}
+
+// Media queries para responsividad
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 12px;
+  }
+
+  .consent-card {
+    ion-card-content {
+      padding: 16px;
+    }
+  }
+
+  ion-footer {
+    padding: 12px;
+
+    ion-button {
+      height: 44px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .content-wrapper {
+    padding: 8px;
+  }
+
+  .consent-card {
+    ion-card-content {
+      padding: 12px;
+    }
+
+    ion-list {
+      ion-item {
+        ion-text {
+          p,
+          li {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+
+  ion-footer {
+    padding: 8px;
+
+    ion-button {
+      height: 40px;
+      font-size: 0.85rem;
+
+      ion-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+<swiper-container class="t-dates-slider" #dateSlides>
+  <swiper-slide *ngFor="let slide of allDateSlides">
+    <ion-grid>
+      <ion-row>
+        <ion-col
+          *ngFor="let day of slide"
+          (click)="sendSelectedDate(day)"
+          [class.selected]="datesAreOnSameDay(currentDate, day)"
+          [class.today]="today.getDate() === day.getDate() && today.getMonth() === day.getMonth()"
+        >
+          <div>{{ day | date : "dd" }}</div>
+          <div>{{ getSpanishDayAbbreviation(day) }}</div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </swiper-slide>
+</swiper-container>

@@ -1,0 +1,135 @@
+.note-wrapper {
+  margin-top: 12px;
+  margin-bottom: 8px;
+  margin-left: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+
+  &.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .note-card {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    // Default style (Secondary) - Matching config-set info-card style
+    background: linear-gradient(
+      135deg,
+      rgba(var(--ion-color-secondary-rgb), 0.08) 0%,
+      rgba(var(--ion-color-secondary-rgb), 0.04) 100%
+    );
+    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    position: relative;
+    transition: transform 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+
+      .left-section {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex: 1;
+        min-width: 0;
+
+        .icon-wrapper {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          height: 1.2rem;
+
+          ion-icon {
+            font-size: 1.1rem;
+            color: var(--ion-color-secondary);
+          }
+        }
+
+        .header-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+
+          .title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--ion-color-secondary);
+            letter-spacing: 0.1px;
+            line-height: 1.2rem;
+            text-transform: lowercase;
+            display: inline-block;
+
+            &::first-letter {
+              text-transform: uppercase;
+            }
+          }
+
+          .subtitle {
+            font-size: 0.75rem;
+            color: var(--ion-color-medium);
+          }
+        }
+      }
+
+      .action-wrapper {
+        margin-left: 8px;
+        margin-right: -8px;
+        margin-top: -4px;
+
+        .close-button {
+          --color: var(--ion-color-medium);
+          --padding-start: 4px;
+          --padding-end: 4px;
+          height: 24px;
+          width: 24px;
+
+          ion-icon {
+            font-size: 1.1rem;
+          }
+        }
+      }
+    }
+
+    .text {
+      margin: 0;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: #a0a0a0; // Softer gray
+      font-weight: 400;
+      width: 100%;
+    }
+  }
+
+  // Previous session style (Tertiary)
+  &.previous-session {
+    .note-card {
+      background: linear-gradient(
+        135deg,
+        rgba(var(--ion-color-tertiary-rgb), 0.08) 0%,
+        rgba(var(--ion-color-tertiary-rgb), 0.04) 100%
+      );
+      border-color: rgba(var(--ion-color-tertiary-rgb), 0.18);
+
+      .card-header .left-section {
+        .icon-wrapper ion-icon {
+          color: var(--ion-color-tertiary);
+        }
+
+        .header-row .title {
+          color: var(--ion-color-tertiary);
+        }
+      }
+    }
+  }
+}

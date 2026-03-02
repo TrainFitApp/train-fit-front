@@ -1,0 +1,69 @@
+<ion-header class="minimal-header">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="closeModal()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="search-section">
+        <ion-searchbar
+          (ionInput)="searchConcepts($event)"
+          debounce="500"
+          placeholder="Buscar conceptos..."
+          mode="ios"
+          animated
+          class="custom-searchbar"
+        ></ion-searchbar>
+      </div>
+
+     
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="concepts-content">
+  <div
+    class="concepts-container"
+    *ngIf="CONCEPT_VALUES.length > 0; else noResults"
+  >
+    <div class="concepts-grid">
+      <ion-card
+        *ngFor="let concept of CONCEPT_VALUES"
+        class="concept-card"
+        [class.nutrition-card]="concept.type === CONCEPT_TYPES.nutrition"
+        [class.training-card]="concept.type === CONCEPT_TYPES.training"
+      >
+        <ion-card-header class="concept-header">
+          <div class="concept-title-row">
+            <ion-card-title class="concept-title"
+              >{{ concept.name }}</ion-card-title
+            >
+            <ion-chip
+              class="concept-type-chip"
+              [color]="concept.type === CONCEPT_TYPES.nutrition ? 'success' : 'primary'"
+            >
+              <ion-icon
+                [name]="concept.type === CONCEPT_TYPES.nutrition ? 'nutrition-outline' : 'barbell-outline'"
+              ></ion-icon>
+              <ion-label>{{ concept.type || 'General' }}</ion-label>
+            </ion-chip>
+          </div>
+        </ion-card-header>
+
+        <ion-card-content class="concept-content">
+          <p class="concept-description">{{ concept.description }}</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <ng-template #noResults>
+    <div class="no-results">
+      <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
+      <h3>No se encontraron resultados</h3>
+      <p>Intenta con otros términos de búsqueda</p>
+    </div>
+  </ng-template>
+</ion-content>

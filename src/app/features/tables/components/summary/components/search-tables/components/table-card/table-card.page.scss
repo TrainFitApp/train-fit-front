@@ -1,0 +1,463 @@
+// Professional Table Card Design
+.professional-table-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  margin: 8px;
+  border: 1px solid #252525;
+  height: auto;
+  min-height: 280px;
+
+  &.has-image {
+    background-size: cover;
+    background-position: center;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%);
+      z-index: 1;
+    }
+  }
+}
+
+// Card Overlay
+.card-overlay {
+  background-color: transparent;
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+
+  &.selected-overlay {
+    background-color: transparent;
+  }
+}
+
+// Header Section
+.card-header-section {
+  padding: 24px 20px 16px;
+  flex-shrink: 0;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+// Title Section
+.title-section {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.title-underline {
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  border-radius: 2px;
+}
+
+// Action Buttons
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.copy-btn {
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary);
+
+  &:active {
+    background: rgba(var(--ion-color-secondary-rgb), 0.25);
+  }
+}
+
+.menu-btn {
+  background: rgba(var(--ion-color-medium-rgb), 0.15);
+
+  &:active {
+    background: rgba(var(--ion-color-medium-rgb), 0.25);
+  }
+}
+
+.delete-btn {
+  background: rgba(var(--ion-color-danger-rgb), 0.15);
+  color: var(--ion-color-danger);
+}
+
+.save-btn {
+  background: rgba(var(--ion-color-success-rgb), 0.15);
+  color: var(--ion-color-success);
+
+  &:active {
+    background: rgba(var(--ion-color-success-rgb), 0.25);
+  }
+}
+
+.loading-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+// Status and Actions Row
+.status-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+// Status Section
+.status-section {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  .status-icon {
+    font-size: 16px;
+  }
+}
+
+.active-badge {
+  background: rgba(var(--ion-color-success-rgb), 0.15);
+  color: var(--ion-color-success);
+}
+
+// Select Routine Button
+.select-routine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
+  color: var(--ion-color-primary);
+  border: none;
+
+  .select-icon {
+    font-size: 16px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
+  }
+}
+
+// Content Section
+.card-content-section {
+  flex: 1;
+  padding: 0 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+// Stats Container
+.stats-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.microcycles-stat .stat-icon {
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  color: white;
+}
+
+.workouts-stat .stat-icon {
+  background: linear-gradient(135deg, var(--ion-color-secondary) 0%, var(--ion-color-secondary-shade) 100%);
+  color: white;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.stat-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 50%, transparent 100%);
+  margin: 0 8px;
+}
+
+// Action Section
+.action-section {
+  margin-top: auto;
+}
+
+.primary-action-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.3);
+
+  .action-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Loading Template
+ion-card-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+
+  ion-spinner {
+    --color: var(--ion-color-primary);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .professional-table-card {
+    margin: 4px;
+
+    .card-header-section {
+      padding: 20px 16px 12px;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+    }
+
+    .stats-container {
+      padding: 16px 12px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+    }
+
+    .card-content-section {
+      padding: 0 16px 20px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header-top {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .title-section {
+    margin-right: 0;
+  }
+
+  .action-buttons {
+    align-self: flex-end;
+  }
+
+  .stats-container {
+    flex-direction: row !important;
+    gap: 8px;
+    padding: 16px 8px;
+  }
+
+  .stat-item {
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stat-info {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 30px;
+    margin: 0 4px;
+  }
+}
+
+// Eliminar efectos de focus para aplicación móvil
+.professional-table-card {
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  &.selected:focus {
+    outline: none !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  }
+}
+
+.action-btn {
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  color: white;
+}
+
+.select-routine-btn {
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.primary-action-btn {
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.3) !important;
+  }
+}
+
+.professional-table-card {
+  background: #141414;
+  border-color: #252525;
+
+  .stats-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .stat-number {
+    color: whitesmoke;
+  }
+}

@@ -1,0 +1,106 @@
+// Numeric Input - Styled similar to RIR Picker
+.numeric-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 48px;
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &.shimmer-run::before {
+        animation: shimmerSlide 0.4s ease;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+        pointer-events: none;
+    }
+
+    &:active {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: linear-gradient(145deg, #1f1f1f, #111111);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+        &::before {
+            left: 100%;
+        }
+    }
+
+    &.completed {
+        border-color: var(--ion-color-success);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 45%, transparent);
+
+        .numeric-value-input {
+            color: var(--ion-color-success);
+        }
+    }
+
+    &.completed:active {
+        border-color: var(--ion-color-success);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 45%, transparent);
+    }
+
+    .input-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+
+    .numeric-value-input {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        font-feature-settings: "tnum";
+        font-variant-numeric: tabular-nums;
+        background: transparent;
+        border: none;
+        text-align: center;
+        width: 100%;
+        padding: 0;
+        outline: none;
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+    }
+}
+
+// Refuerzo de borde en el contenedor interno para estados completados
+:host .numeric-input-wrapper.completed {
+    border-color: var(--ion-color-success) !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
+}
+
+:host .numeric-input-wrapper.completed:active {
+    border-color: var(--ion-color-success) !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
+}
+
+@keyframes shimmerSlide {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}

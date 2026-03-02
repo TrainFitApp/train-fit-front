@@ -1,0 +1,27 @@
+ion-item {
+  ion-label {
+    display: flex;
+    align-items: center;
+    
+    ion-icon {
+      margin-right: 8px; // Espacio entre icono y texto
+      font-size: 1.5em; // Tamaño del icono para mejor visibilidad
+    }
+    
+    strong {
+      flex: 1; // El texto ocupa el espacio restante
+    }
+  }
+}
+
+// Tema oscuro
+:host-context(.dark) {
+  ion-item {
+    ion-label {
+      ion-icon {
+        margin-right: 12px;
+        font-size: 1.5em; // Tamaño del icono para mejor visibilidad
+      }
+    }
+  }
+}

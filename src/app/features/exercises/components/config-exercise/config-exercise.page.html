@@ -1,0 +1,531 @@
+<!-- Minimalist Header -->
+<ion-header class="minimal-header">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="close()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="title-section">
+        <h1 class="page-title">Añadir ejercicio</h1>
+      </div>
+
+      <div class="actions-section">
+        <button
+          *ngIf="!isCreateMode && isOwnExercise"
+          class="action-button ripple-effect"
+          (click)="deleteOwnExercise()"
+        >
+          <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
+        </button>
+        <button class="action-button ripple-effect" (click)="manageNote()">
+          <ion-icon name="create-outline" color="primary"></ion-icon>
+        </button>
+        <button
+          class="action-button ripple-effect"
+          *ngIf="!isCreateMode"
+          [disabled]="isFavoritingExercise"
+          (click)="addExerciseToFavorites()"
+        >
+          <ion-icon
+            [name]="isExerciseFavorited ? 'bookmark' : 'bookmark-outline'"
+            color="tertiary"
+          ></ion-icon>
+        </button>
+      </div>
+    </div>
+    <ion-progress-bar
+      *ngIf="!load"
+      type="indeterminate"
+      class="elegant-progress"
+    ></ion-progress-bar>
+  </div>
+</ion-header>
+
+<ion-content class="elegant-content">
+  <form *ngIf="form" [formGroup]="form">
+    <!-- Exercise Name Card with Add Sets Button -->
+    <div class="elegant-card exercise-name-card">
+      <div class="card-content">
+        <div class="exercise-info">
+          <div class="exercise-icon">
+            <ion-icon name="barbell-outline"></ion-icon>
+          </div>
+          <div class="exercise-details">
+            <ion-label class="exercise-label">EJERCICIO</ion-label>
+            <ng-container *ngIf="isCreateMode; else exerciseNameLabel">
+              <ion-input
+                formControlName="name"
+                placeholder="Nombre del ejercicio"
+                mode="ios"
+                class="exercise-name-input"
+              ></ion-input>
+            </ng-container>
+            <ng-template #exerciseNameLabel>
+              <ion-label class="exercise-name ion-text-wrap"
+                >{{ form.get('name')?.value }}</ion-label
+              >
+            </ng-template>
+          </div>
+          <div
+            class="exercise-actions"
+            *ngIf="!isCreateMode && customExercise?._id"
+          >
+            <ion-button
+              fill="clear"
+              class="action-btn shuffle-btn"
+              (click)="changeExercise()"
+            >
+              <ion-icon name="shuffle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <div class="add-sets-section">
+          <ion-button
+            fill="clear"
+            color="secondary"
+            class="add-sets-btn t-add-exercise-add-set"
+            (click)="configSets()"
+          >
+            <ion-icon name="barbell-outline" slot="start"></ion-icon>
+            <span class="add-sets-text">AÑADIR SERIES</span>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+    <!-- <ion-buttons slot="end">
+              <ion-button
+                [disabled]="isArchiving"
+                (click)="addExerciseToLibrary()"
+              >
+                <ion-icon
+                  slot="icon-only"
+                  [color]="exerciseArchived ? 'tertiary' : ''"
+                  [name]="exerciseArchived ? 'bookmark' : 'bookmark-outline'"
+                ></ion-icon>
+              </ion-button>
+            </ion-buttons> -->
+
+    <!-- Notes Section -->
+    <app-notes
+      *ngIf="notes"
+      [notes]="notes"
+      (update)="notes = $event"
+      [detail]="true"
+      type="Notas del ejercicio"
+    ></app-notes>
+
+    <!-- Sets List -->
+    <div class="sets-container" *ngIf="setList.length > 0; else noSets">
+      <div class="elegant-card sets-card">
+        <div class="sets-header">
+          <div class="sets-info">
+            <div class="sets-icon">
+              <ion-icon name="bar-chart-outline"></ion-icon>
+            </div>
+            <div class="sets-title">
+              <h3>Series configuradas</h3>
+              <span class="sets-count"
+                >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
+                }}</span
+              >
+            </div>
+          </div>
+        </div>
+        <ion-list class="elegant-list">
+          <ion-reorder-group
+            [disabled]="false"
+            (ionItemReorder)="handleReorder($any($event))"
+          >
+            <ion-item-group *ngFor="let set of setList; let i = index">
+              <ion-item-divider>
+                <ion-reorder
+                  [ngClass]="{'current-workout-set-move' : i === 0}"
+                ></ion-reorder>
+                &nbsp;
+                <ion-label color="secondary">
+                  <strong>
+                    {{ i + 1 }}.
+                    <span *ngIf="!set.drop && !set.restPause">SERIE</span>
+                  </strong>
+                </ion-label>
+                &nbsp;
+                <span *ngIf="set.drop" class="intensity-drop">DS</span>
+                <span *ngIf="set.restPause" class="intensity-rp"
+                  >RP {{ set.restPause }} Seg</span
+                >
+
+                <ion-buttons slot="end">
+                  <ion-button
+                    [ngClass]="{'current-workout-set-copy' : i === 0}"
+                    (click)="copySet(set)"
+                  >
+                    <ion-icon
+                      slot="icon-only"
+                      color="secondary"
+                      name="copy-outline"
+                    ></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-item-divider>
+
+              <div
+                class="set-content"
+                [ngClass]="{'current-workout-set-copied' : i === 1}"
+                (click)="configSets(set); $event.stopPropagation()"
+              >
+                <div class="set-values">
+                  <ng-container
+                    *ngIf="this.customExercise
+                    ? this.customExercise.exercise.isCardio
+                    : this.exercise.isCardio; else noCardio"
+                  >
+                    <span class="set-value"
+                      >{{ set.velocity ? set.velocity : '-' }}
+                    </span>
+                    <span class="set-value"
+                      >{{ set.expectedMin ? set.expectedMin+' Min' : '-' }}
+                    </span>
+                    <span class="set-value"
+                      >{{ set.expectedSec ? set.expectedSec+' Seg' : '-' }}
+                    </span>
+                  </ng-container>
+
+                  <ng-template #noCardio>
+                    <span class="set-value"
+                      >{{ set.weight ? set.weight+' KG' : '-' }}
+                    </span>
+                    <span class="set-value"
+                      >{{ set.expectedReps | expected:'REP' }}
+                    </span>
+                    <span class="set-value" *ngIf="!(set.fail || set.expectedFail || set.rir === -1 || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)))"
+                      >{{ set.expectedRir | expected:'RIR' }}
+                    </span>
+
+                    <span *ngIf="set.fail || set.expectedFail || set.rir === -1 || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))" class="fail-label">FALLO</span>
+                  </ng-template>
+                </div>
+
+                <div class="set-actions">
+                  <ion-buttons>
+                    <ion-button (click)="deleteSet(set, i)">
+                      <ion-icon
+                        slot="icon-only"
+                        name="close-outline"
+                      ></ion-icon>
+                    </ion-button>
+                  </ion-buttons>
+                </div>
+              </div>
+            </ion-item-group>
+          </ion-reorder-group>
+        </ion-list>
+      </div>
+    </div>
+
+    <ng-template #noSets>
+      <div class="empty-sets">
+        <div class="empty-icon">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+        </div>
+        <p class="empty-text">Aún no tienes series configuradas</p>
+      </div>
+    </ng-template>
+
+    <!-- Detalles Section - Inline Filters -->
+    <!-- Detalles Section (both Create and Edit modes) -->
+    <div
+      class="elegant-card"
+      *ngIf="isCreateMode || details.category?.length || details.muscleGroups1?.length || details.muscleGroups2?.length || details.equipment?.length"
+    >
+      <div class="card-content">
+        <!-- Header with Title -->
+        <div class="exercise-details ion-text-center">
+          <ion-label class="exercise-name ion-text-wrap">
+            Categorías, grupos musculares y equipamiento
+          </ion-label>
+        </div>
+
+        <!-- Add Details Button (only in Create Mode) -->
+        <div class="add-sets-section" *ngIf="isCreateMode">
+          <ion-button
+            fill="clear"
+            color="secondary"
+            class="add-sets-btn"
+            (click)="toggleFilters()"
+          >
+            <ion-icon
+              [name]="showFilters ? 'chevron-up-outline' : 'chevron-down-outline'"
+              slot="start"
+            >
+            </ion-icon>
+            <span class="add-sets-text"
+              >{{ showFilters ? 'OCULTAR DETALLES' : 'AÑADIR DETALLES' }}</span
+            >
+          </ion-button>
+        </div>
+
+        <!-- Filters Container (Create Mode - Interactive) -->
+        <div class="filters-wrapper" *ngIf="isCreateMode && showFilters">
+          <!-- Categorías Generales -->
+          <div class="filter-section">
+            <div class="section-header">
+              <ion-icon name="grid-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Categorías</h4>
+            </div>
+            <div class="chips-container">
+              <button
+                type="button"
+                class="modern-pill filter-chip"
+                *ngFor="let category of filterCategories"
+                [class.is-active]="details.category.includes(category)"
+                (click)="selectCategory(category)"
+              >
+                <span class="label">{{ category }}</span>
+                <ion-ripple-effect></ion-ripple-effect>
+              </button>
+            </div>
+          </div>
+
+          <!-- Músculos Principales -->
+          <div class="filter-section">
+            <div class="section-header">
+              <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Músculos Principales</h4>
+            </div>
+            <div class="chips-container">
+              <button
+                type="button"
+                class="modern-pill filter-chip"
+                *ngFor="let muscle of filterMuscleGroup1"
+                [class.is-active]="details.muscleGroups1.includes(muscle)"
+                (click)="selectMuscleGroup1(muscle)"
+              >
+                <span class="label">{{ muscle }}</span>
+                <ion-ripple-effect></ion-ripple-effect>
+              </button>
+            </div>
+          </div>
+
+          <!-- Músculos Secundarios -->
+          <div class="filter-section">
+            <div class="section-header">
+              <ion-icon name="body-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Músculos Secundarios</h4>
+            </div>
+            <div class="chips-container">
+              <button
+                type="button"
+                class="modern-pill filter-chip"
+                *ngFor="let muscle of filterMuscleGroup1"
+                [class.is-active]="details.muscleGroups2.includes(muscle)"
+                (click)="selectMuscleGroup2(muscle)"
+              >
+                <span class="label">{{ muscle }}</span>
+                <ion-ripple-effect></ion-ripple-effect>
+              </button>
+            </div>
+          </div>
+
+          <!-- Equipamiento -->
+          <div class="filter-section">
+            <div class="section-header">
+              <ion-icon
+                name="construct-outline"
+                class="section-icon"
+              ></ion-icon>
+              <h4 class="section-title">Equipamiento</h4>
+            </div>
+            <div class="chips-container">
+              <button
+                type="button"
+                class="modern-pill filter-chip"
+                *ngFor="let equip of filterEquipment"
+                [class.is-active]="details.equipment.includes(equip)"
+                (click)="selectEquipment(equip)"
+              >
+                <span class="label">{{ equip }}</span>
+                <ion-ripple-effect></ion-ripple-effect>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Read-Only Details Display (Edit Mode) -->
+        <div class="details-readonly" *ngIf="!isCreateMode">
+          <!-- Categorías -->
+          <div class="filter-section" *ngIf="details.category?.length">
+            <div class="section-header">
+              <ion-icon name="grid-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Categorías</h4>
+            </div>
+            <div class="chips-container">
+              <div
+                class="modern-pill filter-chip is-active readonly"
+                *ngFor="let category of details.category"
+              >
+                <span class="label">{{ category }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Músculos Principales -->
+          <div class="filter-section" *ngIf="details.muscleGroups1?.length">
+            <div class="section-header">
+              <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Músculos Principales</h4>
+            </div>
+            <div class="chips-container">
+              <div
+                class="modern-pill filter-chip is-active readonly"
+                *ngFor="let muscle of details.muscleGroups1"
+              >
+                <span class="label">{{ muscle }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Músculos Secundarios -->
+          <div class="filter-section" *ngIf="details.muscleGroups2?.length">
+            <div class="section-header">
+              <ion-icon name="body-outline" class="section-icon"></ion-icon>
+              <h4 class="section-title">Músculos Secundarios</h4>
+            </div>
+            <div class="chips-container">
+              <div
+                class="modern-pill filter-chip is-active readonly"
+                *ngFor="let muscle of details.muscleGroups2"
+              >
+                <span class="label">{{ muscle }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipamiento -->
+          <div class="filter-section" *ngIf="details.equipment?.length">
+            <div class="section-header">
+              <ion-icon
+                name="construct-outline"
+                class="section-icon"
+              ></ion-icon>
+              <h4 class="section-title">Equipamiento</h4>
+            </div>
+            <div class="chips-container">
+              <div
+                class="modern-pill filter-chip is-active readonly"
+                *ngFor="let equip of details.equipment"
+              >
+                <span class="label">{{ equip }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Section -->
+    <div *ngIf="videoEmbedSrcSafe" class="elegant-card video-card">
+      <div class="video-header">
+        <div class="video-info">
+          <div class="video-icon">
+            <ion-icon name="play-circle-outline"></ion-icon>
+          </div>
+          <h3 class="video-title">Video demostrativo</h3>
+        </div>
+      </div>
+      <div class="video-container">
+        <iframe
+          class="video-frame"
+          [src]="videoEmbedSrcSafe"
+          title="YouTube video player"
+          frameborder="0"
+          referrerpolicy="origin"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          playsinline
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Muscle Groups Section - Hidden in Create Mode -->
+    <div class="elegant-card muscle-groups-card" *ngIf="false">
+      <div class="card-content">
+        <!-- Title Row -->
+        <div class="muscle-groups-header">
+          <div class="muscle-groups-info">
+            <div class="muscle-groups-icon">
+              <ion-icon name="body-outline"></ion-icon>
+            </div>
+            <h3 class="muscle-groups-title">Grupos musculares</h3>
+          </div>
+        </div>
+
+        <!-- Chips Row -->
+        <div class="muscle-groups-chips">
+          <button
+            type="button"
+            class="modern-pill modern-pill--sm"
+            *ngFor="let mg of getExerciseMuscleGroups()"
+          >
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span class="label">{{ mg }}</span>
+            <ion-ripple-effect></ion-ripple-effect>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description Section -->
+    <div
+      class="elegant-card description-card"
+      *ngIf="exercise?.description || customExercise?.exercise?.description"
+    >
+      <div class="card-content">
+        <!-- Title Row -->
+        <div class="description-header">
+          <div class="description-info">
+            <div class="description-icon">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <h3 class="description-title">Descripción</h3>
+          </div>
+        </div>
+
+        <!-- Description Content Row -->
+        <div class="exercise-description">
+          <p class="description-text">
+            {{ exercise?.description ?? customExercise.exercise.description }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer class="elegant-footer">
+  <div class="footer-content">
+    <ion-button
+      *ngIf="load; else loadingTemplate"
+      expand="block"
+      size="large"
+      (click)="addCustomExercise()"
+      [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
+    >
+      <div class="button-content">
+        <span>GUARDAR EJERCICIO</span>
+      </div>
+    </ion-button>
+
+    <ng-template #loadingTemplate>
+      <ion-button expand="block" size="large" disabled>
+        <div class="loading-content">
+          <ion-spinner name="crescent" color="light"></ion-spinner>
+          <span class="loading-text">Procesando...</span>
+        </div>
+      </ion-button>
+    </ng-template>
+  </div>
+</ion-footer>

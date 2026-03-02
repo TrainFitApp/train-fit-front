@@ -1,0 +1,598 @@
+.t-init-tables {
+  --background: var(--ion-color-light);
+
+  // Variables CSS para temas
+  &.light-theme {
+    --bg-primary: #141414;
+    --bg-secondary: #0e0e0e;
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --accent: var(--ion-color-primary);
+    --border: #252525;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --card-bg: #141414;
+    --button-bg: #fe9000;
+    --button-text: #ffffff;
+    --progress-bg: #2a2a2a;
+    --progress-fill: #27ae60;
+
+    .header h1 {
+      background: linear-gradient(135deg, #fe9000, #ff6b35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  &.dark-theme {
+    --bg-primary: #121212;
+    --bg-secondary: #0e0e0e;
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --accent: var(--ion-color-primary);
+    --border: #252525;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --card-bg: #141414;
+    --button-bg: #fe9000;
+    --button-text: #ffffff;
+    --progress-bg: #2a2a2a;
+    --progress-fill: #27ae60;
+
+    .header h1 {
+      background: linear-gradient(135deg, #ffffff, #e5e7eb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    // Dark theme support for title section
+    .title-section {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title-section .title-container .logo-section .app-title {
+      color: #ffffff;
+
+      .fit-primary {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    min-height: auto;
+    color: var(--text-primary);
+  }
+
+  // Estilos del toolbar-calendar adaptados para summary (sin botones ni animaciones y centrado)
+  .toolbar-calendar-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: #141414;
+    border-bottom: 1px solid rgba(37, 37, 37, 0.3);
+    position: relative;
+    overflow: hidden;
+
+    // Efecto de brillo sutil
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      z-index: 1;
+    }
+  }
+
+  // Toolbar principal
+  .main-toolbar {
+    --background: transparent;
+    --color: #ffffff;
+    --border-width: 0;
+    --padding-start: 0;
+    --padding-end: 0;
+    --min-height: 56px;
+    position: relative;
+    z-index: 2;
+
+    .toolbar-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+      height: 56px;
+      width: 100%;
+    }
+  }
+
+  .ios & .main-toolbar {
+    --min-height: 44px;
+  }
+
+  .ios & .main-toolbar .toolbar-content {
+    height: 44px;
+  }
+
+  // Sección del título
+  .title-section {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 8px;
+    margin-bottom: 0;
+    border-bottom: none;
+
+    .title-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .brand-name {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 1px;
+
+        .train-text {
+          color: #ffffff;
+        }
+
+        .fit-text {
+          background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+      }
+    }
+  }
+
+  // Contenido principal con padding
+  .main-content {
+    padding: 20px;
+  }
+
+  // Responsividad para pantallas pequeñas
+  @media (max-width: 480px) {
+    .toolbar-calendar-container {
+      .main-toolbar {
+        --min-height: 56px;
+
+        .toolbar-content {
+          padding: 0 16px;
+          height: 56px;
+        }
+      }
+
+      .title-section {
+        .title-content {
+          .brand-name {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+  }
+
+
+
+  .title-section .title-container {
+    text-align: center;
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 8px;
+
+      .app-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--ion-color-dark);
+        margin: 0;
+        letter-spacing: -0.01em;
+
+        .fit-primary {
+          color: var(--ion-color-primary);
+        }
+      }
+    }
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .nav-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .nav-btn {
+    background: #141414;
+    border: 1px solid #252525;
+    border-radius: 8px;
+    padding: 20px 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px var(--shadow);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 80px;
+    justify-content: center;
+
+    .nav-icon {
+      font-size: 24px;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: block;
+    }
+  }
+
+  .section {
+    position: relative;
+    background: #141414;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid #252525;
+    text-align: center;
+    box-shadow: 0 2px 8px var(--shadow);
+
+
+
+    .chip-top-right {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      --background: transparent;
+      --color: var(--accent);
+      --border-color: var(--accent);
+      font-size: 9px;
+      height: 24px;
+      z-index: 1;
+
+      ion-label {
+        color: var(--accent);
+      }
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--text-primary);
+
+        ion-icon {
+          margin-right: 8px;
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      /* section-extra and meta-info removed: no workouts count indicator */
+    }
+
+    // Tarjeta informativa con paleta primary/naranja
+    .info-card {
+      // Variables de color por defecto (primary)
+      --card-color: var(--ion-color-primary);
+      --card-color-rgb: var(--ion-color-primary-rgb);
+      background: rgba(var(--card-color-rgb), 0.08);
+      border: 1px solid rgba(var(--card-color-rgb), 0.18);
+      border-radius: 16px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.98);
+        background: rgba(var(--card-color-rgb), 0.12);
+      }
+    }
+
+    // Variante naranja
+    .info-card--orange {
+      margin-top: 12px;
+      --card-color: var(--ion-color-warning);
+      --card-color-rgb: var(--ion-color-warning-rgb);
+    }
+
+    // Variante explícita primary (por claridad)
+    .info-card--primary {
+      --card-color: var(--ion-color-primary);
+      --card-color-rgb: var(--ion-color-primary-rgb);
+    }
+
+    // Botón de estadísticas: más pequeño y menos ancho que el resto
+    .stats-card-btn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      gap: 8px;
+      width: fit-content;
+      align-self: center;
+      margin-top: 20px;
+      margin-left: auto;
+      margin-right: auto;
+
+      .info-icon {
+        font-size: 1rem;
+      }
+
+      .info-title {
+        font-size: 0.8rem;
+      }
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+      color: var(--card-color);
+      flex-shrink: 0;
+    }
+
+    .info-text {
+      flex: 1;
+
+      .info-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--card-color);
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+
+      p {
+        font-size: 0.8rem;
+        color: var(--ion-color-medium);
+        margin: 0;
+        line-height: 1.4;
+      }
+    }
+
+    // Para la card "Configurar Rutina": apilar título e indicador en vertical
+    &.current-routine {
+      .section-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+      }
+
+      .section-title {
+        margin-bottom: 0;
+      }
+    }
+
+    .routine-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .routine-description {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    // Indicadores de splits en la parte inferior de la card
+    .split-indicators {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .split-rect {
+      flex: 1;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--progress-bg);
+      border: 1px solid var(--border);
+
+      &.done {
+        background: var(--ion-color-success);
+        border-color: var(--ion-color-success);
+      }
+
+      &.current {
+        background: var(--button-bg);
+        border-color: var(--button-bg);
+      }
+    }
+  }
+
+  .workout-card {
+    .workout-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      .workout-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+      }
+
+      .workout-status {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 8px;
+        font-size: 8px;
+        font-weight: 600;
+      }
+    }
+
+    .progress-bar {
+      background: var(--progress-bg);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+
+      .progress-fill {
+        background: var(--progress-fill);
+        height: 100%;
+        border-radius: 4px;
+      }
+    }
+
+    // Estilos para el accordion de ejercicios
+    ion-accordion-group {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      ion-accordion {
+        ion-item {
+          --background: #141414;
+          --color: var(--text-primary);
+          --border-color: #252525;
+          --padding-start: 16px;
+          --padding-end: 16px;
+          --min-height: 48px;
+
+          ion-label {
+            font-size: 14px;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .exercises-list {
+      padding: 16px;
+      background: #141414;
+
+      .exercise-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #252525;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .exercise-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .exercise-name {
+            font-size: 14px;
+            color: var(--text-primary);
+            text-align: left !important;
+            flex: 1;
+
+            &.completed {
+              color: var(--ion-color-success);
+              text-decoration: line-through;
+            }
+          }
+
+          .exercise-icons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+
+
+            ion-icon {
+              font-size: 20px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+
+    .translucent-card {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      flex: 1;
+      margin: 0;
+    }
+  }
+
+  .translucent-card {
+    background: #0e0e0e;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .stat-content {
+        flex: 1;
+
+        .stat-value {
+          font-size: 24px;
+          font-weight: bold;
+          margin-bottom: 4px;
+
+          &.incomplete {
+            color: #ff8c00; // Naranja para incompletos
+          }
+
+          &.completed {
+            color: #28a745; // Verde para completos
+          }
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: var(--text-secondary);
+          text-transform: capitalize;
+        }
+      }
+    }
+  }
+}
+
+.ios ion-content {
+  --padding-bottom: 0;
+}
+
+ion-card-header {
+  padding: 0;
+}
+
+ion-card-title {
+  font-size: small;
+}

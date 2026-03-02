@@ -1,0 +1,389 @@
+// Contenedor principal del toolbar-calendar
+.toolbar-calendar-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #141414;
+  border-bottom: 1px solid rgba(37, 37, 37, 0.3);
+  position: relative;
+  overflow: hidden;
+
+  // Efecto de brillo sutil
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    // background: linear-gradient(90deg, transparent 0%, rgba(254, 144, 0, 0.3) 50%, transparent 100%);
+    z-index: 1;
+  }
+}
+
+// Toolbar principal
+.main-toolbar {
+  --background: transparent;
+  color: #ffffff;
+  --border-width: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --min-height: 60px;
+  position: relative;
+  z-index: 2;
+
+  .toolbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 60px;
+    width: 100%;
+  }
+}
+
+// Sección del título
+.title-section {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 8px;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .title-content {
+    display: flex;
+    align-items: center;
+
+    .month-year {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      text-transform: capitalize;
+      background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1px;
+
+      .train-text {
+        color: #ffffff;
+      }
+
+      .fit-text {
+        background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    }
+  }
+}
+
+// Sección de acciones
+.actions-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .action-button {
+    --background: rgba(255, 255, 255, 0.05);
+    --background-activated: rgba(255, 255, 255, 0.15);
+    --color: rgba(255, 255, 255, 0.8);
+    --border-radius: 12px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 6px;
+    --padding-bottom: 6px;
+
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    border: none;
+
+    ion-icon {
+      font-size: 20px;
+      transition: all 0.2s ease;
+    }
+
+    // Estilos específicos para cada botón
+    &.macros-button {
+      ion-icon {
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    &.calendar-button {
+      ion-icon {
+        color: rgba(254, 144, 0, 0.9);
+      }
+    }
+  }
+}
+
+// Contenedor del slider de fechas
+.dates-slider-container {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+
+  app-dates-slider {
+    display: block;
+    width: 100%;
+  }
+}
+
+// Contenedor de las barras de macros
+.macros-container {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+
+  app-macros-bars {
+    display: block;
+    width: 100%;
+  }
+}
+
+// Responsividad para pantallas pequeñas
+@media (max-width: 480px) {
+  .toolbar-calendar-container {
+    .main-toolbar {
+      --min-height: 56px;
+
+      .toolbar-content {
+        padding: 0 16px;
+        height: 56px;
+      }
+    }
+
+    .title-section {
+      .title-content {
+        .month-year {
+          font-size: 18px;
+        }
+
+        .brand-name {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .actions-section {
+      gap: 6px;
+
+      .action-button {
+        width: 40px;
+        height: 40px;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --padding-top: 6px;
+        --padding-bottom: 6px;
+
+        // Contenedor principal del toolbar-calendar
+        .toolbar-calendar-container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          background: #141414;
+          border-bottom: 1px solid rgba(37, 37, 37, 0.3);
+          position: relative;
+          overflow: hidden;
+
+          // Efecto de brillo sutil
+          &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            // background: linear-gradient(90deg, transparent 0%, rgba(254, 144, 0, 0.3) 50%, transparent 100%);
+            z-index: 1;
+          }
+        }
+
+        // Toolbar principal
+        .main-toolbar {
+          --background: transparent;
+          color: #ffffff;
+          --border-width: 0;
+          --padding-start: 0;
+          --padding-end: 0;
+          --min-height: 60px;
+          position: relative;
+          z-index: 2;
+
+          .toolbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 60px;
+            width: 100%;
+          }
+        }
+
+        // Sección del título
+        .title-section {
+          flex: 1;
+          padding: 8px 0;
+          border-radius: 8px;
+
+          &:active {
+            transform: scale(0.98);
+          }
+
+          .title-content {
+            display: flex;
+            align-items: center;
+
+            .month-year {
+              font-size: 20px;
+              font-weight: 600;
+              color: #ffffff;
+              letter-spacing: 0.5px;
+              text-transform: capitalize;
+              background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            }
+
+            .brand-name {
+              font-size: 22px;
+              font-weight: 700;
+              letter-spacing: 1px;
+
+              .train-text {
+                color: #ffffff;
+              }
+
+              .fit-text {
+                background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+              }
+            }
+          }
+        }
+
+        // Sección de acciones
+        .actions-section {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .action-button {
+            --background: rgba(255, 255, 255, 0.05);
+            --background-activated: rgba(255, 255, 255, 0.15);
+            --color: rgba(255, 255, 255, 0.8);
+            --border-radius: 12px;
+            --padding-start: 12px;
+            --padding-end: 12px;
+            --padding-top: 12px;
+            --padding-bottom: 12px;
+
+            width: 44px;
+            height: 44px;
+            margin: 0;
+            border: none;
+
+            ion-icon {
+              font-size: 20px;
+              transition: all 0.2s ease;
+            }
+
+            // Estilos específicos para cada botón
+            &.macros-button {
+              ion-icon {
+                color: rgba(255, 255, 255, 0.9);
+              }
+            }
+
+            &.calendar-button {
+              ion-icon {
+                color: rgba(254, 144, 0, 0.9);
+              }
+            }
+          }
+        }
+
+        // Contenedor del slider de fechas
+        .dates-slider-container {
+          position: relative;
+          z-index: 1;
+          background: transparent;
+
+          app-dates-slider {
+            display: block;
+            width: 100%;
+          }
+        }
+
+        // Contenedor de las barras de macros
+        .macros-container {
+          position: relative;
+          z-index: 1;
+          background: transparent;
+
+          app-macros-bars {
+            display: block;
+            width: 100%;
+          }
+        }
+
+        // Responsividad para pantallas pequeñas
+        @media (max-width: 480px) {
+          .toolbar-calendar-container {
+            .main-toolbar {
+              --min-height: 56px;
+
+              .toolbar-content {
+                padding: 0 16px;
+                height: 56px;
+              }
+            }
+
+            .title-section {
+              .title-content {
+                .month-year {
+                  font-size: 18px;
+                }
+
+                .brand-name {
+                  font-size: 20px;
+                }
+              }
+            }
+
+            .actions-section {
+              gap: 6px;
+
+              .action-button {
+                width: 40px;
+                height: 40px;
+                --padding-start: 10px;
+                --padding-end: 10px;
+                --padding-top: 10px;
+                --padding-bottom: 10px;
+
+                ion-icon {
+                  font-size: 18px;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

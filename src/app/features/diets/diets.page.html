@@ -1,0 +1,74 @@
+<ion-header>
+  <div class="fused-header-section">
+    <app-toolbar-calendar
+      [load]="load"
+      [dietDay]="dietDay"
+      (selectCalendarDayEmit)="selectCalendarDay($event)"
+      (pasteDietDayMode)="pasteDietDayMode = true"
+    ></app-toolbar-calendar>
+  </div>
+</ion-header>
+
+<ion-content #ionContent class="t-init-diets">
+  <app-notes
+    *ngIf="dietDay?.notes"
+    [object]="dietDay"
+    [notes]="dietDay.notes"
+    [detail]="true"
+  ></app-notes>
+
+  <ion-button
+    *ngIf="pasteDietDayMode && !isPasting;"
+    expand="block"
+    class="paste-day-button ripple-effect"
+    (click)="pasteDietDay()"
+    ><strong>PEGAR DÍA</strong>
+  </ion-button>
+
+  <ion-grid class="t-diets-meals">
+    <ion-accordion-group multiple="true">
+      <app-meal
+        *ngFor="let meal of dietDay?.meals; let i = index;"
+        [meal]="meal"
+        [dietDay]="dietDay"
+        [mealIndex]="i"
+        [user]="user"
+        [load]="load"
+        [pasteMode]="pasteMode"
+        (pasteEvent)="paste($event)"
+      ></app-meal>
+    </ion-accordion-group>
+  </ion-grid>
+
+  <app-daily-weight
+    [user]="user"
+    [selectedDate]="selectedDate"
+    (createdDietDay)="scrollBottom()"
+    (scrollToBottom)="scrollBottom()"
+  ></app-daily-weight>
+
+  <ion-fab
+    *ngIf="pasteMode || pasteDietDayMode"
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+  >
+    <ion-fab-button (click)="pasteMode = false; pasteDietDayMode = false;">
+      <ion-icon name="arrow-undo-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-popover trigger="calendar-diets">
+    <ng-template>
+      <ion-datetime
+        first-day-of-week="1"
+        #datetime
+        [showDefaultButtons]="true"
+        doneText="OK"
+        cancelText="CANCELAR"
+        presentation="date"
+        (ionChange)="selectCalendarDay(datetime.value.toString())"
+      ></ion-datetime>
+    </ng-template>
+  </ion-popover>
+</ion-content>

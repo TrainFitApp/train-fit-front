@@ -1,0 +1,993 @@
+// Variables locales - Ajustadas para móvil con colores modernos
+:host {
+    --border-radius: 12px;
+    --shadow-elevation: none;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --input-border-radius: 12px;
+    --input-padding: 12px 16px;
+    --card-background: #141414;
+    --card-border: #252525;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #888888;
+}
+
+// Contenido principal - Padding reducido
+ion-content {
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --background: var(--ion-color-light);
+}
+
+// Título con menos espacio
+ion-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+// ========== HEADER ACTIONS ==========
+.actions-section {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.action-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+
+    &:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    ion-icon {
+        font-size: 20px;
+    }
+
+    &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// ========== PRODUCT HEADER CARD ==========
+
+.product-header-card {
+    background: var(--card-background);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-elevation);
+    margin-bottom: 12px;
+    overflow: hidden;
+
+    ion-card-content {
+        padding: 16px;
+        background: transparent;
+    }
+}
+
+// ========== MACRO SUMMARY CARD ==========
+
+.macro-summary-card {
+
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: none;
+
+    ion-card-content {
+        padding: 12px 8px;
+    }
+}
+
+.macro-summary-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .summary-value {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.2;
+
+        small {
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 1px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    .summary-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--text-secondary);
+
+        &.protein {
+            color: var(--ion-color-alternative);
+        }
+
+        &.carbs {
+            color: var(--ion-color-success);
+        }
+
+        &.fat {
+            color: var(--ion-color-secondary);
+        }
+    }
+
+    &.calories {
+        .summary-value {
+            color: var(--ion-color-primary);
+            font-size: 1.25rem;
+        }
+
+        .summary-label {
+            color: var(--ion-color-primary);
+        }
+    }
+}
+
+.summary-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.product-info-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    position: relative;
+    padding-right: 56px;
+}
+
+// Botón de favoritos en la card
+.favorite-button-card {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    z-index: 10;
+    margin-left: 12px;
+    --background: rgba(255, 255, 255, 0.05);
+    --background-activated: rgba(255, 255, 255, 0.1);
+    --border-radius: 8px;
+    --color: var(--text-secondary);
+
+    &:active {
+        transform: scale(0.95);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .favorite-icon-card {
+        transition: var(--transition);
+
+        &[color="tertiary"] {
+            --ionicon-stroke-width: 32px;
+        }
+    }
+}
+
+.product-details {
+    flex: 1;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.product-name {
+    margin: 0 0 6px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.product-brand-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.product-brand {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.verified-chip {
+    --background: var(--ion-color-success-tint);
+    --color: var(--ion-color-success-contrast);
+    font-size: 0.75rem;
+    height: 24px;
+}
+
+.product-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+// ========== INPUTS PERSONALIZADOS ==========
+
+.custom-input-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    position: relative;
+    width: 100%; // ✅ Asegurar ancho completo
+}
+
+.custom-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+
+    ion-icon {
+        font-size: 1rem;
+        color: var(--text-secondary);
+    }
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 50%;
+    background: var(--card-background);
+    border: 1px solid var(--card-border);
+    border-radius: var(--input-border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.custom-input {
+    --background: transparent;
+    --color: var(--text-primary);
+    --placeholder-color: var(--text-muted);
+    --padding-start: 16px;
+    --padding-end: 0;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+}
+
+.input-unit {
+    padding: 14px 12px 12px 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: rgba(37, 37, 37, 0.3);
+    border-left: 1px solid var(--card-border);
+    min-width: 32px;
+    text-align: center;
+}
+
+// ========== SECCIÓN DE CANTIDAD (ELEGANTE) ==========
+
+.quantity-section-elegant {
+    margin-top: 16px;
+    margin-bottom: 20px;
+
+    .quantity-container {
+
+        border-radius: 12px;
+        padding: 5px;
+    }
+
+    .quantity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .quantity-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            color: var(--ion-color-primary);
+        }
+
+        .serving-hint {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--ion-color-primary);
+            background: rgba(var(--ion-color-primary-rgb), 0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+    }
+
+    .quantity-input-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .main-amount-input {
+            flex: 1;
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            color: white !important;
+
+            border: 1px solid var(--ion-color-primary);
+            border-radius: 10px;
+            --padding-start: 16px;
+            --padding-end: 16px;
+            --padding-top: 8px;
+            --padding-bottom: 8px;
+            margin: 0;
+            height: 48px;
+        }
+
+        .unit-selector-wrapper {
+            display: flex;
+            align-items: center;
+            background: #252525;
+            border-radius: 10px;
+            padding: 0 10px;
+            height: 40px;
+            border: 1px solid #333;
+            transition: all 0.2s ease;
+
+            &.no-select {
+                background: transparent;
+                border: none;
+                padding-right: 0;
+            }
+
+            .unit-select-elegant {
+                --padding-start: 0;
+                --padding-end: 8px;
+                --color: var(--ion-color-primary);
+                font-size: 0.9rem;
+                font-weight: 700;
+                min-height: 0;
+
+                &::part(icon) {
+                    font-size: 14px;
+                    color: var(--ion-color-primary);
+                    opacity: 1;
+                }
+
+                &::part(text) {
+                    flex: 0 0 auto;
+                }
+            }
+
+            // Si no hay raciones, se muestra como una unidad estática (estilo por defecto cuando no es neutral-style - aunque ahora lo controlamos con neutral-style arriba para mayor especificidad, mantenemos esto por seguridad)
+            &.no-select::before {
+                content: 'g';
+                color: #666;
+                font-weight: 700;
+                font-size: 1rem;
+                padding: 0 4px;
+            }
+
+            &.no-select .unit-select-elegant {
+                display: none;
+            }
+        }
+    }
+}
+
+// Cuando no hay raciones: el input de cantidad adopta el estilo estándar de la página
+.quantity-section-elegant.no-portions {
+    margin-top: 0;
+    margin-bottom: 16px;
+
+    .quantity-container {
+        padding: 0;
+    }
+
+
+    .quantity-input-box {
+        gap: 0;
+
+        .main-amount-input {
+            // Mismo tamaño de fuente que cuando hay raciones, pero borde estándar
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            color: white !important;
+            border: 1px solid var(--card-border) !important;
+            border-radius: var(--input-border-radius) !important;
+            border-right: none !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            height: 48px !important;
+            --padding-top: 8px;
+            --padding-bottom: 8px;
+            --padding-start: 16px;
+            --padding-end: 16px;
+        }
+
+        // La "g" estática que aparece con ::before en .no-select
+        .unit-selector-wrapper.no-select {
+            background: rgba(37, 37, 37, 0.3);
+            border: 1px solid var(--card-border);
+            border-left: 1px solid var(--card-border);
+            border-radius: 0 var(--input-border-radius) var(--input-border-radius) 0;
+            height: auto;
+            padding: 14px;
+            min-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &::before {
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+                font-weight: 600;
+                padding: 0;
+            }
+        }
+    }
+}
+
+// ========== CARACTERÍSTICAS DIETÉTICAS (MEJORADAS) ==========
+.dietary-features-section {
+    padding-top: 16px;
+    margin-top: 4px;
+    border-top: 1px solid var(--card-border);
+}
+
+.dietary-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-left: 16px;
+    gap: 12px;
+    padding-bottom: 4px;
+
+    &.icons-only {
+        .dietary-option {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+
+            ion-icon {
+                font-size: 1.2rem;
+                margin: 0;
+            }
+
+            .tooltip-text {
+                visibility: hidden;
+                width: 100px;
+                background-color: #1a1a1a;
+                color: #fff;
+                text-align: center;
+                border-radius: 8px;
+                padding: 6px 4px;
+                position: absolute;
+                z-index: 100;
+                bottom: 125%;
+                left: 50%;
+                margin-left: -50px;
+                opacity: 0;
+                transition: opacity 0.3s, transform 0.3s;
+                transform: translateY(10px);
+                font-size: 0.75rem;
+                font-weight: 600;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+                pointer-events: none;
+
+                &::after {
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    margin-left: -5px;
+                    border-width: 5px;
+                    border-style: solid;
+                    border-color: #1a1a1a transparent transparent transparent;
+                }
+            }
+
+            &:active .tooltip-text,
+            &:hover .tooltip-text {
+                visibility: visible;
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    }
+}
+
+.dietary-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 8px 14px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    ion-icon {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+    }
+
+    &.active {
+        &.vegan {
+            background: rgba(46, 204, 113, 0.15);
+            border-color: #2ecc71;
+
+            ion-icon {
+                color: #2ecc71;
+            }
+        }
+
+        &.vegetarian {
+            background: rgba(162, 209, 73, 0.15);
+            border-color: #a2d149;
+
+            ion-icon {
+                color: #a2d149;
+            }
+        }
+
+        &.lactose-free {
+            background: rgba(155, 89, 182, 0.15);
+            border-color: #9b59b6;
+
+            ion-icon {
+                color: #9b59b6;
+            }
+        }
+
+        &.gluten-free {
+            background: rgba(241, 196, 15, 0.15);
+            border-color: #f1c40f;
+
+            ion-icon {
+                color: #f1c40f;
+            }
+        }
+    }
+}
+
+// ========== NUTRITION CARD ==========
+
+.nutrition-card {
+    background: var(--card-background);
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-elevation);
+    margin-bottom: 16px;
+
+    ion-card-header {
+        padding-bottom: 6px;
+        background: transparent;
+    }
+
+    ion-card-content {
+        padding: 16px;
+        background: transparent;
+    }
+}
+
+.nutrition-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+
+    ion-icon {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+    }
+
+    ion-note {
+        margin-left: auto;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+}
+
+// ========== SECCIÓN DE CALORÍAS ==========
+
+.calories-section {
+    margin-bottom: 24px;
+    width: 100%;
+
+    .calories-input {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0 !important;
+        gap: 12px;
+
+        .custom-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0;
+            justify-content: flex-start;
+            flex: 1;
+
+            ion-icon {
+                font-size: 1.3rem;
+                margin-right: 8px;
+                color: var(--ion-color-primary);
+            }
+        }
+
+        .calories-wrapper {
+            flex: 0 0 180px;
+            min-width: 180px;
+            border: 1px solid var(--ion-color-primary) !important;
+        }
+
+        .calories-value {
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            color: var(--ion-color-primary) !important;
+            text-align: left !important;
+        }
+
+        .primary-unit {
+            background: var(--ion-color-primary) !important;
+            color: var(--ion-color-primary-contrast) !important;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 14px 16px;
+        }
+    }
+}
+
+// ========== SECCIÓN DE MACRONUTRIENTES ==========
+
+.macros-section {
+    .macros-header {
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--card-border);
+
+        .macros-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+
+            ion-icon {
+                font-size: 1.2rem;
+                color: var(--text-secondary);
+            }
+        }
+    }
+
+    .macros-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+
+        .macro-item {
+            .custom-input-container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+
+                .custom-label {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    min-width: 0;
+                }
+
+                .input-wrapper {
+                    flex: 0 0 180px;
+                    min-width: 180px;
+
+                    .custom-input {
+                        text-align: right;
+                        --padding-end: 12px;
+                        --padding-start: 12px;
+                        font-size: 1.1rem !important;
+                        font-weight: 600 !important;
+                        color: var(--text-primary) !important;
+                    }
+                }
+            }
+        }
+
+        // Subcategorías más estrechas para simular etiqueta nutricional
+        .saturated-fat-macro,
+        .sugars-macro {
+            grid-column: span 1;
+
+            .custom-input-container {
+                width: auto;
+                max-width: 100%;
+                margin-left: 20px; // Indentación para mostrar jerarquía
+                display: flex;
+                align-items: center;
+                gap: 8px; // Menor espacio entre etiqueta e input
+
+                .custom-label {
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    font-weight: 500;
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    min-width: 0;
+
+                    .macro-dot {
+                        width: 6px;
+                        height: 6px;
+                    }
+                }
+
+                .input-wrapper {
+                    flex: 0 0 140px; // Más estrecho que los principales
+                    min-width: 140px;
+
+                    .custom-input {
+                        font-size: 0.9rem !important;
+                        font-weight: 600 !important;
+                        text-align: right;
+                        --padding-end: 8px;
+                        --padding-start: 8px;
+                        color: var(--text-primary) !important;
+                    }
+
+                    .input-unit {
+                        font-size: 0.8rem;
+                        padding: 14px 12px 12px 4px;
+                        min-width: 32px;
+                        text-align: center;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Macro dots y colores
+.macro-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.fat-dot {
+    background-color: var(--ion-color-secondary);
+}
+
+.carbs-dot {
+    background-color: var(--ion-color-success);
+}
+
+.protein-dot {
+    background-color: var(--ion-color-alternative);
+}
+
+.fiber-dot {
+    background-color: #9bd3ae;
+}
+
+.saturated-fat-dot {
+    background-color: #e57373;
+}
+
+.sugars-dot {
+    background-color: #ffb74d;
+}
+
+// Unidades secundarias
+.secondary-unit {
+    background: rgba(37, 37, 37, 0.3);
+    color: var(--text-secondary);
+}
+
+// Secciones de texto (Ingredientes, etc.)
+.text-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.text-info-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+
+    .text-info-header {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--card-border);
+
+        ion-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    .custom-info-textarea {
+        --background: transparent;
+        --color: var(--text-secondary);
+        --padding-start: 16px;
+        --padding-end: 16px;
+        --padding-top: 12px;
+        --padding-bottom: 12px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+// ========== FOOTER ==========
+
+.elegant-footer {
+    --background: #000000;
+    --border-width: 0;
+    padding: 12px 16px 24px 16px;
+
+    .footer-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.save-button-global {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-shade);
+    --border-radius: 14px;
+    --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+    height: 56px;
+    margin: 0;
+
+    .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        span {
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    &[disabled] {
+        --background: #2a2a2a;
+        --color: #666;
+        opacity: 1;
+        --box-shadow: none;
+    }
+}
+
+.loading-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .loading-text {
+        font-weight: 600;
+    }
+}
+
+// Tarjeta de validación
+.validation-card {
+    background: rgba(var(--ion-color-warning-rgb), 0.1);
+    border: 1px solid rgba(var(--ion-color-warning-rgb), 0.2);
+    border-radius: 12px;
+    margin: 0;
+    box-shadow: none;
+
+    ion-card-content {
+        padding: 10px 14px;
+    }
+}
+
+.validation-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    ion-icon {
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    div {
+        p {
+            margin: 2px 0 0 0;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+    }
+}
+
+// ========== RESPONSIVE ==========
+
+@media (min-width: 768px) {
+    .macros-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .calories-section .calories-input .calories-wrapper {
+        flex: 0 0 250px !important;
+        min-width: 250px !important;
+    }
+
+    .macros-section .macros-grid .macro-item .custom-input-container .input-wrapper {
+        flex: 0 0 220px !important;
+        min-width: 220px !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .summary-item .summary-value {
+        font-size: 1rem;
+    }
+
+    .calories-section .calories-input .calories-wrapper {
+        flex: 0 0 140px !important;
+        min-width: 140px !important;
+    }
+
+    .macros-section .macros-grid .macro-item .custom-input-container .input-wrapper {
+        flex: 0 0 130px !important;
+        min-width: 130px !important;
+    }
+}

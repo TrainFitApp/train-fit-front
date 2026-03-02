@@ -1,0 +1,740 @@
+// Refined Workout Accordion Design
+app-notes {
+  width: 100%;
+}
+
+// Intensity Copied Badge (based on intensity-rp style)
+.workout-copied {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: 1.1em;
+  color: var(--ion-color-tertiary);
+  background: rgba(var(--ion-color-tertiary-rgb), 0.1);
+  padding: 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: fadeInSuccess 0.6s ease-out;
+}
+
+@keyframes fadeInSuccess {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Subtle Modern Accordion Container
+ion-accordion {
+  overflow: hidden;
+  background: rgba(var(--ion-color-dark-rgb), 0.6);
+  border: 1px solid rgba(var(--ion-color-light-rgb), 0.1);
+  box-shadow: 0 4px 16px rgba(var(--ion-color-dark-rgb), 0.06);
+  transition: all 0.3s ease;
+
+  &.accordion-expanded {
+    background: rgba(var(--ion-color-dark-rgb), 0.8);
+    box-shadow: 0 8px 24px rgba(var(--ion-color-dark-rgb), 0.12);
+  }
+}
+
+// Clean Header Grid
+ion-grid {
+  border: none;
+  background: #141414;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 5%;
+    right: 5%;
+    height: 1px;
+  }
+}
+
+.start {
+  transform: rotate(0deg);
+  transition: 0.3s;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: 0.3s;
+}
+
+// Optimized Exercise Container Styles
+.exercise-container {
+  padding: 0;
+  margin: 0;
+}
+
+.workout-title {
+  display: inline;
+  font-size: 1.1rem;
+  line-height: 1.05;
+  margin: 0;
+  padding: 0;
+}
+
+.workout-title strong,
+.workout-title span {
+  line-height: inherit;
+}
+
+// Animation for newly added exercise highlight
+@keyframes highlightNewExercise {
+  0% {
+    background: rgba(var(--ion-color-primary-rgb), 0.4);
+    box-shadow: 0 0 12px rgba(var(--ion-color-primary-rgb), 0.5);
+  }
+  100% {
+    background: rgba(var(--ion-color-light-rgb), 0.5);
+    box-shadow: none;
+  }
+}
+
+// Animation for newly added set highlight (same style as exercise)
+@keyframes highlightNewSet {
+  0% {
+    background-color: rgba(var(--ion-color-success-rgb), 0.5);
+    box-shadow: 0 0 12px rgba(var(--ion-color-success-rgb), 0.6);
+  }
+  100% {
+    background-color: rgba(var(--ion-color-success-rgb), 0);
+    box-shadow: none;
+  }
+}
+
+// Animation for updated set highlight (same style as exercise)
+@keyframes highlightUpdatedSet {
+  0% {
+    background-color: rgba(var(--ion-color-warning-rgb), 0.5);
+    box-shadow: 0 0 12px rgba(var(--ion-color-warning-rgb), 0.6);
+  }
+  100% {
+    background-color: rgba(var(--ion-color-warning-rgb), 0);
+    box-shadow: none;
+  }
+}
+
+// Animation for deleted exercise highlight (same style as exercise)
+@keyframes highlightDeleted {
+  0% {
+    background: rgba(var(--ion-color-danger-rgb), 0.4);
+    box-shadow: 0 0 12px rgba(var(--ion-color-danger-rgb), 0.5);
+  }
+  100% {
+    background: rgba(var(--ion-color-light-rgb), 0.5);
+    box-shadow: none;
+  }
+}
+
+.series-row.highlight-new-set {
+  animation: highlightNewSet 2s ease-in-out forwards !important;
+}
+
+.series-row.highlight-updated-set {
+  animation: highlightUpdatedSet 2s ease-in-out forwards !important;
+}
+
+// Asegurar que highlight tenga prioridad sobre previous-set y pending-set
+.previous-session-table .series-row.highlight-new-set,
+.previous-session-table .series-row.previous-set.highlight-new-set,
+.previous-session-table .series-row.pending-set.highlight-new-set {
+  animation: highlightNewSet 2s ease-in-out forwards !important;
+}
+
+.previous-session-table .series-row.highlight-updated-set,
+.previous-session-table .series-row.previous-set.highlight-updated-set,
+.previous-session-table .series-row.pending-set.highlight-updated-set {
+  animation: highlightUpdatedSet 2s ease-in-out !important;
+}
+
+.exercise-card {
+  margin-bottom: 16px;
+  background: rgba(var(--ion-color-light-rgb), 0.5);
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &.highlight-new {
+    animation: highlightNewExercise 2s ease-in-out;
+  }
+
+  &.highlight-new-set {
+    animation: highlightNewSet 2s ease-in-out;
+  }
+
+  &.highlight-updated-set {
+    animation: highlightUpdatedSet 2s ease-in-out;
+  }
+
+  &.highlight-deleted {
+    animation: highlightDeleted 2s ease-in-out;
+  }
+
+  .exercise-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #252525;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .exercise-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .exercise-name {
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-left: 1em;
+
+        &.completed {
+          color: var(--ion-color-success);
+        }
+      }
+
+      .exercise-icons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .action-btn {
+          --padding-start: 8px;
+          --padding-end: 8px;
+          --padding-top: 8px;
+          --padding-bottom: 8px;
+
+          ion-icon {
+            font-size: 18px;
+          }
+        }
+
+        .menu-btn {
+          --color: var(--ion-color-dark);
+          --background: rgba(var(--ion-color-medium-rgb), 0.15);
+          --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+        }
+
+        .delete-exercise-btn {
+          --color: var(--ion-color-danger);
+          --padding-start: 8px;
+          --padding-end: 8px;
+          --padding-top: 8px;
+          --padding-bottom: 8px;
+
+          ion-icon {
+            font-size: 18px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.no-sets-message {
+  text-align: center;
+  padding: 16px;
+}
+
+.no-sets-text {
+  color: gray;
+  font-size: small;
+  font-weight: bold;
+}
+
+// Cardio Set Rows
+.cardio-set-row {
+  display: flex;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(var(--ion-color-light-rgb), 0.2);
+  border-radius: 6px;
+}
+
+// Strength Set Rows
+.strength-set-row {
+  display: flex;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(var(--ion-color-light-rgb), 0.2);
+  border-radius: 6px;
+}
+
+// Set Data Columns
+.set-data {
+  flex: 1;
+  text-align: center;
+  font-size: small;
+  color: gray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.velocity-data,
+.time-data,
+.duration-data {
+  flex: 1;
+}
+
+.reps-data,
+.weight-data,
+.rir-data {
+  flex: 1;
+}
+
+// Action Containers
+
+.notes-container {
+  width: 100%;
+  padding: 8px 0;
+}
+
+// Workout Right-side Action Buttons (matching micro-cycle-actions style)
+.workout-actions-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-button {
+    --padding-start: 14px;
+    --padding-end: 14px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    --border-radius: 14px;
+    width: 52px;
+    height: 52px;
+    margin: 0;
+    margin: 0;
+
+    ion-icon {
+      font-size: 1.3rem;
+    }
+
+    // Clipboard button (tertiary style like copy-btn)
+    &:has(ion-icon[name="clipboard-outline"]) {
+      --color: var(--ion-color-tertiary);
+      --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
+    }
+
+    // Stop button (danger style like delete-btn)
+    &:has(ion-icon[name="stop-circle-outline"]) {
+      --color: var(--ion-color-danger);
+      --background: rgba(var(--ion-color-danger-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+    }
+
+    // Play button (success style)
+    &:has(ion-icon[name="play-circle-outline"]) {
+      --color: var(--ion-color-success);
+      --background: rgba(var(--ion-color-success-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-success-rgb), 0.25);
+    }
+
+    // Enter button (success style)
+    &:has(ion-icon[name="chevron-forward-circle-outline"]) {
+      --color: var(--ion-color-tertiary);
+      --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
+    }
+
+    // Add button (primary style)
+    &:has(ion-icon[name="add-circle-outline"]) {
+      --color: var(--ion-color-primary);
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+    }
+
+    // Reorder button (primary style)
+    &:has(ion-icon[name="reorder-two-outline"]) {
+      --color: var(--ion-color-primary);
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+      --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+    }
+  }
+}
+
+// Refined Workout Header
+.meal-name {
+  margin-left: -6%;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+
+  ion-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    color: var(--ion-color-light);
+
+    strong {
+      color: var(--ion-color-primary-tint);
+      font-weight: 800;
+      font-size: 1rem;
+      text-shadow: 0 1px 2px rgba(var(--ion-color-primary-rgb), 0.1);
+    }
+
+    span {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// Refined Info Labels
+ion-label[color="medium"] {
+  font-size: 0.85rem !important;
+  font-weight: 500;
+  color: var(--ion-color-medium-tint) !important;
+  opacity: 0.8;
+}
+
+ion-label[color="tertiary"] {
+  font-size: 0.9rem !important;
+  font-weight: 600;
+  color: var(--ion-color-tertiary) !important;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--ion-color-tertiary);
+    opacity: 0.3;
+  }
+}
+
+// Subtle Date Label
+ion-label[color="success"] {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+  color: var(--ion-color-success-tint) !important;
+}
+
+// Subtle Muscle Group Chips
+ion-chip {
+  --background: rgba(var(--ion-color-secondary-rgb), 0.12);
+  --color: var(--ion-color-secondary-tint);
+  border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.25);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+// Special Set Type Styles (DROP, REST PAUSE)
+.set-type-drop {
+  background: rgba(var(--ion-color-danger-rgb), 0.15) !important;
+  border: 1px solid rgba(var(--ion-color-danger-rgb), 0.4) !important;
+  border-radius: 12px;
+  color: var(--ion-color-danger-tint) !important;
+  font-weight: 600;
+  padding: 4px 8px;
+  margin: 2px 0;
+}
+
+.set-type-rest-pause {
+  background: rgba(var(--ion-color-warning-rgb), 0.15) !important;
+  border: 1px solid rgba(var(--ion-color-warning-rgb), 0.4) !important;
+  border-radius: 12px;
+  color: var(--ion-color-warning-tint) !important;
+  font-weight: 600;
+  padding: 4px 8px;
+  margin: 2px 0;
+}
+
+// Table Styles (from custom-exercise design)
+// Previous Session Title Styles (simple text style)
+.previous-session-title {
+  padding: 6px 12px;
+
+  .previous-title-text {
+    font-size: 0.75rem;
+    font-weight: 400; // Peso normal para texto secundario
+    color: var(--ion-color-medium); // Color grisáceo
+    text-transform: none; // Sin uppercase
+    letter-spacing: normal; // Sin letter-spacing extra
+  }
+}
+
+.table-container {
+  background: transparent;
+  border: none;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.previous-session-table {
+  font-size: 12px;
+}
+
+.previous-session-table th {
+  font-weight: 700;
+  font-size: 10px; // Reducido de 12px a 10px
+  padding: 12px 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  box-shadow: none;
+  background: transparent;
+  border: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 1px;
+  }
+}
+
+.previous-session-table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--ion-color-step-100);
+  font-size: 11px;
+}
+
+.previous-session-table .series-number {
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.previous-session-table .series-row {
+  border-bottom: 1px solid var(--ion-color-step-100);
+}
+
+.previous-session-table .series-row td {
+  padding: 8px 6px;
+  font-weight: 600;
+}
+
+.previous-session-table .series-row.previous-set {
+  // Base styles for previous sets - green background for completed sets
+  background: rgba(34, 197, 94, 0.1) !important;
+  border-left: 4px solid #22c55e !important;
+
+  &.drop-set-series {
+    // Mantener el background verde cuando está completada
+    background: rgba(34, 197, 94, 0.1) !important;
+    border-left: 4px solid #22c55e !important;
+
+    td {
+      color: #ffffff; // Color de texto blanco para mejor contraste
+    }
+  }
+
+  &.rest-pause-series {
+    // Mantener el background verde cuando está completada
+    background: rgba(34, 197, 94, 0.1) !important;
+    border-left: 4px solid #22c55e !important;
+
+    td {
+      color: #ffffff; // Color de texto blanco para mejor contraste
+    }
+  }
+}
+
+.table th {
+  color: var(--ion-color-medium);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  box-shadow: none;
+  background: transparent;
+  border: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 1px;
+  }
+}
+
+.table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--ion-color-step-100);
+  font-size: 11px;
+}
+
+.series-number {
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.series-row {
+  border-bottom: 1px solid var(--ion-color-step-100);
+
+  td {
+    padding: 8px 6px;
+    font-weight: 600;
+  }
+
+  &.pending-set {
+    border-left: 4px solid #f97316; // Naranja para sets pendientes
+    background: transparent; // Sin background
+  }
+
+  &.previous-set {
+    background: rgba(34, 197, 94, 0.1);
+    border-left: 4px solid #22c55e;
+  }
+
+  &.drop-set-series {
+    background: rgba(239, 68, 68, 0.2);
+    border-left: 4px solid #ef4444;
+  }
+
+  &.rest-pause-series {
+    background: rgba(34, 197, 94, 0.2);
+    border-left: 4px solid #22c55e;
+  }
+}
+
+// Intensity indicators
+.fail-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ion-color-danger);
+  background: rgba(var(--ion-color-danger-rgb), 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.intensity-drop {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.intensity-rp {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.table-container {
+  background: transparent;
+  border: none;
+}
+
+ion-buttons ion-button {
+  --background: rgba(var(--ion-color-dark-rgb), 0.6);
+  border-color: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.previous-session-table th {
+  box-shadow: none;
+}
+
+.previous-session-table td {
+  border-bottom-color: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.previous-session-table .series-number {
+  color: var(--ion-color-light);
+}
+
+.previous-session-table .series-row {
+  border-bottom-color: rgba(var(--ion-color-light-rgb), 0.1);
+
+  &.previous-set {
+    &.drop-set-series {
+      background: rgba(239, 68, 68, 0.2);
+      border-left-color: #ef4444;
+
+      td {
+        color: #ffffff;
+      }
+    }
+
+    &.rest-pause-series {
+      background: rgba(59, 130, 246, 0.2);
+      border-left-color: #3b82f6;
+
+      td {
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+.table th {
+  color: var(--ion-color-medium);
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.table td {
+  border-bottom-color: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.series-number {
+  color: var(--ion-color-light);
+}
+
+.series-row {
+  border-bottom-color: rgba(var(--ion-color-light-rgb), 0.1);
+
+  &.previous-set {
+    background: rgba(34, 197, 94, 0.15);
+    border-left-color: #22c55e;
+  }
+
+  &.drop-set-series {
+    background: rgba(239, 68, 68, 0.15);
+    border-left-color: #ef4444;
+  }
+
+  &.rest-pause-series {
+    background: rgba(59, 130, 246, 0.15);
+    border-left-color: #3b82f6;
+  }
+}
+
+.intensity-fail {
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+}

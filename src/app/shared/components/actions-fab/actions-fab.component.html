@@ -1,0 +1,24 @@
+<ion-fab
+  [hidden]="(isFooterHidden || modalOpen) && !ignoreModalHide"
+  horizontal="end"
+  vertical="bottom"
+  size="small"
+  slot="fixed"
+>
+  <ng-container *ngIf="!cancelMode; else isCancelMode">
+    <ion-fab-button *ngIf="loading; else loaded" color="primary">
+      <ion-spinner name="crescent"></ion-spinner>
+    </ion-fab-button>
+    <ng-template #loaded>
+      <ion-fab-button color="primary" (click)="actionFab()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ng-template>
+  </ng-container>
+</ion-fab>
+
+<ng-template #isCancelMode>
+  <ion-fab-button (click)="cancelCancelMode($event)">
+    <ion-icon name="arrow-undo-outline"></ion-icon>
+  </ion-fab-button>
+</ng-template>

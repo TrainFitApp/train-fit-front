@@ -1,0 +1,26 @@
+<ion-grid style="border-bottom: 1px solid #0d0d0d">
+  <ion-row *ngFor="let row of rowsLength">
+    <ion-col class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+        </ion-col>
+      </ion-row>
+      <ion-row style="font-size: small; text-align: center; color: gray">
+        <ion-col *ngFor="let detailColumn of detailColumnsLength"
+          ><ion-skeleton-text [animated]="true"></ion-skeleton-text
+        ></ion-col>
+      </ion-row>
+    </ion-col>
+    <ion-col
+      *ngIf="addButton"
+      class="ion-no-padding"
+      style="display: flex; justify-content: center; align-items: center"
+      size="2.4"
+    >
+      <ion-thumbnail>
+        <ion-skeleton-text [animated]="true"> </ion-skeleton-text>
+      </ion-thumbnail>
+    </ion-col>
+  </ion-row>
+</ion-grid>

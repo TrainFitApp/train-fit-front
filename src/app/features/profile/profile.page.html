@@ -1,0 +1,260 @@
+<ion-header>
+  <div class="toolbar-calendar-container">
+    <div class="main-toolbar">
+      <div class="toolbar-content">
+        <div class="title-section">
+          <div class="title-content">
+            <strong class="brand-name">
+              <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content>
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <header class="profile-header">
+      <div class="avatar">{{ getUserInitials() }}</div>
+      <div class="user-info">
+        <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
+        <div class="user-goal">
+          <ion-icon [name]="iconArrowObjetive" [color]="colorObjetive"></ion-icon>
+          <ion-text [color]="colorObjetive">{{ objetiveMessage }}</ion-text>
+        </div>
+      </div>
+      <button class="settings-btn" (click)="goToConfiguration()">
+        <ion-icon name="settings-outline"></ion-icon>
+      </button>
+    </header>
+  </div>
+
+  <!-- Section Divider -->
+  <!--   <div class="section-divider"></div> -->
+
+  <!-- Nutrition Section -->
+  <div class="nutrition-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <ion-icon name="restaurant-outline" color="primary"></ion-icon>
+        Macros {{ showRemainingNutrition ? 'restantes' : 'consumidos' }}
+      </h3>
+      <div class="section-actions">
+        <ion-toggle [checked]="showRemainingNutrition" (ionChange)="toggleNutritionView()" class="nutrition-toggle">
+        </ion-toggle>
+      </div>
+    </div>
+
+    <div class="nutrition-content">
+      <div class="nutrition-overview">
+        <div class="nutrition-card">
+          <div class="nutrition-value" [ngClass]="getKcalValueClass()">
+            {{ getNutritionValue() }}
+          </div>
+          <div class="nutrition-label">{{ getNutritionLabel() }}</div>
+        </div>
+      </div>
+
+      <div class="nutrition-progress">
+        <div class="macro-row">
+          <div class="macro-info">
+            <div class="macro-color protein"></div>
+            <span class="macro-name">Proteína</span>
+          </div>
+          <div class="macro-values" [ngClass]="getProteinValueClass()" [innerHTML]="getProteinValues()"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill protein" [style.width.%]="proteinPercentage"></div>
+        </div>
+
+        <div class="macro-row">
+          <div class="macro-info">
+            <div class="macro-color carbs"></div>
+            <span class="macro-name">CBH</span>
+          </div>
+          <div class="macro-values" [ngClass]="getCarbValueClass()" [innerHTML]="getCarbValues()"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill carbs" [style.width.%]="carbohydratesPercentage"></div>
+        </div>
+
+        <div class="macro-row">
+          <div class="macro-info">
+            <div class="macro-color fats"></div>
+            <span class="macro-name">Grasas</span>
+          </div>
+          <div class="macro-values" [ngClass]="getFatValueClass()" [innerHTML]="getFatValues()"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill fats" [style.width.%]="fatPercentage"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weight Progress Section -->
+  <div class="weight-progress-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <ion-icon name="scale-outline" color="primary"></ion-icon>
+        Progreso de Peso
+      </h3>
+      <div class="section-actions">
+        <button class="weight-progress-btn" (click)="goToWeightInfo()">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="weight-grid">
+      <div class="weight-metric" (click)="showInfo(INFO.currentWeight)">
+        <div class="weight-metric-label">Peso de hoy</div>
+        <div class="weight-metric-value">
+          {{ getTodayWeight() ? ((getTodayWeight() | number:'1.0-2') + 'kg') :
+          '-' }}
+        </div>
+      </div>
+      <div class="weight-metric" (click)="showInfo(INFO.pastAverageWeight)">
+        <div class="weight-metric-label">Media semanal anterior</div>
+        <div class="weight-metric-value">
+          {{ (prevWeightAverage || 0) | number:'1.0-2' }}kg
+        </div>
+      </div>
+
+      <div class="weight-metric full-width" (click)="showInfo(INFO.averageWeight)">
+        <div class="weight-metric-label">Media semanal actual</div>
+        <div class="weight-metric-value">
+          {{ currWeightAverage === 0 ? '-' : ((currWeightAverage || 0) |
+          number:'1.0-2') + 'kg' }}
+          <span class="weight-change" [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
+            *ngIf="currWeightAverage && prevWeightAverage">
+            {{ getWeightChangeIcon(currWeightAverage, prevWeightAverage) }}{{
+            getWeightChangeText(currWeightAverage, prevWeightAverage) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="weight-stats"></div>
+  </div>
+
+  <!-- Routine Section -->
+  <div class="routine-section">
+    <!-- Workout Card Structure -->
+    <div class="card workout-card clickable-card" *ngIf="tableInUse; else noRoutine" (click)="goToSummary()">
+      <div class="card-header">
+        <h2 class="card-title">
+          <ion-icon name="barbell-outline" color="primary"></ion-icon> Rutina
+          Activa
+        </h2>
+      </div>
+      <div class="workout-status">
+        <p class="workout-title">{{ tableInUse.name }}</p>
+        <p class="workout-subtitle" *ngIf="user?.workoutInUse && workoutInUse">
+          Micro-ciclo {{ getCurrentPlayingSplit() }}
+        </p>
+        <p class="workout-subtitle" *ngIf="!user?.workoutInUse">
+          {{ tableInUse.splits?.length || 0 }} microciclos disponibles
+        </p>
+      </div>
+      <div class="workout-progress" *ngIf="user?.workoutInUse && workoutInUse">
+        <div class="progress-info">
+          <span>{{ workoutInUse.name }}</span>
+          <span class="workout-state" [ngClass]="{
+            'active': !isWorkoutInUseEnded,
+            'completed': isWorkoutInUseEnded
+          }">{{ isWorkoutInUseEnded ? 'Completado' : 'Activo' }}</span>
+        </div>
+        <div class="progress-indicator">
+          <span class="progress-text">{{ completedExercises }} / {{ workoutInUse.exercises.length }}
+            ejercicios completados</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" [style.width.%]="(completedExercises / workoutInUse.exercises.length) * 100"
+            [style.background-color]="isWorkoutInUseEnded ? 'var(--pe-accent)' : 'var(--ion-color-success)'"></div>
+        </div>
+
+        <div class="info-card info-card--orange summary-info-card" (click)="goToStatistics(); $event.stopPropagation()">
+          <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
+          <div class="info-text">
+            <span class="info-title">Estadísticas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Routine Selected -->
+    <ng-template #noRoutine>
+      <div class="card workout-card">
+        <div class="no-routine-card">
+          <div class="no-routine-icon">
+            <ion-icon name="calendar-outline" color="primary"></ion-icon>
+          </div>
+          <p class="no-routine-text">No tienes una rutina activa</p>
+          <p class="no-routine-subtext">
+            Explora las rutinas y empieza a entrenar.
+          </p>
+          <ion-button class="primary-action-btn" (click)="goToSummary()">Seleccionar Rutina</ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Personal Information Section -->
+  <div class="personal-info-section-compact">
+    <div class="compact-header">
+      <ion-icon name="person-outline" class="header-icon" color="primary"></ion-icon>
+      <span class="header-title">Información Personal</span>
+      <button class="personal-info-btn" (click)="edit()">
+        <ion-icon name="create-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- First row: Age, Weight, Height -->
+    <div class="info-row">
+      <div class="info-item-compact">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span class="info-text">{{ getUserAge() }} años</span>
+      </div>
+      <div class="info-item-compact">
+        <ion-icon name="scale-outline"></ion-icon>
+        <span class="info-text">{{ user.weight }} kg</span>
+      </div>
+      <div class="info-item-compact">
+        <ion-icon name="resize-outline"></ion-icon>
+        <span class="info-text">{{ user.height }} cm</span>
+      </div>
+    </div>
+
+    <!-- Second row: Steps, Training -->
+    <div class="info-row">
+      <div class="info-item-compact">
+        <ion-icon name="walk-outline"></ion-icon>
+        <span class="info-text">{{ getStepsDescription() }}</span>
+      </div>
+      <div class="info-item-compact">
+        <ion-icon name="barbell-outline"></ion-icon>
+        <span class="info-text">{{ getTrainingDescription() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TODO -->
+
+  <ion-grid class="social-networks-section">
+    <ion-row><ion-col class="ion-text-center"><ion-label color="medium">Redes sociales</ion-label></ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center">
+      <ion-buttons>
+        <ion-button *ngFor="let socialNetWork of SOCIAL_NETWORK_VALUES">
+          <ion-button (click)="navigateSocialNetwork(socialNetWork)">
+            <ion-icon slot="icon-only" [name]="socialNetWork.icon"></ion-icon>
+          </ion-button>
+        </ion-button>
+      </ion-buttons>
+    </ion-row>
+  </ion-grid>
+</ion-content>

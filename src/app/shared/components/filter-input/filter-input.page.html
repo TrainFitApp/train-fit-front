@@ -1,0 +1,98 @@
+<ion-header class="filter-header">
+  <div class="filter-toolbar">
+    <div class="header-content">
+      <div class="title-section">
+        <ion-title class="filter-title">Filtros</ion-title>
+      </div>
+      <ion-buttons slot="end">
+        <button class="close-action-button ripple-effect" (click)="close()">
+          <ion-icon name="close" color="primary"></ion-icon>
+        </button>
+      </ion-buttons>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="filter-content">
+  <div class="filter-container">
+    <!-- Categorías Generales -->
+    <div class="filter-section">
+      <div class="section-header">
+        <ion-icon name="grid" class="section-icon"></ion-icon>
+        <h3 class="section-title">Categorías Generales</h3>
+      </div>
+      <div class="chips-container">
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          *ngFor="let category of categories"
+          [class.is-active]="searchFilterGroupExercises.category.includes(category)"
+          (click)="selectCategory(category)"
+        >
+          <span class="label">{{ category }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+
+    <!-- Músculos Principales -->
+    <div class="filter-section">
+      <div class="section-header">
+        <ion-icon name="body" class="section-icon"></ion-icon>
+        <h3 class="section-title">Músculos Principales</h3>
+      </div>
+      <div class="chips-container">
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          *ngFor="let muscle of muscleGroup1; let i = index"
+          [class.is-active]="searchFilterGroupExercises.muscleGroups1.includes(muscle)"
+          (click)="selectMuscleGroup1(muscle)"
+        >
+          <span class="label">{{ muscle }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+
+    <!-- Músculos Secundarios -->
+    <div class="filter-section">
+      <div class="section-header">
+        <ion-icon name="accessibility" class="section-icon"></ion-icon>
+        <h3 class="section-title">Músculos Secundarios</h3>
+      </div>
+      <div class="chips-container">
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          *ngFor="let muscle of muscleGroup1"
+          [class.is-active]="searchFilterGroupExercises.muscleGroups2.includes(muscle)"
+          (click)="selectMuscleGroup2(muscle)"
+        >
+          <span class="label">{{ muscle }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+
+    <!-- Equipamiento -->
+    <div class="filter-section">
+      <div class="section-header">
+        <ion-icon name="barbell" class="section-icon"></ion-icon>
+        <h3 class="section-title">Equipamiento</h3>
+      </div>
+      <div class="chips-container">
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          *ngFor="let equip of equipment"
+          [class.is-active]="searchFilterGroupExercises.equipment.includes(equip)"
+          (click)="selectEquipment(equip)"
+        >
+          <span class="label">{{ equip }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>

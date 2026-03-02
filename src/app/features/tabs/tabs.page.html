@@ -1,0 +1,15 @@
+<ion-tabs (ionTabsDidChange)="onTabChange($event)">
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button [tab]="TABS.summary">
+      <ion-icon name="barbell-outline"></ion-icon>
+    </ion-tab-button>
+
+    <ion-tab-button [tab]="TABS.diets">
+      <ion-icon name="nutrition-outline"></ion-icon>
+    </ion-tab-button>
+
+    <ion-tab-button [tab]="TABS.profile">
+      <ion-icon name="accessibility-outline"></ion-icon>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

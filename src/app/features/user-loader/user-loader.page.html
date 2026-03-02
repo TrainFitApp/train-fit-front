@@ -1,0 +1,41 @@
+<div class="splash-container flex-center" [@fadeInOut]="animationState">
+  <div class="splash-content flex-center">
+    <!-- Logo principal -->
+    <div class="logo-container flex-center" [@logoAnimation]="animationState">
+      <div class="logo-circle flex-center">
+        <img src="../../../../assets/Solo_Logo_dark.png" class="logo-image" />
+      </div>
+      <h1 class="app-name" [@textAnimation]="animationState">
+        <span class="train-text">Train</span><span class="fit-text">Fit</span>
+      </h1>
+      <p class="app-tagline" [@textAnimation]="animationState">
+        DE<span class="highlight-letter">F</span>EAT YOUR L<span
+          class="highlight-letter"
+          >I</span
+        >MI<span class="highlight-letter">T</span>S
+      </p>
+    </div>
+
+    <!-- Barra de progreso mejorada -->
+    <div class="progress-container" [@progressAnimation]="animationState">
+      <div class="progress-header flex-center">
+        <p class="loading-text m-0">{{ loadingText }}</p>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progress"></div>
+      </div>
+      <div class="progress-percentage-bottom flex-center">
+        <span class="progress-percentage"
+          >{{ progress | number:'1.0-0' }}%</span
+        >
+      </div>
+      <div class="progress-steps flex-center">
+        <div class="step" [class.active]="loadingStep >= 1"></div>
+        <div class="step" [class.active]="loadingStep >= 2"></div>
+        <div class="step" [class.active]="loadingStep >= 3"></div>
+        <div class="step" [class.active]="loadingStep >= 4"></div>
+        <div class="step" [class.active]="loadingStep >= 5"></div>
+      </div>
+    </div>
+  </div>
+</div>

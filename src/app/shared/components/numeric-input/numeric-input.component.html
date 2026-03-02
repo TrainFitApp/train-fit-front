@@ -1,0 +1,17 @@
+<div
+  class="numeric-input-wrapper"
+  [ngClass]="{ completed: isDone }"
+  [@shimmerAnimation]="shimmerAnimationState"
+  [class.shimmer-run]="shimmerAnimationState === 'animate'"
+>
+  <span class="input-label">{{ label }}</span>
+  <input
+    type="text"
+    inputmode="decimal"
+    class="numeric-value-input"
+    [value]="displayValue"
+    (change)="onInputChange($event)"
+    (click)="onInputClick()"
+    [placeholder]="placeholder || '-'"
+  />
+</div>

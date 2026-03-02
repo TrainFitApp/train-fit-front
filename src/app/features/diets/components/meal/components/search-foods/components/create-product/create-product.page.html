@@ -1,0 +1,706 @@
+<ion-header>
+  <app-page-header [title]="isEditMode ? 'Editar producto' : 'Crear producto'" [customBackAction]="true"
+    (backClick)="goBack()">
+  </app-page-header>
+</ion-header>
+
+<ion-content class="elegant-content" [ngClass]="{'dark-theme': theme === 'dark'}">
+  <div class="form-container">
+    <form [formGroup]="productForm" class="elegant-form">
+      <div class="form-sections">
+        <!-- Campo de cantidad (Solo si hay comida) -->
+        <ion-card class="quantity-card" *ngIf="meal">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              Cantidad a consumir *
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="quantity-section">
+              <div class="custom-input-container">
+                <div class="input-wrapper">
+                  <ion-input type="text" inputmode="decimal" formControlName="quantity" class="custom-input"
+                    placeholder="0" appDecimalInput></ion-input>
+                  <span class="input-unit">g</span>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Información general -->
+        <ion-card class="product-header-card">
+          <ion-card-header>
+            <ion-card-title class="card-title">
+              Información general
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="input-grid">
+              <!-- Código de barras -->
+              <div class="custom-input-container barcode-input">
+                <ion-label class="custom-label barcode-label">
+                  Código de barras
+                </ion-label>
+                <div class="input-wrapper barcode-wrapper" [class.highlight-code]="highlightCodeInput">
+                  <ion-input type="number" inputmode="numeric" formControlName="code" class="custom-input" #barcodeInput
+                    (ionInput)="onCodeInputChange()" placeholder="Escanea manualmente"></ion-input>
+                  <ion-button (click)="openScanner()" fill="clear" class="action-btn note-btn scanner-button">
+                    <ion-icon slot="icon-only" name="barcode-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+              <!-- Nombre del producto -->
+              <div class="custom-input-container">
+                <ion-label class="custom-label">Nombre del producto *</ion-label>
+                <div class="input-wrapper">
+                  <ion-input type="text" formControlName="name" class="custom-input"
+                    placeholder="Ej: Pechuga de pollo"></ion-input>
+                </div>
+              </div>
+
+              <!-- Marca -->
+              <div class="custom-input-container">
+                <ion-label class="custom-label">Marca</ion-label>
+                <div class="input-wrapper">
+                  <ion-input type="text" formControlName="brand" class="custom-input"
+                    placeholder="Ej: Carrefour"></ion-input>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Información nutricional -->
+        <ion-card class="nutrition-card">
+          <ion-card-header>
+            <ion-card-title class="nutrition-title">
+              Información nutricional
+              <ion-note>(por cada 100g)</ion-note>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <!-- Calorías destacadas -->
+            <div class="nutrition-item calories-section">
+              <div class="custom-input-container calories-input">
+                <ion-label class="custom-label calories-label">
+                  <ion-icon name="flame-outline"></ion-icon>
+                  Calorías *
+                </ion-label>
+                <div class="input-wrapper calories-wrapper">
+                  <ion-input type="number" inputmode="numeric" formControlName="energyKcal100g"
+                    class="custom-input calories-value" placeholder="0"></ion-input>
+                  <span class="input-unit primary-unit">kcal</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Macronutrientes -->
+            <div class="macros-section">
+              <div class="macros-header">
+                <ion-text class="macros-title">
+                  <ion-icon name="analytics-outline"></ion-icon>
+                  Macronutrientes
+                </ion-text>
+              </div>
+
+              <div class="macros-grid">
+                <!-- Grasas -->
+                <div class="macro-item fat-macro">
+                  <div class="custom-input-container fat-input">
+                    <ion-label class="custom-label fat-label">
+                      <div class="macro-dot fat-dot"></div>
+                      Grasas *
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="fat100g" class="custom-input"
+                        placeholder="0" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                  <!-- Grasas saturadas -->
+                  <div class="macro-item saturated-fat-macro">
+                    <div class="custom-input-container saturated-fat-input">
+                      <ion-label class="custom-label saturated-fat-label">
+                        Saturadas
+                      </ion-label>
+                      <div class="input-wrapper">
+                        <ion-input type="text" inputmode="decimal" formControlName="saturatedFat100g"
+                          class="custom-input" placeholder="0" appDecimalInput></ion-input>
+                        <span class="input-unit secondary-unit">g</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Carbohidratos -->
+                <div class="macro-item carbs-macro">
+                  <div class="custom-input-container carbs-input">
+                    <ion-label class="custom-label carbs-label">
+                      <div class="macro-dot carbs-dot"></div>
+                      Carbohidratos *
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="carbohydrates100g"
+                        class="custom-input" placeholder="0" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Azúcares -->
+                <div class="macro-item sugars-macro">
+                  <div class="custom-input-container sugars-input">
+                    <ion-label class="custom-label sugars-label">
+                      de los cuales azúcares
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="sugars100g" class="custom-input"
+                        placeholder="0" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fibra -->
+                <div class="macro-item fiber-macro">
+                  <div class="custom-input-container fiber-input">
+                    <ion-label class="custom-label fiber-label">
+                      <div class="macro-dot fiber-dot"></div>
+                      Fibra
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="fiber100g" class="custom-input"
+                        placeholder="0" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Proteínas -->
+                <div class="macro-item protein-macro">
+                  <div class="custom-input-container protein-input">
+                    <ion-label class="custom-label protein-label">
+                      <div class="macro-dot protein-dot"></div>
+                      Proteínas *
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="protein100g" class="custom-input"
+                        placeholder="0" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Información adicional -->
+        <ion-accordion-group>
+          <ion-accordion value="additional-info">
+            <ion-item slot="header" color="light">
+              <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+              <ion-label>Información completa</ion-label>
+            </ion-item>
+            <div class="ion-padding" slot="content">
+              <!-- Cantidades del producto -->
+              <div class="quantities-section">
+                <h4 class="section-subtitle">
+                  <ion-icon name="cube-outline"></ion-icon>
+                  Cantidades del Producto
+                </h4>
+                <div class="quantities-grid">
+                  <!-- Cantidad por porción -->
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">
+                      <ion-icon name="restaurant-outline"></ion-icon>
+                      Cantidad por ración
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="servingQuantity" class="custom-input"
+                        placeholder="Ej: 150" appDecimalInput></ion-input>
+                      <span class="input-unit">g</span>
+                    </div>
+                  </div>
+
+                  <!-- Cantidad total del producto -->
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">
+                      <ion-icon name="cube-outline"></ion-icon>
+                      Cantidad total del producto
+                    </ion-label>
+                    <div class="input-wrapper">
+                      <ion-input type="text" inputmode="decimal" formControlName="productQuantity" class="custom-input"
+                        placeholder="Ej: 500" appDecimalInput></ion-input>
+                      <span class="input-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Características Dietéticas (Movido arriba) -->
+              <div class="dietary-features-section">
+                <h4 class="section-subtitle">
+                  <ion-icon name="leaf-outline"></ion-icon>
+                  Características Dietéticas
+                </h4>
+                <div class="dietary-grid">
+                  <div class="dietary-option" [class.active]="productForm.get('vegan')?.value"
+                    (click)="productForm.get('vegan')?.setValue(!productForm.get('vegan')?.value)">
+                    <ion-icon
+                      [name]="productForm.get('vegan')?.value ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                    <ion-label>Vegano</ion-label>
+                  </div>
+                  <div class="dietary-option" [class.active]="productForm.get('vegetarian')?.value"
+                    (click)="productForm.get('vegetarian')?.setValue(!productForm.get('vegetarian')?.value)">
+                    <ion-icon
+                      [name]="productForm.get('vegetarian')?.value ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                    <ion-label>Vegetariano</ion-label>
+                  </div>
+                  <div class="dietary-option" [class.active]="productForm.get('lactoseFree')?.value"
+                    (click)="productForm.get('lactoseFree')?.setValue(!productForm.get('lactoseFree')?.value)">
+                    <ion-icon
+                      [name]="productForm.get('lactoseFree')?.value ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                    <ion-label>Sin Lactosa</ion-label>
+                  </div>
+                  <div class="dietary-option" [class.active]="productForm.get('glutenFree')?.value"
+                    (click)="productForm.get('glutenFree')?.setValue(!productForm.get('glutenFree')?.value)">
+                    <ion-icon
+                      [name]="productForm.get('glutenFree')?.value ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+                    <ion-label>Sin Gluten</ion-label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Minerales -->
+              <ion-list-header>
+                <ion-label>Minerales</ion-label>
+              </ion-list-header>
+              <div class="macros-grid">
+                <!-- Calcio -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Calcio</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="calcium100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Hierro -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Hierro</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="iron100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Magnesio -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Magnesio</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="magnesium100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Fósforo -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Fósforo</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="phosphorus100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Potasio -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Potasio</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="potassium100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Zinc -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Zinc</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="zinc100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Cobre -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Cobre</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="copper100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Manganeso -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Manganeso</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="manganese100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Selenio -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Selenio</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="selenium100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Yodo -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Yodo</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="iodine100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Sodio (mg) -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Sodio</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0" appDecimalInput
+                        formControlName="sodium100g"></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Sal (g) -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Sal</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0" appDecimalInput
+                        formControlName="salt100g"></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vitaminas -->
+              <ion-list-header>
+                <ion-label>Vitaminas</ion-label>
+              </ion-list-header>
+              <div class="macros-grid">
+                <!-- Vitamina A -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. A</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminA100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina D -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. D</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminD100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina E -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. E</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminE100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina K -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. K</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminK100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina C -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. C</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminC100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B1 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B1 (Tiamina)</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB1100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B2 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B2 (Riboflavina)</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB2100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B3 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B3 (Niacina)</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB3100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B5 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B5 (Ác. Pantoténico)</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB5100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B6 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B6</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB6100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B9 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B9 (Ác. Fólico)</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB9100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Vitamina B12 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Vit. B12</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="vitaminB12100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Biotina -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Biotina</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="biotin100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">µg</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Otros -->
+              <ion-list-header>
+                <ion-label>Otros y Ácidos Grasos</ion-label>
+              </ion-list-header>
+              <div class="macros-grid">
+                <!-- Colesterol -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Colesterol</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="cholesterol100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Grasas Trans -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Grasas Trans</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="transFat100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Omega 3 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Omega 3</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="omega3100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Omega 6 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Omega 6</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="omega6100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Omega 9 -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Omega 9</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="omega9100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Cafeína -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Cafeína</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="caffeine100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Taurina -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Taurina</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="taurine100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">mg</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Alcohol -->
+                <div class="macro-item">
+                  <div class="custom-input-container">
+                    <ion-label class="custom-label">Alcohol</ion-label>
+                    <div class="input-wrapper">
+                      <ion-input class="custom-input" type="text" inputmode="decimal" placeholder="0"
+                        formControlName="alcohol100g" appDecimalInput></ion-input>
+                      <span class="input-unit secondary-unit">g</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Secciones de Texto Mejoradas -->
+              <div class="text-info-grid ion-margin-top">
+                <div class="text-info-card">
+                  <div class="text-info-header">
+                    <ion-label>Ingredientes</ion-label>
+                  </div>
+                  <ion-textarea rows="3" class="custom-info-textarea" formControlName="ingredients"
+                    placeholder="Ej: Trigo, azúcar, sal..."></ion-textarea>
+                </div>
+
+                <div class="text-info-card">
+                  <div class="text-info-header">
+                    <ion-label>Alérgenos</ion-label>
+                  </div>
+                  <ion-textarea rows="2" class="custom-info-textarea" formControlName="allergens"
+                    placeholder="Ej: Gluten, leche, soja..."></ion-textarea>
+                </div>
+
+                <div class="text-info-card">
+                  <div class="text-info-header">
+                    <ion-label>Trazas</ion-label>
+                  </div>
+                  <ion-textarea rows="2" class="custom-info-textarea" formControlName="traces"
+                    placeholder="Ej: Frutos de cáscara..."></ion-textarea>
+                </div>
+              </div>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+
+        <ng-template #notLoading>
+          <ion-spinner name="dots" color="primary"></ion-spinner>
+        </ng-template>
+      </div>
+    </form>
+  </div>
+</ion-content>
+
+<ion-footer class="elegant-footer" [ngClass]="{'dark-theme': theme === 'dark'}">
+  <div class="footer-content">
+    <ion-button expand="block" size="large" [disabled]="productForm.invalid" (click)="createCustomProduct()"
+      class="create-button">
+      <div class="button-content">
+        <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
+      </div>
+    </ion-button>
+  </div>
+</ion-footer>

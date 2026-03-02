@@ -1,0 +1,150 @@
+<ion-card
+  class="professional-table-card"
+  [class.selected]="user?.tableInUse === tableCard._id"
+  [class.has-image]="tableCard.urlImage"
+  [style.background-image]="'url(' + tableCard.urlImage + ')'"
+  (click)="setSelectedTableCard()"
+>
+  <div
+    class="card-overlay"
+    [class.selected-overlay]="tableCard.urlImage && user?.tableInUse === tableCard._id"
+  >
+    <!-- Header Section -->
+    <div class="card-header-section">
+      <div class="header-top">
+        <div class="title-section">
+          <h2 class="card-title">{{ tableCard?.name }}</h2>
+          <div class="title-underline"></div>
+        </div>
+      </div>
+
+      <!-- Status and Actions Row -->
+      <div class="status-actions-row">
+        <div class="status-section">
+          <div *ngIf="loadAction && own" class="status-badge active-badge">
+            <ion-icon name="checkmark-circle" class="status-icon"></ion-icon>
+            <span>Rutina Activa</span>
+          </div>
+          <div *ngIf="loadAction && !own && ownFilter">
+            <button
+              class="select-routine-btn"
+              (click)="useTable(); $event.stopPropagation()"
+            >
+              <ion-icon
+                name="arrow-down-circle-outline"
+                class="select-icon"
+              ></ion-icon>
+              <span>Seleccionar Rutina</span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="loadAction; else noLoad" class="action-buttons">
+          <button
+            *ngIf="ownFilter"
+            class="action-btn menu-btn"
+            [id]="'menu-trigger-' + tableCard._id"
+            (click)="$event.stopPropagation()"
+          >
+            <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+          </button>
+          <button
+            *ngIf="!ownFilter"
+            class="select-routine-btn save-btn"
+            (click)="useTable(); $event.stopPropagation()"
+          >
+            <ion-icon name="cart-outline" class="select-icon"></ion-icon>
+            <span>Adquirir</span>
+          </button>
+        </div>
+
+        <ng-template #noLoad>
+          <div class="loading-section">
+            <ion-spinner color="primary" name="dots"></ion-spinner>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+    <!-- Content Section -->
+    <div *ngIf="tableCard; else load" class="card-content-section">
+      <!-- Stats Section -->
+      <div class="stats-container">
+        <div class="stat-item microcycles-stat">
+          <div class="stat-top-row">
+            <div class="stat-icon">
+              <ion-icon name="layers-outline"></ion-icon>
+            </div>
+            <span class="stat-number"
+              >{{ tableCard?.splits?.length || 0 }}</span
+            >
+          </div>
+          <span class="stat-label"><strong>Micro-ciclos</strong></span>
+        </div>
+
+        <div class="stat-divider"></div>
+
+        <div class="stat-item workouts-stat">
+          <div class="stat-top-row">
+            <div class="stat-icon">
+              <ion-icon name="barbell-outline"></ion-icon>
+            </div>
+            <span class="stat-number"
+              >{{ tableCard.splits[0]?.workouts.length || 0 }}</span
+            >
+          </div>
+          <span class="stat-label"><strong>Entrenamientos</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #load>
+      <ion-card-content style="display: flex; justify-content: center">
+        <ion-spinner name="dots" color="primary"></ion-spinner>
+      </ion-card-content>
+    </ng-template>
+  </div>
+
+  <!-- Popover para opciones de menú -->
+  <ion-popover
+    [trigger]="'menu-trigger-' + tableCard._id"
+    triggerAction="click"
+    mode="ios"
+  >
+    <ng-template>
+      <ion-list>
+        <ion-item [button]="true" [detail]="true" (click)="editTableName()">
+          <ion-icon
+            name="pencil-outline"
+            color="alternative"
+            slot="start"
+          ></ion-icon>
+          <ion-label class="ion-text-wrap"><strong>NOMBRE</strong></ion-label>
+        </ion-item>
+        <ion-item
+          [button]="true"
+          [detail]="true"
+          (click)="copyOwnTable(tableCard._id, $event)"
+        >
+          <ion-icon
+            name="duplicate-outline"
+            color="secondary"
+            slot="start"
+          ></ion-icon>
+          <ion-label class="ion-text-wrap"><strong>DUPLICAR</strong></ion-label>
+        </ion-item>
+        <ion-item
+          [button]="true"
+          [detail]="true"
+          (click)="deleteTable(tableCard._id, $event)"
+        >
+          <ion-icon
+            name="trash-bin-outline"
+            color="danger"
+            slot="start"
+          ></ion-icon>
+          <ion-label class="ion-text-wrap"><strong>ELIMINAR</strong></ion-label>
+        </ion-item>
+      </ion-list>
+    </ng-template>
+  </ion-popover>
+</ion-card>

@@ -1,0 +1,15 @@
+<div
+  class="rir-input-wrapper"
+  [ngClass]="{ completed: isDone }"
+  [@shimmerAnimation]="shimmerAnimationState"
+  [class.shimmer-run]="shimmerAnimationState === 'animate'"
+  (click)="onRirClick()"
+>
+  <span class="rir-label">RIR</span>
+  <span class="rir-value" *ngIf="rirControl.value !== -1">{{
+    displayValue
+  }}</span>
+  <span class="rir-value fail-label" *ngIf="rirControl.value === -1">{{
+    displayValue
+  }}</span>
+</div>

@@ -1,0 +1,171 @@
+<div
+  *ngIf="previousWorkoutCustomExercise?.sets.length > 0"
+  class="table-container"
+>
+  <div class="previous-session-title">
+    <span class="previous-title-text">Sesión anterior</span>
+    <span class="previous-date-text">
+      {{
+        previousWorkoutDate
+          ? (previousWorkoutDate | date : "dd/MM/yyyy")
+          : "No finalizada"
+      }}
+    </span>
+  </div>
+
+  <table class="table previous-session-table">
+    <thead>
+      <tr>
+        <th style="width: 60px; min-width: 60px">Serie</th>
+        <ng-container
+          *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders"
+        >
+          <th>Velocidad</th>
+          <th>Minutos</th>
+          <th>Segundos</th>
+        </ng-container>
+        <ng-template #nonCardioHeaders>
+          <th>Peso</th>
+          <th>Reps</th>
+          <th>Intensidad</th>
+        </ng-template>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="series-row previous-set"
+        [ngClass]="{
+          'drop-set-series': set.drop,
+          'rest-pause-series': set.restPause
+        }"
+        *ngFor="
+          let set of sortSets(previousWorkoutCustomExercise?.sets);
+          let i = index
+        "
+      >
+        <td class="series-number">{{ i + 1 }}</td>
+
+        <ng-container
+          *ngIf="this.customExercise.exercise.isCardio; else nonCardio"
+        >
+          <td>{{ set.velocity ? set.velocity : "—" }}</td>
+          <td>{{ set.timeMin ? set.timeMin + " Min" : "—" }}</td>
+          <td>{{ set.timeSec ? set.timeSec + " Seg" : "—" }}</td>
+        </ng-container>
+        <ng-template #nonCardio>
+          <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
+          <td>
+            {{
+              set.doned ? set.reps || "—" : formatExpectedReps(set.expectedReps)
+            }}
+          </td>
+          <td>
+            <span
+              *ngIf="isFail(set)"
+              class="fail-label"
+              >FALLO</span
+            >
+            <span
+              *ngIf="
+                !isFail(set) &&
+                ((set.doned && set.rir !== null && set.rir !== undefined) ||
+                  (!set.doned && hasValidExpectedRir(set.expectedRir)))
+              "
+              class="intensity-rir-after"
+            >
+              {{
+                set.doned
+                  ? set.rir + " RIR"
+                  : formatExpectedRir(set.expectedRir)
+              }}</span
+            ><span *ngIf="set.drop">&nbsp;</span
+            ><span *ngIf="set.drop" class="intensity-drop">DS</span
+            ><span *ngIf="set.restPause">&nbsp;</span
+            ><span *ngIf="set.restPause" class="intensity-rp"
+              >RP {{ set.restPause }} Seg</span
+            >
+            <span
+              *ngIf="
+                !isFail(set) &&
+                ((set.doned && (set.rir === null || set.rir === undefined)) ||
+                  (!set.doned && !hasValidExpectedRir(set.expectedRir))) &&
+                !set.drop &&
+                !set.restPause
+              "
+              >—</span
+            >
+          </td>
+        </ng-template>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Notas de sesión anterior debajo de la tabla -->
+  <app-notes
+    *ngIf="previousWorkoutCustomExercise?.notes"
+    [object]="previousWorkoutCustomExercise"
+    [notes]="previousWorkoutCustomExercise.notes"
+    [detail]="true"
+    [isPrevious]="true"
+    [canDelete]="false"
+    [canModify]="false"
+  ></app-notes>
+</div>
+
+<!-- Premium Current Sets Section -->
+<div class="premium-current-sets">
+  <!-- Current Sets Headers -->
+  <div class="current-sets-headers">
+    <div class="current-session-title">
+      <span class="current-title-text">Sesión actual</span>
+    </div>
+  </div>
+
+  <!-- Premium Exercise Notes -->
+  <div class="premium-exercise-notes" *ngIf="customExercise?.notes">
+    <app-notes
+      [object]="customExercise"
+      [notes]="customExercise.notes"
+      [detail]="true"
+    ></app-notes>
+  </div>
+
+  <!-- Current Sets -->
+  <app-set
+    *ngFor="let set of customExercise.sets; let i = index; trackBy: trackBySet"
+    [set]="set"
+    [index]="i"
+    [indexCustomExercise]="indexCustomExercise"
+    [currentWorkout]="currentWorkout"
+    (deleteSet)="deleteSet(set)"
+    (copySet)="copySet(set, i)"
+    (confSet)="configSet(set)"
+    [attr.id]="'set-' + indexCustomExercise + '-' + i"
+    class="current-set-container"
+  ></app-set>
+</div>
+
+<!-- Exercise Actions Header -->
+<div class="exercise-actions-header">
+  <div class="exercise-actions-content">
+    <div class="exercise-actions">
+      <ion-button
+        fill="clear"
+        class="action-btn note-btn"
+        (click)="manageNote()"
+      >
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        <span class="btn-text">NOTA</span>
+      </ion-button>
+
+      <ion-button
+        (click)="openSetManager()"
+        fill="clear"
+        class="action-btn set-btn"
+      >
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        <span class="btn-text">SERIE</span>
+      </ion-button>
+    </div>
+  </div>
+</div>

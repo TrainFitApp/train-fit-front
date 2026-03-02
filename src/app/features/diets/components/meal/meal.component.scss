@@ -1,0 +1,452 @@
+// Contenedor principal de la tarjeta de comida
+.meal-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin: 2px;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+
+  // Efecto de brillo sutil en el borde
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  // Barra de progreso dentro de la tarjeta
+  ion-progress-bar {
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+  }
+
+  // Accordion dentro de la tarjeta
+  ion-accordion {
+    background: transparent;
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+
+    // Header del accordion
+    ion-grid.t-meal {
+      border-bottom: none;
+      margin: 0;
+      padding: 10px;
+    }
+
+    // Contenido del accordion
+    ion-list {
+      background: transparent;
+      padding: 0 16px 16px 16px;
+      border: none;
+
+      // Elementos dentro de la lista
+      // Eliminamos los estilos antiguos de ion-grid y añadimos los nuevos estilos para meal-items
+
+      // Headers de secciones (Recetas, Productos)
+      .section-header {
+        margin: 16px 0 12px 0;
+        padding: 0 4px;
+
+        ion-label {
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
+        }
+      }
+
+      // Elementos del listado (recetas y productos)
+      .meal-item {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(37, 37, 37, 0.6);
+        border-radius: 8px;
+        margin: 8px 0;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-height: 60px;
+
+        // Contenido principal del elemento
+        .item-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        // Header con nombre y cantidad
+        .item-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 4px;
+
+          .item-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin: 0;
+
+            line-height: 1.2;
+          }
+
+          .item-quantity {
+            font-size: 12px;
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+          }
+        }
+
+        // Información nutricional
+        .nutrition-info {
+          display: flex;
+          gap: 20px;
+          align-items: center;
+          justify-content: space-between;
+          flex: 1;
+          padding-right: 12px;
+
+          .nutrition-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+
+            .nutrition-value {
+              font-size: 14px;
+              font-weight: 700;
+              line-height: 1;
+              text-align: center;
+            }
+
+            // Colores específicos para cada tipo de nutriente
+            &.calories {
+              .nutrition-value {
+                color: var(--ion-color-primary);
+              }
+            }
+
+            &.protein {
+              .nutrition-value {
+                color: var(--ion-color-alternative, #ff6b6b);
+              }
+            }
+
+            &.carbs {
+              .nutrition-value {
+                color: var(--ion-color-success);
+              }
+            }
+
+            &.fat {
+              .nutrition-value {
+                color: var(--ion-color-secondary);
+              }
+            }
+          }
+        }
+
+        // Acciones (botón eliminar)
+        .item-actions {
+          display: flex;
+          align-items: center;
+          margin-left: 8px;
+
+          .edit-button,
+          .delete-button {
+            --color: var(--ion-color-medium);
+            --background: transparent;
+            --border-radius: 50%;
+            --padding-start: 8px;
+            --padding-end: 8px;
+            --padding-top: 8px;
+            --padding-bottom: 8px;
+            min-height: 36px;
+            min-width: 36px;
+
+            ion-icon {
+              font-size: 18px;
+            }
+
+            // Efecto de presión para dispositivos táctiles
+            &:active {
+              transform: scale(0.95);
+            }
+          }
+
+          .delete-button:active {
+            --color: var(--ion-color-danger);
+            --background: rgba(var(--ion-color-danger-rgb), 0.15);
+          }
+
+          .edit-button:active {
+            --color: var(--ion-color-primary);
+            --background: rgba(var(--ion-color-primary-rgb), 0.15);
+          }
+        }
+
+        // Estilos específicos para productos
+        &.product-item {
+          border-left: 3px solid var(--ion-color-secondary);
+        }
+
+        // Estilos específicos para recetas
+        &.recipe-item {
+          border-left: 3px solid var(--ion-color-primary);
+        }
+      }
+    }
+  }
+
+  // Espaciado entre tarjetas
+  &+.meal-card {
+    margin-top: 20px;
+  }
+
+  // Primera tarjeta
+  &:first-child {
+    margin-top: 7px;
+  }
+}
+
+.start {
+  transform: rotate(0deg);
+  transition: 0.3s;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: 0.3s;
+}
+
+.meal-name {
+  margin-left: -6%;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+// Eliminar el borde inferior del ion-grid original que ya no es necesario
+ion-grid {
+  border-bottom: none;
+}
+
+// Mejorar los chips de macros
+ion-chip {
+  border-radius: 8px;
+  font-weight: 600;
+  pointer-events: none; // Elimina completamente la interacción
+}
+
+ion-spinner {
+  width: 3em;
+  height: 3em;
+}
+
+// Estilos elegantes para el botón de PEGAR DÍA
+.paste-day-button {
+  ion-icon {
+    font-size: 1.8rem;
+    transition: transform 0.3s ease;
+  }
+}
+
+// Estilos para el grid de macros
+.macros-grid {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  .macro-col {
+    flex: 1 1 25% !important;
+    max-width: 25% !important;
+    min-width: 25% !important;
+    padding: 2px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .macro-chip {
+      width: 100%;
+      max-width: 100%;
+      min-height: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.75rem !important;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// Estilos específicos para los chips de macronutrientes
+.protein-chip {
+  --color: var(--ion-color-alternative) !important;
+  color: var(--ion-color-alternative) !important;
+}
+
+@media (max-width: 576px) {
+  .macros-grid {
+    .macro-col {
+      .macro-chip {
+        font-size: 0.7rem !important;
+        min-height: 22px;
+      }
+    }
+  }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+  .macros-grid {
+    .macro-col {
+      .macro-chip {
+        font-size: 0.75rem !important;
+        min-height: 24px;
+      }
+    }
+  }
+}
+
+@media (min-width: 769px) {
+  .macros-grid {
+    .macro-col {
+      .macro-chip {
+        font-size: 0.8rem !important;
+        min-height: 26px;
+      }
+    }
+  }
+}
+
+// Tema oscuro
+@media (prefers-color-scheme: dark) {
+  .macros-grid {
+    .macro-col {
+      .macro-chip {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    }
+  }
+}
+
+// Estilos para skeleton loader del meal component
+.meal-skeleton-accordion {
+  background: #141414;
+  margin-bottom: 1px;
+}
+
+.skeleton-meal-header {
+  padding: 9px;
+  background: #141414;
+}
+
+.skeleton-meal-name {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-header-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.skeleton-action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+}
+
+.skeleton-nutrition-info {
+  margin-top: 8px;
+}
+
+.skeleton-nutrition-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+// Animación suave para los skeletons del meal
+ion-skeleton-text {
+  --background: rgba(255, 255, 255, 0.1);
+  --background-rgb: 255, 255, 255;
+
+  &[animated] {
+    animation: skeleton-loading 1.5s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+// Estilos existentes del meal component
+.meal-copied {
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin: 4px 0;
+  color: #ffffff;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  padding: 4px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: fadeInSuccess 0.3s ease-out;
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+@keyframes fadeInSuccess {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Unified selector for both MD & iOS to avoid duplication
+.sc-ion-buttons-md-s ion-button:not(.button-round),
+.sc-ion-buttons-ios-s ion-button:not(.button-round) {
+  --border-radius: 46px;
+}

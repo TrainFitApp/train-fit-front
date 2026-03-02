@@ -1,0 +1,278 @@
+/* Elegant Order Workouts Design - Dark Theme Only */
+
+// Header like filters
+.filter-header {
+  --background: rgba(20, 20, 20, 0.98);
+  --border-color: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.filter-toolbar {
+  --background: transparent;
+  --color: #ffffff;
+  --border-color: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  min-height: 60px;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 24px;
+    height: 100%;
+
+    ion-buttons {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .filter-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+    padding: 0; // Eliminar padding por defecto de Ionic
+    display: flex;
+    align-items: center;
+  }
+
+  
+
+  .close-action-button {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+// Modern Content
+.content-modern {
+  --background: #0a0a0b;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.container-elegant {
+  padding: 20px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+// Info Section
+// Header with button container
+.header-with-button {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.info-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #141414;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #252525;
+  flex: 1;
+
+  .info-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .info-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary);
+  }
+
+  .info-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+}
+
+// Botón externo que conserva los estilos originales del card
+.external-refresh-btn {
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  --border-radius: 14px;
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.1);
+  --background-activated: rgba(255, 255, 255, 0.15);
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.3rem;
+  }
+}
+
+// Elegant List
+.list-elegant {
+  background: transparent;
+  padding: 0;
+
+  .reorder-group-modern {
+    background: transparent;
+  }
+
+  .exercise-card {
+    --background: #141414;
+    --border-radius: 12px;
+    --padding-end: 0;
+    --inner-padding-start: 0;
+    --inner-padding-end: 0;
+    --inner-padding-top: 0;
+    --inner-padding-bottom: 0;
+    --min-height: auto;
+
+    margin-bottom: 12px;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    .exercise-card-content {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      gap: 16px;
+      width: 100%;
+
+      .exercise-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: rgba(var(--ion-color-primary-rgb), 0.2);
+        color: var(--ion-color-primary);
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .exercise-info {
+        flex: 1;
+
+        .exercise-name {
+          font-weight: 500;
+          font-size: 1rem;
+          color: white;
+          margin: 0;
+        }
+      }
+
+      .exercise-icons {
+        display: flex;
+        align-items: center;
+
+        .reorder-modern {
+          .reorder-icon {
+            font-size: 20px;
+            color: var(--ion-color-medium);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Action Section
+.action-section {
+  padding: 0 4px;
+
+  .save-button-elegant {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-shade);
+    --color: white;
+    --border-radius: 12px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    --box-shadow: none;
+
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    .info-section {
+      padding: 12px 16px;
+      margin-bottom: 16px;
+
+      .info-text {
+        font-size: 0.85rem;
+      }
+    }
+
+    .exercise-card {
+      margin-bottom: 10px;
+
+      .exercise-item {
+        padding: 14px 16px;
+        gap: 12px;
+
+        .exercise-number {
+          width: 28px;
+          height: 28px;
+          font-size: 0.8rem;
+        }
+
+        .exercise-info {
+          .exercise-name {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+
+    .action-section {
+      .save-button-elegant {
+        --padding-top: 14px;
+        --padding-bottom: 14px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
