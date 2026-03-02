@@ -360,46 +360,7 @@ export class WorkoutComponent {
     });
     modal.onDidDismiss().then((res) => {
       if (res.data?.setChangeInfo) {
-        // Se editó un ejercicio existente con cambios en sets
-        const changeInfo = res.data.setChangeInfo;
-
-        // Actualizar la tabla primero si viene incluida
-        if (changeInfo.tableInUse) {
-          this.tableInUse = changeInfo.tableInUse;
-          this.tableService.setCurrentTable = changeInfo.tableInUse;
-        }
-
-        if (changeInfo.exerciseChanged) {
-          // Se cambió el ejercicio - scroll con highlight updated (naranja)
-          this.setUpdatedEvent.emit({
-            workoutIndex: this.workoutIndex,
-            exerciseIndex: changeInfo.exerciseIndex,
-          });
-
-          this.utilService.requestScrollToExercise({
-            workoutIndex: this.workoutIndex,
-            exerciseIndex: changeInfo.exerciseIndex,
-            highlightClass: 'highlight-updated-set',
-          });
-        } else if (changeInfo.setsCreated > 0) {
-          // Se crearon sets - scroll al ejercicio
-          this.setAddedEvent.emit({
-            workoutIndex: this.workoutIndex,
-            exerciseIndex: changeInfo.exerciseIndex,
-          });
-        } else if (changeInfo.setsDeleted > 0) {
-          // Se eliminaron sets - scroll al ejercicio
-          this.setDeletedEvent.emit({
-            workoutIndex: this.workoutIndex,
-            exerciseIndex: changeInfo.exerciseIndex,
-          });
-        } else if (changeInfo.setsUpdated > 0) {
-          // Se actualizaron sets - scroll al ejercicio
-          this.setUpdatedEvent.emit({
-            workoutIndex: this.workoutIndex,
-            exerciseIndex: changeInfo.exerciseIndex,
-          });
-        }
+        this.handleSetChangeInfo(res.data.setChangeInfo);
       } else if (res.data) {
         // Se añadió un nuevo ejercicio
         this.getCurrentWorkout(res.data);
@@ -408,7 +369,23 @@ export class WorkoutComponent {
     return modal.present();
   }
 
-  public getCurrentWorkout(workouts: Workout[]) {
+  public getCurrentWorkout(workoutsPayload: Workout[] | any) {
+    const workouts = Array.isArray(workoutsPayload)
+      ? workoutsPayload
+      : Array.isArray(workoutsPayload?.workouts)
+      ? workoutsPayload.workouts
+      : [];
+
+    if (!workouts.length) {
+      if (workoutsPayload?.setChangeInfo) {
+        this.handleSetChangeInfo(workoutsPayload.setChangeInfo);
+      } else if (workoutsPayload?.tableInUse) {
+        this.tableInUse = workoutsPayload.tableInUse;
+        this.tableService.setCurrentTable = workoutsPayload.tableInUse;
+      }
+      return;
+    }
+
     this.tableInUse.splits.forEach((splitTemp) => {
       workouts.forEach((workout) => {
         splitTemp.workouts.forEach((workoutTemp) => {
@@ -449,6 +426,11 @@ export class WorkoutComponent {
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
+      if (res.data?.setChangeInfo) {
+        this.handleSetChangeInfo(res.data.setChangeInfo);
+        return;
+      }
+
       if (res.data) this.getCurrentWorkout(res.data);
     });
 
@@ -512,6 +494,45 @@ export class WorkoutComponent {
       );
 
     return actions;
+  }
+
+  private handleSetChangeInfo(changeInfo: any): void {
+    if (!changeInfo) return;
+
+    if (changeInfo.tableInUse) {
+      this.tableInUse = changeInfo.tableInUse;
+      this.tableService.setCurrentTable = changeInfo.tableInUse;
+    }
+
+    if (changeInfo.exerciseChanged) {
+      this.setUpdatedEvent.emit({
+        workoutIndex: this.workoutIndex,
+        exerciseIndex: changeInfo.exerciseIndex,
+      });
+
+      this.utilService.requestScrollToExercise({
+        workoutIndex: this.workoutIndex,
+        exerciseIndex: changeInfo.exerciseIndex,
+        highlightClass: 'highlight-updated-set',
+      });
+    } else if (changeInfo.setsCreated > 0) {
+      this.setAddedEvent.emit({
+        workoutIndex: this.workoutIndex,
+        exerciseIndex: changeInfo.exerciseIndex,
+      });
+    } else if (changeInfo.exerciseDeleted) {
+      return;
+    } else if (changeInfo.setsDeleted > 0) {
+      this.setDeletedEvent.emit({
+        workoutIndex: this.workoutIndex,
+        exerciseIndex: changeInfo.exerciseIndex,
+      });
+    } else if (changeInfo.setsUpdated > 0) {
+      this.setUpdatedEvent.emit({
+        workoutIndex: this.workoutIndex,
+        exerciseIndex: changeInfo.exerciseIndex,
+      });
+    }
   }
 
   private setWorkoutNote(): void {
