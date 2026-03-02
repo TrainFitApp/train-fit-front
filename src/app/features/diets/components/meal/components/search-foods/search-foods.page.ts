@@ -517,13 +517,18 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     const navStateTemp: any =
       this.navigationService.getTempData('searchFoodsResult') || {};
     this.navigationService.clearTempData('searchFoodsResult');
-    const result = { ...(navStateResult.result || {}), ...navStateTemp };
+    const result = {
+      ...(navStateResult || {}),
+      ...(navStateResult.result || {}),
+      ...navStateTemp,
+    };
 
     // Determine if we need to search
     let shouldSearch = false;
 
     if (result?.deleteOwnProduct) {
-      this.deleteProduct(result.deleteOwnProduct);
+      this.handleProductDeletedLocally(result.deleteOwnProduct);
+      shouldSearch = false;
     } else if (result?.refresh) {
       // Force refresh requested
       this.syncMealAndDietDayFromService();
@@ -869,6 +874,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   public deleteProduct(productId: string): void {
     this.productService.deleteProduct(productId).subscribe({
       next: () => {
+        this.handleProductDeletedLocally(productId);
         // Refrescar la lista de productos
         this.search();
       },
@@ -881,6 +887,137 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         });
       },
     });
+  }
+
+  private handleProductDeletedLocally(productId: string): void {
+    if (!productId) {
+      return;
+    }
+
+    this.products = (this.products || []).filter((p) => p?._id !== productId);
+
+    if (this.selectedIngredients?.length) {
+      this.selectedIngredients = this.selectedIngredients.filter(
+        (ing) => ing?.product?._id !== productId
+      );
+      this.calculateIngredientMacros();
+      this.navigationService.setTempData(
+        'selectedIngredients',
+        this.selectedIngredients
+      );
+      if (this.currentMode === 'products') {
+        this.setSelectedIngredientsFirst();
+      }
+    } else if (this.ingredientMode) {
+      this.navigationService.setTempData('selectedIngredients', []);
+    }
+
+    if (this.user?.archivedProducts?.includes(productId)) {
+      this.user.archivedProducts = this.user.archivedProducts.filter(
+        (id) => id !== productId
+      );
+      this.userService.setLocalUser = this.user;
+    }
+
+    const currentDietDay = this.dietDayService.currentDietDay;
+    if (!currentDietDay?.meals?.length) {
+      return;
+    }
+
+    let hasDietDayChanges = false;
+
+    currentDietDay.meals.forEach((mealTemp: Meal) => {
+      if (mealTemp?.customProducts?.length) {
+        const originalLen = mealTemp.customProducts.length;
+        mealTemp.customProducts = mealTemp.customProducts.filter(
+          (cp) => cp?.product?._id !== productId
+        );
+        if (mealTemp.customProducts.length !== originalLen) {
+          hasDietDayChanges = true;
+        }
+      }
+
+      if (mealTemp?.customRecipeInstances?.length) {
+        mealTemp.customRecipeInstances.forEach((instance: any) => {
+          if (!instance) return;
+
+          if (Array.isArray(instance.additionalCustomProducts)) {
+            const originalAdditional = instance.additionalCustomProducts.length;
+            instance.additionalCustomProducts =
+              instance.additionalCustomProducts.filter((addCp: any) => {
+                const addProductId =
+                  typeof addCp?.product === 'string'
+                    ? addCp.product
+                    : addCp?.product?._id;
+                return addProductId !== productId;
+              });
+            if (
+              instance.additionalCustomProducts.length !== originalAdditional
+            ) {
+              hasDietDayChanges = true;
+            }
+          }
+
+          const dataRecipe =
+            typeof instance.dataRecipe === 'object'
+              ? instance.dataRecipe
+              : null;
+          const recipe =
+            dataRecipe && typeof dataRecipe.recipe === 'object'
+              ? dataRecipe.recipe
+              : null;
+
+          if (recipe && Array.isArray(recipe.customProducts)) {
+            const removedCustomProductIds = new Set<string>();
+            const originalRecipeCpLen = recipe.customProducts.length;
+
+            recipe.customProducts = recipe.customProducts.filter((cp: any) => {
+              const cpProductId =
+                typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
+              const keep = cpProductId !== productId;
+              if (!keep && cp?._id) {
+                removedCustomProductIds.add(cp._id.toString());
+              }
+              return keep;
+            });
+
+            if (recipe.customProducts.length !== originalRecipeCpLen) {
+              hasDietDayChanges = true;
+            }
+
+            if (
+              removedCustomProductIds.size > 0 &&
+              Array.isArray(instance.customProductsOverrides)
+            ) {
+              const originalOverridesLen =
+                instance.customProductsOverrides.length;
+              instance.customProductsOverrides =
+                instance.customProductsOverrides.filter((override: any) => {
+                  const overrideId =
+                    typeof override?.customProductId === 'string'
+                      ? override.customProductId
+                      : override?.customProductId?._id;
+                  return !removedCustomProductIds.has(
+                    (overrideId || '').toString()
+                  );
+                });
+
+              if (
+                instance.customProductsOverrides.length !== originalOverridesLen
+              ) {
+                hasDietDayChanges = true;
+              }
+            }
+          }
+        });
+      }
+    });
+
+    if (hasDietDayChanges) {
+      this.dietDay = { ...currentDietDay };
+      this.dietDayService.setCurrentDietDay = this.dietDay;
+      this.syncMealAndDietDayFromService();
+    }
   }
 
   // Handler for ingredient mode - adds/removes product to local array without API calls

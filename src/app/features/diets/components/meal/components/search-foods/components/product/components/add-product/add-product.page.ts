@@ -915,10 +915,12 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                   this.userService.setLocalUser = this.user;
 
-                  // Eliminar el customProduct de TODAS las meals del dietDay localmente
+                  // Eliminar referencias locales en TODAS las meals/recetas del dietDay
                   if (this.dietDay && this.dietDay.meals) {
                     let shouldUpdateDietDay = false;
                     this.dietDay.meals.forEach((m) => {
+                      const mealTemp: any = m;
+
                       if (m.customProducts) {
                         const originalLength = m.customProducts.length;
                         m.customProducts = m.customProducts.filter(
@@ -931,6 +933,105 @@ export class AddProductPage implements OnInit, OnDestroy {
                             this.meal = m;
                           }
                         }
+                      }
+
+                      if (mealTemp.customRecipeInstances?.length) {
+                        mealTemp.customRecipeInstances.forEach(
+                          (instance: any) => {
+                            if (!instance) return;
+
+                            if (
+                              Array.isArray(instance.additionalCustomProducts)
+                            ) {
+                              const originalAdditionalLen =
+                                instance.additionalCustomProducts.length;
+                              instance.additionalCustomProducts =
+                                instance.additionalCustomProducts.filter(
+                                  (addCp: any) => {
+                                    const addProductId =
+                                      typeof addCp?.product === 'string'
+                                        ? addCp.product
+                                        : addCp?.product?._id;
+                                    return addProductId !== this.product._id;
+                                  }
+                                );
+                              if (
+                                instance.additionalCustomProducts.length !==
+                                originalAdditionalLen
+                              ) {
+                                shouldUpdateDietDay = true;
+                              }
+                            }
+
+                            const dataRecipe =
+                              typeof instance.dataRecipe === 'object'
+                                ? instance.dataRecipe
+                                : null;
+                            const recipe =
+                              dataRecipe &&
+                              typeof dataRecipe.recipe === 'object'
+                                ? dataRecipe.recipe
+                                : null;
+
+                            if (
+                              recipe &&
+                              Array.isArray(recipe.customProducts)
+                            ) {
+                              const removedCustomProductIds = new Set<string>();
+                              const originalRecipeCpLen =
+                                recipe.customProducts.length;
+
+                              recipe.customProducts =
+                                recipe.customProducts.filter((cp: any) => {
+                                  const cpProductId =
+                                    typeof cp?.product === 'string'
+                                      ? cp.product
+                                      : cp?.product?._id;
+                                  const keep = cpProductId !== this.product._id;
+                                  if (!keep && cp?._id) {
+                                    removedCustomProductIds.add(
+                                      cp._id.toString()
+                                    );
+                                  }
+                                  return keep;
+                                });
+
+                              if (
+                                recipe.customProducts.length !==
+                                originalRecipeCpLen
+                              ) {
+                                shouldUpdateDietDay = true;
+                              }
+
+                              if (
+                                removedCustomProductIds.size > 0 &&
+                                Array.isArray(instance.customProductsOverrides)
+                              ) {
+                                const originalOverridesLen =
+                                  instance.customProductsOverrides.length;
+                                instance.customProductsOverrides =
+                                  instance.customProductsOverrides.filter(
+                                    (override: any) => {
+                                      const overrideId =
+                                        typeof override?.customProductId ===
+                                        'string'
+                                          ? override.customProductId
+                                          : override?.customProductId?._id;
+                                      return !removedCustomProductIds.has(
+                                        (overrideId || '').toString()
+                                      );
+                                    }
+                                  );
+                                if (
+                                  instance.customProductsOverrides.length !==
+                                  originalOverridesLen
+                                ) {
+                                  shouldUpdateDietDay = true;
+                                }
+                              }
+                            }
+                          }
+                        );
                       }
                     });
 
