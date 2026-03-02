@@ -727,6 +727,11 @@ export class ProfilePage implements OnInit {
   private initChartMacros() {
     this.chartMacros?.destroy();
 
+    const hasMacrosCanvas = !!document.getElementById('macros');
+    if (!hasMacrosCanvas) {
+      return;
+    }
+
     const data: ChartData = {
       labels: ['P', 'CBH', 'G'],
       datasets: [
