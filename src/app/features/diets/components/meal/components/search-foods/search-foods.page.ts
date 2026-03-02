@@ -633,9 +633,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.products.length
       );
 
-      // If there are no products (empty state), we need to search anyway
-      if (!this.products || this.products.length === 0) {
-        console.log('[DEBUG] No products found, executing search anyway');
+      const activeListIsEmpty =
+        this.currentMode === 'recipes'
+          ? !this.recipes || this.recipes.length === 0
+          : !this.products || this.products.length === 0;
+
+      // If active segment list is empty, execute search
+      if (activeListIsEmpty) {
+        console.log(
+          '[DEBUG] Active segment list is empty, executing search anyway',
+          this.currentMode
+        );
         shouldSearch = true;
       } else {
         // Ensure load is true to hide skeletons
