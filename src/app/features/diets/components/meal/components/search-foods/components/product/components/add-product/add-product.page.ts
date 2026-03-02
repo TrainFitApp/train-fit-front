@@ -516,27 +516,25 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.productService
       .addFavoriteProduct(this.product._id, this.userService.getLocalUser._id)
       .subscribe((res) => {
-        const isAdded = !!res; // If res is User, it was added; if it's Product, it might be the deleted state (depending on API)
-        // Simplified: The backend returns the updated user if added, or the product if removed (or viceversa)
-        // We check if it's in our local list to toggle
-        const archivedIndex = this.user.archivedProducts.indexOf(
-          this.product._id
-        );
+        const isFavorite = !!res?.isFavorite;
+        const archivedProducts = this.user.archivedProducts || [];
+        const archivedIndex = archivedProducts.indexOf(this.product._id);
 
-        if (archivedIndex === -1) {
-          this.user.archivedProducts.push(this.product._id);
+        if (isFavorite && archivedIndex === -1) {
+          archivedProducts.push(this.product._id);
           this.ionicUtilService.showToast({
             message: this.product.name + ' archivado',
             duration: 1000,
           });
-        } else {
-          this.user.archivedProducts.splice(archivedIndex, 1);
+        } else if (!isFavorite && archivedIndex > -1) {
+          archivedProducts.splice(archivedIndex, 1);
           this.ionicUtilService.showToast({
             message: this.product.name + ' desarchivado',
             duration: 1000,
           });
         }
 
+        this.user.archivedProducts = archivedProducts;
         this.userService.setLocalUser = this.user;
         this.addingFavProduct = false;
         this.checkIfArchived();

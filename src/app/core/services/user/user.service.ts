@@ -144,7 +144,7 @@ export class UserService {
   public addFavoriteProduct(
     idUser: string,
     idProduct: string
-  ): Observable<User> {
+  ): Observable<{ isFavorite: boolean; message?: string }> {
     return this.userAPIService.addFavoriteProduct(idUser, idProduct);
   }
 

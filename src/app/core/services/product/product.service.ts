@@ -51,7 +51,7 @@ export class ProductService {
   public addFavoriteProduct(
     idProduct: string,
     idUser: string
-  ): Observable<User | IProduct> {
+  ): Observable<{ isFavorite: boolean; message?: string }> {
     return this.productAPIService.addFavoriteProduct(idProduct, idUser);
   }
 

@@ -91,11 +91,14 @@ export class UserAPIService {
   public addFavoriteProduct(
     idUser: string,
     idProduct: string
-  ): Observable<User> {
-    return this.http.put<User>(`${UserAPIService.USERS_ENDPOINT}/favProduct`, {
-      idUser,
-      idProduct,
-    });
+  ): Observable<{ isFavorite: boolean; message?: string }> {
+    return this.http.put<{ isFavorite: boolean; message?: string }>(
+      `${UserAPIService.USERS_ENDPOINT}/favProduct`,
+      {
+        idUser,
+        idProduct,
+      }
+    );
   }
 
   public restorePassword(email: string, password: string): Observable<string> {

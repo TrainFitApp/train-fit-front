@@ -35,7 +35,7 @@ export class ExerciseService {
   public addExerciseToFavorites(
     idExercise: string,
     idUser: string
-  ): Observable<any> {
+  ): Observable<{ isFavorite: boolean; message?: string }> {
     return this.exerciseAPIService.addExerciseToFavorites(idExercise, idUser);
   }
 

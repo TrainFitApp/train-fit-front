@@ -99,6 +99,7 @@ export class ProfilePage implements OnInit {
   public currWeekDateRange: DateRange;
   public prevDietDayWeights: number[];
   public currDietDayWeights: number[];
+  private lastDietWeightsFetchKey?: string;
 
   public kcalChartConfig: any;
   public proteinChartConfig: any;
@@ -686,6 +687,24 @@ export class ProfilePage implements OnInit {
 
   private setDietDaysWeights(): void {
     if (this.user?.dietInUse) {
+      if (!this.prevWeekDateRange || !this.currWeekDateRange) {
+        return;
+      }
+
+      const currentFetchKey = [
+        this.user.dietInUse,
+        this.prevWeekDateRange?.minDate,
+        this.prevWeekDateRange?.maxDate,
+        this.currWeekDateRange?.minDate,
+        this.currWeekDateRange?.maxDate,
+      ].join('|');
+
+      if (this.lastDietWeightsFetchKey === currentFetchKey) {
+        return;
+      }
+
+      this.lastDietWeightsFetchKey = currentFetchKey;
+
       const obs: Observable<number[]>[] = [
         this.dietDayService.getDietDaysWeightsBetweenDatesByIdDiet(
           this.user.dietInUse,

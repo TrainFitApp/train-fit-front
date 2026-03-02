@@ -870,37 +870,34 @@ export class ConfigExercisePage implements OnInit {
       ? this.exercise._id
       : this.customExercise.exercise._id;
 
-    this.isFavoritingExercise = true;
-
-    // Update local user array first
-    const index = this.user.archivedExercises.indexOf(idExercise);
-    if (index > -1) {
-      // Remove from favorites
-      this.user.archivedExercises.splice(index, 1);
-      this.isExerciseFavorited = false;
-    } else {
-      // Add to favorites
-      this.user.archivedExercises.push(idExercise);
-      this.isExerciseFavorited = true;
+    if (!this.user.archivedExercises) {
+      this.user.archivedExercises = [];
     }
+
+    this.isFavoritingExercise = true;
 
     // Call API to persist changes
     this.exerciseService
       .addExerciseToFavorites(idExercise, this.user._id)
       .subscribe({
-        next: () => {
+        next: (response: { isFavorite: boolean; message?: string }) => {
+          const isFavorite = !!response?.isFavorite;
+          const favoriteSet = new globalThis.Set<string>(
+            this.user.archivedExercises
+          );
+
+          if (isFavorite) {
+            favoriteSet.add(idExercise);
+          } else {
+            favoriteSet.delete(idExercise);
+          }
+
+          this.user.archivedExercises = Array.from(favoriteSet);
+          this.isExerciseFavorited = isFavorite;
           this.isFavoritingExercise = false;
         },
         error: (err) => {
           console.error('Error adding exercise to favorites:', err);
-          // Revert local changes on error
-          const errorIndex = this.user.archivedExercises.indexOf(idExercise);
-          if (errorIndex > -1) {
-            this.user.archivedExercises.splice(errorIndex, 1);
-          } else {
-            this.user.archivedExercises.push(idExercise);
-          }
-          this.isExerciseFavorited = !this.isExerciseFavorited;
           this.isFavoritingExercise = false;
         },
       });

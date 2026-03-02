@@ -36,12 +36,15 @@ export class ExerciseAPIService {
   public addExerciseToFavorites(
     idExercise: string,
     idUser: string
-  ): Observable<any> {
+  ): Observable<{ isFavorite: boolean; message?: string }> {
     return this.http
-      .put<any>(`${ExerciseAPIService.EXERCISE_ENDPOINT}/favorite`, {
-        idExercise,
-        idUser,
-      })
+      .put<{ isFavorite: boolean; message?: string }>(
+        `${ExerciseAPIService.EXERCISE_ENDPOINT}/favorite`,
+        {
+          idExercise,
+          idUser,
+        }
+      )
       .pipe(take(1));
   }
 

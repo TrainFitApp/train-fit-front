@@ -62,8 +62,8 @@ export class ProductAPIService {
   public addFavoriteProduct(
     idProduct: string,
     idUser: string
-  ): Observable<User | IProduct> {
-    return this.http.put<IProduct>(
+  ): Observable<{ isFavorite: boolean; message?: string }> {
+    return this.http.put<{ isFavorite: boolean; message?: string }>(
       `${ProductAPIService.PRODUCTS_ENDPOINT}/favProduct`,
       { idProduct, idUser }
     );
