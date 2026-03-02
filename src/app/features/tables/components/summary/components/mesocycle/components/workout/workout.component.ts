@@ -868,10 +868,12 @@ export class WorkoutComponent {
   }
 
   public isFail(set: any): boolean {
+    if (set?.doned) {
+      return !!(set.fail || set.rir === -1);
+    }
+
     return !!(
-      set.fail ||
       set.expectedFail ||
-      set.rir === -1 ||
       (set.expectedRir &&
         (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))
     );

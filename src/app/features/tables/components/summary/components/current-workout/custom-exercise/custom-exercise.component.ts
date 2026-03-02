@@ -236,7 +236,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public getRirDisplay(set: Set): string {
-    if (set.rir === -1) {
+    if (set.fail || set.rir === -1) {
       return 'FALLO';
     } else if (set.rir !== undefined && set.rir !== null) {
       return set.rir + '';
@@ -309,9 +309,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   public isFail(set: any): boolean {
     return !!(
-      set.fail ||
       set.expectedFail ||
-      set.rir === -1 ||
       (set.expectedRir &&
         (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))
     );

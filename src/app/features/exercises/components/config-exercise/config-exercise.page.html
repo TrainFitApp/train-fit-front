@@ -200,11 +200,17 @@
                     <span class="set-value"
                       >{{ set.expectedReps | expected:'REP' }}
                     </span>
-                    <span class="set-value" *ngIf="!(set.fail || set.expectedFail || set.rir === -1 || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)))"
+                    <span
+                      class="set-value"
+                      *ngIf="!(set.expectedFail || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)))"
                       >{{ set.expectedRir | expected:'RIR' }}
                     </span>
 
-                    <span *ngIf="set.fail || set.expectedFail || set.rir === -1 || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))" class="fail-label">FALLO</span>
+                    <span
+                      *ngIf="set.expectedFail || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))"
+                      class="fail-label"
+                      >FALLO</span
+                    >
                   </ng-template>
                 </div>
 

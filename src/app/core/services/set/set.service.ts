@@ -17,10 +17,6 @@ export class SetService {
   }
 
   public updateSet(set: Set): Observable<Set> {
-    if (set.rir === -1) {
-      set.rir = -1;
-    }
-
     return this.setAPIService.updateSet(set);
   }
 
