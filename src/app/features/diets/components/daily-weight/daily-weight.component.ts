@@ -46,6 +46,7 @@ export class DailyWeightComponent implements OnInit {
   public showChart: boolean = false;
 
   public isLoad = true;
+  private loadedWeekKey: string | null = null;
 
   constructor(
     private dietDayService: DietDayService,
@@ -59,8 +60,28 @@ export class DailyWeightComponent implements OnInit {
     this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
       this.dietDay = resDietDay;
       this.initForm();
-      this.getDietDaysWeightsOnWeek();
+      this.refreshWeekDataIfNeeded();
     });
+  }
+
+  private refreshWeekDataIfNeeded(): void {
+    if (!this.selectedDate || !this.user?.dietInUse) {
+      return;
+    }
+
+    const firstWeekDay = this.utilService.getFirstWeekDay(
+      this.selectedDate,
+      WEEK_DAYS.monday
+    );
+    firstWeekDay.setHours(0, 0, 0, 0);
+    const weekKey = firstWeekDay.toISOString();
+
+    if (this.loadedWeekKey === weekKey) {
+      return;
+    }
+
+    this.loadedWeekKey = weekKey;
+    this.getDietDaysWeightsOnWeek();
   }
 
   public saveWeight(): void {

@@ -564,7 +564,9 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     const result = params?.deleteOwnProduct
       ? { deleteOwnProduct: params.deleteOwnProduct }
-      : params?.refresh || params?.closeAll
+      : params?.closeAll
+      ? { createdViaAddProduct: true }
+      : params?.refresh
       ? { refresh: true }
       : undefined;
 

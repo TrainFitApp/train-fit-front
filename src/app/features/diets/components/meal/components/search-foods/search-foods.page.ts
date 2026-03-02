@@ -1,4 +1,11 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
@@ -54,7 +61,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   public searchFilterGroup: SearchFilterGroup;
 
-  public products: IProduct[];
+  private readonly _products: WritableSignal<IProduct[]> = signal<IProduct[]>(
+    []
+  );
   public recipes: Recipe[] = [];
   public idUser: string;
 
@@ -114,9 +123,56 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return [...inMeal, ...notInMeal];
   }
 
+  public get products(): IProduct[] {
+    return this._products();
+  }
+
+  public set products(value: IProduct[] | null | undefined) {
+    this._products.set(value ?? []);
+  }
+
   public ingredientMode: boolean = false;
-  public selectedIngredients: CustomProduct[] = [];
-  public ingredientMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+  private readonly _selectedIngredients: WritableSignal<CustomProduct[]> =
+    signal<CustomProduct[]>([]);
+  private readonly _ingredientMacros: WritableSignal<{
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }> = signal({ kcal: 0, protein: 0, carbs: 0, fat: 0 });
+
+  public get selectedIngredients(): CustomProduct[] {
+    return this._selectedIngredients();
+  }
+
+  public set selectedIngredients(value: CustomProduct[] | null | undefined) {
+    this._selectedIngredients.set(value ?? []);
+  }
+
+  public get ingredientMacros(): {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
+    return this._ingredientMacros();
+  }
+
+  public set ingredientMacros(
+    value:
+      | {
+          kcal: number;
+          protein: number;
+          carbs: number;
+          fat: number;
+        }
+      | null
+      | undefined
+  ) {
+    this._ingredientMacros.set(
+      value ?? { kcal: 0, protein: 0, carbs: 0, fat: 0 }
+    );
+  }
 
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
@@ -480,7 +536,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           '[DEBUG] Adding NEW ingredient:',
           newIngredient.product?.name
         );
-        this.selectedIngredients.push(newIngredient);
+        this.selectedIngredients = [...this.selectedIngredients, newIngredient];
         this.calculateIngredientMacros();
         console.log(
           '[DEBUG] Added new ingredient, total:',
@@ -528,6 +584,26 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     if (result?.deleteOwnProduct) {
       this.handleProductDeletedLocally(result.deleteOwnProduct);
+      shouldSearch = false;
+    } else if (result?.createdViaAddProduct) {
+      this.syncMealAndDietDayFromService();
+      if (this.currentMode === 'products' && this.products.length > 0) {
+        if (this.ingredientMode) {
+          this.setSelectedIngredientsFirst();
+        } else if (this.meal) {
+          this.setCustomProductsFirst();
+        }
+      }
+      shouldSearch = false;
+    } else if (result?.createdViaCreateProduct) {
+      this.syncMealAndDietDayFromService();
+      if (this.currentMode === 'products' && this.products.length > 0) {
+        if (this.ingredientMode) {
+          this.setSelectedIngredientsFirst();
+        } else if (this.meal) {
+          this.setCustomProductsFirst();
+        }
+      }
       shouldSearch = false;
     } else if (result?.refresh) {
       // Force refresh requested
@@ -1052,7 +1128,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           carbohydrates100g: product.carbohydrates100g,
           fat100g: product.fat100g,
         };
-        this.selectedIngredients.push(newIngredient);
+        this.selectedIngredients = [...this.selectedIngredients, newIngredient];
         console.log(
           '[DEBUG] Added ingredient, new count:',
           this.selectedIngredients.length
@@ -1066,7 +1142,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         (ing) => ing.product?._id === product._id
       );
       if (index > -1) {
-        this.selectedIngredients.splice(index, 1);
+        this.selectedIngredients = this.selectedIngredients.filter(
+          (ing) => ing.product?._id !== product._id
+        );
         console.log(
           '[DEBUG] Removed ingredient, new count:',
           this.selectedIngredients.length
@@ -1086,7 +1164,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   // Calculate macros for selected ingredients
   private calculateIngredientMacros(): void {
-    this.ingredientMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    const nextMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
     for (const ing of this.selectedIngredients) {
       const qty = ing.quantity || 0;
@@ -1099,11 +1177,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       const carbs = ing.carbohydrates100g ?? product.carbohydrates100g ?? 0;
       const fat = ing.fat100g ?? product.fat100g ?? 0;
 
-      this.ingredientMacros.kcal += kcal * factor;
-      this.ingredientMacros.protein += protein * factor;
-      this.ingredientMacros.carbs += carbs * factor;
-      this.ingredientMacros.fat += fat * factor;
+      nextMacros.kcal += kcal * factor;
+      nextMacros.protein += protein * factor;
+      nextMacros.carbs += carbs * factor;
+      nextMacros.fat += fat * factor;
     }
+
+    this.ingredientMacros = nextMacros;
   }
 
   // Check if a product is already selected as ingredient

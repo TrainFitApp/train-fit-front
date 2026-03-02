@@ -1,24 +1,23 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, take, tap, switchMap, of } from 'rxjs';
+import { Injectable, signal, WritableSignal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable, take, tap, of } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DataRecipe } from 'src/app/core/models/dataRecipe';
 import { User } from 'src/app/core/models/user';
-import { UserService } from 'src/app/core/services/user/user.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { DietDay } from '../../models/dietDay';
 import { MEAL_TYPES, Meal } from '../../models/meal';
 import { CustomProductService } from '../custom-product/custom-product.service';
-import { DataRecipeService } from '../data-recipe/data-recipe.service';
-import { ProductService } from '../product/product.service';
 import { DietDayAPIService } from './diet-day-api.service';
 
 @Injectable()
 export class DietDayService {
-  // TODO: Sustituir por BehaviourSubject
   public dietDayClipboard: DietDay;
-  private _currentDietDay$ = new BehaviorSubject<DietDay>(null);
+  private readonly _currentDietDay: WritableSignal<DietDay | null> =
+    signal<DietDay | null>(null);
+  private readonly _currentDietDay$ = toObservable(this._currentDietDay);
   public MEALS = MEAL_TYPES;
   public MACROS_VALUES = MACROS_VALUES;
 
@@ -31,23 +30,20 @@ export class DietDayService {
   }
 
   public get currentDietDay() {
-    return this._currentDietDay$.value;
+    return this._currentDietDay();
   }
 
   public get getCurrentDietDay() {
-    return this._currentDietDay$.asObservable();
+    return this._currentDietDay$;
   }
 
   public set setCurrentDietDay(dietDay: DietDay) {
-    this._currentDietDay$.next(dietDay);
+    this._currentDietDay.set(dietDay);
   }
 
   constructor(
     private dietDayAPIService: DietDayAPIService,
-    private productService: ProductService,
-    private userService: UserService,
     private customProductService: CustomProductService,
-    private dataRecipeService: DataRecipeService,
     private utilService: UtilService
   ) {}
 
@@ -99,7 +95,9 @@ export class DietDayService {
   ): Observable<CustomProduct | DietDay> {
     loading.value = true;
 
-    if (!dietDay._id) this.utilService.setLoading = true;
+    if (!dietDay._id) {
+      this.utilService.setLoading = true;
+    }
 
     return this.createCustomProductOnDietDayMeal(
       customProduct,
@@ -109,32 +107,56 @@ export class DietDayService {
       idUser
     ).pipe(
       take(1),
-      tap((resCustomProductOrDietDay) => {
-        const mealIndex = dietDay.meals.findIndex(
-          (mealTemp) => mealTemp.name == meal.name
-        );
-        // Devuelve customProduct
-        if ('product' in resCustomProductOrDietDay) {
-          dietDay.meals[mealIndex].customProducts.push(
-            resCustomProductOrDietDay as CustomProduct
-          );
-          this.setCurrentDietDay = dietDay;
-        }
-        // Devuelve una dietDay
-        else {
-          this.setCurrentDietDay = resCustomProductOrDietDay as DietDay;
-          this.utilService.setLoading = false;
-        }
-
-        // Refresca el usuario local
-        this.userService
-          .getUserByEmail(this.userService.getLocalUser.email)
-          .pipe(take(1))
-          .subscribe((resUser) => (this.userService.setLocalUser = resUser));
-
+      tap((response) => {
+        this.applyCustomProductResponseToLocalState(response, dietDay, meal);
         loading.value = false;
       })
     );
+  }
+
+  private applyCustomProductResponseToLocalState(
+    response: CustomProduct | DietDay,
+    dietDay: DietDay,
+    meal: Meal
+  ): void {
+    if (this.isCustomProductResponse(response)) {
+      const updatedDietDay = this.addCreatedCustomProductToMeal(
+        dietDay,
+        meal,
+        response
+      );
+      this.setCurrentDietDay = updatedDietDay;
+      return;
+    }
+
+    this.setCurrentDietDay = response;
+    this.utilService.setLoading = false;
+  }
+
+  private isCustomProductResponse(
+    response: CustomProduct | DietDay
+  ): response is CustomProduct {
+    return !!response && 'product' in response;
+  }
+
+  private addCreatedCustomProductToMeal(
+    dietDay: DietDay,
+    meal: Meal,
+    customProduct: CustomProduct
+  ): DietDay {
+    const mealIndex = dietDay.meals.findIndex(
+      (mealTemp) => mealTemp.name === meal.name
+    );
+
+    if (mealIndex === -1) {
+      return dietDay;
+    }
+
+    const targetMeal = dietDay.meals[mealIndex];
+    targetMeal.customProducts = targetMeal.customProducts || [];
+    targetMeal.customProducts.push(customProduct);
+
+    return { ...dietDay };
   }
 
   public updateCustomProduct(

@@ -292,7 +292,7 @@ export class CreateProductPage implements OnInit {
         )
         .subscribe(() => {
           this.navigationService.setTempData('searchFoodsResult', {
-            refresh: true,
+            createdViaCreateProduct: true,
           });
 
           if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
