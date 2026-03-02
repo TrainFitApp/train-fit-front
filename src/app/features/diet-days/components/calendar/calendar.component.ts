@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  Input,
   OnInit,
   Output,
   ViewChild,
@@ -22,6 +23,9 @@ import { DateRange } from '../../../../shared/models/dateRange';
   styleUrls: ['./calendar.component.scss'],
 })
 export class CalendarComponent implements OnInit, AfterViewInit {
+  @Input()
+  public fetchOnInit: boolean = true;
+
   @Output()
   public selectDate = new EventEmitter();
   @Output()
@@ -58,7 +62,9 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   }
 
   public ngOnInit(): void {
-    this.fetchDietDaysForMonth(); // Traer los DietDays para el mes actual
+    if (this.fetchOnInit) {
+      this.fetchDietDaysForMonth(); // Traer los DietDays para el mes actual
+    }
   }
 
   public ngAfterViewInit(): void {

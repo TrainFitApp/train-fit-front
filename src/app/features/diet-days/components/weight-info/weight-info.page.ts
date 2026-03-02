@@ -94,6 +94,10 @@ export class WeightInfoPage {
   public chartRangeChange(event: any): void {
     const range = event.detail.value;
     if (range) {
+      if (range === this.chartRange) {
+        return;
+      }
+
       this.chartRange = range;
       this.getChartConfigurationByRange();
       this.getDietDays();
