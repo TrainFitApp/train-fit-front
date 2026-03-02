@@ -2,7 +2,9 @@
   class="professional-table-card"
   [class.selected]="user?.tableInUse === tableCard._id"
   [class.has-image]="tableCard.urlImage"
-  [style.background-image]="'url(' + tableCard.urlImage + ')'"
+  [style.background-image]="
+    tableCard.urlImage ? 'url(' + tableCard.urlImage + ')' : 'none'
+  "
   (click)="setSelectedTableCard()"
 >
   <div

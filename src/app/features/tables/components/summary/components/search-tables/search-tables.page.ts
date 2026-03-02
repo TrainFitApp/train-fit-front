@@ -81,9 +81,28 @@ export class SearchTablesPage implements OnInit {
       });
   }
 
-  public copyOwnTable(idTable: string): void {
-    this.user.ownTables.push(idTable);
-    this.userService.updateUser(this.user).subscribe(() => this.searchTables());
+  public copyOwnTable(copiedTable: Table): void {
+    if (!copiedTable?._id) {
+      return;
+    }
+
+    if (!this.user.ownTables) {
+      this.user.ownTables = [];
+    }
+
+    if (!this.user.ownTables.includes(copiedTable._id)) {
+      this.user.ownTables.push(copiedTable._id);
+    }
+
+    this.userService.setLocalUser = this.user;
+
+    const existsInList = this.tableList?.some(
+      (table) => table._id === copiedTable._id
+    );
+
+    if (!existsInList && this.searchFilterGroup.ownFilter) {
+      this.tableList = [copiedTable, ...(this.tableList || [])];
+    }
   }
 
   public deleteTable(idTable: string): void {

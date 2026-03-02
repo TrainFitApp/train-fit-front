@@ -35,7 +35,7 @@ export class TableCardPage {
   public ownFilter: boolean;
 
   @Output()
-  public copyOwnTableEv = new EventEmitter<string>();
+  public copyOwnTableEv = new EventEmitter<Table>();
   @Output()
   public deletedTable = new EventEmitter<string>();
 
@@ -279,7 +279,7 @@ export class TableCardPage {
             this.tableService
               .copyOwnTable(this.user._id, idTable)
               .subscribe((resTable) => {
-                this.copyOwnTableEv.emit(resTable._id);
+                this.copyOwnTableEv.emit(resTable);
                 const toastOptions: ToastOptions = {
                   message: this.tableCard.name + ' copiada',
                   duration: 1000,
