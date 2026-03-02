@@ -788,6 +788,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     this.currentMode = mode;
+    this.searchFilterGroup.ownFilter = false;
+    this.searchFilterGroup.favFilter = false;
+    this.searchFilterGroup.shieldFilter = false;
     this.searchFilterGroup.page = 0;
     this.products = [];
     this.recipes = [];
