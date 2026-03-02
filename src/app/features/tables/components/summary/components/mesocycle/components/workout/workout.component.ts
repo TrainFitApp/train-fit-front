@@ -352,6 +352,7 @@ export class WorkoutComponent {
       component: ConfigExercisePage,
       componentProps: {
         user: this.user,
+        tableInUse: this.tableInUse,
         workout: this.workout,
         workoutIndex: this.workoutIndex,
         splitIndex: this.splitIndex,

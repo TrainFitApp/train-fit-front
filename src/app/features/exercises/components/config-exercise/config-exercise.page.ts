@@ -949,16 +949,23 @@ export class ConfigExercisePage implements OnInit {
                       );
                   }
 
-                  if (this.tableInUse && this.tableInUse.splits) {
+                  const tableInUseRef =
+                    this.tableInUse || this.tableService.tableInUse;
+
+                  if (tableInUseRef?.splits) {
                     let shouldUpdateTable = false;
-                    this.tableInUse.splits.forEach((s) => {
+                    tableInUseRef.splits.forEach((s) => {
                       s.workouts.forEach((w: any) => {
                         if (w.exercises) {
                           const originalLength = w.exercises.length;
-                          w.exercises = w.exercises.filter(
-                            (ce: any) =>
-                              ce.exercise?._id !== currentExerciseObj._id
-                          );
+                          w.exercises = w.exercises.filter((ce: any) => {
+                            const exerciseId =
+                              typeof ce?.exercise === 'string'
+                                ? ce.exercise
+                                : ce?.exercise?._id;
+
+                            return exerciseId !== currentExerciseObj._id;
+                          });
                           if (w.exercises.length !== originalLength) {
                             shouldUpdateTable = true;
                           }
@@ -967,7 +974,8 @@ export class ConfigExercisePage implements OnInit {
                     });
 
                     if (shouldUpdateTable) {
-                      this.tableService.setCurrentTable = this.tableInUse;
+                      this.tableInUse = tableInUseRef;
+                      this.tableService.setCurrentTable = tableInUseRef;
                     }
                   }
 
@@ -983,7 +991,7 @@ export class ConfigExercisePage implements OnInit {
                         this.workoutIndex !== undefined
                           ? this.workoutIndex
                           : null,
-                      tableInUse: this.tableInUse,
+                      tableInUse: tableInUseRef,
                     },
                   });
                 },
