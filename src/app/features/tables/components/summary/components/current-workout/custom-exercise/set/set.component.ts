@@ -87,7 +87,12 @@ export class SetComponent implements OnInit {
     });
 
     this.setForm.valueChanges
-      .pipe(debounceTime(400), distinctUntilChanged())
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(
+          (prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)
+        )
+      )
       .subscribe((resSetForm) => {
         if (
           (resSetForm.repsRangeStart !== undefined &&
@@ -153,11 +158,21 @@ export class SetComponent implements OnInit {
 
   public onRirValueChange(value: number | null): void {
     // rir can now be: null, -1 (fail), or a number (0-10)
+    if (this.rirFormControl?.value === value) {
+      return;
+    }
     this.setForm.patchValue({ rir: value });
   }
 
   public onFormValueChange(controlName: string, value: any): void {
-    this.setForm.patchValue({ [controlName]: value });
+    const control = this.getFormControl(controlName);
+    if (!control) {
+      return;
+    }
+    if (control.value === value) {
+      return;
+    }
+    control.patchValue(value);
   }
 
   public showDeleteSweetAlert(): void {
