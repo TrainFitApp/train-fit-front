@@ -635,7 +635,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         isOwnProduct: !!(product.userId && product.userId === this.user._id),
         ingredientMode: true,
         customProduct: ingredient, // Pass the full customProduct for editing
-        returnUrl: '/config-recipe',
+        returnUrl: '/search-foods/config-recipe',
       },
     });
   }

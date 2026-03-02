@@ -134,7 +134,8 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // 1. Initial capture from state (fastest)
     const state: any = window.history.state || {};
-    if (state.returnUrl) this.returnUrl = state.returnUrl;
+    if (state.returnUrl)
+      this.returnUrl = this.normalizeReturnUrl(state.returnUrl);
     if (state.ingredientMode) this.ingredientMode = state.ingredientMode;
     if (state.mealName) this.targetMealName = state.mealName;
     if (state.meal) {
@@ -1410,7 +1411,15 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (state.isScanned !== undefined && state.isScanned !== null) {
       this.isScanned = !!state.isScanned;
     }
-    if (state.returnUrl) this.returnUrl = state.returnUrl;
+    if (state.returnUrl)
+      this.returnUrl = this.normalizeReturnUrl(state.returnUrl);
+  }
+
+  private normalizeReturnUrl(url: string): string {
+    if (url === '/config-recipe') {
+      return '/search-foods/config-recipe';
+    }
+    return url;
   }
 
   private syncOwnershipFromProduct(): void {
