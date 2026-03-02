@@ -34,18 +34,24 @@
             }
 
             .close-action-button {
-                background: transparent;
+                background: rgba(255, 255, 255, 0.05);
                 border: none;
-                padding: 0.5rem;
+                border-radius: 8px;
+                width: 40px;
+                height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
+                color: rgba(255, 255, 255, 0.7);
+                transition: all 0.2s ease;
+
+                &:active {
+                    transform: scale(0.95);
+                    background: rgba(255, 255, 255, 0.1);
+                }
 
                 ion-icon {
-                    font-size: 1.2rem;
+                    font-size: 20px;
                 }
             }
         }
