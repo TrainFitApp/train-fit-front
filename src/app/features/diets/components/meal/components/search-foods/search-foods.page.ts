@@ -210,6 +210,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       }
     }
 
+    this.syncMealAndDietDayFromService();
+
     // Check if we're returning from config-recipe
     const returningFromConfigRecipe = state.returningFromConfigRecipe;
     if (returningFromConfigRecipe) {
@@ -524,6 +526,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.deleteProduct(result.deleteOwnProduct);
     } else if (result?.refresh) {
       // Force refresh requested
+      this.syncMealAndDietDayFromService();
       shouldSearch = true;
       if (result?.switchSegmentToOwn) {
         this.currentMode = 'products';
@@ -1114,6 +1117,28 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
             (mealTemp) => mealTemp.name === this.meal.name
           );
         });
+    }
+  }
+
+  private syncMealAndDietDayFromService(): void {
+    const currentDietDay = this.dietDayService.currentDietDay;
+    if (!currentDietDay || !this.meal) {
+      return;
+    }
+
+    this.dietDay = currentDietDay;
+
+    let updatedMeal: Meal | undefined;
+    if (this.meal._id) {
+      updatedMeal = currentDietDay.meals.find((m) => m._id === this.meal._id);
+    }
+
+    if (!updatedMeal && this.meal.name) {
+      updatedMeal = currentDietDay.meals.find((m) => m.name === this.meal.name);
+    }
+
+    if (updatedMeal) {
+      this.meal = { ...updatedMeal };
     }
   }
 

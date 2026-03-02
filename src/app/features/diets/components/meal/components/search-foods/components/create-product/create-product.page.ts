@@ -291,6 +291,10 @@ export class CreateProductPage implements OnInit {
           this.user._id
         )
         .subscribe(() => {
+          this.navigationService.setTempData('searchFoodsResult', {
+            refresh: true,
+          });
+
           if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
             this.navigationService.backNoAnim();
           } else if (this.returnUrl) {
@@ -313,6 +317,11 @@ export class CreateProductPage implements OnInit {
     else {
       newProduct.userId = this.user._id;
       this.productService.saveProduct(newProduct).subscribe((resProduct) => {
+        this.navigationService.setTempData('searchFoodsResult', {
+          refresh: true,
+          switchSegmentToOwn: true,
+        });
+
         const toastOptions: ToastOptions = {
           message: resProduct.name + ' añadido',
           duration: 1000,
