@@ -263,7 +263,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Guardar ambos cambios',
+              text: 'Guardar',
               handler: () => {
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
                 this.product = updatedProductFromTemp;
@@ -337,7 +337,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Guardar ambos cambios',
+              text: 'Guardar',
               handler: () => {
                 this.product = state.updatedProduct;
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
