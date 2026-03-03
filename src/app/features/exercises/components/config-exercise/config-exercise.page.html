@@ -229,12 +229,12 @@
                     </span>
                     <span
                       class="set-value"
-                      *ngIf="!(set.expectedFail || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)))"
+                      *ngIf="!(set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))"
                       >{{ set.expectedRir | expected:'RIR' }}
                     </span>
 
                     <span
-                      *ngIf="set.expectedFail || (set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))"
+                      *ngIf="set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)"
                       class="fail-label"
                       >FALLO</span
                     >

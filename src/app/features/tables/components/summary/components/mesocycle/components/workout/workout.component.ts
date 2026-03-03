@@ -907,9 +907,8 @@ export class WorkoutComponent {
     }
 
     return !!(
-      set.expectedFail ||
-      (set.expectedRir &&
-        (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))
+      set.expectedRir &&
+      (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)
     );
   }
 

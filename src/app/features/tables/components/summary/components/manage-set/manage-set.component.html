@@ -181,7 +181,7 @@
 
         <div
           class="field-section"
-          [class.disabled]="setForm.controls.expectedFail.value"
+          [class.disabled]="setForm.controls.isFail.value"
         >
           <div class="field-label">
             <span class="label-text">RANGO DE RIR</span>
@@ -193,7 +193,7 @@
                 *ngIf="setForm.get('rangeRIRStart').value > 0"
                 fill="clear"
                 class="counter-btn"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 (click)="decrementCounter('rangeRIRStart')"
               >
                 <ion-icon
@@ -208,14 +208,14 @@
                 inputmode="decimal"
                 fill="outline"
                 class="counter-input"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 appCursorEnd
                 appDecimalInput
               ></ion-input>
               <ion-button
                 fill="clear"
                 class="counter-btn"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 (click)="incrementCounter('rangeRIRStart')"
               >
                 <ion-icon
@@ -231,7 +231,7 @@
                 *ngIf="setForm.get('rangeRIREnd').value > 0"
                 fill="clear"
                 class="counter-btn"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 (click)="decrementCounter('rangeRIREnd')"
               >
                 <ion-icon
@@ -246,14 +246,14 @@
                 inputmode="decimal"
                 fill="outline"
                 class="counter-input"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 appCursorEnd
                 appDecimalInput
               ></ion-input>
               <ion-button
                 fill="clear"
                 class="counter-btn"
-                [disabled]="setForm.controls.expectedFail.value"
+                [disabled]="setForm.controls.isFail.value"
                 (click)="incrementEndCounter('rangeRIRStart', 'rangeRIREnd')"
               >
                 <ion-icon
@@ -280,9 +280,9 @@
         </div>
 
         <div class="checkbox-section">
-          <div class="checkbox-item" (click)="toggleCheckbox('expectedFail')">
+          <div class="checkbox-item" (click)="toggleCheckbox('isFail')">
             <ion-checkbox
-              formControlName="expectedFail"
+              formControlName="isFail"
               mode="ios"
               class="modern-checkbox"
               (click)="$event.stopPropagation()"

@@ -313,17 +313,12 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
       return true;
     }
 
-    // Check expected fail (objective)
-    const expectedFail =
-      set?.expectedFail === true ||
-      set?.expectedFail === 'true' ||
-      set?.expectedFail === 1;
-
+    // Check expected fail (objective) - only check expectedRir
     const hasFailInExpectedRir =
       Array.isArray(set?.expectedRir) &&
       set.expectedRir.some((value) => Number(value) === -1);
 
-    return !!(expectedFail || hasFailInExpectedRir);
+    return !!hasFailInExpectedRir;
   }
 
   public trackBySet(index: number, item: Set): string {

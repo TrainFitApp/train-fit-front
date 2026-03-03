@@ -83,17 +83,25 @@ export class ManageSetComponent implements OnInit {
         velocity: new FormControl(this.set?.velocity),
       });
     } else {
+      // Detectar si el set tiene fallo (expectedRir es [-1])
+      const hasFail = this.set?.expectedRir?.[0] === -1;
+
       this.setForm = new FormGroup({
         weight: new FormControl(this.set?.weight),
         drop: new FormControl(this.set?.drop),
         restPause: new FormControl(this.set?.restPause),
         restPauseEnabled: new FormControl(this.set?.restPause ? true : false),
         rir: new FormControl(this.set?.rir),
-        expectedFail: new FormControl(this.set?.expectedFail),
+        isFail: new FormControl(hasFail),
         rangeREPStart: new FormControl(this.set?.expectedReps?.[0]),
         rangeREPEnd: new FormControl(this.set?.expectedReps?.[1]),
-        rangeRIRStart: new FormControl(this.set?.expectedRir?.[0]),
-        rangeRIREnd: new FormControl(this.set?.expectedRir?.[1]),
+        // No mostrar -1 en los campos de RIR, dejar vacío si hay fallo
+        rangeRIRStart: new FormControl(
+          hasFail ? null : this.set?.expectedRir?.[0]
+        ),
+        rangeRIREnd: new FormControl(
+          hasFail ? null : this.set?.expectedRir?.[1]
+        ),
         velocity: new FormControl(this.set?.velocity),
       });
 
@@ -105,7 +113,7 @@ export class ManageSetComponent implements OnInit {
         if (res) this.setForm.get('drop').setValue(!res, { emitEvent: false });
       });
 
-      this.setForm.get('expectedFail').valueChanges.subscribe((res) => {
+      this.setForm.get('isFail').valueChanges.subscribe((res) => {
         if (res) {
           this.setForm
             .get('rangeRIRStart')
@@ -295,22 +303,42 @@ export class ManageSetComponent implements OnInit {
           set.expectedReps[1] = this.setForm.controls.rangeREPEnd.value;
       }
 
-      if (
-        !isNaN(this.setForm.controls.rangeRIRStart.value) ||
-        !isNaN(this.setForm.controls.rangeRIREnd.value)
-      ) {
-        set.expectedRir = [];
-        if (
-          this.setForm.controls.rangeRIRStart.value !== null &&
-          this.setForm.controls.rangeRIRStart.value !== undefined
-        )
-          set.expectedRir[0] = this.setForm.controls.rangeRIRStart.value;
+      // Procesar isFail (fallo) ANTES de procesar el rango RIR
+      const isFail = this.setForm.controls.isFail.value || false;
 
-        if (
+      if (isFail) {
+        // Si hay fallo, establecer expectedRir a [-1]
+        set.expectedRir = [-1];
+      } else {
+        // Si no hay fallo, procesar el rango RIR normalmente
+        const hasRirStart =
+          this.setForm.controls.rangeRIRStart.value !== null &&
+          this.setForm.controls.rangeRIRStart.value !== undefined &&
+          this.setForm.controls.rangeRIRStart.value !== '' &&
+          !isNaN(this.setForm.controls.rangeRIRStart.value);
+
+        const hasRirEnd =
           this.setForm.controls.rangeRIREnd.value !== null &&
-          this.setForm.controls.rangeRIREnd.value !== undefined
-        )
-          set.expectedRir[1] = this.setForm.controls.rangeRIREnd.value;
+          this.setForm.controls.rangeRIREnd.value !== undefined &&
+          this.setForm.controls.rangeRIREnd.value !== '' &&
+          !isNaN(this.setForm.controls.rangeRIREnd.value);
+
+        if (hasRirStart || hasRirEnd) {
+          set.expectedRir = [];
+          if (hasRirStart) {
+            set.expectedRir[0] = Number(
+              this.setForm.controls.rangeRIRStart.value
+            );
+          }
+          if (hasRirEnd) {
+            set.expectedRir[1] = Number(
+              this.setForm.controls.rangeRIREnd.value
+            );
+          }
+        } else {
+          // Si no hay valores de RIR y no hay fallo, enviar array vacío para que el pre-save hook lo limpie
+          set.expectedRir = [];
+        }
       }
 
       if (
@@ -343,17 +371,6 @@ export class ManageSetComponent implements OnInit {
         this.setForm.controls.rir.value !== undefined
       )
         set.rir = this.setForm.controls.rir.value;
-
-      if (
-        this.setForm.controls.expectedFail.value !== null &&
-        this.setForm.controls.expectedFail.value !== undefined
-      ) {
-        set.expectedFail = this.setForm.controls.expectedFail.value;
-
-        if (set.expectedFail) {
-          set.expectedRir = [-1];
-        }
-      }
 
       if (
         this.setForm.controls.velocity.value !== null &&

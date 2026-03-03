@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ModalController, ModalOptions, PopoverOptions } from '@ionic/angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -23,7 +31,7 @@ import { SetService } from '../../../../../../../../core/services/set/set.servic
   templateUrl: './set.component.html',
   styleUrls: ['./set.component.scss'],
 })
-export class SetComponent implements OnInit {
+export class SetComponent implements OnInit, OnChanges {
   @Input()
   public set: Set;
   @Input()
@@ -61,6 +69,24 @@ export class SetComponent implements OnInit {
     this.initForm();
   }
 
+  public ngOnChanges(changes: SimpleChanges): void {
+    // Si el set cambia después de la inicialización, actualizar el formulario
+    if (changes['set'] && !changes['set'].firstChange && this.setForm) {
+      this.setForm.patchValue(
+        {
+          doned: this.set?.doned,
+          reps: this.set?.reps,
+          weight: this.set?.weight,
+          rir: this.set?.rir ?? null,
+          velocity: this.set?.velocity,
+          timeMin: this.set?.timeMin,
+          timeSec: this.set?.timeSec,
+        },
+        { emitEvent: false }
+      );
+    }
+  }
+
   public get rirFormControl(): FormControl {
     return this.setForm.get('rir') as FormControl;
   }
@@ -73,17 +99,11 @@ export class SetComponent implements OnInit {
     this.setForm = new FormGroup({
       doned: new FormControl(this.set?.doned),
       reps: new FormControl(this.set?.reps),
-      repsRangeStart: new FormControl(this.set?.expectedReps?.[0]),
-      repsRangeEnd: new FormControl(this.set?.expectedReps?.[1]),
       weight: new FormControl(this.set?.weight),
       rir: new FormControl(this.set?.rir ?? null),
-      rirRangeStart: new FormControl(this.set?.expectedRir?.[0]),
-      rirRangeEnd: new FormControl(this.set?.expectedRir?.[1]),
       velocity: new FormControl(this.set?.velocity),
       timeMin: new FormControl(this.set?.timeMin),
       timeSec: new FormControl(this.set?.timeSec),
-      expectedMin: new FormControl(this.set?.expectedMin),
-      expectedSec: new FormControl(this.set?.expectedSec),
     });
 
     this.setForm.valueChanges
@@ -94,40 +114,14 @@ export class SetComponent implements OnInit {
         )
       )
       .subscribe((resSetForm) => {
-        if (
-          (resSetForm.repsRangeStart !== undefined &&
-            resSetForm.repsRangeStart !== null) ||
-          (resSetForm.repsRangeEnd !== undefined &&
-            resSetForm.repsRangeEnd !== null)
-        ) {
-          if (!this.set.expectedReps) {
-            this.set.expectedReps = [];
-          }
-          this.set.expectedReps[0] = resSetForm.repsRangeStart;
-          this.set.expectedReps[1] = resSetForm.repsRangeEnd;
-        } else {
-          if (this.set.expectedReps) {
-            delete this.set.expectedReps;
-          }
-        }
-
-        delete resSetForm.repsRangeStart;
-        delete resSetForm.repsRangeEnd;
-
-        if (this.set.expectedRir) {
-          this.set.expectedRir[0] = resSetForm.rirRangeStart;
-          this.set.expectedRir[1] = resSetForm.rirRangeEnd;
-        }
-
-        delete resSetForm.rirRangeStart;
-        delete resSetForm.rirRangeEnd;
-
+        // Actualizar solo los valores ejecutados, NO los objetivos
         this.set.velocity = resSetForm.velocity;
         this.set.timeMin = resSetForm.timeMin;
         this.set.timeSec = resSetForm.timeSec;
         this.set.doned = resSetForm.doned;
         this.set.reps = resSetForm.reps;
         this.set.weight = resSetForm.weight;
+
         if (resSetForm.rir === null || resSetForm.rir === undefined) {
           delete this.set.rir;
         } else {
@@ -242,6 +236,9 @@ export class SetComponent implements OnInit {
           this.currentWorkout.exercises[this.indexCustomExercise].sets[
             indexSet
           ] = resS;
+
+          // Actualizar la referencia local para que ngOnChanges detecte el cambio
+          this.set = resS;
         });
       }
     });
@@ -286,6 +283,9 @@ export class SetComponent implements OnInit {
               this.currentWorkout.exercises[this.indexCustomExercise].sets[
                 indexSet
               ] = resS;
+
+              // Actualizar la referencia local para que ngOnChanges detecte el cambio
+              this.set = resS;
             });
           }
         });
@@ -303,16 +303,11 @@ export class SetComponent implements OnInit {
       return true;
     }
 
-    // Check expected fail (objective)
-    const expectedFail =
-      set?.expectedFail === true ||
-      set?.expectedFail === 'true' ||
-      set?.expectedFail === 1;
-
+    // Check expected fail (objective) - only check expectedRir
     const hasFailInExpectedRir =
       Array.isArray(set?.expectedRir) &&
       set.expectedRir.some((value) => Number(value) === -1);
 
-    return !!(expectedFail || hasFailInExpectedRir);
+    return !!hasFailInExpectedRir;
   }
 }
