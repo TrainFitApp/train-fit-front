@@ -24,11 +24,6 @@ export class PasswordComplexity {
         return { lowercase: true };
       }
 
-      // Requiere al menos un carácter especial
-      if (!/[@$!%*?&]/.test(value)) {
-        return { specialChar: true };
-      }
-
       return null;
     };
   }

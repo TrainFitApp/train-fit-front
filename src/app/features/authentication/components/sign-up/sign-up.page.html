@@ -522,10 +522,6 @@
                 <span *ngIf="signUpForm.get('password')?.errors?.['lowercase']"
                   >Debe incluir al menos una letra minúscula</span
                 >
-                <span
-                  *ngIf="signUpForm.get('password')?.errors?.['specialChar']"
-                  >Debe incluir al menos un carácter especial (@$!%*?&)</span
-                >
               </div>
             </div>
 
@@ -571,10 +567,6 @@
                 <span
                   *ngIf="signUpForm.get('passwordRep')?.errors?.['lowercase']"
                   >Debe incluir al menos una letra minúscula</span
-                >
-                <span
-                  *ngIf="signUpForm.get('passwordRep')?.errors?.['specialChar']"
-                  >Debe incluir al menos un carácter especial (@$!%*?&)</span
                 >
               </div>
             </div>

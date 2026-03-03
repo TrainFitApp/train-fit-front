@@ -26,7 +26,7 @@ export const ERRORS = [
   {
     name: 'notStrength',
     description:
-      'Password has to contain 12 characters at least and has to contain uppercase, lowercase, a number and a special character',
+      'Password has to contain 12 characters at least and has to contain uppercase, lowercase and a number',
   },
   {
     name: 'notMatch',

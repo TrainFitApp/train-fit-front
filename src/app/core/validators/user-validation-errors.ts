@@ -49,6 +49,4 @@ export const USER_ERROR_MESSAGES = {
     `${fieldName} debe incluir al menos una letra mayúscula`,
   lowercase: (fieldName: string) =>
     `${fieldName} debe incluir al menos una letra minúscula`,
-  specialChar: (fieldName: string) =>
-    `${fieldName} debe incluir al menos un carácter especial (@, $, !, %, *, ?, &)`,
 };
