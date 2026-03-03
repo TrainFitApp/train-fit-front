@@ -124,37 +124,90 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 4px 10px rgba(var(--ion-color-primary-rgb), 0.18);
 
       ion-icon {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         color: white;
       }
     }
 
     .exercise-details {
       flex: 1;
+      min-width: 0;
+
+      &.create-mode {
+        display: flex;
+        align-items: center;
+      }
 
       .exercise-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         color: var(--ion-color-medium);
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
         display: block;
+        margin-bottom: 4px;
       }
 
       .exercise-name {
         width: 100%;
         color: var(--ion-color-dark);
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 0.95rem;
+        font-weight: 600;
         white-space: normal;
         word-wrap: break-word;
         line-height: 1.3;
-        max-height: 2.6em;
+        max-height: 2.7em;
         overflow: hidden;
         display: -webkit-box;
         -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         margin: 0;
         padding: 0;
+      }
+
+      .exercise-name-item {
+        --background: rgba(var(--ion-color-light-rgb), 0.55);
+        --inner-padding-start: 10px;
+        --inner-padding-end: 10px;
+        --inner-padding-top: 0;
+        --inner-padding-bottom: 0;
+        --padding-start: 0;
+        --padding-end: 0;
+        --min-height: 48px;
+        border: 1px solid #fe9000;
+        border-radius: 8px;
+        margin: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.18s ease;
+
+        &:focus-within {
+          --background: rgba(var(--ion-color-light-rgb), 0.72);
+        }
+      }
+
+      .exercise-name-input {
+        --background: transparent;
+        --color: var(--ion-color-dark);
+        --placeholder-color: rgba(var(--ion-color-medium-rgb), 0.82);
+        --placeholder-opacity: 1;
+        --padding-start: 0;
+        --padding-end: 0;
+        --padding-top: 0;
+        --padding-bottom: 0;
+        font-weight: 500;
+        font-size: 0.94rem;
+        align-self: center;
+
+        &::part(native) {
+          border: none;
+          outline: none;
+          box-shadow: none;
+        }
       }
     }
 
@@ -234,7 +287,6 @@
 
   .exercise-details {
     width: 100%;
-    padding-bottom: 12px;
 
     .exercise-label {
       font-size: 0.75rem;

@@ -53,15 +53,19 @@
           <div class="exercise-icon">
             <ion-icon name="barbell-outline"></ion-icon>
           </div>
-          <div class="exercise-details">
-            <ion-label class="exercise-label">EJERCICIO</ion-label>
+          <div class="exercise-details" [class.create-mode]="isCreateMode">
+            <ion-label *ngIf="!isCreateMode" class="exercise-label">
+              EJERCICIO
+            </ion-label>
             <ng-container *ngIf="isCreateMode; else exerciseNameLabel">
-              <ion-input
-                formControlName="name"
-                placeholder="Nombre del ejercicio"
-                mode="ios"
-                class="exercise-name-input"
-              ></ion-input>
+              <ion-item lines="none" class="exercise-name-item" mode="ios">
+                <ion-input
+                  formControlName="name"
+                  placeholder="Nombre de nuevo ejercicio"
+                  mode="ios"
+                  class="exercise-name-input"
+                ></ion-input>
+              </ion-item>
             </ng-container>
             <ng-template #exerciseNameLabel>
               <ion-label class="exercise-name ion-text-wrap"
