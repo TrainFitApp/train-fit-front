@@ -439,7 +439,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             timeSec: s.timeSec || 0,
             isDropSet: s.drop === true,
             isRestPause: !!(s.restPause && s.restPause > 0),
-            isFail: s.fail === true || s.rir === -1,
+            isFail: s.rir === -1,
             dropSeries: s.dropSetSeries || [],
             restPauseSeries: s.restPauseSeries || [],
           }));

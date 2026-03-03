@@ -347,8 +347,13 @@ export class ManageSetComponent implements OnInit {
       if (
         this.setForm.controls.expectedFail.value !== null &&
         this.setForm.controls.expectedFail.value !== undefined
-      )
+      ) {
         set.expectedFail = this.setForm.controls.expectedFail.value;
+
+        if (set.expectedFail) {
+          set.expectedRir = [-1];
+        }
+      }
 
       if (
         this.setForm.controls.velocity.value !== null &&

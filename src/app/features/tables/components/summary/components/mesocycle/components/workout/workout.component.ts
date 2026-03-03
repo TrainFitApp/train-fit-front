@@ -891,7 +891,7 @@ export class WorkoutComponent {
 
   public isFail(set: any): boolean {
     if (set?.doned) {
-      return !!(set.fail || set.rir === -1);
+      return set.rir === -1;
     }
 
     return !!(

@@ -236,7 +236,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public getRirDisplay(set: Set): string {
-    if (set.fail || set.rir === -1) {
+    if (set.rir === -1) {
       return 'FALLO';
     } else if (set.rir !== undefined && set.rir !== null) {
       return set.rir + '';
@@ -308,11 +308,22 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public isFail(set: any): boolean {
-    return !!(
-      set.expectedFail ||
-      (set.expectedRir &&
-        (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))
-    );
+    // Check if fail in execution (rir = -1)
+    if (set?.rir === -1) {
+      return true;
+    }
+
+    // Check expected fail (objective)
+    const expectedFail =
+      set?.expectedFail === true ||
+      set?.expectedFail === 'true' ||
+      set?.expectedFail === 1;
+
+    const hasFailInExpectedRir =
+      Array.isArray(set?.expectedRir) &&
+      set.expectedRir.some((value) => Number(value) === -1);
+
+    return !!(expectedFail || hasFailInExpectedRir);
   }
 
   public trackBySet(index: number, item: Set): string {

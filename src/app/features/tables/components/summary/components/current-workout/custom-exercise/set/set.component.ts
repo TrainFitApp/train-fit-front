@@ -128,18 +128,12 @@ export class SetComponent implements OnInit {
         this.set.doned = resSetForm.doned;
         this.set.reps = resSetForm.reps;
         this.set.weight = resSetForm.weight;
-        if (resSetForm.rir === -1) {
+        if (resSetForm.rir === null || resSetForm.rir === undefined) {
           delete this.set.rir;
-          this.set.fail = true;
-        } else if (resSetForm.rir === null || resSetForm.rir === undefined) {
-          delete this.set.rir;
-          delete this.set.fail;
         } else {
+          // Store rir directly: -1 for fail, 0-10 for RIR
           this.set.rir = resSetForm.rir;
-          this.set.fail = false;
         }
-        // Runtime fail is ONLY execution state (set component)
-        // It must not overwrite expectedFail (objective state)
 
         this.setService.updateSet(this.set).subscribe(() => {
           if (this.currentWorkout) {
@@ -304,10 +298,21 @@ export class SetComponent implements OnInit {
   }
 
   public isFail(set: any): boolean {
-    return !!(
-      set.expectedFail ||
-      (set.expectedRir &&
-        (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))
-    );
+    // Check if fail in execution (rir = -1)
+    if (set?.rir === -1) {
+      return true;
+    }
+
+    // Check expected fail (objective)
+    const expectedFail =
+      set?.expectedFail === true ||
+      set?.expectedFail === 'true' ||
+      set?.expectedFail === 1;
+
+    const hasFailInExpectedRir =
+      Array.isArray(set?.expectedRir) &&
+      set.expectedRir.some((value) => Number(value) === -1);
+
+    return !!(expectedFail || hasFailInExpectedRir);
   }
 }

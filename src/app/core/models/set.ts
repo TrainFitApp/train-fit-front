@@ -19,7 +19,6 @@ export class Set {
   dropSetSeries?: SubSerie[];
   restPauseSeconds?: number;
   expectedFail?: boolean;
-  fail?: boolean;
 }
 
 export interface SubSerie {
