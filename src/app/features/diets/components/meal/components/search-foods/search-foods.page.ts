@@ -1010,10 +1010,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       const filteredIngredients = this.selectedIngredients.filter(
         (ing) => ing?.product?._id !== productId
       );
-      
+
       // Actualizar usando el setter para disparar el signal
       this.selectedIngredients = filteredIngredients;
-      
+
       this.calculateIngredientMacros();
       this.navigationService.setTempData(
         'selectedIngredients',
@@ -1028,11 +1028,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     // Limpiar receta en tempData si existe (para config-recipe)
-    const savedRecipe = this.navigationService.getTempData<any>('configRecipeDef');
+    const savedRecipe =
+      this.navigationService.getTempData<any>('configRecipeDef');
     if (savedRecipe && Array.isArray(savedRecipe.customProducts)) {
       savedRecipe.customProducts = savedRecipe.customProducts.filter(
         (cp: any) => {
-          const cpProductId = typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
+          const cpProductId =
+            typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
           return cpProductId !== productId;
         }
       );
@@ -1040,25 +1042,38 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     // Limpiar customRecipeInstance en tempData si existe
-    const savedInstance = this.navigationService.getTempData<any>('configRecipeInstance');
+    const savedInstance = this.navigationService.getTempData<any>(
+      'configRecipeInstance'
+    );
     if (savedInstance) {
       // Limpiar additionalCustomProducts
       if (Array.isArray(savedInstance.additionalCustomProducts)) {
-        savedInstance.additionalCustomProducts = savedInstance.additionalCustomProducts.filter((addCp: any) => {
-          const addProductId = typeof addCp?.product === 'string' ? addCp.product : addCp?.product?._id;
-          return addProductId !== productId;
-        });
+        savedInstance.additionalCustomProducts =
+          savedInstance.additionalCustomProducts.filter((addCp: any) => {
+            const addProductId =
+              typeof addCp?.product === 'string'
+                ? addCp.product
+                : addCp?.product?._id;
+            return addProductId !== productId;
+          });
       }
 
       // Limpiar de la receta base dentro de dataRecipe
-      const dataRecipe = typeof savedInstance.dataRecipe === 'object' ? savedInstance.dataRecipe : null;
-      const recipe = dataRecipe && typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
-      
+      const dataRecipe =
+        typeof savedInstance.dataRecipe === 'object'
+          ? savedInstance.dataRecipe
+          : null;
+      const recipe =
+        dataRecipe && typeof dataRecipe.recipe === 'object'
+          ? dataRecipe.recipe
+          : null;
+
       if (recipe && Array.isArray(recipe.customProducts)) {
         const removedCustomProductIds = new Set<string>();
-        
+
         recipe.customProducts = recipe.customProducts.filter((cp: any) => {
-          const cpProductId = typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
+          const cpProductId =
+            typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
           const keep = cpProductId !== productId;
           if (!keep && cp?._id) {
             removedCustomProductIds.add(cp._id.toString());
@@ -1067,13 +1082,20 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         });
 
         // Limpiar overrides relacionados
-        if (removedCustomProductIds.size > 0 && Array.isArray(savedInstance.customProductsOverrides)) {
-          savedInstance.customProductsOverrides = savedInstance.customProductsOverrides.filter((override: any) => {
-            const overrideId = typeof override?.customProductId === 'string' 
-              ? override.customProductId 
-              : override?.customProductId?._id;
-            return !removedCustomProductIds.has((overrideId || '').toString());
-          });
+        if (
+          removedCustomProductIds.size > 0 &&
+          Array.isArray(savedInstance.customProductsOverrides)
+        ) {
+          savedInstance.customProductsOverrides =
+            savedInstance.customProductsOverrides.filter((override: any) => {
+              const overrideId =
+                typeof override?.customProductId === 'string'
+                  ? override.customProductId
+                  : override?.customProductId?._id;
+              return !removedCustomProductIds.has(
+                (overrideId || '').toString()
+              );
+            });
         }
       }
 
