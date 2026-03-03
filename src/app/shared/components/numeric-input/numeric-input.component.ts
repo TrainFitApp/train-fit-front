@@ -69,11 +69,31 @@ export class NumericInputComponent implements OnInit {
   }
 
   public onInputChange(event: any): void {
-    const newValue = event.target.value;
-    const numValue =
-      newValue === '' || newValue === null ? null : Number(newValue);
-    this.inputControl.patchValue(numValue);
-    this.valueChange.emit(numValue);
+    const rawValue = event?.target?.value;
+
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+      this.inputControl.patchValue(null);
+      this.valueChange.emit(null);
+      return;
+    }
+
+    const normalizedValue = String(rawValue)
+      .replace(/,/g, '.')
+      .replace(/[^0-9.]/g, '');
+
+    const parts = normalizedValue.split('.');
+    const sanitizedValue =
+      parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : normalizedValue;
+
+    if (event?.target) {
+      event.target.value = sanitizedValue;
+    }
+
+    const numValue = sanitizedValue === '' ? null : Number(sanitizedValue);
+    const safeValue = numValue === null || Number.isNaN(numValue) ? null : numValue;
+
+    this.inputControl.patchValue(safeValue);
+    this.valueChange.emit(safeValue);
   }
 
   public get displayValue(): string {
