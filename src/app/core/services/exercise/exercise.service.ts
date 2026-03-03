@@ -47,6 +47,13 @@ export class ExerciseService {
     return this.exerciseAPIService.createExercise(exerciseData);
   }
 
+  public updateExercise(
+    idExercise: string,
+    exerciseData: Partial<Exercise>
+  ): Observable<Exercise> {
+    return this.exerciseAPIService.updateExercise(idExercise, exerciseData);
+  }
+
   public deleteExercise(idExercise: string): Observable<any> {
     return this.exerciseAPIService.deleteExercise(idExercise);
   }

@@ -57,7 +57,9 @@
             <ion-label *ngIf="!isCreateMode" class="exercise-label">
               EJERCICIO
             </ion-label>
-            <ng-container *ngIf="isCreateMode; else exerciseNameLabel">
+            <ng-container
+              *ngIf="isCreateMode || isEditingOwnExercise; else exerciseNameLabel"
+            >
               <ion-input
                 formControlName="name"
                 placeholder="Nombre de nuevo ejercicio"
@@ -72,11 +74,20 @@
               >
             </ng-template>
           </div>
-          <div
-            class="exercise-actions"
-            *ngIf="!isCreateMode && customExercise?._id"
-          >
+          <div class="exercise-actions" *ngIf="!isCreateMode">
             <ion-button
+              *ngIf="isOwnExercise"
+              fill="clear"
+              class="action-btn edit-btn"
+              (click)="toggleOwnExerciseEditMode()"
+            >
+              <ion-icon
+                [name]="isEditingOwnExercise ? 'arrow-back-outline' : 'pencil-outline'"
+                slot="icon-only"
+              ></ion-icon>
+            </ion-button>
+            <ion-button
+              *ngIf="customExercise?._id"
               fill="clear"
               class="action-btn shuffle-btn"
               (click)="changeExercise()"
@@ -85,7 +96,10 @@
             </ion-button>
           </div>
         </div>
-        <div *ngIf="isCreateMode" class="exercise-description-section">
+        <div
+          *ngIf="isCreateMode || isEditingOwnExercise"
+          class="exercise-description-section"
+        >
           <ion-textarea
             formControlName="description"
             placeholder="Descripción del ejercicio..."
@@ -257,7 +271,7 @@
     <!-- Detalles Section (both Create and Edit modes) -->
     <div
       class="elegant-card"
-      *ngIf="isCreateMode || details.category?.length || details.muscleGroups1?.length || details.muscleGroups2?.length || details.equipment?.length"
+      *ngIf="isCreateMode || isEditingOwnExercise || details.category?.length || details.muscleGroups1?.length || details.muscleGroups2?.length || details.equipment?.length"
     >
       <div class="card-content">
         <!-- Header with Title -->
@@ -268,7 +282,10 @@
         </div>
 
         <!-- Add Details Button (only in Create Mode) -->
-        <div class="add-sets-section" *ngIf="isCreateMode">
+        <div
+          class="add-sets-section"
+          *ngIf="isCreateMode || isEditingOwnExercise"
+        >
           <ion-button
             fill="clear"
             color="secondary"
@@ -287,7 +304,10 @@
         </div>
 
         <!-- Filters Container (Create Mode - Interactive) -->
-        <div class="filters-wrapper" *ngIf="isCreateMode && showFilters">
+        <div
+          class="filters-wrapper"
+          *ngIf="(isCreateMode || isEditingOwnExercise) && showFilters"
+        >
           <!-- Categorías Generales -->
           <div class="filter-section">
             <div class="section-header">
@@ -373,7 +393,10 @@
         </div>
 
         <!-- Read-Only Details Display (Edit Mode) -->
-        <div class="details-readonly" *ngIf="!isCreateMode">
+        <div
+          class="details-readonly"
+          *ngIf="!isCreateMode && !isEditingOwnExercise"
+        >
           <!-- Categorías -->
           <div class="filter-section" *ngIf="details.category?.length">
             <div class="section-header">
@@ -500,7 +523,7 @@
     <!-- Description Section -->
     <div
       class="elegant-card description-card"
-      *ngIf="exercise?.description || customExercise?.exercise?.description"
+      *ngIf="!isEditingOwnExercise && (exercise?.description || customExercise?.exercise?.description)"
     >
       <div class="card-content">
         <!-- Title Row -->
@@ -516,7 +539,7 @@
         <!-- Description Content Row -->
         <div class="exercise-description">
           <p class="description-text">
-            {{ exercise?.description ?? customExercise.exercise.description }}
+            {{ exercise?.description ?? customExercise?.exercise?.description }}
           </p>
         </div>
       </div>
@@ -527,16 +550,30 @@
 <ion-footer class="elegant-footer">
   <div class="footer-content">
     <ion-button
-      *ngIf="load; else loadingTemplate"
+      *ngIf="load && isEditingOwnExercise; else defaultSaveTemplate"
       expand="block"
       size="large"
-      (click)="addCustomExercise()"
+      (click)="saveOwnExerciseOnly()"
       [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
     >
       <div class="button-content">
-        <span>GUARDAR EJERCICIO</span>
+        <span>GUARDAR CAMBIOS</span>
       </div>
     </ion-button>
+
+    <ng-template #defaultSaveTemplate>
+      <ion-button
+        *ngIf="load; else loadingTemplate"
+        expand="block"
+        size="large"
+        (click)="addCustomExercise()"
+        [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
+      >
+        <div class="button-content">
+          <span>GUARDAR EJERCICIO</span>
+        </div>
+      </ion-button>
+    </ng-template>
 
     <ng-template #loadingTemplate>
       <ion-button expand="block" size="large" disabled>

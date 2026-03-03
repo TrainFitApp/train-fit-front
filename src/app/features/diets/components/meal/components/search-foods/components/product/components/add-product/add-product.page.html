@@ -1,12 +1,24 @@
 <ion-header>
-  <app-page-header [title]="headerTitle" [customBackAction]="true" (backClick)="goBack()">
+  <app-page-header
+    [title]="headerTitle"
+    [customBackAction]="true"
+    (backClick)="goBack()"
+  >
     <div slot="actions" class="actions-section">
       <!-- Botón de Editar (solo productos propios) -->
-      <button *ngIf="isOwnProduct" class="action-button ripple-effect" (click)="goToEditProduct()">
-        <ion-icon name="create-outline"></ion-icon>
+      <button
+        *ngIf="isOwnProduct"
+        class="action-button ripple-effect"
+        (click)="goToEditProduct()"
+      >
+        <ion-icon name="pencil-outline"></ion-icon>
       </button>
       <!-- Botón de Eliminar (solo productos propios) -->
-      <button *ngIf="isOwnProduct" class="action-button ripple-effect" (click)="deleteOwnProduct()">
+      <button
+        *ngIf="isOwnProduct"
+        class="action-button ripple-effect"
+        (click)="deleteOwnProduct()"
+      >
         <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
       </button>
     </div>
@@ -20,21 +32,37 @@
       <ion-card-content>
         <div class="product-info-section">
           <!-- Botón de favoritos en la esquina superior derecha -->
-          <ion-button fill="clear" class="action-btn favorite-button-card" [disabled]="addingFavProduct"
-            (click)="addFavoriteProduct()">
-            <ion-icon slot="icon-only" [color]="isArchived ? 'tertiary' : 'medium'"
-              [name]="isArchived ? 'bookmark' : 'bookmark-outline'" class="favorite-icon-card"></ion-icon>
+          <ion-button
+            fill="clear"
+            class="action-btn favorite-button-card"
+            [disabled]="addingFavProduct"
+            (click)="addFavoriteProduct()"
+          >
+            <ion-icon
+              slot="icon-only"
+              [color]="isArchived ? 'tertiary' : 'medium'"
+              [name]="isArchived ? 'bookmark' : 'bookmark-outline'"
+              class="favorite-icon-card"
+            ></ion-icon>
           </ion-button>
 
-          <div class="product-details" (click)="changeAtributtes(PRODUCT_ATRR.name)">
-            <h2 class="product-name">
-              {{ product.name }}
-            </h2>
+          <div
+            class="product-details"
+            (click)="changeAtributtes(PRODUCT_ATRR.name)"
+          >
+            <h2 class="product-name">{{ product.name }}</h2>
             <div class="product-brand-row">
-              <p class="product-brand" (click)="$event.stopPropagation(); changeAtributtes(PRODUCT_ATRR.brand)">
+              <p
+                class="product-brand"
+                (click)="$event.stopPropagation(); changeAtributtes(PRODUCT_ATRR.brand)"
+              >
                 {{ product.brand || 'Sin marca' }}
               </p>
-              <ion-chip *ngIf="product.verified" color="success" class="verified-chip">
+              <ion-chip
+                *ngIf="product.verified"
+                color="success"
+                class="verified-chip"
+              >
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
                 <ion-label>Verificado</ion-label>
               </ion-chip>
@@ -47,29 +75,63 @@
         </div>
 
         <!-- Entrada de Cantidad Elegante -->
-        <div *ngIf="meal || ingredientMode" class="quantity-section-elegant" [class.no-portions]="!hasPortions">
+        <div
+          *ngIf="meal || ingredientMode"
+          class="quantity-section-elegant"
+          [class.no-portions]="!hasPortions"
+        >
           <div class="quantity-container">
             <div class="quantity-header">
               <span class="quantity-label">CANTIDAD</span>
-              <span class="serving-hint" *ngIf="hasPortions && selectedUnit === 'portions'">
+              <span
+                class="serving-hint"
+                *ngIf="hasPortions && selectedUnit === 'portions'"
+              >
                 1 ración = {{ product?.servingQuantity ||
                 customProduct?.product?.servingQuantity }}<small>g</small>
               </span>
             </div>
 
             <div class="quantity-input-box">
-              <ion-input *ngIf="selectedUnit === 'g'" type="text" inputmode="decimal" formControlName="quantity"
-                class="main-amount-input" placeholder="0" appCursorEnd appDecimalInput>
+              <ion-input
+                *ngIf="selectedUnit === 'g'"
+                type="text"
+                inputmode="decimal"
+                formControlName="quantity"
+                class="main-amount-input"
+                placeholder="0"
+                appCursorEnd
+                appDecimalInput
+              >
               </ion-input>
-              <ion-input *ngIf="selectedUnit === 'portions'" type="text" inputmode="decimal" formControlName="portions"
-                class="main-amount-input" placeholder="0" appCursorEnd appDecimalInput>
+              <ion-input
+                *ngIf="selectedUnit === 'portions'"
+                type="text"
+                inputmode="decimal"
+                formControlName="portions"
+                class="main-amount-input"
+                placeholder="0"
+                appCursorEnd
+                appDecimalInput
+              >
               </ion-input>
 
-              <div class="unit-selector-wrapper" [class.no-select]="!hasPortions">
-                <ion-select [value]="selectedUnit" interface="popover" (ionChange)="changeUnit($event.detail.value)"
-                  toggleIcon="chevron-down-outline" class="unit-select-elegant" [disabled]="!hasPortions">
+              <div
+                class="unit-selector-wrapper"
+                [class.no-select]="!hasPortions"
+              >
+                <ion-select
+                  [value]="selectedUnit"
+                  interface="popover"
+                  (ionChange)="changeUnit($event.detail.value)"
+                  toggleIcon="chevron-down-outline"
+                  class="unit-select-elegant"
+                  [disabled]="!hasPortions"
+                >
                   <ion-select-option value="g">Gramos (g)</ion-select-option>
-                  <ion-select-option *ngIf="hasPortions" value="portions">Raciones (rac)</ion-select-option>
+                  <ion-select-option *ngIf="hasPortions" value="portions"
+                    >Raciones (rac)</ion-select-option
+                  >
                 </ion-select>
               </div>
             </div>
@@ -77,22 +139,33 @@
         </div>
 
         <!-- Características Dietéticas (UI Mejorada) -->
-        <div class="dietary-features-section"
-          *ngIf="product?.vegan || product?.vegetarian || product?.lactoseFree || product?.glutenFree">
+        <div
+          class="dietary-features-section"
+          *ngIf="product?.vegan || product?.vegetarian || product?.lactoseFree || product?.glutenFree"
+        >
           <div class="dietary-grid icons-only">
             <div class="dietary-option active vegan" *ngIf="product?.vegan">
               <ion-icon name="leaf"></ion-icon>
               <span class="tooltip-text">Vegano</span>
             </div>
-            <div class="dietary-option active vegetarian" *ngIf="product?.vegetarian">
+            <div
+              class="dietary-option active vegetarian"
+              *ngIf="product?.vegetarian"
+            >
               <ion-icon name="leaf"></ion-icon>
               <span class="tooltip-text">Vegetariano</span>
             </div>
-            <div class="dietary-option active lactose-free" *ngIf="product?.lactoseFree">
+            <div
+              class="dietary-option active lactose-free"
+              *ngIf="product?.lactoseFree"
+            >
               <ion-icon name="water"></ion-icon>
               <span class="tooltip-text">Sin Lactosa</span>
             </div>
-            <div class="dietary-option active gluten-free" *ngIf="product?.glutenFree">
+            <div
+              class="dietary-option active gluten-free"
+              *ngIf="product?.glutenFree"
+            >
               <ion-icon name="nutrition"></ion-icon>
               <span class="tooltip-text">Sin Gluten</span>
             </div>
@@ -110,7 +183,9 @@
           </div>
           <div class="summary-divider"></div>
           <div class="summary-item">
-            <span class="summary-value">{{ totalProtein }}<small>g</small></span>
+            <span class="summary-value"
+              >{{ totalProtein }}<small>g</small></span
+            >
             <span class="summary-label protein">Proteína</span>
           </div>
           <div class="summary-item">
@@ -144,9 +219,17 @@
                 Calorías *
               </ion-label>
               <div class="input-wrapper calories-wrapper">
-                <ion-input type="number" inputmode="numeric" step="1" min="0" formControlName="energyKcal100g"
-                  class="custom-input calories-value" placeholder="0" (ionInput)="roundCalories($event)"
-                  [readonly]="true">
+                <ion-input
+                  type="number"
+                  inputmode="numeric"
+                  step="1"
+                  min="0"
+                  formControlName="energyKcal100g"
+                  class="custom-input calories-value"
+                  placeholder="0"
+                  (ionInput)="roundCalories($event)"
+                  [readonly]="true"
+                >
                 </ion-input>
                 <span class="input-unit primary-unit">kcal</span>
               </div>
@@ -170,9 +253,18 @@
                     Grasas *
                   </ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" step="0.1" min="0" formControlName="fat100g"
-                      class="custom-input" placeholder="0" (ionInput)="roundMicro($event, 'fat100g')" [readonly]="true"
-                      appDecimalInput>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                      formControlName="fat100g"
+                      class="custom-input"
+                      placeholder="0"
+                      (ionInput)="roundMicro($event, 'fat100g')"
+                      [readonly]="true"
+                      appDecimalInput
+                    >
                     </ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
@@ -185,9 +277,16 @@
                       Saturadas
                     </ion-label>
                     <div class="input-wrapper">
-                      <ion-input type="text" inputmode="decimal" class="custom-input" placeholder="0" [readonly]="true"
-                        appDecimalInput formControlName="saturatedFat100g"
-                        (ionInput)="roundMicro($event, 'saturatedFat100g')"></ion-input>
+                      <ion-input
+                        type="text"
+                        inputmode="decimal"
+                        class="custom-input"
+                        placeholder="0"
+                        [readonly]="true"
+                        appDecimalInput
+                        formControlName="saturatedFat100g"
+                        (ionInput)="roundMicro($event, 'saturatedFat100g')"
+                      ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
                   </div>
@@ -201,9 +300,18 @@
                     Carbohidratos *
                   </ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" step="0.1" min="0" formControlName="carbohydrates100g"
-                      class="custom-input" placeholder="0" (ionInput)="roundMicro($event, 'carbohydrates100g')"
-                      [readonly]="true" appDecimalInput>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                      formControlName="carbohydrates100g"
+                      class="custom-input"
+                      placeholder="0"
+                      (ionInput)="roundMicro($event, 'carbohydrates100g')"
+                      [readonly]="true"
+                      appDecimalInput
+                    >
                     </ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
@@ -217,9 +325,16 @@
                     de los cuales azúcares
                   </ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" placeholder="0" appCursorEnd
-                      appDecimalInput formControlName="sugars100g"
-                      (ionInput)="roundMicro($event, 'sugars100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      placeholder="0"
+                      appCursorEnd
+                      appDecimalInput
+                      formControlName="sugars100g"
+                      (ionInput)="roundMicro($event, 'sugars100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -233,9 +348,16 @@
                     Fibra
                   </ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" placeholder="0" appCursorEnd
-                      appDecimalInput formControlName="fiber100g"
-                      (ionInput)="roundMicro($event, 'fiber100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      placeholder="0"
+                      appCursorEnd
+                      appDecimalInput
+                      formControlName="fiber100g"
+                      (ionInput)="roundMicro($event, 'fiber100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -248,9 +370,18 @@
                     Proteínas *
                   </ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" step="0.1" min="0" formControlName="protein100g"
-                      class="custom-input" placeholder="0" (ionInput)="roundMicro($event, 'protein100g')"
-                      [readonly]="true" appDecimalInput>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                      formControlName="protein100g"
+                      class="custom-input"
+                      placeholder="0"
+                      (ionInput)="roundMicro($event, 'protein100g')"
+                      [readonly]="true"
+                      appDecimalInput
+                    >
                     </ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
@@ -284,8 +415,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Calcio</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="calcium100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'calcium100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="calcium100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'calcium100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -295,8 +433,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Hierro</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="iron100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'iron100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="iron100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'iron100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -306,8 +451,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Magnesio</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="magnesium100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'magnesium100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="magnesium100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'magnesium100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -317,8 +469,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Fósforo</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="phosphorus100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'phosphorus100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="phosphorus100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'phosphorus100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -328,8 +487,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Potasio</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="potassium100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'potassium100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="potassium100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'potassium100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -339,8 +505,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Zinc</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="zinc100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'zinc100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="zinc100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'zinc100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -350,8 +523,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Cobre</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="copper100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'copper100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="copper100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'copper100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -361,8 +541,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Manganeso</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="manganese100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'manganese100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="manganese100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'manganese100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -372,8 +559,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Selenio</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="selenium100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'selenium100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="selenium100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'selenium100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -383,8 +577,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Yodo</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="iodine100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'iodine100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="iodine100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'iodine100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -394,8 +595,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Sodio</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="sodium100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'sodium100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="sodium100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'sodium100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -405,8 +613,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Sal</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="salt100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'salt100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="salt100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'salt100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -423,8 +638,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. A</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminA100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminA100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminA100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminA100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -434,8 +656,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. D</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminD100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminD100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminD100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminD100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -445,8 +674,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. E</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminE100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminE100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminE100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminE100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -456,8 +692,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. K</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminK100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminK100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminK100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminK100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -467,8 +710,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. C</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminC100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminC100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminC100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminC100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -478,8 +728,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B1</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB1100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminB1100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB1100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB1100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -489,8 +746,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B2</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB2100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminB2100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB2100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB2100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -500,8 +764,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B3</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB3100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminB3100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB3100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB3100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -511,8 +782,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B5</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB5100g"
-                      [readonly]="true" appDecimalInput (ionInput)="roundMicro($event, 'vitaminB5100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB5100g"
+                      [readonly]="true"
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB5100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -522,8 +800,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B6</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB6100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'vitaminB6100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB6100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB6100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -533,8 +818,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B9</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB9100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'vitaminB9100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB9100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB9100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -544,8 +836,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B12</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="vitaminB12100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'vitaminB12100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="vitaminB12100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'vitaminB12100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -555,8 +854,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Biotina</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="biotin100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'biotin100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="biotin100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'biotin100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">µg</span>
                   </div>
                 </div>
@@ -573,8 +879,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Colesterol</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="cholesterol100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'cholesterol100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="cholesterol100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'cholesterol100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -584,8 +897,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Grasas Trans</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="transFat100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'transFat100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="transFat100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'transFat100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -595,8 +915,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 3</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="omega3100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'omega3100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="omega3100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'omega3100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -606,8 +933,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 6</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="omega6100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'omega6100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="omega6100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'omega6100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -617,8 +951,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 9</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="omega9100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'omega9100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="omega9100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'omega9100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -628,8 +969,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Cafeína</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="caffeine100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'caffeine100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="caffeine100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'caffeine100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -639,8 +987,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Taurina</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="taurine100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'taurine100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="taurine100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'taurine100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">mg</span>
                   </div>
                 </div>
@@ -650,8 +1005,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Alcohol</ion-label>
                   <div class="input-wrapper">
-                    <ion-input type="text" inputmode="decimal" class="custom-input" formControlName="alcohol100g"
-                      appCursorEnd appDecimalInput (ionInput)="roundMicro($event, 'alcohol100g')"></ion-input>
+                    <ion-input
+                      type="text"
+                      inputmode="decimal"
+                      class="custom-input"
+                      formControlName="alcohol100g"
+                      appCursorEnd
+                      appDecimalInput
+                      (ionInput)="roundMicro($event, 'alcohol100g')"
+                    ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
                 </div>
@@ -664,24 +1026,36 @@
                 <div class="text-info-header">
                   <ion-label>Ingredientes</ion-label>
                 </div>
-                <ion-textarea rows="3" class="custom-info-textarea" formControlName="ingredients"
-                  placeholder="Ej: Trigo, azúcar, sal..."></ion-textarea>
+                <ion-textarea
+                  rows="3"
+                  class="custom-info-textarea"
+                  formControlName="ingredients"
+                  placeholder="Ej: Trigo, azúcar, sal..."
+                ></ion-textarea>
               </div>
 
               <div class="text-info-card">
                 <div class="text-info-header">
                   <ion-label>Alérgenos</ion-label>
                 </div>
-                <ion-textarea rows="2" class="custom-info-textarea" formControlName="allergens"
-                  placeholder="Ej: Gluten, leche, soja..."></ion-textarea>
+                <ion-textarea
+                  rows="2"
+                  class="custom-info-textarea"
+                  formControlName="allergens"
+                  placeholder="Ej: Gluten, leche, soja..."
+                ></ion-textarea>
               </div>
 
               <div class="text-info-card">
                 <div class="text-info-header">
                   <ion-label>Trazas</ion-label>
                 </div>
-                <ion-textarea rows="2" class="custom-info-textarea" formControlName="traces"
-                  placeholder="Ej: Frutos de cáscara..."></ion-textarea>
+                <ion-textarea
+                  rows="2"
+                  class="custom-info-textarea"
+                  formControlName="traces"
+                  placeholder="Ej: Frutos de cáscara..."
+                ></ion-textarea>
               </div>
             </div>
           </div>
@@ -693,8 +1067,14 @@
 
 <ion-footer class="elegant-footer">
   <div class="footer-content">
-    <ion-button *ngIf="!loading.value; else loadingTemplate" expand="block" size="large" class="save-button-global"
-      [disabled]="addCustomProductForm.invalid" (click)="addCustomProduct()">
+    <ion-button
+      *ngIf="!loading.value; else loadingTemplate"
+      expand="block"
+      size="large"
+      class="save-button-global"
+      [disabled]="addCustomProductForm.invalid"
+      (click)="addCustomProduct()"
+    >
       <div class="button-content">
         <span>
           {{ ingredientMode ? (editingIngredient ? 'ACTUALIZAR PRODUCTO' :

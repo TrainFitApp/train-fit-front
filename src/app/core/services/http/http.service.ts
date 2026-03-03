@@ -81,6 +81,12 @@ export class HttpService {
       .pipe(catchError((exception) => this.handleError(exception)));
   }
 
+  public patch<T>(endpoint: string, body: any, reqOpts?: any): Observable<any> {
+    return this.http
+      .patch<T>(this.getEndpointUrl(endpoint), body, reqOpts)
+      .pipe(catchError((exception) => this.handleError(exception)));
+  }
+
   public delete<T>(endpoint: string, reqOpts?: any): Observable<any> {
     return this.http
       .delete<T>(this.getEndpointUrl(endpoint), reqOpts)

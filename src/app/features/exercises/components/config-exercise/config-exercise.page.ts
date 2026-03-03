@@ -92,6 +92,7 @@ export class ConfigExercisePage implements OnInit {
   public videoEmbedSrcSafe: any;
 
   public isCreateMode: boolean;
+  public isEditingOwnExercise: boolean = false;
 
   public showFilters: boolean = true;
   public isOwnExercise: boolean = false;
@@ -337,6 +338,104 @@ export class ConfigExercisePage implements OnInit {
     });
   }
 
+  public toggleOwnExerciseEditMode(): void {
+    if (!this.isOwnExercise || this.isCreateMode) {
+      return;
+    }
+    this.isEditingOwnExercise = !this.isEditingOwnExercise;
+    if (this.isEditingOwnExercise) {
+      this.showFilters = true;
+    }
+  }
+
+  public async saveOwnExerciseOnly(): Promise<void> {
+    if (!this.isEditingOwnExercise || this.form?.invalid) {
+      return;
+    }
+
+    const currentExercise = this.customExercise?.exercise || this.exercise;
+    if (!currentExercise?._id) {
+      return;
+    }
+
+    this.load = false;
+    const payload: Partial<Exercise> = {
+      name: this.form.get('name')?.value?.trim() || currentExercise.name,
+      description:
+        this.form.get('description')?.value?.trim() ||
+        currentExercise.description ||
+        '',
+      videoUrl: this.videoUrl || currentExercise.videoUrl || '',
+      category: this.details.category?.length
+        ? this.details.category
+        : Array.isArray(currentExercise.category)
+        ? currentExercise.category
+        : currentExercise.category
+        ? [currentExercise.category]
+        : [],
+      muscleGroups1: this.details.muscleGroups1?.length
+        ? this.details.muscleGroups1
+        : currentExercise.muscleGroups1 || [],
+      muscleGroups2: this.details.muscleGroups2?.length
+        ? this.details.muscleGroups2
+        : currentExercise.muscleGroups2 || [],
+      equipment: this.details.equipment?.length
+        ? this.details.equipment
+        : currentExercise.equipment || [],
+      isCardio: currentExercise.isCardio || false,
+      userId: currentExercise.userId || this.user?._id,
+    };
+
+    try {
+      const updatedExercise = await lastValueFrom(
+        this.exerciseService.updateExercise(currentExercise._id, payload)
+      );
+
+      const mergedExercise: Exercise = {
+        ...currentExercise,
+        ...(payload as Exercise),
+        ...(updatedExercise || {}),
+      };
+
+      if (this.customExercise?.exercise) {
+        this.customExercise.exercise = {
+          ...this.customExercise.exercise,
+          ...mergedExercise,
+        };
+      }
+
+      if (this.exercise) {
+        this.exercise = {
+          ...this.exercise,
+          ...mergedExercise,
+        };
+      }
+
+      this.form.patchValue({
+        name: mergedExercise.name || '',
+        description: mergedExercise.description || '',
+      });
+
+      this.details.category = Array.isArray(mergedExercise.category)
+        ? mergedExercise.category
+        : mergedExercise.category
+        ? [mergedExercise.category]
+        : [];
+      this.details.muscleGroups1 = mergedExercise.muscleGroups1 || [];
+      this.details.muscleGroups2 = mergedExercise.muscleGroups2 || [];
+      this.details.equipment = mergedExercise.equipment || [];
+
+      this.isEditingOwnExercise = false;
+      const toastOptions: ToastOptions = {
+        message: 'Ejercicio actualizado con éxito',
+        duration: 1800,
+      };
+      this.ionicUtilService.showToast(toastOptions);
+    } finally {
+      this.load = true;
+    }
+  }
+
   private selectNewExercise(exercise: Exercise): void {
     this._idExerciseToAdd = exercise._id;
     this.videoUrl = exercise.videoUrl;
@@ -473,6 +572,35 @@ export class ConfigExercisePage implements OnInit {
       newCustomExercise.sets = this.setList;
       newCustomExercise.notes = this.notes;
 
+      if (this.isEditingOwnExercise && newCustomExercise.exercise) {
+        newCustomExercise.exercise = {
+          ...newCustomExercise.exercise,
+          name:
+            this.form.get('name')?.value?.trim() ||
+            newCustomExercise.exercise.name,
+          description:
+            this.form.get('description')?.value?.trim() ||
+            newCustomExercise.exercise.description ||
+            '',
+          category: this.details.category?.length
+            ? this.details.category
+            : Array.isArray(newCustomExercise.exercise.category)
+            ? newCustomExercise.exercise.category
+            : newCustomExercise.exercise.category
+            ? [newCustomExercise.exercise.category]
+            : [],
+          muscleGroups1: this.details.muscleGroups1?.length
+            ? this.details.muscleGroups1
+            : newCustomExercise.exercise.muscleGroups1 || [],
+          muscleGroups2: this.details.muscleGroups2?.length
+            ? this.details.muscleGroups2
+            : newCustomExercise.exercise.muscleGroups2 || [],
+          equipment: this.details.equipment?.length
+            ? this.details.equipment
+            : newCustomExercise.exercise.equipment || [],
+        };
+      }
+
       // Guardar información sobre los cambios antes de enviar
       const setsCreatedCount = this.setsToCreate.length;
       const setsUpdatedCount = this.setsToUpdate.length;
@@ -540,6 +668,33 @@ export class ConfigExercisePage implements OnInit {
     } else {
       this.setList.forEach((setTemp) => delete setTemp._id);
       let newSets = await this.setService.createSets(this.setList).toPromise();
+
+      if (this.isEditingOwnExercise && this.exercise) {
+        this.exercise = {
+          ...this.exercise,
+          name: this.form.get('name')?.value?.trim() || this.exercise.name,
+          description:
+            this.form.get('description')?.value?.trim() ||
+            this.exercise.description ||
+            '',
+          category: this.details.category?.length
+            ? this.details.category
+            : Array.isArray(this.exercise.category)
+            ? this.exercise.category
+            : this.exercise.category
+            ? [this.exercise.category]
+            : [],
+          muscleGroups1: this.details.muscleGroups1?.length
+            ? this.details.muscleGroups1
+            : this.exercise.muscleGroups1 || [],
+          muscleGroups2: this.details.muscleGroups2?.length
+            ? this.details.muscleGroups2
+            : this.exercise.muscleGroups2 || [],
+          equipment: this.details.equipment?.length
+            ? this.details.equipment
+            : this.exercise.equipment || [],
+        };
+      }
 
       let promises = [];
       this.tableInUse.splits.forEach((splitTemp) => {

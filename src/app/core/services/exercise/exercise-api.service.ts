@@ -55,6 +55,16 @@ export class ExerciseAPIService {
     );
   }
 
+  public updateExercise(
+    idExercise: string,
+    exerciseData: Partial<Exercise>
+  ): Observable<Exercise> {
+    return this.http.patch<Exercise>(
+      `${ExerciseAPIService.EXERCISE_ENDPOINT}/${idExercise}`,
+      exerciseData
+    );
+  }
+
   public deleteExercise(idExercise: string): Observable<any> {
     return this.http.delete<any>(
       `${ExerciseAPIService.EXERCISE_ENDPOINT}/${idExercise}`
