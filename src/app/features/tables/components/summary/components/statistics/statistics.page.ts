@@ -83,6 +83,16 @@ interface ComparisonData {
   currEffectiveVolume: number;
   effVolumeDiff: number;
   effVolumePct: number;
+
+  // Cardio specific
+  prevMaxVelocity?: number;
+  currMaxVelocity?: number;
+  velocityDiff?: number;
+  velocityPct?: number;
+  prevTotalTime?: number;
+  currTotalTime?: number;
+  timeDiff?: number;
+  timePct?: number;
 }
 
 interface CalendarDay {
@@ -615,6 +625,16 @@ export class StatisticsPage implements OnInit, OnDestroy {
         ? (effVolumeDiff / prev.effectiveVolume) * 100
         : 0;
 
+    // Cardio specific diffs
+    const velocityDiff = curr.maxVelocity - prev.maxVelocity;
+    const velocityPct =
+      prev.maxVelocity > 0 ? (velocityDiff / prev.maxVelocity) * 100 : 0;
+
+    const prevTimeTotal = prev.totalTimeMin + prev.totalTimeSec / 60;
+    const currTimeTotal = curr.totalTimeMin + curr.totalTimeSec / 60;
+    const timeDiff = currTimeTotal - prevTimeTotal;
+    const timePct = prevTimeTotal > 0 ? (timeDiff / prevTimeTotal) * 100 : 0;
+
     this.comparisonData = {
       prevSplit: prev.splitIndex,
       currSplit: curr.splitIndex,
@@ -640,6 +660,15 @@ export class StatisticsPage implements OnInit, OnDestroy {
       currEffectiveVolume: curr.effectiveVolume,
       effVolumeDiff,
       effVolumePct,
+      // Cardio fields
+      prevMaxVelocity: prev.maxVelocity,
+      currMaxVelocity: curr.maxVelocity,
+      velocityDiff,
+      velocityPct,
+      prevTotalTime: prevTimeTotal,
+      currTotalTime: currTimeTotal,
+      timeDiff,
+      timePct,
     };
   }
 
@@ -710,84 +739,162 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const ctx = this.progressionCanvas.nativeElement.getContext('2d');
     const labels = data.map((h) => `M${h.splitIndex}`);
 
-    const volData = data.map((h) => h.effectiveVolume);
-    const rirData = data.map((h) => (h.avgRir >= 0 ? h.avgRir : null));
+    if (this.isCardio) {
+      const timeData = data.map((h) => h.totalTimeMin + h.totalTimeSec / 60);
+      const velocityData = data.map((h) => h.maxVelocity);
 
-    this.chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: 'Vol. Efectivo (kg)',
-            data: volData,
-            backgroundColor: 'rgba(254, 144, 0, 0.4)',
-            borderColor: '#fe9000',
-            borderWidth: 1,
-            borderRadius: 4,
-            yAxisID: 'y',
-          },
-          {
-            type: 'line',
-            label: 'RIR Medio',
-            data: rirData,
-            borderColor: '#3880ff',
-            backgroundColor: 'transparent',
-            borderWidth: 3,
-            pointRadius: 4,
-            tension: 0.3,
-            yAxisID: 'y1',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
-                if (ctx.datasetIndex === 0) return ` Volumen: ${ctx.raw} kg`;
-                return ` RIR Medio: ${ctx.raw}`;
+      this.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Tiempo Total (min)',
+              data: timeData,
+              backgroundColor: 'rgba(56, 128, 255, 0.4)',
+              borderColor: '#3880ff',
+              borderWidth: 1,
+              borderRadius: 4,
+              yAxisID: 'y',
+            },
+            {
+              type: 'line',
+              label: 'Mejor Velocidad (km/h)',
+              data: velocityData,
+              borderColor: '#fe9000',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 4,
+              yAxisID: 'y1',
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.datasetIndex === 0) return ` Tiempo: ${ctx.raw} min`;
+                  return ` Velocidad: ${ctx.raw} km/h`;
+                },
               },
             },
           },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: 'rgba(255,255,255,0.5)' },
-          },
-          y: {
-            position: 'left',
-            title: {
-              display: true,
-              text: 'kg',
-              color: 'rgba(255,255,255,0.3)',
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
             },
-            ticks: { color: 'rgba(255,255,255,0.5)' },
-          },
-          y1: {
-            position: 'right',
-            reverse: true, // RIR bajo es más intenso
-            title: {
-              display: true,
-              text: 'RIR',
-              color: 'rgba(255,255,255,0.3)',
+            y: {
+              position: 'left',
+              title: {
+                display: true,
+                text: 'min',
+                color: 'rgba(255,255,255,0.3)',
+              },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
             },
-            grid: { drawOnChartArea: false },
-            min: 0,
-            ticks: { color: 'rgba(56, 128, 255, 0.8)' },
+            y1: {
+              position: 'right',
+              title: {
+                display: true,
+                text: 'km/h',
+                color: 'rgba(254, 144, 0, 0.8)',
+              },
+              grid: { drawOnChartArea: false },
+              ticks: { color: 'rgba(254, 144, 0, 0.8)' },
+            },
           },
         },
-      },
-    });
+      });
+    } else {
+      const volData = data.map((h) => h.effectiveVolume);
+      const rirData = data.map((h) => (h.avgRir >= 0 ? h.avgRir : null));
+
+      this.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Vol. Efectivo (kg)',
+              data: volData,
+              backgroundColor: 'rgba(254, 144, 0, 0.4)',
+              borderColor: '#fe9000',
+              borderWidth: 1,
+              borderRadius: 4,
+              yAxisID: 'y',
+            },
+            {
+              type: 'line',
+              label: 'RIR Medio',
+              data: rirData,
+              borderColor: '#3880ff',
+              backgroundColor: 'transparent',
+              borderWidth: 3,
+              pointRadius: 4,
+              tension: 0.3,
+              yAxisID: 'y1',
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.datasetIndex === 0) return ` Volumen: ${ctx.raw} kg`;
+                  return ` RIR Medio: ${ctx.raw}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
+            },
+            y: {
+              position: 'left',
+              title: {
+                display: true,
+                text: 'kg',
+                color: 'rgba(255,255,255,0.3)',
+              },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
+            },
+            y1: {
+              position: 'right',
+              reverse: true, // RIR bajo es más intenso
+              title: {
+                display: true,
+                text: 'RIR',
+                color: 'rgba(255,255,255,0.3)',
+              },
+              grid: { drawOnChartArea: false },
+              min: 0,
+              ticks: { color: 'rgba(56, 128, 255, 0.8)' },
+            },
+          },
+        },
+      });
+    }
   }
 
   // --- Chart: Progression (Weight and Reps of Selected/Best Set) ---
@@ -931,16 +1038,29 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   private isExerciseStarted(ex: CustomExercise): boolean {
     return (
-      ex.sets && ex.sets.some((s) => s.doned || (s.weight > 0 && s.reps > 0))
+      ex.sets &&
+      ex.sets.some(
+        (s) =>
+          s.doned ||
+          (s.weight > 0 && s.reps > 0) ||
+          (s.velocity && s.velocity > 0) ||
+          (s.timeMin && s.timeMin > 0)
+      )
     );
   }
 
   private getBestSet(sets: ISet[]): ISet | null {
     if (!sets || sets.length === 0) return null;
     return sets.reduce((prev, curr) => {
-      const prevW = prev ? prev.weight || 0 : 0;
-      const currW = curr ? curr.weight || 0 : 0;
-      return currW >= prevW ? curr : prev;
+      if (this.isCardio) {
+        const prevV = prev ? prev.velocity || 0 : 0;
+        const currV = curr ? curr.velocity || 0 : 0;
+        return currV >= prevV ? curr : prev;
+      } else {
+        const prevW = prev ? prev.weight || 0 : 0;
+        const currW = curr ? curr.weight || 0 : 0;
+        return currW >= prevW ? curr : prev;
+      }
     }, sets[0]);
   }
 

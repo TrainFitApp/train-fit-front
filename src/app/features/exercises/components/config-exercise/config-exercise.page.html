@@ -398,7 +398,10 @@
           *ngIf="!isCreateMode && !isEditingOwnExercise"
         >
           <!-- Categorías -->
-          <div class="filter-section" *ngIf="details.category?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.category).length"
+          >
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Categorías</h4>
@@ -406,7 +409,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let category of details.category"
+                *ngFor="let category of getValidDetails(details.category)"
               >
                 <span class="label">{{ category }}</span>
               </div>
@@ -414,7 +417,10 @@
           </div>
 
           <!-- Músculos Principales -->
-          <div class="filter-section" *ngIf="details.muscleGroups1?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.muscleGroups1).length"
+          >
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Músculos Principales</h4>
@@ -422,7 +428,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of details.muscleGroups1"
+                *ngFor="let muscle of getValidDetails(details.muscleGroups1)"
               >
                 <span class="label">{{ muscle }}</span>
               </div>
@@ -430,7 +436,10 @@
           </div>
 
           <!-- Músculos Secundarios -->
-          <div class="filter-section" *ngIf="details.muscleGroups2?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.muscleGroups2).length"
+          >
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Músculos Secundarios</h4>
@@ -438,7 +447,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of details.muscleGroups2"
+                *ngFor="let muscle of getValidDetails(details.muscleGroups2)"
               >
                 <span class="label">{{ muscle }}</span>
               </div>
@@ -446,7 +455,10 @@
           </div>
 
           <!-- Equipamiento -->
-          <div class="filter-section" *ngIf="details.equipment?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.equipment).length"
+          >
             <div class="section-header">
               <ion-icon
                 name="construct-outline"
@@ -457,7 +469,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let equip of details.equipment"
+                *ngFor="let equip of getValidDetails(details.equipment)"
               >
                 <span class="label">{{ equip }}</span>
               </div>

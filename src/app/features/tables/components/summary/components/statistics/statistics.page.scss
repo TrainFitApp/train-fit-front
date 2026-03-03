@@ -853,6 +853,21 @@ ion-grid {
     flex-wrap: wrap;
   }
 
+  &.is-cardio {
+    .header-col-session,
+    .col-session {
+      width: 20%;
+    }
+    .header-col-weight,
+    .col-weight {
+      width: 40%;
+    }
+    .header-col-reps,
+    .col-reps {
+      width: 40%;
+    }
+  }
+
   .header-col-notes,
   .col-notes {
     /* This column is removed as the sum of the other columns is 100% */
