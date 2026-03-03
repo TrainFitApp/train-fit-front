@@ -329,18 +329,18 @@ export class ConfigExercisePage implements OnInit {
           return;
         }
 
-          this.selectNewExercise(res.data);
+        this.selectNewExercise(res.data);
       }
     });
   }
 
-    private selectNewExercise(exercise: Exercise): void {
-      this._idExerciseToAdd = exercise._id;
-      this.videoUrl = exercise.videoUrl;
-      this.updateVideoEmbedSrc();
-      this.form?.controls?.name?.setValue(exercise.name);
-      this.exerciseChanged = true;
-    }
+  private selectNewExercise(exercise: Exercise): void {
+    this._idExerciseToAdd = exercise._id;
+    this.videoUrl = exercise.videoUrl;
+    this.updateVideoEmbedSrc();
+    this.form?.controls?.name?.setValue(exercise.name);
+    this.exerciseChanged = true;
+  }
 
   public configSets(set?: Set): void {
     const modalOptions: ModalOptions = {
@@ -508,7 +508,7 @@ export class ConfigExercisePage implements OnInit {
               // Cerrar el modal con toda la información necesaria
               this.modalController.dismiss({ setChangeInfo: changeInfo });
               this.load = true;
-                this.syncWorkoutInUseAfterExerciseChange();
+              this.syncWorkoutInUseAfterExerciseChange();
               resolve();
             } else {
               // Ejecutar la actualización remota y solo resolver cuando termine
@@ -665,15 +665,16 @@ export class ConfigExercisePage implements OnInit {
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
-        this.syncWorkoutInUseAfterExerciseChange();
+      this.syncWorkoutInUseAfterExerciseChange();
       this.load = true;
     });
   }
 
   private syncWorkoutInUseAfterExerciseChange(): void {
-    const updatedWorkout = this.tableService.tableInUse.splits[
-      this.splitIndex
-    ].workouts[this.workoutIndex];
+    const updatedWorkout =
+      this.tableService.tableInUse.splits[this.splitIndex].workouts[
+        this.workoutIndex
+      ];
 
     if (
       updatedWorkout &&
