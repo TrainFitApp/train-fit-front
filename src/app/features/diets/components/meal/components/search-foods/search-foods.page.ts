@@ -11,6 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import {
   ActionSheetOptions,
+  AlertOptions,
   InfiniteScrollCustomEvent,
   IonRouterOutlet,
   Platform,
@@ -959,21 +960,42 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
    * Solo el creador puede borrar sus propios productos (detectado por product.userId).
    */
   public deleteProduct(productId: string): void {
-    this.productService.deleteProduct(productId).subscribe({
-      next: () => {
-        this.handleProductDeletedLocally(productId);
-        // Refrescar la lista de productos
-        this.search();
-      },
-      error: (err) => {
-        console.error('[deleteProduct] Error:', err);
-        this.ionicUtilService.showToast({
-          message: 'Error al eliminar el producto',
-          duration: 2000,
-          color: 'danger',
-        });
-      },
-    });
+    const product = this.products?.find((p) => p._id === productId);
+    const productName = product ? product.name : 'este producto';
+
+    const alertOptions: AlertOptions = {
+      header: 'Eliminar producto',
+      message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+        },
+        {
+          text: 'ELIMINAR',
+          role: 'destructive',
+          handler: () => {
+            this.productService.deleteProduct(productId).subscribe({
+              next: () => {
+                this.handleProductDeletedLocally(productId);
+                // Refrescar la lista de productos
+                this.search();
+              },
+              error: (err) => {
+                console.error('[deleteProduct] Error:', err);
+                this.ionicUtilService.showToast({
+                  message: 'Error al eliminar el producto',
+                  duration: 2000,
+                  color: 'danger',
+                });
+              },
+            });
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   private handleProductDeletedLocally(productId: string): void {

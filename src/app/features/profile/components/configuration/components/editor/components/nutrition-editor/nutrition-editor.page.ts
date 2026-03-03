@@ -1,4 +1,12 @@
-import { Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, NgZone, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  NgZone,
+  ChangeDetectorRef,
+} from '@angular/core';
 import {
   ModalController,
   ToastOptions,
@@ -44,9 +52,9 @@ export class NutritionEditorPage implements OnInit {
     targetKcal: number;
     grams: { p: number; c: number; f: number };
   } = {
-      targetKcal: 2000,
-      grams: { p: 0, c: 0, f: 0 },
-    };
+    targetKcal: 2000,
+    grams: { p: 0, c: 0, f: 0 },
+  };
 
   constructor(
     private navigationService: NavigationService,
@@ -56,7 +64,7 @@ export class NutritionEditorPage implements OnInit {
     private platform: Platform,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.init();
@@ -74,8 +82,8 @@ export class NutritionEditorPage implements OnInit {
   private kcalFromGrams(): number {
     return Math.round(
       this.state.grams.p * this.state.kcalPerG.p +
-      this.state.grams.c * this.state.kcalPerG.c +
-      this.state.grams.f * this.state.kcalPerG.f
+        this.state.grams.c * this.state.kcalPerG.c +
+        this.state.grams.f * this.state.kcalPerG.f
     );
   }
 
@@ -433,7 +441,7 @@ export class NutritionEditorPage implements OnInit {
       handle2: document.querySelector('.handle-2') as HTMLElement,
       labelP: document.getElementById('labelP'),
       labelC: document.getElementById('labelC'),
-      labelF: document.getElementById('labelF')
+      labelF: document.getElementById('labelF'),
     };
 
     // Run outside Angular to avoid heavy Change Detection on every move
@@ -441,7 +449,9 @@ export class NutritionEditorPage implements OnInit {
       document.addEventListener('pointermove', this.onDragMove);
       document.addEventListener('pointerup', this.onDragEnd);
       document.addEventListener('pointercancel', this.onDragEnd);
-      document.addEventListener('touchmove', this.onDragMove, { passive: false });
+      document.addEventListener('touchmove', this.onDragMove, {
+        passive: false,
+      });
       document.addEventListener('touchend', this.onDragEnd);
     });
   }
@@ -504,7 +514,6 @@ export class NutritionEditorPage implements OnInit {
           }
         }
         this.updateMacrosFromSlider(newP, newC, newF);
-
       } else if (this.activeDragHandle === 'h2') {
         let h2Pos = percentage;
         let newP = this.state.pct.p;
@@ -534,7 +543,7 @@ export class NutritionEditorPage implements OnInit {
         this.updateMacrosFromSlider(newP, newC, newF);
       }
     });
-  }
+  };
 
   private onDragEnd = (event?: any): void => {
     if (this.animationFrameId) {
@@ -554,7 +563,7 @@ export class NutritionEditorPage implements OnInit {
     if (event && event.releasePointerCapture && event.pointerId !== undefined) {
       try {
         (event.target as HTMLElement).releasePointerCapture(event.pointerId);
-      } catch (e) { }
+      } catch (e) {}
     }
 
     document.removeEventListener('pointermove', this.onDragMove);
@@ -562,7 +571,7 @@ export class NutritionEditorPage implements OnInit {
     document.removeEventListener('pointercancel', this.onDragEnd);
     document.removeEventListener('touchmove', this.onDragMove);
     document.removeEventListener('touchend', this.onDragEnd);
-  }
+  };
 
   public onTrackPointerDown(event: any): void {
     if (!this.sliderContainer) return;
@@ -610,7 +619,24 @@ export class NutritionEditorPage implements OnInit {
   }
 
   private manualUIUpdate(): void {
-    const { pG, pP, cG, cP, fG, fP, kcal, kcalTotal, segP, segC, segF, handle1, handle2, labelP, labelC, labelF } = this.cachedElements;
+    const {
+      pG,
+      pP,
+      cG,
+      cP,
+      fG,
+      fP,
+      kcal,
+      kcalTotal,
+      segP,
+      segC,
+      segF,
+      handle1,
+      handle2,
+      labelP,
+      labelC,
+      labelF,
+    } = this.cachedElements;
     const p = this.state.pct.p;
     const c = this.state.pct.c;
     const f = this.state.pct.f;
@@ -623,7 +649,8 @@ export class NutritionEditorPage implements OnInit {
     if (fG) fG.value = Math.round(this.state.grams.f).toString();
     if (fP) fP.value = f.toFixed(1);
     if (kcal) kcal.value = this.state.targetKcal.toString();
-    if (kcalTotal) kcalTotal.textContent = this.getTotalKcalFromMacros().toString();
+    if (kcalTotal)
+      kcalTotal.textContent = this.getTotalKcalFromMacros().toString();
 
     // Actualizar Slider Bar (Segments)
     if (segP) segP.style.width = p + '%';
@@ -632,7 +659,7 @@ export class NutritionEditorPage implements OnInit {
       segC.style.width = c + '%';
     }
     if (segF) {
-      segF.style.left = (p + c) + '%';
+      segF.style.left = p + c + '%';
       segF.style.width = f + '%';
     }
 
@@ -652,7 +679,7 @@ export class NutritionEditorPage implements OnInit {
 
     // Actualizar Handles
     if (handle1) handle1.style.left = p + '%';
-    if (handle2) handle2.style.left = (p + c) + '%';
+    if (handle2) handle2.style.left = p + c + '%';
   }
 
   // Obsolete event, replaced by unified slider
@@ -773,7 +800,9 @@ export class NutritionEditorPage implements OnInit {
   private syncInputsFromState(): void {
     // Only used for initialization or major state changes, not during drag
     const pG = document.getElementById('proteinGramsInput') as HTMLInputElement;
-    const pP = document.getElementById('proteinPercentInput') as HTMLInputElement;
+    const pP = document.getElementById(
+      'proteinPercentInput'
+    ) as HTMLInputElement;
     const cG = document.getElementById('carbsGramsInput') as HTMLInputElement;
     const cP = document.getElementById('carbsPercentInput') as HTMLInputElement;
     const fG = document.getElementById('fatGramsInput') as HTMLInputElement;
@@ -813,7 +842,8 @@ export class NutritionEditorPage implements OnInit {
 
       // Mostrar toast informativo
       const toast: ToastOptions = {
-        message: 'Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico',
+        message:
+          'Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico',
         duration: 3000,
         color: 'warning',
       };
@@ -823,7 +853,8 @@ export class NutritionEditorPage implements OnInit {
       const summarySection = document.querySelector('.summary-section');
       if (summarySection && this.content) {
         // Obtener la posición del elemento
-        const yOffset = summarySection.getBoundingClientRect().top + window.pageYOffset - 100;
+        const yOffset =
+          summarySection.getBoundingClientRect().top + window.pageYOffset - 100;
         this.content.scrollToPoint(0, yOffset, 500);
       }
 
@@ -927,7 +958,7 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public getMacroName(key: string): string {
-    const names = { p: 'Proteínas', c: 'Carbohidratos', f: 'Grasas' };
+    const names = { p: 'Proteínas', c: 'CBH', f: 'Grasas' };
     const macroKey = key as 'p' | 'c' | 'f';
     return names[macroKey];
   }
