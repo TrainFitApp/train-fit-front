@@ -189,7 +189,9 @@ export class ConfigExercisePage implements OnInit {
     // Initialize details from current exercise
     const baseExercise = this.exercise || this.customExercise?.exercise;
     if (baseExercise) {
-      this.details.category = baseExercise.category
+      this.details.category = Array.isArray(baseExercise.category)
+        ? baseExercise.category
+        : baseExercise.category
         ? [baseExercise.category]
         : [];
       this.details.muscleGroups1 = baseExercise.muscleGroups1 || [];
@@ -264,7 +266,7 @@ export class ConfigExercisePage implements OnInit {
         videoUrl: '',
         muscleGroups1: [],
         muscleGroups2: [],
-        category: null,
+        category: [],
         equipment: [],
         gifUrl: '',
         isCardio: false,
@@ -429,8 +431,12 @@ export class ConfigExercisePage implements OnInit {
             ? this.details.muscleGroups2
             : this.exercise.muscleGroups2 || [],
           category: this.details.category?.length
-            ? this.details.category[0]
-            : this.exercise.category || null,
+            ? this.details.category
+            : Array.isArray(this.exercise.category)
+            ? this.exercise.category
+            : this.exercise.category
+            ? [this.exercise.category]
+            : [],
           equipment: this.details.equipment?.length
             ? this.details.equipment
             : this.exercise.equipment || [],

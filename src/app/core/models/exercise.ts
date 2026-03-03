@@ -5,7 +5,7 @@ export class Exercise {
   videoUrl: string;
   muscleGroups1: string[];
   muscleGroups2: string[];
-  category?: string;
+  category?: string[] | string;
   equipment: string[];
   gifUrl: string;
   isCardio?: boolean;
