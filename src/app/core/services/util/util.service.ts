@@ -499,11 +499,6 @@ export class UtilService {
               USER_FORM_CONTROL_FIELDS[error.control_name]
             );
             break;
-          case 'specialChar':
-            text = USER_ERROR_MESSAGES.specialChar(
-              USER_FORM_CONTROL_FIELDS[error.control_name]
-            );
-            break;
           case 'areEqual':
             text = USER_ERROR_MESSAGES.areEqual(
               USER_FORM_CONTROL_FIELDS[error.control_name]
