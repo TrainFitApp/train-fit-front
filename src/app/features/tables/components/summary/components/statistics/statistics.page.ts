@@ -856,30 +856,13 @@ export class StatisticsPage implements OnInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'index' },
         plugins: {
           legend: {
             display: true,
             position: 'top',
-            labels: {
-              color: 'rgba(255,255,255,0.7)',
-              font: { family: 'Outfit', size: 10 },
-              usePointStyle: true,
-              padding: 12,
-              boxWidth: 8,
-            },
+            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
           },
           tooltip: {
-            backgroundColor: 'rgba(18,18,18,0.96)',
-            titleColor: '#fe9000',
-            bodyColor: '#fff',
-            borderColor: 'rgba(254,144,0,0.35)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
-            bodyFont: { family: 'Outfit', size: 12 },
-            padding: 12,
-            boxPadding: 5,
             callbacks: {
               label: (ctx) => {
                 const v = ctx.raw as number;
@@ -897,33 +880,19 @@ export class StatisticsPage implements OnInit, OnDestroy {
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-            },
+            grid: { display: false },
+            ticks: { color: 'rgba(255,255,255,0.5)' },
           },
           y: {
             position: 'left',
-            grid: { color: 'rgba(255,255,255,0.06)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-              callback: (v) => `${v} ${yUnit}`,
-            },
+            ticks: { color: 'rgba(255,255,255,0.5)' },
           },
           y1: {
-            type: 'linear',
             position: 'right',
             grid: { drawOnChartArea: false },
-            ticks: {
-              color: 'rgba(56,128,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-              callback: (v) => `${v} ${repsUnit}`,
-            },
+            ticks: { color: 'rgba(56, 128, 255, 0.8)' },
           },
         },
-        animation: { duration: 900, easing: 'easeInOutQuart' },
       },
     });
   }
