@@ -92,6 +92,7 @@ export class ConfigExercisePage implements OnInit {
   public videoEmbedSrcSafe: any;
 
   public isCreateMode: boolean;
+  public exerciseMode: 'fuerza' | 'cardio' = 'fuerza';
   public isEditingOwnExercise: boolean = false;
 
   public showFilters: boolean = true;
@@ -190,6 +191,7 @@ export class ConfigExercisePage implements OnInit {
     // Initialize details from current exercise
     const baseExercise = this.exercise || this.customExercise?.exercise;
     if (baseExercise) {
+      this.exerciseMode = baseExercise.isCardio ? 'cardio' : 'fuerza';
       this.details.category = Array.isArray(baseExercise.category)
         ? baseExercise.category
         : baseExercise.category
@@ -382,9 +384,12 @@ export class ConfigExercisePage implements OnInit {
       equipment: this.details.equipment?.length
         ? this.details.equipment
         : currentExercise.equipment || [],
-      isCardio: currentExercise.isCardio || false,
       userId: currentExercise.userId || this.user?._id,
     };
+
+    if (this.exerciseMode === 'cardio') {
+      payload.isCardio = true;
+    }
 
     try {
       const updatedExercise = await lastValueFrom(
@@ -396,6 +401,12 @@ export class ConfigExercisePage implements OnInit {
         ...(payload as Exercise),
         ...(updatedExercise || {}),
       };
+
+      if (this.exerciseMode !== 'cardio') {
+        delete (mergedExercise as any).isCardio;
+      } else {
+        mergedExercise.isCardio = true;
+      }
 
       if (this.customExercise?.exercise) {
         this.customExercise.exercise = {
@@ -540,9 +551,12 @@ export class ConfigExercisePage implements OnInit {
             ? this.details.equipment
             : this.exercise.equipment || [],
           keywords: [],
-          isCardio: this.exercise.isCardio || false,
           userId: this.user._id,
         };
+
+        if (this.exerciseMode === 'cardio') {
+          (exerciseData as any).isCardio = true;
+        }
 
         // Prepare dataExercise with embedded exercise
         const dataExerciseData = {
@@ -774,6 +788,71 @@ export class ConfigExercisePage implements OnInit {
 
   public toggleFilters(): void {
     this.showFilters = !this.showFilters;
+  }
+
+  public async setExerciseMode(mode: any): Promise<void> {
+    if (mode !== 'fuerza' && mode !== 'cardio') {
+      return;
+    }
+
+    if (mode === this.exerciseMode) {
+      return;
+    }
+
+    if (this.setList?.length > 0) {
+      const alertOptions: AlertOptions = {
+        header: 'Cambiar tipo de ejercicio',
+        message:
+          'Si cambias entre Fuerza y Cardio se eliminarán todas las series configuradas. ¿Deseas continuar?',
+        buttons: [
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+          },
+          {
+            text: 'Confirmar',
+            role: 'confirm',
+            cssClass: 'alert-button-primary',
+          },
+        ],
+      };
+
+      const result = await this.ionicUtilService.showAlert(alertOptions);
+      if (result.role !== 'confirm') {
+        return;
+      }
+
+      this.clearSetsForModeChange();
+    }
+
+    this.applyExerciseMode(mode);
+  }
+
+  private applyExerciseMode(mode: 'fuerza' | 'cardio'): void {
+    this.exerciseMode = mode;
+    const isCardio = mode === 'cardio';
+
+    if (this.exercise) {
+      this.exercise.isCardio = isCardio;
+    }
+
+    if (this.customExercise?.exercise) {
+      this.customExercise.exercise.isCardio = isCardio;
+    }
+  }
+
+  private clearSetsForModeChange(): void {
+    this.setList.forEach((set) => {
+      if (set?._id && isNaN(Number(set._id))) {
+        if (!this.setsToDelete.includes(set._id)) {
+          this.setsToDelete.push(set._id);
+        }
+      }
+    });
+
+    this.setList = [];
+    this.setsToCreate = [];
+    this.setsToUpdate = [];
   }
 
   public openDetailsModal(): void {

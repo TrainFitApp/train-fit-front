@@ -108,6 +108,21 @@
             class="exercise-description-input"
             rows="3"
           ></ion-textarea>
+
+          <div class="exercise-mode-section">
+            <ion-segment
+              mode="ios"
+              [value]="exerciseMode"
+              (ionChange)="setExerciseMode($event.detail.value)"
+            >
+              <ion-segment-button value="fuerza">
+                <ion-label>Fuerza</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="cardio">
+                <ion-label>Cardio</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </div>
         </div>
         <div class="add-sets-section">
           <ion-button
