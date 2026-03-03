@@ -102,6 +102,7 @@ export class SearchExercisesPageComponent {
       .searchExercise(this.searchFilterGroupExercises)
       .subscribe((resExercises) => {
         this.exercises = resExercises;
+        this.exerciseService.setExercises = this.exercises;
         this.load = true;
       });
   }
@@ -115,6 +116,7 @@ export class SearchExercisesPageComponent {
         .searchExercise(this.searchFilterGroupExercises)
         .subscribe((resExercises) => {
           this.exercises = this.exercises.concat(resExercises);
+          this.exerciseService.setExercises = this.exercises;
           this.load = true;
         });
       // this.searchByFilter();
