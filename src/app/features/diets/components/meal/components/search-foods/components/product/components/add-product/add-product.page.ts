@@ -236,7 +236,7 @@ export class AddProductPage implements OnInit, OnDestroy {
             'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
           buttons: [
             {
-              text: 'Mantener valores anteriores',
+              text: 'Mantener',
               role: 'cancel',
               handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
@@ -311,7 +311,7 @@ export class AddProductPage implements OnInit, OnDestroy {
             'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
           buttons: [
             {
-              text: 'Mantener valores anteriores',
+              text: 'Mantener',
               role: 'cancel',
               handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
