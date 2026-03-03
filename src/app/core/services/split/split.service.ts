@@ -34,10 +34,6 @@ export class SplitService {
     return this.splitAPIService.addSplitToTable(idTable, idSplit);
   }
 
-  public arhiveSplit(idSplit: string, idUser: string) {
-    return this.splitAPIService.arhiveSplit(idSplit, idUser);
-  }
-
   public updateSplit(split: Split): Observable<any> {
     return this.splitAPIService.updateSplit(split);
   }

@@ -44,11 +44,7 @@ export class User {
   carbohydratesGTotal: number;
   fatGTotal: number;
 
-  archivedDietDays?: string[];
   archivedProducts?: string[];
-
-  archivedSplits?: string[];
-  archivedWorkouts?: string[];
+  archivedRecipes?: string[];
   archivedExercises?: string[];
-  favoriteRecipes?: string[];
 }

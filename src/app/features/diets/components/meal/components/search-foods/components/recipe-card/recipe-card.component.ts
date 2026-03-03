@@ -98,7 +98,7 @@ export class RecipeCardComponent implements OnInit, OnChanges {
 
   private checkFavorite(): void {
     this.isFavorite =
-      this.user?.favoriteRecipes?.includes(this.recipe._id) ?? false;
+      this.user?.archivedRecipes?.includes(this.recipe._id) ?? false;
   }
 
   private checkOwnership(): void {

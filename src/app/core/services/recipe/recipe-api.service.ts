@@ -67,9 +67,9 @@ export class RecipeApiService {
   }
 
   /**
-   * Get user's favorite recipes
+   * Get user's archived recipes
    */
-  public getFavoriteRecipes(
+  public getArchivedRecipes(
     search: string = '',
     page: number = 0,
     limit: number = 10
@@ -77,7 +77,7 @@ export class RecipeApiService {
     return this.http.get<Recipe[]>(
       `${
         RecipeApiService.RECIPES_ENDPOINT
-      }/favorites?search=${encodeURIComponent(
+      }/archived?search=${encodeURIComponent(
         search
       )}&page=${page}&limit=${limit}`
     );
@@ -121,15 +121,18 @@ export class RecipeApiService {
   }
 
   /**
-   * Toggle favorite status for a recipe
+   * Toggle archived status for a recipe
    */
-  public toggleFavorite(
-    recipeId: string
-  ): Observable<{ isFavorite: boolean; message: string }> {
-    return this.http.post<{ isFavorite: boolean; message: string }>(
-      `${RecipeApiService.RECIPES_ENDPOINT}/${recipeId}/favorite`,
-      {}
-    );
+  public toggleArchived(recipeId: string): Observable<{
+    isArchived: boolean;
+    isFavorite?: boolean;
+    message: string;
+  }> {
+    return this.http.post<{
+      isArchived: boolean;
+      isFavorite?: boolean;
+      message: string;
+    }>(`${RecipeApiService.RECIPES_ENDPOINT}/${recipeId}/archive`, {});
   }
 
   /**

@@ -680,24 +680,24 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private checkFavorite(): void {
     if (this.recipe && this.user) {
       this.isFavorite =
-        this.user.favoriteRecipes?.includes(this.recipe._id) || false;
+        this.user.archivedRecipes?.includes(this.recipe._id) || false;
     }
   }
 
   public toggleFavorite(): void {
     if (!this.recipe) return;
 
-    this.recipeService.toggleFavorite(this.recipe._id).subscribe({
+    this.recipeService.toggleArchived(this.recipe._id).subscribe({
       next: (res) => {
-        this.isFavorite = res.isFavorite;
+        this.isFavorite = res.isArchived;
         // Update user state locally
         if (this.isFavorite) {
-          if (!this.user.favoriteRecipes) this.user.favoriteRecipes = [];
-          if (!this.user.favoriteRecipes.includes(this.recipe._id)) {
-            this.user.favoriteRecipes.push(this.recipe._id);
+          if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
+          if (!this.user.archivedRecipes.includes(this.recipe._id)) {
+            this.user.archivedRecipes.push(this.recipe._id);
           }
         } else {
-          this.user.favoriteRecipes = this.user.favoriteRecipes?.filter(
+          this.user.archivedRecipes = this.user.archivedRecipes?.filter(
             (id) => id !== this.recipe?._id
           );
         }

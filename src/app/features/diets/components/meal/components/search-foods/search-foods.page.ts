@@ -1420,7 +1420,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         if (recipeTemp) {
           const idRecipe: string = recipeTemp._id;
           const verified: boolean = !!recipeTemp?.verified;
-          const fav: boolean = this.user?.favoriteRecipes?.includes(idRecipe);
+          const fav: boolean = this.user?.archivedRecipes?.includes(idRecipe);
 
           // Aplicar filtros activos
           if (this.searchFilterGroup.shieldFilter && !verified) return false;
@@ -1484,13 +1484,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.shieldFilter
     ) {
       // Favorites + Verified (start from favorites, filter verified locally)
-      request$ = this.recipeApiService.getFavoriteRecipes(search, page);
+      request$ = this.recipeApiService.getArchivedRecipes(search, page);
     } else if (this.searchFilterGroup.shieldFilter) {
       // Verified recipes
       request$ = this.recipeApiService.getVerifiedRecipes(search, page);
     } else if (this.searchFilterGroup.favFilter) {
       // Favorite recipes
-      request$ = this.recipeApiService.getFavoriteRecipes(search, page);
+      request$ = this.recipeApiService.getArchivedRecipes(search, page);
     } else {
       // All recipes (verified + user's own)
       request$ = this.recipeApiService.searchRecipes(search, page);
@@ -1507,7 +1507,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.searchFilterGroup.favFilter
         ) {
           filtered = recipes.filter((r) =>
-            this.user?.favoriteRecipes?.includes(r._id)
+            this.user?.archivedRecipes?.includes(r._id)
           );
         }
 
@@ -1723,20 +1723,20 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeFavoriteToggle(recipe: Recipe): void {
-    this.recipeApiService.toggleFavorite(recipe._id).subscribe({
+    this.recipeApiService.toggleArchived(recipe._id).subscribe({
       next: (res) => {
         // Update local user favorites
-        if (res.isFavorite) {
-          if (!this.user.favoriteRecipes) this.user.favoriteRecipes = [];
-          this.user.favoriteRecipes.push(recipe._id);
+        if (res.isArchived) {
+          if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
+          this.user.archivedRecipes.push(recipe._id);
         } else {
-          const idx = this.user.favoriteRecipes?.indexOf(recipe._id);
-          if (idx > -1) this.user.favoriteRecipes.splice(idx, 1);
+          const idx = this.user.archivedRecipes?.indexOf(recipe._id);
+          if (idx > -1) this.user.archivedRecipes.splice(idx, 1);
         }
         this.userService.setLocalUser = this.user;
 
         const toastOptions: ToastOptions = {
-          message: res.isFavorite
+          message: res.isArchived
             ? 'Receta añadida a favoritos'
             : 'Receta eliminada de favoritos',
           duration: 1500,

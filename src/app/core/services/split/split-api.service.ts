@@ -15,7 +15,10 @@ export class SplitAPIService {
   }
 
   public createSplitAndAddToTable(tableInUseId: string): Observable<Table> {
-    return this.http.post<Table>(`${SplitAPIService.SPLIT_ENDPOINT}/${tableInUseId}`, null);
+    return this.http.post<Table>(
+      `${SplitAPIService.SPLIT_ENDPOINT}/${tableInUseId}`,
+      null
+    );
   }
 
   public addSplitToTable(
@@ -29,17 +32,17 @@ export class SplitAPIService {
   }
 
   public getSplitByIdAndDate(id: string, date: Date): Observable<Split> {
-    return this.http.post<Split>(`${SplitAPIService.SPLIT_ENDPOINT}/date/${id}`, { date });
+    return this.http.post<Split>(
+      `${SplitAPIService.SPLIT_ENDPOINT}/date/${id}`,
+      { date }
+    );
   }
 
   public addTableSplit(idTable: string, idSplit: string): Observable<any> {
-    return this.http.put<Table>(`${SplitAPIService.SPLIT_ENDPOINT}/split/${idTable}/${idSplit}`, null);
-  }
-
-  public arhiveSplit(idSplit: string, idUser: string) {
-    return this.http
-      .put<any>(`${SplitAPIService.SPLIT_ENDPOINT}/archive`, { idSplit, idUser })
-      .pipe(take(1));
+    return this.http.put<Table>(
+      `${SplitAPIService.SPLIT_ENDPOINT}/split/${idTable}/${idSplit}`,
+      null
+    );
   }
 
   public updateSplit(split: Split): Observable<any> {
@@ -47,6 +50,8 @@ export class SplitAPIService {
   }
 
   public deleteSplit(idTable: string, idSplit: string): Observable<any> {
-    return this.http.delete<any>(`${SplitAPIService.SPLIT_ENDPOINT}/${idTable}/${idSplit}`);
+    return this.http.delete<any>(
+      `${SplitAPIService.SPLIT_ENDPOINT}/${idTable}/${idSplit}`
+    );
   }
 }

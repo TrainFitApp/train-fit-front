@@ -54,14 +54,14 @@ export class RecipeService {
   }
 
   /**
-   * Get user's favorite recipes
+   * Get user's archived recipes
    */
-  public getFavoriteRecipes(
+  public getArchivedRecipes(
     search: string = '',
     page: number = 0,
     limit: number = 20
   ): Observable<Recipe[]> {
-    return this.recipeApiService.getFavoriteRecipes(search, page, limit);
+    return this.recipeApiService.getArchivedRecipes(search, page, limit);
   }
 
   /**
@@ -90,12 +90,14 @@ export class RecipeService {
   }
 
   /**
-   * Toggle favorite status
+   * Toggle archived status
    */
-  public toggleFavorite(
-    recipeId: string
-  ): Observable<{ isFavorite: boolean; message: string }> {
-    return this.recipeApiService.toggleFavorite(recipeId);
+  public toggleArchived(recipeId: string): Observable<{
+    isArchived: boolean;
+    isFavorite?: boolean;
+    message: string;
+  }> {
+    return this.recipeApiService.toggleArchived(recipeId);
   }
 
   /**
@@ -210,7 +212,7 @@ export class RecipeService {
   /**
    * Check if recipe is in favorites
    */
-  public isFavorite(recipe: Recipe, favoriteRecipes: string[]): boolean {
-    return recipe._id ? favoriteRecipes.includes(recipe._id) : false;
+  public isFavorite(recipe: Recipe, archivedRecipes: string[]): boolean {
+    return recipe._id ? archivedRecipes.includes(recipe._id) : false;
   }
 }
