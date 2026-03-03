@@ -1005,10 +1005,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     this.products = (this.products || []).filter((p) => p?._id !== productId);
 
+    // Limpiar selectedIngredients (modo ingredientes)
     if (this.selectedIngredients?.length) {
-      this.selectedIngredients = this.selectedIngredients.filter(
+      const filteredIngredients = this.selectedIngredients.filter(
         (ing) => ing?.product?._id !== productId
       );
+      
+      // Actualizar usando el setter para disparar el signal
+      this.selectedIngredients = filteredIngredients;
+      
       this.calculateIngredientMacros();
       this.navigationService.setTempData(
         'selectedIngredients',
@@ -1018,7 +1023,61 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.setSelectedIngredientsFirst();
       }
     } else if (this.ingredientMode) {
+      this.selectedIngredients = [];
       this.navigationService.setTempData('selectedIngredients', []);
+    }
+
+    // Limpiar receta en tempData si existe (para config-recipe)
+    const savedRecipe = this.navigationService.getTempData<any>('configRecipeDef');
+    if (savedRecipe && Array.isArray(savedRecipe.customProducts)) {
+      savedRecipe.customProducts = savedRecipe.customProducts.filter(
+        (cp: any) => {
+          const cpProductId = typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
+          return cpProductId !== productId;
+        }
+      );
+      this.navigationService.setTempData('configRecipeDef', savedRecipe);
+    }
+
+    // Limpiar customRecipeInstance en tempData si existe
+    const savedInstance = this.navigationService.getTempData<any>('configRecipeInstance');
+    if (savedInstance) {
+      // Limpiar additionalCustomProducts
+      if (Array.isArray(savedInstance.additionalCustomProducts)) {
+        savedInstance.additionalCustomProducts = savedInstance.additionalCustomProducts.filter((addCp: any) => {
+          const addProductId = typeof addCp?.product === 'string' ? addCp.product : addCp?.product?._id;
+          return addProductId !== productId;
+        });
+      }
+
+      // Limpiar de la receta base dentro de dataRecipe
+      const dataRecipe = typeof savedInstance.dataRecipe === 'object' ? savedInstance.dataRecipe : null;
+      const recipe = dataRecipe && typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+      
+      if (recipe && Array.isArray(recipe.customProducts)) {
+        const removedCustomProductIds = new Set<string>();
+        
+        recipe.customProducts = recipe.customProducts.filter((cp: any) => {
+          const cpProductId = typeof cp?.product === 'string' ? cp.product : cp?.product?._id;
+          const keep = cpProductId !== productId;
+          if (!keep && cp?._id) {
+            removedCustomProductIds.add(cp._id.toString());
+          }
+          return keep;
+        });
+
+        // Limpiar overrides relacionados
+        if (removedCustomProductIds.size > 0 && Array.isArray(savedInstance.customProductsOverrides)) {
+          savedInstance.customProductsOverrides = savedInstance.customProductsOverrides.filter((override: any) => {
+            const overrideId = typeof override?.customProductId === 'string' 
+              ? override.customProductId 
+              : override?.customProductId?._id;
+            return !removedCustomProductIds.has((overrideId || '').toString());
+          });
+        }
+      }
+
+      this.navigationService.setTempData('configRecipeInstance', savedInstance);
     }
 
     if (this.user?.archivedProducts?.includes(productId)) {
