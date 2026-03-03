@@ -165,9 +165,7 @@ ion-grid {
 .exercise-card {
   margin-bottom: 16px;
   background: rgba(var(--ion-color-light-rgb), 0.5);
-  transition:
-    background 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 
   &.highlight-new {
     animation: highlightNewExercise 2s ease-in-out;
@@ -631,8 +629,8 @@ ion-chip {
 .fail-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--ion-color-danger);
-  background: rgba(var(--ion-color-danger-rgb), 0.15);
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
   padding: 2px 6px;
   border-radius: 4px;
 }

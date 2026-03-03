@@ -265,6 +265,72 @@
             </div>
           </div>
 
+          <!-- Volumen Efectivo -->
+          <div class="comparison-item" *ngIf="!isCardio">
+            <div class="comparison-item-label">
+              <ion-icon name="trending-up-outline"></ion-icon>
+              Volumen Efectivo
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevEffectiveVolume | number:'1.0-0' }}</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.effVolumeDiff)"
+                [class]="getDiffClass(comparisonData.effVolumeDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currEffectiveVolume | number:'1.0-0' }}</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.effVolumeDiff)"
+            >
+              <span *ngIf="comparisonData.effVolumeDiff !== 0">
+                {{ comparisonData.effVolumeDiff > 0 ? '+' : '' }}{{
+                comparisonData.effVolumePct | number:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.effVolumeDiff === 0" class="neutral"
+                >Sin cambio</span
+              >
+            </div>
+          </div>
+
+          <!-- RIR Medio -->
+          <div class="comparison-item" *ngIf="!isCardio">
+            <div class="comparison-item-label">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              RIR Medio
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevAvgRir >= 0 ? (comparisonData.prevAvgRir
+                | number:'1.1-1') : '—' }}</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.rirDiff)"
+                [class]="getDiffClass(comparisonData.rirDiff, true)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currAvgRir >= 0 ? (comparisonData.currAvgRir
+                | number:'1.1-1') : '—' }}</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.rirDiff, true)"
+            >
+              <span *ngIf="comparisonData.rirDiff !== 0">
+                {{ comparisonData.rirDiff > 0 ? '+' : '' }}{{
+                comparisonData.rirDiff | number:'1.1-1' }} RIR
+              </span>
+              <span *ngIf="comparisonData.rirDiff === 0" class="neutral"
+                >Igual</span
+              >
+            </div>
+          </div>
+
           <!-- Series -->
           <div class="comparison-item">
             <div class="comparison-item-label">
@@ -283,17 +349,17 @@
               class="comparison-item-pct"
               [class]="getDiffClass(comparisonData.setsDiff)"
             >
-              <span *ngIf="comparisonData.setsDiff !== 0">
-                {{ comparisonData.setsDiff > 0 ? '+' : '' }}{{
-                comparisonData.setsDiff }} series
-              </span>
+              <span *ngIf="comparisonData.setsDiff !== 0"
+                >{{ comparisonData.setsDiff > 0 ? '+' : '' }}{{
+                comparisonData.setsDiff }} series</span
+              >
               <span *ngIf="comparisonData.setsDiff === 0" class="neutral"
                 >Igual</span
               >
             </div>
           </div>
 
-          <!-- Técnicas avanzadas (full width) -->
+          <!-- Técnicas avanzadas -->
           <div
             class="comparison-item comparison-item-full"
             *ngIf="comparisonData.prevDropSets + comparisonData.currDropSets + comparisonData.prevRestPauses + comparisonData.currRestPauses > 0"
@@ -339,47 +405,45 @@
       *ngIf="selectedExerciseId && historyData.length > 0"
     >
       <ion-card-header class="chart-card-header">
-        <ion-card-title>Evolución</ion-card-title>
-        <div class="chart-tabs">
-          <button
-            class="chart-tab"
-            [class.active]="chartMode === 'topset'"
-            (click)="selectChartMode('topset')"
+        <div class="chart-mode-container">
+          <ion-segment
+            [(ngModel)]="chartMode"
+            (ionChange)="onChartModeChange($event)"
+            mode="ios"
           >
-            <ion-icon name="trophy-outline"></ion-icon>
-            Top Set
-          </button>
-          <button
-            class="chart-tab"
-            [class.active]="chartMode === 'sets'"
-            (click)="selectChartMode('sets')"
+            <ion-segment-button value="evolution">
+              <ion-label>Evolución</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="volume">
+              <ion-label>Volumen</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+        <div class="chart-header-main" *ngIf="chartMode === 'evolution'">
+          <ion-card-title>Progresión Directa</ion-card-title>
+          <ion-select
+            mode="ios"
+            interface="popover"
+            [value]="selectedSetIndex"
+            (ionChange)="onSetTypeChange($event)"
+            class="set-selector"
           >
-            <ion-icon name="trending-up-outline"></ion-icon>
-            Series
-          </button>
-          <button
-            class="chart-tab"
-            [class.active]="chartMode === 'rir'"
-            (click)="selectChartMode('rir')"
+            <ion-select-option
+              *ngFor="let idx of availableSetOptions"
+              [value]="idx"
+            >
+              Serie {{ idx + 1 }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+        <div class="chart-header-main" *ngIf="chartMode === 'volume'">
+          <ion-card-title>Carga de Trabajo</ion-card-title>
+          <ion-text color="medium" style="font-size: 0.8rem"
+            >Volumen Efectivo vs RIR Medio</ion-text
           >
-            <ion-icon name="flame-outline"></ion-icon>
-            RIR
-          </button>
         </div>
       </ion-card-header>
       <ion-card-content>
-        <!-- Chart Mode Description -->
-        <div class="chart-mode-desc">
-          <span *ngIf="chartMode === 'topset'"
-            >Peso de la mejor serie por microciclo</span
-          >
-          <span *ngIf="chartMode === 'sets'"
-            >Peso de cada serie por microciclo</span
-          >
-          <span *ngIf="chartMode === 'rir'"
-            >Intensidad media · RIR bajo = más cerca del fallo 🔥</span
-          >
-        </div>
         <div class="chart-container">
           <canvas #progressionCanvas></canvas>
         </div>
@@ -399,16 +463,14 @@
           <ng-container *ngIf="!isCardio">
             <span class="header-col-weight">Peso</span>
             <span class="header-col-reps">Reps</span>
-            <span class="header-col-rir">RIR</span>
           </ng-container>
 
           <ng-container *ngIf="isCardio">
             <span class="header-col-weight">Veloc.</span>
             <span class="header-col-reps">Tiempo</span>
-            <span class="header-col-rir"></span>
           </ng-container>
 
-          <span class="header-col-notes"></span>
+          <span class="header-col-rir">Intensidad</span>
         </div>
 
         <ion-list lines="none" class="history-list">
@@ -416,16 +478,17 @@
             <!-- Session Header Row -->
             <div class="session-divider">
               <ion-badge color="medium" class="week-badge"
-                >M{{ session.splitIndex }}</ion-badge
+                >Microciclo {{ session.splitIndex }}</ion-badge
               >
               <span class="session-date"
                 >{{ session.date | date:'dd/MM/yyyy' }}</span
               >
               <ion-icon
                 *ngIf="session.notes"
-                name="document-text-outline"
-                color="medium"
-                class="session-note-icon"
+                name="create-outline"
+                color="primary"
+                class="session-note-icon clickable"
+                (click)="showNoteAlert(session.notes, 'Nota del Microciclo ' + session.splitIndex)"
               ></ion-icon>
             </div>
 
@@ -449,8 +512,25 @@
                     <span>{{ set.reps }}</span>
                   </div>
                   <div class="col-rir">
-                    <span [class.fail-rir]="set.isFail"
-                      >{{ set.isFail ? 'FALLO' : set.rir }}</span
+                    <!-- FALLO -->
+                    <span *ngIf="set.isFail" class="fail-label">FALLO</span>
+                    <!-- RIR normal -->
+                    <span
+                      *ngIf="!set.isFail && set.rir !== '-'"
+                      class="rir-value"
+                      >{{ set.rir }} RIR</span
+                    >
+                    <!-- Drop Set -->
+                    <span *ngIf="set.isDropSet" class="intensity-drop">DS</span>
+                    <!-- Rest Pause -->
+                    <span *ngIf="set.isRestPause" class="intensity-rp"
+                      >RP {{ set.restPause }} Seg</span
+                    >
+                    <!-- Guion solo si no hay NADA de lo anterior -->
+                    <span
+                      *ngIf="!set.isFail && set.rir === '-' && !set.isDropSet && !set.isRestPause"
+                      class="rir-value"
+                      >—</span
                     >
                   </div>
                 </ng-container>
@@ -470,26 +550,6 @@
                   </div>
                   <div class="col-rir"></div>
                 </ng-container>
-
-                <div class="col-notes">
-                  <div class="session-indicators">
-                    <span
-                      class="type-dot drop"
-                      *ngIf="set.isDropSet"
-                      title="Drop Set"
-                      >DS</span
-                    >
-                    <span
-                      class="type-dot rest"
-                      *ngIf="set.isRestPause"
-                      title="Rest Pause"
-                      >RP</span
-                    >
-                    <span class="type-dot fail" *ngIf="set.isFail" title="Fallo"
-                      >F</span
-                    >
-                  </div>
-                </div>
               </div>
 
               <!-- Drop Set sub-series -->

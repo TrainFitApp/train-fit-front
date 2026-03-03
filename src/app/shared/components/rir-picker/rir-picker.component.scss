@@ -1,146 +1,160 @@
 // RIR Picker Button - Elegant & Subtle
 .rir-input-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 6px 10px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 48px;
-    position: relative;
-    overflow: hidden;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 48px;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 
-    &.shimmer-run::before {
-        animation: shimmerSlide 0.4s ease;
-    }
+  &.shimmer-run::before {
+    animation: shimmerSlide 0.4s ease;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.03),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  &:active {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(145deg, #1f1f1f, #111111);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 
     &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-        pointer-events: none;
+      left: 100%;
     }
+  }
 
-    &:active {
-        border-color: rgba(255, 255, 255, 0.15);
-        background: linear-gradient(145deg, #1f1f1f, #111111);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-
-        &::before {
-            left: 100%;
-        }
-    }
-
-    &.completed {
-        border-color: var(--ion-color-success);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 45%, transparent);
-
-        .rir-value {
-            color: var(--ion-color-success);
-        }
-    }
-
-    &.completed:active {
-        border-color: var(--ion-color-success);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 45%, transparent);
-    }
-
-    .rir-label {
-        font-size: 0.7rem;
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.5);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 2px;
-    }
+  &.completed {
+    border-color: var(--ion-color-success);
+    box-shadow: 0 0 0 1px
+      color-mix(in srgb, var(--ion-color-success) 45%, transparent);
 
     .rir-value {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-        font-feature-settings: "tnum";
-        font-variant-numeric: tabular-nums;
-
-        &.fail-label {
-            color: var(--ion-color-danger);
-            font-weight: bold;
-        }
+      color: var(--ion-color-success);
     }
+  }
+
+  &.completed:active {
+    border-color: var(--ion-color-success);
+    box-shadow: 0 0 0 1px
+      color-mix(in srgb, var(--ion-color-success) 45%, transparent);
+  }
+
+  .rir-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .rir-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+
+    &.fail-label {
+      color: var(--ion-color-primary);
+      font-weight: bold;
+    }
+  }
 }
 
 // Refuerzo de borde en el contenedor interno para estados completados
 :host .rir-input-wrapper.completed {
-    border-color: var(--ion-color-success) !important;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
+  border-color: var(--ion-color-success) !important;
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
 }
 
 :host .rir-input-wrapper.completed:active {
-    border-color: var(--ion-color-success) !important;
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
+  border-color: var(--ion-color-success) !important;
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--ion-color-success) 55%, transparent) !important;
 }
 
 // Picker Controller Overlay Styling
 ::ng-deep .rir-picker-modal {
-    --background: #1a1a1a;
-    --border-color: rgba(255, 255, 255, 0.1);
+  --background: #1a1a1a;
+  --border-color: rgba(255, 255, 255, 0.1);
 
-    ion-picker {
-        --highlight-background: rgba(255, 255, 255, 0.06);
-        --highlight-border-radius: 8px;
-        --fade-background-rgb: 26, 26, 26;
-        --background: transparent;
+  ion-picker {
+    --highlight-background: rgba(255, 255, 255, 0.06);
+    --highlight-border-radius: 8px;
+    --fade-background-rgb: 26, 26, 26;
+    --background: transparent;
 
-        ion-picker-column {
-            // Estilos base para todas las opciones
-            ion-picker-column-option {
-                text-transform: uppercase;
-                background-size: 200% auto;
-                color: #fff;
-                background-clip: text;
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                animation: textclip 2s linear infinite;
-                font-weight: 600;
-            }
+    ion-picker-column {
+      // Estilos base para todas las opciones
+      ion-picker-column-option {
+        text-transform: uppercase;
+        background-size: 200% auto;
+        color: #fff;
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: textclip 2s linear infinite;
+        font-weight: 600;
+      }
 
-            // FALLO en rojo/danger con gradiente
-            ion-picker-column-option.rir-option-fallo {
-                background-image: linear-gradient(-225deg, #ff1361 0%, #ff4444 50%, #ff1361 100%);
-            }
+      // FALLO en naranja principal con gradiente
+      ion-picker-column-option.rir-option-fallo {
+        background-image: linear-gradient(
+          -225deg,
+          #fe9000 0%,
+          #ffb347 50%,
+          #fe9000 100%
+        );
+      }
 
-            // Números normales en color blanco
-            ion-picker-column-option.rir-option-number {
-                background-image: linear-gradient(-225deg, #ffffff 0%, #ffffff 100%);
-            }
-        }
-
-        .picker-highlight {
-            background: rgba(255, 255, 255, 0.06);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
+      // Números normales en color blanco
+      ion-picker-column-option.rir-option-number {
+        background-image: linear-gradient(-225deg, #ffffff 0%, #ffffff 100%);
+      }
     }
 
-    // Botones con color white
-    .picker-button-secondary {
-        color: white !important;
+    .picker-highlight {
+      background: rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
+  }
+
+  // Botones con color white
+  .picker-button-secondary {
+    color: white !important;
+  }
 }
 
 @keyframes textclip {
-    to {
-        background-position: 200% center;
-    }
+  to {
+    background-position: 200% center;
+  }
 }

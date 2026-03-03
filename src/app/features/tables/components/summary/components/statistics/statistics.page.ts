@@ -6,12 +6,13 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
-import { NavController } from '@ionic/angular';
+import { AlertOptions, NavController } from '@ionic/angular';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Set as ISet } from 'src/app/core/models/set';
 import { TableService } from 'src/app/core/services/table/table.service';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
 Chart.register(...registerables);
 
@@ -31,6 +32,7 @@ interface SessionSet {
   isDropSet: boolean;
   isRestPause: boolean;
   isFail: boolean;
+  restPause?: number;
   dropSeries?: SubSerie[];
   restPauseSeries?: SubSerie[];
 }
@@ -49,8 +51,11 @@ interface SessionData {
   isCardio: boolean;
   notes: string;
   avgRir: number;
+  minRir: number;
   dropSetCount: number;
   restPauseCount: number;
+  sessionMax1RM: number;
+  effectiveVolume: number;
 }
 
 interface ComparisonData {
@@ -74,6 +79,10 @@ interface ComparisonData {
   currDropSets: number;
   prevRestPauses: number;
   currRestPauses: number;
+  prevEffectiveVolume: number;
+  currEffectiveVolume: number;
+  effVolumeDiff: number;
+  effVolumePct: number;
 }
 
 interface CalendarDay {
@@ -103,10 +112,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public selectedWorkoutName: string = '';
   public selectedExerciseId: string | null = null;
   public selectedExerciseName: string | null = null;
+  public selectedSetIndex: number = 0; // 0 significa "Serie 1"
+  public availableSetOptions: number[] = [];
 
   // Chart State
   public chart: Chart | null = null;
-  public chartMode: 'topset' | 'sets' | 'rir' = 'topset';
+  public chartMode: 'evolution' | 'volume' = 'evolution'; // evolution (series) o volume (efectivo/RIR)
 
   // Data State
   public historyData: SessionData[] = [];
@@ -170,7 +181,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   constructor(
     private tableService: TableService,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private ionicUtilService: IonicUtilService
   ) {}
 
   ngOnInit() {
@@ -195,13 +207,41 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // --- Data Pre-processing ---
 
   private extractWorkouts() {
-    const map = new Map<string, Workout>();
-    this.table.splits.forEach((s) => {
-      s.workouts.forEach((w) => {
-        if (!map.has(w.name)) map.set(w.name, w);
+    const workoutMap = new Map<string, Workout>();
+
+    if (!this.table || !this.table.splits) return;
+
+    this.table.splits.forEach((split) => {
+      split.workouts.forEach((w) => {
+        if (!workoutMap.has(w.name)) {
+          // Clonar para no mutar el original
+          workoutMap.set(w.name, { ...w, exercises: [...w.exercises] });
+        } else {
+          const existingWorkout = workoutMap.get(w.name)!;
+          // Añadir solo ejercicios que no estén ya en la lista
+          w.exercises.forEach((newEx) => {
+            const alreadyExists = existingWorkout.exercises.some((ex) => {
+              // Comparación robusta: ID de base de ejercicio o nombre si no hay base
+              const idMatches =
+                ex.exercise?._id &&
+                newEx.exercise?._id &&
+                ex.exercise._id === newEx.exercise._id;
+              const nameMatches =
+                !ex.exercise?._id &&
+                !newEx.exercise?._id &&
+                ex.exercise?.name === newEx.exercise?.name;
+              return idMatches || nameMatches;
+            });
+
+            if (!alreadyExists) {
+              existingWorkout.exercises.push(newEx);
+            }
+          });
+        }
       });
     });
-    this.workouts = Array.from(map.values());
+
+    this.workouts = Array.from(workoutMap.values());
   }
 
   private preProcessWorkoutData() {
@@ -351,12 +391,19 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const exercise = this.exercises.find((ex) => ex._id === exerciseId);
     if (exercise) {
       this.selectedExerciseName = exercise.exercise?.name || 'Ejercicio';
+      this.selectedSetIndex = 0; // Reset a primera serie
+      this.chartMode = 'evolution'; // Default mode
       this.generateHistoryData();
     }
   }
 
-  public selectChartMode(mode: 'topset' | 'sets' | 'rir') {
-    this.chartMode = mode;
+  public onChartModeChange(event: any) {
+    this.chartMode = event.detail.value;
+    setTimeout(() => this.updateChart());
+  }
+
+  public onSetTypeChange(event: any) {
+    this.selectedSetIndex = event.detail.value;
     setTimeout(() => this.updateChart());
   }
 
@@ -440,6 +487,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             isDropSet: s.drop === true,
             isRestPause: !!(s.restPause && s.restPause > 0),
             isFail: s.fail === true || s.rir === -1,
+            restPause: s.restPause,
             dropSeries: s.dropSetSeries || [],
             restPauseSeries: s.restPauseSeries || [],
           }));
@@ -469,11 +517,34 @@ export class StatisticsPage implements OnInit, OnDestroy {
                 rirSets.length
               : -1;
 
-          // Count techniques
+          // Calculate Effective Volume
+          let effectiveVolume = 0;
+          if (!this.isCardio) {
+            sessionSets.forEach((s) => {
+              const weight = s.weight || 0;
+              const reps = s.reps || 0;
+              let factor = 0.5; // Default for RIR 4+ or no RIR
+
+              if (s.isFail || s.rir === 0 || s.rir === 1) factor = 1.0;
+              else if (s.rir === 2 || s.rir === 3) factor = 0.8;
+
+              effectiveVolume += weight * reps * factor;
+            });
+          }
+
           const dropSetCount = sessionSets.filter((s) => s.isDropSet).length;
           const restPauseCount = sessionSets.filter(
             (s) => s.isRestPause
           ).length;
+          let sessionMax1RM = 0;
+          if (!this.isCardio) {
+            sessionSets.forEach((s) => {
+              if (s.weight && s.reps) {
+                const oneRM = this.calculate1RM(s.weight, s.reps);
+                if (oneRM > sessionMax1RM) sessionMax1RM = oneRM;
+              }
+            });
+          }
 
           this.historyData.push({
             date: new Date(workout.date),
@@ -489,8 +560,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
             isCardio: this.isCardio,
             notes: targetEx.notes || '',
             avgRir,
+            minRir:
+              rirSets.length > 0
+                ? Math.min(...rirSets.map((s) => s.rir as number))
+                : -1,
             dropSetCount,
             restPauseCount,
+            sessionMax1RM,
+            effectiveVolume,
           });
         }
       }
@@ -498,6 +575,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.historyData.sort((a, b) => b.splitIndex - a.splitIndex);
     this.filteredHistory = [...this.historyData];
+
+    // Calcular cuántas series máximas hay para este ejercicio en el historial
+    const maxSets = Math.max(...this.historyData.map((h) => h.sets.length), 0);
+    this.availableSetOptions = Array.from({ length: maxSets }, (_, i) => i);
+
     this.calculateMetrics();
     // Reset compare indices to last two by default
     this.compareIndexA = Math.min(1, this.filteredHistory.length - 1);
@@ -528,6 +610,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
       curr.avgRir >= 0 && prev.avgRir >= 0 ? curr.avgRir - prev.avgRir : 0;
     const setsDiff = curr.sets.length - prev.sets.length;
 
+    const effVolumeDiff = curr.effectiveVolume - prev.effectiveVolume;
+    const effVolumePct =
+      prev.effectiveVolume > 0
+        ? (effVolumeDiff / prev.effectiveVolume) * 100
+        : 0;
+
     this.comparisonData = {
       prevSplit: prev.splitIndex,
       currSplit: curr.splitIndex,
@@ -549,6 +637,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
       currDropSets: curr.dropSetCount,
       prevRestPauses: prev.restPauseCount,
       currRestPauses: curr.restPauseCount,
+      prevEffectiveVolume: prev.effectiveVolume,
+      currEffectiveVolume: curr.effectiveVolume,
+      effVolumeDiff,
+      effVolumePct,
     };
   }
 
@@ -608,25 +700,119 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const data = [...this.filteredHistory].reverse();
     if (data.length === 0) return;
 
-    if (this.chartMode === 'topset') {
-      this.buildTopSetChart(data);
-    } else if (this.chartMode === 'sets') {
-      this.buildSetsChart(data);
+    if (this.chartMode === 'evolution') {
+      this.buildProgressionChart(data);
     } else {
-      this.buildRirChart(data);
+      this.buildEffectiveVolumeChart(data);
     }
   }
 
-  // --- Chart: Top Set (single line - best weight per session) ---
-  private buildTopSetChart(data: SessionData[]) {
+  private buildEffectiveVolumeChart(data: SessionData[]) {
     const ctx = this.progressionCanvas.nativeElement.getContext('2d');
     const labels = data.map((h) => `M${h.splitIndex}`);
-    const weightData = data.map((h) =>
-      this.isCardio ? h.maxVelocity : h.maxWeight
-    );
-    const repsData = data.map((h) => h.maxReps);
+
+    const volData = data.map((h) => h.effectiveVolume);
+    const rirData = data.map((h) => (h.avgRir >= 0 ? h.avgRir : null));
+
+    this.chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Vol. Efectivo (kg)',
+            data: volData,
+            backgroundColor: 'rgba(254, 144, 0, 0.4)',
+            borderColor: '#fe9000',
+            borderWidth: 1,
+            borderRadius: 4,
+            yAxisID: 'y',
+          },
+          {
+            type: 'line',
+            label: 'RIR Medio',
+            data: rirData,
+            borderColor: '#3880ff',
+            backgroundColor: 'transparent',
+            borderWidth: 3,
+            pointRadius: 4,
+            tension: 0.3,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                if (ctx.datasetIndex === 0) return ` Volumen: ${ctx.raw} kg`;
+                return ` RIR Medio: ${ctx.raw}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: 'rgba(255,255,255,0.5)' },
+          },
+          y: {
+            position: 'left',
+            title: {
+              display: true,
+              text: 'kg',
+              color: 'rgba(255,255,255,0.3)',
+            },
+            ticks: { color: 'rgba(255,255,255,0.5)' },
+          },
+          y1: {
+            position: 'right',
+            reverse: true, // RIR bajo es más intenso
+            title: {
+              display: true,
+              text: 'RIR',
+              color: 'rgba(255,255,255,0.3)',
+            },
+            grid: { drawOnChartArea: false },
+            min: 0,
+            ticks: { color: 'rgba(56, 128, 255, 0.8)' },
+          },
+        },
+      },
+    });
+  }
+
+  // --- Chart: Progression (Weight and Reps of Selected/Best Set) ---
+  private buildProgressionChart(data: SessionData[]) {
+    const ctx = this.progressionCanvas.nativeElement.getContext('2d');
+    const labels = data.map((h) => `Microciclo ${h.splitIndex}`);
+
+    let weightData: (number | null)[] = [];
+    let repsData: (number | null)[] = [];
+
+    // Serie específica (1, 2, 3...)
+    weightData = data.map((h) => {
+      const s = h.sets[this.selectedSetIndex];
+      if (!s) return null;
+      return this.isCardio ? s.velocity || 0 : s.weight || 0;
+    });
+    repsData = data.map((h) => {
+      const s = h.sets[this.selectedSetIndex];
+      if (!s) return null;
+      return this.isCardio ? s.timeMin || 0 : s.reps || 0;
+    });
 
     const yUnit = this.isCardio ? 'km/h' : 'kg';
+    const repsUnit = this.isCardio ? 'min' : 'reps';
 
     this.chart = new Chart(ctx, {
       type: 'line',
@@ -634,8 +820,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
         labels,
         datasets: [
           {
-            label: this.isCardio ? 'Velocidad máxima' : 'Mejor serie (kg)',
-            data: weightData,
+            label: this.isCardio ? 'Velocidad' : 'Peso (kg)',
+            data: weightData as any,
             borderColor: '#fe9000',
             backgroundColor: 'rgba(254, 144, 0, 0.12)',
             borderWidth: 3,
@@ -646,31 +832,26 @@ export class StatisticsPage implements OnInit, OnDestroy {
             pointBorderWidth: 2,
             pointRadius: 5,
             pointHoverRadius: 7,
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: '#fe9000',
-            pointHoverBorderWidth: 3,
+            spanGaps: true,
             yAxisID: 'y',
           },
-          ...(!this.isCardio
-            ? [
-                {
-                  label: 'Reps',
-                  data: repsData,
-                  borderColor: '#3880ff',
-                  backgroundColor: 'rgba(56,128,255,0.05)',
-                  borderWidth: 2,
-                  borderDash: [5, 4],
-                  tension: 0.3,
-                  fill: false,
-                  pointBackgroundColor: '#3880ff',
-                  pointBorderColor: '#fff',
-                  pointBorderWidth: 1,
-                  pointRadius: 3,
-                  pointHoverRadius: 5,
-                  yAxisID: 'y1',
-                } as any,
-              ]
-            : []),
+          {
+            label: this.isCardio ? 'Tiempo' : 'Reps',
+            data: repsData as any,
+            borderColor: '#3880ff',
+            backgroundColor: 'rgba(56, 128, 255, 0.05)',
+            borderWidth: 2,
+            borderDash: [5, 4],
+            tension: 0.3,
+            fill: false,
+            pointBackgroundColor: '#3880ff',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            spanGaps: true,
+            yAxisID: 'y1',
+          },
         ],
       },
       options: {
@@ -705,8 +886,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
                 const v = ctx.raw as number;
                 if (v == null) return '';
                 if (ctx.datasetIndex === 0)
-                  return ` Mejor serie: ${v} ${yUnit}`;
-                return ` Reps: ${v}`;
+                  return ` ${
+                    this.isCardio ? 'Velocidad' : 'Peso'
+                  }: ${v} ${yUnit}`;
+                return ` ${
+                  this.isCardio ? 'Tiempo' : 'Reps'
+                }: ${v} ${repsUnit}`;
               },
             },
           },
@@ -728,110 +913,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
               callback: (v) => `${v} ${yUnit}`,
             },
           },
-          ...(!this.isCardio
-            ? {
-                y1: {
-                  type: 'linear',
-                  position: 'right',
-                  grid: { drawOnChartArea: false },
-                  ticks: {
-                    color: 'rgba(56,128,255,0.6)',
-                    font: { family: 'Outfit', size: 10 },
-                    callback: (v) => `${v} reps`,
-                  },
-                },
-              }
-            : {}),
-        },
-        animation: { duration: 900, easing: 'easeInOutQuart' },
-      },
-    });
-  }
-
-  // --- Chart: Sets (one line per set number) ---
-  private buildSetsChart(data: SessionData[]) {
-    const ctx = this.progressionCanvas.nativeElement.getContext('2d');
-    const labels = data.map((h) => `M${h.splitIndex}`);
-    const maxSets = Math.max(...data.map((h) => h.sets.length), 0);
-
-    const datasets = Array.from({ length: maxSets }, (_, i) => ({
-      label: `Serie ${i + 1}`,
-      data: data.map((session) => {
-        const s = session.sets[i];
-        if (!s) return null;
-        return this.isCardio ? s.velocity || 0 : s.weight || 0;
-      }),
-      borderColor: this.SET_COLORS[i % this.SET_COLORS.length],
-      backgroundColor: this.SET_COLORS[i % this.SET_COLORS.length] + '22',
-      borderWidth: i === 0 ? 3 : 2,
-      tension: 0.35,
-      fill: false,
-      pointBackgroundColor: this.SET_COLORS[i % this.SET_COLORS.length],
-      pointBorderColor: '#ffffff',
-      pointBorderWidth: 1,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      pointHoverBackgroundColor: '#ffffff',
-      pointHoverBorderColor: this.SET_COLORS[i % this.SET_COLORS.length],
-      pointHoverBorderWidth: 2,
-      spanGaps: true,
-    }));
-
-    this.chart = new Chart(ctx, {
-      type: 'line',
-      data: { labels, datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'rgba(255,255,255,0.7)',
-              font: { family: 'Outfit', size: 10 },
-              usePointStyle: true,
-              padding: 10,
-              boxWidth: 8,
-            },
-          },
-          tooltip: {
-            backgroundColor: 'rgba(18,18,18,0.96)',
-            titleColor: '#d4af37',
-            bodyColor: '#fff',
-            borderColor: 'rgba(212,175,55,0.3)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
-            bodyFont: { family: 'Outfit', size: 12 },
-            padding: 12,
-            boxPadding: 5,
-            callbacks: {
-              label: (ctx) => {
-                const v = ctx.raw as number;
-                if (v == null) return '';
-                return this.isCardio
-                  ? ` ${ctx.dataset.label}: ${v.toFixed(1)} km/h`
-                  : ` ${ctx.dataset.label}: ${v} kg`;
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
             ticks: {
-              color: 'rgba(255,255,255,0.6)',
+              color: 'rgba(56,128,255,0.6)',
               font: { family: 'Outfit', size: 10 },
-            },
-          },
-          y: {
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-              callback: (v) => `${v} ${this.isCardio ? 'km/h' : 'kg'}`,
+              callback: (v) => `${v} ${repsUnit}`,
             },
           },
         },
@@ -840,89 +929,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
     });
   }
 
-  // --- Chart: RIR (avg RIR per session - intensity progression) ---
-  private buildRirChart(data: SessionData[]) {
-    const ctx = this.progressionCanvas.nativeElement.getContext('2d');
-    const labels = data.map((h) => `M${h.splitIndex}`);
-    const rirData = data.map((h) =>
-      h.avgRir >= 0 ? parseFloat(h.avgRir.toFixed(1)) : null
-    );
-
-    this.chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'RIR medio',
-            data: rirData,
-            borderColor: '#eb445a',
-            backgroundColor: 'rgba(235,68,90,0.1)',
-            borderWidth: 3,
-            tension: 0.3,
-            fill: true,
-            pointBackgroundColor: '#eb445a',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: '#eb445a',
-            pointHoverBorderWidth: 3,
-            spanGaps: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { intersect: false, mode: 'index' },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(18,18,18,0.96)',
-            titleColor: '#eb445a',
-            bodyColor: '#fff',
-            borderColor: 'rgba(235,68,90,0.35)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
-            bodyFont: { family: 'Outfit', size: 12 },
-            padding: 12,
-            callbacks: {
-              label: (ctx) => {
-                const v = ctx.raw as number;
-                if (v == null) return ' Sin datos de RIR';
-                if (v === -1) return ' Sin RIR registrado';
-                if (v <= 1) return ` RIR medio: ${v} — Muy cerca del fallo 🔥`;
-                if (v <= 2) return ` RIR medio: ${v} — Alta intensidad`;
-                return ` RIR medio: ${v}`;
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-            },
-          },
-          y: {
-            reverse: true, // RIR bajando = mayor intensidad → visualmente sube
-            min: 0,
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: {
-              color: 'rgba(255,255,255,0.6)',
-              font: { family: 'Outfit', size: 10 },
-              callback: (v) => `RIR ${v}`,
-            },
-          },
-        },
-        animation: { duration: 900, easing: 'easeInOutQuart' },
-      },
-    });
+  public async showNoteAlert(notes: string, title: string = 'Nota') {
+    const alertOptions: AlertOptions = {
+      header: title,
+      message: notes,
+      buttons: ['OK'],
+      cssClass: 'notes-alert',
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 
   // --- Helpers ---
