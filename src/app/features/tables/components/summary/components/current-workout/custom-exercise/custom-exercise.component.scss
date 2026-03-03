@@ -377,8 +377,8 @@ ion-app.dark {
 .fail-label {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--ion-color-danger);
-  background: rgba(var(--ion-color-danger-rgb), 0.15);
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -632,7 +632,11 @@ ion-app.dark {
 }
 
 .current-set-container {
-  background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 30, 0.95) 0%,
+    rgba(40, 40, 40, 0.95) 100%
+  );
   border-color: rgba(71, 85, 105, 0.3);
 }
 

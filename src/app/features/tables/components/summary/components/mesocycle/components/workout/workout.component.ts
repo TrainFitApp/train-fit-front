@@ -726,8 +726,20 @@ export class WorkoutComponent {
   }
 
   public changeWorkoutDate(workout: Workout, dateISO) {
+    if (!dateISO) return;
     workout.date = new Date(dateISO);
+
+    // Actualizar el date en el workout correspondiente dentro de la tabla
+    this.tableInUse.splits
+      .flatMap((splitTemp) => splitTemp.workouts)
+      .forEach((wTemp) => {
+        if (workout._id === wTemp._id) {
+          wTemp.date = workout.date;
+        }
+      });
+
     this.workoutService.modifyWorkout(workout).subscribe(() => {
+      this.tableService.setCurrentTable = this.tableInUse;
       const toastOptions: ToastOptions = {
         message: 'Fecha actualizada',
         duration: 2000,
