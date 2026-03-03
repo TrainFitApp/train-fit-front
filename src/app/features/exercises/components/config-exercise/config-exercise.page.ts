@@ -911,7 +911,7 @@ export class ConfigExercisePage implements OnInit {
     const impact = this.getExerciseDeleteImpact(currentExerciseObj._id);
     const impactLines: string[] = [
       'Se eliminará permanentemente este ejercicio creado por ti.',
-      'También se borrarán todas sus series y todas las instancias (customExercises) donde se use.',
+      'También se borrarán todas sus series y de todos los lugares donde se use.',
       'Se quitará automáticamente de favoritos y de cualquier entrenamiento/microciclo donde aparezca.',
     ];
 
