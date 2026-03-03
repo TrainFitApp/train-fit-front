@@ -726,6 +726,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     if (unit === 'portions') {
       // En modo porciones: raciones es obligatorio, gramos no
+      portionsControl.setValue(1); // FIX: dejar de serie a 1 cuando se cambie a raciones
       quantityControl.clearValidators();
       quantityControl.setErrors(null);
       portionsControl.setValidators([
@@ -893,7 +894,7 @@ export class AddProductPage implements OnInit, OnDestroy {
         : this.customProduct.product.name;
       const alertOptions: AlertOptions = {
         header: 'Eliminar producto',
-        message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente y de todas tus comidas.`,
+        message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
         buttons: [
           {
             text: 'CANCELAR',
@@ -1129,11 +1130,7 @@ export class AddProductPage implements OnInit, OnDestroy {
         quantity,
         this.meal || this.ingredientMode ? Validators.required : null
       ),
-      portions: new FormControl(
-        this.hasPortions && quantity
-          ? quantity / (this.product.servingQuantity || 1)
-          : 1
-      ),
+      portions: new FormControl(1),
       energyKcal100g: new FormControl(roundedEnergyKcal, Validators.required),
       protein100g: new FormControl(roundedProtein, [
         Validators.required,
