@@ -83,14 +83,17 @@ export class NumericInputComponent implements OnInit {
 
     const parts = normalizedValue.split('.');
     const sanitizedValue =
-      parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : normalizedValue;
+      parts.length > 2
+        ? `${parts[0]}.${parts.slice(1).join('')}`
+        : normalizedValue;
 
     if (event?.target) {
       event.target.value = sanitizedValue;
     }
 
     const numValue = sanitizedValue === '' ? null : Number(sanitizedValue);
-    const safeValue = numValue === null || Number.isNaN(numValue) ? null : numValue;
+    const safeValue =
+      numValue === null || Number.isNaN(numValue) ? null : numValue;
 
     this.inputControl.patchValue(safeValue);
     this.valueChange.emit(safeValue);
