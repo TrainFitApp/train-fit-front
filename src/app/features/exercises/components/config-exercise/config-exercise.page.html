@@ -58,14 +58,13 @@
               EJERCICIO
             </ion-label>
             <ng-container *ngIf="isCreateMode; else exerciseNameLabel">
-              <ion-item lines="none" class="exercise-name-item" mode="ios">
-                <ion-input
-                  formControlName="name"
-                  placeholder="Nombre de nuevo ejercicio"
-                  mode="ios"
-                  class="exercise-name-input"
-                ></ion-input>
-              </ion-item>
+              <ion-input
+                formControlName="name"
+                placeholder="Nombre de nuevo ejercicio"
+                fill="solid"
+                mode="ios"
+                class="exercise-name-input"
+              ></ion-input>
             </ng-container>
             <ng-template #exerciseNameLabel>
               <ion-label class="exercise-name ion-text-wrap"
@@ -85,6 +84,16 @@
               <ion-icon name="shuffle-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
+        </div>
+        <div *ngIf="isCreateMode" class="exercise-description-section">
+          <ion-textarea
+            formControlName="description"
+            placeholder="Descripción del ejercicio..."
+            fill="solid"
+            mode="ios"
+            class="exercise-description-input"
+            rows="3"
+          ></ion-textarea>
         </div>
         <div class="add-sets-section">
           <ion-button

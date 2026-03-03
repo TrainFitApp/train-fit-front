@@ -276,6 +276,7 @@ export class ConfigExercisePage implements OnInit {
 
     this.form = new FormGroup({
       name: new FormControl(exerciseConfig.exercise.name, Validators.required),
+      description: new FormControl(exerciseConfig.exercise.description || ''),
     });
   }
 
@@ -419,7 +420,7 @@ export class ConfigExercisePage implements OnInit {
         // Prepare exercise data (backend will create it)
         const exerciseData = {
           name: this.form.get('name')?.value?.trim(),
-          description: this.exercise.description || '',
+          description: this.form.get('description')?.value?.trim() || '',
           videoUrl: this.videoUrl || '',
           muscleGroups1: this.details.muscleGroups1?.length
             ? this.details.muscleGroups1
