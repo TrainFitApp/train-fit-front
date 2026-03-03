@@ -5,6 +5,7 @@ import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Workout } from '../../models/workout';
 import { WorkoutAPIService } from './workout-api.service';
+import { FinishWorkoutResponse } from './workout-api.service';
 import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
 
@@ -71,6 +72,13 @@ export class WorkoutService {
 
   public modifyWorkout(workout: Workout): Observable<Workout> {
     return this.workoutAPIService.modifyWorkout(workout).pipe(take(1));
+  }
+
+  public finishWorkout(
+    workoutId: string,
+    date: Date
+  ): Observable<FinishWorkoutResponse> {
+    return this.workoutAPIService.finishWorkout(workoutId, date).pipe(take(1));
   }
 
   public updateWorkout(

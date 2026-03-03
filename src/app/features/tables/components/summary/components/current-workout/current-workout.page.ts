@@ -266,25 +266,40 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           cssClass: 'success',
           handler: () => {
             this.loading = true;
-            this.currentWorkout.date = new Date();
+            // Ensure date is properly set
+            const finishDate = new Date();
             this.workoutService
-              .modifyWorkout(this.currentWorkout)
-              .subscribe(() => {
-                delete this.user.workoutInUse;
+              .finishWorkout(this.currentWorkout._id, finishDate)
+              .subscribe({
+                next: (result) => {
+                  const updatedWorkout = result?.workout;
 
-                // TODO: No es una solución óptima ya que se carga
-                // Toda la tabla por tan sólo actualizar la fecha
-                this.tableInUse.splits
-                  .flatMap((splitTemp) => splitTemp.workouts)
-                  .forEach((wTemp) => {
-                    if (this.currentWorkout._id === wTemp._id)
-                      wTemp.date = this.currentWorkout.date;
-                  });
+                  if (updatedWorkout && updatedWorkout.date) {
+                    const serverDate = new Date(updatedWorkout.date);
 
-                this.tableService.setCurrentTable = this.tableInUse;
-                /////////////////
+                    this.currentWorkout = {
+                      ...updatedWorkout,
+                      date: serverDate,
+                    };
+                    this.workoutService.setCurrentWorkout = this.currentWorkout;
 
-                this.userService.updateUser(this.user).subscribe((_) => {
+                    this.tableInUse.splits
+                      .flatMap((splitTemp) => splitTemp.workouts)
+                      .forEach((wTemp) => {
+                        if (this.currentWorkout._id === wTemp._id)
+                          wTemp.date = serverDate;
+                      });
+
+                    this.tableService.setCurrentTable = this.tableInUse;
+                  } else {
+                    console.error(
+                      'Warning: Workout date was not saved properly by server'
+                    );
+                  }
+
+                  delete this.user.workoutInUse;
+                  this.userService.setLocalUser = { ...this.user };
+
                   this.navigationService.goBack();
                   const successAlertOptions = {
                     header: 'Completado',
@@ -299,9 +314,19 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   this.ionicUtilService.showAlert(successAlertOptions);
 
                   this.currentWorkout = undefined;
-                  this.workoutService.setCurrentWorkout = this.currentWorkout;
+                  this.workoutService.setCurrentWorkout = null;
                   this.loading = false;
-                });
+                },
+                error: (err) => {
+                  console.error('Error finishing workout:', err);
+                  this.loading = false;
+                  this.ionicUtilService.showAlert({
+                    header: 'Error',
+                    message:
+                      'No se pudo finalizar el entrenamiento. Inténtalo de nuevo.',
+                    buttons: ['OK'],
+                  });
+                },
               });
           },
         },

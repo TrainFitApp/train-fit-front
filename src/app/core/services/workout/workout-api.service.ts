@@ -7,6 +7,11 @@ import { Workout } from '../../models/workout';
 import { HttpService } from '../http/http.service';
 import { Exercise } from '../../models/exercise';
 
+export interface FinishWorkoutResponse {
+  workout: Workout;
+  userUpdated: boolean;
+}
+
 @Injectable()
 export class WorkoutAPIService {
   private static readonly WORKOUT_ENDPOINT = 'workouts';
@@ -49,6 +54,16 @@ export class WorkoutAPIService {
 
   public modifyWorkout(workout: Workout): Observable<Workout> {
     return this.http.put<Workout>(`workouts/modify/one/simple/save`, workout);
+  }
+
+  public finishWorkout(
+    workoutId: string,
+    date: Date
+  ): Observable<FinishWorkoutResponse> {
+    return this.http.put<FinishWorkoutResponse>(`workouts/finish`, {
+      workoutId,
+      date,
+    });
   }
 
   public updateWorkout(

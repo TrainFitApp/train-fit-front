@@ -29,8 +29,8 @@ export class TableService {
       this._currentTable.set(null);
       return;
     }
-    // Nueva referencia para forzar detección de cambios
-    this._currentTable.set({ ...table });
+    // Deep copy to ensure nested changes trigger updates
+    this._currentTable.set(JSON.parse(JSON.stringify(table)));
   }
 
   constructor(private tableAPIService: TableAPIService) {}
