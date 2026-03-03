@@ -233,40 +233,17 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.ionicUtilService.showAlert({
           header: 'Producto actualizado',
           message:
-            'Has modificado el producto original. ¿Quieres actualizar también los valores nutricionales de esta entrada en tu comida?',
+            'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
           buttons: [
             {
-              text: 'Mantener',
+              text: 'Mantener valores anteriores',
               role: 'cancel',
               handler: () => {
-                // Mantener los valores del customProduct tal como están
-                // Solo actualizamos la referencia del producto base
+                // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
+                // con los valores anteriores (no sincroniza nutrición)
                 const oldProduct = this.product;
-                const oldServingQuantity = oldProduct?.servingQuantity;
-                const oldServingUnit = oldProduct?.servingUnit;
-                const oldProductQuantity = oldProduct?.productQuantity;
 
                 this.product = updatedProductFromTemp;
-
-                // Restaurar propiedades físicas en la referencia local
-                // Esto asegura que los getters y cálculos de raciones no cambien
-                if (oldServingQuantity !== undefined)
-                  this.product.servingQuantity = oldServingQuantity;
-                if (oldServingUnit !== undefined)
-                  this.product.servingUnit = oldServingUnit;
-                if (oldProductQuantity !== undefined)
-                  this.product.productQuantity = oldProductQuantity;
-
-                // Restaurar los booleanos originales en el objeto product para la UI
-                this.product.vegan = oldProduct?.vegan;
-                this.product.vegetarian = oldProduct?.vegetarian;
-                this.product.lactoseFree = oldProduct?.lactoseFree;
-                this.product.glutenFree = oldProduct?.glutenFree;
-
-                // Restaurar textos originales (C-06 FIX)
-                this.product.ingredients = oldProduct?.ingredients;
-                this.product.allergens = oldProduct?.allergens;
-                this.product.traces = oldProduct?.traces;
 
                 if (this.customProduct) {
                   this.customProduct.product = this.product;
@@ -286,8 +263,9 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Actualizar',
+              text: 'Guardar ambos cambios',
               handler: () => {
+                // Actualizar producto base y sincronizar los valores nutricionales del customProduct
                 this.product = updatedProductFromTemp;
                 if (this.meal) this.existCustomProduct();
 
@@ -330,39 +308,17 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.ionicUtilService.showAlert({
           header: 'Producto actualizado',
           message:
-            'Has modificado el producto original. ¿Quieres actualizar también los valores nutricionales de esta entrada en tu comida?',
+            'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
           buttons: [
             {
-              text: 'Mantener',
+              text: 'Mantener valores anteriores',
               role: 'cancel',
               handler: () => {
-                // No hacemos nada, mantenemos los valores del customProduct
-                // Pero actualizamos la referencia del producto base para futuras ediciones
+                // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
+                // con los valores anteriores (no sincroniza nutrición)
                 const oldProduct = this.product;
-                const oldServingQuantity = oldProduct?.servingQuantity;
-                const oldServingUnit = oldProduct?.servingUnit;
-                const oldProductQuantity = oldProduct?.productQuantity;
 
                 this.product = state.updatedProduct;
-
-                // Restaurar propiedades físicas en la referencia local
-                if (oldServingQuantity !== undefined)
-                  this.product.servingQuantity = oldServingQuantity;
-                if (oldServingUnit !== undefined)
-                  this.product.servingUnit = oldServingUnit;
-                if (oldProductQuantity !== undefined)
-                  this.product.productQuantity = oldProductQuantity;
-
-                // Restaurar los booleanos originales
-                this.product.vegan = oldProduct?.vegan;
-                this.product.vegetarian = oldProduct?.vegetarian;
-                this.product.lactoseFree = oldProduct?.lactoseFree;
-                this.product.glutenFree = oldProduct?.glutenFree;
-
-                // Restaurar textos originales (C-06 FIX)
-                this.product.ingredients = oldProduct?.ingredients;
-                this.product.allergens = oldProduct?.allergens;
-                this.product.traces = oldProduct?.traces;
 
                 if (this.customProduct) {
                   this.customProduct.product = this.product;
@@ -381,16 +337,16 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Actualizar',
+              text: 'Guardar ambos cambios',
               handler: () => {
                 this.product = state.updatedProduct;
-                // Re-inicializar todo con el nuevo producto (esto reseteará los valores del formulario a los del producto)
+                // Actualizar producto base y sincronizar los valores nutricionales del customProduct
                 if (this.meal) this.existCustomProduct();
 
                 // Forzamos actualización del customProduct con los nuevos valores del producto base
                 if (this.customProduct) {
                   this.customProduct.product = this.product;
-                  // Mapeamos los nuevos valores nutricionales del producto al customProduct
+                  // Sincronizar valores nutricionales del producto al customProduct
                   this.customProductService.mapNutritionalValues(
                     this.product,
                     this.customProduct
