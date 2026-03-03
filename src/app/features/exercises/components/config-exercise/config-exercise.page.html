@@ -124,7 +124,7 @@
             </ion-segment>
           </div>
         </div>
-        <div class="add-sets-section">
+        <div class="add-sets-section" *ngIf="!isEditingOwnExercise">
           <ion-button
             fill="clear"
             color="secondary"
@@ -160,127 +160,129 @@
     ></app-notes>
 
     <!-- Sets List -->
-    <div class="sets-container" *ngIf="setList.length > 0; else noSets">
-      <div class="elegant-card sets-card">
-        <div class="sets-header">
-          <div class="sets-info">
-            <div class="sets-icon">
-              <ion-icon name="bar-chart-outline"></ion-icon>
-            </div>
-            <div class="sets-title">
-              <h3>Series configuradas</h3>
-              <span class="sets-count"
-                >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
-                }}</span
-              >
+    <div *ngIf="!isEditingOwnExercise">
+      <div class="sets-container" *ngIf="setList.length > 0; else noSets">
+        <div class="elegant-card sets-card">
+          <div class="sets-header">
+            <div class="sets-info">
+              <div class="sets-icon">
+                <ion-icon name="bar-chart-outline"></ion-icon>
+              </div>
+              <div class="sets-title">
+                <h3>Series configuradas</h3>
+                <span class="sets-count"
+                  >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
+                  }}</span
+                >
+              </div>
             </div>
           </div>
-        </div>
-        <ion-list class="elegant-list">
-          <ion-reorder-group
-            [disabled]="false"
-            (ionItemReorder)="handleReorder($any($event))"
-          >
-            <ion-item-group *ngFor="let set of setList; let i = index">
-              <ion-item-divider>
-                <ion-reorder
-                  [ngClass]="{'current-workout-set-move' : i === 0}"
-                ></ion-reorder>
-                &nbsp;
-                <ion-label color="secondary">
-                  <strong>
-                    {{ i + 1 }}.
-                    <span *ngIf="!set.drop && !set.restPause">SERIE</span>
-                  </strong>
-                </ion-label>
-                &nbsp;
-                <span *ngIf="set.drop" class="intensity-drop">DS</span>
-                <span *ngIf="set.restPause" class="intensity-rp"
-                  >RP {{ set.restPause }} Seg</span
-                >
-
-                <ion-buttons slot="end">
-                  <ion-button
-                    [ngClass]="{'current-workout-set-copy' : i === 0}"
-                    (click)="copySet(set)"
+          <ion-list class="elegant-list">
+            <ion-reorder-group
+              [disabled]="false"
+              (ionItemReorder)="handleReorder($any($event))"
+            >
+              <ion-item-group *ngFor="let set of setList; let i = index">
+                <ion-item-divider>
+                  <ion-reorder
+                    [ngClass]="{'current-workout-set-move' : i === 0}"
+                  ></ion-reorder>
+                  &nbsp;
+                  <ion-label color="secondary">
+                    <strong>
+                      {{ i + 1 }}.
+                      <span *ngIf="!set.drop && !set.restPause">SERIE</span>
+                    </strong>
+                  </ion-label>
+                  &nbsp;
+                  <span *ngIf="set.drop" class="intensity-drop">DS</span>
+                  <span *ngIf="set.restPause" class="intensity-rp"
+                    >RP {{ set.restPause }} Seg</span
                   >
-                    <ion-icon
-                      slot="icon-only"
-                      color="secondary"
-                      name="copy-outline"
-                    ></ion-icon>
-                  </ion-button>
-                </ion-buttons>
-              </ion-item-divider>
 
-              <div
-                class="set-content"
-                [ngClass]="{'current-workout-set-copied' : i === 1}"
-                (click)="configSets(set); $event.stopPropagation()"
-              >
-                <div class="set-values">
-                  <ng-container
-                    *ngIf="this.customExercise
-                    ? this.customExercise.exercise.isCardio
-                    : this.exercise.isCardio; else noCardio"
-                  >
-                    <span class="set-value"
-                      >{{ set.velocity ? set.velocity : '-' }}
-                    </span>
-                    <span class="set-value"
-                      >{{ set.expectedMin ? set.expectedMin+' Min' : '-' }}
-                    </span>
-                    <span class="set-value"
-                      >{{ set.expectedSec ? set.expectedSec+' Seg' : '-' }}
-                    </span>
-                  </ng-container>
-
-                  <ng-template #noCardio>
-                    <span class="set-value"
-                      >{{ set.weight ? set.weight+' KG' : '-' }}
-                    </span>
-                    <span class="set-value"
-                      >{{ set.expectedReps | expected:'REP' }}
-                    </span>
-                    <span
-                      class="set-value"
-                      *ngIf="!(set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))"
-                      >{{ set.expectedRir | expected:'RIR' }}
-                    </span>
-
-                    <span
-                      *ngIf="set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)"
-                      class="fail-label"
-                      >FALLO</span
+                  <ion-buttons slot="end">
+                    <ion-button
+                      [ngClass]="{'current-workout-set-copy' : i === 0}"
+                      (click)="copySet(set)"
                     >
-                  </ng-template>
-                </div>
-
-                <div class="set-actions">
-                  <ion-buttons>
-                    <ion-button (click)="deleteSet(set, i)">
                       <ion-icon
                         slot="icon-only"
-                        name="close-outline"
+                        color="secondary"
+                        name="copy-outline"
                       ></ion-icon>
                     </ion-button>
                   </ion-buttons>
-                </div>
-              </div>
-            </ion-item-group>
-          </ion-reorder-group>
-        </ion-list>
-      </div>
-    </div>
+                </ion-item-divider>
 
-    <ng-template #noSets>
-      <div class="empty-sets">
-        <div class="empty-icon">
-          <ion-icon name="bar-chart-outline"></ion-icon>
+                <div
+                  class="set-content"
+                  [ngClass]="{'current-workout-set-copied' : i === 1}"
+                  (click)="configSets(set); $event.stopPropagation()"
+                >
+                  <div class="set-values">
+                    <ng-container
+                      *ngIf="this.customExercise
+                    ? this.customExercise.exercise.isCardio
+                    : this.exercise.isCardio; else noCardio"
+                    >
+                      <span class="set-value"
+                        >{{ set.velocity ? set.velocity : '-' }}
+                      </span>
+                      <span class="set-value"
+                        >{{ set.expectedMin ? set.expectedMin+' Min' : '-' }}
+                      </span>
+                      <span class="set-value"
+                        >{{ set.expectedSec ? set.expectedSec+' Seg' : '-' }}
+                      </span>
+                    </ng-container>
+
+                    <ng-template #noCardio>
+                      <span class="set-value"
+                        >{{ set.weight ? set.weight+' KG' : '-' }}
+                      </span>
+                      <span class="set-value"
+                        >{{ set.expectedReps | expected:'REP' }}
+                      </span>
+                      <span
+                        class="set-value"
+                        *ngIf="!(set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1))"
+                        >{{ set.expectedRir | expected:'RIR' }}
+                      </span>
+
+                      <span
+                        *ngIf="set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)"
+                        class="fail-label"
+                        >FALLO</span
+                      >
+                    </ng-template>
+                  </div>
+
+                  <div class="set-actions">
+                    <ion-buttons>
+                      <ion-button (click)="deleteSet(set, i)">
+                        <ion-icon
+                          slot="icon-only"
+                          name="close-outline"
+                        ></ion-icon>
+                      </ion-button>
+                    </ion-buttons>
+                  </div>
+                </div>
+              </ion-item-group>
+            </ion-reorder-group>
+          </ion-list>
         </div>
-        <p class="empty-text">Aún no tienes series configuradas</p>
       </div>
-    </ng-template>
+
+      <ng-template #noSets>
+        <div class="empty-sets">
+          <div class="empty-icon">
+            <ion-icon name="bar-chart-outline"></ion-icon>
+          </div>
+          <p class="empty-text">Aún no tienes series configuradas</p>
+        </div>
+      </ng-template>
+    </div>
 
     <!-- Detalles Section - Inline Filters -->
     <!-- Detalles Section (both Create and Edit modes) -->
@@ -413,7 +415,10 @@
           *ngIf="!isCreateMode && !isEditingOwnExercise"
         >
           <!-- Categorías -->
-          <div class="filter-section" *ngIf="details.category?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.category).length"
+          >
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Categorías</h4>
@@ -421,7 +426,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let category of details.category"
+                *ngFor="let category of getValidDetails(details.category)"
               >
                 <span class="label">{{ category }}</span>
               </div>
@@ -429,7 +434,10 @@
           </div>
 
           <!-- Músculos Principales -->
-          <div class="filter-section" *ngIf="details.muscleGroups1?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.muscleGroups1).length"
+          >
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Músculos Principales</h4>
@@ -437,7 +445,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of details.muscleGroups1"
+                *ngFor="let muscle of getValidDetails(details.muscleGroups1)"
               >
                 <span class="label">{{ muscle }}</span>
               </div>
@@ -445,7 +453,10 @@
           </div>
 
           <!-- Músculos Secundarios -->
-          <div class="filter-section" *ngIf="details.muscleGroups2?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.muscleGroups2).length"
+          >
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
               <h4 class="section-title">Músculos Secundarios</h4>
@@ -453,7 +464,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let muscle of details.muscleGroups2"
+                *ngFor="let muscle of getValidDetails(details.muscleGroups2)"
               >
                 <span class="label">{{ muscle }}</span>
               </div>
@@ -461,7 +472,10 @@
           </div>
 
           <!-- Equipamiento -->
-          <div class="filter-section" *ngIf="details.equipment?.length">
+          <div
+            class="filter-section"
+            *ngIf="getValidDetails(details.equipment).length"
+          >
             <div class="section-header">
               <ion-icon
                 name="construct-outline"
@@ -472,7 +486,7 @@
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
-                *ngFor="let equip of details.equipment"
+                *ngFor="let equip of getValidDetails(details.equipment)"
               >
                 <span class="label">{{ equip }}</span>
               </div>

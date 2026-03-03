@@ -98,6 +98,15 @@ export class ConfigExercisePage implements OnInit {
   public showFilters: boolean = true;
   public isOwnExercise: boolean = false;
 
+  private originalNotes: string;
+  private originalExerciseMode: 'fuerza' | 'cardio' = 'fuerza';
+  private originalDetails: {
+    category: string[];
+    muscleGroups1: string[];
+    muscleGroups2: string[];
+    equipment: string[];
+  };
+
   public filterCategories = [
     'Cardio',
     'Empujes',
@@ -192,14 +201,24 @@ export class ConfigExercisePage implements OnInit {
     const baseExercise = this.exercise || this.customExercise?.exercise;
     if (baseExercise) {
       this.exerciseMode = baseExercise.isCardio ? 'cardio' : 'fuerza';
+      this.originalExerciseMode = this.exerciseMode;
       this.details.category = Array.isArray(baseExercise.category)
-        ? baseExercise.category
+        ? [...baseExercise.category]
         : baseExercise.category
         ? [baseExercise.category]
         : [];
-      this.details.muscleGroups1 = baseExercise.muscleGroups1 || [];
-      this.details.muscleGroups2 = baseExercise.muscleGroups2 || [];
-      this.details.equipment = baseExercise.equipment || [];
+      this.details.muscleGroups1 = [...(baseExercise.muscleGroups1 || [])];
+      this.details.muscleGroups2 = [...(baseExercise.muscleGroups2 || [])];
+      this.details.equipment = [...(baseExercise.equipment || [])];
+
+      // Store original state for change detection
+      this.originalNotes = this.notes;
+      this.originalDetails = {
+        category: [...this.details.category],
+        muscleGroups1: [...this.details.muscleGroups1],
+        muscleGroups2: [...this.details.muscleGroups2],
+        equipment: [...this.details.equipment],
+      };
     }
   }
 
@@ -344,10 +363,90 @@ export class ConfigExercisePage implements OnInit {
     if (!this.isOwnExercise || this.isCreateMode) {
       return;
     }
-    this.isEditingOwnExercise = !this.isEditingOwnExercise;
-    if (this.isEditingOwnExercise) {
+
+    // ENTRANDO al modo edición
+    if (!this.isEditingOwnExercise) {
+      this.isEditingOwnExercise = true;
       this.showFilters = true;
     }
+    // SALIENDO del modo edición
+    else {
+      if (this.hasExerciseChanges()) {
+        const alertOptions: AlertOptions = {
+          header: 'Cambios sin guardar',
+          message:
+            'Si sales del modo edición se perderán los cambios del ejercicio. ¿Deseas continuar?',
+          cssClass: 'alert-grid-buttons',
+          buttons: [
+            {
+              text: 'CANCELAR',
+              role: 'cancel',
+            },
+            {
+              text: 'NO GUARDAR',
+              role: 'confirm',
+              cssClass: 'alert-button-primary',
+              handler: () => {
+                this.revertExerciseChanges();
+                this.isEditingOwnExercise = false;
+              },
+            },
+          ],
+        };
+        this.ionicUtilService.showAlert(alertOptions);
+      } else {
+        this.isEditingOwnExercise = false;
+      }
+    }
+  }
+
+  private hasExerciseChanges(): boolean {
+    return (
+      (this.form && this.form.dirty) ||
+      this.areDetailsChanged() ||
+      this.isExerciseModeChanged()
+    );
+  }
+
+  private hasSetsChanges(): boolean {
+    return (
+      this.setsToCreate.length > 0 ||
+      this.setsToUpdate.length > 0 ||
+      this.setsToDelete.length > 0
+    );
+  }
+
+  private hasCustomExerciseChanges(): boolean {
+    return (
+      this.notes !== this.originalNotes ||
+      this.hasSetsChanges() ||
+      this.exerciseChanged
+    );
+  }
+
+  private revertExerciseChanges(): void {
+    const baseExercise =
+      this.originalExercise || this.exercise || this.customExercise?.exercise;
+    if (!baseExercise) return;
+
+    this.form?.patchValue({
+      name: baseExercise.name,
+      description: baseExercise.description || '',
+    });
+    this.form?.markAsPristine();
+
+    if (this.originalDetails) {
+      this.details.category = [...this.originalDetails.category];
+      this.details.muscleGroups1 = [...this.originalDetails.muscleGroups1];
+      this.details.muscleGroups2 = [...this.originalDetails.muscleGroups2];
+      this.details.equipment = [...this.originalDetails.equipment];
+    }
+
+    this.applyExerciseMode(this.originalExerciseMode);
+
+    this.videoUrl = baseExercise.videoUrl || '';
+    this.updateVideoEmbedSrc();
+    this.exerciseChanged = false;
   }
 
   public async saveOwnExerciseOnly(): Promise<void> {
@@ -879,6 +978,11 @@ export class ConfigExercisePage implements OnInit {
     if (i >= 0) this.details.category.splice(i, 1);
   }
 
+  public getValidDetails(array?: string[]): string[] {
+    if (!array) return [];
+    return array.filter((item) => item && item.trim().length > 0);
+  }
+
   public removeDetailMuscle1(m: string): void {
     const i = this.details.muscleGroups1.indexOf(m);
     if (i >= 0) this.details.muscleGroups1.splice(i, 1);
@@ -1059,44 +1163,67 @@ export class ConfigExercisePage implements OnInit {
     ev.detail.complete();
   }
 
+  private hasChanges(): boolean {
+    return this.hasExerciseChanges() || this.hasCustomExerciseChanges();
+  }
+
+  private isExerciseModeChanged(): boolean {
+    return this.exerciseMode !== this.originalExerciseMode;
+  }
+
+  private areDetailsChanged(): boolean {
+    if (!this.originalDetails) return false;
+
+    const compareArrays = (a: string[], b: string[]) => {
+      if (a.length !== b.length) return true;
+      return a.some((val, index) => val !== b[index]);
+    };
+
+    return (
+      compareArrays(this.details.category, this.originalDetails.category) ||
+      compareArrays(
+        this.details.muscleGroups1,
+        this.originalDetails.muscleGroups1
+      ) ||
+      compareArrays(
+        this.details.muscleGroups2,
+        this.originalDetails.muscleGroups2
+      ) ||
+      compareArrays(this.details.equipment, this.originalDetails.equipment)
+    );
+  }
+
   private checkChanges(): void {
-    if (
-      this.noteToCreate ||
-      this.setsToCreate.length > 0 ||
-      this.setsToUpdate.length > 0 ||
-      this.setsToDelete.length > 0 ||
-      this.exerciseChanged
-    ) {
-      const alertOptions = {
-        header: 'Cambios pendientes',
-        message: 'Tienes cambios pendientes',
+    if (this.hasChanges()) {
+      const alertOptions: AlertOptions = {
+        header: 'Cambios sin guardar',
+        message: '¿Quieres guardar los cambios antes de salir?',
         cssClass: 'alert-grid-buttons',
         buttons: [
           {
             text: 'CANCELAR',
             role: 'cancel',
           },
-
-          {
-            text: 'GUARDAR',
-            cssClass: 'alert-button-confirm',
-            handler: async () => {
-              await this.addCustomExercise();
-              this.backButton$.unsubscribe();
-            },
-          },
           {
             text: 'NO GUARDAR',
             role: 'destructive',
             handler: () => {
-              // Revertir sets/notas si existen
+              // Revertir cambios locales si es necesario
               if (this.customExercise) {
                 this.customExercise.sets = [...this.originSetsOrdered];
-                delete this.customExercise.notes;
+                this.customExercise.notes = this.originalNotes;
               }
+              this.revertExerciseChanges();
 
-              this.backButton$.unsubscribe();
+              this.backButton$?.unsubscribe();
               this.modalController.dismiss();
+            },
+          },
+          {
+            text: 'GUARDAR',
+            cssClass: 'alert-button-confirm',
+            handler: async () => {
+              await this.saveFromHeaderBack();
             },
           },
         ],
@@ -1104,9 +1231,28 @@ export class ConfigExercisePage implements OnInit {
 
       this.ionicUtilService.showAlert(alertOptions);
     } else {
+      this.backButton$?.unsubscribe();
       this.modalController.dismiss();
-      this.backButton$.unsubscribe();
     }
+  }
+
+  private async saveFromHeaderBack(): Promise<void> {
+    const shouldSaveExercise =
+      this.isEditingOwnExercise && this.hasExerciseChanges();
+    const shouldSaveCustom = this.hasCustomExerciseChanges();
+
+    if (shouldSaveExercise) {
+      await this.saveOwnExerciseOnly();
+    }
+
+    if (shouldSaveCustom) {
+      await this.addCustomExercise();
+      this.backButton$?.unsubscribe();
+      return;
+    }
+
+    this.backButton$?.unsubscribe();
+    this.modalController.dismiss();
   }
 
   private initializeBackButtonCustomHandler(): void {

@@ -233,6 +233,70 @@
       </ion-card-header>
       <ion-card-content>
         <div class="comparison-grid">
+          <!-- Cardio: Velocidad -->
+          <div class="comparison-item" *ngIf="isCardio">
+            <div class="comparison-item-label">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              Mejor Velocidad
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevMaxVelocity }} km/h</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.velocityDiff)"
+                [class]="getDiffClass(comparisonData.velocityDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currMaxVelocity }} km/h</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.velocityDiff)"
+            >
+              <span *ngIf="comparisonData.velocityDiff !== 0">
+                {{ comparisonData.velocityDiff > 0 ? '+' : '' }}{{
+                comparisonData.velocityPct | number:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.velocityDiff === 0" class="neutral"
+                >Sin cambio</span
+              >
+            </div>
+          </div>
+
+          <!-- Cardio: Tiempo Total -->
+          <div class="comparison-item" *ngIf="isCardio">
+            <div class="comparison-item-label">
+              <ion-icon name="time-outline"></ion-icon>
+              Tiempo Total
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevTotalTime | number:'1.0-1' }} min</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.timeDiff)"
+                [class]="getDiffClass(comparisonData.timeDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currTotalTime | number:'1.0-1' }} min</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.timeDiff)"
+            >
+              <span *ngIf="comparisonData.timeDiff !== 0">
+                {{ comparisonData.timeDiff > 0 ? '+' : '' }}{{
+                comparisonData.timePct | number:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.timeDiff === 0" class="neutral"
+                >Sin cambio</span
+              >
+            </div>
+          </div>
+
           <!-- Peso máximo -->
           <div class="comparison-item" *ngIf="!isCardio">
             <div class="comparison-item-label">
@@ -438,9 +502,10 @@
         </div>
         <div class="chart-header-main" *ngIf="chartMode === 'volume'">
           <ion-card-title>Carga de Trabajo</ion-card-title>
-          <ion-text color="medium" style="font-size: 0.8rem"
-            >Volumen Efectivo vs RIR Medio</ion-text
-          >
+          <ion-text color="medium" style="font-size: 0.8rem">
+            {{ isCardio ? 'Tiempo vs Velocidad' : 'Volumen Efectivo vs RIR
+            Medio' }}
+          </ion-text>
         </div>
       </ion-card-header>
       <ion-card-content>
@@ -457,7 +522,7 @@
       </ion-card-header>
       <ion-card-content>
         <!-- Table Header -->
-        <div class="history-table-header">
+        <div class="history-table-header" [class.is-cardio]="isCardio">
           <span class="header-col-session">Sesión</span>
 
           <ng-container *ngIf="!isCardio">
@@ -470,7 +535,7 @@
             <span class="header-col-reps">Tiempo</span>
           </ng-container>
 
-          <span class="header-col-rir">Intensidad</span>
+          <span class="header-col-rir" *ngIf="!isCardio">Intensidad</span>
         </div>
 
         <ion-list lines="none" class="history-list">
@@ -497,7 +562,7 @@
               *ngFor="let set of session.sets; let i = index"
               class="history-item"
             >
-              <div class="history-row-content">
+              <div class="history-row-content" [class.is-cardio]="isCardio">
                 <div class="col-session">
                   <span class="set-index">Set {{ i + 1 }}</span>
                 </div>
@@ -548,7 +613,6 @@
                     >
                     <small>min</small>
                   </div>
-                  <div class="col-rir"></div>
                 </ng-container>
               </div>
 
