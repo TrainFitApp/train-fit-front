@@ -1,105 +1,155 @@
 .content-wrapper {
   padding: 16px;
-  height: 100%;
+  min-height: 100%;
 }
 
 .consent-card {
-  background: #141414;
-  border: 1px solid #252525;
-  border-radius: 12px;
+  background: linear-gradient(160deg, #171717 0%, #111111 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
   width: 100%;
-  max-width: 500px;
+  max-width: 560px;
   margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 
   ion-card-content {
-    padding: 20px;
+    padding: 22px;
   }
+}
 
-  ion-list {
-    background: transparent;
+.intro-block {
+  text-align: center;
+  margin-bottom: 18px;
 
-    ion-item {
-      --background: transparent;
-      --color: #ffffff;
+  .intro-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 10px;
+    border-radius: 14px;
+    background: rgba(254, 144, 0, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-      ion-text {
-        color: #ffffff;
-
-        p {
-          margin: 12px 0;
-          line-height: 1.5;
-        }
-
-        ul {
-          margin: 12px 0;
-          padding-left: 20px;
-
-          li {
-            margin: 8px 0;
-            line-height: 1.4;
-
-            strong {
-              color: var(--ion-color-primary);
-            }
-          }
-        }
-      }
+    ion-icon {
+      font-size: 24px;
+      color: var(--ion-color-primary);
     }
   }
 
-  ion-radio-group {
-    margin-top: 16px;
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+  }
 
-    ion-item {
-      --background: transparent;
-      --color: #ffffff;
-      border-radius: 8px;
-      margin: 8px 0;
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.45;
+    font-size: 0.95rem;
+  }
+}
 
-      ion-label {
-        color: #ffffff;
-        font-weight: 500;
+.info-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 16px;
+
+  .info-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px;
+
+    ion-icon {
+      margin-top: 2px;
+      font-size: 18px;
+      color: var(--ion-color-primary);
+      flex-shrink: 0;
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      strong {
+        font-size: 0.9rem;
+        color: #fff;
+      }
+
+      span {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.35;
       }
     }
   }
 }
 
-// Estilos para el footer y botón responsive
-ion-footer {
-  padding: 16px;
+.options-group {
+  .option-card {
+    --background: rgba(255, 255, 255, 0.03);
+    --color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    margin: 10px 0;
+    transition: 0.2s ease;
+
+    &.selected {
+      --background: rgba(254, 144, 0, 0.12);
+      border-color: rgba(254, 144, 0, 0.45);
+      box-shadow: 0 0 0 1px rgba(254, 144, 0, 0.22) inset;
+    }
+
+    ion-label {
+      margin: 12px 0;
+
+      h3 {
+        margin: 0 0 4px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.65);
+      }
+    }
+  }
+}
+
+.ad-footer {
+  padding: 14px;
   background: var(--ion-background-color);
 
   ion-button {
-    --background: var(--ion-color-primary);
-    --color: var(--ion-color-primary-contrast);
+    --background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+    --color: #fff;
     --border-radius: 12px;
     height: 48px;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
     margin: 0;
-    width: 100%;
 
     ion-icon {
-      font-size: 1.2rem;
-      margin-left: 4px;
+      margin-left: 6px;
+      font-size: 1.1rem;
     }
   }
 }
 
-// Estilos originales para los radio buttons
 ion-radio::part(container) {
-  width: 30px;
-  height: 30px;
-
-  border-radius: 8px;
-  border: 2px solid #ddd;
-}
-
-ion-radio::part(mark) {
-  background: none;
-  transition: none;
-  transform: none;
-  border-radius: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
 }
 
 ion-radio.radio-checked::part(container) {
@@ -110,68 +160,40 @@ ion-radio.radio-checked::part(container) {
 ion-radio.radio-checked::part(mark) {
   width: 6px;
   height: 10px;
-
-  border-width: 0px 2px 2px 0px;
+  border-width: 0 2px 2px 0;
   border-style: solid;
   border-color: #fff;
-
   transform: rotate(45deg);
 }
 
-// Media queries para responsividad
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 12px;
   }
 
-  .consent-card {
-    ion-card-content {
-      padding: 16px;
-    }
-  }
-
-  ion-footer {
-    padding: 12px;
-
-    ion-button {
-      height: 44px;
-      font-size: 0.9rem;
-    }
+  .consent-card ion-card-content {
+    padding: 18px;
   }
 }
 
 @media (max-width: 480px) {
   .content-wrapper {
-    padding: 8px;
+    padding: 10px;
   }
 
-  .consent-card {
-    ion-card-content {
-      padding: 12px;
-    }
-
-    ion-list {
-      ion-item {
-        ion-text {
-          p,
-          li {
-            font-size: 0.9rem;
-          }
-        }
-      }
-    }
+  .intro-block h2 {
+    font-size: 1.05rem;
   }
 
-  ion-footer {
-    padding: 8px;
+  .intro-block p {
+    font-size: 0.88rem;
+  }
+
+  .ad-footer {
+    padding: 10px;
 
     ion-button {
-      height: 40px;
-      font-size: 0.85rem;
-
-      ion-icon {
-        font-size: 1rem;
-      }
+      height: 44px;
     }
   }
 }

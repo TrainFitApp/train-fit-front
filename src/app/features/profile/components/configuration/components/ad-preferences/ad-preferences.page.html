@@ -11,47 +11,65 @@
   <div class="content-wrapper">
     <ion-card class="consent-card">
       <ion-card-content>
-        <ion-list>
-          <ion-item lines="none">
-            <ion-text>
-              <p>
-                Para mejorar tu experiencia y mantener esta aplicación gratuita,
-                utilizamos servicios de publicidad proporcionados por AdMob.
-              </p>
-              <!-- <p>
-                Tienes la opción de aceptar o rechazar los anuncios personalizados:
-              </p> -->
-            </ion-text>
-          </ion-item>
+        <div class="intro-block">
+          <div class="intro-icon">
+            <ion-icon name="sparkles-outline"></ion-icon>
+          </div>
+          <h2>Preferencias de anuncios</h2>
+          <p>
+            Para mantener TrainFit gratuita usamos AdMob. Puedes elegir si
+            prefieres anuncios personalizados o no personalizados.
+          </p>
+        </div>
 
-          <ion-item lines="none">
-            <ion-text>
-              <ul>
-                <li>
-                  <strong>&nbsp;Anuncios personalizados:</strong> Estos anuncios
-                  están basados en tu actividad y tus intereses.
-                </li>
-                <li>
-                  <strong>&nbsp;Anuncios no personalizados:</strong> Estos
-                  anuncios no se basan en tu actividad y serán menos relevantes.
-                </li>
-              </ul>
-            </ion-text>
-          </ion-item>
-        </ion-list>
+        <div class="info-block">
+          <div class="info-item">
+            <ion-icon name="person-circle-outline"></ion-icon>
+            <div>
+              <strong>Anuncios personalizados</strong>
+              <span>Basados en tu actividad e intereses.</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <div>
+              <strong>Anuncios no personalizados</strong>
+              <span>No usan tu actividad, serán menos relevantes.</span>
+            </div>
+          </div>
+        </div>
 
         <ion-radio-group
+          class="options-group"
           [value]="selectedOption"
           (ionChange)="selectedOption = $event.detail.value"
         >
-          <ion-item>
-            <ion-label>Anuncios personalizados</ion-label>
+          <ion-item
+            lines="none"
+            class="option-card"
+            [class.selected]="selectedOption === true"
+            button
+            (click)="selectedOption = true"
+          >
             <ion-radio slot="start" [value]="true"></ion-radio>
+            <ion-label>
+              <h3>Anuncios personalizados</h3>
+              <p>Recomendaciones más adaptadas a ti</p>
+            </ion-label>
           </ion-item>
 
-          <ion-item>
-            <ion-label>Anuncios no personalizados</ion-label>
+          <ion-item
+            lines="none"
+            class="option-card"
+            [class.selected]="selectedOption === false"
+            button
+            (click)="selectedOption = false"
+          >
             <ion-radio slot="start" [value]="false"></ion-radio>
+            <ion-label>
+              <h3>Anuncios no personalizados</h3>
+              <p>Menor personalización, misma funcionalidad</p>
+            </ion-label>
           </ion-item>
         </ion-radio-group>
       </ion-card-content>
@@ -59,10 +77,9 @@
   </div>
 </ion-content>
 
-<ion-footer>
-  <ion-button expand="block" (click)="dismiss()"
-    ><strong>ACEPTAR</strong>&nbsp;<ion-icon
-      name="arrow-forward-outline"
-    ></ion-icon
-  ></ion-button>
+<ion-footer class="ad-footer">
+  <ion-button expand="block" (click)="dismiss()">
+    <strong>Guardar preferencia</strong>
+    <ion-icon name="checkmark-outline"></ion-icon>
+  </ion-button>
 </ion-footer>
