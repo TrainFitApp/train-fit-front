@@ -144,20 +144,42 @@ ion-card {
   position: relative;
 }
 
-// Estilos específicos para el acordeón de información adicional
+// Estilos para el acordeón (Estilo igual a add-product)
+ion-accordion {
+  background: transparent;
+
+  ion-item[slot="header"] {
+    --background: transparent;
+    --background-hover: transparent;
+    --background-hover-opacity: 0;
+    --background-activated: transparent;
+    --border-width: 0;
+    --inner-padding-end: 16px;
+    margin-bottom: 0;
+  }
+
+  .ion-padding {
+    --padding-top: 0;
+  }
+}
+
+// Sobreescribir configuraciones que rompen la alineación horizontal en el acordeón
 ion-accordion[value="additional-info"] {
   .custom-input-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    margin-bottom: 12px;
 
     .custom-label {
-      margin-bottom: 0; // Quitar margen inferior cuando están alineados horizontalmente
+      margin-bottom: 0;
+      flex: 1;
     }
 
     .input-wrapper {
-      width: 50%; // Ancho fijo para el input en esta sección
+      width: 180px; // Coherente con add-product
+      flex: 0 0 180px;
     }
   }
 }
@@ -219,7 +241,6 @@ ion-accordion[value="additional-info"] {
 
 // Input styles
 .elegant-input {
-
   ion-input,
   ion-select {
     --background: var(--ion-color-step-50, #fafafa);
@@ -263,7 +284,6 @@ ion-accordion[value="additional-info"] {
 
 // Sección de cantidad - Compacta con mejor visibilidad
 .quantity-section {
-
   // Input de cantidad con fuente más grande
   .custom-input {
     font-size: 1.2rem !important;
@@ -588,40 +608,15 @@ ion-accordion[value="additional-info"] {
   }
 }
 
-// Specific card types
-.quantity-card {
-  background: linear-gradient(135deg,
-      rgba(var(--ion-color-primary-rgb), 0.05) 0%,
-      rgba(var(--ion-color-primary-rgb), 0.02) 100%);
-  border-left: 4px solid var(--ion-color-primary);
-}
-
-.info-card {
-  background: linear-gradient(135deg,
-      rgba(var(--ion-color-secondary-rgb), 0.05) 0%,
-      rgba(var(--ion-color-secondary-rgb), 0.02) 100%);
-  border-left: 4px solid var(--ion-color-secondary);
-}
-
-.nutrition-card {
-  background: linear-gradient(135deg,
-      rgba(var(--ion-color-tertiary-rgb), 0.05) 0%,
-      rgba(var(--ion-color-tertiary-rgb), 0.02) 100%);
-  border-left: 4px solid var(--ion-color-tertiary);
-}
-
-.quantities-card {
-  background: linear-gradient(135deg,
-      rgba(var(--ion-color-primary-rgb), 0.05) 0%,
-      rgba(var(--ion-color-primary-rgb), 0.02) 100%);
-  border-left: 4px solid var(--ion-color-primary);
-}
-
+// Specific card types - Clean style like add-product
+.quantity-card,
+.info-card,
+.nutrition-card,
+.quantities-card,
 .additional-nutrition-card {
-  background: linear-gradient(135deg,
-      rgba(var(--ion-color-secondary-rgb), 0.05) 0%,
-      rgba(var(--ion-color-secondary-rgb), 0.02) 100%);
-  border-left: 4px solid var(--ion-color-secondary);
+  background: #141414 !important;
+  border: 1px solid #252525 !important;
+  border-left: none !important;
 }
 
 // Footer styles
@@ -768,7 +763,6 @@ ion-card-content {
   }
 
   .elegant-input {
-
     ion-input,
     ion-select {
       --background: #141414 !important;
