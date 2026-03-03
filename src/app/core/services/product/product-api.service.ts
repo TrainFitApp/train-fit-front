@@ -48,7 +48,10 @@ export class ProductAPIService {
   /** Actualizar un producto (soporta tanto globales como de usuario). */
   public updateProduct(product: IProduct): Observable<IProduct> {
     return this.http
-      .put<IProduct>(`${ProductAPIService.PRODUCTS_ENDPOINT}`, cleanObject(product))
+      .put<IProduct>(
+        `${ProductAPIService.PRODUCTS_ENDPOINT}`,
+        cleanObject(product)
+      )
       .pipe(take(1));
   }
 
