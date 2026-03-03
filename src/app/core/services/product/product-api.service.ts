@@ -4,6 +4,7 @@ import { take } from 'rxjs/operators';
 import { IProduct } from '../../models/product';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
+import { cleanObject } from '../../../shared/utils';
 
 @Injectable()
 export class ProductAPIService {
@@ -40,14 +41,14 @@ export class ProductAPIService {
   public saveProduct(product: IProduct): Observable<IProduct> {
     return this.http.post<IProduct>(
       `${ProductAPIService.PRODUCTS_ENDPOINT}`,
-      product
+      cleanObject(product)
     );
   }
 
   /** Actualizar un producto (soporta tanto globales como de usuario). */
   public updateProduct(product: IProduct): Observable<IProduct> {
     return this.http
-      .put<IProduct>(`${ProductAPIService.PRODUCTS_ENDPOINT}`, product)
+      .put<IProduct>(`${ProductAPIService.PRODUCTS_ENDPOINT}`, cleanObject(product))
       .pipe(take(1));
   }
 

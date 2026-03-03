@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { CustomProduct } from '../../models/customProduct';
 import { Meal } from '../../models/meal';
 import { HttpService } from '../http/http.service';
+import { cleanObject } from '../../../shared/utils';
 
 @Injectable()
 export class CustomProductAPIService {
@@ -15,13 +16,14 @@ export class CustomProductAPIService {
     customProduct: CustomProduct,
     idUser?: string
   ): Observable<CustomProduct> {
+    const payload = {
+      idMeal,
+      customProduct: cleanObject(customProduct),
+      idUser,
+    };
     return this.http.post<CustomProduct>(
       `${CustomProductAPIService.CUSTOM_PRODUCTS_ENDPOINT}`,
-      {
-        idMeal,
-        customProduct,
-        idUser,
-      }
+      cleanObject(payload)
     );
   }
 
@@ -30,7 +32,7 @@ export class CustomProductAPIService {
   ): Observable<CustomProduct> {
     return this.http.put<CustomProduct>(
       `${CustomProductAPIService.CUSTOM_PRODUCTS_ENDPOINT}`,
-      customProduct
+      cleanObject(customProduct)
     );
   }
 
