@@ -587,25 +587,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.handleProductDeletedLocally(result.deleteOwnProduct);
       shouldSearch = false;
     } else if (result?.createdViaAddProduct) {
+      // Switch to products segment when creating a product
+      this.currentMode = 'products';
       this.syncMealAndDietDayFromService();
-      if (this.currentMode === 'products' && this.products.length > 0) {
-        if (this.ingredientMode) {
-          this.setSelectedIngredientsFirst();
-        } else if (this.meal) {
-          this.setCustomProductsFirst();
-        }
-      }
-      shouldSearch = false;
+      // Force search to refresh products list from API after creation
+      shouldSearch = true;
     } else if (result?.createdViaCreateProduct) {
+      // Switch to products segment when creating a custom product
+      this.currentMode = 'products';
       this.syncMealAndDietDayFromService();
-      if (this.currentMode === 'products' && this.products.length > 0) {
-        if (this.ingredientMode) {
-          this.setSelectedIngredientsFirst();
-        } else if (this.meal) {
-          this.setCustomProductsFirst();
-        }
-      }
-      shouldSearch = false;
+      // Force search to refresh products list from API after creation
+      shouldSearch = true;
     } else if (result?.refresh) {
       // Force refresh requested
       this.syncMealAndDietDayFromService();
