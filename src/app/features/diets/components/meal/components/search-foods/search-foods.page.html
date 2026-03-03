@@ -8,12 +8,24 @@
       </div>
 
       <div class="search-section">
-        <ion-searchbar #searchbar (ionInput)="search($event)" debounce="500" placeholder="Buscar..." mode="ios" animated
-          [value]="searchBarValue" class="custom-searchbar"></ion-searchbar>
+        <ion-searchbar
+          #searchbar
+          (ionInput)="search($event)"
+          debounce="500"
+          placeholder="Buscar..."
+          mode="ios"
+          animated
+          [value]="searchBarValue"
+          class="custom-searchbar"
+        ></ion-searchbar>
       </div>
 
       <div class="actions-section">
-        <button class="action-button ripple-effect" (click)="openScanner()" *ngIf="currentMode !== 'recipes'">
+        <button
+          class="action-button ripple-effect"
+          (click)="openScanner()"
+          *ngIf="currentMode !== 'recipes'"
+        >
           <ion-icon name="barcode-outline"></ion-icon>
         </button>
         <button class="action-button ripple-effect" (click)="deselectedAll()">
@@ -21,19 +33,31 @@
         </button>
       </div>
     </div>
-    <app-filter-icons *ngIf="meal" [disabled]="!load" [ingredientMode]="ingredientMode" [currentMode]="currentMode"
+    <app-filter-icons
+      *ngIf="meal"
+      [disabled]="!load"
+      [ingredientMode]="ingredientMode"
+      [currentMode]="currentMode"
       (filterMeasureSelect)="filterByMeasure($event)"
-      (filterSelection)="setFilterIconsValueBySelection($event)"></app-filter-icons>
+      (filterSelection)="setFilterIconsValueBySelection($event)"
+    ></app-filter-icons>
   </div>
 </ion-header>
 
 <ion-content>
   <!-- Products List -->
   <ng-container *ngIf="currentMode === 'products'">
-    <ion-list *ngIf="products.length > 0; else noProducts"><ng-container *ngFor="let product of products">
-        <app-product [dietDay]="dietDay" [meal]="ingredientMode ? getVirtualMealForIngredients() : meal"
-          [product]="product" [ingredientMode]="ingredientMode" [isIngredientSelected]="isIngredientSelected(product)"
-          (delete)="deleteProduct($event)" (ingredientToggle)="onIngredientToggle($event)"></app-product>
+    <ion-list *ngIf="products.length > 0; else noProducts"
+      ><ng-container *ngFor="let product of products">
+        <app-product
+          [dietDay]="dietDay"
+          [meal]="ingredientMode ? getVirtualMealForIngredients() : meal"
+          [product]="product"
+          [ingredientMode]="ingredientMode"
+          [isIngredientSelected]="isIngredientSelected(product)"
+          (delete)="deleteProduct($event)"
+          (ingredientToggle)="onIngredientToggle($event)"
+        ></app-product>
       </ng-container>
     </ion-list>
 
@@ -48,9 +72,15 @@
   <ng-container *ngIf="currentMode === 'recipes'">
     <ion-list *ngIf="recipesOrdered.length > 0; else noRecipes">
       <ng-container *ngFor="let recipe of recipesOrdered">
-        <app-recipe-card [recipe]="recipe" [meal]="meal" [dietDay]="dietDay" [user]="user"
-          (toggle)="onRecipeToggle($event)" (edit)="onRecipeEdit($event)"
-          (remove)="onRecipeRemove($event)"></app-recipe-card>
+        <app-recipe-card
+          [recipe]="recipe"
+          [meal]="meal"
+          [dietDay]="dietDay"
+          [user]="user"
+          (toggle)="onRecipeToggle($event)"
+          (edit)="onRecipeEdit($event)"
+          (remove)="onRecipeRemove($event)"
+        ></app-recipe-card>
       </ng-container>
     </ion-list>
 
@@ -67,34 +97,58 @@
       <div class="skeleton-header">
         <div class="skeleton-info">
           <div class="skeleton-name-row">
-            <ion-skeleton-text [animated]="true" class="skeleton-product-name"></ion-skeleton-text>
-            <ion-skeleton-text [animated]="true" class="skeleton-product-quantity"></ion-skeleton-text>
+            <ion-skeleton-text
+              [animated]="true"
+              class="skeleton-product-name"
+            ></ion-skeleton-text>
+            <ion-skeleton-text
+              [animated]="true"
+              class="skeleton-product-quantity"
+            ></ion-skeleton-text>
           </div>
-          <ion-skeleton-text [animated]="true" class="skeleton-product-brand"></ion-skeleton-text>
+          <ion-skeleton-text
+            [animated]="true"
+            class="skeleton-product-brand"
+          ></ion-skeleton-text>
         </div>
-        <ion-skeleton-text [animated]="true" class="skeleton-checkbox"></ion-skeleton-text>
+        <ion-skeleton-text
+          [animated]="true"
+          class="skeleton-checkbox"
+        ></ion-skeleton-text>
       </div>
 
       <div class="skeleton-macros">
         <!-- Calorías -->
         <div class="skeleton-macro-col">
           <div class="skeleton-color-dot primary"></div>
-          <ion-skeleton-text [animated]="true" class="skeleton-macro-value"></ion-skeleton-text>
+          <ion-skeleton-text
+            [animated]="true"
+            class="skeleton-macro-value"
+          ></ion-skeleton-text>
         </div>
         <!-- Proteínas -->
         <div class="skeleton-macro-col">
           <div class="skeleton-color-dot alternative"></div>
-          <ion-skeleton-text [animated]="true" class="skeleton-macro-value"></ion-skeleton-text>
+          <ion-skeleton-text
+            [animated]="true"
+            class="skeleton-macro-value"
+          ></ion-skeleton-text>
         </div>
         <!-- Carbohidratos -->
         <div class="skeleton-macro-col">
           <div class="skeleton-color-dot success"></div>
-          <ion-skeleton-text [animated]="true" class="skeleton-macro-value"></ion-skeleton-text>
+          <ion-skeleton-text
+            [animated]="true"
+            class="skeleton-macro-value"
+          ></ion-skeleton-text>
         </div>
         <!-- Grasas -->
         <div class="skeleton-macro-col">
           <div class="skeleton-color-dot secondary"></div>
-          <ion-skeleton-text [animated]="true" class="skeleton-macro-value"></ion-skeleton-text>
+          <ion-skeleton-text
+            [animated]="true"
+            class="skeleton-macro-value"
+          ></ion-skeleton-text>
         </div>
       </div>
     </div>
@@ -108,56 +162,81 @@
 
 <ion-footer class="search-foods-footer">
   <!-- Mode Toggle Row (hidden in ingredient mode) -->
-  <div class="footer-controls" *ngIf="meal && !isFooterHidden && !ingredientMode">
+  <div
+    class="footer-controls"
+    *ngIf="meal && !isFooterHidden && !ingredientMode"
+  >
     <div class="mode-toggle">
-      <button type="button" class="mode-btn" [class.is-active]="currentMode === 'products'"
-        (click)="setMode('products')">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.is-active]="currentMode === 'products'"
+        (click)="setMode('products')"
+      >
         <ion-icon name="nutrition-outline"></ion-icon>
         <span>Productos</span>
       </button>
-      <button type="button" class="mode-btn" [class.is-active]="currentMode === 'recipes'" (click)="setMode('recipes')">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.is-active]="currentMode === 'recipes'"
+        (click)="setMode('recipes')"
+      >
         <ion-icon name="restaurant-outline"></ion-icon>
         <span>Recetas</span>
       </button>
-      <div class="mode-indicator" [class.recipes-active]="currentMode === 'recipes'"></div>
+      <div
+        class="mode-indicator"
+        [class.recipes-active]="currentMode === 'recipes'"
+      ></div>
     </div>
     <button class="add-btn" (click)="openCreateActionSheet()">
       <ion-icon name="add-outline"></ion-icon>
     </button>
   </div>
 
-  <!-- Ingredient mode macros footer -->
+  <!-- Ingredient mode macros footer (sin panel de ingredientes) -->
   <div class="ingredient-macros" *ngIf="ingredientMode && !isFooterHidden">
-    <!-- Row 2: Add product button -->
+    <!-- Botón para añadir producto -->
     <button class="add-btn-full" (click)="createProductForIngredient()">
       <ion-icon name="add-outline"></ion-icon>
     </button>
 
-    <!-- Row 3: Macros in single row -->
+    <!-- Macros en una sola fila -->
     <div class="macros-row">
       <div class="macro-item">
         <div class="macro-dot kcal"></div>
-        <span class="macro-value">{{ ingredientMacros.kcal | number:'1.0-0' }}</span>
+        <span class="macro-value"
+          >{{ ingredientMacros.kcal | number:'1.0-0' }}</span
+        >
         <span class="macro-label">kcal</span>
       </div>
       <div class="macro-item">
         <div class="macro-dot protein"></div>
-        <span class="macro-value">{{ ingredientMacros.protein | number:'1.0-1' }}g</span>
+        <span class="macro-value"
+          >{{ ingredientMacros.protein | number:'1.0-1' }}g</span
+        >
         <span class="macro-label">Prot</span>
       </div>
       <div class="macro-item">
         <div class="macro-dot carbs"></div>
-        <span class="macro-value">{{ ingredientMacros.carbs | number:'1.0-1' }}g</span>
+        <span class="macro-value"
+          >{{ ingredientMacros.carbs | number:'1.0-1' }}g</span
+        >
         <span class="macro-label">Carbs</span>
       </div>
       <div class="macro-item">
         <div class="macro-dot fat"></div>
-        <span class="macro-value">{{ ingredientMacros.fat | number:'1.0-1' }}g</span>
+        <span class="macro-value"
+          >{{ ingredientMacros.fat | number:'1.0-1' }}g</span
+        >
         <span class="macro-label">Grasas</span>
       </div>
     </div>
   </div>
 
-  <app-macros-bars [isFooterHidden]="isFooterHidden || ingredientMode" [clickable]="false"
-    style="width: 100%"></app-macros-bars>
+  <app-macros-bars
+    [isFooterHidden]="isFooterHidden || ingredientMode"
+    style="width: 100%"
+  ></app-macros-bars>
 </ion-footer>

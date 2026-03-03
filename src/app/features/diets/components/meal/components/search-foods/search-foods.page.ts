@@ -1763,6 +1763,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       .filter((productTemp) => {
         if (!productTemp) return false;
 
+        if (this.searchFilterGroup.ownFilter) {
+          return productTemp.userId === this.user?._id;
+        }
+
         // Apply active filters regardless of search
         const idProduct: string = productTemp._id;
         const verified: boolean = !!productTemp?.verified;
