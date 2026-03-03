@@ -141,6 +141,13 @@ export class CustomProductService {
       'caffeine100g',
       'taurine100g',
       'alcohol100g',
+      'vegan',
+      'vegetarian',
+      'lactoseFree',
+      'glutenFree',
+      'ingredients',
+      'allergens',
+      'traces',
     ];
 
     keys.forEach((key) => {
