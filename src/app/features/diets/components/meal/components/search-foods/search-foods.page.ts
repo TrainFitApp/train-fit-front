@@ -666,8 +666,18 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         (p) => p._id === state.updatedProduct._id
       );
       if (idx !== -1) {
-        this.products[idx] = { ...state.updatedProduct };
+        this.products = this.products.map((p, index) =>
+          index === idx ? { ...state.updatedProduct } : p
+        );
         console.log('[DEBUG] Updated product in local list at index:', idx);
+      }
+
+      const hasDietDayChanges =
+        this.dietDayService.syncUpdatedProductInCurrentDietDay(
+          state.updatedProduct
+        );
+      if (hasDietDayChanges) {
+        this.syncMealAndDietDayFromService();
       }
     }
   }

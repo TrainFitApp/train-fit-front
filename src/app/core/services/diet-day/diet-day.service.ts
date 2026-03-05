@@ -3,6 +3,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, take, tap, of } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DataRecipe } from 'src/app/core/models/dataRecipe';
+import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { DateRange } from 'src/app/shared/models/dateRange';
@@ -257,6 +258,79 @@ export class DietDayService {
       );
     }
     return createCustomProductOnDietDayMeal$;
+  }
+
+  public syncUpdatedProductInCurrentDietDay(updatedProduct: IProduct): boolean {
+    if (!updatedProduct?._id) {
+      return false;
+    }
+
+    const currentDietDay = this.currentDietDay;
+    if (!currentDietDay?.meals?.length) {
+      return false;
+    }
+
+    const productId = updatedProduct._id;
+    let hasChanges = false;
+
+    const getProductId = (productRef: any): string | null => {
+      if (!productRef) return null;
+      if (typeof productRef === 'string') return productRef;
+      return productRef._id || null;
+    };
+
+    currentDietDay.meals.forEach((meal) => {
+      if (Array.isArray(meal.customProducts)) {
+        meal.customProducts.forEach((customProduct: CustomProduct) => {
+          const customProductProductId = getProductId(customProduct?.product);
+          if (customProductProductId === productId) {
+            customProduct.product = { ...updatedProduct } as IProduct;
+            hasChanges = true;
+          }
+        });
+      }
+
+      if (Array.isArray((meal as any).customRecipeInstances)) {
+        (meal as any).customRecipeInstances.forEach((instance: any) => {
+          if (!instance) return;
+
+          if (Array.isArray(instance.additionalCustomProducts)) {
+            instance.additionalCustomProducts.forEach((additionalCp: any) => {
+              const addProductId = getProductId(additionalCp?.product);
+              if (addProductId === productId) {
+                additionalCp.product = { ...updatedProduct };
+                hasChanges = true;
+              }
+            });
+          }
+
+          const dataRecipe =
+            typeof instance.dataRecipe === 'object'
+              ? instance.dataRecipe
+              : null;
+          const recipe =
+            dataRecipe && typeof dataRecipe.recipe === 'object'
+              ? dataRecipe.recipe
+              : null;
+
+          if (recipe && Array.isArray(recipe.customProducts)) {
+            recipe.customProducts.forEach((recipeCp: any) => {
+              const recipeProductId = getProductId(recipeCp?.product);
+              if (recipeProductId === productId) {
+                recipeCp.product = { ...updatedProduct };
+                hasChanges = true;
+              }
+            });
+          }
+        });
+      }
+    });
+
+    if (hasChanges) {
+      this.setCurrentDietDay = { ...currentDietDay };
+    }
+
+    return hasChanges;
   }
 
   /**

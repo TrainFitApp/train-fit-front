@@ -193,6 +193,10 @@ export class CreateProductPage implements OnInit {
       );
       this.productService.updateProduct(newProduct).subscribe({
         next: (updatedProduct: IProduct) => {
+          this.dietDayService.syncUpdatedProductInCurrentDietDay(
+            updatedProduct || newProduct
+          );
+
           const toastOptions: ToastOptions = {
             message: `¡${
               updatedProduct?.name || newProduct.name
