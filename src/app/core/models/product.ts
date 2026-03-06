@@ -73,11 +73,11 @@ export class IProduct {
     if (this.brand) this.brand = this.brand.trim();
     if (this.code) this.code = this.code.toString().trim();
 
-    // Eliminar propiedades con valores undefined o strings vacíos
-    // Mantenemos null, false y 0 para poder "limpiar" campos en BD
+    // Eliminar propiedades con valores null, undefined o strings vacíos
+    // Mantenemos false y 0
     Object.keys(this).forEach((key) => {
       const val = (this as any)[key];
-      if (val === undefined || val === '') {
+      if (val === null || val === undefined || val === '') {
         delete (this as any)[key];
       }
     });
