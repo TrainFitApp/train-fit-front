@@ -376,9 +376,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         description: this.recipe.description || '',
       });
 
-      // Removed check for !this.isOwnRecipe - user requested ability to edit regardless of ownership
-      // (Assuming backend handles or copies if needed, or if this is desired behavior)
-
       if (this.customRecipeInstance) {
         const dataRecipe =
           typeof this.customRecipeInstance.dataRecipe === 'object'
@@ -427,12 +424,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get isEditMode(): boolean {
     return this.mode === 'edit';
-  }
-
-  public get isOwnRecipe(): boolean {
-    if (!this.recipe || !this.user) return false;
-    const recipeUserId = (this.recipe.userId as any)?._id || this.recipe.userId;
-    return recipeUserId === this.user._id;
   }
 
   public get canEditDefinition(): boolean {
@@ -632,7 +623,6 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       state: {
         product: product,
         productQuantity: ingredient.quantity,
-        isOwnProduct: !!(product.userId && product.userId === this.user._id),
         ingredientMode: true,
         customProduct: ingredient, // Pass the full customProduct for editing
         returnUrl: '/search-foods/config-recipe',

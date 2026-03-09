@@ -35,7 +35,6 @@ export class AddProductPage implements OnInit, OnDestroy {
   public customProduct: CustomProduct;
   public meal: Meal;
   public dietDay: DietDay;
-  public isOwnProduct: boolean;
   public productQuantity: number;
   public isScanned: boolean;
   public isArchived: boolean;
@@ -104,6 +103,11 @@ export class AddProductPage implements OnInit, OnDestroy {
     return !!this.meal || this.ingredientMode;
   }
 
+  get isProductOwnedByUser(): boolean {
+    const userId = this.userService.getLocalUser?._id;
+    return !!(userId && this.product?.userId && this.product.userId === userId);
+  }
+
   private backButtonSubscription: any;
   private destroy$ = new Subject<void>();
 
@@ -163,7 +167,6 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.loadParametersFromRoute();
 
     if (this.meal) this.existCustomProduct();
-    this.syncOwnershipFromProduct();
     this.checkHasPortions();
     this.initForm();
     this.subsPortions();
@@ -414,8 +417,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       const newCustomProduct = this.customProductService.composeCustomProduct(
         this.product,
         finalQuantity,
-        0,
-        this.isOwnProduct
+        0
       );
 
       // Copy all nutritional values and metadata from form to the custom product as overrides
@@ -496,8 +498,7 @@ export class AddProductPage implements OnInit, OnDestroy {
         const newCustomProduct = this.customProductService.composeCustomProduct(
           this.product,
           finalQuantity,
-          0,
-          this.isOwnProduct
+          0
         );
 
         this.mapFormToProduct(
@@ -910,7 +911,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   public goToEditProduct(): void {
-    if (this.isOwnProduct) {
+    if (this.isProductOwnedByUser) {
       this.navigationService.goToCreateProduct({
         queryParams: {
           product: JSON.stringify(this.product),
@@ -928,7 +929,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   public deleteOwnProduct(): void {
-    if (this.isOwnProduct) {
+    if (this.isProductOwnedByUser) {
       const productName = this.product
         ? this.product.name
         : this.customProduct.product.name;
@@ -1433,7 +1434,6 @@ export class AddProductPage implements OnInit, OnDestroy {
       let needsInit = false;
       if (params['product']) {
         this.product = JSON.parse(params['product']);
-        this.syncOwnershipFromProduct();
         needsInit = true;
       }
       if (params['meal']) {
@@ -1466,7 +1466,6 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (state.product && !this.product) {
       try {
         this.product = state.product;
-        this.syncOwnershipFromProduct();
       } catch (_) {}
     }
     if (state.meal && !this.meal) {
@@ -1499,14 +1498,5 @@ export class AddProductPage implements OnInit, OnDestroy {
       return '/search-foods/config-recipe';
     }
     return url;
-  }
-
-  private syncOwnershipFromProduct(): void {
-    const userId = this.userService.getLocalUser?._id;
-    this.isOwnProduct = !!(
-      userId &&
-      this.product?.userId &&
-      this.product.userId === userId
-    );
   }
 }

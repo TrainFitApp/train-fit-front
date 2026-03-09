@@ -7,7 +7,7 @@
     <div slot="actions" class="actions-section">
       <!-- Botón de Editar (solo productos propios) -->
       <button
-        *ngIf="isOwnProduct"
+        *ngIf="isProductOwnedByUser"
         class="action-button ripple-effect"
         (click)="goToEditProduct()"
       >
@@ -15,7 +15,7 @@
       </button>
       <!-- Botón de Eliminar (solo productos propios) -->
       <button
-        *ngIf="isOwnProduct"
+        *ngIf="isProductOwnedByUser"
         class="action-button ripple-effect"
         (click)="deleteOwnProduct()"
       >

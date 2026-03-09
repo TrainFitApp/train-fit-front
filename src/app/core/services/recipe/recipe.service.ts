@@ -203,13 +203,6 @@ export class RecipeService {
   }
 
   /**
-   * Check if recipe is owned by user
-   */
-  public isOwnRecipe(recipe: Recipe, userId: string): boolean {
-    return recipe.userId === userId;
-  }
-
-  /**
    * Check if recipe is in favorites
    */
   public isFavorite(recipe: Recipe, archivedRecipes: string[]): boolean {

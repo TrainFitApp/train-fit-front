@@ -35,8 +35,6 @@ export class CreateProductPage implements OnInit {
   public productForm: FormGroup;
   public loading = { value: false };
 
-  // Será own siempre y cuando el scanner no detecte otro produto (en ese caso será false)
-  public isOwnProduct: boolean = true;
   public isEditMode: boolean = false;
   public editingProduct: IProduct;
   private returnUrl?: string;
@@ -235,8 +233,7 @@ export class CreateProductPage implements OnInit {
           const newIngredient = this.customProductService.composeCustomProduct(
             createdProduct,
             this.productForm.controls.quantity.value,
-            0,
-            false
+            0
           );
 
           this.customProductService.mapNutritionalValues(
@@ -274,8 +271,7 @@ export class CreateProductPage implements OnInit {
       const newCustomProduct = this.customProductService.composeCustomProduct(
         newProduct,
         toNum(this.productForm.controls.quantity.value) || 0,
-        0,
-        false
+        0
       );
 
       this.customProductService.mapNutritionalValues(
@@ -358,7 +354,6 @@ export class CreateProductPage implements OnInit {
         .subscribe({
           next: (resProduct: any) => {
             const product = resProduct?.product;
-            const isOwn = resProduct?.isOwn;
 
             if (product) {
               // 🔧 FIX: Producto encontrado - manejar según modo
@@ -397,8 +392,7 @@ export class CreateProductPage implements OnInit {
                           this.customProductService.composeCustomProduct(
                             product,
                             this.productForm.controls.quantity.value || 100,
-                            0,
-                            isOwn
+                            0
                           );
                         this.navigationService.setTempData(
                           'newIngredient',
@@ -427,7 +421,6 @@ export class CreateProductPage implements OnInit {
                   productQuantity: product.servingQuantity,
                   dietDay: JSON.stringify(this.dietDay),
                   meal: JSON.stringify(this.meal),
-                  isOwnProduct: isOwn,
                 };
                 this.navigationService.goToAddProduct({
                   replaceUrl: false,
@@ -438,7 +431,6 @@ export class CreateProductPage implements OnInit {
                     productQuantity: product.servingQuantity,
                     dietDay: this.dietDay,
                     meal: this.meal,
-                    isOwnProduct: isOwn,
                     returnUrl: '/search-foods',
                   },
                 });
@@ -450,7 +442,6 @@ export class CreateProductPage implements OnInit {
                 const queryParams: any = {
                   product: JSON.stringify(product),
                   isScanned: true,
-                  isOwnProduct: isOwn,
                   productQuantity: product.servingQuantity,
                 };
                 this.navigationService.goToAddProduct({
@@ -459,7 +450,6 @@ export class CreateProductPage implements OnInit {
                   state: {
                     product,
                     isScanned: true,
-                    isOwnProduct: isOwn,
                     productQuantity: product.servingQuantity,
                     returnUrl: '/search-foods',
                   },

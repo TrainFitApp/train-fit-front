@@ -75,15 +75,12 @@ export class CustomProductService {
   }
 
   /**
-   * Composes a CustomProduct. All products, including user-created ones, go
-   * to the `product` field. The `isOwn` param is kept for backward compat but
-   * is no longer used — ownership is detected via product.userId.
+   * Composes a CustomProduct. Ownership is derived from product.userId when needed.
    */
   public composeCustomProduct(
     product: IProduct,
     quantity: number,
-    order: number,
-    isOwn: boolean = false
+    order: number
   ): CustomProduct {
     const customProductNew = new CustomProduct();
     customProductNew.quantity = quantity;

@@ -31,7 +31,6 @@ export class RecipeCardComponent implements OnInit, OnChanges {
   public macros: { kcal: number; protein: number; carbs: number; fat: number };
   public topIngredients: string;
   public isFavorite: boolean = false;
-  public isOwn: boolean = false;
   public isChecked: boolean = false;
   public instanceQuantity: number | null = null;
 
@@ -41,7 +40,6 @@ export class RecipeCardComponent implements OnInit, OnChanges {
     this.calculateMacros();
     this.setTopIngredients();
     this.checkFavorite();
-    this.checkOwnership();
     this.checkIsChecked();
   }
 
@@ -99,10 +97,6 @@ export class RecipeCardComponent implements OnInit, OnChanges {
   private checkFavorite(): void {
     this.isFavorite =
       this.user?.archivedRecipes?.includes(this.recipe._id) ?? false;
-  }
-
-  private checkOwnership(): void {
-    this.isOwn = this.recipe.userId === this.user?._id;
   }
 
   public onCardClick(): void {

@@ -867,14 +867,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
               product: JSON.stringify(product),
               isScanned: isScanned,
               productQuantity: product.servingQuantity,
-              isOwnProduct: resProduct['isOwn'],
             };
 
             const baseState: any = {
               product,
               isScanned,
               productQuantity: product.servingQuantity,
-              isOwnProduct: resProduct['isOwn'],
               returnUrl: '/search-foods',
             };
 

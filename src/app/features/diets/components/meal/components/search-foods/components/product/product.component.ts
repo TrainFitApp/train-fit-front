@@ -64,7 +64,6 @@ export class ProductComponent implements OnInit, OnChanges {
   public loading = { value: false };
   public isChecked: boolean;
   public customProduct: CustomProduct;
-  public isOwn: boolean;
 
   public productQuantity: number;
 
@@ -89,7 +88,6 @@ export class ProductComponent implements OnInit, OnChanges {
       this.utilService.getUnselected.subscribe(() => this.isProductChecked());
     this.getProductQuanityByFilter();
     this.setBrand();
-    this.isOwnProduct();
     this.isProductChecked();
   }
 
@@ -136,7 +134,6 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public toggleProduct(event: Event): void {
-    this.isOwnProduct();
     const checked = this.utilService.getEventCheck(event);
 
     // In ingredient mode, just emit the product without API calls
@@ -153,8 +150,7 @@ export class ProductComponent implements OnInit, OnChanges {
     const newCustomProduct = this.customProductService.composeCustomProduct(
       this.product,
       this.productQuantity,
-      0,
-      this.isOwn
+      0
     );
 
     if (checked) {
@@ -281,18 +277,6 @@ export class ProductComponent implements OnInit, OnChanges {
     );
   }
 
-  /**
-   * Determines if this product belongs to the current user.
-   * Ownership is now detected via product.userId instead of user.ownProducts[].
-   */
-  public isOwnProduct(): boolean {
-    const currentUserId = this.userService.getLocalUser?._id;
-    this.isOwn = !!(
-      this.product?.userId && this.product.userId === currentUserId
-    );
-    return this.isOwn;
-  }
-
   private existCustomProduct(): void {
     if (this.meal?.customProducts)
       this.customProduct = this.meal.customProducts.find(
@@ -306,13 +290,11 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public openAddProduct(): void {
-    this.isOwnProduct();
     const queryParams: any = {
       dietDay: JSON.stringify(this.dietDay),
       meal: JSON.stringify(this.meal),
       product: JSON.stringify(this.product),
       productQuantity: this.productQuantity,
-      isOwnProduct: this.isOwn,
     };
     this.navigationService.goToAddProduct({
       replaceUrl: false,
@@ -322,7 +304,6 @@ export class ProductComponent implements OnInit, OnChanges {
         meal: this.meal,
         product: this.product,
         productQuantity: this.productQuantity,
-        isOwnProduct: this.isOwn,
         ingredientMode: this.ingredientMode,
         customProduct: this.customProduct, // Pass existing customProduct for editing
         returnUrl: '/search-foods',
