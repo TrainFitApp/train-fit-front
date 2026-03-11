@@ -5,19 +5,25 @@ import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { Meal } from '../../models/meal';
 import { IProduct } from '../../models/product';
 import { HttpService } from '../http/http.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class MealAPIService {
   private static readonly MEAL_ENDPOINT = 'meals';
 
-  constructor(private http: HttpService) {}
+  constructor(private http: HttpService, private userService: UserService) {}
 
   public searchAllWithFilters(
     searchFilterGroup: SearchFilterGroup
   ): Observable<IProduct[]> {
+    const payload = {
+      ...searchFilterGroup,
+      userId: searchFilterGroup?.userId || this.userService.getLocalUser?._id,
+    };
+
     return this.http.post<IProduct[]>(
       `${MealAPIService.MEAL_ENDPOINT}/search/all`,
-      searchFilterGroup
+      payload
     );
   }
 
