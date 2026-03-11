@@ -551,6 +551,13 @@ export class ConfigExercisePage implements OnInit {
     this.videoUrl = exercise.videoUrl;
     this.updateVideoEmbedSrc();
     this.form?.controls?.name?.setValue(exercise.name);
+
+    // Recalculate ownership after replacement: only own exercises can be edited.
+    this.isOwnExercise = exercise?.userId === this.user?._id;
+    if (!this.isOwnExercise) {
+      this.isEditingOwnExercise = false;
+    }
+
     this.exerciseChanged = true;
   }
 
