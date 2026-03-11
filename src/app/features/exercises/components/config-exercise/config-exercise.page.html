@@ -50,7 +50,7 @@
     <div class="elegant-card exercise-name-card">
       <div class="card-content">
         <div class="exercise-info">
-          <div class="exercise-icon">
+          <div class="exercise-icon" *ngIf="!isEditingOwnExercise">
             <ion-icon name="barbell-outline"></ion-icon>
           </div>
           <div class="exercise-details" [class.create-mode]="isCreateMode">
