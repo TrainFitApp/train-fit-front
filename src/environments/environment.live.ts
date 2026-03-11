@@ -1,6 +1,6 @@
 const PORT = ':3000';
 // Usar IP local para que el dispositivo/simulator iOS pueda conectarse
-const API_URL_BASE = 'http://192.168.0.20' + PORT;
+const API_URL_BASE = 'http://192.168.1.15' + PORT;
 
 export const environment = {
   production: false,
