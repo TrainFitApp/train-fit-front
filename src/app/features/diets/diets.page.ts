@@ -1,4 +1,11 @@
-import { ChangeDetectorRef, Component, OnInit, ViewChild, effect, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  ViewChild,
+  effect,
+  inject,
+} from '@angular/core';
 import { AlertOptions, ToastOptions } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
@@ -65,6 +72,13 @@ export class DietsPage implements OnInit {
     this.dietDayService.getCurrentDietDay.subscribe(
       (resDietDay) => (this.dietDay = resDietDay)
     );
+  }
+
+  public ionViewWillEnter(): void {
+    // Resync dates-slider each time the page comes back to view.
+    // Prevents the slider from showing a wrong week when returning from navigation
+    // (caused by Swiper firing slideChangeTransitionEnd on visibility change).
+    this.utilService.setCurrentDate = this.selectedDate;
   }
 
   public ngOnInit(): void {

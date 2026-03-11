@@ -50,8 +50,6 @@ export class DatesSliderComponent implements AfterViewInit {
     private _cdRef: ChangeDetectorRef
   ) {}
 
-
-
   public ngAfterViewInit(): void {
     this._utilService.getCurrentDate.subscribe((resCurrentDate) => {
       this.currentDate = new Date(resCurrentDate);
@@ -64,6 +62,8 @@ export class DatesSliderComponent implements AfterViewInit {
 
   private swiperReady(): void {
     this.swiper = this.swiperDates?.nativeElement?.swiper;
+    // Remove any existing listener before adding a new one to avoid accumulation
+    this.swiper.off('slideChangeTransitionEnd');
     this.swiper.on('slideChangeTransitionEnd', () => this.slide());
   }
 
