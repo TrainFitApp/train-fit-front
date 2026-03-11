@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   OnDestroy,
   OnInit,
@@ -7,7 +8,7 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Capacitor } from '@capacitor/core';
+import { PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import {
   ActionSheetOptions,
@@ -183,6 +184,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private hasInitialized = false;
   private productByCodeSub?: Subscription;
   private backButton$?: Subscription;
+  private keyboardWillShowHandle?: PluginListenerHandle;
+  private keyboardWillHideHandle?: PluginListenerHandle;
+  private keyboardDidShowHandle?: PluginListenerHandle;
+  private keyboardDidHideHandle?: PluginListenerHandle;
+  private visualViewportResizeHandler?: () => void;
+  private baseViewportHeight?: number;
 
   constructor(
     private dietDayService: DietDayService,
@@ -196,7 +203,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
     private platform: Platform,
-    private routerOutlet: IonRouterOutlet
+    private routerOutlet: IonRouterOutlet,
+    private cdr: ChangeDetectorRef
   ) {
     this.utilService.setMeasureFilter = MEASURE_FILTER_TYPES.auto;
   }
@@ -208,6 +216,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   public async ionViewWillEnter(): Promise<void> {
     this.initializeBackButtonHandler();
+    void this.initializeKeyboardListeners();
     console.log(
       '[DEBUG - LIFECYCLE] ionViewWillEnter called, currentMode:',
       this.currentMode,
@@ -222,16 +231,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       '[DEBUG - LIFECYCLE] ingredientMode at START:',
       this.ingredientMode
     );
-    // Overlay del teclado solo en esta pantalla
-    if (Capacitor.getPlatform() !== 'web') {
-      // Ajuste visual: empujar footer/FAB hacia abajo usando la altura del teclado
-      Keyboard.addListener('keyboardWillShow', (e: any) => {
-        this.isFooterHidden = true;
-      });
-      Keyboard.addListener('keyboardWillHide', () => {
-        this.isFooterHidden = false;
-      });
-    }
 
     this.user = this.userService.getLocalUser;
 
@@ -722,9 +721,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async ionViewWillLeave(): Promise<void> {
-    if (Capacitor.getPlatform() !== 'web') {
-      Keyboard.removeAllListeners();
-    }
+    await this.removeKeyboardListeners();
     if (this.ingredientMode && this.returnUrl) {
       const ingredientsCopy = this.selectedIngredients.map((ing) => ({
         product: ing.product,
@@ -746,6 +743,99 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (this.platform.is('ios')) {
       this.routerOutlet.swipeGesture = true;
     }
+  }
+
+  private async initializeKeyboardListeners(): Promise<void> {
+    await this.removeKeyboardListeners();
+
+    const handleShow = () => this.setFooterHidden(true);
+    const handleHide = () => this.setFooterHidden(false);
+
+    try {
+      this.keyboardWillShowHandle = await Keyboard.addListener(
+        'keyboardWillShow',
+        handleShow
+      );
+      this.keyboardWillHideHandle = await Keyboard.addListener(
+        'keyboardWillHide',
+        handleHide
+      );
+      this.keyboardDidShowHandle = await Keyboard.addListener(
+        'keyboardDidShow',
+        handleShow
+      );
+      this.keyboardDidHideHandle = await Keyboard.addListener(
+        'keyboardDidHide',
+        handleHide
+      );
+    } catch (error) {
+      console.error('[Keyboard] Failed to register listeners', error);
+    }
+
+    if (this.platform.is('ios') && window.visualViewport) {
+      this.baseViewportHeight = window.visualViewport.height;
+      this.visualViewportResizeHandler = () => {
+        const currentHeight = window.visualViewport?.height;
+        if (!currentHeight) {
+          return;
+        }
+
+        if (
+          !this.baseViewportHeight ||
+          currentHeight > this.baseViewportHeight
+        ) {
+          this.baseViewportHeight = currentHeight;
+        }
+
+        const isKeyboardVisible =
+          currentHeight < (this.baseViewportHeight ?? currentHeight) - 120;
+
+        this.setFooterHidden(isKeyboardVisible);
+
+        if (!isKeyboardVisible) {
+          this.baseViewportHeight = currentHeight;
+        }
+      };
+
+      window.visualViewport.addEventListener(
+        'resize',
+        this.visualViewportResizeHandler
+      );
+    }
+  }
+
+  private async removeKeyboardListeners(): Promise<void> {
+    try {
+      await this.keyboardWillShowHandle?.remove();
+      await this.keyboardWillHideHandle?.remove();
+      await this.keyboardDidShowHandle?.remove();
+      await this.keyboardDidHideHandle?.remove();
+    } catch (error) {
+      console.error('[Keyboard] Failed to remove listeners', error);
+    }
+
+    this.keyboardWillShowHandle = undefined;
+    this.keyboardWillHideHandle = undefined;
+    this.keyboardDidShowHandle = undefined;
+    this.keyboardDidHideHandle = undefined;
+
+    if (this.visualViewportResizeHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener(
+        'resize',
+        this.visualViewportResizeHandler
+      );
+    }
+
+    this.visualViewportResizeHandler = undefined;
+    this.baseViewportHeight = undefined;
+  }
+
+  private setFooterHidden(hidden: boolean): void {
+    if (this.isFooterHidden === hidden) {
+      return;
+    }
+
+    this.isFooterHidden = hidden;
   }
 
   public search(event?: Event | string): void {
