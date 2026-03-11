@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastOptions } from '@ionic/angular';
 import { from, Observable } from 'rxjs';
@@ -16,7 +16,7 @@ import { EmailExistValidator } from 'src/app/core/validators/email-exist';
   templateUrl: './restore-password.page.html',
   styleUrls: ['./restore-password.page.scss'],
 })
-export class RestorePasswordPage implements OnInit {
+export class RestorePasswordPage implements OnInit, OnDestroy {
   @ViewChild('codeInput') public codeInput: ElementRef<HTMLInputElement>;
   public restorePassForm: FormGroup;
   public showPass: boolean;
@@ -26,6 +26,9 @@ export class RestorePasswordPage implements OnInit {
   public codeAccepted: boolean;
   public showFormErrors: boolean;
   public needsEmailInput: boolean;
+  public resendDisabled = false;
+  public resendCountdown = 0;
+  private resendInterval: any;
   private localEmail: string | null;
 
   public get effectiveEmail(): string | null {
@@ -121,6 +124,7 @@ export class RestorePasswordPage implements OnInit {
           this.loading = false;
           this.codeSended = true;
           this.showFormErrors = false;
+          this.startResendCooldown();
           this.ionicUtilService.showSuccessToast(
             '¡Código enviado, revisa spam!',
             3000
@@ -205,6 +209,54 @@ export class RestorePasswordPage implements OnInit {
           );
         },
       });
+  }
+
+  public resendCode(): void {
+    if (this.resendDisabled) return;
+
+    const email = this.needsEmailInput
+      ? this.restorePassForm.get('email')?.value
+      : this.userService.getLocalUser?.email;
+    if (!email) return;
+
+    this.startResendCooldown();
+    this.loading = true;
+    this.userService.sendMailCode(email).subscribe({
+      next: () => {
+        this.loading = false;
+        this.ionicUtilService.showSuccessToast(
+          '¡Código reenviado, revisa spam!',
+          3000
+        );
+      },
+      error: (err) => {
+        this.loading = false;
+        this.ionicUtilService.showErrorToast(
+          err,
+          'Error al reenviar código',
+          3000
+        );
+      },
+    });
+  }
+
+  private startResendCooldown(): void {
+    this.resendDisabled = true;
+    this.resendCountdown = 60;
+
+    if (this.resendInterval) clearInterval(this.resendInterval);
+
+    this.resendInterval = setInterval(() => {
+      this.resendCountdown--;
+      if (this.resendCountdown <= 0) {
+        this.resendDisabled = false;
+        clearInterval(this.resendInterval);
+      }
+    }, 1000);
+  }
+
+  public ngOnDestroy(): void {
+    if (this.resendInterval) clearInterval(this.resendInterval);
   }
 
   public goBack(): void {
