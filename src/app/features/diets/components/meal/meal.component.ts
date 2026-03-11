@@ -232,7 +232,9 @@ export class MealComponent implements OnInit, OnChanges {
         .toPromise();
     }
 
-    const canMerge = this.meal.customProducts.length !== 0;
+    const canMerge =
+      this.meal.customProducts.length !== 0 ||
+      (this.meal.customRecipeInstances?.length ?? 0) !== 0;
 
     if (canMerge) {
       const alertOptions: AlertOptions = {
