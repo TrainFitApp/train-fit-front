@@ -679,13 +679,13 @@ ion-accordion {
     }
 
     .calories-wrapper {
-      flex: 0 0 180px;
-      min-width: 180px;
+      flex: 0 0 140px;
+      min-width: 140px;
       border: 1px solid var(--ion-color-primary) !important;
     }
 
     .calories-value {
-      font-size: 1.4rem !important;
+      font-size: 1rem !important;
       font-weight: 700 !important;
       color: var(--ion-color-primary) !important;
       text-align: left !important;
@@ -744,14 +744,14 @@ ion-accordion {
         }
 
         .input-wrapper {
-          flex: 0 0 180px;
-          min-width: 180px;
+          flex: 0 0 145px;
+          min-width: 145px;
 
           .custom-input {
             text-align: right;
             --padding-end: 12px;
             --padding-start: 12px;
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
             font-weight: 600 !important;
             color: var(--text-primary) !important;
           }
