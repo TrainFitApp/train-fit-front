@@ -86,6 +86,7 @@ export class WeightInfoPage {
   ) {}
 
   public ionViewWillEnter(): void {
+    this.monthYear = `${this.months[this.selectedDate.getMonth()]} ${this.selectedDate.getFullYear()}`;
     this.chartRange = CHART_RANGES.week;
     this.getChartConfigurationByRange();
     this.getDietDays();

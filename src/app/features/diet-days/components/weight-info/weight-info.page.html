@@ -25,7 +25,7 @@
     <div class="calendar-section">
       <app-calendar
         class="weight-calendar"
-        [fetchOnInit]="false"
+        [fetchOnInit]="true"
         (selectDate)="selectDate($event)"
         (monthYear)="setMonthYear($event)"
         (loading)="setLoading($event)"
