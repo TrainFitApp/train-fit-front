@@ -158,6 +158,14 @@ export class SetComponent implements OnInit, OnChanges {
     if (this.rirFormControl?.value === value) {
       return;
     }
+
+    // Keep local object in sync immediately; persistence still happens via form valueChanges.
+    if (value === null || value === undefined) {
+      delete this.set.rir;
+    } else {
+      this.set.rir = value;
+    }
+
     this.setForm.patchValue({ rir: value });
   }
 
@@ -298,16 +306,10 @@ export class SetComponent implements OnInit, OnChanges {
   }
 
   public isFail(set: any): boolean {
-    // Check if fail in execution (rir = -1)
-    if (set?.rir === -1) {
-      return true;
-    }
-
-    // Check expected fail (objective) - only check expectedRir
-    const hasFailInExpectedRir =
+    // In the objective header, FAIL must only reflect expected RIR, not executed RIR.
+    return (
       Array.isArray(set?.expectedRir) &&
-      set.expectedRir.some((value) => Number(value) === -1);
-
-    return !!hasFailInExpectedRir;
+      set.expectedRir.some((value) => Number(value) === -1)
+    );
   }
 }
