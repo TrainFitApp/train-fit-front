@@ -178,6 +178,38 @@
   </ion-infinite-scroll>
 </ion-content>
 
+<ion-footer class="search-exercises-footer" *ngIf="!isChangeMode">
+  <div class="footer-controls">
+    <div class="mode-toggle">
+      <button
+        type="button"
+        class="mode-btn"
+        [class.is-active]="cardioMode === 'all'"
+        (click)="setCardioMode('all')"
+      >
+        <ion-icon name="barbell-outline"></ion-icon>
+        <span>Todos</span>
+      </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.is-active]="cardioMode === 'cardio'"
+        (click)="setCardioMode('cardio')"
+      >
+        <ion-icon name="pulse-outline"></ion-icon>
+        <span>Cardio</span>
+      </button>
+      <div
+        class="mode-indicator"
+        [class.cardio-active]="cardioMode === 'cardio'"
+      ></div>
+    </div>
+    <button class="add-btn" (click)="addExerciseModal()">
+      <ion-icon name="add-outline"></ion-icon>
+    </button>
+  </div>
+</ion-footer>
+
 <ion-footer *ngIf="isChangeMode" class="change-mode-footer">
   <div class="footer-container">
     <ion-icon name="swap-horizontal-outline" class="footer-icon"></ion-icon>

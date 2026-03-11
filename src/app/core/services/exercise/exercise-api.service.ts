@@ -17,7 +17,14 @@ export class ExerciseAPIService {
     searchExercisesFilterGroup: SearchFilterGroupExercises
   ): Observable<Exercise[]> {
     // Do not send ownFilter for exercises; rely on userId + favFilter
-    const { ownFilter, ...payload } = (searchExercisesFilterGroup as any) || {};
+    const { ownFilter, isCardio, ...restPayload } =
+      (searchExercisesFilterGroup as any) || {};
+    const payload: any = { ...restPayload };
+
+    if (isCardio === true) {
+      payload.isCardio = true;
+    }
+
     return this.http.post<Exercise[]>(
       `${ExerciseAPIService.EXERCISE_ENDPOINT}/search?page=${searchExercisesFilterGroup.page}&limit=10`,
       payload

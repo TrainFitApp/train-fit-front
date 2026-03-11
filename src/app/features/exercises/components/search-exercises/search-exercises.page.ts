@@ -46,6 +46,7 @@ export class SearchExercisesPageComponent {
   // public selectedMuscleGroup2: string[] = [];
 
   public searchFilterGroupExercises: SearchFilterGroupExercises;
+  public cardioMode: 'all' | 'cardio' = 'all';
 
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
@@ -200,5 +201,16 @@ export class SearchExercisesPageComponent {
   public getValidMuscleGroups(exercise: Exercise): string[] {
     if (!exercise || !exercise.muscleGroups1) return [];
     return exercise.muscleGroups1.filter((g) => g && g.trim().length > 0);
+  }
+
+  public setCardioMode(mode: 'all' | 'cardio'): void {
+    if (this.cardioMode === mode) {
+      return;
+    }
+
+    this.cardioMode = mode;
+    this.searchFilterGroupExercises.isCardio =
+      mode === 'cardio' ? true : undefined;
+    this.searchByFilter();
   }
 }

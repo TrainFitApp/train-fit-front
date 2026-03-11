@@ -16,5 +16,6 @@ export class SearchFilterGroupExercises {
   public muscleGroups2: string[] = [];
   public category: string[] = [];
   public equipment: string[] = [];
+  public isCardio?: boolean;
   public userId?: string;
 }

@@ -48,6 +48,7 @@ export class SearchExercisesPage implements OnInit {
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
   public searchFilterGroupExercises: SearchFilterGroupExercises;
+  public cardioMode: 'all' | 'cardio' = 'all';
 
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
@@ -258,5 +259,16 @@ export class SearchExercisesPage implements OnInit {
         this.modalController.dismiss(res.data);
       }
     });
+  }
+
+  public setCardioMode(mode: 'all' | 'cardio'): void {
+    if (this.cardioMode === mode) {
+      return;
+    }
+
+    this.cardioMode = mode;
+    this.searchFilterGroupExercises.isCardio =
+      mode === 'cardio' ? true : undefined;
+    this.searchByFilter();
   }
 }
