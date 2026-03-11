@@ -355,6 +355,30 @@ export class MealComponent implements OnInit, OnChanges {
       });
     }
 
+    let mergedRecipeQuantity = 0;
+
+    recipe.customProducts.forEach((cp: any) => {
+      const cpId = typeof cp === 'string' ? cp : cp._id;
+      const cpData = typeof cp === 'object' ? cp : null;
+      if (!cpData) return;
+
+      const override = overridesMap.get(cpId);
+      if (override?.removed) return;
+
+      mergedRecipeQuantity += override?.quantity ?? cpData.quantity ?? 0;
+    });
+
+    if (instance.additionalCustomProducts) {
+      instance.additionalCustomProducts.forEach((addCP) => {
+        mergedRecipeQuantity += addCP.quantity || 0;
+      });
+    }
+
+    const baselineQuantity =
+      dataRecipe.quantityCooked || dataRecipe.quantity || mergedRecipeQuantity;
+    const portionRatio =
+      baselineQuantity > 0 ? instance.quantity / baselineQuantity : 0;
+
     let totalMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
     // Calcular macros de customProducts originales con overrides
@@ -371,10 +395,7 @@ export class MealComponent implements OnInit, OnChanges {
       // Usar cantidad del override o la original
       const originalQuantity = override?.quantity ?? cpData.quantity;
 
-      // Escalar por la cantidad de receta (regla de tres)
-      // quantity en instance es gramos de receta, escalar cada ingrediente
-      const scaleFactor = instance.quantity / 100;
-      const scaledQuantity = originalQuantity * scaleFactor;
+      const scaledQuantity = originalQuantity * portionRatio;
 
       // Calcular macros de este ingrediente
       const macros = this.customProductService.getMacros({
@@ -391,8 +412,7 @@ export class MealComponent implements OnInit, OnChanges {
     // Añadir macros de ingredientes adicionales
     if (instance.additionalCustomProducts) {
       instance.additionalCustomProducts.forEach((addCP) => {
-        const scaleFactor = instance.quantity / 100;
-        const scaledQuantity = addCP.quantity * scaleFactor;
+        const scaledQuantity = addCP.quantity * portionRatio;
 
         const macros = this.customProductService.getMacros({
           ...addCP,
