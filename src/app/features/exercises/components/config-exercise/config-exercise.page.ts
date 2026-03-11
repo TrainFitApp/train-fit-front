@@ -535,6 +535,22 @@ export class ConfigExercisePage implements OnInit {
         };
       }
 
+      // Propagar mergedExercise a todos los customExercises de la tabla local
+      const tableInUse = this.tableService.tableInUse;
+      if (tableInUse && mergedExercise._id) {
+        tableInUse.splits?.forEach((splitTemp) => {
+          splitTemp.workouts?.forEach((workoutTemp) => {
+            workoutTemp.exercises?.forEach((ceTemp) => {
+              const ceExId = (ceTemp.exercise as any)?._id;
+              if (ceExId?.toString() === mergedExercise._id.toString()) {
+                ceTemp.exercise = { ...mergedExercise };
+              }
+            });
+          });
+        });
+        this.tableService.setCurrentTable = tableInUse;
+      }
+
       this.form.patchValue({
         name: mergedExercise.name || '',
         description: mergedExercise.description || '',
@@ -793,6 +809,25 @@ export class ConfigExercisePage implements OnInit {
             tableInUse.splits[this.splitIndex].workouts[
               this.workoutIndex
             ].exercises[indexCustomExercise] = this.customExercise;
+
+            // Si se editó el exercise propio, propagar el nombre/datos a todos los
+            // customExercises de la tabla que referencien ese mismo exercise._id
+            if (this.isEditingOwnExercise && resCustomExercise.exercise) {
+              const updatedExercise = resCustomExercise.exercise;
+              const exerciseId = (updatedExercise as any)?._id;
+              if (exerciseId) {
+                tableInUse.splits.forEach((splitTemp) => {
+                  splitTemp.workouts?.forEach((workoutTemp) => {
+                    workoutTemp.exercises?.forEach((ceTemp) => {
+                      const ceExId = (ceTemp.exercise as any)?._id;
+                      if (ceExId?.toString() === exerciseId.toString()) {
+                        ceTemp.exercise = updatedExercise;
+                      }
+                    });
+                  });
+                });
+              }
+            }
 
             // Pasar información sobre el tipo de cambio
             const changeInfo = {
