@@ -385,7 +385,7 @@ export class CreateProductPage implements OnInit {
                       },
                     },
                     {
-                      text: 'Usar producto',
+                      text: 'Usar',
                       handler: () => {
                         // Crear CustomProduct local y volver a search-foods
                         const newIngredient =
