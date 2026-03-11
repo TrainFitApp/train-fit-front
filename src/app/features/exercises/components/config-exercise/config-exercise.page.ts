@@ -691,9 +691,37 @@ export class ConfigExercisePage implements OnInit {
           .addDataExerciseToWorkout(this.workout._id, dataExerciseData)
           .toPromise();
 
-        // Return updated workout so parent can merge changes
+        // Propagate to other splits at same workoutIndex (empty sets), like the else path
+        const createdExercise =
+          updatedWorkout.exercises[updatedWorkout.exercises.length - 1]
+            ?.exercise;
+        const otherPromises = [];
+        if (createdExercise && this.tableInUse?.splits) {
+          this.tableInUse.splits.forEach((splitTemp) => {
+            splitTemp.workouts.forEach((workoutTemp, index) => {
+              if (
+                this.workoutIndex === index &&
+                workoutTemp._id !== this.workout._id
+              ) {
+                const customExercise = new CustomExercise();
+                customExercise.notes = this.notes;
+                customExercise.exercise = createdExercise;
+                customExercise.sets = [];
+                otherPromises.push(
+                  this.workoutService
+                    .updateWorkout(workoutTemp, customExercise)
+                    .toPromise()
+                );
+              }
+            });
+          });
+        }
+
+        const otherWorkouts =
+          otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
+
         this.load = true;
-        this.modalController.dismiss([updatedWorkout]);
+        this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
         return Promise.resolve();
       } catch (error) {
         console.error('Error creating exercise:', error);
