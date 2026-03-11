@@ -39,6 +39,7 @@ export class SearchExercisesPage implements OnInit {
   @Input() currentSplit: Split;
   @Input() tableInUse: Table;
   @Input() isChangeMode: boolean;
+  @Input() sourceIsCardio: boolean;
 
   public exercises: Exercise[];
   public exercisesCount: number;
@@ -78,6 +79,17 @@ export class SearchExercisesPage implements OnInit {
       } catch {}
     }
     this.initVariables();
+
+    if (this.isChangeMode) {
+      if (this.sourceIsCardio) {
+        this.searchFilterGroupExercises.isCardio = true;
+        this.cardioMode = 'cardio';
+      } else {
+        this.searchFilterGroupExercises.isCardio = undefined;
+        this.cardioMode = 'all';
+      }
+    }
+
     this.searchByFilter();
   }
 
@@ -115,7 +127,12 @@ export class SearchExercisesPage implements OnInit {
     this.exerciseService
       .searchExercise(this.searchFilterGroupExercises)
       .subscribe((resExercises) => {
-        this.exercises = resExercises;
+        const filteredExercises =
+          this.isChangeMode && !this.sourceIsCardio
+            ? (resExercises || []).filter((exercise) => !exercise?.isCardio)
+            : resExercises;
+
+        this.exercises = filteredExercises;
         this.exerciseService.setExercises = this.exercises;
         this.load = true;
       });
@@ -129,7 +146,12 @@ export class SearchExercisesPage implements OnInit {
       this.exerciseService
         .searchExercise(this.searchFilterGroupExercises)
         .subscribe((resExercises) => {
-          this.exercises = this.exercises.concat(resExercises);
+          const nextExercises =
+            this.isChangeMode && !this.sourceIsCardio
+              ? (resExercises || []).filter((exercise) => !exercise?.isCardio)
+              : resExercises;
+
+          this.exercises = this.exercises.concat(nextExercises);
           this.exerciseService.setExercises = this.exercises;
           this.load = true;
         });

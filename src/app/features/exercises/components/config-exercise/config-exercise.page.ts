@@ -157,6 +157,7 @@ export class ConfigExercisePage implements OnInit {
   ];
 
   private _idExerciseToAdd: string;
+  private selectedExerciseToAdd?: Exercise;
 
   constructor(
     private toastController: ToastController,
@@ -326,10 +327,13 @@ export class ConfigExercisePage implements OnInit {
   }
 
   public changeExercise(): void {
+    const baseExercise = this.customExercise?.exercise || this.exercise;
+
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
       componentProps: {
         isChangeMode: true,
+        sourceIsCardio: !!baseExercise?.isCardio,
       },
     };
 
@@ -454,7 +458,10 @@ export class ConfigExercisePage implements OnInit {
       return;
     }
 
-    const currentExercise = this.customExercise?.exercise || this.exercise;
+    const currentExercise =
+      this._idExerciseToAdd && this.selectedExerciseToAdd
+        ? this.selectedExerciseToAdd
+        : this.customExercise?.exercise || this.exercise;
     if (!currentExercise?._id) {
       return;
     }
@@ -521,6 +528,13 @@ export class ConfigExercisePage implements OnInit {
         };
       }
 
+      if (this._idExerciseToAdd && this.selectedExerciseToAdd) {
+        this.selectedExerciseToAdd = {
+          ...this.selectedExerciseToAdd,
+          ...mergedExercise,
+        };
+      }
+
       this.form.patchValue({
         name: mergedExercise.name || '',
         description: mergedExercise.description || '',
@@ -548,6 +562,7 @@ export class ConfigExercisePage implements OnInit {
 
   private selectNewExercise(exercise: Exercise): void {
     this._idExerciseToAdd = exercise._id;
+    this.selectedExerciseToAdd = { ...exercise };
     this.videoUrl = exercise.videoUrl;
     this.updateVideoEmbedSrc();
     this.form?.controls?.name?.setValue(exercise.name);
@@ -692,7 +707,11 @@ export class ConfigExercisePage implements OnInit {
       newCustomExercise.sets = this.setList;
       newCustomExercise.notes = this.notes;
 
-      if (this.isEditingOwnExercise && newCustomExercise.exercise) {
+      if (
+        this.isEditingOwnExercise &&
+        newCustomExercise.exercise &&
+        !this._idExerciseToAdd
+      ) {
         newCustomExercise.exercise = {
           ...newCustomExercise.exercise,
           name:
