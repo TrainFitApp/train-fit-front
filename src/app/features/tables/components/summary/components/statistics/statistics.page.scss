@@ -412,6 +412,7 @@ ion-item {
       color: #ffffff !important;
       opacity: 1 !important;
       --color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
     }
 
     &.ios {
@@ -422,6 +423,17 @@ ion-item {
     @media (min-width: 768px) {
       font-size: 16px;
     }
+  }
+}
+
+/* Action Sheet global overrides para selects en esta página */
+::ng-deep .no-cancel-action-sheet {
+  --button-color: #ffffff !important;
+  --button-color-activated: #ffffff !important;
+  --color: #ffffff !important;
+  
+  .action-sheet-button {
+    color: #ffffff !important;
   }
 }
 
@@ -768,6 +780,7 @@ ion-grid {
     color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
   }
 }
 
@@ -781,7 +794,7 @@ ion-grid {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px 4px;
+  padding: 8px 16px;
   background: rgba(255, 255, 255, 0.02);
   border-top: 1px solid var(--medium-gray);
 
