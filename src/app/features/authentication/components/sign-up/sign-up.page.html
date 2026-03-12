@@ -8,668 +8,840 @@
         init="false"
         #swiperSignUp
       >
-        <!-- Nombre y Apellido en el mismo swipe -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Cuéntanos sobre ti</h2>
-            <p class="section-subtitle">Empecemos con lo básico.</p>
+        <ng-container *ngIf="!verifyEmailOnly">
+          <!-- Nombre y Apellido en el mismo swipe -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Cuéntanos sobre ti</h2>
+              <p class="section-subtitle">Empecemos con lo básico.</p>
 
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon name="person-outline" class="input-icon"></ion-icon>
-                <input
-                  type="text"
-                  id="name"
-                  formControlName="name"
-                  class="input-field"
-                  placeholder="Nombre"
-                  required
-                />
-              </div>
-              <div
-                *ngIf="signUpForm.get('name')?.invalid && signUpForm.get('name')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('name')?.errors?.['required']"
-                  >El nombre es obligatorio</span
+              <div class="input-group">
+                <div class="input-wrapper">
+                  <ion-icon name="person-outline" class="input-icon"></ion-icon>
+                  <input
+                    type="text"
+                    id="name"
+                    formControlName="name"
+                    class="input-field"
+                    placeholder="Nombre"
+                    required
+                  />
+                </div>
+                <div
+                  *ngIf="signUpForm.get('name')?.invalid && signUpForm.get('name')?.touched"
+                  class="validation-error"
                 >
+                  <span *ngIf="signUpForm.get('name')?.errors?.['required']"
+                    >El nombre es obligatorio</span
+                  >
+                </div>
+              </div>
+
+              <div class="input-group">
+                <div class="input-wrapper">
+                  <ion-icon name="people-outline" class="input-icon"></ion-icon>
+                  <input
+                    type="text"
+                    id="lastname"
+                    formControlName="lastname"
+                    class="input-field"
+                    placeholder="Apellido"
+                    required
+                  />
+                </div>
+                <div
+                  *ngIf="signUpForm.get('lastname')?.invalid && signUpForm.get('lastname')?.touched"
+                  class="validation-error"
+                >
+                  <span *ngIf="signUpForm.get('lastname')?.errors?.['required']"
+                    >Apellidos obligatorios</span
+                  >
+                </div>
               </div>
             </div>
+          </swiper-slide>
 
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon name="people-outline" class="input-icon"></ion-icon>
-                <input
-                  type="text"
-                  id="lastname"
-                  formControlName="lastname"
-                  class="input-field"
-                  placeholder="Apellido"
-                  required
-                />
-              </div>
-              <div
-                *ngIf="signUpForm.get('lastname')?.invalid && signUpForm.get('lastname')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('lastname')?.errors?.['required']"
-                  >Apellidos obligatorios</span
-                >
-              </div>
-            </div>
-          </div>
-        </swiper-slide>
+          <!-- Fecha de nacimiento en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Fecha de nacimiento</h2>
+              <p class="section-subtitle">Selecciona tu fecha de nacimiento.</p>
 
-        <!-- Fecha de nacimiento en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Fecha de nacimiento</h2>
-            <p class="section-subtitle">Selecciona tu fecha de nacimiento.</p>
-
-            <div class="input-group">
-              <div
-                class="input-wrapper"
-                [ngClass]="{
+              <div class="input-group">
+                <div
+                  class="input-wrapper"
+                  [ngClass]="{
                   'has-error': signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched
                 }"
-              >
-                <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-                <ion-datetime-button
-                  datetime="birthdate"
-                  class="input-field"
-                ></ion-datetime-button>
+                >
+                  <ion-icon
+                    name="calendar-outline"
+                    class="input-icon"
+                  ></ion-icon>
+                  <ion-datetime-button
+                    datetime="birthdate"
+                    class="input-field"
+                  ></ion-datetime-button>
 
-                <ion-modal
-                  [keepContentsMounted]="true"
-                  (willPresent)="isDateModalOpen = true"
-                  (willDismiss)="isDateModalOpen = false"
-                  class="datetime-modal"
+                  <ion-modal
+                    [keepContentsMounted]="true"
+                    (willPresent)="isDateModalOpen = true"
+                    (willDismiss)="isDateModalOpen = false"
+                    class="datetime-modal"
+                  >
+                    <ng-template>
+                      <ion-datetime
+                        id="birthdate"
+                        mode="ios"
+                        formControlName="birth"
+                        presentation="date"
+                        [preferWheel]="true"
+                        [max]="maxDate"
+                        [min]="minDate"
+                        [showDefaultButtons]="true"
+                        locale="es-ES"
+                        [doneText]="'CONFIRMAR'"
+                        [cancelText]="'CANCELAR'"
+                      >
+                        <div slot="title" class="datetime-title">
+                          <ion-icon name="calendar-outline"></ion-icon>
+                          <span>&nbsp;Fecha de nacimiento</span>
+                        </div>
+                      </ion-datetime>
+                    </ng-template>
+                  </ion-modal>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched"
+                  class="validation-error"
                 >
-                  <ng-template>
-                    <ion-datetime
-                      id="birthdate"
-                      mode="ios"
-                      formControlName="birth"
-                      presentation="date"
-                      [preferWheel]="true"
-                      [max]="maxDate"
-                      [min]="minDate"
-                      [showDefaultButtons]="true"
-                      locale="es-ES"
-                      [doneText]="'CONFIRMAR'"
-                      [cancelText]="'CANCELAR'"
-                    >
-                      <div slot="title" class="datetime-title">
-                        <ion-icon name="calendar-outline"></ion-icon>
-                        <span>&nbsp;Fecha de nacimiento</span>
-                      </div>
-                    </ion-datetime>
-                  </ng-template>
-                </ion-modal>
-              </div>
-              <div
-                *ngIf="signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
-                  >La fecha de nacimiento es obligatoria</span
-                >
-                <span *ngIf="signUpForm.get('birth')?.errors?.['manHood']"
-                  >Debes ser mayor de 16 años</span
-                >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
+                    >La fecha de nacimiento es obligatoria</span
+                  >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['manHood']"
+                    >Debes ser mayor de 16 años</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Peso en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Tu peso</h2>
-            <p class="section-subtitle">Introduce tu peso en kilogramos.</p>
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
-                <input
-                  type="text"
-                  inputmode="decimal"
-                  id="weight"
-                  formControlName="weight"
-                  class="input-field"
-                  step="0.1"
-                  placeholder="Peso"
-                  required
-                  appDecimalInput
-                />
-              </div>
-              <div
-                *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
-                  >El peso es obligatorio</span
+          <!-- Peso en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Tu peso</h2>
+              <p class="section-subtitle">Introduce tu peso en kilogramos.</p>
+              <div class="input-group">
+                <div class="input-wrapper">
+                  <ion-icon
+                    name="fitness-outline"
+                    class="input-icon"
+                  ></ion-icon>
+                  <input
+                    type="text"
+                    inputmode="decimal"
+                    id="weight"
+                    formControlName="weight"
+                    class="input-field"
+                    step="0.1"
+                    placeholder="Peso"
+                    required
+                    appDecimalInput
+                  />
+                </div>
+                <div
+                  *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
+                  class="validation-error"
                 >
-                <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
-                  >El peso mínimo es 30 kg</span
-                >
-                <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
-                  >El peso máximo es 300 kg</span
-                >
+                  <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
+                    >El peso es obligatorio</span
+                  >
+                  <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
+                    >El peso mínimo es 30 kg</span
+                  >
+                  <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
+                    >El peso máximo es 300 kg</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Altura en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Tu altura</h2>
-            <p class="section-subtitle">Introduce tu altura en centímetros.</p>
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon name="resize-outline" class="input-icon"></ion-icon>
-                <input
-                  type="number"
-                  inputmode="numeric"
-                  id="height"
-                  formControlName="height"
-                  class="input-field"
-                  placeholder="Altura en cm"
-                  required
-                />
-              </div>
-              <div
-                *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('height')?.errors?.['required']"
-                  >La altura es obligatoria</span
+          <!-- Altura en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Tu altura</h2>
+              <p class="section-subtitle">
+                Introduce tu altura en centímetros.
+              </p>
+              <div class="input-group">
+                <div class="input-wrapper">
+                  <ion-icon name="resize-outline" class="input-icon"></ion-icon>
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    id="height"
+                    formControlName="height"
+                    class="input-field"
+                    placeholder="Altura en cm"
+                    required
+                  />
+                </div>
+                <div
+                  *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
+                  class="validation-error"
                 >
-                <span *ngIf="signUpForm.get('height')?.errors?.['min']"
-                  >La altura mínima es 70 cm</span
-                >
-                <span *ngIf="signUpForm.get('height')?.errors?.['max']"
-                  >La altura máxima es 300 cm</span
-                >
+                  <span *ngIf="signUpForm.get('height')?.errors?.['required']"
+                    >La altura es obligatoria</span
+                  >
+                  <span *ngIf="signUpForm.get('height')?.errors?.['min']"
+                    >La altura mínima es 70 cm</span
+                  >
+                  <span *ngIf="signUpForm.get('height')?.errors?.['max']"
+                    >La altura máxima es 300 cm</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Sexo en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Sexo</h2>
-            <p class="section-subtitle">
-              Selecciona tu sexo asignado al nacer.
-            </p>
-            <div class="choice-group">
-              <div
-                class="gender-options"
-                [ngClass]="{
+          <!-- Sexo en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Sexo</h2>
+              <p class="section-subtitle">
+                Selecciona tu sexo asignado al nacer.
+              </p>
+              <div class="choice-group">
+                <div
+                  class="gender-options"
+                  [ngClass]="{
                   'has-error': signUpForm.get('sex')?.invalid && signUpForm.get('sex')?.touched
                 }"
-              >
-                <div class="gender-option">
-                  <input
-                    type="radio"
-                    id="male"
-                    [value]="SEX_TYPES.male"
-                    formControlName="sex"
-                  />
-                  <label for="male"><span>Masculino</span></label>
-                </div>
-                <div class="gender-option">
-                  <input
-                    type="radio"
-                    id="female"
-                    [value]="SEX_TYPES.female"
-                    formControlName="sex"
-                  />
-                  <label for="female"><span>Femenino</span></label>
-                </div>
-              </div>
-              <div
-                *ngIf="signUpForm.get('sex')?.invalid && signUpForm.get('sex')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('sex')?.errors?.['required']"
-                  >El sexo es obligatorio</span
                 >
+                  <div class="gender-option">
+                    <input
+                      type="radio"
+                      id="male"
+                      [value]="SEX_TYPES.male"
+                      formControlName="sex"
+                    />
+                    <label for="male"><span>Masculino</span></label>
+                  </div>
+                  <div class="gender-option">
+                    <input
+                      type="radio"
+                      id="female"
+                      [value]="SEX_TYPES.female"
+                      formControlName="sex"
+                    />
+                    <label for="female"><span>Femenino</span></label>
+                  </div>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('sex')?.invalid && signUpForm.get('sex')?.touched"
+                  class="validation-error"
+                >
+                  <span *ngIf="signUpForm.get('sex')?.errors?.['required']"
+                    >El sexo es obligatorio</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Pasos por día en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Tu actividad diaria</h2>
-            <p class="section-subtitle">
-              ¿Cuántos pasos das al día aproximadamente?
-            </p>
-            <div
-              class="selection-options"
-              [ngClass]="{
+          <!-- Pasos por día en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Tu actividad diaria</h2>
+              <p class="section-subtitle">
+                ¿Cuántos pasos das al día aproximadamente?
+              </p>
+              <div
+                class="selection-options"
+                [ngClass]="{
                 'has-error': signUpForm.get('steps')?.invalid && signUpForm.get('steps')?.touched
               }"
-            >
-              <div
-                class="selection-option"
-                *ngFor="let stepValue of STEPS_VALUES"
-                [class.selected]="signUpForm.get('steps')?.value === stepValue.value"
-                (click)="selectSteps(stepValue.value)"
               >
-                <h3 class="selection-title">{{ stepValue.name }}</h3>
+                <div
+                  class="selection-option"
+                  *ngFor="let stepValue of STEPS_VALUES"
+                  [class.selected]="signUpForm.get('steps')?.value === stepValue.value"
+                  (click)="selectSteps(stepValue.value)"
+                >
+                  <h3 class="selection-title">{{ stepValue.name }}</h3>
+                </div>
+              </div>
+              <div
+                *ngIf="signUpForm.get('steps')?.invalid && signUpForm.get('steps')?.touched"
+                class="validation-error"
+              >
+                <span>Los pasos diarios son obligatorios</span>
               </div>
             </div>
-            <div
-              *ngIf="signUpForm.get('steps')?.invalid && signUpForm.get('steps')?.touched"
-              class="validation-error"
-            >
-              <span>Los pasos diarios son obligatorios</span>
-            </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <swiper-slide
-          *ngIf="signUpForm.controls.steps.value && signUpForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
-        >
-          <div class="form-section">
-            <h2 class="section-title">Tu nivel de actividad</h2>
-            <p class="section-subtitle">
-              Describe tu nivel de actividad general, sin contar el ejercicio.
-            </p>
+          <swiper-slide
+            *ngIf="signUpForm.controls.steps.value && signUpForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
+          >
+            <div class="form-section">
+              <h2 class="section-title">Tu nivel de actividad</h2>
+              <p class="section-subtitle">
+                Describe tu nivel de actividad general, sin contar el ejercicio.
+              </p>
 
-            <div
-              class="selection-options"
-              [ngClass]="{
+              <div
+                class="selection-options"
+                [ngClass]="{
                 'has-error': signUpForm.get('activity')?.invalid && signUpForm.get('activity')?.touched
               }"
-            >
-              <div
-                class="selection-option"
-                *ngFor="let activity of ACTIVITY_FACTOR_VALUES"
-                [class.selected]="signUpForm.controls.activity.value === activity.value"
-                (click)="selectActivity(activity.value)"
               >
-                <h3 class="selection-title">{{ activity.name }}</h3>
-                <p class="selection-desc">{{ activity.description }}</p>
+                <div
+                  class="selection-option"
+                  *ngFor="let activity of ACTIVITY_FACTOR_VALUES"
+                  [class.selected]="signUpForm.controls.activity.value === activity.value"
+                  (click)="selectActivity(activity.value)"
+                >
+                  <h3 class="selection-title">{{ activity.name }}</h3>
+                  <p class="selection-desc">{{ activity.description }}</p>
+                </div>
               </div>
-            </div>
 
-            <div
-              *ngIf="signUpForm.get('activity')?.invalid && signUpForm.get('activity')?.touched"
-              class="validation-error"
-            >
-              <span>El nivel de actividad es obligatorio</span>
-            </div>
+              <div
+                *ngIf="signUpForm.get('activity')?.invalid && signUpForm.get('activity')?.touched"
+                class="validation-error"
+              >
+                <span>El nivel de actividad es obligatorio</span>
+              </div>
 
-            <!-- <div *ngIf="signUpForm.controls.activity.value " class="activity-info">
+              <!-- <div *ngIf="signUpForm.controls.activity.value " class="activity-info">
             <h3 class="activity-title">{{ activityType?.name }}</h3>
             <p class="activity-description">{{ activityType?.description }}</p>
           </div> -->
-          </div>
-        </swiper-slide>
+            </div>
+          </swiper-slide>
 
-        <!-- Días de entrenamiento en swipe separado -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Días de entrenamiento</h2>
-            <p class="section-subtitle">
-              ¿Cuántos días entrenas con pesas a la semana?
-            </p>
+          <!-- Días de entrenamiento en swipe separado -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Días de entrenamiento</h2>
+              <p class="section-subtitle">
+                ¿Cuántos días entrenas con pesas a la semana?
+              </p>
 
-            <div
-              class="selection-options"
-              [ngClass]="{
+              <div
+                class="selection-options"
+                [ngClass]="{
                 'has-error': signUpForm.get('training')?.invalid && signUpForm.get('training')?.touched
               }"
-            >
-              <div
-                class="selection-option"
-                *ngFor="let training of TRAINING_TYPE_VALUES"
-                [class.selected]="signUpForm.controls.training.value === training.value"
-                (click)="selectTraining(training.value)"
               >
-                <h3 class="selection-title">{{ training.name }}</h3>
+                <div
+                  class="selection-option"
+                  *ngFor="let training of TRAINING_TYPE_VALUES"
+                  [class.selected]="signUpForm.controls.training.value === training.value"
+                  (click)="selectTraining(training.value)"
+                >
+                  <h3 class="selection-title">{{ training.name }}</h3>
+                </div>
+              </div>
+              <div
+                *ngIf="signUpForm.get('training')?.invalid && signUpForm.get('training')?.touched"
+                class="validation-error"
+              >
+                <span>Los días de entrenamiento son obligatorios</span>
               </div>
             </div>
-            <div
-              *ngIf="signUpForm.get('training')?.invalid && signUpForm.get('training')?.touched"
-              class="validation-error"
-            >
-              <span>Los días de entrenamiento son obligatorios</span>
-            </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Objetivo en swipe separado (con selector de calorías) -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">¿Cuál es tu objetivo?</h2>
-            <p class="section-subtitle">Selecciona tu meta principal.</p>
-            <div
-              class="selection-options"
-              [ngClass]="{
+          <!-- Objetivo en swipe separado (con selector de calorías) -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">¿Cuál es tu objetivo?</h2>
+              <p class="section-subtitle">Selecciona tu meta principal.</p>
+              <div
+                class="selection-options"
+                [ngClass]="{
                 'has-error': signUpForm.get('objetive')?.invalid && signUpForm.get('objetive')?.touched
               }"
-            >
-              <div
-                class="selection-option"
-                *ngFor="let objetive of OBJETIVES_VALUES;"
-                [class.selected]="signUpForm.get('objetive')?.value === objetive.value"
-                (click)="selectObjetive(objetive)"
               >
-                <h3 class="selection-title">{{ objetive.name }}</h3>
-                <p
-                  class="selection-desc"
-                  *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.gain].key"
+                <div
+                  class="selection-option"
+                  *ngFor="let objetive of OBJETIVES_VALUES;"
+                  [class.selected]="signUpForm.get('objetive')?.value === objetive.value"
+                  (click)="selectObjetive(objetive)"
                 >
-                  Priorizar el crecimiento y la fuerza muscular.
-                </p>
-                <p
-                  class="selection-desc"
-                  *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.loss].key"
-                >
-                  Optimizar tu plan para la quema de grasa.
-                </p>
-                <p
-                  class="selection-desc"
-                  *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.maintenance].key"
-                >
-                  Mantener tu físico y mejorar tu salud.
+                  <h3 class="selection-title">{{ objetive.name }}</h3>
+                  <p
+                    class="selection-desc"
+                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.gain].key"
+                  >
+                    Priorizar el crecimiento y la fuerza muscular.
+                  </p>
+                  <p
+                    class="selection-desc"
+                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.loss].key"
+                  >
+                    Optimizar tu plan para la quema de grasa.
+                  </p>
+                  <p
+                    class="selection-desc"
+                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.maintenance].key"
+                  >
+                    Mantener tu físico y mejorar tu salud.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                *ngIf="signUpForm.get('objetive')?.invalid && signUpForm.get('objetive')?.touched"
+                class="validation-error"
+              >
+                <span>Tu objetivo principal es obligatorio</span>
+              </div>
+
+              <div
+                *ngIf="signUpForm.get('objetive').value && signUpForm.get('objetive').value !== 0"
+                class="calorie-selector"
+              >
+                <h3 class="calorie-title">
+                  Selecciona tu
+                  <span class="calorie-type">
+                    {{ signUpForm.get('objetive').value > 0 ? 'superávit' :
+                    'déficit' }}
+                  </span>
+                  calórico
+                </h3>
+                <ion-range
+                  class="ion-margin ion-padding"
+                  mode="ios"
+                  [min]="50"
+                  [max]="500"
+                  [value]="objetiveKcal"
+                  [pin]="true"
+                  [step]="50"
+                  [ticks]="true"
+                  [snaps]="true"
+                  (ionChange)="changeObjetive($event)"
+                  (ionKnobMoveStart)="onMove()"
+                  (ionKnobMoveEnd)="onStop()"
+                ></ion-range>
+
+                <p class="calorie-description">
+                  Cuanto
+                  <span class="highlight"
+                    >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
+                    }}</span
+                  >
+                  kcal selecciones, la
+                  <span class="highlight"
+                    >{{ signUpForm.controls.objetive.value > 0 ? 'subida' :
+                    'bajada' }}</span
+                  >
+                  de peso será
+                  <span class="highlight"
+                    >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
+                    }} agresiva</span
+                  >
                 </p>
               </div>
             </div>
+          </swiper-slide>
 
-            <div
-              *ngIf="signUpForm.get('objetive')?.invalid && signUpForm.get('objetive')?.touched"
-              class="validation-error"
-            >
-              <span>Tu objetivo principal es obligatorio</span>
-            </div>
-
-            <div
-              *ngIf="signUpForm.get('objetive').value && signUpForm.get('objetive').value !== 0"
-              class="calorie-selector"
-            >
-              <h3 class="calorie-title">
-                Selecciona tu
-                <span class="calorie-type">
-                  {{ signUpForm.get('objetive').value > 0 ? 'superávit' :
-                  'déficit' }}
-                </span>
-                calórico
-              </h3>
-              <ion-range
-                class="ion-margin ion-padding"
-                mode="ios"
-                [min]="50"
-                [max]="500"
-                [value]="objetiveKcal"
-                [pin]="true"
-                [step]="50"
-                [ticks]="true"
-                [snaps]="true"
-                (ionChange)="changeObjetive($event)"
-                (ionKnobMoveStart)="onMove()"
-                (ionKnobMoveEnd)="onStop()"
-              ></ion-range>
-
-              <p class="calorie-description">
-                Cuanto
-                <span class="highlight"
-                  >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
-                  }}</span
-                >
-                kcal selecciones, la
-                <span class="highlight"
-                  >{{ signUpForm.controls.objetive.value > 0 ? 'subida' :
-                  'bajada' }}</span
-                >
-                de peso será
-                <span class="highlight"
-                  >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
-                  }} agresiva</span
-                >
+          <!-- Email en swipe separado (solo si aplica) -->
+          <swiper-slide *ngIf="registerSocialPending">
+            <div class="form-section">
+              <h2 class="section-title">Tu correo electrónico</h2>
+              <p class="section-subtitle">
+                Te enviaremos un mail de activación.
               </p>
-            </div>
-          </div>
-        </swiper-slide>
-
-        <!-- Email en swipe separado (solo si aplica) -->
-        <swiper-slide *ngIf="registerSocialPending">
-          <div class="form-section">
-            <h2 class="section-title">Tu correo electrónico</h2>
-            <p class="section-subtitle">Te enviaremos un mail de activación.</p>
-            <div class="input-group">
-              <div
-                class="input-wrapper"
-                [ngClass]="{
+              <div class="input-group">
+                <div
+                  class="input-wrapper"
+                  [ngClass]="{
                   'has-error': signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)
                 }"
-              >
-                <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  formControlName="email"
-                  class="input-field"
-                />
-              </div>
-              <div
-                *ngIf="signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('email')?.errors?.['required']"
-                  >El email es obligatorio</span
                 >
-                <span *ngIf="signUpForm.get('email')?.errors?.['email']"
-                  >Ingresa un email válido</span
+                  <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+                  <input
+                    type="email"
+                    placeholder="Email *"
+                    formControlName="email"
+                    class="input-field"
+                  />
+                </div>
+                <div
+                  *ngIf="signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)"
+                  class="validation-error"
                 >
-                <span *ngIf="signUpForm.get('email')?.errors?.['emailExist']"
-                  >Este correo ya está registrado</span
-                >
+                  <span *ngIf="signUpForm.get('email')?.errors?.['required']"
+                    >El email es obligatorio</span
+                  >
+                  <span *ngIf="signUpForm.get('email')?.errors?.['email']"
+                    >Ingresa un email válido</span
+                  >
+                  <span *ngIf="signUpForm.get('email')?.errors?.['emailExist']"
+                    >Este correo ya está registrado</span
+                  >
+                </div>
               </div>
             </div>
-          </div>
-        </swiper-slide>
+          </swiper-slide>
 
-        <!-- Contraseña y repetir contraseña en el mismo swipe (solo si aplica) -->
-        <swiper-slide *ngIf="registerSocialPending">
-          <div class="form-section">
-            <h2 class="section-title">Contraseña</h2>
-            <p class="section-subtitle">
-              Crea y confirma una contraseña segura.
-            </p>
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon
-                  name="lock-closed-outline"
-                  class="input-icon"
-                ></ion-icon>
-                <input
-                  [type]="showPass ? 'text' : 'password'"
-                  placeholder="Contraseña *"
-                  formControlName="password"
-                  class="input-field"
-                />
-                <ion-button
-                  fill="clear"
-                  class="password-toggle"
-                  (click)="showPass = !showPass"
-                  type="button"
-                >
+          <!-- Contraseña y repetir contraseña en el mismo swipe (solo si aplica) -->
+          <swiper-slide *ngIf="registerSocialPending">
+            <div class="form-section">
+              <h2 class="section-title">Contraseña</h2>
+              <p class="section-subtitle">
+                Crea y confirma una contraseña segura.
+              </p>
+              <div class="input-group">
+                <div class="input-wrapper">
                   <ion-icon
-                    [name]="showPass ? 'eye-off-outline' : 'eye-outline'"
+                    name="lock-closed-outline"
+                    class="input-icon"
                   ></ion-icon>
-                </ion-button>
+                  <input
+                    [type]="showPass ? 'text' : 'password'"
+                    placeholder="Contraseña *"
+                    formControlName="password"
+                    class="input-field"
+                  />
+                  <ion-button
+                    fill="clear"
+                    class="password-toggle"
+                    (click)="showPass = !showPass"
+                    type="button"
+                  >
+                    <ion-icon
+                      [name]="showPass ? 'eye-off-outline' : 'eye-outline'"
+                    ></ion-icon>
+                  </ion-button>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('password')?.invalid && signUpForm.get('password')?.touched"
+                  class="validation-error"
+                >
+                  <span *ngIf="signUpForm.get('password')?.errors?.['required']"
+                    >La contraseña es obligatoria</span
+                  >
+                  <span *ngIf="signUpForm.get('password')?.errors?.['length']"
+                    >La contraseña debe tener entre 6 y 15 caracteres</span
+                  >
+                  <span
+                    *ngIf="signUpForm.get('password')?.errors?.['uppercase']"
+                    >Debe incluir al menos una letra mayúscula</span
+                  >
+                  <span
+                    *ngIf="signUpForm.get('password')?.errors?.['lowercase']"
+                    >Debe incluir al menos una letra minúscula</span
+                  >
+                </div>
               </div>
-              <div
-                *ngIf="signUpForm.get('password')?.invalid && signUpForm.get('password')?.touched"
-                class="validation-error"
-              >
-                <span *ngIf="signUpForm.get('password')?.errors?.['required']"
-                  >La contraseña es obligatoria</span
-                >
-                <span *ngIf="signUpForm.get('password')?.errors?.['length']"
-                  >La contraseña debe tener entre 6 y 15 caracteres</span
-                >
-                <span *ngIf="signUpForm.get('password')?.errors?.['uppercase']"
-                  >Debe incluir al menos una letra mayúscula</span
-                >
-                <span *ngIf="signUpForm.get('password')?.errors?.['lowercase']"
-                  >Debe incluir al menos una letra minúscula</span
-                >
-              </div>
-            </div>
 
-            <div class="input-group">
-              <div class="input-wrapper">
-                <ion-icon
-                  name="lock-closed-outline"
-                  class="input-icon"
-                ></ion-icon>
-                <input
-                  [type]="showPassRep ? 'text' : 'password'"
-                  placeholder="Repita la contraseña *"
-                  formControlName="passwordRep"
-                  class="input-field"
-                />
-                <ion-button
-                  fill="clear"
-                  class="password-toggle"
-                  (click)="showPassRep = !showPassRep"
-                  type="button"
-                >
+              <div class="input-group">
+                <div class="input-wrapper">
                   <ion-icon
-                    [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"
+                    name="lock-closed-outline"
+                    class="input-icon"
                   ></ion-icon>
-                </ion-button>
+                  <input
+                    [type]="showPassRep ? 'text' : 'password'"
+                    placeholder="Repita la contraseña *"
+                    formControlName="passwordRep"
+                    class="input-field"
+                  />
+                  <ion-button
+                    fill="clear"
+                    class="password-toggle"
+                    (click)="showPassRep = !showPassRep"
+                    type="button"
+                  >
+                    <ion-icon
+                      [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"
+                    ></ion-icon>
+                  </ion-button>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('passwordRep')?.invalid && signUpForm.get('passwordRep')?.touched"
+                  class="validation-error"
+                >
+                  <span
+                    *ngIf="signUpForm.get('passwordRep')?.errors?.['required']"
+                  >
+                    Confirma tu contraseña
+                  </span>
+                  <span
+                    *ngIf="signUpForm.get('passwordRep')?.errors?.['length']"
+                    >La contraseña debe tener entre 6 y 15 caracteres</span
+                  >
+                  <span
+                    *ngIf="signUpForm.get('passwordRep')?.errors?.['uppercase']"
+                    >Debe incluir al menos una letra mayúscula</span
+                  >
+                  <span
+                    *ngIf="signUpForm.get('passwordRep')?.errors?.['lowercase']"
+                    >Debe incluir al menos una letra minúscula</span
+                  >
+                </div>
               </div>
+
+              <!-- Error de coincidencia de contraseñas (a nivel de formulario) -->
               <div
-                *ngIf="signUpForm.get('passwordRep')?.invalid && signUpForm.get('passwordRep')?.touched"
+                *ngIf="(signUpForm.get('password')?.touched || signUpForm.get('passwordRep')?.touched) && signUpForm.errors?.['notSame']"
                 class="validation-error"
               >
-                <span
-                  *ngIf="signUpForm.get('passwordRep')?.errors?.['required']"
-                >
-                  Confirma tu contraseña
-                </span>
-                <span *ngIf="signUpForm.get('passwordRep')?.errors?.['length']"
-                  >La contraseña debe tener entre 6 y 15 caracteres</span
-                >
-                <span
-                  *ngIf="signUpForm.get('passwordRep')?.errors?.['uppercase']"
-                  >Debe incluir al menos una letra mayúscula</span
-                >
-                <span
-                  *ngIf="signUpForm.get('passwordRep')?.errors?.['lowercase']"
-                  >Debe incluir al menos una letra minúscula</span
-                >
+                <span>Las contraseñas no coinciden</span>
               </div>
             </div>
+          </swiper-slide>
 
-            <!-- Error de coincidencia de contraseñas (a nivel de formulario) -->
-            <div
-              *ngIf="(signUpForm.get('password')?.touched || signUpForm.get('passwordRep')?.touched) && signUpForm.errors?.['notSame']"
-              class="validation-error"
-            >
-              <span>Las contraseñas no coinciden</span>
-            </div>
-          </div>
-        </swiper-slide>
-
-        <!-- Términos, Privacidad y botón VER FICHA en el mismo swipe -->
-        <swiper-slide>
-          <div class="form-section">
-            <h2 class="section-title">Finalizar registro</h2>
-            <p class="section-subtitle">Acepta las condiciones y continúa.</p>
-            <div class="checkbox-section">
-              <div
-                class="checkbox-item"
-                (click)="toggleControl('termsAndConditions')"
-                [ngClass]="{
+          <!-- Términos, Privacidad y botón VER FICHA en el mismo swipe -->
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">Finalizar registro</h2>
+              <p class="section-subtitle">Acepta las condiciones y continúa.</p>
+              <div class="checkbox-section">
+                <div
+                  class="checkbox-item"
+                  (click)="toggleControl('termsAndConditions')"
+                  [ngClass]="{
                   'has-error': signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched
                 }"
-              >
-                <ion-checkbox
-                  formControlName="termsAndConditions"
-                  mode="ios"
-                  class="modern-checkbox"
-                  (click)="$event.stopPropagation()"
-                ></ion-checkbox>
-                <span class="checkbox-label">
-                  Acepto los
-                  <a
-                    [href]="LINKS.termsAndConditions"
-                    class="checkbox-link"
+                >
+                  <ion-checkbox
+                    formControlName="termsAndConditions"
+                    mode="ios"
+                    class="modern-checkbox"
                     (click)="$event.stopPropagation()"
-                    >Términos y Condiciones</a
-                  >
-                </span>
-                <ion-icon
-                  name="document-text-outline"
-                  class="checkbox-icon"
-                  color="primary"
-                ></ion-icon>
-              </div>
-              <div
-                *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
-                class="validation-error"
-              >
-                <span>Aceptar los Términos y Condiciones es obligatorio</span>
-              </div>
+                  ></ion-checkbox>
+                  <span class="checkbox-label">
+                    Acepto los
+                    <a
+                      [href]="LINKS.termsAndConditions"
+                      class="checkbox-link"
+                      (click)="$event.stopPropagation()"
+                      >Términos y Condiciones</a
+                    >
+                  </span>
+                  <ion-icon
+                    name="document-text-outline"
+                    class="checkbox-icon"
+                    color="primary"
+                  ></ion-icon>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
+                  class="validation-error"
+                >
+                  <span>Aceptar los Términos y Condiciones es obligatorio</span>
+                </div>
 
-              <div
-                class="checkbox-item"
-                (click)="toggleControl('policyAndPrivacy')"
-                [ngClass]="{
+                <div
+                  class="checkbox-item"
+                  (click)="toggleControl('policyAndPrivacy')"
+                  [ngClass]="{
                   'has-error': signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched
                 }"
-              >
-                <ion-checkbox
-                  formControlName="policyAndPrivacy"
-                  mode="ios"
-                  class="modern-checkbox"
-                  (click)="$event.stopPropagation()"
-                ></ion-checkbox>
-                <span class="checkbox-label">
-                  He leído la
-                  <a
-                    [href]="LINKS.privacyAndPolicy"
-                    class="checkbox-link"
+                >
+                  <ion-checkbox
+                    formControlName="policyAndPrivacy"
+                    mode="ios"
+                    class="modern-checkbox"
                     (click)="$event.stopPropagation()"
-                    >Política de Privacidad</a
+                  ></ion-checkbox>
+                  <span class="checkbox-label">
+                    He leído la
+                    <a
+                      [href]="LINKS.privacyAndPolicy"
+                      class="checkbox-link"
+                      (click)="$event.stopPropagation()"
+                      >Política de Privacidad</a
+                    >
+                  </span>
+                  <ion-icon
+                    name="shield-checkmark-outline"
+                    class="checkbox-icon"
+                    color="primary"
+                  ></ion-icon>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
+                  class="validation-error"
+                >
+                  <span>Aceptar la Política de Privacidad es obligatorio</span>
+                </div>
+              </div>
+              <div class="submit-button-container">
+                <ion-button
+                  type="submit"
+                  expand="block"
+                  class="submit-button"
+                  [disabled]="signUpForm.invalid"
+                  *ngIf="!isLastDataSlide"
+                >
+                  <strong>VER FICHA</strong>
+                </ion-button>
+              </div>
+              <div *ngIf="signUpForm.invalid && error" class="error-message">
+                <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
+                <span class="error-text">{{ error }}</span>
+              </div>
+            </div>
+          </swiper-slide>
+          <!-- Ficha de Datos (Resumen) -->
+          <swiper-slide>
+            <div class="form-section compact-section">
+              <h2 class="section-title">Tu ficha de bienvenida</h2>
+              <p class="section-subtitle">Revisa tus datos antes de empezar.</p>
+
+              <!-- Características físicas compactas -->
+              <div class="stats-card-modern">
+                <div class="card-header-modern">
+                  <ion-icon name="person-circle-outline"></ion-icon>
+                  <span class="card-title-modern"
+                    >{{ name }} {{ lastname }}</span
                   >
-                </span>
-                <ion-icon
-                  name="shield-checkmark-outline"
-                  class="checkbox-icon"
-                  color="primary"
-                ></ion-icon>
+                </div>
+                <div class="stats-grid-modern">
+                  <div class="stat-item-modern">
+                    <ion-icon name="fitness-outline"></ion-icon>
+                    <div class="stat-value-modern">{{ weight }} kg</div>
+                    <div class="stat-label-modern">Peso</div>
+                  </div>
+                  <div class="stat-item-modern">
+                    <ion-icon name="resize-outline"></ion-icon>
+                    <div class="stat-value-modern">{{ height }} cm</div>
+                    <div class="stat-label-modern">Altura</div>
+                  </div>
+                  <div class="stat-item-modern">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <div class="stat-value-modern">{{ years }} años</div>
+                    <div class="stat-label-modern">Edad</div>
+                  </div>
+                  <div class="stat-item-modern">
+                    <ion-icon name="person-outline"></ion-icon>
+                    <div class="stat-value-modern">
+                      {{ sex === SEX_TYPES.male ? 'Masc.' : 'Fem.' }}
+                    </div>
+                    <div class="stat-label-modern">Sexo</div>
+                  </div>
+                </div>
               </div>
+
+              <!-- Actividad -->
+              <div class="info-card-modern" *ngIf="activityType">
+                <div class="card-header-modern">
+                  <ion-icon name="flash-outline"></ion-icon>
+                  <span class="card-title-modern">NIVEL DE ACTIVIDAD</span>
+                </div>
+                <div class="card-content-modern">
+                  <div class="activity-name-modern">
+                    {{ activityType.name }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Objetivo -->
+              <div class="info-card-modern objective-card-modern">
+                <div class="card-header-modern">
+                  <ion-icon name="rocket-outline"></ion-icon>
+                  <span class="card-title-modern">OBJETIVO DIARIO</span>
+                </div>
+                <div class="card-content-modern objective-content-modern">
+                  <div class="objective-message-modern">
+                    {{ objetiveMessage }}
+                  </div>
+                  <div class="calories-modern">
+                    {{ kcalTotal }} <span class="unit-modern">kcal</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advertencia (solo si registro tradicional) -->
               <div
-                *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
-                class="validation-error"
+                class="info-card-modern warning-card-modern"
+                *ngIf="registerSocialPending"
               >
-                <span>Aceptar la Política de Privacidad es obligatorio</span>
+                <div class="warning-content-modern">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <div class="warning-text-modern">
+                    <h5 class="card-title-modern">ADVERTENCIA</h5>
+                    <p>Te enviaremos un correo con un código de verificación</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="submit-button-container">
+          </swiper-slide>
+        </ng-container>
+
+        <!-- Slide de Verificación (solo si aplica y el código ha sido enviado) -->
+        <swiper-slide
+          *ngIf="verifyEmailOnly || (registerSocialPending && codeSended)"
+        >
+          <div class="form-section verification-section">
+            <h2 class="section-title">Verifica tu cuenta</h2>
+            <p class="section-subtitle">
+              Introduce el código enviado a tu email.
+            </p>
+
+            <div class="verification-wrapper-modern">
+              <div class="verification-message-modern">
+                <ion-label>
+                  Introduce el <strong>código de verificación</strong> que hemos
+                  enviado a
+                  <strong
+                    >{{ verifyEmailOnly ? user.email :
+                    signUpForm.get('email')?.value }}</strong
+                  >
+                </ion-label>
+                <p class="spam-warning-modern">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <span
+                    >Revisa la carpeta de <strong>Spam</strong> si no lo
+                    encuentras</span
+                  >
+                </p>
+              </div>
+
+              <div class="form-fields-modern">
+                <div class="input-group-modern">
+                  <div class="input-wrapper-modern verification-input-modern">
+                    <ion-icon
+                      name="shield-checkmark-outline"
+                      class="input-icon-modern"
+                    ></ion-icon>
+                    <input
+                      type="text"
+                      placeholder="Código"
+                      class="input-field-modern verification-field-modern"
+                      #codeInput
+                    />
+                  </div>
+                </div>
+              </div>
+
               <ion-button
-                type="submit"
                 expand="block"
-                class="submit-button"
-                [disabled]="signUpForm.invalid"
+                class="verify-button-modern"
+                (click)="verifyCode()"
+                [disabled]="isProcessing"
               >
-                <strong>VER FICHA</strong>
+                <span *ngIf="!isProcessing">VERIFICAR CÓDIGO</span>
+                <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
               </ion-button>
-            </div>
-            <div *ngIf="signUpForm.invalid && error" class="error-message">
-              <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
-              <span class="error-text">{{ error }}</span>
+
+              <div class="resend-container-modern">
+                <p>¿No has recibido el código?</p>
+                <ion-button
+                  fill="clear"
+                  size="small"
+                  (click)="resendCode()"
+                  [disabled]="isProcessing || resendDisabled"
+                >
+                  {{ resendDisabled ? 'Reenviar en ' + resendCountdown + 's' :
+                  'Reenviar código' }}
+                </ion-button>
+              </div>
             </div>
           </div>
         </swiper-slide>
@@ -698,9 +870,28 @@
       <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
       Anterior
     </ion-button>
-    <ion-button class="nav-button next" (click)="nextSlide()" *ngIf="existNext">
+    <ion-button
+      class="nav-button next"
+      (click)="nextSlide()"
+      *ngIf="existNext && !isLastDataSlide && !isLastFormSlide && !verifyEmailOnly"
+    >
       <strong>SIGUIENTE</strong>
       <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      class="nav-button next finalize-btn"
+      (click)="register()"
+      *ngIf="isLastDataSlide && !codeSended"
+      [disabled]="isProcessing"
+    >
+      <span *ngIf="!isProcessing"><strong>FINALIZAR</strong></span>
+      <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
+      <ion-icon
+        name="checkmark-circle-outline"
+        slot="end"
+        *ngIf="!isProcessing"
+      ></ion-icon>
     </ion-button>
   </div>
 </ion-footer>

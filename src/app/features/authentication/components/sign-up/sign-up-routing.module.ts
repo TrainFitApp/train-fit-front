@@ -7,13 +7,6 @@ const routes: Routes = [
     path: '',
     component: SignUpPage,
   },
-  {
-    path: 'data-sheet',
-    loadChildren: () =>
-      import('./components/data-sheet/data-sheet.module').then(
-        (m) => m.DataSheetPageModule
-      ),
-  },
 ];
 
 @NgModule({

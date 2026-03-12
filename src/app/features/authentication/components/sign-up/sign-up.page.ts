@@ -5,13 +5,15 @@ import {
   ViewChild,
   OnDestroy,
 } from '@angular/core';
+import { take } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { IonModal, Platform } from '@ionic/angular';
-import Chart from 'chart.js/auto';
-import { Subscription } from 'rxjs';
+import { IonModal, Platform, ToastOptions } from '@ionic/angular';
+import { Subscription, Subject } from 'rxjs';
 import { User } from 'src/app/core/models/user';
+import { Token } from 'src/app/core/models/token';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { ManHoodValidator } from 'src/app/core/validators/manhood';
@@ -51,7 +53,8 @@ import { EmailExistValidator } from 'src/app/core/validators/email-exist';
   templateUrl: './sign-up.page.html',
   styleUrls: ['./sign-up.page.scss'],
 })
-export class SignUpPage implements OnInit {
+export class SignUpPage implements OnInit, OnDestroy {
+  @ViewChild('codeInput') public codeInput: ElementRef<HTMLInputElement>;
   @ViewChild(IonModal) dateModal: IonModal;
   public isDateModalOpen = false;
   @ViewChild('swiperSignUp')
@@ -63,8 +66,6 @@ export class SignUpPage implements OnInit {
 
   public signUpForm: FormGroup;
 
-  public clock: Chart;
-
   public name: string;
   public lastname: string;
 
@@ -73,7 +74,7 @@ export class SignUpPage implements OnInit {
   public weight: string;
   public height: string;
   public birth: number;
-  public sex: string;
+  public sex: any;
 
   public showPass: boolean;
   public showPassRep: boolean;
@@ -97,10 +98,18 @@ export class SignUpPage implements OnInit {
   public error: string;
 
   private backButton$: Subscription;
-  private keyboardShowHandle: any;
-  private keyboardHideHandle: any;
-  private _windowKeyboardShow: any;
-  private _windowKeyboardHide: any;
+  private destroy$ = new Subject<void>();
+
+  // Data Sheet & Registration variables
+  public isProcessing = false;
+  public verifyEmailOnly = false;
+  public codeSended = false;
+  public resendDisabled = false;
+  public resendCountdown = 0;
+  private resendInterval: any;
+  public objetiveMessage: string;
+  public kcalTotal: number;
+  public years: number;
 
   public objetiveSelected: OBJETIVE_TYPE;
 
@@ -130,7 +139,8 @@ export class SignUpPage implements OnInit {
     private navigationService: NavigationService,
     private authService: AuthService,
     private router: Router,
-    private signUpStateService: SignUpStateService
+    private signUpStateService: SignUpStateService,
+    private userLocalStorageService: UserLocalstorageService
   ) {
     // Inicializar fechas fijas
     const currentDate = new Date();
@@ -143,9 +153,17 @@ export class SignUpPage implements OnInit {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
 
-    // Si viene desde sign-in directamente (botón Registrarse), es registro tradicional
     const navigation = this.router.getCurrentNavigation();
     const fromSignIn = !!navigation?.extras?.state?.data?.fromSignIn;
+
+    this.verifyEmailOnly = !!navigation?.extras?.state?.data?.verifyEmailOnly;
+    if (this.verifyEmailOnly) {
+      if (!this.user) {
+        this.user = new User();
+      }
+      this.user.email = navigation?.extras?.state?.data?.email;
+      this.codeSended = true;
+    }
 
     // Si NO hay usuario local o viene de Sign In, es registro tradicional (con email/pass)
     this.registerSocialPending = !localUser || fromSignIn;
@@ -190,7 +208,8 @@ export class SignUpPage implements OnInit {
       this.steps = res.steps;
       this.weight = res.weight;
       this.height = res.height;
-      this.birth = this.userService.getAge(res.birth);
+      this.dateValue = this.userService.getAge(new Date(res.birth));
+      this.birth = this.dateValue;
       this.sex = res.sex;
     });
 
@@ -207,22 +226,17 @@ export class SignUpPage implements OnInit {
     setTimeout(() => this.swiperReady());
   }
 
-  // public ionViewWillEnter(): void {
-  //   this.utilService.initFakeModalState();
-  // }
-
   public ionViewWillLeave(): void {
     this.backButton$?.unsubscribe();
-    //   this.utilService.endFakeModalState();
-    // remove keyboard listeners (only present on iOS)
-    try {
-      this.keyboardShowHandle?.remove();
-      this.keyboardHideHandle?.remove();
-    } catch (e) {}
-    if (this._windowKeyboardShow)
-      window.removeEventListener('keyboardDidShow', this._windowKeyboardShow);
-    if (this._windowKeyboardHide)
-      window.removeEventListener('keyboardDidHide', this._windowKeyboardHide);
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.resendInterval) clearInterval(this.resendInterval);
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.resendInterval) clearInterval(this.resendInterval);
   }
 
   private initVariables(): void {
@@ -330,6 +344,9 @@ export class SignUpPage implements OnInit {
   }
 
   public selectObjetive(objetive: OBJETIVE_TYPE): void {
+    if (this.objetiveSelected?.id !== objetive.id) {
+      this.objetiveKcal = 200; // resetear al cambiar de objetivo
+    }
     this.objetiveSelected = objetive;
     this.signUpForm.get('objetive')?.setValue(objetive.value);
   }
@@ -378,8 +395,28 @@ export class SignUpPage implements OnInit {
     const swiper: Swiper = this.swiperSignUpRef.nativeElement.swiper;
     const activeIndex = swiper.activeIndex;
 
-    this.existNext = activeIndex < swiper.slides.length - 1;
-    this.existPrev = activeIndex > 0;
+    this.currentSlide = activeIndex;
+    this.existNext = activeIndex < swiper.slides.length - 1 && !this.codeSended;
+    this.existPrev = activeIndex > 0 && !this.codeSended;
+  }
+
+  public get isLastDataSlide(): boolean {
+    if (!this.swiper) return false;
+    const slides = this.getPresentSlidesControls();
+    // El slide de la ficha es el penúltimo si hay verificación, o el último si no hay
+    const sheetIndex = this.registerSocialPending
+      ? slides.length - 2
+      : slides.length - 1;
+    return this.swiper.activeIndex >= sheetIndex;
+  }
+
+  public get isLastFormSlide(): boolean {
+    if (!this.swiper) return false;
+    const slides = this.getPresentSlidesControls();
+    const formIndex = this.registerSocialPending
+      ? slides.length - 3
+      : slides.length - 2;
+    return this.swiper.activeIndex >= formIndex;
   }
 
   public customFormatter(value: number): string {
@@ -428,8 +465,162 @@ export class SignUpPage implements OnInit {
   }
 
   public exitRegistration(): void {
-    this.authService.logout();
-    this.navigationService.goToLoginPage();
+    this.showExitConfirm();
+  }
+
+  public register(): void {
+    this.isProcessing = true;
+    this.kcalTotal = this.userService.calculateKcal(this.user);
+
+    if (this.registerSocialPending) {
+      // Registro tradicional (email/password)
+      this.userService.createUser(this.user, new Date()).subscribe({
+        next: (resUser) => {
+          this.user = resUser;
+          this.codeSended = true;
+          this.mailToast();
+          this.startResendCooldown();
+          this.isProcessing = false;
+          // Avanzar al slide de verificación
+          setTimeout(() => {
+            this.swiper.slideNext();
+          }, 100);
+        },
+        error: (err) => {
+          this.isProcessing = false;
+          this.ionicUtilService.showErrorToast(
+            err?.error?.message || 'Error al completar el registro',
+            'Error',
+            3000
+          );
+        },
+      });
+    } else {
+      // Registro social (Google/Apple) - Actualizar perfil existente
+      this.user.email = this.userService.getLocalUser.email;
+
+      this.signUpStateService.socialProvider$
+        .pipe(take(1))
+        .subscribe((provider) => {
+          const updateObs =
+            provider === 'apple'
+              ? this.userService.updateAppleUser(this.user)
+              : this.userService.updateGoogleUser(this.user);
+
+          updateObs.subscribe({
+            next: (res) => {
+              const token: Token = { access_token: res.access_token };
+              const userDecoded = this.authService.getDecodedUser(token);
+              this.userLocalStorageService.setUserToken(token);
+              this.authService.setUser = userDecoded;
+              this.navigationService.goToUserLoader();
+              this.isProcessing = false;
+            },
+            error: (err) => {
+              this.isProcessing = false;
+              this.ionicUtilService.showErrorToast(
+                err?.error?.message || 'Error al completar el registro social',
+                'Error',
+                3000
+              );
+            },
+          });
+        });
+    }
+  }
+
+  public verifyCode(): void {
+    const code = this.codeInput.nativeElement.value.toString().trim();
+    if (!code) {
+      this.ionicUtilService.showToast({
+        message: 'Introduce el código',
+        duration: 3000,
+      });
+      return;
+    }
+
+    this.isProcessing = true;
+
+    this.userService.activateAccount(this.user.email, code).subscribe({
+      next: (response: any) => {
+        this.ionicUtilService.showToast({
+          message: 'Cuenta activada correctamente',
+          duration: 3000,
+        });
+
+        if (response?.access_token) {
+          const token: Token = {
+            access_token: response.access_token,
+          };
+
+          const userDecoded = this.authService.getDecodedUser(token);
+          this.userLocalStorageService.setUserToken(token);
+          this.authService.setUser = userDecoded;
+          this.navigationService.goToUserLoader();
+        } else {
+          this.navigationService.goToLoginPage();
+        }
+        this.isProcessing = false;
+      },
+      error: (err) => {
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'Código incorrecto',
+          duration: 3000,
+        });
+        this.isProcessing = false;
+      },
+    });
+  }
+
+  public resendCode(): void {
+    if (!this.user?.email || this.resendDisabled) return;
+
+    this.startResendCooldown();
+    this.isProcessing = true;
+    this.userService.sendMailCode(this.user.email).subscribe({
+      next: () => {
+        this.ionicUtilService.showToast({
+          message: 'Código reenviado',
+          duration: 3000,
+        });
+        this.isProcessing = false;
+      },
+      error: (err) => {
+        this.ionicUtilService.showToast({
+          message: 'Error al reenviar código',
+          duration: 3000,
+        });
+        this.isProcessing = false;
+      },
+    });
+  }
+
+  private startResendCooldown() {
+    this.resendDisabled = true;
+    this.resendCountdown = 60;
+
+    if (this.resendInterval) clearInterval(this.resendInterval);
+
+    this.resendInterval = setInterval(() => {
+      this.resendCountdown--;
+      if (this.resendCountdown <= 0) {
+        this.resendDisabled = false;
+        clearInterval(this.resendInterval);
+      }
+    }, 1000);
+  }
+
+  public mailToast(): void {
+    const toast: ToastOptions = {
+      message: 'Código enviado a tu correo',
+      duration: 7000,
+    };
+    this.ionicUtilService.showToast(toast);
+  }
+
+  public getAge(birth: any) {
+    if (!birth) return 0;
+    return this.userService.getAge(new Date(birth));
   }
 
   private getControlsForSlideIndex(index: number): string[] {
@@ -437,7 +628,11 @@ export class SignUpPage implements OnInit {
     return slides[index] ?? [];
   }
 
-  private getPresentSlidesControls(): string[][] {
+  public getPresentSlidesControls(): string[][] {
+    if (this.verifyEmailOnly) {
+      return [[]]; // Solo hay un slide de verificación
+    }
+
     const slides: string[][] = [
       ['name', 'lastname'],
       ['birth'],
@@ -447,8 +642,11 @@ export class SignUpPage implements OnInit {
       ['steps'],
     ];
 
-    const stepsValue = this.signUpForm.get('steps')?.value;
-    if (stepsValue === this.STEPS[this.STEPS_TYPES.notCounted].value) {
+    if (
+      this.signUpForm.controls.steps.value &&
+      this.signUpForm.controls.steps.value ===
+        STEPS[STEPS_TYPES.notCounted].value
+    ) {
       slides.push(['activity']);
     }
 
@@ -461,52 +659,51 @@ export class SignUpPage implements OnInit {
     }
 
     slides.push(['termsAndConditions', 'policyAndPrivacy']);
+    slides.push([]); // Ficha de datos
+    if (this.registerSocialPending) {
+      slides.push([]); // Verificación
+    }
     return slides;
   }
 
   public showSheet(): void {
+    if (this.verifyEmailOnly || this.codeSended) {
+      this.verifyCode();
+      return;
+    }
+
+    if (!this.objetiveSelected) return;
+
     const activity: number = this.signUpForm.controls.activity.value
       ? this.signUpForm.controls.activity.value
       : 1;
 
-    this.objetiveKcal =
+    const finalKcal =
       this.objetiveSelected.id === this.OBJETIVE_TYPES.gain
         ? Math.abs(this.objetiveKcal)
         : this.objetiveSelected.id === this.OBJETIVE_TYPES.loss
-        ? -this.objetiveKcal
+        ? -Math.abs(this.objetiveKcal)
         : 0;
 
-    const user = {
+    this.user = {
       ...this.signUpForm.value,
       activity: activity,
-      objetive: this.objetiveKcal,
+      objetive: finalKcal,
     };
 
-    // Actualizar el estado en el servicio
-    this.signUpStateService.setSignUpState(
-      user,
-      this.dateValue,
-      this.activityType,
-      this.registerSocialPending,
-      this.socialProvider
-    );
+    if (this.user.objetive > 0) this.objetiveMessage = 'Superávit calórico';
+    else if (this.user.objetive < 0) this.objetiveMessage = 'Déficit calórico';
+    else this.objetiveMessage = 'Mantenimiento';
 
-    // Navegar a la página de data sheet
-    this.navigationService.goToDataSheet();
+    this.years = this.dateValue;
+    this.kcalTotal = this.userService.calculateKcal(this.user);
+
+    // Avanzar al slide de la ficha
+    this.swiper.slideNext();
   }
 
   public calculateBirh(date): void {
     this.dateValue = this.userService.getAge(new Date(date));
-  }
-
-  public getCurrentDate(): string {
-    return new Date().toISOString();
-  }
-
-  public getMinDate(): string {
-    const minDate = new Date();
-    minDate.setFullYear(minDate.getFullYear() - 100); // Máximo 100 años atrás
-    return minDate.toISOString();
   }
 
   // public setActivityType(): void {
@@ -558,8 +755,9 @@ export class SignUpPage implements OnInit {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-primary',
           handler: () => {
-            this.navigationService.goBack();
-            this.backButton$.unsubscribe();
+            this.authService.logout();
+            this.navigationService.goToLoginPage();
+            this.backButton$?.unsubscribe();
           },
         },
       ],
