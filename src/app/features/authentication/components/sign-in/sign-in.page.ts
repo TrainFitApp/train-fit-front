@@ -472,19 +472,20 @@ export class SignInPage implements OnInit {
     // Detectar si el usuario no ha verificado su cuenta (error 403)
     const errorCode = error?.error?.error || error?.error;
     if (error?.status === 403 || errorCode === 'ACCOUNT_NOT_VERIFIED') {
-      const email = error?.email || error?.error?.email || this.formControls.email.value;
+      const email =
+        error?.email || error?.error?.email || this.formControls.email.value;
       const extras = {
         state: {
           data: { verifyEmailOnly: true, email: email, fromSignIn: true }, // fromSignIn para asegurar el flujo tradicional
         },
       };
-      
+
       this.ionicUtilService.showToast({
         message: error?.message || 'Cuenta no verificada. Revisa tu correo.',
         duration: 3000,
-        color: 'warning'
+        color: 'warning',
       });
-      
+
       this.navigationService.goToSignUp(extras);
       return;
     }
