@@ -692,7 +692,6 @@
           <swiper-slide>
             <div class="form-section compact-section">
               <h2 class="section-title">Tu ficha de bienvenida</h2>
-              <p class="section-subtitle">Revisa tus datos antes de empezar.</p>
 
               <!-- Características físicas compactas -->
               <div class="stats-card-modern">
@@ -851,7 +850,7 @@
 </ion-content>
 
 <ion-footer class="signup-footer">
-  <div class="footer-buttons">
+  <div class="footer-buttons" [class.is-last-slide]="isLastDataSlide">
     <ion-button
       class="nav-button prev exit-btn"
       (click)="exitRegistration()"

@@ -871,6 +871,12 @@ ion-input {
     padding: 12px 25px;
     padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
     background: var(--bg-secondary);
+
+    &.is-last-slide {
+      padding: 6px 12px;
+      padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+      gap: 6px;
+    }
   }
 }
 
@@ -885,6 +891,13 @@ ion-input {
       6px + 0.22 * var(--keyboard-height, 0px) +
         env(safe-area-inset-bottom, 0px)
     );
+
+    &.is-last-slide {
+      padding-bottom: calc(
+        6px + 0.22 * var(--keyboard-height, 0px) +
+          env(safe-area-inset-bottom, 0px)
+      );
+    }
   }
 }
 
