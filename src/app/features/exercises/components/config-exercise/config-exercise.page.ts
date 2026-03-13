@@ -332,21 +332,20 @@ export class ConfigExercisePage implements OnInit {
 
   public changeExercise(): void {
     const baseExercise = this.customExercise?.exercise || this.exercise;
+    const currentIsCardio =
+      this.exerciseMode === 'cardio' || !!baseExercise?.isCardio;
 
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
       componentProps: {
         isChangeMode: true,
-        sourceIsCardio: !!baseExercise?.isCardio,
+        sourceIsCardio: currentIsCardio,
       },
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
       if (res.data) {
-        if (
-          this.originalExercise &&
-          !!this.originalExercise.isCardio !== !!res.data.isCardio
-        ) {
+        if (currentIsCardio !== !!res.data.isCardio) {
           const alertOptions: AlertOptions = {
             header: 'Advertencia',
             message:

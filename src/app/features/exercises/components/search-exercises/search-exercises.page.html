@@ -178,8 +178,11 @@
   </ion-infinite-scroll>
 </ion-content>
 
-<ion-footer class="search-exercises-footer" *ngIf="!isFooterHidden">
-  <div class="footer-controls" [class.is-change-mode]="isChangeMode">
+<ion-footer
+  class="search-exercises-footer"
+  *ngIf="!isChangeMode && !isFooterHidden"
+>
+  <div class="footer-controls">
     <div class="mode-toggle">
       <button
         type="button"
@@ -204,8 +207,18 @@
         [class.cardio-active]="cardioMode === 'cardio'"
       ></div>
     </div>
-    <button class="add-btn" (click)="addExerciseModal()" *ngIf="!isChangeMode">
+    <button class="add-btn" (click)="addExerciseModal()">
       <ion-icon name="add-outline"></ion-icon>
     </button>
+  </div>
+</ion-footer>
+
+<ion-footer *ngIf="isChangeMode" class="change-mode-footer">
+  <div class="footer-container">
+    <ion-icon name="swap-horizontal-outline" class="footer-icon"></ion-icon>
+    <div class="footer-text">
+      <strong>Sustituir ejercicio</strong>
+      <span>Toca un ejercicio para reemplazarlo</span>
+    </div>
   </div>
 </ion-footer>
