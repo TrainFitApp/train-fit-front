@@ -93,6 +93,12 @@ export class AuthService {
           throw new Error(response?.error);
         }
 
+        if (response?.access_token) {
+          this.userLocalstorageService.setUserToken({
+            access_token: response.access_token,
+          });
+        }
+
         // Update in-memory user state safely (interceptor handles localStorage)
         try {
           const token: Token = { access_token: response.access_token };
