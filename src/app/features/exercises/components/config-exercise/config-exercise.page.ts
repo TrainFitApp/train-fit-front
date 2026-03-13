@@ -345,7 +345,7 @@ export class ConfigExercisePage implements OnInit {
       if (res.data) {
         if (
           this.originalExercise &&
-          this.originalExercise.isCardio !== res.data.isCardio
+          !!this.originalExercise.isCardio !== !!res.data.isCardio
         ) {
           const alertOptions: AlertOptions = {
             header: 'Advertencia',
