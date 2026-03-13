@@ -10,6 +10,7 @@ export class Set {
   cronometer?: number;
   doned?: boolean;
   order: number;
+  displayOrder?: number;
   expectedSec?: number;
   expectedMin?: number;
   timeSec?: number;

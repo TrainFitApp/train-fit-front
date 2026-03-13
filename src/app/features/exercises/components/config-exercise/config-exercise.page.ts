@@ -15,7 +15,7 @@ import {
 import { Subscription, lastValueFrom } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Exercise } from 'src/app/core/models/exercise';
-import { Set } from 'src/app/core/models/set';
+import { Set as ExerciseSet } from 'src/app/core/models/set';
 import { Split } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -61,9 +61,9 @@ export class ConfigExercisePage implements OnInit {
   public details: SearchFilterGroupExercises = new SearchFilterGroupExercises();
 
   public noteToCreate: boolean;
-  public setList: Set[] = [];
-  public setsToCreate: Set[] = [];
-  public setsToUpdate: Set[] = [];
+  public setList: ExerciseSet[] = [];
+  public setsToCreate: ExerciseSet[] = [];
+  public setsToUpdate: ExerciseSet[] = [];
   public setsToDelete: string[] = [];
   private initialDisplayOrderMap: Map<string, number> = new Map();
   private nextDisplayOrder: number = 1;
@@ -76,9 +76,9 @@ export class ConfigExercisePage implements OnInit {
 
   public setForm: FormGroup;
 
-  public currentSet: Set;
+  public currentSet: ExerciseSet;
 
-  public originSetsOrdered: Set[] = [];
+  public originSetsOrdered: ExerciseSet[] = [];
 
   public exerciseArchived: boolean;
   public isArchiving: boolean;
@@ -625,7 +625,7 @@ export class ConfigExercisePage implements OnInit {
     this.exerciseChanged = true;
   }
 
-  public configSets(set?: Set): void {
+  public configSets(set?: ExerciseSet): void {
     const modalOptions: ModalOptions = {
       component: ManageSetComponent,
       componentProps: {
@@ -639,7 +639,7 @@ export class ConfigExercisePage implements OnInit {
     this.ionicUtilService.showModal(modalOptions).then((res) => {
       // Se ha configurado serie
       if (res.data) {
-        const setConfig: Set = res.data;
+        const setConfig: ExerciseSet = res.data;
         // Añadir nueva serie
         const indexSet = this.setList.findIndex(
           (setTemp) => setTemp._id === setConfig._id
@@ -684,7 +684,7 @@ export class ConfigExercisePage implements OnInit {
     });
   }
 
-  public copySet(set: Set): void {
+  public copySet(set: ExerciseSet): void {
     const index = this.setList.findIndex((setTemp) => setTemp._id === set._id);
     if (index !== -1) {
       const setCopy = { ...set };
@@ -1204,7 +1204,7 @@ export class ConfigExercisePage implements OnInit {
     this.ionicUtilService.showToast(toastOptions);
   }
 
-  public deleteSet(set: Set, setIndex: number) {
+  public deleteSet(set: ExerciseSet, setIndex: number) {
     this.setList.splice(setIndex, 1);
 
     if (isNaN(Number(set._id))) this.setsToDelete.push(set._id);
@@ -1301,7 +1301,7 @@ export class ConfigExercisePage implements OnInit {
     this.hasInitializedDisplayOrder = true;
   }
 
-  private getInitialDisplayOrder(setItem: Set): number {
+  private getInitialDisplayOrder(setItem: ExerciseSet): number {
     const key = this.getDisplayOrderKey(setItem);
     const stored = this.initialDisplayOrderMap.get(key);
     if (stored != null) {
@@ -1313,7 +1313,7 @@ export class ConfigExercisePage implements OnInit {
     return fallback;
   }
 
-  private getDisplayOrderKey(setItem: Set, index?: number): string {
+  private getDisplayOrderKey(setItem: ExerciseSet, index?: number): string {
     if (setItem?._id != null) {
       return String(setItem._id);
     }
