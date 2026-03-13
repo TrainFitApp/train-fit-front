@@ -69,12 +69,21 @@ export class DietsPage implements OnInit {
     });
 
     // Effect para el dietDay actual
-    this.dietDayService.getCurrentDietDay.subscribe(
-      (resDietDay) => (this.dietDay = resDietDay)
-    );
+    this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
+      this.dietDay = resDietDay;
+      if (resDietDay && resDietDay.date) {
+        this.selectedDate = new Date(resDietDay.date);
+      }
+    });
   }
 
   public ionViewWillEnter(): void {
+    // Check if we have a selectedDate in navigation state (returning from config-recipe/search-foods)
+    const state = window.history.state;
+    if (state && state.selectedDate) {
+      this.selectedDate = new Date(state.selectedDate);
+    }
+
     // Resync dates-slider each time the page comes back to view.
     // Prevents the slider from showing a wrong week when returning from navigation
     // (caused by Swiper firing slideChangeTransitionEnd on visibility change).

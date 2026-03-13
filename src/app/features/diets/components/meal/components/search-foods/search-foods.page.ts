@@ -1868,6 +1868,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: '/search-foods',
+        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
   }
@@ -1911,6 +1912,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: '/search-foods',
+        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
   }
@@ -2073,6 +2075,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         : undefined;
       baseState.meal = this.meal;
       baseState.dietDay = this.dietDay;
+      baseState.selectedDate = window.history.state?.selectedDate || this.dietDay?.date;
     }
 
     // Limpiar undefined para evitar '?meal=undefined'
@@ -2104,6 +2107,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: '/search-foods',
+        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
   }
@@ -2193,25 +2197,44 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       // Clear ingredient mode state from tempData when returning
       this.navigationService.clearTempData('ingredientModeState');
 
+      // Pass back selected date to diets
+      const navState = window.history.state;
       this.navigationService.backTo(this.returnUrl, {
         state: {
           selectedIngredients: ingredientsCopy,
           meal: this.meal,
           dietDay: this.dietDay,
+          selectedDate: navState?.selectedDate || this.dietDay?.date,
         },
       });
       return;
     }
 
+    // Pass back selected date in results too
+    const finalNavState = window.history.state;
+    const finalResult = {
+      ...result,
+      selectedDate: finalNavState?.selectedDate || this.dietDay?.date,
+    };
+
     // Handle return URL navigation
     if (this.returnUrl && this.returnUrl !== '/search-foods') {
       console.log('SearchFoods: navigating to returnUrl:', this.returnUrl);
-      this.navigationService.backTo(this.returnUrl, { state: { result } });
+      this.navigationService.backTo(this.returnUrl, {
+        state: {
+          result: finalResult,
+          selectedDate: finalResult.selectedDate,
+        },
+      });
     } else {
       // Default navigation based on context
       if (this.meal) {
         console.log('SearchFoods: returning to diets (has meal)');
-        this.navigationService.backTo(['/tabs/diets']);
+        this.navigationService.backTo(['/tabs/diets'], {
+          state: {
+            selectedDate: finalResult.selectedDate,
+          },
+        });
       } else {
         console.log('SearchFoods: back with no animation');
         this.navigationService.backNoAnim();
@@ -2245,6 +2268,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         meal: this.meal,
         dietDay: this.dietDay,
         existingIngredients: this.selectedIngredients,
+        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
   }

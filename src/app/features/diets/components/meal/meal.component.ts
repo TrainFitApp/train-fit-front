@@ -94,6 +94,7 @@ export class MealComponent implements OnInit, OnChanges {
         user: this.user,
         meal: this.meal,
         fromDiets: true,
+        selectedDate: this.dietDay.date,
       },
     });
   }
@@ -113,7 +114,10 @@ export class MealComponent implements OnInit, OnChanges {
     this.navigationService.goToAddProduct({
       replaceUrl: false,
       queryParams,
-      state: { returnUrl: '/tabs/diets' },
+      state: { 
+        returnUrl: '/tabs/diets',
+        selectedDate: this.dietDay.date,
+      },
     });
   }
 
@@ -125,6 +129,7 @@ export class MealComponent implements OnInit, OnChanges {
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: '/tabs/diets',
+        selectedDate: this.dietDay.date,
       },
     });
   }

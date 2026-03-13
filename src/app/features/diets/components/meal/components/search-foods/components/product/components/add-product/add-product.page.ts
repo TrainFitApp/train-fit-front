@@ -595,17 +595,25 @@ export class AddProductPage implements OnInit, OnDestroy {
       ? { refresh: true }
       : undefined;
 
+    // Capturar fecha seleccionada para persistencia
+    const navState = window.history.state;
+    const selectedDate = navState?.selectedDate || this.dietDay?.date;
+
     // Si venimos de Diets, hacer pop para evitar recargar y rehacer llamadas
     if (this.returnUrl === '/tabs/diets') {
       console.log('AddProductPage: returning to diets');
-      this.navigationService.backNoAnim();
+      this.navigationService.backTo(['/tabs/diets'], {
+        state: { selectedDate }
+      });
       return;
     }
 
     // Si el retorno es config-recipe, hacer pop
     if (this.returnUrl === '/search-foods/config-recipe') {
       console.log('AddProductPage: returning to config-recipe');
-      this.navigationService.backNoAnim();
+      this.navigationService.backTo([this.returnUrl], {
+        state: { selectedDate }
+      });
       return;
     }
 
@@ -618,6 +626,7 @@ export class AddProductPage implements OnInit, OnDestroy {
           ingredientMode: this.ingredientMode,
           // Devolver siempre el producto actualizado por si se ha editado
           updatedProduct: this.product,
+          selectedDate
         },
       });
     } else if (!this.returnUrl) {
@@ -627,7 +636,10 @@ export class AddProductPage implements OnInit, OnDestroy {
       console.log('AddProductPage: returning to ' + this.returnUrl);
       // Para otros returnUrl, mantener comportamiento anterior con posible resultado
       this.navigationService.backTo(this.returnUrl, {
-        state: result ? { result } : undefined,
+        state: {
+          ...(result ? { result } : {}),
+          selectedDate
+        }
       });
     }
   }

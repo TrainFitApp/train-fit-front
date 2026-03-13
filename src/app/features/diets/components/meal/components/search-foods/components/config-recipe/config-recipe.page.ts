@@ -71,6 +71,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private backButton$: any;
   private routeState: any = {};
   private ingredientsInitialized = false;
+  private selectedDate: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -277,6 +278,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (state.meal) this.meal = state.meal;
     if (state.dietDay) this.dietDay = state.dietDay;
     if (state.returnUrl) this.returnUrl = state.returnUrl;
+    if (state.selectedDate) this.selectedDate = state.selectedDate;
 
     // Subscribe to dietDay updates
     this.dietDayService.getCurrentDietDay
@@ -626,6 +628,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         ingredientMode: true,
         customProduct: ingredient, // Pass the full customProduct for editing
         returnUrl: '/search-foods/config-recipe',
+        selectedDate: this.selectedDate || this.dietDay?.date,
       },
     });
   }
@@ -1261,6 +1264,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           currentMode: targetMode,
           ingredientMode: false,
           mealName: this.meal?.name,
+          selectedDate: this.selectedDate || this.dietDay?.date,
         },
       });
     } else {
