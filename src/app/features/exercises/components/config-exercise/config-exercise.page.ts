@@ -203,14 +203,7 @@ export class ConfigExercisePage implements OnInit {
     if (baseExercise) {
       this.exerciseMode = baseExercise.isCardio ? 'cardio' : 'fuerza';
       this.originalExerciseMode = this.exerciseMode;
-      this.details.category = Array.isArray(baseExercise.category)
-        ? [...baseExercise.category]
-        : baseExercise.category
-        ? [baseExercise.category]
-        : [];
-      this.details.muscleGroups1 = [...(baseExercise.muscleGroups1 || [])];
-      this.details.muscleGroups2 = [...(baseExercise.muscleGroups2 || [])];
-      this.details.equipment = [...(baseExercise.equipment || [])];
+      this.syncDetailsFromExercise(baseExercise);
 
       // Store original state for change detection
       this.originalNotes = this.notes;
@@ -221,6 +214,17 @@ export class ConfigExercisePage implements OnInit {
         equipment: [...this.details.equipment],
       };
     }
+  }
+
+  private syncDetailsFromExercise(exercise: Exercise): void {
+    this.details.category = Array.isArray(exercise.category)
+      ? [...exercise.category]
+      : exercise.category
+      ? [exercise.category]
+      : [];
+    this.details.muscleGroups1 = [...(exercise.muscleGroups1 || [])];
+    this.details.muscleGroups2 = [...(exercise.muscleGroups2 || [])];
+    this.details.equipment = [...(exercise.equipment || [])];
   }
 
   public ionViewDidEnter(): void {
@@ -579,14 +583,35 @@ export class ConfigExercisePage implements OnInit {
   private selectNewExercise(exercise: Exercise): void {
     this._idExerciseToAdd = exercise._id;
     this.selectedExerciseToAdd = { ...exercise };
+
+    // Actualizar datos visuales y de estado
     this.videoUrl = exercise.videoUrl;
     this.updateVideoEmbedSrc();
-    this.form?.controls?.name?.setValue(exercise.name);
 
-    // Recalculate ownership after replacement: only own exercises can be edited.
+    // Actualizar formulario con los datos del nuevo ejercicio
+    this.form?.patchValue({
+      name: exercise.name,
+      description: exercise.description || '',
+    });
+
+    // Sincronizar detalles (músculos, categorías, equipamiento)
+    this.syncDetailsFromExercise(exercise);
+
+    // Sincronizar el modo (fuerza/cardio)
+    this.exerciseMode = exercise.isCardio ? 'cardio' : 'fuerza';
+
+    // Recalcular propiedad y modo edición
     this.isOwnExercise = exercise?.userId === this.user?._id;
     if (!this.isOwnExercise) {
       this.isEditingOwnExercise = false;
+    }
+
+    // Actualizar el objeto de ejercicio local
+    // Esto es CRÍTICO para que la lógica de guardado detecte que el ejercicio ya tiene ID
+    // y no intente crearlo como uno nuevo (evitando la "copia" de campos errónea)
+    this.exercise = { ...exercise };
+    if (this.customExercise) {
+      this.customExercise.exercise = { ...exercise };
     }
 
     this.exerciseChanged = true;
