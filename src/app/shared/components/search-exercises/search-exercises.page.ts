@@ -1,6 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
-import { ModalController, ModalOptions, AlertOptions } from '@ionic/angular';
+import { PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
+import { ModalController, ModalOptions, AlertOptions, Platform } from '@ionic/angular';
 // No importar IonSearchbar directamente para evitar errores en NgModules
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
 import { Exercise } from 'src/app/core/models/exercise';
@@ -48,6 +50,8 @@ export class SearchExercisesPage implements OnInit {
 
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
+  public isFooterHidden: boolean = false;
+
   public searchFilterGroupExercises: SearchFilterGroupExercises;
   public cardioMode: 'all' | 'cardio' = 'all';
 
@@ -59,13 +63,21 @@ export class SearchExercisesPage implements OnInit {
 
   public THEMES = THEMES;
 
+  private keyboardWillShowHandle?: PluginListenerHandle;
+  private keyboardWillHideHandle?: PluginListenerHandle;
+  private keyboardDidShowHandle?: PluginListenerHandle;
+  private keyboardDidHideHandle?: PluginListenerHandle;
+  private visualViewportResizeHandler?: () => void;
+  private baseViewportHeight?: number;
+
   constructor(
     public modalController: ModalController,
     private exerciseService: ExerciseService,
     private themeService: ThemeService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
-    private userService: UserService
+    private userService: UserService,
+    private platform: Platform
   ) {
     this.themeService.theme.subscribe((res: Theme) => (this.theme = res));
   }
@@ -95,6 +107,7 @@ export class SearchExercisesPage implements OnInit {
 
   public ionViewWillEnter(): void {
     this.utilService.initFakeModalState();
+    void this.initializeKeyboardListeners();
   }
 
   public ionViewDidEnter(): void {
@@ -102,6 +115,7 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public ionViewWillLeave(): void {
+    void this.removeKeyboardListeners();
     this.utilService.endFakeModalState();
   }
 
@@ -292,5 +306,98 @@ export class SearchExercisesPage implements OnInit {
     this.searchFilterGroupExercises.isCardio =
       mode === 'cardio' ? true : undefined;
     this.searchByFilter();
+  }
+
+  private async initializeKeyboardListeners(): Promise<void> {
+    await this.removeKeyboardListeners();
+
+    const handleShow = () => this.setFooterHidden(true);
+    const handleHide = () => this.setFooterHidden(false);
+
+    try {
+      this.keyboardWillShowHandle = await Keyboard.addListener(
+        'keyboardWillShow',
+        handleShow
+      );
+      this.keyboardWillHideHandle = await Keyboard.addListener(
+        'keyboardWillHide',
+        handleHide
+      );
+      this.keyboardDidShowHandle = await Keyboard.addListener(
+        'keyboardDidShow',
+        handleShow
+      );
+      this.keyboardDidHideHandle = await Keyboard.addListener(
+        'keyboardDidHide',
+        handleHide
+      );
+    } catch (error) {
+      console.error('[Keyboard] Failed to register listeners', error);
+    }
+
+    if (this.platform.is('ios') && window.visualViewport) {
+      this.baseViewportHeight = window.visualViewport.height;
+      this.visualViewportResizeHandler = () => {
+        const currentHeight = window.visualViewport?.height;
+        if (!currentHeight) {
+          return;
+        }
+
+        if (
+          !this.baseViewportHeight ||
+          currentHeight > this.baseViewportHeight
+        ) {
+          this.baseViewportHeight = currentHeight;
+        }
+
+        const isKeyboardVisible =
+          currentHeight < (this.baseViewportHeight ?? currentHeight) - 120;
+
+        this.setFooterHidden(isKeyboardVisible);
+
+        if (!isKeyboardVisible) {
+          this.baseViewportHeight = currentHeight;
+        }
+      };
+
+      window.visualViewport.addEventListener(
+        'resize',
+        this.visualViewportResizeHandler
+      );
+    }
+  }
+
+  private async removeKeyboardListeners(): Promise<void> {
+    try {
+      await this.keyboardWillShowHandle?.remove();
+      await this.keyboardWillHideHandle?.remove();
+      await this.keyboardDidShowHandle?.remove();
+      await this.keyboardDidHideHandle?.remove();
+    } catch (error) {
+      console.error('[Keyboard] Failed to remove listeners', error);
+    }
+
+    this.keyboardWillShowHandle = undefined;
+    this.keyboardWillHideHandle = undefined;
+    this.keyboardDidShowHandle = undefined;
+    this.keyboardDidHideHandle = undefined;
+
+    if (this.visualViewportResizeHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener(
+        'resize',
+        this.visualViewportResizeHandler
+      );
+    }
+
+    this.visualViewportResizeHandler = undefined;
+    this.baseViewportHeight = undefined;
+  }
+
+  private setFooterHidden(hidden: boolean): void {
+    if (this.isFooterHidden === hidden) {
+      return;
+    }
+
+    this.isFooterHidden = hidden;
   }
 }
