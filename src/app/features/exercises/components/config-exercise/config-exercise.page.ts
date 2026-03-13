@@ -65,6 +65,9 @@ export class ConfigExercisePage implements OnInit {
   public setsToCreate: Set[] = [];
   public setsToUpdate: Set[] = [];
   public setsToDelete: string[] = [];
+  private initialDisplayOrderMap: Map<string, number> = new Map();
+  private nextDisplayOrder: number = 1;
+  private hasInitializedDisplayOrder: boolean = false;
   public idCounter: number = 0;
 
   public customExercise: CustomExercise;
@@ -267,6 +270,11 @@ export class ConfigExercisePage implements OnInit {
   }
 
   public initForm(): void {
+    // Reset display order tracking for this session
+    this.initialDisplayOrderMap = new Map();
+    this.nextDisplayOrder = 1;
+    this.hasInitializedDisplayOrder = false;
+
     let exerciseConfig = new CustomExercise();
     // Viene de buscar ejercicios
     if (this.exercise) {
@@ -280,6 +288,7 @@ export class ConfigExercisePage implements OnInit {
       this.notes = this.customExercise.notes;
       this.originSetsOrdered = [...this.customExercise.sets];
       this.setList = [...this.customExercise.sets];
+      this.initDisplayOrderFromInitialList();
       // Guardar ejercicio original para posibles reversiones
       this.originalExercise = this.customExercise.exercise;
     }
@@ -639,11 +648,20 @@ export class ConfigExercisePage implements OnInit {
         if (indexSet < 0) {
           setConfig._id = --this.idCounter + '';
           setConfig.order = this.setList ? this.setList.length : 0;
+          if ((setConfig as any).displayOrder == null) {
+            (setConfig as any).displayOrder = this.nextDisplayOrder++;
+          }
           this.setList.push(setConfig);
           this.setsToCreate.push(setConfig);
         }
         // Actualizar serie
         else {
+          const existingDisplayOrder = (this.setList[indexSet] as any)
+            ?.displayOrder;
+          if ((setConfig as any).displayOrder == null) {
+            (setConfig as any).displayOrder =
+              existingDisplayOrder ?? this.getInitialDisplayOrder(setConfig);
+          }
           this.setList[indexSet] = { ...setConfig };
 
           const indexCreateSet = this.setsToCreate.findIndex(
@@ -660,6 +678,8 @@ export class ConfigExercisePage implements OnInit {
             this.setsToUpdate[indexUpdateSet] = { ...setConfig };
           else if (isNaN(Number(set._id))) this.setsToUpdate.push(setConfig);
         }
+
+        this.normalizeSetOrder();
       }
     });
   }
@@ -669,8 +689,10 @@ export class ConfigExercisePage implements OnInit {
     if (index !== -1) {
       const setCopy = { ...set };
       setCopy._id = --this.idCounter + '';
+      (setCopy as any).displayOrder = this.nextDisplayOrder++;
       this.setList.splice(index + 1, 0, setCopy);
       this.setsToCreate.push(setCopy);
+      this.normalizeSetOrder();
     }
   }
 
@@ -822,6 +844,11 @@ export class ConfigExercisePage implements OnInit {
             this.setsToDelete
           )
           .subscribe((resCustomExercise) => {
+            // Ensure local order & displayOrder stay in sync with current UI order
+            const orderedSets = this.setList.map((setItem) => ({
+              ...setItem,
+            }));
+            resCustomExercise.sets = orderedSets;
             this.customExercise = resCustomExercise;
 
             const indexCustomExercise = this.workout.exercises.findIndex(
@@ -1195,6 +1222,8 @@ export class ConfigExercisePage implements OnInit {
       if (this.setsToUpdate.length > 0 && indexSetToUpdate >= 0)
         this.setsToUpdate.splice(indexSetToUpdate);
     }
+
+    this.normalizeSetOrder();
   }
 
   public getExerciseMuscleGroups(): string[] {
@@ -1251,29 +1280,68 @@ export class ConfigExercisePage implements OnInit {
     const element = this.setList[ev.detail.from];
     this.setList.splice(ev.detail.from, 1);
     this.setList.splice(ev.detail.to, 0, element);
-    this.setList.forEach((cesTemp, index) => {
-      const setCopy = { ...cesTemp };
-      setCopy.order = index;
-
-      // Si tiene ObjectId (UPDATE LIST)
-      if (isNaN(Number(setCopy._id))) {
-        const indexSetToUpdate = this.setsToUpdate.findIndex(
-          (stuTemp) => stuTemp._id === setCopy._id
-        );
-        if (indexSetToUpdate !== -1)
-          this.setsToUpdate[indexSetToUpdate] = setCopy;
-        else this.setsToUpdate.push(setCopy);
-      }
-      // Si tiene id fake
-      else {
-        const indexSetToCreate = this.setsToCreate.findIndex(
-          (stuTemp) => stuTemp._id === setCopy._id
-        );
-        if (indexSetToCreate > 0) this.setsToCreate[indexSetToCreate] = setCopy;
-      }
-    });
+    this.normalizeSetOrder();
 
     ev.detail.complete();
+  }
+
+  private initDisplayOrderFromInitialList(): void {
+    if (this.hasInitializedDisplayOrder) {
+      return;
+    }
+
+    this.setList.forEach((setItem, index) => {
+      const key = this.getDisplayOrderKey(setItem, index);
+      const displayOrder = index + 1;
+      this.initialDisplayOrderMap.set(key, displayOrder);
+      (setItem as any).displayOrder = displayOrder;
+    });
+
+    this.nextDisplayOrder = this.setList.length + 1;
+    this.hasInitializedDisplayOrder = true;
+  }
+
+  private getInitialDisplayOrder(setItem: Set): number {
+    const key = this.getDisplayOrderKey(setItem);
+    const stored = this.initialDisplayOrderMap.get(key);
+    if (stored != null) {
+      return stored;
+    }
+
+    const fallback = this.nextDisplayOrder++;
+    this.initialDisplayOrderMap.set(key, fallback);
+    return fallback;
+  }
+
+  private getDisplayOrderKey(setItem: Set, index?: number): string {
+    if (setItem?._id != null) {
+      return String(setItem._id);
+    }
+    return `idx-${index ?? this.setList.indexOf(setItem)}`;
+  }
+
+  private normalizeSetOrder(): void {
+    this.setList.forEach((setItem, index) => {
+      setItem.order = index;
+
+      if (isNaN(Number(setItem._id))) {
+        const indexSetToUpdate = this.setsToUpdate.findIndex(
+          (stuTemp) => stuTemp._id === setItem._id
+        );
+        if (indexSetToUpdate !== -1) {
+          this.setsToUpdate[indexSetToUpdate] = { ...setItem };
+        } else {
+          this.setsToUpdate.push({ ...setItem });
+        }
+      } else {
+        const indexSetToCreate = this.setsToCreate.findIndex(
+          (stuTemp) => stuTemp._id === setItem._id
+        );
+        if (indexSetToCreate >= 0) {
+          this.setsToCreate[indexSetToCreate] = { ...setItem };
+        }
+      }
+    });
   }
 
   private hasChanges(): boolean {
