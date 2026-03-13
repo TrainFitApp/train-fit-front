@@ -165,8 +165,15 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.loading = false;
-          this.codeAccepted = true;
-          this.ionicUtilService.showSuccessToast('¡Código verificado!', 2000);
+          this.ionicUtilService.showSuccessToast(
+            '¡Contraseña cambiada con éxito!',
+            2000
+          );
+          if (this.userService.getLocalUser) {
+            this.navigationService.goBack();
+          } else {
+            this.codeAccepted = true;
+          }
         },
         error: (err) => {
           this.loading = false;
@@ -198,7 +205,11 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             'Revise el correo para finalizar el cambio de contraseña',
             3000
           );
-          this.navigationService.goToLoginPage();
+          if (this.userService.getLocalUser) {
+            this.navigationService.goBack();
+          } else {
+            this.navigationService.goToLoginPage();
+          }
         },
         error: (err) => {
           this.loading = false;
