@@ -42,7 +42,8 @@ export class JWTInterceptor implements HttpInterceptor {
       (request.url.includes('/users/') &&
         request.method === 'POST' &&
         !request.url.includes('/favProduct') &&
-        !request.url.includes('/favRecipe')) || // POST endpoints for user creation
+        !request.url.includes('/favRecipe') &&
+        !request.url.includes('/users/suggestions')) || // POST endpoints for user creation (exclude protected ones)
       request.url.includes('/users/hash/') || // email verification
       request.url.includes('/users/restore'); // restore password
 
