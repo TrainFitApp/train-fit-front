@@ -161,42 +161,43 @@
 </ion-content>
 
 <ion-footer class="search-foods-footer">
-  <!-- Mode Toggle Row (hidden in ingredient mode) -->
-  <div
-    class="footer-controls"
-    *ngIf="meal && !isFooterHidden && !ingredientMode"
-  >
-    <div class="mode-toggle">
-      <button
-        type="button"
-        class="mode-btn"
-        [class.is-active]="currentMode === 'products'"
-        (click)="setMode('products')"
-      >
-        <ion-icon name="nutrition-outline"></ion-icon>
-        <span>Productos</span>
+  <div class="footer-wrapper">
+    <!-- Mode Toggle Row (hidden in ingredient mode) - ORDEN 1 (segment siempre arriba) -->
+    <div
+      class="footer-controls footer-section--segment"
+      *ngIf="meal && !isFooterHidden && !ingredientMode"
+    >
+      <div class="mode-toggle">
+        <button
+          type="button"
+          class="mode-btn"
+          [class.is-active]="currentMode === 'products'"
+          (click)="setMode('products')"
+        >
+          <ion-icon name="nutrition-outline"></ion-icon>
+          <span>Productos</span>
+        </button>
+        <button
+          type="button"
+          class="mode-btn"
+          [class.is-active]="currentMode === 'recipes'"
+          (click)="setMode('recipes')"
+        >
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>Recetas</span>
+        </button>
+        <div
+          class="mode-indicator"
+          [class.recipes-active]="currentMode === 'recipes'"
+        ></div>
+      </div>
+      <button class="add-btn" (click)="openCreateActionSheet()">
+        <ion-icon name="add-outline"></ion-icon>
       </button>
-      <button
-        type="button"
-        class="mode-btn"
-        [class.is-active]="currentMode === 'recipes'"
-        (click)="setMode('recipes')"
-      >
-        <ion-icon name="restaurant-outline"></ion-icon>
-        <span>Recetas</span>
-      </button>
-      <div
-        class="mode-indicator"
-        [class.recipes-active]="currentMode === 'recipes'"
-      ></div>
     </div>
-    <button class="add-btn" (click)="openCreateActionSheet()">
-      <ion-icon name="add-outline"></ion-icon>
-    </button>
-  </div>
 
   <!-- Ingredient mode macros footer (sin panel de ingredientes) -->
-  <div class="ingredient-macros" *ngIf="ingredientMode && !isFooterHidden">
+  <div class="ingredient-macros footer-section--ingredient" *ngIf="ingredientMode && !isFooterHidden">
     <!-- Botón para añadir producto -->
     <button class="add-btn-full" (click)="createProductForIngredient()">
       <ion-icon name="add-outline"></ion-icon>
@@ -235,9 +236,11 @@
     </div>
   </div>
 
-  <app-macros-bars
-    [isFooterHidden]="isFooterHidden || ingredientMode"
-    [clickable]="false"
-    style="width: 100%"
-  ></app-macros-bars>
+    <app-macros-bars
+      class="footer-section--macros"
+      [isFooterHidden]="isFooterHidden || ingredientMode"
+      [clickable]="false"
+      style="width: 100%"
+    ></app-macros-bars>
+  </div>
 </ion-footer>
