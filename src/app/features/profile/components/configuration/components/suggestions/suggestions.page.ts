@@ -45,6 +45,11 @@ export class SuggestionsPage {
       },
       () => {
         this.isSending = false;
+        this.ionicUtilService.showAlert({
+          header: 'Error',
+          message: 'No se pudo enviar la sugerencia. Por favor, inténtalo de nuevo más tarde.',
+          buttons: ['OK'],
+        });
       }
     );
   }

@@ -545,8 +545,12 @@
               <!-- Contenedor izquierdo: label + fecha separados por CSS gap,
                    NO por whitespace entre elementos inline (causa del bug) -->
               <div class="session-header-left">
-                <span class="week-badge-label">Microciclo {{ session.splitIndex }}</span>
-                <span class="session-date">{{ session.date | date:'dd/MM/yyyy' }}</span>
+                <span class="week-badge-label"
+                  >Microciclo {{ session.splitIndex }}</span
+                >
+                <span class="session-date"
+                  >{{ session.date | date:'dd/MM/yyyy' }}</span
+                >
               </div>
               <ion-icon
                 *ngIf="session.notes"
@@ -556,7 +560,6 @@
                 (click)="showNoteAlert(session.notes, 'Nota del Microciclo ' + session.splitIndex)"
               ></ion-icon>
             </div>
-
 
             <!-- Sets Rows -->
             <ion-item
@@ -590,7 +593,7 @@
                     <span *ngIf="set.isDropSet" class="intensity-drop">DS</span>
                     <!-- Rest Pause -->
                     <span *ngIf="set.isRestPause" class="intensity-rp"
-                      >RP {{ set.restPause }} Seg</span
+                      >RP {{ set.restPause }}</span
                     >
                     <!-- Guion solo si no hay NADA de lo anterior -->
                     <span
