@@ -192,6 +192,29 @@ ion-list {
       }
     }
 
+    .informative-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      margin-top: 4px;
+
+      .badge-icon {
+        font-size: 1.2rem;
+        color: var(--ion-color-primary);
+        opacity: 0.8;
+      }
+
+      .badge-text {
+        color: var(--pe-text-muted, #9ca3af);
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+    }
+
     .select-wrapper {
       position: relative;
       display: flex;
