@@ -238,6 +238,16 @@ ion-skeleton-text {
   }
 }
 
+ion-footer {
+  --background: #141414;
+  background: #141414;
+  border-top: 1px solid #252525;
+
+  &::before {
+    display: none;
+  }
+}
+
 // Micro Cycle Header Styles
 .micro-cycle-header {
   margin: 16px 0;
@@ -340,14 +350,17 @@ ion-skeleton-text {
         transform: translateX(0);
         opacity: 1;
       }
+
       40% {
         transform: translateX(-100%);
         opacity: 0;
       }
+
       41% {
         transform: translateX(100%);
         opacity: 0;
       }
+
       100% {
         transform: translateX(0);
         opacity: 1;
@@ -360,14 +373,17 @@ ion-skeleton-text {
         transform: translateX(0);
         opacity: 1;
       }
+
       40% {
         transform: translateX(100%);
         opacity: 0;
       }
+
       41% {
         transform: translateX(-100%);
         opacity: 0;
       }
+
       100% {
         transform: translateX(0);
         opacity: 1;
@@ -391,11 +407,9 @@ ion-skeleton-text {
     .cycle-number {
       width: 48px;
       height: 48px;
-      background: linear-gradient(
-        135deg,
-        var(--ion-color-primary) 0%,
-        var(--ion-color-primary-shade) 100%
-      );
+      background: linear-gradient(135deg,
+          var(--ion-color-primary) 0%,
+          var(--ion-color-primary-shade) 100%);
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -405,11 +419,9 @@ ion-skeleton-text {
       color: white;
 
       &.completed {
-        background: linear-gradient(
-          135deg,
-          var(--ion-color-success) 0%,
-          var(--ion-color-success-shade) 100%
-        );
+        background: linear-gradient(135deg,
+            var(--ion-color-success) 0%,
+            var(--ion-color-success-shade) 100%);
       }
     }
 
@@ -749,11 +761,9 @@ ion-accordion-group {
     gap: 12px;
     padding: 14px 16px;
     border-radius: 12px;
-    background: linear-gradient(
-      135deg,
-      rgba(var(--ion-color-primary-rgb), 0.08) 0%,
-      rgba(var(--ion-color-primary-rgb), 0.04) 100%
-    );
+    background: linear-gradient(135deg,
+        rgba(var(--ion-color-primary-rgb), 0.08) 0%,
+        rgba(var(--ion-color-primary-rgb), 0.04) 100%);
     border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
