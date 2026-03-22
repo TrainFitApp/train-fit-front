@@ -1,3 +1,12 @@
+ion-header {
+  --background: #141414;
+  background: #141414;
+  border: none;
+  &::after {
+    display: none;
+  }
+}
+
 .search-header {
   background: #141414;
   border-bottom: 1px solid #252525;
@@ -55,17 +64,19 @@
           --background: rgba(255, 255, 255, 0.08);
         }
 
-        // Fix para evitar solapamiento del icono en móviles
+        // Fix para mover el icono al final (derecha)
         &::part(icon) {
-          left: 12px !important;
+          right: 12px !important; // Cambiado de left a right
+          left: auto !important;
           position: absolute !important;
           width: 18px;
           height: 18px;
         }
 
         &::part(input) {
-          padding-inline-start: 38px !important;
-          padding-inline-end: 8px !important;
+          padding-inline-start: 12px !important; // Cambiado de 38px a 12px
+          padding-inline-end: 38px !important; // Cambiado de 8px a 38px para dejar espacio al icono
+          background: transparent !important;
         }
       }
     }

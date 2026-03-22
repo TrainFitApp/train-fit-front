@@ -25,6 +25,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { fadeIn } from 'src/app/shared/animations/fade';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 export type ConfigRecipeMode = 'create' | 'add' | 'edit';
 
@@ -86,7 +87,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
     private toastCtrl: ToastController,
-    private platform: Platform
+    private platform: Platform,
+    private adMobService: AdMobService
   ) {
     this.user = this.userService.getLocalUser;
     this.initForm();
@@ -793,6 +795,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.showToast('Receta creada con éxito', 'success');
       }
 
+      this.adMobService.interstitial(); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
@@ -830,6 +833,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
       this.applyComposeResult(result);
       this.showToast('Receta añadida a la comida', 'success');
+      this.adMobService.interstitial(); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
@@ -894,6 +898,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.applyComposeResult(result);
 
     this.showToast('Receta actualizada con éxito', 'success');
+    this.adMobService.interstitial(); // Estrategia AdMob
     this.goBack();
   }
 

@@ -203,15 +203,15 @@ ion-accordion[value="additional-info"] {
   position: relative;
   display: flex;
   align-items: center;
-  background: #141414 !important;
-  border: 1px solid #252525 !important;
-  border-radius: var(--input-border-radius);
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
   transition: var(--transition);
-  overflow: hidden;
+  padding: 0;
 
   &:focus-within {
-    border-color: var(--ion-color-primary) !important;
-    box-shadow: 0 0 0 2px rgba(254, 144, 0, 0.1);
+    border-bottom-color: var(--ion-color-primary) !important;
     transform: translateY(-1px);
   }
 }
@@ -220,10 +220,10 @@ ion-accordion[value="additional-info"] {
   --background: transparent;
   --color: var(--text-primary);
   --placeholder-color: var(--text-muted);
-  --padding-start: 16px;
-  --padding-end: 0;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
+  --padding-start: 4px;
+  --padding-end: 8px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
   flex: 1;
   font-size: 0.95rem;
   font-weight: 500;
@@ -231,12 +231,12 @@ ion-accordion[value="additional-info"] {
 }
 
 .input-unit {
-  padding: 16px 16px 12px 6px;
+  padding: 10px 4px 10px 8px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
-  background: rgba(37, 37, 37, 0.3) !important;
-  border-left: 1px solid #252525 !important;
+  background: transparent !important;
+  border-left: none !important;
 }
 
 // Input styles

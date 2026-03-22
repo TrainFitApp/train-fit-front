@@ -19,6 +19,7 @@ import { User } from 'src/app/core/models/user';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Subscription } from 'rxjs';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-nutrition-editor',
@@ -60,10 +61,10 @@ export class NutritionEditorPage implements OnInit {
     private navigationService: NavigationService,
     private userService: UserService,
     private ionicUtilService: IonicUtilService,
-    private alertController: AlertController,
     private platform: Platform,
     private ngZone: NgZone,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private adMobService: AdMobService
   ) {}
 
   ngOnInit() {
@@ -861,6 +862,36 @@ export class NutritionEditorPage implements OnInit {
       return;
     }
 
+    // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
+    const alertOptions = {
+      header: 'Guardar Configuración',
+      message: 'Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Ver Anuncio y Guardar',
+          cssClass: 'alert-button-success',
+          handler: () => {
+            this.adMobService.interstitial()
+              .then(() => {
+                this.executeSave();
+              })
+              .catch((err) => {
+                console.error('Error AdMob Interstitial:', err);
+                this.executeSave();
+              });
+          }
+        }
+      ]
+    };
+
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private executeSave(): void {
     // Actualizar el usuario actual con los nuevos valores
     if (this.user) {
       this.user.kcalTotal = Math.round(this.state.targetKcal);

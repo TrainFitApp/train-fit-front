@@ -28,6 +28,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 import { ExerciseService } from '../../../../core/services/exercise/exercise.service';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
@@ -174,7 +175,8 @@ export class ConfigExercisePage implements OnInit {
     private exerciseService: ExerciseService,
     private userService: UserService,
     private platform: Platform,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private adMobService: AdMobService
   ) {}
 
   public ngOnInit(): void {
@@ -583,6 +585,7 @@ export class ConfigExercisePage implements OnInit {
         duration: 1800,
       };
       this.ionicUtilService.showToast(toastOptions);
+      this.adMobService.interstitial(); // Estrategia AdMob
     } finally {
       this.load = true;
     }
@@ -783,6 +786,7 @@ export class ConfigExercisePage implements OnInit {
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
         this.load = true;
+        this.adMobService.interstitial(); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
         return Promise.resolve();
       } catch (error) {
@@ -894,6 +898,7 @@ export class ConfigExercisePage implements OnInit {
 
             if (!this._idExerciseToAdd) {
               // Cerrar el modal con toda la información necesaria
+              this.adMobService.interstitial(); // Estrategia AdMob
               this.modalController.dismiss({ setChangeInfo: changeInfo });
               this.load = true;
               this.syncWorkoutInUseAfterExerciseChange();
@@ -904,6 +909,7 @@ export class ConfigExercisePage implements OnInit {
                 .then(() => {
                   // Actualizar la tabla en changeInfo con la tabla final del servicio
                   changeInfo.tableInUse = this.tableService.tableInUse;
+                  this.adMobService.interstitial(); // Estrategia AdMob
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
                   this.load = true;
                   resolve();
@@ -978,6 +984,7 @@ export class ConfigExercisePage implements OnInit {
             .then((resTable) => {
               this.load = true;
               this.tableInUse = resTable;
+              this.adMobService.interstitial(); // Estrategia AdMob
               this.modalController.dismiss(resWorkoutsUpdates);
             });
         });
@@ -1110,6 +1117,7 @@ export class ConfigExercisePage implements OnInit {
       if (data?.searchFilterGroupExercises) {
         this.details = data.searchFilterGroupExercises;
       }
+      this.adMobService.interstitial(); // Estrategia AdMob
     });
   }
 

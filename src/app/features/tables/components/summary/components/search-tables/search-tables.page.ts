@@ -9,6 +9,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
 import { TableService } from '../../../../../../core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-search-tables',
@@ -26,6 +27,7 @@ export class SearchTablesPage implements OnInit {
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
+  private readonly adMobService = inject(AdMobService);
 
   constructor(
     private utilService: UtilService,
@@ -103,6 +105,8 @@ export class SearchTablesPage implements OnInit {
     if (!existsInList && this.searchFilterGroup.ownFilter) {
       this.tableList = [copiedTable, ...(this.tableList || [])];
     }
+
+    this.adMobService.interstitial(); // Estrategia AdMob
   }
 
   public deleteTable(idTable: string): void {

@@ -27,6 +27,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-current-workout',
@@ -61,6 +62,10 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // Guarda persistente hasta que se cierra el alert
   private autoEndTriggered = false;
 
+  // Propiedades para anuncios (AdMob)
+  private adTimer: any;
+  private adInterval: any;
+
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
 
@@ -74,6 +79,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly adMobService = inject(AdMobService);
 
   constructor(
     private navigationService: NavigationService,
@@ -129,6 +135,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Suscripciones principales
     this.initVariables();
+
+    // Iniciar el temporizador de anuncios (3 min inicial, 20 min después)
+    this.startAdTimer();
   }
 
   public ngOnDestroy(): void {
@@ -142,6 +151,33 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     this.sweetAlertOpened = false;
     this.autoEndTriggered = false;
     this.autoEndScheduled = false;
+
+    // Detener temporizadores de anuncios
+    this.stopAdTimer();
+  }
+
+  private startAdTimer(): void {
+    // Primer anuncio a los 3 minutos
+    this.adTimer = setTimeout(() => {
+      this.showWorkoutInterstitial();
+
+      // Siguientes anuncios cada 20 minutos
+      this.adInterval = setInterval(() => {
+        this.showWorkoutInterstitial();
+      }, 20 * 60 * 1000);
+    }, 3 * 60 * 1000);
+  }
+
+  private stopAdTimer(): void {
+    if (this.adTimer) clearTimeout(this.adTimer);
+    if (this.adInterval) clearInterval(this.adInterval);
+  }
+
+  private showWorkoutInterstitial(): void {
+    // Mostrar anuncio sí y solo si el usuario tiene este entrenamiento en curso y está activo
+    if (this.user?.workoutInUse === this.currentWorkout?._id) {
+      this.adMobService.interstitial();
+    }
   }
 
   public playWorkout(): void {
