@@ -15,26 +15,34 @@ img {
 
 // Minimalist Header Styles
 .minimal-header {
-  --background: rgba(255, 255, 255, 0.98);
-  --border-color: rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid var(--border-color);
+  --background: transparent;
+  background: transparent;
+  --border-color: transparent;
+  border-bottom: none;
+
+  &::after {
+    display: none;
+  }
 }
 
 .minimal-toolbar {
-  --background: transparent;
-  --color: var(--ion-color-dark);
+  --background: #141414;
+  background: #141414;
+  --color: #ffffff;
   --border-color: transparent;
   --padding-start: 0;
   --padding-end: 0;
   --padding-top: 0;
   --padding-bottom: 0;
   min-height: 60px;
+  border-bottom: 1px solid #252525;
 }
 
 // Workout Header (similar to micro-cycle-header)
 .workout-header {
-  margin: 16px 0;
-  padding: 0 16px;
+  background: #141414;
+  padding: 16px;
+  border-bottom: 1px solid #252525;
 
   .workout-content {
     display: flex;
@@ -303,8 +311,9 @@ img {
 // Responsive design
 @media (max-width: 768px) {
   .workout-header {
-    margin: 12px 0;
-    padding: 0 12px;
+    background: #141414;
+    padding: 12px;
+    border-bottom: 1px solid #252525;
 
     .workout-content {
       background: #141414;

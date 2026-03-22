@@ -241,6 +241,7 @@ ion-accordion[value="additional-info"] {
 
 // Input styles
 .elegant-input {
+
   ion-input,
   ion-select {
     --background: var(--ion-color-step-50, #fafafa);
@@ -284,6 +285,7 @@ ion-accordion[value="additional-info"] {
 
 // Sección de cantidad - Compacta con mejor visibilidad
 .quantity-section {
+
   // Input de cantidad con fuente más grande
   .custom-input {
     font-size: 1.2rem !important;
@@ -621,16 +623,14 @@ ion-accordion[value="additional-info"] {
 
 // Footer styles
 .elegant-footer {
-  background: var(--ion-card-background);
-  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
-
-  &.dark-theme {
-    background: var(--ion-color-step-100) !important;
-    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.3) !important;
-  }
+  --background: transparent;
+  background: transparent;
+  border-top: none;
 
   .footer-content {
+    background: #141414;
     padding: 16px;
+    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 
     ion-button {
       --background: var(--ion-color-primary);
@@ -763,6 +763,7 @@ ion-card-content {
   }
 
   .elegant-input {
+
     ion-input,
     ion-select {
       --background: #141414 !important;

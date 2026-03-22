@@ -239,9 +239,8 @@ ion-skeleton-text {
 }
 
 ion-footer {
-  --background: #141414;
-  background: #141414;
-  border-top: 1px solid #252525;
+  --background: transparent;
+  background: transparent;
 
   &::before {
     display: none;
@@ -250,8 +249,9 @@ ion-footer {
 
 // Micro Cycle Header Styles
 .micro-cycle-header {
-  margin: 16px 0;
-  padding: 0 16px;
+  background: #141414;
+  padding: 16px;
+  border-top: 1px solid #252525;
 
   .micro-cycle-content {
     background: #141414;
@@ -515,8 +515,9 @@ ion-footer {
   }
 
   .micro-cycle-header {
-    margin: 12px 0;
-    padding: 0 12px;
+    background: #141414;
+    padding: 12px;
+    border-top: 1px solid #252525;
 
     .micro-cycle-content {
       padding: 16px 20px 0;
