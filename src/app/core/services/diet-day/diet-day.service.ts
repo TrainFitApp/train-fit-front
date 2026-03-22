@@ -11,6 +11,7 @@ import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { DietDay } from '../../models/dietDay';
 import { MEAL_TYPES, Meal } from '../../models/meal';
 import { CustomProductService } from '../custom-product/custom-product.service';
+import { CustomRecipeInstance } from '../../models/customRecipeInstance';
 import { DietDayAPIService } from './diet-day-api.service';
 
 @Injectable()
@@ -486,6 +487,50 @@ export class DietDayService {
     return sumWeights / sumDaysWithWeight;
   }
 
+  public getRecipeInstancePortionRatio(instance: any): number {
+    const dataRecipe =
+      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
+    if (!dataRecipe) return 0;
+
+    const recipe =
+      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+    if (!recipe || !recipe.customProducts) return 0;
+
+    const overridesMap = new Map();
+    if (instance.customProductsOverrides) {
+      instance.customProductsOverrides.forEach((override: any) => {
+        const id =
+          typeof override.customProductId === 'string'
+            ? override.customProductId
+            : (override.customProductId as any)?._id ||
+              override.customProductId;
+        overridesMap.set(id, override);
+      });
+    }
+
+    let mergedRecipeQuantity = 0;
+    recipe.customProducts.forEach((cp: any) => {
+      const cpId = typeof cp === 'string' ? cp : cp._id;
+      const cpData = typeof cp === 'object' ? cp : null;
+      if (!cpData) return;
+
+      const override = overridesMap.get(cpId);
+      if (override?.removed) return;
+
+      mergedRecipeQuantity += override?.quantity ?? cpData.quantity ?? 0;
+    });
+
+    if (instance.additionalCustomProducts) {
+      instance.additionalCustomProducts.forEach((addCP: any) => {
+        mergedRecipeQuantity += addCP.quantity || 0;
+      });
+    }
+
+    const baselineQuantity =
+      dataRecipe.quantityCooked || dataRecipe.quantity || mergedRecipeQuantity;
+    return baselineQuantity > 0 ? instance.quantity / baselineQuantity : 0;
+  }
+
   private calculateInstanceMacros(instance: any): {
     kcal: number;
     protein: number;
@@ -502,6 +547,7 @@ export class DietDayService {
     if (!recipe || !recipe.customProducts)
       return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
+    const portionRatio = this.getRecipeInstancePortionRatio(instance);
     const overridesMap = new Map();
     if (instance.customProductsOverrides) {
       instance.customProductsOverrides.forEach((override: any) => {
@@ -525,8 +571,7 @@ export class DietDayService {
       if (override?.removed) return;
 
       const originalQuantity = override?.quantity ?? cpData.quantity;
-      const scaleFactor = instance.quantity / 100;
-      const scaledQuantity = originalQuantity * scaleFactor;
+      const scaledQuantity = originalQuantity * portionRatio;
 
       const macros = this.customProductService.getMacros({
         ...cpData,
@@ -541,8 +586,7 @@ export class DietDayService {
 
     if (instance.additionalCustomProducts) {
       instance.additionalCustomProducts.forEach((addCP: any) => {
-        const scaleFactor = instance.quantity / 100;
-        const scaledQuantity = addCP.quantity * scaleFactor;
+        const scaledQuantity = addCP.quantity * portionRatio;
 
         const macros = this.customProductService.getMacros({
           ...addCP,
