@@ -819,15 +819,28 @@
 
 // Footer
 .config-recipe-footer {
-  --background: transparent;
-  background: transparent;
+  --background: transparent !important;
+  background: transparent !important;
+  --border-color: transparent;
   border-top: none;
   padding: 0;
 
   .footer-content {
+    position: relative;
     background: #141414;
     padding: 16px;
     border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: #141414;
+      z-index: -1;
+    }
   }
 
   .save-btn {
