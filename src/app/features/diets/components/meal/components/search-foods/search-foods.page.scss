@@ -113,6 +113,31 @@ ion-header {
   .filter-icons-container {
     margin-top: 4px;
   }
+
+  .ingredient-add-inline {
+    padding: 6px 12px 10px;
+  }
+
+  .ingredient-add-btn {
+    width: 100%;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(254, 144, 0, 0.14);
+    color: var(--ion-color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
 }
 
 // Responsividad móvil
@@ -377,87 +402,85 @@ ion-header {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 8px 12px;
   background: #141414;
   border-top: 1px solid #252525;
 
-  // Row 2: Add button
-  .add-btn-full {
-    flex-shrink: 0;
-    width: 100%;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: 8px;
-    background: var(--ion-color-primary);
-    border: 1px solid var(--ion-color-primary);
-    color: #121212;
-    transition: background 0.2s ease, transform 0.2s ease;
+  .ingredient-macro-summary-card {
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: none;
+    background: #1a1a1a;
 
-    ion-icon {
-      font-size: 20px;
-    }
-
-    &:active {
-      background: var(--ion-color-primary-shade);
-      transform: scale(0.98);
+    ion-card-content {
+      padding: 12px 8px;
     }
   }
 
-  // Row 3: Macros row (single line)
-  .macros-row {
+  .macro-summary-flex {
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    overflow-x: auto;
+    justify-content: space-around;
+    text-align: center;
   }
 
-  .macro-item {
+  .summary-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    white-space: nowrap;
+    gap: 2px;
 
-    .macro-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
+    .summary-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1.2;
 
-      &.kcal {
-        background: var(--ion-color-primary, #fe9000);
+      small {
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-left: 1px;
+        color: rgba(255, 255, 255, 0.5);
       }
+    }
+
+    .summary-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: rgba(255, 255, 255, 0.6);
 
       &.protein {
-        background: var(--ion-color-tertiary, #5260ff);
+        color: var(--ion-color-alternative);
       }
 
       &.carbs {
-        background: var(--ion-color-success, #2dd36f);
+        color: var(--ion-color-success);
       }
 
       &.fat {
-        background: var(--ion-color-secondary, #ff6b35);
+        color: var(--ion-color-secondary);
       }
     }
 
-    .macro-value {
-      color: #fff;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
+    &.calories {
+      .summary-value {
+        color: var(--ion-color-primary);
+        font-size: 1.25rem;
+      }
 
-    .macro-label {
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.65rem;
-      text-transform: uppercase;
+      .summary-label {
+        color: var(--ion-color-primary);
+      }
     }
+  }
+
+  .summary-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.1);
   }
 }

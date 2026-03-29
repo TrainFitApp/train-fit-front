@@ -1371,3 +1371,45 @@ body.has-ad-banner.has-tabs-ad ion-content {
   --padding-bottom: 52px !important;
   /* 52 del banner + 50 de los tabs */
 }
+
+/* Alert de salida con cambios: 2 botones arriba + 1 abajo */
+.custom-alert.unsaved-exit-alert {
+  .alert-button-group {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+  }
+
+  /* Evita límites heredados de otros alerts */
+  .alert-button {
+    max-width: none !important;
+  }
+
+  /* Fila superior */
+  .alert-button.unsaved-cancel-btn {
+    order: 1 !important;
+    flex: 1 1 calc(50% - 4px) !important;
+  }
+
+  .alert-button.unsaved-save-btn {
+    order: 2 !important;
+    flex: 1 1 calc(50% - 4px) !important;
+  }
+
+  .alert-button.unsaved-discard-btn {
+    order: 3 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 170px !important;
+    margin: 0 auto !important;
+  }
+
+  /* Look neutro compartido (Cancelar + Salir sin guardar) */
+  .alert-button.unsaved-neutral-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+}

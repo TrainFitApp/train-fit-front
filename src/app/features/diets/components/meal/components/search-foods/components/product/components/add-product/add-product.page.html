@@ -202,7 +202,7 @@
           </div>
           <div class="summary-item">
             <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
-            <span class="summary-label carbs">Carbos</span>
+            <span class="summary-label carbs">CBH</span>
           </div>
           <div class="summary-item">
             <span class="summary-value">{{ totalFat }}<small>g</small></span>
@@ -1413,7 +1413,7 @@
   </form>
 </ion-content>
 
-<ion-footer class="elegant-footer">
+<ion-footer *ngIf="meal && !customProduct" class="elegant-footer">
   <div class="footer-content">
     <ion-button
       *ngIf="!loading.value; else loadingTemplate"
@@ -1424,11 +1424,7 @@
       (click)="addCustomProduct()"
     >
       <div class="button-content">
-        <span>
-          {{ ingredientMode ? (editingIngredient ? 'ACTUALIZAR PRODUCTO' :
-          'AÑADIR PRODUCTO') : meal ? (customProduct ? 'GUARDAR CAMBIOS' :
-          'AÑADIR PRODUCTO') : 'ACTUALIZAR PRODUCTO' }}
-        </span>
+        <span>AÑADIR PRODUCTO</span>
       </div>
     </ion-button>
 
@@ -1440,20 +1436,5 @@
         </div>
       </ion-button>
     </ng-template>
-
-    <!-- Mensaje de validación -->
-    <ion-card *ngIf="addCustomProductForm.invalid" class="validation-card">
-      <ion-card-content>
-        <div class="validation-message">
-          <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
-          <div>
-            <ion-text color="warning">
-              <strong>Campos requeridos</strong>
-            </ion-text>
-            <p>Por favor, completa todos los campos marcados con *</p>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
   </div>
 </ion-footer>

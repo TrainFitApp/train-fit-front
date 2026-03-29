@@ -8,7 +8,7 @@ import {
   Platform,
   ToastOptions,
 } from '@ionic/angular';
-import { Subject, Subscription, take, takeUntil } from 'rxjs';
+import { firstValueFrom, Subject, Subscription, take, takeUntil } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -130,6 +130,17 @@ export class AddProductPage implements OnInit, OnDestroy {
   public addingFavProduct = false;
 
   public loading = { value: false };
+  private initialFormSnapshot = '';
+  private autoPersistInProgress = false;
+  private backFlowInProgress = false;
+  private allowRouteLeave = false;
+  private lastPersistResult:
+    | 'none'
+    | 'ingredient-updated'
+    | 'meal-updated'
+    | 'meal-created'
+    | 'profile-updated'
+    | 'error' = 'none';
 
   public PRODUCT_ATRR = PRODUCT_ATRR;
 
@@ -186,6 +197,16 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   private backButtonSubscription: any;
   private destroy$ = new Subject<void>();
+  private edgeSwipeStartX = 0;
+  private edgeSwipeStartY = 0;
+  private edgeSwipeTracking = false;
+  private edgeSwipePromptShown = false;
+  private swipeBackOriginalStates = new Map<any, boolean>();
+  private readonly onTouchStartBound = (event: TouchEvent) =>
+    this.onEdgeSwipeTouchStart(event);
+  private readonly onTouchMoveBound = (event: TouchEvent) =>
+    this.onEdgeSwipeTouchMove(event);
+  private readonly onTouchEndBound = () => this.onEdgeSwipeTouchEnd();
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
@@ -292,6 +313,8 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   public ionViewWillEnter(): void {
     this.initializeBackButtonHandler();
+    this.attachIosEdgeSwipeInterceptor();
+    this.updateNativeSwipeBackForUnsavedChanges();
 
     const state = this.navigationService.getState();
     console.log(
@@ -465,110 +488,265 @@ export class AddProductPage implements OnInit, OnDestroy {
       });
   }
 
+  private attachIosEdgeSwipeInterceptor(): void {
+    if (!this.platform.is('ios')) return;
+
+    document.addEventListener('touchstart', this.onTouchStartBound, {
+      capture: true,
+      passive: false,
+    });
+    document.addEventListener('touchmove', this.onTouchMoveBound, {
+      capture: true,
+      passive: false,
+    });
+    document.addEventListener('touchend', this.onTouchEndBound, {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener('touchcancel', this.onTouchEndBound, {
+      capture: true,
+      passive: true,
+    });
+  }
+
+  private detachIosEdgeSwipeInterceptor(): void {
+    if (!this.platform.is('ios')) return;
+
+    document.removeEventListener('touchstart', this.onTouchStartBound, true);
+    document.removeEventListener('touchmove', this.onTouchMoveBound, true);
+    document.removeEventListener('touchend', this.onTouchEndBound, true);
+    document.removeEventListener('touchcancel', this.onTouchEndBound, true);
+  }
+
+  private onEdgeSwipeTouchStart(event: TouchEvent): void {
+    const touch = event.touches?.[0];
+    if (!touch) return;
+
+    this.edgeSwipeStartX = touch.clientX;
+    this.edgeSwipeStartY = touch.clientY;
+    this.edgeSwipeTracking = touch.clientX <= 28;
+    this.edgeSwipePromptShown = false;
+
+    if (this.edgeSwipeTracking) {
+      this.updateNativeSwipeBackForUnsavedChanges();
+      if (this.hasPersistableChanges()) {
+        event.preventDefault();
+      }
+    }
+  }
+
+  private onEdgeSwipeTouchMove(event: TouchEvent): void {
+    if (!this.edgeSwipeTracking) return;
+
+    // Si ya mostramos el alert y el dedo sigue en pantalla, bloquear
+    // cualquier arrastre residual para que no se mueva la vista de fondo.
+    if (this.edgeSwipePromptShown) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (!this.hasPersistableChanges()) return;
+
+    const touch = event.touches?.[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - this.edgeSwipeStartX;
+    const deltaY = Math.abs(touch.clientY - this.edgeSwipeStartY);
+    const isBackSwipeStart = deltaX > 2 && deltaX > deltaY + 2;
+
+    if (!isBackSwipeStart) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.updateNativeSwipeBackForUnsavedChanges();
+    this.edgeSwipePromptShown = true;
+    void this.goBack();
+  }
+
+  private onEdgeSwipeTouchEnd(): void {
+    this.edgeSwipeTracking = false;
+    this.edgeSwipePromptShown = false;
+  }
+
   public ngOnDestroy(): void {
+    this.detachIosEdgeSwipeInterceptor();
+    this.restoreNativeSwipeBackGestures();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   public ionViewWillLeave(): void {
+    this.detachIosEdgeSwipeInterceptor();
+    this.restoreNativeSwipeBackGestures();
     if (this.getLocalUser$) this.getLocalUser$.unsubscribe();
     if (this.backButtonSubscription) {
       this.backButtonSubscription.unsubscribe();
     }
   }
 
-  public addCustomProduct(): void {
-    // Special handling for ingredient mode - no API calls, just create locally
-    if (this.ingredientMode) {
-      let finalQuantity = this.addCustomProductForm.controls.quantity.value;
-      if (this.selectedUnit === 'portions' && this.hasPortions) {
-        const servingQuantity =
-          this.product?.servingQuantity ||
-          this.customProduct?.product?.servingQuantity ||
-          0;
-        const portions = this.addCustomProductForm.controls.portions.value || 0;
-        finalQuantity = portions * servingQuantity;
-      }
+  public async addCustomProduct(): Promise<void> {
+    await this.goBack({
+      forceSave: true,
+      forceCreateMealProduct: true,
+    });
+  }
 
-      const newCustomProduct = this.customProductService.composeCustomProduct(
-        this.product,
-        finalQuantity,
-        0
-      );
+  private getFinalQuantity(formValues: any): number {
+    if (!(this.meal || this.ingredientMode)) return 0;
 
-      // Copy all nutritional values and metadata from form to the custom product as overrides
-      this.mapFormToProduct(this.addCustomProductForm.value, newCustomProduct);
-
-      // Preserve ID if we are editing an existing ingredient
-      if (this.customProduct && this.customProduct._id) {
-        newCustomProduct._id = this.customProduct._id;
-      }
-
-      console.log(
-        '[DEBUG] Created/updated ingredient locally:',
-        newCustomProduct
-      );
-
-      // Store in temp data to pass back to config-recipe or search-foods
-      this.navigationService.setTempData('newIngredient', newCustomProduct);
-
-      // Navigate back
-      this.goBack();
-      return;
+    if (this.selectedUnit === 'portions' && this.hasPortions) {
+      const servingQuantity =
+        this.product?.servingQuantity ??
+        this.customProduct?.product?.servingQuantity ??
+        0;
+      const portions = this.normalizeNumericInput(formValues?.portions) ?? 0;
+      return portions * servingQuantity;
     }
 
-    // Si no viene de profile
-    if (this.meal) {
-      // Si proviene de un customProduct ya añadido a la meal
-      // Por tanto estamos ante un UDPATE
-      if (this.customProduct) {
-        this.loading = { value: true };
+    return this.normalizeNumericInput(formValues?.quantity) ?? 0;
+  }
 
-        let finalQuantity = this.addCustomProductForm.controls.quantity.value;
-        if (this.selectedUnit === 'portions' && this.hasPortions) {
-          const servingQuantity =
-            this.product?.servingQuantity ||
-            this.customProduct?.product?.servingQuantity ||
-            0;
-          const portions =
-            this.addCustomProductForm.controls.portions.value || 0;
-          finalQuantity = portions * servingQuantity;
-        }
+  private buildPersistSnapshot(): string {
+    if (!this.addCustomProductForm) return '';
 
-        this.customProduct.quantity = finalQuantity;
-        this.mapFormToProduct(
-          this.addCustomProductForm.value,
-          this.customProduct
+    const formValues = this.addCustomProductForm.getRawValue();
+    const snapshot: any = {};
+
+    if (this.meal || this.ingredientMode) {
+      snapshot.quantity = this.getFinalQuantity(formValues);
+    } else {
+      snapshot.name = `${formValues.name ?? ''}`.trim();
+      snapshot.brand = `${formValues.brand ?? ''}`.trim();
+      snapshot.ingredients = `${formValues.ingredients ?? ''}`.trim();
+      snapshot.allergens = `${formValues.allergens ?? ''}`.trim();
+      snapshot.traces = `${formValues.traces ?? ''}`.trim();
+    }
+
+    AddProductPage.NUTRITION_FIELDS.forEach((field) => {
+      snapshot[field] = this.toStorageNutritionValue(field, formValues[field]);
+    });
+
+    return JSON.stringify(snapshot);
+  }
+
+  private syncInitialSnapshot(): void {
+    this.initialFormSnapshot = this.buildPersistSnapshot();
+    this.addCustomProductForm?.markAsPristine();
+    this.updateNativeSwipeBackForUnsavedChanges();
+  }
+
+  private hasPersistableChanges(): boolean {
+    if (!this.addCustomProductForm || !this.initialFormSnapshot) return false;
+    return this.buildPersistSnapshot() !== this.initialFormSnapshot;
+  }
+
+  private updateNativeSwipeBackForUnsavedChanges(): void {
+    if (!this.platform.is('ios')) return;
+
+    const hasChanges = this.hasPersistableChanges();
+    const outlets = Array.from(
+      document.querySelectorAll('ion-router-outlet')
+    ) as any[];
+
+    outlets.forEach((outlet) => {
+      if (!this.swipeBackOriginalStates.has(outlet)) {
+        this.swipeBackOriginalStates.set(outlet, !!outlet.swipeGesture);
+      }
+
+      const originalValue = this.swipeBackOriginalStates.get(outlet) ?? true;
+      outlet.swipeGesture = hasChanges ? false : originalValue;
+    });
+  }
+
+  private restoreNativeSwipeBackGestures(): void {
+    this.swipeBackOriginalStates.forEach((value, outlet) => {
+      outlet.swipeGesture = value;
+    });
+    this.swipeBackOriginalStates.clear();
+  }
+
+  private async persistChangesIfNeeded(options?: {
+    forceSaveEvenWithoutChanges?: boolean;
+    forceCreateMealProduct?: boolean;
+  }): Promise<
+    'none' | 'ingredient-updated' | 'meal-updated' | 'meal-created' | 'profile-updated' | 'error'
+  > {
+    const hasChanges = this.hasPersistableChanges();
+    const shouldForceMealCreate =
+      !!options?.forceCreateMealProduct && !!this.meal && !this.customProduct;
+    const shouldPersist =
+      hasChanges || !!options?.forceSaveEvenWithoutChanges || shouldForceMealCreate;
+
+    if (
+      this.autoPersistInProgress ||
+      !this.addCustomProductForm ||
+      !this.product ||
+      !shouldPersist
+    ) {
+      return 'none';
+    }
+
+    if (this.addCustomProductForm.invalid) {
+      this.ionicUtilService.showToast({
+        message: 'Hay campos inválidos. No se han guardado esos cambios.',
+        duration: 1400,
+        color: 'warning',
+      });
+      return 'error';
+    }
+
+    this.autoPersistInProgress = true;
+    this.loading = { value: true };
+
+    try {
+      const formValues = this.addCustomProductForm.getRawValue();
+      const finalQuantity = this.getFinalQuantity(formValues);
+
+      if (this.ingredientMode) {
+        const newCustomProduct = this.customProductService.composeCustomProduct(
+          this.product,
+          finalQuantity,
+          0
         );
 
-        this.customProductService
-          .updateCustomProduct(this.customProduct)
-          .pipe(take(1))
-          .subscribe((resCustomProduct) => {
-            const index = this.meal.customProducts.findIndex(
-              (customProductTemp) =>
-                customProductTemp._id === resCustomProduct._id
-            );
-            if (index !== -1)
-              this.meal.customProducts[index] = resCustomProduct;
+        this.mapFormToProduct(formValues, newCustomProduct);
 
-            const indexMeal = this.dietDay.meals.findIndex(
-              (mealTemp) => mealTemp._id === this.meal._id
-            );
+        if (this.customProduct && this.customProduct._id) {
+          newCustomProduct._id = this.customProduct._id;
+        }
+
+        this.navigationService.setTempData('newIngredient', newCustomProduct);
+        this.syncInitialSnapshot();
+        return 'ingredient-updated';
+      }
+
+      if (this.meal) {
+        if (this.customProduct) {
+          this.customProduct.quantity = finalQuantity;
+          this.mapFormToProduct(formValues, this.customProduct);
+
+          const resCustomProduct = await firstValueFrom(
+            this.customProductService.updateCustomProduct(this.customProduct).pipe(take(1))
+          );
+
+          const index = this.meal.customProducts.findIndex(
+            (customProductTemp) => customProductTemp._id === resCustomProduct._id
+          );
+          if (index !== -1) {
+            this.meal.customProducts[index] = resCustomProduct;
+          }
+
+          const indexMeal = this.dietDay?.meals?.findIndex(
+            (mealTemp) => mealTemp._id === this.meal._id
+          );
+          if (indexMeal !== undefined && indexMeal > -1 && this.dietDay) {
             this.dietDay.meals[indexMeal] = this.meal;
             this.dietDayService.setCurrentDietDay = this.dietDay;
-            this.loading = { value: false };
-            this.goBack();
-          });
-      }
-      // CREATE
-      else {
-        let finalQuantity = this.addCustomProductForm.controls.quantity.value;
-        if (this.selectedUnit === 'portions' && this.hasPortions) {
-          const servingQuantity = this.product?.servingQuantity ?? 0;
-          const portions =
-            this.addCustomProductForm.controls.portions.value || 0;
-          finalQuantity = portions * servingQuantity;
+          }
+
+          this.syncInitialSnapshot();
+          return 'meal-updated';
         }
 
         const newCustomProduct = this.customProductService.composeCustomProduct(
@@ -577,40 +755,98 @@ export class AddProductPage implements OnInit, OnDestroy {
           0
         );
 
-        this.mapFormToProduct(
-          this.addCustomProductForm.value,
-          newCustomProduct
-        );
-
+        this.mapFormToProduct(formValues, newCustomProduct);
         const idDietInUse = this.userService.getLocalUser.dietInUse;
 
-        this.dietDayService
-          .createCustomProduct(
+        await firstValueFrom(
+          this.dietDayService.createCustomProduct(
             this.loading,
             this.dietDay,
             newCustomProduct,
             this.meal,
             idDietInUse
           )
-          .subscribe(() => {
-            this.goBack({ closeAll: true });
-          });
+        );
+
+        this.syncInitialSnapshot();
+        return 'meal-created';
       }
-    }
-    // Si viene de profile
-    else {
-      this.mapFormToProduct(this.addCustomProductForm.value, this.product);
 
-      this.productService.updateProduct(this.product).subscribe(() => {
-        const toastOptions: ToastOptions = {
-          message: `¡${this.product.name} actualizado con éxito!`,
-          duration: 2000,
-          color: 'success',
-        };
-        this.ionicUtilService.showToast(toastOptions);
-
-        this.goBack({ refresh: true });
+      this.mapFormToProduct(formValues, this.product);
+      await firstValueFrom(this.productService.updateProduct(this.product));
+      this.syncInitialSnapshot();
+      return 'profile-updated';
+    } catch (error) {
+      console.error('[AddProduct] Error al guardar cambios automáticos', error);
+      this.ionicUtilService.showToast({
+        message: 'No se pudieron guardar los cambios automáticamente.',
+        duration: 1600,
+        color: 'danger',
       });
+      return 'error';
+    } finally {
+      this.loading = { value: false };
+      this.autoPersistInProgress = false;
+    }
+  }
+
+  private async askForUnsavedChangesAction(): Promise<'cancel' | 'save' | 'discard'> {
+    const alertResult = await this.ionicUtilService.showAlert({
+      cssClass: 'unsaved-exit-alert',
+      header: 'Hay cambios sin guardar',
+      message: '¿Quieres guardar antes de salir?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'unsaved-neutral-btn unsaved-cancel-btn',
+        },
+        {
+          text: 'Guardar',
+          role: 'save',
+          cssClass: 'unsaved-save-btn',
+        },
+        {
+          text: 'Salir sin guardar',
+          role: 'discard',
+          cssClass: 'unsaved-neutral-btn unsaved-discard-btn',
+        },
+      ],
+    });
+
+    if (alertResult.role === 'save') return 'save';
+    if (alertResult.role === 'discard') return 'discard';
+    return 'cancel';
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.allowRouteLeave) {
+      this.allowRouteLeave = false;
+      this.lastPersistResult = 'none';
+      return true;
+    }
+
+    if (this.backFlowInProgress) return false;
+    if (!this.hasPersistableChanges()) return true;
+
+    this.backFlowInProgress = true;
+
+    try {
+      const unsavedAction = await this.askForUnsavedChangesAction();
+      if (unsavedAction === 'cancel') return false;
+
+      if (unsavedAction === 'save') {
+        const persistResult = await this.persistChangesIfNeeded();
+        if (persistResult === 'error') return false;
+        this.lastPersistResult = persistResult;
+      } else {
+        this.lastPersistResult = 'none';
+      }
+
+      this.allowRouteLeave = true;
+      return true;
+    } finally {
+      this.backFlowInProgress = false;
     }
   }
 
@@ -648,13 +884,42 @@ export class AddProductPage implements OnInit, OnDestroy {
     closeAll?: boolean;
     refresh?: boolean;
     deleteOwnProduct?: string;
+    forceSave?: boolean;
+    forceCreateMealProduct?: boolean;
   }): Promise<void> {
+    let closeAll = !!params?.closeAll;
+    let refresh = !!params?.refresh;
+
+    if (params?.deleteOwnProduct) {
+      this.allowRouteLeave = true;
+      this.lastPersistResult = 'none';
+    } else if (params?.forceSave) {
+      const persistResult = await this.persistChangesIfNeeded({
+        forceSaveEvenWithoutChanges: true,
+        forceCreateMealProduct: !!params?.forceCreateMealProduct,
+      });
+      if (persistResult === 'error') return;
+
+      if (persistResult === 'meal-created') closeAll = true;
+      if (persistResult === 'profile-updated') refresh = true;
+
+      this.allowRouteLeave = true;
+      this.lastPersistResult = 'none';
+    } else {
+      const canLeave = await this.canDeactivate();
+      if (!canLeave) return;
+
+      if (this.lastPersistResult === 'meal-created') closeAll = true;
+      if (this.lastPersistResult === 'profile-updated') refresh = true;
+      this.lastPersistResult = 'none';
+    }
+
     console.log('AddProductPage: goBack called', {
       params,
       returnUrl: this.returnUrl,
     });
 
-    if (params?.closeAll) {
+    if (closeAll) {
       const toastOptions: ToastOptions = {
         // B-02 FIX: usar optional chaining para evitar 'undefined' si this.meal es null
         message: 'Producto añadido a ' + (this.meal?.name || 'la comida'),
@@ -665,9 +930,9 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     const result = params?.deleteOwnProduct
       ? { deleteOwnProduct: params.deleteOwnProduct }
-      : params?.closeAll
+      : closeAll
       ? { createdViaAddProduct: true }
-      : params?.refresh
+      : refresh
       ? { refresh: true }
       : undefined;
 
@@ -1378,6 +1643,8 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (this.selectedUnit === 'portions') {
       this.changeUnit('portions');
     }
+
+    this.syncInitialSnapshot();
   }
 
   public roundCalories(event: any): void {
