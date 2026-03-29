@@ -3,12 +3,20 @@
     <!-- Header: Name and Actions -->
     <div class="recipe-header">
       <div class="recipe-info">
-        <span class="recipe-name">
-          {{ recipe.name }}
-          <span *ngIf="isChecked && instanceQuantity" class="recipe-quantity"
-            >({{ instanceQuantity }}g)</span
+        <div class="name-row">
+          <span class="recipe-name">{{ recipe.name }}</span>
+          <span
+            class="recipe-qty"
+            [ngStyle]="{ 'font-weight': isChecked ? 'bolder' : '' }"
+            [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
-        </span>
+            {{
+              displayQuantity
+                ? "(" + (displayQuantity | number : "1.0-0") + "g)"
+                : "-"
+            }}
+          </span>
+        </div>
         <span class="recipe-ingredients">{{ topIngredients }}</span>
       </div>
       <div class="recipe-actions">

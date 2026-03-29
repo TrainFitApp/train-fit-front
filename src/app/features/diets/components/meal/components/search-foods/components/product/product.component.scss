@@ -43,8 +43,8 @@
 .name-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .product-name {
@@ -54,12 +54,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  flex: 1;
+  min-width: 0;
 }
 
 .product-qty {
   font-size: 0.85rem;
   color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .product-brand {

@@ -3,22 +3,26 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { Recipe } from 'src/app/core/models/recipe';
 import { User } from 'src/app/core/models/user';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
+import { UtilService } from 'src/app/core/services/util/util.service';
+import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
 
 @Component({
   selector: 'app-recipe-card',
   templateUrl: './recipe-card.component.html',
   styleUrls: ['./recipe-card.component.scss'],
 })
-export class RecipeCardComponent implements OnInit, OnChanges {
+export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() recipe: Recipe;
   @Input() meal: Meal;
   @Input() dietDay: DietDay;
@@ -27,33 +31,51 @@ export class RecipeCardComponent implements OnInit, OnChanges {
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
   @Output() remove = new EventEmitter<Recipe>();
+  @Output() quickAdd = new EventEmitter<Recipe>();
 
   public macros: { kcal: number; protein: number; carbs: number; fat: number };
   public topIngredients: string;
   public isFavorite: boolean = false;
   public isChecked: boolean = false;
-  public instanceQuantity: number | null = null;
+  public displayQuantity: number | null = null;
+  public measureFilter: MEASURE_FILTER_TYPES = MEASURE_FILTER_TYPES.auto;
+  private foundInstance: any | null = null;
+  private measureFilterSub?: Subscription;
 
-  constructor(private recipeService: RecipeService) {}
+  constructor(
+    private recipeService: RecipeService,
+    private utilService: UtilService
+  ) {}
 
   public ngOnInit(): void {
-    this.calculateMacros();
     this.setTopIngredients();
     this.checkFavorite();
     this.checkIsChecked();
+    this.measureFilterSub = this.utilService.getMeasureFilter.subscribe(
+      (filter) => {
+        this.measureFilter = filter;
+        this.calculateMacros();
+      }
+    );
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes.meal) {
+    if (changes.meal || changes.recipe) {
       console.log('[RECIPE-CARD] Meal changed, rechecking:', this.recipe.name);
       this.checkIsChecked();
+      this.calculateMacros();
     }
+  }
+
+  public ngOnDestroy(): void {
+    this.measureFilterSub?.unsubscribe();
   }
 
   private checkIsChecked(): void {
     if (!this.meal?.customRecipeInstances) {
       this.isChecked = false;
-      this.instanceQuantity = null;
+      this.foundInstance = null;
+      this.displayQuantity = this.getRecipeDisplayQuantity();
       console.log(
         '[RECIPE-CARD]',
         this.recipe.name,
@@ -62,7 +84,7 @@ export class RecipeCardComponent implements OnInit, OnChanges {
       return;
     }
 
-    const foundInstance = this.meal.customRecipeInstances.find((instance) => {
+    this.foundInstance = this.meal.customRecipeInstances.find((instance) => {
       const dataRecipe =
         typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
       if (!dataRecipe) return false;
@@ -75,8 +97,8 @@ export class RecipeCardComponent implements OnInit, OnChanges {
       return recipeId === this.recipe?._id;
     });
 
-    this.isChecked = !!foundInstance;
-    this.instanceQuantity = foundInstance?.quantity || null;
+    this.isChecked = !!this.foundInstance;
+    this.displayQuantity = this.getRecipeDisplayQuantity();
 
     console.log(
       '[RECIPE-CARD]',
@@ -87,7 +109,17 @@ export class RecipeCardComponent implements OnInit, OnChanges {
   }
 
   private calculateMacros(): void {
-    this.macros = this.recipeService.calculateRecipeMacros(this.recipe);
+    const totals = this.recipeService.calculateRecipeMacros(this.recipe);
+    const baseline = this.getRecipeTotalCookedWeight(totals.quantity);
+    const quantityForMeasure = this.getRecipeDisplayQuantity();
+    const ratio = baseline > 0 && quantityForMeasure ? quantityForMeasure / baseline : 0;
+
+    this.macros = {
+      kcal: totals.kcal * ratio,
+      protein: totals.protein * ratio,
+      carbs: totals.carbs * ratio,
+      fat: totals.fat * ratio,
+    };
   }
 
   private setTopIngredients(): void {
@@ -112,13 +144,72 @@ export class RecipeCardComponent implements OnInit, OnChanges {
     if (this.isChecked) {
       this.remove.emit(this.recipe);
     } else {
-      // If not checked, add to meal (same as card click)
-      this.toggle.emit(this.recipe);
+      // If not checked, quick-add directly to meal
+      this.quickAdd.emit(this.recipe);
     }
   }
 
   public onEditClick(event: Event): void {
     event.stopPropagation();
     this.edit.emit(this.recipe);
+  }
+
+  private getRecipeDisplayQuantity(): number | null {
+    const total = this.getRecipeTotalCookedWeight();
+    const consumed = this.getConsumedWeight();
+
+    switch (this.measureFilter) {
+      case MEASURE_FILTER_TYPES.cieng:
+        return 100;
+      case MEASURE_FILTER_TYPES.racion:
+        return consumed;
+      case MEASURE_FILTER_TYPES.total:
+        return total;
+      case MEASURE_FILTER_TYPES.auto:
+      default:
+        return consumed ?? 100;
+    }
+  }
+
+  private getRecipeTotalCookedWeight(fallbackFromIngredients?: number): number | null {
+    const dataRecipe =
+      this.foundInstance && typeof this.foundInstance.dataRecipe === 'object'
+        ? this.foundInstance.dataRecipe
+        : null;
+
+    const fromInstance = this.toPositiveNumber(dataRecipe?.quantityCooked);
+    if (fromInstance) return fromInstance;
+
+    const fromRecipe = this.toPositiveNumber(this.recipe?.quantityCooked);
+    if (fromRecipe) return fromRecipe;
+
+    const fromIngredients =
+      this.toPositiveNumber(fallbackFromIngredients) ??
+      this.toPositiveNumber(this.recipeService.calculateRecipeMacros(this.recipe).quantity);
+
+    return fromIngredients ?? null;
+  }
+
+  private getConsumedWeight(): number | null {
+    const fromInstance = this.toPositiveNumber(this.foundInstance?.quantity);
+    if (fromInstance) return fromInstance;
+
+    const fromRecipe = this.toPositiveNumber(this.recipe?.quantity);
+    if (fromRecipe) return fromRecipe;
+
+    return null;
+  }
+
+  private toPositiveNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+
+    return parsed;
   }
 }

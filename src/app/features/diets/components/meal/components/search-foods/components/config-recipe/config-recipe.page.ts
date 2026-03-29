@@ -402,14 +402,21 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
             ? this.customRecipeInstance.dataRecipe
             : null;
         this.recipeForm.patchValue({
-          quantity: this.customRecipeInstance.quantity,
-          quantityCooked: dataRecipe?.quantityCooked ?? null,
+          quantity:
+            this.toOptionalPositiveNumber(this.customRecipeInstance.quantity) ??
+            this.toOptionalPositiveNumber(this.recipe.quantity) ??
+            null,
+          quantityCooked:
+            this.toOptionalPositiveNumber(dataRecipe?.quantityCooked) ??
+            this.toOptionalPositiveNumber(this.recipe.quantityCooked) ??
+            null,
         });
       } else {
-        // New addition: set default quantity based on ingredients
+        // New addition: initialize from immutable recipe defaults
         this.recipeForm.patchValue({
-          quantityCooked: null,
-          quantity: null,
+          quantityCooked:
+            this.toOptionalPositiveNumber(this.recipe.quantityCooked) ?? null,
+          quantity: this.toOptionalPositiveNumber(this.recipe.quantity) ?? null,
         });
       }
     } else if (this.mode === 'create') {
@@ -519,22 +526,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get canSave(): boolean {
     if (this.mode === 'add') {
-      const qty = this.recipeForm.get('quantity')?.value;
       const qtyCooked = this.recipeForm.get('quantityCooked')?.value;
-      return qty > 0 && qtyCooked > 0;
+      return qtyCooked > 0;
     }
 
-    // Create mode with meal - require quantities
+    // Create mode with meal - require cooked quantity (consumed quantity is optional)
     if (this.mode === 'create' && this.meal) {
-      const qty = this.recipeForm.get('quantity')?.value;
       const qtyCooked = this.recipeForm.get('quantityCooked')?.value;
       const hasEnoughIngredients = this.ingredients.length >= 2;
-      return (
-        hasEnoughIngredients &&
-        this.recipeForm.valid &&
-        qty > 0 &&
-        qtyCooked > 0
-      );
+      return hasEnoughIngredients && this.recipeForm.valid && qtyCooked > 0;
     }
 
     // Create or Edit mode without meal
@@ -542,20 +542,58 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return hasEnoughIngredients && this.recipeForm.valid;
   }
 
+  private get hasConsumedQuantityForMacros(): boolean {
+    const rawQuantity = this.recipeForm?.get('quantity')?.value;
+    if (rawQuantity === null || rawQuantity === undefined || rawQuantity === '') {
+      return false;
+    }
+    const qty = Number(rawQuantity);
+    return Number.isFinite(qty) && qty > 0;
+  }
+
+  private get supportsConsumedQuantityMode(): boolean {
+    return (
+      this.mode === 'add' ||
+      this.mode === 'edit' ||
+      (this.mode === 'create' && !!this.meal)
+    );
+  }
+
+  public get footerUsesConsumedQuantity(): boolean {
+    return this.supportsConsumedQuantityMode && this.hasConsumedQuantityForMacros;
+  }
+
+  public get footerMacrosHint(): string {
+    if (!this.supportsConsumedQuantityMode) {
+      return 'Macros calculados sobre el total cocinado.';
+    }
+    return this.footerUsesConsumedQuantity
+      ? 'Macros calculados sobre la ración consumida.'
+      : 'Ración consumida vacía: macros del total cocinado.';
+  }
+
   public get footerKcal(): number {
-    return this.calculatedMacros.kcal;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.kcal
+      : this.calculatedMacros.kcal;
   }
 
   public get footerProtein(): number {
-    return this.calculatedMacros.protein;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.protein
+      : this.calculatedMacros.protein;
   }
 
   public get footerCarbs(): number {
-    return this.calculatedMacros.carbs;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.carbs
+      : this.calculatedMacros.carbs;
   }
 
   public get footerFat(): number {
-    return this.calculatedMacros.fat;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.fat
+      : this.calculatedMacros.fat;
   }
 
   public recalculateMacros(): void {
@@ -776,6 +814,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private async saveNewRecipe(): Promise<void> {
     const formValue = this.recipeForm.getRawValue();
+    const quantityCooked = this.toOptionalPositiveNumber(formValue.quantityCooked);
+    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     try {
       const composePayload: any = {
@@ -783,17 +823,19 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           name: formValue.name,
           description: formValue.description || undefined,
           customProducts: this.normalizeCustomProducts(this.ingredients),
+          quantityCooked,
+          quantity,
         },
       };
 
       if (this.meal) {
         composePayload.dataRecipe = {
-          quantityCooked: formValue.quantityCooked,
+          quantityCooked,
         };
         composePayload.instance = {
           quantity:
-            formValue.quantity ||
-            formValue.quantityCooked ||
+            quantity ||
+            quantityCooked ||
             this.calculatedMacros.quantity,
           customProductsOverrides: [],
           additionalCustomProducts: [],
@@ -827,14 +869,19 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
 
     const formValue = this.recipeForm.getRawValue();
+    const quantityCooked =
+      this.toOptionalPositiveNumber(formValue.quantityCooked) ??
+      this.toOptionalPositiveNumber(this.recipe.quantityCooked) ??
+      this.calculatedMacros.quantity;
+    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     try {
-      const instanceQuantity = formValue.quantity || formValue.quantityCooked;
+      const instanceQuantity = quantity || quantityCooked;
 
       const composePayload: any = {
         recipeId: this.recipe._id,
         dataRecipe: {
-          quantityCooked: formValue.quantityCooked,
+          quantityCooked,
         },
         instance: {
           quantity: instanceQuantity,
@@ -865,6 +912,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
 
     const formValue = this.recipeForm.getRawValue();
+    const quantityCooked = this.toOptionalPositiveNumber(formValue.quantityCooked);
+    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     // Extract dataRecipeId (dataRecipe can be string or object)
     const dataRecipeId =
@@ -894,15 +943,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       name: formValue.name,
       description: formValue.description || undefined,
       customProducts: this.normalizeCustomProducts(this.ingredients),
+      quantityCooked,
+      quantity,
     };
 
     // Always update instance (overrides and quantities)
     editPayload.dataRecipe = {
-      quantityCooked: formValue.quantityCooked,
+      quantityCooked,
     };
 
     editPayload.instance = {
-      quantity: formValue.quantity || formValue.quantityCooked,
+      quantity: quantity || quantityCooked,
       customProductsOverrides: this.calculateIngredientOverrides(),
       additionalCustomProducts: this.calculateAdditionalIngredients(),
     };
@@ -1020,6 +1071,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         fat100g: cp.fat100g,
       };
     });
+  }
+
+  private toOptionalPositiveNumber(value: any): number | undefined {
+    if (value === null || value === undefined || value === '') {
+      return undefined;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return undefined;
+    }
+    return parsed;
   }
 
   private applyComposeResult(result: any): void {

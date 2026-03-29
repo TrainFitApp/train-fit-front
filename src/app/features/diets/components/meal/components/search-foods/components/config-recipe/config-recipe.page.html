@@ -136,7 +136,7 @@
             class="input-group"
             *ngIf="isAddMode || isEditMode || (isCreateMode && meal)"
           >
-            <label class="input-label">Cantidad consumida *</label>
+            <label class="input-label">Ración consumida</label>
             <div class="input-wrapper with-unit">
               <ion-input
                 #quantityInput
@@ -160,7 +160,7 @@
                 type="number"
                 inputmode="decimal"
                 formControlName="quantityCooked"
-                placeholder="100"
+                placeholder="500"
                 class="custom-input"
               ></ion-input>
               <span class="input-unit">g</span>
@@ -292,6 +292,7 @@
 <ion-footer class="config-recipe-footer">
   <div class="footer-content">
     <div class="recipe-footer-macros" *ngIf="ingredients.length > 0">
+      <p class="footer-macros-hint">{{ footerMacrosHint }}</p>
       <ion-card class="ingredient-macro-summary-card">
         <ion-card-content>
           <div class="macro-summary-flex">

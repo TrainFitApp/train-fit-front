@@ -1779,6 +1779,29 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
   }
 
+  public onRecipeQuickAdd(recipe: Recipe): void {
+    // If already in meal, checkbox acts as remove via recipe-card
+    // This is just a safety fallback.
+    const existingInstance = this.meal?.customRecipeInstances?.find(
+      (instance) => {
+        const dataRecipe =
+          typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
+        if (!dataRecipe) return false;
+        const instanceRecipe =
+          typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+        if (!instanceRecipe) return false;
+        return instanceRecipe._id === recipe._id;
+      }
+    );
+
+    if (existingInstance) {
+      this.removeRecipeFromMeal(existingInstance);
+      return;
+    }
+
+    this.quickAddRecipeToMeal(recipe);
+  }
+
   public onRecipeRemove(recipe: Recipe): void {
     // Find the instance for this recipe
     const existingInstance = this.meal?.customRecipeInstances?.find(
@@ -1796,6 +1819,69 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (existingInstance) {
       this.removeRecipeFromMeal(existingInstance);
     }
+  }
+
+  private quickAddRecipeToMeal(recipe: Recipe): void {
+    if (!this.meal || !recipe?._id) {
+      return;
+    }
+
+    const fallbackCooked = this.getRecipeRawWeight(recipe);
+    const quantityCooked =
+      this.toPositiveNumber(recipe.quantityCooked) ?? fallbackCooked;
+    const quantity =
+      this.toPositiveNumber(recipe.quantity) ??
+      100;
+
+    const composePayload: any = {
+      recipeId: recipe._id,
+      dataRecipe: {
+        quantityCooked,
+      },
+      instance: {
+        quantity,
+        customProductsOverrides: [],
+        additionalCustomProducts: [],
+      },
+      context: this.buildRecipeComposeContext(),
+    };
+
+    this.recipeApiService.compose(composePayload).subscribe({
+      next: (result) => {
+        if (result?.dietDay) {
+          this.dietDay = result.dietDay;
+          this.dietDayService.setCurrentDietDay = result.dietDay;
+          this.syncMealAndDietDayFromService();
+        } else if (result?.meal) {
+          this.meal = result.meal;
+          if (this.dietDay) {
+            const mealIndex = this.dietDay.meals.findIndex(
+              (m) => m._id === this.meal?._id || m.name === this.meal?.name
+            );
+            if (mealIndex !== -1) {
+              this.dietDay.meals[mealIndex] = result.meal;
+              this.dietDayService.setCurrentDietDay = { ...this.dietDay };
+            }
+          }
+        } else {
+          this.syncMealAndDietDayFromService();
+        }
+
+        this.ionicUtilService.showToast({
+          message: 'Receta añadida a la comida',
+          duration: 1500,
+          color: 'success',
+        });
+      },
+      error: (error) => {
+        console.error('[quickAddRecipeToMeal] Error:', error);
+        this.ionicUtilService.showToast({
+          message: 'No se pudo añadir la receta',
+          duration: 2000,
+          color: 'danger',
+        });
+      },
+    });
   }
 
   private removeRecipeFromMeal(instance: any): void {
@@ -1875,6 +1961,51 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
+  }
+
+  private buildRecipeComposeContext(): any | null {
+    if (!this.meal) return null;
+
+    if (this.dietDay?._id && this.meal?._id) {
+      return { mealId: this.meal._id };
+    }
+
+    if (this.dietDay) {
+      const indexMeal = this.dietDay.meals.findIndex(
+        (m) => m._id === this.meal?._id || m.name === this.meal?.name
+      );
+
+      if (indexMeal !== -1) {
+        return {
+          dietInUseId: this.user?.dietInUse || this.userService.getLocalUser?.dietInUse,
+          indexMeal,
+          currentDate: this.dietDay.date,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private getRecipeRawWeight(recipe: Recipe): number {
+    return (recipe.customProducts || []).reduce((sum, cp: any) => {
+      const quantity = Number(cp?.quantity);
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        return sum;
+      }
+      return sum + quantity;
+    }, 0);
+  }
+
+  private toPositiveNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+    return parsed;
   }
 
   public onRecipeEdit(recipe: Recipe): void {

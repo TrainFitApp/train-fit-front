@@ -43,23 +43,30 @@
     min-width: 0;
 }
 
+.name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 .recipe-name {
     display: block;
     font-weight: 600;
     font-size: 1rem;
     color: #fff;
-    word-wrap: break-word;
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+}
 
-    .recipe-quantity {
-        color: var(--ion-color-primary);
-        font-size: 0.9rem;
-        font-weight: 500;
-        margin-left: 4px;
-    }
+.recipe-qty {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .recipe-ingredients {
