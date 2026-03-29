@@ -1,6 +1,6 @@
 ion-header {
-  --background: #141414;
-  background: #141414;
+  --background: transparent;
+  background: transparent;
   border: none;
   &::after {
     display: none;
@@ -263,11 +263,24 @@ ion-header {
 // Esto garantiza que aunque el DOM sufra reflows por el teclado,
 // el orden visual (segment arriba, macros-bar abajo) NUNCA cambie.
 .footer-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   background: #141414;
   border-top: 1px solid #252525;
+
+  // Extiende el color del footer para evitar transparencias durante transiciones.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: #141414;
+    z-index: -1;
+  }
 }
 
 // El segment/mode-toggle siempre en primera posición visual
