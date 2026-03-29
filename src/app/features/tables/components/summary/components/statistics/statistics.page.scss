@@ -798,21 +798,51 @@ ion-grid {
   background: rgba(255, 255, 255, 0.02);
   border-top: 1px solid var(--medium-gray);
 
+  // Contenedor izquierdo: label + fecha en flex row con gap explícito.
+  // Usar gap CSS (no whitespace entre elementos inline) es la ÚNICA forma
+  // de garantizar separación consistente en todos los dispositivos y fuentes.
+  .session-header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;  // Separación garantizada por CSS, nunca por whitespace
+    min-width: 0;
+  }
+
+  // Badge visual implementado como <span> para evitar variaciones de
+  // renderizado de ion-badge entre dispositivos
+  .week-badge-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(var(--ion-color-medium-rgb), 0.2);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.3);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
   .session-date {
     font-size: 11px;
     color: var(--text-tertiary);
     font-weight: 600;
+    white-space: nowrap;
   }
 
   .session-note-icon {
     margin-left: auto;
     font-size: 14px;
+    flex-shrink: 0;
   }
 
   &:first-child {
     border-top: none;
   }
 }
+
 
 .history-item {
   --background: transparent;

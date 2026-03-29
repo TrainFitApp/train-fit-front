@@ -5,7 +5,8 @@
         <div class="title-section">
           <div class="title-content">
             <strong class="brand-name">
-              <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+              <span class="train-text">TRAIN</span
+              ><span class="fit-text">FIT</span>
             </strong>
           </div>
         </div>
@@ -22,7 +23,10 @@
       <div class="user-info">
         <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
         <div class="user-goal">
-          <ion-icon [name]="iconArrowObjetive" [color]="colorObjetive"></ion-icon>
+          <ion-icon
+            [name]="iconArrowObjetive"
+            [color]="colorObjetive"
+          ></ion-icon>
           <ion-text [color]="colorObjetive">{{ objetiveMessage }}</ion-text>
         </div>
       </div>
@@ -43,7 +47,11 @@
         Macros {{ showRemainingNutrition ? 'restantes' : 'consumidos' }}
       </h3>
       <div class="section-actions">
-        <ion-toggle [checked]="showRemainingNutrition" (ionChange)="toggleNutritionView()" class="nutrition-toggle">
+        <ion-toggle
+          [checked]="showRemainingNutrition"
+          (ionChange)="toggleNutritionView()"
+          class="nutrition-toggle"
+        >
         </ion-toggle>
       </div>
     </div>
@@ -64,10 +72,17 @@
             <div class="macro-color protein"></div>
             <span class="macro-name">Proteína</span>
           </div>
-          <div class="macro-values" [ngClass]="getProteinValueClass()" [innerHTML]="getProteinValues()"></div>
+          <div
+            class="macro-values"
+            [ngClass]="getProteinValueClass()"
+            [innerHTML]="getProteinValues()"
+          ></div>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill protein" [style.width.%]="proteinPercentage"></div>
+          <div
+            class="progress-fill protein"
+            [style.width.%]="proteinPercentage"
+          ></div>
         </div>
 
         <div class="macro-row">
@@ -75,10 +90,17 @@
             <div class="macro-color carbs"></div>
             <span class="macro-name">CBH</span>
           </div>
-          <div class="macro-values" [ngClass]="getCarbValueClass()" [innerHTML]="getCarbValues()"></div>
+          <div
+            class="macro-values"
+            [ngClass]="getCarbValueClass()"
+            [innerHTML]="getCarbValues()"
+          ></div>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill carbs" [style.width.%]="carbohydratesPercentage"></div>
+          <div
+            class="progress-fill carbs"
+            [style.width.%]="carbohydratesPercentage"
+          ></div>
         </div>
 
         <div class="macro-row">
@@ -86,7 +108,11 @@
             <div class="macro-color fats"></div>
             <span class="macro-name">Grasas</span>
           </div>
-          <div class="macro-values" [ngClass]="getFatValueClass()" [innerHTML]="getFatValues()"></div>
+          <div
+            class="macro-values"
+            [ngClass]="getFatValueClass()"
+            [innerHTML]="getFatValues()"
+          ></div>
         </div>
         <div class="progress-bar">
           <div class="progress-fill fats" [style.width.%]="fatPercentage"></div>
@@ -124,13 +150,19 @@
         </div>
       </div>
 
-      <div class="weight-metric full-width" (click)="showInfo(INFO.averageWeight)">
+      <div
+        class="weight-metric full-width"
+        (click)="showInfo(INFO.averageWeight)"
+      >
         <div class="weight-metric-label">Media semanal actual</div>
         <div class="weight-metric-value">
           {{ currWeightAverage === 0 ? '-' : ((currWeightAverage || 0) |
           number:'1.0-2') + 'kg' }}
-          <span class="weight-change" [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
-            *ngIf="currWeightAverage && prevWeightAverage">
+          <span
+            class="weight-change"
+            [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
+            *ngIf="currWeightAverage && prevWeightAverage"
+          >
             {{ getWeightChangeIcon(currWeightAverage, prevWeightAverage) }}{{
             getWeightChangeText(currWeightAverage, prevWeightAverage) }}
           </span>
@@ -144,7 +176,11 @@
   <!-- Routine Section -->
   <div class="routine-section">
     <!-- Workout Card Structure -->
-    <div class="card workout-card clickable-card" *ngIf="tableInUse; else noRoutine" (click)="goToSummary()">
+    <div
+      class="card workout-card clickable-card"
+      *ngIf="tableInUse; else noRoutine"
+      (click)="goToSummary()"
+    >
       <div class="card-header">
         <h2 class="card-title">
           <ion-icon name="barbell-outline" color="primary"></ion-icon> Rutina
@@ -163,21 +199,33 @@
       <div class="workout-progress" *ngIf="user?.workoutInUse && workoutInUse">
         <div class="progress-info">
           <span>{{ workoutInUse.name }}</span>
-          <span class="workout-state" [ngClass]="{
+          <span
+            class="workout-state"
+            [ngClass]="{
             'active': !isWorkoutInUseEnded,
             'completed': isWorkoutInUseEnded
-          }">{{ isWorkoutInUseEnded ? 'Completado' : 'Activo' }}</span>
+          }"
+            >{{ isWorkoutInUseEnded ? 'Completado' : 'Activo' }}</span
+          >
         </div>
         <div class="progress-indicator">
-          <span class="progress-text">{{ completedExercises }} / {{ workoutInUse.exercises.length }}
-            ejercicios completados</span>
+          <span class="progress-text"
+            >{{ completedExercises }} / {{ workoutInUse.exercises.length }}
+            ejercicios completados</span
+          >
         </div>
         <div class="progress-bar-bg">
-          <div class="progress-bar" [style.width.%]="(completedExercises / workoutInUse.exercises.length) * 100"
-            [style.background-color]="isWorkoutInUseEnded ? 'var(--pe-accent)' : 'var(--ion-color-success)'"></div>
+          <div
+            class="progress-bar"
+            [style.width.%]="(completedExercises / workoutInUse.exercises.length) * 100"
+            [style.background-color]="isWorkoutInUseEnded ? 'var(--pe-accent)' : 'var(--ion-color-success)'"
+          ></div>
         </div>
 
-        <div class="info-card info-card--orange summary-info-card" (click)="goToStatistics(); $event.stopPropagation()">
+        <div
+          class="info-card info-card--orange summary-info-card"
+          (click)="goToStatistics(); $event.stopPropagation()"
+        >
           <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
           <div class="info-text">
             <span class="info-title">Estadísticas</span>
@@ -197,7 +245,9 @@
           <p class="no-routine-subtext">
             Explora las rutinas y empieza a entrenar.
           </p>
-          <ion-button class="primary-action-btn" (click)="goToSummary()">Seleccionar Rutina</ion-button>
+          <ion-button class="primary-action-btn" (click)="goToSummary()"
+            >Seleccionar Rutina</ion-button
+          >
         </div>
       </div>
     </ng-template>
@@ -206,7 +256,11 @@
   <!-- Personal Information Section -->
   <div class="personal-info-section-compact">
     <div class="compact-header">
-      <ion-icon name="person-outline" class="header-icon" color="primary"></ion-icon>
+      <ion-icon
+        name="person-outline"
+        class="header-icon"
+        color="primary"
+      ></ion-icon>
       <span class="header-title">Información Personal</span>
       <button class="personal-info-btn" (click)="edit()">
         <ion-icon name="create-outline"></ion-icon>
@@ -245,7 +299,10 @@
   <!-- TODO -->
 
   <ion-grid class="social-networks-section">
-    <ion-row><ion-col class="ion-text-center"><ion-label color="medium">Redes sociales</ion-label></ion-col>
+    <ion-row
+      ><ion-col class="ion-text-center"
+        ><ion-label color="medium">Redes sociales</ion-label></ion-col
+      >
     </ion-row>
     <ion-row class="ion-justify-content-center">
       <ion-buttons>

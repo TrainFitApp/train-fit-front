@@ -15,6 +15,7 @@ import { BarCodeScannerService } from 'src/app/core/services/util/bar-code-scann
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Theme } from 'src/app/shared/models/theme';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-create-product',
@@ -54,7 +55,8 @@ export class CreateProductPage implements OnInit {
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
-    private barCodeScannerService: BarCodeScannerService
+    private barCodeScannerService: BarCodeScannerService,
+    private adMobService: AdMobService
   ) {}
 
   public ngOnInit(): void {
@@ -207,6 +209,7 @@ export class CreateProductPage implements OnInit {
             'updatedProductForAddProduct',
             updatedProduct || newProduct
           );
+          this.adMobService.interstitial(); // Estrategia AdMob
           this.navigationService.backNoAnim();
         },
         error: (err) => {
@@ -249,6 +252,7 @@ export class CreateProductPage implements OnInit {
             color: 'success',
           };
           this.ionicUtilService.showToast(toastOptions);
+          this.adMobService.interstitial(); // Estrategia AdMob
           this.navigationService.backNoAnim();
         },
         error: (error) => {
@@ -295,6 +299,8 @@ export class CreateProductPage implements OnInit {
             createdViaCreateProduct: true,
           });
 
+          this.adMobService.interstitial(); // Estrategia AdMob
+
           if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
             this.navigationService.backNoAnim();
           } else if (this.returnUrl) {
@@ -327,6 +333,7 @@ export class CreateProductPage implements OnInit {
           duration: 1000,
         };
         this.ionicUtilService.showToast(toastOptions);
+        this.adMobService.interstitial(); // Estrategia AdMob
         if (this.returnUrl && !this.returnUrl.includes('/search-foods')) {
           this.navigationService.backTo(this.returnUrl);
         } else {

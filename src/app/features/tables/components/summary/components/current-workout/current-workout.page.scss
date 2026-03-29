@@ -296,8 +296,9 @@ img {
 // Responsive design
 @media (max-width: 768px) {
   .workout-header {
-    margin: 12px 0;
-    padding: 0 12px;
+    background: #141414;
+    padding: 12px;
+    border-bottom: 1px solid #252525;
 
     .workout-content {
       background: #141414;

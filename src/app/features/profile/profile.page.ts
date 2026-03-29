@@ -191,12 +191,18 @@ export class ProfilePage implements OnInit {
 
   public ngOnInit(): void {
     this.initVariables();
-    if (!this.user.isPremium) this.adMobService.interstitial();
   }
 
   public ionViewWillEnter(): void {
     this.setWeekRanges();
     this.setDietDaysWeights();
+
+    if (this.user && !this.user.isPremium) {
+      this.adMobService.interstitial();
+    }
+  }
+
+  public ionViewWillLeave(): void {
   }
 
   public showAlertInfo(): void {
@@ -621,8 +627,41 @@ export class ProfilePage implements OnInit {
     this.navigationService.goToWeightInfo();
   }
 
-  public goToStatistics(): void {
-    this.navigationService.goToStatistics();
+  public async goToStatistics(): Promise<void> {
+    if (this.user.isPremium) {
+      this.navigationService.goToStatistics();
+      return;
+    }
+
+    const alertOptions: AlertOptions = {
+      header: 'Estadísticas Premium',
+      message:
+        'Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'alert-button-primary',
+        },
+        {
+          text: 'Ver Anuncio',
+          cssClass: 'alert-button-success',
+          handler: () => {
+            this.adMobService
+              .interstitial()
+              .then(() => {
+                this.navigationService.goToStatistics();
+              })
+              .catch((err) => {
+                console.error('Error al mostrar anuncio intersticial', err);
+                this.navigationService.goToStatistics();
+              });
+          },
+        },
+      ],
+    };
+
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 
   public openReferences(): void {

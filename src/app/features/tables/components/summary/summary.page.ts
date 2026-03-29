@@ -15,6 +15,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { TABLE_MODE_TYPES } from 'src/app/shared/constants/table-mode';
 import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
 import { Theme } from 'src/app/shared/models/theme';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-summary',
@@ -41,6 +42,7 @@ export class SummaryPage {
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
+  private readonly adMobService = inject(AdMobService);
 
   constructor(
     public platform: Platform,
@@ -64,6 +66,12 @@ export class SummaryPage {
       this.workout = this.workoutService.currentWorkoutSignal();
     });
 
+  }
+
+  public ionViewWillEnter(): void {
+  }
+
+  public ionViewWillLeave(): void {
   }
 
 
@@ -125,6 +133,9 @@ export class SummaryPage {
             this.tableService.setCurrentTable = this.tableInUse;
             this.navigationService.goToMesocycle();
 
+            if (!this.user.isPremium) {
+              this.adMobService.interstitial();
+            }
             const toastOptions: ToastOptions = {
               message: 'Rutina creada con éxito',
               duration: 2000,
@@ -197,8 +208,34 @@ export class SummaryPage {
     this.navigationService.goToSearchTables(isOwn);
   }
 
-  public goToStatistics(): void {
-    this.navigationService.goToStatistics();
+  public async goToStatistics(): Promise<void> {
+    const alertOptions: AlertOptions = {
+      header: 'Estadísticas Premium',
+      message: 'Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'alert-button-primary'
+        },
+        {
+          text: 'Ver Anuncio',
+          cssClass: 'alert-button-success',
+          handler: () => {
+            this.adMobService.interstitial()
+              .then(() => {
+                this.navigationService.goToStatistics();
+              })
+              .catch((err) => {
+                console.error('Error al mostrar anuncio intersticial', err);
+                this.navigationService.goToStatistics();
+              });
+          }
+        }
+      ]
+    };
+
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 
   // Nuevos métodos para la interfaz móvil

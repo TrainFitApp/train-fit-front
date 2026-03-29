@@ -202,3 +202,15 @@ ion-popover {
     }
   }
 }
+
+.ad-container-native {
+  margin: 15px 16px;
+  min-height: 100px;
+  background: rgba(var(--ion-color-medium-rgb), 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px dashed rgba(var(--ion-color-medium-rgb), 0.2);
+}

@@ -1,3 +1,12 @@
+ion-header {
+  --background: #141414;
+  background: #141414;
+  border: none;
+  &::after {
+    display: none;
+  }
+}
+
 .search-header {
   background: #141414;
   border-bottom: 1px solid #252525;
@@ -55,17 +64,19 @@
           --background: rgba(255, 255, 255, 0.08);
         }
 
-        // Fix para evitar solapamiento del icono en móviles
+        // Fix para mover el icono al final (derecha)
         &::part(icon) {
-          left: 12px !important;
+          right: 12px !important; // Cambiado de left a right
+          left: auto !important;
           position: absolute !important;
           width: 18px;
           height: 18px;
         }
 
         &::part(input) {
-          padding-inline-start: 38px !important;
-          padding-inline-end: 8px !important;
+          padding-inline-start: 12px !important; // Cambiado de 38px a 12px
+          padding-inline-end: 38px !important; // Cambiado de 8px a 38px para dejar espacio al icono
+          background: transparent !important;
         }
       }
     }
@@ -243,7 +254,31 @@
 
 // Footer Controls Row
 .search-foods-footer {
+  --background: transparent;
+  background: transparent;
   position: relative;
+}
+
+// Contenedor principal del footer: flex column con orden explícito.
+// Esto garantiza que aunque el DOM sufra reflows por el teclado,
+// el orden visual (segment arriba, macros-bar abajo) NUNCA cambie.
+.footer-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #141414;
+  border-top: 1px solid #252525;
+}
+
+// El segment/mode-toggle siempre en primera posición visual
+.footer-section--segment,
+.footer-section--ingredient {
+  order: 1;
+}
+
+// La barra de macros siempre en segunda posición visual
+.footer-section--macros {
+  order: 2;
 }
 
 .footer-controls {
@@ -251,6 +286,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
+  background: #141414;
 }
 
 .mode-toggle {

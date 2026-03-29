@@ -28,10 +28,10 @@
   <ion-grid class="t-diets-meals">
     <ion-accordion-group multiple="true">
       <app-meal
-        *ngFor="let meal of dietDay?.meals; let i = index;"
+        *ngFor="let meal of dietDay?.meals; let j = index;"
         [meal]="meal"
         [dietDay]="dietDay"
-        [mealIndex]="i"
+        [mealIndex]="j"
         [user]="user"
         [load]="load"
         [pasteMode]="pasteMode"

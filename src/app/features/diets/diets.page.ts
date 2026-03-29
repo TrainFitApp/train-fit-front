@@ -19,6 +19,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-diets',
@@ -55,6 +56,7 @@ export class DietsPage implements OnInit {
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
+  private readonly adMobService = inject(AdMobService);
 
   constructor(
     private dietDayService: DietDayService,
@@ -85,9 +87,10 @@ export class DietsPage implements OnInit {
     }
 
     // Resync dates-slider each time the page comes back to view.
-    // Prevents the slider from showing a wrong week when returning from navigation
-    // (caused by Swiper firing slideChangeTransitionEnd on visibility change).
     this.utilService.setCurrentDate = this.selectedDate;
+  }
+
+  public ionViewWillLeave(): void {
   }
 
   public ngOnInit(): void {

@@ -183,15 +183,15 @@
   }
 
   .input-wrapper {
-    background: var(--input-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0;
     transition: var(--transition);
     overflow: hidden;
 
     &:focus-within {
-      border-color: var(--ion-color-primary);
-      box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.15);
+      border-bottom-color: var(--ion-color-primary);
     }
 
     &.with-unit {
@@ -228,12 +228,12 @@
   }
 
   .input-unit {
-    padding: 14px 16px;
+    padding: 14px 4px 14px 10px;
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.03);
-    border-left: 1px solid var(--card-border);
+    background: transparent;
+    border-left: none;
   }
 
   .input-hint {
@@ -819,12 +819,15 @@
 
 // Footer
 .config-recipe-footer {
-  background: var(--ion-card-background);
-  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+  --background: transparent;
+  background: transparent;
+  border-top: none;
   padding: 0;
 
   .footer-content {
+    background: #141414;
     padding: 16px;
+    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
   }
 
   .save-btn {

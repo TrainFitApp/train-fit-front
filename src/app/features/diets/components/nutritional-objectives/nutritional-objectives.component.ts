@@ -2,6 +2,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
+import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
 
 @Component({
@@ -15,6 +16,7 @@ export class NutritionalObjectivesComponent implements OnInit {
 
   public nutritionalData: NutritionalData = new NutritionalData();
   private modalCtrl = inject(ModalController);
+  private dietDayService = inject(DietDayService);
 
   // Reference values (RDA/AI) in grams
   public references = {
@@ -127,8 +129,8 @@ export class NutritionalObjectivesComponent implements OnInit {
       typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
     if (!recipe || !recipe.customProducts) return;
 
-    // Escala de la instancia: segun la logica de DietDayService, instance.quantity actua como multiplicador / 100
-    const scaleFactor = instance.quantity / 100;
+    // Escala de la instancia: segun la logica de DietDayService, calculamos el ratio basado en el peso total de la receta
+    const scaleFactor = this.dietDayService.getRecipeInstancePortionRatio(instance);
 
     // Mapear overrides
     const overridesMap = new Map();
