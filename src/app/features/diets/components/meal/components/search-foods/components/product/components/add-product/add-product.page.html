@@ -346,6 +346,7 @@
                       appDecimalInput
                       formControlName="sugars100g"
                       (ionInput)="roundMicro($event, 'sugars100g')"
+                      [readonly]="true"
                     ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
@@ -368,6 +369,7 @@
                       appCursorEnd
                       appDecimalInput
                       formControlName="fiber100g"
+                       [readonly]="true"
                       (ionInput)="roundMicro($event, 'fiber100g')"
                     ></ion-input>
                     <span class="input-unit secondary-unit">g</span>

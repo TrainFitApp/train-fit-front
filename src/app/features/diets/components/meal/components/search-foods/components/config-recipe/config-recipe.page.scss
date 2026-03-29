@@ -245,15 +245,14 @@
   }
 
   .input-wrapper {
-    background: transparent;
-    border: none;
-    border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
     transition: var(--transition);
     overflow: hidden;
 
     &:focus-within {
-      border-bottom-color: var(--ion-color-primary);
+      border-color: var(--ion-color-primary);
     }
 
     &.with-unit {
@@ -271,10 +270,10 @@
     --color: var(--text-primary);
     --placeholder-color: var(--text-muted);
     --padding-start: 16px;
-    --padding-end: 16px;
-    --padding-top: 14px;
-    --padding-bottom: 14px;
-    font-size: 1rem;
+    --padding-end: 0;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    font-size: 0.95rem;
     font-weight: 500;
   }
 
@@ -284,18 +283,20 @@
     --placeholder-color: var(--text-muted);
     --padding-start: 16px;
     --padding-end: 16px;
-    --padding-top: 10px;
-    --padding-bottom: 10px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
     font-size: 0.95rem;
   }
 
   .input-unit {
-    padding: 14px 4px 14px 10px;
-    font-size: 0.9rem;
+    padding: 14px 12px 12px 4px;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-secondary);
-    background: transparent;
-    border-left: none;
+    background: rgba(37, 37, 37, 0.3);
+    border-left: 1px solid var(--card-border);
+    min-width: 32px;
+    text-align: center;
   }
 
   .input-hint {
