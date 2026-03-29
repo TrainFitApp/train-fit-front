@@ -1,10 +1,21 @@
 <ion-header>
-  <app-page-header
-    [title]="headerTitle"
-    [customBackAction]="true"
-    (backClick)="goBack()"
-  >
-    <div slot="actions" class="actions-section">
+  <div class="add-product-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button
+          class="back-button"
+          (click)="goBack()"
+          aria-label="Volver"
+        >
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="title-section">
+        <h1 class="page-title">{{ headerTitle }}</h1>
+      </div>
+
+      <div class="actions-section">
       <!-- Botón de Editar (solo productos propios) -->
       <button
         *ngIf="isProductOwnedByUser"
@@ -21,8 +32,9 @@
       >
         <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
       </button>
+      </div>
     </div>
-  </app-page-header>
+  </div>
 </ion-header>
 
 <ion-content class="ion-padding">

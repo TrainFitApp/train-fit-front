@@ -1,10 +1,21 @@
 <ion-header>
-  <app-page-header
-    [title]="pageTitle"
-    [customBackAction]="true"
-    (backClick)="goBack()"
-  >
-    <div slot="actions" class="header-actions-container">
+  <div class="config-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button
+          class="back-button"
+          (click)="goBack()"
+          aria-label="Volver"
+        >
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="title-section">
+        <h1 class="page-title">{{ pageTitle }}</h1>
+      </div>
+
+      <div class="header-actions-container">
       <button
         *ngIf="recipe"
         class="header-action-btn fav-btn"
@@ -22,8 +33,9 @@
       >
         <ion-icon name="trash-bin-outline"></ion-icon>
       </button>
+      </div>
     </div>
-  </app-page-header>
+  </div>
 </ion-header>
 
 <ion-content class="config-recipe-content">

@@ -12,6 +12,69 @@
   --text-muted: #888888;
 }
 
+
+
+.add-product-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    min-height: 60px;
+    gap: 12px;
+  }
+
+  .back-section {
+    flex-shrink: 0;
+
+    .back-button {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .title-section {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .actions-section {
+    min-width: 40px;
+    justify-content: flex-end;
+  }
+}
+
 // Contenido principal - Padding reducido
 ion-content {
   --padding-top: 8px;
