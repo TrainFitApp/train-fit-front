@@ -12,7 +12,6 @@ import { ExerciseFilterIconsComponent } from './components/exercise-filter-icons
 import { FilterInputPage } from './components/filter-input/filter-input.page';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
-import { PageHeaderComponent } from './components/page-header/page-header.component';
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
@@ -28,7 +27,6 @@ import { SafePipe } from './pipes/safe.pipe';
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
-    PageHeaderComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     SearchExercisesPage,
@@ -54,7 +52,6 @@ import { SafePipe } from './pipes/safe.pipe';
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
-    PageHeaderComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     SearchExercisesPage,

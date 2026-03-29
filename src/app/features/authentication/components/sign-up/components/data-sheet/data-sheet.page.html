@@ -1,7 +1,19 @@
 <ion-header>
-  <app-page-header title="Ficha" [customBackAction]="true" (backClick)="goBack()">
-  </app-page-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Ficha</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
+
 
 <ion-content class="compact-content">
   <ng-container *ngIf="!codeSended">
