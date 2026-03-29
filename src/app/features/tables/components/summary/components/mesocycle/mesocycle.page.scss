@@ -1,4 +1,8 @@
-// Navigation Header Styles
+ion-footer {
+  --background: transparent;
+  --border-color: transparent;
+}
+
 .navigation-header {
   display: flex;
   align-items: center;
@@ -238,19 +242,39 @@ ion-skeleton-text {
   }
 }
 
-// Micro Cycle Header Styles
+// Micro Cycle Header Styles: Ahora actúa como una BARRA SÓLIDA completa
+// que rellena todo el footer (incluyendo huecos y safe-area) para evitar transparencias.
 .micro-cycle-header {
-  margin: 16px 0;
-  padding: 0 16px;
+  background: #141414; // El color de fondo de la app para que sea opaco
+  width: 100%;
+  padding-bottom: env(safe-area-inset-bottom, 0); // Cubre el home indicator
+  border-top: 1px solid #252525;
+  position: relative; // Para el pseudo-elemento de overflow
+
+  // Fix definitivo para swipe-back: extendemos el color sólido hacia abajo
+  // para que nunca se vea el "tables" debajo del componente que desliza.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: #141414;
+    z-index: -1;
+  }
 
   .micro-cycle-content {
-    background: #141414;
-    border: 1px solid #252525;
-    border-radius: 16px;
-    padding: 20px 24px 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    gap: 16px;
+    // La "burbuja" interna (limpia y premium)
+    background: #1c1c1c; 
+    margin: 8px 12px;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 
     .micro-cycle-top-row {
       display: flex;
@@ -503,68 +527,29 @@ ion-skeleton-text {
   }
 
   .micro-cycle-header {
-    margin: 12px 0;
-    padding: 0 12px;
+    padding: 0;
 
     .micro-cycle-content {
-      padding: 16px 20px 0;
-      border-radius: 12px;
+      padding: 10px 14px;
+      margin: 6px 8px;
+      border-radius: 10px;
+      gap: 6px;
     }
 
     .micro-cycle-info {
-      gap: 12px;
-      color: #ffffff;
+      gap: 8px;
 
       .cycle-number {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-        border-radius: 10px;
-      }
-
-      .micro-cycle-header {
-        .micro-cycle-content {
-          background: #141414;
-          border: 1px solid #252525;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .micro-cycle-info {
-          .cycle-title h2 {
-            color: #ffffff;
-          }
-        }
-      }
-
-      .cycle-subtitle {
-        font-size: 0.8rem;
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
       }
     }
 
     .micro-cycle-actions {
       .action-btn {
-        width: 40px;
-        height: 40px;
-        --border-radius: 12px;
-        --padding-start: 12px;
-        --padding-end: 12px;
-        --padding-top: 12px;
-        --padding-bottom: 12px;
-        color: #ffffff;
-
-        ion-icon {
-          font-size: 1.2rem;
-        }
-      }
-
-      .copy-btn {
-        --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
-        --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
-      }
-
-      .delete-btn {
-        --background: rgba(var(--ion-color-danger-rgb), 0.15);
-        --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
+        width: 38px;
+        height: 38px;
       }
     }
   }
