@@ -45,8 +45,7 @@
           <button
             *ngIf="ownFilter"
             class="action-btn menu-btn"
-            [id]="'menu-trigger-' + tableCard._id"
-            (click)="$event.stopPropagation()"
+            (click)="openMenu($event)"
           >
             <ion-icon name="ellipsis-vertical-outline"></ion-icon>
           </button>
@@ -77,7 +76,7 @@
               <ion-icon name="layers-outline"></ion-icon>
             </div>
             <span class="stat-number"
-              >{{ tableCard?.splits?.length || 0 }}</span
+              >{{ microcyclesCount }}</span
             >
           </div>
           <span class="stat-label"><strong>Micro-ciclos</strong></span>
@@ -91,7 +90,7 @@
               <ion-icon name="barbell-outline"></ion-icon>
             </div>
             <span class="stat-number"
-              >{{ tableCard.splits[0]?.workouts.length || 0 }}</span
+              >{{ workoutsCount }}</span
             >
           </div>
           <span class="stat-label"><strong>Entrenamientos</strong></span>
@@ -108,8 +107,9 @@
 
   <!-- Popover para opciones de menú -->
   <ion-popover
-    [trigger]="'menu-trigger-' + tableCard._id"
-    triggerAction="click"
+    [isOpen]="isMenuOpen"
+    [event]="menuEvent"
+    (didDismiss)="onMenuDidDismiss()"
     mode="ios"
   >
     <ng-template>

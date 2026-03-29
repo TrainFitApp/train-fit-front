@@ -269,7 +269,7 @@ ion-title {
 
 .product-details {
   flex: 1;
-  cursor: pointer;
+  cursor: default;
   transition: var(--transition);
 }
 
@@ -293,7 +293,7 @@ ion-title {
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-weight: 500;
-  cursor: pointer;
+  cursor: default;
   flex: 0 0 auto;
 }
 

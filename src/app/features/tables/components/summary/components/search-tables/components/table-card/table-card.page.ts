@@ -48,6 +48,22 @@ export class TableCardPage {
   public bar: Chart;
 
   public MUSCLE_GROUPS = MUSCLE_GROUPS;
+  public isMenuOpen = false;
+  public menuEvent?: Event;
+
+  public get microcyclesCount(): number {
+    if (typeof this.tableCard?.microcyclesCount === 'number') {
+      return this.tableCard.microcyclesCount;
+    }
+    return this.tableCard?.splits?.length || 0;
+  }
+
+  public get workoutsCount(): number {
+    if (typeof this.tableCard?.workoutsCount === 'number') {
+      return this.tableCard.workoutsCount;
+    }
+    return this.tableCard?.splits?.[0]?.workouts?.length || 0;
+  }
 
   constructor(
     private userService: UserService,
@@ -62,6 +78,17 @@ export class TableCardPage {
     if (!this.own) {
       if (this.ownFilter) this.useTable();
     }
+  }
+
+  public openMenu(event: Event): void {
+    event.stopPropagation();
+    this.menuEvent = event;
+    this.isMenuOpen = true;
+  }
+
+  public onMenuDidDismiss(): void {
+    this.isMenuOpen = false;
+    this.menuEvent = undefined;
   }
 
   public initChart() {

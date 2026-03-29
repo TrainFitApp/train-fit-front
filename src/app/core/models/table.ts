@@ -7,4 +7,7 @@ export class Table {
     splits: Split[];
     urlImage?: string;
     description?: string;
+    // Light search payload fields (search-tables)
+    microcyclesCount?: number;
+    workoutsCount?: number;
 }

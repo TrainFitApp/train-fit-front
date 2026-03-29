@@ -61,7 +61,10 @@ export class SearchTablesPage implements OnInit {
         .getSearchTables(this.searchFilterGroup, this.user._id)
         .pipe(debounceTime(400), distinctUntilChanged())
         .subscribe((resTables) => {
-          this.tableList = this.tableList.concat(resTables);
+          this.tableList = this.prioritizeActiveTable([
+            ...(this.tableList || []),
+            ...(resTables || []),
+          ]);
           this.load = true;
         });
     }, 500);
@@ -78,7 +81,7 @@ export class SearchTablesPage implements OnInit {
     this.tableService
       .getSearchTables(this.searchFilterGroup, this.user._id)
       .subscribe((resTables) => {
-        this.tableList = resTables;
+        this.tableList = this.prioritizeActiveTable(resTables || []);
         this.load = true;
       });
   }
@@ -103,7 +106,10 @@ export class SearchTablesPage implements OnInit {
     );
 
     if (!existsInList && this.searchFilterGroup.ownFilter) {
-      this.tableList = [copiedTable, ...(this.tableList || [])];
+      this.tableList = this.prioritizeActiveTable([
+        copiedTable,
+        ...(this.tableList || []),
+      ]);
     }
 
     this.adMobService.interstitial(); // Estrategia AdMob
@@ -136,5 +142,24 @@ export class SearchTablesPage implements OnInit {
 
   public close(): void {
     this.navigationService.goBack();
+  }
+
+  private prioritizeActiveTable(tables: Table[]): Table[] {
+    if (!tables?.length) {
+      return [];
+    }
+
+    const activeId = this.user?.tableInUse;
+    if (!activeId) {
+      return tables;
+    }
+
+    const activeTable = tables.find((table) => table?._id === activeId);
+    if (!activeTable) {
+      return tables;
+    }
+
+    const rest = tables.filter((table) => table?._id !== activeId);
+    return [activeTable, ...rest];
   }
 }

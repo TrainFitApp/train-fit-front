@@ -58,15 +58,11 @@
             ></ion-icon>
           </ion-button>
 
-          <div
-            class="product-details"
-            (click)="changeAtributtes(PRODUCT_ATRR.name)"
-          >
+          <div class="product-details">
             <h2 class="product-name">{{ product.name }}</h2>
             <div class="product-brand-row">
               <p
                 class="product-brand"
-                (click)="$event.stopPropagation(); changeAtributtes(PRODUCT_ATRR.brand)"
               >
                 {{ product.brand || 'Sin marca' }}
               </p>
@@ -1415,7 +1411,7 @@
     </ion-card>
 
     <ion-button
-      *ngIf="meal && !customProduct && !loading.value; else loadingTemplate"
+      *ngIf="(meal || ingredientMode) && !loading.value; else loadingTemplate"
       expand="block"
       size="large"
       class="save-button-global"
@@ -1423,13 +1419,19 @@
       (click)="addCustomProduct()"
     >
       <div class="button-content">
-        <span>AÑADIR PRODUCTO</span>
+        <span>
+          {{
+            ingredientMode
+              ? (editingIngredient ? 'GUARDAR INGREDIENTE' : 'AÑADIR INGREDIENTE')
+              : (customProduct ? 'GUARDAR CAMBIOS' : 'AÑADIR PRODUCTO')
+          }}
+        </span>
       </div>
     </ion-button>
 
     <ng-template #loadingTemplate>
       <ion-button
-        *ngIf="meal && !customProduct"
+        *ngIf="meal || ingredientMode"
         expand="block"
         size="large"
         disabled
