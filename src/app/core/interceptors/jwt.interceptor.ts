@@ -158,14 +158,16 @@ export class JWTInterceptor implements HttpInterceptor {
         catchError((refreshErr) => {
           this.isRefreshing = false;
           this.refreshTokenSubject.next('FAILED');
-          this.authService.logout();
+
+          // Logout only when backend explicitly requests re-login.
+          // Network errors or transient backend failures should not force logout.
+          if (refreshErr?.error?.requiresRelogin) {
+            this.authService.logout();
+          }
+
           return throwError(() => refreshErr);
         })
       );
-    }
-
-    if (err.status === 403) {
-      this.authService.logout();
     }
 
     return throwError(() => err);

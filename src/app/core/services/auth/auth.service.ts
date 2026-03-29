@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { finalize, map, shareReplay } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
 import { UserLocalstorageService } from '../user/user-localstorage.service';
@@ -11,6 +11,8 @@ import { AuthApiService } from './auth-api.service';
 export class AuthService {
   private _user$: BehaviorSubject<User>;
   private readonly EXPIRATION_KEY: string = 'exp';
+  private refreshInFlight$: Observable<any> | null = null;
+  private isLoggingOut = false;
 
   constructor(
     private authApiService: AuthApiService,
@@ -87,7 +89,11 @@ export class AuthService {
   }
 
   public refreshToken(): Observable<any> {
-    return this.authApiService.refreshToken().pipe(
+    if (this.refreshInFlight$) {
+      return this.refreshInFlight$;
+    }
+
+    this.refreshInFlight$ = this.authApiService.refreshToken().pipe(
       map((response: any) => {
         if (!!response?.error) {
           throw new Error(response?.error);
@@ -112,8 +118,14 @@ export class AuthService {
         }
 
         return response;
-      })
+      }),
+      finalize(() => {
+        this.refreshInFlight$ = null;
+      }),
+      shareReplay(1)
     );
+
+    return this.refreshInFlight$;
   }
 
   public verifyGoogle(email: string, tokenGoogle: string): Observable<any> {
@@ -125,19 +137,24 @@ export class AuthService {
   }
 
   public logout(): void {
-    // Call backend logout to clear httpOnly cookie and DB
+    if (this.isLoggingOut) {
+      return;
+    }
+    this.isLoggingOut = true;
+
+    // Clear local state immediately to avoid race conditions and duplicate flows
+    this.userLocalstorageService.removeUserToken();
+    this._user$.next(null);
+    this.navigationService.goToLoginPage();
+
+    // Best effort call to backend to clear httpOnly cookie and server-side token chain
     this.authApiService.logout().subscribe({
       next: () => {
-        this.userLocalstorageService.removeUserToken();
-        this._user$.next(null);
-        this.navigationService.goToLoginPage();
+        this.isLoggingOut = false;
       },
       error: (err) => {
-        // Even if logout fails, clear local data
         console.error('Logout error:', err);
-        this.userLocalstorageService.removeUserToken();
-        this._user$.next(null);
-        this.navigationService.goToLoginPage();
+        this.isLoggingOut = false;
       },
     });
   }

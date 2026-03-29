@@ -42,9 +42,12 @@ export class AppComponent {
             next: () => {
               this.isRefreshingToken = false;
             },
-            error: () => {
+            error: (error) => {
               this.isRefreshingToken = false;
-              this.authService.logout();
+              // Only force logout when backend explicitly marks session as unrecoverable.
+              if (error?.error?.requiresRelogin) {
+                this.authService.logout();
+              }
             },
           });
         });

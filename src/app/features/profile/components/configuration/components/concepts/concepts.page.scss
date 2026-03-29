@@ -1,7 +1,10 @@
-.minimal-header {
-  --background: rgba(255, 255, 255, 0.98);
-  --border-color: rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid var(--border-color);
+.concepts-content {
+  --background: #141414;
+  background: #141414;
+}
+
+.concepts-content::part(background) {
+  background: #141414;
 }
 
 .search-header {
@@ -111,12 +114,15 @@
 
 // Content Styles
 .concepts-content {
-  --background: var(--ion-color-light, #f8f9fa);
+  --background: #141414;
+  background: #141414;
 
   .concepts-container {
     padding: 16px;
     max-width: 1200px;
     margin: 0 auto;
+    min-height: 100%;
+    background: #141414;
   }
 
   .concepts-stats {
