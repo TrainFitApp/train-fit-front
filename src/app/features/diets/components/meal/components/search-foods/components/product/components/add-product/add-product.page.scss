@@ -1023,6 +1023,10 @@ ion-accordion {
       background: #141414;
       z-index: -1;
     }
+
+    .macro-summary-card {
+      margin: 0;
+    }
   }
 }
 
@@ -1031,7 +1035,7 @@ ion-accordion {
   --background-activated: var(--ion-color-primary-shade);
   --border-radius: 14px;
   --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
-  height: 56px;
+  height: 48px;
   margin: 0;
 
   .button-content {

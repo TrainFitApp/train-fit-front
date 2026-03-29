@@ -185,33 +185,6 @@
         </div>
       </ion-card-content>
     </ion-card>
-    <!-- Resumen de Macros Dinámico (solo si hay meal) -->
-    <ion-card class="macro-summary-card" *ngIf="isDietMode">
-      <ion-card-content>
-        <div class="macro-summary-flex">
-          <div class="summary-item calories">
-            <span class="summary-value">{{ totalCalories }}</span>
-            <span class="summary-label">kcal</span>
-          </div>
-          <div class="summary-divider"></div>
-          <div class="summary-item">
-            <span class="summary-value"
-              >{{ totalProtein }}<small>g</small></span
-            >
-            <span class="summary-label protein">Proteína</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
-            <span class="summary-label carbs">CBH</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-value">{{ totalFat }}<small>g</small></span>
-            <span class="summary-label fat">Grasas</span>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
     <!-- Tarjeta de información nutricional mejorada -->
     <ion-card class="nutrition-card">
       <ion-card-header>
@@ -1413,10 +1386,36 @@
   </form>
 </ion-content>
 
-<ion-footer *ngIf="meal && !customProduct" class="elegant-footer">
+<ion-footer *ngIf="isDietMode" class="elegant-footer">
   <div class="footer-content">
+    <ion-card class="macro-summary-card">
+      <ion-card-content>
+        <div class="macro-summary-flex">
+          <div class="summary-item calories">
+            <span class="summary-value">{{ totalCalories }}</span>
+            <span class="summary-label">kcal</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-item">
+            <span class="summary-value"
+              >{{ totalProtein }}<small>g</small></span
+            >
+            <span class="summary-label protein">Proteína</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
+            <span class="summary-label carbs">CBH</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value">{{ totalFat }}<small>g</small></span>
+            <span class="summary-label fat">Grasas</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
     <ion-button
-      *ngIf="!loading.value; else loadingTemplate"
+      *ngIf="meal && !customProduct && !loading.value; else loadingTemplate"
       expand="block"
       size="large"
       class="save-button-global"
@@ -1429,7 +1428,12 @@
     </ion-button>
 
     <ng-template #loadingTemplate>
-      <ion-button expand="block" size="large" disabled>
+      <ion-button
+        *ngIf="meal && !customProduct"
+        expand="block"
+        size="large"
+        disabled
+      >
         <div class="loading-content">
           <ion-spinner name="crescent" color="light"></ion-spinner>
           <span class="loading-text">Procesando...</span>

@@ -26,13 +26,6 @@
           [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"
         ></ion-icon>
       </button>
-      <button
-        *ngIf="canDelete"
-        class="header-action-btn delete-btn"
-        (click)="deleteRecipe()"
-      >
-        <ion-icon name="trash-bin-outline"></ion-icon>
-      </button>
       </div>
     </div>
   </div>
@@ -66,16 +59,36 @@
           </span>
         </div>
 
-        <div class="input-group">
-          <label class="input-label">Descripción</label>
-          <div class="input-wrapper textarea-wrapper">
-            <ion-textarea
-              formControlName="description"
-              placeholder="Descripción opcional..."
-              [autoGrow]="true"
-              [rows]="2"
-              class="custom-textarea"
-            ></ion-textarea>
+        <div
+          class="description-explainer"
+          [class.expanded]="showDescriptionDetails"
+        >
+          <button
+            type="button"
+            class="description-trigger"
+            (click)="showDescriptionDetails = !showDescriptionDetails"
+          >
+            <span class="trigger-title">{{
+              showDescriptionDetails ? "Mostrar menos" : "Mostrar más"
+            }}</span>
+            <ion-icon
+              [name]="showDescriptionDetails ? 'chevron-up-outline' : 'chevron-down-outline'"
+              class="trigger-icon"
+            ></ion-icon>
+          </button>
+          <div class="description-card" *ngIf="showDescriptionDetails">
+            <div class="input-group description-input-group">
+              <label class="input-label">Descripción</label>
+              <div class="input-wrapper textarea-wrapper">
+                <ion-textarea
+                  formControlName="description"
+                  placeholder="Descripción opcional..."
+                  [autoGrow]="true"
+                  [rows]="2"
+                  class="custom-textarea"
+                ></ion-textarea>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -86,42 +99,29 @@
           <ion-icon name="restaurant-outline" color="primary"></ion-icon>
           <h3>{{ recipe.name }}</h3>
         </div>
-        <p class="recipe-description" *ngIf="recipe.description">
-          {{ recipe.description }}
-        </p>
-
-        <div class="macro-summary-mini">
-          <div class="macro-item">
-            <span class="macro-icon calories-icon">
-              <ion-icon name="flash-outline"></ion-icon>
-            </span>
-            <span class="macro-value"
-              >{{ calculatedMacros.kcal | number:'1.0-0' }}</span
-            >
-            <span class="macro-label">kcal</span>
-          </div>
-          <div class="macro-item protein">
-            <span class="macro-icon protein-icon"><span>P</span></span>
-            <span class="macro-value"
-              >{{ calculatedMacros.protein | number:'1.0-1' }}g</span
-            >
-            <span class="macro-label">proteína</span>
-          </div>
-          <div class="macro-item carbs">
-            <span class="macro-icon carbs-icon"><span>H</span></span>
-            <span class="macro-value"
-              >{{ calculatedMacros.carbs | number:'1.0-1' }}g</span
-            >
-            <span class="macro-label">CBH</span>
-          </div>
-          <div class="macro-item fat">
-            <span class="macro-icon fat-icon"><span>G</span></span>
-            <span class="macro-value"
-              >{{ calculatedMacros.fat | number:'1.0-1' }}g</span
-            >
-            <span class="macro-label">grasas</span>
+        <div
+          *ngIf="recipe.description"
+          class="description-explainer preview-description"
+          [class.expanded]="showDescriptionDetails"
+        >
+          <button
+            type="button"
+            class="description-trigger"
+            (click)="showDescriptionDetails = !showDescriptionDetails"
+          >
+            <span class="trigger-title">{{
+              showDescriptionDetails ? "Mostrar menos" : "Mostrar más"
+            }}</span>
+            <ion-icon
+              [name]="showDescriptionDetails ? 'chevron-up-outline' : 'chevron-down-outline'"
+              class="trigger-icon"
+            ></ion-icon>
+          </button>
+          <div class="description-card" *ngIf="showDescriptionDetails">
+            <p class="recipe-description">{{ recipe.description }}</p>
           </div>
         </div>
+
       </div>
 
       <!-- Quantity Section -->
@@ -131,44 +131,41 @@
           <h3>Cantidades</h3>
         </div>
 
-        <!-- Consumed quantity (Add, Edit, and Create with meal modes) -->
-        <div
-          class="input-group"
-          *ngIf="isAddMode || isEditMode || (isCreateMode && meal)"
-        >
-          <label class="input-label">Cantidad consumida *</label>
-          <div class="input-wrapper with-unit">
-            <ion-input
-              #quantityInput
-              type="number"
-              inputmode="decimal"
-              formControlName="quantity"
-              placeholder="100"
-              class="custom-input"
-            ></ion-input>
-            <span class="input-unit">g</span>
-          </div>
-          <span class="input-hint"
-            >¿Cuánto de la receta cocinada has consumido?</span
+        <div class="quantities-row">
+          <div
+            class="input-group"
+            *ngIf="isAddMode || isEditMode || (isCreateMode && meal)"
           >
-        </div>
+            <label class="input-label">Cantidad consumida *</label>
+            <div class="input-wrapper with-unit">
+              <ion-input
+                #quantityInput
+                type="number"
+                inputmode="decimal"
+                formControlName="quantity"
+                placeholder="100"
+                class="custom-input"
+              ></ion-input>
+              <span class="input-unit">g</span>
+            </div>
+          </div>
 
-        <!-- Cooked weight -->
-        <div class="input-group">
-          <label class="input-label">Peso total cocinado *</label>
-          <div class="input-wrapper with-unit">
-            <ion-input
-              type="number"
-              inputmode="decimal"
-              formControlName="quantityCooked"
-              placeholder="100"
-              class="custom-input"
-            ></ion-input>
-            <span class="input-unit">g</span>
-          </div>
-          <span class="input-hint"
-            >Peso total tras cocinar (para calcular los valores nutricionales)</span
+          <div
+            class="input-group"
+            [class.full-width]="!(isAddMode || isEditMode || (isCreateMode && meal))"
           >
+            <label class="input-label">Peso total cocinado *</label>
+            <div class="input-wrapper with-unit">
+              <ion-input
+                type="number"
+                inputmode="decimal"
+                formControlName="quantityCooked"
+                placeholder="100"
+                class="custom-input"
+              ></ion-input>
+              <span class="input-unit">g</span>
+            </div>
+          </div>
         </div>
 
         <div class="info-explainer" [class.expanded]="weightExplainerExpanded">
@@ -196,86 +193,6 @@
           </div>
         </div>
 
-        <!-- Real-time Portion Macros (Only in add/edit/create with meal mode) -->
-        <div
-          class="section-card macro-summary portion-summary"
-          *ngIf="(isAddMode || isEditMode || (isCreateMode && meal)) && ingredients.length > 0"
-          @fadeIn
-        >
-          <div
-            class="section-header clickable"
-            (click)="scrollToQuantityInput()"
-          >
-            <ion-icon name="restaurant-outline" color="secondary"></ion-icon>
-            <h3>A consumir</h3>
-            <span class="consumption-qty-badge">
-              {{ recipeForm.get("quantity")?.value || 0 }}g
-            </span>
-          </div>
-
-          <div class="macro-total">
-            <div class="macro-total-header">
-              <span class="macro-icon calories-icon">
-                <ion-icon name="flash-outline"></ion-icon>
-              </span>
-              <span class="macro-kcal-value"
-                >{{ portionMacros.kcal | number : "1.0-0" }}</span
-              >
-              <span class="macro-kcal-label">Calorías</span>
-            </div>
-
-            <div class="macro-stack-bar">
-              <span
-                class="stack-segment protein"
-                [style.width.%]="
-                (portionMacros.protein * 4) /
-                  (portionMacros.protein * 4 +
-                    portionMacros.carbs * 4 +
-                    portionMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-              ></span>
-              <span
-                class="stack-segment carbs"
-                [style.width.%]="
-                (portionMacros.carbs * 4) /
-                  (portionMacros.protein * 4 +
-                    portionMacros.carbs * 4 +
-                    portionMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-              ></span>
-              <span
-                class="stack-segment fat"
-                [style.width.%]="
-                (portionMacros.fat * 9) /
-                  (portionMacros.protein * 4 +
-                    portionMacros.carbs * 4 +
-                    portionMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-              ></span>
-            </div>
-
-            <div class="macro-legend">
-              <span class="legend-item protein">
-                <span class="macro-dot">P</span>
-                {{ portionMacros.protein | number : "1.0-1" }}g
-              </span>
-              <span class="legend-item carbs">
-                <span class="macro-dot">C</span>
-                {{ portionMacros.carbs | number : "1.0-1" }}g
-              </span>
-              <span class="legend-item fat">
-                <span class="macro-dot">G</span>
-                {{ portionMacros.fat | number : "1.0-1" }}g
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Ingredients Section (Available in all modes) -->
@@ -284,7 +201,7 @@
           <ion-icon name="list-outline" color="primary"></ion-icon>
           <h3>Ingredientes</h3>
           <span class="ingredient-count" [class.error]="ingredients.length < 2">
-            {{ ingredients.length }} / 2 min
+            2 mínimo
           </span>
         </div>
 
@@ -295,8 +212,8 @@
           class="add-ingredients-btn"
           (click)="addIngredients()"
         >
-          <ion-icon name="add-circle-outline"></ion-icon>
-          <span>Añadir ingredientes</span>
+          <ion-icon name="add-circle"></ion-icon>
+          <span>INGREDIENTE</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
 
@@ -368,96 +285,50 @@
         </div>
       </div>
 
-      <!-- Macro Summary (Create/Edit mode) -->
-      <div
-        class="section-card macro-summary"
-        *ngIf="(isCreateMode || isEditMode) && ingredients.length > 0"
-      >
-        <div class="section-header">
-          <ion-icon name="analytics-outline" color="primary"></ion-icon>
-          <h3>Información nutricional</h3>
-        </div>
-
-        <div class="macro-total">
-          <div class="macro-total-header">
-            <span class="macro-icon calories-icon">
-              <ion-icon name="flash-outline"></ion-icon>
-            </span>
-            <span class="macro-kcal-value"
-              >{{ calculatedMacros.kcal | number:'1.0-0' }}</span
-            >
-            <span class="macro-kcal-label">Calorías</span>
-          </div>
-
-          <div class="macro-stack-bar">
-            <span
-              class="stack-segment protein"
-              [style.width.%]="
-                (calculatedMacros.protein * 4) /
-                  (calculatedMacros.protein * 4 +
-                    calculatedMacros.carbs * 4 +
-                    calculatedMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-            ></span>
-            <span
-              class="stack-segment carbs"
-              [style.width.%]="
-                (calculatedMacros.carbs * 4) /
-                  (calculatedMacros.protein * 4 +
-                    calculatedMacros.carbs * 4 +
-                    calculatedMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-            ></span>
-            <span
-              class="stack-segment fat"
-              [style.width.%]="
-                (calculatedMacros.fat * 9) /
-                  (calculatedMacros.protein * 4 +
-                    calculatedMacros.carbs * 4 +
-                    calculatedMacros.fat * 9 +
-                    0.0001) *
-                  100
-              "
-            ></span>
-          </div>
-
-          <div class="macro-legend">
-            <span class="legend-item protein">
-              <span class="macro-dot">P</span>
-              {{ calculatedMacros.protein | number:'1.0-1' }}g
-            </span>
-            <span class="legend-item carbs">
-              <span class="macro-dot">C</span>
-              {{ calculatedMacros.carbs | number:'1.0-1' }}g
-            </span>
-            <span class="legend-item fat">
-              <span class="macro-dot">G</span>
-              {{ calculatedMacros.fat | number:'1.0-1' }}g
-            </span>
-          </div>
-        </div>
-
-        <div class="total-weight">
-          <ion-icon name="scale-outline"></ion-icon>
-          <span>
-            Peso total en crudo:
-            <strong>{{ calculatedMacros.quantity | number : "1.0-0" }}g</strong>
-          </span>
-        </div>
-      </div>
     </form>
   </div>
 </ion-content>
 
 <ion-footer class="config-recipe-footer">
   <div class="footer-content">
+    <div class="recipe-footer-macros" *ngIf="ingredients.length > 0">
+      <ion-card class="ingredient-macro-summary-card">
+        <ion-card-content>
+          <div class="macro-summary-flex">
+            <div class="summary-item calories">
+              <span class="summary-value">{{
+                footerKcal | number:'1.0-0'
+              }}</span>
+              <span class="summary-label">kcal</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-item">
+              <span class="summary-value"
+                >{{ footerProtein | number:'1.0-1' }}<small>g</small></span
+              >
+              <span class="summary-label protein">Proteína</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value"
+                >{{ footerCarbs | number:'1.0-1' }}<small>g</small></span
+              >
+              <span class="summary-label carbs">CBH</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-value"
+                >{{ footerFat | number:'1.0-1' }}<small>g</small></span
+              >
+              <span class="summary-label fat">Grasas</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
     <ion-button
       expand="block"
       size="large"
+      fill="solid"
       class="save-btn"
       [disabled]="!canSave || loading"
       (click)="save()"

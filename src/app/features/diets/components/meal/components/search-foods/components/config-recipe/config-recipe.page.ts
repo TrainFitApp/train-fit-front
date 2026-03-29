@@ -51,6 +51,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public isFavorite = false;
   public loading = false;
   public weightExplainerExpanded = false;
+  public showDescriptionDetails = false;
   private successfulSave = false;
   public calculatedMacros = {
     kcal: 0,
@@ -539,6 +540,22 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     // Create or Edit mode without meal
     const hasEnoughIngredients = this.ingredients.length >= 2;
     return hasEnoughIngredients && this.recipeForm.valid;
+  }
+
+  public get footerKcal(): number {
+    return this.calculatedMacros.kcal;
+  }
+
+  public get footerProtein(): number {
+    return this.calculatedMacros.protein;
+  }
+
+  public get footerCarbs(): number {
+    return this.calculatedMacros.carbs;
+  }
+
+  public get footerFat(): number {
+    return this.calculatedMacros.fat;
   }
 
   public recalculateMacros(): void {
