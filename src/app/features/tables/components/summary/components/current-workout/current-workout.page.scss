@@ -13,28 +13,21 @@ img {
   }
 }
 
-// Minimalist Header Styles
+// Minimalist Header Styles: Shell transparente
 .minimal-header {
-  --background: rgba(255, 255, 255, 0.98);
-  --border-color: rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid var(--border-color);
+  --background: transparent;
+  --border-color: transparent;
 }
 
 .minimal-toolbar {
-  --background: transparent;
-  --color: var(--ion-color-dark);
-  --border-color: transparent;
-  --padding-start: 0;
-  --padding-end: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
-  min-height: 60px;
+  background: #141414 !important; // El gran bloque sólido (como micro-cycle-header)
+  min-height: 80px;
 }
 
-// Workout Header (similar to micro-cycle-header)
+// Workout Header: Integramos el color al toolbar para que no haya huecos
 .workout-header {
-  margin: 16px 0;
-  padding: 0 16px;
+  margin: 0 !important; // Quitar márgenes exteriores para evitar strips transparentes
+  padding: 12px 16px;
 
   .workout-content {
     display: flex;
