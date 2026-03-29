@@ -748,8 +748,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private async initializeKeyboardListeners(): Promise<void> {
     await this.removeKeyboardListeners();
 
-    // Usamos solo keyboardWillShow/Hide (no Did) para evitar dobles ejecuciones
-    // que causan micro-fluctuaciones en el layout del footer.
     const handleShow = () => this.setFooterHidden(true);
     const handleHide = () => this.setFooterHidden(false);
 
@@ -762,10 +760,47 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         'keyboardWillHide',
         handleHide
       );
-      // keyboardDidShow/Hide eliminados: son redundantes con Will y provocaban
-      // un segundo reflow del layout tras el primero.
+      this.keyboardDidShowHandle = await Keyboard.addListener(
+        'keyboardDidShow',
+        handleShow
+      );
+      this.keyboardDidHideHandle = await Keyboard.addListener(
+        'keyboardDidHide',
+        handleHide
+      );
     } catch (error) {
       console.error('[Keyboard] Failed to register listeners', error);
+    }
+
+    if (this.platform.is('ios') && window.visualViewport) {
+      this.baseViewportHeight = window.visualViewport.height;
+      this.visualViewportResizeHandler = () => {
+        const currentHeight = window.visualViewport?.height;
+        if (!currentHeight) {
+          return;
+        }
+
+        if (
+          !this.baseViewportHeight ||
+          currentHeight > this.baseViewportHeight
+        ) {
+          this.baseViewportHeight = currentHeight;
+        }
+
+        const isKeyboardVisible =
+          currentHeight < (this.baseViewportHeight ?? currentHeight) - 120;
+
+        this.setFooterHidden(isKeyboardVisible);
+
+        if (!isKeyboardVisible) {
+          this.baseViewportHeight = currentHeight;
+        }
+      };
+
+      window.visualViewport.addEventListener(
+        'resize',
+        this.visualViewportResizeHandler
+      );
     }
   }
 

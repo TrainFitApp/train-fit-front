@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { CursorEndDirective } from '../core/directives/cursor-end.directive';
 import { DecimalInputDirective } from '../core/directives/decimal-input.directive';
+import { HideKeyboardOnScrollDirective } from '../core/directives/hide-keyboard-on-scroll.directive';
 import { VideoModalComponent } from '../features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
 import { DisconnectedComponent } from './components/disconnected/disconnected.component';
@@ -41,6 +42,7 @@ import { SafePipe } from './pipes/safe.pipe';
     VideoModalComponent,
     CursorEndDirective,
     DecimalInputDirective,
+    HideKeyboardOnScrollDirective,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
   exports: [
@@ -65,6 +67,7 @@ import { SafePipe } from './pipes/safe.pipe';
     DisconnectedComponent,
     CursorEndDirective,
     DecimalInputDirective,
+    HideKeyboardOnScrollDirective,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

@@ -235,10 +235,18 @@ ion-title {
   right: -8px;
   z-index: 10;
   margin-left: 12px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
   --background: rgba(255, 255, 255, 0.05);
   --background-activated: rgba(255, 255, 255, 0.1);
   --border-radius: 8px;
   --color: var(--text-secondary);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
 
   &:active {
     transform: scale(0.95);
@@ -250,6 +258,7 @@ ion-title {
   }
 
   .favorite-icon-card {
+    font-size: 18px;
     transition: var(--transition);
 
     &[color="tertiary"] {
@@ -326,6 +335,25 @@ ion-title {
   }
 }
 
+.input-restore-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 8px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(var(--ion-color-primary-rgb), 0.16);
+  color: var(--ion-color-primary);
+  padding: 0;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -343,7 +371,7 @@ ion-title {
   --background: transparent;
   --color: var(--text-primary);
   --placeholder-color: var(--text-muted);
-  --padding-start: 16px;
+  --padding-start: 10px;
   --padding-end: 0;
   --padding-top: 12px;
   --padding-bottom: 12px;
@@ -760,6 +788,13 @@ ion-accordion {
       font-weight: 700;
       font-size: 1rem;
       padding: 14px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 1.1rem;
+      }
     }
   }
 }
@@ -873,6 +908,14 @@ ion-accordion {
       }
     }
   }
+}
+
+// En el acordeón de micros/vitaminas, replicar exactamente el comportamiento
+// de macros/kcal: escritura alineada a la derecha en el propio ion-input.
+.nutrition-card ion-accordion .macros-grid .macro-item .input-wrapper .custom-input {
+  text-align: right;
+  --padding-end: 12px;
+  --padding-start: 12px;
 }
 
 // Macro dots y colores

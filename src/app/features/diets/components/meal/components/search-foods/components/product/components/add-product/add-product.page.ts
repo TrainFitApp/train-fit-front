@@ -31,6 +31,82 @@ export enum PRODUCT_ATRR {
   styleUrls: ['./add-product.page.scss'],
 })
 export class AddProductPage implements OnInit, OnDestroy {
+  private static readonly NUTRITION_FIELDS = [
+    'energyKcal100g',
+    'protein100g',
+    'carbohydrates100g',
+    'fat100g',
+    'saturatedFat100g',
+    'sugars100g',
+    'fiber100g',
+    'salt100g',
+    'sodium100g',
+    'cholesterol100g',
+    'transFat100g',
+    'calcium100g',
+    'iron100g',
+    'magnesium100g',
+    'phosphorus100g',
+    'potassium100g',
+    'zinc100g',
+    'copper100g',
+    'manganese100g',
+    'selenium100g',
+    'iodine100g',
+    'vitaminA100g',
+    'vitaminC100g',
+    'vitaminD100g',
+    'vitaminE100g',
+    'vitaminK100g',
+    'vitaminB1100g',
+    'vitaminB2100g',
+    'vitaminB3100g',
+    'vitaminB5100g',
+    'vitaminB6100g',
+    'vitaminB9100g',
+    'vitaminB12100g',
+    'biotin100g',
+    'omega3100g',
+    'omega6100g',
+    'omega9100g',
+    'caffeine100g',
+    'taurine100g',
+    'alcohol100g',
+  ] as const;
+
+  private static readonly MG_TO_G_FIELDS = new Set<string>([
+    'calcium100g',
+    'iron100g',
+    'magnesium100g',
+    'phosphorus100g',
+    'potassium100g',
+    'zinc100g',
+    'copper100g',
+    'manganese100g',
+    'sodium100g',
+    'vitaminE100g',
+    'vitaminC100g',
+    'vitaminB1100g',
+    'vitaminB2100g',
+    'vitaminB3100g',
+    'vitaminB5100g',
+    'vitaminB6100g',
+    'cholesterol100g',
+    'caffeine100g',
+    'taurine100g',
+  ]);
+
+  private static readonly MICROGRAM_TO_G_FIELDS = new Set<string>([
+    'selenium100g',
+    'iodine100g',
+    'vitaminA100g',
+    'vitaminD100g',
+    'vitaminK100g',
+    'vitaminB9100g',
+    'vitaminB12100g',
+    'biotin100g',
+  ]);
+
   public product: IProduct;
   public customProduct: CustomProduct;
   public meal: Meal;
@@ -786,114 +862,18 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private mapFormToProduct(formValues: any, target: any): void {
-    // Unidades macro y básicas
-    target.name = formValues.name;
-    target.brand = formValues.brand;
-    target.energyKcal100g = formValues.energyKcal100g;
-    target.protein100g = formValues.protein100g;
-    target.carbohydrates100g = formValues.carbohydrates100g;
-    target.fat100g = formValues.fat100g;
-    target.saturatedFat100g = formValues.saturatedFat100g;
-    target.sugars100g = formValues.sugars100g;
-    target.fiber100g = formValues.fiber100g;
-
-    // Minerales (mg -> g)
-    target.calcium100g = formValues.calcium100g
-      ? formValues.calcium100g / 1000
-      : null;
-    target.iron100g = formValues.iron100g ? formValues.iron100g / 1000 : null;
-    target.magnesium100g = formValues.magnesium100g
-      ? formValues.magnesium100g / 1000
-      : null;
-    target.phosphorus100g = formValues.phosphorus100g
-      ? formValues.phosphorus100g / 1000
-      : null;
-    target.potassium100g = formValues.potassium100g
-      ? formValues.potassium100g / 1000
-      : null;
-    target.zinc100g = formValues.zinc100g ? formValues.zinc100g / 1000 : null;
-    target.copper100g = formValues.copper100g
-      ? formValues.copper100g / 1000
-      : null;
-    target.manganese100g = formValues.manganese100g
-      ? formValues.manganese100g / 1000
-      : null;
-    target.sodium100g = formValues.sodium100g
-      ? formValues.sodium100g / 1000
-      : null;
-    target.salt100g = formValues.salt100g;
-
-    // µg -> g
-    target.selenium100g = formValues.selenium100g
-      ? formValues.selenium100g / 1000000
-      : null;
-    target.iodine100g = formValues.iodine100g
-      ? formValues.iodine100g / 1000000
-      : null;
-
-    // Vitaminas
-    target.vitaminA100g = formValues.vitaminA100g
-      ? formValues.vitaminA100g / 1000000
-      : null;
-    target.vitaminD100g = formValues.vitaminD100g
-      ? formValues.vitaminD100g / 1000000
-      : null;
-    target.vitaminE100g = formValues.vitaminE100g
-      ? formValues.vitaminE100g / 1000
-      : null;
-    target.vitaminK100g = formValues.vitaminK100g
-      ? formValues.vitaminK100g / 1000000
-      : null;
-    target.vitaminC100g = formValues.vitaminC100g
-      ? formValues.vitaminC100g / 1000
-      : null;
-    target.vitaminB1100g = formValues.vitaminB1100g
-      ? formValues.vitaminB1100g / 1000
-      : null;
-    target.vitaminB2100g = formValues.vitaminB2100g
-      ? formValues.vitaminB2100g / 1000
-      : null;
-    target.vitaminB3100g = formValues.vitaminB3100g
-      ? formValues.vitaminB3100g / 1000
-      : null;
-    target.vitaminB5100g = formValues.vitaminB5100g
-      ? formValues.vitaminB5100g / 1000
-      : null;
-    target.vitaminB6100g = formValues.vitaminB6100g
-      ? formValues.vitaminB6100g / 1000
-      : null;
-    target.vitaminB9100g = formValues.vitaminB9100g
-      ? formValues.vitaminB9100g / 1000000
-      : null;
-    target.vitaminB12100g = formValues.vitaminB12100g
-      ? formValues.vitaminB12100g / 1000000
-      : null;
-    target.biotin100g = formValues.biotin100g
-      ? formValues.biotin100g / 1000000
-      : null;
-
-    // Otros
-    target.cholesterol100g = formValues.cholesterol100g
-      ? formValues.cholesterol100g / 1000
-      : null;
-    target.transFat100g = formValues.transFat100g;
-    target.omega3100g = formValues.omega3100g;
-    target.omega6100g = formValues.omega6100g;
-    target.omega9100g = formValues.omega9100g;
-    target.caffeine100g = formValues.caffeine100g
-      ? formValues.caffeine100g / 1000
-      : null;
-    target.taurine100g = formValues.taurine100g
-      ? formValues.taurine100g / 1000
-      : null;
-    target.alcohol100g = formValues.alcohol100g;
-
-    // Flags dietéticos (no están en el formulario, se toman de la referencia local restaurada)
-    // Esto asegura que se guarden como overrides en el CustomProduct
-    target.vegan = this.product.vegan;
-    target.vegetarian = this.product.vegetarian;
-    target.lactoseFree = this.product.lactoseFree;
-    target.glutenFree = this.product.glutenFree;
+    const isCustomProductTarget = !!target?.product;
+    if (isCustomProductTarget) {
+      this.applyCustomProductNutritionOverrides(target, formValues);
+    } else {
+      target.name = formValues.name;
+      target.brand = formValues.brand;
+      this.setProductNutritionFields(target, formValues);
+      target.vegan = this.product.vegan;
+      target.vegetarian = this.product.vegetarian;
+      target.lactoseFree = this.product.lactoseFree;
+      target.glutenFree = this.product.glutenFree;
+    }
 
     // Textos (Convertir string a array)
     const splitText = (text: any) =>
@@ -904,21 +884,10 @@ export class AddProductPage implements OnInit, OnDestroy {
             .filter((i) => i.length > 0)
         : text;
 
-    // Siempre guardar en el target (CustomProduct o Product)
-    target.ingredients = formValues.ingredients;
-    target.allergens = splitText(formValues.allergens);
-    target.traces = splitText(formValues.traces);
-
-    // Si el target es un CustomProduct, también podemos actualizar su producto interno
-    // por consistencia en la sesión actual, aunque lo importante es el override arriba.
-    if (target.product) {
-      target.product.ingredients = formValues.ingredients;
-      target.product.allergens = splitText(formValues.allergens);
-      target.product.traces = splitText(formValues.traces);
-      target.product.vegan = this.product.vegan;
-      target.product.vegetarian = this.product.vegetarian;
-      target.product.lactoseFree = this.product.lactoseFree;
-      target.product.glutenFree = this.product.glutenFree;
+    if (!isCustomProductTarget) {
+      target.ingredients = formValues.ingredients;
+      target.allergens = splitText(formValues.allergens);
+      target.traces = splitText(formValues.traces);
     }
   }
 
@@ -1439,6 +1408,104 @@ export class AddProductPage implements OnInit, OnDestroy {
         [controlName]: roundedValue,
       });
     }
+  }
+
+  public showOverrideMeta(field: string): boolean {
+    if (!this.customProduct || !this.addCustomProductForm) return false;
+
+    const currentDisplayValue = this.addCustomProductForm.get(field)?.value;
+    const currentValue = this.toStorageNutritionValue(field, currentDisplayValue);
+    if (currentValue === null) return false;
+
+    const baseValue = this.getBaseNutritionValue(field);
+    return !this.areNutritionValuesEqual(currentValue, baseValue);
+  }
+
+  public restoreOriginalValue(field: string): void {
+    if (!this.addCustomProductForm) return;
+
+    const baseValue = this.getBaseNutritionValue(field);
+    const displayValue = this.toDisplayNutritionValue(field, baseValue);
+
+    this.addCustomProductForm.patchValue({ [field]: displayValue });
+    this.addCustomProductForm.get(field)?.markAsDirty();
+    this.addCustomProductForm.get(field)?.markAsTouched();
+  }
+
+  private normalizeNumericInput(value: any): number | null {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim() === '') return null;
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private toStorageNutritionValue(field: string, value: any): number | null {
+    const normalized = this.normalizeNumericInput(value);
+    if (normalized === null) return null;
+
+    if (AddProductPage.MG_TO_G_FIELDS.has(field)) return normalized / 1000;
+    if (AddProductPage.MICROGRAM_TO_G_FIELDS.has(field))
+      return normalized / 1000000;
+
+    return normalized;
+  }
+
+  private toDisplayNutritionValue(field: string, value: any): number | null {
+    const normalized = this.normalizeNumericInput(value);
+    if (normalized === null) return null;
+
+    if (AddProductPage.MG_TO_G_FIELDS.has(field)) {
+      return parseFloat((normalized * 1000).toFixed(1));
+    }
+
+    if (AddProductPage.MICROGRAM_TO_G_FIELDS.has(field)) {
+      return parseFloat((normalized * 1000000).toFixed(1));
+    }
+
+    return normalized;
+  }
+
+  private getBaseNutritionValue(field: string): number | null {
+    const rawValue =
+      (this.customProduct?.product as any)?.[field] ?? (this.product as any)?.[field];
+    return this.normalizeNumericInput(rawValue);
+  }
+
+  private areNutritionValuesEqual(
+    a: number | null,
+    b: number | null,
+    epsilon = 1e-9
+  ): boolean {
+    if (a === null && b === null) return true;
+    if (a === null || b === null) return false;
+    return Math.abs(a - b) < epsilon;
+  }
+
+  private setNutritionValue(target: any, field: string, formValues: any): void {
+    target[field] = this.toStorageNutritionValue(field, formValues[field]);
+  }
+
+  private setProductNutritionFields(target: any, formValues: any): void {
+    AddProductPage.NUTRITION_FIELDS.forEach((field) => {
+      this.setNutritionValue(target, field, formValues);
+    });
+  }
+
+  private applyCustomProductNutritionOverrides(target: any, formValues: any): void {
+    AddProductPage.NUTRITION_FIELDS.forEach((field) => {
+      const normalizedValue = this.toStorageNutritionValue(field, formValues[field]);
+      const baseValue = this.normalizeNumericInput(target?.product?.[field]);
+
+      if (
+        normalizedValue === null ||
+        this.areNutritionValuesEqual(normalizedValue, baseValue)
+      ) {
+        target[field] = null;
+      } else {
+        target[field] = normalizedValue;
+      }
+    });
   }
 
   private loadParametersFromRoute(): void {

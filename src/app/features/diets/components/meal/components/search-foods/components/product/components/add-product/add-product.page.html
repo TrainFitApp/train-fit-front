@@ -231,6 +231,15 @@
                 Calorías *
               </ion-label>
               <div class="input-wrapper calories-wrapper">
+                <button
+                  *ngIf="showOverrideMeta('energyKcal100g')"
+                  type="button"
+                  class="input-restore-btn"
+                  (click)="restoreOriginalValue('energyKcal100g')"
+                  aria-label="Restaurar calorías originales"
+                >
+                  <ion-icon name="arrow-undo-outline"></ion-icon>
+                </button>
                 <ion-input
                   type="number"
                   inputmode="numeric"
@@ -240,10 +249,11 @@
                   class="custom-input calories-value"
                   placeholder="0"
                   (ionInput)="roundCalories($event)"
-                  [readonly]="true"
                 >
                 </ion-input>
-                <span class="input-unit primary-unit">kcal</span>
+                <span class="input-unit primary-unit">
+                  <ion-icon name="flame-outline" aria-hidden="true"></ion-icon>
+                </span>
               </div>
             </div>
           </div>
@@ -265,6 +275,15 @@
                     Grasas *
                   </ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('fat100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('fat100g')"
+                      aria-label="Restaurar grasas originales"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -274,7 +293,6 @@
                       class="custom-input"
                       placeholder="0"
                       (ionInput)="roundMicro($event, 'fat100g')"
-                      [readonly]="true"
                       appDecimalInput
                     >
                     </ion-input>
@@ -289,12 +307,20 @@
                       Saturadas
                     </ion-label>
                     <div class="input-wrapper">
+                      <button
+                        *ngIf="showOverrideMeta('saturatedFat100g')"
+                        type="button"
+                        class="input-restore-btn"
+                        (click)="restoreOriginalValue('saturatedFat100g')"
+                        aria-label="Restaurar grasas saturadas originales"
+                      >
+                        <ion-icon name="arrow-undo-outline"></ion-icon>
+                      </button>
                       <ion-input
                         type="text"
                         inputmode="decimal"
                         class="custom-input"
                         placeholder="0"
-                        [readonly]="true"
                         appDecimalInput
                         formControlName="saturatedFat100g"
                         (ionInput)="roundMicro($event, 'saturatedFat100g')"
@@ -312,6 +338,15 @@
                     Carbohidratos *
                   </ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('carbohydrates100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('carbohydrates100g')"
+                      aria-label="Restaurar carbohidratos originales"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -321,7 +356,6 @@
                       class="custom-input"
                       placeholder="0"
                       (ionInput)="roundMicro($event, 'carbohydrates100g')"
-                      [readonly]="true"
                       appDecimalInput
                     >
                     </ion-input>
@@ -337,6 +371,15 @@
                     de los cuales azúcares
                   </ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('sugars100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('sugars100g')"
+                      aria-label="Restaurar azúcares originales"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -346,7 +389,6 @@
                       appDecimalInput
                       formControlName="sugars100g"
                       (ionInput)="roundMicro($event, 'sugars100g')"
-                      [readonly]="true"
                     ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
                   </div>
@@ -361,6 +403,15 @@
                     Fibra
                   </ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('fiber100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('fiber100g')"
+                      aria-label="Restaurar fibra original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -369,7 +420,6 @@
                       appCursorEnd
                       appDecimalInput
                       formControlName="fiber100g"
-                       [readonly]="true"
                       (ionInput)="roundMicro($event, 'fiber100g')"
                     ></ion-input>
                     <span class="input-unit secondary-unit">g</span>
@@ -384,6 +434,15 @@
                     Proteínas *
                   </ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('protein100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('protein100g')"
+                      aria-label="Restaurar proteína original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -393,7 +452,6 @@
                       class="custom-input"
                       placeholder="0"
                       (ionInput)="roundMicro($event, 'protein100g')"
-                      [readonly]="true"
                       appDecimalInput
                     >
                     </ion-input>
@@ -429,12 +487,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Calcio</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('calcium100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('calcium100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="calcium100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'calcium100g')"
                     ></ion-input>
@@ -447,12 +513,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Hierro</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('iron100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('iron100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="iron100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'iron100g')"
                     ></ion-input>
@@ -465,12 +539,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Magnesio</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('magnesium100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('magnesium100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="magnesium100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'magnesium100g')"
                     ></ion-input>
@@ -483,12 +565,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Fósforo</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('phosphorus100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('phosphorus100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="phosphorus100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'phosphorus100g')"
                     ></ion-input>
@@ -501,12 +591,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Potasio</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('potassium100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('potassium100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="potassium100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'potassium100g')"
                     ></ion-input>
@@ -519,12 +617,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Zinc</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('zinc100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('zinc100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="zinc100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'zinc100g')"
                     ></ion-input>
@@ -537,12 +643,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Cobre</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('copper100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('copper100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="copper100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'copper100g')"
                     ></ion-input>
@@ -555,12 +669,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Manganeso</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('manganese100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('manganese100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="manganese100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'manganese100g')"
                     ></ion-input>
@@ -573,12 +695,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Selenio</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('selenium100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('selenium100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="selenium100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'selenium100g')"
                     ></ion-input>
@@ -591,12 +721,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Yodo</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('iodine100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('iodine100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="iodine100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'iodine100g')"
                     ></ion-input>
@@ -609,12 +747,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Sodio</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('sodium100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('sodium100g')"
+                      aria-label="Restaurar sodio original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="sodium100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'sodium100g')"
                     ></ion-input>
@@ -627,12 +773,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Sal</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('salt100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('salt100g')"
+                      aria-label="Restaurar sal original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="salt100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'salt100g')"
                     ></ion-input>
@@ -652,12 +806,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. A</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminA100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminA100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminA100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminA100g')"
                     ></ion-input>
@@ -670,12 +832,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. D</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminD100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminD100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminD100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminD100g')"
                     ></ion-input>
@@ -688,12 +858,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. E</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminE100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminE100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminE100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminE100g')"
                     ></ion-input>
@@ -706,12 +884,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. K</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminK100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminK100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminK100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminK100g')"
                     ></ion-input>
@@ -724,12 +910,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. C</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminC100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminC100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminC100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminC100g')"
                     ></ion-input>
@@ -742,12 +936,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B1</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB1100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB1100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminB1100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminB1100g')"
                     ></ion-input>
@@ -760,12 +962,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B2</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB2100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB2100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminB2100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminB2100g')"
                     ></ion-input>
@@ -778,12 +988,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B3</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB3100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB3100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminB3100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminB3100g')"
                     ></ion-input>
@@ -796,12 +1014,20 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B5</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB5100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB5100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
                       class="custom-input"
                       formControlName="vitaminB5100g"
-                      [readonly]="true"
                       appDecimalInput
                       (ionInput)="roundMicro($event, 'vitaminB5100g')"
                     ></ion-input>
@@ -814,6 +1040,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B6</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB6100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB6100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -832,6 +1067,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B9</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB9100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB9100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -850,6 +1094,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Vit. B12</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('vitaminB12100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('vitaminB12100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -868,6 +1121,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Biotina</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('biotin100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('biotin100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -893,6 +1155,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Colesterol</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('cholesterol100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('cholesterol100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -911,6 +1182,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Grasas Trans</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('transFat100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('transFat100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -929,6 +1209,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 3</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('omega3100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('omega3100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -947,6 +1236,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 6</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('omega6100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('omega6100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -965,6 +1263,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Omega 9</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('omega9100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('omega9100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -983,6 +1290,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Cafeína</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('caffeine100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('caffeine100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -1001,6 +1317,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Taurina</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('taurine100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('taurine100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"
@@ -1019,6 +1344,15 @@
                 <div class="custom-input-container">
                   <ion-label class="custom-label">Alcohol</ion-label>
                   <div class="input-wrapper">
+                    <button
+                      *ngIf="showOverrideMeta('alcohol100g')"
+                      type="button"
+                      class="input-restore-btn"
+                      (click)="restoreOriginalValue('alcohol100g')"
+                      aria-label="Restaurar valor original"
+                    >
+                      <ion-icon name="arrow-undo-outline"></ion-icon>
+                    </button>
                     <ion-input
                       type="text"
                       inputmode="decimal"

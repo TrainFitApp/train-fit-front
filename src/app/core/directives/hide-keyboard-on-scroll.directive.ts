@@ -17,7 +17,10 @@ export class HideKeyboardOnScrollDirective implements OnInit {
         @Self() private ionContent: IonContent
     ) { }
 
-    ngOnInit() {}
+    ngOnInit() {
+        // Necesario para que ion-content emita (ionScroll) en todas las pantallas.
+        this.ionContent.scrollEvents = true;
+    }
 
     @HostListener('click', ['$event'])
     onClick(event: MouseEvent): void {
@@ -27,5 +30,10 @@ export class HideKeyboardOnScrollDirective implements OnInit {
     @HostListener('touchend', ['$event'])
     onTouchEnd(event: TouchEvent): void {
         this.utilService.hideKeyboardOnClick(event as unknown as MouseEvent);
+    }
+
+    @HostListener('ionScroll', ['$event'])
+    onScroll(event: any): void {
+        this.utilService.hideKeyboardOnScroll(event);
     }
 }

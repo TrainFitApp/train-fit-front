@@ -110,18 +110,29 @@ export class MacrosBarsComponent implements OnDestroy {
     mealTemp: Meal,
     customProductTemp: CustomProduct
   ) {
-    mealTemp.kcal +=
-      (customProductTemp.energyKcal100g * customProductTemp.quantity) / 100 ||
+    const energy100 =
+      customProductTemp.energyKcal100g ??
+      customProductTemp.product?.energyKcal100g ??
       0;
+    const protein100 =
+      customProductTemp.protein100g ??
+      customProductTemp.product?.protein100g ??
+      0;
+    const carbs100 =
+      customProductTemp.carbohydrates100g ??
+      customProductTemp.product?.carbohydrates100g ??
+      0;
+    const fat100 =
+      customProductTemp.fat100g ?? customProductTemp.product?.fat100g ?? 0;
 
-    mealTemp.protein +=
-      (customProductTemp.protein100g * customProductTemp.quantity) / 100 || 0;
+    mealTemp.kcal +=
+      (energy100 * customProductTemp.quantity) / 100 || 0;
+
+    mealTemp.protein += (protein100 * customProductTemp.quantity) / 100 || 0;
 
     mealTemp.carbohydrate +=
-      (customProductTemp.carbohydrates100g * customProductTemp.quantity) /
-      100 || 0;
+      (carbs100 * customProductTemp.quantity) / 100 || 0;
 
-    mealTemp.fat +=
-      (customProductTemp.fat100g * customProductTemp.quantity) / 100 || 0;
+    mealTemp.fat += (fat100 * customProductTemp.quantity) / 100 || 0;
   }
 }

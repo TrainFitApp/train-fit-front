@@ -515,17 +515,22 @@ export class ProfilePage implements OnInit {
   }
 
   private calculateMacros100g(mealTemp: Meal, customProduct: CustomProduct) {
-    let energy100 = customProduct.energyKcal100g;
+    let energy100 =
+      customProduct.energyKcal100g ?? customProduct.product?.energyKcal100g ?? 0;
     mealTemp.kcal += (energy100 * customProduct.quantity) / 100 || 0;
 
-    let protein100 = customProduct.protein100g;
+    let protein100 =
+      customProduct.protein100g ?? customProduct.product?.protein100g ?? 0;
     mealTemp.protein += (protein100 * customProduct.quantity) / 100 || 0;
 
-    let carbohydrates100 = customProduct.carbohydrates100g;
+    let carbohydrates100 =
+      customProduct.carbohydrates100g ??
+      customProduct.product?.carbohydrates100g ??
+      0;
     mealTemp.carbohydrate +=
       (carbohydrates100 * customProduct.quantity) / 100 || 0;
 
-    let fat100g = customProduct.fat100g;
+    let fat100g = customProduct.fat100g ?? customProduct.product?.fat100g ?? 0;
     mealTemp.fat += (fat100g * customProduct.quantity) / 100 || 0;
   }
 

@@ -649,20 +649,20 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // Read macros from product in real-time (saves DB space)
     const energyKcal100g =
-      ingredient.energyKcal100g ||
-      (ingredient.product as any)?.energyKcal100g ||
+      ingredient.energyKcal100g ??
+      (ingredient.product as any)?.energyKcal100g ??
       0;
 
     const protein100g =
-      ingredient.protein100g || (ingredient.product as any)?.protein100g || 0;
+      ingredient.protein100g ?? (ingredient.product as any)?.protein100g ?? 0;
 
     const carbohydrates100g =
-      ingredient.carbohydrates100g ||
-      (ingredient.product as any)?.carbohydrates100g ||
+      ingredient.carbohydrates100g ??
+      (ingredient.product as any)?.carbohydrates100g ??
       0;
 
     const fat100g =
-      ingredient.fat100g || (ingredient.product as any)?.fat100g || 0;
+      ingredient.fat100g ?? (ingredient.product as any)?.fat100g ?? 0;
 
     return {
       kcal: energyKcal100g * multiplier,
