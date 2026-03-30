@@ -85,6 +85,64 @@
   }
 }
 
+// Info card with corner action button
+.info-card {
+  position: relative;
+
+  .section-header {
+    padding-right: 52px; // leave room for the corner button
+  }
+}
+
+.card-corner-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 1;
+}
+
+.card-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &.cancel-btn {
+    color: var(--ion-color-danger);
+    background: rgba(var(--ion-color-danger-rgb), 0.08);
+
+    &:active {
+      background: rgba(var(--ion-color-danger-rgb), 0.18);
+    }
+  }
+
+  &.confirm-btn {
+    color: var(--ion-color-success);
+    background: rgba(var(--ion-color-success-rgb), 0.08);
+
+    &:active {
+      background: rgba(var(--ion-color-success-rgb), 0.18);
+    }
+  }
+}
+
 // Section Cards
 .section-card {
   background: var(--card-bg);
@@ -251,6 +309,32 @@
     }
   }
 
+  .label-with-action,
+  .label-edit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .input-label {
+      margin-bottom: 0;
+    }
+  }
+
+  .view-text {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid transparent;
+
+    &.description-view {
+      min-height: 50px;
+      white-space: pre-wrap;
+    }
+  }
+
   .custom-input {
     --background: transparent;
     --color: var(--text-primary);
@@ -352,6 +436,91 @@
 
     .description-card {
       padding: 10px 12px;
+    }
+  }
+}
+
+.description-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .description-trigger {
+    flex: 1;
+  }
+}
+
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.inline-edit-btn {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border: none;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ion-color-primary);
+  transition: all 0.2s ease;
+  padding: 0;
+
+  &:active {
+    transform: scale(0.9);
+    background: rgba(var(--ion-color-primary-rgb), 0.2);
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &.cancel-btn {
+    background: rgba(var(--ion-color-danger-rgb), 0.1);
+    color: var(--ion-color-danger);
+
+    &:active {
+      background: rgba(var(--ion-color-danger-rgb), 0.2);
+    }
+  }
+
+  &.confirm-btn {
+    background: rgba(var(--ion-color-success-rgb), 0.15);
+    color: var(--ion-color-success);
+
+    &:active {
+      background: rgba(var(--ion-color-success-rgb), 0.25);
+    }
+  }
+}
+
+.section-header.label-with-action {
+  margin-bottom: 12px;
+
+  .header-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      background: var(--input-bg);
     }
   }
 }

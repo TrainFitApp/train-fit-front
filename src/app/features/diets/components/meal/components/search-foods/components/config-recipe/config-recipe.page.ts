@@ -37,6 +37,8 @@ export type ConfigRecipeMode = 'create' | 'add' | 'edit';
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
   @ViewChild('quantityInput') quantityInput: any;
+  @ViewChild('nameInput') nameInput: any;
+  @ViewChild('descInput') descInput: any;
   @ViewChild(IonContent) ionContent: IonContent | undefined;
 
   public mode: ConfigRecipeMode = 'create';
@@ -51,7 +53,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public isFavorite = false;
   public loading = false;
   public weightExplainerExpanded = false;
+  public editInfoMode = false;
   public showDescriptionDetails = false;
+  private originalName = '';
+  private originalDesc = '';
   private successfulSave = false;
   public calculatedMacros = {
     kcal: 0,
@@ -446,6 +451,69 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public get canEditIngredients(): boolean {
     // Can ALWAYS edit ingredients (changes saved as overrides, never modifying the original recipe)
     return true;
+  }
+
+  public toggleEditInfo(): void {
+    // Ensure controls have the real values before editing.
+    // In add mode the controls may be empty while the template shows recipe.name/description as fallback.
+    if (!this.recipeForm.get('name')?.value && this.recipe?.name) {
+      this.recipeForm.patchValue({ name: this.recipe.name });
+    }
+    if (!this.recipeForm.get('description')?.value && this.recipe?.description) {
+      this.recipeForm.patchValue({ description: this.recipe.description });
+    }
+
+    // Snapshot for cancel
+    this.originalName = this.recipeForm.get('name')?.value ?? '';
+    this.originalDesc = this.recipeForm.get('description')?.value ?? '';
+    this.editInfoMode = true;
+    this.recipeForm.get('name')?.enable();
+    this.recipeForm.get('description')?.enable();
+    setTimeout(() => this.nameInput?.setFocus(), 150);
+  }
+
+  public async confirmEditInfo(): Promise<void> {
+    if (!this.recipe?._id) return;
+
+    const name = this.recipeForm.get('name')?.value?.trim();
+    const description = this.recipeForm.get('description')?.value ?? '';
+
+    if (!name || name.length < 2) {
+      this.showToast('El nombre es obligatorio (mínimo 2 caracteres)', 'warning');
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const updated = await firstValueFrom(
+        this.recipeService.update(this.recipe._id, { name, description })
+      );
+      this.recipe.name = updated.name;
+      this.recipe.description = updated.description;
+      this.recipeForm.patchValue({ name: updated.name, description: updated.description ?? '' });
+      this.editInfoMode = false;
+      if (this.isAddMode) {
+        this.recipeForm.get('name')?.disable();
+        this.recipeForm.get('description')?.disable();
+      }
+      this.showToast('Receta actualizada', 'success');
+    } catch {
+      this.showToast('Error al guardar los cambios', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  public cancelEditInfo(): void {
+    this.recipeForm.patchValue({
+      name: this.originalName,
+      description: this.originalDesc,
+    });
+    this.editInfoMode = false;
+    if (this.isAddMode) {
+      this.recipeForm.get('name')?.disable();
+      this.recipeForm.get('description')?.disable();
+    }
   }
 
   /**

@@ -2,11 +2,7 @@
   <div class="config-header">
     <div class="header-content">
       <div class="back-section">
-        <button
-          class="back-button"
-          (click)="goBack()"
-          aria-label="Volver"
-        >
+        <button class="back-button" (click)="goBack()" aria-label="Volver">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -16,16 +12,16 @@
       </div>
 
       <div class="header-actions-container">
-      <button
-        *ngIf="recipe"
-        class="header-action-btn fav-btn"
-        [class.is-favorite]="isFavorite"
-        (click)="toggleFavorite()"
-      >
-        <ion-icon
-          [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"
-        ></ion-icon>
-      </button>
+        <button
+          *ngIf="recipe"
+          class="header-action-btn fav-btn"
+          [class.is-favorite]="isFavorite"
+          (click)="toggleFavorite()"
+        >
+          <ion-icon
+            [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"
+          ></ion-icon>
+        </button>
       </div>
     </div>
   </div>
@@ -34,23 +30,62 @@
 <ion-content class="config-recipe-content">
   <div class="form-container">
     <form [formGroup]="recipeForm" class="recipe-form">
-      <!-- Recipe Info Section -->
-      <div class="section-card" *ngIf="isCreateMode || isEditMode">
-        <div class="section-header">
-          <ion-icon name="restaurant-outline" color="primary"></ion-icon>
-          <h3>Información de la receta</h3>
+      <!-- Recipe Info Section (create / edit) -->
+      <div class="section-card info-card" *ngIf="isCreateMode || isEditMode">
+        <!-- Corner edit controls -->
+        <div *ngIf="isEditMode" class="card-corner-actions">
+          <ng-container *ngIf="editInfoMode; else infoEditTrigger">
+            <button
+              type="button"
+              class="card-action-btn cancel-btn"
+              (click)="cancelEditInfo()"
+            >
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="card-action-btn confirm-btn"
+              (click)="confirmEditInfo()"
+              [disabled]="loading"
+            >
+              <ion-spinner *ngIf="loading" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+              <ion-icon *ngIf="!loading" name="checkmark-outline"></ion-icon>
+            </button>
+          </ng-container>
+          <ng-template #infoEditTrigger>
+            <button
+              type="button"
+              class="card-action-btn"
+              (click)="toggleEditInfo()"
+            >
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+          </ng-template>
         </div>
 
+        <div class="section-header">
+          <ion-icon name="restaurant-outline" color="primary"></ion-icon>
+          <h3>Receta</h3>
+        </div>
+
+        <!-- Name -->
         <div class="input-group">
           <label class="input-label">Nombre *</label>
-          <div class="input-wrapper">
+          <div
+            class="input-wrapper"
+            *ngIf="editInfoMode || isCreateMode; else viewNameEdit"
+          >
             <ion-input
               type="text"
               formControlName="name"
               placeholder="Ej: Pollo salteado"
               class="custom-input"
+              #nameInput
             ></ion-input>
           </div>
+          <ng-template #viewNameEdit>
+            <div class="view-text">{{ recipeForm.get('name')?.value }}</div>
+          </ng-template>
           <span
             class="error-hint"
             *ngIf="recipeForm.get('name')?.touched && recipeForm.get('name')?.invalid"
@@ -59,6 +94,7 @@
           </span>
         </div>
 
+        <!-- Description (collapsible) -->
         <div
           class="description-explainer"
           [class.expanded]="showDescriptionDetails"
@@ -68,40 +104,100 @@
             class="description-trigger"
             (click)="showDescriptionDetails = !showDescriptionDetails"
           >
-            <span class="trigger-title">{{
-              showDescriptionDetails ? "Mostrar menos" : "Mostrar más"
-            }}</span>
+            <span class="trigger-title"
+              >{{ showDescriptionDetails ? 'Descripción' : 'Ver descripción'
+              }}</span
+            >
             <ion-icon
               [name]="showDescriptionDetails ? 'chevron-up-outline' : 'chevron-down-outline'"
               class="trigger-icon"
             ></ion-icon>
           </button>
           <div class="description-card" *ngIf="showDescriptionDetails">
-            <div class="input-group description-input-group">
-              <label class="input-label">Descripción</label>
-              <div class="input-wrapper textarea-wrapper">
-                <ion-textarea
-                  formControlName="description"
-                  placeholder="Descripción opcional..."
-                  [autoGrow]="true"
-                  [rows]="2"
-                  class="custom-textarea"
-                ></ion-textarea>
-              </div>
+            <div
+              class="input-wrapper textarea-wrapper"
+              *ngIf="editInfoMode || isCreateMode; else viewDescEdit"
+            >
+              <ion-textarea
+                formControlName="description"
+                placeholder="Descripción opcional..."
+                [autoGrow]="true"
+                [rows]="3"
+                class="custom-textarea"
+                #descInput
+              ></ion-textarea>
             </div>
+            <ng-template #viewDescEdit>
+              <div class="view-text description-view">
+                {{ recipeForm.get('description')?.value || 'Sin descripción' }}
+              </div>
+            </ng-template>
           </div>
         </div>
       </div>
 
-      <!-- Recipe Display (Add Mode) -->
-      <div class="section-card recipe-preview" *ngIf="isAddMode && recipe">
-        <div class="section-header">
-          <ion-icon name="restaurant-outline" color="primary"></ion-icon>
-          <h3>{{ recipe.name }}</h3>
+      <!-- Recipe Info Section (add mode) -->
+      <div
+        class="section-card recipe-preview info-card"
+        *ngIf="isAddMode && recipe"
+      >
+        <!-- Corner edit controls -->
+        <div class="card-corner-actions">
+          <ng-container *ngIf="editInfoMode; else addEditTrigger">
+            <button
+              type="button"
+              class="card-action-btn cancel-btn"
+              (click)="cancelEditInfo()"
+            >
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="card-action-btn confirm-btn"
+              (click)="confirmEditInfo()"
+              [disabled]="loading"
+            >
+              <ion-spinner *ngIf="loading" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+              <ion-icon *ngIf="!loading" name="checkmark-outline"></ion-icon>
+            </button>
+          </ng-container>
+          <ng-template #addEditTrigger>
+            <button
+              type="button"
+              class="card-action-btn"
+              (click)="toggleEditInfo()"
+            >
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+          </ng-template>
         </div>
+
+        <div class="section-header">
+          <ion-icon name="restaurant" color="primary"></ion-icon>
+          <h3>Receta</h3>
+        </div>
+
+        <!-- Name -->
+        <div class="input-group">
+          <label class="input-label">Nombre</label>
+          <div class="input-wrapper" *ngIf="editInfoMode; else viewNameAdd">
+            <ion-input
+              type="text"
+              formControlName="name"
+              class="custom-input"
+              #nameInput
+            ></ion-input>
+          </div>
+          <ng-template #viewNameAdd>
+            <div class="view-text">
+              {{ recipeForm.get('name')?.value || recipe.name }}
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Description (collapsible) -->
         <div
-          *ngIf="recipe.description"
-          class="description-explainer preview-description"
+          class="description-explainer"
           [class.expanded]="showDescriptionDetails"
         >
           <button
@@ -109,19 +205,36 @@
             class="description-trigger"
             (click)="showDescriptionDetails = !showDescriptionDetails"
           >
-            <span class="trigger-title">{{
-              showDescriptionDetails ? "Mostrar menos" : "Mostrar más"
-            }}</span>
+            <span class="trigger-title"
+              >{{ showDescriptionDetails ? 'Descripción' : 'Ver descripción'
+              }}</span
+            >
             <ion-icon
               [name]="showDescriptionDetails ? 'chevron-up-outline' : 'chevron-down-outline'"
               class="trigger-icon"
             ></ion-icon>
           </button>
           <div class="description-card" *ngIf="showDescriptionDetails">
-            <p class="recipe-description">{{ recipe.description }}</p>
+            <div
+              class="input-wrapper textarea-wrapper"
+              *ngIf="editInfoMode; else viewDescAdd"
+            >
+              <ion-textarea
+                formControlName="description"
+                [autoGrow]="true"
+                [rows]="3"
+                class="custom-textarea"
+                #descInput
+              ></ion-textarea>
+            </div>
+            <ng-template #viewDescAdd>
+              <div class="view-text description-view">
+                {{ recipeForm.get('description')?.value || recipe.description ||
+                'Sin descripción' }}
+              </div>
+            </ng-template>
           </div>
         </div>
-
       </div>
 
       <!-- Quantity Section -->
@@ -192,7 +305,6 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Ingredients Section (Available in all modes) -->
@@ -284,7 +396,6 @@
           <span>Añade al menos 2 ingredientes para crear una receta</span>
         </div>
       </div>
-
     </form>
   </div>
 </ion-content>
@@ -297,9 +408,9 @@
         <ion-card-content>
           <div class="macro-summary-flex">
             <div class="summary-item calories">
-              <span class="summary-value">{{
-                footerKcal | number:'1.0-0'
-              }}</span>
+              <span class="summary-value"
+                >{{ footerKcal | number:'1.0-0' }}</span
+              >
               <span class="summary-label">kcal</span>
             </div>
             <div class="summary-divider"></div>
