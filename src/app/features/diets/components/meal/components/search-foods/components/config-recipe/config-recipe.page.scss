@@ -140,6 +140,14 @@
   }
 }
 
+.ingredients-macros-hint {
+  margin: -6px 0 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
 // Info Explainer Card
 .info-explainer {
   margin: 0 0 16px 0;
@@ -733,6 +741,198 @@
   }
 }
 
+.ingredients-sum {
+  margin-top: 14px;
+
+  .ingredients-sum-separator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    .line {
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .plus {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1;
+    }
+  }
+
+  .ingredients-sum-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 12px 8px;
+  }
+
+  .sum-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .sum-value {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+
+      small {
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-left: 1px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    .sum-label {
+      font-size: 0.58rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.28px;
+      color: rgba(255, 255, 255, 0.62);
+
+      &.protein {
+        color: var(--ion-color-alternative);
+      }
+
+      &.carbs {
+        color: var(--ion-color-success);
+      }
+
+      &.fat {
+        color: var(--ion-color-secondary);
+      }
+    }
+
+    &.calories {
+      .sum-value {
+        color: var(--ion-color-primary);
+        font-size: 1.18rem;
+      }
+
+      .sum-label {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .sum-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .ingredients-sum-hint {
+    margin: 8px 2px 0;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.14px;
+  }
+}
+
+.recipe-inline-macros {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .footer-macros-hint {
+    margin: 2px 4px 0;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.15px;
+  }
+
+  .ingredient-macro-summary-card {
+    margin: 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: none;
+    background: #1a1a1a;
+
+    ion-card-content {
+      padding: 12px 8px;
+    }
+  }
+
+  .macro-summary-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+  }
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .summary-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: white;
+      line-height: 1.2;
+
+      small {
+        font-size: 0.75em;
+        font-weight: 600;
+        margin-left: 1px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    .summary-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: rgba(255, 255, 255, 0.6);
+
+      &.protein {
+        color: var(--ion-color-alternative);
+      }
+
+      &.carbs {
+        color: var(--ion-color-success);
+      }
+
+      &.fat {
+        color: var(--ion-color-secondary);
+      }
+    }
+
+    &.calories {
+      .summary-value {
+        color: var(--ion-color-primary);
+        font-size: 1.25rem;
+      }
+
+      .summary-label {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+
+  .summary-divider {
+    width: 1px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
 // Macro Summary & Portion Summary
 .macro-summary {
   &.portion-summary {
@@ -954,99 +1154,6 @@
       height: 32px;
       background: #141414;
       z-index: -1;
-    }
-  }
-
-  .recipe-footer-macros {
-    margin-bottom: 10px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    .footer-macros-hint {
-      margin: 0 4px 2px;
-      font-size: 0.68rem;
-      line-height: 1.25;
-      color: rgba(255, 255, 255, 0.55);
-      letter-spacing: 0.15px;
-    }
-
-    .ingredient-macro-summary-card {
-      margin: 0;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      box-shadow: none;
-      background: #1a1a1a;
-
-      ion-card-content {
-        padding: 12px 8px;
-      }
-    }
-
-    .macro-summary-flex {
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      text-align: center;
-    }
-
-    .summary-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-
-      .summary-value {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: white;
-        line-height: 1.2;
-
-        small {
-          font-size: 0.75em;
-          font-weight: 600;
-          margin-left: 1px;
-          color: rgba(255, 255, 255, 0.5);
-        }
-      }
-
-      .summary-label {
-        font-size: 0.6rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        color: rgba(255, 255, 255, 0.6);
-
-        &.protein {
-          color: var(--ion-color-alternative);
-        }
-
-        &.carbs {
-          color: var(--ion-color-success);
-        }
-
-        &.fat {
-          color: var(--ion-color-secondary);
-        }
-      }
-
-      &.calories {
-        .summary-value {
-          color: var(--ion-color-primary);
-          font-size: 1.25rem;
-        }
-
-        .summary-label {
-          color: var(--ion-color-primary);
-        }
-      }
-    }
-
-    .summary-divider {
-      width: 1px;
-      height: 30px;
-      background: rgba(255, 255, 255, 0.1);
     }
   }
 

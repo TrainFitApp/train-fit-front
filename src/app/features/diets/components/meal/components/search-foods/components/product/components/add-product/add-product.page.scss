@@ -1033,9 +1033,9 @@ ion-accordion {
 .save-button-global {
   --background: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary-shade);
-  --border-radius: 14px;
+  --border-radius: 12px;
   --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
-  height: 48px;
+  height: 44px;
   margin: 0;
 
   .button-content {

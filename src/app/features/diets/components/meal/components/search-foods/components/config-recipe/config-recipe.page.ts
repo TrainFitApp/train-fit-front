@@ -544,7 +544,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private get hasConsumedQuantityForMacros(): boolean {
     const rawQuantity = this.recipeForm?.get('quantity')?.value;
-    if (rawQuantity === null || rawQuantity === undefined || rawQuantity === '') {
+    if (
+      rawQuantity === null ||
+      rawQuantity === undefined ||
+      rawQuantity === ''
+    ) {
       return false;
     }
     const qty = Number(rawQuantity);
@@ -559,17 +563,33 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     );
   }
 
+  private get hasCookedTotalForMacros(): boolean {
+    const rawCooked = this.recipeForm?.get('quantityCooked')?.value;
+    if (rawCooked === null || rawCooked === undefined || rawCooked === '') {
+      return false;
+    }
+    const cooked = Number(rawCooked);
+    return Number.isFinite(cooked) && cooked > 0;
+  }
+
   public get footerUsesConsumedQuantity(): boolean {
-    return this.supportsConsumedQuantityMode && this.hasConsumedQuantityForMacros;
+    return (
+      this.supportsConsumedQuantityMode && this.hasConsumedQuantityForMacros
+    );
   }
 
   public get footerMacrosHint(): string {
     if (!this.supportsConsumedQuantityMode) {
-      return 'Macros calculados sobre el total cocinado.';
+      return this.hasCookedTotalForMacros
+        ? 'Cálculo del total cocinado.'
+        : 'Cálculo del total sin cocinar.';
     }
-    return this.footerUsesConsumedQuantity
-      ? 'Macros calculados sobre la ración consumida.'
-      : 'Ración consumida vacía: macros del total cocinado.';
+    if (this.footerUsesConsumedQuantity) {
+      return 'Cálculo sobre la ración consumida.';
+    }
+    return this.hasCookedTotalForMacros
+      ? 'Cálculo del total cocinado.'
+      : 'Cálculo del total sin cocinar.';
   }
 
   public get footerKcal(): number {
@@ -594,6 +614,49 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return this.footerUsesConsumedQuantity
       ? this.portionMacros.fat
       : this.calculatedMacros.fat;
+  }
+
+  private get inlinePer100BaseWeight(): number {
+    const raw = this.recipeForm?.getRawValue?.() || {};
+    if (this.footerUsesConsumedQuantity) {
+      return this.toOptionalPositiveNumber(raw.quantity) || 0;
+    }
+    return (
+      this.toOptionalPositiveNumber(raw.quantityCooked) ||
+      this.calculatedMacros.quantity ||
+      0
+    );
+  }
+
+  private toPer100(value: number): number {
+    const baseWeight = this.inlinePer100BaseWeight;
+    if (!baseWeight || baseWeight <= 0) return 0;
+    return (value / baseWeight) * 100;
+  }
+
+  public get inlinePer100Kcal(): number {
+    return this.toPer100(this.footerKcal);
+  }
+
+  public get inlinePer100Protein(): number {
+    return this.toPer100(this.footerProtein);
+  }
+
+  public get inlinePer100Carbs(): number {
+    return this.toPer100(this.footerCarbs);
+  }
+
+  public get inlinePer100Fat(): number {
+    return this.toPer100(this.footerFat);
+  }
+
+  public get inlinePer100Hint(): string {
+    if (this.footerUsesConsumedQuantity) {
+      return '*Por cada 100g sobre la ración consumida.';
+    }
+    return this.hasCookedTotalForMacros
+      ? '*Por cada 100g sobre el total cocinado.'
+      : '*Por cada 100g sobre el sumatorio sin cocinar.';
   }
 
   public recalculateMacros(): void {
@@ -814,7 +877,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private async saveNewRecipe(): Promise<void> {
     const formValue = this.recipeForm.getRawValue();
-    const quantityCooked = this.toOptionalPositiveNumber(formValue.quantityCooked);
+    const quantityCooked = this.toOptionalPositiveNumber(
+      formValue.quantityCooked
+    );
     const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     try {
@@ -834,9 +899,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         };
         composePayload.instance = {
           quantity:
-            quantity ||
-            quantityCooked ||
-            this.calculatedMacros.quantity,
+            quantity || quantityCooked || this.calculatedMacros.quantity,
           customProductsOverrides: [],
           additionalCustomProducts: [],
         };
@@ -912,7 +975,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
 
     const formValue = this.recipeForm.getRawValue();
-    const quantityCooked = this.toOptionalPositiveNumber(formValue.quantityCooked);
+    const quantityCooked = this.toOptionalPositiveNumber(
+      formValue.quantityCooked
+    );
     const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     // Extract dataRecipeId (dataRecipe can be string or object)

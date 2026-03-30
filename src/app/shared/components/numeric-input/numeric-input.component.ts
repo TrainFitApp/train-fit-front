@@ -68,6 +68,32 @@ export class NumericInputComponent implements OnInit {
     }, 1200);
   }
 
+  public onInputFocus(event: FocusEvent): void {
+    const target = event?.target as HTMLElement | null;
+    const setContainer =
+      target?.closest('app-set') ??
+      target?.closest('.current-set-container') ??
+      target;
+
+    if (!setContainer) {
+      return;
+    }
+
+    // iOS puede abrir teclado y redimensionar con retraso; hacemos dos intentos.
+    const scrollToFocusedSet = () => {
+      try {
+        setContainer.scrollIntoView({
+          block: 'center',
+          inline: 'nearest',
+          behavior: 'smooth',
+        });
+      } catch {}
+    };
+
+    scrollToFocusedSet();
+    setTimeout(scrollToFocusedSet, 220);
+  }
+
   public onInputChange(event: any): void {
     const rawValue = event?.target?.value;
 

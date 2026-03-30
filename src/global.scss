@@ -1372,8 +1372,9 @@ body.has-ad-banner.has-tabs-ad ion-content {
   /* 52 del banner + 50 de los tabs */
 }
 
-/* Alert de salida con cambios: 2 botones arriba + 1 abajo */
-.custom-alert.unsaved-exit-alert {
+/* Alert de cambios sin guardar: 2 botones arriba + 1 abajo */
+.custom-alert.unsaved-exit-alert,
+.custom-alert.alert-grid-buttons {
   .alert-button-group {
     display: flex !important;
     flex-wrap: wrap !important;
@@ -1382,34 +1383,41 @@ body.has-ad-banner.has-tabs-ad ion-content {
     align-items: stretch !important;
   }
 
-  /* Evita límites heredados de otros alerts */
   .alert-button {
     max-width: none !important;
   }
 
-  /* Fila superior */
+  /* Arriba izquierda: Cancelar */
+  .alert-button.alert-button-role-cancel,
   .alert-button.unsaved-cancel-btn {
     order: 1 !important;
     flex: 1 1 calc(50% - 4px) !important;
   }
 
+  /* Arriba derecha: Guardar / Confirmar */
+  .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive):not(.unsaved-discard-btn),
   .alert-button.unsaved-save-btn {
     order: 2 !important;
     flex: 1 1 calc(50% - 4px) !important;
   }
 
+  /* Debajo centrado: Salir sin guardar / No guardar */
+  .alert-button.alert-button-role-destructive,
   .alert-button.unsaved-discard-btn {
     order: 3 !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 170px !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 220px !important;
     margin: 0 auto !important;
+    justify-content: center !important;
   }
 
-  /* Look neutro compartido (Cancelar + Salir sin guardar) */
-  .alert-button.unsaved-neutral-btn {
+  /* Neutro para acciones no destructivas visualmente */
+  .alert-button.unsaved-neutral-btn,
+  .alert-button.unsaved-discard-btn,
+  .alert-button.alert-button-role-destructive {
     background: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.8) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
   }
 }

@@ -1,8 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Platform } from '@ionic/angular';
-import { Keyboard } from '@capacitor/keyboard';
-import { PluginListenerHandle } from '@capacitor/core';
 import { Observer } from 'rxjs';
 import { Token } from 'src/app/core/models/token';
 import { User } from 'src/app/core/models/user';
@@ -36,7 +34,6 @@ export class SignInPage implements OnInit {
   public loading: boolean;
   public theme: Theme;
   public showPass: boolean;
-  public isKeyboardVisible: boolean;
   public showLogo: boolean;
   public hasFormFocus: boolean;
 
@@ -44,12 +41,6 @@ export class SignInPage implements OnInit {
   public isAndroid: boolean;
 
   public error: string;
-  private keyboardWillShowHandle?: PluginListenerHandle;
-  private keyboardWillHideHandle?: PluginListenerHandle;
-  private keyboardDidShowHandle?: PluginListenerHandle;
-  private keyboardDidHideHandle?: PluginListenerHandle;
-  private visualViewportResizeHandler?: () => void;
-  private baseViewportHeight?: number;
   private logoSyncTimeoutId?: ReturnType<typeof setTimeout>;
 
   public THEMES = Theme;
@@ -81,19 +72,18 @@ export class SignInPage implements OnInit {
     this.initForm();
   }
 
-  public ionViewDidEnter(): void {
-    void this.initializeKeyboardListeners();
-  }
-
   public ionViewWillLeave(): void {
-    void this.removeKeyboardListeners();
-    this.updateKeyboardUi(false);
+    this.hasFormFocus = false;
+    this.syncLogoVisibility();
+    if (this.logoSyncTimeoutId) {
+      clearTimeout(this.logoSyncTimeoutId);
+      this.logoSyncTimeoutId = undefined;
+    }
   }
 
   private initVariables(): void {
     this.loading = false;
     this.error = '';
-    this.isKeyboardVisible = false;
     this.showLogo = true;
     this.hasFormFocus = false;
 
@@ -564,120 +554,6 @@ export class SignInPage implements OnInit {
     }, 0);
   }
 
-  private async initializeKeyboardListeners(): Promise<void> {
-    await this.removeKeyboardListeners();
-
-    const handleWillShow = () => {
-      this.updateKeyboardUi(true, false);
-    };
-    const handleDidShow = () => {
-      this.updateKeyboardUi(true, true);
-    };
-    const handleHide = () => {
-      this.updateKeyboardUi(false);
-    };
-
-    try {
-      this.keyboardWillShowHandle = await Keyboard.addListener(
-        'keyboardWillShow',
-        handleWillShow
-      );
-      this.keyboardWillHideHandle = await Keyboard.addListener(
-        'keyboardWillHide',
-        handleHide
-      );
-      this.keyboardDidShowHandle = await Keyboard.addListener(
-        'keyboardDidShow',
-        handleDidShow
-      );
-      this.keyboardDidHideHandle = await Keyboard.addListener(
-        'keyboardDidHide',
-        handleHide
-      );
-    } catch (error) {
-      console.error('[SignIn][Keyboard] Failed to register listeners', error);
-    }
-
-    if (this._platform.is('ios') && window.visualViewport) {
-      this.baseViewportHeight = window.visualViewport.height;
-      this.visualViewportResizeHandler = () => {
-        const currentHeight = window.visualViewport?.height;
-        if (!currentHeight) return;
-
-        if (
-          !this.baseViewportHeight ||
-          currentHeight > this.baseViewportHeight
-        ) {
-          this.baseViewportHeight = currentHeight;
-        }
-
-        const isKeyboardVisible =
-          currentHeight < (this.baseViewportHeight ?? currentHeight) - 120;
-        this.updateKeyboardUi(isKeyboardVisible, isKeyboardVisible);
-
-        if (!isKeyboardVisible) {
-          this.baseViewportHeight = currentHeight;
-        }
-      };
-
-      window.visualViewport.addEventListener(
-        'resize',
-        this.visualViewportResizeHandler
-      );
-    }
-  }
-
-  private async removeKeyboardListeners(): Promise<void> {
-    try {
-      await this.keyboardWillShowHandle?.remove();
-      await this.keyboardWillHideHandle?.remove();
-      await this.keyboardDidShowHandle?.remove();
-      await this.keyboardDidHideHandle?.remove();
-    } catch (error) {
-      console.error('[SignIn][Keyboard] Failed to remove listeners', error);
-    }
-
-    this.keyboardWillShowHandle = undefined;
-    this.keyboardWillHideHandle = undefined;
-    this.keyboardDidShowHandle = undefined;
-    this.keyboardDidHideHandle = undefined;
-
-    if (this.visualViewportResizeHandler && window.visualViewport) {
-      window.visualViewport.removeEventListener(
-        'resize',
-        this.visualViewportResizeHandler
-      );
-    }
-
-    this.visualViewportResizeHandler = undefined;
-    this.baseViewportHeight = undefined;
-
-    if (this.logoSyncTimeoutId) {
-      clearTimeout(this.logoSyncTimeoutId);
-      this.logoSyncTimeoutId = undefined;
-    }
-  }
-
-  private updateKeyboardUi(
-    isVisible: boolean,
-    hideLogoWhenVisible: boolean = true
-  ): void {
-    this.isKeyboardVisible = isVisible;
-    if (!hideLogoWhenVisible && isVisible) {
-      // keyboardWillShow: mantener logo hasta didShow o focus delay.
-      this.syncLogoVisibility();
-    } else {
-      this.syncLogoVisibility();
-    }
-
-    // Los callbacks nativos del teclado pueden ejecutarse fuera del ciclo
-    // de detección de Angular; forzamos repaint para que el *ngIf del logo
-    // responda en tiempo real.
-    try {
-      this.cdr.detectChanges();
-    } catch {}
-  }
-
   private syncLogoVisibility(delayMs: number = 0): void {
     if (this.logoSyncTimeoutId) {
       clearTimeout(this.logoSyncTimeoutId);
@@ -685,7 +561,7 @@ export class SignInPage implements OnInit {
     }
 
     const apply = () => {
-      this.showLogo = !(this.isKeyboardVisible || this.hasFormFocus);
+      this.showLogo = !this.hasFormFocus;
       try {
         this.cdr.detectChanges();
       } catch {}

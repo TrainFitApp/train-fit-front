@@ -10,6 +10,7 @@
     inputmode="decimal"
     class="numeric-value-input"
     [value]="displayValue"
+    (focus)="onInputFocus($event)"
     (input)="onInputChange($event)"
     (click)="onInputClick()"
     [placeholder]="placeholder || '-'"

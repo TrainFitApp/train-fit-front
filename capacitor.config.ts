@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
       overlaysWebView: false,
     },
     Keyboard: {
-      resize: 'ionic' as any,
+      resize: 'native' as any,
       resizeOnFullScreen: false,
     },
     CapacitorCookies: {

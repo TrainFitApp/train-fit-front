@@ -51,7 +51,7 @@
   </div>
 </ion-header>
 
-<ion-content>
+<ion-content appHideKeyboardOnScroll>
   <!-- Products List -->
   <ng-container *ngIf="currentMode === 'products'">
     <ion-list *ngIf="products.length > 0; else noProducts"

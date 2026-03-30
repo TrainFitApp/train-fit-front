@@ -112,7 +112,7 @@ export class SearchTablesPage implements OnInit {
       ]);
     }
 
-    this.adMobService.interstitial(); // Estrategia AdMob
+    this.adMobService.interstitialCapgo(); // Migrado a Capgo AdMob
   }
 
   public deleteTable(idTable: string): void {

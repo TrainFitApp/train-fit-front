@@ -572,12 +572,38 @@ export class UtilService {
   private static lastScrollTop: number;
 
   public hideKeyboardOnClick(event: Event): void {
+    const composedPath = (event as any)?.composedPath?.() as
+      | EventTarget[]
+      | undefined;
+    const isInputFromPath = !!composedPath?.some((node) => {
+      if (!(node instanceof Element)) {
+        return false;
+      }
+
+      const tagName = node.tagName?.toLowerCase();
+      if (tagName === 'input' || tagName === 'textarea') {
+        return true;
+      }
+      if (tagName === 'ion-input' || tagName === 'ion-textarea') {
+        return true;
+      }
+      if (
+        node.classList.contains('native-input') ||
+        node.classList.contains('textarea-native')
+      ) {
+        return true;
+      }
+      return node.getAttribute('contenteditable') === 'true';
+    });
+
     const target = event?.target as Element | null;
-    const isInput =
+    const isInputFromClosest =
       !!target &&
-      !!(target as Element).closest(
-        'input, textarea, ion-input, ion-textarea, [contenteditable="true"]'
+      !!target.closest(
+        'input, textarea, ion-input, ion-textarea, .native-input, .textarea-native, [contenteditable="true"]'
       );
+
+    const isInput = isInputFromPath || isInputFromClosest;
     if (isInput) return;
     Keyboard.hide().catch(() => {});
     const active = document.activeElement as HTMLElement | null;

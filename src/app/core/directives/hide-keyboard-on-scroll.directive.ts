@@ -2,13 +2,8 @@ import { Directive, HostListener, OnInit, Self } from '@angular/core';
 import { IonContent } from '@ionic/angular';
 import { UtilService } from '../services/util/util.service';
 
-/**
- * Directiva que cierra automáticamente el teclado al hacer scroll hacia abajo.
- * Se aplica automáticamente a todos los ion-content.
- * Habilita scrollEvents automáticamente.
- */
 @Directive({
-    selector: 'ion-content'
+    selector: 'ion-content[appHideKeyboardOnScroll]'
 })
 export class HideKeyboardOnScrollDirective implements OnInit {
 
@@ -17,10 +12,7 @@ export class HideKeyboardOnScrollDirective implements OnInit {
         @Self() private ionContent: IonContent
     ) { }
 
-    ngOnInit() {
-        // Necesario para que ion-content emita (ionScroll) en todas las pantallas.
-        this.ionContent.scrollEvents = true;
-    }
+    ngOnInit() {}
 
     @HostListener('click', ['$event'])
     onClick(event: MouseEvent): void {
@@ -32,8 +24,8 @@ export class HideKeyboardOnScrollDirective implements OnInit {
         this.utilService.hideKeyboardOnClick(event as unknown as MouseEvent);
     }
 
-    @HostListener('ionScroll', ['$event'])
-    onScroll(event: any): void {
-        this.utilService.hideKeyboardOnScroll(event);
-    }
+    // ⚠️ No ocultar teclado en ionScroll de forma global:
+    // interfiere con el scroll-assist nativo de Ionic al enfocar inputs
+    // (especialmente en iOS), y puede provocar que el teclado se cierre
+    // justo al intentar abrirse o que no desplace bien el contenido.
 }

@@ -37,7 +37,7 @@
   </div>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding" appHideKeyboardOnScroll>
   <form [formGroup]="addCustomProductForm">
     <!-- Tarjeta principal del producto -->
     <ion-card class="product-header-card">
@@ -181,6 +181,33 @@
         </div>
       </ion-card-content>
     </ion-card>
+
+    <ion-card *ngIf="isDietMode" class="macro-summary-card">
+      <ion-card-content>
+        <div class="macro-summary-flex">
+          <div class="summary-item calories">
+            <span class="summary-value">{{ totalCalories }}</span>
+            <span class="summary-label">kcal</span>
+          </div>
+          <div class="summary-divider"></div>
+          <div class="summary-item">
+            <span class="summary-value"
+              >{{ totalProtein }}<small>g</small></span
+            >
+            <span class="summary-label protein">Proteína</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
+            <span class="summary-label carbs">CBH</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-value">{{ totalFat }}<small>g</small></span>
+            <span class="summary-label fat">Grasas</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Tarjeta de información nutricional mejorada -->
     <ion-card class="nutrition-card">
       <ion-card-header>
@@ -1384,36 +1411,9 @@
 
 <ion-footer *ngIf="isDietMode" class="elegant-footer">
   <div class="footer-content">
-    <ion-card class="macro-summary-card">
-      <ion-card-content>
-        <div class="macro-summary-flex">
-          <div class="summary-item calories">
-            <span class="summary-value">{{ totalCalories }}</span>
-            <span class="summary-label">kcal</span>
-          </div>
-          <div class="summary-divider"></div>
-          <div class="summary-item">
-            <span class="summary-value"
-              >{{ totalProtein }}<small>g</small></span
-            >
-            <span class="summary-label protein">Proteína</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
-            <span class="summary-label carbs">CBH</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-value">{{ totalFat }}<small>g</small></span>
-            <span class="summary-label fat">Grasas</span>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
-
     <ion-button
       *ngIf="(meal || ingredientMode) && !loading.value; else loadingTemplate"
       expand="block"
-      size="large"
       class="save-button-global"
       [disabled]="addCustomProductForm.invalid"
       (click)="addCustomProduct()"
@@ -1433,7 +1433,7 @@
       <ion-button
         *ngIf="meal || ingredientMode"
         expand="block"
-        size="large"
+        class="save-button-global"
         disabled
       >
         <div class="loading-content">
