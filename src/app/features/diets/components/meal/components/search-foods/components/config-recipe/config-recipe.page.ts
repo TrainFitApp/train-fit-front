@@ -58,6 +58,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private originalName = '';
   private originalDesc = '';
   private successfulSave = false;
+  private recipeInfoEdited = false;
   public calculatedMacros = {
     kcal: 0,
     protein: 0,
@@ -492,6 +493,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.recipe.description = updated.description;
       this.recipeForm.patchValue({ name: updated.name, description: updated.description ?? '' });
       this.editInfoMode = false;
+      this.recipeInfoEdited = true;
       if (this.isAddMode) {
         this.recipeForm.get('name')?.disable();
         this.recipeForm.get('description')?.disable();
@@ -1417,6 +1419,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           ingredientMode: false,
           mealName: this.meal?.name,
           selectedDate: this.selectedDate || this.dietDay?.date,
+          updatedRecipe: this.recipeInfoEdited ? this.recipe : undefined,
         },
       });
     } else {
