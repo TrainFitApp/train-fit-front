@@ -14,18 +14,57 @@ import { User } from 'src/app/core/models/user';
 import { Platform } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
 
+export type InterstitialPlacement =
+  | 'default'
+  | 'start_statistics'
+  | 'start_workout'
+  | 'save_nutrition'
+  | 'create_routine'
+  | 'create_product'
+  | 'create_exercise'
+  | 'create_recipe'
+  | 'acquire_routine'
+  | 'profile_start';
+
 @Injectable()
 export class AdMobService {
-  // IDs TEMPORALES (Se actualizarán tras el registro en AdMob)
-  private readonly ID_ANDROID_INTERSTITIAL =
+  private readonly ID_ANDROID_INTERSTITIAL_DEFAULT =
     'ca-app-pub-7032025540653355/1755796410';
-  private readonly ID_IOS_INTERSTITIAL =
+  private readonly ID_IOS_INTERSTITIAL_DEFAULT =
     'ca-app-pub-7032025540653355/1755796410';
 
+  private readonly ID_ANDROID_BANNER = 'ca-app-pub-7032025540653355/9490763271';
+  private readonly ID_IOS_BANNER = 'ca-app-pub-7032025540653355/3590300413';
 
+  private readonly INTERSTITIAL_ANDROID: Record<
+    Exclude<InterstitialPlacement, 'default'>,
+    string
+  > = {
+    start_statistics: 'ca-app-pub-7032025540653355/9245951775',
+    start_workout: 'ca-app-pub-7032025540653355/4185196788',
+    save_nutrition: 'ca-app-pub-7032025540653355/6811360120',
+    create_routine: 'ca-app-pub-7032025540653355/8253703220',
+    create_product: 'ca-app-pub-7032025540653355/9577124267',
+    create_exercise: 'ca-app-pub-7032025540653355/1935706881',
+    create_recipe: 'ca-app-pub-7032025540653355/1879866567',
+    acquire_routine: 'ca-app-pub-7032025540653355/9629095154',
+    profile_start: 'ca-app-pub-7032025540653355/4314458216',
+  };
 
-  private readonly ID_ANDROID_BANNER = 'ca-app-pub-7032025540653355/9207478277';
-  private readonly ID_IOS_BANNER = 'ca-app-pub-7032025540653355/9207478277';
+  private readonly INTERSTITIAL_IOS: Record<
+    Exclude<InterstitialPlacement, 'default'>,
+    string
+  > = {
+    start_statistics: 'ca-app-pub-7032025540653355/2193458263',
+    start_workout: 'ca-app-pub-7032025540653355/4085124438',
+    save_nutrition: 'ca-app-pub-7032025540653355/7337973738',
+    create_routine: 'ca-app-pub-7032025540653355/7832797754',
+    create_product: 'ca-app-pub-7032025540653355/9768695959',
+    create_exercise: 'ca-app-pub-7032025540653355/8699156867',
+    create_recipe: 'ca-app-pub-7032025540653355/4753441916',
+    acquire_routine: 'ca-app-pub-7032025540653355/2238959219',
+    profile_start: 'ca-app-pub-7032025540653355/5874037227',
+  };
 
   // Inyección de servicios
   private readonly userService = inject(UserService);
@@ -42,15 +81,16 @@ export class AdMobService {
   /**
    * Muestra un anuncio Intersticial
    */
-  public async interstitial(): Promise<void> {
+  public async interstitial(
+    placement: InterstitialPlacement = 'default'
+  ): Promise<void> {
     await this.initializing;
     const user: User = this.userService.getLocalUser;
     if (user.personalAds === undefined) await this.consent(user);
+    const adId = this.getInterstitialAdId(placement);
 
     const options: AdOptions = {
-      adId: this._platform.is('ios')
-        ? this.ID_IOS_INTERSTITIAL
-        : this.ID_ANDROID_INTERSTITIAL,
+      adId,
       isTesting: !environment.production,
       npa: !user.personalAds,
     };
@@ -182,5 +222,17 @@ export class AdMobService {
       user.personalAds = true;
     }
     this.userService.setLocalUser = user;
+  }
+
+  private getInterstitialAdId(placement: InterstitialPlacement): string {
+    if (placement === 'default') {
+      return this._platform.is('ios')
+        ? this.ID_IOS_INTERSTITIAL_DEFAULT
+        : this.ID_ANDROID_INTERSTITIAL_DEFAULT;
+    }
+
+    return this._platform.is('ios')
+      ? this.INTERSTITIAL_IOS[placement]
+      : this.INTERSTITIAL_ANDROID[placement];
   }
 }

@@ -134,7 +134,7 @@ export class SummaryPage {
             this.navigationService.goToMesocycle();
 
             if (!this.user.isPremium) {
-              this.adMobService.interstitial();
+              this.adMobService.interstitial('create_routine');
             }
             const toastOptions: ToastOptions = {
               message: 'Rutina creada con éxito',
@@ -222,7 +222,7 @@ export class SummaryPage {
           text: 'Ver Anuncio',
           cssClass: 'alert-button-success',
           handler: () => {
-            this.adMobService.interstitial()
+            this.adMobService.interstitial('start_statistics')
               .then(() => {
                 this.navigationService.goToStatistics();
               })

@@ -917,7 +917,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.showToast('Receta creada con éxito', 'success');
       }
 
-      this.adMobService.interstitial(); // Estrategia AdMob
+      this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
@@ -960,7 +960,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
       this.applyComposeResult(result);
       this.showToast('Receta añadida a la comida', 'success');
-      this.adMobService.interstitial(); // Estrategia AdMob
+      this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
@@ -1031,7 +1031,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.applyComposeResult(result);
 
     this.showToast('Receta actualizada con éxito', 'success');
-    this.adMobService.interstitial(); // Estrategia AdMob
+    this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
     this.goBack();
   }
 

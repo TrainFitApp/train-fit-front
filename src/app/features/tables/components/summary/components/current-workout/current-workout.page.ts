@@ -62,10 +62,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // Guarda persistente hasta que se cierra el alert
   private autoEndTriggered = false;
 
-  // Propiedades para anuncios (AdMob)
-  private adTimer: any;
-  private adInterval: any;
-
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
 
@@ -135,9 +131,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Suscripciones principales
     this.initVariables();
-
-    // Iniciar el temporizador de anuncios (3 min inicial, 20 min después)
-    this.startAdTimer();
   }
 
   public ngOnDestroy(): void {
@@ -151,33 +144,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     this.sweetAlertOpened = false;
     this.autoEndTriggered = false;
     this.autoEndScheduled = false;
-
-    // Detener temporizadores de anuncios
-    this.stopAdTimer();
-  }
-
-  private startAdTimer(): void {
-    // Primer anuncio a los 3 minutos
-    this.adTimer = setTimeout(() => {
-      this.showWorkoutInterstitial();
-
-      // Siguientes anuncios cada 20 minutos
-      this.adInterval = setInterval(() => {
-        this.showWorkoutInterstitial();
-      }, 20 * 60 * 1000);
-    }, 3 * 60 * 1000);
-  }
-
-  private stopAdTimer(): void {
-    if (this.adTimer) clearTimeout(this.adTimer);
-    if (this.adInterval) clearInterval(this.adInterval);
-  }
-
-  private showWorkoutInterstitial(): void {
-    // Mostrar anuncio sí y solo si el usuario tiene este entrenamiento en curso y está activo
-    if (this.user?.workoutInUse === this.currentWorkout?._id) {
-      this.adMobService.interstitial();
-    }
   }
 
   public playWorkout(): void {
@@ -201,11 +167,24 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                 this.user.workoutInUse = this.currentWorkout._id;
                 this.userService
                   .updateUser(this.user)
-                  .subscribe(
-                    () =>
-                      (this.workoutService.setCurrentWorkout =
-                        this.currentWorkout)
-                  );
+                  .subscribe(() => {
+                    this.workoutService.setCurrentWorkout = this.currentWorkout;
+
+                    // Lanzar fuera del ciclo del alert para mejorar fiabilidad en iOS/Android.
+                    setTimeout(() => {
+                      const localUser = this.userService.getLocalUser;
+                      if (!localUser?.isPremium) {
+                        this.adMobService
+                          .interstitial('start_workout')
+                          .catch((error) =>
+                            console.error(
+                              'Error mostrando interstitial start_workout:',
+                              error
+                            )
+                          );
+                      }
+                    }, 120);
+                  });
               });
           },
         },

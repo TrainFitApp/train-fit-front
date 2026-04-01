@@ -209,7 +209,7 @@ export class CreateProductPage implements OnInit {
             'updatedProductForAddProduct',
             updatedProduct || newProduct
           );
-          this.adMobService.interstitial(); // Estrategia AdMob
+          this.adMobService.interstitial('create_product'); // Estrategia AdMob
           this.navigationService.backNoAnim();
         },
         error: (err) => {
@@ -252,7 +252,7 @@ export class CreateProductPage implements OnInit {
             color: 'success',
           };
           this.ionicUtilService.showToast(toastOptions);
-          this.adMobService.interstitial(); // Estrategia AdMob
+          this.adMobService.interstitial('create_product'); // Estrategia AdMob
           this.navigationService.backNoAnim();
         },
         error: (error) => {
@@ -299,7 +299,7 @@ export class CreateProductPage implements OnInit {
             createdViaCreateProduct: true,
           });
 
-          this.adMobService.interstitial(); // Estrategia AdMob
+          this.adMobService.interstitial('create_product'); // Estrategia AdMob
 
           if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
             this.navigationService.backNoAnim();
@@ -333,7 +333,7 @@ export class CreateProductPage implements OnInit {
           duration: 1000,
         };
         this.ionicUtilService.showToast(toastOptions);
-        this.adMobService.interstitial(); // Estrategia AdMob
+        this.adMobService.interstitial('create_product'); // Estrategia AdMob
         if (this.returnUrl && !this.returnUrl.includes('/search-foods')) {
           this.navigationService.backTo(this.returnUrl);
         } else {

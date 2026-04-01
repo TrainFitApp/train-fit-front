@@ -198,7 +198,7 @@ export class ProfilePage implements OnInit {
     this.setDietDaysWeights();
 
     if (this.user && !this.user.isPremium) {
-      this.adMobService.interstitial();
+      this.adMobService.interstitial('profile_start');
     }
   }
 

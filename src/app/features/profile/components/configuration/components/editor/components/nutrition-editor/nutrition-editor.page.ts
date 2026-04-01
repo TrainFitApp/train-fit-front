@@ -875,7 +875,7 @@ export class NutritionEditorPage implements OnInit {
           text: 'Ver Anuncio y Guardar',
           cssClass: 'alert-button-success',
           handler: () => {
-            this.adMobService.interstitial()
+            this.adMobService.interstitial('save_nutrition')
               .then(() => {
                 this.executeSave();
               })

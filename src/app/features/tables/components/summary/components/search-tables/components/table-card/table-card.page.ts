@@ -16,6 +16,7 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 import { MUSCLE_GROUPS } from '../../../../../../../../shared/constants/muscle-groups';
 
@@ -71,7 +72,8 @@ export class TableCardPage {
     private workoutService: WorkoutService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
-    private popoverController: PopoverController
+    private popoverController: PopoverController,
+    private adMobService: AdMobService
   ) {}
 
   public setSelectedTableCard(): void {
@@ -221,6 +223,16 @@ export class TableCardPage {
                   this.userService.updateUser(this.user).subscribe(() => {
                     this.navigationService.goToMesocycle();
                   });
+                  if (!this.user?.isPremium) {
+                    this.adMobService
+                      .interstitial('acquire_routine')
+                      .catch((error) =>
+                        console.error(
+                          'Error mostrando interstitial acquire_routine:',
+                          error
+                        )
+                      );
+                  }
                   this.loadAction = true;
                   const toastOptions: ToastOptions = {
                     message: 'Rutina adquirida e iniciada con éxito',
