@@ -59,6 +59,13 @@ export class AdMobService {
     await AdMob.showInterstitial();
   }
 
+  /**
+   * Alias legacy para no romper llamadas existentes tras migración.
+   */
+  public async interstitialCapgo(): Promise<void> {
+    await this.interstitial();
+  }
+
 
 
   /**
@@ -105,7 +112,10 @@ export class AdMobService {
         }
 
         const url = event.urlAfterRedirects;
-        const isTargetPage = url.includes('/tabs/summary') || url.includes('/tabs/diets') || url.includes('/tabs/profile');
+        const isTargetPage =
+          url.includes('/tabs/summary') ||
+          url.includes('/tabs/diets') ||
+          url.includes('/tabs/profile');
 
         if (!isTargetPage) {
           document.body.classList.remove('has-ad-banner', 'has-tabs-ad');
@@ -123,7 +133,10 @@ export class AdMobService {
 
     // Llamada inicial para la ruta actual
     const url = this.router.url;
-    const isTargetPage = url.includes('/tabs/summary') || url.includes('/tabs/diets') || url.includes('/tabs/profile');
+    const isTargetPage =
+      url.includes('/tabs/summary') ||
+      url.includes('/tabs/diets') ||
+      url.includes('/tabs/profile');
     const user = this.userService.getLocalUser;
 
     if (user && !user.isPremium && isTargetPage) {

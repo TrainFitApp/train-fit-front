@@ -19,7 +19,6 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 @Component({
   selector: 'app-diets',
@@ -56,7 +55,6 @@ export class DietsPage implements OnInit {
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
-  private readonly adMobService = inject(AdMobService);
 
   constructor(
     private dietDayService: DietDayService,
@@ -90,9 +88,6 @@ export class DietsPage implements OnInit {
     this.utilService.setCurrentDate = this.selectedDate;
   }
 
-  public ionViewWillLeave(): void {
-  }
-
   public ngOnInit(): void {
     setTimeout(() =>
       this.utilService.getRefreshAfterDeleteOwn.subscribe(() =>
@@ -114,9 +109,6 @@ export class DietsPage implements OnInit {
     this.load = false;
     this.selectedDate = date;
 
-    // TODO: para que se cargue mas rápidamente, pero está repetido
-    // this.dietDay = this.dietDayService.getStandardDietDay(this.selectedDate);
-    // this.dietDayService.setCurrentDietDay = this.dietDay;
     this.utilService.setCurrentDate = this.selectedDate;
     if (this.dietDay$) this.dietDay$.unsubscribe();
     this.dietDay$ = this.dietDayService
@@ -189,4 +181,5 @@ export class DietsPage implements OnInit {
   public scrollBottom(): void {
     this.ionContent.scrollToBottom(300);
   }
+
 }
