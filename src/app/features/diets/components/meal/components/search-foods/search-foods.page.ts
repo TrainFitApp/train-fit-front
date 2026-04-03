@@ -348,6 +348,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.currentMode = state.currentMode;
       }
 
+      // If recipe name/description was edited inline, update it in the local list
+      if (state.updatedRecipe) {
+        const idx = this.recipes.findIndex((r) => r._id === state.updatedRecipe._id);
+        if (idx !== -1) {
+          this.recipes[idx] = { ...this.recipes[idx], ...state.updatedRecipe };
+          this.recipes = [...this.recipes];
+        }
+      }
+
       // Clear the flag and temp data
       this.navigationService.clearStateKeys(['returningFromConfigRecipe']);
       this.navigationService.clearTempData('searchFoodsState');

@@ -23,6 +23,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
@@ -132,7 +133,8 @@ export class WorkoutComponent {
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private tableService: TableService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private adMobService: AdMobService
   ) {}
 
   public workoutActions(
@@ -805,9 +807,6 @@ export class WorkoutComponent {
   }
 
   public playWorkout(): void {
-    this.workoutService.setCurrentWorkout = this.workout;
-    this.navigationService.goToCurrentWorkout();
-
     if (this.workout._id !== this.user.workoutInUse) {
       const alertOptions: AlertOptions = {
         header: 'Iniciar entrenamiento',
@@ -823,20 +822,44 @@ export class WorkoutComponent {
           {
             text: 'INICIAR',
             handler: () => {
-              delete this.workout.date;
-              this.workoutService.modifyWorkout(this.workout).subscribe(() => {
-                this.user.workoutInUse = this.workout._id;
+              if (this.user?.isPremium) {
+                this.startWorkoutAndNavigate();
+                return;
+              }
 
-                this.userService.updateUser(this.user).subscribe(() => {
-                  this.workoutService.setCurrentWorkout = this.workout;
+              this.adMobService
+                .interstitial('start_workout')
+                .then(() => {
+                  this.startWorkoutAndNavigate();
+                })
+                .catch((error) => {
+                  console.error(
+                    'Error al mostrar anuncio start_workout:',
+                    error
+                  );
                 });
-              });
             },
           },
         ],
       };
       this.ionicUtilService.showAlert(alertOptions);
+      return;
     }
+
+    this.workoutService.setCurrentWorkout = this.workout;
+    this.navigationService.goToCurrentWorkout();
+  }
+
+  private startWorkoutAndNavigate(): void {
+    delete this.workout.date;
+    this.workoutService.modifyWorkout(this.workout).subscribe(() => {
+      this.user.workoutInUse = this.workout._id;
+
+      this.userService.updateUser(this.user).subscribe(() => {
+        this.workoutService.setCurrentWorkout = this.workout;
+        this.navigationService.goToCurrentWorkout();
+      });
+    });
   }
 
   // Funciones para formatear valores esperados

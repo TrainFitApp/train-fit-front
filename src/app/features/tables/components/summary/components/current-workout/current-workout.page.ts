@@ -160,37 +160,33 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         {
           text: 'INICIAR',
           handler: () => {
-            delete this.currentWorkout.date;
-            this.workoutService
-              .modifyWorkout(this.currentWorkout)
-              .subscribe(() => {
-                this.user.workoutInUse = this.currentWorkout._id;
-                this.userService
-                  .updateUser(this.user)
-                  .subscribe(() => {
-                    this.workoutService.setCurrentWorkout = this.currentWorkout;
-
-                    // Lanzar fuera del ciclo del alert para mejorar fiabilidad en iOS/Android.
-                    setTimeout(() => {
-                      const localUser = this.userService.getLocalUser;
-                      if (!localUser?.isPremium) {
-                        this.adMobService
-                          .interstitial('start_workout')
-                          .catch((error) =>
-                            console.error(
-                              'Error mostrando interstitial start_workout:',
-                              error
-                            )
-                          );
-                      }
-                    }, 120);
-                  });
+            if (this.user?.isPremium) {
+              this.startWorkoutFlow();
+              return;
+            }
+            this.adMobService
+              .interstitial('start_workout')
+              .then(() => {
+                this.startWorkoutFlow();
+              })
+              .catch((error) => {
+                console.error('Error al mostrar start_workout interstitial:', error);
               });
           },
         },
       ],
     };
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private startWorkoutFlow(): void {
+    delete this.currentWorkout.date;
+    this.workoutService.modifyWorkout(this.currentWorkout).subscribe(() => {
+      this.user.workoutInUse = this.currentWorkout._id;
+      this.userService.updateUser(this.user).subscribe(() => {
+        this.workoutService.setCurrentWorkout = this.currentWorkout;
+      });
+    });
   }
 
   public stopWorkout(): void {

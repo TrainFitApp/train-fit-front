@@ -191,15 +191,14 @@ export class ProfilePage implements OnInit {
 
   public ngOnInit(): void {
     this.initVariables();
+    if (this.user && !this.user.isPremium) {
+      this.adMobService.interstitial('profile_start');
+    }
   }
 
   public ionViewWillEnter(): void {
     this.setWeekRanges();
     this.setDietDaysWeights();
-
-    if (this.user && !this.user.isPremium) {
-      this.adMobService.interstitial('profile_start');
-    }
   }
 
   public ionViewWillLeave(): void {

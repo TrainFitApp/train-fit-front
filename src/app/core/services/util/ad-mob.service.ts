@@ -7,6 +7,8 @@ import {
   BannerAdSize,
   AdmobConsentStatus,
 } from '@capacitor-community/admob';
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserService } from '../user/user.service';
@@ -35,6 +37,10 @@ export class AdMobService {
 
   private readonly ID_ANDROID_BANNER = 'ca-app-pub-7032025540653355/9490763271';
   private readonly ID_IOS_BANNER = 'ca-app-pub-7032025540653355/3590300413';
+  private readonly ID_ANDROID_BANNER_CURRENT_WORKOUT =
+    'ca-app-pub-7032025540653355/7435718641';
+  private readonly ID_IOS_BANNER_CURRENT_WORKOUT =
+    'ca-app-pub-7032025540653355/6290157939';
 
   private readonly INTERSTITIAL_ANDROID: Record<
     Exclude<InterstitialPlacement, 'default'>,
@@ -72,9 +78,20 @@ export class AdMobService {
   private readonly _platform = inject(Platform);
 
   private initializing: Promise<void>;
+  private bannerVisible = false;
+  private onBannerTabRoute = false;
+  private bannerRequestId = 0;
+  private currentBannerKey: 'tabs' | 'current-workout' | null = null;
+  private keyboardVisible = false;
+  private keyboardListeners: PluginListenerHandle[] = [];
+  private activeOverlayCount = 0;
+  private profileStartInFlight = false;
+  private lastProfileStartAt = 0;
 
   constructor() {
     this.initialize();
+    this.initKeyboardBannerBehavior();
+    this.initOverlayBannerBehavior();
     this.manageBannerPosition();
   }
 
@@ -84,6 +101,19 @@ export class AdMobService {
   public async interstitial(
     placement: InterstitialPlacement = 'default'
   ): Promise<void> {
+    if (placement === 'profile_start') {
+      const now = Date.now();
+      if (this.profileStartInFlight) {
+        return;
+      }
+      // Guard anti-doble disparo en arranque/redirecciones rápidas
+      if (now - this.lastProfileStartAt < 10000) {
+        return;
+      }
+      this.profileStartInFlight = true;
+      this.lastProfileStartAt = now;
+    }
+
     await this.initializing;
     const user: User = this.userService.getLocalUser;
     if (user.personalAds === undefined) await this.consent(user);
@@ -95,8 +125,14 @@ export class AdMobService {
       npa: !user.personalAds,
     };
 
-    await AdMob.prepareInterstitial(options);
-    await AdMob.showInterstitial();
+    try {
+      await AdMob.prepareInterstitial(options);
+      await AdMob.showInterstitial();
+    } finally {
+      if (placement === 'profile_start') {
+        this.profileStartInFlight = false;
+      }
+    }
   }
 
   /**
@@ -111,15 +147,20 @@ export class AdMobService {
   /**
    * Muestra un Banner en una posición específica con un posible margen (ej: sobre los tabs)
    */
-  public async showBanner(margin: number = 0): Promise<void> {
+  public async showBanner(
+    margin: number = 0,
+    adIdOverride?: string
+  ): Promise<void> {
     await this.initializing;
     const user: User = this.userService.getLocalUser;
     if (user.personalAds === undefined) await this.consent(user);
 
     const options: BannerAdOptions = {
-      adId: this._platform.is('ios')
-        ? this.ID_IOS_BANNER
-        : this.ID_ANDROID_BANNER,
+      adId:
+        adIdOverride ||
+        (this._platform.is('ios')
+          ? this.ID_IOS_BANNER
+          : this.ID_ANDROID_BANNER),
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: margin,
@@ -134,7 +175,14 @@ export class AdMobService {
    * Elimina el banner actual
    */
   public async removeBanner(): Promise<void> {
-    await AdMob.removeBanner();
+    try {
+      await AdMob.removeBanner();
+    } catch {
+      // ignore remove errors when no banner is currently attached
+    }
+    this.bannerVisible = false;
+    this.onBannerTabRoute = false;
+    this.currentBannerKey = null;
   }
 
   /**
@@ -144,45 +192,165 @@ export class AdMobService {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-        const user = this.userService.getLocalUser;
-        if (!user || user.isPremium) {
-          document.body.classList.remove('has-ad-banner', 'has-tabs-ad');
-          this.removeBanner();
-          return;
-        }
-
-        const url = event.urlAfterRedirects;
-        const isTargetPage =
-          url.includes('/tabs/summary') ||
-          url.includes('/tabs/diets') ||
-          url.includes('/tabs/profile');
-
-        if (!isTargetPage) {
-          document.body.classList.remove('has-ad-banner', 'has-tabs-ad');
-          this.removeBanner();
-          return;
-        }
-
-        document.body.classList.add('has-ad-banner');
-        document.body.classList.add('has-tabs-ad');
-
-        // El plugin de capacitor-admob no refresca el margen de forma fluida si ya está visible,
-        // por lo que lo removemos y volvemos a mostrar si cambia el margen.
-        this.showBanner(50);
+        this.refreshBannerForRoute(event.urlAfterRedirects);
       });
 
     // Llamada inicial para la ruta actual
-    const url = this.router.url;
-    const isTargetPage =
-      url.includes('/tabs/summary') ||
-      url.includes('/tabs/diets') ||
-      url.includes('/tabs/profile');
-    const user = this.userService.getLocalUser;
+    this.refreshBannerForRoute(this.router.url);
+  }
 
-    if (user && !user.isPremium && isTargetPage) {
-      document.body.classList.add('has-ad-banner', 'has-tabs-ad');
-      this.showBanner(50);
+  private isMainTabsRootRoute(url: string): boolean {
+    const path = (url || '').split('?')[0].split('#')[0];
+    return (
+      path === '/tabs/summary' ||
+      path === '/tabs/diets' ||
+      path === '/tabs/profile'
+    );
+  }
+
+  private isCurrentWorkoutRoute(url: string): boolean {
+    const path = (url || '').split('?')[0].split('#')[0];
+    return path === '/current-workout';
+  }
+
+  private getBannerContext(url: string): 'tabs' | 'current-workout' | null {
+    if (this.isMainTabsRootRoute(url)) {
+      return 'tabs';
     }
+    if (this.isCurrentWorkoutRoute(url)) {
+      return 'current-workout';
+    }
+    return null;
+  }
+
+  private getBannerAdId(context: 'tabs' | 'current-workout'): string {
+    if (context === 'current-workout') {
+      return this._platform.is('ios')
+        ? this.ID_IOS_BANNER_CURRENT_WORKOUT
+        : this.ID_ANDROID_BANNER_CURRENT_WORKOUT;
+    }
+
+    return this._platform.is('ios')
+      ? this.ID_IOS_BANNER
+      : this.ID_ANDROID_BANNER;
+  }
+
+  private getTabsBannerMargin(): number {
+    try {
+      const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
+      if (tabBar) {
+        const tabBarHeight = Math.round(tabBar.getBoundingClientRect().height);
+        if (tabBarHeight > 0) {
+          return tabBarHeight;
+        }
+      }
+    } catch {
+      // fallback below
+    }
+    return 50;
+  }
+
+  private clearBannerBodyClasses(): void {
+    document.body.classList.remove('has-ad-banner', 'has-tabs-ad', 'has-workout-ad');
+  }
+
+  private refreshBannerForRoute(url: string): void {
+    const user = this.userService.getLocalUser;
+    if (
+      !user ||
+      user.isPremium ||
+      this.keyboardVisible ||
+      this.activeOverlayCount > 0
+    ) {
+      this.clearBannerBodyClasses();
+      this.bannerRequestId++;
+      this.removeBanner();
+      return;
+    }
+
+    const bannerContext = this.getBannerContext(url);
+    if (!bannerContext) {
+      this.clearBannerBodyClasses();
+      this.bannerRequestId++;
+      this.removeBanner();
+      return;
+    }
+
+    if (this.bannerVisible && this.currentBannerKey === bannerContext) {
+      return;
+    }
+
+    const isTabs = bannerContext === 'tabs';
+    document.body.classList.add('has-ad-banner');
+    document.body.classList.toggle('has-tabs-ad', isTabs);
+    document.body.classList.toggle('has-workout-ad', !isTabs);
+    this.onBannerTabRoute = isTabs;
+    this.currentBannerKey = bannerContext;
+
+    const adId = this.getBannerAdId(bannerContext);
+    const margin = isTabs ? this.getTabsBannerMargin() : 12;
+    const requestId = ++this.bannerRequestId;
+    this.showBanner(margin, adId)
+      .then(() => {
+        if (requestId !== this.bannerRequestId) {
+          this.removeBanner();
+          return;
+        }
+        this.bannerVisible = true;
+      })
+      .catch((error) => {
+        this.bannerVisible = false;
+        console.error('Error mostrando banner:', error);
+      });
+  }
+
+  private initKeyboardBannerBehavior(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    void Keyboard.addListener('keyboardWillShow', () => {
+      this.keyboardVisible = true;
+      this.clearBannerBodyClasses();
+      this.bannerRequestId++;
+      this.removeBanner();
+    }).then((listener) => this.keyboardListeners.push(listener));
+
+    void Keyboard.addListener('keyboardDidHide', () => {
+      this.keyboardVisible = false;
+      this.refreshBannerForRoute(this.router.url);
+    }).then((listener) => this.keyboardListeners.push(listener));
+  }
+
+  private initOverlayBannerBehavior(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const onPresent = () => {
+      this.activeOverlayCount++;
+      this.clearBannerBodyClasses();
+      this.bannerRequestId++;
+      this.removeBanner();
+    };
+
+    const onDismiss = () => {
+      this.activeOverlayCount = Math.max(0, this.activeOverlayCount - 1);
+      if (this.activeOverlayCount === 0) {
+        this.refreshBannerForRoute(this.router.url);
+      }
+    };
+
+    document.addEventListener('ionAlertWillPresent', onPresent);
+    document.addEventListener('ionAlertDidDismiss', onDismiss);
+    document.addEventListener('ionModalWillPresent', onPresent);
+    document.addEventListener('ionModalDidDismiss', onDismiss);
+    document.addEventListener('ionPickerWillPresent', onPresent);
+    document.addEventListener('ionPickerDidDismiss', onDismiss);
+    document.addEventListener('ionActionSheetWillPresent', onPresent);
+    document.addEventListener('ionActionSheetDidDismiss', onDismiss);
+    document.addEventListener('ionPopoverWillPresent', onPresent);
+    document.addEventListener('ionPopoverDidDismiss', onDismiss);
   }
 
   public initialize(): Promise<void> {

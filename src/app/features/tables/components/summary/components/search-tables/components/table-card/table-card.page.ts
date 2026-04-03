@@ -190,6 +190,17 @@ export class TableCardPage {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-success',
           handler: () => {
+            if (!this.user?.isPremium) {
+              this.adMobService
+                .interstitial('acquire_routine')
+                .catch((error) =>
+                  console.error(
+                    'Error mostrando interstitial acquire_routine:',
+                    error
+                  )
+                );
+            }
+
             this.loadAction = false;
             if (this.ownFilter) {
               this.user.tableInUse = this.tableCard._id;
@@ -223,16 +234,7 @@ export class TableCardPage {
                   this.userService.updateUser(this.user).subscribe(() => {
                     this.navigationService.goToMesocycle();
                   });
-                  if (!this.user?.isPremium) {
-                    this.adMobService
-                      .interstitial('acquire_routine')
-                      .catch((error) =>
-                        console.error(
-                          'Error mostrando interstitial acquire_routine:',
-                          error
-                        )
-                      );
-                  }
+
                   this.loadAction = true;
                   const toastOptions: ToastOptions = {
                     message: 'Rutina adquirida e iniciada con éxito',

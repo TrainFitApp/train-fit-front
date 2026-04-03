@@ -865,17 +865,19 @@ export class NutritionEditorPage implements OnInit {
     // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
     const alertOptions = {
       header: 'Guardar Configuración',
-      message: 'Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.',
+      message:
+        'Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.',
       buttons: [
         {
           text: 'Cancelar',
-          role: 'cancel'
+          role: 'cancel',
         },
         {
-          text: 'Ver Anuncio y Guardar',
+          text: 'Ver Anuncio',
           cssClass: 'alert-button-success',
           handler: () => {
-            this.adMobService.interstitial('save_nutrition')
+            this.adMobService
+              .interstitial('save_nutrition')
               .then(() => {
                 this.executeSave();
               })
@@ -883,9 +885,9 @@ export class NutritionEditorPage implements OnInit {
                 console.error('Error AdMob Interstitial:', err);
                 this.executeSave();
               });
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
 
     await this.ionicUtilService.showAlert(alertOptions);

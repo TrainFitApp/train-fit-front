@@ -1372,6 +1372,10 @@ body.has-ad-banner.has-tabs-ad ion-content {
   /* 52 del banner + 50 de los tabs */
 }
 
+body.has-ad-banner.has-workout-ad ion-content {
+  --padding-bottom: 64px !important;
+}
+
 /* Alert de cambios sin guardar: 2 botones arriba + 1 abajo */
 .custom-alert.unsaved-exit-alert,
 .custom-alert.alert-grid-buttons {

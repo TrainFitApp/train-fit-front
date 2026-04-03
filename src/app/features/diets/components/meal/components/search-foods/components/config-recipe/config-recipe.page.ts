@@ -37,6 +37,8 @@ export type ConfigRecipeMode = 'create' | 'add' | 'edit';
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
   @ViewChild('quantityInput') quantityInput: any;
+  @ViewChild('nameInput') nameInput: any;
+  @ViewChild('descInput') descInput: any;
   @ViewChild(IonContent) ionContent: IonContent | undefined;
 
   public mode: ConfigRecipeMode = 'create';
@@ -51,8 +53,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public isFavorite = false;
   public loading = false;
   public weightExplainerExpanded = false;
+  public editInfoMode = false;
   public showDescriptionDetails = false;
+  private originalName = '';
+  private originalDesc = '';
   private successfulSave = false;
+  private recipeInfoEdited = false;
   public calculatedMacros = {
     kcal: 0,
     protein: 0,
@@ -218,22 +224,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       quantity: [null],
     });
 
-    // Sync quantity with quantityCooked by default in add/create mode
+    // Recalculate macros when cooked quantity changes.
+    // Do not auto-copy this value into "quantity" (consumed portion).
     this.recipeForm
       .get('quantityCooked')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe((val) => {
-        if (this.mode === 'add' || this.mode === 'create') {
-          const qtyControl = this.recipeForm.get('quantity');
-
-          // In add/create mode, only sync if quantity is empty or matches raw weight
-          if (
-            !qtyControl?.value ||
-            qtyControl?.value === this.calculatedMacros.quantity
-          ) {
-            qtyControl?.setValue(val, { emitEvent: false });
-          }
-        }
+      .subscribe(() => {
         this.recalculateMacros();
       });
 
@@ -448,6 +444,79 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return true;
   }
 
+  public toggleEditInfo(): void {
+    // Ensure controls have the real values before editing.
+    // In add mode the controls may be empty while the template shows recipe.name/description as fallback.
+    if (!this.recipeForm.get('name')?.value && this.recipe?.name) {
+      this.recipeForm.patchValue({ name: this.recipe.name });
+    }
+    if (
+      !this.recipeForm.get('description')?.value &&
+      this.recipe?.description
+    ) {
+      this.recipeForm.patchValue({ description: this.recipe.description });
+    }
+
+    // Snapshot for cancel
+    this.originalName = this.recipeForm.get('name')?.value ?? '';
+    this.originalDesc = this.recipeForm.get('description')?.value ?? '';
+    this.editInfoMode = true;
+    this.recipeForm.get('name')?.enable();
+    this.recipeForm.get('description')?.enable();
+    setTimeout(() => this.nameInput?.setFocus(), 150);
+  }
+
+  public async confirmEditInfo(): Promise<void> {
+    if (!this.recipe?._id) return;
+
+    const name = this.recipeForm.get('name')?.value?.trim();
+    const description = this.recipeForm.get('description')?.value ?? '';
+
+    if (!name || name.length < 2) {
+      this.showToast(
+        'El nombre es obligatorio (mínimo 2 caracteres)',
+        'warning'
+      );
+      return;
+    }
+
+    this.loading = true;
+    try {
+      const updated = await firstValueFrom(
+        this.recipeService.update(this.recipe._id, { name, description })
+      );
+      this.recipe.name = updated.name;
+      this.recipe.description = updated.description;
+      this.recipeForm.patchValue({
+        name: updated.name,
+        description: updated.description ?? '',
+      });
+      this.editInfoMode = false;
+      this.recipeInfoEdited = true;
+      if (this.isAddMode) {
+        this.recipeForm.get('name')?.disable();
+        this.recipeForm.get('description')?.disable();
+      }
+      this.showToast('Receta actualizada', 'success');
+    } catch {
+      this.showToast('Error al guardar los cambios', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  public cancelEditInfo(): void {
+    this.recipeForm.patchValue({
+      name: this.originalName,
+      description: this.originalDesc,
+    });
+    this.editInfoMode = false;
+    if (this.isAddMode) {
+      this.recipeForm.get('name')?.disable();
+      this.recipeForm.get('description')?.disable();
+    }
+  }
+
   /**
    * Merges base recipe ingredients with customRecipeInstance overrides
    * Returns the CURRENT state of ingredients for this instance
@@ -581,15 +650,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public get footerMacrosHint(): string {
     if (!this.supportsConsumedQuantityMode) {
       return this.hasCookedTotalForMacros
-        ? 'Cálculo del total cocinado.'
-        : 'Cálculo del total sin cocinar.';
+        ? '* Cálculo del total cocinado.'
+        : '* Cálculo del total sin cocinar.';
     }
     if (this.footerUsesConsumedQuantity) {
-      return 'Cálculo sobre la ración consumida.';
+      return '* Cálculo sobre la ración consumida.';
     }
     return this.hasCookedTotalForMacros
-      ? 'Cálculo del total cocinado.'
-      : 'Cálculo del total sin cocinar.';
+      ? '* Cálculo del total cocinado.'
+      : '* Cálculo del total sin cocinar.';
   }
 
   public get footerKcal(): number {
@@ -652,11 +721,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get inlinePer100Hint(): string {
     if (this.footerUsesConsumedQuantity) {
-      return '*Por cada 100g sobre la ración consumida.';
+      return '* Por cada 100g sobre la ración consumida.';
     }
     return this.hasCookedTotalForMacros
-      ? '*Por cada 100g sobre el total cocinado.'
-      : '*Por cada 100g sobre el sumatorio sin cocinar.';
+      ? '* Por cada 100g sobre el total cocinado.'
+      : '* Por cada 100g sobre el sumatorio sin cocinar.';
   }
 
   public recalculateMacros(): void {
@@ -1414,6 +1483,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           ingredientMode: false,
           mealName: this.meal?.name,
           selectedDate: this.selectedDate || this.dietDay?.date,
+          updatedRecipe: this.recipeInfoEdited ? this.recipe : undefined,
         },
       });
     } else {
