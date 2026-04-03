@@ -398,25 +398,25 @@
 
           <div class="ingredients-sum-card">
             <div class="sum-item calories">
-              <span class="sum-value">{{ inlinePer100Kcal | number:'1.0-0' }}</span>
+              <span class="sum-value">{{ footerKcal | number:'1.0-0' }}</span>
               <span class="sum-label">kcal</span>
             </div>
             <div class="sum-divider"></div>
             <div class="sum-item">
-              <span class="sum-value">{{ inlinePer100Protein | number:'1.0-1' }}<small>g</small></span>
+              <span class="sum-value">{{ footerProtein | number:'1.0-1' }}<small>g</small></span>
               <span class="sum-label protein">Proteína</span>
             </div>
             <div class="sum-item">
-              <span class="sum-value">{{ inlinePer100Carbs | number:'1.0-1' }}<small>g</small></span>
+              <span class="sum-value">{{ footerCarbs | number:'1.0-1' }}<small>g</small></span>
               <span class="sum-label carbs">CBH</span>
             </div>
             <div class="sum-item">
-              <span class="sum-value">{{ inlinePer100Fat | number:'1.0-1' }}<small>g</small></span>
+              <span class="sum-value">{{ footerFat | number:'1.0-1' }}<small>g</small></span>
               <span class="sum-label fat">Grasas</span>
             </div>
           </div>
 
-          <p class="ingredients-sum-hint">{{ inlinePer100Hint }}</p>
+          <p class="ingredients-sum-hint">{{ footerMacrosHint }}</p>
         </div>
 
       </div>
@@ -426,26 +426,26 @@
             <ion-card-content>
               <div class="macro-summary-flex">
                 <div class="summary-item calories">
-                  <span class="summary-value">{{ footerKcal | number:'1.0-0' }}</span>
+                  <span class="summary-value">{{ inlinePer100Kcal | number:'1.0-0' }}</span>
                   <span class="summary-label">kcal</span>
                 </div>
                 <div class="summary-divider"></div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerProtein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ inlinePer100Protein | number:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label protein">Proteína</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerCarbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ inlinePer100Carbs | number:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label carbs">CBH</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerFat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value">{{ inlinePer100Fat | number:'1.0-1' }}<small>g</small></span>
                   <span class="summary-label fat">Grasas</span>
                 </div>
               </div>
             </ion-card-content>
           </ion-card>
-          <p class="footer-macros-hint">{{ footerMacrosHint }}</p>
+          <p class="footer-macros-hint">{{ inlinePer100Hint }}</p>
         </div>
     </form>
   </div>
