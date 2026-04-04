@@ -112,7 +112,21 @@
 
     <ng-template #noRecipes>
       <ng-container *ngIf="load">
-        <ion-item><ion-label>No hay coincidencias</ion-label></ion-item>
+        <div class="no-results-card">
+          <div class="no-results-icon">
+            <ion-icon name="restaurant-outline"></ion-icon>
+          </div>
+          <h3>No hay coincidencias</h3>
+          <p>Prueba con otro término o crea una receta nueva.</p>
+          <button
+            class="no-results-action"
+            type="button"
+            (click)="createRecipeFromEmptyState()"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Crear receta
+          </button>
+        </div>
       </ng-container>
     </ng-template>
   </ng-container>

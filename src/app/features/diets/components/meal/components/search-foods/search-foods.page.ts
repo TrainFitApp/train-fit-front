@@ -1695,6 +1695,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.createProduct();
   }
 
+  public createRecipeFromEmptyState(): void {
+    this.createRecipe();
+  }
+
   /**
    * 🔧 Poner recetas de la meal primero (igual que setCustomProductsFirst)
    * Extrae recetas de meal.customRecipeInstances, las filtra y las pone al inicio
