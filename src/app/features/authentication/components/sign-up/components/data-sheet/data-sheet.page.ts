@@ -14,7 +14,6 @@ import { SEX } from '../../../../../../shared/constants/sex';
 import { STEPS, STEPS_TYPES } from '../../../../../../shared/constants/steps';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
-import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
 import { Token } from 'src/app/core/models/token';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { takeUntil, take } from 'rxjs/operators';
@@ -50,7 +49,6 @@ export class DataSheetPage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private utilService: UtilService,
     private authService: AuthService,
-    private _userLocalStorageService: UserLocalstorageService,
     private signUpStateService: SignUpStateService
   ) {}
 
@@ -140,9 +138,12 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
         updateObs.subscribe({
           next: (res) => {
-            const token: Token = { access_token: res.access_token };
+            const token: Token = {
+              access_token: res.access_token,
+              refresh_token: res.refresh_token,
+            };
             const userDecoded = this.authService.getDecodedUser(token);
-            this._userLocalStorageService.setUserToken(token);
+            this.authService.persistAuthTokens(token);
             this.authService.setUser = userDecoded;
             this.navigationService.goToUserLoader();
             this.isProcessing = false;
@@ -191,10 +192,11 @@ export class DataSheetPage implements OnInit, OnDestroy {
         if (response?.access_token) {
           const token: Token = {
             access_token: response.access_token,
+            refresh_token: response.refresh_token,
           };
 
           const userDecoded = this.authService.getDecodedUser(token);
-          this._userLocalStorageService.setUserToken(token);
+          this.authService.persistAuthTokens(token);
           this.authService.setUser = userDecoded;
 
           // Navegar al user loader para cargar los datos del usuario

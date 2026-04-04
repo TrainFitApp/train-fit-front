@@ -585,7 +585,6 @@ export class ConfigExercisePage implements OnInit {
         duration: 1800,
       };
       this.ionicUtilService.showToast(toastOptions);
-      this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
     } finally {
       this.load = true;
     }
@@ -898,7 +897,6 @@ export class ConfigExercisePage implements OnInit {
 
             if (!this._idExerciseToAdd) {
               // Cerrar el modal con toda la información necesaria
-              this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
               this.modalController.dismiss({ setChangeInfo: changeInfo });
               this.load = true;
               this.syncWorkoutInUseAfterExerciseChange();
@@ -909,7 +907,6 @@ export class ConfigExercisePage implements OnInit {
                 .then(() => {
                   // Actualizar la tabla en changeInfo con la tabla final del servicio
                   changeInfo.tableInUse = this.tableService.tableInUse;
-                  this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
                   this.load = true;
                   resolve();
@@ -984,7 +981,6 @@ export class ConfigExercisePage implements OnInit {
             .then((resTable) => {
               this.load = true;
               this.tableInUse = resTable;
-              this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
               this.modalController.dismiss(resWorkoutsUpdates);
             });
         });
@@ -1117,7 +1113,6 @@ export class ConfigExercisePage implements OnInit {
       if (data?.searchFilterGroupExercises) {
         this.details = data.searchFilterGroupExercises;
       }
-      this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
     });
   }
 

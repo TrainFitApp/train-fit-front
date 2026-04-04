@@ -18,6 +18,7 @@ dependencies {
     implementation project(':capawesome-capacitor-android-edge-to-edge-support')
     implementation project(':capgo-capacitor-navigation-bar')
     implementation project(':capgo-capacitor-social-login')
+    implementation project(':capacitor-secure-storage-plugin')
 
 }
 

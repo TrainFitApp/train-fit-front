@@ -28,6 +28,9 @@ PODS:
     - Capacitor
   - CapacitorNetwork (7.0.2):
     - Capacitor
+  - CapacitorSecureStoragePlugin (0.12.0):
+    - Capacitor
+    - SwiftKeychainWrapper
   - CapgoCapacitorNavigationBar (7.3.18):
     - Capacitor
   - CapgoCapacitorSocialLogin (7.14.11):
@@ -67,6 +70,7 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - OSBarcodeLib (2.0.1)
   - PromisesObjC (2.4.0)
+  - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -77,6 +81,7 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
+  - CapacitorSecureStoragePlugin (from `../../node_modules/capacitor-secure-storage-plugin`)
   - "CapgoCapacitorNavigationBar (from `../../node_modules/@capgo/capacitor-navigation-bar`)"
   - "CapgoCapacitorSocialLogin (from `../../node_modules/@capgo/capacitor-social-login`)"
 
@@ -97,6 +102,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - OSBarcodeLib
     - PromisesObjC
+    - SwiftKeychainWrapper
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -115,6 +121,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/keyboard"
   CapacitorNetwork:
     :path: "../../node_modules/@capacitor/network"
+  CapacitorSecureStoragePlugin:
+    :path: "../../node_modules/capacitor-secure-storage-plugin"
   CapgoCapacitorNavigationBar:
     :path: "../../node_modules/@capgo/capacitor-navigation-bar"
   CapgoCapacitorSocialLogin:
@@ -132,6 +140,7 @@ SPEC CHECKSUMS:
   CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
   CapacitorKeyboard: 62f36104f26d53d8b3a2a43f2a69fe714f1777d5
   CapacitorNetwork: 695069886b3c5ed514db69aa3d026b8dc3c03a6b
+  CapacitorSecureStoragePlugin: 50de0808ad398aa401e00f9e58adf88c77cb3c25
   CapgoCapacitorNavigationBar: 3c59704af4b6774bebb36beaab82643c141dfa83
   CapgoCapacitorSocialLogin: 412f46c6df5d5d523ac368f7ff0e5d9116808172
   FBAEMKit: e34530df538b8eb8aeb53c35867715ba6c63ef0c
@@ -146,7 +155,8 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   OSBarcodeLib: 57987d2eb1f916f701f4554e20e349b3cb83f023
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 3a1f1047a3909af428272c6792ed12539cceddcf
+PODFILE CHECKSUM: aa441d7f97cf88f9e4eae6b5082607c783a295a0
 
 COCOAPODS: 1.16.2

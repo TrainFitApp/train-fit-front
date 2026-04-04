@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
 import { AuthService } from './core/services/auth/auth.service';
@@ -13,6 +14,7 @@ register();
 })
 export class AppComponent {
   private isRefreshingToken = false;
+  private readonly isNativeClient = Capacitor.isNativePlatform();
 
   constructor(
     private router: Router,
@@ -33,6 +35,13 @@ export class AppComponent {
   private initTokenRefresh(): void {
     this.authService.user$.subscribe((user) => {
       if (user) {
+        if (this.isNativeClient) {
+          // In native apps the refresh flow is driven by 401 responses to avoid
+          // races with cookie/header transport and background timers.
+          this.securityService.stopTokenExpirationCheck();
+          return;
+        }
+
         this.securityService.startTokenExpirationCheck(() => {
           if (this.isRefreshingToken) {
             return;

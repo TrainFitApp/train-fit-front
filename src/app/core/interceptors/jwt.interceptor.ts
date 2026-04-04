@@ -6,6 +6,7 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { AuthApiService } from '../services/auth/auth-api.service';
@@ -18,6 +19,7 @@ export class JWTInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> =
     new BehaviorSubject<string | null>(null);
+  private readonly isNativeClient = Capacitor.isNativePlatform();
 
   constructor(
     private authService: AuthService,
@@ -28,24 +30,34 @@ export class JWTInterceptor implements HttpInterceptor {
     request: HttpRequest<unknown>,
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
+    const requestWithClientHeader = this.isNativeClient
+      ? request.clone({
+          setHeaders: {
+            'x-client-platform': 'mobile',
+          },
+        })
+      : request;
+
     const token = this.getTokenFromLocalStorage();
 
     // Public endpoints that don't require authentication
     const isPublicEndpoint =
-      request.url.includes(AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT) || // sign-in
-      request.url.includes('refresh-token') || // refresh token
-      request.url.includes('logout') || // logout
-      request.url.includes('/users/check/') || // check if email exists
-      request.url.includes('/users/send/mail/code') || // forgot password - send code
-      request.url.includes('/users/auth/verify-google') || // google auth
-      request.url.includes('/users/auth/verify-apple') || // apple auth
-      (request.url.includes('/users/') &&
-        request.method === 'POST' &&
-        !request.url.includes('/favProduct') &&
-        !request.url.includes('/favRecipe') &&
-        !request.url.includes('/users/suggestions')) || // POST endpoints for user creation (exclude protected ones)
-      request.url.includes('/users/hash/') || // email verification
-      request.url.includes('/users/restore'); // restore password
+      requestWithClientHeader.url.includes(
+        AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT
+      ) || // sign-in
+      requestWithClientHeader.url.includes('refresh-token') || // refresh token
+      requestWithClientHeader.url.includes('logout') || // logout
+      requestWithClientHeader.url.includes('/users/check/') || // check if email exists
+      requestWithClientHeader.url.includes('/users/send/mail/code') || // forgot password - send code
+      requestWithClientHeader.url.includes('/users/auth/verify-google') || // google auth
+      requestWithClientHeader.url.includes('/users/auth/verify-apple') || // apple auth
+      (requestWithClientHeader.url.includes('/users/') &&
+        requestWithClientHeader.method === 'POST' &&
+        !requestWithClientHeader.url.includes('/favProduct') &&
+        !requestWithClientHeader.url.includes('/favRecipe') &&
+        !requestWithClientHeader.url.includes('/users/suggestions')) || // POST endpoints for user creation (exclude protected ones)
+      requestWithClientHeader.url.includes('/users/hash/') || // email verification
+      requestWithClientHeader.url.includes('/users/restore'); // restore password
 
     // Decide whether to send cookies (withCredentials) on this request
     // TODOS los endpoints de auth necesitan withCredentials:
@@ -54,12 +66,12 @@ export class JWTInterceptor implements HttpInterceptor {
     // - logout: para ENVIAR la cookie httpOnly y que el servidor la borre
     // Solo excluimos endpoints que no necesitan cookies en absoluto
     const excludeCookieEndpoints =
-      request.url.includes(AuthApiService.REGISTER_ENDPOINT) &&
-      request.method === 'PUT'; // create/update user API uses PUT here
+      requestWithClientHeader.url.includes(AuthApiService.REGISTER_ENDPOINT) &&
+      requestWithClientHeader.method === 'PUT'; // create/update user API uses PUT here
 
     const reqWithCreds = excludeCookieEndpoints
-      ? request
-      : request.clone({ withCredentials: true });
+      ? requestWithClientHeader
+      : requestWithClientHeader.clone({ withCredentials: true });
 
     // Public endpoints: no token header, but may still send cookies depending on endpoint
     if (isPublicEndpoint) {
@@ -123,6 +135,10 @@ export class JWTInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     if (err.status === 401) {
       if (err.error?.requiresRelogin) {
+        console.warn('[AUTH] Refresh flow requires re-login', {
+          reason: err?.error?.message || 'requiresRelogin',
+          url: request.url,
+        });
         this.authService.logout();
         return throwError(() => err);
       }
@@ -158,6 +174,11 @@ export class JWTInterceptor implements HttpInterceptor {
         catchError((refreshErr) => {
           this.isRefreshing = false;
           this.refreshTokenSubject.next('FAILED');
+          console.warn('[AUTH] Refresh request failed', {
+            reason: refreshErr?.error?.message || 'unknown',
+            status: refreshErr?.status,
+            requiresRelogin: !!refreshErr?.error?.requiresRelogin,
+          });
 
           // Logout only when backend explicitly requests re-login.
           // Network errors or transient backend failures should not force logout.

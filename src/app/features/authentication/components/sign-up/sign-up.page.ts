@@ -13,7 +13,6 @@ import { User } from 'src/app/core/models/user';
 import { Token } from 'src/app/core/models/token';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { ManHoodValidator } from 'src/app/core/validators/manhood';
@@ -139,8 +138,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private authService: AuthService,
     private router: Router,
-    private signUpStateService: SignUpStateService,
-    private userLocalStorageService: UserLocalstorageService
+    private signUpStateService: SignUpStateService
   ) {
     // Inicializar fechas fijas
     const currentDate = new Date();
@@ -509,9 +507,12 @@ export class SignUpPage implements OnInit, OnDestroy {
 
           updateObs.subscribe({
             next: (res) => {
-              const token: Token = { access_token: res.access_token };
+              const token: Token = {
+                access_token: res.access_token,
+                refresh_token: res.refresh_token,
+              };
               const userDecoded = this.authService.getDecodedUser(token);
-              this.userLocalStorageService.setUserToken(token);
+              this.authService.persistAuthTokens(token);
               this.authService.setUser = userDecoded;
               this.navigationService.goToUserLoader();
               this.isProcessing = false;
@@ -551,10 +552,11 @@ export class SignUpPage implements OnInit, OnDestroy {
         if (response?.access_token) {
           const token: Token = {
             access_token: response.access_token,
+            refresh_token: response.refresh_token,
           };
 
           const userDecoded = this.authService.getDecodedUser(token);
-          this.userLocalStorageService.setUserToken(token);
+          this.authService.persistAuthTokens(token);
           this.authService.setUser = userDecoded;
           this.navigationService.goToUserLoader();
         } else {

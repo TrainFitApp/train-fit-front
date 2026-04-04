@@ -7,7 +7,6 @@ import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { GoogleAuthService } from 'src/app/core/services/auth/google-auth.service';
 import { AppleAuthService } from 'src/app/core/services/auth/apple-auth.service';
-import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -58,8 +57,7 @@ export class SignInPage implements OnInit {
     private ionicUtilService: IonicUtilService,
     private userService: UserService,
     private _googleAuthService: GoogleAuthService,
-    private _appleAuthService: AppleAuthService,
-    private _userLocalStorageService: UserLocalstorageService
+    private _appleAuthService: AppleAuthService
   ) {
     this.initVariables();
   }
@@ -259,8 +257,11 @@ export class SignInPage implements OnInit {
    */
   private handleSocialSuccess(response: any, provider: string): void {
     // Guardar token y usuario
-    const token: Token = { access_token: response.access_token };
-    this._userLocalStorageService.setUserToken(token);
+    const token: Token = {
+      access_token: response.access_token,
+      refresh_token: response.refresh_token,
+    };
+    this.authService.persistAuthTokens(token);
 
     const userDecoded = this.authService.getDecodedUser(token);
     this.authService.setUser = userDecoded;
@@ -371,8 +372,11 @@ export class SignInPage implements OnInit {
     createObs.subscribe({
       next: (response) => {
         // Guardar token y usuario
-        const token: Token = { access_token: response.access_token };
-        this._userLocalStorageService.setUserToken(token);
+        const token: Token = {
+          access_token: response.access_token,
+          refresh_token: response.refresh_token,
+        };
+        this.authService.persistAuthTokens(token);
 
         const userDecoded = this.authService.getDecodedUser(token);
         this.authService.setUser = userDecoded;
@@ -440,8 +444,11 @@ export class SignInPage implements OnInit {
       .createAppleUser({ email } as User, new Date(), tokenApple)
       .subscribe({
         next: (response) => {
-          const token: Token = { access_token: response.access_token };
-          this._userLocalStorageService.setUserToken(token);
+          const token: Token = {
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+          };
+          this.authService.persistAuthTokens(token);
           const userDecoded = this.authService.getDecodedUser(token);
           this.authService.setUser = userDecoded;
           this.userService.setLocalUser = response.user;

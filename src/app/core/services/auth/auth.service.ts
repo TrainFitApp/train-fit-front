@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { finalize, map, shareReplay } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable } from 'rxjs';
+import { finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
 import { UserLocalstorageService } from '../user/user-localstorage.service';
 import { NavigationService } from '../util/navigation.service';
 import { AuthApiService } from './auth-api.service';
+import { RefreshTokenStoreService } from './refresh-token-store.service';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +18,8 @@ export class AuthService {
   constructor(
     private authApiService: AuthApiService,
     private userLocalstorageService: UserLocalstorageService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private refreshTokenStore: RefreshTokenStoreService
   ) {
     this.initUser();
   }
@@ -82,10 +84,26 @@ export class AuthService {
         }
 
         const userDecoded = this.getDecodedUser(token);
-        this.userLocalstorageService.setUserToken(token);
+        this.persistAuthTokens(token);
         this.setUser = userDecoded;
       })
     );
+  }
+
+  public persistAuthTokens(token: Partial<Token> | null | undefined): void {
+    if (!token?.access_token) {
+      return;
+    }
+
+    this.userLocalstorageService.setUserToken({
+      access_token: token.access_token,
+    });
+
+    if (this.refreshTokenStore.isNativeClient && token.refresh_token) {
+      this.refreshTokenStore.save(token.refresh_token).catch((error) => {
+        console.warn('Could not store native refresh token', error);
+      });
+    }
   }
 
   public refreshToken(): Observable<any> {
@@ -93,10 +111,24 @@ export class AuthService {
       return this.refreshInFlight$;
     }
 
-    this.refreshInFlight$ = this.authApiService.refreshToken().pipe(
+    const refreshRequest$ = this.refreshTokenStore.isNativeClient
+      ? from(this.refreshTokenStore.get()).pipe(
+          switchMap((refreshToken) =>
+            this.authApiService.refreshTokenWithHeader(refreshToken || undefined)
+          )
+        )
+      : this.authApiService.refreshToken();
+
+    this.refreshInFlight$ = refreshRequest$.pipe(
       map((response: any) => {
         if (!!response?.error) {
           throw new Error(response?.error);
+        }
+
+        if (response?.refresh_token && this.refreshTokenStore.isNativeClient) {
+          this.refreshTokenStore.save(response.refresh_token).catch((error) => {
+            console.warn('Could not rotate native refresh token', error);
+          });
         }
 
         if (response?.access_token) {
@@ -142,13 +174,26 @@ export class AuthService {
     }
     this.isLoggingOut = true;
 
+    const nativeRefreshTokenSnapshot = this.refreshTokenStore.isNativeClient
+      ? this.refreshTokenStore.peek()
+      : null;
+
     // Clear local state immediately to avoid race conditions and duplicate flows
     this.userLocalstorageService.removeUserToken();
+    this.refreshTokenStore.clear().catch((error) => {
+      console.warn('Could not clear native refresh token', error);
+    });
     this._user$.next(null);
     this.navigationService.goToLoginPage();
 
     // Best effort call to backend to clear httpOnly cookie and server-side token chain
-    this.authApiService.logout().subscribe({
+    const logoutRequest$ = this.refreshTokenStore.isNativeClient
+      ? this.authApiService.logoutWithHeader(
+          nativeRefreshTokenSnapshot || undefined
+        )
+      : this.authApiService.logout();
+
+    logoutRequest$.subscribe({
       next: () => {
         this.isLoggingOut = false;
       },

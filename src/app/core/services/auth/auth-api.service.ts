@@ -33,21 +33,37 @@ export class AuthApiService {
   }
 
   public refreshToken(): Observable<any> {
-    // POST request with withCredentials to send httpOnly cookie
+    return this.refreshTokenWithHeader();
+  }
+
+  public refreshTokenWithHeader(refreshToken?: string): Observable<any> {
+    const headers = refreshToken
+      ? ({ 'x-refresh-token': refreshToken } as any)
+      : undefined;
+
+    // withCredentials keeps web cookie flow active.
     return this.http.post<any>(
       AuthApiService.REFRESH_ENDPOINT,
       {},
-      undefined,
+      headers,
       true // withCredentials
     );
   }
 
   public logout(): Observable<any> {
-    // POST request with withCredentials to clear httpOnly cookie
+    return this.logoutWithHeader();
+  }
+
+  public logoutWithHeader(refreshToken?: string): Observable<any> {
+    const headers = refreshToken
+      ? ({ 'x-refresh-token': refreshToken } as any)
+      : undefined;
+
+    // withCredentials keeps web cookie flow active.
     return this.http.post<any>(
       AuthApiService.LOGOUT_ENDPOINT,
       {},
-      undefined,
+      headers,
       true // withCredentials
     );
   }

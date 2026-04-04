@@ -329,7 +329,9 @@
                 >
               </ion-select-option>
             </ion-select>
-            <div class="cycle-subtitle">Semana {{ currentSplitIndex + 1 }}</div>
+            <div class="cycle-subtitle">
+              de {{ tableInUse?.splits?.length || 0 }} en total
+            </div>
           </div>
         </div>
 
