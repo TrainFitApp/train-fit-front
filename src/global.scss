@@ -1425,3 +1425,84 @@ body.has-ad-banner.has-workout-ad ion-content {
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
   }
 }
+
+/* Layout global para alerts con 3 acciones: 2 arriba + 1 abajo centrado */
+.custom-alert .alert-button-group,
+.legacy-alert .alert-button-group,
+.alert-grid-buttons .alert-button-group {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+}
+
+/* Solo cuando hay exactamente 3 botones */
+.custom-alert .alert-button-group > .alert-button,
+.legacy-alert .alert-button-group > .alert-button,
+.alert-grid-buttons .alert-button-group > .alert-button {
+  flex: 0 0 calc(50% - 4px) !important;
+  width: calc(50% - 4px) !important;
+  max-width: none !important;
+}
+
+/* Si hay solo 1 botón, centrado */
+.custom-alert .alert-button-group > .alert-button:only-child,
+.legacy-alert .alert-button-group > .alert-button:only-child,
+.alert-grid-buttons .alert-button-group > .alert-button:only-child {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  max-width: 220px !important;
+  margin: 0 auto !important;
+  justify-content: center !important;
+}
+
+/* Si hay 3 botones, el último queda centrado en la segunda fila */
+.custom-alert .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
+.legacy-alert .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
+.alert-grid-buttons .alert-button-group > .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* OVERRIDE FINAL ALERTS: maximo 2 botones por fila en toda la app */
+ion-alert .alert-button-group,
+.custom-alert .alert-button-group,
+.legacy-alert .alert-button-group,
+.alert-grid-buttons .alert-button-group {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  justify-items: stretch !important;
+  align-items: stretch !important;
+}
+
+ion-alert .alert-button-group .alert-button,
+.custom-alert .alert-button-group .alert-button,
+.legacy-alert .alert-button-group .alert-button,
+.alert-grid-buttons .alert-button-group .alert-button {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+/* 1 boton: centrado */
+ion-alert .alert-button-group .alert-button:only-child,
+.custom-alert .alert-button-group .alert-button:only-child,
+.legacy-alert .alert-button-group .alert-button:only-child,
+.alert-grid-buttons .alert-button-group .alert-button:only-child {
+  grid-column: 1 / -1 !important;
+  width: 50% !important;
+  justify-self: center !important;
+}
+
+/* 3 botones: tercero abajo centrado */
+ion-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
+.custom-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
+.legacy-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child,
+.alert-grid-buttons .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .alert-button:last-child {
+  grid-column: 1 / -1 !important;
+  width: 50% !important;
+  justify-self: center !important;
+}
