@@ -183,6 +183,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private returnUrl?: string;
   private hasInitialized = false;
   private productByCodeSub?: Subscription;
+  private searchProductsSub?: Subscription;
+  private searchRecipesSub?: Subscription;
+  private productsRequestVersion = 0;
+  private recipesRequestVersion = 0;
   private backButton$?: Subscription;
   private keyboardWillShowHandle?: PluginListenerHandle;
   private keyboardWillHideHandle?: PluginListenerHandle;
@@ -691,6 +695,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.searchProductsSub?.unsubscribe();
+    this.searchRecipesSub?.unsubscribe();
     if (this.backButton$) {
       this.backButton$.unsubscribe();
     }
@@ -747,6 +753,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
     }
     this.cancelProductLookup();
+    this.searchProductsSub?.unsubscribe();
+    this.searchRecipesSub?.unsubscribe();
 
     // 🍎 Re-habilitar gesto de ir hacia atrás al salir
     if (this.platform.is('ios')) {
@@ -864,6 +872,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           ? event
           : this.utilService.getEventString(event);
 
+    if (this.currentMode === 'products' && this.shouldSkipProductsSearch()) {
+      this.load = true;
+      return;
+    }
+
     this.products = [];
     this.recipes = [];
 
@@ -877,6 +890,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   public setFilterIconsValueBySelection(event: SearchFilterGroup): void {
     Object.assign(this.searchFilterGroup, event);
     this.searchFilterGroup.page = 0;
+
+    if (this.currentMode === 'products' && this.shouldSkipProductsSearch()) {
+      this.load = true;
+      return;
+    }
+
     this.products = [];
     this.recipes = [];
 
@@ -893,19 +912,35 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
+    // Update segment UI immediately
     this.currentMode = mode;
-    this.searchFilterGroup.ownFilter = false;
-    this.searchFilterGroup.favFilter = false;
-    this.searchFilterGroup.shieldFilter = false;
-    this.searchFilterGroup.page = 0;
-    this.products = [];
-    this.recipes = [];
+    this.cdr.detectChanges();
 
-    if (mode === 'products') {
-      this.searchProducts();
-    } else {
-      this.searchRecipes();
-    }
+    // Run data work in next tick to avoid delayed visual feedback on mobile
+    setTimeout(() => {
+      if (this.currentMode !== mode) {
+        return;
+      }
+
+      this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.favFilter = false;
+      this.searchFilterGroup.shieldFilter = false;
+      this.searchFilterGroup.page = 0;
+
+      if (mode === 'products' && this.shouldSkipProductsSearch()) {
+        this.load = true;
+        return;
+      }
+
+      this.products = [];
+      this.recipes = [];
+
+      if (mode === 'products') {
+        this.searchProducts();
+      } else {
+        this.searchRecipes();
+      }
+    }, 0);
   }
 
   public setMode(mode: FilterMode): void {
@@ -920,6 +955,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public loadData(event: InfiniteScrollCustomEvent): void {
+    if (this.currentMode === 'products' && this.shouldSkipProductsSearch()) {
+      event.target.complete();
+      return;
+    }
+
     this.searchFilterGroup.page++;
     setTimeout(() => {
       event.target.complete();
@@ -1577,16 +1617,33 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private searchProducts(): void {
+    if (this.shouldSkipProductsSearch()) {
+      this.load = true;
+      this.products = [];
+      return;
+    }
+
+    const page = this.searchFilterGroup.page || 0;
+    if (page === 0) {
+      this.productsRequestVersion++;
+    }
+    const requestVersion = this.productsRequestVersion;
+    this.searchProductsSub?.unsubscribe();
+
     console.log(
       '[DEBUG - API] searchProducts() called, page:',
       this.searchFilterGroup.page,
       new Error().stack
     );
     this.load = false;
-    this.mealService
+    this.searchProductsSub = this.mealService
       .searchAllWithFilters(this.searchFilterGroup)
       .subscribe((resFoods: IProduct[]) => {
-        this.products = this.products.concat(resFoods as IProduct[]);
+        if (requestVersion !== this.productsRequestVersion) {
+          return;
+        }
+
+        this.products = this.mergeProducts(this.products, resFoods as IProduct[]);
 
         // Priority: ingredient mode takes precedence over meal mode
         if (this.ingredientMode) {
@@ -1597,6 +1654,45 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
         this.load = true;
       });
+  }
+
+  private mergeProducts(current: IProduct[], incoming: IProduct[]): IProduct[] {
+    if (!Array.isArray(incoming) || incoming.length === 0) {
+      return [...(current || [])];
+    }
+
+    const merged = [...(current || [])];
+    const existingIds = new Set(
+      merged
+        .map((product) => product?._id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+    );
+
+    for (const product of incoming) {
+      const id = product?._id;
+      if (typeof id === 'string' && id.length > 0) {
+        if (existingIds.has(id)) {
+          continue;
+        }
+        existingIds.add(id);
+      }
+      merged.push(product);
+    }
+
+    return merged;
+  }
+
+  private shouldSkipProductsSearch(): boolean {
+    const search = (this.searchFilterGroup?.search || '').trim();
+    return search.length === 1;
+  }
+
+  public isSearchTooShortForProducts(): boolean {
+    return this.shouldSkipProductsSearch();
+  }
+
+  public createProductFromEmptyState(): void {
+    this.createProduct();
   }
 
   /**
@@ -1671,6 +1767,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private searchRecipes(): void {
+    const page = this.searchFilterGroup.page || 0;
+    if (page === 0) {
+      this.recipesRequestVersion++;
+    }
+    const requestVersion = this.recipesRequestVersion;
+    this.searchRecipesSub?.unsubscribe();
+
     console.log(
       '[DEBUG - API] searchRecipes() called, page:',
       this.searchFilterGroup.page,
@@ -1678,32 +1781,36 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     );
     this.load = false;
     const search = this.searchFilterGroup.search || '';
-    const page = this.searchFilterGroup.page || 0;
+    const requestPage = this.searchFilterGroup.page || 0;
 
     let request$;
 
     if (this.searchFilterGroup.ownFilter) {
       // User's own recipes
-      request$ = this.recipeApiService.getUserRecipes(page);
+      request$ = this.recipeApiService.getUserRecipes(requestPage);
     } else if (
       this.searchFilterGroup.favFilter &&
       this.searchFilterGroup.shieldFilter
     ) {
       // Favorites + Verified (start from favorites, filter verified locally)
-      request$ = this.recipeApiService.getArchivedRecipes(search, page);
+      request$ = this.recipeApiService.getArchivedRecipes(search, requestPage);
     } else if (this.searchFilterGroup.shieldFilter) {
       // Verified recipes
-      request$ = this.recipeApiService.getVerifiedRecipes(search, page);
+      request$ = this.recipeApiService.getVerifiedRecipes(search, requestPage);
     } else if (this.searchFilterGroup.favFilter) {
       // Favorite recipes
-      request$ = this.recipeApiService.getArchivedRecipes(search, page);
+      request$ = this.recipeApiService.getArchivedRecipes(search, requestPage);
     } else {
       // All recipes (verified + user's own)
-      request$ = this.recipeApiService.searchRecipes(search, page);
+      request$ = this.recipeApiService.searchRecipes(search, requestPage);
     }
 
-    request$.subscribe({
+    this.searchRecipesSub = request$.subscribe({
       next: (recipes: Recipe[]) => {
+        if (requestVersion !== this.recipesRequestVersion) {
+          return;
+        }
+
         // Apply local filters if needed
         let filtered = recipes;
 
@@ -1759,6 +1866,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.load = true;
       },
       error: () => {
+        if (requestVersion !== this.recipesRequestVersion) {
+          return;
+        }
         this.load = true;
       },
     });

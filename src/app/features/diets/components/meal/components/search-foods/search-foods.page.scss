@@ -277,6 +277,67 @@ ion-header {
   --background: rgba(255, 255, 255, 0.1);
 }
 
+.no-results-card {
+  margin: 22px 12px;
+  padding: 18px 16px;
+  border-radius: 14px;
+  border: 1px solid #2a2a2a;
+  background: #171717;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+
+  .no-results-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 22px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+  }
+
+  h3 {
+    margin: 2px 0 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.87rem;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .no-results-action {
+    margin-top: 4px;
+    border: none;
+    border-radius: 10px;
+    height: 40px;
+    padding: 0 14px;
+    background: rgba(254, 144, 0, 0.15);
+    color: var(--ion-color-primary);
+    font-size: 0.86rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
 // Footer Controls Row
 .search-foods-footer {
   --background: transparent;

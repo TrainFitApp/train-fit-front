@@ -11,7 +11,7 @@
         <ion-searchbar
           #searchbar
           (ionInput)="search($event)"
-          debounce="500"
+          debounce="250"
           placeholder="Buscar..."
           mode="ios"
           animated
@@ -70,7 +70,25 @@
 
     <ng-template #noProducts>
       <ng-container *ngIf="load">
-        <ion-item><ion-label>No hay coincidencias</ion-label></ion-item>
+        <div
+          class="no-results-card"
+          *ngIf="!isSearchTooShortForProducts(); else keepLoadedProductsState"
+        >
+          <div class="no-results-icon">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+          <h3>No hay coincidencias</h3>
+          <p>Prueba con otro término o crea un producto nuevo.</p>
+          <button
+            class="no-results-action"
+            type="button"
+            (click)="createProductFromEmptyState()"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Crear producto
+          </button>
+        </div>
+        <ng-template #keepLoadedProductsState></ng-template>
       </ng-container>
     </ng-template>
   </ng-container>

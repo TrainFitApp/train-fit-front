@@ -219,8 +219,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.recipeForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
-      quantityCooked: [null, [Validators.required, Validators.min(1)]],
-      // For add mode only
+      quantityCooked: [null, [Validators.min(1)]],
       quantity: [null],
     });
 
@@ -595,15 +594,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get canSave(): boolean {
     if (this.mode === 'add') {
-      const qtyCooked = this.recipeForm.get('quantityCooked')?.value;
-      return qtyCooked > 0;
+      return this.recipeForm.valid;
     }
 
-    // Create mode with meal - require cooked quantity (consumed quantity is optional)
+    // Create mode with meal
     if (this.mode === 'create' && this.meal) {
-      const qtyCooked = this.recipeForm.get('quantityCooked')?.value;
       const hasEnoughIngredients = this.ingredients.length >= 2;
-      return hasEnoughIngredients && this.recipeForm.valid && qtyCooked > 0;
+      return hasEnoughIngredients && this.recipeForm.valid;
     }
 
     // Create or Edit mode without meal
@@ -648,48 +645,46 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get footerMacrosHint(): string {
-    if (!this.supportsConsumedQuantityMode) {
-      return this.hasCookedTotalForMacros
-        ? '* Cálculo del total cocinado.'
-        : '* Cálculo del total sin cocinar.';
-    }
     if (this.footerUsesConsumedQuantity) {
-      return '* Cálculo sobre la ración consumida.';
+      return this.hasCookedTotalForMacros
+        ? '* Cálculo de la ración consumida sobre el total cocinado.'
+        : '* Cálculo de la ración consumida sobre el total sin cocinar.';
     }
     return this.hasCookedTotalForMacros
-      ? '* Cálculo del total cocinado.'
-      : '* Cálculo del total sin cocinar.';
+      ? '* Por cada 100g sobre el total cocinado.'
+      : '* Por cada 100g sobre el sumatorio sin cocinar.';
   }
 
   public get footerKcal(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.kcal
-      : this.calculatedMacros.kcal;
+    if (this.footerUsesConsumedQuantity) {
+      return this.portionMacros.kcal;
+    }
+    return this.per100Kcal;
   }
 
   public get footerProtein(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.protein
-      : this.calculatedMacros.protein;
+    if (this.footerUsesConsumedQuantity) {
+      return this.portionMacros.protein;
+    }
+    return this.per100Protein;
   }
 
   public get footerCarbs(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.carbs
-      : this.calculatedMacros.carbs;
+    if (this.footerUsesConsumedQuantity) {
+      return this.portionMacros.carbs;
+    }
+    return this.per100Carbs;
   }
 
   public get footerFat(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.fat
-      : this.calculatedMacros.fat;
+    if (this.footerUsesConsumedQuantity) {
+      return this.portionMacros.fat;
+    }
+    return this.per100Fat;
   }
 
-  private get inlinePer100BaseWeight(): number {
+  private get per100BaseWeight(): number {
     const raw = this.recipeForm?.getRawValue?.() || {};
-    if (this.footerUsesConsumedQuantity) {
-      return this.toOptionalPositiveNumber(raw.quantity) || 0;
-    }
     return (
       this.toOptionalPositiveNumber(raw.quantityCooked) ||
       this.calculatedMacros.quantity ||
@@ -698,34 +693,25 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private toPer100(value: number): number {
-    const baseWeight = this.inlinePer100BaseWeight;
+    const baseWeight = this.per100BaseWeight;
     if (!baseWeight || baseWeight <= 0) return 0;
     return (value / baseWeight) * 100;
   }
 
-  public get inlinePer100Kcal(): number {
-    return this.toPer100(this.footerKcal);
+  public get per100Kcal(): number {
+    return this.toPer100(this.calculatedMacros.kcal);
   }
 
-  public get inlinePer100Protein(): number {
-    return this.toPer100(this.footerProtein);
+  public get per100Protein(): number {
+    return this.toPer100(this.calculatedMacros.protein);
   }
 
-  public get inlinePer100Carbs(): number {
-    return this.toPer100(this.footerCarbs);
+  public get per100Carbs(): number {
+    return this.toPer100(this.calculatedMacros.carbs);
   }
 
-  public get inlinePer100Fat(): number {
-    return this.toPer100(this.footerFat);
-  }
-
-  public get inlinePer100Hint(): string {
-    if (this.footerUsesConsumedQuantity) {
-      return '* Por cada 100g sobre la ración consumida.';
-    }
-    return this.hasCookedTotalForMacros
-      ? '* Por cada 100g sobre el total cocinado.'
-      : '* Por cada 100g sobre el sumatorio sin cocinar.';
+  public get per100Fat(): number {
+    return this.toPer100(this.calculatedMacros.fat);
   }
 
   public recalculateMacros(): void {
@@ -739,23 +725,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.recipeService.calculateRecipeMacros(tempRecipe);
 
     // 2. Portion Macros (Based on form values if in add/edit/create mode)
-    if (
-      this.mode === 'add' ||
-      this.mode === 'edit' ||
-      (this.mode === 'create' && this.meal)
-    ) {
-      const formVal = this.recipeForm.getRawValue();
-      // Portion macros are based on consumed quantity vs cooked total weight
-      const cookedTotal =
-        formVal.quantityCooked || this.calculatedMacros.quantity || 1;
-      const quantityRatio = (formVal.quantity || 0) / cookedTotal;
-      this.portionMacros = {
-        kcal: this.calculatedMacros.kcal * quantityRatio,
-        protein: this.calculatedMacros.protein * quantityRatio,
-        carbs: this.calculatedMacros.carbs * quantityRatio,
-        fat: this.calculatedMacros.fat * quantityRatio,
-      };
-    }
+    const formVal = this.recipeForm.getRawValue();
+    const cookedTotal = this.toOptionalPositiveNumber(formVal.quantityCooked);
+    const rawTotal = this.calculatedMacros.quantity || 0;
+    const portionBase = cookedTotal || rawTotal || 1;
+    const consumedQty = this.toOptionalPositiveNumber(formVal.quantity) || 0;
+    const quantityRatio = consumedQty / portionBase;
+    this.portionMacros = {
+      kcal: this.calculatedMacros.kcal * quantityRatio,
+      protein: this.calculatedMacros.protein * quantityRatio,
+      carbs: this.calculatedMacros.carbs * quantityRatio,
+      fat: this.calculatedMacros.fat * quantityRatio,
+    };
   }
 
   public async addIngredients(): Promise<void> {
