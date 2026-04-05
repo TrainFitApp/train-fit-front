@@ -397,8 +397,26 @@ ion-item {
   --padding-end: 0;
   --min-height: 48px;
 
+  .select-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .select-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #ffffff;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 1;
+  }
+
   ion-select {
     width: 100%;
+    --padding-end: 36px;
     --placeholder-color: #ffffff !important;
     --placeholder-opacity: 1;
     color: #ffffff !important;
@@ -611,13 +629,19 @@ ion-grid {
   gap: 4px;
 }
 
+.compare-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .compare-select {
   --background: transparent;
   --color: rgba(255, 255, 255, 0.85);
   --padding-top: 4px;
   --padding-bottom: 4px;
   --padding-start: 10px;
-  --padding-end: 6px;
+  --padding-end: 26px;
   border: none;
   border-radius: 8px;
   font-size: 12px;
@@ -625,6 +649,16 @@ ion-grid {
   font-family: "Outfit", sans-serif;
   min-width: 58px;
   max-width: 72px;
+}
+
+.compare-select-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  pointer-events: none;
 }
 
 .compare-arrow {

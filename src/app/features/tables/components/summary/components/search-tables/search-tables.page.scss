@@ -149,6 +149,34 @@ app-skeleton-loader {
   }
 }
 
+/* iOS native swipe-back: avoid painting solid background on ion-header itself.
+   Keep visual background on the inner header container instead. */
+ion-header.modern-search-header {
+  --background: transparent !important;
+  background: transparent !important;
+}
+
+ion-header.modern-search-header::after {
+  background-image: none !important;
+}
+
+ion-header.modern-search-header .tf-page-header {
+  background: var(--bg-primary);
+}
+
+ion-content.search-tables-content {
+  --background: transparent !important;
+  background: transparent !important;
+}
+
+ion-content.search-tables-content::part(background) {
+  background: transparent !important;
+}
+
+ion-content.search-tables-content::part(scroll) {
+  background: var(--bg-primary);
+}
+
 ion-content {
   --background: var(--bg-primary);
 

@@ -31,7 +31,11 @@
   <div class="form-container">
     <form [formGroup]="recipeForm" class="recipe-form">
       <!-- Recipe Info Section (create / edit) -->
-      <div class="section-card info-card" *ngIf="isCreateMode || isEditMode">
+      <div
+        class="section-card info-card"
+        [class.has-corner-actions]="isEditMode"
+        *ngIf="isCreateMode || isEditMode"
+      >
         <!-- Corner edit controls -->
         <div *ngIf="isEditMode" class="card-corner-actions">
           <ng-container *ngIf="editInfoMode; else infoEditTrigger">
@@ -40,7 +44,7 @@
               class="card-action-btn cancel-btn"
               (click)="cancelEditInfo()"
             >
-              <ion-icon name="arrow-back-outline"></ion-icon>
+              <ion-icon name="arrow-undo-outline"></ion-icon>
             </button>
             <button
               type="button"
@@ -48,7 +52,11 @@
               (click)="confirmEditInfo()"
               [disabled]="loading"
             >
-              <ion-spinner *ngIf="loading" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+              <ion-spinner
+                *ngIf="loading"
+                name="crescent"
+                style="width: 18px; height: 18px"
+              ></ion-spinner>
               <ion-icon *ngIf="!loading" name="checkmark-outline"></ion-icon>
             </button>
           </ng-container>
@@ -135,7 +143,7 @@
 
       <!-- Recipe Info Section (add mode) -->
       <div
-        class="section-card recipe-preview info-card"
+        class="section-card recipe-preview info-card has-corner-actions"
         *ngIf="isAddMode && recipe"
       >
         <!-- Corner edit controls -->
@@ -146,7 +154,7 @@
               class="card-action-btn cancel-btn"
               (click)="cancelEditInfo()"
             >
-              <ion-icon name="arrow-back-outline"></ion-icon>
+              <ion-icon name="arrow-undo-outline"></ion-icon>
             </button>
             <button
               type="button"
@@ -154,7 +162,11 @@
               (click)="confirmEditInfo()"
               [disabled]="loading"
             >
-              <ion-spinner *ngIf="loading" name="crescent" style="width:18px;height:18px;"></ion-spinner>
+              <ion-spinner
+                *ngIf="loading"
+                name="crescent"
+                style="width: 18px; height: 18px"
+              ></ion-spinner>
               <ion-icon *ngIf="!loading" name="checkmark-outline"></ion-icon>
             </button>
           </ng-container>
@@ -305,20 +317,28 @@
             <ion-card-content>
               <div class="macro-summary-flex">
                 <div class="summary-item calories">
-                  <span class="summary-value">{{ footerKcal | number:'1.0-0' }}</span>
+                  <span class="summary-value"
+                    >{{ footerKcal | number:'1.0-0' }}</span
+                  >
                   <span class="summary-label">kcal</span>
                 </div>
                 <div class="summary-divider"></div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerProtein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value"
+                    >{{ footerProtein | number:'1.0-1' }}<small>g</small></span
+                  >
                   <span class="summary-label protein">Proteína</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerCarbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value"
+                    >{{ footerCarbs | number:'1.0-1' }}<small>g</small></span
+                  >
                   <span class="summary-label carbs">CBH</span>
                 </div>
                 <div class="summary-item">
-                  <span class="summary-value">{{ footerFat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="summary-value"
+                    >{{ footerFat | number:'1.0-1' }}<small>g</small></span
+                  >
                   <span class="summary-label fat">Grasas</span>
                 </div>
               </div>
@@ -416,7 +436,6 @@
           <ion-icon name="warning-outline" color="warning"></ion-icon>
           <span>Añade al menos 2 ingredientes para crear una receta</span>
         </div>
-
       </div>
 
       <div class="inline-save-action">
@@ -431,8 +450,8 @@
           <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
           <ng-container *ngIf="!loading">
             <span>
-              {{ isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' :
-              'Crear receta') }}
+              {{ isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios'
+              : 'Crear receta') }}
             </span>
           </ng-container>
         </ion-button>

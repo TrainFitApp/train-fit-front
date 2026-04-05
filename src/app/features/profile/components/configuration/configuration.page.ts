@@ -6,13 +6,13 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { Theme } from 'src/app/shared/models/theme';
+import { AdPreferencesPage } from './components/ad-preferences/ad-preferences.page';
 import { NutritionEditorPage } from './components/editor/components/nutrition-editor/nutrition-editor.page';
 import { EditorPage } from './components/editor/editor.page';
 
@@ -39,7 +39,6 @@ export class ConfigurationPage {
     private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,
     private readonly navigationService: NavigationService,
-    private readonly adMobService: AdMobService
   ) {
     this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
@@ -86,7 +85,39 @@ export class ConfigurationPage {
   }
 
   public async goToAdConsent(): Promise<void> {
-    await this.adMobService.consent(this.user);
+    const modal: ModalOptions = {
+      component: AdPreferencesPage,
+      cssClass: 'fullscreen-modal',
+    };
+
+    const res: any = await this.ionicUtilService.showModal(modal);
+    if (res?.data === undefined || res?.data === null) return;
+
+    const selectedOption = !!res.data;
+    if (this.user?.personalAds === selectedOption) return;
+
+    const updatedUser: User = {
+      ...this.user,
+      personalAds: selectedOption,
+    };
+
+    this.userService.updateUser(updatedUser).subscribe({
+      next: (userUpdated) => {
+        this.user = userUpdated;
+        this.ionicUtilService.showToast({
+          message: 'Preferencias de anuncios actualizadas',
+          duration: 1400,
+          color: 'success',
+        });
+      },
+      error: () => {
+        this.ionicUtilService.showToast({
+          message: 'No se pudieron guardar las preferencias',
+          duration: 1600,
+          color: 'danger',
+        });
+      },
+    });
   }
 
   public openTrainers(): void {

@@ -93,18 +93,21 @@
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="none">
-          <ion-select
-            mode="ios"
-            interface="action-sheet"
-            [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
-            placeholder="Elige un entrenamiento"
-            [value]="selectedWorkoutName"
-            (ionChange)="onWorkoutChange($event)"
-          >
-            <ion-select-option *ngFor="let w of workouts" [value]="w.name">
-              {{ w.name }} ({{ w.exercises.length }} ejercicios)
-            </ion-select-option>
-          </ion-select>
+          <div class="select-wrapper">
+            <ion-select
+              mode="ios"
+              interface="action-sheet"
+              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              placeholder="Elige un entrenamiento"
+              [value]="selectedWorkoutName"
+              (ionChange)="onWorkoutChange($event)"
+            >
+              <ion-select-option *ngFor="let w of workouts" [value]="w.name">
+                {{ w.name }} ({{ w.exercises.length }} ejercicios)
+              </ion-select-option>
+            </ion-select>
+            <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
+          </div>
         </ion-item>
       </ion-card-content>
     </ion-card>
@@ -119,19 +122,22 @@
       </ion-card-header>
       <ion-card-content>
         <ion-item lines="none">
-          <ion-select
-            mode="ios"
-            interface="action-sheet"
-            [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
-            placeholder="Elige un ejercicio"
-            [disabled]="!selectedWorkoutName"
-            [value]="selectedExerciseId"
-            (ionChange)="onExerciseChange($event)"
-          >
-            <ion-select-option *ngFor="let ex of exercises" [value]="ex._id">
-              {{ ex.exercise?.name }}
-            </ion-select-option>
-          </ion-select>
+          <div class="select-wrapper">
+            <ion-select
+              mode="ios"
+              interface="action-sheet"
+              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              placeholder="Elige un ejercicio"
+              [disabled]="!selectedWorkoutName"
+              [value]="selectedExerciseId"
+              (ionChange)="onExerciseChange($event)"
+            >
+              <ion-select-option *ngFor="let ex of exercises" [value]="ex._id">
+                {{ ex.exercise?.name }}
+              </ion-select-option>
+            </ion-select>
+            <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
+          </div>
         </ion-item>
       </ion-card-content>
     </ion-card>
@@ -210,32 +216,38 @@
         <div class="comparison-header">
           <ion-card-title>Comparativa</ion-card-title>
           <div class="comparison-selectors">
-            <ion-select
-              mode="ios"
-              interface="action-sheet"
-              class="compare-select"
-              [(ngModel)]="compareIndexA"
-              (ionChange)="onCompareChange()"
-            >
-              <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
-                M{{ o.splitIndex }}
-              </ion-select-option>
-            </ion-select>
+            <div class="compare-select-wrapper">
+              <ion-select
+                mode="ios"
+                interface="action-sheet"
+                class="compare-select"
+                [(ngModel)]="compareIndexA"
+                (ionChange)="onCompareChange()"
+              >
+                <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
+                  M{{ o.splitIndex }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
+            </div>
             <ion-icon
               name="arrow-forward-outline"
               class="compare-arrow"
             ></ion-icon>
-            <ion-select
-              mode="ios"
-              interface="action-sheet"
-              class="compare-select"
-              [(ngModel)]="compareIndexB"
-              (ionChange)="onCompareChange()"
-            >
-              <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
-                M{{ o.splitIndex }}
-              </ion-select-option>
-            </ion-select>
+            <div class="compare-select-wrapper">
+              <ion-select
+                mode="ios"
+                interface="action-sheet"
+                class="compare-select"
+                [(ngModel)]="compareIndexB"
+                (ionChange)="onCompareChange()"
+              >
+                <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
+                  M{{ o.splitIndex }}
+                </ion-select-option>
+              </ion-select>
+              <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
+            </div>
           </div>
         </div>
       </ion-card-header>

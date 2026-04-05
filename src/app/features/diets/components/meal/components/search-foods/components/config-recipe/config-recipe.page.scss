@@ -14,6 +14,7 @@
 }
 
 
+
 .config-header {
   background: #141414;
   border-bottom: 1px solid #252525;
@@ -89,7 +90,7 @@
 .info-card {
   position: relative;
 
-  .section-header {
+  &.has-corner-actions .section-header {
     padding-right: 52px; // leave room for the corner button
   }
 }
@@ -125,11 +126,11 @@
   }
 
   &.cancel-btn {
-    color: var(--ion-color-primary);
-    background: rgba(var(--ion-color-primary-rgb), 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.05);
 
     &:active {
-      background: rgba(var(--ion-color-primary-rgb), 0.18);
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 
@@ -488,11 +489,11 @@
   }
 
   &.cancel-btn {
-    background: rgba(var(--ion-color-danger-rgb), 0.1);
-    color: var(--ion-color-danger);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
 
     &:active {
-      background: rgba(var(--ion-color-danger-rgb), 0.2);
+      background: rgba(255, 255, 255, 0.1);
     }
   }
 
