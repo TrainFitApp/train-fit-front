@@ -123,7 +123,7 @@
     >
       <div class="exercise-image">
         <img
-          [src]="exercise?.gifUrl ? exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT  | safe"
+          [src]="(exercise?.gifUrl ? exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
           alt="{{ exercise?.name }}"
         />
       </div>

@@ -118,7 +118,7 @@
             <div class="premium-exercise-thumbnail">
               <img
                 class="premium-thumbnail-img"
-                [src]="exercise?.exercise.gifUrl ? exercise?.exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT  | safe"
+                [src]="(exercise?.exercise.gifUrl ? exercise?.exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
                 (click)="navigateYTVideo(exercise.exercise.videoUrl, exercise); $event.stopPropagation()"
               />
             </div>
