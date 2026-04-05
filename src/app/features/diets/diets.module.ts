@@ -10,7 +10,6 @@ import { ToolbarCalendarComponent } from './components/toolbar-calendar/toolbar-
 import { DietsPageRoutingModule } from './diets-routing.module';
 import { DietsPage } from './diets.page';
 import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
-import { NutritionalObjectivesModule } from './components/nutritional-objectives/nutritional-objectives.module';
 
 @NgModule({
   declarations: [
@@ -23,7 +22,6 @@ import { NutritionalObjectivesModule } from './components/nutritional-objectives
   imports: [
     SharedModule,
     MacrosBarsModule,
-    NutritionalObjectivesModule,
     DietsPageRoutingModule,
     NgChartsModule,
     SearchFoodsPageModule,

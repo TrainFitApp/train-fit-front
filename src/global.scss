@@ -51,9 +51,9 @@ ion-popover::part(content) {
   overflow: auto;
 }
 
-/* Estilo base del ion-datetime (tema claro) */
+/* Estilo base del ion-datetime (tema claro, excluye modales de nacimiento) */
 ion-popover ion-datetime,
-ion-modal ion-datetime {
+ion-modal:not(.birthdate-datetime-modal) ion-datetime {
   --background: var(--ion-color-light);
   --color: var(--ion-color-dark);
   border-radius: 16px;
@@ -61,15 +61,16 @@ ion-modal ion-datetime {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Tema oscuro coherente */
+/* Tema oscuro coherente (excluye modales de nacimiento) */
 body[color-theme="dark"] ion-popover ion-datetime,
-body[color-theme="dark"] ion-modal ion-datetime {
+body[color-theme="dark"] ion-modal:not(.birthdate-datetime-modal) ion-datetime {
   --background: var(--ion-color-dark);
   --color: var(--ion-color-light);
 }
 
-/* Estilo elegante para el título del datetime con icono */
-.datetime-title {
+/* Estilo base de titulo para datetime normal (excluye modal birthdate) */
+ion-popover .datetime-title,
+ion-modal:not(.birthdate-datetime-modal) .datetime-title {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -86,6 +87,70 @@ body[color-theme="dark"] ion-modal ion-datetime {
     font-size: 22px;
     color: #ffffff;
   }
+}
+
+/* Tema unificado para selector de fecha de nacimiento (sign-up + editor) */
+ion-modal.birthdate-datetime-modal {
+  --width: min(420px, 92vw);
+  --height: auto;
+  --max-height: 78vh;
+  --border-radius: 22px;
+  --backdrop-opacity: 0.58;
+  --box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+ion-modal.birthdate-datetime-modal::part(content) {
+  border-radius: 22px;
+  border: 1px solid rgba(254, 144, 0, 0.25);
+  background: #121212;
+  overflow: hidden;
+}
+
+ion-modal.birthdate-datetime-modal ion-datetime {
+  --background: transparent;
+  --color: #f4f4f5;
+  --title-color: #f4f4f5;
+  --wheel-highlight-background: rgba(254, 144, 0, 0.18);
+  --wheel-fade-background-rgb: 18, 18, 18;
+  --wheel-highlight-border-radius: 14px;
+  padding: 14px 14px 12px;
+}
+
+ion-modal.birthdate-datetime-modal .datetime-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(254, 144, 0, 0.2);
+}
+
+ion-modal.birthdate-datetime-modal .datetime-title span,
+ion-modal.birthdate-datetime-modal .datetime-title ion-icon {
+  color: #fe9000;
+  text-shadow: none;
+}
+
+ion-modal.birthdate-datetime-modal .datetime-title ion-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  background: rgba(254, 144, 0, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-modal.birthdate-datetime-modal .datetime-title span {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+ion-modal.birthdate-datetime-modal ion-button {
+  --border-radius: 10px;
 }
 
 /* Dark theme macro colors */

@@ -1362,6 +1362,33 @@
   }
 }
 
+.inline-save-action {
+  margin-top: 16px;
+  margin-bottom: 12px;
+
+  .save-btn {
+    --background: var(--ion-color-primary);
+    --color: var(--ion-color-primary-contrast);
+    width: 100%;
+    height: 48px;
+    margin: 0;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+
+    ion-spinner {
+      --color: var(--ion-color-primary-contrast);
+    }
+
+    &.button-disabled,
+    &[disabled] {
+      --background: var(--ion-color-medium);
+      --color: var(--ion-color-medium-contrast);
+    }
+  }
+}
+
 // Header Action Buttons (Trash, etc)
 .header-actions-container {
   display: flex;

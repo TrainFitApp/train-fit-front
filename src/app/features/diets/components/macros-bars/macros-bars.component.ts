@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy, effect, inject } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -9,7 +9,6 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { MacrosBars, MacrosData } from '../../../../shared/models/macros-data';
 import { Theme } from '../../../../shared/models/theme';
 import { Subscription } from 'rxjs';
-import { NutritionalObjectivesComponent } from '../nutritional-objectives/nutritional-objectives.component';
 
 @Component({
   selector: 'app-macros-bars',
@@ -40,7 +39,7 @@ export class MacrosBarsComponent implements OnDestroy {
   // Inyección de servicios con signals
   private readonly userService = inject(UserService);
   private readonly dietDayService = inject(DietDayService);
-  private readonly modalCtrl = inject(ModalController);
+  private readonly navCtrl = inject(NavController);
 
   constructor() {
     // Effect para reaccionar a cambios en el usuario
@@ -95,15 +94,7 @@ export class MacrosBarsComponent implements OnDestroy {
 
   public async openNutritionalObjectives(): Promise<void> {
     if (!this.clickable) return;
-    const modal = await this.modalCtrl.create({
-      component: NutritionalObjectivesComponent,
-      componentProps: {
-        dietDay: this.dietDay,
-        user: this.user,
-      },
-      cssClass: 'fullscreen-modal',
-    });
-    await modal.present();
+    await this.navCtrl.navigateForward(['/tabs/diets/nutritional-objectives']);
   }
 
   private calculateMacros100g(

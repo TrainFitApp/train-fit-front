@@ -25,6 +25,13 @@ const routes: Routes = [
           import('../diets/diets.module').then((m) => m.DietsPageModule),
       },
       {
+        path: 'diets/nutritional-objectives',
+        loadChildren: () =>
+          import(
+            '../diets/components/nutritional-objectives/nutritional-objectives.module'
+          ).then((m) => m.NutritionalObjectivesModule),
+      },
+      {
         path: 'profile',
         loadChildren: () =>
           import('../profile/profile.module').then((m) => m.ProfilePageModule),

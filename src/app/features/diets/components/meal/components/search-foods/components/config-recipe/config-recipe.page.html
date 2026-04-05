@@ -418,27 +418,25 @@
         </div>
 
       </div>
+
+      <div class="inline-save-action">
+        <ion-button
+          expand="block"
+          size="large"
+          fill="solid"
+          class="save-btn"
+          [disabled]="!canSave || loading"
+          (click)="save()"
+        >
+          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+          <ng-container *ngIf="!loading">
+            <span>
+              {{ isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' :
+              'Crear receta') }}
+            </span>
+          </ng-container>
+        </ion-button>
+      </div>
     </form>
   </div>
 </ion-content>
-
-<ion-footer class="config-recipe-footer">
-  <div class="footer-content">
-    <ion-button
-      expand="block"
-      size="large"
-      fill="solid"
-      class="save-btn"
-      [disabled]="!canSave || loading"
-      (click)="save()"
-    >
-      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-      <ng-container *ngIf="!loading">
-        <span>
-          {{ isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' :
-          'Crear receta') }}
-        </span>
-      </ng-container>
-    </ion-button>
-  </div>
-</ion-footer>

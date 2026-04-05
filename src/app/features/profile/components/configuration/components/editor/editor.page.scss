@@ -699,7 +699,7 @@ body[color-theme="dark"] ion-range {
   --knob-box-shadow: none;
 }
 
-ion-modal {
+ion-modal.datetime-modal {
   --height: auto;
   --border-radius: 16px;
   --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);

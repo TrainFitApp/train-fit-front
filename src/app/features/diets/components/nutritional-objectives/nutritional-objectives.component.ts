@@ -1,8 +1,10 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { NavController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
 
 @Component({
@@ -10,13 +12,15 @@ import { NutritionalData } from 'src/app/shared/models/nutritional-data';
   templateUrl: './nutritional-objectives.component.html',
   styleUrls: ['./nutritional-objectives.component.scss'],
 })
-export class NutritionalObjectivesComponent implements OnInit {
+export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   @Input() dietDay: DietDay;
   @Input() user: User;
 
   public nutritionalData: NutritionalData = new NutritionalData();
-  private modalCtrl = inject(ModalController);
+  private navCtrl = inject(NavController);
   private dietDayService = inject(DietDayService);
+  private userService = inject(UserService);
+  private dietDaySub?: Subscription;
 
   // Reference values (RDA/AI) in grams
   public references = {
@@ -54,6 +58,22 @@ export class NutritionalObjectivesComponent implements OnInit {
   public animateBars = false;
 
   ngOnInit() {
+    this.user = this.user ?? ({} as User);
+
+    // Compatibilidad: si viene por input (flujo previo) lo respeta;
+    // si se abre por ruta, toma user desde el servicio global.
+    const localUser = this.userService.localUser();
+    if (!this.user?._id && localUser) {
+      this.user = localUser;
+    }
+
+    this.dietDaySub = this.dietDayService.getCurrentDietDay.subscribe((day) => {
+      if (!this.dietDay && day) {
+        this.dietDay = day;
+      }
+      this.calculateNutritionalData();
+    });
+
     this.personalizeReferences();
     this.calculateNutritionalData();
 
@@ -61,6 +81,10 @@ export class NutritionalObjectivesComponent implements OnInit {
     setTimeout(() => {
       this.animateBars = true;
     }, 300);
+  }
+
+  ngOnDestroy(): void {
+    this.dietDaySub?.unsubscribe();
   }
 
   private personalizeReferences() {
@@ -92,8 +116,8 @@ export class NutritionalObjectivesComponent implements OnInit {
     this.references.cholesterol = 0.3;
   }
 
-  dismiss() {
-    this.modalCtrl.dismiss();
+  goBack() {
+    this.navCtrl.back();
   }
 
   private calculateNutritionalData() {

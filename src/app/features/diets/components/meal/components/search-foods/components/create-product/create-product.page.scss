@@ -744,6 +744,18 @@ ion-accordion[value="additional-info"] {
 
 // Button enhancements
 .create-button {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  font-weight: 600;
+  font-size: 1rem;
+  height: 48px;
+  margin: 0;
+
+  &.button-disabled {
+    --background: var(--ion-color-medium);
+    --color: var(--ion-color-medium-contrast);
+  }
+
   .button-content {
     display: flex;
     align-items: center;
@@ -754,6 +766,11 @@ ion-accordion[value="additional-info"] {
       font-size: 1.2rem;
     }
   }
+}
+
+.inline-create-action {
+  margin-top: 8px;
+  margin-bottom: 12px;
 }
 
 // Enhanced input styles

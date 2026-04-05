@@ -17,6 +17,14 @@ const routes: Routes = [
         './features/diets/components/meal/components/search-foods/search-foods.module'
       ).then((m) => m.SearchFoodsPageModule),
   },
+  {
+    path: 'nutritional-objectives',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        './features/diets/components/nutritional-objectives/nutritional-objectives.module'
+      ).then((m) => m.NutritionalObjectivesModule),
+  },
 
   {
     path: 'sign-in',
