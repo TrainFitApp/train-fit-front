@@ -9,6 +9,8 @@ import { GoogleAuthService } from './services/auth/google-auth.service';
 import { AppleAuthService } from './services/auth/apple-auth.service';
 import { CustomExerciseAPIService } from './services/custom-exercise/custom-exercise-api.service';
 import { CustomExerciseService } from './services/custom-exercise/custom-exercise.service';
+import { BillingApiService } from './services/billing/billing-api.service';
+import { BillingService } from './services/billing/billing.service';
 import { CustomProductAPIService } from './services/custom-product/custom-product-api.service';
 import { CustomProductService } from './services/custom-product/custom-product.service';
 import { DietDayAPIService } from './services/diet-day/diet-day-api.service';
@@ -59,6 +61,8 @@ import { MatchPasswords } from './validators/matchPasswords';
     // Features
     AuthService,
     AuthApiService,
+    BillingApiService,
+    BillingService,
     GoogleAuthService,
     AppleAuthService,
     UserService,

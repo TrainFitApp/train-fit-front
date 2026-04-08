@@ -13,6 +13,7 @@ import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
@@ -90,6 +91,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private navigationService: NavigationService,
     private authService: AuthService,
+    private billingService: BillingService,
     private userLocalStorage: UserLocalstorageService
   ) {
     this.email = this.authService.getDecodedUser(
@@ -112,6 +114,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.updateLoadingStep(2);
           this.updateProgress(30); // Usuario cargado
           this.userService.setLocalUser = resUser;
+          void this.billingService.logIn(resUser?._id);
 
           // Verificar explícitamente si el registro no se terminó
           if (!this.isUserRegistrationComplete(resUser)) {

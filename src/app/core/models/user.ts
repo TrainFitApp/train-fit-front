@@ -33,6 +33,13 @@ export class User {
   provider?: 'google' | 'apple';
   personalAds?: boolean;
   isPremium?: boolean;
+  premium?: {
+    entitled?: boolean;
+    plan?: string;
+    expiresAt?: string | Date;
+    source?: string;
+    lastSyncAt?: string | Date;
+  };
 
   kcalCurrent?: number;
   proteinsGCurrent?: number;

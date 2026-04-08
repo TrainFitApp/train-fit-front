@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
 import { AuthService } from './core/services/auth/auth.service';
+import { BillingService } from './core/services/billing/billing.service';
 import { SecurityService } from './core/services/security/security.service';
 import { ThemeService } from './core/services/util/theme.service';
 
@@ -19,9 +20,11 @@ export class AppComponent {
   constructor(
     private router: Router,
     private authService: AuthService,
+    private billingService: BillingService,
     private securityService: SecurityService,
     private themeService: ThemeService
   ) {
+    void this.billingService.initialize();
     this.rootRoutes();
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');

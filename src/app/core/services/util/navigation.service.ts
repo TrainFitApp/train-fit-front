@@ -22,6 +22,7 @@ export class NavigationService {
   private readonly SUGGESTIONS_ROUTE = 'configuration/suggestions';
   private readonly REFERENCES_ROUTE = 'configuration/references';
   private readonly CALCULATOR_LIST_ROUTE = 'tabs/profile/calculator-list';
+  private readonly PREMIUM_ROUTE = 'premium';
   private readonly SEARCH_TABLES_ROUTE = 'search-tables/false';
   private readonly SEARCH_OWN_TABLES_ROUTE = 'search-tables/true';
   private readonly CURRENT_WORKOUT_ROUTE = 'current-workout';
@@ -124,6 +125,10 @@ export class NavigationService {
 
   public goToCalculatorList(): void {
     this.navController.navigateForward([this.CALCULATOR_LIST_ROUTE]);
+  }
+
+  public goToPremium(): void {
+    this.navController.navigateForward([this.PREMIUM_ROUTE]);
   }
 
   public gotoConcepts(): void {

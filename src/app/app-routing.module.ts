@@ -88,6 +88,14 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
+    path: 'premium',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import('./features/premium/premium.module').then(
+        (m) => m.PremiumPageModule
+      ),
+  },
+  {
     path: 'weight-info',
     loadChildren: () =>
       import(

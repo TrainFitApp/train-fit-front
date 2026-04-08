@@ -88,6 +88,10 @@
             &.legal-icon {
               background: rgba(var(--ion-color-medium-rgb), 0.1);
             }
+
+            &.premium-icon {
+              background: rgba(var(--ion-color-warning-rgb), 0.12);
+            }
           }
 
           ion-label {
@@ -137,6 +141,78 @@
   }
 }
 
+.premium-card {
+  padding: 16px;
+
+  .premium-status {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(var(--ion-color-warning-rgb), 0.12);
+    margin-bottom: 12px;
+
+    ion-icon {
+      font-size: 22px;
+      color: var(--ion-color-warning);
+      margin-top: 2px;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+      color: var(--ion-color-medium);
+    }
+
+    &.is-premium {
+      background: rgba(var(--ion-color-success-rgb), 0.12);
+
+      ion-icon {
+        color: var(--ion-color-success);
+      }
+    }
+  }
+
+  .premium-plans {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .plan-btn {
+      border: 1px solid var(--ion-color-step-200);
+      border-radius: 12px;
+      background: var(--ion-color-light);
+      color: var(--ion-text-color);
+      padding: 12px;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .plan-btn--featured {
+      border-color: rgba(var(--ion-color-primary-rgb), 0.5);
+      background: rgba(var(--ion-color-primary-rgb), 0.08);
+    }
+  }
+
+  .premium-actions {
+    ion-button {
+      margin: 6px 0;
+    }
+  }
+}
+
 // Dark Theme Specific Styles
 body[color-theme="dark"] {
   .configuration-content {
@@ -178,6 +254,10 @@ body[color-theme="dark"] {
 
             &.legal-icon {
               background: rgba(var(--ion-color-medium-rgb), 0.2);
+            }
+
+            &.premium-icon {
+              background: rgba(var(--ion-color-warning-rgb), 0.22);
             }
           }
 

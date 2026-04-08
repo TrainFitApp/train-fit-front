@@ -4,6 +4,7 @@ import { finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
 import { UserLocalstorageService } from '../user/user-localstorage.service';
+import { BillingService } from '../billing/billing.service';
 import { NavigationService } from '../util/navigation.service';
 import { AuthApiService } from './auth-api.service';
 import { RefreshTokenStoreService } from './refresh-token-store.service';
@@ -18,6 +19,7 @@ export class AuthService {
   constructor(
     private authApiService: AuthApiService,
     private userLocalstorageService: UserLocalstorageService,
+    private billingService: BillingService,
     private navigationService: NavigationService,
     private refreshTokenStore: RefreshTokenStoreService
   ) {
@@ -183,6 +185,7 @@ export class AuthService {
     this.refreshTokenStore.clear().catch((error) => {
       console.warn('Could not clear native refresh token', error);
     });
+    void this.billingService.logOut();
     this._user$.next(null);
     this.navigationService.goToLoginPage();
 

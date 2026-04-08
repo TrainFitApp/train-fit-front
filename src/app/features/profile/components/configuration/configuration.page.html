@@ -51,6 +51,105 @@
       </ion-card>
     </div>
 
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="diamond-outline"></ion-icon>
+        <span>Trainfit Premium</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="openPremiumPage()">
+          <div slot="start" class="item-icon-container premium-icon">
+            <ion-icon name="diamond-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Gestionar Trainfit Premium</h3>
+            <p>{{ isPremium ? 'Premium activo' : 'Desbloquear premium' }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+
+      <ion-card class="config-card premium-card" *ngIf="isBillingAvailable">
+        <div class="premium-status" [class.is-premium]="isPremium">
+          <ion-icon [name]="isPremium ? 'checkmark-circle' : 'lock-closed'"></ion-icon>
+          <div>
+            <h3>{{ isPremium ? 'Premium activo' : 'Modo free activo' }}</h3>
+            <p>
+              {{
+                isPremium
+                  ? 'Sin anuncios y funciones premium desbloqueadas.'
+                  : 'Activa premium para quitar anuncios y desbloquear límites.'
+              }}
+            </p>
+          </div>
+        </div>
+
+        <div class="premium-plans">
+          <button
+            class="plan-btn"
+            [disabled]="isPurchasingMonthly || isPremium || isLoadingPremiumData"
+            (click)="purchaseMonthlyPlan()"
+          >
+            <span>Mensual Pro</span>
+            <strong>{{ monthlyPriceLabel }}</strong>
+          </button>
+
+          <button
+            class="plan-btn plan-btn--featured"
+            [disabled]="isPurchasingAnnual || isPremium || isLoadingPremiumData"
+            (click)="purchaseAnnualPlan()"
+          >
+            <span>Anual Pro</span>
+            <strong>{{ annualPriceLabel }}</strong>
+          </button>
+        </div>
+
+        <div class="premium-actions">
+          <ion-button
+            expand="block"
+            fill="solid"
+            color="primary"
+            [disabled]="isPresentingPaywall || isLoadingPremiumData"
+            (click)="openPremiumPaywall()"
+          >
+            Abrir paywall
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="medium"
+            [disabled]="isRestoringPurchases || isLoadingPremiumData"
+            (click)="restorePurchases()"
+          >
+            Restaurar compras
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="clear"
+            color="dark"
+            [disabled]="isOpeningCustomerCenter || isLoadingPremiumData"
+            (click)="openCustomerCenter()"
+          >
+            Gestionar suscripción
+          </ion-button>
+        </div>
+      </ion-card>
+
+      <ion-card class="config-card" *ngIf="!isBillingAvailable">
+        <ion-item class="config-item">
+          <div slot="start" class="item-icon-container premium-icon">
+            <ion-icon name="information-circle-outline" color="medium"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Modo navegador detectado</h3>
+            <p>Puedes ver la interfaz premium, pero la compra solo funciona en Android/iOS instalados.</p>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
     <!-- Privacy Section -->
     <div class="section-group">
       <div class="section-header">
