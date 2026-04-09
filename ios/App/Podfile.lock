@@ -70,6 +70,20 @@ PODS:
   - GTMSessionFetcher/Core (3.5.0)
   - OSBarcodeLib (2.0.1)
   - PromisesObjC (2.4.0)
+  - PurchasesHybridCommon (17.25.0):
+    - RevenueCat (= 5.51.1)
+  - PurchasesHybridCommonUI (17.25.0):
+    - PurchasesHybridCommon (= 17.25.0)
+    - RevenueCatUI (= 5.51.1)
+  - RevenueCat (5.51.1)
+  - RevenuecatPurchasesCapacitor (11.3.2):
+    - Capacitor
+    - PurchasesHybridCommon (= 17.25.0)
+  - RevenuecatPurchasesCapacitorUi (11.3.2):
+    - Capacitor
+    - PurchasesHybridCommonUI (= 17.25.0)
+  - RevenueCatUI (5.51.1):
+    - RevenueCat (= 5.51.1)
   - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
@@ -84,6 +98,8 @@ DEPENDENCIES:
   - CapacitorSecureStoragePlugin (from `../../node_modules/capacitor-secure-storage-plugin`)
   - "CapgoCapacitorNavigationBar (from `../../node_modules/@capgo/capacitor-navigation-bar`)"
   - "CapgoCapacitorSocialLogin (from `../../node_modules/@capgo/capacitor-social-login`)"
+  - "RevenuecatPurchasesCapacitor (from `../../node_modules/@revenuecat/purchases-capacitor`)"
+  - "RevenuecatPurchasesCapacitorUi (from `../../node_modules/@revenuecat/purchases-capacitor-ui`)"
 
 SPEC REPOS:
   trunk:
@@ -102,6 +118,10 @@ SPEC REPOS:
     - GTMSessionFetcher
     - OSBarcodeLib
     - PromisesObjC
+    - PurchasesHybridCommon
+    - PurchasesHybridCommonUI
+    - RevenueCat
+    - RevenueCatUI
     - SwiftKeychainWrapper
 
 EXTERNAL SOURCES:
@@ -127,6 +147,10 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capgo/capacitor-navigation-bar"
   CapgoCapacitorSocialLogin:
     :path: "../../node_modules/@capgo/capacitor-social-login"
+  RevenuecatPurchasesCapacitor:
+    :path: "../../node_modules/@revenuecat/purchases-capacitor"
+  RevenuecatPurchasesCapacitorUi:
+    :path: "../../node_modules/@revenuecat/purchases-capacitor-ui"
 
 SPEC CHECKSUMS:
   Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
@@ -155,8 +179,14 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   OSBarcodeLib: 57987d2eb1f916f701f4554e20e349b3cb83f023
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  PurchasesHybridCommon: 6a79a873ab52f777bfa36e9516f3fcd84d3b3428
+  PurchasesHybridCommonUI: 3c1f78addfb3f470713548b4eac8c59254d0efe6
+  RevenueCat: eab035bbab271faccfef5c36eaff2a1ffef14dc0
+  RevenuecatPurchasesCapacitor: fa376932f9967c7ab4b5eac477e824d90393b91a
+  RevenuecatPurchasesCapacitorUi: 969baeb81228e051e2b9e3e764f86f577e73a4b9
+  RevenueCatUI: c6acb3648fa58ccb4f0f178556ed0278b796234f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: aa441d7f97cf88f9e4eae6b5082607c783a295a0
+PODFILE CHECKSUM: 6fa86df9ac81695f904e03d0e715cdf8520c7493
 
 COCOAPODS: 1.16.2
