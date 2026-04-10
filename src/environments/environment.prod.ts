@@ -1,9 +1,7 @@
-const PORT = '';
-const API_URL_BASE = 'https://server.trainfit.net' + PORT;
+const API_URL_BASE = 'https://train-fit-back-production.up.railway.app';
 
 export const environment = {
-  production: true,
-  PORT: PORT,
+  production: false,
   API_URL_BASE: API_URL_BASE,
   API_URL_BASE_BACKEND: API_URL_BASE,
   API_URL: API_URL_BASE + '/api',

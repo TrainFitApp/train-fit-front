@@ -2,11 +2,7 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button
-          class="tf-page-header__back-button"
-          (click)="close()"
-          aria-label="Volver"
-        >
+        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -23,189 +19,194 @@
 
     <!-- HERO -->
     <section class="hero-card" [class.hero-card--active]="isPremium">
-      <div class="hero-icon-wrap">
-        <ion-icon name="diamond" class="hero-diamond"></ion-icon>
-      </div>
-      <div class="hero-badge">
-        <ion-icon [name]="isPremium ? 'checkmark-circle' : 'star-outline'"></ion-icon>
-        <span>{{ isPremium ? 'Premium activo' : 'Trainfit Premium' }}</span>
-      </div>
-      <h2 class="hero-title">
-        {{ isPremium ? 'Tu cuenta ya es Premium' : 'Desbloquea todo tu potencial' }}
-      </h2>
-      <p class="hero-subtitle">
-        {{
-          isPremium
-            ? 'Sin anuncios, más recursos y límites ampliados para entrenar mejor.'
-            : 'Rutinas ilimitadas, sin anuncios y el máximo de la app.'
-        }}
-      </p>
-    </section>
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-body">
+        <div class="hero-icon-wrap">
+          <ion-icon name="diamond" class="hero-diamond"></ion-icon>
+        </div>
 
-    <!-- STATUS -->
-    <section class="status-card" *ngIf="entitlements">
-      <div class="status-row">
-        <span class="status-label">Estado</span>
-        <span class="status-value" [class.status-value--active]="entitlements.isPremium">
-          <ion-icon [name]="entitlements.isPremium ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
-          {{ entitlements.isPremium ? 'Activo' : 'Free' }}
-        </span>
-      </div>
-      <div class="status-row" *ngIf="entitlements.plan">
-        <span class="status-label">Plan</span>
-        <span class="status-value">
-          {{
-            entitlements.plan === 'annual'
-              ? 'Anual'
-              : entitlements.plan === 'monthly'
-                ? 'Mensual'
-                : entitlements.plan
-          }}
-        </span>
-      </div>
-      <div class="status-row" *ngIf="entitlements.expiresAt">
-        <span class="status-label">Renovación</span>
-        <span class="status-value">{{ entitlements.expiresAt | date: 'dd/MM/yyyy' }}</span>
+        <!-- Estado FREE -->
+        <ng-container *ngIf="!isPremium">
+          <h2 class="hero-title">Entrena sin límites</h2>
+          <p class="hero-subtitle">Rutinas ilimitadas, sin anuncios y el máximo de la app.</p>
+          <div class="hero-chips">
+            <span class="hero-chip"><ion-icon name="infinite-outline"></ion-icon> Rutinas</span>
+            <span class="hero-chip"><ion-icon name="flash-outline"></ion-icon> Sin anuncios</span>
+            <span class="hero-chip"><ion-icon name="nutrition-outline"></ion-icon> Recetas</span>
+          </div>
+        </ng-container>
+
+        <!-- Estado PREMIUM -->
+        <ng-container *ngIf="isPremium">
+          <div class="hero-status-badge">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span>Premium activo</span>
+          </div>
+          <h2 class="hero-title hero-title--premium">Tu cuenta es Premium</h2>
+          <div class="hero-plan-info" *ngIf="entitlements">
+            <div class="hero-plan-row">
+              <span class="hero-plan-label">Plan</span>
+              <span class="hero-plan-value">
+                {{ entitlements.plan === 'annual' ? 'Anual' : entitlements.plan === 'monthly' ? 'Mensual' : 'Premium' }}
+              </span>
+            </div>
+            <div class="hero-plan-divider"></div>
+            <div class="hero-plan-row" *ngIf="entitlements.expiresAt">
+              <span class="hero-plan-label">Renovación</span>
+              <span class="hero-plan-value">{{ entitlements.expiresAt | date: 'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </ng-container>
+
       </div>
     </section>
 
-    <!-- FEATURE COMPARISON -->
-    <section class="section-block">
-      <h3 class="section-heading">
-        <ion-icon name="shield-checkmark-outline"></ion-icon>
-        Qué incluye Premium
-      </h3>
-      <div class="compare-card">
-        <div class="compare-header">
-          <span class="compare-col-feature">Característica</span>
-          <span class="compare-col-tier">Free</span>
-          <span class="compare-col-tier compare-col-tier--premium">Premium</span>
-        </div>
-        <div class="compare-row">
-          <span class="compare-feature">Rutinas</span>
-          <span class="compare-free">1</span>
-          <span class="compare-premium">
-            <ion-icon name="infinite-outline"></ion-icon>
-          </span>
-        </div>
-        <div class="compare-row">
-          <span class="compare-feature">Microciclos</span>
-          <span class="compare-free">8</span>
-          <span class="compare-premium">21</span>
-        </div>
-        <div class="compare-row">
-          <span class="compare-feature">Ejercicios propios</span>
-          <span class="compare-free">3</span>
-          <span class="compare-premium">
-            <ion-icon name="infinite-outline"></ion-icon>
-          </span>
-        </div>
-        <div class="compare-row">
-          <span class="compare-feature">Recetas propias</span>
-          <span class="compare-free">3</span>
-          <span class="compare-premium">
-            <ion-icon name="infinite-outline"></ion-icon>
-          </span>
-        </div>
-        <div class="compare-row">
-          <span class="compare-feature">Sin anuncios</span>
-          <span class="compare-free">
-            <ion-icon name="close-circle" class="icon-no"></ion-icon>
-          </span>
-          <span class="compare-premium">
-            <ion-icon name="checkmark-circle" class="icon-yes"></ion-icon>
-          </span>
-        </div>
-      </div>
-    </section>
-
-    <!-- PLANS -->
-    <section class="section-block" *ngIf="!isPremium">
-      <h3 class="section-heading">
-        <ion-icon name="card-outline"></ion-icon>
-        Elige tu plan
-      </h3>
+    <!-- PLANES + CTA (solo free) -->
+    <ng-container *ngIf="!isPremium">
       <div class="plans">
-
-        <!-- ANNUAL (featured) -->
         <button
-          class="plan-btn plan-btn--annual"
-          [disabled]="isPremium || isPurchasingAnnual || isLoading"
-          (click)="buyAnnual()"
+          class="plan-btn"
+          [class.plan-btn--selected]="selectedPlan === 'annual'"
+          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading"
+          (click)="selectPlan('annual')"
         >
-          <div class="plan-badge-tag">RECOMENDADO</div>
+          <div class="plan-radio" [class.plan-radio--active]="selectedPlan === 'annual'">
+            <div class="plan-radio__dot"></div>
+          </div>
           <div class="plan-info">
             <span class="plan-name">Plan Anual</span>
-            <span class="plan-sub">El más popular · Ahorra más de un 40%</span>
+            <span class="plan-sub">El más popular</span>
           </div>
           <div class="plan-price">
             <strong>{{ annualPriceLabel }}</strong>
             <small>/año</small>
           </div>
-          <ion-spinner
-            *ngIf="isPurchasingAnnual"
-            name="crescent"
-            class="plan-spinner"
-          ></ion-spinner>
+          <div class="plan-badge-tag" aria-hidden="true">-40%</div>
         </button>
 
-        <!-- MONTHLY -->
         <button
-          class="plan-btn plan-btn--monthly"
-          [disabled]="isPremium || isPurchasingMonthly || isLoading"
-          (click)="buyMonthly()"
+          class="plan-btn"
+          [class.plan-btn--selected]="selectedPlan === 'monthly'"
+          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading"
+          (click)="selectPlan('monthly')"
         >
+          <div class="plan-radio" [class.plan-radio--active]="selectedPlan === 'monthly'">
+            <div class="plan-radio__dot"></div>
+          </div>
           <div class="plan-info">
             <span class="plan-name">Plan Mensual</span>
-            <span class="plan-sub">Pago mes a mes · Sin compromiso</span>
+            <span class="plan-sub">Sin permanencia</span>
           </div>
           <div class="plan-price">
             <strong>{{ monthlyPriceLabel }}</strong>
             <small>/mes</small>
           </div>
-          <ion-spinner
-            *ngIf="isPurchasingMonthly"
-            name="crescent"
-            class="plan-spinner"
-          ></ion-spinner>
         </button>
+      </div>
+
+      <button
+        class="cta-primary"
+        [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading"
+        (click)="purchaseSelected()"
+      >
+        <ion-spinner *ngIf="isPurchasingAnnual || isPurchasingMonthly" name="crescent" class="cta-spinner"></ion-spinner>
+        <ion-icon *ngIf="!isPurchasingAnnual && !isPurchasingMonthly" name="diamond-outline"></ion-icon>
+        <span>{{ (isPurchasingAnnual || isPurchasingMonthly) ? 'Procesando...' : 'Activar Premium' }}</span>
+      </button>
+
+      <p class="trust-line">Cancela cuando quieras · Pago seguro</p>
+    </ng-container>
+
+    <!-- TABLA COMPARATIVA -->
+    <section class="compare-card" *ngIf="!isPremium">
+      <div class="compare-header">
+        <span class="compare-col-feature">Función</span>
+        <span class="compare-col-tier">Free</span>
+        <span class="compare-col-tier compare-col-tier--premium">Premium</span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-feature">Rutinas</span>
+        <span class="compare-free">1</span>
+        <span class="compare-premium"><ion-icon name="infinite-outline"></ion-icon></span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-feature">Microciclos</span>
+        <span class="compare-free">8</span>
+        <span class="compare-premium">21</span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-feature">Ejercicios propios</span>
+        <span class="compare-free">3</span>
+        <span class="compare-premium"><ion-icon name="infinite-outline"></ion-icon></span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-feature">Recetas propias</span>
+        <span class="compare-free">3</span>
+        <span class="compare-premium"><ion-icon name="infinite-outline"></ion-icon></span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-feature">Sin anuncios</span>
+        <span class="compare-free"><ion-icon name="close-circle" class="icon-no"></ion-icon></span>
+        <span class="compare-premium"><ion-icon name="checkmark-circle" class="icon-yes"></ion-icon></span>
       </div>
     </section>
 
-    <!-- ACTIONS -->
-    <section class="actions">
+    <!-- RESTAURAR -->
+    <button
+      class="cta-ghost"
+      *ngIf="!isPremium"
+      [disabled]="isRestoring || isLoading"
+      (click)="restorePurchases()"
+    >
+      <ion-spinner *ngIf="isRestoring" name="crescent" class="cta-spinner-sm"></ion-spinner>
+      <span>Restaurar compras</span>
+    </button>
+
+    <!-- GESTIÓN PREMIUM ACTIVO -->
+    <ng-container *ngIf="isPremium">
+      <section class="status-card" *ngIf="entitlements">
+        <div class="status-row">
+          <span class="status-label">Estado</span>
+          <span class="status-value status-value--active">
+            <ion-icon name="checkmark-circle"></ion-icon> Activo
+          </span>
+        </div>
+        <div class="status-row" *ngIf="entitlements.plan">
+          <span class="status-label">Plan</span>
+          <span class="status-value">
+            {{ entitlements.plan === 'annual' ? 'Anual' : entitlements.plan === 'monthly' ? 'Mensual' : entitlements.plan }}
+          </span>
+        </div>
+        <div class="status-row" *ngIf="entitlements.expiresAt">
+          <span class="status-label">Renovación</span>
+          <span class="status-value">{{ entitlements.expiresAt | date: 'dd/MM/yyyy' }}</span>
+        </div>
+      </section>
+
       <button
         class="cta-primary"
-        [disabled]="isPresentingPaywall || isLoading"
-        (click)="openPaywall()"
-        aria-label="Activar Premium"
+        [disabled]="isOpeningManageSubscription || isLoading"
+        (click)="openManageSubscription()"
       >
-        <ion-icon name="diamond-outline"></ion-icon>
-        <span>{{ isPremium ? 'Ver beneficios' : 'Activar Premium' }}</span>
-        <ion-spinner *ngIf="isPresentingPaywall" name="crescent" class="cta-spinner"></ion-spinner>
+        <ion-spinner *ngIf="isOpeningManageSubscription" name="crescent" class="cta-spinner"></ion-spinner>
+        <span>Gestionar suscripción</span>
       </button>
 
-      <button
-        class="cta-secondary"
-        [disabled]="isRestoring || isLoading"
-        (click)="restorePurchases()"
-        aria-label="Restaurar compras"
-      >
-        <ion-spinner *ngIf="isRestoring" name="crescent" class="cta-spinner"></ion-spinner>
+      <button class="cta-ghost" [disabled]="isRestoring || isLoading" (click)="restorePurchases()">
+        <ion-spinner *ngIf="isRestoring" name="crescent" class="cta-spinner-sm"></ion-spinner>
         <span>Restaurar compras</span>
       </button>
+    </ng-container>
 
-      <button
-        class="cta-ghost"
-        [disabled]="isOpeningCustomerCenter || isLoading"
-        (click)="openCustomerCenter()"
-        aria-label="Gestionar suscripción"
-      >
-        Gestionar suscripción
-      </button>
-    </section>
+    <!-- NOTA LEGAL -->
+    <div class="runtime-note">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>
+        Cancelaciones y cambios de plan se gestionan en tu tienda (Google Play o App Store).
+        Los cambios de suscripcion pueden tardar unos segundos en sincronizarse.
+      </p>
+    </div>
 
-    <!-- RUNTIME NOTE -->
     <div class="runtime-note" *ngIf="!isNativeBillingAvailable">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>Las compras in-app se completan desde la app instalada en Android/iOS.</p>

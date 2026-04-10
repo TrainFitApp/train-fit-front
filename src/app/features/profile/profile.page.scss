@@ -985,6 +985,29 @@ body[color-theme="dark"] {
   hyphens: auto;
 }
 
+.user-membership {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.membership-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f1a08;
+  background: linear-gradient(135deg, #fe9000 0%, #ffd37d 100%);
+  border: 1px solid rgba(254, 144, 0, 0.25);
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
 .user-goal {
   font-size: 14px;
   color: var(--pe-muted);
@@ -1078,6 +1101,58 @@ body[color-theme="dark"] {
 .exceeded-value {
   color: var(--ion-color-danger) !important;
   font-weight: 700;
+}
+
+// ─── Premium upgrade banner ───────────────────────────────────────────────────
+
+.premium-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 32px);
+  margin: 0 16px 4px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(254, 144, 0, 0.1) 0%, rgba(254, 144, 0, 0.05) 100%);
+  border: 1px solid rgba(254, 144, 0, 0.3);
+  cursor: pointer;
+  transition: background 150ms ease, transform 130ms ease;
+
+  &:active {
+    transform: scale(0.985);
+    background: rgba(254, 144, 0, 0.14);
+  }
+}
+
+.premium-banner__icon {
+  font-size: 22px;
+  color: var(--ion-color-primary);
+  flex-shrink: 0;
+}
+
+.premium-banner__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.premium-banner__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.premium-banner__sub {
+  font-size: 12px;
+  color: var(--pe-muted);
+}
+
+.premium-banner__arrow {
+  font-size: 16px;
+  color: var(--pe-muted-2);
+  flex-shrink: 0;
 }
 
 /* Personal Information Section - Compact Version */

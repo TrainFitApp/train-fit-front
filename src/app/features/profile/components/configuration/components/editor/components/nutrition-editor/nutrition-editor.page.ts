@@ -20,6 +20,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Subscription } from 'rxjs';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 @Component({
   selector: 'app-nutrition-editor',
@@ -64,7 +65,8 @@ export class NutritionEditorPage implements OnInit {
     private platform: Platform,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private billingService: BillingService
   ) {}
 
   ngOnInit() {
@@ -862,6 +864,11 @@ export class NutritionEditorPage implements OnInit {
       return;
     }
 
+    if (!this.shouldRequireAdPrompt()) {
+      this.executeSave();
+      return;
+    }
+
     // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
     const alertOptions = {
       header: 'Guardar Configuración',
@@ -891,6 +898,15 @@ export class NutritionEditorPage implements OnInit {
     };
 
     await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private shouldRequireAdPrompt(): boolean {
+    const entitlements = this.billingService.getCachedEntitlements();
+    if (typeof entitlements?.adsEnabled === 'boolean') {
+      return entitlements.adsEnabled;
+    }
+
+    return !Boolean(this.user?.isPremium);
   }
 
   private executeSave(): void {

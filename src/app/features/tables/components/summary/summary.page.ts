@@ -16,6 +16,7 @@ import { TABLE_MODE_TYPES } from 'src/app/shared/constants/table-mode';
 import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 @Component({
   selector: 'app-summary',
@@ -43,6 +44,7 @@ export class SummaryPage {
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
+  private readonly billingService = inject(BillingService);
 
   constructor(
     public platform: Platform,
@@ -85,6 +87,17 @@ export class SummaryPage {
   }
 
   public createTableAndAddToUser(): void {
+    const entitlements = this.billingService.getCachedEntitlements();
+    if (entitlements && entitlements.remaining.routines !== null && entitlements.remaining.routines <= 0) {
+      const toastOptions: ToastOptions = {
+        message: 'Has alcanzado el límite de rutinas. Activa Premium para crear más.',
+        duration: 3000,
+        buttons: [{ text: 'Ver Premium', handler: () => this.navigationService.goToPremium() }],
+      };
+      this.ionicUtilService.showToast(toastOptions);
+      return;
+    }
+
     const alertOptions: AlertOptions = {
       header: 'Crear rutina',
       message: 'Introduce el nombre para tu nueva rutina de entrenamiento',
@@ -209,6 +222,11 @@ export class SummaryPage {
   }
 
   public async goToStatistics(): Promise<void> {
+    if (!this.shouldRequireAdPrompt()) {
+      this.navigationService.goToStatistics();
+      return;
+    }
+
     const alertOptions: AlertOptions = {
       header: 'Estadísticas Premium',
       message: 'Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.',
@@ -236,6 +254,15 @@ export class SummaryPage {
     };
 
     await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private shouldRequireAdPrompt(): boolean {
+    const entitlements = this.billingService.getCachedEntitlements();
+    if (typeof entitlements?.adsEnabled === 'boolean') {
+      return entitlements.adsEnabled;
+    }
+
+    return !Boolean(this.user?.isPremium);
   }
 
   // Nuevos métodos para la interfaz móvil
@@ -313,3 +340,4 @@ export class SummaryPage {
     await this.ionicUtilService.showAlert(alertOptions);
   }
 }
+

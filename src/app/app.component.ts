@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
+import { Component, OnDestroy } from '@angular/core';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
 import { AuthService } from './core/services/auth/auth.service';
@@ -13,9 +14,11 @@ register();
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private isRefreshingToken = false;
   private readonly isNativeClient = Capacitor.isNativePlatform();
+  private hasAuthenticatedSession = false;
+  private appStateListener: PluginListenerHandle | null = null;
 
   constructor(
     private router: Router,
@@ -29,6 +32,7 @@ export class AppComponent {
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     this.initTokenRefresh();
+    this.initForegroundBillingRefresh();
   }
 
   private rootRoutes(): void {
@@ -37,6 +41,7 @@ export class AppComponent {
 
   private initTokenRefresh(): void {
     this.authService.user$.subscribe((user) => {
+      this.hasAuthenticatedSession = Boolean(user);
       if (user) {
         if (this.isNativeClient) {
           // In native apps the refresh flow is driven by 401 responses to avoid
@@ -67,5 +72,30 @@ export class AppComponent {
         this.securityService.stopTokenExpirationCheck();
       }
     });
+  }
+
+  private initForegroundBillingRefresh(): void {
+    if (!this.isNativeClient) {
+      return;
+    }
+
+    void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive || !this.hasAuthenticatedSession) {
+        return;
+      }
+
+      void this.billingService.getBackendEntitlements().catch((error) => {
+        console.warn('Foreground billing refresh failed', error);
+      });
+    }).then((listener) => {
+      this.appStateListener = listener;
+    });
+  }
+
+  public ngOnDestroy(): void {
+    if (this.appStateListener) {
+      void this.appStateListener.remove();
+      this.appStateListener = null;
+    }
   }
 }

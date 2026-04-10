@@ -15,6 +15,7 @@ import { UserService } from '../user/user.service';
 import { User } from 'src/app/core/models/user';
 import { Platform } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
+import { BillingService } from '../billing/billing.service';
 
 export type InterstitialPlacement =
   | 'default'
@@ -74,6 +75,7 @@ export class AdMobService {
 
   // Inyección de servicios
   private readonly userService = inject(UserService);
+  private readonly billingService = inject(BillingService);
   private readonly router = inject(Router);
   private readonly _platform = inject(Platform);
 
@@ -116,6 +118,9 @@ export class AdMobService {
 
     await this.initializing;
     const user: User = this.userService.getLocalUser;
+    if (!this.shouldShowAds(user)) {
+      return;
+    }
     if (user.personalAds === undefined) await this.consent(user);
     const adId = this.getInterstitialAdId(placement);
 
@@ -258,7 +263,7 @@ export class AdMobService {
     const user = this.userService.getLocalUser;
     if (
       !user ||
-      user.isPremium ||
+      !this.shouldShowAds(user) ||
       this.keyboardVisible ||
       this.activeOverlayCount > 0
     ) {
@@ -402,5 +407,18 @@ export class AdMobService {
     return this._platform.is('ios')
       ? this.INTERSTITIAL_IOS[placement]
       : this.INTERSTITIAL_ANDROID[placement];
+  }
+
+  private shouldShowAds(user: User | null): boolean {
+    if (!user) {
+      return false;
+    }
+
+    const cachedEntitlements = this.billingService.getCachedEntitlements();
+    if (typeof cachedEntitlements?.adsEnabled === 'boolean') {
+      return cachedEntitlements.adsEnabled;
+    }
+
+    return !Boolean(user.isPremium);
   }
 }

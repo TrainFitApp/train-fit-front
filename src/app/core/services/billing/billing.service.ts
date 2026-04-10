@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { firstValueFrom } from 'rxjs';
 import {
   CustomerInfo,
@@ -176,11 +177,7 @@ export class BillingService {
     }
 
     const purchaseResult = await this.purchasePackage(selectedPackage);
-    const customerInfo = purchaseResult?.customerInfo || null;
-    if (customerInfo) {
-      await this.syncEntitlementsWithBackend(customerInfo);
-    }
-    return customerInfo;
+    return purchaseResult?.customerInfo || null;
   }
 
   public async presentPaywallIfNeeded(
@@ -202,17 +199,25 @@ export class BillingService {
     }
   }
 
-  public async presentCustomerCenter(): Promise<boolean> {
-    await this.initialize();
-    if (!this.configured) {
-      return false;
-    }
-
+  public async openNativeManageSubscriptions(): Promise<boolean> {
     try {
-      await RevenueCatUI.presentCustomerCenter();
-      return true;
+      if (this.platform === 'android') {
+        await Browser.open({
+          url: 'https://play.google.com/store/account/subscriptions?package=com.trainfit.trainfit&sku=trainfit_pro',
+        });
+        return true;
+      }
+
+      if (this.platform === 'ios') {
+        await Browser.open({
+          url: 'https://apps.apple.com/account/subscriptions',
+        });
+        return true;
+      }
+
+      return false;
     } catch (error) {
-      console.error('RevenueCat presentCustomerCenter error', error);
+      console.error('Open native manage subscriptions error', error);
       return false;
     }
   }

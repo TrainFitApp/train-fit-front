@@ -972,6 +972,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.goBack();
     } catch (err) {
       console.error('Error creating recipe:', err);
+      if (await this.handleRecipeLimitError(err)) {
+        return;
+      }
       this.showToast('Error al crear la receta', 'danger');
     }
   }
@@ -1015,6 +1018,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.goBack();
     } catch (err) {
       console.error('Error creating DataRecipe:', err);
+      if (await this.handleRecipeLimitError(err)) {
+        return;
+      }
       this.showToast('Error al crear DataRecipe', 'danger');
     }
   }
@@ -1327,6 +1333,29 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       position: 'bottom',
     });
     await toast.present();
+  }
+
+  private async handleRecipeLimitError(error: any): Promise<boolean> {
+    if (error?.error?.code !== 'PREMIUM_LIMIT_RECIPES') {
+      return false;
+    }
+
+    await this.ionicUtilService.showAlert({
+      header: 'Límite Free alcanzado',
+      message: 'Has alcanzado el límite de recetas propias. Activa Premium para crear más.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Ver Premium',
+          handler: () => this.navigationService.goToPremium(),
+        },
+      ],
+    });
+
+    return true;
   }
 
   public get canDelete(): boolean {

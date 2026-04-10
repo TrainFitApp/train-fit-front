@@ -862,7 +862,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                   this.loadingFab = false;
 
                   this.loadingSplit = false;
-                });
+                }, (error) => this.handleAddSplitError(error));
             },
           },
           {
@@ -890,7 +890,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                   this.ionicUtilService.showToast(toastOptions);
                   this.loadingFab = false;
                   this.loadingSplit = false;
-                });
+                }, (error) => this.handleAddSplitError(error));
             },
           },
         ],
@@ -926,7 +926,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                   };
                   this.ionicUtilService.showToast(toastOptions);
                   this.loadingFab = false;
-                });
+                }, (error) => this.handleAddSplitError(error));
             },
           },
         ],
@@ -953,7 +953,35 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         };
         this.ionicUtilService.showToast(toastOptions);
         this.loadingFab = false;
+      }, (error) => this.handleAddSplitError(error));
+  }
+
+  private handleAddSplitError(error: any): void {
+    this.loadingFab = false;
+    this.loadingSplit = false;
+
+    if (error?.error?.code === 'PREMIUM_LIMIT_MICROCYCLES') {
+      this.ionicUtilService.showAlert({
+        header: 'Limite Free alcanzado',
+        message:
+          'Has alcanzado el limite de micro-ciclos para esta rutina. Activa Premium para seguir anadiendo.',
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Ver Premium',
+            cssClass: 'alert-button-primary',
+            handler: () => this.navigationService.goToPremium(),
+          },
+        ],
       });
+      return;
+    }
+
+    this.ionicUtilService.showToast({
+      message: error?.error?.message || 'No se pudo anadir el micro-ciclo',
+      duration: 2000,
+      color: 'danger',
+    });
   }
 
   public onCloseFab(actionFab: ACTIONS_FAB_TYPES): void {

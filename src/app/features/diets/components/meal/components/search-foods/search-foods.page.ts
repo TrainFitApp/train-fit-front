@@ -38,6 +38,7 @@ import { BarCodeScannerService } from 'src/app/core/services/util/bar-code-scann
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { ACTIONS_FAB_TYPES } from 'src/app/shared/constants/actions-fab';
 import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
 import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
@@ -208,7 +209,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private barCodeScannerService: BarCodeScannerService,
     private platform: Platform,
     private routerOutlet: IonRouterOutlet,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private billingService: BillingService
   ) {
     this.utilService.setMeasureFilter = MEASURE_FILTER_TYPES.auto;
   }
@@ -2348,6 +2350,16 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private createRecipe(): void {
+    const entitlements = this.billingService.getCachedEntitlements();
+    if (entitlements && entitlements.remaining.recipes !== null && entitlements.remaining.recipes <= 0) {
+      this.ionicUtilService.showToast({
+        message: 'Has alcanzado el límite de recetas propias. Activa Premium para crear más.',
+        duration: 3000,
+        buttons: [{ text: 'Ver Premium', handler: () => this.navigationService.goToPremium() }],
+      });
+      return;
+    }
+
     // Save current search state to restore when returning
     this.navigationService.setTempData('searchFoodsState', {
       searchFilterGroup: { ...this.searchFilterGroup },

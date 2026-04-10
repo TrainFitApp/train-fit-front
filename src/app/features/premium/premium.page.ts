@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { AlertOptions } from '@ionic/angular';
 import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
@@ -18,10 +19,12 @@ export class PremiumPage {
   public isPurchasingAnnual = false;
   public isPresentingPaywall = false;
   public isRestoring = false;
-  public isOpeningCustomerCenter = false;
-  public monthlyPriceLabel = 'No disponible';
-  public annualPriceLabel = 'No disponible';
+  public isOpeningManageSubscription = false;
+  public monthlyPriceLabel = 'Cargando...';
+  public annualPriceLabel = 'Cargando...';
   public entitlements: BillingEntitlements | null = null;
+  public selectedPlan: 'annual' | 'monthly' = 'annual';
+  public showCompare = false;
 
   constructor(
     private readonly billingService: BillingService,
@@ -47,6 +50,18 @@ export class PremiumPage {
     await this.purchasePlan('annual');
   }
 
+  public selectPlan(plan: 'annual' | 'monthly'): void {
+    this.selectedPlan = plan;
+  }
+
+  public toggleCompare(): void {
+    this.showCompare = !this.showCompare;
+  }
+
+  public async purchaseSelected(): Promise<void> {
+    await this.purchasePlan(this.selectedPlan);
+  }
+
   public async openPaywall(): Promise<void> {
     if (!this.ensureNativeBilling() || this.isPresentingPaywall) {
       return;
@@ -56,7 +71,7 @@ export class PremiumPage {
     try {
       const result = await this.billingService.presentPaywallIfNeeded();
       if (result === PAYWALL_RESULT.PURCHASED) {
-        this.showSuccess('Suscripción activada correctamente');
+        this.showSuccess('Suscripcion activada correctamente');
       } else if (result === PAYWALL_RESULT.RESTORED) {
         this.showSuccess('Compras restauradas correctamente');
       } else if (result === PAYWALL_RESULT.NOT_PRESENTED) {
@@ -81,28 +96,33 @@ export class PremiumPage {
     this.isRestoring = true;
     try {
       const customerInfo = await this.billingService.restorePurchases();
-      await this.billingService.syncEntitlementsWithBackend(customerInfo);
-      this.showSuccess('Restauración completada');
+      const entitlements = await this.billingService.syncEntitlementsWithBackend(
+        customerInfo
+      );
+      if (entitlements?.isPremium) {
+        this.showSuccess('Premium restaurado correctamente');
+      } else {
+        this.showError('No se encontraron compras activas');
+      }
     } finally {
       this.isRestoring = false;
       await this.loadData();
     }
   }
 
-  public async openCustomerCenter(): Promise<void> {
-    if (!this.ensureNativeBilling() || this.isOpeningCustomerCenter) {
+  public async openManageSubscription(): Promise<void> {
+    if (!this.ensureNativeBilling() || this.isOpeningManageSubscription) {
       return;
     }
 
-    this.isOpeningCustomerCenter = true;
+    this.isOpeningManageSubscription = true;
     try {
-      const opened = await this.billingService.presentCustomerCenter();
+      const opened = await this.billingService.openNativeManageSubscriptions();
       if (!opened) {
-        this.showError('No se pudo abrir la gestión de suscripción');
+        this.showError('No se pudo abrir la gestion de suscripcion');
       }
     } finally {
-      this.isOpeningCustomerCenter = false;
-      await this.loadData();
+      this.isOpeningManageSubscription = false;
     }
   }
 
@@ -124,8 +144,20 @@ export class PremiumPage {
         return;
       }
 
-      await this.billingService.syncEntitlementsWithBackend(customerInfo);
-      this.showSuccess('Compra realizada correctamente');
+      const entitlements = await this.billingService.syncEntitlementsWithBackend(
+        customerInfo
+      );
+
+      if (!entitlements) {
+        await this.showSyncWarningAlert();
+        return;
+      }
+
+      if (entitlements.isPremium) {
+        await this.showPremiumSuccessAlert();
+      } else {
+        this.showError('La compra no activo premium. Prueba Restaurar compras');
+      }
     } catch (error) {
       console.error('Premium purchase error', error);
       this.showError('Error durante la compra');
@@ -142,6 +174,8 @@ export class PremiumPage {
     }
 
     this.isLoading = true;
+    this.monthlyPriceLabel = 'Cargando...';
+    this.annualPriceLabel = 'Cargando...';
     try {
       const [offering, entitlements] = await Promise.all([
         this.isNativeBillingAvailable
@@ -167,7 +201,7 @@ export class PremiumPage {
     }
 
     this.showError(
-      'Las compras in-app solo están disponibles en la app instalada (Android/iOS)'
+      'Las compras in-app solo estan disponibles en la app instalada (Android/iOS)'
     );
     return false;
   }
@@ -186,5 +220,25 @@ export class PremiumPage {
       duration: 1800,
       color: 'danger',
     });
+  }
+
+  private async showPremiumSuccessAlert(): Promise<void> {
+    const alertOptions: AlertOptions = {
+      header: 'Bienvenido a Premium',
+      message:
+        'Ya tienes funciones premium activas, sin anuncios y limites ampliados.',
+      buttons: ['Empezar'],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private async showSyncWarningAlert(): Promise<void> {
+    const alertOptions: AlertOptions = {
+      header: 'Compra detectada',
+      message:
+        'No se pudo sincronizar premium con el backend. Pulsa Restaurar compras para completar la activacion.',
+      buttons: ['Entendido'],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 }

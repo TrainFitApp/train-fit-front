@@ -11,10 +11,8 @@ import {
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { Observable, Subscription, forkJoin } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
-import { CustomProduct } from 'src/app/core/models/customProduct';
 import { Diet } from 'src/app/core/models/diet';
 import { DietDay } from 'src/app/core/models/dietDay';
-import { Meal } from 'src/app/core/models/meal';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
@@ -27,6 +25,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 import {
   CHART_RANGES,
   CHART_RANGES_TYPES,
@@ -139,6 +138,7 @@ export class ProfilePage implements OnInit {
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
+  private readonly billingService = inject(BillingService);
 
   constructor(
     public utilService: UtilService,
@@ -197,6 +197,7 @@ export class ProfilePage implements OnInit {
   }
 
   public ionViewWillEnter(): void {
+    void this.refreshPremiumState();
     this.setWeekRanges();
     this.setDietDaysWeights();
   }
@@ -495,42 +496,11 @@ export class ProfilePage implements OnInit {
 
   public setDietInfo(): void {
     this.macrosData = new MacrosData();
-
-    this.dietDay?.meals.forEach((mealTemp) => {
-      mealTemp.kcal = 0;
-      mealTemp.protein = 0;
-      mealTemp.carbohydrate = 0;
-      mealTemp.fat = 0;
-
-      mealTemp.customProducts.forEach((productTemp) => {
-        this.calculateMacros100g(mealTemp, productTemp);
-      });
-
-      this.macrosData.kcal += mealTemp.kcal;
-      this.macrosData.protein += mealTemp.protein;
-      this.macrosData.carbohydrate += mealTemp.carbohydrate;
-      this.macrosData.fat += mealTemp.fat;
-    });
-  }
-
-  private calculateMacros100g(mealTemp: Meal, customProduct: CustomProduct) {
-    let energy100 =
-      customProduct.energyKcal100g ?? customProduct.product?.energyKcal100g ?? 0;
-    mealTemp.kcal += (energy100 * customProduct.quantity) / 100 || 0;
-
-    let protein100 =
-      customProduct.protein100g ?? customProduct.product?.protein100g ?? 0;
-    mealTemp.protein += (protein100 * customProduct.quantity) / 100 || 0;
-
-    let carbohydrates100 =
-      customProduct.carbohydrates100g ??
-      customProduct.product?.carbohydrates100g ??
-      0;
-    mealTemp.carbohydrate +=
-      (carbohydrates100 * customProduct.quantity) / 100 || 0;
-
-    let fat100g = customProduct.fat100g ?? customProduct.product?.fat100g ?? 0;
-    mealTemp.fat += (fat100g * customProduct.quantity) / 100 || 0;
+    if (!this.dietDay) return;
+    this.macrosData.kcal = this.dietDayService.getDietDayKcal(this.dietDay);
+    this.macrosData.protein = this.dietDayService.getDietDayProteins(this.dietDay);
+    this.macrosData.carbohydrate = this.dietDayService.getDietDayCarbohydrates(this.dietDay);
+    this.macrosData.fat = this.dietDayService.getDietDayFat(this.dietDay);
   }
 
   public toggleColor(event): void {
@@ -625,6 +595,10 @@ export class ProfilePage implements OnInit {
 
   public goToConfiguration(): void {
     this.navigationService.goToConfiguration();
+  }
+
+  public goToPremium(): void {
+    this.navigationService.goToPremium();
   }
 
   public goToWeightInfo(): void {
@@ -933,5 +907,24 @@ export class ProfilePage implements OnInit {
     const lastInitial = lastName.charAt(0).toUpperCase();
 
     return firstInitial + lastInitial;
+  }
+
+  public get isPremiumActive(): boolean {
+    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+  }
+
+  public get premiumPlanLabel(): string {
+    const plan = this.user?.premium?.plan;
+    if (plan === 'annual') return 'Anual';
+    if (plan === 'monthly') return 'Mensual';
+    return 'Premium';
+  }
+
+  private async refreshPremiumState(): Promise<void> {
+    try {
+      await this.billingService.getBackendEntitlements();
+    } catch (error) {
+      console.warn('No se pudo refrescar estado premium en profile', error);
+    }
   }
 }

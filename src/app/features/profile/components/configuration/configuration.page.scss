@@ -31,6 +31,11 @@
         }
       }
 
+      .config-card--premium {
+        border: 1px solid rgba(254, 144, 0, 0.45);
+        box-shadow: 0 2px 16px rgba(254, 144, 0, 0.12);
+      }
+
       .config-card {
         margin: 0;
         border-radius: 16px;

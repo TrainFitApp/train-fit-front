@@ -29,6 +29,8 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { NavigationService } from 'src/app/core/services/util/navigation.service';
 
 import { ExerciseService } from '../../../../core/services/exercise/exercise.service';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
@@ -176,7 +178,9 @@ export class ConfigExercisePage implements OnInit {
     private userService: UserService,
     private platform: Platform,
     private sanitizer: DomSanitizer,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private billingService: BillingService,
+    private navigationService: NavigationService
   ) {}
 
   public ngOnInit(): void {
@@ -703,6 +707,20 @@ export class ConfigExercisePage implements OnInit {
     if (this.form?.invalid || !this.form?.get('name')?.value?.trim()) {
       return Promise.resolve();
     }
+
+    if (this.isCreateMode) {
+      const entitlements = this.billingService.getCachedEntitlements();
+      if (entitlements && entitlements.remaining.customExercises !== null && entitlements.remaining.customExercises <= 0) {
+        const toastOptions: ToastOptions = {
+          message: 'Has alcanzado el límite de ejercicios propios. Activa Premium para crear más.',
+          duration: 3000,
+          buttons: [{ text: 'Ver Premium', handler: () => this.navigationService.goToPremium() }],
+        };
+        this.ionicUtilService.showToast(toastOptions);
+        return;
+      }
+    }
+
     this.load = false;
 
     // In create mode, use addDataExerciseToWorkout which handles exercise creation
@@ -790,6 +808,10 @@ export class ConfigExercisePage implements OnInit {
         return Promise.resolve();
       } catch (error) {
         console.error('Error creating exercise:', error);
+        if (this.handleExerciseLimitError(error)) {
+          this.load = true;
+          return Promise.resolve();
+        }
         this.load = true;
         return Promise.reject(error);
       }
@@ -1134,6 +1156,29 @@ export class ConfigExercisePage implements OnInit {
   public removeDetailMuscle2(m: string): void {
     const i = this.details.muscleGroups2.indexOf(m);
     if (i >= 0) this.details.muscleGroups2.splice(i, 1);
+  }
+
+  private handleExerciseLimitError(error: any): boolean {
+    if (error?.error?.code !== 'PREMIUM_LIMIT_EXERCISES') {
+      return false;
+    }
+
+    this.ionicUtilService.showAlert({
+      header: 'Límite Free alcanzado',
+      message: 'Has alcanzado el límite de ejercicios propios. Activa Premium para crear más.',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Ver Premium',
+          handler: () => this.navigationService.goToPremium(),
+        },
+      ],
+    });
+
+    return true;
   }
 
   private updateChangeExercise(): Promise<void> {

@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Observable, forkJoin, of, switchMap } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Observable, catchError, forkJoin, from, of, switchMap } from 'rxjs';
 import {
   trigger,
   state,
   style,
   transition,
   animate,
-  keyframes,
 } from '@angular/animations';
 import { Diet } from 'src/app/core/models/diet';
 import { Table } from 'src/app/core/models/table';
@@ -61,22 +60,20 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
   ],
 })
 export class UserLoaderPage implements OnInit, OnDestroy {
-  // Configuración de timeouts
   private readonly LOADING_CONFIG = {
     STEP_DELAY: 300,
     COMPLETION_DELAY: 800,
     EXIT_ANIMATION_DELAY: 500,
   };
 
-  // Variables de estado
   public email: string;
-  public loadingStep: number = 0;
+  public loadingStep = 0;
   public animationState = 'in';
   public progress = 0;
-  public loadingText = 'Iniciando sesión...';
+  public loadingText = 'Iniciando sesion...';
 
   private readonly loadingMessages = [
-    'Iniciando sesión...',
+    'Iniciando sesion...',
     'Cargando perfil...',
     'Preparando rutinas...',
     'Cargando dieta...',
@@ -84,78 +81,84 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   ];
 
   constructor(
-    private userService: UserService,
-    private tableService: TableService,
-    private dietService: DietService,
-    private workoutService: WorkoutService,
-    private themeService: ThemeService,
-    private navigationService: NavigationService,
-    private authService: AuthService,
-    private billingService: BillingService,
-    private userLocalStorage: UserLocalstorageService
+    private readonly userService: UserService,
+    private readonly tableService: TableService,
+    private readonly dietService: DietService,
+    private readonly workoutService: WorkoutService,
+    private readonly themeService: ThemeService,
+    private readonly navigationService: NavigationService,
+    private readonly authService: AuthService,
+    private readonly billingService: BillingService,
+    private readonly userLocalStorage: UserLocalstorageService
   ) {
     this.email = this.authService.getDecodedUser(
       this.userLocalStorage.getUserToken()
     )?.email;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.startLoadingSequence();
+  }
+
+  ngOnDestroy(): void {
+    // Cleanup no longer needed since we removed fake intervals
   }
 
   private startLoadingSequence(): void {
     this.updateLoadingStep(1);
-    this.updateProgress(10); // Inicio
+    this.updateProgress(10);
 
     this.userService
       .getUserByEmail(this.email)
       .pipe(
         switchMap((resUser) => {
           this.updateLoadingStep(2);
-          this.updateProgress(30); // Usuario cargado
+          this.updateProgress(30);
           this.userService.setLocalUser = resUser;
-          void this.billingService.logIn(resUser?._id);
 
-          // Verificar explícitamente si el registro no se terminó
-          if (!this.isUserRegistrationComplete(resUser)) {
-            throw new Error('INCOMPLETE_USER');
-          }
+          return from(this.billingService.logIn(resUser?._id)).pipe(
+            catchError((error) => {
+              console.warn(
+                'Billing logIn no disponible durante carga inicial',
+                error
+              );
+              return of(false);
+            }),
+            switchMap(() => {
+              if (!this.isUserRegistrationComplete(resUser)) {
+                throw new Error('INCOMPLETE_USER');
+              }
 
-          this.themeService.toggleColorMode(resUser.theme || 'dark');
+              this.themeService.toggleColorMode(resUser.theme || 'dark');
+              this.updateLoadingStep(3);
+              this.updateProgress(40);
 
-          this.updateLoadingStep(3);
-          this.updateProgress(40); // Preparando datos adicionales
+              const tableObservable: Observable<Table> = resUser.tableInUse
+                ? this.tableService.getTableById(resUser.tableInUse)
+                : of(null);
 
-          let tableObservable: Observable<Table>;
-          if (resUser.tableInUse) {
-            tableObservable = this.tableService.getTableById(
-              resUser.tableInUse
-            );
-          } else tableObservable = of(null);
+              const dietObservable: Observable<Diet> = resUser.dietInUse
+                ? this.dietService.getDietById(resUser.dietInUse)
+                : of(null);
 
-          let dietObservable: Observable<Diet>;
-          if (resUser.dietInUse) {
-            dietObservable = this.dietService.getDietById(resUser.dietInUse);
-          } else dietObservable = of(null);
+              const workoutInUseObservable: Observable<Workout> =
+                resUser.workoutInUse
+                  ? this.workoutService.getWorkoutById(resUser.workoutInUse)
+                  : of(null);
 
-          let workoutInUseObservable: Observable<Workout>;
-          if (resUser.workoutInUse) {
-            workoutInUseObservable = this.workoutService.getWorkoutById(
-              resUser.workoutInUse
-            );
-          } else workoutInUseObservable = of(null);
-
-          return forkJoin([
-            tableObservable,
-            dietObservable,
-            workoutInUseObservable,
-          ]);
+              return forkJoin([
+                tableObservable,
+                dietObservable,
+                workoutInUseObservable,
+              ]);
+            })
+          );
         })
       )
       .subscribe(
         ([resTable, resDiet, resWorkoutInUse]) => {
           this.updateLoadingStep(4);
-          this.updateProgress(80); // Datos cargados
+          this.updateProgress(80);
 
           if (resTable) {
             this.tableService.setCurrentTable = resTable;
@@ -169,11 +172,10 @@ export class UserLoaderPage implements OnInit, OnDestroy {
             this.workoutService.setCurrentWorkout = resWorkoutInUse;
           }
 
-          // Paso final usando configuración
           setTimeout(() => {
             this.updateLoadingStep(5);
-            this.updateProgress(100); // Completado
-            this.loadingText = '¡Listo!';
+            this.updateProgress(100);
+            this.loadingText = 'Listo!';
 
             setTimeout(() => {
               this.startExitAnimation();
@@ -185,7 +187,6 @@ export class UserLoaderPage implements OnInit, OnDestroy {
         },
         (err) => {
           if (err.message === 'INCOMPLETE_USER') {
-            // Usuario está incompleto, redirigir a registro sin hacer logout
             this.navigationService.goToSignUp();
             return;
           }
@@ -200,24 +201,15 @@ export class UserLoaderPage implements OnInit, OnDestroy {
       );
   }
 
-  /**
-   * Verifica si el usuario completó todos los datos de registro (macros, medidas, etc.)
-   */
   private isUserRegistrationComplete(user: User): boolean {
     return !!(user?.name && user?.lastname && user?.weight && user?.height);
   }
 
-  ngOnDestroy() {
-    // Cleanup no longer needed since we removed fake intervals
-  }
-
-  // Método para actualizar el progreso real
   private updateProgress(value: number): void {
     this.progress = Math.min(value, 100);
   }
 
-  // Método para iniciar animación de salida
-  startExitAnimation() {
+  public startExitAnimation(): void {
     this.animationState = 'out';
   }
 
