@@ -183,6 +183,31 @@
         </div>
       </section>
 
+      <section class="status-card" *ngIf="entitlements">
+        <div class="status-row">
+          <span class="status-label">Cambiar plan</span>
+          <span class="status-value">Disponible al instante</span>
+        </div>
+
+        <button
+          class="cta-ghost"
+          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading || entitlements.plan === 'monthly'"
+          (click)="changeToMonthly()"
+        >
+          <ion-spinner *ngIf="isPurchasingMonthly" name="crescent" class="cta-spinner-sm"></ion-spinner>
+          <span>{{ entitlements.plan === 'monthly' ? 'Plan mensual activo' : 'Cambiar a mensual' }}</span>
+        </button>
+
+        <button
+          class="cta-ghost"
+          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading || entitlements.plan === 'annual'"
+          (click)="changeToAnnual()"
+        >
+          <ion-spinner *ngIf="isPurchasingAnnual" name="crescent" class="cta-spinner-sm"></ion-spinner>
+          <span>{{ entitlements.plan === 'annual' ? 'Plan anual activo' : 'Cambiar a anual' }}</span>
+        </button>
+      </section>
+
       <button
         class="cta-primary"
         [disabled]="isOpeningManageSubscription || isLoading"
@@ -202,7 +227,7 @@
     <div class="runtime-note">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
-        Cancelaciones y cambios de plan se gestionan en tu tienda (Google Play o App Store).
+        Puedes cambiar de plan desde esta pantalla o desde tu tienda (Google Play o App Store).
         Los cambios de suscripcion pueden tardar unos segundos en sincronizarse.
       </p>
     </div>
@@ -214,3 +239,4 @@
 
   </div>
 </ion-content>
+

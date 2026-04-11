@@ -62,6 +62,14 @@ export class PremiumPage {
     await this.purchasePlan(this.selectedPlan);
   }
 
+  public async changeToMonthly(): Promise<void> {
+    await this.purchasePlan('monthly');
+  }
+
+  public async changeToAnnual(): Promise<void> {
+    await this.purchasePlan('annual');
+  }
+
   public async openPaywall(): Promise<void> {
     if (!this.ensureNativeBilling() || this.isPresentingPaywall) {
       return;
@@ -70,18 +78,23 @@ export class PremiumPage {
     this.isPresentingPaywall = true;
     try {
       const result = await this.billingService.presentPaywallIfNeeded();
-      if (result === PAYWALL_RESULT.PURCHASED) {
-        this.showSuccess('Suscripcion activada correctamente');
-      } else if (result === PAYWALL_RESULT.RESTORED) {
-        this.showSuccess('Compras restauradas correctamente');
-      } else if (result === PAYWALL_RESULT.NOT_PRESENTED) {
-        this.showSuccess('Ya tienes acceso premium activo');
-      } else if (result === PAYWALL_RESULT.ERROR) {
+      if (result === PAYWALL_RESULT.ERROR) {
         this.showError('No se pudo abrir el paywall');
+        return;
       }
 
       const customerInfo = await this.billingService.getCustomerInfo();
       await this.billingService.syncEntitlementsWithBackend(customerInfo);
+      await this.billingService.getBackendEntitlements();
+      await this.loadData();
+
+      if (result === PAYWALL_RESULT.PURCHASED) {
+        this.showSuccess('Premium activado correctamente');
+      } else if (result === PAYWALL_RESULT.RESTORED) {
+        this.showSuccess('Compras restauradas correctamente');
+      } else if (result === PAYWALL_RESULT.NOT_PRESENTED) {
+        this.showSuccess('Ya tienes acceso premium activo');
+      }
     } finally {
       this.isPresentingPaywall = false;
       await this.loadData();
@@ -99,6 +112,9 @@ export class PremiumPage {
       const entitlements = await this.billingService.syncEntitlementsWithBackend(
         customerInfo
       );
+      await this.billingService.getBackendEntitlements();
+      await this.loadData();
+
       if (entitlements?.isPremium) {
         this.showSuccess('Premium restaurado correctamente');
       } else {
@@ -131,6 +147,15 @@ export class PremiumPage {
       return;
     }
 
+    if (this.isPremium && this.entitlements?.plan === plan) {
+      this.showSuccess(
+        plan === 'annual'
+          ? 'Ya tienes el plan anual activo'
+          : 'Ya tienes el plan mensual activo'
+      );
+      return;
+    }
+
     if (plan === 'monthly') {
       this.isPurchasingMonthly = true;
     } else {
@@ -140,7 +165,7 @@ export class PremiumPage {
     try {
       const customerInfo = await this.billingService.purchasePlan(plan);
       if (!customerInfo) {
-        this.showError('Plan no disponible. Revisa el offering en RevenueCat');
+        this.showError('Compra cancelada o no disponible. Intentalo de nuevo');
         return;
       }
 
@@ -153,8 +178,11 @@ export class PremiumPage {
         return;
       }
 
+      await this.billingService.getBackendEntitlements();
+      await this.loadData();
+
       if (entitlements.isPremium) {
-        await this.showPremiumSuccessAlert();
+        this.showSuccess('Premium activado correctamente');
       } else {
         this.showError('La compra no activo premium. Prueba Restaurar compras');
       }
@@ -222,22 +250,23 @@ export class PremiumPage {
     });
   }
 
-  private async showPremiumSuccessAlert(): Promise<void> {
-    const alertOptions: AlertOptions = {
-      header: 'Bienvenido a Premium',
-      message:
-        'Ya tienes funciones premium activas, sin anuncios y limites ampliados.',
-      buttons: ['Empezar'],
-    };
-    await this.ionicUtilService.showAlert(alertOptions);
-  }
-
   private async showSyncWarningAlert(): Promise<void> {
     const alertOptions: AlertOptions = {
       header: 'Compra detectada',
       message:
         'No se pudo sincronizar premium con el backend. Pulsa Restaurar compras para completar la activacion.',
-      buttons: ['Entendido'],
+      buttons: [
+        {
+          text: 'Cerrar',
+          role: 'cancel',
+        },
+        {
+          text: 'Restaurar compras',
+          handler: () => {
+            void this.restorePurchases();
+          },
+        },
+      ],
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }

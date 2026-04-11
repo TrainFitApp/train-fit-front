@@ -4,8 +4,10 @@ import { Browser } from '@capacitor/browser';
 import { firstValueFrom } from 'rxjs';
 import {
   CustomerInfo,
+  GoogleProductChangeInfo,
   LOG_LEVEL,
   MakePurchaseResult,
+  PRORATION_MODE,
   Purchases,
   PurchasesOffering,
   PurchasesOfferings,
@@ -116,7 +118,8 @@ export class BillingService {
   }
 
   public async purchasePackage(
-    selectedPackage: PurchasesPackage
+    selectedPackage: PurchasesPackage,
+    googleProductChangeInfo?: GoogleProductChangeInfo | null
   ): Promise<MakePurchaseResult | null> {
     await this.initialize();
     if (!this.configured || !selectedPackage) {
@@ -124,7 +127,10 @@ export class BillingService {
     }
 
     try {
-      return await Purchases.purchasePackage({ aPackage: selectedPackage });
+      return await Purchases.purchasePackage({
+        aPackage: selectedPackage,
+        googleProductChangeInfo: googleProductChangeInfo || null,
+      });
     } catch (error) {
       console.error('RevenueCat purchasePackage error', error);
       return null;
@@ -176,7 +182,30 @@ export class BillingService {
       return null;
     }
 
-    const purchaseResult = await this.purchasePackage(selectedPackage);
+    let googleProductChangeInfo: GoogleProductChangeInfo | null = null;
+    const currentCustomerInfo = await this.getCustomerInfo();
+    const currentProductIdentifier = this.resolveCurrentSubscriptionProductId(
+      currentCustomerInfo,
+      currentOffering
+    );
+    const selectedProductIdentifier = selectedPackage.product?.identifier;
+
+    if (
+      this.platform === 'android' &&
+      currentProductIdentifier &&
+      selectedProductIdentifier &&
+      currentProductIdentifier !== selectedProductIdentifier
+    ) {
+      googleProductChangeInfo = {
+        oldProductIdentifier: currentProductIdentifier,
+        prorationMode: PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+      };
+    }
+
+    const purchaseResult = await this.purchasePackage(
+      selectedPackage,
+      googleProductChangeInfo
+    );
     return purchaseResult?.customerInfo || null;
   }
 
@@ -324,6 +353,28 @@ export class BillingService {
       },
     };
     this.userService.setLocalUser = updatedUser;
+  }
+
+  private resolveCurrentSubscriptionProductId(
+    customerInfo: CustomerInfo | null,
+    offering: PurchasesOffering | null
+  ): string | null {
+    if (!customerInfo || !offering) {
+      return null;
+    }
+
+    const activeSubscriptions = customerInfo.activeSubscriptions || [];
+    if (!activeSubscriptions.length) {
+      return null;
+    }
+
+    const offeringProductIds = new Set<string>([
+      offering.monthly?.product?.identifier,
+      offering.annual?.product?.identifier,
+    ].filter(Boolean) as string[]);
+
+    const match = activeSubscriptions.find((id) => offeringProductIds.has(id));
+    return match || activeSubscriptions[0] || null;
   }
 
   private getApiKeyForPlatform(): string {
