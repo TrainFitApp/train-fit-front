@@ -20,6 +20,19 @@ import { UserService } from '../user/user.service';
 import { BillingApiService } from './billing-api.service';
 import { environment } from 'src/environments/environment';
 
+export interface BillingPurchaseError {
+  userCancelled: boolean;
+  code: string;
+  message: string;
+}
+
+export interface BillingPurchaseResult {
+  customerInfo: CustomerInfo | null;
+  error: BillingPurchaseError | null;
+  usedGoogleProductChangeInfo: boolean;
+  usedFallbackWithoutGoogleProductChangeInfo: boolean;
+}
+
 @Injectable()
 export class BillingService {
   private readonly isNativeClient = Capacitor.isNativePlatform();
@@ -117,23 +130,44 @@ export class BillingService {
     return offerings?.current || null;
   }
 
-  public async purchasePackage(
+  private async purchasePackage(
     selectedPackage: PurchasesPackage,
     googleProductChangeInfo?: GoogleProductChangeInfo | null
-  ): Promise<MakePurchaseResult | null> {
+  ): Promise<BillingPurchaseResult> {
     await this.initialize();
     if (!this.configured || !selectedPackage) {
-      return null;
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'NOT_CONFIGURED_OR_INVALID_PACKAGE',
+          message: 'Billing no configurado o paquete no valido',
+        },
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
     }
 
     try {
-      return await Purchases.purchasePackage({
+      const result: MakePurchaseResult = await Purchases.purchasePackage({
         aPackage: selectedPackage,
         googleProductChangeInfo: googleProductChangeInfo || null,
       });
+      return {
+        customerInfo: result?.customerInfo || null,
+        error: null,
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
     } catch (error) {
-      console.error('RevenueCat purchasePackage error', error);
-      return null;
+      const mappedError = this.mapPurchaseError(error);
+      console.error('RevenueCat purchasePackage error', mappedError.code, mappedError.message, error);
+      return {
+        customerInfo: null,
+        error: mappedError,
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
     }
   }
 
@@ -169,17 +203,35 @@ export class BillingService {
 
   public async purchasePlan(
     plan: 'monthly' | 'annual'
-  ): Promise<CustomerInfo | null> {
+  ): Promise<BillingPurchaseResult> {
     const currentOffering = await this.getCurrentOffering();
     if (!currentOffering) {
-      return null;
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'NO_OFFERING',
+          message: 'No hay offering activo en RevenueCat',
+        },
+        usedGoogleProductChangeInfo: false,
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
     }
 
     const selectedPackage =
       plan === 'monthly' ? currentOffering.monthly : currentOffering.annual;
 
     if (!selectedPackage) {
-      return null;
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'PACKAGE_NOT_AVAILABLE',
+          message: `Paquete ${plan} no disponible en el offering`,
+        },
+        usedGoogleProductChangeInfo: false,
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
     }
 
     let googleProductChangeInfo: GoogleProductChangeInfo | null = null;
@@ -206,7 +258,34 @@ export class BillingService {
       selectedPackage,
       googleProductChangeInfo
     );
-    return purchaseResult?.customerInfo || null;
+    if (purchaseResult.customerInfo || !googleProductChangeInfo) {
+      return purchaseResult;
+    }
+
+    const shouldRetryWithoutProductChangeInfo =
+      !purchaseResult.error?.userCancelled;
+
+    if (!shouldRetryWithoutProductChangeInfo) {
+      return purchaseResult;
+    }
+
+    console.warn(
+      '[Billing] purchasePlan retry without googleProductChangeInfo',
+      {
+        platform: this.platform,
+        currentProductIdentifier,
+        selectedProductIdentifier,
+        errorCode: purchaseResult.error?.code,
+        errorMessage: purchaseResult.error?.message,
+      }
+    );
+
+    const fallbackResult = await this.purchasePackage(selectedPackage, null);
+    return {
+      ...fallbackResult,
+      usedFallbackWithoutGoogleProductChangeInfo: true,
+      usedGoogleProductChangeInfo: false,
+    };
   }
 
   public async presentPaywallIfNeeded(
@@ -375,6 +454,18 @@ export class BillingService {
 
     const match = activeSubscriptions.find((id) => offeringProductIds.has(id));
     return match || activeSubscriptions[0] || null;
+  }
+
+  private mapPurchaseError(error: any): BillingPurchaseError {
+    const userCancelled = Boolean(
+      error?.userCancelled || error?.code === 'PURCHASE_CANCELLED'
+    );
+    const code = String(error?.code || error?.rcCode || 'PURCHASE_ERROR');
+    const message = String(
+      error?.message || error?.readableErrorCode || 'Error de compra'
+    );
+
+    return { userCancelled, code, message };
   }
 
   private getApiKeyForPlatform(): string {

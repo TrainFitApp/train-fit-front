@@ -2,7 +2,10 @@ import { Component } from '@angular/core';
 import { AlertOptions } from '@ionic/angular';
 import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
+import {
+  BillingPurchaseResult,
+  BillingService,
+} from 'src/app/core/services/billing/billing.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 
@@ -147,6 +150,8 @@ export class PremiumPage {
       return;
     }
 
+    const wasPremiumBeforePurchase = this.isPremium;
+
     if (this.isPremium && this.entitlements?.plan === plan) {
       this.showSuccess(
         plan === 'annual'
@@ -163,14 +168,14 @@ export class PremiumPage {
     }
 
     try {
-      const customerInfo = await this.billingService.purchasePlan(plan);
-      if (!customerInfo) {
-        this.showError('Compra cancelada o no disponible. Intentalo de nuevo');
+      const purchaseResult = await this.billingService.purchasePlan(plan);
+      if (!purchaseResult.customerInfo) {
+        await this.handleFailedPurchaseResult(purchaseResult);
         return;
       }
 
       const entitlements = await this.billingService.syncEntitlementsWithBackend(
-        customerInfo
+        purchaseResult.customerInfo
       );
 
       if (!entitlements) {
@@ -182,7 +187,11 @@ export class PremiumPage {
       await this.loadData();
 
       if (entitlements.isPremium) {
-        this.showSuccess('Premium activado correctamente');
+        if (wasPremiumBeforePurchase) {
+          this.showSuccess('Plan actualizado correctamente');
+        } else {
+          this.showSuccess('Premium activado correctamente');
+        }
       } else {
         this.showError('La compra no activo premium. Prueba Restaurar compras');
       }
@@ -264,6 +273,34 @@ export class PremiumPage {
           text: 'Restaurar compras',
           handler: () => {
             void this.restorePurchases();
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private async handleFailedPurchaseResult(
+    purchaseResult: BillingPurchaseResult
+  ): Promise<void> {
+    if (purchaseResult.error?.userCancelled) {
+      this.showError('Compra cancelada');
+      return;
+    }
+
+    const alertOptions: AlertOptions = {
+      header: 'No se pudo cambiar de plan',
+      message:
+        'Se produjo un error tecnico al procesar la compra. Intentalo de nuevo o usa Gestionar suscripcion.',
+      buttons: [
+        {
+          text: 'Cerrar',
+          role: 'cancel',
+        },
+        {
+          text: 'Gestionar suscripcion',
+          handler: () => {
+            void this.openManageSubscription();
           },
         },
       ],
