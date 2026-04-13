@@ -7,7 +7,7 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Trainfit Premium</h1>
+        <h1 class="tf-page-header__title">Trainfit Pro</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -40,14 +40,14 @@
         <ng-container *ngIf="isPremium">
           <div class="hero-status-badge">
             <ion-icon name="checkmark-circle"></ion-icon>
-            <span>Premium activo</span>
+            <span>Pro activo</span>
           </div>
-          <h2 class="hero-title hero-title--premium">Tu cuenta es Premium</h2>
+          <h2 class="hero-title hero-title--premium">Tu cuenta es Pro</h2>
           <div class="hero-plan-info" *ngIf="entitlements">
             <div class="hero-plan-row">
               <span class="hero-plan-label">Plan</span>
               <span class="hero-plan-value">
-                {{ entitlements.plan === 'annual' ? 'Anual' : entitlements.plan === 'monthly' ? 'Mensual' : 'Premium' }}
+                {{ currentPlanLabel }}
               </span>
             </div>
             <div class="hero-plan-divider"></div>
@@ -111,7 +111,7 @@
       >
         <ion-spinner *ngIf="isPurchasingAnnual || isPurchasingMonthly" name="crescent" class="cta-spinner"></ion-spinner>
         <ion-icon *ngIf="!isPurchasingAnnual && !isPurchasingMonthly" name="diamond-outline"></ion-icon>
-        <span>{{ (isPurchasingAnnual || isPurchasingMonthly) ? 'Procesando...' : 'Activar Premium' }}</span>
+        <span>{{ (isPurchasingAnnual || isPurchasingMonthly) ? 'Procesando...' : 'Activar Pro' }}</span>
       </button>
 
       <p class="trust-line">Cancela cuando quieras · Pago seguro</p>
@@ -122,7 +122,7 @@
       <div class="compare-header">
         <span class="compare-col-feature">Función</span>
         <span class="compare-col-tier">Free</span>
-        <span class="compare-col-tier compare-col-tier--premium">Premium</span>
+        <span class="compare-col-tier compare-col-tier--premium">Pro</span>
       </div>
       <div class="compare-row">
         <span class="compare-feature">Rutinas</span>
@@ -173,9 +173,7 @@
         </div>
         <div class="status-row" *ngIf="entitlements.plan">
           <span class="status-label">Plan</span>
-          <span class="status-value">
-            {{ entitlements.plan === 'annual' ? 'Anual' : entitlements.plan === 'monthly' ? 'Mensual' : entitlements.plan }}
-          </span>
+          <span class="status-value">{{ currentPlanLabel }}</span>
         </div>
         <div class="status-row" *ngIf="entitlements.expiresAt">
           <span class="status-label">Renovación</span>
@@ -191,20 +189,22 @@
 
         <button
           class="cta-ghost"
-          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading || entitlements.plan === 'monthly'"
+          *ngIf="showChangeToMonthly"
+          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading"
           (click)="changeToMonthly()"
         >
           <ion-spinner *ngIf="isPurchasingMonthly" name="crescent" class="cta-spinner-sm"></ion-spinner>
-          <span>{{ entitlements.plan === 'monthly' ? 'Plan mensual activo' : 'Cambiar a mensual' }}</span>
+          <span>Cambiar a mensual</span>
         </button>
 
         <button
           class="cta-ghost"
-          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading || entitlements.plan === 'annual'"
+          *ngIf="showChangeToAnnual"
+          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading"
           (click)="changeToAnnual()"
         >
           <ion-spinner *ngIf="isPurchasingAnnual" name="crescent" class="cta-spinner-sm"></ion-spinner>
-          <span>{{ entitlements.plan === 'annual' ? 'Plan anual activo' : 'Cambiar a anual' }}</span>
+          <span>Cambiar a anual</span>
         </button>
       </section>
 

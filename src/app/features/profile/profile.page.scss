@@ -944,9 +944,14 @@ body[color-theme="dark"] {
 
 .profile-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
   margin-bottom: 30px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .avatar {
@@ -960,7 +965,33 @@ body[color-theme="dark"] {
   font-size: 1.5rem;
   font-weight: 700;
   color: white;
-  flex-shrink: 0;
+
+  &.avatar--pro {
+    border: 2px solid rgba(255, 192, 74, 0.85);
+    box-shadow:
+      0 0 0 3px rgba(254, 144, 0, 0.18),
+      0 10px 22px rgba(254, 144, 0, 0.16);
+  }
+}
+
+.avatar-pro-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffd166 0%, #f3a020 100%);
+  border: 2px solid var(--ion-background-color, #1a1a1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(243, 160, 32, 0.5);
+
+  ion-icon {
+    font-size: 9px;
+    color: #3d1f00;
+  }
 }
 
 .user-info {
@@ -969,6 +1000,7 @@ body[color-theme="dark"] {
   /* Permite que el contenedor se contraiga */
   overflow: hidden;
   /* Previene desbordamiento */
+  padding-top: 3px;
 }
 
 .user-name {
@@ -985,29 +1017,6 @@ body[color-theme="dark"] {
   hyphens: auto;
 }
 
-.user-membership {
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-}
-
-.membership-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1f1a08;
-  background: linear-gradient(135deg, #fe9000 0%, #ffd37d 100%);
-  border: 1px solid rgba(254, 144, 0, 0.25);
-
-  ion-icon {
-    font-size: 13px;
-  }
-}
-
 .user-goal {
   font-size: 14px;
   color: var(--pe-muted);
@@ -1016,6 +1025,15 @@ body[color-theme="dark"] {
   gap: 5px;
   margin-top: 4px;
 }
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 
 .settings-btn {
   background: rgba(255, 255, 255, 0.05);

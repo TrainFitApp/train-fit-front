@@ -92,11 +92,11 @@ export class PremiumPage {
       await this.loadData();
 
       if (result === PAYWALL_RESULT.PURCHASED) {
-        this.showSuccess('Premium activado correctamente');
+        this.showSuccess('Pro activado correctamente');
       } else if (result === PAYWALL_RESULT.RESTORED) {
         this.showSuccess('Compras restauradas correctamente');
       } else if (result === PAYWALL_RESULT.NOT_PRESENTED) {
-        this.showSuccess('Ya tienes acceso premium activo');
+        this.showSuccess('Ya tienes acceso Pro activo');
       }
     } finally {
       this.isPresentingPaywall = false;
@@ -119,7 +119,7 @@ export class PremiumPage {
       await this.loadData();
 
       if (entitlements?.isPremium) {
-        this.showSuccess('Premium restaurado correctamente');
+        this.showSuccess('Pro restaurado correctamente');
       } else {
         this.showError('No se encontraron compras activas');
       }
@@ -145,6 +145,23 @@ export class PremiumPage {
     }
   }
 
+  public get currentPlanLabel(): string {
+    const currentPlan = this.getNormalizedCurrentPlan();
+    if (currentPlan === 'annual') return 'Plan anual';
+    if (currentPlan === 'monthly') return 'Plan mensual';
+    return 'Plan Pro';
+  }
+
+  public get showChangeToMonthly(): boolean {
+    const currentPlan = this.getNormalizedCurrentPlan();
+    return this.isPremium && currentPlan !== 'monthly';
+  }
+
+  public get showChangeToAnnual(): boolean {
+    const currentPlan = this.getNormalizedCurrentPlan();
+    return this.isPremium && currentPlan !== 'annual';
+  }
+
   private async purchasePlan(plan: 'monthly' | 'annual'): Promise<void> {
     if (!this.ensureNativeBilling()) {
       return;
@@ -152,7 +169,7 @@ export class PremiumPage {
 
     const wasPremiumBeforePurchase = this.isPremium;
 
-    if (this.isPremium && this.entitlements?.plan === plan) {
+    if (this.isPremium && this.getNormalizedCurrentPlan() === plan) {
       this.showSuccess(
         plan === 'annual'
           ? 'Ya tienes el plan anual activo'
@@ -190,10 +207,10 @@ export class PremiumPage {
         if (wasPremiumBeforePurchase) {
           this.showSuccess('Plan actualizado correctamente');
         } else {
-          this.showSuccess('Premium activado correctamente');
+          this.showSuccess('Pro activado correctamente');
         }
       } else {
-        this.showError('La compra no activo premium. Prueba Restaurar compras');
+        this.showError('La compra no activó Pro. Prueba Restaurar compras');
       }
     } catch (error) {
       console.error('Premium purchase error', error);
@@ -306,5 +323,27 @@ export class PremiumPage {
       ],
     };
     await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private getNormalizedCurrentPlan(): 'monthly' | 'annual' | null {
+    const rawPlan = String(this.entitlements?.plan || '')
+      .trim()
+      .toLowerCase();
+
+    if (
+      rawPlan === 'monthly' ||
+      rawPlan.includes('month') ||
+      rawPlan.includes('mensual')
+    ) {
+      return 'monthly';
+    }
+    if (
+      rawPlan === 'annual' ||
+      rawPlan.includes('year') ||
+      rawPlan.includes('anual')
+    ) {
+      return 'annual';
+    }
+    return null;
   }
 }

@@ -19,15 +19,14 @@
   <!-- Profile Section -->
   <div class="profile-section">
     <header class="profile-header">
-      <div class="avatar">{{ getUserInitials() }}</div>
+      <div class="avatar-wrapper">
+        <div class="avatar" [class.avatar--pro]="isPremiumActive">{{ getUserInitials() }}</div>
+        <div class="avatar-pro-badge" *ngIf="isPremiumActive">
+          <ion-icon name="diamond"></ion-icon>
+        </div>
+      </div>
       <div class="user-info">
         <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
-        <div class="user-membership" *ngIf="isPremiumActive">
-          <span class="membership-pill">
-            <ion-icon name="diamond-outline"></ion-icon>
-            {{ premiumPlanLabel }}
-          </span>
-        </div>
         <div class="user-goal">
           <ion-icon
             [name]="iconArrowObjetive"
@@ -36,9 +35,11 @@
           <ion-text [color]="colorObjetive">{{ objetiveMessage }}</ion-text>
         </div>
       </div>
-      <button class="settings-btn" (click)="goToConfiguration()">
-        <ion-icon name="settings-outline"></ion-icon>
-      </button>
+      <div class="profile-actions">
+        <button class="settings-btn" (click)="goToConfiguration()">
+          <ion-icon name="settings-outline"></ion-icon>
+        </button>
+      </div>
     </header>
   </div>
 
@@ -46,7 +47,7 @@
   <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <div class="premium-banner__text">
-      <span class="premium-banner__title">Hazte Premium</span>
+      <span class="premium-banner__title">Hazte Pro</span>
       <span class="premium-banner__sub">Rutinas ilimitadas, sin anuncios y más</span>
     </div>
     <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>

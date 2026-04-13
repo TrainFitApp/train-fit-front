@@ -12,6 +12,7 @@ import {
   PurchasesOffering,
   PurchasesOfferings,
   PurchasesPackage,
+  SubscriptionOption,
 } from '@revenuecat/purchases-capacitor';
 import { PAYWALL_RESULT, RevenueCatUI } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from '../../models/billing-entitlements';
@@ -171,6 +172,54 @@ export class BillingService {
     }
   }
 
+  private async purchaseSubscriptionOption(
+    subscriptionOption: SubscriptionOption,
+    googleProductChangeInfo?: GoogleProductChangeInfo | null
+  ): Promise<BillingPurchaseResult> {
+    await this.initialize();
+    if (!this.configured || !subscriptionOption) {
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'NOT_CONFIGURED_OR_INVALID_SUBSCRIPTION_OPTION',
+          message: 'Billing no configurado o opcion de suscripcion no valida',
+        },
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
+    }
+
+    try {
+      const result: MakePurchaseResult = await Purchases.purchaseSubscriptionOption(
+        {
+          subscriptionOption,
+          googleProductChangeInfo: googleProductChangeInfo || null,
+        }
+      );
+      return {
+        customerInfo: result?.customerInfo || null,
+        error: null,
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
+    } catch (error) {
+      const mappedError = this.mapPurchaseError(error);
+      console.error(
+        'RevenueCat purchaseSubscriptionOption error',
+        mappedError.code,
+        mappedError.message,
+        error
+      );
+      return {
+        customerInfo: null,
+        error: mappedError,
+        usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
+    }
+  }
+
   public async restorePurchases(): Promise<CustomerInfo | null> {
     await this.initialize();
     if (!this.configured) {
@@ -254,38 +303,22 @@ export class BillingService {
       };
     }
 
-    const purchaseResult = await this.purchasePackage(
-      selectedPackage,
-      googleProductChangeInfo
-    );
-    if (purchaseResult.customerInfo || !googleProductChangeInfo) {
-      return purchaseResult;
+    console.info('[Billing] purchasePlan attempt', {
+      platform: this.platform,
+      requestedPlan: plan,
+      currentProductIdentifier,
+      selectedProductIdentifier,
+      usingGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+    });
+
+    if (this.platform === 'android' && selectedPackage.product?.defaultOption) {
+      return this.purchaseSubscriptionOption(
+        selectedPackage.product.defaultOption,
+        googleProductChangeInfo
+      );
     }
 
-    const shouldRetryWithoutProductChangeInfo =
-      !purchaseResult.error?.userCancelled;
-
-    if (!shouldRetryWithoutProductChangeInfo) {
-      return purchaseResult;
-    }
-
-    console.warn(
-      '[Billing] purchasePlan retry without googleProductChangeInfo',
-      {
-        platform: this.platform,
-        currentProductIdentifier,
-        selectedProductIdentifier,
-        errorCode: purchaseResult.error?.code,
-        errorMessage: purchaseResult.error?.message,
-      }
-    );
-
-    const fallbackResult = await this.purchasePackage(selectedPackage, null);
-    return {
-      ...fallbackResult,
-      usedFallbackWithoutGoogleProductChangeInfo: true,
-      usedGoogleProductChangeInfo: false,
-    };
+    return this.purchasePackage(selectedPackage, googleProductChangeInfo);
   }
 
   public async presentPaywallIfNeeded(
@@ -442,23 +475,43 @@ export class BillingService {
       return null;
     }
 
+    const entitlementProductId =
+      customerInfo.entitlements?.active?.[this.entitlementId]?.productIdentifier ||
+      null;
+    const subscriptionsByProductIdentifier =
+      customerInfo.subscriptionsByProductIdentifier || {};
     const activeSubscriptions = customerInfo.activeSubscriptions || [];
-    if (!activeSubscriptions.length) {
+
+    const currentSubscriptionCandidates = [
+      entitlementProductId,
+      ...Object.keys(subscriptionsByProductIdentifier),
+      ...activeSubscriptions,
+    ].filter(Boolean) as string[];
+
+    if (!currentSubscriptionCandidates.length) {
       return null;
     }
 
     const offeringProductIds = new Set<string>([
       offering.monthly?.product?.identifier,
       offering.annual?.product?.identifier,
+      offering.monthly?.product?.defaultOption?.storeProductId,
+      offering.annual?.product?.defaultOption?.storeProductId,
     ].filter(Boolean) as string[]);
 
-    const match = activeSubscriptions.find((id) => offeringProductIds.has(id));
-    return match || activeSubscriptions[0] || null;
+    const match = currentSubscriptionCandidates.find((id) =>
+      offeringProductIds.has(id)
+    );
+    return match || currentSubscriptionCandidates[0] || null;
   }
 
   private mapPurchaseError(error: any): BillingPurchaseError {
+    const errorCode = String(error?.code || error?.rcCode || '').toUpperCase();
     const userCancelled = Boolean(
-      error?.userCancelled || error?.code === 'PURCHASE_CANCELLED'
+      error?.userCancelled ||
+      errorCode === 'PURCHASE_CANCELLED' ||
+      errorCode === 'PURCHASE_CANCELLED_ERROR' ||
+      errorCode === 'USER_CANCELED'
     );
     const code = String(error?.code || error?.rcCode || 'PURCHASE_ERROR');
     const message = String(

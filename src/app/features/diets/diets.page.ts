@@ -16,6 +16,7 @@ import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service'
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
@@ -61,6 +62,7 @@ export class DietsPage implements OnInit {
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
+    private navigationService: NavigationService,
     private cdr: ChangeDetectorRef
   ) {
     // Effect para el usuario
@@ -180,6 +182,14 @@ export class DietsPage implements OnInit {
 
   public scrollBottom(): void {
     this.ionContent.scrollToBottom(300);
+  }
+
+  public get isPremiumActive(): boolean {
+    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+  }
+
+  public goToPremium(): void {
+    this.navigationService.goToPremium();
   }
 
 }

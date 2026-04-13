@@ -339,5 +339,13 @@ export class SummaryPage {
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }
+
+  public get isPremiumActive(): boolean {
+    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+  }
+
+  public goToPremium(): void {
+    this.navigationService.goToPremium();
+  }
 }
 

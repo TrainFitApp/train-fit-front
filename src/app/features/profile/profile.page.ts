@@ -914,10 +914,7 @@ export class ProfilePage implements OnInit {
   }
 
   public get premiumPlanLabel(): string {
-    const plan = this.user?.premium?.plan;
-    if (plan === 'annual') return 'Anual';
-    if (plan === 'monthly') return 'Mensual';
-    return 'Premium';
+    return 'Pro';
   }
 
   private async refreshPremiumState(): Promise<void> {
