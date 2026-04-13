@@ -34,6 +34,8 @@ export interface BillingPurchaseResult {
   usedFallbackWithoutGoogleProductChangeInfo: boolean;
 }
 
+export type BillingPurchaseIntent = 'activate' | 'change_plan';
+
 @Injectable()
 export class BillingService {
   private readonly isNativeClient = Capacitor.isNativePlatform();
@@ -251,7 +253,8 @@ export class BillingService {
   }
 
   public async purchasePlan(
-    plan: 'monthly' | 'annual'
+    plan: 'monthly' | 'annual',
+    intent: BillingPurchaseIntent = 'activate'
   ): Promise<BillingPurchaseResult> {
     const currentOffering = await this.getCurrentOffering();
     if (!currentOffering) {
@@ -285,18 +288,42 @@ export class BillingService {
 
     let googleProductChangeInfo: GoogleProductChangeInfo | null = null;
     const currentCustomerInfo = await this.getCustomerInfo();
-    const currentProductIdentifier = this.resolveCurrentSubscriptionProductId(
-      currentCustomerInfo,
-      currentOffering
-    );
+    const currentProductIdentifier =
+      this.resolveCurrentSubscriptionProductId(currentCustomerInfo);
     const selectedProductIdentifier = selectedPackage.product?.identifier;
+    const shouldForcePlanChangeByStoreState =
+      this.platform === 'android' &&
+      intent === 'activate' &&
+      Boolean(currentProductIdentifier) &&
+      Boolean(selectedProductIdentifier) &&
+      currentProductIdentifier !== selectedProductIdentifier;
+    const effectiveIntent: BillingPurchaseIntent =
+      shouldForcePlanChangeByStoreState ? 'change_plan' : intent;
+    const shouldTreatAsPlanChange =
+      this.platform === 'android' &&
+      effectiveIntent === 'change_plan' &&
+      Boolean(currentProductIdentifier) &&
+      Boolean(selectedProductIdentifier) &&
+      currentProductIdentifier !== selectedProductIdentifier;
 
     if (
       this.platform === 'android' &&
-      currentProductIdentifier &&
-      selectedProductIdentifier &&
-      currentProductIdentifier !== selectedProductIdentifier
+      effectiveIntent === 'change_plan' &&
+      !currentProductIdentifier
     ) {
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'CHANGE_PLAN_NO_ACTIVE_SUBSCRIPTION',
+          message: 'No se encontró una suscripción activa para cambiar de plan',
+        },
+        usedGoogleProductChangeInfo: false,
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
+    }
+
+    if (shouldTreatAsPlanChange) {
       googleProductChangeInfo = {
         oldProductIdentifier: currentProductIdentifier,
         prorationMode: PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
@@ -306,6 +333,8 @@ export class BillingService {
     console.info('[Billing] purchasePlan attempt', {
       platform: this.platform,
       requestedPlan: plan,
+      intent,
+      effectiveIntent,
       currentProductIdentifier,
       selectedProductIdentifier,
       usingGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
@@ -468,41 +497,17 @@ export class BillingService {
   }
 
   private resolveCurrentSubscriptionProductId(
-    customerInfo: CustomerInfo | null,
-    offering: PurchasesOffering | null
+    customerInfo: CustomerInfo | null
   ): string | null {
-    if (!customerInfo || !offering) {
+    if (!customerInfo) {
       return null;
     }
 
     const entitlementProductId =
       customerInfo.entitlements?.active?.[this.entitlementId]?.productIdentifier ||
       null;
-    const subscriptionsByProductIdentifier =
-      customerInfo.subscriptionsByProductIdentifier || {};
     const activeSubscriptions = customerInfo.activeSubscriptions || [];
-
-    const currentSubscriptionCandidates = [
-      entitlementProductId,
-      ...Object.keys(subscriptionsByProductIdentifier),
-      ...activeSubscriptions,
-    ].filter(Boolean) as string[];
-
-    if (!currentSubscriptionCandidates.length) {
-      return null;
-    }
-
-    const offeringProductIds = new Set<string>([
-      offering.monthly?.product?.identifier,
-      offering.annual?.product?.identifier,
-      offering.monthly?.product?.defaultOption?.storeProductId,
-      offering.annual?.product?.defaultOption?.storeProductId,
-    ].filter(Boolean) as string[]);
-
-    const match = currentSubscriptionCandidates.find((id) =>
-      offeringProductIds.has(id)
-    );
-    return match || currentSubscriptionCandidates[0] || null;
+    return entitlementProductId || activeSubscriptions[0] || null;
   }
 
   private mapPurchaseError(error: any): BillingPurchaseError {

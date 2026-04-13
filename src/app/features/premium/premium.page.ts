@@ -3,6 +3,7 @@ import { AlertOptions } from '@ionic/angular';
 import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
 import {
+  BillingPurchaseIntent,
   BillingPurchaseResult,
   BillingService,
 } from 'src/app/core/services/billing/billing.service';
@@ -112,9 +113,8 @@ export class PremiumPage {
     this.isRestoring = true;
     try {
       const customerInfo = await this.billingService.restorePurchases();
-      const entitlements = await this.billingService.syncEntitlementsWithBackend(
-        customerInfo
-      );
+      const entitlements =
+        await this.billingService.syncEntitlementsWithBackend(customerInfo);
       await this.billingService.getBackendEntitlements();
       await this.loadData();
 
@@ -185,15 +185,22 @@ export class PremiumPage {
     }
 
     try {
-      const purchaseResult = await this.billingService.purchasePlan(plan);
+      const purchaseIntent: BillingPurchaseIntent = this.isPremium
+        ? 'change_plan'
+        : 'activate';
+      const purchaseResult = await this.billingService.purchasePlan(
+        plan,
+        purchaseIntent
+      );
       if (!purchaseResult.customerInfo) {
-        await this.handleFailedPurchaseResult(purchaseResult);
+        await this.handleFailedPurchaseResult(purchaseResult, purchaseIntent);
         return;
       }
 
-      const entitlements = await this.billingService.syncEntitlementsWithBackend(
-        purchaseResult.customerInfo
-      );
+      const entitlements =
+        await this.billingService.syncEntitlementsWithBackend(
+          purchaseResult.customerInfo
+        );
 
       if (!entitlements) {
         await this.showSyncWarningAlert();
@@ -298,24 +305,29 @@ export class PremiumPage {
   }
 
   private async handleFailedPurchaseResult(
-    purchaseResult: BillingPurchaseResult
+    purchaseResult: BillingPurchaseResult,
+    purchaseIntent: BillingPurchaseIntent
   ): Promise<void> {
     if (purchaseResult.error?.userCancelled) {
       this.showError('Compra cancelada');
       return;
     }
 
+    const isChangePlan = purchaseIntent === 'change_plan';
     const alertOptions: AlertOptions = {
-      header: 'No se pudo cambiar de plan',
-      message:
-        'Se produjo un error tecnico al procesar la compra. Intentalo de nuevo o usa Gestionar suscripcion.',
+      header: isChangePlan
+        ? 'No se pudo cambiar de plan'
+        : 'No se pudo activar Pro',
+      message: isChangePlan
+        ? 'Se produjo un error tecnico al cambiar de plan. Intentalo de nuevo o usa Gestionar suscripcion.'
+        : 'Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.',
       buttons: [
         {
           text: 'Cerrar',
           role: 'cancel',
         },
         {
-          text: 'Gestionar suscripcion',
+          text: 'Gestionar',
           handler: () => {
             void this.openManageSubscription();
           },
