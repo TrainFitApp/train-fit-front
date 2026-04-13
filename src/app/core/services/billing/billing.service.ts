@@ -287,16 +287,27 @@ export class BillingService {
     }
 
     let googleProductChangeInfo: GoogleProductChangeInfo | null = null;
-    const currentCustomerInfo = await this.getCustomerInfo();
+    // Fix: forzar customerInfo fresco para obtener el purchaseToken actualizado
+    const currentCustomerInfo = await this.getFreshCustomerInfo();
     const currentProductIdentifier =
       this.resolveCurrentSubscriptionProductId(currentCustomerInfo);
     const selectedProductIdentifier = selectedPackage.product?.identifier;
+
+    // C1: detectar cambio de base plan cuando el producto es el mismo (modelo Google Play
+    // con base plans: 'trainfit_pro' monthly y 'trainfit_pro' annual tienen el mismo identifier)
+    const cachedCurrentPlan = this.cachedEntitlements?.plan ?? null;
+    const isBasePlanChange =
+      currentProductIdentifier === selectedProductIdentifier &&
+      Boolean(currentProductIdentifier) &&
+      (cachedCurrentPlan === 'monthly' || cachedCurrentPlan === 'annual') &&
+      cachedCurrentPlan !== plan;
+
     const shouldForcePlanChangeByStoreState =
       this.platform === 'android' &&
       intent === 'activate' &&
       Boolean(currentProductIdentifier) &&
       Boolean(selectedProductIdentifier) &&
-      currentProductIdentifier !== selectedProductIdentifier;
+      (currentProductIdentifier !== selectedProductIdentifier || isBasePlanChange);
     const effectiveIntent: BillingPurchaseIntent =
       shouldForcePlanChangeByStoreState ? 'change_plan' : intent;
     const shouldTreatAsPlanChange =
@@ -304,7 +315,7 @@ export class BillingService {
       effectiveIntent === 'change_plan' &&
       Boolean(currentProductIdentifier) &&
       Boolean(selectedProductIdentifier) &&
-      currentProductIdentifier !== selectedProductIdentifier;
+      (currentProductIdentifier !== selectedProductIdentifier || isBasePlanChange);
 
     if (
       this.platform === 'android' &&
@@ -324,9 +335,15 @@ export class BillingService {
     }
 
     if (shouldTreatAsPlanChange) {
+      // Fix: usar DEFERRED para downgrade (anual → mensual) e IMMEDIATE para upgrade (mensual → anual)
+      const isDowngrade = this.isPlanDowngrade(currentProductIdentifier, plan);
+      const prorationMode = isDowngrade
+        ? PRORATION_MODE.DEFERRED
+        : PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION;
+
       googleProductChangeInfo = {
         oldProductIdentifier: currentProductIdentifier,
-        prorationMode: PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+        prorationMode,
       };
     }
 
@@ -338,6 +355,7 @@ export class BillingService {
       currentProductIdentifier,
       selectedProductIdentifier,
       usingGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
+      prorationMode: googleProductChangeInfo?.prorationMode ?? null,
     });
 
     if (this.platform === 'android' && selectedPackage.product?.defaultOption) {
@@ -407,7 +425,8 @@ export class BillingService {
   }
 
   public async syncEntitlementsWithBackend(
-    customerInfo?: CustomerInfo | null
+    customerInfo?: CustomerInfo | null,
+    plan?: 'monthly' | 'annual' | null
   ): Promise<BillingEntitlements | null> {
     const appUserId = this.userService.getLocalUser?._id || null;
     try {
@@ -415,6 +434,7 @@ export class BillingService {
         this.billingApiService.restore({
           appUserId: appUserId || undefined,
           customerInfo: customerInfo || undefined,
+          plan: plan || undefined,
         })
       );
       this.cachedEntitlements = entitlements;
@@ -508,6 +528,89 @@ export class BillingService {
       null;
     const activeSubscriptions = customerInfo.activeSubscriptions || [];
     return entitlementProductId || activeSubscriptions[0] || null;
+  }
+
+  /** Invalida la caché de RevenueCat y obtiene customerInfo actualizado desde los servidores */
+  private async getFreshCustomerInfo(): Promise<CustomerInfo | null> {
+    await this.initialize();
+    if (!this.configured) {
+      return null;
+    }
+
+    try {
+      await Purchases.invalidateCustomerInfoCache();
+    } catch {
+      // invalidateCustomerInfoCache puede no estar disponible en todas las versiones — continuar igualmente
+    }
+
+    return this.getCustomerInfo();
+  }
+
+  /**
+   * I1: resuelve el plan ('monthly' | 'annual') a partir de un CustomerInfo comparando
+   * el productId activo contra los identificadores reales del offering actual.
+   * Útil cuando el product ID no incluye el sufijo de plan ('trainfit_pro' + base plans).
+   */
+  public async resolvePlanFromCustomerInfo(
+    customerInfo: CustomerInfo | null
+  ): Promise<'monthly' | 'annual' | null> {
+    if (!customerInfo) return null;
+
+    const currentProductId = this.resolveCurrentSubscriptionProductId(customerInfo);
+    if (!currentProductId) return null;
+
+    // Primer intento: sufijo en el product ID (funciona con trainfit_pro_monthly/annual)
+    const id = currentProductId.toLowerCase();
+    if (id.includes('annual') || id.includes('anual') || id.includes('year')) {
+      return 'annual';
+    }
+    if (id.includes('month') || id.includes('mensual')) {
+      return 'monthly';
+    }
+
+    // Segundo intento: comparar contra los identifiers del offering actual
+    // (funciona con base plans donde ambos paquetes tienen el mismo product ID)
+    const offering = await this.getCurrentOffering();
+    if (!offering) return null;
+
+    const monthlyId = offering.monthly?.product?.identifier ?? null;
+    const annualId = offering.annual?.product?.identifier ?? null;
+
+    // Solo útil si monthly y annual tienen identifiers distintos
+    if (monthlyId && annualId && monthlyId !== annualId) {
+      if (currentProductId === annualId) return 'annual';
+      if (currentProductId === monthlyId) return 'monthly';
+    }
+
+    return null;
+  }
+
+  /** Determina si el cambio de plan es un downgrade (anual → mensual) */
+  private isPlanDowngrade(
+    currentProductIdentifier: string | null,
+    targetPlan: 'monthly' | 'annual'
+  ): boolean {
+    if (!currentProductIdentifier) {
+      return false;
+    }
+
+    // Primer intento: sufijo en el product ID (trainfit_pro_annual, trainfit_pro_yearly…)
+    const currentIsAnnual =
+      currentProductIdentifier.toLowerCase().includes('annual') ||
+      currentProductIdentifier.toLowerCase().includes('anual') ||
+      currentProductIdentifier.toLowerCase().includes('year');
+    if (currentIsAnnual) {
+      return targetPlan === 'monthly';
+    }
+
+    // C1 fallback: si el product ID no tiene sufijo (base plan model: 'trainfit_pro'),
+    // usar el plan almacenado en el backend como fuente de verdad
+    const cachedPlan = this.cachedEntitlements?.plan;
+    if (cachedPlan === 'annual' && targetPlan === 'monthly') {
+      return true;
+    }
+
+    return false;
   }
 
   private mapPurchaseError(error: any): BillingPurchaseError {

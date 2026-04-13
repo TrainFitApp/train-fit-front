@@ -27,6 +27,7 @@ export class BillingApiService {
   public restore(payload?: {
     appUserId?: string;
     customerInfo?: unknown;
+    plan?: 'monthly' | 'annual';
   }): Observable<BillingEntitlements> {
     return this.http.post<BillingEntitlements>(
       `${BillingApiService.BILLING_ENDPOINT}/restore`,

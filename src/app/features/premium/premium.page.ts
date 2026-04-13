@@ -87,10 +87,10 @@ export class PremiumPage {
         return;
       }
 
+      // I1: resolver el plan comprado antes de sincronizar para evitar plan=null en BD
       const customerInfo = await this.billingService.getCustomerInfo();
-      await this.billingService.syncEntitlementsWithBackend(customerInfo);
-      await this.billingService.getBackendEntitlements();
-      await this.loadData();
+      const purchasedPlan = await this.billingService.resolvePlanFromCustomerInfo(customerInfo);
+      await this.billingService.syncEntitlementsWithBackend(customerInfo, purchasedPlan);
 
       if (result === PAYWALL_RESULT.PURCHASED) {
         this.showSuccess('Pro activado correctamente');
@@ -101,6 +101,7 @@ export class PremiumPage {
       }
     } finally {
       this.isPresentingPaywall = false;
+      // I2: loadData solo en finally — no duplicar llamadas dentro del try
       await this.loadData();
     }
   }
@@ -115,8 +116,6 @@ export class PremiumPage {
       const customerInfo = await this.billingService.restorePurchases();
       const entitlements =
         await this.billingService.syncEntitlementsWithBackend(customerInfo);
-      await this.billingService.getBackendEntitlements();
-      await this.loadData();
 
       if (entitlements?.isPremium) {
         this.showSuccess('Pro restaurado correctamente');
@@ -125,6 +124,7 @@ export class PremiumPage {
       }
     } finally {
       this.isRestoring = false;
+      // I2: loadData solo en finally
       await this.loadData();
     }
   }
@@ -149,17 +149,17 @@ export class PremiumPage {
     const currentPlan = this.getNormalizedCurrentPlan();
     if (currentPlan === 'annual') return 'Plan anual';
     if (currentPlan === 'monthly') return 'Plan mensual';
-    return 'Plan Pro';
+    return this.entitlements?.plan ?? 'Plan Pro';
   }
 
   public get showChangeToMonthly(): boolean {
     const currentPlan = this.getNormalizedCurrentPlan();
-    return this.isPremium && currentPlan !== 'monthly';
+    return this.isPremium && currentPlan !== null && currentPlan !== 'monthly';
   }
 
   public get showChangeToAnnual(): boolean {
     const currentPlan = this.getNormalizedCurrentPlan();
-    return this.isPremium && currentPlan !== 'annual';
+    return this.isPremium && currentPlan !== null && currentPlan !== 'annual';
   }
 
   private async purchasePlan(plan: 'monthly' | 'annual'): Promise<void> {
@@ -199,16 +199,14 @@ export class PremiumPage {
 
       const entitlements =
         await this.billingService.syncEntitlementsWithBackend(
-          purchaseResult.customerInfo
+          purchaseResult.customerInfo,
+          plan
         );
 
       if (!entitlements) {
         await this.showSyncWarningAlert();
         return;
       }
-
-      await this.billingService.getBackendEntitlements();
-      await this.loadData();
 
       if (entitlements.isPremium) {
         if (wasPremiumBeforePurchase) {
@@ -225,6 +223,7 @@ export class PremiumPage {
     } finally {
       this.isPurchasingMonthly = false;
       this.isPurchasingAnnual = false;
+      // I2: loadData solo en finally — syncEntitlementsWithBackend ya actualizó la caché
       await this.loadData();
     }
   }
@@ -314,13 +313,17 @@ export class PremiumPage {
     }
 
     const isChangePlan = purchaseIntent === 'change_plan';
+
+    // Fix: al fallar un cambio de plan, abrir gestión nativa directamente
+    // en lugar de mostrar un alert — Google Play ya mostrará la UI correcta
+    if (isChangePlan) {
+      await this.openManageSubscription();
+      return;
+    }
+
     const alertOptions: AlertOptions = {
-      header: isChangePlan
-        ? 'No se pudo cambiar de plan'
-        : 'No se pudo activar Pro',
-      message: isChangePlan
-        ? 'Se produjo un error tecnico al cambiar de plan. Intentalo de nuevo o usa Gestionar suscripcion.'
-        : 'Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.',
+      header: 'No se pudo activar Pro',
+      message: 'Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.',
       buttons: [
         {
           text: 'Cerrar',
