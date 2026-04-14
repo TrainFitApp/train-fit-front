@@ -66,10 +66,6 @@ export class PremiumPage {
     await this.purchasePlan(this.selectedPlan);
   }
 
-  public async changeToMonthly(): Promise<void> {
-    await this.purchasePlan('monthly');
-  }
-
   public async changeToAnnual(): Promise<void> {
     await this.purchasePlan('annual');
   }
@@ -152,11 +148,6 @@ export class PremiumPage {
     return this.entitlements?.plan ?? 'Plan Pro';
   }
 
-  public get showChangeToMonthly(): boolean {
-    const currentPlan = this.getNormalizedCurrentPlan();
-    return this.isPremium && currentPlan !== null && currentPlan !== 'monthly';
-  }
-
   public get showChangeToAnnual(): boolean {
     const currentPlan = this.getNormalizedCurrentPlan();
     return this.isPremium && currentPlan !== null && currentPlan !== 'annual';
@@ -168,8 +159,16 @@ export class PremiumPage {
     }
 
     const wasPremiumBeforePurchase = this.isPremium;
+    const currentPlan = this.getNormalizedCurrentPlan();
 
-    if (this.isPremium && this.getNormalizedCurrentPlan() === plan) {
+    if (this.isPremium && currentPlan === 'annual' && plan === 'monthly') {
+      this.showError(
+        'Para pasar de anual a mensual, usa Gestionar suscripción en tu tienda'
+      );
+      return;
+    }
+
+    if (this.isPremium && currentPlan === plan) {
       this.showSuccess(
         plan === 'annual'
           ? 'Ya tienes el plan anual activo'

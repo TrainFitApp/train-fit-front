@@ -256,6 +256,29 @@ export class BillingService {
     plan: 'monthly' | 'annual',
     intent: BillingPurchaseIntent = 'activate'
   ): Promise<BillingPurchaseResult> {
+    const normalizedCachedPlan = String(this.cachedEntitlements?.plan || '')
+      .trim()
+      .toLowerCase();
+    const isAnnualToMonthlyRequest =
+      plan === 'monthly' &&
+      (normalizedCachedPlan === 'annual' ||
+        normalizedCachedPlan.includes('year') ||
+        normalizedCachedPlan.includes('anual'));
+
+    if (isAnnualToMonthlyRequest) {
+      return {
+        customerInfo: null,
+        error: {
+          userCancelled: false,
+          code: 'DOWNGRADE_MANAGED_IN_STORE',
+          message:
+            'El cambio de anual a mensual se gestiona desde Google Play o App Store',
+        },
+        usedGoogleProductChangeInfo: false,
+        usedFallbackWithoutGoogleProductChangeInfo: false,
+      };
+    }
+
     const currentOffering = await this.getCurrentOffering();
     if (!currentOffering) {
       return {
@@ -337,15 +360,29 @@ export class BillingService {
     if (shouldTreatAsPlanChange) {
       const isDowngrade = this.isPlanDowngrade(currentProductIdentifier, plan);
 
+      if (isDowngrade) {
+        return {
+          customerInfo: null,
+          error: {
+            userCancelled: false,
+            code: 'DOWNGRADE_MANAGED_IN_STORE',
+            message:
+              'El cambio de anual a mensual se gestiona desde Google Play o App Store',
+          },
+          usedGoogleProductChangeInfo: false,
+          usedFallbackWithoutGoogleProductChangeInfo: false,
+        };
+      }
+
       // Google Play base plans (mismo producto, distinto base plan):
       // - IMMEDIATE_WITH_TIME_PRORATION no está soportado → Google devuelve error
       // - Upgrade (mensual → anual): IMMEDIATE_AND_CHARGE_FULL_PRICE
-      // - Downgrade (anual → mensual): DEFERRED (aplica al siguiente período)
+      // - Downgrade (anual → mensual): DEFERRED — el cambio aplica al siguiente período de renovación.
+      //   En sandbox puede fallar (comportamiento inconsistente con ciclos cortos).
+      //   En producción funciona correctamente: el usuario mantiene el plan anual hasta que vence
+      //   y en la siguiente renovación se cobra el mensual. Sin reembolso.
       // oldProductIdentifier debe ser el identificador COMPLETO con base plan
-      // ('trainfit_pro:subscription-monthly'), NO solo el SKU base
-      const prorationMode = isDowngrade
-        ? PRORATION_MODE.DEFERRED
-        : PRORATION_MODE.IMMEDIATE_AND_CHARGE_FULL_PRICE;
+      const prorationMode = PRORATION_MODE.IMMEDIATE_AND_CHARGE_FULL_PRICE;
 
       googleProductChangeInfo = {
         oldProductIdentifier: currentProductIdentifier!,

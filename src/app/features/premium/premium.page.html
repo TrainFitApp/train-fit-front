@@ -181,26 +181,15 @@
         </div>
       </section>
 
-      <section class="status-card" *ngIf="entitlements">
+      <section class="status-card" *ngIf="entitlements && showChangeToAnnual">
         <div class="status-row">
-          <span class="status-label">Cambiar plan</span>
-          <span class="status-value">Disponible al instante</span>
+          <span class="status-label">Mejora tu plan</span>
+          <span class="status-value">Ahorra con el plan anual</span>
         </div>
 
         <button
           class="cta-ghost"
-          *ngIf="showChangeToMonthly"
-          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading"
-          (click)="changeToMonthly()"
-        >
-          <ion-spinner *ngIf="isPurchasingMonthly" name="crescent" class="cta-spinner-sm"></ion-spinner>
-          <span>Cambiar a mensual</span>
-        </button>
-
-        <button
-          class="cta-ghost"
-          *ngIf="showChangeToAnnual"
-          [disabled]="isPurchasingMonthly || isPurchasingAnnual || isLoading"
+          [disabled]="isPurchasingAnnual || isLoading"
           (click)="changeToAnnual()"
         >
           <ion-spinner *ngIf="isPurchasingAnnual" name="crescent" class="cta-spinner-sm"></ion-spinner>
@@ -227,7 +216,8 @@
     <div class="runtime-note">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
-        Puedes cambiar de plan desde esta pantalla o desde tu tienda (Google Play o App Store).
+        Puedes mejorar de mensual a anual desde esta pantalla.
+        Para cambios de anual a mensual usa Gestionar suscripción en tu tienda (Google Play o App Store).
         Los cambios de suscripcion pueden tardar unos segundos en sincronizarse.
       </p>
     </div>
@@ -239,4 +229,3 @@
 
   </div>
 </ion-content>
-
