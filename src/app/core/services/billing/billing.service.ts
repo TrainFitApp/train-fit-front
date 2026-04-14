@@ -335,19 +335,20 @@ export class BillingService {
     }
 
     if (shouldTreatAsPlanChange) {
-      // Fix: usar DEFERRED para downgrade (anual → mensual) e IMMEDIATE para upgrade (mensual → anual)
       const isDowngrade = this.isPlanDowngrade(currentProductIdentifier, plan);
+
+      // Google Play base plans (mismo producto, distinto base plan):
+      // - IMMEDIATE_WITH_TIME_PRORATION no está soportado → Google devuelve error
+      // - Upgrade (mensual → anual): IMMEDIATE_AND_CHARGE_FULL_PRICE
+      // - Downgrade (anual → mensual): DEFERRED (aplica al siguiente período)
+      // oldProductIdentifier debe ser el identificador COMPLETO con base plan
+      // ('trainfit_pro:subscription-monthly'), NO solo el SKU base
       const prorationMode = isDowngrade
         ? PRORATION_MODE.DEFERRED
-        : PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION;
-
-      // Google Play base plans: el activeSubscriptions devuelve 'trainfit_pro:subscription-monthly'
-      // pero RevenueCat busca el purchase token por el SKU base ('trainfit_pro').
-      // Pasando el sufijo de base plan, RC no encuentra el token y Google Play rechaza el cambio.
-      const oldProductId = currentProductIdentifier!.split(':')[0];
+        : PRORATION_MODE.IMMEDIATE_AND_CHARGE_FULL_PRICE;
 
       googleProductChangeInfo = {
-        oldProductIdentifier: oldProductId,
+        oldProductIdentifier: currentProductIdentifier!,
         prorationMode,
       };
     }
