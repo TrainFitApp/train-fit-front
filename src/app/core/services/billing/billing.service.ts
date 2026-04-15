@@ -256,29 +256,6 @@ export class BillingService {
     plan: 'monthly' | 'annual',
     intent: BillingPurchaseIntent = 'activate'
   ): Promise<BillingPurchaseResult> {
-    const normalizedCachedPlan = String(this.cachedEntitlements?.plan || '')
-      .trim()
-      .toLowerCase();
-    const isAnnualToMonthlyRequest =
-      plan === 'monthly' &&
-      (normalizedCachedPlan === 'annual' ||
-        normalizedCachedPlan.includes('year') ||
-        normalizedCachedPlan.includes('anual'));
-
-    if (isAnnualToMonthlyRequest) {
-      return {
-        customerInfo: null,
-        error: {
-          userCancelled: false,
-          code: 'DOWNGRADE_MANAGED_IN_STORE',
-          message:
-            'El cambio de anual a mensual se gestiona desde Google Play o App Store',
-        },
-        usedGoogleProductChangeInfo: false,
-        usedFallbackWithoutGoogleProductChangeInfo: false,
-      };
-    }
-
     const currentOffering = await this.getCurrentOffering();
     if (!currentOffering) {
       return {
@@ -441,9 +418,7 @@ export class BillingService {
       }
 
       if (this.platform === 'ios') {
-        await Browser.open({
-          url: 'https://apps.apple.com/account/subscriptions',
-        });
+        window.open('itms-apps://apps.apple.com/account/subscriptions', '_system');
         return true;
       }
 

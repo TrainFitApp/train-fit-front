@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Browser } from '@capacitor/browser';
 import { AlertOptions } from '@ionic/angular';
 import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
@@ -16,6 +17,11 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
   styleUrls: ['./premium.page.scss'],
 })
 export class PremiumPage {
+  private readonly LEGAL_LINKS = {
+    privacy: 'https://trainfit.net/#/politicas',
+    terms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+  } as const;
+
   public readonly isNativeBillingAvailable: boolean;
   public isPremium = false;
   public isLoading = false;
@@ -55,6 +61,14 @@ export class PremiumPage {
   }
 
   public selectPlan(plan: 'annual' | 'monthly'): void {
+    if (plan === 'annual' && this.annualPriceLabel === 'No disponible') {
+      return;
+    }
+
+    if (plan === 'monthly' && this.monthlyPriceLabel === 'No disponible') {
+      return;
+    }
+
     this.selectedPlan = plan;
   }
 
@@ -63,6 +77,13 @@ export class PremiumPage {
   }
 
   public async purchaseSelected(): Promise<void> {
+    if (!this.canPurchaseSelectedPlan) {
+      this.showError(
+        'No se pudo cargar el precio del plan. Intentalo de nuevo en unos segundos'
+      );
+      return;
+    }
+
     await this.purchasePlan(this.selectedPlan);
   }
 
@@ -141,6 +162,14 @@ export class PremiumPage {
     }
   }
 
+  public async openPrivacyPolicy(): Promise<void> {
+    await this.openLegalLink(this.LEGAL_LINKS.privacy);
+  }
+
+  public async openTermsOfUse(): Promise<void> {
+    await this.openLegalLink(this.LEGAL_LINKS.terms);
+  }
+
   public get currentPlanLabel(): string {
     const currentPlan = this.getNormalizedCurrentPlan();
     if (currentPlan === 'annual') return 'Plan anual';
@@ -151,6 +180,14 @@ export class PremiumPage {
   public get showChangeToAnnual(): boolean {
     const currentPlan = this.getNormalizedCurrentPlan();
     return this.isPremium && currentPlan !== null && currentPlan !== 'annual';
+  }
+
+  public get canPurchaseSelectedPlan(): boolean {
+    if (this.selectedPlan === 'annual') {
+      return this.annualPriceLabel !== 'No disponible';
+    }
+
+    return this.monthlyPriceLabel !== 'No disponible';
   }
 
   private async purchasePlan(plan: 'monthly' | 'annual'): Promise<void> {
@@ -337,6 +374,15 @@ export class PremiumPage {
       ],
     };
     await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private async openLegalLink(url: string): Promise<void> {
+    try {
+      await Browser.open({ url });
+    } catch (error) {
+      console.error('Open legal link error', error);
+      this.showError('No se pudo abrir el enlace');
+    }
   }
 
   private getNormalizedCurrentPlan(): 'monthly' | 'annual' | null {
