@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { AlertOptions } from '@ionic/angular';
 import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
 import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
@@ -23,6 +24,7 @@ export class PremiumPage {
   } as const;
 
   public readonly isNativeBillingAvailable: boolean;
+  public readonly platform = Capacitor.getPlatform();
   public isPremium = false;
   public isLoading = false;
   public isPurchasingMonthly = false;

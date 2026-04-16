@@ -227,12 +227,19 @@
     </ng-container>
 
     <!-- NOTA LEGAL -->
-    <div class="runtime-note">
+    <div class="runtime-note" *ngIf="platform === 'android'">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
-        Puedes mejorar de mensual a anual desde esta pantalla.
-        Para cambios de anual a mensual usa Gestionar suscripción en tu tienda (Google Play o App Store).
-        Los cambios de suscripcion pueden tardar unos segundos en sincronizarse.
+        Para modificar o cancelar tu suscripción: Google Play &rsaquo; avatar &rsaquo; Suscripciones.
+        Los cambios pueden tardar unos segundos en sincronizarse.
+      </p>
+    </div>
+
+    <div class="runtime-note" *ngIf="platform === 'ios'">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>
+        Para modificar o cancelar tu suscripción: Ajustes &rsaquo; [tu nombre] &rsaquo; Suscripciones.
+        Los cambios pueden tardar unos segundos en sincronizarse.
       </p>
     </div>
 
