@@ -64,11 +64,11 @@ export class PremiumPage {
   }
 
   public selectPlan(plan: 'annual' | 'monthly'): void {
-    if (plan === 'annual' && this.annualPriceLabel === 'No disponible') {
+    if (plan === 'annual' && !this.canSelectPlan('annual')) {
       return;
     }
 
-    if (plan === 'monthly' && this.monthlyPriceLabel === 'No disponible') {
+    if (plan === 'monthly' && !this.canSelectPlan('monthly')) {
       return;
     }
 
@@ -81,6 +81,11 @@ export class PremiumPage {
 
   public async purchaseSelected(): Promise<void> {
     if (!this.canPurchaseSelectedPlan) {
+      if (this.platform === 'ios') {
+        await this.openPaywall();
+        return;
+      }
+
       this.showError(
         'No se pudo cargar el precio del plan. Intentalo de nuevo en unos segundos'
       );
@@ -186,11 +191,42 @@ export class PremiumPage {
   }
 
   public get canPurchaseSelectedPlan(): boolean {
+    if (this.platform === 'ios') {
+      // En iOS dejamos compra habilitada para que App Review no encuentre CTA bloqueado.
+      // Si no hay precios cargados en el selector, el fallback es abrir el paywall nativo.
+      return true;
+    }
+
     if (this.selectedPlan === 'annual') {
       return this.annualPriceLabel !== 'No disponible';
     }
 
     return this.monthlyPriceLabel !== 'No disponible';
+  }
+
+  public canSelectPlan(plan: 'annual' | 'monthly'): boolean {
+    if (this.platform === 'ios') {
+      return true;
+    }
+
+    if (plan === 'annual') {
+      return this.annualPriceLabel !== 'No disponible';
+    }
+
+    return this.monthlyPriceLabel !== 'No disponible';
+  }
+
+  public get selectedPlanPriceCaption(): string {
+    if (this.selectedPlan === 'annual') {
+      const price = this.annualPriceLabel;
+      return price === 'Cargando...' || price === 'No disponible'
+        ? 'Plan anual · Suscripción de renovación automática anual.'
+        : `Plan anual · ${price}/año · Suscripción de renovación automática anual.`;
+    }
+    const price = this.monthlyPriceLabel;
+    return price === 'Cargando...' || price === 'No disponible'
+      ? 'Plan mensual · Suscripción de renovación automática mensual.'
+      : `Plan mensual · ${price}/mes · Suscripción de renovación automática mensual.`;
   }
 
   public get termsLabel(): string {
@@ -369,6 +405,15 @@ export class PremiumPage {
     // en lugar de mostrar un alert — Google Play ya mostrará la UI correcta
     if (isChangePlan) {
       await this.openManageSubscription();
+      return;
+    }
+
+    const purchaseCode = String(purchaseResult.error?.code || '').toUpperCase();
+    if (
+      this.platform === 'ios' &&
+      (purchaseCode === 'NO_OFFERING' || purchaseCode === 'PACKAGE_NOT_AVAILABLE')
+    ) {
+      await this.openPaywall();
       return;
     }
 

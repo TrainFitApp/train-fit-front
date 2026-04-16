@@ -67,7 +67,7 @@
         <button
           class="plan-btn"
           [class.plan-btn--selected]="selectedPlan === 'annual'"
-          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading || annualPriceLabel === 'No disponible'"
+          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading || !canSelectPlan('annual')"
           (click)="selectPlan('annual')"
         >
           <div class="plan-radio" [class.plan-radio--active]="selectedPlan === 'annual'">
@@ -87,7 +87,7 @@
         <button
           class="plan-btn"
           [class.plan-btn--selected]="selectedPlan === 'monthly'"
-          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading || monthlyPriceLabel === 'No disponible'"
+          [disabled]="isPurchasingAnnual || isPurchasingMonthly || isLoading || !canSelectPlan('monthly')"
           (click)="selectPlan('monthly')"
         >
           <div class="plan-radio" [class.plan-radio--active]="selectedPlan === 'monthly'">
@@ -118,7 +118,7 @@
 
       <div class="legal-card">
         <p class="legal-caption">
-          Suscripcion auto renovable. El precio y la renovacion se muestran arriba segun el plan seleccionado.
+          {{ selectedPlanPriceCaption }} Cancela cuando quieras.
         </p>
         <div class="legal-links">
           <button class="legal-link-btn" type="button" (click)="openPrivacyPolicy()">

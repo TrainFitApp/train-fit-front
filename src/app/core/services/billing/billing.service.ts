@@ -130,7 +130,24 @@ export class BillingService {
 
   public async getCurrentOffering(): Promise<PurchasesOffering | null> {
     const offerings = await this.getOfferings();
-    return offerings?.current || null;
+    if (offerings?.current) {
+      return offerings.current;
+    }
+
+    const fallbackOfferings = Object.values(offerings?.all || {});
+    const firstUsableOffering =
+      fallbackOfferings.find((offering) => offering?.monthly || offering?.annual) ||
+      fallbackOfferings[0] ||
+      null;
+
+    if (firstUsableOffering) {
+      console.warn(
+        'RevenueCat current offering missing. Using fallback offering:',
+        firstUsableOffering.identifier
+      );
+    }
+
+    return firstUsableOffering;
   }
 
   private async purchasePackage(
