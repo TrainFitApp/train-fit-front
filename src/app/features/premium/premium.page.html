@@ -125,7 +125,7 @@
             Politica de privacidad
           </button>
           <button class="legal-link-btn" type="button" (click)="openTermsOfUse()">
-            Terminos de uso (EULA)
+            {{ termsLabel }}
           </button>
         </div>
       </div>
@@ -184,14 +184,6 @@
           <span class="status-value status-value--active">
             <ion-icon name="checkmark-circle"></ion-icon> Activo
           </span>
-        </div>
-        <div class="status-row" *ngIf="entitlements.plan">
-          <span class="status-label">Plan</span>
-          <span class="status-value">{{ currentPlanLabel }}</span>
-        </div>
-        <div class="status-row" *ngIf="entitlements.expiresAt">
-          <span class="status-label">Renovación</span>
-          <span class="status-value">{{ entitlements.expiresAt | date: 'dd/MM/yyyy' }}</span>
         </div>
       </section>
 

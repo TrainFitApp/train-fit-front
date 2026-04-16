@@ -20,7 +20,8 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 export class PremiumPage {
   private readonly LEGAL_LINKS = {
     privacy: 'https://trainfit.net/#/politicas',
-    terms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+    iosTerms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+    defaultTerms: 'https://www.trainfit.net/#/terminosycondiciones',
   } as const;
 
   public readonly isNativeBillingAvailable: boolean;
@@ -169,7 +170,7 @@ export class PremiumPage {
   }
 
   public async openTermsOfUse(): Promise<void> {
-    await this.openLegalLink(this.LEGAL_LINKS.terms);
+    await this.openLegalLink(this.termsUrl);
   }
 
   public get currentPlanLabel(): string {
@@ -190,6 +191,18 @@ export class PremiumPage {
     }
 
     return this.monthlyPriceLabel !== 'No disponible';
+  }
+
+  public get termsLabel(): string {
+    return this.platform === 'ios'
+      ? 'Terminos de uso (EULA)'
+      : 'Terminos y condiciones';
+  }
+
+  public get termsUrl(): string {
+    return this.platform === 'ios'
+      ? this.LEGAL_LINKS.iosTerms
+      : this.LEGAL_LINKS.defaultTerms;
   }
 
   private async purchasePlan(plan: 'monthly' | 'annual'): Promise<void> {
