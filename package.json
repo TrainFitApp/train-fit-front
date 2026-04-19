@@ -12,6 +12,10 @@
     "build:a": "npm run build:a --workspace @trainfit/train-fit-front",
     "build:i:m": "npm run build:i --workspace @trainfit/train-fit-management",
     "build:a:m": "npm run build:a --workspace @trainfit/train-fit-management",
+    "live:i": "npm run live:i --workspace @trainfit/train-fit-front",
+    "live:a": "npm run live:a --workspace @trainfit/train-fit-front",
+    "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
+    "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management"
   }
