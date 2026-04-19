@@ -39,6 +39,14 @@ export class JWTInterceptor implements HttpInterceptor {
       : request;
 
     const token = this.getTokenFromLocalStorage();
+    const isUsersPost =
+      requestWithClientHeader.method === 'POST' &&
+      requestWithClientHeader.url.includes('/users/');
+    const isPublicUsersPostEndpoint =
+      isUsersPost &&
+      (requestWithClientHeader.url.endsWith('/users') ||
+        requestWithClientHeader.url.includes('/users/social') ||
+        requestWithClientHeader.url.includes('/users/activate'));
 
     // Public endpoints that don't require authentication
     const isPublicEndpoint =
@@ -51,11 +59,7 @@ export class JWTInterceptor implements HttpInterceptor {
       requestWithClientHeader.url.includes('/users/send/mail/code') || // forgot password - send code
       requestWithClientHeader.url.includes('/users/auth/verify-google') || // google auth
       requestWithClientHeader.url.includes('/users/auth/verify-apple') || // apple auth
-      (requestWithClientHeader.url.includes('/users/') &&
-        requestWithClientHeader.method === 'POST' &&
-        !requestWithClientHeader.url.includes('/favProduct') &&
-        !requestWithClientHeader.url.includes('/favRecipe') &&
-        !requestWithClientHeader.url.includes('/users/suggestions')) || // POST endpoints for user creation (exclude protected ones)
+      isPublicUsersPostEndpoint || // public POST endpoints for sign-up/account activation
       requestWithClientHeader.url.includes('/users/hash/') || // email verification
       requestWithClientHeader.url.includes('/users/restore'); // restore password
 

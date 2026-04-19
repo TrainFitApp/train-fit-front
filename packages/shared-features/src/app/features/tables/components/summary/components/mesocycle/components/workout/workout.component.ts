@@ -822,7 +822,7 @@ export class WorkoutComponent {
           {
             text: 'INICIAR',
             handler: () => {
-              if (this.user?.isPremium) {
+              if (this.user?.premium?.entitled) {
                 this.startWorkoutAndNavigate();
                 return;
               }

@@ -906,7 +906,7 @@ export class NutritionEditorPage implements OnInit {
       return entitlements.adsEnabled;
     }
 
-    return !Boolean(this.user?.isPremium);
+    return !Boolean(this.user?.premium?.entitled);
   }
 
   private executeSave(): void {

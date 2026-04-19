@@ -419,6 +419,6 @@ export class AdMobService {
       return cachedEntitlements.adsEnabled;
     }
 
-    return !Boolean(user.isPremium);
+    return !Boolean(user?.premium?.entitled);
   }
 }

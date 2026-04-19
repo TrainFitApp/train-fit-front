@@ -540,7 +540,6 @@ export class BillingService {
 
     const updatedUser: User = {
       ...localUser,
-      isPremium: !!entitlements.isPremium,
       premium: {
         entitled: !!entitlements.isPremium,
         plan: entitlements.plan,

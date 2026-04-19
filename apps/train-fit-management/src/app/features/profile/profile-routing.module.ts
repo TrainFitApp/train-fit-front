@@ -7,11 +7,6 @@ const routes: Routes = [
     path: '',
     component: ProfilePage,
   },
-  {
-    path: 'users',
-    loadChildren: () =>
-      import('./components/users/users.module').then((m) => m.ProfileUsersPageModule),
-  },
 ];
 
 @NgModule({

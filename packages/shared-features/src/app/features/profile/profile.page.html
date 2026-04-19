@@ -36,15 +36,15 @@
         </div>
       </div>
       <div class="profile-actions">
+        <button class="settings-btn" (click)="goToConfiguration()">
+          <ion-icon name="settings-outline"></ion-icon>
+        </button>
         <button
           *ngIf="showManagementEntry"
           class="settings-btn"
           (click)="goToUsers()"
         >
           <ion-icon color="secondary" name="apps-outline"></ion-icon>
-        </button>
-        <button class="settings-btn" (click)="goToConfiguration()">
-          <ion-icon name="settings-outline"></ion-icon>
         </button>
       </div>
     </header>

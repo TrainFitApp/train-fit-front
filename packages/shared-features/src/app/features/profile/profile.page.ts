@@ -193,7 +193,7 @@ export class ProfilePage implements OnInit {
 
   public ngOnInit(): void {
     this.initVariables();
-    if (this.user && !this.user.isPremium) {
+    if (this.user && !this.user?.premium?.entitled) {
       this.adMobService.interstitial('profile_start');
     }
   }
@@ -612,7 +612,7 @@ export class ProfilePage implements OnInit {
   }
 
   public async goToStatistics(): Promise<void> {
-    if (this.user.isPremium) {
+    if (this.user?.premium?.entitled) {
       this.navigationService.goToStatistics();
       return;
     }
@@ -916,7 +916,7 @@ export class ProfilePage implements OnInit {
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+    return Boolean(this.user?.premium?.entitled);
   }
 
   public get showManagementEntry(): boolean {

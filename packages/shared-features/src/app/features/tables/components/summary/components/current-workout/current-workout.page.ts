@@ -160,7 +160,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         {
           text: 'INICIAR',
           handler: () => {
-            if (this.user?.isPremium) {
+            if (this.user?.premium?.entitled) {
               this.startWorkoutFlow();
               return;
             }

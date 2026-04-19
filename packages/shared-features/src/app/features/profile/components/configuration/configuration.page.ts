@@ -39,7 +39,7 @@ export class ConfigurationPage {
   ) {
     this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
-    this.isPremium = !!this.user?.isPremium;
+    this.isPremium = !!this.user?.premium?.entitled;
   }
 
   public toggleColor(): void {

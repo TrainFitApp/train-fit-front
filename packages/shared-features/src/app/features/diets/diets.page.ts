@@ -185,7 +185,7 @@ export class DietsPage implements OnInit {
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+    return Boolean(this.user?.premium?.entitled);
   }
 
   public goToPremium(): void {

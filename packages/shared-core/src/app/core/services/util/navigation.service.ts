@@ -17,7 +17,7 @@ export class NavigationService {
   private readonly TABS_SUMMARY_ROUTE = 'tabs/summary';
   private readonly MESOCYCLE_ROUTE = 'mesocycle';
   private readonly PROFILE_ROUTE = 'tabs/profile';
-  private readonly PROFILE_USERS_ROUTE = 'tabs/profile/users';
+  private readonly PROFILE_USERS_ROUTE = 'search-users';
   private readonly CONFIGURATION_ROUTE = 'configuration';
   private readonly CONCEPTS_ROUTE = 'configuration/concepts';
   private readonly SUGGESTIONS_ROUTE = 'configuration/suggestions';

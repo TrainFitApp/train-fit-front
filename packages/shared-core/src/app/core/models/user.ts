@@ -32,10 +32,9 @@ export class User {
   theme?: ColorMode;
   provider?: 'google' | 'apple';
   personalAds?: boolean;
-  isPremium?: boolean;
   premium?: {
     entitled?: boolean;
-    plan?: string;
+    plan?: 'monthly' | 'annual' | 'lifetime' | string;
     expiresAt?: string | Date;
     source?: string;
     lastSyncAt?: string | Date;
@@ -54,4 +53,5 @@ export class User {
   archivedProducts?: string[];
   archivedRecipes?: string[];
   archivedExercises?: string[];
+  lastLogin?: string | Date;
 }

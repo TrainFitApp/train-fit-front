@@ -103,6 +103,14 @@ const routes: Routes = [
       ).then((m) => m.WeightInfoPageModule),
   },
   {
+    path: 'search-users',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        './features/profile/components/users/users.module'
+      ).then((m) => m.ProfileUsersPageModule),
+  },
+  {
     path: 'disconnected',
     component: DisconnectedComponent,
   },

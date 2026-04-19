@@ -85,13 +85,16 @@ export class UserAPIService {
   public searchUsers(
     page: number,
     search: string,
-    filters?: { premiumOnly?: boolean; withHashOnly?: boolean }
-  ): Observable<User[]> {
-    return this.http.post<User[]>(`${UserAPIService.USERS_ENDPOINT}/search`, {
+    filters?: { premiumOnly?: boolean; premiumLifetimeOnly?: boolean; withHashOnly?: boolean }
+  ): Observable<{ users: User[]; total: number }> {
+    return this.http.post<{ users: User[]; total: number }>(
+      `${UserAPIService.USERS_ENDPOINT}/search`,
+      {
       page,
       search,
       filters,
-    });
+      }
+    );
   }
 
   public checkHash(id: string, hash: string): Observable<User> {
@@ -102,6 +105,19 @@ export class UserAPIService {
 
   public clearUserHash(id: string): Observable<void> {
     return this.http.delete<void>(`${UserAPIService.USERS_ENDPOINT}/hash/${id}`);
+  }
+
+  public grantLifetimePremium(id: string): Observable<User> {
+    return this.http.patch<User>(
+      `${UserAPIService.USERS_ENDPOINT}/premium/lifetime/${id}`,
+      {}
+    );
+  }
+
+  public revokeLifetimePremium(id: string): Observable<User> {
+    return this.http.delete<User>(
+      `${UserAPIService.USERS_ENDPOINT}/premium/lifetime/${id}`
+    );
   }
 
   public addFavoriteProduct(

@@ -10,30 +10,30 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
-  - Capacitor (7.4.4):
+  - Capacitor (7.6.2):
     - CapacitorCordova
-  - CapacitorApp (7.1.0):
+  - CapacitorApp (7.1.2):
     - Capacitor
-  - CapacitorBarcodeScanner (2.2.0):
+  - CapacitorBarcodeScanner (2.2.6):
     - Capacitor
     - OSBarcodeLib (= 2.0.1)
-  - CapacitorBrowser (7.0.2):
+  - CapacitorBrowser (7.0.5):
     - Capacitor
   - CapacitorCommunityAdmob (7.2.0):
     - Capacitor
     - Google-Mobile-Ads-SDK (= 12.12.0)
     - GoogleUserMessagingPlatform (= 3.0.0)
-  - CapacitorCordova (7.4.4)
-  - CapacitorKeyboard (7.0.3):
+  - CapacitorCordova (7.6.2)
+  - CapacitorKeyboard (7.0.6):
     - Capacitor
-  - CapacitorNetwork (7.0.2):
+  - CapacitorNetwork (7.0.4):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.12.0):
     - Capacitor
     - SwiftKeychainWrapper
   - CapgoCapacitorNavigationBar (7.3.18):
     - Capacitor
-  - CapgoCapacitorSocialLogin (7.14.11):
+  - CapgoCapacitorSocialLogin (7.20.0):
     - Alamofire (~> 5.10.2)
     - Capacitor
     - FBSDKCoreKit (= 18.0.0)
@@ -87,19 +87,19 @@ PODS:
   - SwiftKeychainWrapper (4.0.1)
 
 DEPENDENCIES:
-  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
-  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
-  - "CapacitorBarcodeScanner (from `../../node_modules/@capacitor/barcode-scanner`)"
-  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
-  - "CapacitorCommunityAdmob (from `../../node_modules/@capacitor-community/admob`)"
-  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
-  - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
-  - "CapacitorNetwork (from `../../node_modules/@capacitor/network`)"
-  - CapacitorSecureStoragePlugin (from `../../node_modules/capacitor-secure-storage-plugin`)
-  - "CapgoCapacitorNavigationBar (from `../../node_modules/@capgo/capacitor-navigation-bar`)"
-  - "CapgoCapacitorSocialLogin (from `../../node_modules/@capgo/capacitor-social-login`)"
-  - "RevenuecatPurchasesCapacitor (from `../../node_modules/@revenuecat/purchases-capacitor`)"
-  - "RevenuecatPurchasesCapacitorUi (from `../../node_modules/@revenuecat/purchases-capacitor-ui`)"
+  - "Capacitor (from `../../../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../../../node_modules/@capacitor/app`)"
+  - "CapacitorBarcodeScanner (from `../../../../node_modules/@capacitor/barcode-scanner`)"
+  - "CapacitorBrowser (from `../../../../node_modules/@capacitor/browser`)"
+  - "CapacitorCommunityAdmob (from `../../../../node_modules/@capacitor-community/admob`)"
+  - "CapacitorCordova (from `../../../../node_modules/@capacitor/ios`)"
+  - "CapacitorKeyboard (from `../../../../node_modules/@capacitor/keyboard`)"
+  - "CapacitorNetwork (from `../../../../node_modules/@capacitor/network`)"
+  - CapacitorSecureStoragePlugin (from `../../../../node_modules/capacitor-secure-storage-plugin`)
+  - "CapgoCapacitorNavigationBar (from `../../../../node_modules/@capgo/capacitor-navigation-bar`)"
+  - "CapgoCapacitorSocialLogin (from `../../../../node_modules/@capgo/capacitor-social-login`)"
+  - "RevenuecatPurchasesCapacitor (from `../../../../node_modules/@revenuecat/purchases-capacitor`)"
+  - "RevenuecatPurchasesCapacitorUi (from `../../../../node_modules/@revenuecat/purchases-capacitor-ui`)"
 
 SPEC REPOS:
   trunk:
@@ -126,47 +126,47 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   Capacitor:
-    :path: "../../node_modules/@capacitor/ios"
+    :path: "../../../../node_modules/@capacitor/ios"
   CapacitorApp:
-    :path: "../../node_modules/@capacitor/app"
+    :path: "../../../../node_modules/@capacitor/app"
   CapacitorBarcodeScanner:
-    :path: "../../node_modules/@capacitor/barcode-scanner"
+    :path: "../../../../node_modules/@capacitor/barcode-scanner"
   CapacitorBrowser:
-    :path: "../../node_modules/@capacitor/browser"
+    :path: "../../../../node_modules/@capacitor/browser"
   CapacitorCommunityAdmob:
-    :path: "../../node_modules/@capacitor-community/admob"
+    :path: "../../../../node_modules/@capacitor-community/admob"
   CapacitorCordova:
-    :path: "../../node_modules/@capacitor/ios"
+    :path: "../../../../node_modules/@capacitor/ios"
   CapacitorKeyboard:
-    :path: "../../node_modules/@capacitor/keyboard"
+    :path: "../../../../node_modules/@capacitor/keyboard"
   CapacitorNetwork:
-    :path: "../../node_modules/@capacitor/network"
+    :path: "../../../../node_modules/@capacitor/network"
   CapacitorSecureStoragePlugin:
-    :path: "../../node_modules/capacitor-secure-storage-plugin"
+    :path: "../../../../node_modules/capacitor-secure-storage-plugin"
   CapgoCapacitorNavigationBar:
-    :path: "../../node_modules/@capgo/capacitor-navigation-bar"
+    :path: "../../../../node_modules/@capgo/capacitor-navigation-bar"
   CapgoCapacitorSocialLogin:
-    :path: "../../node_modules/@capgo/capacitor-social-login"
+    :path: "../../../../node_modules/@capgo/capacitor-social-login"
   RevenuecatPurchasesCapacitor:
-    :path: "../../node_modules/@revenuecat/purchases-capacitor"
+    :path: "../../../../node_modules/@revenuecat/purchases-capacitor"
   RevenuecatPurchasesCapacitorUi:
-    :path: "../../node_modules/@revenuecat/purchases-capacitor-ui"
+    :path: "../../../../node_modules/@revenuecat/purchases-capacitor-ui"
 
 SPEC CHECKSUMS:
   Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
-  Capacitor: 358dd1c3fdd71d969547b17e159fd8a7736cb45f
-  CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
-  CapacitorBarcodeScanner: 4b6d4ecfff4133af982d09acd423610c14ac0c3f
-  CapacitorBrowser: 22541e48442de44dc629c214388290d6eecc6ae9
+  Capacitor: 5d4e6523047feb0e4755e5e922ded0372c2dde24
+  CapacitorApp: f01a913211780e0718dae9750442c3e23f96e106
+  CapacitorBarcodeScanner: 2d699fe5b8731cdfa3db03a4062e68b9a75c5c72
+  CapacitorBrowser: 6d09f59655e89aede71654ef08b98de55cf032b6
   CapacitorCommunityAdmob: 04498ca8d01a097aa7d9d80584094b6b3419ec3f
-  CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
-  CapacitorKeyboard: 62f36104f26d53d8b3a2a43f2a69fe714f1777d5
-  CapacitorNetwork: 695069886b3c5ed514db69aa3d026b8dc3c03a6b
+  CapacitorCordova: 8214697bed435f6e7c5e3ed86d1632a8c42f7d77
+  CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
+  CapacitorNetwork: b719d692a8d1310da8d26d6648d3aa1ef1e100e1
   CapacitorSecureStoragePlugin: 50de0808ad398aa401e00f9e58adf88c77cb3c25
   CapgoCapacitorNavigationBar: 3c59704af4b6774bebb36beaab82643c141dfa83
-  CapgoCapacitorSocialLogin: 412f46c6df5d5d523ac368f7ff0e5d9116808172
+  CapgoCapacitorSocialLogin: a6084e910ce61d78173fa215460c00523a6c4536
   FBAEMKit: e34530df538b8eb8aeb53c35867715ba6c63ef0c
   FBSDKCoreKit: d3f479a69127acebb1c6aad91c1a33907bcf6c2f
   FBSDKCoreKit_Basics: 017b6dc2a1862024815a8229e75661e627ac1e29
@@ -187,6 +187,6 @@ SPEC CHECKSUMS:
   RevenueCatUI: c6acb3648fa58ccb4f0f178556ed0278b796234f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 6fa86df9ac81695f904e03d0e715cdf8520c7493
+PODFILE CHECKSUM: 6869865fdf100ba4ead41ec96e3a1d82cd2d8ace
 
 COCOAPODS: 1.16.2

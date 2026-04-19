@@ -190,7 +190,7 @@ export class TableCardPage {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-success',
           handler: () => {
-            if (!this.user?.isPremium) {
+            if (!this.user?.premium?.entitled) {
               this.adMobService
                 .interstitial('acquire_routine')
                 .catch((error) =>
@@ -377,4 +377,3 @@ export class TableCardPage {
     this.ionicUtilService.showAlert(alertOptions);
   }
 }
-

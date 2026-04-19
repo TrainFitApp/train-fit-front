@@ -23,11 +23,14 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   private static readonly PAGE_SIZE = 10;
 
   public users: User[] = [];
+  public totalUsers = 0;
   public search = '';
   public filters: UsersFilter = new UsersFilter();
   public isLoading = false;
   public hasMoreUsers = true;
   public removingHashUserIds = new Set<string>();
+  public grantingLifetimePremiumUserIds = new Set<string>();
+  public revokingLifetimePremiumUserIds = new Set<string>();
 
   private currentPage = 0;
   private readonly search$ = new Subject<string>();
@@ -109,12 +112,92 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     return user?.premium?.entitled === true;
   }
 
+  public isLifetimePremiumUser(user: User): boolean {
+    return user?.premium?.entitled === true && user?.premium?.plan === 'lifetime';
+  }
+
   public hasUserHash(user: User): boolean {
     return Boolean(user?.hash);
   }
 
   public isRemovingUserHash(user: User): boolean {
     return Boolean(user?._id && this.removingHashUserIds.has(user._id));
+  }
+
+  public isGrantingLifetimePremium(user: User): boolean {
+    return Boolean(
+      user?._id && this.grantingLifetimePremiumUserIds.has(user._id)
+    );
+  }
+
+  public isRevokingLifetimePremium(user: User): boolean {
+    return Boolean(
+      user?._id && this.revokingLifetimePremiumUserIds.has(user._id)
+    );
+  }
+
+  public async confirmGrantLifetimePremium(user: User): Promise<void> {
+    if (
+      !user?._id ||
+      this.isPremiumUser(user) ||
+      this.isGrantingLifetimePremium(user) ||
+      this.isRevokingLifetimePremium(user)
+    ) {
+      return;
+    }
+
+    const alertRes = await this.ionicUtilService.showAlert({
+      header: 'Premium de por vida',
+      message: `¿Quieres dar premium de por vida a ${this.getUserFullName(user)}?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Activar',
+          role: 'confirm',
+        },
+      ],
+    });
+
+    if (alertRes?.role !== 'confirm') {
+      return;
+    }
+
+    this.grantLifetimePremium(user);
+  }
+
+  public async confirmRevokeLifetimePremium(user: User): Promise<void> {
+    if (
+      !user?._id ||
+      !this.isLifetimePremiumUser(user) ||
+      this.isRevokingLifetimePremium(user) ||
+      this.isGrantingLifetimePremium(user)
+    ) {
+      return;
+    }
+
+    const alertRes = await this.ionicUtilService.showAlert({
+      header: 'Quitar Premium Lifetime',
+      message: `¿Seguro que quieres quitar el premium lifetime a ${this.getUserFullName(user)}?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Quitar',
+          role: 'confirm',
+        },
+      ],
+    });
+
+    if (alertRes?.role !== 'confirm') {
+      return;
+    }
+
+    this.revokeLifetimePremium(user);
   }
 
   public async confirmClearUserHash(user: User): Promise<void> {
@@ -158,6 +241,18 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     this.resetAndLoadUsers();
   }
 
+  public clearPremiumLifetimeFilter(): void {
+    if (!this.filters.premiumLifetimeOnly) {
+      return;
+    }
+
+    this.filters = {
+      ...this.filters,
+      premiumLifetimeOnly: false,
+    };
+    this.resetAndLoadUsers();
+  }
+
   public clearHashFilter(): void {
     if (!this.filters.withHashOnly) {
       return;
@@ -170,11 +265,54 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     this.resetAndLoadUsers();
   }
 
+  public clearActivityFilter(): void {
+    if (this.filters.activitySort === null) {
+      return;
+    }
+    this.filters = { ...this.filters, activitySort: null };
+    this.resetAndLoadUsers();
+  }
+
+  public isUserOnline(user: User): boolean {
+    if (!user?.lastLogin) {
+      return false;
+    }
+    const diffMs = Date.now() - new Date(user.lastLogin).getTime();
+    return diffMs < 60 * 1000; // menos de 1 minuto
+  }
+
+  public getLastLoginLabel(user: User): string {
+    if (!user?.lastLogin) {
+      return 'Sin actividad';
+    }
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(user.lastLogin));
+  }
+
+  public get hasActiveFilters(): boolean {
+    return Boolean(
+      this.filters.premiumOnly ||
+      this.filters.premiumLifetimeOnly ||
+      this.filters.withHashOnly ||
+      this.filters.activitySort !== null
+    );
+  }
+
+  public get formattedTotalUsers(): string {
+    return new Intl.NumberFormat('es-ES').format(this.totalUsers || 0);
+  }
+
   private resetAndLoadUsers(): void {
     this.usersRequestSubscription?.unsubscribe();
     this.isLoading = false;
     this.currentPage = 0;
     this.users = [];
+    this.totalUsers = 0;
     this.hasMoreUsers = true;
     this.loadUsers();
   }
@@ -213,6 +351,74 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       });
   }
 
+  private revokeLifetimePremium(user: User): void {
+    if (!user?._id) {
+      return;
+    }
+
+    this.revokingLifetimePremiumUserIds.add(user._id);
+    this.userService
+      .revokeLifetimePremium(user._id)
+      .pipe(
+        finalize(() => {
+          this.revokingLifetimePremiumUserIds.delete(user._id);
+        })
+      )
+      .subscribe({
+        next: async (updatedUser) => {
+          this.users = this.users.map((listUser) =>
+            listUser._id === updatedUser?._id ? updatedUser : listUser
+          );
+
+          if (this.filters.premiumLifetimeOnly) {
+            this.users = this.users.filter((listUser) => listUser._id !== user._id);
+          }
+
+          await this.ionicUtilService.showSuccessToast(
+            'Premium lifetime quitado'
+          );
+        },
+        error: async (error) => {
+          await this.ionicUtilService.showErrorToast(
+            error,
+            'No se pudo quitar el premium lifetime'
+          );
+        },
+      });
+  }
+
+  private grantLifetimePremium(user: User): void {
+    if (!user?._id) {
+      return;
+    }
+
+    this.grantingLifetimePremiumUserIds.add(user._id);
+    this.userService
+      .grantLifetimePremium(user._id)
+      .pipe(
+        finalize(() => {
+          this.grantingLifetimePremiumUserIds.delete(user._id);
+        })
+      )
+      .subscribe({
+        next: async (updatedUser) => {
+          this.users = this.users.map((listUser) =>
+            listUser._id === updatedUser?._id ? updatedUser : listUser
+          );
+
+          await this.ionicUtilService.showSuccessToast(
+            'Premium de por vida activado'
+          );
+        },
+        error: async (error) => {
+          await this.ionicUtilService.showErrorToast(
+            error,
+            'No se pudo activar premium de por vida'
+          );
+        },
+      });
+  }
+
   private loadUsers(infiniteTarget?: HTMLIonInfiniteScrollElement): void {
     if (this.isLoading) {
       infiniteTarget?.complete();
@@ -230,10 +436,16 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: (users) => {
-          const nextUsers = users ?? [];
+        next: (response) => {
+          const responseUsers = Array.isArray(response)
+            ? response
+            : (response?.users ?? []);
+          const nextUsers = this.applyClientSideFilters(responseUsers);
           this.users =
             this.currentPage === 0 ? nextUsers : [...this.users, ...nextUsers];
+          this.totalUsers = Array.isArray(response)
+            ? (this.currentPage === 0 ? nextUsers.length : this.users.length)
+            : (response?.total ?? 0);
           this.hasMoreUsers = nextUsers.length === ProfileUsersPage.PAGE_SIZE;
         },
         error: () => {
@@ -243,5 +455,40 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
           this.hasMoreUsers = false;
         },
       });
+  }
+
+  private applyClientSideFilters(users: User[]): User[] {
+    let filteredUsers = users ?? [];
+
+    if (this.filters.premiumOnly) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user?.premium?.entitled === true
+      );
+    }
+
+    if (this.filters.premiumLifetimeOnly) {
+      filteredUsers = filteredUsers.filter(
+        (user) => user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
+      );
+    }
+
+    if (this.filters.withHashOnly) {
+      filteredUsers = filteredUsers.filter((user) => Boolean(user?.hash));
+    }
+
+    if (this.filters.activitySort) {
+      filteredUsers = filteredUsers.sort((a, b) => {
+        const timeA = a.lastLogin ? new Date(a.lastLogin).getTime() : 0;
+        const timeB = b.lastLogin ? new Date(b.lastLogin).getTime() : 0;
+
+        if (this.filters.activitySort === 'desc') {
+          return timeB - timeA;
+        } else {
+          return timeA - timeB;
+        }
+      });
+    }
+
+    return filteredUsers;
   }
 }

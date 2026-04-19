@@ -146,7 +146,7 @@ export class SummaryPage {
             this.tableService.setCurrentTable = this.tableInUse;
             this.navigationService.goToMesocycle();
 
-            if (!this.user.isPremium) {
+            if (!this.user?.premium?.entitled) {
               this.adMobService.interstitial('create_routine');
             }
             const toastOptions: ToastOptions = {
@@ -262,7 +262,7 @@ export class SummaryPage {
       return entitlements.adsEnabled;
     }
 
-    return !Boolean(this.user?.isPremium);
+    return !Boolean(this.user?.premium?.entitled);
   }
 
   // Nuevos métodos para la interfaz móvil
@@ -341,11 +341,10 @@ export class SummaryPage {
   }
 
   public get isPremiumActive(): boolean {
-    return Boolean(this.user?.premium?.entitled || this.user?.isPremium);
+    return Boolean(this.user?.premium?.entitled);
   }
 
   public goToPremium(): void {
     this.navigationService.goToPremium();
   }
 }
-

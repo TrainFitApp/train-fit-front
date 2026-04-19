@@ -1,4 +1,4 @@
-<ion-header class="ion-no-border">
+<ion-header class="minimal-header">
   <div class="search-header">
     <div class="header-content">
       <div class="back-section">
@@ -23,34 +23,67 @@
       </div>
     </div>
   </div>
-</ion-header>
 
-<ion-content fullscreen>
-  <section class="users-page">
-    <div
-      class="filters-section"
-      *ngIf="filters.premiumOnly || filters.withHashOnly"
-    >
+  <div class="filters-section" *ngIf="hasActiveFilters">
+    <div class="filter-group">
+      <div class="filter-header">
+        <ion-icon name="filter-outline" class="filter-icon"></ion-icon>
+        <span class="filter-title">FILTROS ACTIVOS</span>
+      </div>
       <div class="chips-container">
         <ion-chip
           *ngIf="filters.premiumOnly"
           class="modern-chip"
           color="primary"
-          outline="true"
         >
           <ion-label>Premium</ion-label>
-          <ion-icon name="close-circle" (click)="clearPremiumFilter()"></ion-icon>
+          <ion-icon
+            name="close-circle"
+            (click)="clearPremiumFilter()"
+          ></ion-icon>
+        </ion-chip>
+        <ion-chip
+          *ngIf="filters.premiumLifetimeOnly"
+          class="modern-chip"
+          color="primary"
+        >
+          <ion-label>Premium Lifetime</ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="clearPremiumLifetimeFilter()"
+          ></ion-icon>
         </ion-chip>
         <ion-chip
           *ngIf="filters.withHashOnly"
           class="modern-chip"
           color="primary"
-          outline="true"
         >
           <ion-label>Hash</ion-label>
-          <ion-icon name="close-circle" (click)="clearHashFilter()"></ion-icon>
+          <ion-icon
+            name="close-circle"
+            (click)="clearHashFilter()"
+          ></ion-icon>
+        </ion-chip>
+        <ion-chip
+          *ngIf="filters.activitySort"
+          class="modern-chip"
+          color="primary"
+        >
+          <ion-label>Actividad: {{ filters.activitySort === 'asc' ? 'Ascendente' : 'Descendente' }}</ion-label>
+          <ion-icon
+            name="close-circle"
+            (click)="clearActivityFilter()"
+          ></ion-icon>
         </ion-chip>
       </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="users-content">
+  <section class="users-page">
+    <div class="users-count" *ngIf="!isLoading || users.length">
+      <span>{{ formattedTotalUsers }} usuarios</span>
     </div>
 
     <div class="users-state" *ngIf="isLoading && !users.length">
@@ -69,12 +102,29 @@
         *ngFor="let user of users; trackBy: trackByUser"
       >
         <ion-item class="user-card__item" lines="none">
-          <div class="user-card__avatar" slot="start">
-            {{ (user.name?.charAt(0) || '?') + (user.lastname?.charAt(0) || '') }}
-          </div>
+          <button
+            type="button"
+            class="user-card__avatar"
+            [class.user-card__avatar--premium]="isPremiumUser(user) && !isLifetimePremiumUser(user)"
+            [class.user-card__avatar--lifetime]="isLifetimePremiumUser(user)"
+            [disabled]="(isPremiumUser(user) && !isLifetimePremiumUser(user)) || isGrantingLifetimePremium(user) || isRevokingLifetimePremium(user)"
+            (click)="isLifetimePremiumUser(user) ? confirmRevokeLifetimePremium(user) : confirmGrantLifetimePremium(user)"
+            slot="start"
+          >
+            <ion-icon
+              class="user-card__avatar-icon"
+              [class.user-card__avatar-icon--premium]="isPremiumUser(user) && !isLifetimePremiumUser(user)"
+              [class.user-card__avatar-icon--lifetime]="isLifetimePremiumUser(user)"
+              [name]="isRevokingLifetimePremium(user) ? 'hourglass-outline' : isLifetimePremiumUser(user) ? 'diamond-outline' : isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
+            ></ion-icon>
+          </button>
           <ion-label>
             <h2 class="user-card__name">{{ getUserFullName(user) }}</h2>
             <p class="user-card__email">{{ user.email }}</p>
+            <div class="user-card__status" [class.is-online]="isUserOnline(user)">
+              <ion-icon [name]="isUserOnline(user) ? 'ellipse' : 'ellipse-outline'" [color]="isUserOnline(user) ? 'success' : 'medium'"></ion-icon>
+              <span>{{ isUserOnline(user) ? 'Activo' : 'Última conexión ' + getLastLoginLabel(user) }}</span>
+            </div>
           </ion-label>
           <div slot="end" class="user-card__actions">
             <ion-button
@@ -88,14 +138,9 @@
             >
               <ion-icon
                 slot="icon-only"
-                [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'trash-outline'"
+                [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'key-outline'"
               ></ion-icon>
             </ion-button>
-            <ion-icon
-              class="user-card__status-icon"
-              [name]="isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
-              [color]="isPremiumUser(user) ? 'primary' : null"
-            ></ion-icon>
           </div>
         </ion-item>
       </ion-card>
