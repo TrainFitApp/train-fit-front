@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="goBack()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="search-section">
+        <ion-searchbar
+          class="users-search"
+          [value]="search"
+          placeholder="Buscar usuarios"
+          animated="true"
+          show-clear-button="focus"
+          (ionInput)="onSearchChange($event)"
+        ></ion-searchbar>
+      </div>
+      <div class="actions-section">
+        <button class="action-button ripple-effect" (click)="openFilterModal()">
+          <ion-icon name="filter-outline" color="primary"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content fullscreen>
+  <section class="users-page">
+    <div
+      class="filters-section"
+      *ngIf="filters.premiumOnly || filters.withHashOnly"
+    >
+      <div class="chips-container">
+        <ion-chip
+          *ngIf="filters.premiumOnly"
+          class="modern-chip"
+          color="primary"
+          outline="true"
+        >
+          <ion-label>Premium</ion-label>
+          <ion-icon name="close-circle" (click)="clearPremiumFilter()"></ion-icon>
+        </ion-chip>
+        <ion-chip
+          *ngIf="filters.withHashOnly"
+          class="modern-chip"
+          color="primary"
+          outline="true"
+        >
+          <ion-label>Hash</ion-label>
+          <ion-icon name="close-circle" (click)="clearHashFilter()"></ion-icon>
+        </ion-chip>
+      </div>
+    </div>
+
+    <div class="users-state" *ngIf="isLoading && !users.length">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando usuarios...</span>
+    </div>
+
+    <div class="users-state" *ngIf="!isLoading && !users.length">
+      <ion-icon name="people-outline"></ion-icon>
+      <span>No hay usuarios para mostrar.</span>
+    </div>
+
+    <ion-list class="users-list" lines="none" *ngIf="users.length">
+      <ion-card
+        class="user-card"
+        *ngFor="let user of users; trackBy: trackByUser"
+      >
+        <ion-item class="user-card__item" lines="none">
+          <div class="user-card__avatar" slot="start">
+            {{ (user.name?.charAt(0) || '?') + (user.lastname?.charAt(0) || '') }}
+          </div>
+          <ion-label>
+            <h2 class="user-card__name">{{ getUserFullName(user) }}</h2>
+            <p class="user-card__email">{{ user.email }}</p>
+          </ion-label>
+          <div slot="end" class="user-card__actions">
+            <ion-button
+              *ngIf="hasUserHash(user)"
+              class="user-card__hash-button"
+              fill="clear"
+              color="medium"
+              size="small"
+              [disabled]="isRemovingUserHash(user)"
+              (click)="confirmClearUserHash(user)"
+            >
+              <ion-icon
+                slot="icon-only"
+                [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'trash-outline'"
+              ></ion-icon>
+            </ion-button>
+            <ion-icon
+              class="user-card__status-icon"
+              [name]="isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
+              [color]="isPremiumUser(user) ? 'primary' : null"
+            ></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card>
+    </ion-list>
+
+    <ion-infinite-scroll
+      *ngIf="users.length && hasMoreUsers"
+      threshold="120px"
+      (ionInfinite)="loadMoreUsers($event)"
+    >
+      <ion-infinite-scroll-content
+        loading-spinner="crescent"
+        loading-text="Cargando mas usuarios..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </section>
+</ion-content>

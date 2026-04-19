@@ -1,0 +1,47 @@
+// Estilos limpios y básicos para los tabs
+ion-tabs {
+  ion-tab-bar {
+    --background: var(--ion-color-light);
+    --border: 1px solid var(--ion-color-step-150);
+    --color: var(--ion-color-medium);
+    height: 50px;
+    padding-bottom: 0;
+
+    ion-tab-button {
+      --color: var(--ion-color-medium);
+      --color-selected: var(--ion-color-primary);
+      --background-focused: transparent;
+      --ripple-color: rgba(var(--ion-color-primary-rgb), 0.2);
+      margin: 0;
+      padding: 0;
+      position: relative;
+
+      ion-icon {
+        font-size: 24px;
+        margin-bottom: 2px;
+        transition: color 0.2s ease;
+      }
+
+      &.tab-selected {
+        --color: var(--ion-color-primary);
+        ion-icon {
+          color: var(--ion-color-primary);
+        }
+        // Raya naranja debajo del tab seleccionado
+        &::before {
+          content: "";
+          display: block;
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          transform: translateX(-50%);
+          width: 20px;
+          height: 3px;
+          border-radius: 2px;
+          background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
+          z-index: 2;
+        }
+      }
+    }
+  }
+}

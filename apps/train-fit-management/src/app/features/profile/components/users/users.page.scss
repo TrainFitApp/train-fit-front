@@ -1,0 +1,190 @@
+.search-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    min-height: 56px;
+    gap: 12px;
+  }
+}
+
+.back-section,
+.actions-section {
+  flex-shrink: 0;
+}
+
+.back-button,
+.action-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.search-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.users-search {
+  --background: rgba(255, 255, 255, 0.05);
+  --border-radius: 8px;
+  --box-shadow: none;
+  --color: rgba(255, 255, 255, 0.9);
+  --placeholder-color: rgba(255, 255, 255, 0.5);
+  --icon-color: rgba(255, 255, 255, 0.7);
+  --clear-button-color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  padding: 0;
+}
+
+.users-page {
+  min-height: 100%;
+  padding: 16px 16px 32px;
+  background: var(--ion-background-color, #0b0b0b);
+}
+
+.filters-section {
+  margin-bottom: 14px;
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modern-chip {
+  --background: rgba(254, 144, 0, 0.08);
+  --color: var(--ion-color-primary);
+  border-radius: 999px;
+  min-height: 34px;
+}
+
+.users-list {
+  background: transparent;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.user-card {
+  margin: 0;
+  border-radius: 16px;
+  background: #141414;
+  border: 1px solid #252525;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.user-card__item {
+  --background: transparent;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --inner-padding-end: 0;
+  --min-height: 76px;
+  --border-width: 0;
+  align-items: center;
+}
+
+.user-card__avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--ion-color-secondary-rgb), 0.18);
+  color: var(--ion-color-secondary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.user-card__name {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: normal;
+}
+
+.user-card__email {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.user-card__hash-button {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  margin: 0;
+  min-height: 30px;
+}
+
+.user-card__status-icon {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.46);
+  flex-shrink: 0;
+}
+
+.users-state {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.users-state ion-icon {
+  font-size: 28px;
+  color: var(--ion-color-secondary);
+}
+
+@media (max-width: 480px) {
+  .users-page {
+    padding: 14px 12px 28px;
+  }
+
+  .user-card__item {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --min-height: 72px;
+  }
+
+  .user-card__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .user-card__name {
+    font-size: 15px;
+  }
+
+  .user-card__email {
+    font-size: 12px;
+  }
+}

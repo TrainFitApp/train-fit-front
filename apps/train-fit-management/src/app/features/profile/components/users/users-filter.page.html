@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Filtros</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list lines="full">
+    <ion-item>
+      <ion-label>Premium</ion-label>
+      <ion-toggle [(ngModel)]="draftFilter.premiumOnly"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Hash</ion-label>
+      <ion-toggle [(ngModel)]="draftFilter.withHashOnly"></ion-toggle>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <ion-button color="primary" (click)="apply()">Aplicar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

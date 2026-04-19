@@ -1,0 +1,7 @@
+{
+  "name": "train-fit-management",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

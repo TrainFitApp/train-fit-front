@@ -1,0 +1,96 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "src/app/core/*": ["../../packages/shared-core/src/app/core/*"],
+      "src/app/shared/*": ["../../packages/shared-ui/src/app/shared/*"],
+      "src/app/features/authentication/*": [
+        "../../packages/shared-features/src/app/features/authentication/*"
+      ],
+      "src/app/features/diet-days/*": [
+        "../../packages/shared-features/src/app/features/diet-days/*"
+      ],
+      "src/app/features/diets/*": [
+        "../../packages/shared-features/src/app/features/diets/*"
+      ],
+      "src/app/features/exercises/*": [
+        "../../packages/shared-features/src/app/features/exercises/*"
+      ],
+      "src/app/features/premium/*": [
+        "../../packages/shared-features/src/app/features/premium/*"
+      ],
+      "src/app/features/profile/profile.page": [
+        "../../packages/shared-features/src/app/features/profile/profile.page"
+      ],
+      "src/app/features/profile/components/*": [
+        "../../packages/shared-features/src/app/features/profile/components/*"
+      ],
+      "src/app/features/profile/models/*": [
+        "../../packages/shared-features/src/app/features/profile/models/*"
+      ],
+      "src/app/features/tables/*": [
+        "../../packages/shared-features/src/app/features/tables/*"
+      ],
+      "src/app/features/user-loader/*": [
+        "../../packages/shared-features/src/app/features/user-loader/*"
+      ]
+    },
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "allowSyntheticDefaultImports": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "exclude": ["node_modules", "www", "dist"]
+}
+
+// MODO ESTRICTO
+// {
+//   "compileOnSave": false,
+//   "compilerOptions": {
+//     "baseUrl": "./",
+//     "paths": {
+//       "tslib": ["path/to/node_modules/tslib/tslib.d.ts"]
+//     },
+//     "outDir": "./dist/out-tsc",
+//     "sourceMap": true,
+//     "declaration": false,
+//     "downlevelIteration": true,
+//     "experimentalDecorators": true,
+//     "moduleResolution": "node",
+//     "importHelpers": true,
+//     "target": "es2022",
+//     "module": "es2022",
+//     "lib": ["es2022", "dom", "dom.iterable"],
+//     "allowSyntheticDefaultImports": true,
+//     "strict": true, // Activa todas las comprobaciones estrictas
+//     "strictNullChecks": true, // Requiere que los valores nulos se manejen explícitamente
+//     "strictFunctionTypes": true, // Hacer que los tipos de funciones sean estrictos
+//     "strictPropertyInitialization": true, // Requiere que las propiedades se inicialicen en el constructor
+//     "noImplicitAny": true, // Evita que se pueda usar el tipo `any` implícitamente
+//     "noImplicitThis": true, // Evita que se use `this` de manera implícita
+//     "alwaysStrict": true, // Hacer que el modo estricto esté habilitado siempre
+//     "forceConsistentCasingInFileNames": true, // Asegura el uso consistente de mayúsculas y minúsculas en los nombres de los archivos
+//     "noUnusedLocals": true, // Marca las variables locales no usadas como errores
+//     "noUnusedParameters": true // Marca los parámetros no usados como errores
+//   },
+//   "angularCompilerOptions": {
+//     "enableI18nLegacyMessageIdFormat": false,
+//     "strictInjectionParameters": true,
+//     "strictInputAccessModifiers": true,
+//     "strictTemplates": true
+//   }
+// }
