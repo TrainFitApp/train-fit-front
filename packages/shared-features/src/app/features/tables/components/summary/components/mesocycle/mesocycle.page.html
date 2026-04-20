@@ -307,28 +307,27 @@
             {{ currentSplitIndex + 1 }}
           </div>
           <div class="cycle-title">
-            <ion-select
-              class="micro-cycle-selector"
-              [(ngModel)]="currentSplitIndex"
-              interface="action-sheet"
-              [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
-              mode="ios"
-              cancelText="Cancelar"
-              placeholder="MICRO-CICLO"
-            >
-              <ion-select-option
-                *ngFor="let splitItem of reversedSplitsWithIndex"
-                [value]="splitItem.originalIndex"
-                [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
+            <div class="select-wrapper">
+              <ion-select
+                class="micro-cycle-selector"
+                [(ngModel)]="currentSplitIndex"
+                interface="action-sheet"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                mode="ios"
+                cancelText="Cancelar"
+                placeholder="MICRO-CICLO"
               >
-                MICRO-CICLO {{ splitItem.originalIndex + 1 }}
-                <span
-                  *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])"
+                <ion-select-option
+                  *ngFor="let splitItem of reversedSplitsWithIndex"
+                  [value]="splitItem.originalIndex"
+                  [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
                 >
-                  ✓</span
-                >
-              </ion-select-option>
-            </ion-select>
+                  MICRO-CICLO {{ splitItem.originalIndex + 1 }}
+                  <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
+                </ion-select-option>
+              </ion-select>
+              <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
+            </div>
             <div class="cycle-subtitle">
               de {{ tableInUse?.splits?.length || 0 }} en total
             </div>
@@ -341,10 +340,7 @@
             class="action-btn menu-btn ripple-effect"
             (click)="showSplitMenu($event)"
           >
-            <ion-icon
-              name="ellipsis-vertical-outline"
-              slot="icon-only"
-            ></ion-icon>
+            <ion-icon name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
       </div>

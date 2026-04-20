@@ -1,19 +1,51 @@
-<div
-  *ngIf="previousWorkoutCustomExercise?.sets.length > 0"
-  class="table-container"
->
+<div *ngIf="currentSplitIndex > 0" class="table-container">
   <div class="previous-session-title">
-    <span class="previous-title-text">Sesión anterior</span>
-    <span class="previous-date-text">
-      {{
-        previousWorkoutDate
-          ? (previousWorkoutDate | date : "dd/MM/yyyy")
-          : "No finalizada"
-      }}
-    </span>
+    <ion-button
+      fill="clear"
+      mode="md"
+      class="nav-arrow-btn nav-arrow-left ripple-effect"
+      [class.animating]="animatingLeft"
+      [disabled]="!canGoBack()"
+      (click)="goBack()"
+    >
+      <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <div class="previous-title-center">
+      <div class="previous-title-row">
+        <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
+      </div>
+      <span class="previous-date-text">
+        {{
+          previousWorkoutDate
+            ? (previousWorkoutDate | date : "dd/MM/yyyy")
+            : previousWorkoutCustomExercise
+            ? "No finalizada"
+            : "Sin datos"
+        }}
+      </span>
+    </div>
+
+    <ion-button
+      fill="clear"
+      mode="md"
+      class="nav-arrow-btn nav-arrow-right ripple-effect"
+      [class.animating]="animatingRight"
+      [disabled]="!canGoForward()"
+      (click)="goForward()"
+    >
+      <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>
+    </ion-button>
   </div>
 
-  <table class="table previous-session-table">
+  <div *ngIf="!previousWorkoutCustomExercise?.sets?.length" class="no-data-msg">
+    Sin datos para este microciclo
+  </div>
+
+  <table
+    *ngIf="previousWorkoutCustomExercise?.sets?.length > 0"
+    class="table previous-session-table"
+  >
     <thead>
       <tr>
         <th style="width: 60px; min-width: 60px">Serie</th>
@@ -29,6 +61,7 @@
           <th>Reps</th>
           <th>Intensidad</th>
         </ng-template>
+        <th style="width: 32px; min-width: 32px"></th>
       </tr>
     </thead>
     <tbody>
@@ -60,11 +93,7 @@
             }}
           </td>
           <td>
-            <span
-              *ngIf="isFail(set)"
-              class="fail-label"
-              >FALLO</span
-            >
+            <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
             <span
               *ngIf="
                 !isFail(set) &&
@@ -96,6 +125,13 @@
             >
           </td>
         </ng-template>
+        <td class="series-done-col">
+          <ion-icon
+            *ngIf="set.doned"
+            name="checkmark-outline"
+            class="set-done-icon"
+          ></ion-icon>
+        </td>
       </tr>
     </tbody>
   </table>

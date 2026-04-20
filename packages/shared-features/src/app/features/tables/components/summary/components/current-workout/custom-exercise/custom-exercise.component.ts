@@ -39,6 +39,11 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   public indexCustomExercise: number;
 
   public previousWorkoutCustomExercise: CustomExercise;
+  public currentSplitIndex: number = -1;
+  public currentWorkoutIndex: number = -1;
+  public historicalSplitIndex: number = -1;
+  public animatingLeft: boolean = false;
+  public animatingRight: boolean = false;
 
   constructor(
     private customExerciseService: CustomExerciseService,
@@ -67,28 +72,84 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   public setPreviousCustomExerciseWorkout(): void {
     if (this.tableInUse && this.customExercise && this.currentWorkout._id) {
-      let previousCustomExercise: CustomExercise;
+      this.currentSplitIndex = -1;
+      this.currentWorkoutIndex = -1;
+
       this.tableInUse.splits.forEach((splitTemp, indexSplit) => {
         splitTemp.workouts.forEach((workoutTemp, indexWorkout) => {
-          if (indexSplit > 0 && this.currentWorkout._id === workoutTemp._id) {
-            const previousWorkout =
-              this.tableInUse.splits[indexSplit - 1].workouts[indexWorkout];
-
-            this.previousWorkoutDate = previousWorkout.date;
-
-            // Buscar el ejercicio anterior por su ID específico, no por índice
-            if (previousWorkout.exercises) {
-              previousCustomExercise = previousWorkout.exercises.find(
-                (exerciseTemp) =>
-                  exerciseTemp.exercise._id === this.customExercise.exercise._id
-              );
-            }
+          if (this.currentWorkout._id === workoutTemp._id) {
+            this.currentSplitIndex = indexSplit;
+            this.currentWorkoutIndex = indexWorkout;
           }
         });
       });
 
-      this.previousWorkoutCustomExercise = previousCustomExercise;
+      if (this.currentSplitIndex > 0) {
+        this.historicalSplitIndex = this.currentSplitIndex - 1;
+        this.updateHistoricalExercise();
+      } else {
+        this.historicalSplitIndex = -1;
+        this.previousWorkoutCustomExercise = undefined;
+        this.previousWorkoutDate = undefined;
+      }
     }
+  }
+
+  public updateHistoricalExercise(): void {
+    if (this.historicalSplitIndex < 0 || this.currentWorkoutIndex < 0) return;
+
+    const historicalWorkout =
+      this.tableInUse.splits[this.historicalSplitIndex].workouts[
+        this.currentWorkoutIndex
+      ];
+
+    this.previousWorkoutDate = historicalWorkout.date;
+
+    if (historicalWorkout.exercises) {
+      this.previousWorkoutCustomExercise = historicalWorkout.exercises.find(
+        (exerciseTemp) =>
+          exerciseTemp.exercise._id === this.customExercise.exercise._id
+      );
+    } else {
+      this.previousWorkoutCustomExercise = undefined;
+    }
+  }
+
+  public canGoBack(): boolean {
+    return this.historicalSplitIndex > 0;
+  }
+
+  public canGoForward(): boolean {
+    return this.historicalSplitIndex < this.currentSplitIndex - 1;
+  }
+
+  public goBack(): void {
+    if (this.canGoBack()) {
+      this.animatingLeft = true;
+      setTimeout(() => (this.animatingLeft = false), 300);
+      this.historicalSplitIndex--;
+      this.updateHistoricalExercise();
+    }
+  }
+
+  public goForward(): void {
+    if (this.canGoForward()) {
+      this.animatingRight = true;
+      setTimeout(() => (this.animatingRight = false), 300);
+      this.historicalSplitIndex++;
+      this.updateHistoricalExercise();
+    }
+  }
+
+  public isHistoricalSessionCompleted(): boolean {
+    const sets = this.previousWorkoutCustomExercise?.sets;
+    return sets?.length > 0 && sets.every((s) => s.doned);
+  }
+
+  public getMicrocycleLabel(): string {
+    return `Microciclo ${this.historicalSplitIndex + 1} / ${
+      this.currentSplitIndex
+    }`;
   }
 
   public openSetManager(): void {
@@ -308,17 +369,14 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public isFail(set: any): boolean {
-    // Check if fail in execution (rir = -1)
-    if (set?.rir === -1) {
-      return true;
+    if (set?.doned) {
+      return set.rir === -1;
+    } else {
+      return (
+        Array.isArray(set?.expectedRir) &&
+        set.expectedRir.some((value) => Number(value) === -1)
+      );
     }
-
-    // Check expected fail (objective) - only check expectedRir
-    const hasFailInExpectedRir =
-      Array.isArray(set?.expectedRir) &&
-      set.expectedRir.some((value) => Number(value) === -1);
-
-    return !!hasFailInExpectedRir;
   }
 
   public trackBySet(index: number, item: Set): string {
