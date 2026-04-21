@@ -62,8 +62,12 @@
       <ion-accordion class="user-accordion-item" *ngFor="let user of users; trackBy: trackByUser" [value]="user._id"
         toggle-icon-slot="none">
         <ion-item class="user-card__item" lines="none" slot="header" detail="false">
-          <div class="user-card__avatar" slot="start" (click)="$event.stopPropagation(); confirmImpersonate(user)">
+          <div class="user-card__avatar" slot="start" *ngIf="user._id !== localUserId"
+            (click)="$event.stopPropagation(); confirmImpersonate(user)">
             <ion-icon class="user-card__avatar-icon" name="log-in-outline"></ion-icon>
+          </div>
+          <div class="user-card__avatar user-card__avatar--self" slot="start" *ngIf="user._id === localUserId">
+            <ion-icon class="user-card__avatar-icon" name="person-outline"></ion-icon>
           </div>
           <ion-label>
             <h2 class="user-card__name">{{ getUserFullName(user) }}</h2>

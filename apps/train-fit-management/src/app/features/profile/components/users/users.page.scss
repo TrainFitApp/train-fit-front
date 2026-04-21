@@ -234,6 +234,16 @@ ion-accordion {
   border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.24);
 }
 
+.user-card__avatar--self {
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.24);
+  cursor: default;
+
+  .user-card__avatar-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
 .user-card__avatar-icon {
   font-size: 22px;
   color: var(--ion-color-secondary);

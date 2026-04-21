@@ -48,6 +48,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public grantingPremiumUserIds = new Set<string>();
   public extendingPremiumUserIds = new Set<string>();
   public revokingPremiumUserIds = new Set<string>();
+  public localUserId: string | null = null;
 
   private currentPage = 0;
   private readonly search$ = new Subject<string>();
@@ -68,6 +69,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       this.navigationService.goBack();
       return;
     }
+
+    this.localUserId = localUser?._id ?? null;
 
     this.subscriptions.add(
       this.search$
@@ -624,7 +627,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       message: `Estas seguro que deseas iniciar sesion como ${this.getUserFullName(user)}?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Si, conectar', role: 'confirm' },
+        { text: 'Conectar', role: 'confirm' },
       ],
     });
 
