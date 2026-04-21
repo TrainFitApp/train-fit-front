@@ -1,15 +1,20 @@
-<ion-content class="disconnected-content">
-  <div class="disconnected-container">
-    <div class="disconnected-card">
-      <div class="disconnected-icon">
-        <ion-icon name="cloud-offline-outline"></ion-icon>
-      </div>
-      <h2 class="disconnected-title">SIN CONEXIÓN</h2>
-      <p class="disconnected-message">
-        TrainFit necesita de conexión a internet para poder funcionar
-        correctamente. Por favor, revise su conexión para poder seguir
-        utilizando la aplicación.
-      </p>
-
+<ion-content class="disconnected-screen" [fullscreen]="true">
+  <section class="disconnected-card">
+    <div class="disconnected-card__icon">
+      <ion-icon name="wifi-outline"></ion-icon>
     </div>
-  </div>
+
+    <p class="disconnected-card__eyebrow">Sin conexión</p>
+    <h1>Conexión perdida</h1>
+
+    <p class="disconnected-card__message">
+      TrainFit necesita conexión a internet para funcionar. Por favor, revisa tu conexión para seguir entrenando con nosotros.
+    </p>
+
+    <div class="disconnected-card__status">
+      <span>Esperando señal...</span>
+    </div>
+
+    <ion-spinner name="crescent" color="primary" class="disconnected-card__spinner"></ion-spinner>
+  </section>
+</ion-content>
