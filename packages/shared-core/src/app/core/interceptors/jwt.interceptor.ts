@@ -60,7 +60,8 @@ export class JWTInterceptor implements HttpInterceptor {
       requestWithClientHeader.url.includes('/users/auth/verify-google') || // google auth
       requestWithClientHeader.url.includes('/users/auth/verify-apple') || // apple auth
       isPublicUsersPostEndpoint || // public POST endpoints for sign-up/account activation
-      requestWithClientHeader.url.includes('/users/hash/') || // email verification
+      (requestWithClientHeader.url.includes('/users/hash/') &&
+        requestWithClientHeader.method === 'GET') || // email verification (GET is public, DELETE is protected)
       requestWithClientHeader.url.includes('/users/restore'); // restore password
 
     // Decide whether to send cookies (withCredentials) on this request
