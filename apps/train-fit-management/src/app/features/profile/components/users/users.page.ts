@@ -267,36 +267,36 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     const statusLabel = this.getPremiumStatusLabel(user);
     const isManual = this.isManualPremiumUser(user);
 
-    const buttons: any[] = [
-      {
-        text: 'Cerrar',
-        role: 'cancel',
-      },
-    ];
+    const buttons: any[] = [];
 
     if (isManual) {
       buttons.push(
+
         {
-          text: 'Revocar',
-          role: 'destructive',
-          cssClass: 'alert-button-danger',
-          handler: () => {
-            this.confirmRevokePremium(user);
-          },
-        },
-        {
-          text: 'Extender Pro',
+          text: 'Extender',
           handler: () => {
             this.confirmExtendPremium(user);
           },
-        }
+        }, {
+        text: 'Revocar',
+        role: 'destructive',
+        cssClass: 'alert-button-danger',
+        handler: () => {
+          this.confirmRevokePremium(user);
+        },
+      },
       );
     }
+
+    buttons.push({
+      text: 'Cerrar',
+      role: 'cancel',
+    });
 
     await this.ionicUtilService.showAlert({
       header: 'Detalle Suscripción Pro',
       message: `Estado: ${statusLabel}`,
-      cssClass: 'premium-details-alert',
+      cssClass: 'alert-grid-buttons',
       buttons: buttons,
     });
   }
