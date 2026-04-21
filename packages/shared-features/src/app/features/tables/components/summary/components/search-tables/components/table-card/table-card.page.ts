@@ -74,7 +74,7 @@ export class TableCardPage {
     private navigationService: NavigationService,
     private popoverController: PopoverController,
     private adMobService: AdMobService
-  ) {}
+  ) { }
 
   public setSelectedTableCard(): void {
     if (!this.own) {
