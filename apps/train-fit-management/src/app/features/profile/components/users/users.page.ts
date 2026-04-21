@@ -24,6 +24,7 @@ export interface DashboardUser extends User {
   exercisesCount?: number;
   hasWorkoutInUse?: boolean;
   hasTableInUse?: boolean;
+  hasDietInUse?: boolean;
   tableSplitsCount?: number;
   dietDaysCount?: number;
   matchCount?: number;
@@ -59,7 +60,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly navigationService: NavigationService
-  ) {}
+  ) { }
 
   public ngOnInit(): void {
     const localUser = this.userService.getLocalUser;
@@ -307,8 +308,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public get hasActiveFilters(): boolean {
     return Boolean(
       this.filters.premiumOnly ||
-        this.filters.withHashOnly ||
-        this.filters.activitySort !== null
+      this.filters.withHashOnly ||
+      this.filters.activitySort !== null
     );
   }
 

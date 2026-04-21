@@ -7,14 +7,8 @@
         </button>
       </div>
       <div class="search-section">
-        <ion-searchbar
-          class="users-search"
-          [value]="search"
-          placeholder="Buscar usuarios"
-          animated="true"
-          show-clear-button="focus"
-          (ionInput)="onSearchChange($event)"
-        ></ion-searchbar>
+        <ion-searchbar class="users-search" [value]="search" placeholder="Buscar usuarios" animated="true"
+          show-clear-button="focus" (ionInput)="onSearchChange($event)"></ion-searchbar>
       </div>
       <div class="actions-section">
         <button class="action-button ripple-effect" (click)="openFilterModal()">
@@ -31,38 +25,17 @@
         <span class="filter-title">FILTROS ACTIVOS</span>
       </div>
       <div class="chips-container">
-        <ion-chip
-          *ngIf="filters.premiumOnly"
-          class="modern-chip"
-          color="primary"
-        >
+        <ion-chip *ngIf="filters.premiumOnly" class="modern-chip" color="primary">
           <ion-label>Premium</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="clearPremiumFilter()"
-          ></ion-icon>
+          <ion-icon name="close-circle" (click)="clearPremiumFilter()"></ion-icon>
         </ion-chip>
-        <ion-chip
-          *ngIf="filters.withHashOnly"
-          class="modern-chip"
-          color="primary"
-        >
+        <ion-chip *ngIf="filters.withHashOnly" class="modern-chip" color="primary">
           <ion-label>Hash</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="clearHashFilter()"
-          ></ion-icon>
+          <ion-icon name="close-circle" (click)="clearHashFilter()"></ion-icon>
         </ion-chip>
-        <ion-chip
-          *ngIf="filters.activitySort"
-          class="modern-chip"
-          color="primary"
-        >
+        <ion-chip *ngIf="filters.activitySort" class="modern-chip" color="primary">
           <ion-label>Actividad: {{ filters.activitySort === 'asc' ? 'Ascendente' : 'Descendente' }}</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="clearActivityFilter()"
-          ></ion-icon>
+          <ion-icon name="close-circle" (click)="clearActivityFilter()"></ion-icon>
         </ion-chip>
       </div>
     </div>
@@ -86,12 +59,8 @@
     </div>
 
     <ion-accordion-group class="users-list" expand="inset" *ngIf="users.length">
-      <ion-accordion
-        class="user-accordion-item"
-        *ngFor="let user of users; trackBy: trackByUser"
-        [value]="user._id"
-        toggle-icon-slot="none"
-      >
+      <ion-accordion class="user-accordion-item" *ngFor="let user of users; trackBy: trackByUser" [value]="user._id"
+        toggle-icon-slot="none">
         <ion-item class="user-card__item" lines="none" slot="header" detail="false">
           <div class="user-card__avatar" slot="start" (click)="$event.stopPropagation(); confirmImpersonate(user)">
             <ion-icon class="user-card__avatar-icon" name="log-in-outline"></ion-icon>
@@ -100,7 +69,8 @@
             <h2 class="user-card__name">{{ getUserFullName(user) }}</h2>
             <p class="user-card__email">{{ user.email }}</p>
             <div class="user-card__status" [class.is-online]="isUserOnline(user)">
-              <ion-icon [name]="isUserOnline(user) ? 'ellipse' : 'ellipse-outline'" [color]="isUserOnline(user) ? 'success' : 'medium'"></ion-icon>
+              <ion-icon [name]="isUserOnline(user) ? 'ellipse' : 'ellipse-outline'"
+                [color]="isUserOnline(user) ? 'success' : 'medium'"></ion-icon>
               <span>{{ isUserOnline(user) ? 'Activo' : 'Última conexión ' + getLastLoginLabel(user) }}</span>
             </div>
           </ion-label>
@@ -108,44 +78,24 @@
         <div class="user-accordion-content" slot="content">
           <div class="user-details-grid">
             <!-- Premium Action -->
-            <div class="detail-item premium-admin-card">
+            <div class="detail-item premium-admin-card"
+              [class.detail-item--actionable]="!isPremiumUser(user) && !isPremiumActionRunning(user)"
+              [class.is-disabled]="isPremiumActionRunning(user)"
+              (click)="!isPremiumUser(user) && !isPremiumActionRunning(user) && confirmGrantPremium(user)">
               <ion-icon
                 [name]="isPremiumActionRunning(user) ? 'hourglass-outline' : isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
-                class="detail-icon"
-                [class.var-primary]="!isPremiumUser(user)"
-                [class.var-accent]="isPremiumUser(user)"
-              ></ion-icon>
+                class="detail-icon" [class.var-primary]="!isPremiumUser(user)"
+                [class.var-accent]="isPremiumUser(user)"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Premium</span>
                 <span class="detail-value">{{ getPremiumStatusLabel(user) }}</span>
                 <div class="premium-actions" *ngIf="!isStorePremiumUser(user)">
-                  <ion-button
-                    *ngIf="!isPremiumUser(user)"
-                    size="small"
-                    color="primary"
-                    [disabled]="isPremiumActionRunning(user)"
-                    (click)="confirmGrantPremium(user)"
-                  >
-                    Dar Pro
-                  </ion-button>
-                  <ion-button
-                    *ngIf="isManualPremiumUser(user)"
-                    size="small"
-                    color="primary"
-                    fill="outline"
-                    [disabled]="isPremiumActionRunning(user)"
-                    (click)="confirmExtendPremium(user)"
-                  >
+                  <ion-button *ngIf="isManualPremiumUser(user)" size="small" color="primary" fill="outline"
+                    [disabled]="isPremiumActionRunning(user)" (click)="confirmExtendPremium(user)">
                     Extender
                   </ion-button>
-                  <ion-button
-                    *ngIf="isManualPremiumUser(user)"
-                    size="small"
-                    color="danger"
-                    fill="clear"
-                    [disabled]="isPremiumActionRunning(user)"
-                    (click)="confirmRevokePremium(user)"
-                  >
+                  <ion-button *ngIf="isManualPremiumUser(user)" size="small" color="danger" fill="clear"
+                    [disabled]="isPremiumActionRunning(user)" (click)="confirmRevokePremium(user)">
                     Revocar
                   </ion-button>
                 </div>
@@ -153,16 +103,11 @@
             </div>
 
             <!-- Hash Action -->
-            <div 
-              class="detail-item detail-item--actionable" 
-              *ngIf="hasUserHash(user)"
+            <div class="detail-item detail-item--actionable" *ngIf="hasUserHash(user)"
               [class.is-disabled]="isRemovingUserHash(user)"
-              (click)="!isRemovingUserHash(user) && confirmClearUserHash(user)"
-            >
-              <ion-icon 
-                [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'key-outline'" 
-                class="detail-icon var-secondary"
-              ></ion-icon>
+              (click)="!isRemovingUserHash(user) && confirmClearUserHash(user)">
+              <ion-icon [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'key-outline'"
+                class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Hash Pendiente</span>
                 <span class="detail-value text-danger">Eliminar Hash</span>
@@ -180,14 +125,15 @@
               <ion-icon name="list-outline" class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Rutina Activa</span>
-                <span class="detail-value">{{ user.tableSplitsCount ? user.tableSplitsCount + ' splits' : 'No' }}</span>
+                <span class="detail-value">{{ user.hasTableInUse ? (user.tableSplitsCount ? user.tableSplitsCount + '
+                  splits' : 'Sí') : 'No' }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="fast-food-outline" class="detail-icon var-tertiary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Días Dieta</span>
-                <span class="detail-value">{{ user.dietDaysCount || 0 }}</span>
+                <span class="detail-value">{{ user.hasDietInUse ? (user.dietDaysCount || 'Sí') : 'No' }}</span>
               </div>
             </div>
             <div class="detail-item">
@@ -207,24 +153,18 @@
 
           </div>
           <div class="user-actions-footer">
-             <ion-button expand="block" color="danger" fill="clear" (click)="confirmDeleteUser(user)">
-                <ion-icon slot="start" name="trash-outline"></ion-icon>
-                Eliminar usuario
-             </ion-button>
+            <ion-button expand="block" color="danger" fill="clear" (click)="confirmDeleteUser(user)">
+              <ion-icon slot="start" name="trash-outline"></ion-icon>
+              Eliminar usuario
+            </ion-button>
           </div>
         </div>
       </ion-accordion>
     </ion-accordion-group>
 
-    <ion-infinite-scroll
-      *ngIf="users.length && hasMoreUsers"
-      threshold="120px"
-      (ionInfinite)="loadMoreUsers($event)"
-    >
-      <ion-infinite-scroll-content
-        loading-spinner="crescent"
-        loading-text="Cargando mas usuarios..."
-      ></ion-infinite-scroll-content>
+    <ion-infinite-scroll *ngIf="users.length && hasMoreUsers" threshold="120px" (ionInfinite)="loadMoreUsers($event)">
+      <ion-infinite-scroll-content loading-spinner="crescent"
+        loading-text="Cargando mas usuarios..."></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </section>
 </ion-content>
