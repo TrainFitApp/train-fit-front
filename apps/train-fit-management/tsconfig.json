@@ -3,8 +3,12 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "src/app/core/*": ["../../packages/shared-core/src/app/core/*"],
-      "src/app/shared/*": ["../../packages/shared-ui/src/app/shared/*"],
+      "src/app/core/*": [
+        "../../packages/shared-core/src/app/core/*"
+      ],
+      "src/app/shared/*": [
+        "../../packages/shared-ui/src/app/shared/*"
+      ],
       "src/app/features/authentication/*": [
         "../../packages/shared-features/src/app/features/authentication/*"
       ],
@@ -16,6 +20,9 @@
       ],
       "src/app/features/exercises/*": [
         "../../packages/shared-features/src/app/features/exercises/*"
+      ],
+      "src/app/features/app-update/*": [
+        "../../packages/shared-features/src/app/features/app-update/*"
       ],
       "src/app/features/premium/*": [
         "../../packages/shared-features/src/app/features/premium/*"
@@ -42,10 +49,15 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "importHelpers": true,
     "target": "es2022",
     "module": "es2022",
-    "lib": ["es2022", "dom", "dom.iterable"],
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ],
     "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
@@ -54,9 +66,12 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "exclude": ["node_modules", "www", "dist"]
+  "exclude": [
+    "node_modules",
+    "www",
+    "dist"
+  ]
 }
-
 // MODO ESTRICTO
 // {
 //   "compileOnSave": false,
