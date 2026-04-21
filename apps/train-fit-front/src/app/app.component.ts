@@ -3,6 +3,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
+import { AppUpdateService } from 'src/app/core/services/app-update/app-update.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { SecurityService } from 'src/app/core/services/security/security.service';
@@ -22,6 +23,7 @@ export class AppComponent implements OnDestroy {
 
   constructor(
     private router: Router,
+    private appUpdateService: AppUpdateService,
     private authService: AuthService,
     private billingService: BillingService,
     private securityService: SecurityService,
@@ -29,6 +31,7 @@ export class AppComponent implements OnDestroy {
   ) {
     void this.billingService.initialize();
     this.rootRoutes();
+    void this.appUpdateService.checkForRequiredUpdate();
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     this.initTokenRefresh();
@@ -80,7 +83,13 @@ export class AppComponent implements OnDestroy {
     }
 
     void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive || !this.hasAuthenticatedSession) {
+      if (!isActive) {
+        return;
+      }
+
+      void this.appUpdateService.checkForRequiredUpdate();
+
+      if (!this.hasAuthenticatedSession) {
         return;
       }
 

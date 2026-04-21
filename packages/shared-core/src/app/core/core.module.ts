@@ -7,6 +7,7 @@ import { AuthApiService } from './services/auth/auth-api.service';
 import { AuthService } from './services/auth/auth.service';
 import { GoogleAuthService } from './services/auth/google-auth.service';
 import { AppleAuthService } from './services/auth/apple-auth.service';
+import { AppUpdateService } from './services/app-update/app-update.service';
 import { CustomExerciseAPIService } from './services/custom-exercise/custom-exercise-api.service';
 import { CustomExerciseService } from './services/custom-exercise/custom-exercise.service';
 import { BillingApiService } from './services/billing/billing-api.service';
@@ -58,6 +59,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     NavigationService,
     DayWeightService,
     AdMobService,
+    AppUpdateService,
     // Features
     AuthService,
     AuthApiService,

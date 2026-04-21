@@ -20,6 +20,9 @@
       "src/app/features/premium/*": [
         "../../packages/shared-features/src/app/features/premium/*"
       ],
+      "src/app/features/app-update/*": [
+        "../../packages/shared-features/src/app/features/app-update/*"
+      ],
       "src/app/features/profile/profile.page": [
         "../../packages/shared-features/src/app/features/profile/profile.page"
       ],
@@ -42,6 +45,7 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "importHelpers": true,
     "target": "es2022",
     "module": "es2022",
