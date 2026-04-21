@@ -247,10 +247,6 @@ ion-accordion {
   color: var(--ion-color-primary);
 }
 
-.user-card__avatar-icon--lifetime {
-  color: var(--ion-color-alternative);
-}
-
 .user-card__name {
   margin: 0 0 4px 0;
   font-size: 16px;
@@ -454,6 +450,33 @@ ion-accordion {
   &.is-disabled {
     opacity: 0.4;
     pointer-events: none;
+  }
+}
+
+.premium-admin-card {
+  align-items: flex-start;
+
+  .detail-texts {
+    min-width: 0;
+  }
+}
+
+.premium-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+
+  ion-button {
+    min-height: 28px;
+    margin: 0;
+    --border-radius: 10px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
   }
 }
 

@@ -43,17 +43,6 @@
           ></ion-icon>
         </ion-chip>
         <ion-chip
-          *ngIf="filters.premiumLifetimeOnly"
-          class="modern-chip"
-          color="primary"
-        >
-          <ion-label>Premium Lifetime</ion-label>
-          <ion-icon
-            name="close-circle"
-            (click)="clearPremiumLifetimeFilter()"
-          ></ion-icon>
-        </ion-chip>
-        <ion-chip
           *ngIf="filters.withHashOnly"
           class="modern-chip"
           color="primary"
@@ -119,20 +108,47 @@
         <div class="user-accordion-content" slot="content">
           <div class="user-details-grid">
             <!-- Premium Action -->
-            <div 
-              class="detail-item detail-item--actionable" 
-              [class.is-disabled]="(isPremiumUser(user) && !isLifetimePremiumUser(user)) || isGrantingLifetimePremium(user) || isRevokingLifetimePremium(user)"
-              (click)="!((isPremiumUser(user) && !isLifetimePremiumUser(user)) || isGrantingLifetimePremium(user) || isRevokingLifetimePremium(user)) && (isLifetimePremiumUser(user) ? confirmRevokeLifetimePremium(user) : confirmGrantLifetimePremium(user))"
-            >
-              <ion-icon 
-                [name]="isRevokingLifetimePremium(user) ? 'hourglass-outline' : isLifetimePremiumUser(user) ? 'diamond-outline' : isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'" 
+            <div class="detail-item premium-admin-card">
+              <ion-icon
+                [name]="isPremiumActionRunning(user) ? 'hourglass-outline' : isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
                 class="detail-icon"
-                [class.var-primary]="!isLifetimePremiumUser(user) && !isPremiumUser(user)"
-                [class.var-accent]="isPremiumUser(user) || isLifetimePremiumUser(user)"
+                [class.var-primary]="!isPremiumUser(user)"
+                [class.var-accent]="isPremiumUser(user)"
               ></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Premium</span>
-                <span class="detail-value">{{ isLifetimePremiumUser(user) ? 'De por vida' : isPremiumUser(user) ? 'Activo' : 'Otorgar Lifetime' }}</span>
+                <span class="detail-value">{{ getPremiumStatusLabel(user) }}</span>
+                <div class="premium-actions" *ngIf="!isStorePremiumUser(user)">
+                  <ion-button
+                    *ngIf="!isPremiumUser(user)"
+                    size="small"
+                    color="primary"
+                    [disabled]="isPremiumActionRunning(user)"
+                    (click)="confirmGrantPremium(user)"
+                  >
+                    Dar Pro
+                  </ion-button>
+                  <ion-button
+                    *ngIf="isManualPremiumUser(user)"
+                    size="small"
+                    color="primary"
+                    fill="outline"
+                    [disabled]="isPremiumActionRunning(user)"
+                    (click)="confirmExtendPremium(user)"
+                  >
+                    Extender
+                  </ion-button>
+                  <ion-button
+                    *ngIf="isManualPremiumUser(user)"
+                    size="small"
+                    color="danger"
+                    fill="clear"
+                    [disabled]="isPremiumActionRunning(user)"
+                    (click)="confirmRevokePremium(user)"
+                  >
+                    Revocar
+                  </ion-button>
+                </div>
               </div>
             </div>
 

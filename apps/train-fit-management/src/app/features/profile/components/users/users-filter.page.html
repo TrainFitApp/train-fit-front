@@ -30,17 +30,6 @@
           <span class="label">Premium</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
-
-        <button
-          *ngIf="draftFilter.premiumOnly || draftFilter.premiumLifetimeOnly"
-          type="button"
-          class="modern-pill filter-chip"
-          [class.is-active]="draftFilter.premiumLifetimeOnly"
-          (click)="togglePremiumLifetimeFilter()"
-        >
-          <span class="label">Premium Lifetime</span>
-          <ion-ripple-effect></ion-ripple-effect>
-        </button>
       </div>
     </div>
 

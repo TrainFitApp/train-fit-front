@@ -10,6 +10,10 @@ import {
 import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import {
+  AdminPremiumDuration,
+  BillingApiService,
+} from 'src/app/core/services/billing/billing-api.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UsersFilterPage } from './users-filter.page';
@@ -40,8 +44,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public isLoading = false;
   public hasMoreUsers = true;
   public removingHashUserIds = new Set<string>();
-  public grantingLifetimePremiumUserIds = new Set<string>();
-  public revokingLifetimePremiumUserIds = new Set<string>();
+  public grantingPremiumUserIds = new Set<string>();
+  public extendingPremiumUserIds = new Set<string>();
+  public revokingPremiumUserIds = new Set<string>();
 
   private currentPage = 0;
   private readonly search$ = new Subject<string>();
@@ -50,6 +55,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   constructor(
     private readonly userService: UserService,
+    private readonly billingApiService: BillingApiService,
     private readonly authService: AuthService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly navigationService: NavigationService
@@ -124,10 +130,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     return user?.premium?.entitled === true;
   }
 
-  public isLifetimePremiumUser(user: User): boolean {
-    return (
-      user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
-    );
+  public isManualPremiumUser(user: User): boolean {
+    return user?.premium?.entitled === true && user?.premium?.source === 'manual';
+  }
+
+  public isStorePremiumUser(user: User): boolean {
+    return this.isPremiumUser(user) && !this.isManualPremiumUser(user);
   }
 
   public hasUserHash(user: User): boolean {
@@ -138,42 +146,80 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     return Boolean(user?._id && this.removingHashUserIds.has(user._id));
   }
 
-  public isGrantingLifetimePremium(user: User): boolean {
-    return Boolean(
-      user?._id && this.grantingLifetimePremiumUserIds.has(user._id)
+  public isGrantingPremium(user: User): boolean {
+    return Boolean(user?._id && this.grantingPremiumUserIds.has(user._id));
+  }
+
+  public isExtendingPremium(user: User): boolean {
+    return Boolean(user?._id && this.extendingPremiumUserIds.has(user._id));
+  }
+
+  public isRevokingPremium(user: User): boolean {
+    return Boolean(user?._id && this.revokingPremiumUserIds.has(user._id));
+  }
+
+  public isPremiumActionRunning(user: User): boolean {
+    return (
+      this.isGrantingPremium(user) ||
+      this.isExtendingPremium(user) ||
+      this.isRevokingPremium(user)
     );
   }
 
-  public isRevokingLifetimePremium(user: User): boolean {
-    return Boolean(
-      user?._id && this.revokingLifetimePremiumUserIds.has(user._id)
-    );
+  public getPremiumStatusLabel(user: User): string {
+    if (this.isManualPremiumUser(user)) {
+      return `Pro manual${this.getPremiumExpirationLabel(user)}`;
+    }
+    if (this.isStorePremiumUser(user)) {
+      return `Activo via Store${this.getPremiumExpirationLabel(user)}`;
+    }
+    return 'Sin Pro';
   }
 
-  public async confirmGrantLifetimePremium(user: User): Promise<void> {
-    if (
-      !user?._id ||
-      this.isPremiumUser(user) ||
-      this.isGrantingLifetimePremium(user) ||
-      this.isRevokingLifetimePremium(user)
-    ) {
+  public getPremiumExpirationLabel(user: User): string {
+    if (!user?.premium?.expiresAt) {
+      return '';
+    }
+    return ` hasta ${new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(user.premium.expiresAt))}`;
+  }
+
+  public async confirmGrantPremium(user: User): Promise<void> {
+    if (!user?._id || this.isPremiumUser(user) || this.isPremiumActionRunning(user)) {
+      return;
+    }
+
+    const duration = await this.pickPremiumDuration();
+    if (!duration) return;
+    this.grantPremium(user, duration);
+  }
+
+  public async confirmExtendPremium(user: User): Promise<void> {
+    if (!user?._id || !this.isManualPremiumUser(user) || this.isPremiumActionRunning(user)) {
+      return;
+    }
+
+    const duration = await this.pickPremiumDuration();
+    if (!duration) return;
+    this.extendPremium(user, duration);
+  }
+
+  public async confirmRevokePremium(user: User): Promise<void> {
+    if (!user?._id || !this.isManualPremiumUser(user) || this.isPremiumActionRunning(user)) {
       return;
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Premium de por vida',
-      message: `¿Quieres dar premium de por vida a ${this.getUserFullName(
-        user
-      )}?`,
+      header: 'Revocar Pro manual',
+      message: `Seguro que quieres revocar el Pro manual a ${this.getUserFullName(user)}?`,
       buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Activar',
-          role: 'confirm',
-        },
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Revocar', role: 'confirm' },
       ],
     });
 
@@ -181,66 +227,20 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.grantLifetimePremium(user);
-  }
-
-  public async confirmRevokeLifetimePremium(user: User): Promise<void> {
-    if (
-      !user?._id ||
-      !this.isLifetimePremiumUser(user) ||
-      this.isRevokingLifetimePremium(user) ||
-      this.isGrantingLifetimePremium(user)
-    ) {
-      return;
-    }
-
-    const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Quitar Premium Lifetime',
-      message: `¿Seguro que quieres quitar el premium lifetime a ${this.getUserFullName(
-        user
-      )}?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Quitar',
-          role: 'confirm',
-        },
-      ],
-    });
-
-    if (alertRes?.role !== 'confirm') {
-      return;
-    }
-
-    this.revokeLifetimePremium(user);
+    this.revokePremium(user);
   }
 
   public async confirmClearUserHash(user: User): Promise<void> {
-    if (
-      !user?._id ||
-      !this.hasUserHash(user) ||
-      this.isRemovingUserHash(user)
-    ) {
+    if (!user?._id || !this.hasUserHash(user) || this.isRemovingUserHash(user)) {
       return;
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
       header: 'Eliminar hash',
-      message: `¿Seguro que quieres eliminar el hash de ${this.getUserFullName(
-        user
-      )}?`,
+      message: `Seguro que quieres eliminar el hash de ${this.getUserFullName(user)}?`,
       buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          role: 'confirm',
-        },
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Eliminar', role: 'confirm' },
       ],
     });
 
@@ -259,18 +259,6 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     this.filters = {
       ...this.filters,
       premiumOnly: false,
-    };
-    this.resetAndLoadUsers();
-  }
-
-  public clearPremiumLifetimeFilter(): void {
-    if (!this.filters.premiumLifetimeOnly) {
-      return;
-    }
-
-    this.filters = {
-      ...this.filters,
-      premiumLifetimeOnly: false,
     };
     this.resetAndLoadUsers();
   }
@@ -300,7 +288,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       return false;
     }
     const diffMs = Date.now() - new Date(user.lastLogin).getTime();
-    return diffMs < 60 * 1000; // menos de 1 minuto
+    return diffMs < 60 * 1000;
   }
 
   public getLastLoginLabel(user: User): string {
@@ -319,7 +307,6 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public get hasActiveFilters(): boolean {
     return Boolean(
       this.filters.premiumOnly ||
-        this.filters.premiumLifetimeOnly ||
         this.filters.withHashOnly ||
         this.filters.activitySort !== null
     );
@@ -377,82 +364,163 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       });
   }
 
-  private revokeLifetimePremium(user: User): void {
+  private grantPremium(user: User, duration: AdminPremiumDuration): void {
     if (!user?._id) {
       return;
     }
 
-    this.revokingLifetimePremiumUserIds.add(user._id);
-    this.userService
-      .revokeLifetimePremium(user._id)
+    this.grantingPremiumUserIds.add(user._id);
+    this.billingApiService
+      .grantPremium(user._id, duration)
       .pipe(
         finalize(() => {
-          this.revokingLifetimePremiumUserIds.delete(user._id);
+          this.grantingPremiumUserIds.delete(user._id);
         })
       )
       .subscribe({
         next: async (updatedUser) => {
-          this.users = this.users.map((listUser) =>
-            listUser._id === updatedUser?._id ? updatedUser : listUser
-          );
-
-          if (this.filters.premiumLifetimeOnly) {
-            this.users = this.users.filter(
-              (listUser) => listUser._id !== user._id
-            );
-          }
-
-          await this.ionicUtilService.showSuccessToast(
-            'Premium lifetime quitado'
-          );
+          this.replaceUser(updatedUser);
+          await this.ionicUtilService.showSuccessToast('Pro manual activado');
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo quitar el premium lifetime'
+            'No se pudo activar Pro manual'
           );
         },
       });
   }
 
-  private grantLifetimePremium(user: User): void {
+  private extendPremium(user: User, duration: AdminPremiumDuration): void {
     if (!user?._id) {
       return;
     }
 
-    this.grantingLifetimePremiumUserIds.add(user._id);
-    this.userService
-      .grantLifetimePremium(user._id)
+    this.extendingPremiumUserIds.add(user._id);
+    this.billingApiService
+      .extendPremium(user._id, duration)
       .pipe(
         finalize(() => {
-          this.grantingLifetimePremiumUserIds.delete(user._id);
+          this.extendingPremiumUserIds.delete(user._id);
         })
       )
       .subscribe({
         next: async (updatedUser) => {
-          this.users = this.users.map((listUser) =>
-            listUser._id === updatedUser?._id ? updatedUser : listUser
-          );
-
-          await this.ionicUtilService.showSuccessToast(
-            'Premium de por vida activado'
-          );
+          this.replaceUser(updatedUser);
+          await this.ionicUtilService.showSuccessToast('Pro manual extendido');
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo activar premium de por vida'
+            'No se pudo extender Pro manual'
           );
         },
       });
+  }
+
+  private revokePremium(user: User): void {
+    if (!user?._id) {
+      return;
+    }
+
+    this.revokingPremiumUserIds.add(user._id);
+    this.billingApiService
+      .revokePremium(user._id)
+      .pipe(
+        finalize(() => {
+          this.revokingPremiumUserIds.delete(user._id);
+        })
+      )
+      .subscribe({
+        next: async (updatedUser) => {
+          this.replaceUser(updatedUser);
+          if (this.filters.premiumOnly) {
+            this.users = this.users.filter(
+              (listUser) => listUser._id !== updatedUser?._id
+            );
+          }
+          await this.ionicUtilService.showSuccessToast('Pro manual revocado');
+        },
+        error: async (error) => {
+          await this.ionicUtilService.showErrorToast(
+            error,
+            'No se pudo revocar Pro manual'
+          );
+        },
+      });
+  }
+
+  private async pickPremiumDuration(): Promise<AdminPremiumDuration | null> {
+    const response = await this.ionicUtilService.showActionSheet({
+      header: 'Duracion de Pro manual',
+      buttons: [
+        { text: '1 dia', data: { type: 'preset', value: '1d' } },
+        { text: '1 semana', data: { type: 'preset', value: '1w' } },
+        { text: '1 mes', data: { type: 'preset', value: '1m' } },
+        { text: '1 ano', data: { type: 'preset', value: '1y' } },
+        { text: 'Fecha personalizada', role: 'custom' },
+        { text: 'Cancelar', role: 'cancel' },
+      ],
+    });
+
+    if (response?.role === 'cancel') {
+      return null;
+    }
+
+    if (response?.role === 'custom') {
+      return this.pickCustomExpirationDate();
+    }
+
+    return response?.data ?? null;
+  }
+
+  private async pickCustomExpirationDate(): Promise<AdminPremiumDuration | null> {
+    const response = await this.ionicUtilService.showAlert({
+      header: 'Fecha personalizada',
+      message: 'Elige fecha y hora de expiracion del Pro manual.',
+      inputs: [
+        {
+          name: 'expiresAt',
+          type: 'datetime-local' as any,
+        },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Aplicar', role: 'confirm' },
+      ],
+    });
+
+    const value = response?.data?.values?.expiresAt;
+    if (response?.role !== 'confirm' || !value) {
+      return null;
+    }
+
+    const expiresAt = new Date(value);
+    if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
+      await this.ionicUtilService.showWarningToast(
+        'La fecha debe ser posterior a la actual'
+      );
+      return null;
+    }
+
+    return {
+      type: 'customDate',
+      expiresAt: expiresAt.toISOString(),
+    };
+  }
+
+  private replaceUser(updatedUser: User): void {
+    this.users = this.users.map((listUser) =>
+      listUser._id === updatedUser?._id ? updatedUser : listUser
+    );
   }
 
   public async confirmDeleteUser(user: User): Promise<void> {
     const alertOptions: AlertOptions = {
       header: 'Eliminar usuario',
-      message: `¿Estás seguro que deseas eliminar permanentemente a ${this.getUserFullName(
+      message: `Estas seguro que deseas eliminar permanentemente a ${this.getUserFullName(
         user
-      )}? Esta acción no se puede deshacer.`,
+      )}? Esta accion no se puede deshacer.`,
       buttons: [
         {
           text: 'Cancelar',
@@ -482,9 +550,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       next: async () => {
         this.users = this.users.filter((u) => u._id !== user._id);
         if (this.totalUsers > 0) this.totalUsers--;
-        await this.ionicUtilService.showSuccessToast(
-          'Usuario eliminado con éxito'
-        );
+        await this.ionicUtilService.showSuccessToast('Usuario eliminado con exito');
       },
       error: async (error) => {
         await this.ionicUtilService.showErrorToast(
@@ -497,27 +563,21 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   public async confirmImpersonate(user: User): Promise<void> {
     if (!user?._id) return;
-    
+
     const localUser = this.userService.getLocalUser;
     if (!localUser?.roles?.includes('admin')) {
-      await this.ionicUtilService.showErrorToast('Solo los administradores pueden impersonar usuarios');
+      await this.ionicUtilService.showErrorToast(
+        'Solo los administradores pueden impersonar usuarios'
+      );
       return;
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Iniciar sesión como usuario',
-      message: `¿Estás seguro que deseas iniciar sesión como ${this.getUserFullName(
-        user
-      )}?`,
+      header: 'Iniciar sesion como usuario',
+      message: `Estas seguro que deseas iniciar sesion como ${this.getUserFullName(user)}?`,
       buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel',
-        },
-        {
-          text: 'Sí, conectar',
-          role: 'confirm',
-        },
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Si, conectar', role: 'confirm' },
       ],
     });
 
@@ -530,19 +590,22 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   private async impersonate(user: User): Promise<void> {
     await this.ionicUtilService.showLoading({ message: 'Conectando...' });
-    
+
     this.authService.impersonate(user._id).subscribe({
       next: async () => {
         await this.ionicUtilService.hideLoading();
-        await this.ionicUtilService.showSuccessToast(`Conectado como ${this.getUserFullName(user)}`);
-        
-        // Redirigimos a la app principal
-        window.location.href = '/'; 
+        await this.ionicUtilService.showSuccessToast(
+          `Conectado como ${this.getUserFullName(user)}`
+        );
+        window.location.href = '/';
       },
       error: async (err) => {
         await this.ionicUtilService.hideLoading();
-        await this.ionicUtilService.showErrorToast(err, 'No se pudo iniciar sesión como este usuario');
-      }
+        await this.ionicUtilService.showErrorToast(
+          err,
+          'No se pudo iniciar sesion como este usuario'
+        );
+      },
     });
   }
 
@@ -594,13 +657,6 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     if (this.filters.premiumOnly) {
       filteredUsers = filteredUsers.filter(
         (user) => user?.premium?.entitled === true
-      );
-    }
-
-    if (this.filters.premiumLifetimeOnly) {
-      filteredUsers = filteredUsers.filter(
-        (user) =>
-          user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
       );
     }
 

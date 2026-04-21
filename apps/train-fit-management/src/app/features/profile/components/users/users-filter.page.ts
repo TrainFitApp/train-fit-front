@@ -17,7 +17,6 @@ export class UsersFilterPage implements OnInit {
   public ngOnInit(): void {
     this.draftFilter = {
       premiumOnly: this.usersFilter?.premiumOnly ?? false,
-      premiumLifetimeOnly: this.usersFilter?.premiumLifetimeOnly ?? false,
       withHashOnly: this.usersFilter?.withHashOnly ?? false,
       activitySort: this.usersFilter?.activitySort ?? null,
     };
@@ -39,30 +38,11 @@ export class UsersFilterPage implements OnInit {
       this.draftFilter = {
         ...this.draftFilter,
         premiumOnly: false,
-        premiumLifetimeOnly: false,
       };
     } else {
       this.draftFilter = {
         ...this.draftFilter,
         premiumOnly: true,
-        premiumLifetimeOnly: false,
-      };
-    }
-  }
-
-  public togglePremiumLifetimeFilter(): void {
-    const isNowActive = !this.draftFilter.premiumLifetimeOnly;
-    if (isNowActive) {
-      this.draftFilter = {
-        ...this.draftFilter,
-        premiumLifetimeOnly: true,
-        premiumOnly: false,
-      };
-    } else {
-      this.draftFilter = {
-        ...this.draftFilter,
-        premiumLifetimeOnly: false,
-        premiumOnly: false,
       };
     }
   }

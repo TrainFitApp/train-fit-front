@@ -1,7 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BillingEntitlements } from '../../models/billing-entitlements';
+import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
+
+export type AdminPremiumDuration =
+  | { type: 'preset'; value: '1d' | '1w' | '1m' | '1y' }
+  | { type: 'customDate'; expiresAt: string };
+
+export interface AdminSubscriptionStatus {
+  userId: string;
+  isPremium: boolean;
+  source: string | null;
+  plan: string | null;
+  expiresAt: string | null;
+  store: string | null;
+  productId: string | null;
+  willRenew: boolean;
+}
 
 @Injectable()
 export class BillingApiService {
@@ -32,6 +48,40 @@ export class BillingApiService {
     return this.http.post<BillingEntitlements>(
       `${BillingApiService.BILLING_ENDPOINT}/restore`,
       payload || {}
+    );
+  }
+
+  public grantPremium(
+    userId: string,
+    duration: AdminPremiumDuration
+  ): Observable<User> {
+    return this.http.post<User>(`${BillingApiService.BILLING_ENDPOINT}/admin/grant`, {
+      userId,
+      duration,
+    });
+  }
+
+  public extendPremium(
+    userId: string,
+    duration: AdminPremiumDuration
+  ): Observable<User> {
+    return this.http.post<User>(`${BillingApiService.BILLING_ENDPOINT}/admin/extend`, {
+      userId,
+      duration,
+    });
+  }
+
+  public revokePremium(userId: string): Observable<User> {
+    return this.http.post<User>(`${BillingApiService.BILLING_ENDPOINT}/admin/revoke`, {
+      userId,
+    });
+  }
+
+  public getUserSubscriptionStatus(
+    userId: string
+  ): Observable<AdminSubscriptionStatus> {
+    return this.http.get<AdminSubscriptionStatus>(
+      `${BillingApiService.BILLING_ENDPOINT}/admin/status/${userId}`
     );
   }
 }

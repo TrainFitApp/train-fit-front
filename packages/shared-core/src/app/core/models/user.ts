@@ -34,7 +34,7 @@ export class User {
   personalAds?: boolean;
   premium?: {
     entitled?: boolean;
-    plan?: 'monthly' | 'annual' | 'lifetime' | string;
+    plan?: 'monthly' | 'annual' | 'manual' | 'unknown' | string | null;
     expiresAt?: string | Date;
     source?: string;
     lastSyncAt?: string | Date;

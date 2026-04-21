@@ -140,7 +140,7 @@ export class UserService {
   public searchUsers(
     page: number,
     search: string,
-    filters?: { premiumOnly?: boolean; premiumLifetimeOnly?: boolean; withHashOnly?: boolean }
+    filters?: { premiumOnly?: boolean; withHashOnly?: boolean }
   ): Observable<{ users: User[]; total: number }> {
     return this.userAPIService.searchUsers(page, search, filters).pipe(take(1));
   }
@@ -151,14 +151,6 @@ export class UserService {
 
   public clearUserHash(id: string): Observable<void> {
     return this.userAPIService.clearUserHash(id).pipe(take(1));
-  }
-
-  public grantLifetimePremium(id: string): Observable<User> {
-    return this.userAPIService.grantLifetimePremium(id).pipe(take(1));
-  }
-
-  public revokeLifetimePremium(id: string): Observable<User> {
-    return this.userAPIService.revokeLifetimePremium(id).pipe(take(1));
   }
 
   public addFavoriteProduct(
