@@ -507,7 +507,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         { text: '1 dia', data: { type: 'preset', value: '1d' } },
         { text: '1 semana', data: { type: 'preset', value: '1w' } },
         { text: '1 mes', data: { type: 'preset', value: '1m' } },
-        { text: '1 ano', data: { type: 'preset', value: '1y' } },
+        { text: '1 año', data: { type: 'preset', value: '1y' } },
         { text: 'Fecha personalizada', role: 'custom' },
       ],
     });
