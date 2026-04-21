@@ -24,7 +24,7 @@ export class JWTInterceptor implements HttpInterceptor {
   constructor(
     private authService: AuthService,
     private userLocalstorageService: UserLocalstorageService
-  ) {}
+  ) { }
 
   intercept(
     request: HttpRequest<unknown>,
@@ -32,10 +32,10 @@ export class JWTInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     const requestWithClientHeader = this.isNativeClient
       ? request.clone({
-          setHeaders: {
-            'x-client-platform': 'mobile',
-          },
-        })
+        setHeaders: {
+          'x-client-platform': 'mobile',
+        },
+      })
       : request;
 
     const token = this.getTokenFromLocalStorage();
@@ -115,10 +115,7 @@ export class JWTInterceptor implements HttpInterceptor {
   }
 
   private getTokenFromLocalStorage(): string | null {
-    const parsedUser = this.userLocalstorageService.getUserToken();
-    return parsedUser
-      ? parsedUser[UserLocalstorageService.ACCESS_TOKEN_KEY]
-      : null;
+    return this.userLocalstorageService.getAccessToken();
   }
 
   private cloneRequestWithTokenAuthorization(
