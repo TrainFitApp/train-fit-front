@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Network } from '@capacitor/network';
 import { NavController } from '@ionic/angular';
+import { AppUpdateService } from '../app-update/app-update.service';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
 import { User } from '../../models/user';
@@ -36,7 +37,11 @@ export class NavigationService {
   // Temporary data storage for passing data between routes
   private _tempData: Map<string, any> = new Map();
 
-  constructor(private navController: NavController, private router: Router) {
+  constructor(
+    private navController: NavController,
+    private router: Router,
+    private appUpdateService: AppUpdateService
+  ) {
     this.initNetworkListener();
   }
 
@@ -241,10 +246,14 @@ export class NavigationService {
       this.goToInfo();
     }
 
-    Network.addListener('networkStatusChange', (status) => {
+    Network.addListener('networkStatusChange', async (status) => {
       if (status.connected) {
-        if (this.router.url === `/${this.NO_CONECTION_ROUTE}`)
+        if (this.router.url === `/${this.NO_CONECTION_ROUTE}`) {
+          // Antes de volver a la app, verificamos si hay una actualización obligatoria
+          // que no pudimos comprobar cuando no había conexión
+          await this.appUpdateService.checkForRequiredUpdate();
           this.goToUserLoader();
+        }
       } else this.goToInfo();
     });
   }

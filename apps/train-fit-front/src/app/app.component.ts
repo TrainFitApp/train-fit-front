@@ -29,9 +29,17 @@ export class AppComponent implements OnDestroy {
     private securityService: SecurityService,
     private themeService: ThemeService
   ) {
+    void this.initializeApp();
+  }
+
+  private async initializeApp(): Promise<void> {
     void this.billingService.initialize();
+    
+    // Check version BEFORE any routing (Inicio Total)
+    await this.appUpdateService.checkForRequiredUpdate();
+    
     this.rootRoutes();
-    void this.appUpdateService.checkForRequiredUpdate();
+    
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     this.initTokenRefresh();
