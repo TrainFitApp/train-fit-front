@@ -92,6 +92,49 @@ export class AuthService {
     );
   }
 
+  public impersonate(userId: string): Observable<void> {
+    return this.authApiService.impersonate(userId).pipe(
+      map((response: any) => {
+        if (!!response?.error) {
+          throw new Error(response?.error);
+        }
+
+        // Save current admin token to revert later
+        const currentToken = this.userLocalstorageService.getUserToken();
+        if (currentToken) {
+          localStorage.setItem('admin_token', JSON.stringify(currentToken));
+        }
+
+        const token = { access_token: response.access_token, refresh_token: response.refresh_token };
+        const userDecoded = this.getDecodedUser(token);
+        this.persistAuthTokens(token);
+        this.setUser = userDecoded;
+      })
+    );
+  }
+
+  public get isImpersonating(): boolean {
+    return !!localStorage.getItem('admin_token');
+  }
+
+  public revertImpersonation(): void {
+    const adminTokenStr = localStorage.getItem('admin_token');
+    if (adminTokenStr) {
+      try {
+        const adminToken = JSON.parse(adminTokenStr);
+        this.persistAuthTokens(adminToken);
+        const userDecoded = this.getDecodedUser(adminToken);
+        if (userDecoded) {
+          this.setUser = userDecoded;
+        }
+      } catch (e) {
+        console.warn('Error reviving admin token', e);
+      }
+      localStorage.removeItem('admin_token');
+      window.location.href = '/profile/users';
+    }
+  }
+
   public persistAuthTokens(token: Partial<Token> | null | undefined): void {
     if (!token?.access_token) {
       return;
@@ -182,6 +225,7 @@ export class AuthService {
 
     // Clear local state immediately to avoid race conditions and duplicate flows
     this.userLocalstorageService.removeUserToken();
+    localStorage.removeItem('admin_token');
     this.refreshTokenStore.clear().catch((error) => {
       console.warn('Could not clear native refresh token', error);
     });

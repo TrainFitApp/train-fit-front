@@ -40,7 +40,14 @@
           <ion-icon name="settings-outline"></ion-icon>
         </button>
         <button
-          *ngIf="showManagementEntry"
+          *ngIf="isImpersonating"
+          class="settings-btn"
+          (click)="revertImpersonation()"
+        >
+          <ion-icon color="danger" name="log-out-outline"></ion-icon>
+        </button>
+        <button
+          *ngIf="showManagementEntry && !isImpersonating"
           class="settings-btn"
           (click)="goToUsers()"
         >

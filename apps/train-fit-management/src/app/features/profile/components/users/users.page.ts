@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { InfiniteScrollCustomEvent } from '@ionic/angular';
+import { AlertOptions, InfiniteScrollCustomEvent } from '@ionic/angular';
 import {
   Subject,
   Subscription,
@@ -9,10 +9,21 @@ import {
 } from 'rxjs';
 import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
+import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UsersFilterPage } from './users-filter.page';
 import { UsersFilter } from './users-filter.model';
+
+export interface DashboardUser extends User {
+  productsCount?: number;
+  exercisesCount?: number;
+  hasWorkoutInUse?: boolean;
+  hasTableInUse?: boolean;
+  tableSplitsCount?: number;
+  dietDaysCount?: number;
+  matchCount?: number;
+}
 
 @Component({
   selector: 'app-profile-users',
@@ -22,7 +33,7 @@ import { UsersFilter } from './users-filter.model';
 export class ProfileUsersPage implements OnInit, OnDestroy {
   private static readonly PAGE_SIZE = 10;
 
-  public users: User[] = [];
+  public users: DashboardUser[] = [];
   public totalUsers = 0;
   public search = '';
   public filters: UsersFilter = new UsersFilter();
@@ -39,6 +50,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   constructor(
     private readonly userService: UserService,
+    private readonly authService: AuthService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly navigationService: NavigationService
   ) {}
@@ -113,7 +125,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public isLifetimePremiumUser(user: User): boolean {
-    return user?.premium?.entitled === true && user?.premium?.plan === 'lifetime';
+    return (
+      user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
+    );
   }
 
   public hasUserHash(user: User): boolean {
@@ -148,7 +162,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
     const alertRes = await this.ionicUtilService.showAlert({
       header: 'Premium de por vida',
-      message: `¿Quieres dar premium de por vida a ${this.getUserFullName(user)}?`,
+      message: `¿Quieres dar premium de por vida a ${this.getUserFullName(
+        user
+      )}?`,
       buttons: [
         {
           text: 'Cancelar',
@@ -180,7 +196,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
     const alertRes = await this.ionicUtilService.showAlert({
       header: 'Quitar Premium Lifetime',
-      message: `¿Seguro que quieres quitar el premium lifetime a ${this.getUserFullName(user)}?`,
+      message: `¿Seguro que quieres quitar el premium lifetime a ${this.getUserFullName(
+        user
+      )}?`,
       buttons: [
         {
           text: 'Cancelar',
@@ -201,7 +219,11 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public async confirmClearUserHash(user: User): Promise<void> {
-    if (!user?._id || !this.hasUserHash(user) || this.isRemovingUserHash(user)) {
+    if (
+      !user?._id ||
+      !this.hasUserHash(user) ||
+      this.isRemovingUserHash(user)
+    ) {
       return;
     }
 
@@ -297,9 +319,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public get hasActiveFilters(): boolean {
     return Boolean(
       this.filters.premiumOnly ||
-      this.filters.premiumLifetimeOnly ||
-      this.filters.withHashOnly ||
-      this.filters.activitySort !== null
+        this.filters.premiumLifetimeOnly ||
+        this.filters.withHashOnly ||
+        this.filters.activitySort !== null
     );
   }
 
@@ -333,10 +355,14 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       .subscribe({
         next: async () => {
           if (this.filters.withHashOnly) {
-            this.users = this.users.filter((listUser) => listUser._id !== user._id);
+            this.users = this.users.filter(
+              (listUser) => listUser._id !== user._id
+            );
           } else {
             this.users = this.users.map((listUser) =>
-              listUser._id === user._id ? { ...listUser, hash: undefined } : listUser
+              listUser._id === user._id
+                ? { ...listUser, hash: undefined }
+                : listUser
             );
           }
 
@@ -371,7 +397,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
           );
 
           if (this.filters.premiumLifetimeOnly) {
-            this.users = this.users.filter((listUser) => listUser._id !== user._id);
+            this.users = this.users.filter(
+              (listUser) => listUser._id !== user._id
+            );
           }
 
           await this.ionicUtilService.showSuccessToast(
@@ -419,6 +447,105 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       });
   }
 
+  public async confirmDeleteUser(user: User): Promise<void> {
+    const alertOptions: AlertOptions = {
+      header: 'Eliminar usuario',
+      message: `¿Estás seguro que deseas eliminar permanentemente a ${this.getUserFullName(
+        user
+      )}? Esta acción no se puede deshacer.`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'alert-button-cancel',
+        },
+        {
+          text: 'Eliminar',
+          role: 'confirm',
+          cssClass: 'alert-button-danger',
+        },
+      ],
+    };
+
+    const alertRes = await this.ionicUtilService.showAlert(alertOptions);
+    if (alertRes?.role !== 'confirm') {
+      return;
+    }
+
+    this.deleteUser(user);
+  }
+
+  private deleteUser(user: User): void {
+    if (!user?._id) return;
+
+    this.userService.deleteById(user._id).subscribe({
+      next: async () => {
+        this.users = this.users.filter((u) => u._id !== user._id);
+        if (this.totalUsers > 0) this.totalUsers--;
+        await this.ionicUtilService.showSuccessToast(
+          'Usuario eliminado con éxito'
+        );
+      },
+      error: async (error) => {
+        await this.ionicUtilService.showErrorToast(
+          error,
+          'No se pudo eliminar el usuario'
+        );
+      },
+    });
+  }
+
+  public async confirmImpersonate(user: User): Promise<void> {
+    if (!user?._id) return;
+    
+    const localUser = this.userService.getLocalUser;
+    if (!localUser?.roles?.includes('admin')) {
+      await this.ionicUtilService.showErrorToast('Solo los administradores pueden impersonar usuarios');
+      return;
+    }
+
+    const alertRes = await this.ionicUtilService.showAlert({
+      header: 'Iniciar sesión como usuario',
+      message: `¿Estás seguro que deseas iniciar sesión como ${this.getUserFullName(
+        user
+      )}?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Sí, conectar',
+          role: 'confirm',
+        },
+      ],
+    });
+
+    if (alertRes?.role !== 'confirm') {
+      return;
+    }
+
+    this.impersonate(user);
+  }
+
+  private async impersonate(user: User): Promise<void> {
+    await this.ionicUtilService.showLoading({ message: 'Conectando...' });
+    
+    this.authService.impersonate(user._id).subscribe({
+      next: async () => {
+        await this.ionicUtilService.hideLoading();
+        await this.ionicUtilService.showSuccessToast(`Conectado como ${this.getUserFullName(user)}`);
+        
+        // Redirigimos a la app principal
+        window.location.href = '/'; 
+      },
+      error: async (err) => {
+        await this.ionicUtilService.hideLoading();
+        await this.ionicUtilService.showErrorToast(err, 'No se pudo iniciar sesión como este usuario');
+      }
+    });
+  }
+
   private loadUsers(infiniteTarget?: HTMLIonInfiniteScrollElement): void {
     if (this.isLoading) {
       infiniteTarget?.complete();
@@ -439,13 +566,17 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         next: (response) => {
           const responseUsers = Array.isArray(response)
             ? response
-            : (response?.users ?? []);
-          const nextUsers = this.applyClientSideFilters(responseUsers);
+            : response?.users ?? [];
+          const nextUsers = this.applyClientSideFilters(
+            responseUsers as DashboardUser[]
+          );
           this.users =
             this.currentPage === 0 ? nextUsers : [...this.users, ...nextUsers];
           this.totalUsers = Array.isArray(response)
-            ? (this.currentPage === 0 ? nextUsers.length : this.users.length)
-            : (response?.total ?? 0);
+            ? this.currentPage === 0
+              ? nextUsers.length
+              : this.users.length
+            : response?.total ?? 0;
           this.hasMoreUsers = nextUsers.length === ProfileUsersPage.PAGE_SIZE;
         },
         error: () => {
@@ -457,8 +588,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       });
   }
 
-  private applyClientSideFilters(users: User[]): User[] {
-    let filteredUsers = users ?? [];
+  private applyClientSideFilters(usersList: DashboardUser[]): DashboardUser[] {
+    let filteredUsers = usersList ?? [];
 
     if (this.filters.premiumOnly) {
       filteredUsers = filteredUsers.filter(
@@ -468,7 +599,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
     if (this.filters.premiumLifetimeOnly) {
       filteredUsers = filteredUsers.filter(
-        (user) => user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
+        (user) =>
+          user?.premium?.entitled === true && user?.premium?.plan === 'lifetime'
       );
     }
 

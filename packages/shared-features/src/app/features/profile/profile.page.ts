@@ -26,6 +26,7 @@ import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
 import {
   CHART_RANGES,
@@ -141,6 +142,7 @@ export class ProfilePage implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly billingService = inject(BillingService);
+  private readonly authService = inject(AuthService);
 
   constructor(
     public utilService: UtilService,
@@ -924,6 +926,26 @@ export class ProfilePage implements OnInit {
       this.appShellConfig.managementEntryEnabled &&
       Boolean(this.user?.roles?.includes('admin'))
     );
+  }
+
+  public get isImpersonating(): boolean {
+    return this.authService.isImpersonating;
+  }
+
+  public async revertImpersonation(): Promise<void> {
+    const alertRes = await this.ionicUtilService.showAlert({
+      header: 'Terminar sesión temporal',
+      message: '¿Quieres volver a tu sesión de administrador?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Volver', role: 'confirm', cssClass: 'danger-btn' },
+      ],
+    });
+
+    if (alertRes?.role === 'confirm') {
+      this.authService.revertImpersonation();
+      this.ionicUtilService.showSuccessToast('Sesión de administrador restaurada');
+    }
   }
 
   public get premiumPlanLabel(): string {

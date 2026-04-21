@@ -192,14 +192,26 @@
   gap: 12px;
 }
 
-// ─── Cards ───────────────────────────────────────────────────────────────────
-.user-card {
+// ─── Accordion items ─────────────────────────────────────────────────────────
+.user-accordion-item {
   margin: 0;
   border-radius: 16px;
   background: #141414;
   border: 1px solid #252525;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+
+  &::part(content) {
+    background: transparent;
+  }
+
+  &::part(indicator) {
+    display: none !important;
+  }
+}
+
+ion-accordion {
+  --toggle-icon-display: none;
 }
 
 .user-card__item {
@@ -222,38 +234,13 @@
   align-items: center;
   justify-content: center;
   appearance: none;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-
-  &:not(:disabled):active {
-    transform: scale(0.93);
-  }
-}
-
-.user-card__avatar:disabled {
-  opacity: 1;
-}
-
-.user-card__avatar:not(:disabled) {
-  cursor: pointer;
-}
-
-.user-card__avatar--premium {
-  background: rgba(var(--ion-color-primary-rgb), 0.16);
-  border-color: rgba(var(--ion-color-primary-rgb), 0.28);
-  box-shadow: 0 2px 6px rgba(var(--ion-color-primary-rgb), 0.1);
-}
-
-.user-card__avatar--lifetime {
-  background: rgba(var(--ion-color-alternative-rgb), 0.16);
-  border-color: rgba(var(--ion-color-alternative-rgb), 0.28);
-  box-shadow: 0 2px 6px rgba(var(--ion-color-alternative-rgb), 0.1);
+  background: rgba(var(--ion-color-secondary-rgb), 0.12);
+  border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.24);
 }
 
 .user-card__avatar-icon {
   font-size: 22px;
-  color: rgba(255, 255, 255, 0.46);
+  color: var(--ion-color-secondary);
 }
 
 .user-card__avatar-icon--premium {
@@ -374,5 +361,143 @@
 
   .user-card__email {
     font-size: 12px;
+  }
+}
+
+// ─── Accordion Expanded Content ──────────────────────────────────────────────
+.user-accordion-content {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  .detail-icon {
+    font-size: 1.1rem;
+    padding: 5px;
+    border-radius: 7px;
+    flex-shrink: 0;
+    
+    &.var-accent {
+      background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+      color: var(--ion-color-tertiary);
+    }
+    &.var-secondary {
+      background: rgba(var(--ion-color-secondary-rgb), 0.15);
+      color: var(--ion-color-secondary);
+    }
+    &.var-primary {
+      background: rgba(var(--ion-color-primary-rgb), 0.15);
+      color: var(--ion-color-primary);
+    }
+    &.var-tertiary {
+      background: rgba(var(--ion-color-success-rgb), 0.15);
+      color: var(--ion-color-success);
+    }
+    &.var-medium {
+      background: rgba(var(--ion-color-medium-rgb), 0.15);
+      color: var(--ion-color-light);
+    }
+  }
+
+  .detail-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    .detail-title {
+      font-size: 0.62rem;
+      color: rgba(255, 255, 255, 0.45);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-value {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.95);
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &.text-danger {
+        color: var(--ion-color-danger);
+      }
+    }
+  }
+
+  &--actionable {
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.06);
+    }
+  }
+
+  &.is-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}
+
+.user-actions-footer {
+  margin-top: 18px;
+  
+  ion-button {
+    --background: rgba(var(--ion-color-danger-rgb), 0.1);
+    --background-activated: rgba(var(--ion-color-danger-rgb), 0.15);
+    --background-focused: rgba(var(--ion-color-danger-rgb), 0.15);
+    --background-hover: rgba(var(--ion-color-danger-rgb), 0.12);
+    --color: var(--ion-color-danger);
+    --border-radius: 12px;
+    --border-width: 1px;
+    --border-style: solid;
+    --border-color: rgba(var(--ion-color-danger-rgb), 0.2);
+    --box-shadow: none;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0.3px;
+    font-size: 0.9rem;
+    
+    ion-icon {
+      margin-right: 10px;
+      font-size: 1.3rem;
+      color: var(--ion-color-danger);
+    }
+  }
+}
+
+.user-card__end-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(var(--ion-color-secondary-rgb), 0.08);
+  
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--ion-color-secondary);
   }
 }

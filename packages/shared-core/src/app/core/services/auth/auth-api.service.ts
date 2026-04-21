@@ -9,6 +9,7 @@ export class AuthApiService {
   public static readonly REGISTER_ENDPOINT = 'users';
   public static readonly REFRESH_ENDPOINT = 'users/refresh-token';
   public static readonly LOGOUT_ENDPOINT = 'users/logout';
+  public static readonly IMPERSONATE_ENDPOINT = 'users/impersonate';
   public static readonly VERIFY_GOOGLE_ENDPOINT = 'users/auth/verify-google';
   public static readonly VERIFY_APPLE_ENDPOINT = 'users/auth/verify-apple';
 
@@ -64,6 +65,15 @@ export class AuthApiService {
       AuthApiService.LOGOUT_ENDPOINT,
       {},
       headers,
+      true // withCredentials
+    );
+  }
+
+  public impersonate(userId: string): Observable<any> {
+    return this.http.post<any>(
+      AuthApiService.IMPERSONATE_ENDPOINT,
+      { userId },
+      undefined,
       true // withCredentials
     );
   }
