@@ -1,9 +1,9 @@
 import pkg from '../../package.json';
 
-const API_URL_BASE = 'https://train-fit-back-production.up.railway.app';
+const API_URL_BASE = 'https://server.trainfit.net';
 
 export const environment = {
-  production: false,
+  production: true,
   APP_VERSION: pkg.version,
   APP_STORE_URL: 'https://apps.apple.com/es/app/trainfit/id6471257280',
   GOOGLE_PLAY_URL:

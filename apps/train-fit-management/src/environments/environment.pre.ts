@@ -2,7 +2,7 @@ import pkg from '../../package.json';
 
 const PORT = '';
 const API_URL_BASE =
-  'https://train-fit-back.onrender.com' + PORT;
+  'https://train-fit-back-production.up.railway.app' + PORT;
 
 export const environment = {
   production: false,
