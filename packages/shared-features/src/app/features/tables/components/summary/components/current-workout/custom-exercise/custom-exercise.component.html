@@ -12,18 +12,19 @@
     </ion-button>
 
     <div class="previous-title-center">
-      <div class="previous-title-row">
-        <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
+      <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
+      <div class="previous-subtitle-row">
+        <span class="previous-subtitle-text">Sesión del </span>
+        <span class="previous-subtitle-date">
+          {{
+            previousWorkoutDate
+              ? (previousWorkoutDate | date : "dd/MM/yyyy")
+              : previousWorkoutCustomExercise
+              ? "(No finalizada)"
+              : "(Sin datos)"
+          }}
+        </span>
       </div>
-      <span class="previous-date-text">
-        {{
-          previousWorkoutDate
-            ? (previousWorkoutDate | date : "dd/MM/yyyy")
-            : previousWorkoutCustomExercise
-            ? "No finalizada"
-            : "Sin datos"
-        }}
-      </span>
     </div>
 
     <ion-button

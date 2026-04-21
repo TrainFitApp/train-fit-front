@@ -93,14 +93,6 @@ export class NotesComponent implements OnInit, OnChanges {
           text: 'GUARDAR',
           cssClass: 'alert-button-success',
           handler: (data) => {
-            if (!data.notes || data.notes.trim() === '') {
-              const toastOptions: ToastOptions = {
-                message: 'El campo no puede estar vacío',
-                duration: 2000,
-              };
-              this.ionicUtilService.showToast(toastOptions);
-              return false;
-            }
             return true;
           },
         },
@@ -108,8 +100,8 @@ export class NotesComponent implements OnInit, OnChanges {
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
-      if (result.role !== 'cancel' && result.data?.values?.notes) {
-        const newNotes = (result.data.values.notes || '').trim();
+      if (result.role !== 'cancel') {
+        const newNotes = (result.data?.values?.notes || '').trim();
         const previousNotes = this.object?.notes;
         if (this.object) {
           this.object.notes = newNotes;
@@ -119,10 +111,9 @@ export class NotesComponent implements OnInit, OnChanges {
             this.updateService$.subscribe({
               next: (updatedObject: any) => {
                 const persistedNotes: string | undefined = updatedObject?.notes;
-                if (persistedNotes) this.object.notes = persistedNotes;
-                else delete this.object.notes;
+                this.object.notes = persistedNotes || '';
 
-                this.syncNotesToTableAndWorkout(this.object, persistedNotes);
+                this.syncNotesToTableAndWorkout(this.object, this.object.notes);
 
                 if (persistedNotes !== newNotes) {
                   console.debug('[NotesComponent] Notes mismatch after update', {
@@ -142,8 +133,7 @@ export class NotesComponent implements OnInit, OnChanges {
                 this.update.emit(persistedNotes);
               },
               error: (error) => {
-                if (previousNotes) this.object.notes = previousNotes;
-                else delete this.object.notes;
+                this.object.notes = previousNotes || '';
 
                 this.syncNotesToTableAndWorkout(this.object, previousNotes);
 
@@ -190,19 +180,18 @@ export class NotesComponent implements OnInit, OnChanges {
           handler: () => {
             const previousNotes = this.object?.notes;
             if (this.object) {
-              delete this.object.notes;
-              this.syncNotesToTableAndWorkout(this.object, undefined);
+              this.object.notes = '';
+              this.syncNotesToTableAndWorkout(this.object, '');
               if (this.updateService$) {
                 this.isLoading = true;
                 this.updateService$.subscribe({
                   next: (updatedObject: any) => {
                     const persistedNotes: string | undefined = updatedObject?.notes;
-                    if (persistedNotes) this.object.notes = persistedNotes;
-                    else delete this.object.notes;
+                    this.object.notes = persistedNotes || '';
 
-                    this.syncNotesToTableAndWorkout(this.object, persistedNotes);
+                    this.syncNotesToTableAndWorkout(this.object, this.object.notes);
 
-                    if (persistedNotes !== undefined) {
+                    if (persistedNotes !== '') {
                       console.debug('[NotesComponent] Note delete mismatch after update', {
                         noteType: this.noteType,
                         previousNotes,
@@ -219,8 +208,7 @@ export class NotesComponent implements OnInit, OnChanges {
                     this.update.emit(persistedNotes);
                   },
                   error: (error) => {
-                    if (previousNotes) this.object.notes = previousNotes;
-                    else delete this.object.notes;
+                    this.object.notes = previousNotes || '';
 
                     this.syncNotesToTableAndWorkout(this.object, previousNotes);
 
@@ -324,15 +312,13 @@ export class NotesComponent implements OnInit, OnChanges {
       table.splits
         ?.flatMap((split) => split.workouts)
         .forEach((workout) => {
-          if (workout?._id !== objectId) return;
-          if (notes) workout.notes = notes;
-          else delete workout.notes;
+          if (workout?._id === objectId) {
+            workout.notes = notes || '';
+          }
         });
 
       if (this.workoutService.currentWorkout?._id === objectId) {
-        const updatedWorkout = { ...this.workoutService.currentWorkout };
-        if (notes) updatedWorkout.notes = notes;
-        else delete updatedWorkout.notes;
+        const updatedWorkout = { ...this.workoutService.currentWorkout, notes: notes || '' };
         this.workoutService.setCurrentWorkout = updatedWorkout;
       }
 
@@ -344,9 +330,9 @@ export class NotesComponent implements OnInit, OnChanges {
       ?.flatMap((split) => split.workouts)
       .flatMap((workout) => workout.exercises)
       .forEach((exercise) => {
-        if (exercise?._id !== objectId) return;
-        if (notes) exercise.notes = notes;
-        else delete exercise.notes;
+        if (exercise?._id === objectId) {
+          exercise.notes = notes || '';
+        }
       });
 
     const currentWorkout = this.workoutService.currentWorkout;
@@ -354,10 +340,7 @@ export class NotesComponent implements OnInit, OnChanges {
       const updatedWorkout = { ...currentWorkout };
       updatedWorkout.exercises = updatedWorkout.exercises.map((ex) => {
         if (ex?._id !== objectId) return ex;
-        const updatedExercise = { ...ex };
-        if (notes) updatedExercise.notes = notes;
-        else delete updatedExercise.notes;
-        return updatedExercise;
+        return { ...ex, notes: notes || '' };
       });
       this.workoutService.setCurrentWorkout = updatedWorkout;
     }

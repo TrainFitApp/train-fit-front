@@ -1,27 +1,28 @@
-import { Component } from '@angular/core';
-import { Browser } from '@capacitor/browser';
-import { Capacitor } from '@capacitor/core';
-import { AlertOptions } from '@ionic/angular';
-import { PAYWALL_RESULT } from '@revenuecat/purchases-capacitor-ui';
-import { BillingEntitlements } from 'src/app/core/models/billing-entitlements';
+import { Component } from "@angular/core";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { AlertOptions } from "@ionic/angular";
+import { PAYWALL_RESULT } from "@revenuecat/purchases-capacitor-ui";
+import { BillingEntitlements } from "src/app/core/models/billing-entitlements";
 import {
   BillingPurchaseIntent,
   BillingPurchaseResult,
   BillingService,
-} from 'src/app/core/services/billing/billing.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
+} from "src/app/core/services/billing/billing.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
 
 @Component({
-  selector: 'app-premium',
-  templateUrl: './premium.page.html',
-  styleUrls: ['./premium.page.scss'],
+  selector: "app-premium",
+  templateUrl: "./premium.page.html",
+  styleUrls: ["./premium.page.scss"],
 })
 export class PremiumPage {
   private readonly LEGAL_LINKS = {
-    privacy: 'https://trainfit.net/#/politicas',
-    iosTerms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-    defaultTerms: 'https://www.trainfit.net/#/terminosycondiciones',
+    privacy: "https://trainfit.net/#/politicas",
+    iosTerms:
+      "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    defaultTerms: "https://www.trainfit.net/#/terminosycondiciones",
   } as const;
 
   public readonly isNativeBillingAvailable: boolean;
@@ -33,16 +34,16 @@ export class PremiumPage {
   public isPresentingPaywall = false;
   public isRestoring = false;
   public isOpeningManageSubscription = false;
-  public monthlyPriceLabel = 'Cargando...';
-  public annualPriceLabel = 'Cargando...';
+  public monthlyPriceLabel = "Cargando...";
+  public annualPriceLabel = "Cargando...";
   public entitlements: BillingEntitlements | null = null;
-  public selectedPlan: 'annual' | 'monthly' = 'annual';
+  public selectedPlan: "annual" | "monthly" = "annual";
   public showCompare = false;
 
   constructor(
     private readonly billingService: BillingService,
     private readonly ionicUtilService: IonicUtilService,
-    private readonly navigationService: NavigationService
+    private readonly navigationService: NavigationService,
   ) {
     this.isNativeBillingAvailable = this.billingService.isBillingEnabled;
   }
@@ -56,19 +57,19 @@ export class PremiumPage {
   }
 
   public async buyMonthly(): Promise<void> {
-    await this.purchasePlan('monthly');
+    await this.purchasePlan("monthly");
   }
 
   public async buyAnnual(): Promise<void> {
-    await this.purchasePlan('annual');
+    await this.purchasePlan("annual");
   }
 
-  public selectPlan(plan: 'annual' | 'monthly'): void {
-    if (plan === 'annual' && !this.canSelectPlan('annual')) {
+  public selectPlan(plan: "annual" | "monthly"): void {
+    if (plan === "annual" && !this.canSelectPlan("annual")) {
       return;
     }
 
-    if (plan === 'monthly' && !this.canSelectPlan('monthly')) {
+    if (plan === "monthly" && !this.canSelectPlan("monthly")) {
       return;
     }
 
@@ -81,13 +82,13 @@ export class PremiumPage {
 
   public async purchaseSelected(): Promise<void> {
     if (!this.canPurchaseSelectedPlan) {
-      if (this.platform === 'ios') {
+      if (this.platform === "ios") {
         await this.openPaywall();
         return;
       }
 
       this.showError(
-        'No se pudo cargar el precio del plan. Intentalo de nuevo en unos segundos'
+        "No se pudo cargar el precio del plan. Intentalo de nuevo en unos segundos",
       );
       return;
     }
@@ -96,7 +97,7 @@ export class PremiumPage {
   }
 
   public async changeToAnnual(): Promise<void> {
-    await this.purchasePlan('annual');
+    await this.purchasePlan("annual");
   }
 
   public async openPaywall(): Promise<void> {
@@ -108,21 +109,25 @@ export class PremiumPage {
     try {
       const result = await this.billingService.presentPaywallIfNeeded();
       if (result === PAYWALL_RESULT.ERROR) {
-        this.showError('No se pudo abrir el paywall');
+        this.showError("No se pudo abrir el paywall");
         return;
       }
 
       // I1: resolver el plan comprado antes de sincronizar para evitar plan=null en BD
       const customerInfo = await this.billingService.getCustomerInfo();
-      const purchasedPlan = await this.billingService.resolvePlanFromCustomerInfo(customerInfo);
-      await this.billingService.syncEntitlementsWithBackend(customerInfo, purchasedPlan);
+      const purchasedPlan =
+        await this.billingService.resolvePlanFromCustomerInfo(customerInfo);
+      await this.billingService.syncEntitlementsWithBackend(
+        customerInfo,
+        purchasedPlan,
+      );
 
       if (result === PAYWALL_RESULT.PURCHASED) {
-        this.showSuccess('Pro activado correctamente');
+        this.showSuccess("Pro activado correctamente");
       } else if (result === PAYWALL_RESULT.RESTORED) {
-        this.showSuccess('Compras restauradas correctamente');
+        this.showSuccess("Compras restauradas correctamente");
       } else if (result === PAYWALL_RESULT.NOT_PRESENTED) {
-        this.showSuccess('Ya tienes acceso Pro activo');
+        this.showSuccess("Ya tienes acceso Pro activo");
       }
     } finally {
       this.isPresentingPaywall = false;
@@ -143,9 +148,9 @@ export class PremiumPage {
         await this.billingService.syncEntitlementsWithBackend(customerInfo);
 
       if (entitlements?.isPremium) {
-        this.showSuccess('Pro restaurado correctamente');
+        this.showSuccess("Pro restaurado correctamente");
       } else {
-        this.showError('No se encontraron compras activas');
+        this.showError("No se encontraron compras activas");
       }
     } finally {
       this.isRestoring = false;
@@ -163,7 +168,7 @@ export class PremiumPage {
     try {
       const opened = await this.billingService.openNativeManageSubscriptions();
       if (!opened) {
-        this.showError('No se pudo abrir la gestion de suscripcion');
+        this.showError("No se pudo abrir la gestion de suscripcion");
       }
     } finally {
       this.isOpeningManageSubscription = false;
@@ -180,68 +185,68 @@ export class PremiumPage {
 
   public get currentPlanLabel(): string {
     const currentPlan = this.getNormalizedCurrentPlan();
-    if (currentPlan === 'annual') return 'Plan anual';
-    if (currentPlan === 'monthly') return 'Plan mensual';
-    return this.entitlements?.plan ?? 'Plan Pro';
+    if (currentPlan === "annual") return "Plan anual";
+    if (currentPlan === "monthly") return "Plan mensual";
+    return this.entitlements?.plan ?? "Plan Pro";
   }
 
   public get showChangeToAnnual(): boolean {
     const currentPlan = this.getNormalizedCurrentPlan();
-    return this.isPremium && currentPlan !== null && currentPlan !== 'annual';
+    return this.isPremium && currentPlan !== null && currentPlan !== "annual";
   }
 
   public get canPurchaseSelectedPlan(): boolean {
-    if (this.platform === 'ios') {
+    if (this.platform === "ios") {
       // En iOS dejamos compra habilitada para que App Review no encuentre CTA bloqueado.
       // Si no hay precios cargados en el selector, el fallback es abrir el paywall nativo.
       return true;
     }
 
-    if (this.selectedPlan === 'annual') {
-      return this.annualPriceLabel !== 'No disponible';
+    if (this.selectedPlan === "annual") {
+      return this.annualPriceLabel !== "No disponible";
     }
 
-    return this.monthlyPriceLabel !== 'No disponible';
+    return this.monthlyPriceLabel !== "No disponible";
   }
 
-  public canSelectPlan(plan: 'annual' | 'monthly'): boolean {
-    if (this.platform === 'ios') {
+  public canSelectPlan(plan: "annual" | "monthly"): boolean {
+    if (this.platform === "ios") {
       return true;
     }
 
-    if (plan === 'annual') {
-      return this.annualPriceLabel !== 'No disponible';
+    if (plan === "annual") {
+      return this.annualPriceLabel !== "No disponible";
     }
 
-    return this.monthlyPriceLabel !== 'No disponible';
+    return this.monthlyPriceLabel !== "No disponible";
   }
 
   public get selectedPlanPriceCaption(): string {
-    if (this.selectedPlan === 'annual') {
+    if (this.selectedPlan === "annual") {
       const price = this.annualPriceLabel;
-      return price === 'Cargando...' || price === 'No disponible'
-        ? 'Plan anual · Suscripción de renovación automática anual.'
+      return price === "Cargando..." || price === "No disponible"
+        ? "Plan anual · Suscripción de renovación automática anual."
         : `Plan anual · ${price}/año · Suscripción de renovación automática anual.`;
     }
     const price = this.monthlyPriceLabel;
-    return price === 'Cargando...' || price === 'No disponible'
-      ? 'Plan mensual · Suscripción de renovación automática mensual.'
+    return price === "Cargando..." || price === "No disponible"
+      ? "Plan mensual · Suscripción de renovación automática mensual."
       : `Plan mensual · ${price}/mes · Suscripción de renovación automática mensual.`;
   }
 
   public get termsLabel(): string {
-    return this.platform === 'ios'
-      ? 'Terminos de uso (EULA)'
-      : 'Terminos y condiciones';
+    return this.platform === "ios"
+      ? "Términos de uso (EULA)"
+      : "Términos y condiciones";
   }
 
   public get termsUrl(): string {
-    return this.platform === 'ios'
+    return this.platform === "ios"
       ? this.LEGAL_LINKS.iosTerms
       : this.LEGAL_LINKS.defaultTerms;
   }
 
-  private async purchasePlan(plan: 'monthly' | 'annual'): Promise<void> {
+  private async purchasePlan(plan: "monthly" | "annual"): Promise<void> {
     if (!this.ensureNativeBilling()) {
       return;
     }
@@ -249,23 +254,23 @@ export class PremiumPage {
     const wasPremiumBeforePurchase = this.isPremium;
     const currentPlan = this.getNormalizedCurrentPlan();
 
-    if (this.isPremium && currentPlan === 'annual' && plan === 'monthly') {
+    if (this.isPremium && currentPlan === "annual" && plan === "monthly") {
       this.showError(
-        'Para pasar de anual a mensual, usa Gestionar suscripción en tu tienda'
+        "Para pasar de anual a mensual, usa Gestionar suscripción en tu tienda",
       );
       return;
     }
 
     if (this.isPremium && currentPlan === plan) {
       this.showSuccess(
-        plan === 'annual'
-          ? 'Ya tienes el plan anual activo'
-          : 'Ya tienes el plan mensual activo'
+        plan === "annual"
+          ? "Ya tienes el plan anual activo"
+          : "Ya tienes el plan mensual activo",
       );
       return;
     }
 
-    if (plan === 'monthly') {
+    if (plan === "monthly") {
       this.isPurchasingMonthly = true;
     } else {
       this.isPurchasingAnnual = true;
@@ -273,11 +278,11 @@ export class PremiumPage {
 
     try {
       const purchaseIntent: BillingPurchaseIntent = this.isPremium
-        ? 'change_plan'
-        : 'activate';
+        ? "change_plan"
+        : "activate";
       const purchaseResult = await this.billingService.purchasePlan(
         plan,
-        purchaseIntent
+        purchaseIntent,
       );
       if (!purchaseResult.customerInfo) {
         await this.handleFailedPurchaseResult(purchaseResult, purchaseIntent);
@@ -287,7 +292,7 @@ export class PremiumPage {
       const entitlements =
         await this.billingService.syncEntitlementsWithBackend(
           purchaseResult.customerInfo,
-          plan
+          plan,
         );
 
       if (!entitlements) {
@@ -297,16 +302,16 @@ export class PremiumPage {
 
       if (entitlements.isPremium) {
         if (wasPremiumBeforePurchase) {
-          this.showSuccess('Plan actualizado correctamente');
+          this.showSuccess("Plan actualizado correctamente");
         } else {
-          this.showSuccess('Pro activado correctamente');
+          this.showSuccess("Pro activado correctamente");
         }
       } else {
-        this.showError('La compra no activó Pro. Prueba Restaurar compras');
+        this.showError("La compra no activó Pro. Prueba Restaurar compras");
       }
     } catch (error) {
-      console.error('Premium purchase error', error);
-      this.showError('Error durante la compra');
+      console.error("Premium purchase error", error);
+      this.showError("Error durante la compra");
     } finally {
       this.isPurchasingMonthly = false;
       this.isPurchasingAnnual = false;
@@ -321,8 +326,8 @@ export class PremiumPage {
     }
 
     this.isLoading = true;
-    this.monthlyPriceLabel = 'Cargando...';
-    this.annualPriceLabel = 'Cargando...';
+    this.monthlyPriceLabel = "Cargando...";
+    this.annualPriceLabel = "Cargando...";
     try {
       const [offering, entitlements] = await Promise.all([
         this.isNativeBillingAvailable
@@ -334,9 +339,9 @@ export class PremiumPage {
       this.entitlements = entitlements;
       this.isPremium = Boolean(entitlements?.isPremium);
       this.monthlyPriceLabel =
-        offering?.monthly?.product?.priceString || 'No disponible';
+        offering?.monthly?.product?.priceString || "No disponible";
       this.annualPriceLabel =
-        offering?.annual?.product?.priceString || 'No disponible';
+        offering?.annual?.product?.priceString || "No disponible";
     } finally {
       this.isLoading = false;
     }
@@ -348,7 +353,7 @@ export class PremiumPage {
     }
 
     this.showError(
-      'Las compras in-app solo estan disponibles en la app instalada (Android/iOS)'
+      "Las compras in-app solo estan disponibles en la app instalada (Android/iOS)",
     );
     return false;
   }
@@ -357,7 +362,7 @@ export class PremiumPage {
     this.ionicUtilService.showToast({
       message,
       duration: 1500,
-      color: 'success',
+      color: "success",
     });
   }
 
@@ -365,22 +370,22 @@ export class PremiumPage {
     this.ionicUtilService.showToast({
       message,
       duration: 1800,
-      color: 'danger',
+      color: "danger",
     });
   }
 
   private async showSyncWarningAlert(): Promise<void> {
     const alertOptions: AlertOptions = {
-      header: 'Compra detectada',
+      header: "Compra detectada",
       message:
-        'No se pudo sincronizar premium con el backend. Pulsa Restaurar compras para completar la activacion.',
+        "No se pudo sincronizar premium con el backend. Pulsa Restaurar compras para completar la activacion.",
       buttons: [
         {
-          text: 'Cerrar',
-          role: 'cancel',
+          text: "Cerrar",
+          role: "cancel",
         },
         {
-          text: 'Restaurar compras',
+          text: "Restaurar compras",
           handler: () => {
             void this.restorePurchases();
           },
@@ -392,14 +397,14 @@ export class PremiumPage {
 
   private async handleFailedPurchaseResult(
     purchaseResult: BillingPurchaseResult,
-    purchaseIntent: BillingPurchaseIntent
+    purchaseIntent: BillingPurchaseIntent,
   ): Promise<void> {
     if (purchaseResult.error?.userCancelled) {
-      this.showError('Compra cancelada');
+      this.showError("Compra cancelada");
       return;
     }
 
-    const isChangePlan = purchaseIntent === 'change_plan';
+    const isChangePlan = purchaseIntent === "change_plan";
 
     // Fix: al fallar un cambio de plan, abrir gestión nativa directamente
     // en lugar de mostrar un alert — Google Play ya mostrará la UI correcta
@@ -408,25 +413,27 @@ export class PremiumPage {
       return;
     }
 
-    const purchaseCode = String(purchaseResult.error?.code || '').toUpperCase();
+    const purchaseCode = String(purchaseResult.error?.code || "").toUpperCase();
     if (
-      this.platform === 'ios' &&
-      (purchaseCode === 'NO_OFFERING' || purchaseCode === 'PACKAGE_NOT_AVAILABLE')
+      this.platform === "ios" &&
+      (purchaseCode === "NO_OFFERING" ||
+        purchaseCode === "PACKAGE_NOT_AVAILABLE")
     ) {
       await this.openPaywall();
       return;
     }
 
     const alertOptions: AlertOptions = {
-      header: 'No se pudo activar Pro',
-      message: 'Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.',
+      header: "No se pudo activar Pro",
+      message:
+        "Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.",
       buttons: [
         {
-          text: 'Cerrar',
-          role: 'cancel',
+          text: "Cerrar",
+          role: "cancel",
         },
         {
-          text: 'Gestionar',
+          text: "Gestionar",
           handler: () => {
             void this.openManageSubscription();
           },
@@ -440,29 +447,29 @@ export class PremiumPage {
     try {
       await Browser.open({ url });
     } catch (error) {
-      console.error('Open legal link error', error);
-      this.showError('No se pudo abrir el enlace');
+      console.error("Open legal link error", error);
+      this.showError("No se pudo abrir el enlace");
     }
   }
 
-  private getNormalizedCurrentPlan(): 'monthly' | 'annual' | null {
-    const rawPlan = String(this.entitlements?.plan || '')
+  private getNormalizedCurrentPlan(): "monthly" | "annual" | null {
+    const rawPlan = String(this.entitlements?.plan || "")
       .trim()
       .toLowerCase();
 
     if (
-      rawPlan === 'monthly' ||
-      rawPlan.includes('month') ||
-      rawPlan.includes('mensual')
+      rawPlan === "monthly" ||
+      rawPlan.includes("month") ||
+      rawPlan.includes("mensual")
     ) {
-      return 'monthly';
+      return "monthly";
     }
     if (
-      rawPlan === 'annual' ||
-      rawPlan.includes('year') ||
-      rawPlan.includes('anual')
+      rawPlan === "annual" ||
+      rawPlan.includes("year") ||
+      rawPlan.includes("anual")
     ) {
-      return 'annual';
+      return "annual";
     }
     return null;
   }

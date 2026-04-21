@@ -281,12 +281,27 @@ ion-app.dark {
     text-transform: none;
     letter-spacing: normal;
   }
+  
+  .previous-subtitle-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: -1px;
+  }
 
-  .previous-date-text {
-    font-size: 0.75rem;
+  .previous-subtitle-text {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--ion-color-medium);
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .previous-subtitle-date {
+    font-size: 0.72rem;
     font-weight: 300;
     color: var(--ion-color-medium);
-    opacity: 0.7;
+    opacity: 0.6;
   }
 
   .nav-arrow-btn {

@@ -147,9 +147,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public getMicrocycleLabel(): string {
-    return `Microciclo ${this.historicalSplitIndex + 1} / ${
-      this.currentSplitIndex
-    }`;
+    return `Microciclo ${this.historicalSplitIndex + 1}`;
   }
 
   public openSetManager(): void {
