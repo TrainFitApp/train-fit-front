@@ -509,13 +509,9 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         { text: '1 mes', data: { type: 'preset', value: '1m' } },
         { text: '1 ano', data: { type: 'preset', value: '1y' } },
         { text: 'Fecha personalizada', role: 'custom' },
-        { text: 'Cancelar', role: 'cancel' },
       ],
     });
 
-    if (response?.role === 'cancel') {
-      return null;
-    }
 
     if (response?.role === 'custom') {
       return this.pickCustomExpirationDate();
