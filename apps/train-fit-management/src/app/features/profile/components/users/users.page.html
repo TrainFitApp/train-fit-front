@@ -78,27 +78,19 @@
         <div class="user-accordion-content" slot="content">
           <div class="user-details-grid">
             <!-- Premium Action -->
-            <div class="detail-item premium-admin-card"
-              [class.detail-item--actionable]="!isPremiumUser(user) && !isPremiumActionRunning(user)"
+            <div class="detail-item premium-admin-card" [class.detail-item--actionable]="!isPremiumActionRunning(user)"
               [class.is-disabled]="isPremiumActionRunning(user)"
-              (click)="!isPremiumUser(user) && !isPremiumActionRunning(user) && confirmGrantPremium(user)">
+              (click)="!isPremiumActionRunning(user) && openPremiumDetails(user)">
               <ion-icon
                 [name]="isPremiumActionRunning(user) ? 'hourglass-outline' : isPremiumUser(user) ? 'diamond-outline' : 'lock-closed-outline'"
                 class="detail-icon" [class.var-primary]="!isPremiumUser(user)"
                 [class.var-accent]="isPremiumUser(user)"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Premium</span>
-                <span class="detail-value">{{ getPremiumStatusLabel(user) }}</span>
-                <div class="premium-actions" *ngIf="!isStorePremiumUser(user)">
-                  <ion-button *ngIf="isManualPremiumUser(user)" size="small" color="primary" fill="outline"
-                    [disabled]="isPremiumActionRunning(user)" (click)="confirmExtendPremium(user)">
-                    Extender
-                  </ion-button>
-                  <ion-button *ngIf="isManualPremiumUser(user)" size="small" color="danger" fill="clear"
-                    [disabled]="isPremiumActionRunning(user)" (click)="confirmRevokePremium(user)">
-                    Revocar
-                  </ion-button>
-                </div>
+                <span class="detail-value">{{ isPremiumUser(user) ? 'Pro' : 'Sin Pro' }}</span>
+                <span class="detail-action-link" *ngIf="!isPremiumActionRunning(user)">
+                  {{ isPremiumUser(user) ? 'Ver detalle' : 'Activar Pro' }}
+                </span>
               </div>
             </div>
 
@@ -118,22 +110,21 @@
               <ion-icon name="fitness-outline" class="detail-icon var-accent"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Workout Actual</span>
-                <span class="detail-value">{{ user.hasWorkoutInUse ? 'Sí' : 'No' }}</span>
+                <span class="detail-value">{{ (user.hasWorkoutInUse || user.workoutInUse) ? 'Sí' : 'No' }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="list-outline" class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Rutina Activa</span>
-                <span class="detail-value">{{ user.hasTableInUse ? (user.tableSplitsCount ? user.tableSplitsCount + '
-                  splits' : 'Sí') : 'No' }}</span>
+                <span class="detail-value">{{ (user.hasTableInUse || user.tableInUse) ? (user.tableSplitsCount ? user.tableSplitsCount + ' splits' : 'Sí') : 'No' }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="fast-food-outline" class="detail-icon var-tertiary"></ion-icon>
               <div class="detail-texts">
                 <span class="detail-title">Días Dieta</span>
-                <span class="detail-value">{{ user.hasDietInUse ? (user.dietDaysCount || 'Sí') : 'No' }}</span>
+                <span class="detail-value">{{ (user.hasDietInUse || user.dietInUse) ? (user.dietDaysCount || 'Sí') : 'No' }}</span>
               </div>
             </div>
             <div class="detail-item">

@@ -216,7 +216,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Revocar Pro manual',
+      header: 'Revocar',
       message: `Seguro que quieres revocar el Pro manual a ${this.getUserFullName(user)}?`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -250,6 +250,52 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     this.clearUserHash(user);
+  }
+
+  public async openPremiumDetails(user: DashboardUser): Promise<void> {
+    if (!user?._id || this.isPremiumActionRunning(user)) {
+      return;
+    }
+
+    if (!this.isPremiumUser(user)) {
+      return this.confirmGrantPremium(user);
+    }
+
+    const statusLabel = this.getPremiumStatusLabel(user);
+    const isManual = this.isManualPremiumUser(user);
+
+    const buttons: any[] = [
+      {
+        text: 'Cerrar',
+        role: 'cancel',
+      },
+    ];
+
+    if (isManual) {
+      buttons.push(
+        {
+          text: 'Revocar',
+          role: 'destructive',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.confirmRevokePremium(user);
+          },
+        },
+        {
+          text: 'Extender Pro',
+          handler: () => {
+            this.confirmExtendPremium(user);
+          },
+        }
+      );
+    }
+
+    await this.ionicUtilService.showAlert({
+      header: 'Detalle Suscripción Pro',
+      message: `Estado: ${statusLabel}`,
+      cssClass: 'premium-details-alert',
+      buttons: buttons,
+    });
   }
 
   public clearPremiumFilter(): void {
