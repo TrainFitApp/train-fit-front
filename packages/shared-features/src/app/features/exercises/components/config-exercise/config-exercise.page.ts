@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
+import { Component, OnInit } from "@angular/core";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { DomSanitizer } from "@angular/platform-browser";
 import {
   AlertButton,
   AlertInput,
@@ -11,45 +11,45 @@ import {
   Platform,
   ToastController,
   ToastOptions,
-} from '@ionic/angular';
-import { Subscription, lastValueFrom } from 'rxjs';
-import { CustomExercise } from 'src/app/core/models/customExercise';
-import { Exercise } from 'src/app/core/models/exercise';
-import { Set as ExerciseSet } from 'src/app/core/models/set';
-import { Split } from 'src/app/core/models/split';
-import { Table } from 'src/app/core/models/table';
-import { User } from 'src/app/core/models/user';
-import { Workout } from 'src/app/core/models/workout';
-import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
-import { SetService } from 'src/app/core/services/set/set.service';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
-import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
+} from "@ionic/angular";
+import { Subscription, lastValueFrom } from "rxjs";
+import { CustomExercise } from "src/app/core/models/customExercise";
+import { Exercise } from "src/app/core/models/exercise";
+import { Set as ExerciseSet } from "src/app/core/models/set";
+import { Split } from "src/app/core/models/split";
+import { Table } from "src/app/core/models/table";
+import { User } from "src/app/core/models/user";
+import { Workout } from "src/app/core/models/workout";
+import { CustomExerciseService } from "src/app/core/services/custom-exercise/custom-exercise.service";
+import { SetService } from "src/app/core/services/set/set.service";
+import { TableService } from "src/app/core/services/table/table.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { UtilService } from "src/app/core/services/util/util.service";
+import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { ManageSetComponent } from "src/app/features/tables/components/summary/components/manage-set/manage-set.component";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
 
-import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
-import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
-import { SearchFilterGroupExercises } from 'src/app/shared/models/filterGroup';
-import { FilterInputPage } from 'src/app/shared/components/filter-input/filter-input.page';
+import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
+import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
+import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
+import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
 
 @Component({
-  selector: 'app-config-exercise',
-  templateUrl: './config-exercise.page.html',
-  styleUrls: ['./config-exercise.page.scss'],
+  selector: "app-config-exercise",
+  templateUrl: "./config-exercise.page.html",
+  styleUrls: ["./config-exercise.page.scss"],
 })
 export class ConfigExercisePage implements OnInit {
   public muscleGroups: string[] = [
-    'Espalda',
-    'Pecho',
-    'Pierna',
-    'Hombros',
-    'Brazos',
-    'Abdominales',
+    "Espalda",
+    "Pecho",
+    "Pierna",
+    "Hombros",
+    "Brazos",
+    "Abdominales",
   ];
 
   public tableInUse: Table;
@@ -98,14 +98,14 @@ export class ConfigExercisePage implements OnInit {
   public videoEmbedSrcSafe: any;
 
   public isCreateMode: boolean;
-  public exerciseMode: 'fuerza' | 'cardio' = 'fuerza';
+  public exerciseMode: "fuerza" | "cardio" = "fuerza";
   public isEditingOwnExercise: boolean = false;
 
   public showFilters: boolean = true;
   public isOwnExercise: boolean = false;
 
   private originalNotes: string;
-  private originalExerciseMode: 'fuerza' | 'cardio' = 'fuerza';
+  private originalExerciseMode: "fuerza" | "cardio" = "fuerza";
   private originalDetails: {
     category: string[];
     muscleGroups1: string[];
@@ -114,52 +114,52 @@ export class ConfigExercisePage implements OnInit {
   };
 
   public filterCategories = [
-    'Cardio',
-    'Empujes',
-    'Tirón horizontal',
-    'Tirón vertical',
-    'Cadena posterior',
-    'Cadena anterior',
-    'Tren inferior',
-    'Torso/Tren superior',
+    "Cardio",
+    "Empujes",
+    "Tirón horizontal",
+    "Tirón vertical",
+    "Cadena posterior",
+    "Cadena anterior",
+    "Tren inferior",
+    "Torso/Tren superior",
   ];
 
   public filterMuscleGroup1: string[] = [
-    'Brazos',
-    'Bíceps',
-    'Tríceps',
-    'Antebrazo',
-    'Hombro',
-    'Deltoides anterior',
-    'Deltoides lateral',
-    'Deltoides posterior',
-    'Pectoral',
-    'Pectoral superior',
-    'Pectoral inferior',
-    'Abdomen',
-    'Cuello',
-    'Espalda',
-    'Espalda alta',
-    'Espalda baja',
-    'Piernas',
-    'Cuádriceps',
-    'Aductor',
-    'Femoral',
-    'Glúteo',
-    'Gemelo',
-    'Sóleo',
+    "Brazos",
+    "Bíceps",
+    "Tríceps",
+    "Antebrazo",
+    "Hombro",
+    "Deltoides anterior",
+    "Deltoides lateral",
+    "Deltoides posterior",
+    "Pectoral",
+    "Pectoral superior",
+    "Pectoral inferior",
+    "Abdomen",
+    "Cuello",
+    "Espalda",
+    "Espalda alta",
+    "Espalda baja",
+    "Piernas",
+    "Cuádriceps",
+    "Aductor",
+    "Femoral",
+    "Glúteo",
+    "Gemelo",
+    "Sóleo",
   ];
 
   public filterEquipment: string[] = [
-    'Barra',
-    'Mancuernas',
-    'Polea',
-    'Peso corporal',
-    'Kettlebell',
-    'Maquina',
-    'Maquina smith/multipower',
-    'Disco',
-    'Banda elástica',
+    "Barra",
+    "Mancuernas",
+    "Polea",
+    "Peso corporal",
+    "Kettlebell",
+    "Maquina",
+    "Maquina smith/multipower",
+    "Disco",
+    "Banda elástica",
   ];
 
   private _idExerciseToAdd: string;
@@ -180,7 +180,7 @@ export class ConfigExercisePage implements OnInit {
     private sanitizer: DomSanitizer,
     private adMobService: AdMobService,
     private billingService: BillingService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
   ) {}
 
   public ngOnInit(): void {
@@ -203,14 +203,14 @@ export class ConfigExercisePage implements OnInit {
     } else if (this.customExercise && this.customExercise.exercise) {
       this.videoUrl = this.customExercise.exercise.videoUrl;
     } else {
-      this.videoUrl = '';
+      this.videoUrl = "";
     }
     this.updateVideoEmbedSrc();
 
     // Initialize details from current exercise
     const baseExercise = this.exercise || this.customExercise?.exercise;
     if (baseExercise) {
-      this.exerciseMode = baseExercise.isCardio ? 'cardio' : 'fuerza';
+      this.exerciseMode = baseExercise.isCardio ? "cardio" : "fuerza";
       this.originalExerciseMode = this.exerciseMode;
       this.syncDetailsFromExercise(baseExercise);
 
@@ -241,17 +241,17 @@ export class ConfigExercisePage implements OnInit {
   }
 
   private parseYouTubeIdFromUrl(url: string): string {
-    if (!url) return '';
-    if (url.includes('youtube.com/watch?v=')) {
-      return url.split('v=')[1]?.split('&')[0] || '';
+    if (!url) return "";
+    if (url.includes("youtube.com/watch?v=")) {
+      return url.split("v=")[1]?.split("&")[0] || "";
     }
-    if (url.includes('youtu.be/')) {
-      return url.split('youtu.be/')[1]?.split('?')[0] || '';
+    if (url.includes("youtu.be/")) {
+      return url.split("youtu.be/")[1]?.split("?")[0] || "";
     }
-    if (url.includes('youtube.com/embed/')) {
-      return url.split('embed/')[1]?.split('?')[0] || '';
+    if (url.includes("youtube.com/embed/")) {
+      return url.split("embed/")[1]?.split("?")[0] || "";
     }
-    return '';
+    return "";
   }
 
   private updateVideoEmbedSrc(): void {
@@ -303,14 +303,14 @@ export class ConfigExercisePage implements OnInit {
       exerciseConfig.sets = [];
       exerciseConfig.exercise = {
         _id: undefined,
-        name: '',
-        description: '',
-        videoUrl: '',
+        name: "",
+        description: "",
+        videoUrl: "",
         muscleGroups1: [],
         muscleGroups2: [],
         category: [],
         equipment: [],
-        gifUrl: '',
+        gifUrl: "",
         isCardio: false,
         userId: this.user?._id,
       } as Exercise;
@@ -320,7 +320,7 @@ export class ConfigExercisePage implements OnInit {
 
     this.form = new FormGroup({
       name: new FormControl(exerciseConfig.exercise.name, Validators.required),
-      description: new FormControl(exerciseConfig.exercise.description || ''),
+      description: new FormControl(exerciseConfig.exercise.description || ""),
     });
   }
 
@@ -348,7 +348,7 @@ export class ConfigExercisePage implements OnInit {
   public changeExercise(): void {
     const baseExercise = this.customExercise?.exercise || this.exercise;
     const currentIsCardio =
-      this.exerciseMode === 'cardio' || !!baseExercise?.isCardio;
+      this.exerciseMode === "cardio" || !!baseExercise?.isCardio;
 
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
@@ -362,13 +362,13 @@ export class ConfigExercisePage implements OnInit {
       if (res.data) {
         if (currentIsCardio !== !!res.data.isCardio) {
           const alertOptions: AlertOptions = {
-            header: 'Advertencia',
+            header: "Advertencia",
             message:
-              'No se puede intercambiar un ejercicio cardiovascular con uno de fuerza',
+              "No se puede intercambiar un ejercicio cardiovascular con uno de fuerza",
             buttons: [
               {
-                text: 'OK',
-                role: 'destructive',
+                text: "OK",
+                role: "destructive",
               },
             ],
           };
@@ -395,19 +395,19 @@ export class ConfigExercisePage implements OnInit {
     else {
       if (this.hasExerciseChanges()) {
         const alertOptions: AlertOptions = {
-          header: 'Cambios sin guardar',
+          header: "Cambios sin guardar",
           message:
-            'Si sales del modo edición se perderán los cambios del ejercicio. ¿Deseas continuar?',
-          cssClass: 'alert-grid-buttons',
+            "Si sales del modo edición se perderán los cambios del ejercicio. ¿Deseas continuar?",
+          cssClass: "alert-grid-buttons",
           buttons: [
             {
-              text: 'CANCELAR',
-              role: 'cancel',
+              text: "CANCELAR",
+              role: "cancel",
             },
             {
-              text: 'NO GUARDAR',
-              role: 'confirm',
-              cssClass: 'alert-button-primary',
+              text: "NO GUARDAR",
+              role: "confirm",
+              cssClass: "alert-button-primary",
               handler: () => {
                 this.revertExerciseChanges();
                 this.isEditingOwnExercise = false;
@@ -453,7 +453,7 @@ export class ConfigExercisePage implements OnInit {
 
     this.form?.patchValue({
       name: baseExercise.name,
-      description: baseExercise.description || '',
+      description: baseExercise.description || "",
     });
     this.form?.markAsPristine();
 
@@ -466,7 +466,7 @@ export class ConfigExercisePage implements OnInit {
 
     this.applyExerciseMode(this.originalExerciseMode);
 
-    this.videoUrl = baseExercise.videoUrl || '';
+    this.videoUrl = baseExercise.videoUrl || "";
     this.updateVideoEmbedSrc();
     this.exerciseChanged = false;
   }
@@ -486,12 +486,12 @@ export class ConfigExercisePage implements OnInit {
 
     this.load = false;
     const payload: Partial<Exercise> = {
-      name: this.form.get('name')?.value?.trim() || currentExercise.name,
+      name: this.form.get("name")?.value?.trim() || currentExercise.name,
       description:
-        this.form.get('description')?.value?.trim() ||
+        this.form.get("description")?.value?.trim() ||
         currentExercise.description ||
-        '',
-      videoUrl: this.videoUrl || currentExercise.videoUrl || '',
+        "",
+      videoUrl: this.videoUrl || currentExercise.videoUrl || "",
       category: this.details.category?.length
         ? this.details.category
         : Array.isArray(currentExercise.category)
@@ -511,13 +511,13 @@ export class ConfigExercisePage implements OnInit {
       userId: currentExercise.userId || this.user?._id,
     };
 
-    if (this.exerciseMode === 'cardio') {
+    if (this.exerciseMode === "cardio") {
       payload.isCardio = true;
     }
 
     try {
       const updatedExercise = await lastValueFrom(
-        this.exerciseService.updateExercise(currentExercise._id, payload)
+        this.exerciseService.updateExercise(currentExercise._id, payload),
       );
 
       const mergedExercise: Exercise = {
@@ -526,7 +526,7 @@ export class ConfigExercisePage implements OnInit {
         ...(updatedExercise || {}),
       };
 
-      if (this.exerciseMode !== 'cardio') {
+      if (this.exerciseMode !== "cardio") {
         delete (mergedExercise as any).isCardio;
       } else {
         mergedExercise.isCardio = true;
@@ -570,8 +570,8 @@ export class ConfigExercisePage implements OnInit {
       }
 
       this.form.patchValue({
-        name: mergedExercise.name || '',
-        description: mergedExercise.description || '',
+        name: mergedExercise.name || "",
+        description: mergedExercise.description || "",
       });
 
       this.details.category = Array.isArray(mergedExercise.category)
@@ -585,7 +585,7 @@ export class ConfigExercisePage implements OnInit {
 
       this.isEditingOwnExercise = false;
       const toastOptions: ToastOptions = {
-        message: 'Ejercicio actualizado con éxito',
+        message: "Ejercicio actualizado con éxito",
         duration: 1800,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -605,14 +605,14 @@ export class ConfigExercisePage implements OnInit {
     // Actualizar formulario con los datos del nuevo ejercicio
     this.form?.patchValue({
       name: exercise.name,
-      description: exercise.description || '',
+      description: exercise.description || "",
     });
 
     // Sincronizar detalles (músculos, categorías, equipamiento)
     this.syncDetailsFromExercise(exercise);
 
     // Sincronizar el modo (fuerza/cardio)
-    this.exerciseMode = exercise.isCardio ? 'cardio' : 'fuerza';
+    this.exerciseMode = exercise.isCardio ? "cardio" : "fuerza";
 
     // Recalcular propiedad y modo edición
     this.isOwnExercise = exercise?.userId === this.user?._id;
@@ -648,11 +648,11 @@ export class ConfigExercisePage implements OnInit {
         const setConfig: ExerciseSet = res.data;
         // Añadir nueva serie
         const indexSet = this.setList.findIndex(
-          (setTemp) => setTemp._id === setConfig._id
+          (setTemp) => setTemp._id === setConfig._id,
         );
 
         if (indexSet < 0) {
-          setConfig._id = --this.idCounter + '';
+          setConfig._id = --this.idCounter + "";
           setConfig.order = this.setList ? this.setList.length : 0;
           if ((setConfig as any).displayOrder == null) {
             (setConfig as any).displayOrder = this.nextDisplayOrder++;
@@ -671,13 +671,13 @@ export class ConfigExercisePage implements OnInit {
           this.setList[indexSet] = { ...setConfig };
 
           const indexCreateSet = this.setsToCreate.findIndex(
-            (setTemp) => setTemp._id === setConfig._id
+            (setTemp) => setTemp._id === setConfig._id,
           );
           if (indexCreateSet !== -1)
             this.setsToCreate[indexCreateSet] = { ...setConfig };
 
           const indexUpdateSet = this.setsToUpdate.findIndex(
-            (setTemp) => setTemp._id === setConfig._id
+            (setTemp) => setTemp._id === setConfig._id,
           );
           // REVISAR ELSE IF
           if (indexUpdateSet !== -1)
@@ -694,7 +694,7 @@ export class ConfigExercisePage implements OnInit {
     const index = this.setList.findIndex((setTemp) => setTemp._id === set._id);
     if (index !== -1) {
       const setCopy = { ...set };
-      setCopy._id = --this.idCounter + '';
+      setCopy._id = --this.idCounter + "";
       (setCopy as any).displayOrder = this.nextDisplayOrder++;
       this.setList.splice(index + 1, 0, setCopy);
       this.setsToCreate.push(setCopy);
@@ -704,17 +704,27 @@ export class ConfigExercisePage implements OnInit {
 
   public async addCustomExercise(): Promise<void> {
     // Prevent saving without a valid name
-    if (this.form?.invalid || !this.form?.get('name')?.value?.trim()) {
+    if (this.form?.invalid || !this.form?.get("name")?.value?.trim()) {
       return Promise.resolve();
     }
 
     if (this.isCreateMode) {
       const entitlements = this.billingService.getCachedEntitlements();
-      if (entitlements && entitlements.remaining.customExercises !== null && entitlements.remaining.customExercises <= 0) {
+      if (
+        entitlements &&
+        entitlements.remaining.customExercises !== null &&
+        entitlements.remaining.customExercises <= 0
+      ) {
         const toastOptions: ToastOptions = {
-          message: 'Has alcanzado el límite de ejercicios propios. Activa Premium para crear más.',
+          message:
+            "Has alcanzado el límite de ejercicios propios. Activa Pro para crear más.",
           duration: 3000,
-          buttons: [{ text: 'Ver Premium', handler: () => this.navigationService.goToPremium() }],
+          buttons: [
+            {
+              text: "Hazte Pro",
+              handler: () => this.navigationService.goToPremium(),
+            },
+          ],
         };
         this.ionicUtilService.showToast(toastOptions);
         return;
@@ -734,9 +744,9 @@ export class ConfigExercisePage implements OnInit {
 
         // Prepare exercise data (backend will create it)
         const exerciseData = {
-          name: this.form.get('name')?.value?.trim(),
-          description: this.form.get('description')?.value?.trim() || '',
-          videoUrl: this.videoUrl || '',
+          name: this.form.get("name")?.value?.trim(),
+          description: this.form.get("description")?.value?.trim() || "",
+          videoUrl: this.videoUrl || "",
           muscleGroups1: this.details.muscleGroups1?.length
             ? this.details.muscleGroups1
             : this.exercise.muscleGroups1 || [],
@@ -757,7 +767,7 @@ export class ConfigExercisePage implements OnInit {
           userId: this.user._id,
         };
 
-        if (this.exerciseMode === 'cardio') {
+        if (this.exerciseMode === "cardio") {
           (exerciseData as any).isCardio = true;
         }
 
@@ -792,7 +802,7 @@ export class ConfigExercisePage implements OnInit {
                 otherPromises.push(
                   this.workoutService
                     .updateWorkout(workoutTemp, customExercise)
-                    .toPromise()
+                    .toPromise(),
                 );
               }
             });
@@ -803,11 +813,11 @@ export class ConfigExercisePage implements OnInit {
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
         this.load = true;
-        this.adMobService.interstitial('create_exercise'); // Estrategia AdMob
+        this.adMobService.interstitial("create_exercise"); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
         return Promise.resolve();
       } catch (error) {
-        console.error('Error creating exercise:', error);
+        console.error("Error creating exercise:", error);
         if (this.handleExerciseLimitError(error)) {
           this.load = true;
           return Promise.resolve();
@@ -830,12 +840,12 @@ export class ConfigExercisePage implements OnInit {
         newCustomExercise.exercise = {
           ...newCustomExercise.exercise,
           name:
-            this.form.get('name')?.value?.trim() ||
+            this.form.get("name")?.value?.trim() ||
             newCustomExercise.exercise.name,
           description:
-            this.form.get('description')?.value?.trim() ||
+            this.form.get("description")?.value?.trim() ||
             newCustomExercise.exercise.description ||
-            '',
+            "",
           category: this.details.category?.length
             ? this.details.category
             : Array.isArray(newCustomExercise.exercise.category)
@@ -866,7 +876,7 @@ export class ConfigExercisePage implements OnInit {
             newCustomExercise,
             this.setsToCreate,
             this.setsToUpdate,
-            this.setsToDelete
+            this.setsToDelete,
           )
           .subscribe((resCustomExercise) => {
             // Ensure local order & displayOrder stay in sync with current UI order
@@ -877,7 +887,7 @@ export class ConfigExercisePage implements OnInit {
             this.customExercise = resCustomExercise;
 
             const indexCustomExercise = this.workout.exercises.findIndex(
-              (exerciseTemp) => exerciseTemp._id === this.customExercise._id
+              (exerciseTemp) => exerciseTemp._id === this.customExercise._id,
             );
             // this.workout.exercises[indexCustomExercise] = this.customExercise;
 
@@ -950,11 +960,11 @@ export class ConfigExercisePage implements OnInit {
       if (this.isEditingOwnExercise && this.exercise) {
         this.exercise = {
           ...this.exercise,
-          name: this.form.get('name')?.value?.trim() || this.exercise.name,
+          name: this.form.get("name")?.value?.trim() || this.exercise.name,
           description:
-            this.form.get('description')?.value?.trim() ||
+            this.form.get("description")?.value?.trim() ||
             this.exercise.description ||
-            '',
+            "",
           category: this.details.category?.length
             ? this.details.category
             : Array.isArray(this.exercise.category)
@@ -989,7 +999,7 @@ export class ConfigExercisePage implements OnInit {
             promises.push(
               this.workoutService
                 .updateWorkout(workoutTemp, customExercise)
-                .toPromise()
+                .toPromise(),
             );
           }
         });
@@ -1055,7 +1065,7 @@ export class ConfigExercisePage implements OnInit {
   }
 
   public async setExerciseMode(mode: any): Promise<void> {
-    if (mode !== 'fuerza' && mode !== 'cardio') {
+    if (mode !== "fuerza" && mode !== "cardio") {
       return;
     }
 
@@ -1065,24 +1075,24 @@ export class ConfigExercisePage implements OnInit {
 
     if (this.setList?.length > 0) {
       const alertOptions: AlertOptions = {
-        header: 'Cambiar tipo de ejercicio',
+        header: "Cambiar tipo de ejercicio",
         message:
-          'Si cambias entre Fuerza y Cardio se eliminarán todas las series configuradas. ¿Deseas continuar?',
+          "Si cambias entre Fuerza y Cardio se eliminarán todas las series configuradas. ¿Deseas continuar?",
         buttons: [
           {
-            text: 'Cancelar',
-            role: 'cancel',
+            text: "Cancelar",
+            role: "cancel",
           },
           {
-            text: 'Confirmar',
-            role: 'confirm',
-            cssClass: 'alert-button-primary',
+            text: "Confirmar",
+            role: "confirm",
+            cssClass: "alert-button-primary",
           },
         ],
       };
 
       const result = await this.ionicUtilService.showAlert(alertOptions);
-      if (result.role !== 'confirm') {
+      if (result.role !== "confirm") {
         return;
       }
 
@@ -1092,9 +1102,9 @@ export class ConfigExercisePage implements OnInit {
     this.applyExerciseMode(mode);
   }
 
-  private applyExerciseMode(mode: 'fuerza' | 'cardio'): void {
+  private applyExerciseMode(mode: "fuerza" | "cardio"): void {
     this.exerciseMode = mode;
-    const isCardio = mode === 'cardio';
+    const isCardio = mode === "cardio";
 
     if (this.exercise) {
       this.exercise.isCardio = isCardio;
@@ -1122,7 +1132,7 @@ export class ConfigExercisePage implements OnInit {
   public openDetailsModal(): void {
     const modalOptions: ModalOptions = {
       component: FilterInputPage,
-      cssClass: 'mini-modal',
+      cssClass: "mini-modal",
       componentProps: {
         searchFilterGroupExercises: this.details,
         isCreateMode: this.isCreateMode,
@@ -1159,20 +1169,21 @@ export class ConfigExercisePage implements OnInit {
   }
 
   private handleExerciseLimitError(error: any): boolean {
-    if (error?.error?.code !== 'PREMIUM_LIMIT_EXERCISES') {
+    if (error?.error?.code !== "PREMIUM_LIMIT_EXERCISES") {
       return false;
     }
 
     this.ionicUtilService.showAlert({
-      header: 'Límite Free alcanzado',
-      message: 'Has alcanzado el límite de ejercicios propios. Activa Premium para crear más.',
+      header: "Límite Free alcanzado",
+      message:
+        "Has alcanzado el límite de ejercicios propios. Activa Pro para crear más.",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
+          text: "Cancelar",
+          role: "cancel",
         },
         {
-          text: 'Ver Premium',
+          text: "Hazte Pro",
           handler: () => this.navigationService.goToPremium(),
         },
       ],
@@ -1189,12 +1200,12 @@ export class ConfigExercisePage implements OnInit {
         this.tableService.tableInUse._id,
         this.workout._id,
         this.customExercise._id,
-        this._idExerciseToAdd
-      )
+        this._idExerciseToAdd,
+      ),
     ).then((resTable) => {
       this.tableService.setCurrentTable = resTable;
       const toastOptions: ToastOptions = {
-        message: 'Ejercicio sustituido con éxito',
+        message: "Ejercicio sustituido con éxito",
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -1232,9 +1243,9 @@ export class ConfigExercisePage implements OnInit {
         if (this.exerciseArchived)
           this.user.archivedExercises.splice(
             this.user.archivedExercises.findIndex(
-              (archivedExercisesTemp) => archivedExercisesTemp === idExercise
+              (archivedExercisesTemp) => archivedExercisesTemp === idExercise,
             ),
-            1
+            1,
           );
         else this.user.archivedExercises.push(idExercise);
 
@@ -1245,8 +1256,8 @@ export class ConfigExercisePage implements OnInit {
       });
     const toastOptions: ToastOptions = {
       message: this.exerciseArchived
-        ? 'Ejercicio eliminado de favoritos'
-        : 'Ejercicio añadido a favoritos',
+        ? "Ejercicio eliminado de favoritos"
+        : "Ejercicio añadido a favoritos",
       duration: 2000,
     };
     this.ionicUtilService.showToast(toastOptions);
@@ -1259,13 +1270,13 @@ export class ConfigExercisePage implements OnInit {
     else {
       // Comprobar si existen en toCreate y toUpdate
       const indexSetToCreate = this.setsToCreate.findIndex(
-        (setTemp) => setTemp._id === set._id
+        (setTemp) => setTemp._id === set._id,
       );
       if (this.setsToCreate.length > 0 && indexSetToCreate >= 0)
         this.setsToCreate.splice(indexSetToCreate);
 
       const indexSetToUpdate = this.setsToUpdate.findIndex(
-        (setTemp) => setTemp._id === set._id
+        (setTemp) => setTemp._id === set._id,
       );
       if (this.setsToUpdate.length > 0 && indexSetToUpdate >= 0)
         this.setsToUpdate.splice(indexSetToUpdate);
@@ -1287,11 +1298,11 @@ export class ConfigExercisePage implements OnInit {
   public manageNote(): void {
     const alertButtons: AlertButton[] = [
       {
-        text: 'Cancelar',
-        role: 'cancel',
+        text: "Cancelar",
+        role: "cancel",
       },
       {
-        text: 'OK',
+        text: "OK",
         handler: (res) => {
           this.noteToCreate = !!res.notes;
           this.notes = res.notes;
@@ -1300,15 +1311,15 @@ export class ConfigExercisePage implements OnInit {
     ];
     const alertInputs: AlertInput[] = [
       {
-        name: 'notes',
-        type: 'textarea',
+        name: "notes",
+        type: "textarea",
         value: this.notes,
-        placeholder: 'Tus notas...',
+        placeholder: "Tus notas...",
       },
     ];
 
     const alertOptions: AlertOptions = {
-      header: 'Notas',
+      header: "Notas",
       inputs: alertInputs,
       buttons: alertButtons,
     };
@@ -1323,7 +1334,7 @@ export class ConfigExercisePage implements OnInit {
   }
 
   public handleReorder(ev: CustomEvent<ItemReorderEventDetail>): void {
-    console.log('Dragged from index', ev.detail.from, 'to', ev.detail.to);
+    console.log("Dragged from index", ev.detail.from, "to", ev.detail.to);
 
     const element = this.setList[ev.detail.from];
     this.setList.splice(ev.detail.from, 1);
@@ -1374,7 +1385,7 @@ export class ConfigExercisePage implements OnInit {
 
       if (isNaN(Number(setItem._id))) {
         const indexSetToUpdate = this.setsToUpdate.findIndex(
-          (stuTemp) => stuTemp._id === setItem._id
+          (stuTemp) => stuTemp._id === setItem._id,
         );
         if (indexSetToUpdate !== -1) {
           this.setsToUpdate[indexSetToUpdate] = { ...setItem };
@@ -1383,7 +1394,7 @@ export class ConfigExercisePage implements OnInit {
         }
       } else {
         const indexSetToCreate = this.setsToCreate.findIndex(
-          (stuTemp) => stuTemp._id === setItem._id
+          (stuTemp) => stuTemp._id === setItem._id,
         );
         if (indexSetToCreate >= 0) {
           this.setsToCreate[indexSetToCreate] = { ...setItem };
@@ -1412,11 +1423,11 @@ export class ConfigExercisePage implements OnInit {
       compareArrays(this.details.category, this.originalDetails.category) ||
       compareArrays(
         this.details.muscleGroups1,
-        this.originalDetails.muscleGroups1
+        this.originalDetails.muscleGroups1,
       ) ||
       compareArrays(
         this.details.muscleGroups2,
-        this.originalDetails.muscleGroups2
+        this.originalDetails.muscleGroups2,
       ) ||
       compareArrays(this.details.equipment, this.originalDetails.equipment)
     );
@@ -1425,17 +1436,17 @@ export class ConfigExercisePage implements OnInit {
   private checkChanges(): void {
     if (this.hasChanges()) {
       const alertOptions: AlertOptions = {
-        header: 'Cambios sin guardar',
-        message: '¿Quieres guardar los cambios antes de salir?',
-        cssClass: 'alert-grid-buttons',
+        header: "Cambios sin guardar",
+        message: "¿Quieres guardar los cambios antes de salir?",
+        cssClass: "alert-grid-buttons",
         buttons: [
           {
-            text: 'CANCELAR',
-            role: 'cancel',
+            text: "CANCELAR",
+            role: "cancel",
           },
           {
-            text: 'NO GUARDAR',
-            role: 'destructive',
+            text: "NO GUARDAR",
+            role: "destructive",
             handler: () => {
               // Revertir cambios locales si es necesario
               if (this.customExercise) {
@@ -1449,8 +1460,8 @@ export class ConfigExercisePage implements OnInit {
             },
           },
           {
-            text: 'GUARDAR',
-            cssClass: 'alert-button-confirm',
+            text: "GUARDAR",
+            cssClass: "alert-button-confirm",
             handler: async () => {
               await this.saveFromHeaderBack();
             },
@@ -1487,7 +1498,7 @@ export class ConfigExercisePage implements OnInit {
   private initializeBackButtonCustomHandler(): void {
     this.backButton$ = this.platform.backButton.subscribeWithPriority(
       9999,
-      () => this.checkChanges()
+      () => this.checkChanges(),
     );
   }
 
@@ -1517,7 +1528,7 @@ export class ConfigExercisePage implements OnInit {
         next: (response: { isFavorite: boolean; message?: string }) => {
           const isFavorite = !!response?.isFavorite;
           const favoriteSet = new globalThis.Set<string>(
-            this.user.archivedExercises
+            this.user.archivedExercises,
           );
 
           if (isFavorite) {
@@ -1531,7 +1542,7 @@ export class ConfigExercisePage implements OnInit {
           this.isFavoritingExercise = false;
         },
         error: (err) => {
-          console.error('Error adding exercise to favorites:', err);
+          console.error("Error adding exercise to favorites:", err);
           this.isFavoritingExercise = false;
         },
       });
@@ -1544,33 +1555,33 @@ export class ConfigExercisePage implements OnInit {
 
     const impact = this.getExerciseDeleteImpact(currentExerciseObj._id);
     const impactLines: string[] = [
-      'Se eliminará permanentemente este ejercicio creado por ti.',
-      'También se borrarán todas sus series y de todos los lugares donde se use.',
-      'Se quitará automáticamente de favoritos y de cualquier entrenamiento/microciclo donde aparezca.',
+      "Se eliminará permanentemente este ejercicio creado por ti.",
+      "También se borrarán todas sus series y de todos los lugares donde se use.",
+      "Se quitará automáticamente de favoritos y de cualquier entrenamiento/microciclo donde aparezca.",
     ];
 
     if (impact.occurrences > 0) {
       impactLines.push(
         `En tu rutina actual afecta a ${impact.occurrences} instancia${
-          impact.occurrences === 1 ? '' : 's'
+          impact.occurrences === 1 ? "" : "s"
         }, ${impact.workouts} entrenamiento${
-          impact.workouts === 1 ? '' : 's'
-        } y ${impact.splits} micro-ciclo${impact.splits === 1 ? '' : 's'}.`
+          impact.workouts === 1 ? "" : "s"
+        } y ${impact.splits} micro-ciclo${impact.splits === 1 ? "" : "s"}.`,
       );
     }
 
     const alertOptions: any = {
-      header: 'Eliminar ejercicio',
-      message: impactLines.join(' '),
+      header: "Eliminar ejercicio",
+      message: impactLines.join(" "),
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: "CANCELAR",
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: 'ELIMINAR',
-          role: 'destructive',
+          text: "ELIMINAR",
+          role: "destructive",
           handler: () => {
             this.exerciseService
               .deleteExercise(currentExerciseObj._id)
@@ -1579,7 +1590,7 @@ export class ConfigExercisePage implements OnInit {
                   if (this.user?.archivedExercises) {
                     this.user.archivedExercises =
                       this.user.archivedExercises.filter(
-                        (id) => id !== currentExerciseObj._id
+                        (id) => id !== currentExerciseObj._id,
                       );
                   }
 
@@ -1594,7 +1605,7 @@ export class ConfigExercisePage implements OnInit {
                           const originalLength = w.exercises.length;
                           w.exercises = w.exercises.filter((ce: any) => {
                             const exerciseId =
-                              typeof ce?.exercise === 'string'
+                              typeof ce?.exercise === "string"
                                 ? ce.exercise
                                 : ce?.exercise?._id;
 
@@ -1614,7 +1625,7 @@ export class ConfigExercisePage implements OnInit {
                   }
 
                   this.ionicUtilService.showToast({
-                    message: 'Ejercicio eliminado',
+                    message: "Ejercicio eliminado",
                     duration: 2000,
                   });
 
@@ -1631,7 +1642,7 @@ export class ConfigExercisePage implements OnInit {
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: 'No se pudo eliminar el ejercicio',
+                    message: "No se pudo eliminar el ejercicio",
                     duration: 2500,
                   });
                 },
@@ -1688,4 +1699,3 @@ export class ConfigExercisePage implements OnInit {
     };
   }
 }
-

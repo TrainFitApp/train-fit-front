@@ -1,47 +1,47 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { ToastController, Platform, IonContent } from '@ionic/angular';
-import { Subject, takeUntil, forkJoin, firstValueFrom } from 'rxjs';
-import { CustomProduct } from 'src/app/core/models/customProduct';
-import { IProduct } from 'src/app/core/models/product';
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
+import { ToastController, Platform, IonContent } from "@ionic/angular";
+import { Subject, takeUntil, forkJoin, firstValueFrom } from "rxjs";
+import { CustomProduct } from "src/app/core/models/customProduct";
+import { IProduct } from "src/app/core/models/product";
 import {
   CustomRecipeInstance,
   CreateCustomRecipeInstanceDTO,
   UpdateCustomRecipeInstanceDTO,
-} from 'src/app/core/models/customRecipeInstance';
-import { DataRecipe } from 'src/app/core/models/dataRecipe';
-import { DietDay } from 'src/app/core/models/dietDay';
-import { Meal } from 'src/app/core/models/meal';
-import { Recipe } from 'src/app/core/models/recipe';
-import { User } from 'src/app/core/models/user';
-import { CustomRecipeInstanceApiService } from 'src/app/core/services/custom-recipe-instance/custom-recipe-instance-api.service';
-import { DataRecipeService } from 'src/app/core/services/data-recipe/data-recipe.service';
-import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { DietDayAPIService } from 'src/app/core/services/diet-day/diet-day-api.service';
-import { MealService } from 'src/app/core/services/meal/meal.service';
-import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { fadeIn } from 'src/app/shared/animations/fade';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+} from "src/app/core/models/customRecipeInstance";
+import { DataRecipe } from "src/app/core/models/dataRecipe";
+import { DietDay } from "src/app/core/models/dietDay";
+import { Meal } from "src/app/core/models/meal";
+import { Recipe } from "src/app/core/models/recipe";
+import { User } from "src/app/core/models/user";
+import { CustomRecipeInstanceApiService } from "src/app/core/services/custom-recipe-instance/custom-recipe-instance-api.service";
+import { DataRecipeService } from "src/app/core/services/data-recipe/data-recipe.service";
+import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
+import { DietDayAPIService } from "src/app/core/services/diet-day/diet-day-api.service";
+import { MealService } from "src/app/core/services/meal/meal.service";
+import { RecipeService } from "src/app/core/services/recipe/recipe.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { fadeIn } from "src/app/shared/animations/fade";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 
-export type ConfigRecipeMode = 'create' | 'add' | 'edit';
+export type ConfigRecipeMode = "create" | "add" | "edit";
 
 @Component({
-  selector: 'app-config-recipe',
-  templateUrl: './config-recipe.page.html',
-  styleUrls: ['./config-recipe.page.scss'],
+  selector: "app-config-recipe",
+  templateUrl: "./config-recipe.page.html",
+  styleUrls: ["./config-recipe.page.scss"],
   animations: [fadeIn],
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
-  @ViewChild('quantityInput') quantityInput: any;
-  @ViewChild('nameInput') nameInput: any;
-  @ViewChild('descInput') descInput: any;
+  @ViewChild("quantityInput") quantityInput: any;
+  @ViewChild("nameInput") nameInput: any;
+  @ViewChild("descInput") descInput: any;
   @ViewChild(IonContent) ionContent: IonContent | undefined;
 
-  public mode: ConfigRecipeMode = 'create';
+  public mode: ConfigRecipeMode = "create";
   public recipeForm: FormGroup;
   public recipe: Recipe | null = null;
   public ingredients: CustomProduct[] = [];
@@ -55,8 +55,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public weightExplainerExpanded = false;
   public editInfoMode = false;
   public showDescriptionDetails = false;
-  private originalName = '';
-  private originalDesc = '';
+  private originalName = "";
+  private originalDesc = "";
   private successfulSave = false;
   private recipeInfoEdited = false;
   public calculatedMacros = {
@@ -75,7 +75,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   };
 
   private destroy$ = new Subject<void>();
-  private returnUrl: string = '/search-foods';
+  private returnUrl: string = "/search-foods";
   private backButton$: any;
   private routeState: any = {};
   private ingredientsInitialized = false;
@@ -95,7 +95,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private toastCtrl: ToastController,
     private platform: Platform,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
   ) {
     this.user = this.userService.getLocalUser;
     this.initForm();
@@ -111,7 +111,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // CRITICAL: Restore mode from tempData if returning from search-foods
     const savedMode =
-      this.navigationService.getTempData<ConfigRecipeMode>('configRecipeMode');
+      this.navigationService.getTempData<ConfigRecipeMode>("configRecipeMode");
     if (savedMode) {
       this.mode = savedMode;
       // Don't clear yet - keep it for potential re-entries
@@ -120,14 +120,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     // Restore recipe and instance from tempData (prevent data loss on return)
     const savedInstance =
       this.navigationService.getTempData<CustomRecipeInstance>(
-        'configRecipeInstance'
+        "configRecipeInstance",
       );
     if (savedInstance && !this.customRecipeInstance) {
       this.customRecipeInstance = savedInstance;
     }
 
     const savedRecipe =
-      this.navigationService.getTempData<Recipe>('configRecipeDef');
+      this.navigationService.getTempData<Recipe>("configRecipeDef");
     if (savedRecipe && !this.recipe) {
       this.recipe = savedRecipe;
       this.checkFavorite();
@@ -136,32 +136,32 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     // Check if returning from search-foods with selected ingredients
     const selectedIngredients = this.navigationService.getTempData<
       CustomProduct[]
-    >('selectedIngredients');
+    >("selectedIngredients");
 
     if (selectedIngredients && selectedIngredients.length > 0) {
       this.applyResolvedIngredients(selectedIngredients);
-      this.navigationService.clearTempData('selectedIngredients');
+      this.navigationService.clearTempData("selectedIngredients");
     } else if (!this.ingredientsInitialized) {
       const initialIngredients = this.resolveInitialIngredients(
-        this.routeState
+        this.routeState,
       );
       this.applyResolvedIngredients(initialIngredients);
     }
 
     // Check if returning from add-product with an edited ingredient
     const newIngredient =
-      this.navigationService.getTempData<CustomProduct>('newIngredient');
+      this.navigationService.getTempData<CustomProduct>("newIngredient");
     const editingIndex = this.navigationService.getTempData<number>(
-      'editingIngredientIndex'
+      "editingIngredientIndex",
     );
 
     if (newIngredient) {
-      if (typeof editingIndex === 'number' && this.ingredients[editingIndex]) {
+      if (typeof editingIndex === "number" && this.ingredients[editingIndex]) {
         this.ingredients[editingIndex] = newIngredient;
       } else {
         const newProductId = newIngredient.product?._id;
         const existingIndex = this.ingredients.findIndex(
-          (ing) => ing.product?._id === newProductId
+          (ing) => ing.product?._id === newProductId,
         );
         if (existingIndex !== -1) {
           this.ingredients[existingIndex] = newIngredient;
@@ -171,13 +171,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       }
 
       this.recalculateMacros();
-      this.navigationService.clearTempData('newIngredient');
-      this.navigationService.clearTempData('editingIngredientIndex');
+      this.navigationService.clearTempData("newIngredient");
+      this.navigationService.clearTempData("editingIngredientIndex");
     }
 
     // Restore form state if exists (returning from search-foods)
     const savedFormState = this.navigationService.getTempData<any>(
-      'configRecipeFormState'
+      "configRecipeFormState",
     );
     if (savedFormState) {
       this.recipeForm.patchValue({
@@ -186,7 +186,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         quantityCooked: savedFormState.quantityCooked,
         quantity: savedFormState.quantity,
       });
-      this.navigationService.clearTempData('configRecipeFormState');
+      this.navigationService.clearTempData("configRecipeFormState");
     }
   }
 
@@ -211,14 +211,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       9999,
       () => {
         this.goBack();
-      }
+      },
     );
   }
 
   private initForm(): void {
     this.recipeForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      description: [''],
+      name: ["", [Validators.required, Validators.minLength(2)]],
+      description: [""],
       quantityCooked: [null, [Validators.min(1)]],
       quantity: [null],
     });
@@ -226,7 +226,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     // Recalculate macros when cooked quantity changes.
     // Do not auto-copy this value into "quantity" (consumed portion).
     this.recipeForm
-      .get('quantityCooked')
+      .get("quantityCooked")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.recalculateMacros();
@@ -234,7 +234,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // Also listen to quantity changes to update portion macros
     this.recipeForm
-      .get('quantity')
+      .get("quantity")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.recalculateMacros();
@@ -246,16 +246,16 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.routeState = state;
 
     // Get mode
-    this.mode = state.mode || 'create';
+    this.mode = state.mode || "create";
 
     // Get customRecipeInstance first if editing from meal
     if (state.customRecipeInstance) {
       this.customRecipeInstance = state.customRecipeInstance;
 
       // Extract recipe from customRecipeInstance
-      if (typeof this.customRecipeInstance.dataRecipe === 'object') {
+      if (typeof this.customRecipeInstance.dataRecipe === "object") {
         const dataRecipe = this.customRecipeInstance.dataRecipe;
-        if (typeof dataRecipe.recipe === 'object') {
+        if (typeof dataRecipe.recipe === "object") {
           this.recipe = dataRecipe.recipe;
         }
       }
@@ -303,7 +303,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private resolveInitialIngredients(state: any): CustomProduct[] {
     // If creating a new recipe from ingredients, load them from state
     if (
-      this.mode === 'create' &&
+      this.mode === "create" &&
       !this.recipe &&
       state?.existingIngredients &&
       state.existingIngredients.length > 0
@@ -313,7 +313,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // If editing an instance, load merged ingredients (with overrides applied)
     if (this.recipe) {
-      if (this.customRecipeInstance && this.mode === 'edit') {
+      if (this.customRecipeInstance && this.mode === "edit") {
         return this.getMergedIngredients();
       }
       // Otherwise, load base recipe ingredients
@@ -333,9 +333,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.recalculateMacros();
 
     // In CREATE mode with meal, update quantity defaults when ingredients change
-    if (this.mode === 'create' && this.meal) {
-      const currentQty = this.recipeForm.get('quantity')?.value;
-      const currentQtyCooked = this.recipeForm.get('quantityCooked')?.value;
+    if (this.mode === "create" && this.meal) {
+      const currentQty = this.recipeForm.get("quantity")?.value;
+      const currentQtyCooked = this.recipeForm.get("quantityCooked")?.value;
 
       // Keep inputs empty in create mode - don't populate with calculated values
       // Only update if user hasn't entered anything yet
@@ -370,15 +370,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private patchFormForMode(): void {
-    if (this.mode === 'edit' && this.recipe) {
+    if (this.mode === "edit" && this.recipe) {
       this.recipeForm.patchValue({
         name: this.recipe.name,
-        description: this.recipe.description || '',
+        description: this.recipe.description || "",
       });
 
       if (this.customRecipeInstance) {
         const dataRecipe =
-          typeof this.customRecipeInstance.dataRecipe === 'object'
+          typeof this.customRecipeInstance.dataRecipe === "object"
             ? this.customRecipeInstance.dataRecipe
             : null;
         this.recipeForm.patchValue({
@@ -386,14 +386,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           quantityCooked: dataRecipe?.quantityCooked ?? null,
         });
       }
-    } else if (this.mode === 'add' && this.recipe) {
+    } else if (this.mode === "add" && this.recipe) {
       // In add mode, recipe definition is readonly (we are just adding a portion)
-      this.recipeForm.get('name')?.disable();
-      this.recipeForm.get('description')?.disable();
+      this.recipeForm.get("name")?.disable();
+      this.recipeForm.get("description")?.disable();
 
       if (this.customRecipeInstance) {
         const dataRecipe =
-          typeof this.customRecipeInstance.dataRecipe === 'object'
+          typeof this.customRecipeInstance.dataRecipe === "object"
             ? this.customRecipeInstance.dataRecipe
             : null;
         this.recipeForm.patchValue({
@@ -414,7 +414,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           quantity: this.toOptionalPositiveNumber(this.recipe.quantity) ?? null,
         });
       }
-    } else if (this.mode === 'create') {
+    } else if (this.mode === "create") {
       // In create mode, keep inputs empty (not populated)
       // The form is initialized with null values, so just leave them as is
       // Don't patch any values here to keep inputs visually empty
@@ -422,15 +422,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get isCreateMode(): boolean {
-    return this.mode === 'create';
+    return this.mode === "create";
   }
 
   public get isAddMode(): boolean {
-    return this.mode === 'add';
+    return this.mode === "add";
   }
 
   public get isEditMode(): boolean {
-    return this.mode === 'edit';
+    return this.mode === "edit";
   }
 
   public get canEditDefinition(): boolean {
@@ -446,35 +446,35 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public toggleEditInfo(): void {
     // Ensure controls have the real values before editing.
     // In add mode the controls may be empty while the template shows recipe.name/description as fallback.
-    if (!this.recipeForm.get('name')?.value && this.recipe?.name) {
+    if (!this.recipeForm.get("name")?.value && this.recipe?.name) {
       this.recipeForm.patchValue({ name: this.recipe.name });
     }
     if (
-      !this.recipeForm.get('description')?.value &&
+      !this.recipeForm.get("description")?.value &&
       this.recipe?.description
     ) {
       this.recipeForm.patchValue({ description: this.recipe.description });
     }
 
     // Snapshot for cancel
-    this.originalName = this.recipeForm.get('name')?.value ?? '';
-    this.originalDesc = this.recipeForm.get('description')?.value ?? '';
+    this.originalName = this.recipeForm.get("name")?.value ?? "";
+    this.originalDesc = this.recipeForm.get("description")?.value ?? "";
     this.editInfoMode = true;
-    this.recipeForm.get('name')?.enable();
-    this.recipeForm.get('description')?.enable();
+    this.recipeForm.get("name")?.enable();
+    this.recipeForm.get("description")?.enable();
     setTimeout(() => this.nameInput?.setFocus(), 150);
   }
 
   public async confirmEditInfo(): Promise<void> {
     if (!this.recipe?._id) return;
 
-    const name = this.recipeForm.get('name')?.value?.trim();
-    const description = this.recipeForm.get('description')?.value ?? '';
+    const name = this.recipeForm.get("name")?.value?.trim();
+    const description = this.recipeForm.get("description")?.value ?? "";
 
     if (!name || name.length < 2) {
       this.showToast(
-        'El nombre es obligatorio (mínimo 2 caracteres)',
-        'warning'
+        "El nombre es obligatorio (mínimo 2 caracteres)",
+        "warning",
       );
       return;
     }
@@ -482,23 +482,23 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.loading = true;
     try {
       const updated = await firstValueFrom(
-        this.recipeService.update(this.recipe._id, { name, description })
+        this.recipeService.update(this.recipe._id, { name, description }),
       );
       this.recipe.name = updated.name;
       this.recipe.description = updated.description;
       this.recipeForm.patchValue({
         name: updated.name,
-        description: updated.description ?? '',
+        description: updated.description ?? "",
       });
       this.editInfoMode = false;
       this.recipeInfoEdited = true;
       if (this.isAddMode) {
-        this.recipeForm.get('name')?.disable();
-        this.recipeForm.get('description')?.disable();
+        this.recipeForm.get("name")?.disable();
+        this.recipeForm.get("description")?.disable();
       }
-      this.showToast('Receta actualizada', 'success');
+      this.showToast("Receta actualizada", "success");
     } catch {
-      this.showToast('Error al guardar los cambios', 'danger');
+      this.showToast("Error al guardar los cambios", "danger");
     } finally {
       this.loading = false;
     }
@@ -511,8 +511,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     });
     this.editInfoMode = false;
     if (this.isAddMode) {
-      this.recipeForm.get('name')?.disable();
-      this.recipeForm.get('description')?.disable();
+      this.recipeForm.get("name")?.disable();
+      this.recipeForm.get("description")?.disable();
     }
   }
 
@@ -533,11 +533,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const overridesMap = new Map<string, any>();
     overrides.forEach((override) => {
       let id: string | undefined;
-      if (typeof override.customProductId === 'string') {
+      if (typeof override.customProductId === "string") {
         id = override.customProductId;
       } else if (
         override.customProductId &&
-        typeof override.customProductId === 'object'
+        typeof override.customProductId === "object"
       ) {
         id = (override.customProductId as any)._id;
       }
@@ -554,18 +554,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         // If marked as removed, skip this ingredient
         if (override?.removed) {
           const productName =
-            typeof ingredient.product === 'string'
+            typeof ingredient.product === "string"
               ? ingredient.product
-              : ingredient.product?.name || 'Unknown';
+              : ingredient.product?.name || "Unknown";
           return null;
         }
 
         // If quantity override exists, use it
         if (override && override.quantity !== undefined) {
           const productName =
-            typeof ingredient.product === 'string'
+            typeof ingredient.product === "string"
               ? ingredient.product
-              : ingredient.product?.name || 'Unknown';
+              : ingredient.product?.name || "Unknown";
           return { ...ingredient, quantity: override.quantity };
         }
 
@@ -581,24 +581,24 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get pageTitle(): string {
     switch (this.mode) {
-      case 'create':
-        return 'Crear receta';
-      case 'add':
-        return 'Añadir receta';
-      case 'edit':
-        return 'Editar receta';
+      case "create":
+        return "Crear receta";
+      case "add":
+        return "Añadir receta";
+      case "edit":
+        return "Editar receta";
       default:
-        return 'Receta';
+        return "Receta";
     }
   }
 
   public get canSave(): boolean {
-    if (this.mode === 'add') {
+    if (this.mode === "add") {
       return this.recipeForm.valid;
     }
 
     // Create mode with meal
-    if (this.mode === 'create' && this.meal) {
+    if (this.mode === "create" && this.meal) {
       const hasEnoughIngredients = this.ingredients.length >= 2;
       return hasEnoughIngredients && this.recipeForm.valid;
     }
@@ -609,11 +609,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private get hasConsumedQuantityForMacros(): boolean {
-    const rawQuantity = this.recipeForm?.get('quantity')?.value;
+    const rawQuantity = this.recipeForm?.get("quantity")?.value;
     if (
       rawQuantity === null ||
       rawQuantity === undefined ||
-      rawQuantity === ''
+      rawQuantity === ""
     ) {
       return false;
     }
@@ -623,15 +623,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private get supportsConsumedQuantityMode(): boolean {
     return (
-      this.mode === 'add' ||
-      this.mode === 'edit' ||
-      (this.mode === 'create' && !!this.meal)
+      this.mode === "add" ||
+      this.mode === "edit" ||
+      (this.mode === "create" && !!this.meal)
     );
   }
 
   private get hasCookedTotalForMacros(): boolean {
-    const rawCooked = this.recipeForm?.get('quantityCooked')?.value;
-    if (rawCooked === null || rawCooked === undefined || rawCooked === '') {
+    const rawCooked = this.recipeForm?.get("quantityCooked")?.value;
+    if (rawCooked === null || rawCooked === undefined || rawCooked === "") {
       return false;
     }
     const cooked = Number(rawCooked);
@@ -647,12 +647,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public get footerMacrosHint(): string {
     if (this.footerUsesConsumedQuantity) {
       return this.hasCookedTotalForMacros
-        ? '* Cálculo de la ración consumida sobre el total cocinado.'
-        : '* Cálculo de la ración consumida sobre el total sin cocinar.';
+        ? "* Cálculo de la ración consumida sobre el total cocinado."
+        : "* Cálculo de la ración consumida sobre el total sin cocinar.";
     }
     return this.hasCookedTotalForMacros
-      ? '* Por cada 100g sobre el total cocinado.'
-      : '* Por cada 100g sobre el sumatorio sin cocinar.';
+      ? "* Por cada 100g sobre el total cocinado."
+      : "* Por cada 100g sobre el sumatorio sin cocinar.";
   }
 
   public get footerKcal(): number {
@@ -716,7 +716,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public recalculateMacros(): void {
     const tempRecipe: Recipe = {
-      name: '',
+      name: "",
       customProducts: this.ingredients,
     };
 
@@ -742,29 +742,29 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public async addIngredients(): Promise<void> {
     // Save current form state before navigating
     const formState = {
-      name: this.recipeForm.get('name')?.value,
-      description: this.recipeForm.get('description')?.value,
-      quantityCooked: this.recipeForm.get('quantityCooked')?.value,
-      quantity: this.recipeForm.get('quantity')?.value,
+      name: this.recipeForm.get("name")?.value,
+      description: this.recipeForm.get("description")?.value,
+      quantityCooked: this.recipeForm.get("quantityCooked")?.value,
+      quantity: this.recipeForm.get("quantity")?.value,
     };
-    this.navigationService.setTempData('configRecipeFormState', formState);
+    this.navigationService.setTempData("configRecipeFormState", formState);
 
     // Save recipe and instance state to persist across navigation
     this.navigationService.setTempData(
-      'configRecipeInstance',
-      this.customRecipeInstance
+      "configRecipeInstance",
+      this.customRecipeInstance,
     );
-    this.navigationService.setTempData('configRecipeDef', this.recipe);
+    this.navigationService.setTempData("configRecipeDef", this.recipe);
 
     // CRITICAL: Save mode state so it persists when returning from search-foods
-    this.navigationService.setTempData('configRecipeMode', this.mode);
+    this.navigationService.setTempData("configRecipeMode", this.mode);
 
     // Navigate to search-foods in ingredient mode with existing ingredients
     this.navigationService.goToSearchFoods({
       state: {
         ingredientMode: true,
         existingIngredients: this.ingredients, // Pass existing to show them selected
-        returnUrl: '/search-foods/config-recipe',
+        returnUrl: "/search-foods/config-recipe",
         meal: this.meal,
         dietDay: this.dietDay,
       },
@@ -778,17 +778,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public async editIngredientQuantity(
     ingredient: CustomProduct,
-    index: number
+    index: number,
   ): Promise<void> {
     // Navigate to add-product to edit all ingredient details
     const product = ingredient.product;
     if (!product) {
-      console.error('No product found in ingredient');
+      console.error("No product found in ingredient");
       return;
     }
 
     // Save the ingredient index to update when returning
-    this.navigationService.setTempData('editingIngredientIndex', index);
+    this.navigationService.setTempData("editingIngredientIndex", index);
 
     // Navigate to add-product with the ingredient
     this.navigationService.goToAddProduct({
@@ -797,14 +797,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         productQuantity: ingredient.quantity,
         ingredientMode: true,
         customProduct: ingredient, // Pass the full customProduct for editing
-        returnUrl: '/search-foods/config-recipe',
+        returnUrl: "/search-foods/config-recipe",
         selectedDate: this.selectedDate || this.dietDay?.date,
       },
     });
   }
 
   public getIngredientName(ingredient: CustomProduct): string {
-    return ingredient.product?.name || 'Desconocido';
+    return ingredient.product?.name || "Desconocido";
   }
 
   public getIngredientMacros(ingredient: CustomProduct): {
@@ -861,17 +861,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           }
         } else {
           this.user.archivedRecipes = this.user.archivedRecipes?.filter(
-            (id) => id !== this.recipe?._id
+            (id) => id !== this.recipe?._id,
           );
         }
         this.userService.setLocalUser = this.user;
 
         this.showToast(
-          this.isFavorite ? 'Añadida a favoritos' : 'Eliminada de favoritos'
+          this.isFavorite ? "Añadida a favoritos" : "Eliminada de favoritos",
         );
       },
       error: () => {
-        this.showToast('Error al actualizar favoritos', 'danger');
+        this.showToast("Error al actualizar favoritos", "danger");
       },
     });
   }
@@ -883,7 +883,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.ionContent?.scrollToPoint(
           0,
           this.quantityInput.el.offsetTop - 100,
-          500
+          500,
         );
       }, 100);
     }
@@ -895,7 +895,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (!this.canSave) {
       if (this.ingredients.length < 2) {
-        this.showToast('You need at least 2 ingredients', 'warning');
+        this.showToast("You need at least 2 ingredients", "warning");
       }
       return;
     }
@@ -908,18 +908,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.loading = true;
 
     try {
-      if (this.mode === 'create') {
+      if (this.mode === "create") {
         await this.saveNewRecipe();
-      } else if (this.mode === 'add') {
+      } else if (this.mode === "add") {
         await this.addRecipeToMeal();
-      } else if (this.mode === 'edit') {
+      } else if (this.mode === "edit") {
         await this.updateExistingRecipe();
       }
       // ✅ Loading stays true until navigation completes (component destroyed)
       // No need to set loading = false on success since we're navigating away
     } catch (error) {
-      console.error('Error saving recipe:', error);
-      this.showToast('Error saving recipe', 'danger');
+      console.error("Error saving recipe:", error);
+      this.showToast("Error saving recipe", "danger");
       // ❌ Only reset loading on error (so user can retry)
       this.loading = false;
     }
@@ -928,7 +928,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private async saveNewRecipe(): Promise<void> {
     const formValue = this.recipeForm.getRawValue();
     const quantityCooked = this.toOptionalPositiveNumber(
-      formValue.quantityCooked
+      formValue.quantityCooked,
     );
     const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
@@ -957,31 +957,31 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       }
 
       const result = await firstValueFrom(
-        this.recipeService.compose(composePayload)
+        this.recipeService.compose(composePayload),
       );
 
       if (this.meal) {
         this.applyComposeResult(result);
-        this.showToast('Receta añadida a la comida', 'success');
+        this.showToast("Receta añadida a la comida", "success");
       } else {
-        this.showToast('Receta creada con éxito', 'success');
+        this.showToast("Receta creada con éxito", "success");
       }
 
-      this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
+      this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
-      console.error('Error creating recipe:', err);
+      console.error("Error creating recipe:", err);
       if (await this.handleRecipeLimitError(err)) {
         return;
       }
-      this.showToast('Error al crear la receta', 'danger');
+      this.showToast("Error al crear la receta", "danger");
     }
   }
 
   private async addRecipeToMeal(): Promise<void> {
     if (!this.recipe || !this.meal) {
-      throw new Error('Recipe or meal not found');
+      throw new Error("Recipe or meal not found");
     }
 
     const formValue = this.recipeForm.getRawValue();
@@ -1008,47 +1008,47 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       };
 
       const result = await firstValueFrom(
-        this.recipeService.compose(composePayload)
+        this.recipeService.compose(composePayload),
       );
 
       this.applyComposeResult(result);
-      this.showToast('Receta añadida a la comida', 'success');
-      this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
+      this.showToast("Receta añadida a la comida", "success");
+      this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
       this.successfulSave = true;
       this.goBack();
     } catch (err) {
-      console.error('Error creating DataRecipe:', err);
+      console.error("Error creating DataRecipe:", err);
       if (await this.handleRecipeLimitError(err)) {
         return;
       }
-      this.showToast('Error al crear DataRecipe', 'danger');
+      this.showToast("Error al crear DataRecipe", "danger");
     }
   }
 
   private async updateExistingRecipe(): Promise<void> {
     if (!this.recipe?._id || !this.customRecipeInstance?._id) {
-      throw new Error('Recipe ID or CustomRecipeInstance ID not found');
+      throw new Error("Recipe ID or CustomRecipeInstance ID not found");
     }
 
     const formValue = this.recipeForm.getRawValue();
     const quantityCooked = this.toOptionalPositiveNumber(
-      formValue.quantityCooked
+      formValue.quantityCooked,
     );
     const quantity = this.toOptionalPositiveNumber(formValue.quantity);
 
     // Extract dataRecipeId (dataRecipe can be string or object)
     const dataRecipeId =
-      typeof this.customRecipeInstance.dataRecipe === 'string'
+      typeof this.customRecipeInstance.dataRecipe === "string"
         ? this.customRecipeInstance.dataRecipe
         : (this.customRecipeInstance.dataRecipe as any)?._id;
 
     if (!dataRecipeId) {
-      throw new Error('DataRecipe ID not found');
+      throw new Error("DataRecipe ID not found");
     }
 
     // Build unified edit payload
     const editPayload: any = {
-      mode: 'edit',
+      mode: "edit",
       recipeId: this.recipe._id,
       context: {
         mealId: this.meal?._id,
@@ -1081,13 +1081,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // Single API call handles both recipe + instance updates
     const result = await firstValueFrom(
-      this.recipeService.compose(editPayload)
+      this.recipeService.compose(editPayload),
     );
 
     this.applyComposeResult(result);
 
-    this.showToast('Receta actualizada con éxito', 'success');
-    this.adMobService.interstitial('create_recipe'); // Estrategia AdMob
+    this.showToast("Receta actualizada con éxito", "success");
+    this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
     this.goBack();
   }
 
@@ -1099,7 +1099,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     originalIngredients.forEach((originalIng: any) => {
       const currentIng = this.ingredients.find(
-        (ing) => ing._id === originalIng._id
+        (ing) => ing._id === originalIng._id,
       );
 
       if (!currentIng) {
@@ -1127,7 +1127,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     this.ingredients.forEach((currentIng) => {
       const existsInOriginal = originalIngredients.some(
-        (origIng: any) => origIng._id === currentIng._id
+        (origIng: any) => origIng._id === currentIng._id,
       );
 
       if (!existsInOriginal) {
@@ -1149,7 +1149,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (this.dietDay) {
       const indexMeal = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal?._id || m.name === this.meal?.name
+        (m) => m._id === this.meal?._id || m.name === this.meal?.name,
       );
 
       if (indexMeal !== -1) {
@@ -1195,7 +1195,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private toOptionalPositiveNumber(value: any): number | undefined {
-    if (value === null || value === undefined || value === '') {
+    if (value === null || value === undefined || value === "") {
       return undefined;
     }
     const parsed = Number(value);
@@ -1214,7 +1214,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (result?.meal && this.dietDay) {
       const mealIndex = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal?._id || m.name === this.meal?.name
+        (m) => m._id === this.meal?._id || m.name === this.meal?.name,
       );
 
       if (mealIndex !== -1) {
@@ -1232,10 +1232,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private async createCustomRecipeInstanceAndAddToMeal(
-    instanceData: CreateCustomRecipeInstanceDTO
+    instanceData: CreateCustomRecipeInstanceDTO,
   ): Promise<void> {
     if (!this.meal) {
-      throw new Error('Meal not found');
+      throw new Error("Meal not found");
     }
 
     // Check if dietDay exists
@@ -1249,33 +1249,33 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   private async createInstanceAndAddToExistingMeal(
-    instanceData: CreateCustomRecipeInstanceDTO
+    instanceData: CreateCustomRecipeInstanceDTO,
   ): Promise<void> {
     if (!this.meal?._id) {
-      throw new Error('Meal ID not found');
+      throw new Error("Meal ID not found");
     }
 
     // Step 1: Create the CustomRecipeInstance
     const createdInstance = await firstValueFrom(
-      this.customRecipeInstanceService.create(instanceData)
+      this.customRecipeInstanceService.create(instanceData),
     );
 
     // Step 2: Add the instance to the meal
     if (!createdInstance._id) {
-      throw new Error('Created instance has no ID');
+      throw new Error("Created instance has no ID");
     }
 
     const updatedMeal = await firstValueFrom(
       this.mealService.addCustomRecipeInstance(
         this.meal._id,
-        createdInstance._id
-      )
+        createdInstance._id,
+      ),
     );
 
     // Update local state
     if (this.dietDay) {
       const mealIndex = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal!._id
+        (m) => m._id === this.meal!._id,
       );
       if (mealIndex !== -1) {
         this.dietDay.meals[mealIndex] = updatedMeal;
@@ -1283,27 +1283,27 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       }
     }
 
-    this.showToast('Receta añadida a la comida', 'success');
+    this.showToast("Receta añadida a la comida", "success");
     this.successfulSave = true;
     this.goBack();
   }
 
   private async createInstanceOnNewDietDay(
-    instanceData: CreateCustomRecipeInstanceDTO
+    instanceData: CreateCustomRecipeInstanceDTO,
   ): Promise<void> {
     if (!this.meal || !this.dietDay) {
-      throw new Error('Meal or DietDay not found');
+      throw new Error("Meal or DietDay not found");
     }
 
     // Get necessary data
     const dietInUseId = this.user.dietInUse;
     const indexMeal = this.dietDay.meals.findIndex(
-      (mealTemp) => mealTemp.name === this.meal!.name
+      (mealTemp) => mealTemp.name === this.meal!.name,
     );
     const currentDate = this.dietDay.date;
 
     if (!dietInUseId || indexMeal === -1) {
-      throw new Error('Datos incompletos para crear dietDay');
+      throw new Error("Datos incompletos para crear dietDay");
     }
 
     const createdDietDay = await firstValueFrom(
@@ -1311,45 +1311,46 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         instanceData,
         indexMeal,
         dietInUseId,
-        currentDate
-      )
+        currentDate,
+      ),
     );
 
     // Update local state
     this.dietDayService.setCurrentDietDay = createdDietDay;
 
-    this.showToast('Receta añadida a la comida', 'success');
+    this.showToast("Receta añadida a la comida", "success");
     this.goBack();
   }
 
   private async showToast(
     message: string,
-    color: 'success' | 'warning' | 'danger' = 'success'
+    color: "success" | "warning" | "danger" = "success",
   ): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
       duration: 2000,
       color,
-      position: 'bottom',
+      position: "bottom",
     });
     await toast.present();
   }
 
   private async handleRecipeLimitError(error: any): Promise<boolean> {
-    if (error?.error?.code !== 'PREMIUM_LIMIT_RECIPES') {
+    if (error?.error?.code !== "PREMIUM_LIMIT_RECIPES") {
       return false;
     }
 
     await this.ionicUtilService.showAlert({
-      header: 'Límite Free alcanzado',
-      message: 'Has alcanzado el límite de recetas propias. Activa Premium para crear más.',
+      header: "Límite Free alcanzado",
+      message:
+        "Has alcanzado el límite de recetas propias. Activa Pro para crear más.",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
+          text: "Cancelar",
+          role: "cancel",
         },
         {
-          text: 'Ver Premium',
+          text: "Hazte Pro",
           handler: () => this.navigationService.goToPremium(),
         },
       ],
@@ -1372,18 +1373,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (!this.recipe?._id) return;
 
     const alert = await this.ionicUtilService.showAlert({
-      header: 'Eliminar receta',
+      header: "Eliminar receta",
       message:
-        '¿Estás seguro de que quieres eliminar esta receta permanentemente?',
+        "¿Estás seguro de que quieres eliminar esta receta permanentemente?",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
+          text: "Cancelar",
+          role: "cancel",
         },
         {
-          text: 'Eliminar',
-          role: 'destructive',
-          cssClass: 'alert-button-danger',
+          text: "Eliminar",
+          role: "destructive",
+          cssClass: "alert-button-danger",
           handler: () => {
             this.performDelete();
           },
@@ -1398,7 +1399,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.loading = true;
     this.recipeService.delete(this.recipe._id).subscribe({
       next: () => {
-        this.showToast('Receta eliminada', 'success');
+        this.showToast("Receta eliminada", "success");
         this.loading = false;
 
         // Remove recipe from local state (meal and dietDay)
@@ -1408,14 +1409,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.navigationService.backTo(this.returnUrl, {
           state: {
             returningFromConfigRecipe: true,
-            currentMode: 'recipes',
+            currentMode: "recipes",
             refresh: true,
           },
         });
       },
       error: (err) => {
-        console.error('Error deleting recipe:', err);
-        this.showToast('Error al eliminar la receta', 'danger');
+        console.error("Error deleting recipe:", err);
+        this.showToast("Error al eliminar la receta", "danger");
         this.loading = false;
       },
     });
@@ -1436,11 +1437,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.meal.customRecipeInstances || []
     ).filter((instance) => {
       const dataRecipe =
-        typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
+        typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
       if (!dataRecipe) return true; // Keep if invalid
 
       const recipe =
-        typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+        typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
       if (!recipe) return true; // Keep if invalid
 
       // Remove if this instance references the deleted recipe
@@ -1452,7 +1453,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     // Update the meal in dietDay
     const mealIndex = this.dietDay.meals?.findIndex(
-      (m) => m._id === this.meal._id
+      (m) => m._id === this.meal._id,
     );
     if (mealIndex !== undefined && mealIndex >= 0) {
       this.dietDay.meals[mealIndex] = { ...this.meal };
@@ -1465,24 +1466,24 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public goBack(): void {
     // Clear any ingredient mode state before going back
     this.navigationService.clearStateKeys([
-      'ingredientMode',
-      'existingIngredients',
-      'selectedIngredients',
-      'returnUrl',
+      "ingredientMode",
+      "existingIngredients",
+      "selectedIngredients",
+      "returnUrl",
     ]);
-    this.navigationService.clearTempData('selectedIngredients');
-    this.navigationService.clearTempData('configRecipeState');
+    this.navigationService.clearTempData("selectedIngredients");
+    this.navigationService.clearTempData("configRecipeState");
     // Clear mode tempData when leaving successfully
-    this.navigationService.clearTempData('configRecipeMode');
+    this.navigationService.clearTempData("configRecipeMode");
 
-    if (this.returnUrl && this.returnUrl !== '/config-recipe') {
+    if (this.returnUrl && this.returnUrl !== "/config-recipe") {
       // If saved successfully, always go to recipes segment
       // Otherwise, restore the segment that was active before
-      let targetMode = 'recipes';
+      let targetMode = "recipes";
       if (!this.successfulSave) {
         const savedState =
-          this.navigationService.getTempData<any>('searchFoodsState');
-        targetMode = savedState?.currentMode || 'recipes';
+          this.navigationService.getTempData<any>("searchFoodsState");
+        targetMode = savedState?.currentMode || "recipes";
       }
 
       // Add flag to indicate we're returning from config-recipe

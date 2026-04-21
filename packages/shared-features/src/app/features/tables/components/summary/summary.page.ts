@@ -1,34 +1,34 @@
-import { Component, ViewChild, effect, inject } from '@angular/core';
-import { AlertOptions, Platform, ToastOptions } from '@ionic/angular';
-import { CustomExercise } from 'src/app/core/models/customExercise';
-import { Table } from 'src/app/core/models/table';
-import { User } from 'src/app/core/models/user';
-import { Workout } from 'src/app/core/models/workout';
-import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { ThemeService } from 'src/app/core/services/util/theme.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
-import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { TABLE_MODE_TYPES } from 'src/app/shared/constants/table-mode';
-import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
-import { Theme } from 'src/app/shared/models/theme';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { Component, ViewChild, effect, inject } from "@angular/core";
+import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
+import { CustomExercise } from "src/app/core/models/customExercise";
+import { Table } from "src/app/core/models/table";
+import { User } from "src/app/core/models/user";
+import { Workout } from "src/app/core/models/workout";
+import { CustomExerciseService } from "src/app/core/services/custom-exercise/custom-exercise.service";
+import { TableService } from "src/app/core/services/table/table.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { ThemeService } from "src/app/core/services/util/theme.service";
+import { UtilService } from "src/app/core/services/util/util.service";
+import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
+import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
+import { Theme } from "src/app/shared/models/theme";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 
 @Component({
-  selector: 'app-summary',
-  templateUrl: './summary.page.html',
-  styleUrls: ['./summary.page.scss'],
+  selector: "app-summary",
+  templateUrl: "./summary.page.html",
+  styleUrls: ["./summary.page.scss"],
 })
 export class SummaryPage {
-  @ViewChild('ionContent')
+  @ViewChild("ionContent")
   public ionContent: any;
   public tableList: Table[];
   public user: User;
-  public search: string = '';
+  public search: string = "";
 
   public searchFilterGroup: SearchFilterGroup;
   public shieldFilter: boolean;
@@ -52,7 +52,7 @@ export class SummaryPage {
     private customExerciseService: CustomExerciseService,
     private navigationService: NavigationService,
     private themeService: ThemeService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
   ) {
     // Effect para el usuario
     effect(() => {
@@ -67,20 +67,16 @@ export class SummaryPage {
     effect(() => {
       this.workout = this.workoutService.currentWorkoutSignal();
     });
-
   }
 
-  public ionViewWillEnter(): void {
-  }
+  public ionViewWillEnter(): void {}
 
-  public ionViewWillLeave(): void {
-  }
-
+  public ionViewWillLeave(): void {}
 
   public onTabChange(event: { tab: string }): void {
     let tableMode: TABLE_MODE_TYPES;
 
-    if (event.tab === 'summary') tableMode = TABLE_MODE_TYPES.summaryGeneral;
+    if (event.tab === "summary") tableMode = TABLE_MODE_TYPES.summaryGeneral;
     else tableMode = TABLE_MODE_TYPES.mesocycle;
 
     this.utilService.setTableMode = tableMode;
@@ -88,40 +84,50 @@ export class SummaryPage {
 
   public createTableAndAddToUser(): void {
     const entitlements = this.billingService.getCachedEntitlements();
-    if (entitlements && entitlements.remaining.routines !== null && entitlements.remaining.routines <= 0) {
+    if (
+      entitlements &&
+      entitlements.remaining.routines !== null &&
+      entitlements.remaining.routines <= 0
+    ) {
       const toastOptions: ToastOptions = {
-        message: 'Has alcanzado el límite de rutinas. Activa Premium para crear más.',
+        message:
+          "Has alcanzado el límite de rutinas. Activa Pro para crear más.",
         duration: 3000,
-        buttons: [{ text: 'Ver Premium', handler: () => this.navigationService.goToPremium() }],
+        buttons: [
+          {
+            text: "Hazte Pro",
+            handler: () => this.navigationService.goToPremium(),
+          },
+        ],
       };
       this.ionicUtilService.showToast(toastOptions);
       return;
     }
 
     const alertOptions: AlertOptions = {
-      header: 'Crear rutina',
-      message: 'Introduce el nombre para tu nueva rutina de entrenamiento',
+      header: "Crear rutina",
+      message: "Introduce el nombre para tu nueva rutina de entrenamiento",
       inputs: [
         {
-          name: 'routineName',
-          type: 'text',
-          placeholder: 'Nombre de la rutina',
-          value: '',
+          name: "routineName",
+          type: "text",
+          placeholder: "Nombre de la rutina",
+          value: "",
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
-          cssClass: 'alert-button-primary',
+          text: "CANCELAR",
+          role: "cancel",
+          cssClass: "alert-button-primary",
         },
         {
-          text: 'CREAR',
-          cssClass: 'alert-button-success',
+          text: "CREAR",
+          cssClass: "alert-button-success",
           handler: (data) => {
-            if (!data.routineName || data.routineName.trim() === '') {
+            if (!data.routineName || data.routineName.trim() === "") {
               const toastOptions: ToastOptions = {
-                message: 'El campo no puede estar vacío',
+                message: "El campo no puede estar vacío",
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -134,7 +140,7 @@ export class SummaryPage {
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
-      if (result.role !== 'cancel' && result.data?.values?.routineName) {
+      if (result.role !== "cancel" && result.data?.values?.routineName) {
         this.tableService
           .createTableToUser(this.user._id, result.data.values.routineName)
           .subscribe((resTable) => {
@@ -147,10 +153,10 @@ export class SummaryPage {
             this.navigationService.goToMesocycle();
 
             if (!this.user?.premium?.entitled) {
-              this.adMobService.interstitial('create_routine');
+              this.adMobService.interstitial("create_routine");
             }
             const toastOptions: ToastOptions = {
-              message: 'Rutina creada con éxito',
+              message: "Rutina creada con éxito",
               duration: 2000,
             };
             this.ionicUtilService.showToast(toastOptions);
@@ -168,7 +174,7 @@ export class SummaryPage {
   public getCompletedExercisesCount(): number {
     if (!this.workout || !this.workout.exercises) return 0;
     return this.workout.exercises.filter((ex) =>
-      this.isCustomExerciseCompleted(ex)
+      this.isCustomExerciseCompleted(ex),
     ).length;
   }
 
@@ -181,19 +187,21 @@ export class SummaryPage {
   }
 
   public countDoneSplits(): number {
-    return this.tableInUse.splits.reduce((totalDoneSplits, split) => {
-      // Verificar si todos los workouts en el split tienen todos los sets hechos
-      const allWorkoutsDone = split.workouts.every((workout) => workout.date);
+    return (
+      this.tableInUse.splits.reduce((totalDoneSplits, split) => {
+        // Verificar si todos los workouts en el split tienen todos los sets hechos
+        const allWorkoutsDone = split.workouts.every((workout) => workout.date);
 
-      // Si todos los sets de todos los ejercicios en todos los workouts están hechos, sumar el split
-      return allWorkoutsDone ? totalDoneSplits + 1 : totalDoneSplits;
-    }, 0) - 1;
+        // Si todos los sets de todos los ejercicios en todos los workouts están hechos, sumar el split
+        return allWorkoutsDone ? totalDoneSplits + 1 : totalDoneSplits;
+      }, 0) - 1
+    );
   }
 
   public getRoutineProgressPercentage(): number {
     if (!this.tableInUse || !this.tableInUse.splits.length) return 0;
     return Math.round(
-      (this.countDoneSplits() / this.tableInUse.splits.length) * 100
+      (this.countDoneSplits() / this.tableInUse.splits.length) * 100,
     );
   }
 
@@ -205,11 +213,11 @@ export class SummaryPage {
   public getSplitClass(split: any): string {
     // Prioridad: naranja si el workout en uso pertenece al split;
     // en otro caso, verde si el split está terminado; si no, sin color.
-    if (this.isWorkoutInSplit(split)) return 'current';
+    if (this.isWorkoutInSplit(split)) return "current";
     const done = this.utilService.isSplitDoned
       ? this.utilService.isSplitDoned(split)
       : false;
-    return done ? 'done' : '';
+    return done ? "done" : "";
   }
 
   public openMesocycle(): void {
@@ -228,29 +236,31 @@ export class SummaryPage {
     }
 
     const alertOptions: AlertOptions = {
-      header: 'Estadísticas Premium',
-      message: 'Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.',
+      header: "Estadísticas Premium",
+      message:
+        "Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
-          cssClass: 'alert-button-primary'
+          text: "Cancelar",
+          role: "cancel",
+          cssClass: "alert-button-primary",
         },
         {
-          text: 'Ver Anuncio',
-          cssClass: 'alert-button-success',
+          text: "Ver Anuncio",
+          cssClass: "alert-button-success",
           handler: () => {
-            this.adMobService.interstitial('start_statistics')
+            this.adMobService
+              .interstitial("start_statistics")
               .then(() => {
                 this.navigationService.goToStatistics();
               })
               .catch((err) => {
-                console.error('Error al mostrar anuncio intersticial', err);
+                console.error("Error al mostrar anuncio intersticial", err);
                 this.navigationService.goToStatistics();
               });
-          }
-        }
-      ]
+          },
+        },
+      ],
     };
 
     await this.ionicUtilService.showAlert(alertOptions);
@@ -258,7 +268,7 @@ export class SummaryPage {
 
   private shouldRequireAdPrompt(): boolean {
     const entitlements = this.billingService.getCachedEntitlements();
-    if (typeof entitlements?.adsEnabled === 'boolean') {
+    if (typeof entitlements?.adsEnabled === "boolean") {
       return entitlements.adsEnabled;
     }
 
@@ -266,13 +276,13 @@ export class SummaryPage {
   }
 
   // Nuevos métodos para la interfaz móvil
-  public backgroundClass: string = 'light-theme';
+  public backgroundClass: string = "light-theme";
   public theme: Theme;
 
   private initTheme(): void {
     this.themeService.theme.subscribe((theme: string) => {
       this.theme = theme as Theme;
-      this.backgroundClass = theme === 'dark' ? 'dark-theme' : 'light-theme';
+      this.backgroundClass = theme === "dark" ? "dark-theme" : "light-theme";
     });
   }
 
@@ -280,7 +290,7 @@ export class SummaryPage {
     if (!this.workout || !this.workout.exercises.length) return 0;
 
     const completedExercises = this.workout.exercises.filter((exercise) =>
-      this.isCustomExerciseCompleted(exercise)
+      this.isCustomExerciseCompleted(exercise),
     ).length;
 
     return (completedExercises / this.workout.exercises.length) * 100;
@@ -298,7 +308,7 @@ export class SummaryPage {
     if (!this.workout || !this.workout.exercises.length) return 0;
 
     return this.workout.exercises.filter((exercise) =>
-      this.isCustomExerciseCompleted(exercise)
+      this.isCustomExerciseCompleted(exercise),
     ).length;
   }
 
@@ -335,7 +345,7 @@ export class SummaryPage {
     const alertOptions: AlertOptions = {
       header: exercise.exercise.name,
       message: exercise.notes,
-      buttons: ['OK'],
+      buttons: ["OK"],
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }
