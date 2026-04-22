@@ -184,13 +184,41 @@ export class PremiumPage {
   }
 
   public get currentPlanLabel(): string {
+    if (this.isManualPremium) return "Pro asignado por TrainFit";
+
     const currentPlan = this.getNormalizedCurrentPlan();
     if (currentPlan === "annual") return "Plan anual";
     if (currentPlan === "monthly") return "Plan mensual";
     return this.entitlements?.plan ?? "Plan Pro";
   }
 
+  public get isManualPremium(): boolean {
+    return (
+      this.isPremium &&
+      (this.entitlements?.source === "manual" ||
+        this.entitlements?.plan === "manual")
+    );
+  }
+
+  public get isStorePremium(): boolean {
+    return this.isPremium && !this.isManualPremium;
+  }
+
+  public get premiumDateLabel(): string {
+    return this.isManualPremium ? "Válido hasta" : "Renovacion";
+  }
+
+  public get premiumStatusDescription(): string {
+    if (this.isManualPremium) {
+      return "Acceso Pro concedido por el equipo de TrainFit.";
+    }
+
+    return "Tu suscripción Pro está activa.";
+  }
+
   public get showChangeToAnnual(): boolean {
+    if (this.isManualPremium) return false;
+
     const currentPlan = this.getNormalizedCurrentPlan();
     return this.isPremium && currentPlan !== null && currentPlan !== "annual";
   }

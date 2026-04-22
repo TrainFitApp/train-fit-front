@@ -61,7 +61,7 @@
             </div>
             <div class="hero-plan-divider"></div>
             <div class="hero-plan-row" *ngIf="entitlements.expiresAt">
-              <span class="hero-plan-label">Renovación</span>
+              <span class="hero-plan-label">{{ premiumDateLabel }}</span>
               <span class="hero-plan-value"
                 >{{ entitlements.expiresAt | date: 'dd/MM/yyyy' }}</span
               >
@@ -226,9 +226,12 @@
 
     <!-- GESTIÓN PREMIUM ACTIVO -->
     <ng-container *ngIf="isPremium">
-      <section class="status-card" *ngIf="entitlements">
-        <div class="status-row">
-          <span class="status-label">Estado</span>
+      <section class="status-card status-card--current" *ngIf="entitlements">
+        <div class="status-row status-row--stacked">
+          <div class="status-copy">
+            <span class="status-label">Estado</span>
+            <p class="status-description">{{ premiumStatusDescription }}</p>
+          </div>
           <span class="status-value status-value--active">
             <ion-icon name="checkmark-circle"></ion-icon> Activo
           </span>
@@ -257,6 +260,7 @@
 
       <button
         class="cta-primary"
+        *ngIf="isStorePremium"
         [disabled]="isOpeningManageSubscription || isLoading"
         (click)="openManageSubscription()"
       >
@@ -270,6 +274,7 @@
 
       <button
         class="cta-ghost"
+        *ngIf="isStorePremium"
         [disabled]="isRestoring || isLoading"
         (click)="restorePurchases()"
       >
@@ -283,7 +288,10 @@
     </ng-container>
 
     <!-- NOTA LEGAL -->
-    <div class="runtime-note" *ngIf="platform === 'android'">
+    <div
+      class="runtime-note"
+      *ngIf="platform === 'android' && !isManualPremium"
+    >
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
         Para modificar o cancelar tu suscripción: Google Play &rsaquo; avatar
@@ -292,7 +300,7 @@
       </p>
     </div>
 
-    <div class="runtime-note" *ngIf="platform === 'ios'">
+    <div class="runtime-note" *ngIf="platform === 'ios' && !isManualPremium">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
         Para modificar o cancelar tu suscripción: Ajustes &rsaquo; [tu nombre]
@@ -301,11 +309,17 @@
       </p>
     </div>
 
-    <div class="runtime-note" *ngIf="!isNativeBillingAvailable">
+    <div class="runtime-note" *ngIf="isManualPremium">
       <ion-icon name="information-circle-outline"></ion-icon>
       <p>
-        Las compras in-app se completan desde la app instalada en Android/iOS.
+        Tu acceso Pro ha sido asignado por TrainFit. Si tienes dudas sobre su
+        duración o necesitas ayuda, contacta con soporte.
       </p>
+    </div>
+
+    <div class="runtime-note" *ngIf="!isNativeBillingAvailable">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Las compras in-app se completan desde la app.</p>
     </div>
   </div>
 </ion-content>

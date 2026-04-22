@@ -501,10 +501,38 @@
 
 .status-card {
   margin-top: 14px;
+  position: relative;
   border-radius: 16px;
   background: #141414;
   border: 1px solid #252525;
   overflow: hidden;
+}
+
+.status-card--current {
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(45, 211, 111, 0.08), transparent 42%),
+    #141414;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(
+      180deg,
+      rgba(45, 211, 111, 0.95),
+      rgba(45, 211, 111, 0.28)
+    );
+  }
+
+  .status-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
 }
 
 .status-row {
@@ -517,9 +545,33 @@
   &:last-child { border-bottom: none; }
 }
 
+.status-row--stacked {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 78px;
+  padding: 16px 16px 16px 18px;
+}
+
+.status-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
 .status-label {
   font-size: 14px;
   color: var(--pe-muted);
+}
+
+.status-description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--pe-muted-2);
 }
 
 .status-value {
@@ -533,7 +585,13 @@
   ion-icon { font-size: 16px; color: rgba(255, 255, 255, 0.3); }
 
   &--active {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(45, 211, 111, 0.12);
+    border: 1px solid rgba(45, 211, 111, 0.24);
     color: var(--ion-color-success);
+    white-space: nowrap;
+
     ion-icon { color: var(--ion-color-success); }
   }
 }
