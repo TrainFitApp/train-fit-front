@@ -2,11 +2,7 @@
   <div class="add-product-header">
     <div class="header-content">
       <div class="back-section">
-        <button
-          class="back-button"
-          (click)="goBack()"
-          aria-label="Volver"
-        >
+        <button class="back-button" (click)="goBack()" aria-label="Volver">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -16,22 +12,22 @@
       </div>
 
       <div class="actions-section">
-      <!-- Botón de Editar (solo productos propios) -->
-      <button
-        *ngIf="isProductOwnedByUser"
-        class="action-button ripple-effect"
-        (click)="goToEditProduct()"
-      >
-        <ion-icon name="pencil-outline"></ion-icon>
-      </button>
-      <!-- Botón de Eliminar (solo productos propios) -->
-      <button
-        *ngIf="isProductOwnedByUser"
-        class="action-button ripple-effect"
-        (click)="deleteOwnProduct()"
-      >
-        <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
-      </button>
+        <!-- Botón de Editar (solo productos propios) -->
+        <button
+          *ngIf="isProductOwnedByUser"
+          class="action-button ripple-effect"
+          (click)="goToEditProduct()"
+        >
+          <ion-icon name="pencil-outline"></ion-icon>
+        </button>
+        <!-- Botón de Eliminar (solo productos propios) -->
+        <button
+          *ngIf="isProductOwnedByUser"
+          class="action-button ripple-effect"
+          (click)="deleteOwnProduct()"
+        >
+          <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
+        </button>
       </div>
     </div>
   </div>
@@ -61,11 +57,7 @@
           <div class="product-details">
             <h2 class="product-name">{{ product.name }}</h2>
             <div class="product-brand-row">
-              <p
-                class="product-brand"
-              >
-                {{ product.brand || 'Sin marca' }}
-              </p>
+              <p class="product-brand">{{ product.brand || 'Sin marca' }}</p>
               <ion-chip
                 *ngIf="product.verified"
                 color="success"
@@ -130,15 +122,17 @@
               >
                 <ion-select
                   [value]="selectedUnit"
-                  interface="popover"
+                  interface="action-sheet"
+                  mode="ios"
+                  cancelText="Cancelar"
                   (ionChange)="changeUnit($event.detail.value)"
                   toggleIcon="chevron-down-outline"
                   class="unit-select-elegant"
                   [disabled]="!hasPortions"
                 >
-                  <ion-select-option value="g">Gramos (g)</ion-select-option>
+                  <ion-select-option value="g">Gramos</ion-select-option>
                   <ion-select-option *ngIf="hasPortions" value="portions"
-                    >Raciones (rac)</ion-select-option
+                    >Ración</ion-select-option
                   >
                 </ion-select>
               </div>
@@ -1420,11 +1414,9 @@
     >
       <div class="button-content">
         <span>
-          {{
-            ingredientMode
-              ? (editingIngredient ? 'GUARDAR INGREDIENTE' : 'AÑADIR INGREDIENTE')
-              : (customProduct ? 'GUARDAR CAMBIOS' : 'AÑADIR PRODUCTO')
-          }}
+          {{ ingredientMode ? (editingIngredient ? 'GUARDAR INGREDIENTE' :
+          'AÑADIR INGREDIENTE') : (customProduct ? 'GUARDAR CAMBIOS' : 'AÑADIR
+          PRODUCTO') }}
         </span>
       </div>
     </ion-button>
