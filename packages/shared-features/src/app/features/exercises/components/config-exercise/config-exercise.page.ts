@@ -292,8 +292,8 @@ export class ConfigExercisePage implements OnInit {
     else if (this.customExercise) {
       exerciseConfig = this.customExercise;
       this.notes = this.customExercise.notes;
-      this.originSetsOrdered = [...this.customExercise.sets];
-      this.setList = [...this.customExercise.sets];
+      this.originSetsOrdered = this.cloneSets(this.customExercise.sets);
+      this.setList = this.cloneSets(this.customExercise.sets);
       this.initDisplayOrderFromInitialList();
       // Guardar ejercicio original para posibles reversiones
       this.originalExercise = this.customExercise.exercise;
@@ -682,7 +682,7 @@ export class ConfigExercisePage implements OnInit {
           // REVISAR ELSE IF
           if (indexUpdateSet !== -1)
             this.setsToUpdate[indexUpdateSet] = { ...setConfig };
-          else if (isNaN(Number(set._id))) this.setsToUpdate.push(setConfig);
+          else if (this.isPersistedSet(set)) this.setsToUpdate.push(setConfig);
         }
 
         this.normalizeSetOrder();
@@ -828,8 +828,9 @@ export class ConfigExercisePage implements OnInit {
     }
 
     if (this.customExercise) {
+      this.normalizeSetOrder();
       const newCustomExercise = { ...this.customExercise };
-      newCustomExercise.sets = this.setList;
+      newCustomExercise.sets = this.cloneSets(this.setList);
       newCustomExercise.notes = this.notes;
 
       if (
@@ -879,12 +880,15 @@ export class ConfigExercisePage implements OnInit {
             this.setsToDelete,
           )
           .subscribe((resCustomExercise) => {
-            // Ensure local order & displayOrder stay in sync with current UI order
-            const orderedSets = this.setList.map((setItem) => ({
-              ...setItem,
-            }));
-            resCustomExercise.sets = orderedSets;
+            resCustomExercise.sets = this.sortSetsByOrder(
+              resCustomExercise.sets || [],
+            );
             this.customExercise = resCustomExercise;
+            this.setList = this.cloneSets(resCustomExercise.sets || []);
+            this.originSetsOrdered = this.cloneSets(resCustomExercise.sets || []);
+            this.setsToCreate = [];
+            this.setsToUpdate = [];
+            this.setsToDelete = [];
 
             const indexCustomExercise = this.workout.exercises.findIndex(
               (exerciseTemp) => exerciseTemp._id === this.customExercise._id,
@@ -1266,20 +1270,31 @@ export class ConfigExercisePage implements OnInit {
   public deleteSet(set: ExerciseSet, setIndex: number) {
     this.setList.splice(setIndex, 1);
 
-    if (isNaN(Number(set._id))) this.setsToDelete.push(set._id);
+    if (this.isPersistedSet(set)) {
+      if (set._id && !this.setsToDelete.includes(set._id)) {
+        this.setsToDelete.push(set._id);
+      }
+
+      const indexSetToUpdate = this.setsToUpdate.findIndex(
+        (setTemp) => setTemp._id === set._id,
+      );
+      if (indexSetToUpdate >= 0) {
+        this.setsToUpdate.splice(indexSetToUpdate, 1);
+      }
+    }
     else {
       // Comprobar si existen en toCreate y toUpdate
       const indexSetToCreate = this.setsToCreate.findIndex(
         (setTemp) => setTemp._id === set._id,
       );
       if (this.setsToCreate.length > 0 && indexSetToCreate >= 0)
-        this.setsToCreate.splice(indexSetToCreate);
+        this.setsToCreate.splice(indexSetToCreate, 1);
 
       const indexSetToUpdate = this.setsToUpdate.findIndex(
         (setTemp) => setTemp._id === set._id,
       );
       if (this.setsToUpdate.length > 0 && indexSetToUpdate >= 0)
-        this.setsToUpdate.splice(indexSetToUpdate);
+        this.setsToUpdate.splice(indexSetToUpdate, 1);
     }
 
     this.normalizeSetOrder();
@@ -1383,15 +1398,8 @@ export class ConfigExercisePage implements OnInit {
     this.setList.forEach((setItem, index) => {
       setItem.order = index;
 
-      if (isNaN(Number(setItem._id))) {
-        const indexSetToUpdate = this.setsToUpdate.findIndex(
-          (stuTemp) => stuTemp._id === setItem._id,
-        );
-        if (indexSetToUpdate !== -1) {
-          this.setsToUpdate[indexSetToUpdate] = { ...setItem };
-        } else {
-          this.setsToUpdate.push({ ...setItem });
-        }
+      if (this.isPersistedSet(setItem)) {
+        this.upsertSetToUpdate(setItem);
       } else {
         const indexSetToCreate = this.setsToCreate.findIndex(
           (stuTemp) => stuTemp._id === setItem._id,
@@ -1401,6 +1409,55 @@ export class ConfigExercisePage implements OnInit {
         }
       }
     });
+  }
+
+  private cloneSet(setItem: ExerciseSet): ExerciseSet {
+    return {
+      ...setItem,
+      expectedRir: setItem.expectedRir
+        ? [...setItem.expectedRir]
+        : setItem.expectedRir,
+      expectedReps: setItem.expectedReps
+        ? [...setItem.expectedReps]
+        : setItem.expectedReps,
+      restPauseSeries: setItem.restPauseSeries
+        ? setItem.restPauseSeries.map((serie) => ({ ...serie }))
+        : setItem.restPauseSeries,
+      dropSetSeries: setItem.dropSetSeries
+        ? setItem.dropSetSeries.map((serie) => ({ ...serie }))
+        : setItem.dropSetSeries,
+    };
+  }
+
+  private cloneSets(sets: ExerciseSet[] = []): ExerciseSet[] {
+    return sets.map((setItem) => this.cloneSet(setItem));
+  }
+
+  private sortSetsByOrder(sets: ExerciseSet[] = []): ExerciseSet[] {
+    return this.cloneSets(sets).sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0),
+    );
+  }
+
+  private isPersistedSet(setItem?: ExerciseSet): boolean {
+    return !!setItem?._id && isNaN(Number(setItem._id));
+  }
+
+  private upsertSetToUpdate(setItem: ExerciseSet): void {
+    if (!this.isPersistedSet(setItem)) {
+      return;
+    }
+
+    const indexSetToUpdate = this.setsToUpdate.findIndex(
+      (stuTemp) => stuTemp._id === setItem._id,
+    );
+    const setToUpdate = this.cloneSet(setItem);
+
+    if (indexSetToUpdate !== -1) {
+      this.setsToUpdate[indexSetToUpdate] = setToUpdate;
+    } else {
+      this.setsToUpdate.push(setToUpdate);
+    }
   }
 
   private hasChanges(): boolean {
@@ -1450,7 +1507,13 @@ export class ConfigExercisePage implements OnInit {
             handler: () => {
               // Revertir cambios locales si es necesario
               if (this.customExercise) {
-                this.customExercise.sets = [...this.originSetsOrdered];
+                this.customExercise.sets = this.cloneSets(
+                  this.originSetsOrdered,
+                );
+                this.setList = this.cloneSets(this.originSetsOrdered);
+                this.setsToCreate = [];
+                this.setsToUpdate = [];
+                this.setsToDelete = [];
                 this.customExercise.notes = this.originalNotes;
               }
               this.revertExerciseChanges();
