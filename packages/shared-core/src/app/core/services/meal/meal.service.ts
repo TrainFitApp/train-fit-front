@@ -62,24 +62,24 @@ export class MealService {
     return this.mealAPIService.deleteMealCustomProducts(id);
   }
 
-  public deleteMealRecipeInstances(id: string): Observable<Meal> {
-    return this.mealAPIService.deleteMealRecipeInstances(id);
+  public deleteMealRecipes(id: string): Observable<Meal> {
+    return this.mealAPIService.deleteMealRecipes(id);
   }
 
-  public addCustomRecipeInstance(
+  public addCustomRecipe(
     mealId: string,
-    instanceId: string
+    customRecipeId: string
   ): Observable<Meal> {
-    return this.mealAPIService.addCustomRecipeInstance(mealId, instanceId);
+    return this.mealAPIService.addCustomRecipe(mealId, customRecipeId);
   }
 
-  public deleteMealCustomRecipeInstance(
+  public deleteMealCustomRecipe(
     mealId: string,
-    instanceId: string
+    customRecipeId: string
   ): Observable<Meal> {
-    return this.mealAPIService.deleteMealCustomRecipeInstance(
+    return this.mealAPIService.deleteMealCustomRecipe(
       mealId,
-      instanceId
+      customRecipeId
     );
   }
 

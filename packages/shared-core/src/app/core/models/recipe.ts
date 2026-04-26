@@ -5,16 +5,6 @@ export interface Recipe {
   name: string;
   description?: string;
   customProducts?: CustomProduct[];
-  // Ración consumida por defecto (opcional) en gramos
-  quantity?: number;
-  // Peso total cocinado por defecto en gramos
-  quantityCooked?: number;
   verified?: boolean;
-  // userId indica que la receta fue creada por el usuario (reemplaza ownRecipe)
   userId?: string;
-}
-
-// Helper para saber si una receta es del usuario
-export function isUserRecipe(recipe: Recipe): boolean {
-  return !!recipe.userId;
 }

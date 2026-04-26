@@ -1,29 +1,76 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import {
+  CustomRecipe,
+  ModifiedBaseCustomProduct,
+} from '../../models/customRecipe';
 import { CustomProduct } from '../../models/customProduct';
 import { Recipe } from '../../models/recipe';
 import { RecipeApiService } from './recipe-api.service';
 
-/**
- * Recipe Service
- * Business logic layer for Recipe operations
- */
 @Injectable({
   providedIn: 'root',
 })
 export class RecipeService {
+  public static readonly CUSTOM_PRODUCT_COMPARISON_FIELDS: Array<
+    keyof CustomProduct
+  > = [
+    'quantity',
+    'energyKcal100g',
+    'protein100g',
+    'carbohydrates100g',
+    'fat100g',
+    'saturatedFat100g',
+    'sugars100g',
+    'fiber100g',
+    'salt100g',
+    'sodium100g',
+    'cholesterol100g',
+    'transFat100g',
+    'calcium100g',
+    'iron100g',
+    'magnesium100g',
+    'phosphorus100g',
+    'potassium100g',
+    'zinc100g',
+    'copper100g',
+    'manganese100g',
+    'selenium100g',
+    'iodine100g',
+    'vitaminA100g',
+    'vitaminC100g',
+    'vitaminD100g',
+    'vitaminE100g',
+    'vitaminK100g',
+    'vitaminB1100g',
+    'vitaminB2100g',
+    'vitaminB3100g',
+    'vitaminB5100g',
+    'vitaminB6100g',
+    'vitaminB9100g',
+    'vitaminB12100g',
+    'biotin100g',
+    'omega3100g',
+    'omega6100g',
+    'omega9100g',
+    'caffeine100g',
+    'taurine100g',
+    'alcohol100g',
+    'ingredients',
+    'allergens',
+    'traces',
+    'vegan',
+    'vegetarian',
+    'lactoseFree',
+    'glutenFree',
+  ];
+
   constructor(private recipeApiService: RecipeApiService) {}
 
-  /**
-   * Get Recipe by ID
-   */
   public getById(id: string): Observable<Recipe> {
     return this.recipeApiService.getById(id);
   }
 
-  /**
-   * Search recipes (verified + user's own)
-   */
   public searchRecipes(
     search: string,
     page: number = 0,
@@ -32,9 +79,6 @@ export class RecipeService {
     return this.recipeApiService.searchRecipes(search, page, limit);
   }
 
-  /**
-   * Get user's own recipes
-   */
   public getUserRecipes(
     page: number = 0,
     limit: number = 20
@@ -42,9 +86,6 @@ export class RecipeService {
     return this.recipeApiService.getUserRecipes(page, limit);
   }
 
-  /**
-   * Get verified recipes
-   */
   public getVerifiedRecipes(
     search: string = '',
     page: number = 0,
@@ -53,9 +94,6 @@ export class RecipeService {
     return this.recipeApiService.getVerifiedRecipes(search, page, limit);
   }
 
-  /**
-   * Get user's archived recipes
-   */
   public getArchivedRecipes(
     search: string = '',
     page: number = 0,
@@ -64,9 +102,6 @@ export class RecipeService {
     return this.recipeApiService.getArchivedRecipes(search, page, limit);
   }
 
-  /**
-   * Create a new Recipe
-   */
   public create(recipe: Partial<Recipe>): Observable<Recipe> {
     return this.recipeApiService.create(recipe);
   }
@@ -75,23 +110,14 @@ export class RecipeService {
     return this.recipeApiService.compose(payload);
   }
 
-  /**
-   * Update a Recipe
-   */
   public update(id: string, recipe: Partial<Recipe>): Observable<Recipe> {
     return this.recipeApiService.update(id, recipe);
   }
 
-  /**
-   * Delete a Recipe
-   */
   public delete(id: string): Observable<void> {
     return this.recipeApiService.delete(id);
   }
 
-  /**
-   * Toggle archived status
-   */
   public toggleArchived(recipeId: string): Observable<{
     isArchived: boolean;
     isFavorite?: boolean;
@@ -100,9 +126,6 @@ export class RecipeService {
     return this.recipeApiService.toggleArchived(recipeId);
   }
 
-  /**
-   * Add customProduct to Recipe
-   */
   public addCustomProduct(
     recipeId: string,
     customProductId: string
@@ -110,9 +133,6 @@ export class RecipeService {
     return this.recipeApiService.addCustomProduct(recipeId, customProductId);
   }
 
-  /**
-   * Remove customProduct from Recipe
-   */
   public removeCustomProduct(
     recipeId: string,
     customProductId: string
@@ -133,37 +153,181 @@ export class RecipeService {
     let fat = 0;
     let quantity = 0;
 
-    // Support both new 'ingredients' and legacy 'customProducts'
     const ingredients: any[] =
       (recipe as any).ingredients || recipe.customProducts || [];
 
-    if (ingredients.length > 0) {
-      for (const cp of ingredients) {
-        const qtyRaw = Number(cp.quantity);
-        const qty = Number.isFinite(qtyRaw) ? qtyRaw : 0;
-        const multiplier = qty / 100;
+    for (const cp of ingredients) {
+      const qtyRaw = Number(cp.quantity);
+      const qty = Number.isFinite(qtyRaw) ? qtyRaw : 0;
+      const multiplier = qty / 100;
+      const product = (cp.product || {}) as any;
 
-        // Pull up macros from linked product if not present on CP level
-        const product = (cp.product || {}) as any;
-        const k = cp.energyKcal100g ?? product.energyKcal100g ?? 0;
-        const p = cp.protein100g ?? product.protein100g ?? 0;
-        const c = cp.carbohydrates100g ?? product.carbohydrates100g ?? 0;
-        const f = cp.fat100g ?? product.fat100g ?? 0;
-
-        quantity += qty;
-        kcal += k * multiplier;
-        protein += p * multiplier;
-        carbs += c * multiplier;
-        fat += f * multiplier;
-      }
+      quantity += qty;
+      kcal += (cp.energyKcal100g ?? product.energyKcal100g ?? 0) * multiplier;
+      protein += (cp.protein100g ?? product.protein100g ?? 0) * multiplier;
+      carbs +=
+        (cp.carbohydrates100g ?? product.carbohydrates100g ?? 0) * multiplier;
+      fat += (cp.fat100g ?? product.fat100g ?? 0) * multiplier;
     }
 
     return { kcal, protein, carbs, fat, quantity };
   }
 
-  /**
-   * Get top ingredients as a comma-separated string
-   */
+  public areCustomProductsEquivalent(
+    left?: Partial<CustomProduct> | null,
+    right?: Partial<CustomProduct> | null
+  ): boolean {
+    if (!left && !right) return true;
+    if (!left || !right) return false;
+
+    return RecipeService.CUSTOM_PRODUCT_COMPARISON_FIELDS.every((field) =>
+      this.areValuesEquivalent((left as any)?.[field], (right as any)?.[field])
+    );
+  }
+
+  public buildModifiedBaseCustomProduct(
+    baseIngredient: CustomProduct,
+    currentIngredient: CustomProduct
+  ): ModifiedBaseCustomProduct {
+    const modified: ModifiedBaseCustomProduct = {
+      baseCustomProductId: baseIngredient._id!,
+      quantity: currentIngredient.quantity,
+    };
+
+    RecipeService.CUSTOM_PRODUCT_COMPARISON_FIELDS.forEach((field) => {
+      const currentValue = (currentIngredient as any)?.[field];
+      const baseValue = (baseIngredient as any)?.[field];
+      if (!this.areValuesEquivalent(currentValue, baseValue)) {
+        (modified as any)[field] = this.cloneComparableValue(currentValue);
+      }
+    });
+
+    return modified;
+  }
+
+  public serializeCustomProductForPersistence(
+    ingredient: CustomProduct
+  ): Partial<CustomProduct> {
+    const payload: any = {
+      quantity: ingredient.quantity,
+    };
+
+    const normalizedProductId = this.normalizeObjectId(
+      ingredient.product?._id || ingredient.product
+    );
+    if (normalizedProductId) {
+      payload.product = normalizedProductId;
+    }
+
+    const normalizedIngredientId = this.normalizeObjectId(ingredient._id);
+    if (normalizedIngredientId) {
+      payload._id = normalizedIngredientId;
+    }
+
+    RecipeService.CUSTOM_PRODUCT_COMPARISON_FIELDS.forEach((field) => {
+      if (field === 'quantity') return;
+
+      const value = (ingredient as any)?.[field];
+      if (value !== undefined && value !== null && value !== '') {
+        payload[field] = this.cloneComparableValue(value);
+      }
+    });
+
+    return payload;
+  }
+
+  public mergeRecipeIngredients(
+    recipe: Recipe | null | undefined,
+    customRecipe?: CustomRecipe | null
+  ): CustomProduct[] {
+    if (!recipe) return [];
+    if (!customRecipe) return [...(recipe.customProducts || [])];
+
+    const removedIds = new Set(
+      (customRecipe.removedBaseCustomProductIds || []).map((id: any) =>
+        (id?._id || id).toString()
+      )
+    );
+    const modifiedMap = new Map<string, ModifiedBaseCustomProduct>();
+
+    (customRecipe.modifiedBaseCustomProducts || []).forEach((item: any) => {
+      const id = item?.baseCustomProductId?._id || item?.baseCustomProductId;
+      if (id) {
+        modifiedMap.set(id.toString(), item);
+      }
+    });
+
+    const mergedBase = (recipe.customProducts || [])
+      .filter((ingredient: any) => !removedIds.has(ingredient?._id?.toString?.()))
+      .map((ingredient: any) => {
+        const id = ingredient?._id?.toString?.();
+        const modified = id ? modifiedMap.get(id) : null;
+        if (!modified) return ingredient;
+
+        const nextIngredient: any = { ...ingredient };
+        RecipeService.CUSTOM_PRODUCT_COMPARISON_FIELDS.forEach((field) => {
+          if ((modified as any)?.[field] !== undefined) {
+            nextIngredient[field] = this.cloneComparableValue(
+              (modified as any)[field]
+            );
+          }
+        });
+
+        return nextIngredient;
+      });
+
+    return [
+      ...mergedBase,
+      ...((customRecipe.addedCustomProducts || []) as CustomProduct[]),
+    ];
+  }
+
+  public getRemovedBaseIngredients(
+    recipe: Recipe | null | undefined,
+    ingredients: CustomProduct[]
+  ): CustomProduct[] {
+    if (!recipe) return [];
+
+    return (recipe.customProducts || []).filter(
+      (ingredient: any) =>
+        !ingredients.find((current) => current?._id === ingredient?._id)
+    );
+  }
+
+  public calculateCustomRecipeTotals(
+    recipe: Recipe | null | undefined,
+    customRecipe?: CustomRecipe | null
+  ): {
+    ingredients: CustomProduct[];
+    totals: { kcal: number; protein: number; carbs: number; fat: number; quantity: number };
+    baseline: number;
+    consumed: number;
+    portionMacros: { kcal: number; protein: number; carbs: number; fat: number };
+  } {
+    const ingredients = this.mergeRecipeIngredients(recipe, customRecipe);
+    const totals = this.calculateRecipeMacros({
+      name: recipe?.name || '',
+      customProducts: ingredients,
+    });
+    const baseline =
+      this.toPositiveNumber(customRecipe?.quantityCooked) || totals.quantity || 0;
+    const consumed = this.toPositiveNumber(customRecipe?.quantity) || 0;
+    const ratio = baseline > 0 ? consumed / baseline : 0;
+
+    return {
+      ingredients,
+      totals,
+      baseline,
+      consumed,
+      portionMacros: {
+        kcal: totals.kcal * ratio,
+        protein: totals.protein * ratio,
+        carbs: totals.carbs * ratio,
+        fat: totals.fat * ratio,
+      },
+    };
+  }
+
   public getTopIngredients(recipe: Recipe, count: number = 3): string {
     const ingredients: any[] =
       (recipe as any).ingredients || recipe.customProducts || [];
@@ -172,21 +336,13 @@ export class RecipeService {
       return '';
     }
 
-    const sorted = [...ingredients]
+    return [...ingredients]
       .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
-      .slice(0, count);
-
-    return sorted
-      .map((cp) => {
-        const name = cp.product?.name || 'Ingrediente';
-        return name;
-      })
+      .slice(0, count)
+      .map((cp) => cp.product?.name || 'Ingrediente')
       .join(', ');
   }
 
-  /**
-   * Get ingredients list sorted by quantity (descending)
-   */
   public getIngredientsList(
     recipe: Recipe
   ): { name: string; quantity: number }[] {
@@ -202,10 +358,46 @@ export class RecipeService {
       }));
   }
 
-  /**
-   * Check if recipe is in favorites
-   */
   public isFavorite(recipe: Recipe, archivedRecipes: string[]): boolean {
     return recipe._id ? archivedRecipes.includes(recipe._id) : false;
+  }
+
+  private areValuesEquivalent(left: any, right: any): boolean {
+    if (Array.isArray(left) || Array.isArray(right)) {
+      return JSON.stringify(left || []) === JSON.stringify(right || []);
+    }
+
+    return left === right;
+  }
+
+  private cloneComparableValue(value: any): any {
+    if (Array.isArray(value)) {
+      return [...value];
+    }
+
+    return value;
+  }
+
+  private toPositiveNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return null;
+    }
+
+    return parsed;
+  }
+
+  private normalizeObjectId(value: any): string | null {
+    if (!value) return null;
+
+    const rawValue = value?._id || value;
+    const normalizedValue =
+      typeof rawValue === 'string' ? rawValue : rawValue?.toString?.();
+
+    return /^[a-f\d]{24}$/i.test(normalizedValue || '') ? normalizedValue : null;
   }
 }

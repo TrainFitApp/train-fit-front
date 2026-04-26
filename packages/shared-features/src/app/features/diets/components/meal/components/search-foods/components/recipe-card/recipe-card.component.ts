@@ -72,7 +72,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private checkIsChecked(): void {
-    if (!this.meal?.customRecipeInstances) {
+    if (!this.meal?.customRecipes) {
       this.isChecked = false;
       this.foundInstance = null;
       this.displayQuantity = this.getRecipeDisplayQuantity();
@@ -84,13 +84,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.foundInstance = this.meal.customRecipeInstances.find((instance) => {
-      const dataRecipe =
-        typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-      if (!dataRecipe) return false;
-
+    this.foundInstance = this.meal.customRecipes.find((instance) => {
       const recipe =
-        typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+        typeof instance.recipe === 'object' ? instance.recipe : null;
       if (!recipe) return false;
 
       const recipeId = recipe._id;
@@ -109,16 +105,19 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private calculateMacros(): void {
-    const totals = this.recipeService.calculateRecipeMacros(this.recipe);
+    const merged = this.foundInstance
+      ? this.recipeService.calculateCustomRecipeTotals(this.recipe, this.foundInstance)
+      : null;
+    const totals = merged?.totals || this.recipeService.calculateRecipeMacros(this.recipe);
     const baseline = this.getRecipeTotalCookedWeight(totals.quantity);
     const quantityForMeasure = this.getRecipeDisplayQuantity();
     const ratio = baseline > 0 && quantityForMeasure ? quantityForMeasure / baseline : 0;
 
     this.macros = {
-      kcal: totals.kcal * ratio,
-      protein: totals.protein * ratio,
-      carbs: totals.carbs * ratio,
-      fat: totals.fat * ratio,
+      kcal: merged ? merged.portionMacros.kcal : totals.kcal * ratio,
+      protein: merged ? merged.portionMacros.protein : totals.protein * ratio,
+      carbs: merged ? merged.portionMacros.carbs : totals.carbs * ratio,
+      fat: merged ? merged.portionMacros.fat : totals.fat * ratio,
     };
   }
 
@@ -172,16 +171,8 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private getRecipeTotalCookedWeight(fallbackFromIngredients?: number): number | null {
-    const dataRecipe =
-      this.foundInstance && typeof this.foundInstance.dataRecipe === 'object'
-        ? this.foundInstance.dataRecipe
-        : null;
-
-    const fromInstance = this.toPositiveNumber(dataRecipe?.quantityCooked);
+    const fromInstance = this.toPositiveNumber(this.foundInstance?.quantityCooked);
     if (fromInstance) return fromInstance;
-
-    const fromRecipe = this.toPositiveNumber(this.recipe?.quantityCooked);
-    if (fromRecipe) return fromRecipe;
 
     const fromIngredients =
       this.toPositiveNumber(fallbackFromIngredients) ??
@@ -193,9 +184,6 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   private getConsumedWeight(): number | null {
     const fromInstance = this.toPositiveNumber(this.foundInstance?.quantity);
     if (fromInstance) return fromInstance;
-
-    const fromRecipe = this.toPositiveNumber(this.recipe?.quantity);
-    if (fromRecipe) return fromRecipe;
 
     return null;
   }

@@ -32,6 +32,7 @@ import { User } from "src/app/core/models/user";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
 import { MealService } from "src/app/core/services/meal/meal.service";
 import { ProductService } from "src/app/core/services/product/product.service";
+import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeApiService } from "src/app/core/services/recipe/recipe-api.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { BarCodeScannerService } from "src/app/core/services/util/bar-code-scanner.service";
@@ -92,22 +93,16 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public get recipesOrdered(): Recipe[] {
-    if (!this.recipes || !this.meal?.customRecipeInstances) {
+    if (!this.recipes || !this.meal?.customRecipes) {
       return this.recipes || [];
     }
 
     // Get IDs of recipes already in meal
     const recipesInMeal = new Set<string>();
-    this.meal.customRecipeInstances.forEach((instance) => {
-      const dataRecipe =
-        typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-      if (dataRecipe) {
-        const recipe =
-          typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-        if (recipe?._id) {
-          recipesInMeal.add(recipe._id);
-        }
-      }
+    this.meal.customRecipes.forEach((customRecipe) => {
+      const recipe =
+        typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
+      if (recipe?._id) recipesInMeal.add(recipe._id);
     });
 
     // Split recipes into two groups
@@ -203,6 +198,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private mealService: MealService,
     private productService: ProductService,
     private recipeApiService: RecipeApiService,
+    private recipeDraftService: RecipeDraftService,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
@@ -323,12 +319,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
               this.meal,
             );
             console.log(
-              "[DEBUG] Meal customRecipeInstances:",
-              this.meal.customRecipeInstances,
+              "[DEBUG] Meal customRecipes:",
+              this.meal.customRecipes,
             );
             console.log(
               "[DEBUG] Number of recipe instances:",
-              this.meal.customRecipeInstances?.length,
+              this.meal.customRecipes?.length,
             );
           } else {
             this.meal = savedState.meal;
@@ -360,8 +356,29 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           (r) => r._id === state.updatedRecipe._id,
         );
         if (idx !== -1) {
-          this.recipes[idx] = { ...this.recipes[idx], ...state.updatedRecipe };
+          // Sustituimos el objeto entero para que también se reflejen borrados
+          // como description/name vacíos sin heredar propiedades antiguas.
+          this.recipes[idx] = { ...state.updatedRecipe };
           this.recipes = [...this.recipes];
+        }
+
+        if (this.meal?.customRecipes?.length) {
+          this.meal = {
+            ...this.meal,
+            customRecipes: this.meal.customRecipes.map((customRecipe: any) => {
+              const recipeRef =
+                typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
+
+              if (recipeRef?._id !== state.updatedRecipe._id) {
+                return customRecipe;
+              }
+
+              return {
+                ...customRecipe,
+                recipe: { ...state.updatedRecipe },
+              };
+            }),
+          };
         }
       }
 
@@ -390,29 +407,40 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         });
       }
 
-      // 🔧 FIX: PRIMERO restaurar de tempData si existe (volviendo de create-product)
-      const tempIngredients = this.navigationService.getTempData<
-        CustomProduct[]
-      >("selectedIngredients");
-      if (tempIngredients && tempIngredients.length > 0) {
-        console.log(
-          "[DEBUG] Restoring selectedIngredients from tempData:",
-          tempIngredients.length,
-        );
-        this.selectedIngredients = tempIngredients;
-        // ⚠️ NO limpiar tempData aquí - se necesita para múltiples ciclos de vida
-        // Se limpiará cuando salgamos del modo ingrediente
+      // Recipes usa un draft compartido en memoria como fuente principal.
+      // TempData queda solo como compatibilidad/fallback.
+      if (this.recipeDraftService.isActive()) {
+        this.selectedIngredients = this.recipeDraftService.ingredients();
       }
-      // SEGUNDO: si no hay tempData, usar state.existingIngredients
-      else if (
-        state.existingIngredients &&
-        state.existingIngredients.length > 0
-      ) {
-        console.log(
-          "[DEBUG] Loading existingIngredients from state:",
-          state.existingIngredients.length,
-        );
-        this.selectedIngredients = state.existingIngredients;
+      // 🔧 FIX: PRIMERO restaurar de tempData si existe (volviendo de create-product)
+      else {
+        const tempIngredients = this.navigationService.getTempData<
+          CustomProduct[]
+        >("selectedIngredients");
+        if (tempIngredients && tempIngredients.length > 0) {
+          console.log(
+            "[DEBUG] Restoring selectedIngredients from tempData:",
+            tempIngredients.length,
+          );
+          this.selectedIngredients = tempIngredients;
+          // ⚠️ NO limpiar tempData aquí - se necesita para múltiples ciclos de vida
+          // Se limpiará cuando salgamos del modo ingrediente
+        }
+        // SEGUNDO: si no hay tempData, usar state.existingIngredients
+        else if (
+          state.existingIngredients &&
+          state.existingIngredients.length > 0
+        ) {
+          console.log(
+            "[DEBUG] Loading existingIngredients from state:",
+            state.existingIngredients.length,
+          );
+          this.selectedIngredients = state.existingIngredients;
+        }
+      }
+
+      if (this.recipeDraftService.isActive()) {
+        this.syncRecipeDraftIngredients();
       }
 
       console.log(
@@ -499,7 +527,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     console.log("[DEBUG] this.ingredientMode:", this.ingredientMode);
     console.log("[DEBUG] state.ingredientMode:", state.ingredientMode);
 
-    if (newIngredient && this.ingredientMode) {
+    if (newIngredient && this.ingredientMode && !this.recipeDraftService.isActive()) {
       console.log(
         "[DEBUG] Received new ingredient from add-product:",
         newIngredient,
@@ -582,6 +610,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       }
 
       // Clear the temp data
+      this.navigationService.clearTempData("newIngredient");
+    }
+
+    if (this.ingredientMode && this.recipeDraftService.isActive()) {
+      this.selectedIngredients = this.recipeDraftService.ingredients();
+      this.calculateIngredientMacros();
       this.navigationService.clearTempData("newIngredient");
     }
 
@@ -742,6 +776,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   public async ionViewWillLeave(): Promise<void> {
     await this.removeKeyboardListeners();
     if (this.ingredientMode && this.returnUrl) {
+      this.syncRecipeDraftIngredients();
       const ingredientsCopy = this.selectedIngredients.map((ing) => ({
         product: ing.product,
         quantity: ing.quantity,
@@ -1150,6 +1185,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
+    // Mantener el draft de recipes alineado con el borrado real del Product.
+    this.recipeDraftService.removeProductReferences(productId);
+
     this.products = (this.products || []).filter((p) => p?._id !== productId);
 
     // Limpiar selectedIngredients (modo ingredientes)
@@ -1188,15 +1226,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.navigationService.setTempData("configRecipeDef", savedRecipe);
     }
 
-    // Limpiar customRecipeInstance en tempData si existe
+    // Limpiar customRecipe en tempData si existe
     const savedInstance = this.navigationService.getTempData<any>(
       "configRecipeInstance",
     );
     if (savedInstance) {
-      // Limpiar additionalCustomProducts
-      if (Array.isArray(savedInstance.additionalCustomProducts)) {
-        savedInstance.additionalCustomProducts =
-          savedInstance.additionalCustomProducts.filter((addCp: any) => {
+      if (Array.isArray(savedInstance.addedCustomProducts)) {
+        savedInstance.addedCustomProducts =
+          savedInstance.addedCustomProducts.filter((addCp: any) => {
             const addProductId =
               typeof addCp?.product === "string"
                 ? addCp.product
@@ -1205,15 +1242,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           });
       }
 
-      // Limpiar de la receta base dentro de dataRecipe
-      const dataRecipe =
-        typeof savedInstance.dataRecipe === "object"
-          ? savedInstance.dataRecipe
-          : null;
       const recipe =
-        dataRecipe && typeof dataRecipe.recipe === "object"
-          ? dataRecipe.recipe
-          : null;
+        typeof savedInstance.recipe === "object" ? savedInstance.recipe : null;
 
       if (recipe && Array.isArray(recipe.customProducts)) {
         const removedCustomProductIds = new Set<string>();
@@ -1231,18 +1261,24 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         // Limpiar overrides relacionados
         if (
           removedCustomProductIds.size > 0 &&
-          Array.isArray(savedInstance.customProductsOverrides)
+          Array.isArray(savedInstance.modifiedBaseCustomProducts)
         ) {
-          savedInstance.customProductsOverrides =
-            savedInstance.customProductsOverrides.filter((override: any) => {
+          savedInstance.modifiedBaseCustomProducts =
+            savedInstance.modifiedBaseCustomProducts.filter((override: any) => {
               const overrideId =
-                typeof override?.customProductId === "string"
-                  ? override.customProductId
-                  : override?.customProductId?._id;
+                typeof override?.baseCustomProductId === "string"
+                  ? override.baseCustomProductId
+                  : override?.baseCustomProductId?._id;
               return !removedCustomProductIds.has(
                 (overrideId || "").toString(),
               );
             });
+
+          savedInstance.removedBaseCustomProductIds = (
+            savedInstance.removedBaseCustomProductIds || []
+          ).filter(
+            (id: any) => !removedCustomProductIds.has((id?._id || id).toString()),
+          );
         }
       }
 
@@ -1274,35 +1310,27 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
       }
 
-      if (mealTemp?.customRecipeInstances?.length) {
-        mealTemp.customRecipeInstances.forEach((instance: any) => {
-          if (!instance) return;
+      if (mealTemp?.customRecipes?.length) {
+        mealTemp.customRecipes.forEach((customRecipe: any) => {
+          if (!customRecipe) return;
 
-          if (Array.isArray(instance.additionalCustomProducts)) {
-            const originalAdditional = instance.additionalCustomProducts.length;
-            instance.additionalCustomProducts =
-              instance.additionalCustomProducts.filter((addCp: any) => {
+          if (Array.isArray(customRecipe.addedCustomProducts)) {
+            const originalAdditional = customRecipe.addedCustomProducts.length;
+            customRecipe.addedCustomProducts =
+              customRecipe.addedCustomProducts.filter((addCp: any) => {
                 const addProductId =
                   typeof addCp?.product === "string"
                     ? addCp.product
                     : addCp?.product?._id;
                 return addProductId !== productId;
               });
-            if (
-              instance.additionalCustomProducts.length !== originalAdditional
-            ) {
+            if (customRecipe.addedCustomProducts.length !== originalAdditional) {
               hasDietDayChanges = true;
             }
           }
 
-          const dataRecipe =
-            typeof instance.dataRecipe === "object"
-              ? instance.dataRecipe
-              : null;
           const recipe =
-            dataRecipe && typeof dataRecipe.recipe === "object"
-              ? dataRecipe.recipe
-              : null;
+            typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
 
           if (recipe && Array.isArray(recipe.customProducts)) {
             const removedCustomProductIds = new Set<string>();
@@ -1324,23 +1352,23 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
             if (
               removedCustomProductIds.size > 0 &&
-              Array.isArray(instance.customProductsOverrides)
+              Array.isArray(customRecipe.modifiedBaseCustomProducts)
             ) {
               const originalOverridesLen =
-                instance.customProductsOverrides.length;
-              instance.customProductsOverrides =
-                instance.customProductsOverrides.filter((override: any) => {
+                customRecipe.modifiedBaseCustomProducts.length;
+              customRecipe.modifiedBaseCustomProducts =
+                customRecipe.modifiedBaseCustomProducts.filter((override: any) => {
                   const overrideId =
-                    typeof override?.customProductId === "string"
-                      ? override.customProductId
-                      : override?.customProductId?._id;
+                    typeof override?.baseCustomProductId === "string"
+                      ? override.baseCustomProductId
+                      : override?.baseCustomProductId?._id;
                   return !removedCustomProductIds.has(
                     (overrideId || "").toString(),
                   );
                 });
 
               if (
-                instance.customProductsOverrides.length !== originalOverridesLen
+                customRecipe.modifiedBaseCustomProducts.length !== originalOverridesLen
               ) {
                 hasDietDayChanges = true;
               }
@@ -1416,6 +1444,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     // 🔧 REORDENAR: Poner seleccionados arriba inmediatamente
     this.setSelectedIngredientsFirst();
+    this.syncRecipeDraftIngredients();
 
     console.log(
       "[DEBUG] selectedIngredients names:",
@@ -1445,6 +1474,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     this.ingredientMacros = nextMacros;
+  }
+
+  private syncRecipeDraftIngredients(): void {
+    if (!this.recipeDraftService.isActive()) return;
+    this.recipeDraftService.setIngredients(this.selectedIngredients);
   }
 
   // Check if a product is already selected as ingredient
@@ -1534,7 +1568,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           handler: () => {
             // Call the appropriate service method based on current segment
             const observable = isRecipeMode
-              ? this.mealService.deleteMealRecipeInstances(this.meal._id)
+              ? this.mealService.deleteMealRecipes(this.meal._id)
               : this.mealService.deleteMealCustomProducts(this.meal._id);
 
             observable.subscribe({
@@ -1708,26 +1742,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   /**
    * 🔧 Poner recetas de la meal primero (igual que setCustomProductsFirst)
-   * Extrae recetas de meal.customRecipeInstances, las filtra y las pone al inicio
+   * Extrae recetas de meal.customRecipes, las filtra y las pone al inicio
    */
   private setCustomRecipesFirst(): void {
-    if (!this.meal?.customRecipeInstances) {
+    if (!this.meal?.customRecipes) {
       return;
     }
 
-    // Obtención de recipes de customRecipeInstances provenientes de meal
-    const recipesOnMeal = this.meal.customRecipeInstances
-      .map((customRecipeInstance) => {
-        const dataRecipe =
-          typeof customRecipeInstance.dataRecipe === "object"
-            ? customRecipeInstance.dataRecipe
-            : null;
-        if (dataRecipe) {
-          return typeof dataRecipe.recipe === "object"
-            ? dataRecipe.recipe
-            : null;
-        }
-        return null;
+    // Obtención de recipes de customRecipes provenientes de meal
+    const recipesOnMeal = this.meal.customRecipes
+      .map((customRecipe) => {
+        return typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
       })
       .filter((recipeTemp) => {
         if (recipeTemp) {
@@ -1887,18 +1912,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   // Recipe event handlers
   public onRecipeToggle(recipe: Recipe): void {
-    // Check if recipe is already in meal
-    const existingInstance = this.meal?.customRecipeInstances?.find(
-      (instance) => {
-        const dataRecipe =
-          typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-        if (!dataRecipe) return false;
-        const instanceRecipe =
-          typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-        if (!instanceRecipe) return false;
-        return instanceRecipe._id === recipe._id;
-      },
-    );
+    const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
       // If already in meal, edit it
@@ -1910,19 +1924,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeQuickAdd(recipe: Recipe): void {
-    // If already in meal, checkbox acts as remove via recipe-card
-    // This is just a safety fallback.
-    const existingInstance = this.meal?.customRecipeInstances?.find(
-      (instance) => {
-        const dataRecipe =
-          typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-        if (!dataRecipe) return false;
-        const instanceRecipe =
-          typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-        if (!instanceRecipe) return false;
-        return instanceRecipe._id === recipe._id;
-      },
-    );
+    const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
       this.removeRecipeFromMeal(existingInstance);
@@ -1933,18 +1935,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeRemove(recipe: Recipe): void {
-    // Find the instance for this recipe
-    const existingInstance = this.meal?.customRecipeInstances?.find(
-      (instance) => {
-        const dataRecipe =
-          typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-        if (!dataRecipe) return false;
-        const instanceRecipe =
-          typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-        if (!instanceRecipe) return false;
-        return instanceRecipe._id === recipe._id;
-      },
-    );
+    const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
       this.removeRecipeFromMeal(existingInstance);
@@ -1956,20 +1947,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const fallbackCooked = this.getRecipeRawWeight(recipe);
-    const quantityCooked =
-      this.toPositiveNumber(recipe.quantityCooked) ?? fallbackCooked;
-    const quantity = this.toPositiveNumber(recipe.quantity) ?? 100;
+    const quantityCooked = this.getRecipeRawWeight(recipe);
+    const quantity = 100;
 
     const composePayload: any = {
       recipeId: recipe._id,
-      dataRecipe: {
-        quantityCooked,
-      },
-      instance: {
+      customRecipe: {
         quantity,
-        customProductsOverrides: [],
-        additionalCustomProducts: [],
+        quantityCooked,
+        modifiedBaseCustomProducts: [],
+        removedBaseCustomProductIds: [],
+        addedCustomProducts: [],
       },
       context: this.buildRecipeComposeContext(),
     };
@@ -2029,9 +2017,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           text: "Eliminar",
           role: "confirm",
           handler: () => {
-            // Delete the CustomRecipeInstance
+            // Delete the CustomRecipe
             this.mealService
-              .deleteMealCustomRecipeInstance(this.meal!._id!, instance._id)
+              .deleteMealCustomRecipe(this.meal!._id!, instance._id)
               .subscribe({
                 next: (updatedMeal) => {
                   // Update local state
@@ -2138,25 +2126,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeEdit(recipe: Recipe): void {
-    // Find the instance for this recipe
-    const existingInstance = this.meal?.customRecipeInstances?.find(
-      (instance) => {
-        const dataRecipe =
-          typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-        if (!dataRecipe) return false;
-        const instanceRecipe =
-          typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-        if (!instanceRecipe) return false;
-        return instanceRecipe._id === recipe._id;
-      },
-    );
+    const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
       this.editRecipeFromMeal(recipe, existingInstance);
     }
   }
 
-  private editRecipeFromMeal(recipe: Recipe, customRecipeInstance: any): void {
+  private editRecipeFromMeal(recipe: Recipe, customRecipe: any): void {
     // Save current search state to restore when returning
     this.navigationService.setTempData("searchFoodsState", {
       searchFilterGroup: { ...this.searchFilterGroup },
@@ -2172,13 +2149,23 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       state: {
         mode: "edit",
         recipe: recipe,
-        customRecipeInstance: customRecipeInstance,
+        customRecipe: customRecipe,
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: "/search-foods",
         selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
       },
     });
+  }
+
+  private findCustomRecipeForRecipe(recipe: Recipe): any | null {
+    return (
+      this.meal?.customRecipes?.find((customRecipe: any) => {
+        const recipeRef =
+          typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
+        return recipeRef?._id === recipe._id;
+      }) || null
+    );
   }
 
   public onRecipeFavoriteToggle(recipe: Recipe): void {
@@ -2452,6 +2439,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     // In ingredient mode, pass back selected ingredients using temp storage
     if (this.ingredientMode && this.returnUrl) {
+      this.syncRecipeDraftIngredients();
       console.log(
         "SearchFoods: storing ingredients in temp storage:",
         this.selectedIngredients.length,
@@ -2565,6 +2553,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     console.log("[DEBUG] Creating new product for ingredient mode");
 
     // Save current ingredients state
+    this.syncRecipeDraftIngredients();
     this.navigationService.setTempData(
       "selectedIngredients",
       this.selectedIngredients,

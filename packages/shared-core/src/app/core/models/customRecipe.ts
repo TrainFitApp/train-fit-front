@@ -1,0 +1,36 @@
+import { CustomProduct } from './customProduct';
+import { Recipe } from './recipe';
+
+export interface ModifiedBaseCustomProduct extends Partial<CustomProduct> {
+  baseCustomProductId: string;
+  quantity: number;
+}
+
+export interface CustomRecipe {
+  _id?: string;
+  recipe: Recipe | string;
+  quantity?: number;
+  quantityCooked?: number;
+  addedCustomProducts?: CustomProduct[];
+  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
+  removedBaseCustomProductIds?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface CreateCustomRecipeDTO {
+  recipe: string;
+  quantity?: number;
+  quantityCooked?: number;
+  addedCustomProducts?: CustomProduct[];
+  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
+  removedBaseCustomProductIds?: string[];
+}
+
+export interface UpdateCustomRecipeDTO {
+  quantity?: number;
+  quantityCooked?: number;
+  addedCustomProducts?: CustomProduct[];
+  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
+  removedBaseCustomProductIds?: string[];
+}

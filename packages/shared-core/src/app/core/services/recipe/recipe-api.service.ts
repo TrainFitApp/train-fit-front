@@ -94,7 +94,7 @@ export class RecipeApiService {
   }
 
   /**
-   * Compose Recipe + (optional) DataRecipe + CustomRecipeInstance in one call
+   * Compose Recipe + CustomRecipe in one call
    */
   public compose(payload: any): Observable<any> {
     return this.http.post<any>(

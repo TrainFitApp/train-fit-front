@@ -63,28 +63,28 @@ export class MealAPIService {
     );
   }
 
-  public deleteMealRecipeInstances(id: string): Observable<Meal> {
+  public deleteMealRecipes(id: string): Observable<Meal> {
     return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/all/customrecipeinstances/${id}`
+      `${MealAPIService.MEAL_ENDPOINT}/all/customrecipesref/${id}`
     );
   }
 
-  public addCustomRecipeInstance(
+  public addCustomRecipe(
     mealId: string,
-    instanceId: string
+    customRecipeId: string
   ): Observable<Meal> {
     return this.http.post<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipeinstances/${instanceId}`,
+      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes/${customRecipeId}`,
       {}
     );
   }
 
-  public deleteMealCustomRecipeInstance(
+  public deleteMealCustomRecipe(
     mealId: string,
-    instanceId: string
+    customRecipeId: string
   ): Observable<Meal> {
     return this.http.delete<Meal>(
-      `${MealAPIService.MEAL_ENDPOINT}/customrecipeinstance/${mealId}/${instanceId}`
+      `${MealAPIService.MEAL_ENDPOINT}/customrecipe/${mealId}/${customRecipeId}`
     );
   }
 }
