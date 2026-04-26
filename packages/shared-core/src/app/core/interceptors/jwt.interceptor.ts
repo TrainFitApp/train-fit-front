@@ -9,17 +9,19 @@ import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { AuthApiService } from '../services/auth/auth-api.service';
 import { AuthService } from '../services/auth/auth.service';
 import { UserLocalstorageService } from '../services/user/user-localstorage.service';
-import { Token } from '../models/token';
 
 @Injectable()
 export class JWTInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> =
     new BehaviorSubject<string | null>(null);
-  private readonly isNativeClient = Capacitor.isNativePlatform();
+  private readonly clientPlatform = Capacitor.getPlatform();
+  private readonly clientFamily =
+    environment.auth?.clientFamily || 'trainfit-front';
 
   constructor(
     private authService: AuthService,
@@ -30,13 +32,12 @@ export class JWTInterceptor implements HttpInterceptor {
     request: HttpRequest<unknown>,
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
-    const requestWithClientHeader = this.isNativeClient
-      ? request.clone({
-          setHeaders: {
-            'x-client-platform': 'mobile',
-          },
-        })
-      : request;
+    const requestWithClientHeader = request.clone({
+      setHeaders: {
+        'x-client-platform': this.clientPlatform,
+        'x-client-family': this.clientFamily,
+      },
+    });
 
     const token = this.getTokenFromLocalStorage();
 
@@ -45,12 +46,16 @@ export class JWTInterceptor implements HttpInterceptor {
       requestWithClientHeader.url.includes(
         AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT
       ) || // sign-in
-      requestWithClientHeader.url.includes('refresh-token') || // refresh token
-      requestWithClientHeader.url.includes('logout') || // logout
+      requestWithClientHeader.url.includes(AuthApiService.REFRESH_ENDPOINT) || // refresh token
+      requestWithClientHeader.url.includes(AuthApiService.LOGOUT_ENDPOINT) || // logout
       requestWithClientHeader.url.includes('/users/check/') || // check if email exists
       requestWithClientHeader.url.includes('/users/send/mail/code') || // forgot password - send code
-      requestWithClientHeader.url.includes('/users/auth/verify-google') || // google auth
-      requestWithClientHeader.url.includes('/users/auth/verify-apple') || // apple auth
+      requestWithClientHeader.url.includes(
+        AuthApiService.VERIFY_GOOGLE_ENDPOINT
+      ) || // google auth
+      requestWithClientHeader.url.includes(
+        AuthApiService.VERIFY_APPLE_ENDPOINT
+      ) || // apple auth
       (requestWithClientHeader.url.includes('/users/') &&
         requestWithClientHeader.method === 'POST' &&
         !requestWithClientHeader.url.includes('/favProduct') &&
