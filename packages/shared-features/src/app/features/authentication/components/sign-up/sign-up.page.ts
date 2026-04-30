@@ -15,7 +15,6 @@ import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
-import { ManHoodValidator } from 'src/app/core/validators/manhood';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import {
   ACTIVITY_FACTOR,
@@ -141,8 +140,9 @@ export class SignUpPage implements OnInit, OnDestroy {
     private signUpStateService: SignUpStateService
   ) {
     // Inicializar fechas fijas
-    const currentDate = new Date();
-    this.maxDate = currentDate.toISOString();
+    const maxDateObj = new Date();
+    maxDateObj.setFullYear(maxDateObj.getFullYear() - 13);
+    this.maxDate = maxDateObj.toISOString();
 
     const minDateObj = new Date();
     minDateObj.setFullYear(minDateObj.getFullYear() - 100);
@@ -265,11 +265,8 @@ export class SignUpPage implements OnInit, OnDestroy {
           ])
         ),
         birth: new FormControl(
-          new Date().toISOString(),
-          Validators.compose([
-            Validators.required,
-            ManHoodValidator.manHood(this.userService),
-          ])
+          this.maxDate,
+          Validators.compose([Validators.required])
         ),
         steps: new FormControl(null, Validators.required),
         objetive: new FormControl(null, Validators.required),
