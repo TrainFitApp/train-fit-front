@@ -85,8 +85,8 @@
                     style="border-radius: 20px"
                     [color]="
                       meal.customProducts.length > 0 ||
-                      (meal.customRecipeInstances &&
-                        meal.customRecipeInstances.length > 0)
+                      (meal.customRecipes &&
+                        meal.customRecipes.length > 0)
                         ? 'primary'
                         : ''
                     "
@@ -98,8 +98,8 @@
               <ion-icon
                 *ngIf="
                   meal.customProducts.length > 0 ||
-                  (meal.customRecipeInstances &&
-                    meal.customRecipeInstances.length > 0)
+                  (meal.customRecipes &&
+                    meal.customRecipes.length > 0)
                 "
                 style="font-size: x-large"
                 name="chevron-down-outline"
@@ -112,8 +112,8 @@
             style="font-size: small; text-align: center; color: gray"
             *ngIf="
               meal.customProducts.length > 0 ||
-              (meal.customRecipeInstances &&
-                meal.customRecipeInstances.length > 0)
+              (meal.customRecipes &&
+                meal.customRecipes.length > 0)
             "
           >
             <ion-col size="3" class="macro-col">
@@ -183,7 +183,7 @@
     <ion-list
       *ngIf="
         meal.customProducts.length > 0 ||
-        (meal.customRecipeInstances && meal.customRecipeInstances.length > 0)
+        (meal.customRecipes && meal.customRecipes.length > 0)
       "
       slot="content"
       (click)="$event.stopPropagation()"
@@ -197,7 +197,7 @@
       <!-- Recipes Section -->
       <div
         *ngIf="
-          meal.customRecipeInstances && meal.customRecipeInstances.length > 0
+          meal.customRecipes && meal.customRecipes.length > 0
         "
         class="section-header"
       >
@@ -207,9 +207,9 @@
       </div>
 
       <div
-        *ngFor="let instance of getCustomRecipeInstancesOrdered(meal)"
+        *ngFor="let instance of getCustomRecipesOrdered(meal)"
         class="meal-item recipe-item"
-        (click)="editCustomRecipeInstance(instance)"
+        (click)="editCustomRecipe(instance)"
       >
         <div class="item-content">
           <div class="item-header">

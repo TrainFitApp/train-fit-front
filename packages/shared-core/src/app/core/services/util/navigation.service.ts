@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Network } from '@capacitor/network';
 import { NavController } from '@ionic/angular';
+import { filter, map, Observable, Subject } from 'rxjs';
 import { AppUpdateService } from '../app-update/app-update.service';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
@@ -36,6 +37,7 @@ export class NavigationService {
 
   // Temporary data storage for passing data between routes
   private _tempData: Map<string, any> = new Map();
+  private tempDataChanges$ = new Subject<{ key: string; value: any }>();
 
   constructor(
     private navController: NavController,
@@ -48,6 +50,7 @@ export class NavigationService {
   // --- Temporary data storage methods ---
   public setTempData(key: string, data: any): void {
     this._tempData.set(key, data);
+    this.tempDataChanges$.next({ key, value: data });
   }
 
   public getTempData<T = any>(key: string): T | null {
@@ -57,6 +60,14 @@ export class NavigationService {
 
   public clearTempData(key: string): void {
     this._tempData.delete(key);
+    this.tempDataChanges$.next({ key, value: null });
+  }
+
+  public watchTempData<T = any>(key: string): Observable<T | null> {
+    return this.tempDataChanges$.pipe(
+      filter((change) => change.key === key),
+      map((change) => (change.value as T) ?? null)
+    );
   }
 
   public goToLoginPage(): void {

@@ -1,25 +1,18 @@
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
 import { ToastController, Platform, IonContent } from "@ionic/angular";
-import { Subject, takeUntil, forkJoin, firstValueFrom } from "rxjs";
+import { Subject, firstValueFrom, takeUntil } from "rxjs";
 import { CustomProduct } from "src/app/core/models/customProduct";
-import { IProduct } from "src/app/core/models/product";
-import {
-  CustomRecipeInstance,
-  CreateCustomRecipeInstanceDTO,
-  UpdateCustomRecipeInstanceDTO,
-} from "src/app/core/models/customRecipeInstance";
-import { DataRecipe } from "src/app/core/models/dataRecipe";
+import { CustomRecipe } from "src/app/core/models/customRecipe";
 import { DietDay } from "src/app/core/models/dietDay";
 import { Meal } from "src/app/core/models/meal";
 import { Recipe } from "src/app/core/models/recipe";
 import { User } from "src/app/core/models/user";
-import { CustomRecipeInstanceApiService } from "src/app/core/services/custom-recipe-instance/custom-recipe-instance-api.service";
-import { DataRecipeService } from "src/app/core/services/data-recipe/data-recipe.service";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
-import { DietDayAPIService } from "src/app/core/services/diet-day/diet-day-api.service";
-import { MealService } from "src/app/core/services/meal/meal.service";
+import {
+  RecipeDraftMode,
+  RecipeDraftService,
+} from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeService } from "src/app/core/services/recipe/recipe.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -36,29 +29,79 @@ export type ConfigRecipeMode = "create" | "add" | "edit";
   animations: [fadeIn],
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
+  private static readonly INGREDIENT_SNAPSHOT_FIELDS: Array<
+    keyof CustomProduct
+  > = [
+    "_id",
+    "quantity",
+    "energyKcal100g",
+    "protein100g",
+    "carbohydrates100g",
+    "fat100g",
+    "saturatedFat100g",
+    "sugars100g",
+    "fiber100g",
+    "salt100g",
+    "sodium100g",
+    "cholesterol100g",
+    "transFat100g",
+    "calcium100g",
+    "iron100g",
+    "magnesium100g",
+    "phosphorus100g",
+    "potassium100g",
+    "zinc100g",
+    "copper100g",
+    "manganese100g",
+    "selenium100g",
+    "iodine100g",
+    "vitaminA100g",
+    "vitaminC100g",
+    "vitaminD100g",
+    "vitaminE100g",
+    "vitaminK100g",
+    "vitaminB1100g",
+    "vitaminB2100g",
+    "vitaminB3100g",
+    "vitaminB5100g",
+    "vitaminB6100g",
+    "vitaminB9100g",
+    "vitaminB12100g",
+    "biotin100g",
+    "omega3100g",
+    "omega6100g",
+    "omega9100g",
+    "caffeine100g",
+    "taurine100g",
+    "alcohol100g",
+    "ingredients",
+    "allergens",
+    "traces",
+    "vegan",
+    "vegetarian",
+    "lactoseFree",
+    "glutenFree",
+  ];
+
   @ViewChild("quantityInput") quantityInput: any;
   @ViewChild("nameInput") nameInput: any;
-  @ViewChild("descInput") descInput: any;
   @ViewChild(IonContent) ionContent: IonContent | undefined;
 
   public mode: ConfigRecipeMode = "create";
   public recipeForm: FormGroup;
   public recipe: Recipe | null = null;
-  public ingredients: CustomProduct[] = [];
+  public customRecipe: CustomRecipe | null = null;
   public meal: Meal | null = null;
   public dietDay: DietDay | null = null;
-  public customRecipeInstance: CustomRecipeInstance | null = null;
   public user: User;
 
   public isFavorite = false;
   public loading = false;
-  public weightExplainerExpanded = false;
   public editInfoMode = false;
+  public editingBaseRecipe = false;
   public showDescriptionDetails = false;
-  private originalName = "";
-  private originalDesc = "";
-  private successfulSave = false;
-  private recipeInfoEdited = false;
+  public weightExplainerExpanded = false;
+
   public calculatedMacros = {
     kcal: 0,
     protein: 0,
@@ -74,351 +117,240 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     fat: 0,
   };
 
-  private destroy$ = new Subject<void>();
-  private returnUrl: string = "/search-foods";
-  private backButton$: any;
+  private readonly destroy$ = new Subject<void>();
+  private _ingredients: CustomProduct[] = [];
+  private returnUrl = "/search-foods";
   private routeState: any = {};
-  private ingredientsInitialized = false;
-  private selectedDate: any = null;
+  private shouldPropagateUpdatedRecipe = false;
+  private updatedDietDayToPropagate: DietDay | null = null;
+  private backButton$: any;
+  private wrapperInitialSnapshot = "";
+  private baseInitialSnapshot = "";
+
+  public get ingredients(): CustomProduct[] {
+    if (this.recipeDraftService.isActive()) {
+      return this.recipeDraftService.ingredients();
+    }
+
+    return this._ingredients;
+  }
+
+  public set ingredients(value: CustomProduct[]) {
+    const dedupedIngredients = this.dedupeIngredients(value || []);
+    this._ingredients = dedupedIngredients;
+
+    if (this.recipeDraftService.isActive()) {
+      this.recipeDraftService.setIngredients(dedupedIngredients);
+    }
+  }
 
   constructor(
     private fb: FormBuilder,
-    private activatedRoute: ActivatedRoute,
     private recipeService: RecipeService,
-    private customRecipeInstanceService: CustomRecipeInstanceApiService,
-    private dataRecipeService: DataRecipeService,
-    private dietDayService: DietDayService,
-    private dietDayAPIService: DietDayAPIService,
-    private mealService: MealService,
+    private recipeDraftService: RecipeDraftService,
     private userService: UserService,
     private navigationService: NavigationService,
+    private dietDayService: DietDayService,
     private ionicUtilService: IonicUtilService,
     private toastCtrl: ToastController,
     private platform: Platform,
     private adMobService: AdMobService,
   ) {
     this.user = this.userService.getLocalUser;
-    this.initForm();
-  }
-
-  public ngOnInit(): void {
-    this.initFromRoute();
-  }
-
-  public ionViewWillEnter(): void {
-    // Setup hardware back button handler
-    this.initializeBackButtonHandler();
-
-    // CRITICAL: Restore mode from tempData if returning from search-foods
-    const savedMode =
-      this.navigationService.getTempData<ConfigRecipeMode>("configRecipeMode");
-    if (savedMode) {
-      this.mode = savedMode;
-      // Don't clear yet - keep it for potential re-entries
-    }
-
-    // Restore recipe and instance from tempData (prevent data loss on return)
-    const savedInstance =
-      this.navigationService.getTempData<CustomRecipeInstance>(
-        "configRecipeInstance",
-      );
-    if (savedInstance && !this.customRecipeInstance) {
-      this.customRecipeInstance = savedInstance;
-    }
-
-    const savedRecipe =
-      this.navigationService.getTempData<Recipe>("configRecipeDef");
-    if (savedRecipe && !this.recipe) {
-      this.recipe = savedRecipe;
-      this.checkFavorite();
-    }
-
-    // Check if returning from search-foods with selected ingredients
-    const selectedIngredients = this.navigationService.getTempData<
-      CustomProduct[]
-    >("selectedIngredients");
-
-    if (selectedIngredients && selectedIngredients.length > 0) {
-      this.applyResolvedIngredients(selectedIngredients);
-      this.navigationService.clearTempData("selectedIngredients");
-    } else if (!this.ingredientsInitialized) {
-      const initialIngredients = this.resolveInitialIngredients(
-        this.routeState,
-      );
-      this.applyResolvedIngredients(initialIngredients);
-    }
-
-    // Check if returning from add-product with an edited ingredient
-    const newIngredient =
-      this.navigationService.getTempData<CustomProduct>("newIngredient");
-    const editingIndex = this.navigationService.getTempData<number>(
-      "editingIngredientIndex",
-    );
-
-    if (newIngredient) {
-      if (typeof editingIndex === "number" && this.ingredients[editingIndex]) {
-        this.ingredients[editingIndex] = newIngredient;
-      } else {
-        const newProductId = newIngredient.product?._id;
-        const existingIndex = this.ingredients.findIndex(
-          (ing) => ing.product?._id === newProductId,
-        );
-        if (existingIndex !== -1) {
-          this.ingredients[existingIndex] = newIngredient;
-        } else {
-          this.ingredients.push(newIngredient);
-        }
-      }
-
-      this.recalculateMacros();
-      this.navigationService.clearTempData("newIngredient");
-      this.navigationService.clearTempData("editingIngredientIndex");
-    }
-
-    // Restore form state if exists (returning from search-foods)
-    const savedFormState = this.navigationService.getTempData<any>(
-      "configRecipeFormState",
-    );
-    if (savedFormState) {
-      this.recipeForm.patchValue({
-        name: savedFormState.name,
-        description: savedFormState.description,
-        quantityCooked: savedFormState.quantityCooked,
-        quantity: savedFormState.quantity,
-      });
-      this.navigationService.clearTempData("configRecipeFormState");
-    }
-  }
-
-  public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-
-    // Cleanup back button handler
-    if (this.backButton$) {
-      this.backButton$.unsubscribe();
-    }
-  }
-
-  private initializeBackButtonHandler(): void {
-    // Cleanup previous handler if exists
-    if (this.backButton$) {
-      this.backButton$.unsubscribe();
-    }
-
-    // Handle hardware back button same as header back button
-    this.backButton$ = this.platform.backButton.subscribeWithPriority(
-      9999,
-      () => {
-        this.goBack();
-      },
-    );
-  }
-
-  private initForm(): void {
     this.recipeForm = this.fb.group({
       name: ["", [Validators.required, Validators.minLength(2)]],
       description: [""],
       quantityCooked: [null, [Validators.min(1)]],
-      quantity: [null],
+      quantity: [null, [Validators.min(1)]],
     });
 
-    // Recalculate macros when cooked quantity changes.
-    // Do not auto-copy this value into "quantity" (consumed portion).
     this.recipeForm
       .get("quantityCooked")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.recalculateMacros();
-      });
+      .subscribe(() => this.recalculateMacros());
 
-    // Also listen to quantity changes to update portion macros
     this.recipeForm
       .get("quantity")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.recalculateMacros());
+
+    this.recipeForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        this.recalculateMacros();
+        if (!this.recipeDraftService.isActive()) return;
+
+        // El draft vive en memoria y debe reflejar siempre el último
+        // estado real del formulario mientras se edita la receta.
+        this.recipeDraftService.setForm(
+          this.normalizeFormState(this.recipeForm.getRawValue()),
+        );
       });
+  }
+
+  ngOnInit(): void {
+    this.initFromRoute();
+    this.initializeBackButtonHandler();
+  }
+
+  ionViewWillEnter(): void {
+    this.syncDraftState();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.backButton$?.unsubscribe();
   }
 
   private initFromRoute(): void {
     const state: any = window.history.state || {};
     this.routeState = state;
+    const routeMode = (state.mode || "create") as RecipeDraftMode;
+    let routeRecipe = state.recipe || null;
+    let routeCustomRecipe = state.customRecipe || null;
+    const routeMeal = state.meal || null;
+    const routeDietDay = state.dietDay || null;
+    const routeReturnUrl = state.returnUrl || this.returnUrl;
 
-    // Get mode
-    this.mode = state.mode || "create";
+    const selectedIngredients = this.navigationService.getTempData<
+      CustomProduct[]
+    >("selectedIngredients");
+    const formState = this.navigationService.getTempData<any>(
+      "configRecipeFormState",
+    );
+    const savedCustomRecipe = this.navigationService.getTempData<CustomRecipe>(
+      "configRecipeInstance",
+    );
+    const savedRecipe =
+      this.navigationService.getTempData<Recipe>("configRecipeDef");
 
-    // Get customRecipeInstance first if editing from meal
-    if (state.customRecipeInstance) {
-      this.customRecipeInstance = state.customRecipeInstance;
-
-      // Extract recipe from customRecipeInstance
-      if (typeof this.customRecipeInstance.dataRecipe === "object") {
-        const dataRecipe = this.customRecipeInstance.dataRecipe;
-        if (typeof dataRecipe.recipe === "object") {
-          this.recipe = dataRecipe.recipe;
-        }
-      }
+    if (!routeCustomRecipe && savedCustomRecipe) {
+      routeCustomRecipe = savedCustomRecipe;
+    }
+    if (!routeRecipe && savedRecipe) {
+      routeRecipe = savedRecipe;
     }
 
-    // Get recipe if editing or adding (can override from state)
-    if (state.recipe) {
-      this.recipe = state.recipe;
-    }
-
-    // Prepare form/favorite state (ingredients are resolved in ionViewWillEnter)
-    if (this.recipe) {
-      this.checkFavorite();
-      this.patchFormForMode();
-    }
-
-    // Get meal and dietDay context
-    if (state.meal) this.meal = state.meal;
-    if (state.dietDay) this.dietDay = state.dietDay;
-    if (state.returnUrl) this.returnUrl = state.returnUrl;
-    if (state.selectedDate) this.selectedDate = state.selectedDate;
-
-    // Subscribe to dietDay updates
-    this.dietDayService.getCurrentDietDay
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((res: DietDay) => {
-        if (res) {
-          this.dietDay = res;
-          if (this.meal) {
-            this.meal =
-              res.meals?.find((m) => m.name === this.meal?.name) || this.meal;
-          }
-        }
-      });
-
-    // Macros are calculated after ingredients are resolved
-  }
-
-  /**
-   * Resolve the initial ingredients list from route state.
-   * Priority (lowest to highest):
-   * 1) Recipe ingredients (base or merged)
-   * 2) existingIngredients (create mode)
-   */
-  private resolveInitialIngredients(state: any): CustomProduct[] {
-    // If creating a new recipe from ingredients, load them from state
     if (
-      this.mode === "create" &&
-      !this.recipe &&
-      state?.existingIngredients &&
-      state.existingIngredients.length > 0
+      !routeRecipe &&
+      routeCustomRecipe &&
+      typeof routeCustomRecipe.recipe === "object"
     ) {
-      return [...state.existingIngredients];
+      routeRecipe = routeCustomRecipe.recipe;
     }
 
-    // If editing an instance, load merged ingredients (with overrides applied)
-    if (this.recipe) {
-      if (this.customRecipeInstance && this.mode === "edit") {
-        return this.getMergedIngredients();
-      }
-      // Otherwise, load base recipe ingredients
-      return this.recipe?.customProducts || [];
-    }
-
-    return [];
-  }
-
-  /**
-   * Apply ingredients once, dedupe and recalculate.
-   */
-  private applyResolvedIngredients(list: CustomProduct[]): void {
-    this.ingredients = this.dedupeIngredients(list);
-    this.ingredientsInitialized = true;
-
-    this.recalculateMacros();
-
-    // In CREATE mode with meal, update quantity defaults when ingredients change
-    if (this.mode === "create" && this.meal) {
-      const currentQty = this.recipeForm.get("quantity")?.value;
-      const currentQtyCooked = this.recipeForm.get("quantityCooked")?.value;
-
-      // Keep inputs empty in create mode - don't populate with calculated values
-      // Only update if user hasn't entered anything yet
-      if (!currentQty && !currentQtyCooked) {
-        // Keep them null/empty, don't patch with calculated values
-        // This allows the user to manually enter values
-      }
-    }
-  }
-
-  /**
-   * Remove duplicated ingredients by product/customProduct id.
-   */
-  private dedupeIngredients(list: CustomProduct[]): CustomProduct[] {
-    if (!list || list.length === 0) return [];
-    const seen = new Set<string>();
-    const result: CustomProduct[] = [];
-
-    list.forEach((item) => {
-      const id = item.product?._id || (item as any)._id;
-      if (!id) {
-        result.push(item);
-        return;
-      }
-      if (!seen.has(id.toString())) {
-        seen.add(id.toString());
-        result.push(item);
-      }
+    const reuseExistingDraft = this.recipeDraftService.matchesContext({
+      mode: routeMode,
+      recipe: routeRecipe,
+      customRecipe: routeCustomRecipe,
+      meal: routeMeal,
     });
 
-    return result;
+    if (reuseExistingDraft) {
+      this.mode = this.recipeDraftService.mode() as ConfigRecipeMode;
+      this.recipe = this.recipeDraftService.recipe();
+      this.customRecipe = this.recipeDraftService.customRecipe();
+      this.meal = this.recipeDraftService.meal();
+      this.dietDay = this.recipeDraftService.dietDay();
+      this.returnUrl = this.recipeDraftService.returnUrl() || routeReturnUrl;
+      this.editingBaseRecipe = this.recipeDraftService.editingBaseRecipe();
+      this.patchForm(this.recipeDraftService.form());
+      this.ingredients = this.recipeDraftService.ingredients();
+    } else {
+      this.mode = routeMode as ConfigRecipeMode;
+      this.recipe = routeRecipe;
+      this.customRecipe = routeCustomRecipe;
+      this.meal = routeMeal;
+      this.dietDay = routeDietDay;
+      this.returnUrl = routeReturnUrl;
+      this.editingBaseRecipe = false;
+
+      this.patchForm();
+      this.ingredients = selectedIngredients?.length
+        ? selectedIngredients
+        : this.getCurrentIngredients();
+
+      if (formState) {
+        this.recipeForm.patchValue(formState);
+      }
+
+      this.startRecipeDraft();
+    }
+
+    this.persistSelectedIngredients();
+
+    this.checkFavorite();
+    this.recalculateMacros();
+    this.captureInitialSnapshot();
+
+    this.dietDayService.getCurrentDietDay
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((dietDay) => {
+        if (!dietDay || !this.meal) return;
+        this.dietDay = dietDay;
+        this.meal =
+          dietDay.meals?.find(
+            (meal) =>
+              meal._id === this.meal?._id || meal.name === this.meal?.name,
+          ) || this.meal;
+      });
   }
 
-  private patchFormForMode(): void {
-    if (this.mode === "edit" && this.recipe) {
-      this.recipeForm.patchValue({
-        name: this.recipe.name,
-        description: this.recipe.description || "",
-      });
+  private patchForm(
+    formOverrides?: Partial<{
+      name: string;
+      description: string;
+      quantity: number | null;
+      quantityCooked: number | null;
+    }>,
+  ): void {
+    this.recipeForm.patchValue({
+      name: formOverrides?.name ?? this.recipe?.name ?? "",
+      description: formOverrides?.description ?? this.recipe?.description ?? "",
+      quantity: formOverrides?.quantity ?? this.customRecipe?.quantity ?? null,
+      quantityCooked:
+        formOverrides?.quantityCooked ??
+        this.customRecipe?.quantityCooked ??
+        null,
+    });
 
-      if (this.customRecipeInstance) {
-        const dataRecipe =
-          typeof this.customRecipeInstance.dataRecipe === "object"
-            ? this.customRecipeInstance.dataRecipe
-            : null;
-        this.recipeForm.patchValue({
-          quantity: this.customRecipeInstance.quantity,
-          quantityCooked: dataRecipe?.quantityCooked ?? null,
-        });
-      }
-    } else if (this.mode === "add" && this.recipe) {
-      // In add mode, recipe definition is readonly (we are just adding a portion)
+    if (!this.editingBaseRecipe && !this.isCreateMode) {
       this.recipeForm.get("name")?.disable();
       this.recipeForm.get("description")?.disable();
-
-      if (this.customRecipeInstance) {
-        const dataRecipe =
-          typeof this.customRecipeInstance.dataRecipe === "object"
-            ? this.customRecipeInstance.dataRecipe
-            : null;
-        this.recipeForm.patchValue({
-          quantity:
-            this.toOptionalPositiveNumber(this.customRecipeInstance.quantity) ??
-            this.toOptionalPositiveNumber(this.recipe.quantity) ??
-            null,
-          quantityCooked:
-            this.toOptionalPositiveNumber(dataRecipe?.quantityCooked) ??
-            this.toOptionalPositiveNumber(this.recipe.quantityCooked) ??
-            null,
-        });
-      } else {
-        // New addition: initialize from immutable recipe defaults
-        this.recipeForm.patchValue({
-          quantityCooked:
-            this.toOptionalPositiveNumber(this.recipe.quantityCooked) ?? null,
-          quantity: this.toOptionalPositiveNumber(this.recipe.quantity) ?? null,
-        });
-      }
-    } else if (this.mode === "create") {
-      // In create mode, keep inputs empty (not populated)
-      // The form is initialized with null values, so just leave them as is
-      // Don't patch any values here to keep inputs visually empty
     }
+  }
+
+  private initializeBackButtonHandler(): void {
+    this.backButton$?.unsubscribe();
+    this.backButton$ = this.platform.backButton.subscribeWithPriority(
+      9999,
+      () => this.goBack(),
+    );
+  }
+
+  private startRecipeDraft(): void {
+    // Esta pantalla es la dueña del draft de recipes.
+    // SearchFoods y AddProduct leen/escriben contra esta misma copia
+    // en memoria para que el estado no dependa del orden de navegación.
+    this.recipeDraftService.startDraft({
+      mode: this.mode,
+      recipe: this.recipe,
+      customRecipe: this.customRecipe,
+      meal: this.meal,
+      dietDay: this.dietDay,
+      returnUrl: this.returnUrl,
+      ingredients: this.ingredients,
+      editingBaseRecipe: this.editingBaseRecipe,
+      form: this.normalizeFormState(this.recipeForm.getRawValue()),
+    });
+  }
+
+  private syncDraftState(): void {
+    if (!this.recipeDraftService.isActive()) return;
+
+    this.ingredients = this.recipeDraftService.ingredients();
+    this.editingBaseRecipe = this.recipeDraftService.editingBaseRecipe();
+    this.recalculateMacros();
   }
 
   public get isCreateMode(): boolean {
@@ -433,269 +365,68 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return this.mode === "edit";
   }
 
-  public get canEditDefinition(): boolean {
-    // Enable editing for create mode OR edit mode (regardless of ownership per user request)
-    return this.isCreateMode || this.isEditMode;
-  }
-
-  public get canEditIngredients(): boolean {
-    // Can ALWAYS edit ingredients (changes saved as overrides, never modifying the original recipe)
-    return true;
-  }
-
-  public toggleEditInfo(): void {
-    // Ensure controls have the real values before editing.
-    // In add mode the controls may be empty while the template shows recipe.name/description as fallback.
-    if (!this.recipeForm.get("name")?.value && this.recipe?.name) {
-      this.recipeForm.patchValue({ name: this.recipe.name });
-    }
-    if (
-      !this.recipeForm.get("description")?.value &&
-      this.recipe?.description
-    ) {
-      this.recipeForm.patchValue({ description: this.recipe.description });
-    }
-
-    // Snapshot for cancel
-    this.originalName = this.recipeForm.get("name")?.value ?? "";
-    this.originalDesc = this.recipeForm.get("description")?.value ?? "";
-    this.editInfoMode = true;
-    this.recipeForm.get("name")?.enable();
-    this.recipeForm.get("description")?.enable();
-    setTimeout(() => this.nameInput?.setFocus(), 150);
-  }
-
-  public async confirmEditInfo(): Promise<void> {
-    if (!this.recipe?._id) return;
-
-    const name = this.recipeForm.get("name")?.value?.trim();
-    const description = this.recipeForm.get("description")?.value ?? "";
-
-    if (!name || name.length < 2) {
-      this.showToast(
-        "El nombre es obligatorio (mínimo 2 caracteres)",
-        "warning",
-      );
-      return;
-    }
-
-    this.loading = true;
-    try {
-      const updated = await firstValueFrom(
-        this.recipeService.update(this.recipe._id, { name, description }),
-      );
-      this.recipe.name = updated.name;
-      this.recipe.description = updated.description;
-      this.recipeForm.patchValue({
-        name: updated.name,
-        description: updated.description ?? "",
-      });
-      this.editInfoMode = false;
-      this.recipeInfoEdited = true;
-      if (this.isAddMode) {
-        this.recipeForm.get("name")?.disable();
-        this.recipeForm.get("description")?.disable();
-      }
-      this.showToast("Receta actualizada", "success");
-    } catch {
-      this.showToast("Error al guardar los cambios", "danger");
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  public cancelEditInfo(): void {
-    this.recipeForm.patchValue({
-      name: this.originalName,
-      description: this.originalDesc,
-    });
-    this.editInfoMode = false;
-    if (this.isAddMode) {
-      this.recipeForm.get("name")?.disable();
-      this.recipeForm.get("description")?.disable();
-    }
-  }
-
-  /**
-   * Merges base recipe ingredients with customRecipeInstance overrides
-   * Returns the CURRENT state of ingredients for this instance
-   */
-  private getMergedIngredients(): CustomProduct[] {
-    if (!this.customRecipeInstance || !this.recipe) {
-      return this.recipe?.customProducts || [];
-    }
-
-    const baseIngredients = this.recipe.customProducts || [];
-    const overrides = this.customRecipeInstance.customProductsOverrides || [];
-    const additional = this.customRecipeInstance.additionalCustomProducts || [];
-
-    // Create map of overrides by customProductId
-    const overridesMap = new Map<string, any>();
-    overrides.forEach((override) => {
-      let id: string | undefined;
-      if (typeof override.customProductId === "string") {
-        id = override.customProductId;
-      } else if (
-        override.customProductId &&
-        typeof override.customProductId === "object"
-      ) {
-        id = (override.customProductId as any)._id;
-      }
-      if (id) {
-        overridesMap.set(id.toString(), override);
-      }
-    });
-
-    // Apply overrides to base ingredients
-    const modifiedIngredients = baseIngredients
-      .map((ingredient) => {
-        const override = overridesMap.get(ingredient._id.toString());
-
-        // If marked as removed, skip this ingredient
-        if (override?.removed) {
-          const productName =
-            typeof ingredient.product === "string"
-              ? ingredient.product
-              : ingredient.product?.name || "Unknown";
-          return null;
-        }
-
-        // If quantity override exists, use it
-        if (override && override.quantity !== undefined) {
-          const productName =
-            typeof ingredient.product === "string"
-              ? ingredient.product
-              : ingredient.product?.name || "Unknown";
-          return { ...ingredient, quantity: override.quantity };
-        }
-
-        // Otherwise, use base ingredient as-is
-        return ingredient;
-      })
-      .filter((ing): ing is CustomProduct => ing !== null);
-
-    // Add additional ingredients
-    const result = [...modifiedIngredients, ...additional];
-    return result;
-  }
-
   public get pageTitle(): string {
-    switch (this.mode) {
-      case "create":
-        return "Crear receta";
-      case "add":
-        return "Añadir receta";
-      case "edit":
-        return "Editar receta";
-      default:
-        return "Receta";
-    }
+    if (this.editingBaseRecipe) return "Editar receta original";
+    if (this.isCreateMode) return "Crear receta";
+    if (this.isAddMode) return "Añadir receta";
+    return "Editar receta";
+  }
+
+  public get canEditOriginalRecipe(): boolean {
+    return (
+      !!this.recipe?._id &&
+      this.normalizeId(this.recipe.userId) === this.normalizeId(this.user?._id)
+    );
+  }
+
+  public get canDeleteOwnRecipe(): boolean {
+    const recipeUserId = this.normalizeId(this.recipe?.userId);
+    const currentUserId = this.normalizeId(this.user?._id);
+    return (
+      !!this.recipe?._id && !!recipeUserId && recipeUserId === currentUserId
+    );
   }
 
   public get canSave(): boolean {
-    if (this.mode === "add") {
-      return this.recipeForm.valid;
-    }
-
-    // Create mode with meal
-    if (this.mode === "create" && this.meal) {
-      const hasEnoughIngredients = this.ingredients.length >= 2;
-      return hasEnoughIngredients && this.recipeForm.valid;
-    }
-
-    // Create or Edit mode without meal
-    const hasEnoughIngredients = this.ingredients.length >= 2;
-    return hasEnoughIngredients && this.recipeForm.valid;
+    return this.recipeForm.valid && this.ingredients.length >= 2;
   }
 
-  private get hasConsumedQuantityForMacros(): boolean {
-    const rawQuantity = this.recipeForm?.get("quantity")?.value;
-    if (
-      rawQuantity === null ||
-      rawQuantity === undefined ||
-      rawQuantity === ""
-    ) {
-      return false;
-    }
-    const qty = Number(rawQuantity);
-    return Number.isFinite(qty) && qty > 0;
-  }
-
-  private get supportsConsumedQuantityMode(): boolean {
-    return (
-      this.mode === "add" ||
-      this.mode === "edit" ||
-      (this.mode === "create" && !!this.meal)
-    );
-  }
-
-  private get hasCookedTotalForMacros(): boolean {
-    const rawCooked = this.recipeForm?.get("quantityCooked")?.value;
-    if (rawCooked === null || rawCooked === undefined || rawCooked === "") {
-      return false;
-    }
-    const cooked = Number(rawCooked);
-    return Number.isFinite(cooked) && cooked > 0;
+  public get showPortionFields(): boolean {
+    return !this.editingBaseRecipe;
   }
 
   public get footerUsesConsumedQuantity(): boolean {
-    return (
-      this.supportsConsumedQuantityMode && this.hasConsumedQuantityForMacros
-    );
+    return !!this.toPositiveNumber(this.recipeForm.getRawValue().quantity);
   }
 
   public get footerMacrosHint(): string {
-    if (this.footerUsesConsumedQuantity) {
-      return this.hasCookedTotalForMacros
-        ? "* Cálculo de la ración consumida sobre el total cocinado."
-        : "* Cálculo de la ración consumida sobre el total sin cocinar.";
-    }
-    return this.hasCookedTotalForMacros
-      ? "* Por cada 100g sobre el total cocinado."
-      : "* Por cada 100g sobre el sumatorio sin cocinar.";
+    return this.footerUsesConsumedQuantity
+      ? "* Cálculo de la ración consumida sobre el total cocinado."
+      : "* Por cada 100g sobre el total cocinado o la suma base.";
   }
 
   public get footerKcal(): number {
-    if (this.footerUsesConsumedQuantity) {
-      return this.portionMacros.kcal;
-    }
-    return this.per100Kcal;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.kcal
+      : this.per100Kcal;
   }
 
   public get footerProtein(): number {
-    if (this.footerUsesConsumedQuantity) {
-      return this.portionMacros.protein;
-    }
-    return this.per100Protein;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.protein
+      : this.per100Protein;
   }
 
   public get footerCarbs(): number {
-    if (this.footerUsesConsumedQuantity) {
-      return this.portionMacros.carbs;
-    }
-    return this.per100Carbs;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.carbs
+      : this.per100Carbs;
   }
 
   public get footerFat(): number {
-    if (this.footerUsesConsumedQuantity) {
-      return this.portionMacros.fat;
-    }
-    return this.per100Fat;
-  }
-
-  private get per100BaseWeight(): number {
-    const raw = this.recipeForm?.getRawValue?.() || {};
-    return (
-      this.toOptionalPositiveNumber(raw.quantityCooked) ||
-      this.calculatedMacros.quantity ||
-      0
-    );
-  }
-
-  private toPer100(value: number): number {
-    const baseWeight = this.per100BaseWeight;
-    if (!baseWeight || baseWeight <= 0) return 0;
-    return (value / baseWeight) * 100;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.fat
+      : this.per100Fat;
   }
 
   public get per100Kcal(): number {
@@ -714,65 +445,113 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return this.toPer100(this.calculatedMacros.fat);
   }
 
-  public recalculateMacros(): void {
-    const tempRecipe: Recipe = {
-      name: "",
-      customProducts: this.ingredients,
-    };
+  public async startEditingOriginalRecipe(): Promise<void> {
+    if (!this.recipe) return;
 
-    // 1. Total Recipe Macros (Always calculated)
-    this.calculatedMacros =
-      this.recipeService.calculateRecipeMacros(tempRecipe);
+    if (
+      !this.editingBaseRecipe &&
+      this.buildWrapperSnapshot() !== this.wrapperInitialSnapshot
+    ) {
+      const shouldDiscard = await this.ionicUtilService.showAlert({
+        header: "Cambios sin guardar",
+        message:
+          "Tienes cambios sin guardar en esta configuración. Si editas la receta original, se descartarán.",
+        buttons: [
+          { text: "Cancelar", role: "cancel" },
+          { text: "Descartar", role: "destructive" },
+        ],
+      });
 
-    // 2. Portion Macros (Based on form values if in add/edit/create mode)
-    const formVal = this.recipeForm.getRawValue();
-    const cookedTotal = this.toOptionalPositiveNumber(formVal.quantityCooked);
-    const rawTotal = this.calculatedMacros.quantity || 0;
-    const portionBase = cookedTotal || rawTotal || 1;
-    const consumedQty = this.toOptionalPositiveNumber(formVal.quantity) || 0;
-    const quantityRatio = consumedQty / portionBase;
-    this.portionMacros = {
-      kcal: this.calculatedMacros.kcal * quantityRatio,
-      protein: this.calculatedMacros.protein * quantityRatio,
-      carbs: this.calculatedMacros.carbs * quantityRatio,
-      fat: this.calculatedMacros.fat * quantityRatio,
-    };
+      if (shouldDiscard?.role !== "destructive") {
+        return;
+      }
+
+      this.patchForm();
+      this.ingredients = this.getCurrentIngredients();
+    }
+
+    this.editingBaseRecipe = true;
+    this.recipeDraftService.setEditingBaseRecipe(true);
+    this.editInfoMode = true;
+    this.recipeForm.get("name")?.enable();
+    this.recipeForm.get("description")?.enable();
+    this.ingredients = [...(this.recipe.customProducts || [])];
+    this.recalculateMacros();
+  }
+
+  public cancelOriginalRecipeEdit(): void {
+    this.editingBaseRecipe = false;
+    this.recipeDraftService.setEditingBaseRecipe(false);
+    this.editInfoMode = false;
+    this.patchForm();
+    this.ingredients = this.getCurrentIngredients();
+    this.recalculateMacros();
+  }
+
+  public toggleEditInfo(): void {
+    if (this.canEditOriginalRecipe) {
+      this.startEditingOriginalRecipe();
+    }
+  }
+
+  public async confirmEditInfo(): Promise<void> {
+    await this.saveOriginalRecipePrompt();
+  }
+
+  public cancelEditInfo(): void {
+    this.cancelOriginalRecipeEdit();
   }
 
   public async addIngredients(): Promise<void> {
-    // Save current form state before navigating
-    const formState = {
-      name: this.recipeForm.get("name")?.value,
-      description: this.recipeForm.get("description")?.value,
-      quantityCooked: this.recipeForm.get("quantityCooked")?.value,
-      quantity: this.recipeForm.get("quantity")?.value,
-    };
-    this.navigationService.setTempData("configRecipeFormState", formState);
-
-    // Save recipe and instance state to persist across navigation
+    this.recipeDraftService.setForm(
+      this.normalizeFormState(this.recipeForm.getRawValue()),
+    );
+    this.navigationService.setTempData(
+      "configRecipeFormState",
+      this.recipeForm.getRawValue(),
+    );
     this.navigationService.setTempData(
       "configRecipeInstance",
-      this.customRecipeInstance,
+      this.customRecipe,
     );
     this.navigationService.setTempData("configRecipeDef", this.recipe);
-
-    // CRITICAL: Save mode state so it persists when returning from search-foods
     this.navigationService.setTempData("configRecipeMode", this.mode);
 
-    // Navigate to search-foods in ingredient mode with existing ingredients
     this.navigationService.goToSearchFoods({
       state: {
         ingredientMode: true,
-        existingIngredients: this.ingredients, // Pass existing to show them selected
-        returnUrl: "/search-foods/config-recipe",
+        existingIngredients: this.ingredients,
         meal: this.meal,
         dietDay: this.dietDay,
+        returnUrl: "/search-foods/config-recipe",
       },
     });
   }
 
   public removeIngredient(index: number): void {
-    this.ingredients.splice(index, 1);
+    const nextIngredients = [...this.ingredients];
+    nextIngredients.splice(index, 1);
+    this.ingredients = nextIngredients;
+    this.persistSelectedIngredients();
+    this.recalculateMacros();
+  }
+
+  public revertIngredient(index: number): void {
+    if (!this.recipe || this.editingBaseRecipe) return;
+    const current = this.ingredients[index];
+    if (!current) return;
+
+    const original = this.getOriginalIngredient(current);
+
+    if (!original) {
+      this.removeIngredient(index);
+      return;
+    }
+
+    const nextIngredients = [...this.ingredients];
+    nextIngredients[index] = { ...original };
+    this.ingredients = nextIngredients;
+    this.persistSelectedIngredients();
     this.recalculateMacros();
   }
 
@@ -780,31 +559,197 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     ingredient: CustomProduct,
     index: number,
   ): Promise<void> {
-    // Navigate to add-product to edit all ingredient details
-    const product = ingredient.product;
-    if (!product) {
-      console.error("No product found in ingredient");
-      return;
-    }
-
-    // Save the ingredient index to update when returning
-    this.navigationService.setTempData("editingIngredientIndex", index);
-
-    // Navigate to add-product with the ingredient
+    this.persistSelectedIngredients();
+    this.recipeDraftService.setEditingIngredientIndex(index);
     this.navigationService.goToAddProduct({
       state: {
-        product: product,
+        product: ingredient.product,
         productQuantity: ingredient.quantity,
+        customProduct: ingredient,
         ingredientMode: true,
-        customProduct: ingredient, // Pass the full customProduct for editing
         returnUrl: "/search-foods/config-recipe",
-        selectedDate: this.selectedDate || this.dietDay?.date,
       },
     });
   }
 
   public getIngredientName(ingredient: CustomProduct): string {
-    return ingredient.product?.name || "Desconocido";
+    return ingredient.product?.name || "Ingrediente";
+  }
+
+  public getIngredientStatus(ingredient: CustomProduct): string | null {
+    if (!this.recipe || this.editingBaseRecipe) return null;
+    const original = this.getOriginalIngredient(ingredient);
+    if (!original) return "Añadido";
+    if (!this.recipeService.areCustomProductsEquivalent(original, ingredient)) {
+      return "Modificado";
+    }
+    return null;
+  }
+
+  public hasRevertAction(ingredient: CustomProduct): boolean {
+    if (!this.recipe || this.editingBaseRecipe) return false;
+    const original = this.getOriginalIngredient(ingredient);
+    if (!original) return false;
+    return !this.recipeService.areCustomProductsEquivalent(
+      original,
+      ingredient,
+    );
+  }
+
+  private persistSelectedIngredients(): void {
+    const ingredientsCopy = this.ingredients.map((ingredient: any) => ({
+      ...ingredient,
+      product:
+        typeof ingredient.product === "object" && ingredient.product
+          ? { ...ingredient.product }
+          : ingredient.product,
+    }));
+
+    this.recipeDraftService.setIngredients(ingredientsCopy);
+    this.navigationService.setTempData("selectedIngredients", ingredientsCopy);
+  }
+
+  private captureInitialSnapshot(): void {
+    this.wrapperInitialSnapshot = this.buildWrapperSnapshot();
+    this.baseInitialSnapshot = this.buildBaseSnapshot();
+  }
+
+  private buildWrapperSnapshot(): string {
+    return JSON.stringify({
+      form: this.normalizeFormState(this.recipeForm.getRawValue()),
+      ingredients: this.serializeIngredients(this.ingredients),
+    });
+  }
+
+  private buildBaseSnapshot(): string {
+    return JSON.stringify({
+      form: {
+        name: this.recipe?.name || "",
+        description: this.recipe?.description || "",
+      },
+      ingredients: this.serializeIngredients(
+        (this.recipe?.customProducts || []) as CustomProduct[],
+      ),
+    });
+  }
+
+  private normalizeFormState(raw: any): any {
+    return {
+      name: raw?.name || "",
+      description: raw?.description || "",
+      quantity: this.toPositiveNumber(raw?.quantity),
+      quantityCooked: this.toPositiveNumber(raw?.quantityCooked),
+    };
+  }
+
+  private serializeIngredients(ingredients: CustomProduct[]): any[] {
+    return (ingredients || []).map((ingredient: any) => {
+      const snapshot: any = {
+        _id: ingredient?._id || null,
+        productId: ingredient?.product?._id || ingredient?.product || null,
+      };
+
+      ConfigRecipePage.INGREDIENT_SNAPSHOT_FIELDS.forEach((field) => {
+        const value = ingredient?.[field];
+        snapshot[field] = Array.isArray(value) ? [...value] : value ?? null;
+      });
+
+      return snapshot;
+    });
+  }
+
+  private hasUnsavedChanges(): boolean {
+    if (this.editingBaseRecipe) {
+      return (
+        JSON.stringify({
+          form: {
+            name: this.recipeForm.getRawValue()?.name || "",
+            description: this.recipeForm.getRawValue()?.description || "",
+          },
+          ingredients: this.serializeIngredients(this.ingredients),
+        }) !== this.baseInitialSnapshot
+      );
+    }
+
+    return this.buildWrapperSnapshot() !== this.wrapperInitialSnapshot;
+  }
+
+  private async confirmDiscardChanges(): Promise<boolean> {
+    if (!this.hasUnsavedChanges()) return true;
+
+    const result = await this.ionicUtilService.showAlert({
+      header: "Hay cambios sin guardar",
+      message:
+        "Si sales ahora, se descartarán los cambios realizados en la receta.",
+      buttons: [
+        {
+          text: "Cancelar",
+          role: "cancel",
+        },
+        {
+          text: "Descartar",
+          role: "destructive",
+        },
+      ],
+    });
+
+    return result?.role === "destructive";
+  }
+
+  private clearConfigTempData(): void {
+    this.recipeDraftService.reset();
+    this.navigationService.clearTempData("selectedIngredients");
+    this.navigationService.clearTempData("configRecipeFormState");
+    this.navigationService.clearTempData("configRecipeMode");
+    this.navigationService.clearTempData("configRecipeInstance");
+    this.navigationService.clearTempData("configRecipeDef");
+    this.navigationService.clearTempData("newIngredient");
+    this.navigationService.clearTempData("editingIngredientIndex");
+  }
+
+  public getRemovedBaseIngredients(): CustomProduct[] {
+    return this.recipeService.getRemovedBaseIngredients(
+      this.recipe,
+      this.ingredients,
+    );
+  }
+
+  public restoreRemovedBaseIngredient(ingredient: CustomProduct): void {
+    if (!this.recipe || this.editingBaseRecipe || !ingredient?._id) return;
+    if (this.ingredients.some((current) => current?._id === ingredient._id))
+      return;
+
+    const nextIngredients = [...this.ingredients];
+    const baseIngredients = (this.recipe.customProducts ||
+      []) as CustomProduct[];
+    const baseIndex = baseIngredients.findIndex(
+      (baseIngredient) => baseIngredient?._id === ingredient._id,
+    );
+
+    if (baseIndex < 0) {
+      nextIngredients.push({ ...ingredient });
+    } else {
+      let insertAt = nextIngredients.length;
+
+      for (let i = baseIndex + 1; i < baseIngredients.length; i += 1) {
+        const nextBaseIngredientId = baseIngredients[i]?._id;
+        const currentIndex = nextIngredients.findIndex(
+          (currentIngredient) =>
+            currentIngredient?._id === nextBaseIngredientId,
+        );
+
+        if (currentIndex >= 0) {
+          insertAt = currentIndex;
+          break;
+        }
+      }
+
+      nextIngredients.splice(insertAt, 0, { ...ingredient });
+    }
+
+    this.ingredients = nextIngredients;
+    this.persistSelectedIngredients();
+    this.recalculateMacros();
   }
 
   public getIngredientMacros(ingredient: CustomProduct): {
@@ -814,395 +759,324 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     fat: number;
   } {
     const multiplier = (ingredient.quantity || 0) / 100;
-
-    // Read macros from product in real-time (saves DB space)
-    const energyKcal100g =
-      ingredient.energyKcal100g ??
-      (ingredient.product as any)?.energyKcal100g ??
-      0;
-
-    const protein100g =
-      ingredient.protein100g ?? (ingredient.product as any)?.protein100g ?? 0;
-
-    const carbohydrates100g =
-      ingredient.carbohydrates100g ??
-      (ingredient.product as any)?.carbohydrates100g ??
-      0;
-
-    const fat100g =
-      ingredient.fat100g ?? (ingredient.product as any)?.fat100g ?? 0;
-
     return {
-      kcal: energyKcal100g * multiplier,
-      protein: protein100g * multiplier,
-      carbs: carbohydrates100g * multiplier,
-      fat: fat100g * multiplier,
+      kcal:
+        ((ingredient.energyKcal100g ?? ingredient.product?.energyKcal100g) ||
+          0) * multiplier,
+      protein:
+        ((ingredient.protein100g ?? ingredient.product?.protein100g) || 0) *
+        multiplier,
+      carbs:
+        ((ingredient.carbohydrates100g ??
+          ingredient.product?.carbohydrates100g) ||
+          0) * multiplier,
+      fat:
+        ((ingredient.fat100g ?? ingredient.product?.fat100g) || 0) * multiplier,
     };
   }
 
-  private checkFavorite(): void {
-    if (this.recipe && this.user) {
-      this.isFavorite =
-        this.user.archivedRecipes?.includes(this.recipe._id) || false;
-    }
-  }
-
   public toggleFavorite(): void {
-    if (!this.recipe) return;
-
+    if (!this.recipe?._id) return;
     this.recipeService.toggleArchived(this.recipe._id).subscribe({
       next: (res) => {
         this.isFavorite = res.isArchived;
-        // Update user state locally
-        if (this.isFavorite) {
-          if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
-          if (!this.user.archivedRecipes.includes(this.recipe._id)) {
-            this.user.archivedRecipes.push(this.recipe._id);
-          }
-        } else {
-          this.user.archivedRecipes = this.user.archivedRecipes?.filter(
-            (id) => id !== this.recipe?._id,
-          );
-        }
-        this.userService.setLocalUser = this.user;
-
-        this.showToast(
-          this.isFavorite ? "Añadida a favoritos" : "Eliminada de favoritos",
-        );
       },
-      error: () => {
-        this.showToast("Error al actualizar favoritos", "danger");
-      },
+      error: () => this.showToast("Error al actualizar favoritos", "danger"),
     });
   }
 
-  public scrollToQuantityInput(): void {
-    if (this.quantityInput && this.ionContent) {
-      this.quantityInput.setFocus();
-      setTimeout(() => {
-        this.ionContent?.scrollToPoint(
-          0,
-          this.quantityInput.el.offsetTop - 100,
-          500,
-        );
-      }, 100);
-    }
+  public deleteOwnRecipe(): void {
+    if (!this.canDeleteOwnRecipe || !this.recipe?._id || this.loading) return;
+
+    const recipeId = this.recipe._id;
+    const recipeName = this.recipe.name || "esta receta";
+
+    this.ionicUtilService.showAlert({
+      header: "Eliminar receta",
+      message:
+        `¿Estás seguro de que quieres eliminar ${recipeName}? ` +
+        "Se eliminará la receta base, todas sus configuraciones asociadas y desaparecerá de todas las comidas de todos los días donde se haya usado.",
+      buttons: [
+        {
+          text: "CANCELAR",
+          role: "cancel",
+        },
+        {
+          text: "ELIMINAR",
+          role: "destructive",
+          handler: () => {
+            void this.confirmDeleteOwnRecipe(recipeId);
+          },
+        },
+      ],
+    });
   }
 
-  public async save(): Promise<void> {
-    // Use getRawValue() to include disabled fields
-    const formValue = this.recipeForm.getRawValue();
-
-    if (!this.canSave) {
-      if (this.ingredients.length < 2) {
-        this.showToast("You need at least 2 ingredients", "warning");
-      }
-      return;
-    }
-
-    // 🔒 Prevent double submissions
-    if (this.loading) {
-      return;
-    }
+  private async confirmDeleteOwnRecipe(recipeId: string): Promise<void> {
+    if (!recipeId || this.loading) return;
 
     this.loading = true;
 
     try {
-      if (this.mode === "create") {
-        await this.saveNewRecipe();
-      } else if (this.mode === "add") {
-        await this.addRecipeToMeal();
-      } else if (this.mode === "edit") {
-        await this.updateExistingRecipe();
-      }
-      // ✅ Loading stays true until navigation completes (component destroyed)
-      // No need to set loading = false on success since we're navigating away
+      await firstValueFrom(this.recipeService.delete(recipeId));
+      this.removeDeletedRecipeLocally(recipeId);
+      await this.showToast("Receta eliminada");
+      this.navigateAfterRecipeDeleted(recipeId);
     } catch (error) {
-      console.error("Error saving recipe:", error);
-      this.showToast("Error saving recipe", "danger");
-      // ❌ Only reset loading on error (so user can retry)
+      console.error("[deleteOwnRecipe] Error:", error);
+      this.loading = false;
+      await this.showToast("Error al eliminar la receta", "danger");
+    }
+  }
+
+  public async save(): Promise<void> {
+    if (!this.canSave || this.loading) return;
+    this.loading = true;
+
+    try {
+      if (this.isCreateMode) {
+        await this.saveNewRecipe();
+      } else if (this.isAddMode) {
+        await this.addRecipeToMeal();
+      } else {
+        await this.saveOriginalRecipePrompt();
+      }
+    } catch (error) {
+      console.error(error);
+      this.showToast("Error guardando la receta", "danger");
       this.loading = false;
     }
   }
 
   private async saveNewRecipe(): Promise<void> {
-    const formValue = this.recipeForm.getRawValue();
-    const quantityCooked = this.toOptionalPositiveNumber(
-      formValue.quantityCooked,
-    );
-    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
+    const raw = this.recipeForm.getRawValue();
+    const composePayload: any = {
+      recipe: {
+        name: raw.name,
+        description: raw.description || undefined,
+        customProducts: this.normalizeCustomProducts(this.ingredients),
+      },
+    };
 
-    try {
-      const composePayload: any = {
-        recipe: {
-          name: formValue.name,
-          description: formValue.description || undefined,
-          customProducts: this.normalizeCustomProducts(this.ingredients),
-          quantityCooked,
-          quantity,
-        },
+    if (this.meal) {
+      composePayload.customRecipe = {
+        quantity:
+          this.toPositiveNumber(raw.quantity) ||
+          this.toPositiveNumber(raw.quantityCooked) ||
+          this.calculatedMacros.quantity,
+        quantityCooked: this.toPositiveNumber(raw.quantityCooked),
+        addedCustomProducts: [],
+        modifiedBaseCustomProducts: [],
+        removedBaseCustomProductIds: [],
       };
-
-      if (this.meal) {
-        composePayload.dataRecipe = {
-          quantityCooked,
-        };
-        composePayload.instance = {
-          quantity:
-            quantity || quantityCooked || this.calculatedMacros.quantity,
-          customProductsOverrides: [],
-          additionalCustomProducts: [],
-        };
-        composePayload.context = this.buildComposeContext();
-      }
-
-      const result = await firstValueFrom(
-        this.recipeService.compose(composePayload),
-      );
-
-      if (this.meal) {
-        this.applyComposeResult(result);
-        this.showToast("Receta añadida a la comida", "success");
-      } else {
-        this.showToast("Receta creada con éxito", "success");
-      }
-
-      this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
-      this.successfulSave = true;
-      this.goBack();
-    } catch (err) {
-      console.error("Error creating recipe:", err);
-      if (await this.handleRecipeLimitError(err)) {
-        return;
-      }
-      this.showToast("Error al crear la receta", "danger");
+      composePayload.context = this.buildComposeContext();
     }
+
+    const result = await firstValueFrom(
+      this.recipeService.compose(composePayload),
+    );
+    this.applyComposeResult(result);
+    this.captureInitialSnapshot();
+    this.adMobService.interstitial("create_recipe");
+    this.goBack();
   }
 
   private async addRecipeToMeal(): Promise<void> {
-    if (!this.recipe || !this.meal) {
-      throw new Error("Recipe or meal not found");
-    }
+    if (!this.recipe?._id) throw new Error("Recipe not found");
+    const raw = this.recipeForm.getRawValue();
+    const composePayload: any = {
+      recipeId: this.recipe._id,
+      customRecipe: {
+        quantity:
+          this.toPositiveNumber(raw.quantity) ||
+          this.toPositiveNumber(raw.quantityCooked) ||
+          this.calculatedMacros.quantity,
+        quantityCooked: this.toPositiveNumber(raw.quantityCooked),
+        addedCustomProducts: this.calculateAdditionalIngredients(),
+        modifiedBaseCustomProducts: this.calculateModifiedIngredients(),
+        removedBaseCustomProductIds: this.calculateRemovedIngredients(),
+      },
+      context: this.buildComposeContext(),
+    };
 
-    const formValue = this.recipeForm.getRawValue();
-    const quantityCooked =
-      this.toOptionalPositiveNumber(formValue.quantityCooked) ??
-      this.toOptionalPositiveNumber(this.recipe.quantityCooked) ??
-      this.calculatedMacros.quantity;
-    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
-
-    try {
-      const instanceQuantity = quantity || quantityCooked;
-
-      const composePayload: any = {
-        recipeId: this.recipe._id,
-        dataRecipe: {
-          quantityCooked,
-        },
-        instance: {
-          quantity: instanceQuantity,
-          customProductsOverrides: this.calculateIngredientOverrides(),
-          additionalCustomProducts: this.calculateAdditionalIngredients(),
-        },
-        context: this.buildComposeContext(),
-      };
-
-      const result = await firstValueFrom(
-        this.recipeService.compose(composePayload),
-      );
-
-      this.applyComposeResult(result);
-      this.showToast("Receta añadida a la comida", "success");
-      this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
-      this.successfulSave = true;
-      this.goBack();
-    } catch (err) {
-      console.error("Error creating DataRecipe:", err);
-      if (await this.handleRecipeLimitError(err)) {
-        return;
-      }
-      this.showToast("Error al crear DataRecipe", "danger");
-    }
+    const result = await firstValueFrom(
+      this.recipeService.compose(composePayload),
+    );
+    this.applyComposeResult(result);
+    this.captureInitialSnapshot();
+    this.goBack();
   }
 
-  private async updateExistingRecipe(): Promise<void> {
-    if (!this.recipe?._id || !this.customRecipeInstance?._id) {
-      throw new Error("Recipe ID or CustomRecipeInstance ID not found");
+  private async updateExistingRecipe(
+    updateOriginalRecipe: boolean,
+  ): Promise<void> {
+    if (!this.recipe?._id) {
+      throw new Error("Recipe not found");
     }
 
-    const formValue = this.recipeForm.getRawValue();
-    const quantityCooked = this.toOptionalPositiveNumber(
-      formValue.quantityCooked,
-    );
-    const quantity = this.toOptionalPositiveNumber(formValue.quantity);
+    const raw = this.recipeForm.getRawValue();
 
-    // Extract dataRecipeId (dataRecipe can be string or object)
-    const dataRecipeId =
-      typeof this.customRecipeInstance.dataRecipe === "string"
-        ? this.customRecipeInstance.dataRecipe
-        : (this.customRecipeInstance.dataRecipe as any)?._id;
+    if (updateOriginalRecipe) {
+      // Editar la receta original y editar la envoltura son caminos distintos.
+      // Guardar la base no debe vaciar ni tocar los deltas del CustomRecipe.
+      const recipeUpdatePayload: any = {
+        name: raw.name,
+        description: raw.description || undefined,
+      };
 
-    if (!dataRecipeId) {
-      throw new Error("DataRecipe ID not found");
+      // Si solo cambian nombre/descripcion, evitamos resincronizar ingredientes
+      // y no tocamos los CustomProduct base innecesariamente.
+      if (this.hasBaseIngredientChanges()) {
+        recipeUpdatePayload.customProducts = this.normalizeCustomProducts(
+          this.ingredients,
+        );
+      }
+
+      const updatedRecipe = await firstValueFrom(
+        this.recipeService.update(this.recipe._id, recipeUpdatePayload),
+      );
+
+      this.recipe = updatedRecipe;
+      // La pantalla anterior no debe seguir con una copia vieja de la receta
+      // después de guardar cambios base como nombre/descripcion vacíos.
+      this.recipeDraftService.syncRecipe(updatedRecipe);
+      if (this.customRecipe && typeof this.customRecipe.recipe === "object") {
+        this.customRecipe = {
+          ...this.customRecipe,
+          recipe: updatedRecipe,
+        };
+      }
+      this.syncUpdatedRecipeLocally(updatedRecipe);
+      this.shouldPropagateUpdatedRecipe = true;
+      this.cancelOriginalRecipeEdit();
+      this.persistSelectedIngredients();
+      this.captureInitialSnapshot();
+      this.loading = false;
+      await this.showToast("Receta original actualizada");
+      return;
     }
 
-    // Build unified edit payload
-    const editPayload: any = {
+    if (!this.customRecipe?._id) {
+      throw new Error("Custom recipe not found");
+    }
+
+    const normalizedQuantity = this.toPositiveNumber(raw.quantity);
+    const normalizedQuantityCooked = this.toPositiveNumber(raw.quantityCooked);
+    const composePayload: any = {
       mode: "edit",
       recipeId: this.recipe._id,
       context: {
         mealId: this.meal?._id,
-        dataRecipeId,
-        customRecipeInstanceId: this.customRecipeInstance._id,
+        customRecipeId: this.customRecipe._id,
+      },
+      customRecipe: {
+        quantity:
+          normalizedQuantity ||
+          this.toPositiveNumber(this.customRecipe.quantity),
+        quantityCooked:
+          normalizedQuantityCooked ||
+          this.toPositiveNumber(this.customRecipe.quantityCooked),
+        addedCustomProducts: this.calculateAdditionalIngredients(),
+        modifiedBaseCustomProducts: this.calculateModifiedIngredients(),
+        removedBaseCustomProductIds: this.calculateRemovedIngredients(),
       },
     };
 
-    // Add recipe data unconditionally (user requested ability to edit regardless of ownership)
-    // The backend should handle whether this updates the original or creates a copy if needed.
-    // For now, we send the data as requested.
-    editPayload.recipe = {
-      name: formValue.name,
-      description: formValue.description || undefined,
-      customProducts: this.normalizeCustomProducts(this.ingredients),
-      quantityCooked,
-      quantity,
-    };
-
-    // Always update instance (overrides and quantities)
-    editPayload.dataRecipe = {
-      quantityCooked,
-    };
-
-    editPayload.instance = {
-      quantity: quantity || quantityCooked,
-      customProductsOverrides: this.calculateIngredientOverrides(),
-      additionalCustomProducts: this.calculateAdditionalIngredients(),
-    };
-
-    // Single API call handles both recipe + instance updates
     const result = await firstValueFrom(
-      this.recipeService.compose(editPayload),
+      this.recipeService.compose(composePayload),
     );
-
     this.applyComposeResult(result);
-
-    this.showToast("Receta actualizada con éxito", "success");
-    this.adMobService.interstitial("create_recipe"); // Estrategia AdMob
+    this.captureInitialSnapshot();
     this.goBack();
   }
 
-  private calculateIngredientOverrides(): any[] {
-    // Compare current ingredients with original recipe ingredients
-    // Return only the changes (quantity modifications or removed items)
-    const originalIngredients = this.recipe?.customProducts || [];
-    const overrides: any[] = [];
+  public async saveOriginalRecipePrompt(): Promise<void> {
+    if (!this.editingBaseRecipe) {
+      await this.updateExistingRecipe(false);
+      return;
+    }
 
-    originalIngredients.forEach((originalIng: any) => {
-      const currentIng = this.ingredients.find(
-        (ing) => ing._id === originalIng._id,
-      );
-
-      if (!currentIng) {
-        // Ingredient was removed
-        overrides.push({
-          customProductId: originalIng._id,
-          removed: true,
-        });
-      } else if (currentIng.quantity !== originalIng.quantity) {
-        // Quantity was changed
-        overrides.push({
-          customProductId: originalIng._id,
-          quantity: currentIng.quantity,
-        });
-      }
+    this.loading = false;
+    await this.ionicUtilService.showAlert({
+      header: "Modificar receta original",
+      message:
+        "Has modificado los valores originales de la receta. Si confirmas, el cambio se reflejará en todos los sitios donde se use.",
+      buttons: [
+        { text: "Cancelar", role: "cancel" },
+        {
+          text: "Confirmar",
+          handler: () => {
+            this.loading = true;
+            this.updateExistingRecipe(true);
+          },
+        },
+      ],
     });
+  }
 
-    return overrides;
+  private calculateModifiedIngredients(): Array<{
+    baseCustomProductId: string;
+    quantity: number;
+  }> {
+    const originalIngredients = this.recipe?.customProducts || [];
+    return originalIngredients
+      .map((ingredient: any) => {
+        const current = this.ingredients.find(
+          (item) => item._id === ingredient._id,
+        );
+        if (!current) return null;
+        if (
+          this.recipeService.areCustomProductsEquivalent(ingredient, current)
+        ) {
+          return null;
+        }
+        return this.recipeService.buildModifiedBaseCustomProduct(
+          ingredient,
+          current,
+        );
+      })
+      .filter(Boolean) as Array<{
+      baseCustomProductId: string;
+      quantity: number;
+    }>;
+  }
+
+  private calculateRemovedIngredients(): string[] {
+    const originalIngredients = this.recipe?.customProducts || [];
+    return originalIngredients
+      .filter(
+        (ingredient: any) =>
+          !this.ingredients.find((current) => current._id === ingredient._id),
+      )
+      .map((ingredient: any) => ingredient._id);
   }
 
   private calculateAdditionalIngredients(): any[] {
-    // Find ingredients that are NOT in the original recipe
-    const originalIngredients = this.recipe?.customProducts || [];
-    const additionalIngredients: CustomProduct[] = [];
-
-    this.ingredients.forEach((currentIng) => {
-      const existsInOriginal = originalIngredients.some(
-        (origIng: any) => origIng._id === currentIng._id,
-      );
-
-      if (!existsInOriginal) {
-        // Collect the additional ingredient
-        additionalIngredients.push(currentIng);
-      }
-    });
-
-    // Normalize collected ingredients (same format as recipe customProducts)
-    return this.normalizeCustomProducts(additionalIngredients);
+    const originalIds = new Set(
+      (this.recipe?.customProducts || []).map(
+        (ingredient: any) => ingredient._id,
+      ),
+    );
+    return this.normalizeCustomProducts(
+      this.ingredients.filter((ingredient) => !originalIds.has(ingredient._id)),
+    );
   }
 
-  private buildComposeContext(): any | null {
-    if (!this.meal) return null;
-
-    if (this.dietDay?._id && this.meal?._id) {
-      return { mealId: this.meal._id };
-    }
-
-    if (this.dietDay) {
-      const indexMeal = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal?._id || m.name === this.meal?.name,
-      );
-
-      if (indexMeal !== -1) {
-        return {
-          dietInUseId: this.user.dietInUse,
-          indexMeal,
-          currentDate: this.dietDay.date,
-        };
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Normalize customProducts for API payload:
-   * - If product already exists (has _id): send only { quantity, product: id }
-   * - If product is new (no _id): send full { quantity, product, energyKcal100g, ... }
-   */
   private normalizeCustomProducts(products: CustomProduct[]): any[] {
-    return products.map((cp) => {
-      const p = cp.product;
-      const productId = p?._id || p;
-
-      // If product exists in DB (has _id), send only reference
-      if (productId) {
-        return {
-          quantity: cp.quantity,
-          product: productId,
-        };
-      }
-
-      // If neither exists, send full product data (new ingredient being created)
-      return {
-        quantity: cp.quantity,
-        product: cp.product,
-        energyKcal100g: cp.energyKcal100g,
-        protein100g: cp.protein100g,
-        carbohydrates100g: cp.carbohydrates100g,
-        fat100g: cp.fat100g,
-      };
-    });
+    return products.map((ingredient) =>
+      this.recipeService.serializeCustomProductForPersistence(ingredient),
+    );
   }
 
-  private toOptionalPositiveNumber(value: any): number | undefined {
-    if (value === null || value === undefined || value === "") {
-      return undefined;
-    }
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      return undefined;
-    }
-    return parsed;
+  private hasBaseIngredientChanges(): boolean {
+    return (
+      JSON.stringify(this.serializeIngredients(this.ingredients)) !==
+      JSON.stringify(
+        this.serializeIngredients(
+          (this.recipe?.customProducts || []) as CustomProduct[],
+        ),
+      )
+    );
   }
 
   private applyComposeResult(result: any): void {
@@ -1214,112 +1088,202 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (result?.meal && this.dietDay) {
       const mealIndex = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal?._id || m.name === this.meal?.name,
+        (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
       );
-
       if (mealIndex !== -1) {
-        const updatedMeals = [...this.dietDay.meals];
-        updatedMeals[mealIndex] = result.meal;
-        const updatedDietDay = {
-          ...this.dietDay,
-          meals: updatedMeals,
-        };
-        this.dietDay = updatedDietDay;
-        this.meal = result.meal;
-        this.dietDayService.setCurrentDietDay = updatedDietDay;
+        this.dietDay.meals[mealIndex] = result.meal;
+        this.dietDayService.setCurrentDietDay = { ...this.dietDay };
       }
+      this.meal = result.meal;
     }
   }
 
-  private async createCustomRecipeInstanceAndAddToMeal(
-    instanceData: CreateCustomRecipeInstanceDTO,
-  ): Promise<void> {
+  private syncUpdatedRecipeLocally(updatedRecipe: Recipe): void {
+    const updatedDietDay =
+      this.dietDayService.syncUpdatedRecipeInCurrentDietDay(updatedRecipe);
+
+    if (!updatedDietDay) {
+      return;
+    }
+
+    this.updatedDietDayToPropagate = updatedDietDay;
+    this.dietDay = updatedDietDay;
+
     if (!this.meal) {
-      throw new Error("Meal not found");
+      return;
     }
 
-    // Check if dietDay exists
-    if (this.dietDay && this.dietDay._id) {
-      // DietDay exists - create instance and add to existing meal
-      await this.createInstanceAndAddToExistingMeal(instanceData);
-    } else {
-      // DietDay doesn't exist - create dietDay/meal first
-      await this.createInstanceOnNewDietDay(instanceData);
+    const updatedMeal = updatedDietDay.meals?.find(
+      (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
+    );
+
+    if (updatedMeal) {
+      this.meal = updatedMeal;
     }
   }
 
-  private async createInstanceAndAddToExistingMeal(
-    instanceData: CreateCustomRecipeInstanceDTO,
-  ): Promise<void> {
-    if (!this.meal?._id) {
-      throw new Error("Meal ID not found");
+  private buildComposeContext(): any | null {
+    if (!this.meal) return null;
+    if (this.dietDay?._id && this.meal._id) {
+      return { mealId: this.meal._id };
     }
+    if (!this.dietDay) return null;
 
-    // Step 1: Create the CustomRecipeInstance
-    const createdInstance = await firstValueFrom(
-      this.customRecipeInstanceService.create(instanceData),
-    );
-
-    // Step 2: Add the instance to the meal
-    if (!createdInstance._id) {
-      throw new Error("Created instance has no ID");
-    }
-
-    const updatedMeal = await firstValueFrom(
-      this.mealService.addCustomRecipeInstance(
-        this.meal._id,
-        createdInstance._id,
-      ),
-    );
-
-    // Update local state
-    if (this.dietDay) {
-      const mealIndex = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal!._id,
-      );
-      if (mealIndex !== -1) {
-        this.dietDay.meals[mealIndex] = updatedMeal;
-        this.dietDayService.setCurrentDietDay = this.dietDay;
-      }
-    }
-
-    this.showToast("Receta añadida a la comida", "success");
-    this.successfulSave = true;
-    this.goBack();
-  }
-
-  private async createInstanceOnNewDietDay(
-    instanceData: CreateCustomRecipeInstanceDTO,
-  ): Promise<void> {
-    if (!this.meal || !this.dietDay) {
-      throw new Error("Meal or DietDay not found");
-    }
-
-    // Get necessary data
-    const dietInUseId = this.user.dietInUse;
     const indexMeal = this.dietDay.meals.findIndex(
-      (mealTemp) => mealTemp.name === this.meal!.name,
+      (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
     );
-    const currentDate = this.dietDay.date;
 
-    if (!dietInUseId || indexMeal === -1) {
-      throw new Error("Datos incompletos para crear dietDay");
+    if (indexMeal === -1) return null;
+
+    return {
+      dietInUseId: this.user.dietInUse,
+      indexMeal,
+      currentDate: this.dietDay.date,
+    };
+  }
+
+  private getCurrentIngredients(): CustomProduct[] {
+    return this.dedupeIngredients(
+      this.recipeService.mergeRecipeIngredients(this.recipe, this.customRecipe),
+    );
+  }
+
+  public recalculateMacros(): void {
+    this.calculatedMacros = this.recipeService.calculateRecipeMacros({
+      name: "",
+      customProducts: this.ingredients,
+    } as Recipe);
+
+    if (this.editingBaseRecipe) {
+      this.portionMacros = {
+        kcal: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+      };
+      return;
     }
 
-    const createdDietDay = await firstValueFrom(
-      this.dietDayAPIService.createCustomRecipeInstanceOnNewDietDay(
-        instanceData,
-        indexMeal,
-        dietInUseId,
-        currentDate,
-      ),
+    const raw = this.recipeForm.getRawValue();
+    const baseline =
+      this.toPositiveNumber(raw.quantityCooked) ||
+      this.calculatedMacros.quantity ||
+      1;
+    const consumed = this.toPositiveNumber(raw.quantity) || 0;
+    const ratio = consumed / baseline;
+
+    this.portionMacros = {
+      kcal: this.calculatedMacros.kcal * ratio,
+      protein: this.calculatedMacros.protein * ratio,
+      carbs: this.calculatedMacros.carbs * ratio,
+      fat: this.calculatedMacros.fat * ratio,
+    };
+  }
+
+  private toPer100(value: number): number {
+    const baseline =
+      this.toPositiveNumber(this.recipeForm.getRawValue().quantityCooked) ||
+      this.calculatedMacros.quantity ||
+      0;
+    return baseline > 0 ? (value / baseline) * 100 : 0;
+  }
+
+  private dedupeIngredients(list: CustomProduct[]): CustomProduct[] {
+    const seen = new Set<string>();
+    return (list || []).filter((ingredient: any) => {
+      const key = ingredient._id;
+      if (!key) return true;
+      if (seen.has(key.toString())) return false;
+      seen.add(key.toString());
+      return true;
+    });
+  }
+
+  private getOriginalIngredient(
+    ingredient: CustomProduct,
+  ): CustomProduct | undefined {
+    return (this.recipe?.customProducts || []).find(
+      (item: any) => item._id === ingredient._id,
     );
+  }
 
-    // Update local state
-    this.dietDayService.setCurrentDietDay = createdDietDay;
+  private checkFavorite(): void {
+    this.isFavorite = !!(
+      this.recipe?._id && this.user?.archivedRecipes?.includes(this.recipe._id)
+    );
+  }
 
-    this.showToast("Receta añadida a la comida", "success");
-    this.goBack();
+  private toPositiveNumber(value: any): number | null {
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
+  }
+
+  private removeDeletedRecipeLocally(recipeId: string): void {
+    if (this.user?.archivedRecipes?.includes(recipeId)) {
+      this.user.archivedRecipes = this.user.archivedRecipes.filter(
+        (id) => id !== recipeId,
+      );
+      this.userService.setLocalUser = this.user;
+    }
+
+    const currentDietDay = this.dietDayService.currentDietDay;
+    if (!currentDietDay?.meals?.length) return;
+
+    let hasChanges = false;
+    const nextMeals = currentDietDay.meals.map((meal) => {
+      const currentCustomRecipes = meal.customRecipes || [];
+      const nextCustomRecipes = currentCustomRecipes.filter(
+        (customRecipe: any) =>
+          this.getRecipeIdFromCustomRecipe(customRecipe) !== recipeId,
+      );
+
+      if (nextCustomRecipes.length === currentCustomRecipes.length) {
+        return meal;
+      }
+
+      hasChanges = true;
+      return {
+        ...meal,
+        customRecipes: nextCustomRecipes,
+      };
+    });
+
+    if (hasChanges) {
+      this.dietDayService.setCurrentDietDay = {
+        ...currentDietDay,
+        meals: nextMeals,
+      };
+    }
+  }
+
+  private getRecipeIdFromCustomRecipe(customRecipe: any): string | null {
+    const recipeRef = customRecipe?.recipe;
+    return this.normalizeId(recipeRef);
+  }
+
+  private normalizeId(value: any): string | null {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    return value?._id?.toString?.() || value?.toString?.() || null;
+  }
+
+  private navigateAfterRecipeDeleted(recipeId: string): void {
+    this.clearConfigTempData();
+
+    if (this.returnUrl) {
+      this.navigationService.backTo(this.returnUrl, {
+        state: {
+          returningFromConfigRecipe: true,
+          currentMode: "recipes",
+          deletedRecipe: recipeId,
+        },
+      });
+      return;
+    }
+
+    this.navigationService.backNoAnim();
   }
 
   private async showToast(
@@ -1328,177 +1292,38 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   ): Promise<void> {
     const toast = await this.toastCtrl.create({
       message,
-      duration: 2000,
+      duration: 1800,
       color,
       position: "bottom",
     });
     await toast.present();
   }
 
-  private async handleRecipeLimitError(error: any): Promise<boolean> {
-    if (error?.error?.code !== "PREMIUM_LIMIT_RECIPES") {
-      return false;
-    }
+  public async goBack(): Promise<void> {
+    const shouldLeave = await this.confirmDiscardChanges();
+    if (!shouldLeave) return;
 
-    await this.ionicUtilService.showAlert({
-      header: "Límite Free alcanzado",
-      message:
-        "Has alcanzado el límite de recetas propias. Activa Pro para crear más.",
-      buttons: [
-        {
-          text: "Cancelar",
-          role: "cancel",
-        },
-        {
-          text: "Hazte Pro",
-          handler: () => this.navigationService.goToPremium(),
-        },
-      ],
-    });
+    const updatedRecipeState =
+      this.shouldPropagateUpdatedRecipe && this.recipe?._id
+        ? {
+            updatedRecipe: this.recipe,
+            updatedDietDay: this.updatedDietDayToPropagate,
+          }
+        : {};
 
-    return true;
-  }
+    this.clearConfigTempData();
 
-  public get canDelete(): boolean {
-    // Can only delete if editing/adding an existing recipe primarily in edit mode or add mode if checking detials
-    // AND the recipe belongs to the current user
-    return (
-      (this.isEditMode || this.isAddMode) &&
-      !!this.recipe &&
-      this.recipe.userId === this.user._id
-    );
-  }
-
-  public async deleteRecipe(): Promise<void> {
-    if (!this.recipe?._id) return;
-
-    const alert = await this.ionicUtilService.showAlert({
-      header: "Eliminar receta",
-      message:
-        "¿Estás seguro de que quieres eliminar esta receta permanentemente?",
-      buttons: [
-        {
-          text: "Cancelar",
-          role: "cancel",
-        },
-        {
-          text: "Eliminar",
-          role: "destructive",
-          cssClass: "alert-button-danger",
-          handler: () => {
-            this.performDelete();
-          },
-        },
-      ],
-    });
-  }
-
-  private performDelete(): void {
-    if (!this.recipe?._id) return;
-
-    this.loading = true;
-    this.recipeService.delete(this.recipe._id).subscribe({
-      next: () => {
-        this.showToast("Receta eliminada", "success");
-        this.loading = false;
-
-        // Remove recipe from local state (meal and dietDay)
-        this.removeRecipeFromLocalState(this.recipe._id);
-
-        // Return to recipes list ensuring refresh
-        this.navigationService.backTo(this.returnUrl, {
-          state: {
-            returningFromConfigRecipe: true,
-            currentMode: "recipes",
-            refresh: true,
-          },
-        });
-      },
-      error: (err) => {
-        console.error("Error deleting recipe:", err);
-        this.showToast("Error al eliminar la receta", "danger");
-        this.loading = false;
-      },
-    });
-  }
-
-  /**
-   * Remove recipe from meal and dietDay local state when permanently deleted
-   */
-  private removeRecipeFromLocalState(recipeId: string): void {
-    if (!this.meal || !this.dietDay) {
-      return;
-    }
-
-    // Filter out CustomRecipeInstances that reference this recipe
-    const initialCount = this.meal.customRecipeInstances?.length || 0;
-
-    this.meal.customRecipeInstances = (
-      this.meal.customRecipeInstances || []
-    ).filter((instance) => {
-      const dataRecipe =
-        typeof instance.dataRecipe === "object" ? instance.dataRecipe : null;
-      if (!dataRecipe) return true; // Keep if invalid
-
-      const recipe =
-        typeof dataRecipe.recipe === "object" ? dataRecipe.recipe : null;
-      if (!recipe) return true; // Keep if invalid
-
-      // Remove if this instance references the deleted recipe
-      return recipe._id !== recipeId;
-    });
-
-    const removedCount =
-      initialCount - (this.meal.customRecipeInstances?.length || 0);
-
-    // Update the meal in dietDay
-    const mealIndex = this.dietDay.meals?.findIndex(
-      (m) => m._id === this.meal._id,
-    );
-    if (mealIndex !== undefined && mealIndex >= 0) {
-      this.dietDay.meals[mealIndex] = { ...this.meal };
-    }
-
-    // Update service
-    this.dietDayService.setCurrentDietDay = this.dietDay;
-  }
-
-  public goBack(): void {
-    // Clear any ingredient mode state before going back
-    this.navigationService.clearStateKeys([
-      "ingredientMode",
-      "existingIngredients",
-      "selectedIngredients",
-      "returnUrl",
-    ]);
-    this.navigationService.clearTempData("selectedIngredients");
-    this.navigationService.clearTempData("configRecipeState");
-    // Clear mode tempData when leaving successfully
-    this.navigationService.clearTempData("configRecipeMode");
-
-    if (this.returnUrl && this.returnUrl !== "/config-recipe") {
-      // If saved successfully, always go to recipes segment
-      // Otherwise, restore the segment that was active before
-      let targetMode = "recipes";
-      if (!this.successfulSave) {
-        const savedState =
-          this.navigationService.getTempData<any>("searchFoodsState");
-        targetMode = savedState?.currentMode || "recipes";
-      }
-
-      // Add flag to indicate we're returning from config-recipe
+    if (this.returnUrl) {
       this.navigationService.backTo(this.returnUrl, {
         state: {
           returningFromConfigRecipe: true,
-          currentMode: targetMode,
-          ingredientMode: false,
-          mealName: this.meal?.name,
-          selectedDate: this.selectedDate || this.dietDay?.date,
-          updatedRecipe: this.recipeInfoEdited ? this.recipe : undefined,
+          currentMode: "recipes",
+          ...updatedRecipeState,
         },
       });
-    } else {
-      this.navigationService.backNoAnim();
+      return;
     }
+
+    this.navigationService.backNoAnim();
   }
 }

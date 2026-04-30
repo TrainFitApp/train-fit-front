@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { CustomProduct } from '../../models/customProduct';
-import { DataRecipe } from '../../models/dataRecipe';
+import { CustomRecipe } from '../../models/customRecipe';
 import { DietDay } from '../../models/dietDay';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
@@ -119,54 +119,33 @@ export class DietDayAPIService {
     );
   }
 
-  // DataRecipe methods
-  public createDataRecipeOnNewDietDay(
-    dataRecipe: DataRecipe,
+  public createCustomRecipeOnNewDietDay(
+    customRecipe: CustomRecipe,
     indexMeal: number,
     dietInUseId: string,
     currentDate: Date
   ): Observable<DietDay> {
     return this.http.post<DietDay>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/datarecipe/${dietInUseId}`,
+      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/recipe/new/${dietInUseId}`,
       {
-        dataRecipe,
+        customRecipe,
         indexMeal,
         currentDate,
       }
     );
   }
 
-  // CustomRecipeInstance methods
-  public createCustomRecipeInstanceOnNewDietDay(
-    customRecipeInstance: any,
-    indexMeal: number,
-    dietInUseId: string,
-    currentDate: Date
-  ): Observable<DietDay> {
-    return this.http.post<DietDay>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/customrecipeinstance/${dietInUseId}`,
-      {
-        customRecipeInstance,
-        indexMeal,
-        currentDate,
-      }
-    );
+  public addCustomRecipeToMeal(
+    mealId: string,
+    customRecipeId: string
+  ): Observable<any> {
+    return this.http.post<any>(`meals/${mealId}/customrecipes/${customRecipeId}`, {});
   }
 
-  public addDataRecipeToMeal(
+  public removeCustomRecipeFromMeal(
     mealId: string,
-    dataRecipeId: string
+    customRecipeId: string
   ): Observable<any> {
-    return this.http.post<any>(
-      `meals/${mealId}/datarecipes/${dataRecipeId}`,
-      {}
-    );
-  }
-
-  public removeDataRecipeFromMeal(
-    mealId: string,
-    dataRecipeId: string
-  ): Observable<any> {
-    return this.http.delete<any>(`meals/${mealId}/datarecipes/${dataRecipeId}`);
+    return this.http.delete<any>(`meals/customrecipe/${mealId}/${customRecipeId}`);
   }
 }

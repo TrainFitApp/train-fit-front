@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
 
@@ -19,6 +20,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   public nutritionalData: NutritionalData = new NutritionalData();
   private navCtrl = inject(NavController);
   private dietDayService = inject(DietDayService);
+  private recipeService = inject(RecipeService);
   private userService = inject(UserService);
   private dietDaySub?: Subscription;
 
@@ -134,8 +136,8 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       }
 
       // 2. Instancias de recetas en la comida
-      if (meal.customRecipeInstances) {
-        meal.customRecipeInstances.forEach((instance: any) => {
+      if (meal.customRecipes) {
+        meal.customRecipes.forEach((instance: any) => {
           this.processRecipeInstance(data, instance);
         });
       }
@@ -145,49 +147,17 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   private processRecipeInstance(data: NutritionalData, instance: any) {
-    const dataRecipe =
-      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-    if (!dataRecipe) return;
-
     const recipe =
-      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
-    if (!recipe || !recipe.customProducts) return;
+      typeof instance.recipe === 'object' ? instance.recipe : null;
+    if (!recipe) return;
 
-    // Escala de la instancia: segun la logica de DietDayService, calculamos el ratio basado en el peso total de la receta
-    const scaleFactor = this.dietDayService.getRecipeInstancePortionRatio(instance);
+    const merged = this.recipeService.calculateCustomRecipeTotals(recipe, instance);
+    const scaleFactor =
+      merged.totals.quantity > 0 ? merged.consumed / merged.totals.quantity : 0;
 
-    // Mapear overrides
-    const overridesMap = new Map();
-    if (instance.customProductsOverrides) {
-      instance.customProductsOverrides.forEach((override: any) => {
-        const id =
-          typeof override.customProductId === 'string'
-            ? override.customProductId
-            : (override.customProductId as any)?._id ||
-              override.customProductId;
-        overridesMap.set(id, override);
-      });
-    }
-
-    // 2a. Ingredientes de la receta base (con sus cantidades escaladas)
-    recipe.customProducts.forEach((cpData: any) => {
-      const cpId = cpData._id;
-      const override = overridesMap.get(cpId);
-      if (override?.removed) return;
-
-      const baseQuantity = override?.quantity ?? cpData.quantity;
-      const scaledQuantity = baseQuantity * scaleFactor;
-
-      this.appendNutrients(data, cpData, scaledQuantity);
+    merged.ingredients.forEach((cpData: any) => {
+      this.appendNutrients(data, cpData, (cpData.quantity || 0) * scaleFactor);
     });
-
-    // 2b. Productos adicionales en esta instancia
-    if (instance.additionalCustomProducts) {
-      instance.additionalCustomProducts.forEach((addCP: any) => {
-        const scaledQuantity = (addCP.quantity || 0) * scaleFactor;
-        this.appendNutrients(data, addCP, scaledQuantity);
-      });
-    }
   }
 
   private appendNutrients(

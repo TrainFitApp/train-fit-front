@@ -20,10 +20,11 @@ import { CustomProductService } from 'src/app/core/services/custom-product/custo
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
-import { CustomRecipeInstanceApiService } from 'src/app/core/services/custom-recipe-instance/custom-recipe-instance-api.service';
-import { CustomRecipeInstance } from 'src/app/core/models/customRecipeInstance';
+import { CustomRecipeApiService } from 'src/app/core/services/custom-recipe/custom-recipe-api.service';
+import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
@@ -74,7 +75,8 @@ export class MealComponent implements OnInit, OnChanges {
     private dietDayService: DietDayService,
     private dietService: DietService,
     private customProductService: CustomProductService,
-    private customRecipeInstanceService: CustomRecipeInstanceApiService,
+    private customRecipeService: CustomRecipeApiService,
+    private recipeService: RecipeService,
     private navigationService: NavigationService
   ) {}
 
@@ -121,11 +123,11 @@ export class MealComponent implements OnInit, OnChanges {
     });
   }
 
-  public editCustomRecipeInstance(instance: CustomRecipeInstance): void {
+  public editCustomRecipe(instance: CustomRecipe): void {
     this.navigationService.goToConfigRecipe({
       state: {
         mode: 'edit',
-        customRecipeInstance: instance,
+        customRecipe: instance,
         meal: this.meal,
         dietDay: this.dietDay,
         returnUrl: '/tabs/diets',
@@ -134,13 +136,9 @@ export class MealComponent implements OnInit, OnChanges {
     });
   }
 
-  public deleteRecipe(meal: Meal, instance: CustomRecipeInstance): void {
+  public deleteRecipe(meal: Meal, instance: CustomRecipe): void {
     const recipeName =
-      typeof instance.dataRecipe === 'object'
-        ? typeof instance.dataRecipe.recipe === 'object'
-          ? instance.dataRecipe.recipe.name
-          : 'esta receta'
-        : 'esta receta';
+      typeof instance.recipe === 'object' ? instance.recipe.name : 'esta receta';
 
     const alertOptions: AlertOptions = {
       header: 'Eliminar receta',
@@ -159,16 +157,16 @@ export class MealComponent implements OnInit, OnChanges {
             );
 
             const indexRecipe =
-              this.dietDay.meals[indexMeal].customRecipeInstances.indexOf(
+              this.dietDay.meals[indexMeal].customRecipes.indexOf(
                 instance
               );
 
-            this.dietDay.meals[indexMeal].customRecipeInstances.splice(
+            this.dietDay.meals[indexMeal].customRecipes.splice(
               indexRecipe,
               1
             );
 
-            this.customRecipeInstanceService
+            this.customRecipeService
               .delete(instance._id!)
               .subscribe(() => {
                 this.dietDayService.setCurrentDietDay = this.dietDay;
@@ -239,7 +237,7 @@ export class MealComponent implements OnInit, OnChanges {
 
     const canMerge =
       this.meal.customProducts.length !== 0 ||
-      (this.meal.customRecipeInstances?.length ?? 0) !== 0;
+      (this.meal.customRecipes?.length ?? 0) !== 0;
 
     if (canMerge) {
       const alertOptions: AlertOptions = {
@@ -317,107 +315,35 @@ export class MealComponent implements OnInit, OnChanges {
     );
   }
 
-  public getCustomRecipeInstancesOrdered(meal: Meal): CustomRecipeInstance[] {
-    return meal.customRecipeInstances || [];
+  public getCustomRecipesOrdered(meal: Meal): CustomRecipe[] {
+    return meal.customRecipes || [];
   }
 
-  public getRecipeName(instance: CustomRecipeInstance): string {
-    const dataRecipe =
-      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-    if (!dataRecipe) return 'Receta sin nombre';
-
+  public getRecipeName(instance: CustomRecipe): string {
     const recipe =
-      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
+      typeof instance.recipe === 'object' ? instance.recipe : null;
     if (!recipe) return 'Receta sin nombre';
 
     return recipe.name || 'Receta sin nombre';
   }
 
-  public getInstanceMacros(instance: CustomRecipeInstance): {
+  public getInstanceMacros(instance: CustomRecipe): {
     kcal: number;
     protein: number;
     carbs: number;
     fat: number;
   } {
-    // Calcular macros en tiempo real
-    const dataRecipe =
-      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-    if (!dataRecipe) return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
     const recipe =
-      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
-    if (!recipe || !recipe.customProducts)
+      typeof instance.recipe === 'object' ? instance.recipe : null;
+    if (!recipe)
       return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
-    // Crear mapa de overrides
-    const overridesMap = new Map();
-    if (instance.customProductsOverrides) {
-      instance.customProductsOverrides.forEach((override) => {
-        const id =
-          typeof override.customProductId === 'string'
-            ? override.customProductId
-            : (override.customProductId as any)?._id ||
-              override.customProductId;
-        overridesMap.set(id, override);
-      });
-    }
-
-    const portionRatio = this.dietDayService.getRecipeInstancePortionRatio(instance);
-
-    let totalMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
-    // Calcular macros de customProducts originales con overrides
-    recipe.customProducts.forEach((cp: any) => {
-      const cpId = typeof cp === 'string' ? cp : cp._id;
-      const cpData = typeof cp === 'object' ? cp : null;
-      if (!cpData) return;
-
-      const override = overridesMap.get(cpId);
-
-      // Si está marcado como removed, saltar
-      if (override?.removed) return;
-
-      // Usar cantidad del override o la original
-      const originalQuantity = override?.quantity ?? cpData.quantity;
-
-      const scaledQuantity = originalQuantity * portionRatio;
-
-      // Calcular macros de este ingrediente
-      const macros = this.customProductService.getMacros({
-        ...cpData,
-        quantity: scaledQuantity,
-      });
-
-      totalMacros.kcal += macros.kcal;
-      totalMacros.protein += macros.protein;
-      totalMacros.carbs += macros.carbs;
-      totalMacros.fat += macros.fat;
-    });
-
-    // Añadir macros de ingredientes adicionales
-    if (instance.additionalCustomProducts) {
-      instance.additionalCustomProducts.forEach((addCP) => {
-        const scaledQuantity = addCP.quantity * portionRatio;
-
-        const macros = this.customProductService.getMacros({
-          ...addCP,
-          quantity: scaledQuantity,
-        });
-
-        totalMacros.kcal += macros.kcal;
-        totalMacros.protein += macros.protein;
-        totalMacros.carbs += macros.carbs;
-        totalMacros.fat += macros.fat;
-      });
-    }
-
-    return totalMacros;
+    return this.recipeService.calculateCustomRecipeTotals(recipe, instance).portionMacros;
   }
 
   public openPopoverOptions(event: Event): void {
     if (
       this.meal.customProducts?.length > 0 ||
-      this.meal.customRecipeInstances?.length > 0
+      this.meal.customRecipes?.length > 0
     ) {
       const popover: PopoverOptions = {
         component: PopoverActionsComponent,
@@ -504,7 +430,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.meal.customProducts?.forEach(
       (cp) => (totals += this.customProductService.getMacros(cp).kcal)
     );
-    this.meal.customRecipeInstances?.forEach(
+    this.meal.customRecipes?.forEach(
       (instance) => (totals += this.getInstanceMacros(instance).kcal)
     );
     return totals;
@@ -515,7 +441,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.meal.customProducts?.forEach(
       (cp) => (totals += this.customProductService.getMacros(cp).protein)
     );
-    this.meal.customRecipeInstances?.forEach(
+    this.meal.customRecipes?.forEach(
       (instance) => (totals += this.getInstanceMacros(instance).protein)
     );
     return totals;
@@ -526,7 +452,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.meal.customProducts?.forEach(
       (cp) => (totals += this.customProductService.getMacros(cp).carbs)
     );
-    this.meal.customRecipeInstances?.forEach(
+    this.meal.customRecipes?.forEach(
       (instance) => (totals += this.getInstanceMacros(instance).carbs)
     );
     return totals;
@@ -537,7 +463,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.meal.customProducts?.forEach(
       (cp) => (totals += this.customProductService.getMacros(cp).fat)
     );
-    this.meal.customRecipeInstances?.forEach(
+    this.meal.customRecipes?.forEach(
       (instance) => (totals += this.getInstanceMacros(instance).fat)
     );
     return totals;
@@ -562,7 +488,7 @@ export class MealComponent implements OnInit, OnChanges {
     let actions = this.ACTION_VALUES;
     if (
       (this.meal.customProducts?.length || 0) === 0 &&
-      (this.meal.customRecipeInstances?.length || 0) === 0
+      (this.meal.customRecipes?.length || 0) === 0
     ) {
       actions = actions.filter(
         (actionTemp) =>
@@ -628,12 +554,12 @@ export class MealComponent implements OnInit, OnChanges {
             handler: () => {
               const observables = [
                 this.mealService.deleteMealCustomProducts(this.meal._id),
-                this.mealService.deleteMealRecipeInstances(this.meal._id),
+                this.mealService.deleteMealRecipes(this.meal._id),
               ];
 
               forkJoin(observables).subscribe(() => {
                 this.meal.customProducts = [];
-                this.meal.customRecipeInstances = [];
+                this.meal.customRecipes = [];
                 this.dietDayService.setCurrentDietDay = this.dietDay;
                 this.utilService.setUnselected = true;
 

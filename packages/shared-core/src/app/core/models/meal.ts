@@ -1,5 +1,5 @@
 import { CustomProduct } from './customProduct';
-import { CustomRecipeInstance } from './customRecipeInstance';
+import { CustomRecipe } from './customRecipe';
 
 export class Meal {
   _id: string;
@@ -10,7 +10,7 @@ export class Meal {
   fat?: number;
   notes?: string;
   customProducts: CustomProduct[];
-  customRecipeInstances: CustomRecipeInstance[];
+  customRecipes?: CustomRecipe[];
 }
 
 export enum MEAL_TYPES {

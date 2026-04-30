@@ -17,6 +17,7 @@ import { User } from 'src/app/core/models/user';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { ProductService } from 'src/app/core/services/product/product.service';
+import { RecipeDraftService } from 'src/app/core/services/recipe/recipe-draft.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -210,6 +211,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
+  private readonly recipeDraftService = inject(RecipeDraftService);
 
   constructor(
     private navigationService: NavigationService,
@@ -253,11 +255,45 @@ export class AddProductPage implements OnInit, OnDestroy {
       this.recipeName = state.recipeName;
     }
 
+    // Ingredient mode canonical source:
+    // always prefer the latest ingredient snapshot stored in tempData
+    // to avoid reopening AddProduct with stale state payload.
+    if (this.ingredientMode && this.recipeDraftService.isActive()) {
+      const currentIngredient = this.recipeDraftService.editingIngredient();
+      if (currentIngredient) {
+        this.customProduct = currentIngredient;
+        this.product = currentIngredient.product as IProduct;
+        this.productQuantity = currentIngredient.quantity;
+        this.editingIngredient = true;
+      }
+    } else if (this.ingredientMode) {
+      const editingIngredientIndex =
+        this.navigationService.getTempData<number>('editingIngredientIndex');
+      const selectedIngredients =
+        this.navigationService.getTempData<CustomProduct[]>('selectedIngredients');
+
+      if (
+        typeof editingIngredientIndex === 'number' &&
+        editingIngredientIndex >= 0 &&
+        selectedIngredients?.[editingIngredientIndex]
+      ) {
+        const currentIngredient = selectedIngredients[editingIngredientIndex];
+        this.customProduct = currentIngredient;
+        this.product = currentIngredient.product as IProduct;
+        this.productQuantity = currentIngredient.quantity;
+        this.editingIngredient = true;
+      }
+    }
+
     if (this.ingredientMode && !this.recipeName) {
-      const formState = this.navigationService.getTempData<any>(
-        'configRecipeFormState'
-      );
-      this.recipeName = formState?.name;
+      if (this.recipeDraftService.isActive()) {
+        this.recipeName = this.recipeDraftService.form().name;
+      } else {
+        const formState = this.navigationService.getTempData<any>(
+          'configRecipeFormState'
+        );
+        this.recipeName = formState?.name;
+      }
     }
 
     // 2. Load from route (handles deep links/refreshes)
@@ -716,7 +752,55 @@ export class AddProductPage implements OnInit, OnDestroy {
           newCustomProduct._id = this.customProduct._id;
         }
 
-        this.navigationService.setTempData('newIngredient', newCustomProduct);
+        if (this.recipeDraftService.isActive()) {
+          const editingIngredientIndex =
+            this.recipeDraftService.editingIngredientIndex();
+
+          if (
+            typeof editingIngredientIndex === 'number' &&
+            editingIngredientIndex >= 0
+          ) {
+            // La edición de ingredientes de recipes siempre debe aterrizar
+            // en el mismo draft compartido para que config-recipe refleje
+            // el cambio nada más volver.
+            this.recipeDraftService.updateIngredientAt(
+              editingIngredientIndex,
+              newCustomProduct,
+            );
+          } else {
+            this.recipeDraftService.setIngredients([
+              ...this.recipeDraftService.ingredients(),
+              newCustomProduct,
+            ]);
+          }
+
+          this.recipeDraftService.setEditingIngredientIndex(null);
+        } else {
+          const editingIngredientIndex =
+            this.navigationService.getTempData<number>('editingIngredientIndex');
+          const selectedIngredients =
+            this.navigationService.getTempData<CustomProduct[]>('selectedIngredients') || [];
+
+          if (
+            typeof editingIngredientIndex === 'number' &&
+            editingIngredientIndex >= 0 &&
+            editingIngredientIndex < selectedIngredients.length
+          ) {
+            const nextIngredients = [...selectedIngredients];
+            nextIngredients[editingIngredientIndex] = {
+              ...nextIngredients[editingIngredientIndex],
+              ...newCustomProduct,
+            };
+            this.navigationService.setTempData('selectedIngredients', nextIngredients);
+          } else {
+            this.navigationService.setTempData('selectedIngredients', [
+              ...selectedIngredients,
+              newCustomProduct,
+            ]);
+          }
+
+          this.navigationService.setTempData('newIngredient', newCustomProduct);
+        }
         this.syncInitialSnapshot();
         return 'ingredient-updated';
       }
@@ -1194,6 +1278,8 @@ export class AddProductPage implements OnInit, OnDestroy {
               this.productService
                 .deleteProduct(this.product._id)
                 .subscribe(() => {
+                  this.recipeDraftService.removeProductReferences(this.product._id);
+
                   // Eliminar de archivedProducts si estaba
                   const archivedIndex = this.user.archivedProducts.indexOf(
                     this.product._id
@@ -1224,18 +1310,18 @@ export class AddProductPage implements OnInit, OnDestroy {
                         }
                       }
 
-                      if (mealTemp.customRecipeInstances?.length) {
-                        mealTemp.customRecipeInstances.forEach(
+                      if (mealTemp.customRecipes?.length) {
+                        mealTemp.customRecipes.forEach(
                           (instance: any) => {
                             if (!instance) return;
 
                             if (
-                              Array.isArray(instance.additionalCustomProducts)
+                              Array.isArray(instance.addedCustomProducts)
                             ) {
                               const originalAdditionalLen =
-                                instance.additionalCustomProducts.length;
-                              instance.additionalCustomProducts =
-                                instance.additionalCustomProducts.filter(
+                                instance.addedCustomProducts.length;
+                              instance.addedCustomProducts =
+                                instance.addedCustomProducts.filter(
                                   (addCp: any) => {
                                     const addProductId =
                                       typeof addCp?.product === 'string'
@@ -1245,21 +1331,16 @@ export class AddProductPage implements OnInit, OnDestroy {
                                   }
                                 );
                               if (
-                                instance.additionalCustomProducts.length !==
+                                instance.addedCustomProducts.length !==
                                 originalAdditionalLen
                               ) {
                                 shouldUpdateDietDay = true;
                               }
                             }
 
-                            const dataRecipe =
-                              typeof instance.dataRecipe === 'object'
-                                ? instance.dataRecipe
-                                : null;
                             const recipe =
-                              dataRecipe &&
-                              typeof dataRecipe.recipe === 'object'
-                                ? dataRecipe.recipe
+                              typeof instance.recipe === 'object'
+                                ? instance.recipe
                                 : null;
 
                             if (
@@ -1294,25 +1375,25 @@ export class AddProductPage implements OnInit, OnDestroy {
 
                               if (
                                 removedCustomProductIds.size > 0 &&
-                                Array.isArray(instance.customProductsOverrides)
+                                Array.isArray(instance.modifiedBaseCustomProducts)
                               ) {
                                 const originalOverridesLen =
-                                  instance.customProductsOverrides.length;
-                                instance.customProductsOverrides =
-                                  instance.customProductsOverrides.filter(
+                                  instance.modifiedBaseCustomProducts.length;
+                                instance.modifiedBaseCustomProducts =
+                                  instance.modifiedBaseCustomProducts.filter(
                                     (override: any) => {
                                       const overrideId =
-                                        typeof override?.customProductId ===
+                                        typeof override?.baseCustomProductId ===
                                         'string'
-                                          ? override.customProductId
-                                          : override?.customProductId?._id;
+                                          ? override.baseCustomProductId
+                                          : override?.baseCustomProductId?._id;
                                       return !removedCustomProductIds.has(
                                         (overrideId || '').toString()
                                       );
                                     }
                                   );
                                 if (
-                                  instance.customProductsOverrides.length !==
+                                  instance.modifiedBaseCustomProducts.length !==
                                   originalOverridesLen
                                 ) {
                                   shouldUpdateDietDay = true;
@@ -1357,6 +1438,12 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private existCustomProduct(): void {
+    if (this.ingredientMode) {
+      // In ingredient mode, the current ingredient comes from
+      // config-recipe tempData/state, not from meal.customProducts.
+      return;
+    }
+
     this.customProduct = this.meal?.customProducts.find(
       (customProductTemp) => customProductTemp.product?._id === this.product._id
     );
@@ -1802,7 +1889,9 @@ export class AddProductPage implements OnInit, OnDestroy {
       }
 
       if (needsInit && this.product && !this.addCustomProductForm) {
-        this.existCustomProduct();
+        if (!this.ingredientMode) {
+          this.existCustomProduct();
+        }
         this.initForm();
       }
     });

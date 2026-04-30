@@ -2,7 +2,6 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, take, tap, of } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
-import { DataRecipe } from 'src/app/core/models/dataRecipe';
 import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
 import { UtilService } from 'src/app/core/services/util/util.service';
@@ -11,8 +10,10 @@ import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { DietDay } from '../../models/dietDay';
 import { MEAL_TYPES, Meal } from '../../models/meal';
 import { CustomProductService } from '../custom-product/custom-product.service';
-import { CustomRecipeInstance } from '../../models/customRecipeInstance';
+import { CustomRecipe } from '../../models/customRecipe';
+import { RecipeService } from '../recipe/recipe.service';
 import { DietDayAPIService } from './diet-day-api.service';
+import { Recipe } from '../../models/recipe';
 
 @Injectable()
 export class DietDayService {
@@ -46,7 +47,8 @@ export class DietDayService {
   constructor(
     private dietDayAPIService: DietDayAPIService,
     private customProductService: CustomProductService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private recipeService: RecipeService
   ) {}
 
   public getDietDayByIdDietAndDate(
@@ -291,12 +293,12 @@ export class DietDayService {
         });
       }
 
-      if (Array.isArray((meal as any).customRecipeInstances)) {
-        (meal as any).customRecipeInstances.forEach((instance: any) => {
+      if (Array.isArray((meal as any).customRecipes)) {
+        (meal as any).customRecipes.forEach((instance: any) => {
           if (!instance) return;
 
-          if (Array.isArray(instance.additionalCustomProducts)) {
-            instance.additionalCustomProducts.forEach((additionalCp: any) => {
+          if (Array.isArray(instance.addedCustomProducts)) {
+            instance.addedCustomProducts.forEach((additionalCp: any) => {
               const addProductId = getProductId(additionalCp?.product);
               if (addProductId === productId) {
                 additionalCp.product = { ...updatedProduct };
@@ -305,14 +307,8 @@ export class DietDayService {
             });
           }
 
-          const dataRecipe =
-            typeof instance.dataRecipe === 'object'
-              ? instance.dataRecipe
-              : null;
           const recipe =
-            dataRecipe && typeof dataRecipe.recipe === 'object'
-              ? dataRecipe.recipe
-              : null;
+            typeof instance.recipe === 'object' ? instance.recipe : null;
 
           if (recipe && Array.isArray(recipe.customProducts)) {
             recipe.customProducts.forEach((recipeCp: any) => {
@@ -334,36 +330,70 @@ export class DietDayService {
     return hasChanges;
   }
 
-  /**
-   * @deprecated Use CustomRecipeInstanceApiService directly instead
-   * Create a DataRecipe and add it to a Meal
-   * Similar pattern to createCustomProduct
-   */
-  public createDataRecipe(
-    loading: any,
-    dietDay: DietDay,
-    dataRecipe: DataRecipe,
-    meal: Meal,
-    idDietInUse?: string
-  ): Observable<any> {
-    console.warn(
-      'createDataRecipe is deprecated. Use CustomRecipeInstanceApiService instead'
-    );
-    loading.value = false;
-    return of(dietDay);
+  public syncUpdatedRecipeInCurrentDietDay(
+    updatedRecipe: Recipe
+  ): DietDay | null {
+    if (!updatedRecipe?._id) {
+      return null;
+    }
+
+    const currentDietDay = this.currentDietDay;
+    if (!currentDietDay?.meals?.length) {
+      return null;
+    }
+
+    const recipeId = updatedRecipe._id.toString();
+    let hasChanges = false;
+
+    const nextMeals = currentDietDay.meals.map((meal) => {
+      const customRecipes = meal.customRecipes || [];
+      let mealChanged = false;
+
+      const nextCustomRecipes = customRecipes.map((customRecipe: CustomRecipe) => {
+        const recipeRef = customRecipe?.recipe;
+        const currentRecipe =
+          recipeRef && typeof recipeRef === 'object' ? recipeRef : null;
+        const currentRecipeId = this.getRecipeId(recipeRef);
+
+        if (!currentRecipeId || currentRecipeId !== recipeId) {
+          return customRecipe;
+        }
+
+        hasChanges = true;
+        mealChanged = true;
+
+        if (currentRecipe) {
+          Object.assign(currentRecipe, updatedRecipe);
+        }
+
+        return {
+          ...customRecipe,
+          recipe: {
+            ...(currentRecipe || {}),
+            ...updatedRecipe,
+          },
+        };
+      });
+
+      return mealChanged ? { ...meal, customRecipes: nextCustomRecipes } : meal;
+    });
+
+    if (!hasChanges) {
+      return null;
+    }
+
+    const updatedDietDay = {
+      ...currentDietDay,
+      meals: nextMeals,
+    };
+    this.setCurrentDietDay = updatedDietDay;
+    return updatedDietDay;
   }
 
-  /**
-   * @deprecated Use CustomRecipeInstanceApiService directly instead
-   */
-  public createDataRecipeOnDietDayMeal(
-    dataRecipe: DataRecipe,
-    meal: Meal,
-    dietDay: DietDay,
-    idDietInUse?: string
-  ): Observable<any> {
-    console.warn('createDataRecipeOnDietDayMeal is deprecated');
-    return of(dietDay);
+  private getRecipeId(recipeRef: Recipe | string | any): string | null {
+    if (!recipeRef) return null;
+    if (typeof recipeRef === 'string') return recipeRef;
+    return recipeRef?._id?.toString?.() || recipeRef?.toString?.() || null;
   }
 
   public getDietDayKcal(dietDay: DietDay): number {
@@ -377,7 +407,7 @@ export class DietDayService {
 
       // Sum recipes
       kcal +=
-        meal.customRecipeInstances?.reduce((total, instance) => {
+        meal.customRecipes?.reduce((total, instance) => {
           return total + this.calculateInstanceMacros(instance).kcal;
         }, 0) || 0;
     });
@@ -393,7 +423,7 @@ export class DietDayService {
         }, 0) || 0;
 
       protein +=
-        meal.customRecipeInstances?.reduce((total, instance) => {
+        meal.customRecipes?.reduce((total, instance) => {
           return total + this.calculateInstanceMacros(instance).protein;
         }, 0) || 0;
     });
@@ -409,7 +439,7 @@ export class DietDayService {
         }, 0) || 0;
 
       carbs +=
-        meal.customRecipeInstances?.reduce((total, instance) => {
+        meal.customRecipes?.reduce((total, instance) => {
           return total + this.calculateInstanceMacros(instance).carbs;
         }, 0) || 0;
     });
@@ -425,7 +455,7 @@ export class DietDayService {
         }, 0) || 0;
 
       fat +=
-        meal.customRecipeInstances?.reduce((total, instance) => {
+        meal.customRecipes?.reduce((total, instance) => {
           return total + this.calculateInstanceMacros(instance).fat;
         }, 0) || 0;
     });
@@ -488,47 +518,12 @@ export class DietDayService {
   }
 
   public getRecipeInstancePortionRatio(instance: any): number {
-    const dataRecipe =
-      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-    if (!dataRecipe) return 0;
-
     const recipe =
-      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
-    if (!recipe || !recipe.customProducts) return 0;
+      typeof instance.recipe === 'object' ? instance.recipe : null;
+    if (!recipe) return 0;
 
-    const overridesMap = new Map();
-    if (instance.customProductsOverrides) {
-      instance.customProductsOverrides.forEach((override: any) => {
-        const id =
-          typeof override.customProductId === 'string'
-            ? override.customProductId
-            : (override.customProductId as any)?._id ||
-              override.customProductId;
-        overridesMap.set(id, override);
-      });
-    }
-
-    let mergedRecipeQuantity = 0;
-    recipe.customProducts.forEach((cp: any) => {
-      const cpId = typeof cp === 'string' ? cp : cp._id;
-      const cpData = typeof cp === 'object' ? cp : null;
-      if (!cpData) return;
-
-      const override = overridesMap.get(cpId);
-      if (override?.removed) return;
-
-      mergedRecipeQuantity += override?.quantity ?? cpData.quantity ?? 0;
-    });
-
-    if (instance.additionalCustomProducts) {
-      instance.additionalCustomProducts.forEach((addCP: any) => {
-        mergedRecipeQuantity += addCP.quantity || 0;
-      });
-    }
-
-    const baselineQuantity =
-      dataRecipe.quantityCooked || dataRecipe.quantity || mergedRecipeQuantity;
-    return baselineQuantity > 0 ? instance.quantity / baselineQuantity : 0;
+    const totals = this.recipeService.calculateCustomRecipeTotals(recipe, instance);
+    return totals.baseline > 0 ? totals.consumed / totals.baseline : 0;
   }
 
   private calculateInstanceMacros(instance: any): {
@@ -537,69 +532,10 @@ export class DietDayService {
     carbs: number;
     fat: number;
   } {
-    // Calcular macros de CustomRecipeInstance
-    const dataRecipe =
-      typeof instance.dataRecipe === 'object' ? instance.dataRecipe : null;
-    if (!dataRecipe) return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
     const recipe =
-      typeof dataRecipe.recipe === 'object' ? dataRecipe.recipe : null;
-    if (!recipe || !recipe.customProducts)
+      typeof instance.recipe === 'object' ? instance.recipe : null;
+    if (!recipe)
       return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
-    const portionRatio = this.getRecipeInstancePortionRatio(instance);
-    const overridesMap = new Map();
-    if (instance.customProductsOverrides) {
-      instance.customProductsOverrides.forEach((override: any) => {
-        const id =
-          typeof override.customProductId === 'string'
-            ? override.customProductId
-            : (override.customProductId as any)?._id ||
-              override.customProductId;
-        overridesMap.set(id, override);
-      });
-    }
-
-    let totalMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-
-    recipe.customProducts.forEach((cp: any) => {
-      const cpId = typeof cp === 'string' ? cp : cp._id;
-      const cpData = typeof cp === 'object' ? cp : null;
-      if (!cpData) return;
-
-      const override = overridesMap.get(cpId);
-      if (override?.removed) return;
-
-      const originalQuantity = override?.quantity ?? cpData.quantity;
-      const scaledQuantity = originalQuantity * portionRatio;
-
-      const macros = this.customProductService.getMacros({
-        ...cpData,
-        quantity: scaledQuantity,
-      });
-
-      totalMacros.kcal += macros.kcal;
-      totalMacros.protein += macros.protein;
-      totalMacros.carbs += macros.carbs;
-      totalMacros.fat += macros.fat;
-    });
-
-    if (instance.additionalCustomProducts) {
-      instance.additionalCustomProducts.forEach((addCP: any) => {
-        const scaledQuantity = addCP.quantity * portionRatio;
-
-        const macros = this.customProductService.getMacros({
-          ...addCP,
-          quantity: scaledQuantity,
-        });
-
-        totalMacros.kcal += macros.kcal;
-        totalMacros.protein += macros.protein;
-        totalMacros.carbs += macros.carbs;
-        totalMacros.fat += macros.fat;
-      });
-    }
-
-    return totalMacros;
+    return this.recipeService.calculateCustomRecipeTotals(recipe, instance).portionMacros;
   }
 }
