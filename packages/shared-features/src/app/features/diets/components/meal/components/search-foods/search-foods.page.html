@@ -95,8 +95,8 @@
 
   <!-- Recipes List -->
   <ng-container *ngIf="currentMode === 'recipes'">
-    <ion-list *ngIf="recipesOrdered.length > 0; else noRecipes">
-      <ng-container *ngFor="let recipe of recipesOrdered">
+    <ion-list *ngIf="recipes.length > 0; else noRecipes">
+      <ng-container *ngFor="let recipe of recipes">
         <app-recipe-card
           [recipe]="recipe"
           [meal]="meal"

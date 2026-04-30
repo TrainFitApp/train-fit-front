@@ -92,35 +92,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this._currentMode = value;
   }
 
-  public get recipesOrdered(): Recipe[] {
-    if (!this.recipes || !this.meal?.customRecipes) {
-      return this.recipes || [];
-    }
-
-    // Get IDs of recipes already in meal
-    const recipesInMeal = new Set<string>();
-    this.meal.customRecipes.forEach((customRecipe) => {
-      const recipe =
-        typeof customRecipe.recipe === "object" ? customRecipe.recipe : null;
-      if (recipe?._id) recipesInMeal.add(recipe._id);
-    });
-
-    // Split recipes into two groups
-    const inMeal: Recipe[] = [];
-    const notInMeal: Recipe[] = [];
-
-    this.recipes.forEach((recipe) => {
-      if (recipesInMeal.has(recipe._id!)) {
-        inMeal.push(recipe);
-      } else {
-        notInMeal.push(recipe);
-      }
-    });
-
-    // Return recipes in meal first, then the rest
-    return [...inMeal, ...notInMeal];
-  }
-
   public get products(): IProduct[] {
     return this._products();
   }
@@ -610,12 +581,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           quantity: ing.quantity,
         });
       });
-
-      // Update the filtered products list to show selected at top
-      if (this.currentMode === "products") {
-        console.log("[DEBUG] Calling setSelectedIngredientsFirst()");
-        this.setSelectedIngredientsFirst();
-      }
 
       // Clear the temp data
       this.navigationService.clearTempData("newIngredient");
@@ -1518,9 +1483,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       }
     }
     this.calculateIngredientMacros();
-
-    // 🔧 REORDENAR: Poner seleccionados arriba inmediatamente
-    this.setSelectedIngredientsFirst();
     this.syncRecipeDraftIngredients();
 
     console.log(
