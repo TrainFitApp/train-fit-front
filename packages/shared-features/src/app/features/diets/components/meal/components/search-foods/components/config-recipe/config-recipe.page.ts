@@ -9,7 +9,10 @@ import { Meal } from "src/app/core/models/meal";
 import { Recipe } from "src/app/core/models/recipe";
 import { User } from "src/app/core/models/user";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
-import { RecipeDraftMode, RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
+import {
+  RecipeDraftMode,
+  RecipeDraftService,
+} from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeService } from "src/app/core/services/recipe/recipe.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -26,7 +29,9 @@ export type ConfigRecipeMode = "create" | "add" | "edit";
   animations: [fadeIn],
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
-  private static readonly INGREDIENT_SNAPSHOT_FIELDS: Array<keyof CustomProduct> = [
+  private static readonly INGREDIENT_SNAPSHOT_FIELDS: Array<
+    keyof CustomProduct
+  > = [
     "_id",
     "quantity",
     "energyKcal100g",
@@ -117,6 +122,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private returnUrl = "/search-foods";
   private routeState: any = {};
   private shouldPropagateUpdatedRecipe = false;
+  private updatedDietDayToPropagate: DietDay | null = null;
   private backButton$: any;
   private wrapperInitialSnapshot = "";
   private baseInitialSnapshot = "";
@@ -206,12 +212,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const routeDietDay = state.dietDay || null;
     const routeReturnUrl = state.returnUrl || this.returnUrl;
 
-    const selectedIngredients =
-      this.navigationService.getTempData<CustomProduct[]>("selectedIngredients");
-    const formState =
-      this.navigationService.getTempData<any>("configRecipeFormState");
-    const savedCustomRecipe =
-      this.navigationService.getTempData<CustomRecipe>("configRecipeInstance");
+    const selectedIngredients = this.navigationService.getTempData<
+      CustomProduct[]
+    >("selectedIngredients");
+    const formState = this.navigationService.getTempData<any>(
+      "configRecipeFormState",
+    );
+    const savedCustomRecipe = this.navigationService.getTempData<CustomRecipe>(
+      "configRecipeInstance",
+    );
     const savedRecipe =
       this.navigationService.getTempData<Recipe>("configRecipeDef");
 
@@ -222,7 +231,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       routeRecipe = savedRecipe;
     }
 
-    if (!routeRecipe && routeCustomRecipe && typeof routeCustomRecipe.recipe === "object") {
+    if (
+      !routeRecipe &&
+      routeCustomRecipe &&
+      typeof routeCustomRecipe.recipe === "object"
+    ) {
       routeRecipe = routeCustomRecipe.recipe;
     }
 
@@ -276,23 +289,29 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         if (!dietDay || !this.meal) return;
         this.dietDay = dietDay;
         this.meal =
-          dietDay.meals?.find((meal) => meal._id === this.meal?._id || meal.name === this.meal?.name) ||
-          this.meal;
+          dietDay.meals?.find(
+            (meal) =>
+              meal._id === this.meal?._id || meal.name === this.meal?.name,
+          ) || this.meal;
       });
   }
 
-  private patchForm(formOverrides?: Partial<{
-    name: string;
-    description: string;
-    quantity: number | null;
-    quantityCooked: number | null;
-  }>): void {
+  private patchForm(
+    formOverrides?: Partial<{
+      name: string;
+      description: string;
+      quantity: number | null;
+      quantityCooked: number | null;
+    }>,
+  ): void {
     this.recipeForm.patchValue({
       name: formOverrides?.name ?? this.recipe?.name ?? "",
       description: formOverrides?.description ?? this.recipe?.description ?? "",
       quantity: formOverrides?.quantity ?? this.customRecipe?.quantity ?? null,
       quantityCooked:
-        formOverrides?.quantityCooked ?? this.customRecipe?.quantityCooked ?? null,
+        formOverrides?.quantityCooked ??
+        this.customRecipe?.quantityCooked ??
+        null,
     });
 
     if (!this.editingBaseRecipe && !this.isCreateMode) {
@@ -303,8 +322,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private initializeBackButtonHandler(): void {
     this.backButton$?.unsubscribe();
-    this.backButton$ = this.platform.backButton.subscribeWithPriority(9999, () =>
-      this.goBack(),
+    this.backButton$ = this.platform.backButton.subscribeWithPriority(
+      9999,
+      () => this.goBack(),
     );
   }
 
@@ -362,7 +382,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public get canDeleteOwnRecipe(): boolean {
     const recipeUserId = this.normalizeId(this.recipe?.userId);
     const currentUserId = this.normalizeId(this.user?._id);
-    return !!this.recipe?._id && !!recipeUserId && recipeUserId === currentUserId;
+    return (
+      !!this.recipe?._id && !!recipeUserId && recipeUserId === currentUserId
+    );
   }
 
   public get canSave(): boolean {
@@ -384,7 +406,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get footerKcal(): number {
-    return this.footerUsesConsumedQuantity ? this.portionMacros.kcal : this.per100Kcal;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.kcal
+      : this.per100Kcal;
   }
 
   public get footerProtein(): number {
@@ -394,11 +418,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get footerCarbs(): number {
-    return this.footerUsesConsumedQuantity ? this.portionMacros.carbs : this.per100Carbs;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.carbs
+      : this.per100Carbs;
   }
 
   public get footerFat(): number {
-    return this.footerUsesConsumedQuantity ? this.portionMacros.fat : this.per100Fat;
+    return this.footerUsesConsumedQuantity
+      ? this.portionMacros.fat
+      : this.per100Fat;
   }
 
   public get per100Kcal(): number {
@@ -420,7 +448,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public async startEditingOriginalRecipe(): Promise<void> {
     if (!this.recipe) return;
 
-    if (!this.editingBaseRecipe && this.buildWrapperSnapshot() !== this.wrapperInitialSnapshot) {
+    if (
+      !this.editingBaseRecipe &&
+      this.buildWrapperSnapshot() !== this.wrapperInitialSnapshot
+    ) {
       const shouldDiscard = await this.ionicUtilService.showAlert({
         header: "Cambios sin guardar",
         message:
@@ -475,8 +506,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.recipeDraftService.setForm(
       this.normalizeFormState(this.recipeForm.getRawValue()),
     );
-    this.navigationService.setTempData("configRecipeFormState", this.recipeForm.getRawValue());
-    this.navigationService.setTempData("configRecipeInstance", this.customRecipe);
+    this.navigationService.setTempData(
+      "configRecipeFormState",
+      this.recipeForm.getRawValue(),
+    );
+    this.navigationService.setTempData(
+      "configRecipeInstance",
+      this.customRecipe,
+    );
     this.navigationService.setTempData("configRecipeDef", this.recipe);
     this.navigationService.setTempData("configRecipeMode", this.mode);
 
@@ -553,7 +590,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (!this.recipe || this.editingBaseRecipe) return false;
     const original = this.getOriginalIngredient(ingredient);
     if (!original) return false;
-    return !this.recipeService.areCustomProductsEquivalent(original, ingredient);
+    return !this.recipeService.areCustomProductsEquivalent(
+      original,
+      ingredient,
+    );
   }
 
   private persistSelectedIngredients(): void {
@@ -639,7 +679,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     const result = await this.ionicUtilService.showAlert({
       header: "Hay cambios sin guardar",
-      message: "Si sales ahora, se descartarán los cambios realizados en la receta.",
+      message:
+        "Si sales ahora, se descartarán los cambios realizados en la receta.",
       buttons: [
         {
           text: "Cancelar",
@@ -667,15 +708,20 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public getRemovedBaseIngredients(): CustomProduct[] {
-    return this.recipeService.getRemovedBaseIngredients(this.recipe, this.ingredients);
+    return this.recipeService.getRemovedBaseIngredients(
+      this.recipe,
+      this.ingredients,
+    );
   }
 
   public restoreRemovedBaseIngredient(ingredient: CustomProduct): void {
     if (!this.recipe || this.editingBaseRecipe || !ingredient?._id) return;
-    if (this.ingredients.some((current) => current?._id === ingredient._id)) return;
+    if (this.ingredients.some((current) => current?._id === ingredient._id))
+      return;
 
     const nextIngredients = [...this.ingredients];
-    const baseIngredients = (this.recipe.customProducts || []) as CustomProduct[];
+    const baseIngredients = (this.recipe.customProducts ||
+      []) as CustomProduct[];
     const baseIndex = baseIngredients.findIndex(
       (baseIngredient) => baseIngredient?._id === ingredient._id,
     );
@@ -688,7 +734,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       for (let i = baseIndex + 1; i < baseIngredients.length; i += 1) {
         const nextBaseIngredientId = baseIngredients[i]?._id;
         const currentIndex = nextIngredients.findIndex(
-          (currentIngredient) => currentIngredient?._id === nextBaseIngredientId,
+          (currentIngredient) =>
+            currentIngredient?._id === nextBaseIngredientId,
         );
 
         if (currentIndex >= 0) {
@@ -714,15 +761,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const multiplier = (ingredient.quantity || 0) / 100;
     return {
       kcal:
-        ((ingredient.energyKcal100g ?? ingredient.product?.energyKcal100g) || 0) *
-        multiplier,
+        ((ingredient.energyKcal100g ?? ingredient.product?.energyKcal100g) ||
+          0) * multiplier,
       protein:
         ((ingredient.protein100g ?? ingredient.product?.protein100g) || 0) *
         multiplier,
       carbs:
         ((ingredient.carbohydrates100g ??
-          ingredient.product?.carbohydrates100g) || 0) * multiplier,
-      fat: ((ingredient.fat100g ?? ingredient.product?.fat100g) || 0) * multiplier,
+          ingredient.product?.carbohydrates100g) ||
+          0) * multiplier,
+      fat:
+        ((ingredient.fat100g ?? ingredient.product?.fat100g) || 0) * multiplier,
     };
   }
 
@@ -823,7 +872,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       composePayload.context = this.buildComposeContext();
     }
 
-    const result = await firstValueFrom(this.recipeService.compose(composePayload));
+    const result = await firstValueFrom(
+      this.recipeService.compose(composePayload),
+    );
     this.applyComposeResult(result);
     this.captureInitialSnapshot();
     this.adMobService.interstitial("create_recipe");
@@ -848,13 +899,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       context: this.buildComposeContext(),
     };
 
-    const result = await firstValueFrom(this.recipeService.compose(composePayload));
+    const result = await firstValueFrom(
+      this.recipeService.compose(composePayload),
+    );
     this.applyComposeResult(result);
     this.captureInitialSnapshot();
     this.goBack();
   }
 
-  private async updateExistingRecipe(updateOriginalRecipe: boolean): Promise<void> {
+  private async updateExistingRecipe(
+    updateOriginalRecipe: boolean,
+  ): Promise<void> {
     if (!this.recipe?._id) {
       throw new Error("Recipe not found");
     }
@@ -891,6 +946,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           recipe: updatedRecipe,
         };
       }
+      this.syncUpdatedRecipeLocally(updatedRecipe);
       this.shouldPropagateUpdatedRecipe = true;
       this.cancelOriginalRecipeEdit();
       this.persistSelectedIngredients();
@@ -915,7 +971,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       },
       customRecipe: {
         quantity:
-          normalizedQuantity || this.toPositiveNumber(this.customRecipe.quantity),
+          normalizedQuantity ||
+          this.toPositiveNumber(this.customRecipe.quantity),
         quantityCooked:
           normalizedQuantityCooked ||
           this.toPositiveNumber(this.customRecipe.quantityCooked),
@@ -925,7 +982,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       },
     };
 
-    const result = await firstValueFrom(this.recipeService.compose(composePayload));
+    const result = await firstValueFrom(
+      this.recipeService.compose(composePayload),
+    );
     this.applyComposeResult(result);
     this.captureInitialSnapshot();
     this.goBack();
@@ -945,7 +1004,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       buttons: [
         { text: "Cancelar", role: "cancel" },
         {
-          text: "Cambiar receta original",
+          text: "Confirmar",
           handler: () => {
             this.loading = true;
             this.updateExistingRecipe(true);
@@ -962,9 +1021,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const originalIngredients = this.recipe?.customProducts || [];
     return originalIngredients
       .map((ingredient: any) => {
-        const current = this.ingredients.find((item) => item._id === ingredient._id);
+        const current = this.ingredients.find(
+          (item) => item._id === ingredient._id,
+        );
         if (!current) return null;
-        if (this.recipeService.areCustomProductsEquivalent(ingredient, current)) {
+        if (
+          this.recipeService.areCustomProductsEquivalent(ingredient, current)
+        ) {
           return null;
         }
         return this.recipeService.buildModifiedBaseCustomProduct(
@@ -972,7 +1035,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           current,
         );
       })
-      .filter(Boolean) as Array<{ baseCustomProductId: string; quantity: number }>;
+      .filter(Boolean) as Array<{
+      baseCustomProductId: string;
+      quantity: number;
+    }>;
   }
 
   private calculateRemovedIngredients(): string[] {
@@ -987,7 +1053,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   private calculateAdditionalIngredients(): any[] {
     const originalIds = new Set(
-      (this.recipe?.customProducts || []).map((ingredient: any) => ingredient._id),
+      (this.recipe?.customProducts || []).map(
+        (ingredient: any) => ingredient._id,
+      ),
     );
     return this.normalizeCustomProducts(
       this.ingredients.filter((ingredient) => !originalIds.has(ingredient._id)),
@@ -1004,7 +1072,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     return (
       JSON.stringify(this.serializeIngredients(this.ingredients)) !==
       JSON.stringify(
-        this.serializeIngredients((this.recipe?.customProducts || []) as CustomProduct[]),
+        this.serializeIngredients(
+          (this.recipe?.customProducts || []) as CustomProduct[],
+        ),
       )
     );
   }
@@ -1025,6 +1095,30 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.dietDayService.setCurrentDietDay = { ...this.dietDay };
       }
       this.meal = result.meal;
+    }
+  }
+
+  private syncUpdatedRecipeLocally(updatedRecipe: Recipe): void {
+    const updatedDietDay =
+      this.dietDayService.syncUpdatedRecipeInCurrentDietDay(updatedRecipe);
+
+    if (!updatedDietDay) {
+      return;
+    }
+
+    this.updatedDietDayToPropagate = updatedDietDay;
+    this.dietDay = updatedDietDay;
+
+    if (!this.meal) {
+      return;
+    }
+
+    const updatedMeal = updatedDietDay.meals?.find(
+      (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
+    );
+
+    if (updatedMeal) {
+      this.meal = updatedMeal;
     }
   }
 
@@ -1072,7 +1166,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     const raw = this.recipeForm.getRawValue();
     const baseline =
-      this.toPositiveNumber(raw.quantityCooked) || this.calculatedMacros.quantity || 1;
+      this.toPositiveNumber(raw.quantityCooked) ||
+      this.calculatedMacros.quantity ||
+      1;
     const consumed = this.toPositiveNumber(raw.quantity) || 0;
     const ratio = consumed / baseline;
 
@@ -1103,7 +1199,9 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     });
   }
 
-  private getOriginalIngredient(ingredient: CustomProduct): CustomProduct | undefined {
+  private getOriginalIngredient(
+    ingredient: CustomProduct,
+  ): CustomProduct | undefined {
     return (this.recipe?.customProducts || []).find(
       (item: any) => item._id === ingredient._id,
     );
@@ -1205,9 +1303,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const shouldLeave = await this.confirmDiscardChanges();
     if (!shouldLeave) return;
 
-    const updatedRecipeState = this.shouldPropagateUpdatedRecipe && this.recipe?._id
-      ? { updatedRecipe: this.recipe }
-      : {};
+    const updatedRecipeState =
+      this.shouldPropagateUpdatedRecipe && this.recipe?._id
+        ? {
+            updatedRecipe: this.recipe,
+            updatedDietDay: this.updatedDietDayToPropagate,
+          }
+        : {};
 
     this.clearConfigTempData();
 

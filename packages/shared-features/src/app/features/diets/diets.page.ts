@@ -86,6 +86,19 @@ export class DietsPage implements OnInit {
       this.selectedDate = new Date(state.selectedDate);
     }
 
+    if (state?.updatedDietDay) {
+      this.dietDay = state.updatedDietDay;
+      this.dietDayService.setCurrentDietDay = state.updatedDietDay;
+    } else if (state?.updatedRecipe) {
+      const updatedDietDay =
+        this.dietDayService.syncUpdatedRecipeInCurrentDietDay(
+          state.updatedRecipe
+        );
+      if (updatedDietDay) {
+        this.dietDay = updatedDietDay;
+      }
+    }
+
     // Resync dates-slider each time the page comes back to view.
     this.utilService.setCurrentDate = this.selectedDate;
   }

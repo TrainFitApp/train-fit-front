@@ -13,6 +13,7 @@ import { CustomProductService } from '../custom-product/custom-product.service';
 import { CustomRecipe } from '../../models/customRecipe';
 import { RecipeService } from '../recipe/recipe.service';
 import { DietDayAPIService } from './diet-day-api.service';
+import { Recipe } from '../../models/recipe';
 
 @Injectable()
 export class DietDayService {
@@ -327,6 +328,72 @@ export class DietDayService {
     }
 
     return hasChanges;
+  }
+
+  public syncUpdatedRecipeInCurrentDietDay(
+    updatedRecipe: Recipe
+  ): DietDay | null {
+    if (!updatedRecipe?._id) {
+      return null;
+    }
+
+    const currentDietDay = this.currentDietDay;
+    if (!currentDietDay?.meals?.length) {
+      return null;
+    }
+
+    const recipeId = updatedRecipe._id.toString();
+    let hasChanges = false;
+
+    const nextMeals = currentDietDay.meals.map((meal) => {
+      const customRecipes = meal.customRecipes || [];
+      let mealChanged = false;
+
+      const nextCustomRecipes = customRecipes.map((customRecipe: CustomRecipe) => {
+        const recipeRef = customRecipe?.recipe;
+        const currentRecipe =
+          recipeRef && typeof recipeRef === 'object' ? recipeRef : null;
+        const currentRecipeId = this.getRecipeId(recipeRef);
+
+        if (!currentRecipeId || currentRecipeId !== recipeId) {
+          return customRecipe;
+        }
+
+        hasChanges = true;
+        mealChanged = true;
+
+        if (currentRecipe) {
+          Object.assign(currentRecipe, updatedRecipe);
+        }
+
+        return {
+          ...customRecipe,
+          recipe: {
+            ...(currentRecipe || {}),
+            ...updatedRecipe,
+          },
+        };
+      });
+
+      return mealChanged ? { ...meal, customRecipes: nextCustomRecipes } : meal;
+    });
+
+    if (!hasChanges) {
+      return null;
+    }
+
+    const updatedDietDay = {
+      ...currentDietDay,
+      meals: nextMeals,
+    };
+    this.setCurrentDietDay = updatedDietDay;
+    return updatedDietDay;
+  }
+
+  private getRecipeId(recipeRef: Recipe | string | any): string | null {
+    if (!recipeRef) return null;
+    if (typeof recipeRef === 'string') return recipeRef;
+    return recipeRef?._id?.toString?.() || recipeRef?.toString?.() || null;
   }
 
   public getDietDayKcal(dietDay: DietDay): number {
