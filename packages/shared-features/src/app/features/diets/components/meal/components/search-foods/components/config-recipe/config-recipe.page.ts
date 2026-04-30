@@ -458,7 +458,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           "Tienes cambios sin guardar en esta configuración. Si editas la receta original, se descartarán.",
         buttons: [
           { text: "Cancelar", role: "cancel" },
-          { text: "Descartar cambios", role: "destructive" },
+          { text: "Descartar", role: "destructive" },
         ],
       });
 
@@ -687,7 +687,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
           role: "cancel",
         },
         {
-          text: "Descartar cambios",
+          text: "Descartar",
           role: "destructive",
         },
       ],
