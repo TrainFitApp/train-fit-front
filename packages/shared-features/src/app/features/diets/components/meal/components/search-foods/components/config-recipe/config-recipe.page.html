@@ -13,21 +13,23 @@
 
       <div class="header-actions-container">
         <button
+          *ngIf="canEditOriginalRecipe && !editingBaseRecipe"
+          type="button"
+          class="header-action-btn edit-btn ripple-effect"
+          [disabled]="loading"
+          (click)="startEditingOriginalRecipe()"
+          aria-label="Editar receta original"
+        >
+          <ion-icon name="pencil-outline"></ion-icon>
+        </button>
+        <button
           *ngIf="canDeleteOwnRecipe"
-          class="header-action-btn delete-btn"
+          class="header-action-btn delete-btn ripple-effect"
           [disabled]="loading"
           (click)="deleteOwnRecipe()"
           aria-label="Eliminar receta"
         >
           <ion-icon name="trash-bin-outline"></ion-icon>
-        </button>
-        <button
-          *ngIf="recipe"
-          class="header-action-btn fav-btn"
-          [class.is-favorite]="isFavorite"
-          (click)="toggleFavorite()"
-        >
-          <ion-icon [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"></ion-icon>
         </button>
       </div>
     </div>
@@ -38,20 +40,22 @@
   <div class="form-container">
     <form [formGroup]="recipeForm" class="recipe-form">
       <div class="section-card info-card">
-        <div class="card-corner-actions" *ngIf="canEditOriginalRecipe && !editingBaseRecipe">
-          <button type="button" class="card-action-btn" (click)="startEditingOriginalRecipe()">
-            <ion-icon name="pencil-outline"></ion-icon>
-          </button>
-        </div>
+        <ion-button
+          *ngIf="recipe && !editingBaseRecipe"
+          fill="clear"
+          class="archive-button-card"
+          (click)="toggleFavorite()"
+          aria-label="Archivar receta"
+        >
+          <ion-icon
+            slot="icon-only"
+            [color]="isFavorite ? 'tertiary' : 'medium'"
+            [name]="isFavorite ? 'bookmark' : 'bookmark-outline'"
+            class="archive-icon-card"
+          ></ion-icon>
+        </ion-button>
+
         <div class="card-corner-actions" *ngIf="editingBaseRecipe">
-          <button
-            type="button"
-            class="card-action-btn cancel-btn"
-            (click)="cancelOriginalRecipeEdit()"
-            aria-label="Cancelar edición original"
-          >
-            <ion-icon name="arrow-undo-outline"></ion-icon>
-          </button>
           <button
             type="button"
             class="card-action-btn confirm-btn"
@@ -59,7 +63,7 @@
             (click)="confirmEditInfo()"
             aria-label="Guardar edición original"
           >
-            <ion-icon name="checkmark-outline"></ion-icon>
+            <ion-icon name="save-outline"></ion-icon>
           </button>
         </div>
 
