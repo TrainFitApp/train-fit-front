@@ -350,6 +350,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.currentMode = state.currentMode;
       }
 
+      if (state.deletedRecipe) {
+        this.handleRecipeDeletedLocally(state.deletedRecipe);
+      }
+
       // If recipe name/description was edited inline, update it in the local list
       if (state.updatedRecipe) {
         const idx = this.recipes.findIndex(
@@ -383,7 +387,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       }
 
       // Clear the flag and temp data
-      this.navigationService.clearStateKeys(["returningFromConfigRecipe"]);
+      this.navigationService.clearStateKeys([
+        "returningFromConfigRecipe",
+        "deletedRecipe",
+        "updatedRecipe",
+      ]);
       this.navigationService.clearTempData("searchFoodsState");
     }
 
@@ -1383,6 +1391,75 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.dietDayService.setCurrentDietDay = this.dietDay;
       this.syncMealAndDietDayFromService();
     }
+  }
+
+  private handleRecipeDeletedLocally(recipeId: string): void {
+    if (!recipeId) {
+      return;
+    }
+
+    this.recipeDraftService.reset();
+    this.recipes = (this.recipes || []).filter((recipe) => recipe?._id !== recipeId);
+
+    if (this.user?.archivedRecipes?.includes(recipeId)) {
+      this.user.archivedRecipes = this.user.archivedRecipes.filter(
+        (id) => id !== recipeId,
+      );
+      this.userService.setLocalUser = this.user;
+    }
+
+    if (this.meal?.customRecipes?.length) {
+      this.meal = {
+        ...this.meal,
+        customRecipes: this.meal.customRecipes.filter(
+          (customRecipe: any) =>
+            this.getRecipeIdFromCustomRecipe(customRecipe) !== recipeId,
+        ),
+      };
+    }
+
+    const currentDietDay = this.dietDayService.currentDietDay || this.dietDay;
+    if (currentDietDay?.meals?.length) {
+      let hasChanges = false;
+      const meals = currentDietDay.meals.map((meal) => {
+        const currentCustomRecipes = meal.customRecipes || [];
+        const nextCustomRecipes = currentCustomRecipes.filter(
+          (customRecipe: any) =>
+            this.getRecipeIdFromCustomRecipe(customRecipe) !== recipeId,
+        );
+
+        if (nextCustomRecipes.length === currentCustomRecipes.length) {
+          return meal;
+        }
+
+        hasChanges = true;
+        return {
+          ...meal,
+          customRecipes: nextCustomRecipes,
+        };
+      });
+
+      if (hasChanges) {
+        const nextDietDay = {
+          ...currentDietDay,
+          meals,
+        };
+        this.dietDay = nextDietDay;
+        this.dietDayService.setCurrentDietDay = nextDietDay;
+      }
+    }
+
+    this.navigationService.clearTempData("configRecipeFormState");
+    this.navigationService.clearTempData("configRecipeInstance");
+    this.navigationService.clearTempData("configRecipeDef");
+    this.navigationService.clearTempData("selectedIngredients");
+  }
+
+  private getRecipeIdFromCustomRecipe(customRecipe: any): string | null {
+    const recipeRef = customRecipe?.recipe;
+    if (!recipeRef) return null;
+    if (typeof recipeRef === "string") return recipeRef;
+    return recipeRef?._id?.toString?.() || recipeRef?.toString?.() || null;
   }
 
   // Handler for ingredient mode - adds/removes product to local array without API calls

@@ -353,7 +353,16 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get canEditOriginalRecipe(): boolean {
-    return !!this.recipe?._id && this.recipe.userId === this.user?._id;
+    return (
+      !!this.recipe?._id &&
+      this.normalizeId(this.recipe.userId) === this.normalizeId(this.user?._id)
+    );
+  }
+
+  public get canDeleteOwnRecipe(): boolean {
+    const recipeUserId = this.normalizeId(this.recipe?.userId);
+    const currentUserId = this.normalizeId(this.user?._id);
+    return !!this.recipe?._id && !!recipeUserId && recipeUserId === currentUserId;
   }
 
   public get canSave(): boolean {
@@ -727,6 +736,50 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     });
   }
 
+  public deleteOwnRecipe(): void {
+    if (!this.canDeleteOwnRecipe || !this.recipe?._id || this.loading) return;
+
+    const recipeId = this.recipe._id;
+    const recipeName = this.recipe.name || "esta receta";
+
+    this.ionicUtilService.showAlert({
+      header: "Eliminar receta",
+      message:
+        `¿Estás seguro de que quieres eliminar ${recipeName}? ` +
+        "Se eliminará la receta base, todas sus configuraciones asociadas y desaparecerá de todas las comidas de todos los días donde se haya usado.",
+      buttons: [
+        {
+          text: "CANCELAR",
+          role: "cancel",
+        },
+        {
+          text: "ELIMINAR",
+          role: "destructive",
+          handler: () => {
+            void this.confirmDeleteOwnRecipe(recipeId);
+          },
+        },
+      ],
+    });
+  }
+
+  private async confirmDeleteOwnRecipe(recipeId: string): Promise<void> {
+    if (!recipeId || this.loading) return;
+
+    this.loading = true;
+
+    try {
+      await firstValueFrom(this.recipeService.delete(recipeId));
+      this.removeDeletedRecipeLocally(recipeId);
+      await this.showToast("Receta eliminada");
+      this.navigateAfterRecipeDeleted(recipeId);
+    } catch (error) {
+      console.error("[deleteOwnRecipe] Error:", error);
+      this.loading = false;
+      await this.showToast("Error al eliminar la receta", "danger");
+    }
+  }
+
   public async save(): Promise<void> {
     if (!this.canSave || this.loading) return;
     this.loading = true;
@@ -1067,6 +1120,72 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed <= 0) return null;
     return parsed;
+  }
+
+  private removeDeletedRecipeLocally(recipeId: string): void {
+    if (this.user?.archivedRecipes?.includes(recipeId)) {
+      this.user.archivedRecipes = this.user.archivedRecipes.filter(
+        (id) => id !== recipeId,
+      );
+      this.userService.setLocalUser = this.user;
+    }
+
+    const currentDietDay = this.dietDayService.currentDietDay;
+    if (!currentDietDay?.meals?.length) return;
+
+    let hasChanges = false;
+    const nextMeals = currentDietDay.meals.map((meal) => {
+      const currentCustomRecipes = meal.customRecipes || [];
+      const nextCustomRecipes = currentCustomRecipes.filter(
+        (customRecipe: any) =>
+          this.getRecipeIdFromCustomRecipe(customRecipe) !== recipeId,
+      );
+
+      if (nextCustomRecipes.length === currentCustomRecipes.length) {
+        return meal;
+      }
+
+      hasChanges = true;
+      return {
+        ...meal,
+        customRecipes: nextCustomRecipes,
+      };
+    });
+
+    if (hasChanges) {
+      this.dietDayService.setCurrentDietDay = {
+        ...currentDietDay,
+        meals: nextMeals,
+      };
+    }
+  }
+
+  private getRecipeIdFromCustomRecipe(customRecipe: any): string | null {
+    const recipeRef = customRecipe?.recipe;
+    return this.normalizeId(recipeRef);
+  }
+
+  private normalizeId(value: any): string | null {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    return value?._id?.toString?.() || value?.toString?.() || null;
+  }
+
+  private navigateAfterRecipeDeleted(recipeId: string): void {
+    this.clearConfigTempData();
+
+    if (this.returnUrl) {
+      this.navigationService.backTo(this.returnUrl, {
+        state: {
+          returningFromConfigRecipe: true,
+          currentMode: "recipes",
+          deletedRecipe: recipeId,
+        },
+      });
+      return;
+    }
+
+    this.navigationService.backNoAnim();
   }
 
   private async showToast(

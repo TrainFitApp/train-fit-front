@@ -13,6 +13,15 @@
 
       <div class="header-actions-container">
         <button
+          *ngIf="canDeleteOwnRecipe"
+          class="header-action-btn delete-btn"
+          [disabled]="loading"
+          (click)="deleteOwnRecipe()"
+          aria-label="Eliminar receta"
+        >
+          <ion-icon name="trash-bin-outline"></ion-icon>
+        </button>
+        <button
           *ngIf="recipe"
           class="header-action-btn fav-btn"
           [class.is-favorite]="isFavorite"
