@@ -19,5 +19,15 @@ export const environment = {
     androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
     iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
     entitlementId: 'no_adds_and_features',
+  auth: {
+    clientFamily: 'train-fit-management',
+    google: {
+      webClientId:
+        '775987417074-s1e767h7tps05ectmrb85uqh7hhp9p8n.apps.googleusercontent.com',
+      iosClientId: '',
+    },
+    apple: {
+      clientId: '',
+    },
   },
 };

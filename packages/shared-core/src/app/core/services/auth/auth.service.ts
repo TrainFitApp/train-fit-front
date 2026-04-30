@@ -69,13 +69,22 @@ export class AuthService {
       if (tokenArraySplitted && tokenArraySplitted.length > 1) {
         const userEncoded = tokenArraySplitted[1];
         if (!!userEncoded) {
-          userDecoded = JSON.parse(atob(userEncoded));
+          userDecoded = JSON.parse(this.decodeJwtPayload(userEncoded));
         }
       }
     } catch (error) {
-      console.log('Error');
+      console.warn('Could not decode JWT payload', error);
     }
     return userDecoded;
+  }
+
+  private decodeJwtPayload(payload: string): string {
+    const normalizedPayload = payload
+      .replace(/-/g, '+')
+      .replace(/_/g, '/')
+      .padEnd(Math.ceil(payload.length / 4) * 4, '=');
+
+    return atob(normalizedPayload);
   }
 
   public login(email: string, password: string): Observable<void> {

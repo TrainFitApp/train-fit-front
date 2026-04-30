@@ -4,65 +4,73 @@ import {
   HttpHandler,
   HttpInterceptor,
   HttpRequest,
-} from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, filter, switchMap, take } from 'rxjs/operators';
-import { AuthApiService } from '../services/auth/auth-api.service';
-import { AuthService } from '../services/auth/auth.service';
-import { UserLocalstorageService } from '../services/user/user-localstorage.service';
-import { Token } from '../models/token';
+} from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { Capacitor } from "@capacitor/core";
+import { BehaviorSubject, Observable, throwError } from "rxjs";
+import { catchError, filter, switchMap, take } from "rxjs/operators";
+import { environment } from "src/environments/environment";
+import { AuthApiService } from "../services/auth/auth-api.service";
+import { AuthService } from "../services/auth/auth.service";
+import { UserLocalstorageService } from "../services/user/user-localstorage.service";
 
 @Injectable()
 export class JWTInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> =
     new BehaviorSubject<string | null>(null);
-  private readonly isNativeClient = Capacitor.isNativePlatform();
+  private readonly clientPlatform = Capacitor.getPlatform();
+  private readonly clientFamily =
+    environment.auth?.clientFamily || "trainfit-front";
 
   constructor(
     private authService: AuthService,
-    private userLocalstorageService: UserLocalstorageService
-  ) { }
+    private userLocalstorageService: UserLocalstorageService,
+  ) {}
 
   intercept(
     request: HttpRequest<unknown>,
-    next: HttpHandler
+    next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
-    const requestWithClientHeader = this.isNativeClient
-      ? request.clone({
-        setHeaders: {
-          'x-client-platform': 'mobile',
-        },
-      })
-      : request;
+    const requestWithClientHeader = request.clone({
+      setHeaders: {
+        "x-client-platform": this.clientPlatform,
+        "x-client-family": this.clientFamily,
+      },
+    });
 
     const token = this.getTokenFromLocalStorage();
     const isUsersPost =
-      requestWithClientHeader.method === 'POST' &&
-      requestWithClientHeader.url.includes('/users/');
+      requestWithClientHeader.method === "POST" &&
+      requestWithClientHeader.url.includes("/users/");
     const isPublicUsersPostEndpoint =
       isUsersPost &&
-      (requestWithClientHeader.url.endsWith('/users') ||
-        requestWithClientHeader.url.includes('/users/social') ||
-        requestWithClientHeader.url.includes('/users/activate'));
+      (requestWithClientHeader.url.endsWith("/users") ||
+        requestWithClientHeader.url.includes("/users/social") ||
+        requestWithClientHeader.url.includes("/users/activate"));
 
     // Public endpoints that don't require authentication
     const isPublicEndpoint =
       requestWithClientHeader.url.includes(
-        AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT
+        AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT,
       ) || // sign-in
-      requestWithClientHeader.url.includes('refresh-token') || // refresh token
-      requestWithClientHeader.url.includes('logout') || // logout
-      requestWithClientHeader.url.includes('/users/check/') || // check if email exists
-      requestWithClientHeader.url.includes('/users/send/mail/code') || // forgot password - send code
-      requestWithClientHeader.url.includes('/users/auth/verify-google') || // google auth
-      requestWithClientHeader.url.includes('/users/auth/verify-apple') || // apple auth
-      isPublicUsersPostEndpoint || // public POST endpoints for sign-up/account activation
-      (requestWithClientHeader.url.includes('/users/hash/') &&
-        requestWithClientHeader.method === 'GET') || // email verification (GET is public, DELETE is protected)
-      requestWithClientHeader.url.includes('/users/restore'); // restore password
+      requestWithClientHeader.url.includes(AuthApiService.REFRESH_ENDPOINT) || // refresh token
+      requestWithClientHeader.url.includes(AuthApiService.LOGOUT_ENDPOINT) || // logout
+      requestWithClientHeader.url.includes("/users/check/") || // check if email exists
+      requestWithClientHeader.url.includes("/users/send/mail/code") || // forgot password - send code
+      requestWithClientHeader.url.includes(
+        AuthApiService.VERIFY_GOOGLE_ENDPOINT,
+      ) || // google auth
+      requestWithClientHeader.url.includes(
+        AuthApiService.VERIFY_APPLE_ENDPOINT,
+      ) || // apple auth
+      (requestWithClientHeader.url.includes("/users/") &&
+        requestWithClientHeader.method === "POST" &&
+        !requestWithClientHeader.url.includes("/favProduct") &&
+        !requestWithClientHeader.url.includes("/favRecipe") &&
+        !requestWithClientHeader.url.includes("/users/suggestions")) || // POST endpoints for user creation (exclude protected ones)
+      requestWithClientHeader.url.includes("/users/hash/") || // email verification
+      requestWithClientHeader.url.includes("/users/restore"); // restore password
 
     // Decide whether to send cookies (withCredentials) on this request
     // TODOS los endpoints de auth necesitan withCredentials:
@@ -72,7 +80,7 @@ export class JWTInterceptor implements HttpInterceptor {
     // Solo excluimos endpoints que no necesitan cookies en absoluto
     const excludeCookieEndpoints =
       requestWithClientHeader.url.includes(AuthApiService.REGISTER_ENDPOINT) &&
-      requestWithClientHeader.method === 'PUT'; // create/update user API uses PUT here
+      requestWithClientHeader.method === "PUT"; // create/update user API uses PUT here
 
     const reqWithCreds = excludeCookieEndpoints
       ? requestWithClientHeader
@@ -98,8 +106,8 @@ export class JWTInterceptor implements HttpInterceptor {
         .handle(authReq)
         .pipe(
           catchError((error: HttpErrorResponse) =>
-            this.handleError(error, request, next)
-          )
+            this.handleError(error, request, next),
+          ),
         );
     }
 
@@ -110,8 +118,8 @@ export class JWTInterceptor implements HttpInterceptor {
       .handle(reqWithCreds)
       .pipe(
         catchError((error: HttpErrorResponse) =>
-          this.handleError(error, request, next)
-        )
+          this.handleError(error, request, next),
+        ),
       );
   }
 
@@ -121,7 +129,7 @@ export class JWTInterceptor implements HttpInterceptor {
 
   private cloneRequestWithTokenAuthorization(
     request: HttpRequest<unknown>,
-    token: string
+    token: string,
   ): HttpRequest<unknown> {
     return request.clone({
       setHeaders: {
@@ -133,12 +141,12 @@ export class JWTInterceptor implements HttpInterceptor {
   private handleError(
     err: HttpErrorResponse,
     request: HttpRequest<unknown>,
-    next: HttpHandler
+    next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
     if (err.status === 401) {
       if (err.error?.requiresRelogin) {
-        console.warn('[AUTH] Refresh flow requires re-login', {
-          reason: err?.error?.message || 'requiresRelogin',
+        console.warn("[AUTH] Refresh flow requires re-login", {
+          reason: err?.error?.message || "requiresRelogin",
           url: request.url,
         });
         this.authService.logout();
@@ -150,12 +158,12 @@ export class JWTInterceptor implements HttpInterceptor {
           filter((token) => token !== null),
           take(1),
           switchMap((token) => {
-            if (token === 'FAILED') return throwError(() => err);
+            if (token === "FAILED") return throwError(() => err);
             return this.intercept(
               this.cloneRequestWithToken(request, token),
-              next
+              next,
             );
-          })
+          }),
         );
       }
 
@@ -170,14 +178,14 @@ export class JWTInterceptor implements HttpInterceptor {
           this.refreshTokenSubject.next(newToken);
           return this.intercept(
             this.cloneRequestWithToken(request, newToken),
-            next
+            next,
           );
         }),
         catchError((refreshErr) => {
           this.isRefreshing = false;
-          this.refreshTokenSubject.next('FAILED');
-          console.warn('[AUTH] Refresh request failed', {
-            reason: refreshErr?.error?.message || 'unknown',
+          this.refreshTokenSubject.next("FAILED");
+          console.warn("[AUTH] Refresh request failed", {
+            reason: refreshErr?.error?.message || "unknown",
             status: refreshErr?.status,
             requiresRelogin: !!refreshErr?.error?.requiresRelogin,
           });
@@ -189,7 +197,7 @@ export class JWTInterceptor implements HttpInterceptor {
           }
 
           return throwError(() => refreshErr);
-        })
+        }),
       );
     }
 
@@ -198,7 +206,7 @@ export class JWTInterceptor implements HttpInterceptor {
 
   private cloneRequestWithToken(
     req: HttpRequest<unknown>,
-    token: string
+    token: string,
   ): HttpRequest<unknown> {
     return req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },

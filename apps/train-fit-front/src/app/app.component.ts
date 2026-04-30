@@ -6,7 +6,6 @@ import { register } from 'swiper/element/bundle';
 import { AppUpdateService } from 'src/app/core/services/app-update/app-update.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
-import { SecurityService } from 'src/app/core/services/security/security.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 
 register();
@@ -16,7 +15,6 @@ register();
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent implements OnDestroy {
-  private isRefreshingToken = false;
   private readonly isNativeClient = Capacitor.isNativePlatform();
   private hasAuthenticatedSession = false;
   private appStateListener: PluginListenerHandle | null = null;
@@ -26,7 +24,6 @@ export class AppComponent implements OnDestroy {
     private appUpdateService: AppUpdateService,
     private authService: AuthService,
     private billingService: BillingService,
-    private securityService: SecurityService,
     private themeService: ThemeService
   ) {
     void this.initializeApp();
@@ -42,7 +39,7 @@ export class AppComponent implements OnDestroy {
     
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
-    this.initTokenRefresh();
+    this.initSessionTracking();
     this.initForegroundBillingRefresh();
   }
 
@@ -50,38 +47,9 @@ export class AppComponent implements OnDestroy {
     this.router.navigate(['/'], { replaceUrl: true });
   }
 
-  private initTokenRefresh(): void {
+  private initSessionTracking(): void {
     this.authService.user$.subscribe((user) => {
       this.hasAuthenticatedSession = Boolean(user);
-      if (user) {
-        if (this.isNativeClient) {
-          // In native apps the refresh flow is driven by 401 responses to avoid
-          // races with cookie/header transport and background timers.
-          this.securityService.stopTokenExpirationCheck();
-          return;
-        }
-
-        this.securityService.startTokenExpirationCheck(() => {
-          if (this.isRefreshingToken) {
-            return;
-          }
-          this.isRefreshingToken = true;
-          this.authService.refreshToken().subscribe({
-            next: () => {
-              this.isRefreshingToken = false;
-            },
-            error: (error) => {
-              this.isRefreshingToken = false;
-              // Only force logout when backend explicitly marks session as unrecoverable.
-              if (error?.error?.requiresRelogin) {
-                this.authService.logout();
-              }
-            },
-          });
-        });
-      } else {
-        this.securityService.stopTokenExpirationCheck();
-      }
     });
   }
 
