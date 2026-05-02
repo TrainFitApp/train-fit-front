@@ -92,7 +92,7 @@ export class ConfigExercisePage implements OnInit {
   public backButton$: Subscription;
 
   public load = true;
-  // Track exercise change to allow revert on "NO GUARDAR"
+  // Track exercise change to allow revert on "DESCARTAR"
   public originalExercise?: Exercise;
   public exerciseChanged: boolean = false;
   public videoEmbedSrcSafe: any;
@@ -405,7 +405,7 @@ export class ConfigExercisePage implements OnInit {
               role: "cancel",
             },
             {
-              text: "NO GUARDAR",
+              text: "DESCARTAR",
               role: "confirm",
               cssClass: "alert-button-primary",
               handler: () => {
@@ -885,7 +885,9 @@ export class ConfigExercisePage implements OnInit {
             );
             this.customExercise = resCustomExercise;
             this.setList = this.cloneSets(resCustomExercise.sets || []);
-            this.originSetsOrdered = this.cloneSets(resCustomExercise.sets || []);
+            this.originSetsOrdered = this.cloneSets(
+              resCustomExercise.sets || [],
+            );
             this.setsToCreate = [];
             this.setsToUpdate = [];
             this.setsToDelete = [];
@@ -1281,8 +1283,7 @@ export class ConfigExercisePage implements OnInit {
       if (indexSetToUpdate >= 0) {
         this.setsToUpdate.splice(indexSetToUpdate, 1);
       }
-    }
-    else {
+    } else {
       // Comprobar si existen en toCreate y toUpdate
       const indexSetToCreate = this.setsToCreate.findIndex(
         (setTemp) => setTemp._id === set._id,
@@ -1434,9 +1435,7 @@ export class ConfigExercisePage implements OnInit {
   }
 
   private sortSetsByOrder(sets: ExerciseSet[] = []): ExerciseSet[] {
-    return this.cloneSets(sets).sort(
-      (a, b) => (a.order ?? 0) - (b.order ?? 0),
-    );
+    return this.cloneSets(sets).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 
   private isPersistedSet(setItem?: ExerciseSet): boolean {
@@ -1502,7 +1501,7 @@ export class ConfigExercisePage implements OnInit {
             role: "cancel",
           },
           {
-            text: "NO GUARDAR",
+            text: "DESCARTAR",
             role: "destructive",
             handler: () => {
               // Revertir cambios locales si es necesario
