@@ -58,6 +58,15 @@
         <div class="card-corner-actions" *ngIf="editingBaseRecipe">
           <button
             type="button"
+            class="card-action-btn cancel-btn"
+            [disabled]="loading"
+            (click)="cancelEditInfo()"
+            aria-label="Cancelar edición original"
+          >
+            <ion-icon name="arrow-undo-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
             class="card-action-btn confirm-btn"
             [disabled]="!canSave || loading"
             (click)="confirmEditInfo()"
@@ -116,6 +125,36 @@
 
       </div>
 
+      <div class="base-nutrition-section" *ngIf="editingBaseRecipe && ingredients.length > 0">
+        <div class="recipe-inline-macros base-recipe-macros">
+          <div class="per100-accordion expanded">
+            <div class="per100-toggle static">
+              <span>{{ baseRecipePer100Title }}</span>
+            </div>
+            <div class="per100-panel">
+              <div class="per100-grid">
+                <div class="per100-item calories">
+                  <span class="per100-value">{{ per100Kcal | number:'1.0-0' }}</span>
+                  <span class="per100-label">kcal</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label protein">Proteína</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label carbs">CBH</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label fat">Grasas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="section-card" *ngIf="showPortionFields">
         <div class="section-header">
           <ion-icon name="scale-outline" color="primary"></ion-icon>
@@ -130,6 +169,7 @@
                 #quantityInput
                 type="number"
                 inputmode="decimal"
+                min="1"
                 formControlName="quantity"
                 placeholder="100"
                 class="custom-input"
@@ -144,6 +184,7 @@
               <ion-input
                 type="number"
                 inputmode="decimal"
+                min="1"
                 formControlName="quantityCooked"
                 placeholder="500"
                 class="custom-input"
@@ -178,6 +219,40 @@
             </ion-card-content>
           </ion-card>
           <p class="footer-macros-hint">{{ footerMacrosHint }}</p>
+          <div class="per100-accordion" [class.expanded]="weightExplainerExpanded">
+            <button
+              type="button"
+              class="per100-toggle"
+              (click)="weightExplainerExpanded = !weightExplainerExpanded"
+              [attr.aria-expanded]="weightExplainerExpanded"
+              aria-label="Ver información nutricional por 100g"
+            >
+              <span>{{ per100Title }}</span>
+              <ion-icon
+                [name]="weightExplainerExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+              ></ion-icon>
+            </button>
+            <div class="per100-panel" *ngIf="weightExplainerExpanded">
+              <div class="per100-grid">
+                <div class="per100-item calories">
+                  <span class="per100-value">{{ per100Kcal | number:'1.0-0' }}</span>
+                  <span class="per100-label">kcal</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label protein">Proteína</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label carbs">CBH</span>
+                </div>
+                <div class="per100-item">
+                  <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
+                  <span class="per100-label fat">Grasas</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

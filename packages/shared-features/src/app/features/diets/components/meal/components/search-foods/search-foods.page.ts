@@ -1986,14 +1986,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const quantityCooked = this.getRecipeRawWeight(recipe);
     const quantity = 100;
 
     const composePayload: any = {
       recipeId: recipe._id,
       customRecipe: {
         quantity,
-        quantityCooked,
+        quantityCooked: null,
         modifiedBaseCustomProducts: [],
         removedBaseCustomProductIds: [],
         addedCustomProducts: [],
@@ -2141,16 +2140,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     return null;
-  }
-
-  private getRecipeRawWeight(recipe: Recipe): number {
-    return (recipe.customProducts || []).reduce((sum, cp: any) => {
-      const quantity = Number(cp?.quantity);
-      if (!Number.isFinite(quantity) || quantity <= 0) {
-        return sum;
-      }
-      return sum + quantity;
-    }, 0);
   }
 
   private toPositiveNumber(value: any): number | null {

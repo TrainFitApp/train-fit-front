@@ -8,6 +8,34 @@ import { CustomProduct } from '../../models/customProduct';
 import { Recipe } from '../../models/recipe';
 import { RecipeApiService } from './recipe-api.service';
 
+export type RecipeWeightBasis = 'raw' | 'cooked';
+
+export interface RecipeMacros {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface RecipeMacroTotals extends RecipeMacros {
+  quantity: number;
+}
+
+export interface RecipeNutritionCalculation {
+  ingredients: CustomProduct[];
+  totals: RecipeMacroTotals;
+  rawWeight: number;
+  cookedWeight: number | null;
+  consumed: number;
+  portionBaseline: number;
+  portionBasis: RecipeWeightBasis;
+  portionRatio: number;
+  portionMacros: RecipeMacros;
+  per100Baseline: number;
+  per100Basis: RecipeWeightBasis;
+  per100Macros: RecipeMacros;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -157,8 +185,7 @@ export class RecipeService {
       (recipe as any).ingredients || recipe.customProducts || [];
 
     for (const cp of ingredients) {
-      const qtyRaw = Number(cp.quantity);
-      const qty = Number.isFinite(qtyRaw) ? qtyRaw : 0;
+      const qty = this.toPositiveNumber(cp.quantity) || 0;
       const multiplier = qty / 100;
       const product = (cp.product || {}) as any;
 
@@ -171,6 +198,29 @@ export class RecipeService {
     }
 
     return { kcal, protein, carbs, fat, quantity };
+  }
+
+  public getEmptyRecipeNutrition(): RecipeNutritionCalculation {
+    return this.buildNutritionCalculation([], this.zeroMacroTotals(), null, null);
+  }
+
+  public calculateRecipeNutritionFromIngredients(
+    ingredients: CustomProduct[],
+    consumedQuantity?: number | null,
+    cookedWeight?: number | null
+  ): RecipeNutritionCalculation {
+    const normalizedIngredients = ingredients || [];
+    const totals = this.calculateRecipeMacros({
+      name: '',
+      customProducts: normalizedIngredients,
+    });
+
+    return this.buildNutritionCalculation(
+      normalizedIngredients,
+      totals,
+      consumedQuantity,
+      cookedWeight
+    );
   }
 
   public areCustomProductsEquivalent(
@@ -299,32 +349,40 @@ export class RecipeService {
     customRecipe?: CustomRecipe | null
   ): {
     ingredients: CustomProduct[];
-    totals: { kcal: number; protein: number; carbs: number; fat: number; quantity: number };
+    totals: RecipeMacroTotals;
     baseline: number;
     consumed: number;
-    portionMacros: { kcal: number; protein: number; carbs: number; fat: number };
+    rawWeight: number;
+    cookedWeight: number | null;
+    portionBaseline: number;
+    portionBasis: RecipeWeightBasis;
+    portionRatio: number;
+    portionMacros: RecipeMacros;
+    per100Baseline: number;
+    per100Basis: RecipeWeightBasis;
+    per100Macros: RecipeMacros;
   } {
     const ingredients = this.mergeRecipeIngredients(recipe, customRecipe);
-    const totals = this.calculateRecipeMacros({
-      name: recipe?.name || '',
-      customProducts: ingredients,
-    });
-    const baseline =
-      this.toPositiveNumber(customRecipe?.quantityCooked) || totals.quantity || 0;
-    const consumed = this.toPositiveNumber(customRecipe?.quantity) || 0;
-    const ratio = baseline > 0 ? consumed / baseline : 0;
+    const nutrition = this.calculateRecipeNutritionFromIngredients(
+      ingredients,
+      customRecipe?.quantity,
+      customRecipe?.quantityCooked
+    );
 
     return {
       ingredients,
-      totals,
-      baseline,
-      consumed,
-      portionMacros: {
-        kcal: totals.kcal * ratio,
-        protein: totals.protein * ratio,
-        carbs: totals.carbs * ratio,
-        fat: totals.fat * ratio,
-      },
+      totals: nutrition.totals,
+      baseline: nutrition.portionBaseline,
+      consumed: nutrition.consumed,
+      rawWeight: nutrition.rawWeight,
+      cookedWeight: nutrition.cookedWeight,
+      portionBaseline: nutrition.portionBaseline,
+      portionBasis: nutrition.portionBasis,
+      portionRatio: nutrition.portionRatio,
+      portionMacros: nutrition.portionMacros,
+      per100Baseline: nutrition.per100Baseline,
+      per100Basis: nutrition.per100Basis,
+      per100Macros: nutrition.per100Macros,
     };
   }
 
@@ -376,6 +434,62 @@ export class RecipeService {
     }
 
     return value;
+  }
+
+  private buildNutritionCalculation(
+    ingredients: CustomProduct[],
+    totals: RecipeMacroTotals,
+    consumedQuantity?: number | null,
+    cookedWeight?: number | null
+  ): RecipeNutritionCalculation {
+    const rawWeight = totals.quantity || 0;
+    const normalizedCookedWeight = this.toPositiveNumber(cookedWeight);
+    const consumed = this.toPositiveNumber(consumedQuantity) || 0;
+    const hasCookedWeight = !!normalizedCookedWeight;
+    const baseline = hasCookedWeight ? normalizedCookedWeight : rawWeight;
+    const basis: RecipeWeightBasis = hasCookedWeight ? 'cooked' : 'raw';
+    const portionRatio = baseline > 0 && consumed > 0 ? consumed / baseline : 0;
+
+    return {
+      ingredients,
+      totals,
+      rawWeight,
+      cookedWeight: normalizedCookedWeight,
+      consumed,
+      portionBaseline: baseline,
+      portionBasis: basis,
+      portionRatio,
+      portionMacros: this.scaleMacros(totals, portionRatio),
+      per100Baseline: baseline,
+      per100Basis: basis,
+      per100Macros:
+        baseline > 0 ? this.scaleMacros(totals, 100 / baseline) : this.zeroMacros(),
+    };
+  }
+
+  private scaleMacros(macros: RecipeMacros, ratio: number): RecipeMacros {
+    return {
+      kcal: macros.kcal * ratio,
+      protein: macros.protein * ratio,
+      carbs: macros.carbs * ratio,
+      fat: macros.fat * ratio,
+    };
+  }
+
+  private zeroMacros(): RecipeMacros {
+    return {
+      kcal: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    };
+  }
+
+  private zeroMacroTotals(): RecipeMacroTotals {
+    return {
+      ...this.zeroMacros(),
+      quantity: 0,
+    };
   }
 
   private toPositiveNumber(value: any): number | null {

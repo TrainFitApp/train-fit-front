@@ -523,7 +523,7 @@ export class DietDayService {
     if (!recipe) return 0;
 
     const totals = this.recipeService.calculateCustomRecipeTotals(recipe, instance);
-    return totals.baseline > 0 ? totals.consumed / totals.baseline : 0;
+    return totals.portionRatio;
   }
 
   private calculateInstanceMacros(instance: any): {

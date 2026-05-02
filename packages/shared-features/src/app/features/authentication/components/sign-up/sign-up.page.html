@@ -96,12 +96,13 @@
                         formControlName="birth"
                         presentation="date"
                         [preferWheel]="true"
-                        [max]="maxDate"
-                        [min]="minDate"
+                        [max]="getMaxDate()"
+                        [min]="getMinDate()"
                         [showDefaultButtons]="true"
                         locale="es-ES"
                         [doneText]="'CONFIRMAR'"
                         [cancelText]="'CANCELAR'"
+                        (ionChange)="onDateChange($event)"
                       >
                         <div slot="title" class="datetime-title">
                           <ion-icon name="calendar-outline"></ion-icon>

@@ -13,7 +13,10 @@ import {
   RecipeDraftMode,
   RecipeDraftService,
 } from "src/app/core/services/recipe/recipe-draft.service";
-import { RecipeService } from "src/app/core/services/recipe/recipe.service";
+import {
+  RecipeNutritionCalculation,
+  RecipeService,
+} from "src/app/core/services/recipe/recipe.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
@@ -116,6 +119,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     carbs: 0,
     fat: 0,
   };
+  public recipeNutrition: RecipeNutritionCalculation;
 
   private readonly destroy$ = new Subject<void>();
   private _ingredients: CustomProduct[] = [];
@@ -157,6 +161,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private adMobService: AdMobService,
   ) {
     this.user = this.userService.getLocalUser;
+    this.recipeNutrition = this.recipeService.getEmptyRecipeNutrition();
     this.recipeForm = this.fb.group({
       name: ["", [Validators.required, Validators.minLength(2)]],
       description: [""],
@@ -167,12 +172,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.recipeForm
       .get("quantityCooked")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.recalculateMacros());
+      .subscribe(() => {
+        this.normalizePositiveControlValue("quantityCooked");
+        this.recalculateMacros();
+      });
 
     this.recipeForm
       .get("quantity")
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.recalculateMacros());
+      .subscribe(() => {
+        this.normalizePositiveControlValue("quantity");
+        this.recalculateMacros();
+      });
 
     this.recipeForm.valueChanges
       .pipe(takeUntil(this.destroy$))
@@ -396,53 +407,59 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get footerUsesConsumedQuantity(): boolean {
-    return !!this.toPositiveNumber(this.recipeForm.getRawValue().quantity);
+    return this.recipeNutrition.consumed > 0;
   }
 
   public get footerMacrosHint(): string {
-    return this.footerUsesConsumedQuantity
-      ? "* Cálculo de la ración consumida sobre el total cocinado."
-      : "* Por cada 100g sobre el total cocinado o la suma base.";
+    if (!this.footerUsesConsumedQuantity) {
+      return "* Sin ración consumida: valores de la ración a 0.";
+    }
+
+    return this.recipeNutrition.portionBasis === "cooked"
+      ? "* Ración consumida calculada sobre el peso total cocinado."
+      : "* Ración consumida calculada sobre el peso en crudo.";
   }
 
   public get footerKcal(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.kcal
-      : this.per100Kcal;
+    return this.portionMacros.kcal;
   }
 
   public get footerProtein(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.protein
-      : this.per100Protein;
+    return this.portionMacros.protein;
   }
 
   public get footerCarbs(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.carbs
-      : this.per100Carbs;
+    return this.portionMacros.carbs;
   }
 
   public get footerFat(): number {
-    return this.footerUsesConsumedQuantity
-      ? this.portionMacros.fat
-      : this.per100Fat;
+    return this.portionMacros.fat;
+  }
+
+  public get per100Title(): string {
+    return this.recipeNutrition.per100Basis === "cooked"
+      ? "Información nutricional por 100g cocinado"
+      : "Información nutricional por 100g en crudo";
   }
 
   public get per100Kcal(): number {
-    return this.toPer100(this.calculatedMacros.kcal);
+    return this.recipeNutrition.per100Macros.kcal;
   }
 
   public get per100Protein(): number {
-    return this.toPer100(this.calculatedMacros.protein);
+    return this.recipeNutrition.per100Macros.protein;
   }
 
   public get per100Carbs(): number {
-    return this.toPer100(this.calculatedMacros.carbs);
+    return this.recipeNutrition.per100Macros.carbs;
   }
 
   public get per100Fat(): number {
-    return this.toPer100(this.calculatedMacros.fat);
+    return this.recipeNutrition.per100Macros.fat;
+  }
+
+  public get baseRecipePer100Title(): string {
+    return "Información nutricional por 100g en crudo";
   }
 
   public async startEditingOriginalRecipe(): Promise<void> {
@@ -860,10 +877,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     if (this.meal) {
       composePayload.customRecipe = {
-        quantity:
-          this.toPositiveNumber(raw.quantity) ||
-          this.toPositiveNumber(raw.quantityCooked) ||
-          this.calculatedMacros.quantity,
+        quantity: this.toPositiveNumber(raw.quantity),
         quantityCooked: this.toPositiveNumber(raw.quantityCooked),
         addedCustomProducts: [],
         modifiedBaseCustomProducts: [],
@@ -887,10 +901,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const composePayload: any = {
       recipeId: this.recipe._id,
       customRecipe: {
-        quantity:
-          this.toPositiveNumber(raw.quantity) ||
-          this.toPositiveNumber(raw.quantityCooked) ||
-          this.calculatedMacros.quantity,
+        quantity: this.toPositiveNumber(raw.quantity),
         quantityCooked: this.toPositiveNumber(raw.quantityCooked),
         addedCustomProducts: this.calculateAdditionalIngredients(),
         modifiedBaseCustomProducts: this.calculateModifiedIngredients(),
@@ -970,12 +981,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         customRecipeId: this.customRecipe._id,
       },
       customRecipe: {
-        quantity:
-          normalizedQuantity ||
-          this.toPositiveNumber(this.customRecipe.quantity),
-        quantityCooked:
-          normalizedQuantityCooked ||
-          this.toPositiveNumber(this.customRecipe.quantityCooked),
+        quantity: normalizedQuantity,
+        quantityCooked: normalizedQuantityCooked,
         addedCustomProducts: this.calculateAdditionalIngredients(),
         modifiedBaseCustomProducts: this.calculateModifiedIngredients(),
         removedBaseCustomProductIds: this.calculateRemovedIngredients(),
@@ -1149,10 +1156,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public recalculateMacros(): void {
-    this.calculatedMacros = this.recipeService.calculateRecipeMacros({
-      name: "",
-      customProducts: this.ingredients,
-    } as Recipe);
+    const raw = this.recipeForm.getRawValue();
+    this.recipeNutrition =
+      this.recipeService.calculateRecipeNutritionFromIngredients(
+        this.ingredients,
+        this.editingBaseRecipe ? null : raw.quantity,
+        this.editingBaseRecipe ? null : raw.quantityCooked,
+      );
+    this.calculatedMacros = this.recipeNutrition.totals;
 
     if (this.editingBaseRecipe) {
       this.portionMacros = {
@@ -1164,28 +1175,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       return;
     }
 
-    const raw = this.recipeForm.getRawValue();
-    const baseline =
-      this.toPositiveNumber(raw.quantityCooked) ||
-      this.calculatedMacros.quantity ||
-      1;
-    const consumed = this.toPositiveNumber(raw.quantity) || 0;
-    const ratio = consumed / baseline;
-
-    this.portionMacros = {
-      kcal: this.calculatedMacros.kcal * ratio,
-      protein: this.calculatedMacros.protein * ratio,
-      carbs: this.calculatedMacros.carbs * ratio,
-      fat: this.calculatedMacros.fat * ratio,
-    };
-  }
-
-  private toPer100(value: number): number {
-    const baseline =
-      this.toPositiveNumber(this.recipeForm.getRawValue().quantityCooked) ||
-      this.calculatedMacros.quantity ||
-      0;
-    return baseline > 0 ? (value / baseline) * 100 : 0;
+    this.portionMacros = this.recipeNutrition.portionMacros;
   }
 
   private dedupeIngredients(list: CustomProduct[]): CustomProduct[] {
@@ -1218,6 +1208,20 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed <= 0) return null;
     return parsed;
+  }
+
+  private normalizePositiveControlValue(
+    controlName: "quantity" | "quantityCooked",
+  ): void {
+    const control = this.recipeForm.get(controlName);
+    const value = control?.value;
+    if (value === null || value === undefined || value === "") return;
+
+    const textValue = typeof value === "string" ? value.trim() : `${value}`;
+    const parsed = Number(value);
+    if (textValue.startsWith("-") || !Number.isFinite(parsed) || parsed <= 0) {
+      control?.setValue(null, { emitEvent: false });
+    }
   }
 
   private removeDeletedRecipeLocally(recipeId: string): void {

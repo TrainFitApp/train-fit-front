@@ -124,9 +124,8 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
-  // Propiedades fijas para las fechas
-  public maxDate: string;
-  public minDate: string;
+  private _maxDate: string | null = null;
+  private _minDate: string | null = null;
 
   constructor(
     private userService: UserService,
@@ -139,15 +138,6 @@ export class SignUpPage implements OnInit, OnDestroy {
     private router: Router,
     private signUpStateService: SignUpStateService
   ) {
-    // Inicializar fechas fijas
-    const maxDateObj = new Date();
-    maxDateObj.setFullYear(maxDateObj.getFullYear() - 13);
-    this.maxDate = maxDateObj.toISOString();
-
-    const minDateObj = new Date();
-    minDateObj.setFullYear(minDateObj.getFullYear() - 100);
-    this.minDate = minDateObj.toISOString();
-
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
 
@@ -265,7 +255,7 @@ export class SignUpPage implements OnInit, OnDestroy {
           ])
         ),
         birth: new FormControl(
-          this.maxDate,
+          this.getMaxDate(),
           Validators.compose([Validators.required])
         ),
         steps: new FormControl(null, Validators.required),
@@ -620,6 +610,32 @@ export class SignUpPage implements OnInit, OnDestroy {
   public getAge(birth: any) {
     if (!birth) return 0;
     return this.userService.getAge(new Date(birth));
+  }
+
+  public onDateChange(event: any): void {
+    const selectedDate = event.detail.value;
+    if (selectedDate) {
+      this.signUpForm.get('birth')?.setValue(selectedDate);
+      this.signUpForm.get('birth')?.markAsTouched();
+    }
+  }
+
+  public getMaxDate(): string {
+    if (!this._maxDate) {
+      const maxDate = new Date();
+      maxDate.setFullYear(maxDate.getFullYear() - 13);
+      this._maxDate = maxDate.toISOString();
+    }
+    return this._maxDate;
+  }
+
+  public getMinDate(): string {
+    if (!this._minDate) {
+      const minDate = new Date();
+      minDate.setFullYear(minDate.getFullYear() - 120);
+      this._minDate = minDate.toISOString();
+    }
+    return this._minDate;
   }
 
   private getControlsForSlideIndex(index: number): string[] {

@@ -152,8 +152,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
     if (!recipe) return;
 
     const merged = this.recipeService.calculateCustomRecipeTotals(recipe, instance);
-    const scaleFactor =
-      merged.totals.quantity > 0 ? merged.consumed / merged.totals.quantity : 0;
+    const scaleFactor = merged.portionRatio;
 
     merged.ingredients.forEach((cpData: any) => {
       this.appendNutrients(data, cpData, (cpData.quantity || 0) * scaleFactor);
