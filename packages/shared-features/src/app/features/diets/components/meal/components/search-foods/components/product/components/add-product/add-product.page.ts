@@ -1,111 +1,111 @@
-import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { Component, effect, inject, OnDestroy, OnInit } from "@angular/core";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { ActivatedRoute } from "@angular/router";
 import {
   AlertButton,
   AlertInput,
   AlertOptions,
   Platform,
   ToastOptions,
-} from '@ionic/angular';
-import { firstValueFrom, Subject, Subscription, take, takeUntil } from 'rxjs';
-import { CustomProduct } from 'src/app/core/models/customProduct';
-import { DietDay } from 'src/app/core/models/dietDay';
-import { Meal } from 'src/app/core/models/meal';
-import { IProduct } from 'src/app/core/models/product';
-import { User } from 'src/app/core/models/user';
-import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
-import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
-import { ProductService } from 'src/app/core/services/product/product.service';
-import { RecipeDraftService } from 'src/app/core/services/recipe/recipe-draft.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
+} from "@ionic/angular";
+import { firstValueFrom, Subject, Subscription, take, takeUntil } from "rxjs";
+import { CustomProduct } from "src/app/core/models/customProduct";
+import { DietDay } from "src/app/core/models/dietDay";
+import { Meal } from "src/app/core/models/meal";
+import { IProduct } from "src/app/core/models/product";
+import { User } from "src/app/core/models/user";
+import { CustomProductService } from "src/app/core/services/custom-product/custom-product.service";
+import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
+import { ProductService } from "src/app/core/services/product/product.service";
+import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
 
 export enum PRODUCT_ATRR {
   name = 0,
   brand = 1,
 }
 @Component({
-  selector: 'app-add-product',
-  templateUrl: './add-product.page.html',
-  styleUrls: ['./add-product.page.scss'],
+  selector: "app-add-product",
+  templateUrl: "./add-product.page.html",
+  styleUrls: ["./add-product.page.scss"],
 })
 export class AddProductPage implements OnInit, OnDestroy {
   private static readonly NUTRITION_FIELDS = [
-    'energyKcal100g',
-    'protein100g',
-    'carbohydrates100g',
-    'fat100g',
-    'saturatedFat100g',
-    'sugars100g',
-    'fiber100g',
-    'salt100g',
-    'sodium100g',
-    'cholesterol100g',
-    'transFat100g',
-    'calcium100g',
-    'iron100g',
-    'magnesium100g',
-    'phosphorus100g',
-    'potassium100g',
-    'zinc100g',
-    'copper100g',
-    'manganese100g',
-    'selenium100g',
-    'iodine100g',
-    'vitaminA100g',
-    'vitaminC100g',
-    'vitaminD100g',
-    'vitaminE100g',
-    'vitaminK100g',
-    'vitaminB1100g',
-    'vitaminB2100g',
-    'vitaminB3100g',
-    'vitaminB5100g',
-    'vitaminB6100g',
-    'vitaminB9100g',
-    'vitaminB12100g',
-    'biotin100g',
-    'omega3100g',
-    'omega6100g',
-    'omega9100g',
-    'caffeine100g',
-    'taurine100g',
-    'alcohol100g',
+    "energyKcal100g",
+    "protein100g",
+    "carbohydrates100g",
+    "fat100g",
+    "saturatedFat100g",
+    "sugars100g",
+    "fiber100g",
+    "salt100g",
+    "sodium100g",
+    "cholesterol100g",
+    "transFat100g",
+    "calcium100g",
+    "iron100g",
+    "magnesium100g",
+    "phosphorus100g",
+    "potassium100g",
+    "zinc100g",
+    "copper100g",
+    "manganese100g",
+    "selenium100g",
+    "iodine100g",
+    "vitaminA100g",
+    "vitaminC100g",
+    "vitaminD100g",
+    "vitaminE100g",
+    "vitaminK100g",
+    "vitaminB1100g",
+    "vitaminB2100g",
+    "vitaminB3100g",
+    "vitaminB5100g",
+    "vitaminB6100g",
+    "vitaminB9100g",
+    "vitaminB12100g",
+    "biotin100g",
+    "omega3100g",
+    "omega6100g",
+    "omega9100g",
+    "caffeine100g",
+    "taurine100g",
+    "alcohol100g",
   ] as const;
 
   private static readonly MG_TO_G_FIELDS = new Set<string>([
-    'calcium100g',
-    'iron100g',
-    'magnesium100g',
-    'phosphorus100g',
-    'potassium100g',
-    'zinc100g',
-    'copper100g',
-    'manganese100g',
-    'sodium100g',
-    'vitaminE100g',
-    'vitaminC100g',
-    'vitaminB1100g',
-    'vitaminB2100g',
-    'vitaminB3100g',
-    'vitaminB5100g',
-    'vitaminB6100g',
-    'cholesterol100g',
-    'caffeine100g',
-    'taurine100g',
+    "calcium100g",
+    "iron100g",
+    "magnesium100g",
+    "phosphorus100g",
+    "potassium100g",
+    "zinc100g",
+    "copper100g",
+    "manganese100g",
+    "sodium100g",
+    "vitaminE100g",
+    "vitaminC100g",
+    "vitaminB1100g",
+    "vitaminB2100g",
+    "vitaminB3100g",
+    "vitaminB5100g",
+    "vitaminB6100g",
+    "cholesterol100g",
+    "caffeine100g",
+    "taurine100g",
   ]);
 
   private static readonly MICROGRAM_TO_G_FIELDS = new Set<string>([
-    'selenium100g',
-    'iodine100g',
-    'vitaminA100g',
-    'vitaminD100g',
-    'vitaminK100g',
-    'vitaminB9100g',
-    'vitaminB12100g',
-    'biotin100g',
+    "selenium100g",
+    "iodine100g",
+    "vitaminA100g",
+    "vitaminD100g",
+    "vitaminK100g",
+    "vitaminB9100g",
+    "vitaminB12100g",
+    "biotin100g",
   ]);
 
   public product: IProduct;
@@ -116,7 +116,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   public isScanned: boolean;
   public isArchived: boolean;
   public isVerified: boolean;
-  public selectedUnit: 'g' | 'portions' = 'g';
+  public selectedUnit: "g" | "portions" = "g";
   public hasPortions: boolean = false;
   private returnUrl?: string;
   public ingredientMode = false;
@@ -131,17 +131,17 @@ export class AddProductPage implements OnInit, OnDestroy {
   public addingFavProduct = false;
 
   public loading = { value: false };
-  private initialFormSnapshot = '';
+  private initialFormSnapshot = "";
   private autoPersistInProgress = false;
   private backFlowInProgress = false;
   private allowRouteLeave = false;
   private lastPersistResult:
-    | 'none'
-    | 'ingredient-updated'
-    | 'meal-updated'
-    | 'meal-created'
-    | 'profile-updated'
-    | 'error' = 'none';
+    | "none"
+    | "ingredient-updated"
+    | "meal-updated"
+    | "meal-created"
+    | "profile-updated"
+    | "error" = "none";
 
   public PRODUCT_ATRR = PRODUCT_ATRR;
 
@@ -153,37 +153,37 @@ export class AddProductPage implements OnInit, OnDestroy {
    * Los getters totalCalories/Protein/Carbs/Fat usan esto para calcular correctamente.
    */
   get effectiveQuantity(): number {
-    if (this.selectedUnit === 'portions' && this.hasPortions) {
-      const portions = this.addCustomProductForm?.get('portions')?.value || 0;
+    if (this.selectedUnit === "portions" && this.hasPortions) {
+      const portions = this.addCustomProductForm?.get("portions")?.value || 0;
       const servingQuantity =
         this.product?.servingQuantity ??
         this.customProduct?.product?.servingQuantity ??
         0;
       return (portions || 0) * servingQuantity;
     }
-    return this.addCustomProductForm?.get('quantity')?.value || 0;
+    return this.addCustomProductForm?.get("quantity")?.value || 0;
   }
 
   get totalCalories(): number {
     const kcal100g =
-      this.addCustomProductForm?.get('energyKcal100g')?.value || 0;
+      this.addCustomProductForm?.get("energyKcal100g")?.value || 0;
     return Math.round((kcal100g * this.effectiveQuantity) / 100);
   }
 
   get totalProtein(): number {
     const protein100g =
-      this.addCustomProductForm?.get('protein100g')?.value || 0;
+      this.addCustomProductForm?.get("protein100g")?.value || 0;
     return Math.round(((protein100g * this.effectiveQuantity) / 100) * 10) / 10;
   }
 
   get totalCarbs(): number {
     const carbs100g =
-      this.addCustomProductForm?.get('carbohydrates100g')?.value || 0;
+      this.addCustomProductForm?.get("carbohydrates100g")?.value || 0;
     return Math.round(((carbs100g * this.effectiveQuantity) / 100) * 10) / 10;
   }
 
   get totalFat(): number {
-    const fat100g = this.addCustomProductForm?.get('fat100g')?.value || 0;
+    const fat100g = this.addCustomProductForm?.get("fat100g")?.value || 0;
     return Math.round(((fat100g * this.effectiveQuantity) / 100) * 10) / 10;
   }
 
@@ -220,7 +220,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private productService: ProductService,
     private activatedRoute: ActivatedRoute,
-    private platform: Platform
+    private platform: Platform,
   ) {
     // Effect para el usuario
     effect(() => {
@@ -267,13 +267,15 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.editingIngredient = true;
       }
     } else if (this.ingredientMode) {
-      const editingIngredientIndex =
-        this.navigationService.getTempData<number>('editingIngredientIndex');
-      const selectedIngredients =
-        this.navigationService.getTempData<CustomProduct[]>('selectedIngredients');
+      const editingIngredientIndex = this.navigationService.getTempData<number>(
+        "editingIngredientIndex",
+      );
+      const selectedIngredients = this.navigationService.getTempData<
+        CustomProduct[]
+      >("selectedIngredients");
 
       if (
-        typeof editingIngredientIndex === 'number' &&
+        typeof editingIngredientIndex === "number" &&
         editingIngredientIndex >= 0 &&
         selectedIngredients?.[editingIngredientIndex]
       ) {
@@ -290,7 +292,7 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.recipeName = this.recipeDraftService.form().name;
       } else {
         const formState = this.navigationService.getTempData<any>(
-          'configRecipeFormState'
+          "configRecipeFormState",
         );
         this.recipeName = formState?.name;
       }
@@ -311,7 +313,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((res: DietDay) => {
         if (res && !this.ingredientMode) {
-          console.log('[DEBUG] AddProduct: Syncing with service state');
+          console.log("[DEBUG] AddProduct: Syncing with service state");
           this.dietDay = res;
 
           const mName = this.targetMealName || this.meal?.name;
@@ -344,7 +346,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       return this.recipeName;
     }
 
-    return this.meal ? this.meal.name : 'Tus productos';
+    return this.meal ? this.meal.name : "Tus productos";
   }
 
   public ionViewWillEnter(): void {
@@ -354,28 +356,28 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     const state = this.navigationService.getState();
     console.log(
-      '[AddProduct] ionViewWillEnter: state recibido:',
-      state ? JSON.stringify(Object.keys(state)) : 'null'
+      "[AddProduct] ionViewWillEnter: state recibido:",
+      state ? JSON.stringify(Object.keys(state)) : "null",
     );
 
     // C-05 FIX: leer tempData 'updatedProductForAddProduct' (mecanismo sin push al historial)
     const updatedProductFromTemp = this.navigationService.getTempData<IProduct>(
-      'updatedProductForAddProduct'
+      "updatedProductForAddProduct",
     );
     if (updatedProductFromTemp) {
-      this.navigationService.clearTempData('updatedProductForAddProduct');
+      this.navigationService.clearTempData("updatedProductForAddProduct");
 
       if (this.meal && this.customProduct) {
         // CASO 1: El producto está en una meal → preguntar si actualizar los valores nutricionales
         // del customProduct con los del nuevo producto base (encapsulamiento independiente)
         this.ionicUtilService.showAlert({
-          header: 'Producto actualizado',
+          header: "Producto actualizado",
           message:
-            'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
+            "Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?",
           buttons: [
             {
-              text: 'Mantener',
-              role: 'cancel',
+              text: "Mantener",
+              role: "cancel",
               handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
                 // con los valores anteriores (no sincroniza nutrición)
@@ -390,7 +392,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                   // Esto garantiza que el customProduct mantenga sus valores 100g originales
                   this.customProductService.mapNutritionalValues(
                     oldProduct,
-                    this.customProduct
+                    this.customProduct,
                   );
                 }
 
@@ -401,7 +403,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Guardar',
+              text: "Guardar",
               handler: () => {
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
                 this.product = updatedProductFromTemp;
@@ -412,7 +414,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                   this.customProduct.product = this.product;
                   this.customProductService.mapNutritionalValues(
                     this.product,
-                    this.customProduct
+                    this.customProduct,
                   );
                 }
 
@@ -438,19 +440,19 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     if (state && state.updatedProduct) {
       console.log(
-        '[AddProduct] ionViewWillEnter: updatedProduct recibido:',
-        state.updatedProduct?.name
+        "[AddProduct] ionViewWillEnter: updatedProduct recibido:",
+        state.updatedProduct?.name,
       );
       if (this.meal && this.customProduct) {
         // Si estamos editando un CustomProduct existente, preguntamos si queremos actualizar con los nuevos valores del producto base
         this.ionicUtilService.showAlert({
-          header: 'Producto actualizado',
+          header: "Producto actualizado",
           message:
-            'Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?',
+            "Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?",
           buttons: [
             {
-              text: 'Mantener',
-              role: 'cancel',
+              text: "Mantener",
+              role: "cancel",
               handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
                 // con los valores anteriores (no sincroniza nutrición)
@@ -464,7 +466,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                   // Decouple original profile
                   this.customProductService.mapNutritionalValues(
                     oldProduct,
-                    this.customProduct
+                    this.customProduct,
                   );
                 }
 
@@ -475,7 +477,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: 'Guardar',
+              text: "Guardar",
               handler: () => {
                 this.product = state.updatedProduct;
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
@@ -487,7 +489,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                   // Sincronizar valores nutricionales del producto al customProduct
                   this.customProductService.mapNutritionalValues(
                     this.product,
-                    this.customProduct
+                    this.customProduct,
                   );
                 }
 
@@ -510,7 +512,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       }
 
       // Limpiar el estado para evitar recargas accidentales posteriores
-      this.navigationService.clearStateKeys(['updatedProduct']);
+      this.navigationService.clearStateKeys(["updatedProduct"]);
     }
   }
 
@@ -525,33 +527,33 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private attachIosEdgeSwipeInterceptor(): void {
-    if (!this.platform.is('ios')) return;
+    if (!this.platform.is("ios")) return;
 
-    document.addEventListener('touchstart', this.onTouchStartBound, {
+    document.addEventListener("touchstart", this.onTouchStartBound, {
       capture: true,
       passive: false,
     });
-    document.addEventListener('touchmove', this.onTouchMoveBound, {
+    document.addEventListener("touchmove", this.onTouchMoveBound, {
       capture: true,
       passive: false,
     });
-    document.addEventListener('touchend', this.onTouchEndBound, {
+    document.addEventListener("touchend", this.onTouchEndBound, {
       capture: true,
       passive: true,
     });
-    document.addEventListener('touchcancel', this.onTouchEndBound, {
+    document.addEventListener("touchcancel", this.onTouchEndBound, {
       capture: true,
       passive: true,
     });
   }
 
   private detachIosEdgeSwipeInterceptor(): void {
-    if (!this.platform.is('ios')) return;
+    if (!this.platform.is("ios")) return;
 
-    document.removeEventListener('touchstart', this.onTouchStartBound, true);
-    document.removeEventListener('touchmove', this.onTouchMoveBound, true);
-    document.removeEventListener('touchend', this.onTouchEndBound, true);
-    document.removeEventListener('touchcancel', this.onTouchEndBound, true);
+    document.removeEventListener("touchstart", this.onTouchStartBound, true);
+    document.removeEventListener("touchmove", this.onTouchMoveBound, true);
+    document.removeEventListener("touchend", this.onTouchEndBound, true);
+    document.removeEventListener("touchcancel", this.onTouchEndBound, true);
   }
 
   private onEdgeSwipeTouchStart(event: TouchEvent): void {
@@ -631,7 +633,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   private getFinalQuantity(formValues: any): number {
     if (!(this.meal || this.ingredientMode)) return 0;
 
-    if (this.selectedUnit === 'portions' && this.hasPortions) {
+    if (this.selectedUnit === "portions" && this.hasPortions) {
       const servingQuantity =
         this.product?.servingQuantity ??
         this.customProduct?.product?.servingQuantity ??
@@ -644,7 +646,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private buildPersistSnapshot(): string {
-    if (!this.addCustomProductForm) return '';
+    if (!this.addCustomProductForm) return "";
 
     const formValues = this.addCustomProductForm.getRawValue();
     const snapshot: any = {};
@@ -652,11 +654,11 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (this.meal || this.ingredientMode) {
       snapshot.quantity = this.getFinalQuantity(formValues);
     } else {
-      snapshot.name = `${formValues.name ?? ''}`.trim();
-      snapshot.brand = `${formValues.brand ?? ''}`.trim();
-      snapshot.ingredients = `${formValues.ingredients ?? ''}`.trim();
-      snapshot.allergens = `${formValues.allergens ?? ''}`.trim();
-      snapshot.traces = `${formValues.traces ?? ''}`.trim();
+      snapshot.name = `${formValues.name ?? ""}`.trim();
+      snapshot.brand = `${formValues.brand ?? ""}`.trim();
+      snapshot.ingredients = `${formValues.ingredients ?? ""}`.trim();
+      snapshot.allergens = `${formValues.allergens ?? ""}`.trim();
+      snapshot.traces = `${formValues.traces ?? ""}`.trim();
     }
 
     AddProductPage.NUTRITION_FIELDS.forEach((field) => {
@@ -678,11 +680,11 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private updateNativeSwipeBackForUnsavedChanges(): void {
-    if (!this.platform.is('ios')) return;
+    if (!this.platform.is("ios")) return;
 
     const hasChanges = this.hasPersistableChanges();
     const outlets = Array.from(
-      document.querySelectorAll('ion-router-outlet')
+      document.querySelectorAll("ion-router-outlet"),
     ) as any[];
 
     outlets.forEach((outlet) => {
@@ -706,13 +708,20 @@ export class AddProductPage implements OnInit, OnDestroy {
     forceSaveEvenWithoutChanges?: boolean;
     forceCreateMealProduct?: boolean;
   }): Promise<
-    'none' | 'ingredient-updated' | 'meal-updated' | 'meal-created' | 'profile-updated' | 'error'
+    | "none"
+    | "ingredient-updated"
+    | "meal-updated"
+    | "meal-created"
+    | "profile-updated"
+    | "error"
   > {
     const hasChanges = this.hasPersistableChanges();
     const shouldForceMealCreate =
       !!options?.forceCreateMealProduct && !!this.meal && !this.customProduct;
     const shouldPersist =
-      hasChanges || !!options?.forceSaveEvenWithoutChanges || shouldForceMealCreate;
+      hasChanges ||
+      !!options?.forceSaveEvenWithoutChanges ||
+      shouldForceMealCreate;
 
     if (
       this.autoPersistInProgress ||
@@ -720,16 +729,16 @@ export class AddProductPage implements OnInit, OnDestroy {
       !this.product ||
       !shouldPersist
     ) {
-      return 'none';
+      return "none";
     }
 
     if (this.addCustomProductForm.invalid) {
       this.ionicUtilService.showToast({
-        message: 'Hay campos inválidos. No se han guardado esos cambios.',
+        message: "Hay campos inválidos. No se han guardado esos cambios.",
         duration: 1400,
-        color: 'warning',
+        color: "warning",
       });
-      return 'error';
+      return "error";
     }
 
     this.autoPersistInProgress = true;
@@ -743,7 +752,7 @@ export class AddProductPage implements OnInit, OnDestroy {
         const newCustomProduct = this.customProductService.composeCustomProduct(
           this.product,
           finalQuantity,
-          0
+          0,
         );
 
         this.mapFormToProduct(formValues, newCustomProduct);
@@ -757,7 +766,7 @@ export class AddProductPage implements OnInit, OnDestroy {
             this.recipeDraftService.editingIngredientIndex();
 
           if (
-            typeof editingIngredientIndex === 'number' &&
+            typeof editingIngredientIndex === "number" &&
             editingIngredientIndex >= 0
           ) {
             // La edición de ingredientes de recipes siempre debe aterrizar
@@ -777,12 +786,16 @@ export class AddProductPage implements OnInit, OnDestroy {
           this.recipeDraftService.setEditingIngredientIndex(null);
         } else {
           const editingIngredientIndex =
-            this.navigationService.getTempData<number>('editingIngredientIndex');
+            this.navigationService.getTempData<number>(
+              "editingIngredientIndex",
+            );
           const selectedIngredients =
-            this.navigationService.getTempData<CustomProduct[]>('selectedIngredients') || [];
+            this.navigationService.getTempData<CustomProduct[]>(
+              "selectedIngredients",
+            ) || [];
 
           if (
-            typeof editingIngredientIndex === 'number' &&
+            typeof editingIngredientIndex === "number" &&
             editingIngredientIndex >= 0 &&
             editingIngredientIndex < selectedIngredients.length
           ) {
@@ -791,18 +804,21 @@ export class AddProductPage implements OnInit, OnDestroy {
               ...nextIngredients[editingIngredientIndex],
               ...newCustomProduct,
             };
-            this.navigationService.setTempData('selectedIngredients', nextIngredients);
+            this.navigationService.setTempData(
+              "selectedIngredients",
+              nextIngredients,
+            );
           } else {
-            this.navigationService.setTempData('selectedIngredients', [
+            this.navigationService.setTempData("selectedIngredients", [
               ...selectedIngredients,
               newCustomProduct,
             ]);
           }
 
-          this.navigationService.setTempData('newIngredient', newCustomProduct);
+          this.navigationService.setTempData("newIngredient", newCustomProduct);
         }
         this.syncInitialSnapshot();
-        return 'ingredient-updated';
+        return "ingredient-updated";
       }
 
       if (this.meal) {
@@ -811,18 +827,21 @@ export class AddProductPage implements OnInit, OnDestroy {
           this.mapFormToProduct(formValues, this.customProduct);
 
           const resCustomProduct = await firstValueFrom(
-            this.customProductService.updateCustomProduct(this.customProduct).pipe(take(1))
+            this.customProductService
+              .updateCustomProduct(this.customProduct)
+              .pipe(take(1)),
           );
 
           const index = this.meal.customProducts.findIndex(
-            (customProductTemp) => customProductTemp._id === resCustomProduct._id
+            (customProductTemp) =>
+              customProductTemp._id === resCustomProduct._id,
           );
           if (index !== -1) {
             this.meal.customProducts[index] = resCustomProduct;
           }
 
           const indexMeal = this.dietDay?.meals?.findIndex(
-            (mealTemp) => mealTemp._id === this.meal._id
+            (mealTemp) => mealTemp._id === this.meal._id,
           );
           if (indexMeal !== undefined && indexMeal > -1 && this.dietDay) {
             this.dietDay.meals[indexMeal] = this.meal;
@@ -830,13 +849,13 @@ export class AddProductPage implements OnInit, OnDestroy {
           }
 
           this.syncInitialSnapshot();
-          return 'meal-updated';
+          return "meal-updated";
         }
 
         const newCustomProduct = this.customProductService.composeCustomProduct(
           this.product,
           finalQuantity,
-          0
+          0,
         );
 
         this.mapFormToProduct(formValues, newCustomProduct);
@@ -848,65 +867,67 @@ export class AddProductPage implements OnInit, OnDestroy {
             this.dietDay,
             newCustomProduct,
             this.meal,
-            idDietInUse
-          )
+            idDietInUse,
+          ),
         );
 
         this.syncInitialSnapshot();
-        return 'meal-created';
+        return "meal-created";
       }
 
       this.mapFormToProduct(formValues, this.product);
       await firstValueFrom(this.productService.updateProduct(this.product));
       this.syncInitialSnapshot();
-      return 'profile-updated';
+      return "profile-updated";
     } catch (error) {
-      console.error('[AddProduct] Error al guardar cambios automáticos', error);
+      console.error("[AddProduct] Error al guardar cambios automáticos", error);
       this.ionicUtilService.showToast({
-        message: 'No se pudieron guardar los cambios automáticamente.',
+        message: "No se pudieron guardar los cambios automáticamente.",
         duration: 1600,
-        color: 'danger',
+        color: "danger",
       });
-      return 'error';
+      return "error";
     } finally {
       this.loading = { value: false };
       this.autoPersistInProgress = false;
     }
   }
 
-  private async askForUnsavedChangesAction(): Promise<'cancel' | 'save' | 'discard'> {
+  private async askForUnsavedChangesAction(): Promise<
+    "cancel" | "save" | "discard"
+  > {
     const alertResult = await this.ionicUtilService.showAlert({
-      cssClass: 'unsaved-exit-alert',
-      header: 'Hay cambios sin guardar',
-      message: '¿Quieres guardar antes de salir?',
+      cssClass: "unsaved-exit-alert",
+      header: "Hay cambios sin guardar",
+      message: "¿Quieres guardar antes de salir?",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
-          cssClass: 'unsaved-neutral-btn unsaved-cancel-btn',
+          text: "Cancelar",
+          role: "cancel",
+          cssClass: "unsaved-neutral-btn unsaved-cancel-btn",
         },
         {
-          text: 'Guardar',
-          role: 'save',
-          cssClass: 'unsaved-save-btn',
+          text: "Guardar",
+          role: "save",
+          cssClass: "unsaved-save-btn",
         },
         {
-          text: 'Salir sin guardar',
-          role: 'discard',
-          cssClass: 'unsaved-neutral-btn unsaved-discard-btn',
+          text: "Descartar",
+          role: "discard",
+          cssClass: "unsaved-neutral-btn unsaved-discard-btn",
         },
       ],
     });
 
-    if (alertResult.role === 'save') return 'save';
-    if (alertResult.role === 'discard') return 'discard';
-    return 'cancel';
+    if (alertResult.role === "save") return "save";
+    if (alertResult.role === "discard") return "discard";
+    return "cancel";
   }
 
   public async canDeactivate(): Promise<boolean> {
     if (this.allowRouteLeave) {
       this.allowRouteLeave = false;
-      this.lastPersistResult = 'none';
+      this.lastPersistResult = "none";
       return true;
     }
 
@@ -917,14 +938,14 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     try {
       const unsavedAction = await this.askForUnsavedChangesAction();
-      if (unsavedAction === 'cancel') return false;
+      if (unsavedAction === "cancel") return false;
 
-      if (unsavedAction === 'save') {
+      if (unsavedAction === "save") {
         const persistResult = await this.persistChangesIfNeeded();
-        if (persistResult === 'error') return false;
+        if (persistResult === "error") return false;
         this.lastPersistResult = persistResult;
       } else {
-        this.lastPersistResult = 'none';
+        this.lastPersistResult = "none";
       }
 
       this.allowRouteLeave = true;
@@ -946,13 +967,13 @@ export class AddProductPage implements OnInit, OnDestroy {
         if (isFavorite && archivedIndex === -1) {
           archivedProducts.push(this.product._id);
           this.ionicUtilService.showToast({
-            message: this.product.name + ' archivado',
+            message: this.product.name + " archivado",
             duration: 1000,
           });
         } else if (!isFavorite && archivedIndex > -1) {
           archivedProducts.splice(archivedIndex, 1);
           this.ionicUtilService.showToast({
-            message: this.product.name + ' desarchivado',
+            message: this.product.name + " desarchivado",
             duration: 1000,
           });
         }
@@ -976,29 +997,29 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     if (params?.deleteOwnProduct) {
       this.allowRouteLeave = true;
-      this.lastPersistResult = 'none';
+      this.lastPersistResult = "none";
     } else if (params?.forceSave) {
       const persistResult = await this.persistChangesIfNeeded({
         forceSaveEvenWithoutChanges: true,
         forceCreateMealProduct: !!params?.forceCreateMealProduct,
       });
-      if (persistResult === 'error') return;
+      if (persistResult === "error") return;
 
-      if (persistResult === 'meal-created') closeAll = true;
-      if (persistResult === 'profile-updated') refresh = true;
+      if (persistResult === "meal-created") closeAll = true;
+      if (persistResult === "profile-updated") refresh = true;
 
       this.allowRouteLeave = true;
-      this.lastPersistResult = 'none';
+      this.lastPersistResult = "none";
     } else {
       const canLeave = await this.canDeactivate();
       if (!canLeave) return;
 
-      if (this.lastPersistResult === 'meal-created') closeAll = true;
-      if (this.lastPersistResult === 'profile-updated') refresh = true;
-      this.lastPersistResult = 'none';
+      if (this.lastPersistResult === "meal-created") closeAll = true;
+      if (this.lastPersistResult === "profile-updated") refresh = true;
+      this.lastPersistResult = "none";
     }
 
-    console.log('AddProductPage: goBack called', {
+    console.log("AddProductPage: goBack called", {
       params,
       returnUrl: this.returnUrl,
     });
@@ -1006,7 +1027,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (closeAll) {
       const toastOptions: ToastOptions = {
         // B-02 FIX: usar optional chaining para evitar 'undefined' si this.meal es null
-        message: 'Producto añadido a ' + (this.meal?.name || 'la comida'),
+        message: "Producto añadido a " + (this.meal?.name || "la comida"),
         duration: 1000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -1025,46 +1046,46 @@ export class AddProductPage implements OnInit, OnDestroy {
     const selectedDate = navState?.selectedDate || this.dietDay?.date;
 
     // Si venimos de Diets, hacer pop para evitar recargar y rehacer llamadas
-    if (this.returnUrl === '/tabs/diets') {
-      console.log('AddProductPage: returning to diets');
-      this.navigationService.backTo(['/tabs/diets'], {
-        state: { selectedDate }
+    if (this.returnUrl === "/tabs/diets") {
+      console.log("AddProductPage: returning to diets");
+      this.navigationService.backTo(["/tabs/diets"], {
+        state: { selectedDate },
       });
       return;
     }
 
     // Si el retorno es config-recipe, hacer pop
-    if (this.returnUrl === '/search-foods/config-recipe') {
-      console.log('AddProductPage: returning to config-recipe');
+    if (this.returnUrl === "/search-foods/config-recipe") {
+      console.log("AddProductPage: returning to config-recipe");
       this.navigationService.backTo([this.returnUrl], {
-        state: { selectedDate }
+        state: { selectedDate },
       });
       return;
     }
 
     // Si el retorno es SearchFoods (o no hay returnUrl), hacer pop al SearchFoods previo
-    if (this.returnUrl === '/search-foods') {
-      console.log('AddProductPage: returning to search-foods');
-      this.navigationService.backTo(['/search-foods'], {
+    if (this.returnUrl === "/search-foods") {
+      console.log("AddProductPage: returning to search-foods");
+      this.navigationService.backTo(["/search-foods"], {
         state: {
           ...(result || {}),
           ingredientMode: this.ingredientMode,
           // Devolver siempre el producto actualizado por si se ha editado
           updatedProduct: this.product,
-          selectedDate
+          selectedDate,
         },
       });
     } else if (!this.returnUrl) {
-      console.log('AddProductPage: no returnUrl, popping');
+      console.log("AddProductPage: no returnUrl, popping");
       this.navigationService.backNoAnim();
     } else {
-      console.log('AddProductPage: returning to ' + this.returnUrl);
+      console.log("AddProductPage: returning to " + this.returnUrl);
       // Para otros returnUrl, mantener comportamiento anterior con posible resultado
       this.navigationService.backTo(this.returnUrl, {
         state: {
           ...(result ? { result } : {}),
-          selectedDate
-        }
+          selectedDate,
+        },
       });
     }
   }
@@ -1073,28 +1094,28 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (!this.meal) {
       const alertButtons: AlertButton[] = [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
+          text: "CANCELAR",
+          role: "cancel",
         },
         {
-          text: 'OK',
+          text: "CONFIRMAR",
           handler: (res) =>
             this.addCustomProductForm.controls[
-              name === PRODUCT_ATRR.name ? 'name' : 'brand'
+              name === PRODUCT_ATRR.name ? "name" : "brand"
             ].setValue(res.attribute),
         },
       ];
       const alertInputs: AlertInput[] = [
         {
-          name: 'attribute',
-          type: 'textarea',
-          value: this.product[name === PRODUCT_ATRR.name ? 'name' : 'brand'],
-          placeholder: `${name === PRODUCT_ATRR.name ? 'Nombre' : 'Marca'}`,
+          name: "attribute",
+          type: "textarea",
+          value: this.product[name === PRODUCT_ATRR.name ? "name" : "brand"],
+          placeholder: `${name === PRODUCT_ATRR.name ? "Nombre" : "Marca"}`,
         },
       ];
 
       const alertOptions: AlertOptions = {
-        header: `${name === PRODUCT_ATRR.name ? 'Nombre' : 'Marca'} producto`,
+        header: `${name === PRODUCT_ATRR.name ? "Nombre" : "Marca"} producto`,
         inputs: alertInputs,
         buttons: alertButtons,
       };
@@ -1146,7 +1167,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.addCustomProductForm.controls.portions.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((val) => {
-        if (this.selectedUnit === 'portions' && this.hasPortions) {
+        if (this.selectedUnit === "portions" && this.hasPortions) {
           const servingQuantity =
             this.product?.servingQuantity ??
             this.customProduct?.product?.servingQuantity ??
@@ -1163,7 +1184,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.addCustomProductForm.controls.quantity.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((val) => {
-        if (this.selectedUnit === 'g' && this.hasPortions) {
+        if (this.selectedUnit === "g" && this.hasPortions) {
           const servingQuantity =
             this.product?.servingQuantity ??
             this.customProduct?.product?.servingQuantity ??
@@ -1173,14 +1194,14 @@ export class AddProductPage implements OnInit, OnDestroy {
               Math.round((val / servingQuantity) * 100) / 100;
             this.addCustomProductForm.controls.portions.setValue(
               finalPortions,
-              { emitEvent: false }
+              { emitEvent: false },
             );
           }
         }
       });
   }
 
-  public changeUnit(unit: 'g' | 'portions'): void {
+  public changeUnit(unit: "g" | "portions"): void {
     this.selectedUnit = unit;
 
     if (!this.addCustomProductForm) return;
@@ -1188,7 +1209,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     const quantityControl = this.addCustomProductForm.controls.quantity;
     const portionsControl = this.addCustomProductForm.controls.portions;
 
-    if (unit === 'portions') {
+    if (unit === "portions") {
       // En modo porciones: raciones es obligatorio, gramos no
       portionsControl.setValue(1); // FIX: dejar de serie a 1 cuando se cambie a raciones
       quantityControl.clearValidators();
@@ -1200,7 +1221,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     } else {
       // En modo gramos: gramos es obligatorio, raciones no
       quantityControl.setValidators(
-        this.meal || this.ingredientMode ? [Validators.required] : []
+        this.meal || this.ingredientMode ? [Validators.required] : [],
       );
       portionsControl.clearValidators();
       portionsControl.setErrors(null);
@@ -1226,9 +1247,9 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Textos (Convertir string a array)
     const splitText = (text: any) =>
-      typeof text === 'string'
+      typeof text === "string"
         ? text
-            .split(',')
+            .split(",")
             .map((i) => i.trim())
             .filter((i) => i.length > 0)
         : text;
@@ -1246,12 +1267,12 @@ export class AddProductPage implements OnInit, OnDestroy {
         queryParams: {
           product: JSON.stringify(this.product),
           isEditMode: true,
-          returnUrl: '/search-foods/add-product',
+          returnUrl: "/search-foods/add-product",
         },
         state: {
           product: this.product,
           isEditMode: true,
-          returnUrl: '/search-foods/add-product',
+          returnUrl: "/search-foods/add-product",
           user: this.user,
         },
       });
@@ -1264,25 +1285,27 @@ export class AddProductPage implements OnInit, OnDestroy {
         ? this.product.name
         : this.customProduct.product.name;
       const alertOptions: AlertOptions = {
-        header: 'Eliminar producto',
+        header: "Eliminar producto",
         message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
         buttons: [
           {
-            text: 'CANCELAR',
-            role: 'cancel',
+            text: "CANCELAR",
+            role: "cancel",
           },
           {
-            text: 'ELIMINAR',
-            role: 'destructive',
+            text: "ELIMINAR",
+            role: "destructive",
             handler: () => {
               this.productService
                 .deleteProduct(this.product._id)
                 .subscribe(() => {
-                  this.recipeDraftService.removeProductReferences(this.product._id);
+                  this.recipeDraftService.removeProductReferences(
+                    this.product._id,
+                  );
 
                   // Eliminar de archivedProducts si estaba
                   const archivedIndex = this.user.archivedProducts.indexOf(
-                    this.product._id
+                    this.product._id,
                   );
                   if (archivedIndex > -1) {
                     this.user.archivedProducts.splice(archivedIndex, 1);
@@ -1299,7 +1322,7 @@ export class AddProductPage implements OnInit, OnDestroy {
                       if (m.customProducts) {
                         const originalLength = m.customProducts.length;
                         m.customProducts = m.customProducts.filter(
-                          (cp) => cp.product?._id !== this.product._id
+                          (cp) => cp.product?._id !== this.product._id,
                         );
                         if (m.customProducts.length !== originalLength) {
                           shouldUpdateDietDay = true;
@@ -1311,97 +1334,90 @@ export class AddProductPage implements OnInit, OnDestroy {
                       }
 
                       if (mealTemp.customRecipes?.length) {
-                        mealTemp.customRecipes.forEach(
-                          (instance: any) => {
-                            if (!instance) return;
+                        mealTemp.customRecipes.forEach((instance: any) => {
+                          if (!instance) return;
+
+                          if (Array.isArray(instance.addedCustomProducts)) {
+                            const originalAdditionalLen =
+                              instance.addedCustomProducts.length;
+                            instance.addedCustomProducts =
+                              instance.addedCustomProducts.filter(
+                                (addCp: any) => {
+                                  const addProductId =
+                                    typeof addCp?.product === "string"
+                                      ? addCp.product
+                                      : addCp?.product?._id;
+                                  return addProductId !== this.product._id;
+                                },
+                              );
+                            if (
+                              instance.addedCustomProducts.length !==
+                              originalAdditionalLen
+                            ) {
+                              shouldUpdateDietDay = true;
+                            }
+                          }
+
+                          const recipe =
+                            typeof instance.recipe === "object"
+                              ? instance.recipe
+                              : null;
+
+                          if (recipe && Array.isArray(recipe.customProducts)) {
+                            const removedCustomProductIds = new Set<string>();
+                            const originalRecipeCpLen =
+                              recipe.customProducts.length;
+
+                            recipe.customProducts =
+                              recipe.customProducts.filter((cp: any) => {
+                                const cpProductId =
+                                  typeof cp?.product === "string"
+                                    ? cp.product
+                                    : cp?.product?._id;
+                                const keep = cpProductId !== this.product._id;
+                                if (!keep && cp?._id) {
+                                  removedCustomProductIds.add(
+                                    cp._id.toString(),
+                                  );
+                                }
+                                return keep;
+                              });
 
                             if (
-                              Array.isArray(instance.addedCustomProducts)
+                              recipe.customProducts.length !==
+                              originalRecipeCpLen
                             ) {
-                              const originalAdditionalLen =
-                                instance.addedCustomProducts.length;
-                              instance.addedCustomProducts =
-                                instance.addedCustomProducts.filter(
-                                  (addCp: any) => {
-                                    const addProductId =
-                                      typeof addCp?.product === 'string'
-                                        ? addCp.product
-                                        : addCp?.product?._id;
-                                    return addProductId !== this.product._id;
-                                  }
-                                );
-                              if (
-                                instance.addedCustomProducts.length !==
-                                originalAdditionalLen
-                              ) {
-                                shouldUpdateDietDay = true;
-                              }
+                              shouldUpdateDietDay = true;
                             }
 
-                            const recipe =
-                              typeof instance.recipe === 'object'
-                                ? instance.recipe
-                                : null;
-
                             if (
-                              recipe &&
-                              Array.isArray(recipe.customProducts)
+                              removedCustomProductIds.size > 0 &&
+                              Array.isArray(instance.modifiedBaseCustomProducts)
                             ) {
-                              const removedCustomProductIds = new Set<string>();
-                              const originalRecipeCpLen =
-                                recipe.customProducts.length;
-
-                              recipe.customProducts =
-                                recipe.customProducts.filter((cp: any) => {
-                                  const cpProductId =
-                                    typeof cp?.product === 'string'
-                                      ? cp.product
-                                      : cp?.product?._id;
-                                  const keep = cpProductId !== this.product._id;
-                                  if (!keep && cp?._id) {
-                                    removedCustomProductIds.add(
-                                      cp._id.toString()
+                              const originalOverridesLen =
+                                instance.modifiedBaseCustomProducts.length;
+                              instance.modifiedBaseCustomProducts =
+                                instance.modifiedBaseCustomProducts.filter(
+                                  (override: any) => {
+                                    const overrideId =
+                                      typeof override?.baseCustomProductId ===
+                                      "string"
+                                        ? override.baseCustomProductId
+                                        : override?.baseCustomProductId?._id;
+                                    return !removedCustomProductIds.has(
+                                      (overrideId || "").toString(),
                                     );
-                                  }
-                                  return keep;
-                                });
-
+                                  },
+                                );
                               if (
-                                recipe.customProducts.length !==
-                                originalRecipeCpLen
+                                instance.modifiedBaseCustomProducts.length !==
+                                originalOverridesLen
                               ) {
                                 shouldUpdateDietDay = true;
-                              }
-
-                              if (
-                                removedCustomProductIds.size > 0 &&
-                                Array.isArray(instance.modifiedBaseCustomProducts)
-                              ) {
-                                const originalOverridesLen =
-                                  instance.modifiedBaseCustomProducts.length;
-                                instance.modifiedBaseCustomProducts =
-                                  instance.modifiedBaseCustomProducts.filter(
-                                    (override: any) => {
-                                      const overrideId =
-                                        typeof override?.baseCustomProductId ===
-                                        'string'
-                                          ? override.baseCustomProductId
-                                          : override?.baseCustomProductId?._id;
-                                      return !removedCustomProductIds.has(
-                                        (overrideId || '').toString()
-                                      );
-                                    }
-                                  );
-                                if (
-                                  instance.modifiedBaseCustomProducts.length !==
-                                  originalOverridesLen
-                                ) {
-                                  shouldUpdateDietDay = true;
-                                }
                               }
                             }
                           }
-                        );
+                        });
                       }
                     });
 
@@ -1445,7 +1461,8 @@ export class AddProductPage implements OnInit, OnDestroy {
     }
 
     this.customProduct = this.meal?.customProducts.find(
-      (customProductTemp) => customProductTemp.product?._id === this.product._id
+      (customProductTemp) =>
+        customProductTemp.product?._id === this.product._id,
     );
   }
 
@@ -1460,7 +1477,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Si el producto tiene raciones y es una entrada nueva, preseleccionamos 'raciones'
     if (this.hasPortions && !quantity) {
-      this.selectedUnit = 'portions';
+      this.selectedUnit = "portions";
     }
 
     // Redondear kilocalorías sin decimales
@@ -1535,7 +1552,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       brand: new FormControl(this.product.brand),
       quantity: new FormControl(
         quantity,
-        this.meal || this.ingredientMode ? Validators.required : null
+        this.meal || this.ingredientMode ? Validators.required : null,
       ),
       portions: new FormControl(1),
       energyKcal100g: new FormControl(roundedEnergyKcal, Validators.required),
@@ -1560,166 +1577,166 @@ export class AddProductPage implements OnInit, OnDestroy {
       // Minerales (Cargar convirtiendo a unidades de visualización)
       // NOTA: cpOrP prioriza los valores del customProduct (entrada en meal) sobre el producto base
       calcium100g: new FormControl(
-        cpOrP('calcium100g')
-          ? parseFloat((cpOrP('calcium100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("calcium100g")
+          ? parseFloat((cpOrP("calcium100g") * 1000).toFixed(1))
+          : undefined,
       ),
       iron100g: new FormControl(
-        cpOrP('iron100g')
-          ? parseFloat((cpOrP('iron100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("iron100g")
+          ? parseFloat((cpOrP("iron100g") * 1000).toFixed(1))
+          : undefined,
       ),
       magnesium100g: new FormControl(
-        cpOrP('magnesium100g')
-          ? parseFloat((cpOrP('magnesium100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("magnesium100g")
+          ? parseFloat((cpOrP("magnesium100g") * 1000).toFixed(1))
+          : undefined,
       ),
       phosphorus100g: new FormControl(
-        cpOrP('phosphorus100g')
-          ? parseFloat((cpOrP('phosphorus100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("phosphorus100g")
+          ? parseFloat((cpOrP("phosphorus100g") * 1000).toFixed(1))
+          : undefined,
       ),
       potassium100g: new FormControl(
-        cpOrP('potassium100g')
-          ? parseFloat((cpOrP('potassium100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("potassium100g")
+          ? parseFloat((cpOrP("potassium100g") * 1000).toFixed(1))
+          : undefined,
       ),
       zinc100g: new FormControl(
-        cpOrP('zinc100g')
-          ? parseFloat((cpOrP('zinc100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("zinc100g")
+          ? parseFloat((cpOrP("zinc100g") * 1000).toFixed(1))
+          : undefined,
       ),
       copper100g: new FormControl(
-        cpOrP('copper100g')
-          ? parseFloat((cpOrP('copper100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("copper100g")
+          ? parseFloat((cpOrP("copper100g") * 1000).toFixed(1))
+          : undefined,
       ),
       manganese100g: new FormControl(
-        cpOrP('manganese100g')
-          ? parseFloat((cpOrP('manganese100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("manganese100g")
+          ? parseFloat((cpOrP("manganese100g") * 1000).toFixed(1))
+          : undefined,
       ),
       selenium100g: new FormControl(
-        cpOrP('selenium100g')
-          ? parseFloat((cpOrP('selenium100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("selenium100g")
+          ? parseFloat((cpOrP("selenium100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       iodine100g: new FormControl(
-        cpOrP('iodine100g')
-          ? parseFloat((cpOrP('iodine100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("iodine100g")
+          ? parseFloat((cpOrP("iodine100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       sodium100g: new FormControl(
-        cpOrP('sodium100g')
-          ? parseFloat((cpOrP('sodium100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("sodium100g")
+          ? parseFloat((cpOrP("sodium100g") * 1000).toFixed(1))
+          : undefined,
       ),
-      salt100g: new FormControl(cpOrP('salt100g')),
+      salt100g: new FormControl(cpOrP("salt100g")),
 
       // Vitaminas
       vitaminA100g: new FormControl(
-        cpOrP('vitaminA100g')
-          ? parseFloat((cpOrP('vitaminA100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("vitaminA100g")
+          ? parseFloat((cpOrP("vitaminA100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       vitaminD100g: new FormControl(
-        cpOrP('vitaminD100g')
-          ? parseFloat((cpOrP('vitaminD100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("vitaminD100g")
+          ? parseFloat((cpOrP("vitaminD100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       vitaminE100g: new FormControl(
-        cpOrP('vitaminE100g')
-          ? parseFloat((cpOrP('vitaminE100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminE100g")
+          ? parseFloat((cpOrP("vitaminE100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminK100g: new FormControl(
-        cpOrP('vitaminK100g')
-          ? parseFloat((cpOrP('vitaminK100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("vitaminK100g")
+          ? parseFloat((cpOrP("vitaminK100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       vitaminC100g: new FormControl(
-        cpOrP('vitaminC100g')
-          ? parseFloat((cpOrP('vitaminC100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminC100g")
+          ? parseFloat((cpOrP("vitaminC100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB1100g: new FormControl(
-        cpOrP('vitaminB1100g')
-          ? parseFloat((cpOrP('vitaminB1100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB1100g")
+          ? parseFloat((cpOrP("vitaminB1100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB2100g: new FormControl(
-        cpOrP('vitaminB2100g')
-          ? parseFloat((cpOrP('vitaminB2100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB2100g")
+          ? parseFloat((cpOrP("vitaminB2100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB3100g: new FormControl(
-        cpOrP('vitaminB3100g')
-          ? parseFloat((cpOrP('vitaminB3100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB3100g")
+          ? parseFloat((cpOrP("vitaminB3100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB5100g: new FormControl(
-        cpOrP('vitaminB5100g')
-          ? parseFloat((cpOrP('vitaminB5100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB5100g")
+          ? parseFloat((cpOrP("vitaminB5100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB6100g: new FormControl(
-        cpOrP('vitaminB6100g')
-          ? parseFloat((cpOrP('vitaminB6100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB6100g")
+          ? parseFloat((cpOrP("vitaminB6100g") * 1000).toFixed(1))
+          : undefined,
       ),
       vitaminB9100g: new FormControl(
-        cpOrP('vitaminB9100g')
-          ? parseFloat((cpOrP('vitaminB9100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB9100g")
+          ? parseFloat((cpOrP("vitaminB9100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       vitaminB12100g: new FormControl(
-        cpOrP('vitaminB12100g')
-          ? parseFloat((cpOrP('vitaminB12100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("vitaminB12100g")
+          ? parseFloat((cpOrP("vitaminB12100g") * 1000000).toFixed(1))
+          : undefined,
       ),
       biotin100g: new FormControl(
-        cpOrP('biotin100g')
-          ? parseFloat((cpOrP('biotin100g') * 1000000).toFixed(1))
-          : undefined
+        cpOrP("biotin100g")
+          ? parseFloat((cpOrP("biotin100g") * 1000000).toFixed(1))
+          : undefined,
       ),
 
       // Otros
       cholesterol100g: new FormControl(
-        cpOrP('cholesterol100g')
-          ? parseFloat((cpOrP('cholesterol100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("cholesterol100g")
+          ? parseFloat((cpOrP("cholesterol100g") * 1000).toFixed(1))
+          : undefined,
       ),
-      transFat100g: new FormControl(cpOrP('transFat100g')),
-      omega3100g: new FormControl(cpOrP('omega3100g')),
-      omega6100g: new FormControl(cpOrP('omega6100g')),
-      omega9100g: new FormControl(cpOrP('omega9100g')),
+      transFat100g: new FormControl(cpOrP("transFat100g")),
+      omega3100g: new FormControl(cpOrP("omega3100g")),
+      omega6100g: new FormControl(cpOrP("omega6100g")),
+      omega9100g: new FormControl(cpOrP("omega9100g")),
       caffeine100g: new FormControl(
-        cpOrP('caffeine100g')
-          ? parseFloat((cpOrP('caffeine100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("caffeine100g")
+          ? parseFloat((cpOrP("caffeine100g") * 1000).toFixed(1))
+          : undefined,
       ),
       taurine100g: new FormControl(
-        cpOrP('taurine100g')
-          ? parseFloat((cpOrP('taurine100g') * 1000).toFixed(1))
-          : undefined
+        cpOrP("taurine100g")
+          ? parseFloat((cpOrP("taurine100g") * 1000).toFixed(1))
+          : undefined,
       ),
-      alcohol100g: new FormControl(cpOrP('alcohol100g')),
+      alcohol100g: new FormControl(cpOrP("alcohol100g")),
 
       // Textos (C-06 FIX: Usar cpOrP para priorizar overrides de CustomProduct)
       ingredients: new FormControl(
-        Array.isArray(cpOrP('ingredients'))
-          ? (cpOrP('ingredients') as string[]).join(', ')
-          : cpOrP('ingredients')
+        Array.isArray(cpOrP("ingredients"))
+          ? (cpOrP("ingredients") as string[]).join(", ")
+          : cpOrP("ingredients"),
       ),
       allergens: new FormControl(
-        Array.isArray(cpOrP('allergens'))
-          ? (cpOrP('allergens') as string[]).join(', ')
-          : cpOrP('allergens')
+        Array.isArray(cpOrP("allergens"))
+          ? (cpOrP("allergens") as string[]).join(", ")
+          : cpOrP("allergens"),
       ),
       traces: new FormControl(
-        Array.isArray(cpOrP('traces'))
-          ? (cpOrP('traces') as string[]).join(', ')
-          : cpOrP('traces')
+        Array.isArray(cpOrP("traces"))
+          ? (cpOrP("traces") as string[]).join(", ")
+          : cpOrP("traces"),
       ),
     });
 
@@ -1727,8 +1744,8 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Sincronizar validadores según el modo inicial (puede haber arrancado en 'portions')
     // changeUnit hace el intercambio de required entre quantity <-> portions
-    if (this.selectedUnit === 'portions') {
-      this.changeUnit('portions');
+    if (this.selectedUnit === "portions") {
+      this.changeUnit("portions");
     }
 
     this.syncInitialSnapshot();
@@ -1768,7 +1785,10 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (!this.customProduct || !this.addCustomProductForm) return false;
 
     const currentDisplayValue = this.addCustomProductForm.get(field)?.value;
-    const currentValue = this.toStorageNutritionValue(field, currentDisplayValue);
+    const currentValue = this.toStorageNutritionValue(
+      field,
+      currentDisplayValue,
+    );
     if (currentValue === null) return false;
 
     const baseValue = this.getBaseNutritionValue(field);
@@ -1788,7 +1808,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   private normalizeNumericInput(value: any): number | null {
     if (value === null || value === undefined) return null;
-    if (typeof value === 'string' && value.trim() === '') return null;
+    if (typeof value === "string" && value.trim() === "") return null;
 
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
@@ -1822,14 +1842,15 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   private getBaseNutritionValue(field: string): number | null {
     const rawValue =
-      (this.customProduct?.product as any)?.[field] ?? (this.product as any)?.[field];
+      (this.customProduct?.product as any)?.[field] ??
+      (this.product as any)?.[field];
     return this.normalizeNumericInput(rawValue);
   }
 
   private areNutritionValuesEqual(
     a: number | null,
     b: number | null,
-    epsilon = 1e-9
+    epsilon = 1e-9,
   ): boolean {
     if (a === null && b === null) return true;
     if (a === null || b === null) return false;
@@ -1846,9 +1867,15 @@ export class AddProductPage implements OnInit, OnDestroy {
     });
   }
 
-  private applyCustomProductNutritionOverrides(target: any, formValues: any): void {
+  private applyCustomProductNutritionOverrides(
+    target: any,
+    formValues: any,
+  ): void {
     AddProductPage.NUTRITION_FIELDS.forEach((field) => {
-      const normalizedValue = this.toStorageNutritionValue(field, formValues[field]);
+      const normalizedValue = this.toStorageNutritionValue(
+        field,
+        formValues[field],
+      );
       const baseValue = this.normalizeNumericInput(target?.product?.[field]);
 
       if (
@@ -1865,27 +1892,27 @@ export class AddProductPage implements OnInit, OnDestroy {
   private loadParametersFromRoute(): void {
     this.activatedRoute.queryParams.subscribe((params) => {
       let needsInit = false;
-      if (params['product']) {
-        this.product = JSON.parse(params['product']);
+      if (params["product"]) {
+        this.product = JSON.parse(params["product"]);
         needsInit = true;
       }
-      if (params['meal']) {
-        this.meal = JSON.parse(params['meal']);
+      if (params["meal"]) {
+        this.meal = JSON.parse(params["meal"]);
         this.targetMealName = this.meal.name;
         needsInit = true;
-      } else if (params['mealName']) {
-        this.targetMealName = params['mealName'];
+      } else if (params["mealName"]) {
+        this.targetMealName = params["mealName"];
       }
 
-      if (params['dietDay']) {
-        this.dietDay = JSON.parse(params['dietDay']);
+      if (params["dietDay"]) {
+        this.dietDay = JSON.parse(params["dietDay"]);
       }
-      if (params['productQuantity']) {
-        this.productQuantity = parseFloat(params['productQuantity']);
+      if (params["productQuantity"]) {
+        this.productQuantity = parseFloat(params["productQuantity"]);
         needsInit = true;
       }
-      if (params['isScanned']) {
-        this.isScanned = params['isScanned'] === 'true';
+      if (params["isScanned"]) {
+        this.isScanned = params["isScanned"] === "true";
       }
 
       if (needsInit && this.product && !this.addCustomProductForm) {
@@ -1929,8 +1956,8 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private normalizeReturnUrl(url: string): string {
-    if (url === '/config-recipe') {
-      return '/search-foods/config-recipe';
+    if (url === "/config-recipe") {
+      return "/search-foods/config-recipe";
     }
     return url;
   }

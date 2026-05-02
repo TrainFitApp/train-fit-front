@@ -100,7 +100,7 @@
               [value]="getISODate(workout.date)"
               first-day-of-week="1"
               #datetime
-              doneText="OK"
+              doneText="CONFIRMAR"
               cancelText="CANCELAR"
               presentation="date"
               display-seconds="true"
@@ -313,8 +313,12 @@
                     <td>{{ set.timeSec ? set.timeSec + " Seg" : "—" }}</td>
                   </ng-container>
                   <ng-template #expectedCardioTime>
-                    <td>{{ set.expectedMin ? set.expectedMin + " Min" : "—" }}</td>
-                    <td>{{ set.expectedSec ? set.expectedSec + " Seg" : "—" }}</td>
+                    <td>
+                      {{ set.expectedMin ? set.expectedMin + " Min" : "—" }}
+                    </td>
+                    <td>
+                      {{ set.expectedSec ? set.expectedSec + " Seg" : "—" }}
+                    </td>
                   </ng-template>
                 </ng-container>
                 <ng-template #nonCardio>
@@ -328,11 +332,7 @@
                     }}
                   </td>
                   <td>
-                    <span
-                      *ngIf="isFail(set)"
-                      class="fail-label"
-                      >FALLO</span
-                    >
+                    <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
                     <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
                     <span
                       *ngIf="

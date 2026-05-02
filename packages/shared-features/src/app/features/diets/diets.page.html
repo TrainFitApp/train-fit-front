@@ -11,13 +11,22 @@
 
 <ion-content #ionContent class="t-init-diets">
   <!-- Premium upgrade banner (solo free) -->
-  <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
+  <button
+    class="premium-banner"
+    *ngIf="!isPremiumActive"
+    (click)="goToPremium()"
+  >
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <div class="premium-banner__text">
       <span class="premium-banner__title">Hazte Pro</span>
-      <span class="premium-banner__sub">Recetas ilimitadas, sin anuncios y más</span>
+      <span class="premium-banner__sub"
+        >Recetas ilimitadas, sin anuncios y más</span
+      >
     </div>
-    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
+    <ion-icon
+      name="chevron-forward-outline"
+      class="premium-banner__arrow"
+    ></ion-icon>
   </button>
 
   <app-notes
@@ -74,7 +83,7 @@
         first-day-of-week="1"
         #datetime
         [showDefaultButtons]="true"
-        doneText="OK"
+        doneText="CONFIRMAR"
         cancelText="CANCELAR"
         presentation="date"
         (ionChange)="selectCalendarDay(datetime.value.toString())"

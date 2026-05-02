@@ -345,7 +345,7 @@ export class SummaryPage {
     const alertOptions: AlertOptions = {
       header: exercise.exercise.name,
       message: exercise.notes,
-      buttons: ["OK"],
+      buttons: ["CONFIRMAR"],
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }

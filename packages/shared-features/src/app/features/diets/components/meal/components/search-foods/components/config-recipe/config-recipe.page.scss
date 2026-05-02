@@ -13,8 +13,6 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-
 .config-header {
   background: #141414;
   border-bottom: 1px solid #252525;
@@ -672,7 +670,8 @@
         align-items: center;
         justify-content: center;
         position: relative;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2),
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.2),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
         &::before {
@@ -915,7 +914,8 @@
           align-items: center;
           justify-content: center;
           position: relative;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2),
+          box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.2),
             inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
           &::before {
@@ -1266,7 +1266,6 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.82);
     font-size: 0.76rem;
-    font-weight: 700;
     letter-spacing: 0.1px;
     text-align: left;
 
@@ -1442,11 +1441,7 @@
 .macro-summary {
   &.portion-summary {
     border-color: rgba(var(--ion-color-secondary-rgb), 0.3);
-    background: linear-gradient(
-      180deg,
-      rgba(var(--ion-color-secondary-rgb), 0.05) 0%,
-      var(--card-bg) 100%
-    );
+    background: linear-gradient(180deg, rgba(var(--ion-color-secondary-rgb), 0.05) 0%, var(--card-bg) 100%);
 
     .section-header {
       h3 {
@@ -1497,7 +1492,8 @@
         align-items: center;
         justify-content: center;
         position: relative;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2),
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.2),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
         &::before {
@@ -1651,7 +1647,7 @@
     border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       top: 100%;
       left: 0;

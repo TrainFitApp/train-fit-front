@@ -367,7 +367,7 @@ export class ConfigExercisePage implements OnInit {
               "No se puede intercambiar un ejercicio cardiovascular con uno de fuerza",
             buttons: [
               {
-                text: "OK",
+                text: "CONFIRMAR",
                 role: "destructive",
               },
             ],
@@ -1318,7 +1318,7 @@ export class ConfigExercisePage implements OnInit {
         role: "cancel",
       },
       {
-        text: "OK",
+        text: "CONFIRMAR",
         handler: (res) => {
           this.noteToCreate = !!res.notes;
           this.notes = res.notes;

@@ -808,7 +808,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         message: "Número máximo de micro-ciclos alcanzados",
         buttons: [
           {
-            text: "OK",
+            text: "CONFIRMAR",
             role: "cancel",
           },
         ],
@@ -910,7 +910,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             role: "cancel",
           },
           {
-            text: "OK",
+            text: "CONFIRMAR",
             cssClass: "alert-button-primary",
             handler: () => {
               const idSplit =
