@@ -1,39 +1,39 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { IonContent, IonModal, Platform, ToastOptions } from '@ionic/angular';
-import { Subscription, merge } from 'rxjs';
-import { User } from 'src/app/core/models/user';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
+import { IonContent, IonModal, Platform, ToastOptions } from "@ionic/angular";
+import { Subscription, merge } from "rxjs";
+import { User } from "src/app/core/models/user";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
 import {
   ACTIVITY_FACTOR,
   ACTIVITY_FACTOR_TYPE,
   ACTIVITY_FACTOR_VALUES,
-} from 'src/app/shared/constants/activity-factor';
+} from "src/app/shared/constants/activity-factor";
 import {
   OBJETIVES,
   OBJETIVES_VALUES,
   OBJETIVE_TYPE,
   OBJETIVE_TYPES,
-} from 'src/app/shared/constants/objetives';
-import { SEX, SEX_TYPES } from 'src/app/shared/constants/sex';
+} from "src/app/shared/constants/objetives";
+import { SEX, SEX_TYPES } from "src/app/shared/constants/sex";
 import {
   STEPS,
   STEPS_TYPES,
   STEPS_VALUES,
-} from 'src/app/shared/constants/steps';
+} from "src/app/shared/constants/steps";
 import {
   TRAINING_TYPE,
   calculateTrainingValues,
-} from 'src/app/shared/constants/training';
-import { USER_VALIDATIONS } from 'src/app/shared/constants/user-validations';
-import { MACROS_VALUES, MacrosData } from 'src/app/shared/models/macros-data';
+} from "src/app/shared/constants/training";
+import { USER_VALIDATIONS } from "src/app/shared/constants/user-validations";
+import { MACROS_VALUES, MacrosData } from "src/app/shared/models/macros-data";
 
 @Component({
-  selector: 'app-editor',
-  templateUrl: './editor.page.html',
-  styleUrls: ['./editor.page.scss'],
+  selector: "app-editor",
+  templateUrl: "./editor.page.html",
+  styleUrls: ["./editor.page.scss"],
 })
 export class EditorPage implements OnInit {
   @ViewChild(IonContent) content: IonContent;
@@ -80,12 +80,12 @@ export class EditorPage implements OnInit {
     private navigationService: NavigationService,
     private userService: UserService,
     private ionicUtilService: IonicUtilService,
-    private platform: Platform
-  ) { }
+    private platform: Platform,
+  ) {}
 
   public get activityType(): ACTIVITY_FACTOR_TYPE {
     return this.userService.getActivityFactor(
-      this.userForm.controls.activity.value
+      this.userForm.controls.activity.value,
     );
   }
 
@@ -107,25 +107,25 @@ export class EditorPage implements OnInit {
       activity: new FormControl(this.user.activity, USER_VALIDATIONS.activity),
       objetive: new FormControl(
         Math.abs(this.user.objetive),
-        USER_VALIDATIONS.objetive
+        USER_VALIDATIONS.objetive,
       ),
       objetiveType: new FormControl(null, Validators.required),
       training: new FormControl(this.user.training, USER_VALIDATIONS.training),
       kcalTotal: new FormControl(
         Math.round(this.user.kcalTotal),
-        USER_VALIDATIONS.kcalTotal
+        USER_VALIDATIONS.kcalTotal,
       ),
       proteinsGTotal: new FormControl(
         Math.round(this.user.proteinsGTotal),
-        USER_VALIDATIONS.proteinsGTotal
+        USER_VALIDATIONS.proteinsGTotal,
       ),
       carbohydratesGTotal: new FormControl(
         Math.round(this.user.carbohydratesGTotal),
-        USER_VALIDATIONS.carbohydratesGTotal
+        USER_VALIDATIONS.carbohydratesGTotal,
       ),
       fatGTotal: new FormControl(
         Math.round(this.user.fatGTotal),
-        USER_VALIDATIONS.fatGTotal
+        USER_VALIDATIONS.fatGTotal,
       ),
     });
 
@@ -155,7 +155,7 @@ export class EditorPage implements OnInit {
     Object.keys(this.userForm.value).forEach((controlName) => {
       this.initialFormUser.addControl(
         controlName,
-        new FormControl(this.userForm.value[controlName])
+        new FormControl(this.userForm.value[controlName]),
       );
     });
   }
@@ -192,14 +192,14 @@ export class EditorPage implements OnInit {
 
   private initTraining(): void {
     let trainingValues = this.updateTrainingOptions(
-      this.userForm.controls.steps.value
+      this.userForm.controls.steps.value,
     );
     this.userForm.controls.training.setValue(
-      this.userForm.controls.training.value
+      this.userForm.controls.training.value,
     );
 
     this.userForm.controls.training.valueChanges.subscribe(() =>
-      this.setTrainingDescription()
+      this.setTrainingDescription(),
     );
 
     this.userForm.controls.steps.valueChanges.subscribe((selectedStep) => {
@@ -214,14 +214,14 @@ export class EditorPage implements OnInit {
       // Primero saca el id con el value del form para saber a que training nos referimos,
       const idTraining = Object.values(trainingValues).find(
         (trainingTemp) =>
-          trainingTemp.value === this.userForm.controls.training.value
+          trainingTemp.value === this.userForm.controls.training.value,
       ).id;
 
       trainingValues = this.updateTrainingOptions(selectedStep);
 
       // Después con ese id sacamos el training pero actualizado de haber cambiado los steps
       const trainingValue = Object.values(trainingValues).find(
-        (trainingTemp) => trainingTemp.id === idTraining
+        (trainingTemp) => trainingTemp.id === idTraining,
       ).value;
       // desppués con el id training sacamos el valor de ese training y se asigna al form
       this.userForm.controls.training.setValue(trainingValue);
@@ -244,7 +244,7 @@ export class EditorPage implements OnInit {
   public selectObjetiveFromSelect(event: any): void {
     const selectedId = event.detail.value;
     const selectedObjetive = this.OBJETIVES_VALUES.find(
-      (obj) => obj.id === selectedId
+      (obj) => obj.id === selectedId,
     );
     if (selectedObjetive) {
       this.selectObjetive(selectedObjetive);
@@ -262,27 +262,27 @@ export class EditorPage implements OnInit {
     if (this.userForm.valid && !this.calculationError) {
       if (
         JSON.stringify(this.userForm.value) !==
-        JSON.stringify(this.initialFormUser.value) ||
+          JSON.stringify(this.initialFormUser.value) ||
         this.hasObjetiveChange()
       ) {
         const alertOptions = {
-          header: 'Guardar antes de salir',
-          message: 'Tienes cambios sin guardar. ¿Qué deseas hacer?',
-          cssClass: 'alert-grid-buttons',
+          header: "Guardar antes de salir",
+          message: "Tienes cambios sin guardar. ¿Qué deseas hacer?",
+          cssClass: "alert-grid-buttons",
           buttons: [
             {
-              text: 'CANCELAR',
-              role: 'cancel',
+              text: "CANCELAR",
+              role: "cancel",
             },
             {
-              text: 'GUARDAR',
+              text: "GUARDAR",
               handler: () => {
                 this.updateUser();
               },
             },
             {
-              text: 'NO GUARDAR',
-              role: 'destructive',
+              text: "DESCARTAR",
+              role: "destructive",
               handler: () => {
                 this.objetiveSelected = this.initialObjetiveType;
                 this.userForm.reset(this.initialFormUser.value);
@@ -296,13 +296,13 @@ export class EditorPage implements OnInit {
       } else this.ionicUtilService.closeModal();
     } else {
       const alertOptions = {
-        header: 'Faltan campos requeridos',
+        header: "Faltan campos requeridos",
         message:
-          'Por favor, completa todos los campos obligatorios antes de continuar.',
+          "Por favor, completa todos los campos obligatorios antes de continuar.",
         buttons: [
           {
-            text: 'ENTENDIDO',
-            role: 'cancel',
+            text: "ENTENDIDO",
+            role: "cancel",
           },
         ],
       };
@@ -323,20 +323,20 @@ export class EditorPage implements OnInit {
       this.calculate();
       // para que entre en el valueChanges
       this.userForm.controls.kcalTotal.setValue(
-        this.userForm.controls.kcalTotal.value
+        this.userForm.controls.kcalTotal.value,
       );
     });
   }
 
   public setStepsDescription(): void {
     this.stepsDescription = STEPS_VALUES.find(
-      (sTemp) => sTemp.value === this.userForm.controls.steps.value
+      (sTemp) => sTemp.value === this.userForm.controls.steps.value,
     ).name;
   }
 
   public setTrainingDescription(): void {
     this.trainingDescription = this.TRAINING_TYPE_VALUES.find(
-      (tTemp) => tTemp.value === this.userForm.controls.training.value
+      (tTemp) => tTemp.value === this.userForm.controls.training.value,
     ).name;
   }
 
@@ -348,13 +348,13 @@ export class EditorPage implements OnInit {
       Math.round(this.user.proteinsGTotal),
       {
         emitEvent: false,
-      }
+      },
     );
     this.userForm.controls.carbohydratesGTotal.setValue(
       Math.round(this.user.carbohydratesGTotal),
       {
         emitEvent: false,
-      }
+      },
     );
     this.userForm.controls.fatGTotal.setValue(Math.round(this.user.fatGTotal), {
       emitEvent: false,
@@ -367,13 +367,13 @@ export class EditorPage implements OnInit {
 
     if (!this.userForm.valid) {
       const alertOptions = {
-        header: 'Faltan campos requeridos',
+        header: "Faltan campos requeridos",
         message:
-          'Por favor, completa todos los campos obligatorios antes de guardar.',
+          "Por favor, completa todos los campos obligatorios antes de guardar.",
         buttons: [
           {
-            text: 'ENTENDIDO',
-            role: 'cancel',
+            text: "ENTENDIDO",
+            role: "cancel",
           },
         ],
       };
@@ -390,7 +390,7 @@ export class EditorPage implements OnInit {
     // Comparar cada campo con el valor inicial y solo incluir los que han cambiado
     Object.keys(formValue).forEach((key) => {
       if (
-        key !== 'objetiveType' &&
+        key !== "objetiveType" &&
         formValue[key] !== this.initialFormUser.value[key]
       ) {
         userToUpdate[key] = formValue[key];
@@ -405,8 +405,8 @@ export class EditorPage implements OnInit {
     // Solo actualizar si hay cambios
     if (Object.keys(userToUpdate).length === 0) {
       this.ionicUtilService.showToast({
-        message: 'No hay cambios para guardar',
-        color: 'warning',
+        message: "No hay cambios para guardar",
+        color: "warning",
         duration: 2000,
       } as ToastOptions);
       this.loading = false;
@@ -429,8 +429,8 @@ export class EditorPage implements OnInit {
         this.user = user;
         this.userService.setLocalUser = user; // Actualizar el usuario local
         this.ionicUtilService.showToast({
-          message: 'Usuario actualizado correctamente',
-          color: 'success',
+          message: "Usuario actualizado correctamente",
+          color: "success",
           duration: 2000,
         } as ToastOptions);
         this.ionicUtilService.closeModal();
@@ -438,8 +438,8 @@ export class EditorPage implements OnInit {
       },
       error: (error) => {
         this.ionicUtilService.showToast({
-          message: 'Error al actualizar el usuario',
-          color: 'danger',
+          message: "Error al actualizar el usuario",
+          color: "danger",
           duration: 2000,
         } as ToastOptions);
         this.loading = false;
@@ -467,7 +467,7 @@ export class EditorPage implements OnInit {
     else this.objetiveSelected = OBJETIVES[OBJETIVE_TYPES.maintenance];
 
     this.userForm.controls.objetive.setValue(
-      Math.abs(this.userForm.controls.objetive.value)
+      Math.abs(this.userForm.controls.objetive.value),
     );
 
     this.initialObjetive = this.user.objetive;
@@ -520,7 +520,7 @@ export class EditorPage implements OnInit {
 
   // Métodos para el selector de fecha mejorado
   public openDatePicker(): void {
-    const datetimeButton = document.querySelector('#datetime-button') as any;
+    const datetimeButton = document.querySelector("#datetime-button") as any;
     if (datetimeButton) {
       datetimeButton.click();
     }
@@ -529,27 +529,27 @@ export class EditorPage implements OnInit {
   public onDateChange(event: any): void {
     const selectedDate = event.detail.value;
     if (selectedDate) {
-      this.userForm.get('birth')?.setValue(selectedDate);
-      this.userForm.get('birth')?.markAsTouched();
+      this.userForm.get("birth")?.setValue(selectedDate);
+      this.userForm.get("birth")?.markAsTouched();
     }
   }
 
   public getFormattedBirthDate(): string {
-    const birthValue = this.userForm.get('birth')?.value;
-    if (!birthValue) return '';
+    const birthValue = this.userForm.get("birth")?.value;
+    if (!birthValue) return "";
 
     const date = new Date(birthValue);
     const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
     };
 
-    return date.toLocaleDateString('es-ES', options);
+    return date.toLocaleDateString("es-ES", options);
   }
 
   public calculateAge(): number {
-    const birthValue = this.userForm.get('birth')?.value;
+    const birthValue = this.userForm.get("birth")?.value;
     if (!birthValue) return 0;
 
     const birthDate = new Date(birthValue);
@@ -606,11 +606,13 @@ export class EditorPage implements OnInit {
 
     if (
       stepsValue === STEPS[STEPS_TYPES.notCounted].value &&
-      (activityControl.value === null || activityControl.value === undefined || activityControl.value === '')
+      (activityControl.value === null ||
+        activityControl.value === undefined ||
+        activityControl.value === "")
     ) {
       const buttons: any[] = [
         {
-          text: 'RELLENAR',
+          text: "RELLENAR",
           handler: () => {
             this.scrollToActivityAndHighlight();
           },
@@ -619,8 +621,8 @@ export class EditorPage implements OnInit {
 
       if (isClosing) {
         buttons.push({
-          text: 'NO GUARDAR',
-          role: 'destructive',
+          text: "DESCARTAR",
+          role: "destructive",
           handler: () => {
             this.objetiveSelected = this.initialObjetiveType;
             this.userForm.reset(this.initialFormUser.value);
@@ -631,8 +633,9 @@ export class EditorPage implements OnInit {
       }
 
       const alertOptions = {
-        header: 'Nivel de actividad obligatorio',
-        message: 'Has seleccionado que no cuentas tus pasos, por lo que es obligatorio rellenar el nivel de actividad.',
+        header: "Nivel de actividad obligatorio",
+        message:
+          "Has seleccionado que no cuentas tus pasos, por lo que es obligatorio rellenar el nivel de actividad.",
         buttons: buttons,
       };
       this.ionicUtilService.showAlert(alertOptions);
@@ -642,7 +645,7 @@ export class EditorPage implements OnInit {
   }
 
   private scrollToActivityAndHighlight(): void {
-    const element = document.getElementById('activity-card');
+    const element = document.getElementById("activity-card");
     if (element) {
       const yOffset = element.offsetTop - 100; // Ajuste para que no quede pegado arriba
       this.content.scrollToPoint(0, yOffset, 800);

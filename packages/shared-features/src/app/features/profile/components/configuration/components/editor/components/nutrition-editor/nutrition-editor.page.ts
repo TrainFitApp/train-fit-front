@@ -6,26 +6,26 @@ import {
   ElementRef,
   NgZone,
   ChangeDetectorRef,
-} from '@angular/core';
+} from "@angular/core";
 import {
   ModalController,
   ToastOptions,
   AlertController,
   Platform,
   IonContent,
-} from '@ionic/angular';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { User } from 'src/app/core/models/user';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { Subscription } from 'rxjs';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
+} from "@ionic/angular";
+import { UserService } from "src/app/core/services/user/user.service";
+import { User } from "src/app/core/models/user";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { Subscription } from "rxjs";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 
 @Component({
-  selector: 'app-nutrition-editor',
-  templateUrl: './nutrition-editor.page.html',
-  styleUrls: ['./nutrition-editor.page.scss'],
+  selector: "app-nutrition-editor",
+  templateUrl: "./nutrition-editor.page.html",
+  styleUrls: ["./nutrition-editor.page.scss"],
   encapsulation: ViewEncapsulation.None,
 })
 export class NutritionEditorPage implements OnInit {
@@ -36,7 +36,7 @@ export class NutritionEditorPage implements OnInit {
 
   // Estado principal
   public state = {
-    mode: 'g', // 'g' o '%'
+    mode: "g", // 'g' o '%'
     kcalPerG: { p: 4, c: 4, f: 9 },
     lock: { p: false, c: false, f: false, calories: false },
     grams: { p: 0, c: 0, f: 0 },
@@ -66,7 +66,7 @@ export class NutritionEditorPage implements OnInit {
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private adMobService: AdMobService,
-    private billingService: BillingService
+    private billingService: BillingService,
   ) {}
 
   ngOnInit() {
@@ -86,7 +86,7 @@ export class NutritionEditorPage implements OnInit {
     return Math.round(
       this.state.grams.p * this.state.kcalPerG.p +
         this.state.grams.c * this.state.kcalPerG.c +
-        this.state.grams.f * this.state.kcalPerG.f
+        this.state.grams.f * this.state.kcalPerG.f,
     );
   }
 
@@ -126,26 +126,26 @@ export class NutritionEditorPage implements OnInit {
       if (this.state.targetKcal > 0) {
         this.state.pct.p = this.pctFromGrams(
           this.state.grams.p,
-          this.state.kcalPerG.p
+          this.state.kcalPerG.p,
         );
         this.state.pct.c = this.pctFromGrams(
           this.state.grams.c,
-          this.state.kcalPerG.c
+          this.state.kcalPerG.c,
         );
         this.state.pct.f = this.pctFromGrams(
           this.state.grams.f,
-          this.state.kcalPerG.f
+          this.state.kcalPerG.f,
         );
       }
     }
 
     // Configurar valores iniciales en los inputs
     const targetKcalInput = document.getElementById(
-      'targetKcal'
+      "targetKcal",
     ) as HTMLInputElement;
-    const pInput = document.getElementById('pInput') as HTMLInputElement;
-    const cInput = document.getElementById('cInput') as HTMLInputElement;
-    const fInput = document.getElementById('fInput') as HTMLInputElement;
+    const pInput = document.getElementById("pInput") as HTMLInputElement;
+    const cInput = document.getElementById("cInput") as HTMLInputElement;
+    const fInput = document.getElementById("fInput") as HTMLInputElement;
 
     if (targetKcalInput)
       targetKcalInput.value = this.state.targetKcal.toString();
@@ -182,7 +182,7 @@ export class NutritionEditorPage implements OnInit {
       this.originalState.grams.c !== this.state.grams.c ||
       this.originalState.grams.f !== this.state.grams.f;
 
-    console.log('Checking for unsaved changes:', {
+    console.log("Checking for unsaved changes:", {
       hasChanges,
       original: this.originalState,
       current: {
@@ -195,7 +195,7 @@ export class NutritionEditorPage implements OnInit {
   }
 
   private restoreOriginalState(): void {
-    console.log('Restoring original state:', this.originalState);
+    console.log("Restoring original state:", this.originalState);
 
     // Restaurar valores del estado de la interfaz
     this.state.targetKcal = this.originalState.targetKcal;
@@ -207,15 +207,15 @@ export class NutritionEditorPage implements OnInit {
     if (this.state.targetKcal > 0) {
       this.state.pct.p = this.pctFromGrams(
         this.state.grams.p,
-        this.state.kcalPerG.p
+        this.state.kcalPerG.p,
       );
       this.state.pct.c = this.pctFromGrams(
         this.state.grams.c,
-        this.state.kcalPerG.c
+        this.state.kcalPerG.c,
       );
       this.state.pct.f = this.pctFromGrams(
         this.state.grams.f,
-        this.state.kcalPerG.f
+        this.state.kcalPerG.f,
       );
     }
 
@@ -223,18 +223,18 @@ export class NutritionEditorPage implements OnInit {
     // Esto evita que los cambios se propaguen a otros componentes
     if (this.originalUser) {
       this.userService.setLocalUser = JSON.parse(
-        JSON.stringify(this.originalUser)
+        JSON.stringify(this.originalUser),
       );
       this.user = this.userService.getLocalUser;
     }
 
     // Actualizar los inputs del DOM con los valores restaurados
     const targetKcalInput = document.getElementById(
-      'targetKcal'
+      "targetKcal",
     ) as HTMLInputElement;
-    const pInput = document.getElementById('pInput') as HTMLInputElement;
-    const cInput = document.getElementById('cInput') as HTMLInputElement;
-    const fInput = document.getElementById('fInput') as HTMLInputElement;
+    const pInput = document.getElementById("pInput") as HTMLInputElement;
+    const cInput = document.getElementById("cInput") as HTMLInputElement;
+    const fInput = document.getElementById("fInput") as HTMLInputElement;
 
     if (targetKcalInput)
       targetKcalInput.value = this.state.targetKcal.toString();
@@ -246,7 +246,7 @@ export class NutritionEditorPage implements OnInit {
     this.updateKcalConstants();
     this.render();
 
-    console.log('State and user restored successfully');
+    console.log("State and user restored successfully");
   }
 
   // ---------- Manejo de eventos ----------
@@ -261,15 +261,15 @@ export class NutritionEditorPage implements OnInit {
     // Recalcular gramos basados en los porcentajes actuales y las nuevas calorías
     this.state.grams.p = this.gramsFromPct(
       this.state.pct.p,
-      this.state.kcalPerG.p
+      this.state.kcalPerG.p,
     );
     this.state.grams.c = this.gramsFromPct(
       this.state.pct.c,
-      this.state.kcalPerG.c
+      this.state.kcalPerG.c,
     );
     this.state.grams.f = this.gramsFromPct(
       this.state.pct.f,
-      this.state.kcalPerG.f
+      this.state.kcalPerG.f,
     );
 
     this.syncInputsFromState();
@@ -281,7 +281,7 @@ export class NutritionEditorPage implements OnInit {
     if (this.state.syncKcal) {
       this.state.targetKcal = this.kcalFromGrams();
       const targetKcalInput = document.getElementById(
-        'targetKcal'
+        "targetKcal",
       ) as HTMLInputElement;
       if (targetKcalInput)
         targetKcalInput.value = this.state.targetKcal.toString();
@@ -289,7 +289,7 @@ export class NutritionEditorPage implements OnInit {
     this.render();
   }
 
-  public onMacroInput(key: 'p' | 'c' | 'f', event: any): void {
+  public onMacroInput(key: "p" | "c" | "f", event: any): void {
     if (this.state.updating) return;
     const val = this.clamp(event.target.value, 0, 10000);
 
@@ -305,8 +305,8 @@ export class NutritionEditorPage implements OnInit {
     // Redistribuir automáticamente si hay macros desbloqueados
     const sum = this.state.pct.p + this.state.pct.c + this.state.pct.f;
     if (sum > 100.0) {
-      const others = (['p', 'c', 'f'] as const).filter(
-        (k) => k !== key && !this.state.lock[k]
+      const others = (["p", "c", "f"] as const).filter(
+        (k) => k !== key && !this.state.lock[k],
       );
       if (others.length) {
         const excess = sum - 100.0;
@@ -315,7 +315,7 @@ export class NutritionEditorPage implements OnInit {
           this.state.pct[k] = this.clamp(this.state.pct[k] - share, 0, 100);
           this.state.grams[k] = this.gramsFromPct(
             this.state.pct[k],
-            this.state.kcalPerG[k]
+            this.state.kcalPerG[k],
           );
         });
       }
@@ -326,20 +326,20 @@ export class NutritionEditorPage implements OnInit {
   }
 
   // ---------- Modo ----------
-  public setMode(mode: 'g' | '%'): void {
+  public setMode(mode: "g" | "%"): void {
     if (this.state.mode === mode) return;
     this.state.mode = mode;
 
-    const modeGrams = document.getElementById('modeGrams');
-    const modePercent = document.getElementById('modePercent');
+    const modeGrams = document.getElementById("modeGrams");
+    const modePercent = document.getElementById("modePercent");
 
     document
-      .querySelectorAll('.segmented button')
-      .forEach((b) => b.classList.remove('active'));
-    if (mode === 'g' && modeGrams) {
-      modeGrams.classList.add('active');
-    } else if (mode === '%' && modePercent) {
-      modePercent.classList.add('active');
+      .querySelectorAll(".segmented button")
+      .forEach((b) => b.classList.remove("active"));
+    if (mode === "g" && modeGrams) {
+      modeGrams.classList.add("active");
+    } else if (mode === "%" && modePercent) {
+      modePercent.classList.add("active");
     }
 
     this.syncInputsFromState();
@@ -347,17 +347,17 @@ export class NutritionEditorPage implements OnInit {
   }
 
   // ---------- Bloqueos ----------
-  public toggleLock(key: 'p' | 'c' | 'f'): void {
+  public toggleLock(key: "p" | "c" | "f"): void {
     this.state.lock[key] = !this.state.lock[key];
-    const elementMap = { p: 'lockP', c: 'lockC', f: 'lockF' };
+    const elementMap = { p: "lockP", c: "lockC", f: "lockF" };
     const el = document.getElementById(elementMap[key]);
-    const icon = el?.querySelector('i');
+    const icon = el?.querySelector("i");
 
     if (icon) {
-      icon.className = this.state.lock[key] ? 'fa fa-lock' : 'fa fa-unlock';
+      icon.className = this.state.lock[key] ? "fa fa-lock" : "fa fa-unlock";
     }
     if (el) {
-      el.classList.toggle('active', this.state.lock[key]);
+      el.classList.toggle("active", this.state.lock[key]);
     }
 
     // Si se desbloquea un macro, redistribuir automáticamente
@@ -372,14 +372,14 @@ export class NutritionEditorPage implements OnInit {
     this.state.lock.calories = !this.state.lock.calories;
   }
 
-  public onPercentInput(key: 'p' | 'c' | 'f', event: any): void {
+  public onPercentInput(key: "p" | "c" | "f", event: any): void {
     if (this.state.updating) return;
     const val = this.clamp(event.target.value, 0, 100);
 
     this.state.pct[key] = val;
     this.state.grams[key] = this.gramsFromPct(
       this.state.pct[key],
-      this.state.kcalPerG[key]
+      this.state.kcalPerG[key],
     );
 
     if (this.state.syncKcal) {
@@ -389,8 +389,8 @@ export class NutritionEditorPage implements OnInit {
     // Redistribuir automáticamente si hay macros desbloqueados
     const sum = this.state.pct.p + this.state.pct.c + this.state.pct.f;
     if (sum > 100.0) {
-      const others = (['p', 'c', 'f'] as const).filter(
-        (k) => k !== key && !this.state.lock[k]
+      const others = (["p", "c", "f"] as const).filter(
+        (k) => k !== key && !this.state.lock[k],
       );
       if (others.length) {
         const excess = sum - 100.0;
@@ -399,7 +399,7 @@ export class NutritionEditorPage implements OnInit {
           this.state.pct[k] = this.clamp(this.state.pct[k] - share, 0, 100);
           this.state.grams[k] = this.gramsFromPct(
             this.state.pct[k],
-            this.state.kcalPerG[k]
+            this.state.kcalPerG[k],
           );
         });
       }
@@ -410,52 +410,52 @@ export class NutritionEditorPage implements OnInit {
   }
 
   // ---------- Unified Slider Logic ----------
-  public activeDragHandle: 'h1' | 'h2' | null = null;
-  @ViewChild('sliderContainer') sliderContainer: ElementRef;
+  public activeDragHandle: "h1" | "h2" | null = null;
+  @ViewChild("sliderContainer") sliderContainer: ElementRef;
 
-  public startDrag(handle: 'h1' | 'h2', event: any): void {
+  public startDrag(handle: "h1" | "h2", event: any): void {
     // If it's a PointerEvent, use pointer capture for better mobile reliability
     if (event.setPointerCapture && event.pointerId !== undefined) {
       (event.target as HTMLElement).setPointerCapture(event.pointerId);
     }
 
     // Check locks
-    if (this.state.lock.p && handle === 'h1') return;
-    if (this.state.lock.f && handle === 'h2') return;
+    if (this.state.lock.p && handle === "h1") return;
+    if (this.state.lock.f && handle === "h2") return;
 
     this.activeDragHandle = handle;
     this.state.updating = true;
 
     // Pre-cache elements to avoid repetitive DOM lookups during drag
     this.cachedElements = {
-      pG: document.getElementById('proteinGramsInput') as HTMLInputElement,
-      pP: document.getElementById('proteinPercentInput') as HTMLInputElement,
-      cG: document.getElementById('carbsGramsInput') as HTMLInputElement,
-      cP: document.getElementById('carbsPercentInput') as HTMLInputElement,
-      fG: document.getElementById('fatGramsInput') as HTMLInputElement,
-      fP: document.getElementById('fatPercentInput') as HTMLInputElement,
-      kcal: document.getElementById('caloriesInput') as HTMLInputElement,
-      kcalTotal: document.getElementById('totalKcalFromMacros'),
+      pG: document.getElementById("proteinGramsInput") as HTMLInputElement,
+      pP: document.getElementById("proteinPercentInput") as HTMLInputElement,
+      cG: document.getElementById("carbsGramsInput") as HTMLInputElement,
+      cP: document.getElementById("carbsPercentInput") as HTMLInputElement,
+      fG: document.getElementById("fatGramsInput") as HTMLInputElement,
+      fP: document.getElementById("fatPercentInput") as HTMLInputElement,
+      kcal: document.getElementById("caloriesInput") as HTMLInputElement,
+      kcalTotal: document.getElementById("totalKcalFromMacros"),
       // Segmentos del slider para actualización manual
-      segP: document.querySelector('.segment-p') as HTMLElement,
-      segC: document.querySelector('.segment-c') as HTMLElement,
-      segF: document.querySelector('.segment-f') as HTMLElement,
-      handle1: document.querySelector('.handle-1') as HTMLElement,
-      handle2: document.querySelector('.handle-2') as HTMLElement,
-      labelP: document.getElementById('labelP'),
-      labelC: document.getElementById('labelC'),
-      labelF: document.getElementById('labelF'),
+      segP: document.querySelector(".segment-p") as HTMLElement,
+      segC: document.querySelector(".segment-c") as HTMLElement,
+      segF: document.querySelector(".segment-f") as HTMLElement,
+      handle1: document.querySelector(".handle-1") as HTMLElement,
+      handle2: document.querySelector(".handle-2") as HTMLElement,
+      labelP: document.getElementById("labelP"),
+      labelC: document.getElementById("labelC"),
+      labelF: document.getElementById("labelF"),
     };
 
     // Run outside Angular to avoid heavy Change Detection on every move
     this.ngZone.runOutsideAngular(() => {
-      document.addEventListener('pointermove', this.onDragMove);
-      document.addEventListener('pointerup', this.onDragEnd);
-      document.addEventListener('pointercancel', this.onDragEnd);
-      document.addEventListener('touchmove', this.onDragMove, {
+      document.addEventListener("pointermove", this.onDragMove);
+      document.addEventListener("pointerup", this.onDragEnd);
+      document.addEventListener("pointercancel", this.onDragEnd);
+      document.addEventListener("touchmove", this.onDragMove, {
         passive: false,
       });
-      document.addEventListener('touchend', this.onDragEnd);
+      document.addEventListener("touchend", this.onDragEnd);
     });
   }
 
@@ -491,7 +491,7 @@ export class NutritionEditorPage implements OnInit {
       percentage = this.clamp(percentage, 0, 100);
 
       // Logic based on which handle is dragged
-      if (this.activeDragHandle === 'h1') {
+      if (this.activeDragHandle === "h1") {
         let newP = percentage;
         let newC = this.state.pct.c;
         let newF = this.state.pct.f;
@@ -517,7 +517,7 @@ export class NutritionEditorPage implements OnInit {
           }
         }
         this.updateMacrosFromSlider(newP, newC, newF);
-      } else if (this.activeDragHandle === 'h2') {
+      } else if (this.activeDragHandle === "h2") {
         let h2Pos = percentage;
         let newP = this.state.pct.p;
         let newC = this.state.pct.c;
@@ -569,11 +569,11 @@ export class NutritionEditorPage implements OnInit {
       } catch (e) {}
     }
 
-    document.removeEventListener('pointermove', this.onDragMove);
-    document.removeEventListener('pointerup', this.onDragEnd);
-    document.removeEventListener('pointercancel', this.onDragEnd);
-    document.removeEventListener('touchmove', this.onDragMove);
-    document.removeEventListener('touchend', this.onDragEnd);
+    document.removeEventListener("pointermove", this.onDragMove);
+    document.removeEventListener("pointerup", this.onDragEnd);
+    document.removeEventListener("pointercancel", this.onDragEnd);
+    document.removeEventListener("touchmove", this.onDragMove);
+    document.removeEventListener("touchend", this.onDragEnd);
   };
 
   public onTrackPointerDown(event: any): void {
@@ -590,7 +590,7 @@ export class NutritionEditorPage implements OnInit {
     const d1 = Math.abs(x - h1Pos);
     const d2 = Math.abs(x - h2Pos);
 
-    const handle = d1 < d2 ? 'h1' : 'h2';
+    const handle = d1 < d2 ? "h1" : "h2";
 
     // Start drag
     this.startDrag(handle, event);
@@ -656,49 +656,49 @@ export class NutritionEditorPage implements OnInit {
       kcalTotal.textContent = this.getTotalKcalFromMacros().toString();
 
     // Actualizar Slider Bar (Segments)
-    if (segP) segP.style.width = p + '%';
+    if (segP) segP.style.width = p + "%";
     if (segC) {
-      segC.style.left = p + '%';
-      segC.style.width = c + '%';
+      segC.style.left = p + "%";
+      segC.style.width = c + "%";
     }
     if (segF) {
-      segF.style.left = p + c + '%';
-      segF.style.width = f + '%';
+      segF.style.left = p + c + "%";
+      segF.style.width = f + "%";
     }
 
     // Actualizar Labels dentro de la barra
     if (labelP) {
-      labelP.textContent = p.toFixed(1) + '%';
-      labelP.style.display = p > 8 ? 'block' : 'none';
+      labelP.textContent = p.toFixed(1) + "%";
+      labelP.style.display = p > 8 ? "block" : "none";
     }
     if (labelC) {
-      labelC.textContent = c.toFixed(1) + '%';
-      labelC.style.display = c > 8 ? 'block' : 'none';
+      labelC.textContent = c.toFixed(1) + "%";
+      labelC.style.display = c > 8 ? "block" : "none";
     }
     if (labelF) {
-      labelF.textContent = f.toFixed(1) + '%';
-      labelF.style.display = f > 8 ? 'block' : 'none';
+      labelF.textContent = f.toFixed(1) + "%";
+      labelF.style.display = f > 8 ? "block" : "none";
     }
 
     // Actualizar Handles
-    if (handle1) handle1.style.left = p + '%';
-    if (handle2) handle2.style.left = p + c + '%';
+    if (handle1) handle1.style.left = p + "%";
+    if (handle2) handle2.style.left = p + c + "%";
   }
 
   // Obsolete event, replaced by unified slider
-  public onSliderInput(key: 'p' | 'c' | 'f', event: any): void {
+  public onSliderInput(key: "p" | "c" | "f", event: any): void {
     // No-op
   }
 
   // ---------- Presets ----------
   public applyPreset(p: number, c: number, f: number): void {
-    this.setMode('%');
+    this.setMode("%");
     this.state.pct = { p, c, f };
     this.state.grams.p = this.gramsFromPct(p, this.state.kcalPerG.p);
     this.state.grams.c = this.gramsFromPct(c, this.state.kcalPerG.c);
     this.state.grams.f = this.gramsFromPct(f, this.state.kcalPerG.f);
 
-    const syncKcal = document.getElementById('syncKcal') as HTMLInputElement;
+    const syncKcal = document.getElementById("syncKcal") as HTMLInputElement;
     if (syncKcal?.checked) {
       this.state.targetKcal = this.kcalFromGrams();
     }
@@ -708,9 +708,9 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public applyKgPreset(p: number, c: number, f: number): void {
-    const pPerKg = document.getElementById('pPerKg') as HTMLInputElement;
-    const cPerKg = document.getElementById('cPerKg') as HTMLInputElement;
-    const fPerKg = document.getElementById('fPerKg') as HTMLInputElement;
+    const pPerKg = document.getElementById("pPerKg") as HTMLInputElement;
+    const cPerKg = document.getElementById("cPerKg") as HTMLInputElement;
+    const fPerKg = document.getElementById("fPerKg") as HTMLInputElement;
 
     if (pPerKg) pPerKg.value = p.toString();
     if (cPerKg) cPerKg.value = c.toString();
@@ -720,10 +720,10 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public applyKg(): void {
-    const weightKg = document.getElementById('weightKg') as HTMLInputElement;
-    const pPerKg = document.getElementById('pPerKg') as HTMLInputElement;
-    const cPerKg = document.getElementById('cPerKg') as HTMLInputElement;
-    const fPerKg = document.getElementById('fPerKg') as HTMLInputElement;
+    const weightKg = document.getElementById("weightKg") as HTMLInputElement;
+    const pPerKg = document.getElementById("pPerKg") as HTMLInputElement;
+    const cPerKg = document.getElementById("cPerKg") as HTMLInputElement;
+    const fPerKg = document.getElementById("fPerKg") as HTMLInputElement;
 
     const w = +(weightKg?.value || 0);
     if (w <= 0) return;
@@ -732,24 +732,24 @@ export class NutritionEditorPage implements OnInit {
     const c = +(cPerKg?.value || 0);
     const f = +(fPerKg?.value || 0);
 
-    this.setMode('g');
+    this.setMode("g");
     this.state.grams.p = this.round1(p * w);
     this.state.grams.c = this.round1(c * w);
     this.state.grams.f = this.round1(f * w);
     this.state.pct.p = this.pctFromGrams(
       this.state.grams.p,
-      this.state.kcalPerG.p
+      this.state.kcalPerG.p,
     );
     this.state.pct.c = this.pctFromGrams(
       this.state.grams.c,
-      this.state.kcalPerG.c
+      this.state.kcalPerG.c,
     );
     this.state.pct.f = this.pctFromGrams(
       this.state.grams.f,
-      this.state.kcalPerG.f
+      this.state.kcalPerG.f,
     );
 
-    const syncKcal = document.getElementById('syncKcal') as HTMLInputElement;
+    const syncKcal = document.getElementById("syncKcal") as HTMLInputElement;
     if (syncKcal?.checked) {
       this.state.targetKcal = this.kcalFromGrams();
     }
@@ -760,40 +760,40 @@ export class NutritionEditorPage implements OnInit {
 
   // ---------- Actualización de UI ----------
   private updateKcalConstants(): void {
-    const pKcalPerG = document.getElementById('pKcalPerG');
-    const cKcalPerG = document.getElementById('cKcalPerG');
-    const fKcalPerG = document.getElementById('fKcalPerG');
+    const pKcalPerG = document.getElementById("pKcalPerG");
+    const cKcalPerG = document.getElementById("cKcalPerG");
+    const fKcalPerG = document.getElementById("fKcalPerG");
 
     if (pKcalPerG) pKcalPerG.textContent = this.state.kcalPerG.p.toString();
     if (cKcalPerG) cKcalPerG.textContent = this.state.kcalPerG.c.toString();
     if (fKcalPerG) fKcalPerG.textContent = this.state.kcalPerG.f.toString();
 
     // Recalcular con nuevas constantes
-    if (this.state.mode === 'g') {
+    if (this.state.mode === "g") {
       this.state.pct.p = this.pctFromGrams(
         this.state.grams.p,
-        this.state.kcalPerG.p
+        this.state.kcalPerG.p,
       );
       this.state.pct.c = this.pctFromGrams(
         this.state.grams.c,
-        this.state.kcalPerG.c
+        this.state.kcalPerG.c,
       );
       this.state.pct.f = this.pctFromGrams(
         this.state.grams.f,
-        this.state.kcalPerG.f
+        this.state.kcalPerG.f,
       );
     } else {
       this.state.grams.p = this.gramsFromPct(
         this.state.pct.p,
-        this.state.kcalPerG.p
+        this.state.kcalPerG.p,
       );
       this.state.grams.c = this.gramsFromPct(
         this.state.pct.c,
-        this.state.kcalPerG.c
+        this.state.kcalPerG.c,
       );
       this.state.grams.f = this.gramsFromPct(
         this.state.pct.f,
-        this.state.kcalPerG.f
+        this.state.kcalPerG.f,
       );
     }
     this.syncInputsFromState();
@@ -802,15 +802,15 @@ export class NutritionEditorPage implements OnInit {
 
   private syncInputsFromState(): void {
     // Only used for initialization or major state changes, not during drag
-    const pG = document.getElementById('proteinGramsInput') as HTMLInputElement;
+    const pG = document.getElementById("proteinGramsInput") as HTMLInputElement;
     const pP = document.getElementById(
-      'proteinPercentInput'
+      "proteinPercentInput",
     ) as HTMLInputElement;
-    const cG = document.getElementById('carbsGramsInput') as HTMLInputElement;
-    const cP = document.getElementById('carbsPercentInput') as HTMLInputElement;
-    const fG = document.getElementById('fatGramsInput') as HTMLInputElement;
-    const fP = document.getElementById('fatPercentInput') as HTMLInputElement;
-    const kcal = document.getElementById('caloriesInput') as HTMLInputElement;
+    const cG = document.getElementById("carbsGramsInput") as HTMLInputElement;
+    const cP = document.getElementById("carbsPercentInput") as HTMLInputElement;
+    const fG = document.getElementById("fatGramsInput") as HTMLInputElement;
+    const fP = document.getElementById("fatPercentInput") as HTMLInputElement;
+    const kcal = document.getElementById("caloriesInput") as HTMLInputElement;
 
     if (pG) pG.value = this.state.grams.p.toFixed(0);
     if (pP) pP.value = this.state.pct.p.toFixed(1);
@@ -821,18 +821,18 @@ export class NutritionEditorPage implements OnInit {
     if (kcal) kcal.value = this.state.targetKcal.toString();
   }
 
-  private infoLine(k: 'p' | 'c' | 'f'): string {
+  private infoLine(k: "p" | "c" | "f"): string {
     const g = this.state.grams[k] || 0;
     const pct = this.state.pct[k] || 0;
     const kcal = this.round1(g * this.state.kcalPerG[k]);
-    const nameMap = { p: 'Proteínas', c: 'Carbohidratos', f: 'Grasas' };
+    const nameMap = { p: "Proteínas", c: "Carbohidratos", f: "Grasas" };
     return `<b>${g || 0} g</b> • <b>${kcal} kcal</b> • <b>${pct || 0}%</b>`;
   }
 
   private render(): void {
     // Round factors for display
     const totalKcal = this.kcalFromGrams();
-    const totalKcalElement = document.getElementById('totalKcalFromMacros');
+    const totalKcalElement = document.getElementById("totalKcalFromMacros");
     if (totalKcalElement) {
       totalKcalElement.textContent = totalKcal.toString();
     }
@@ -841,19 +841,19 @@ export class NutritionEditorPage implements OnInit {
   // ---------- Guardar ----------
   public async save(): Promise<void> {
     if (!this.isValidConfiguration()) {
-      console.warn('Configuración inválida, no se puede guardar');
+      console.warn("Configuración inválida, no se puede guardar");
 
       // Mostrar toast informativo
       const toast: ToastOptions = {
         message:
-          'Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico',
+          "Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico",
         duration: 3000,
-        color: 'warning',
+        color: "warning",
       };
       await this.ionicUtilService.showToast(toast);
 
       // Hacer scroll a la sección de resumen
-      const summarySection = document.querySelector('.summary-section');
+      const summarySection = document.querySelector(".summary-section");
       if (summarySection && this.content) {
         // Obtener la posición del elemento
         const yOffset =
@@ -871,25 +871,25 @@ export class NutritionEditorPage implements OnInit {
 
     // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
     const alertOptions = {
-      header: 'Guardar Configuración',
+      header: "Guardar Configuración",
       message:
-        'Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.',
+        "Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.",
       buttons: [
         {
-          text: 'Cancelar',
-          role: 'cancel',
+          text: "Cancelar",
+          role: "cancel",
         },
         {
-          text: 'Ver Anuncio',
-          cssClass: 'alert-button-success',
+          text: "Ver Anuncio",
+          cssClass: "alert-button-success",
           handler: () => {
             this.adMobService
-              .interstitial('save_nutrition')
+              .interstitial("save_nutrition")
               .then(() => {
                 this.executeSave();
               })
               .catch((err) => {
-                console.error('Error AdMob Interstitial:', err);
+                console.error("Error AdMob Interstitial:", err);
                 this.executeSave();
               });
           },
@@ -902,7 +902,7 @@ export class NutritionEditorPage implements OnInit {
 
   private shouldRequireAdPrompt(): boolean {
     const entitlements = this.billingService.getCachedEntitlements();
-    if (typeof entitlements?.adsEnabled === 'boolean') {
+    if (typeof entitlements?.adsEnabled === "boolean") {
       return entitlements.adsEnabled;
     }
 
@@ -920,7 +920,7 @@ export class NutritionEditorPage implements OnInit {
       // Persistir los cambios en el servidor
       this.userService.updateUser(this.user).subscribe({
         next: (updatedUser) => {
-          console.log('Configuración nutricional guardada en servidor:', {
+          console.log("Configuración nutricional guardada en servidor:", {
             kcalTotal: updatedUser.kcalTotal,
             proteinsGTotal: updatedUser.proteinsGTotal,
             carbohydratesGTotal: updatedUser.carbohydratesGTotal,
@@ -934,7 +934,7 @@ export class NutritionEditorPage implements OnInit {
 
           // Mostrar toast de confirmación
           const toast: ToastOptions = {
-            message: 'Objetivos nutricionales guardados',
+            message: "Objetivos nutricionales guardados",
             duration: 2000,
           };
           this.ionicUtilService.showToast(toast);
@@ -948,11 +948,11 @@ export class NutritionEditorPage implements OnInit {
           }, 100);
         },
         error: (error) => {
-          console.error('Error al guardar configuración nutricional:', error);
+          console.error("Error al guardar configuración nutricional:", error);
 
           // Mostrar toast de error
           const errorToast: ToastOptions = {
-            message: 'Error al guardar. Cambios guardados localmente.',
+            message: "Error al guardar. Cambios guardados localmente.",
             duration: 3000,
           };
           this.ionicUtilService.showToast(errorToast);
@@ -988,9 +988,9 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public getKcalByMacro(key: string): number {
-    const macroKey = key as 'p' | 'c' | 'f';
+    const macroKey = key as "p" | "c" | "f";
     return Math.round(
-      this.state.grams[macroKey] * this.state.kcalPerG[macroKey]
+      this.state.grams[macroKey] * this.state.kcalPerG[macroKey],
     );
   }
 
@@ -1007,18 +1007,18 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public getMacroName(key: string): string {
-    const names = { p: 'Proteínas', c: 'CBH', f: 'Grasas' };
-    const macroKey = key as 'p' | 'c' | 'f';
+    const names = { p: "Proteínas", c: "CBH", f: "Grasas" };
+    const macroKey = key as "p" | "c" | "f";
     return names[macroKey];
   }
 
   public getMacroColor(key: string): string {
     const colors = {
-      p: 'var(--protein-color)',
-      c: 'var(--carbs-color)',
-      f: 'var(--fat-color)',
+      p: "var(--protein-color)",
+      c: "var(--carbs-color)",
+      f: "var(--fat-color)",
     };
-    const macroKey = key as 'p' | 'c' | 'f';
+    const macroKey = key as "p" | "c" | "f";
     return colors[macroKey];
   }
 
@@ -1032,8 +1032,8 @@ export class NutritionEditorPage implements OnInit {
     }
 
     // Obtener macros no bloqueados
-    const unlocked = (['p', 'c', 'f'] as const).filter(
-      (k) => !this.state.lock[k]
+    const unlocked = (["p", "c", "f"] as const).filter(
+      (k) => !this.state.lock[k],
     );
 
     if (unlocked.length === 0) {
@@ -1044,25 +1044,25 @@ export class NutritionEditorPage implements OnInit {
     if (unlocked.length === 1) {
       // Solo uno desbloqueado, ajustar para que la suma sea 100%
       const key = unlocked[0];
-      const lockedSum = (['p', 'c', 'f'] as const)
+      const lockedSum = (["p", "c", "f"] as const)
         .filter((k) => k !== key && this.state.lock[k])
         .reduce((sum, k) => sum + this.state.pct[k], 0);
 
       this.state.pct[key] = Math.max(0, Math.min(100, 100 - lockedSum));
       this.state.grams[key] = this.gramsFromPct(
         this.state.pct[key],
-        this.state.kcalPerG[key]
+        this.state.kcalPerG[key],
       );
     } else {
       // Múltiples desbloqueados, redistribuir proporcionalmente
-      const lockedSum = (['p', 'c', 'f'] as const)
+      const lockedSum = (["p", "c", "f"] as const)
         .filter((k) => this.state.lock[k])
         .reduce((sum, k) => sum + this.state.pct[k], 0);
 
       const availableForUnlocked = Math.max(0, 100 - lockedSum);
       const currentUnlockedSum = unlocked.reduce(
         (sum, k) => sum + this.state.pct[k],
-        0
+        0,
       );
 
       if (currentUnlockedSum > 0) {
@@ -1072,7 +1072,7 @@ export class NutritionEditorPage implements OnInit {
           this.state.pct[k] = this.round1(availableForUnlocked * proportion);
           this.state.grams[k] = this.gramsFromPct(
             this.state.pct[k],
-            this.state.kcalPerG[k]
+            this.state.kcalPerG[k],
           );
         });
       } else {
@@ -1082,7 +1082,7 @@ export class NutritionEditorPage implements OnInit {
           this.state.pct[k] = this.round1(equalShare);
           this.state.grams[k] = this.gramsFromPct(
             this.state.pct[k],
-            this.state.kcalPerG[k]
+            this.state.kcalPerG[k],
           );
         });
       }
@@ -1094,7 +1094,7 @@ export class NutritionEditorPage implements OnInit {
 
   public recalculateMacros(): void {
     if (this.state.targetKcal <= 0) {
-      console.warn('No se puede recalcular sin un objetivo de kcal válido');
+      console.warn("No se puede recalcular sin un objetivo de kcal válido");
       return;
     }
 
@@ -1130,7 +1130,7 @@ export class NutritionEditorPage implements OnInit {
     this.state.pct.c = this.round1(cProportion * 100);
     this.state.pct.f = this.round1(fProportion * 100);
 
-    console.log('Macros recalculados manteniendo proporciones:', {
+    console.log("Macros recalculados manteniendo proporciones:", {
       proportions: { p: pProportion, c: cProportion, f: fProportion },
       newGrams: this.state.grams,
       newPercentages: this.state.pct,
@@ -1166,18 +1166,18 @@ export class NutritionEditorPage implements OnInit {
     // Determinar el tipo de objetivo basado en el valor actual del usuario
     let objetiveType: string;
     if (this.user.objetive > 0) {
-      objetiveType = 'gain';
+      objetiveType = "gain";
     } else if (this.user.objetive < 0) {
-      objetiveType = 'loss';
+      objetiveType = "loss";
     } else {
-      objetiveType = 'maintenance';
+      objetiveType = "maintenance";
     }
 
     const objetiveValue = Math.abs(this.user.objetive);
 
-    if (objetiveType === 'loss') {
+    if (objetiveType === "loss") {
       this.objetiveFinal = -Math.abs(objetiveValue);
-    } else if (objetiveType === 'gain') {
+    } else if (objetiveType === "gain") {
       this.objetiveFinal = Math.abs(objetiveValue);
     } else {
       this.objetiveFinal = 0;
@@ -1195,15 +1195,15 @@ export class NutritionEditorPage implements OnInit {
     if (this.state.targetKcal > 0) {
       this.state.pct.p = this.pctFromGrams(
         this.state.grams.p,
-        this.state.kcalPerG.p
+        this.state.kcalPerG.p,
       );
       this.state.pct.c = this.pctFromGrams(
         this.state.grams.c,
-        this.state.kcalPerG.c
+        this.state.kcalPerG.c,
       );
       this.state.pct.f = this.pctFromGrams(
         this.state.grams.f,
-        this.state.kcalPerG.f
+        this.state.kcalPerG.f,
       );
     }
 
@@ -1216,22 +1216,22 @@ export class NutritionEditorPage implements OnInit {
   public objetiveFinal: number = 0;
 
   async closeModal() {
-    console.log('closeModal() called');
+    console.log("closeModal() called");
 
     if (this.hasUnsavedChanges()) {
-      console.log('Has unsaved changes, showing confirmation modal');
+      console.log("Has unsaved changes, showing confirmation modal");
       const alertOptions = {
-        header: 'Cambios sin guardar',
-        message: '¿Estás seguro de que quieres salir sin guardar los cambios?',
-        cssClass: 'alert-grid-buttons',
+        header: "Cambios sin guardar",
+        message: "¿Estás seguro de que quieres salir sin guardar los cambios?",
+        cssClass: "alert-grid-buttons",
         buttons: [
           {
-            text: 'Cancelar',
-            role: 'cancel',
-            cssClass: 'secondary',
+            text: "Cancelar",
+            role: "cancel",
+            cssClass: "secondary",
           },
           {
-            text: 'Guardar',
+            text: "Guardar",
             handler: async () => {
               // Llamar a save() y esperar a que complete
               await this.save();
@@ -1240,8 +1240,8 @@ export class NutritionEditorPage implements OnInit {
             },
           },
           {
-            text: 'No guardar',
-            role: 'destructive',
+            text: "DESCARTAR",
+            role: "destructive",
             handler: () => {
               this.restoreOriginalState();
               this.ionicUtilService.closeModal();
@@ -1251,7 +1251,7 @@ export class NutritionEditorPage implements OnInit {
       };
       await this.ionicUtilService.showAlert(alertOptions);
     } else {
-      console.log('No unsaved changes, closing modal directly');
+      console.log("No unsaved changes, closing modal directly");
       this.ionicUtilService.closeModal();
     }
   }
