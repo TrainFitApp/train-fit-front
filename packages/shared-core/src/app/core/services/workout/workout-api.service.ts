@@ -35,6 +35,16 @@ export class WorkoutAPIService {
     );
   }
 
+  public addExerciseToWorkouts(
+    workoutIds: string[],
+    exerciseId: string
+  ): Observable<any[]> {
+    return this.http.post<any[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/multiple/exercises`,
+      { workoutIds, exerciseId }
+    );
+  }
+
   public getWorkoutById(id: string): Observable<Workout> {
     return this.http.get<Workout>(
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/${id}`

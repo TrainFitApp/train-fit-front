@@ -115,11 +115,15 @@
 
 <ion-content class="exercises-content">
   <div class="exercises-list" *ngIf="exercises.length > 0; else emptyExercises">
+    
     <div
       class="translucent-card exercise-card"
-      *ngFor="let exercise of exercises, let i = index"
-      [ngClass]="{'t-exercise': i === 0}"
-      (click)="addExerciseModal(exercise)"
+      *ngFor="let exercise of exercises; let i = index"
+      [ngClass]="{
+        't-exercise': i === 0,
+        'selected': !isChangeMode && isExerciseSelected(exercise)
+      }"
+      (click)="isChangeMode ? addExerciseModal(exercise) : toggleExerciseSelection(exercise)"
     >
       <div class="exercise-image">
         <img
@@ -153,9 +157,16 @@
       </div>
 
       <div class="exercise-action">
-        <ion-icon name="chevron-forward-outline" class="action-icon"></ion-icon>
+        <ion-icon name="chevron-forward-outline" class="action-icon" *ngIf="isChangeMode"></ion-icon>
+        <ion-checkbox
+          mode="md"
+          [checked]="isExerciseSelected(exercise)"
+          *ngIf="!isChangeMode"
+          style="pointer-events: none;"
+        ></ion-checkbox>
       </div>
     </div>
+
   </div>
 
   <ng-template #emptyExercises>

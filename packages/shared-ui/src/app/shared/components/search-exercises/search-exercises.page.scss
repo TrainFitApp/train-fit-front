@@ -325,6 +325,22 @@
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    background-color: rgba(var(--ion-color-primary-rgb), 0.04);
+    
+    .exercise-name {
+      color: var(--ion-color-primary) !important;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+    background-color: #1a1a1a;
+  }
 }
 
 .exercise-card {
@@ -392,10 +408,24 @@
 
   .exercise-action {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     .action-icon {
       font-size: 1.2rem;
       color: rgba(255, 255, 255, 0.6);
+    }
+    
+    ion-checkbox {
+      --size: 24px;
+      --checkbox-background-checked: var(--ion-color-primary);
+      --border-color: #444;
+      --border-color-checked: var(--ion-color-primary);
+
+      &::part(container) {
+        border-radius: 6px;
+      }
     }
   }
 }

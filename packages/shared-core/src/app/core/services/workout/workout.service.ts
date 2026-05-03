@@ -58,6 +58,13 @@ export class WorkoutService {
     return this.workoutAPIService.addWorkoutsToSplits(idTable, workout);
   }
 
+  public addExerciseToWorkouts(
+    workoutIds: string[],
+    exerciseId: string
+  ): Observable<any[]> {
+    return this.workoutAPIService.addExerciseToWorkouts(workoutIds, exerciseId);
+  }
+
   public getWorkoutById(id: string): Observable<Workout> {
     return this.workoutAPIService.getWorkoutById(id).pipe(take(1));
   }

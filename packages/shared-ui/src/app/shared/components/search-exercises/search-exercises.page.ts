@@ -10,6 +10,9 @@ import { Split } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
+import { CustomExercise } from 'src/app/core/models/customExercise';
+import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
+import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
   ColorMode,
@@ -77,7 +80,9 @@ export class SearchExercisesPage implements OnInit {
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private userService: UserService,
-    private platform: Platform
+    private platform: Platform,
+    private customExerciseService: CustomExerciseService,
+    private workoutService: WorkoutService
   ) {
     this.themeService.theme.subscribe((res: Theme) => (this.theme = res));
   }
@@ -146,6 +151,17 @@ export class SearchExercisesPage implements OnInit {
             ? (resExercises || []).filter((exercise) => !exercise?.isCardio)
             : resExercises;
 
+        if (!this.isChangeMode && this.workout?.exercises) {
+           const selectedIds = this.workout.exercises.map(ce => ce.exercise?._id);
+           filteredExercises.sort((a, b) => {
+              const aSelected = selectedIds.includes(a._id);
+              const bSelected = selectedIds.includes(b._id);
+              if (aSelected && !bSelected) return -1;
+              if (!aSelected && bSelected) return 1;
+              return 0;
+           });
+        }
+
         this.exercises = filteredExercises;
         this.exerciseService.setExercises = this.exercises;
         this.load = true;
@@ -211,6 +227,102 @@ export class SearchExercisesPage implements OnInit {
     this.ionicUtilService.showModal(modalOptions).then((res) => {
       if (res.data) this.modalController.dismiss(res.data);
     });
+  }
+
+  public isExerciseSelected(exercise: Exercise): boolean {
+    if (this.isChangeMode || !this.workout?.exercises) return false;
+    return !!this.workout.exercises.find(ce => ce.exercise?._id === exercise._id);
+  }
+
+  public toggleExerciseSelection(exercise: Exercise): void {
+    if (this.isChangeMode) {
+      this.addExerciseModal(exercise);
+      return;
+    }
+
+    if (!this.load) return;
+
+    const existingCustomExercise = this.workout.exercises.find(
+      ce => ce.exercise?._id === exercise._id
+    );
+
+    this.load = false;
+
+    if (existingCustomExercise) {
+      // Remove it
+      let deletedExercises: string[] = [];
+      if (this.tableInUse?.splits) {
+        this.tableInUse.splits.forEach((splitTemp) => {
+          if (splitTemp.workouts[this.workoutIndex]) {
+            const ceToRemove = splitTemp.workouts[this.workoutIndex].exercises.find(
+              ce => ce.exercise?._id === exercise._id
+            );
+            if (ceToRemove) {
+              deletedExercises.push(ceToRemove._id);
+              splitTemp.workouts[this.workoutIndex].exercises = splitTemp.workouts[this.workoutIndex].exercises.filter(
+                ce => ce._id !== ceToRemove._id
+              );
+            }
+          }
+        });
+      }
+      
+      // Also update this.workout reference if it's not the same as the one in tableInUse
+      if (this.workout && this.workout.exercises) {
+         this.workout.exercises = this.workout.exercises.filter(
+           ce => ce.exercise?._id !== exercise._id
+         );
+      }
+
+      this.customExerciseService.deleteCustomExercises(deletedExercises).subscribe(() => {
+        this.load = true;
+      });
+
+    } else {
+      // Add it
+      const workoutIds: string[] = [];
+      const targetWorkouts: any[] = [];
+      
+      if (this.tableInUse?.splits) {
+        this.tableInUse.splits.forEach((splitTemp) => {
+          if (splitTemp.workouts[this.workoutIndex]) {
+            workoutIds.push(splitTemp.workouts[this.workoutIndex]._id);
+            targetWorkouts.push(splitTemp.workouts[this.workoutIndex]);
+          }
+        });
+      }
+
+      // Fallback in case tableInUse doesn't have it but we have a valid workout
+      if (workoutIds.length === 0 && this.workout?._id) {
+        workoutIds.push(this.workout._id);
+        targetWorkouts.push(this.workout);
+      }
+      
+      this.workoutService.addExerciseToWorkouts(workoutIds, exercise._id).subscribe((results) => {
+         // results is an array of { workoutId, customExercise }
+         results.forEach((resItem) => {
+            const targetWorkout = targetWorkouts.find(w => w._id === resItem.workoutId);
+            if (targetWorkout) {
+               if (!targetWorkout.exercises) targetWorkout.exercises = [];
+               const alreadyExists = targetWorkout.exercises.some(ce => ce.exercise?._id === exercise._id);
+               if (!alreadyExists) {
+                  targetWorkout.exercises.push(resItem.customExercise);
+               }
+            }
+            
+            // Also explicitly update this.workout if it matches
+            if (this.workout && this.workout._id === resItem.workoutId && !targetWorkouts.includes(this.workout)) {
+               if (!this.workout.exercises) this.workout.exercises = [];
+               const alreadyExists = this.workout.exercises.some(ce => ce.exercise?._id === exercise._id);
+               if (!alreadyExists) {
+                  this.workout.exercises.push(resItem.customExercise);
+               }
+            }
+         });
+         
+         this.load = true;
+      });
+    }
   }
 
   public openFilterModal(): void {
