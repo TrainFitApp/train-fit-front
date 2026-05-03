@@ -7,7 +7,7 @@ android {
         applicationId "com.trainfit.management"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 114
+        versionCode 10126
         versionName "101.2.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
