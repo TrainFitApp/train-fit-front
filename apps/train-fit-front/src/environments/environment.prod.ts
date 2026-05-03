@@ -1,6 +1,8 @@
 import pkg from '../../package.json';
 
-const API_URL_BASE = 'https://server.trainfit.net';
+const PORT = '';
+const API_URL_BASE =
+  'https://train-fit-back-production.up.railway.app' + PORT;
 
 export const environment = {
   production: true,

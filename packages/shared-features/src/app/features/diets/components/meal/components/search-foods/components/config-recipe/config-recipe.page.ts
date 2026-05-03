@@ -216,7 +216,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private initFromRoute(): void {
     const state: any = window.history.state || {};
     this.routeState = state;
-    const routeMode = (state.mode || "create") as RecipeDraftMode;
+    const savedMode = this.navigationService.getTempData<RecipeDraftMode>("configRecipeMode");
+    const routeMode = (state.mode || savedMode || "create") as RecipeDraftMode;
     let routeRecipe = state.recipe || null;
     let routeCustomRecipe = state.customRecipe || null;
     const routeMeal = state.meal || null;

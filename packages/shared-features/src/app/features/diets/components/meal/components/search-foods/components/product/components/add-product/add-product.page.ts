@@ -1782,7 +1782,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   public showOverrideMeta(field: string): boolean {
-    if (!this.customProduct || !this.addCustomProductForm) return false;
+    if (!this.addCustomProductForm) return false;
 
     const currentDisplayValue = this.addCustomProductForm.get(field)?.value;
     const currentValue = this.toStorageNutritionValue(
@@ -1841,10 +1841,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   private getBaseNutritionValue(field: string): number | null {
-    const rawValue =
-      (this.customProduct?.product as any)?.[field] ??
-      (this.product as any)?.[field];
-    return this.normalizeNumericInput(rawValue);
+    return this.normalizeNumericInput((this.product as any)?.[field]);
   }
 
   private areNutritionValuesEqual(

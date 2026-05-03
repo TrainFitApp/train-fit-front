@@ -41,6 +41,7 @@
                     class="custom-input"
                     placeholder="100"
                     appDecimalInput
+                    [maxDecimals]="2"
                   ></ion-input>
                   <span class="input-unit">g</span>
                 </div>
@@ -137,11 +138,13 @@
                 </ion-label>
                 <div class="input-wrapper calories-wrapper">
                   <ion-input
-                    type="number"
+                    type="text"
                     inputmode="numeric"
                     formControlName="energyKcal100g"
                     class="custom-input calories-value"
                     placeholder="0"
+                    appDecimalInput
+                    [maxDecimals]="0"
                   ></ion-input>
                   <span class="input-unit primary-unit">kcal</span>
                 </div>
@@ -173,6 +176,7 @@
                         class="custom-input"
                         placeholder="0"
                         appDecimalInput
+                        [maxDecimals]="2"
                       ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
@@ -191,6 +195,7 @@
                           class="custom-input"
                           placeholder="0"
                           appDecimalInput
+                          [maxDecimals]="2"
                         ></ion-input>
                         <span class="input-unit secondary-unit">g</span>
                       </div>
@@ -213,6 +218,7 @@
                         class="custom-input"
                         placeholder="0"
                         appDecimalInput
+                        [maxDecimals]="2"
                       ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
@@ -232,6 +238,7 @@
                         class="custom-input"
                         placeholder="0"
                         appDecimalInput
+                        [maxDecimals]="2"
                       ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
@@ -253,6 +260,7 @@
                         class="custom-input"
                         placeholder="0"
                         appDecimalInput
+                        [maxDecimals]="2"
                       ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
@@ -274,6 +282,7 @@
                         class="custom-input"
                         placeholder="0"
                         appDecimalInput
+                        [maxDecimals]="2"
                       ></ion-input>
                       <span class="input-unit secondary-unit">g</span>
                     </div>
@@ -317,6 +326,7 @@
                           class="custom-input"
                           placeholder="Ej: 150"
                           appDecimalInput
+                          [maxDecimals]="2"
                         ></ion-input>
                         <span class="input-unit">g</span>
                       </div>
@@ -336,6 +346,7 @@
                           class="custom-input"
                           placeholder="Ej: 500"
                           appDecimalInput
+                          [maxDecimals]="2"
                         ></ion-input>
                         <span class="input-unit">g</span>
                       </div>
@@ -596,6 +607,7 @@
                           inputmode="decimal"
                           placeholder="0"
                           appDecimalInput
+                          [maxDecimals]="2"
                           formControlName="salt100g"
                         ></ion-input>
                         <span class="input-unit secondary-unit">g</span>
