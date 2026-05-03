@@ -6,6 +6,7 @@
       class="nav-arrow-btn nav-arrow-left ripple-effect"
       [class.animating]="animatingLeft"
       [disabled]="!canGoBack()"
+      [style.visibility]="!canGoBack() ? 'hidden' : 'visible'"
       (click)="goBack()"
     >
       <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
@@ -33,6 +34,7 @@
       class="nav-arrow-btn nav-arrow-right ripple-effect"
       [class.animating]="animatingRight"
       [disabled]="!canGoForward()"
+      [style.visibility]="!canGoForward() ? 'hidden' : 'visible'"
       (click)="goForward()"
     >
       <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>

@@ -40,37 +40,26 @@ export class JWTInterceptor implements HttpInterceptor {
     });
 
     const token = this.getTokenFromLocalStorage();
-    const isUsersPost =
-      requestWithClientHeader.method === "POST" &&
-      requestWithClientHeader.url.includes("/users/");
     const isPublicUsersPostEndpoint =
-      isUsersPost &&
+      requestWithClientHeader.method === "POST" &&
       (requestWithClientHeader.url.endsWith("/users") ||
+        requestWithClientHeader.url.endsWith("/users/") ||
         requestWithClientHeader.url.includes("/users/social") ||
+        requestWithClientHeader.url.includes("/users/sign-in") ||
         requestWithClientHeader.url.includes("/users/activate"));
 
     // Public endpoints that don't require authentication
     const isPublicEndpoint =
-      requestWithClientHeader.url.includes(
-        AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT,
-      ) || // sign-in
+      requestWithClientHeader.url.includes(AuthApiService.AUTHORIZATION_TOKEN_ENDPOINT) || // sign-in
       requestWithClientHeader.url.includes(AuthApiService.REFRESH_ENDPOINT) || // refresh token
       requestWithClientHeader.url.includes(AuthApiService.LOGOUT_ENDPOINT) || // logout
+      requestWithClientHeader.url.includes(AuthApiService.VERIFY_GOOGLE_ENDPOINT) || // google auth
+      requestWithClientHeader.url.includes(AuthApiService.VERIFY_APPLE_ENDPOINT) || // apple auth
       requestWithClientHeader.url.includes("/users/check/") || // check if email exists
       requestWithClientHeader.url.includes("/users/send/mail/code") || // forgot password - send code
-      requestWithClientHeader.url.includes(
-        AuthApiService.VERIFY_GOOGLE_ENDPOINT,
-      ) || // google auth
-      requestWithClientHeader.url.includes(
-        AuthApiService.VERIFY_APPLE_ENDPOINT,
-      ) || // apple auth
-      (requestWithClientHeader.url.includes("/users/") &&
-        requestWithClientHeader.method === "POST" &&
-        !requestWithClientHeader.url.includes("/favProduct") &&
-        !requestWithClientHeader.url.includes("/favRecipe") &&
-        !requestWithClientHeader.url.includes("/users/suggestions")) || // POST endpoints for user creation (exclude protected ones)
       requestWithClientHeader.url.includes("/users/hash/") || // email verification
-      requestWithClientHeader.url.includes("/users/restore"); // restore password
+      requestWithClientHeader.url.includes("/users/restore") || // restore password
+      isPublicUsersPostEndpoint;
 
     // Decide whether to send cookies (withCredentials) on this request
     // TODOS los endpoints de auth necesitan withCredentials:

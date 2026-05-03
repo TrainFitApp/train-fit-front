@@ -84,13 +84,11 @@ export class BillingService {
 
     try {
       const { appUserID: currentAppUserId } = await Purchases.getAppUserID();
-      if (currentAppUserId === normalizedUserId) {
-        await this.linkCustomerInBackend(normalizedUserId);
-        await this.getBackendEntitlements();
-        return true;
+      if (currentAppUserId !== normalizedUserId) {
+        await Purchases.logIn({ appUserID: normalizedUserId });
       }
 
-      await Purchases.logIn({ appUserID: normalizedUserId });
+      await this.syncSubscriberAttributes();
       await this.linkCustomerInBackend(normalizedUserId);
       await this.getBackendEntitlements();
       return true;
@@ -516,11 +514,23 @@ export class BillingService {
 
       const localUserId = this.userService.getLocalUser?._id;
       if (localUserId) {
+        await this.syncSubscriberAttributes();
         await this.linkCustomerInBackend(localUserId);
       }
     } catch (error) {
       this.configured = false;
       console.error('RevenueCat configure error', error);
+    }
+  }
+
+  private async syncSubscriberAttributes(): Promise<void> {
+    const email = this.userService.getLocalUser?.email;
+    if (email && this.isNativeClient && this.configured) {
+      try {
+        await Purchases.setEmail({ email });
+      } catch (error) {
+        console.warn('RevenueCat syncSubscriberAttributes error', error);
+      }
     }
   }
 
