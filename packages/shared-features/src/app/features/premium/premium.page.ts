@@ -454,7 +454,7 @@ export class PremiumPage {
     const alertOptions: AlertOptions = {
       header: "No se pudo activar Pro",
       message:
-        "Se produjo un error tecnico al activar Pro. Intentalo de nuevo o usa Gestionar suscripcion.",
+        "Se produjo un error técnico al activar Pro. Inténtalo de nuevo o usa Gestionar suscripción.",
       buttons: [
         {
           text: "Cerrar",
