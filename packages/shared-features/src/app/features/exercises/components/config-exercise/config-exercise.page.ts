@@ -705,28 +705,13 @@ export class ConfigExercisePage implements OnInit {
   public async addCustomExercise(): Promise<void> {
     // Prevent saving without a valid name
     if (this.form?.invalid || !this.form?.get("name")?.value?.trim()) {
+      await this.showInvalidExerciseFormAlert();
       return Promise.resolve();
     }
 
     if (this.isCreateMode) {
-      const entitlements = this.billingService.getCachedEntitlements();
-      if (
-        entitlements &&
-        entitlements.remaining.customExercises !== null &&
-        entitlements.remaining.customExercises <= 0
-      ) {
-        const toastOptions: ToastOptions = {
-          message:
-            "Has alcanzado el límite de ejercicios propios. Activa Pro para crear más.",
-          duration: 3000,
-          buttons: [
-            {
-              text: "Hazte Pro",
-              handler: () => this.navigationService.goToPremium(),
-            },
-          ],
-        };
-        this.ionicUtilService.showToast(toastOptions);
+      if (await this.billingService.isFreshLimitReached("customExercises")) {
+        await this.showExerciseLimitAlert();
         return;
       }
     }
@@ -813,6 +798,7 @@ export class ConfigExercisePage implements OnInit {
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
         this.load = true;
+        void this.billingService.refreshBackendEntitlements();
         this.adMobService.interstitial("create_exercise"); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
         return Promise.resolve();
@@ -1179,23 +1165,29 @@ export class ConfigExercisePage implements OnInit {
       return false;
     }
 
-    this.ionicUtilService.showAlert({
-      header: "Límite Free alcanzado",
+    void this.showExerciseLimitAlert();
+    return true;
+  }
+
+  private async showExerciseLimitAlert(): Promise<void> {
+    await this.ionicUtilService.showPremiumLimitAlert({
       message:
-        "Has alcanzado el límite de ejercicios propios. Activa Pro para crear más.",
+        "Has alcanzado el limite de ejercicios propios. Activa Pro para crear mas.",
+      onUpgrade: () => this.navigationService.goToPremium(),
+    });
+  }
+
+  private async showInvalidExerciseFormAlert(): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: "Datos incompletos",
+      message: "Introduce al menos un nombre para guardar el ejercicio.",
       buttons: [
         {
-          text: "Cancelar",
+          text: "OK",
           role: "cancel",
-        },
-        {
-          text: "Hazte Pro",
-          handler: () => this.navigationService.goToPremium(),
         },
       ],
     });
-
-    return true;
   }
 
   private updateChangeExercise(): Promise<void> {
@@ -1541,7 +1533,11 @@ export class ConfigExercisePage implements OnInit {
   private async saveFromHeaderBack(): Promise<void> {
     const shouldSaveExercise =
       this.isEditingOwnExercise && this.hasExerciseChanges();
-    const shouldSaveCustom = this.hasCustomExerciseChanges();
+    const shouldCreateExercise =
+      this.isCreateMode &&
+      (this.hasExerciseChanges() || this.hasCustomExerciseChanges());
+    const shouldSaveCustom =
+      this.hasCustomExerciseChanges() || shouldCreateExercise;
 
     if (shouldSaveExercise) {
       await this.saveOwnExerciseOnly();
@@ -1690,6 +1686,7 @@ export class ConfigExercisePage implements OnInit {
                     message: "Ejercicio eliminado",
                     duration: 2000,
                   });
+                  void this.billingService.refreshBackendEntitlements();
 
                   this.modalController.dismiss({
                     setChangeInfo: {

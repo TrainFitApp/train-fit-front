@@ -221,6 +221,30 @@ export class IonicUtilService {
     return showToast.onDidDismiss();
   }
 
+  public async showPremiumLimitAlert(options: {
+    header?: string;
+    message: string;
+    onUpgrade?: () => void | Promise<void>;
+  }) {
+    return this.showAlert({
+      header: options.header ?? 'Limite Free alcanzado',
+      message: options.message,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'Hazte Pro',
+          cssClass: 'alert-button-primary',
+          handler: () => {
+            void options.onUpgrade?.();
+          },
+        },
+      ],
+    });
+  }
+
   /**
    * Muestra un toast de error extrayendo automáticamente el mensaje del error
    * @param error - El objeto de error del backend o cualquier error

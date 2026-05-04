@@ -17,6 +17,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 import { MUSCLE_GROUPS } from 'src/app/shared/constants/muscle-groups';
 
@@ -73,7 +74,8 @@ export class TableCardPage {
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private popoverController: PopoverController,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private billingService: BillingService
   ) { }
 
   public setSelectedTableCard(): void {
@@ -225,22 +227,26 @@ export class TableCardPage {
             } else {
               this.tableService
                 .copyTable(this.user._id, this.tableCard._id)
-                .subscribe((resTable) => {
-                  this.user.tableInUse = resTable._id;
-                  this.user.ownTables.push(resTable._id);
-                  this.tableService.setCurrentTable = resTable;
-                  this.workoutService.setCurrentWorkout = undefined;
-                  delete this.user.workoutInUse;
-                  this.userService.updateUser(this.user).subscribe(() => {
-                    this.navigationService.goToMesocycle();
-                  });
+                .subscribe({
+                  next: (resTable) => {
+                    this.user.tableInUse = resTable._id;
+                    this.user.ownTables.push(resTable._id);
+                    this.tableService.setCurrentTable = resTable;
+                    this.workoutService.setCurrentWorkout = undefined;
+                    delete this.user.workoutInUse;
+                    this.userService.updateUser(this.user).subscribe(() => {
+                      this.navigationService.goToMesocycle();
+                    });
 
-                  this.loadAction = true;
-                  const toastOptions: ToastOptions = {
-                    message: 'Rutina adquirida e iniciada con éxito',
-                    duration: 2000,
-                  };
-                  this.ionicUtilService.showToast(toastOptions);
+                    this.loadAction = true;
+                    void this.billingService.refreshBackendEntitlements();
+                    const toastOptions: ToastOptions = {
+                      message: 'Rutina adquirida e iniciada con exito',
+                      duration: 2000,
+                    };
+                    this.ionicUtilService.showToast(toastOptions);
+                  },
+                  error: (error) => this.handleRoutineLimitOrGenericError(error),
                 });
             }
           },
@@ -319,14 +325,18 @@ export class TableCardPage {
             this.loadAction = false;
             this.tableService
               .copyOwnTable(this.user._id, idTable)
-              .subscribe((resTable) => {
-                this.copyOwnTableEv.emit(resTable);
-                const toastOptions: ToastOptions = {
-                  message: this.tableCard.name + ' copiada',
-                  duration: 1000,
-                };
-                this.ionicUtilService.showToast(toastOptions);
-                this.loadAction = true;
+              .subscribe({
+                next: (resTable) => {
+                  this.copyOwnTableEv.emit(resTable);
+                  void this.billingService.refreshBackendEntitlements();
+                  const toastOptions: ToastOptions = {
+                    message: this.tableCard.name + ' copiada',
+                    duration: 1000,
+                  };
+                  this.ionicUtilService.showToast(toastOptions);
+                  this.loadAction = true;
+                },
+                error: (error) => this.handleRoutineLimitOrGenericError(error),
               });
           },
         },
@@ -334,6 +344,24 @@ export class TableCardPage {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private handleRoutineLimitOrGenericError(error: any): void {
+    this.loadAction = true;
+
+    if (error?.error?.code === 'PREMIUM_LIMIT_ROUTINES') {
+      void this.ionicUtilService.showPremiumLimitAlert({
+        message:
+          'Has alcanzado el limite de rutinas. Activa Pro para crear mas.',
+        onUpgrade: () => this.navigationService.goToPremium(),
+      });
+      return;
+    }
+
+    this.ionicUtilService.showErrorToast(
+      error,
+      'No se pudo completar la accion',
+    );
   }
 
   public deleteTable(idTable: string, event: Event): void {
@@ -362,6 +390,7 @@ export class TableCardPage {
               .deleteTableById(this.user._id, idTable)
               .subscribe(() => {
                 this.deletedTable.emit(idTable);
+                void this.billingService.refreshBackendEntitlements();
                 const toastOptions: ToastOptions = {
                   message: this.tableCard.name + ' eliminada',
                   duration: 1000,

@@ -48,6 +48,14 @@
 .elegant-content {
   padding: 16px;
 
+  &.has-save-footer {
+    --padding-bottom: 88px;
+
+    .form-container {
+      padding-bottom: 96px;
+    }
+  }
+
   // Form container
   .form-container {
     padding: 20px;
@@ -660,15 +668,15 @@ ion-accordion[value="additional-info"] {
 }
 
 // Footer styles
-.elegant-footer {
-  --background: transparent;
-  background: transparent;
-  border-top: none;
+.create-product-footer {
+  --background: #141414;
+  background: #141414;
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
 
   .footer-content {
-    background: #141414;
-    padding: 16px;
-    border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px));
 
     ion-button {
       --background: var(--ion-color-primary);
@@ -767,11 +775,6 @@ ion-accordion[value="additional-info"] {
       font-size: 1.2rem;
     }
   }
-}
-
-.inline-create-action {
-  margin-top: 8px;
-  margin-bottom: 12px;
 }
 
 // Enhanced input styles

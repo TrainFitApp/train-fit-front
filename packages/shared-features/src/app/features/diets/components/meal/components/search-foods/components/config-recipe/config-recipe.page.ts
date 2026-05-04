@@ -22,6 +22,7 @@ import { IonicUtilService } from "src/app/core/services/util/ionic-util.service"
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { fadeIn } from "src/app/shared/animations/fade";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 
 export type ConfigRecipeMode = "create" | "add" | "edit";
 
@@ -159,6 +160,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private toastCtrl: ToastController,
     private platform: Platform,
     private adMobService: AdMobService,
+    private billingService: BillingService,
   ) {
     this.user = this.userService.getLocalUser;
     this.recipeNutrition = this.recipeService.getEmptyRecipeNutrition();
@@ -838,6 +840,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     try {
       await firstValueFrom(this.recipeService.delete(recipeId));
       this.removeDeletedRecipeLocally(recipeId);
+      void this.billingService.refreshBackendEntitlements();
       await this.showToast("Receta eliminada");
       this.navigateAfterRecipeDeleted(recipeId);
     } catch (error) {
@@ -861,6 +864,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error(error);
+      if (this.handleRecipeLimitError(error)) {
+        this.loading = false;
+        return;
+      }
       this.showToast("Error guardando la receta", "danger");
       this.loading = false;
     }
@@ -892,6 +899,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     );
     this.applyComposeResult(result);
     this.captureInitialSnapshot();
+    void this.billingService.refreshBackendEntitlements();
     this.adMobService.interstitial("create_recipe");
     this.goBack();
   }
@@ -1272,6 +1280,19 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (!value) return null;
     if (typeof value === "string") return value;
     return value?._id?.toString?.() || value?.toString?.() || null;
+  }
+
+  private handleRecipeLimitError(error: any): boolean {
+    if (error?.error?.code !== "PREMIUM_LIMIT_RECIPES") {
+      return false;
+    }
+
+    void this.ionicUtilService.showPremiumLimitAlert({
+      message:
+        "Has alcanzado el limite de recetas propias. Activa Pro para crear mas.",
+      onUpgrade: () => this.navigationService.goToPremium(),
+    });
+    return true;
   }
 
   private navigateAfterRecipeDeleted(recipeId: string): void {

@@ -216,7 +216,9 @@
             <h3 class="item-name">
               {{ getRecipeName(instance) }}
             </h3>
-            <span class="item-quantity">{{ instance.quantity }}g</span>
+            <span class="item-quantity">{{
+              getRecipeConsumedQuantity(instance) | number : "1.0-0"
+            }}g</span>
           </div>
 
           <div class="nutrition-info">

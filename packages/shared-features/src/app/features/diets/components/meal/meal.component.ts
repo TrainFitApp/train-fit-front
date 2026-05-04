@@ -327,6 +327,11 @@ export class MealComponent implements OnInit, OnChanges {
     return recipe.name || 'Receta sin nombre';
   }
 
+  public getRecipeConsumedQuantity(instance: CustomRecipe): number {
+    const quantity = Number(instance.quantity);
+    return Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
+  }
+
   public getInstanceMacros(instance: CustomRecipe): {
     kcal: number;
     protein: number;

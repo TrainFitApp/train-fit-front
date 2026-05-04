@@ -1077,7 +1077,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.createProduct();
         break;
       case ACTIONS_FAB_TYPES.createRecipe:
-        this.createRecipe();
+        void this.createRecipe();
         break;
     }
   }
@@ -1776,7 +1776,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public createRecipeFromEmptyState(): void {
-    this.createRecipe();
+    void this.createRecipe();
   }
 
   /**
@@ -2369,23 +2369,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     });
   }
 
-  private createRecipe(): void {
-    const entitlements = this.billingService.getCachedEntitlements();
-    if (
-      entitlements &&
-      entitlements.remaining.recipes !== null &&
-      entitlements.remaining.recipes <= 0
-    ) {
-      this.ionicUtilService.showToast({
+  private async createRecipe(): Promise<void> {
+    if (await this.billingService.isFreshLimitReached("recipes")) {
+      await this.ionicUtilService.showPremiumLimitAlert({
         message:
-          "Has alcanzado el límite de recetas propias. Activa Pro para crear más.",
-        duration: 3000,
-        buttons: [
-          {
-            text: "Hazte Pro",
-            handler: () => this.navigationService.goToPremium(),
-          },
-        ],
+          "Has alcanzado el limite de recetas propias. Activa Pro para crear mas.",
+        onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
     }
@@ -2411,7 +2400,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       },
     });
   }
-
   private initInputsFromRoute(): void {
     const state: any = window.history.state || {};
     if (!this.user && (state.user || state.userId)) {

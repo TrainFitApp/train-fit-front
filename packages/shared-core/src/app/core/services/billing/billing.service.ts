@@ -445,6 +445,11 @@ export class BillingService {
   }
 
   public async getBackendEntitlements(): Promise<BillingEntitlements | null> {
+    const entitlements = await this.refreshBackendEntitlements();
+    return entitlements ?? this.cachedEntitlements;
+  }
+
+  public async refreshBackendEntitlements(): Promise<BillingEntitlements | null> {
     try {
       const entitlements = await firstValueFrom(
         this.billingApiService.getEntitlementsMe()
@@ -454,8 +459,29 @@ export class BillingService {
       return entitlements;
     } catch (error) {
       console.error('Billing getBackendEntitlements error', error);
-      return this.cachedEntitlements;
+      return null;
     }
+  }
+
+  public async isFreshLimitReached(
+    limit: keyof BillingEntitlements['remaining']
+  ): Promise<boolean> {
+    const cachedRemaining = this.cachedEntitlements?.remaining?.[limit];
+    if (
+      cachedRemaining === null ||
+      cachedRemaining === undefined ||
+      cachedRemaining > 0
+    ) {
+      return false;
+    }
+
+    const freshEntitlements = await this.refreshBackendEntitlements();
+    const freshRemaining = freshEntitlements?.remaining?.[limit];
+    return (
+      freshRemaining !== null &&
+      freshRemaining !== undefined &&
+      freshRemaining <= 0
+    );
   }
 
   public async syncEntitlementsWithBackend(
