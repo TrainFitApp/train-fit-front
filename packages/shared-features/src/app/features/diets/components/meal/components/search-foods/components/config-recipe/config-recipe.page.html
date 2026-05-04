@@ -39,7 +39,11 @@
 <ion-content class="config-recipe-content" appHideKeyboardOnScroll>
   <div class="form-container">
     <form [formGroup]="recipeForm" class="recipe-form">
-      <div class="section-card info-card">
+      <div
+        class="section-card info-card"
+        [class.has-single-action]="recipe && !editingBaseRecipe"
+        [class.has-double-actions]="editingBaseRecipe"
+      >
         <ion-button
           *ngIf="recipe && !editingBaseRecipe"
           fill="clear"

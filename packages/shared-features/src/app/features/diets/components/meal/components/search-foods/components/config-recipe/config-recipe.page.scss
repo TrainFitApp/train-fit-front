@@ -88,8 +88,14 @@
 .info-card {
   position: relative;
 
-  &.has-corner-actions .section-header {
-    padding-right: 52px; // leave room for the corner button
+  &.has-single-action .section-header {
+    padding-right: 52px;
+    min-height: 34px;
+  }
+
+  &.has-double-actions .section-header {
+    padding-right: 92px;
+    min-height: 40px;
   }
 }
 
@@ -322,6 +328,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -455,17 +462,23 @@
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
     font-size: 0.82rem;
     font-weight: 600;
   }
 
   .trigger-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
     letter-spacing: 0.2px;
   }
 
   .trigger-icon {
     font-size: 16px;
     color: var(--text-secondary);
+    flex-shrink: 0;
   }
 
   .description-card {
@@ -528,12 +541,10 @@
     height: 1px;
     width: 100%;
     margin-bottom: 14px;
-    background: linear-gradient(
-      90deg,
-      rgba(var(--ion-color-danger-rgb), 0.22) 0%,
-      rgba(255, 255, 255, 0.08) 48%,
-      rgba(255, 255, 255, 0.02) 100%
-    );
+    background: linear-gradient(90deg,
+        rgba(var(--ion-color-danger-rgb), 0.22) 0%,
+        rgba(255, 255, 255, 0.08) 48%,
+        rgba(255, 255, 255, 0.02) 100%);
   }
 
   .section-header {
@@ -1006,11 +1017,9 @@
       border: none;
       border-top: 1px solid rgba(var(--ion-color-secondary-rgb), 0.22);
       border-radius: 0 0 12px 12px;
-      background: linear-gradient(
-        180deg,
-        rgba(var(--ion-color-secondary-rgb), 0.1) 0%,
-        rgba(var(--ion-color-secondary-rgb), 0.18) 100%
-      );
+      background: linear-gradient(180deg,
+          rgba(var(--ion-color-secondary-rgb), 0.1) 0%,
+          rgba(var(--ion-color-secondary-rgb), 0.18) 100%);
       color: var(--ion-color-secondary);
       font-size: 0.8rem;
       font-weight: 700;
@@ -1025,11 +1034,9 @@
       }
 
       &:active {
-        background: linear-gradient(
-          180deg,
-          rgba(var(--ion-color-secondary-rgb), 0.16) 0%,
-          rgba(var(--ion-color-secondary-rgb), 0.24) 100%
-        );
+        background: linear-gradient(180deg,
+            rgba(var(--ion-color-secondary-rgb), 0.16) 0%,
+            rgba(var(--ion-color-secondary-rgb), 0.24) 100%);
       }
     }
   }
@@ -1046,11 +1053,9 @@
   border: none;
   border-top: 1px solid rgba(var(--ion-color-secondary-rgb), 0.22);
   border-radius: 0 0 12px 12px;
-  background: linear-gradient(
-    180deg,
-    rgba(var(--ion-color-secondary-rgb), 0.1) 0%,
-    rgba(var(--ion-color-secondary-rgb), 0.18) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(var(--ion-color-secondary-rgb), 0.1) 0%,
+      rgba(var(--ion-color-secondary-rgb), 0.18) 100%);
   color: var(--ion-color-secondary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -1062,11 +1067,9 @@
   }
 
   &:active {
-    background: linear-gradient(
-      180deg,
-      rgba(var(--ion-color-secondary-rgb), 0.16) 0%,
-      rgba(var(--ion-color-secondary-rgb), 0.24) 100%
-    );
+    background: linear-gradient(180deg,
+        rgba(var(--ion-color-secondary-rgb), 0.16) 0%,
+        rgba(var(--ion-color-secondary-rgb), 0.24) 100%);
   }
 }
 
@@ -1356,6 +1359,7 @@
     }
 
     &.calories {
+
       .per100-value,
       .per100-label {
         color: var(--ion-color-primary);
@@ -1770,6 +1774,18 @@
 }
 
 @media (max-width: 768px) {
+  .info-card {
+    &.has-single-action .section-header {
+      padding-right: 46px;
+      min-height: 32px;
+    }
+
+    &.has-double-actions .section-header {
+      padding-right: 82px;
+      min-height: 36px;
+    }
+  }
+
   .header-action-btn {
     width: 36px;
     height: 36px;
