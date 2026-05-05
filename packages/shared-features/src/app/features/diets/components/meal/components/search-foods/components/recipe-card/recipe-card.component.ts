@@ -54,6 +54,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     this.measureFilterSub = this.utilService.getMeasureFilter.subscribe(
       (filter) => {
         this.measureFilter = filter;
+        this.displayQuantity = this.getRecipeDisplayQuantity();
         this.calculateMacros();
       }
     );
@@ -156,6 +157,10 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   private getRecipeDisplayQuantity(): number | null {
     const total = this.getRecipeTotalCookedWeight();
     const consumed = this.getConsumedWeight();
+
+    if (this.foundInstance) {
+      return consumed ?? 0;
+    }
 
     switch (this.measureFilter) {
       case MEASURE_FILTER_TYPES.cieng:
