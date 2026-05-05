@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Network } from '@capacitor/network';
-import { NavController } from '@ionic/angular';
+import { ModalController, NavController } from '@ionic/angular';
 import { filter, map, Observable, Subject } from 'rxjs';
 import { AppUpdateService } from '../app-update/app-update.service';
 import { Split } from '../../models/split';
@@ -42,7 +42,8 @@ export class NavigationService {
   constructor(
     private navController: NavController,
     private router: Router,
-    private appUpdateService: AppUpdateService
+    private appUpdateService: AppUpdateService,
+    private modalController: ModalController
   ) {
     this.initNetworkListener();
   }
@@ -149,7 +150,29 @@ export class NavigationService {
   }
 
   public goToPremium(): void {
-    this.navController.navigateForward([this.PREMIUM_ROUTE]);
+    void this.closeModalsAndNavigateToPremium();
+  }
+
+  private async closeModalsAndNavigateToPremium(): Promise<void> {
+    await this.dismissOpenModalsForPremiumRedirect();
+    await this.navController.navigateForward([this.PREMIUM_ROUTE]);
+  }
+
+  private async dismissOpenModalsForPremiumRedirect(): Promise<void> {
+    const maxDismissAttempts = 10;
+
+    for (let attempt = 0; attempt < maxDismissAttempts; attempt++) {
+      const topModal = await this.modalController.getTop();
+      if (!topModal) {
+        return;
+      }
+
+      try {
+        await topModal.dismiss(undefined, 'premium-redirect');
+      } catch (error) {
+        console.warn('Could not dismiss modal before premium navigation', error);
+      }
+    }
   }
 
   public gotoConcepts(): void {
