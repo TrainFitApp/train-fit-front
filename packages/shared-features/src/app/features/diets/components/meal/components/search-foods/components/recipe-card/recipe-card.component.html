@@ -11,7 +11,7 @@
             [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
-              displayQuantity
+              displayQuantity !== null
                 ? "(" + (displayQuantity | number : "1.0-0") + "g)"
                 : "-"
             }}
