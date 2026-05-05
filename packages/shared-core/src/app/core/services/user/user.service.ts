@@ -92,8 +92,12 @@ export class UserService {
     return this.userAPIService.createUser(userToCreate, date).pipe(take(1));
   }
 
-  public createGoogleUser(user: User, date: Date): Observable<any> {
-    return this.userAPIService.createGoogleUser(user, date).pipe(take(1));
+  public createGoogleUser(
+    user: User,
+    date: Date,
+    tokenGoogle: string
+  ): Observable<any> {
+    return this.userAPIService.createGoogleUser(user, date, tokenGoogle).pipe(take(1));
   }
 
   public updateUser(user: User): Observable<User> {

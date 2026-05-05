@@ -156,8 +156,8 @@ export class ConfigExercisePage implements OnInit {
     "Polea",
     "Peso corporal",
     "Kettlebell",
-    "Maquina",
-    "Maquina smith/multipower",
+    "Máquina",
+    "Máquina smith/multipower",
     "Disco",
     "Banda elástica",
   ];

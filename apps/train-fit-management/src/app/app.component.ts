@@ -29,6 +29,7 @@ export class AppComponent implements OnDestroy {
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     this.initSessionTracking();
+    this.restoreSessionOnStartup();
     this.initForegroundBillingRefresh();
   }
 
@@ -42,18 +43,46 @@ export class AppComponent implements OnDestroy {
     });
   }
 
+  private restoreSessionOnStartup(): void {
+    if (this.authService.isSessionValid()) {
+      return;
+    }
+
+    console.info('[AUTH] auth_bootstrap_refresh_attempt');
+    this.authService.restoreSessionSilently().subscribe({
+      error: (error) => {
+        if (error?.error?.requiresRelogin || error?.requiresRelogin) {
+          this.authService.logout();
+        }
+      },
+    });
+  }
+
   private initForegroundBillingRefresh(): void {
     if (!this.isNativeClient) {
       return;
     }
 
     void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-      if (!isActive || !this.hasAuthenticatedSession) {
+      if (!isActive) {
         return;
       }
 
-      void this.billingService.getBackendEntitlements().catch((error) => {
-        console.warn('Foreground billing refresh failed', error);
+      this.authService.restoreSessionSilently().subscribe({
+        next: (restored) => {
+          if (!restored && !this.hasAuthenticatedSession) {
+            return;
+          }
+
+          void this.billingService.getBackendEntitlements().catch((error) => {
+            console.warn('Foreground billing refresh failed', error);
+          });
+        },
+        error: (error) => {
+          if (error?.error?.requiresRelogin || error?.requiresRelogin) {
+            this.authService.logout();
+          }
+        },
       });
     }).then((listener) => {
       this.appStateListener = listener;

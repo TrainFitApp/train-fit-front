@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, from, Observable } from 'rxjs';
-import { finalize, map, shareReplay, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, from, Observable, of } from 'rxjs';
+import { catchError, finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
 import { UserLocalstorageService } from '../user/user-localstorage.service';
@@ -45,11 +45,13 @@ export class AuthService {
   }
 
   public isAuthenticated(): boolean {
-    return !!this._user$?.value;
+    return this.isSessionValid();
   }
 
   public isSessionValid(): boolean {
-    const user = this._user$?.value;
+    const user =
+      this._user$?.value ??
+      this.getDecodedUser(this.userLocalstorageService.getUserToken());
     let isSessionValid = false;
     if (!!user) {
       const jwtExpirationDate = user[this.EXPIRATION_KEY] ?? null;
@@ -57,6 +59,11 @@ export class AuthService {
         !!jwtExpirationDate && jwtExpirationDate >= Date.now() / 1000;
     }
     return isSessionValid;
+  }
+
+  public hasStoredAccessToken(): boolean {
+    const token = this.userLocalstorageService.getUserToken();
+    return !!token?.access_token;
   }
 
   public getDecodedUser(token: Token): User {
@@ -114,7 +121,10 @@ export class AuthService {
           localStorage.setItem('admin_token', JSON.stringify(currentToken));
         }
 
-        const token = { access_token: response.access_token, refresh_token: response.refresh_token };
+        const token = {
+          access_token: response.access_token,
+          refresh_token: response.refresh_token,
+        };
         const userDecoded = this.getDecodedUser(token);
         this.persistAuthTokens(token);
         this.setUser = userDecoded;
@@ -126,22 +136,99 @@ export class AuthService {
     return !!localStorage.getItem('admin_token');
   }
 
-  public revertImpersonation(): void {
+  public revertImpersonation(): Observable<void> {
     const adminTokenStr = localStorage.getItem('admin_token');
-    if (adminTokenStr) {
-      try {
-        const adminToken = JSON.parse(adminTokenStr);
-        this.persistAuthTokens(adminToken);
-        const userDecoded = this.getDecodedUser(adminToken);
+    if (!adminTokenStr) {
+      return of(undefined);
+    }
+
+    let adminToken: Token | null = null;
+    try {
+      adminToken = JSON.parse(adminTokenStr);
+    } catch (e) {
+      console.warn('Error reading admin token', e);
+      localStorage.removeItem('admin_token');
+      return of(undefined);
+    }
+
+    if (!adminToken?.access_token) {
+      localStorage.removeItem('admin_token');
+      return of(undefined);
+    }
+
+    return this.authApiService.revertImpersonation(adminToken.access_token).pipe(
+      map((response: any) => {
+        if (!!response?.error) {
+          throw new Error(response?.error);
+        }
+
+        const token = {
+          access_token: response.access_token,
+          refresh_token: response.refresh_token,
+        };
+        this.persistAuthTokens(token);
+        const userDecoded = this.getDecodedUser(token);
         if (userDecoded) {
           this.setUser = userDecoded;
         }
-      } catch (e) {
-        console.warn('Error reviving admin token', e);
-      }
-      localStorage.removeItem('admin_token');
-      window.location.href = '/profile/users';
+        localStorage.removeItem('admin_token');
+      }),
+      catchError((error) => {
+        console.warn('Error reverting impersonation', error);
+        if (error?.error?.requiresRelogin || error?.requiresRelogin) {
+          this.logout();
+        }
+        throw error;
+      })
+    );
+  }
+
+  public revertImpersonationLocally(): void {
+    const adminTokenStr = localStorage.getItem('admin_token');
+    if (!adminTokenStr) {
+      return;
     }
+
+    try {
+      const adminToken = JSON.parse(adminTokenStr);
+      this.persistAuthTokens(adminToken);
+      const userDecoded = this.getDecodedUser(adminToken);
+      if (userDecoded) {
+        this.setUser = userDecoded;
+      }
+    } catch (e) {
+      console.warn('Error reviving admin token', e);
+    } finally {
+      localStorage.removeItem('admin_token');
+    }
+  }
+
+  public restoreSessionSilently(): Observable<boolean> {
+    if (this.isSessionValid()) {
+      return of(true);
+    }
+
+    return this.refreshToken().pipe(
+      map((response: any) => !!response?.access_token),
+      catchError((error) => {
+        if (error?.error?.requiresRelogin || error?.requiresRelogin) {
+          throw error;
+        }
+        if (this.isTransientAuthError(error)) {
+          throw error;
+        }
+        return of(false);
+      })
+    );
+  }
+
+  private isTransientAuthError(error: any): boolean {
+    return (
+      error?.status === 0 ||
+      error?.status === 409 ||
+      error?.status >= 500 ||
+      error?.name === 'TimeoutError'
+    );
   }
 
   public persistAuthTokens(token: Partial<Token> | null | undefined): void {

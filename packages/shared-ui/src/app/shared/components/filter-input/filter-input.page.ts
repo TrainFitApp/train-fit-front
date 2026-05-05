@@ -1,14 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { Exercise } from 'src/app/core/models/exercise';
-import { ExerciseService } from 'src/app/core/services/exercise/exercise.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
-import { SearchFilterGroupExercises } from '../../models/filterGroup';
+import { Component, OnInit } from "@angular/core";
+import { ModalController } from "@ionic/angular";
+import { Exercise } from "src/app/core/models/exercise";
+import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
+import { UtilService } from "src/app/core/services/util/util.service";
+import { SearchFilterGroupExercises } from "../../models/filterGroup";
 
 @Component({
-  selector: 'app-filter-input',
-  templateUrl: './filter-input.page.html',
-  styleUrls: ['./filter-input.page.scss'],
+  selector: "app-filter-input",
+  templateUrl: "./filter-input.page.html",
+  styleUrls: ["./filter-input.page.scss"],
 })
 export class FilterInputPage implements OnInit {
   // From exercises component
@@ -17,58 +17,58 @@ export class FilterInputPage implements OnInit {
   public isCreateMode: boolean = false;
 
   public categories = [
-    'Cardio',
-    'Empujes',
-    'Tirón horizontal',
-    'Tirón vertical',
-    'Cadena posterior',
-    'Cadena anterior',
-    'Tren inferior',
-    'Torso/Tren superior',
+    "Cardio",
+    "Empujes",
+    "Tirón horizontal",
+    "Tirón vertical",
+    "Cadena posterior",
+    "Cadena anterior",
+    "Tren inferior",
+    "Torso/Tren superior",
   ];
 
   public muscleGroup1: string[] = [
-    'Brazos',
-    'Bíceps',
-    'Tríceps',
-    'Antebrazo',
-    'Hombro',
-    'Deltoides anterior',
-    'Deltoides lateral',
-    'Deltoides posterior',
-    'Pectoral',
-    'Pectoral superior',
-    'Pectoral inferior',
-    'Abdomen',
-    'Cuello',
-    'Espalda',
-    'Espalda alta',
-    'Espalda baja',
-    'Piernas',
-    'Cuádriceps',
-    'Aductor',
-    'Femoral',
-    'Glúteo',
-    'Gemelo',
-    'Sóleo',
+    "Brazos",
+    "Bíceps",
+    "Tríceps",
+    "Antebrazo",
+    "Hombro",
+    "Deltoides anterior",
+    "Deltoides lateral",
+    "Deltoides posterior",
+    "Pectoral",
+    "Pectoral superior",
+    "Pectoral inferior",
+    "Abdomen",
+    "Cuello",
+    "Espalda",
+    "Espalda alta",
+    "Espalda baja",
+    "Piernas",
+    "Cuádriceps",
+    "Aductor",
+    "Femoral",
+    "Glúteo",
+    "Gemelo",
+    "Sóleo",
   ];
 
   public equipment: string[] = [
-    'Barra',
-    'Mancuernas',
-    'Polea',
-    'Peso corporal',
-    'Kettlebell',
-    'Maquina',
-    'Maquina smith/multipower',
-    'Disco',
-    'Banda elástica',
+    "Barra",
+    "Mancuernas",
+    "Polea",
+    "Peso corporal",
+    "Kettlebell",
+    "Máquina",
+    "Máquina smith/multipower",
+    "Disco",
+    "Banda elástica",
   ];
 
   constructor(
     private exerciseService: ExerciseService,
     private modalController: ModalController,
-    private utilService: UtilService
+    private utilService: UtilService,
   ) {}
 
   public ngOnInit(): void {}

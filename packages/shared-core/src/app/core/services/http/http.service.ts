@@ -136,7 +136,10 @@ export class HttpService {
     let error = exception;
 
     // Si el error tiene una estructura HttpErrorResponse, preservarla completamente
-    if (exception?.status && (exception?.error || exception?.message)) {
+    if (
+      exception?.status !== undefined &&
+      (exception?.error || exception?.message)
+    ) {
       // IMPORTANTE: Priorizar el mensaje del backend (exception.error.message)
       // sobre el mensaje genérico de Angular (exception.message = "Http failure response for...")
       const backendMessage =
@@ -158,7 +161,7 @@ export class HttpService {
       if (typeof exception.error === 'object') {
         error = {
           ...exception.error,
-          status: exception.status || exception.error.status,
+          status: exception.status ?? exception.error.status,
         };
       } else {
         error = {
@@ -166,7 +169,7 @@ export class HttpService {
           status: exception.status,
         };
       }
-    } else if (exception?.status) {
+    } else if (exception?.status !== undefined) {
       // Si solo hay status, preservarlo
       error = { ...exception, status: exception.status };
     }

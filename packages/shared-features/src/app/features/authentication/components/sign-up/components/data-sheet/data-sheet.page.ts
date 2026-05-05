@@ -138,13 +138,20 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
         updateObs.subscribe({
           next: (res) => {
-            const token: Token = {
-              access_token: res.access_token,
-              refresh_token: res.refresh_token,
-            };
-            const userDecoded = this.authService.getDecodedUser(token);
-            this.authService.persistAuthTokens(token);
-            this.authService.setUser = userDecoded;
+            if (res?.access_token) {
+              const token: Token = {
+                access_token: res.access_token,
+                refresh_token: res.refresh_token,
+              };
+              const userDecoded = this.authService.getDecodedUser(token);
+              this.authService.persistAuthTokens(token);
+              this.authService.setUser = userDecoded;
+            }
+
+            if (res?.user) {
+              this.userService.setLocalUser = res.user;
+            }
+
             this.navigationService.goToUserLoader();
             this.isProcessing = false;
           },

@@ -6,8 +6,9 @@ import { HttpService } from '../http/http.service';
 @Injectable()
 export class UserAPIService {
   private static readonly USERS_ENDPOINT = 'users';
-  private static readonly USERS_SOCIAL_ENDPOINT = 'users/social';
-  private static readonly USERS_SOCIAL_UPDATE_ENDPOINT = 'users/social/update';
+  private static readonly AUTH_ACTIVATE_ENDPOINT = 'auth/activate';
+  private static readonly AUTH_SOCIAL_REGISTER_ENDPOINT = 'auth/social/register';
+  private static readonly AUTH_SOCIAL_COMPLETE_ENDPOINT = 'auth/social/complete';
   private static readonly USERS_SEND_MAIL_CODE_ENDPOINT = 'send/mail/code';
 
   constructor(private http: HttpService) {}
@@ -29,11 +30,16 @@ export class UserAPIService {
     });
   }
 
-  public createGoogleUser(user: User, date: Date): Observable<User> {
-    return this.http.post<User>(`${UserAPIService.USERS_SOCIAL_ENDPOINT}`, {
+  public createGoogleUser(
+    user: User,
+    date: Date,
+    tokenGoogle: string
+  ): Observable<User> {
+    return this.http.post<User>(`${UserAPIService.AUTH_SOCIAL_REGISTER_ENDPOINT}`, {
       user,
       date,
       provider: 'google',
+      tokenGoogle,
     });
   }
 
@@ -43,8 +49,8 @@ export class UserAPIService {
 
   public updateGoogleUser(user: User): Observable<any> {
     return this.http.put<User>(
-      `${UserAPIService.USERS_SOCIAL_UPDATE_ENDPOINT}`,
-      { user: user, date: new Date() }
+      `${UserAPIService.AUTH_SOCIAL_COMPLETE_ENDPOINT}`,
+      user
     );
   }
 
@@ -53,7 +59,7 @@ export class UserAPIService {
     date: Date,
     tokenApple: string
   ): Observable<User> {
-    return this.http.post<User>(`${UserAPIService.USERS_SOCIAL_ENDPOINT}`, {
+    return this.http.post<User>(`${UserAPIService.AUTH_SOCIAL_REGISTER_ENDPOINT}`, {
       user,
       date,
       tokenApple,
@@ -63,8 +69,8 @@ export class UserAPIService {
 
   public updateAppleUser(user: User): Observable<any> {
     return this.http.put<User>(
-      `${UserAPIService.USERS_SOCIAL_UPDATE_ENDPOINT}`,
-      { user: user, date: new Date() }
+      `${UserAPIService.AUTH_SOCIAL_COMPLETE_ENDPOINT}`,
+      user
     );
   }
 
@@ -158,7 +164,7 @@ export class UserAPIService {
     return this.http.delete<string>(`${UserAPIService.USERS_ENDPOINT}/${id}`);
   }
   public activateAccount(email: string, code: string): Observable<any> {
-    return this.http.post<any>(`${UserAPIService.USERS_ENDPOINT}/activate`, {
+    return this.http.post<any>(`${UserAPIService.AUTH_ACTIVATE_ENDPOINT}`, {
       email,
       code,
     });

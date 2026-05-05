@@ -40,13 +40,12 @@ export class JWTInterceptor implements HttpInterceptor {
     });
 
     const token = this.getTokenFromLocalStorage();
-    const isPublicUsersPostEndpoint =
+    const isUsersCreateEndpoint =
       requestWithClientHeader.method === "POST" &&
-      (requestWithClientHeader.url.endsWith("/users") ||
-        requestWithClientHeader.url.endsWith("/users/") ||
-        requestWithClientHeader.url.includes("/users/social") ||
-        requestWithClientHeader.url.includes("/users/sign-in") ||
-        requestWithClientHeader.url.includes("/users/activate"));
+      /\/users\/?$/.test(requestWithClientHeader.url);
+    const isPublicHashCheckEndpoint =
+      requestWithClientHeader.method === "GET" &&
+      requestWithClientHeader.url.includes("/users/hash/");
 
     // Public endpoints that don't require authentication
     const isPublicEndpoint =
@@ -55,11 +54,12 @@ export class JWTInterceptor implements HttpInterceptor {
       requestWithClientHeader.url.includes(AuthApiService.LOGOUT_ENDPOINT) || // logout
       requestWithClientHeader.url.includes(AuthApiService.VERIFY_GOOGLE_ENDPOINT) || // google auth
       requestWithClientHeader.url.includes(AuthApiService.VERIFY_APPLE_ENDPOINT) || // apple auth
+      requestWithClientHeader.url.includes(AuthApiService.SOCIAL_REGISTER_ENDPOINT) || // social register
+      requestWithClientHeader.url.includes(AuthApiService.ACTIVATE_ENDPOINT) || // account activation
       requestWithClientHeader.url.includes("/users/check/") || // check if email exists
       requestWithClientHeader.url.includes("/users/send/mail/code") || // forgot password - send code
-      requestWithClientHeader.url.includes("/users/hash/") || // email verification
-      requestWithClientHeader.url.includes("/users/restore") || // restore password
-      isPublicUsersPostEndpoint;
+      isPublicHashCheckEndpoint || // email verification
+      isUsersCreateEndpoint;
 
     // Decide whether to send cookies (withCredentials) on this request
     // TODOS los endpoints de auth necesitan withCredentials:
@@ -133,9 +133,9 @@ export class JWTInterceptor implements HttpInterceptor {
     next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
     if (err.status === 401) {
-      if (err.error?.requiresRelogin) {
+      if (this.requiresRelogin(err)) {
         console.warn("[AUTH] Refresh flow requires re-login", {
-          reason: err?.error?.message || "requiresRelogin",
+          reason: err?.error?.message || err?.message || "requiresRelogin",
           url: request.url,
         });
         this.authService.logout();
@@ -174,14 +174,17 @@ export class JWTInterceptor implements HttpInterceptor {
           this.isRefreshing = false;
           this.refreshTokenSubject.next("FAILED");
           console.warn("[AUTH] Refresh request failed", {
-            reason: refreshErr?.error?.message || "unknown",
+            reason:
+              refreshErr?.error?.message ||
+              refreshErr?.message ||
+              "unknown",
             status: refreshErr?.status,
-            requiresRelogin: !!refreshErr?.error?.requiresRelogin,
+            requiresRelogin: this.requiresRelogin(refreshErr),
           });
 
           // Logout only when backend explicitly requests re-login.
           // Network errors or transient backend failures should not force logout.
-          if (refreshErr?.error?.requiresRelogin) {
+          if (this.requiresRelogin(refreshErr)) {
             this.authService.logout();
           }
 
@@ -191,6 +194,10 @@ export class JWTInterceptor implements HttpInterceptor {
     }
 
     return throwError(() => err);
+  }
+
+  private requiresRelogin(error: any): boolean {
+    return !!(error?.error?.requiresRelogin || error?.requiresRelogin);
   }
 
   private cloneRequestWithToken(

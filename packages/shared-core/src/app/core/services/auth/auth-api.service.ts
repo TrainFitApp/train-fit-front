@@ -11,7 +11,11 @@ export class AuthApiService {
   public static readonly LOGOUT_ENDPOINT = "auth/logout";
   public static readonly VERIFY_GOOGLE_ENDPOINT = "auth/social/google/verify";
   public static readonly VERIFY_APPLE_ENDPOINT = "auth/social/apple/verify";
-  public static readonly IMPERSONATE_ENDPOINT = "users/impersonate";
+  public static readonly SOCIAL_REGISTER_ENDPOINT = "auth/social/register";
+  public static readonly ACTIVATE_ENDPOINT = "auth/activate";
+  public static readonly IMPERSONATE_ENDPOINT = "auth/impersonate";
+  public static readonly REVERT_IMPERSONATE_ENDPOINT =
+    "auth/impersonate/revert";
 
   constructor(private http: HttpService) {}
 
@@ -70,6 +74,15 @@ export class AuthApiService {
       { userId },
       undefined,
       true, // withCredentials
+    );
+  }
+
+  public revertImpersonation(adminAccessToken: string): Observable<any> {
+    return this.http.post<any>(
+      AuthApiService.REVERT_IMPERSONATE_ENDPOINT,
+      {},
+      { "x-admin-access-token": adminAccessToken } as any,
+      true,
     );
   }
 

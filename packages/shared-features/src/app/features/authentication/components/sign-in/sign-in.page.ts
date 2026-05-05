@@ -168,7 +168,7 @@ export class SignInPage implements OnInit {
       console.log(`[Google] Verificando usuario con email: ${email}`);
       this.authService.verifyGoogle(email, idToken).subscribe({
         next: (response) => this.handleSocialSuccess(response, 'Google'),
-        error: (error) => this.handleSocialError(error, email, 'Google'),
+        error: (error) => this.handleSocialError(error, email, 'Google', idToken),
       });
     } catch (error: any) {
       // Este catch solo captura errores del plugin nativo de Google (no errores HTTP)
@@ -288,7 +288,7 @@ export class SignInPage implements OnInit {
     error: any,
     email: string | null,
     provider: string,
-    tokenApple?: string
+    socialToken?: string
   ): void {
     console.log(
       `[${provider}] handleSocialError raw error:`,
@@ -324,7 +324,7 @@ export class SignInPage implements OnInit {
     );
 
     if (isNotFound) {
-      this.createNewSocialUser(email, provider, tokenApple);
+      this.createNewSocialUser(email, provider, socialToken);
     } else {
       console.error(`Error en verificación ${provider}:`, error);
       this.ionicUtilService.showErrorToast(
@@ -342,18 +342,18 @@ export class SignInPage implements OnInit {
   private async createNewSocialUser(
     email: string | null,
     provider: string,
-    tokenApple?: string
+    socialToken?: string
   ): Promise<void> {
     // Si es Apple y no tenemos email, hay que pedirlo
     if (provider === 'Apple' && !email) {
-      await this.askForEmailAndCreateAppleUser(tokenApple!);
+      await this.askForEmailAndCreateAppleUser(socialToken!);
       return;
     }
 
-    if (provider === 'Apple' && !tokenApple) {
+    if (!socialToken) {
       this.ionicUtilService.showErrorToast(
-        'No se pudo completar el registro con Apple',
-        'Error al crear cuenta con Apple',
+        `No se pudo completar el registro con ${provider}`,
+        `Error al crear cuenta con ${provider}`,
         2500
       );
       this.loading = false;
@@ -362,11 +362,15 @@ export class SignInPage implements OnInit {
 
     const createObs =
       provider === 'Google'
-        ? this.userService.createGoogleUser({ email } as User, new Date())
+        ? this.userService.createGoogleUser(
+            { email } as User,
+            new Date(),
+            socialToken
+          )
         : this.userService.createAppleUser(
             { email } as User,
             new Date(),
-            tokenApple
+            socialToken
           );
 
     createObs.subscribe({

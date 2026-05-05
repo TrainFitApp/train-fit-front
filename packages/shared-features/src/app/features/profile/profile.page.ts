@@ -943,8 +943,20 @@ export class ProfilePage implements OnInit {
     });
 
     if (alertRes?.role === 'confirm') {
-      this.authService.revertImpersonation();
-      this.ionicUtilService.showSuccessToast('Sesión de administrador restaurada');
+      this.authService.revertImpersonation().subscribe({
+        next: () => {
+          this.ionicUtilService.showSuccessToast(
+            'Sesion de administrador restaurada'
+          );
+          window.location.href = '/profile/users';
+        },
+        error: (error) => {
+          this.ionicUtilService.showErrorToast(
+            error,
+            'No se pudo restaurar la sesion de administrador'
+          );
+        },
+      });
     }
   }
 
