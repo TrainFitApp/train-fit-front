@@ -82,25 +82,9 @@ export class SummaryPage {
     this.utilService.setTableMode = tableMode;
   }
 
-  public createTableAndAddToUser(): void {
-    const entitlements = this.billingService.getCachedEntitlements();
-    if (
-      entitlements &&
-      entitlements.remaining.routines !== null &&
-      entitlements.remaining.routines <= 0
-    ) {
-      const toastOptions: ToastOptions = {
-        message:
-          "Has alcanzado el límite de rutinas. Activa Pro para crear más.",
-        duration: 3000,
-        buttons: [
-          {
-            text: "Hazte Pro",
-            handler: () => this.navigationService.goToPremium(),
-          },
-        ],
-      };
-      this.ionicUtilService.showToast(toastOptions);
+  public async createTableAndAddToUser(): Promise<void> {
+    if (await this.billingService.isFreshLimitReached("routines")) {
+      await this.showRoutineLimitAlert();
       return;
     }
 
@@ -127,7 +111,7 @@ export class SummaryPage {
           handler: (data) => {
             if (!data.routineName || data.routineName.trim() === "") {
               const toastOptions: ToastOptions = {
-                message: "El campo no puede estar vacío",
+                message: "El campo no puede estar vacio",
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -143,26 +127,55 @@ export class SummaryPage {
       if (result.role !== "cancel" && result.data?.values?.routineName) {
         this.tableService
           .createTableToUser(this.user._id, result.data.values.routineName)
-          .subscribe((resTable) => {
-            this.tableInUse = resTable;
-            this.user.tableInUse = this.tableInUse._id;
-            this.user.workoutInUse = undefined;
-            this.user.ownTables.push(this.tableInUse._id);
-            this.userService.setLocalUser = this.user;
-            this.tableService.setCurrentTable = this.tableInUse;
-            this.navigationService.goToMesocycle();
+          .subscribe({
+            next: (resTable) => {
+              this.tableInUse = resTable;
+              this.user.tableInUse = this.tableInUse._id;
+              this.user.workoutInUse = undefined;
+              this.user.ownTables.push(this.tableInUse._id);
+              this.userService.setLocalUser = this.user;
+              this.tableService.setCurrentTable = this.tableInUse;
+              void this.billingService.refreshBackendEntitlements();
+              this.navigationService.goToMesocycle();
 
-            if (!this.user?.premium?.entitled) {
-              this.adMobService.interstitial("create_routine");
-            }
-            const toastOptions: ToastOptions = {
-              message: "Rutina creada con éxito",
-              duration: 2000,
-            };
-            this.ionicUtilService.showToast(toastOptions);
+              if (!this.user?.premium?.entitled) {
+                this.adMobService.interstitial("create_routine");
+              }
+              const toastOptions: ToastOptions = {
+                message: "Rutina creada con exito",
+                duration: 2000,
+              };
+              this.ionicUtilService.showToast(toastOptions);
+            },
+            error: (error) => {
+              if (this.handleRoutineLimitError(error)) {
+                return;
+              }
+
+              this.ionicUtilService.showErrorToast(
+                error,
+                "No se pudo crear la rutina",
+              );
+            },
           });
       }
     });
+  }
+
+  private async showRoutineLimitAlert(): Promise<void> {
+    await this.ionicUtilService.showPremiumLimitAlert({
+      message: "Has alcanzado el limite de rutinas. Activa Pro para crear mas.",
+      onUpgrade: () => this.navigationService.goToPremium(),
+    });
+  }
+
+  private handleRoutineLimitError(error: any): boolean {
+    if (error?.error?.code !== "PREMIUM_LIMIT_ROUTINES") {
+      return false;
+    }
+
+    void this.showRoutineLimitAlert();
+    return true;
   }
 
   public getWorkoutSets(): number {

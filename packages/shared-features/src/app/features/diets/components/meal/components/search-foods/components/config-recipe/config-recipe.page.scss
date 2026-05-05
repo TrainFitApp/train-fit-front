@@ -77,6 +77,14 @@
 .config-recipe-content {
   --background: var(--ion-color-light);
 
+  &.has-save-footer {
+    --padding-bottom: 88px;
+
+    .form-container {
+      padding-bottom: 96px;
+    }
+  }
+
   .form-container {
     padding: 16px;
     max-width: 600px;
@@ -1694,9 +1702,16 @@
   }
 }
 
-.inline-save-action {
-  margin-top: 16px;
-  margin-bottom: 12px;
+.recipe-save-footer {
+  --background: #141414;
+  background: #141414;
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+
+  .footer-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px));
+  }
 
   .save-btn {
     --background: var(--ion-color-primary);

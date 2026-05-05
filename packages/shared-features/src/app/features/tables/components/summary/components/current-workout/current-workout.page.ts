@@ -29,6 +29,13 @@ import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
+interface PreserveFinishedWorkoutSplitState {
+  tableId: string;
+  splitId: string;
+  splitIndex: number;
+  workoutId: string;
+}
+
 @Component({
   selector: 'app-current-workout',
   templateUrl: './current-workout.page.html',
@@ -61,6 +68,8 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private autoEndTimeoutId: any;
   // Guarda persistente hasta que se cierra el alert
   private autoEndTriggered = false;
+  private readonly preserveFinishedWorkoutSplitKey =
+    'preserveFinishedWorkoutSplit';
 
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
@@ -311,6 +320,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   delete this.user.workoutInUse;
                   this.userService.setLocalUser = { ...this.user };
 
+                  this.preserveFinishedWorkoutSplitIfCompleted(
+                    this.currentWorkout._id
+                  );
                   this.navigationService.goBack();
                   const successAlertOptions = {
                     header: 'Completado',
@@ -347,6 +359,31 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     // Al cerrar el alert (cancel o confirm), permitir nuevos alerts
     this.sweetAlertOpened = false;
     this.autoEndTriggered = false;
+  }
+
+  private preserveFinishedWorkoutSplitIfCompleted(workoutId: string): void {
+    if (!this.tableInUse?._id || !this.tableInUse.splits?.length) return;
+
+    const splitIndex = this.tableInUse.splits.findIndex((split) =>
+      split.workouts?.some((workout) => workout?._id === workoutId)
+    );
+
+    if (splitIndex === -1) return;
+
+    const finishedSplit = this.tableInUse.splits[splitIndex];
+    if (!this.utilService.isSplitDoned(finishedSplit)) return;
+
+    const preserveState: PreserveFinishedWorkoutSplitState = {
+      tableId: this.tableInUse._id,
+      splitId: finishedSplit._id,
+      splitIndex,
+      workoutId,
+    };
+
+    this.navigationService.setTempData(
+      this.preserveFinishedWorkoutSplitKey,
+      preserveState
+    );
   }
 
   public setPreviousWorkout(): void {

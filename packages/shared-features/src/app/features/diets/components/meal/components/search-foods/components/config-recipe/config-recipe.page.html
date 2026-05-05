@@ -36,7 +36,11 @@
   </div>
 </ion-header>
 
-<ion-content class="config-recipe-content" appHideKeyboardOnScroll>
+<ion-content
+  class="config-recipe-content"
+  [class.has-save-footer]="!editingBaseRecipe"
+  appHideKeyboardOnScroll
+>
   <div class="form-container">
     <form [formGroup]="recipeForm" class="recipe-form">
       <div class="section-card info-card">
@@ -358,25 +362,28 @@
         </div>
       </div>
 
-      <div class="inline-save-action" *ngIf="!editingBaseRecipe">
-        <ion-button
-          expand="block"
-          size="large"
-          fill="solid"
-          class="save-btn"
-          [disabled]="!canSave || loading"
-          (click)="save()"
-        >
-          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-          <ng-container *ngIf="!loading">
-            <span>
-              {{
-                isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
-              }}
-            </span>
-          </ng-container>
-        </ion-button>
-      </div>
     </form>
   </div>
 </ion-content>
+
+<ion-footer class="fixed-save-footer recipe-save-footer" *ngIf="!editingBaseRecipe">
+  <div class="footer-content">
+    <ion-button
+      expand="block"
+      size="large"
+      fill="solid"
+      class="save-btn"
+      [disabled]="!canSave || loading"
+      (click)="save()"
+    >
+      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+      <ng-container *ngIf="!loading">
+        <span>
+          {{
+            isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
+          }}
+        </span>
+      </ng-container>
+    </ion-button>
+  </div>
+</ion-footer>

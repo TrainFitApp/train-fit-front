@@ -30,6 +30,13 @@ import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
 import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
 
+interface PreserveFinishedWorkoutSplitState {
+  tableId: string;
+  splitId: string;
+  splitIndex: number;
+  workoutId: string;
+}
+
 @Component({
   selector: "app-mesocycle",
   templateUrl: "./mesocycle.page.html",
@@ -73,6 +80,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   // Control de animaciones de navegación
   public animatingLeft: boolean = false;
   public animatingRight: boolean = false;
+  private readonly preserveFinishedWorkoutSplitKey =
+    "preserveFinishedWorkoutSplit";
 
   // Getter para obtener splits ordenados por índice descendente
   private _reversedSplitsWithIndex: Array<{
@@ -185,6 +194,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     // Si no hay entrenamiento en uso, auto-posicionamos según progreso (caso Summary -> Mesocycle)
     if (!this.user?.workoutInUse) {
+      if (this.restoreFinishedWorkoutSplit()) return;
+
       const indexSplit = this.tableInUse.splits.findIndex(
         (sTemp) => !this.utilService.isSplitDoned(sTemp),
       );
@@ -224,6 +235,61 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     } else {
       this.currentSplitIndex = targetSplitIndex;
     }
+  }
+
+  private restoreFinishedWorkoutSplit(): boolean {
+    const preserveState =
+      this.navigationService.getTempData<PreserveFinishedWorkoutSplitState>(
+        this.preserveFinishedWorkoutSplitKey,
+      );
+
+    if (!preserveState) return false;
+
+    this.navigationService.clearTempData(
+      this.preserveFinishedWorkoutSplitKey,
+    );
+
+    if (preserveState.tableId !== this.tableInUse?._id) return false;
+
+    let targetSplitIndex = this.tableInUse.splits.findIndex(
+      (split) => split?._id === preserveState.splitId,
+    );
+
+    if (
+      targetSplitIndex === -1 &&
+      preserveState.splitIndex >= 0 &&
+      preserveState.splitIndex < this.tableInUse.splits.length
+    ) {
+      targetSplitIndex = preserveState.splitIndex;
+    }
+
+    if (targetSplitIndex === -1) {
+      targetSplitIndex = this.tableInUse.splits.findIndex((split) =>
+        split.workouts?.some(
+          (workout) => workout?._id === preserveState.workoutId,
+        ),
+      );
+    }
+
+    if (targetSplitIndex === -1) return false;
+
+    const targetSplit = this.tableInUse.splits[targetSplitIndex];
+    const targetWorkoutIndex = targetSplit.workouts?.findIndex(
+      (workout) => workout?._id === preserveState.workoutId,
+    );
+
+    if (targetWorkoutIndex !== undefined && targetWorkoutIndex !== -1) {
+      this.openWorkoutIndex = targetWorkoutIndex;
+    }
+
+    if (targetSplitIndex === this.currentSplitIndex) {
+      this.updateCurrentSplit();
+      this.scrollToOpenWorkout();
+    } else {
+      this.currentSplitIndex = targetSplitIndex;
+    }
+
+    return true;
   }
 
   public ionViewWillLeave(): void {
@@ -971,18 +1037,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.loadingSplit = false;
 
     if (error?.error?.code === "PREMIUM_LIMIT_MICROCYCLES") {
-      this.ionicUtilService.showAlert({
-        header: "Limite Free alcanzado",
+      this.ionicUtilService.showPremiumLimitAlert({
         message:
           "Has alcanzado el limite de micro-ciclos para esta rutina. Activa Pro para seguir anadiendo.",
-        buttons: [
-          { text: "Cancelar", role: "cancel" },
-          {
-            text: "Hazte Pro",
-            cssClass: "alert-button-primary",
-            handler: () => this.navigationService.goToPremium(),
-          },
-        ],
+        onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
     }
