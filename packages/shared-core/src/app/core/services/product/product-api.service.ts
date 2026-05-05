@@ -4,7 +4,6 @@ import { take } from 'rxjs/operators';
 import { IProduct } from '../../models/product';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
-import { cleanObject } from 'src/app/shared/utils';
 
 @Injectable()
 export class ProductAPIService {
@@ -41,7 +40,7 @@ export class ProductAPIService {
   public saveProduct(product: IProduct): Observable<IProduct> {
     return this.http.post<IProduct>(
       `${ProductAPIService.PRODUCTS_ENDPOINT}`,
-      cleanObject(product)
+      this.serializeProduct(product)
     );
   }
 
@@ -50,7 +49,7 @@ export class ProductAPIService {
     return this.http
       .put<IProduct>(
         `${ProductAPIService.PRODUCTS_ENDPOINT}`,
-        cleanObject(product)
+        this.serializeProduct(product)
       )
       .pipe(take(1));
   }
@@ -78,5 +77,53 @@ export class ProductAPIService {
     return this.http
       .delete<any>(`${ProductAPIService.PRODUCTS_ENDPOINT}/${id}`)
       .pipe(take(1));
+  }
+
+  private serializeProduct(product: IProduct): any {
+    return this.removeEmptyProductFields(product);
+  }
+
+  private removeEmptyProductFields<T>(value: T): T {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.removeEmptyProductFields(item)) as T;
+    }
+
+    if (!value || typeof value !== 'object') {
+      return value;
+    }
+
+    const cleaned: any = {};
+
+    Object.keys(value as Record<string, any>).forEach((key) => {
+      const nextValue = (value as Record<string, any>)[key];
+
+      if (
+        nextValue === null ||
+        nextValue === undefined ||
+        nextValue === '' ||
+        nextValue === false
+      ) {
+        return;
+      }
+
+      if (typeof nextValue === 'object' && !Array.isArray(nextValue)) {
+        const nestedValue = this.removeEmptyProductFields(nextValue);
+        if (
+          nestedValue &&
+          typeof nestedValue === 'object' &&
+          !Array.isArray(nestedValue) &&
+          Object.keys(nestedValue).length === 0
+        ) {
+          return;
+        }
+
+        cleaned[key] = nestedValue;
+        return;
+      }
+
+      cleaned[key] = this.removeEmptyProductFields(nextValue);
+    });
+
+    return cleaned;
   }
 }
