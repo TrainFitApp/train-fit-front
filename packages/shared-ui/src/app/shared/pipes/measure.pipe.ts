@@ -82,6 +82,13 @@ export class MeasurePipe implements PipeTransform {
 
   private getProductQuantity(value: CustomProduct | IProduct): number | null {
     const customProduct = value as CustomProduct;
+    if (
+      customProduct?.product !== undefined &&
+      typeof customProduct.quantity === 'number'
+    ) {
+      return customProduct.quantity;
+    }
+
     const productQuantity =
       customProduct?.product !== undefined
         ? (customProduct.product as any)?.productQuantity

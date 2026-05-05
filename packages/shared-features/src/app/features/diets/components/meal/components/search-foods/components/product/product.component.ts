@@ -219,6 +219,10 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public checkIfInfoExist(): boolean {
+    if (typeof this.customProduct?.quantity === 'number' && this.customProduct.quantity > 0) {
+      return false;
+    }
+
     if (
       this.measureFilter === this.MEASURE_FILTER_TYPES.auto ||
       this.measureFilter === this.MEASURE_FILTER_TYPES.cieng
