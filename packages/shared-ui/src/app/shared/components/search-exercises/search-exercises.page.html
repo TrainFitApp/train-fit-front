@@ -123,7 +123,7 @@
         't-exercise': i === 0,
         'selected': !isChangeMode && isExerciseSelected(exercise)
       }"
-      (click)="isChangeMode ? addExerciseModal(exercise) : toggleExerciseSelection(exercise)"
+      (click)="onExerciseCardClick(exercise)"
     >
       <div class="exercise-image">
         <img
@@ -158,12 +158,18 @@
 
       <div class="exercise-action">
         <ion-icon name="chevron-forward-outline" class="action-icon" *ngIf="isChangeMode"></ion-icon>
-        <ion-checkbox
-          mode="md"
-          [checked]="isExerciseSelected(exercise)"
+        <div
+          class="checkbox-container"
           *ngIf="!isChangeMode"
-          style="pointer-events: none;"
-        ></ion-checkbox>
+          (click)="$event.stopPropagation()"
+        >
+          <ion-checkbox
+            mode="md"
+            [checked]="isExerciseSelected(exercise)"
+            [disabled]="!load"
+            (ionChange)="toggleExerciseSelection(exercise)"
+          ></ion-checkbox>
+        </div>
       </div>
     </div>
 

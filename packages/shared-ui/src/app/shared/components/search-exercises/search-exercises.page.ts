@@ -41,6 +41,7 @@ export class SearchExercisesPage implements OnInit {
   @Input() user: User;
   @Input() workout: Workout;
   @Input() workoutIndex: number;
+  @Input() splitIndex: number;
   @Input() currentSplit: Split;
   @Input() tableInUse: Table;
   @Input() isChangeMode: boolean;
@@ -189,7 +190,10 @@ export class SearchExercisesPage implements OnInit {
     }, 500);
   }
 
-  public addExerciseModal(exercise?: Exercise): void {
+  public addExerciseModal(
+    exercise?: Exercise,
+    customExercise?: CustomExercise
+  ): void {
     if (this.isChangeMode) {
       // Mostrar alerta de confirmación antes de proceder con el cambio
       const alertOptions: AlertOptions = {
@@ -216,10 +220,12 @@ export class SearchExercisesPage implements OnInit {
       component: ConfigExercisePage,
       componentProps: {
         workout: this.workout,
-        exercise: exercise,
+        exercise: customExercise ? null : exercise,
+        customExercise,
         user: this.user,
         tableInUse: this.tableInUse,
         workoutIndex: this.workoutIndex,
+        splitIndex: this.getResolvedSplitIndex(),
         currentSplit: this.currentSplit,
       },
     };
@@ -231,7 +237,24 @@ export class SearchExercisesPage implements OnInit {
 
   public isExerciseSelected(exercise: Exercise): boolean {
     if (this.isChangeMode || !this.workout?.exercises) return false;
-    return !!this.workout.exercises.find(ce => ce.exercise?._id === exercise._id);
+    return !!this.workout.exercises.find(
+      (ce) => ce.exercise?._id === exercise._id
+    );
+  }
+
+  public onExerciseCardClick(exercise: Exercise): void {
+    if (this.isChangeMode) {
+      this.addExerciseModal(exercise);
+      return;
+    }
+
+    const existingCustomExercise = this.getExistingCustomExercise(exercise);
+    if (existingCustomExercise) {
+      this.addExerciseModal(undefined, existingCustomExercise);
+      return;
+    }
+
+    this.addExerciseModal(exercise);
   }
 
   public toggleExerciseSelection(exercise: Exercise): void {
@@ -242,9 +265,7 @@ export class SearchExercisesPage implements OnInit {
 
     if (!this.load) return;
 
-    const existingCustomExercise = this.workout.exercises.find(
-      ce => ce.exercise?._id === exercise._id
-    );
+    const existingCustomExercise = this.getExistingCustomExercise(exercise);
 
     this.load = false;
 
@@ -511,5 +532,43 @@ export class SearchExercisesPage implements OnInit {
     }
 
     this.isFooterHidden = hidden;
+  }
+
+  private getExistingCustomExercise(
+    exercise: Exercise
+  ): CustomExercise | undefined {
+    return this.workout?.exercises?.find(
+      (ce) => ce.exercise?._id === exercise._id
+    );
+  }
+
+  private getResolvedSplitIndex(): number | undefined {
+    if (typeof this.splitIndex === 'number' && this.splitIndex >= 0) {
+      return this.splitIndex;
+    }
+
+    if (this.currentSplit?._id && this.tableInUse?.splits?.length) {
+      const currentSplitIndex = this.tableInUse.splits.findIndex(
+        (split) => split._id === this.currentSplit._id
+      );
+      if (currentSplitIndex >= 0) {
+        return currentSplitIndex;
+      }
+    }
+
+    if (
+      typeof this.workoutIndex === 'number' &&
+      this.workout?._id &&
+      this.tableInUse?.splits?.length
+    ) {
+      const workoutSplitIndex = this.tableInUse.splits.findIndex(
+        (split) => split.workouts?.[this.workoutIndex]?._id === this.workout._id
+      );
+      if (workoutSplitIndex >= 0) {
+        return workoutSplitIndex;
+      }
+    }
+
+    return undefined;
   }
 }
