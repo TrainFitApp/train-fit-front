@@ -472,6 +472,7 @@ export class DietDayService {
       let meal = new Meal();
       meal.name = MEAL_TYPES[i];
       meal.customProducts = [];
+      meal.customRecipes = [];
       dietDay.meals.push(meal);
     }
 

@@ -266,21 +266,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         const currentDietDay = this.dietDayService.currentDietDay;
         if (currentDietDay) {
           this.dietDay = currentDietDay;
-          // Find the updated meal in the diet day
-          // Try by _id first, if not found (new dietDay case), try by name
-          let updatedMeal;
-          if (savedState.meal?._id) {
-            updatedMeal = currentDietDay.meals.find(
-              (m) => m._id === savedState.meal._id,
-            );
-          }
-
-          // If not found by ID (new dietDay scenario), search by name
-          if (!updatedMeal && savedState.meal?.name) {
-            updatedMeal = currentDietDay.meals.find(
-              (m) => m.name === savedState.meal.name,
-            );
-          }
+          const updatedMeal = this.findMealInDietDay(
+            currentDietDay,
+            savedState.meal,
+          );
 
           if (updatedMeal) {
             // Create a new reference to force Angular change detection
@@ -1679,18 +1668,51 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     this.dietDay = currentDietDay;
 
-    let updatedMeal: Meal | undefined;
-    if (this.meal._id) {
-      updatedMeal = currentDietDay.meals.find((m) => m._id === this.meal._id);
-    }
-
-    if (!updatedMeal && this.meal.name) {
-      updatedMeal = currentDietDay.meals.find((m) => m.name === this.meal.name);
-    }
+    const updatedMeal = this.findMealInDietDay(currentDietDay, this.meal);
 
     if (updatedMeal) {
       this.meal = { ...updatedMeal };
     }
+  }
+
+  private findMealIndexInDietDay(
+    dietDay: DietDay | null | undefined,
+    referenceMeal: Meal | null | undefined,
+  ): number {
+    if (!dietDay?.meals?.length || !referenceMeal) {
+      return -1;
+    }
+
+    if (referenceMeal._id) {
+      const indexById = dietDay.meals.findIndex(
+        (meal) => meal?._id === referenceMeal._id,
+      );
+
+      if (indexById !== -1) {
+        return indexById;
+      }
+    }
+
+    if (referenceMeal.name) {
+      return dietDay.meals.findIndex(
+        (meal) => meal?.name === referenceMeal.name,
+      );
+    }
+
+    return -1;
+  }
+
+  private findMealInDietDay(
+    dietDay: DietDay | null | undefined,
+    referenceMeal: Meal | null | undefined,
+  ): Meal | undefined {
+    const mealIndex = this.findMealIndexInDietDay(dietDay, referenceMeal);
+
+    if (mealIndex === -1 || !dietDay) {
+      return undefined;
+    }
+
+    return dietDay.meals[mealIndex];
   }
 
   private searchProducts(): void {
@@ -2007,10 +2029,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.dietDayService.setCurrentDietDay = result.dietDay;
           this.syncMealAndDietDayFromService();
         } else if (result?.meal) {
+          const previousMeal = this.meal;
           this.meal = result.meal;
           if (this.dietDay) {
-            const mealIndex = this.dietDay.meals.findIndex(
-              (m) => m._id === this.meal?._id || m.name === this.meal?.name,
+            const mealIndex = this.findMealIndexInDietDay(
+              this.dietDay,
+              previousMeal,
             );
             if (mealIndex !== -1) {
               this.dietDay.meals[mealIndex] = result.meal;
@@ -2125,9 +2149,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     if (this.dietDay) {
-      const indexMeal = this.dietDay.meals.findIndex(
-        (m) => m._id === this.meal?._id || m.name === this.meal?.name,
-      );
+      const indexMeal = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
       if (indexMeal !== -1) {
         return {

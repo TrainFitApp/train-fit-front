@@ -300,11 +300,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       .subscribe((dietDay) => {
         if (!dietDay || !this.meal) return;
         this.dietDay = dietDay;
-        this.meal =
-          dietDay.meals?.find(
-            (meal) =>
-              meal._id === this.meal?._id || meal.name === this.meal?.name,
-          ) || this.meal;
+        this.meal = this.findMealInDietDay(dietDay, this.meal) || this.meal;
       });
   }
 
@@ -1095,9 +1091,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
 
     if (result?.meal && this.dietDay) {
-      const mealIndex = this.dietDay.meals.findIndex(
-        (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
-      );
+      const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
       if (mealIndex !== -1) {
         this.dietDay.meals[mealIndex] = result.meal;
         this.dietDayService.setCurrentDietDay = { ...this.dietDay };
@@ -1121,9 +1115,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       return;
     }
 
-    const updatedMeal = updatedDietDay.meals?.find(
-      (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
-    );
+    const updatedMeal = this.findMealInDietDay(updatedDietDay, this.meal);
 
     if (updatedMeal) {
       this.meal = updatedMeal;
@@ -1137,9 +1129,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
     if (!this.dietDay) return null;
 
-    const indexMeal = this.dietDay.meals.findIndex(
-      (meal) => meal._id === this.meal?._id || meal.name === this.meal?.name,
-    );
+    const indexMeal = this.findMealIndexInDietDay(this.dietDay, this.meal);
 
     if (indexMeal === -1) return null;
 
@@ -1148,6 +1138,46 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       indexMeal,
       currentDate: this.dietDay.date,
     };
+  }
+
+  private findMealIndexInDietDay(
+    dietDay: DietDay | null | undefined,
+    referenceMeal: Meal | null | undefined,
+  ): number {
+    if (!dietDay?.meals?.length || !referenceMeal) {
+      return -1;
+    }
+
+    if (referenceMeal._id) {
+      const indexById = dietDay.meals.findIndex(
+        (meal) => meal?._id === referenceMeal._id,
+      );
+
+      if (indexById !== -1) {
+        return indexById;
+      }
+    }
+
+    if (referenceMeal.name) {
+      return dietDay.meals.findIndex(
+        (meal) => meal?.name === referenceMeal.name,
+      );
+    }
+
+    return -1;
+  }
+
+  private findMealInDietDay(
+    dietDay: DietDay | null | undefined,
+    referenceMeal: Meal | null | undefined,
+  ): Meal | undefined {
+    const mealIndex = this.findMealIndexInDietDay(dietDay, referenceMeal);
+
+    if (mealIndex === -1 || !dietDay) {
+      return undefined;
+    }
+
+    return dietDay.meals[mealIndex];
   }
 
   private getCurrentIngredients(): CustomProduct[] {
