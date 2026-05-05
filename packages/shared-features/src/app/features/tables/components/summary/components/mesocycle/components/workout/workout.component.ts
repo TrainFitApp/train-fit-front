@@ -422,6 +422,7 @@ export class WorkoutComponent {
       componentProps: {
         workout: workout,
         workoutIndex: this.workoutIndex,
+        splitIndex: this.splitIndex,
         user: this.user,
         tableInUse: this.tableInUse,
         currentSplit: currentSplit,

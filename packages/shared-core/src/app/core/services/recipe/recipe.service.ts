@@ -277,10 +277,20 @@ export class RecipeService {
     RecipeService.CUSTOM_PRODUCT_COMPARISON_FIELDS.forEach((field) => {
       if (field === 'quantity') return;
 
-      const value = (ingredient as any)?.[field];
-      if (value !== undefined && value !== null && value !== '') {
-        payload[field] = this.cloneComparableValue(value);
+      if (!Object.prototype.hasOwnProperty.call(ingredient, field)) {
+        return;
       }
+
+      const value = (ingredient as any)?.[field];
+      if (value === undefined) {
+        return;
+      }
+
+      if (typeof value === 'string' && value.trim() === '') {
+        return;
+      }
+
+      payload[field] = this.cloneComparableValue(value);
     });
 
     return payload;

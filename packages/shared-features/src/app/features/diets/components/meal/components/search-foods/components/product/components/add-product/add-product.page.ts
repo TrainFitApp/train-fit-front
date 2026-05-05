@@ -749,11 +749,17 @@ export class AddProductPage implements OnInit, OnDestroy {
       const finalQuantity = this.getFinalQuantity(formValues);
 
       if (this.ingredientMode) {
-        const newCustomProduct = this.customProductService.composeCustomProduct(
-          this.product,
-          finalQuantity,
-          0,
-        );
+        const newCustomProduct = this.customProduct
+          ? ({
+              ...this.customProduct,
+              product: this.product,
+              quantity: finalQuantity,
+            } as CustomProduct)
+          : this.customProductService.composeCustomProduct(
+              this.product,
+              finalQuantity,
+              0,
+            );
 
         this.mapFormToProduct(formValues, newCustomProduct);
 
@@ -1482,68 +1488,49 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Redondear kilocalorías sin decimales
     // Cadena de fallback: override directo en customProduct → producto viejo en customProduct.product → this.product
-    const energyKcal =
-      this.customProduct?.energyKcal100g ??
-      this.customProduct?.product?.energyKcal100g ??
-      this.product.energyKcal100g;
-    const roundedEnergyKcal = energyKcal ? Math.round(energyKcal) : energyKcal;
+    const roundedEnergyKcal = this.roundDisplayValue(
+      this.getEffectiveProductValue("energyKcal100g"),
+      0,
+    );
 
     // Redondear macronutrientes con máximo 1 decimal
-    const protein =
-      this.customProduct?.protein100g ??
-      this.customProduct?.product?.protein100g ??
-      this.product.protein100g;
-    const roundedProtein = protein ? Math.round(protein * 10) / 10 : protein;
+    const roundedProtein = this.roundDisplayValue(
+      this.getEffectiveProductValue("protein100g"),
+      1,
+    );
 
-    const carbohydrates =
-      this.customProduct?.carbohydrates100g ??
-      this.customProduct?.product?.carbohydrates100g ??
-      this.product.carbohydrates100g;
-    const roundedCarbohydrates = carbohydrates
-      ? Math.round(carbohydrates * 10) / 10
-      : carbohydrates;
+    const roundedCarbohydrates = this.roundDisplayValue(
+      this.getEffectiveProductValue("carbohydrates100g"),
+      1,
+    );
 
-    const fat =
-      this.customProduct?.fat100g ??
-      this.customProduct?.product?.fat100g ??
-      this.product.fat100g;
-    const roundedFat = fat ? Math.round(fat * 10) / 10 : fat;
+    const roundedFat = this.roundDisplayValue(
+      this.getEffectiveProductValue("fat100g"),
+      1,
+    );
 
-    const saturatedFat =
-      this.customProduct?.saturatedFat100g ??
-      this.customProduct?.product?.saturatedFat100g ??
-      this.product.saturatedFat100g;
-    const roundedSaturatedFat = saturatedFat
-      ? Math.round(saturatedFat * 10) / 10
-      : saturatedFat;
+    const roundedSaturatedFat = this.roundDisplayValue(
+      this.getEffectiveProductValue("saturatedFat100g"),
+      1,
+    );
 
-    const sugars =
-      this.customProduct?.sugars100g ??
-      this.customProduct?.product?.sugars100g ??
-      this.product.sugars100g;
-    const roundedSugars = sugars ? Math.round(sugars * 10) / 10 : sugars;
+    const roundedSugars = this.roundDisplayValue(
+      this.getEffectiveProductValue("sugars100g"),
+      1,
+    );
 
-    const fiber =
-      this.customProduct?.fiber100g ??
-      this.customProduct?.product?.fiber100g ??
-      this.product.fiber100g;
-    const roundedFiber = fiber ? Math.round(fiber * 10) / 10 : fiber;
+    const roundedFiber = this.roundDisplayValue(
+      this.getEffectiveProductValue("fiber100g"),
+      1,
+    );
 
     // Helper: prioriza overrides directos del customProduct, luego su producto original,
     // y finalmente el producto nuevo (this.product). Esto es clave para "Mantener":
     // cuando cp no tiene override directo (cp[key] === undefined), los valores vienen
     // del producto que tenía el customProduct ANTES de ser reemplazado (cp.product),
     // no del nuevo producto editado (this.product).
-    const cp = this.customProduct;
-    const p = this.product;
-    const cpOrP = <K extends keyof typeof p>(key: K) => {
-      const directVal = cp && (cp[key as keyof typeof cp] as any);
-      if (directVal !== undefined && directVal !== null) return directVal;
-      const cpProductVal =
-        cp?.product && (cp.product[key as keyof IProduct] as any);
-      if (cpProductVal !== undefined && cpProductVal !== null)
-        return cpProductVal;
-      return p[key];
+    const cpOrP = <K extends keyof IProduct>(key: K) => {
+      return this.getEffectiveProductValue(key as keyof IProduct);
     };
 
     // Minerales
@@ -1577,150 +1564,117 @@ export class AddProductPage implements OnInit, OnDestroy {
       // Minerales (Cargar convirtiendo a unidades de visualización)
       // NOTA: cpOrP prioriza los valores del customProduct (entrada en meal) sobre el producto base
       calcium100g: new FormControl(
-        cpOrP("calcium100g")
-          ? parseFloat((cpOrP("calcium100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("calcium100g", cpOrP("calcium100g")),
       ),
       iron100g: new FormControl(
-        cpOrP("iron100g")
-          ? parseFloat((cpOrP("iron100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("iron100g", cpOrP("iron100g")),
       ),
       magnesium100g: new FormControl(
-        cpOrP("magnesium100g")
-          ? parseFloat((cpOrP("magnesium100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("magnesium100g", cpOrP("magnesium100g")),
       ),
       phosphorus100g: new FormControl(
-        cpOrP("phosphorus100g")
-          ? parseFloat((cpOrP("phosphorus100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue(
+          "phosphorus100g",
+          cpOrP("phosphorus100g"),
+        ),
       ),
       potassium100g: new FormControl(
-        cpOrP("potassium100g")
-          ? parseFloat((cpOrP("potassium100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("potassium100g", cpOrP("potassium100g")),
       ),
       zinc100g: new FormControl(
-        cpOrP("zinc100g")
-          ? parseFloat((cpOrP("zinc100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("zinc100g", cpOrP("zinc100g")),
       ),
       copper100g: new FormControl(
-        cpOrP("copper100g")
-          ? parseFloat((cpOrP("copper100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("copper100g", cpOrP("copper100g")),
       ),
       manganese100g: new FormControl(
-        cpOrP("manganese100g")
-          ? parseFloat((cpOrP("manganese100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("manganese100g", cpOrP("manganese100g")),
       ),
       selenium100g: new FormControl(
-        cpOrP("selenium100g")
-          ? parseFloat((cpOrP("selenium100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("selenium100g", cpOrP("selenium100g")),
       ),
       iodine100g: new FormControl(
-        cpOrP("iodine100g")
-          ? parseFloat((cpOrP("iodine100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("iodine100g", cpOrP("iodine100g")),
       ),
       sodium100g: new FormControl(
-        cpOrP("sodium100g")
-          ? parseFloat((cpOrP("sodium100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("sodium100g", cpOrP("sodium100g")),
       ),
-      salt100g: new FormControl(cpOrP("salt100g")),
+      salt100g: new FormControl(
+        this.toDisplayNutritionValue("salt100g", cpOrP("salt100g")),
+      ),
 
       // Vitaminas
       vitaminA100g: new FormControl(
-        cpOrP("vitaminA100g")
-          ? parseFloat((cpOrP("vitaminA100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminA100g", cpOrP("vitaminA100g")),
       ),
       vitaminD100g: new FormControl(
-        cpOrP("vitaminD100g")
-          ? parseFloat((cpOrP("vitaminD100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminD100g", cpOrP("vitaminD100g")),
       ),
       vitaminE100g: new FormControl(
-        cpOrP("vitaminE100g")
-          ? parseFloat((cpOrP("vitaminE100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminE100g", cpOrP("vitaminE100g")),
       ),
       vitaminK100g: new FormControl(
-        cpOrP("vitaminK100g")
-          ? parseFloat((cpOrP("vitaminK100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminK100g", cpOrP("vitaminK100g")),
       ),
       vitaminC100g: new FormControl(
-        cpOrP("vitaminC100g")
-          ? parseFloat((cpOrP("vitaminC100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminC100g", cpOrP("vitaminC100g")),
       ),
       vitaminB1100g: new FormControl(
-        cpOrP("vitaminB1100g")
-          ? parseFloat((cpOrP("vitaminB1100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB1100g", cpOrP("vitaminB1100g")),
       ),
       vitaminB2100g: new FormControl(
-        cpOrP("vitaminB2100g")
-          ? parseFloat((cpOrP("vitaminB2100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB2100g", cpOrP("vitaminB2100g")),
       ),
       vitaminB3100g: new FormControl(
-        cpOrP("vitaminB3100g")
-          ? parseFloat((cpOrP("vitaminB3100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB3100g", cpOrP("vitaminB3100g")),
       ),
       vitaminB5100g: new FormControl(
-        cpOrP("vitaminB5100g")
-          ? parseFloat((cpOrP("vitaminB5100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB5100g", cpOrP("vitaminB5100g")),
       ),
       vitaminB6100g: new FormControl(
-        cpOrP("vitaminB6100g")
-          ? parseFloat((cpOrP("vitaminB6100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB6100g", cpOrP("vitaminB6100g")),
       ),
       vitaminB9100g: new FormControl(
-        cpOrP("vitaminB9100g")
-          ? parseFloat((cpOrP("vitaminB9100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("vitaminB9100g", cpOrP("vitaminB9100g")),
       ),
       vitaminB12100g: new FormControl(
-        cpOrP("vitaminB12100g")
-          ? parseFloat((cpOrP("vitaminB12100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue(
+          "vitaminB12100g",
+          cpOrP("vitaminB12100g"),
+        ),
       ),
       biotin100g: new FormControl(
-        cpOrP("biotin100g")
-          ? parseFloat((cpOrP("biotin100g") * 1000000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("biotin100g", cpOrP("biotin100g")),
       ),
 
       // Otros
       cholesterol100g: new FormControl(
-        cpOrP("cholesterol100g")
-          ? parseFloat((cpOrP("cholesterol100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue(
+          "cholesterol100g",
+          cpOrP("cholesterol100g"),
+        ),
       ),
-      transFat100g: new FormControl(cpOrP("transFat100g")),
-      omega3100g: new FormControl(cpOrP("omega3100g")),
-      omega6100g: new FormControl(cpOrP("omega6100g")),
-      omega9100g: new FormControl(cpOrP("omega9100g")),
+      transFat100g: new FormControl(
+        this.toDisplayNutritionValue("transFat100g", cpOrP("transFat100g")),
+      ),
+      omega3100g: new FormControl(
+        this.toDisplayNutritionValue("omega3100g", cpOrP("omega3100g")),
+      ),
+      omega6100g: new FormControl(
+        this.toDisplayNutritionValue("omega6100g", cpOrP("omega6100g")),
+      ),
+      omega9100g: new FormControl(
+        this.toDisplayNutritionValue("omega9100g", cpOrP("omega9100g")),
+      ),
       caffeine100g: new FormControl(
-        cpOrP("caffeine100g")
-          ? parseFloat((cpOrP("caffeine100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("caffeine100g", cpOrP("caffeine100g")),
       ),
       taurine100g: new FormControl(
-        cpOrP("taurine100g")
-          ? parseFloat((cpOrP("taurine100g") * 1000).toFixed(1))
-          : undefined,
+        this.toDisplayNutritionValue("taurine100g", cpOrP("taurine100g")),
       ),
-      alcohol100g: new FormControl(cpOrP("alcohol100g")),
+      alcohol100g: new FormControl(
+        this.toDisplayNutritionValue("alcohol100g", cpOrP("alcohol100g")),
+      ),
 
       // Textos (C-06 FIX: Usar cpOrP para priorizar overrides de CustomProduct)
       ingredients: new FormControl(
@@ -1784,14 +1738,16 @@ export class AddProductPage implements OnInit, OnDestroy {
   public showOverrideMeta(field: string): boolean {
     if (!this.addCustomProductForm) return false;
 
+    const baseValue = this.getBaseNutritionValue(field);
+    if (baseValue === null) return false;
+
     const currentDisplayValue = this.addCustomProductForm.get(field)?.value;
     const currentValue = this.toStorageNutritionValue(
       field,
       currentDisplayValue,
     );
-    if (currentValue === null) return false;
+    if (currentValue === null) return true;
 
-    const baseValue = this.getBaseNutritionValue(field);
     return !this.areNutritionValuesEqual(currentValue, baseValue);
   }
 
@@ -1840,6 +1796,44 @@ export class AddProductPage implements OnInit, OnDestroy {
     return normalized;
   }
 
+  private hasCustomProductField(
+    field: keyof CustomProduct | keyof IProduct,
+  ): boolean {
+    return (
+      !!this.customProduct &&
+      Object.prototype.hasOwnProperty.call(this.customProduct, field)
+    );
+  }
+
+  private getEffectiveProductValue(field: keyof IProduct): any {
+    if (this.hasCustomProductField(field)) {
+      return (this.customProduct as any)?.[field];
+    }
+
+    const customProductBase = this.customProduct?.product as any;
+    if (customProductBase?.[field] !== undefined) {
+      return customProductBase[field];
+    }
+
+    return (this.product as any)?.[field];
+  }
+
+  private roundDisplayValue(
+    value: number | null | undefined,
+    maxDecimals: number,
+  ): number | null | undefined {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    if (maxDecimals === 0) {
+      return Math.round(value);
+    }
+
+    const multiplier = 10 ** maxDecimals;
+    return Math.round(value * multiplier) / multiplier;
+  }
+
   private getBaseNutritionValue(field: string): number | null {
     return this.normalizeNumericInput((this.product as any)?.[field]);
   }
@@ -1875,14 +1869,17 @@ export class AddProductPage implements OnInit, OnDestroy {
       );
       const baseValue = this.normalizeNumericInput(target?.product?.[field]);
 
-      if (
-        normalizedValue === null ||
-        this.areNutritionValuesEqual(normalizedValue, baseValue)
-      ) {
+      if (normalizedValue === null) {
         target[field] = null;
-      } else {
-        target[field] = normalizedValue;
+        return;
       }
+
+      if (this.areNutritionValuesEqual(normalizedValue, baseValue)) {
+        delete target[field];
+        return;
+      }
+
+      target[field] = normalizedValue;
     });
   }
 

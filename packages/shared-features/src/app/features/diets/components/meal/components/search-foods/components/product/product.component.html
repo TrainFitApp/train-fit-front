@@ -52,28 +52,32 @@
       <div class="macro-item">
         <div class="macro-dot kcal"></div>
         <span class="macro-value">{{
-          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.energy
+          (customProduct || product)
+            | measure : measureFilter : CUSTOM_PRODUCT_KEYS.energy
         }}</span>
       </div>
       <!-- Proteínas -->
       <div class="macro-item">
         <div class="macro-dot protein"></div>
         <span class="macro-value">{{
-          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.protein
+          (customProduct || product)
+            | measure : measureFilter : CUSTOM_PRODUCT_KEYS.protein
         }}</span>
       </div>
       <!-- Carbohidratos -->
       <div class="macro-item">
         <div class="macro-dot carbs"></div>
         <span class="macro-value">{{
-          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.carbohydrates
+          (customProduct || product)
+            | measure : measureFilter : CUSTOM_PRODUCT_KEYS.carbohydrates
         }}</span>
       </div>
       <!-- Grasas -->
       <div class="macro-item">
         <div class="macro-dot fat"></div>
         <span class="macro-value">{{
-          product | measure : measureFilter : CUSTOM_PRODUCT_KEYS.fat
+          (customProduct || product)
+            | measure : measureFilter : CUSTOM_PRODUCT_KEYS.fat
         }}</span>
       </div>
     </div>

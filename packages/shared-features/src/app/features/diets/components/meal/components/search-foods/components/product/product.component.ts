@@ -169,11 +169,6 @@ export class ProductComponent implements OnInit, OnChanges {
         (this.product.servingQuantity ||
           MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].id !== this.measureFilter)
       ) {
-        newCustomProduct.energyKcal100g = this.product.energyKcal100g;
-        newCustomProduct.protein100g = this.product.protein100g;
-        newCustomProduct.carbohydrates100g = this.product.carbohydrates100g;
-        newCustomProduct.fat100g = this.product.fat100g;
-
         const idDietInUse = this.userService.getLocalUser.dietInUse;
         this.dietDayService
           .createCustomProduct(
@@ -317,4 +312,3 @@ export class ProductComponent implements OnInit, OnChanges {
       : this.product.brand;
   }
 }
-

@@ -533,13 +533,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           "[DEBUG] Ingredient already exists, updating:",
           existingIngredient.product?.name,
         );
-
-        // Update properties while keeping the reference
-        existingIngredient.quantity = newIngredient.quantity;
-        existingIngredient.energyKcal100g = newIngredient.energyKcal100g;
-        existingIngredient.protein100g = newIngredient.protein100g;
-        existingIngredient.carbohydrates100g = newIngredient.carbohydrates100g;
-        existingIngredient.fat100g = newIngredient.fat100g;
+        this.selectedIngredients = this.selectedIngredients.map((ingredient) =>
+          ingredient.product?._id === newProductId
+            ? this.cloneIngredient(newIngredient)
+            : ingredient,
+        );
 
         this.calculateIngredientMacros();
         console.log("[DEBUG] Updated ingredient successfully");
@@ -549,7 +547,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           "[DEBUG] Adding NEW ingredient:",
           newIngredient.product?.name,
         );
-        this.selectedIngredients = [...this.selectedIngredients, newIngredient];
+        this.selectedIngredients = [
+          ...this.selectedIngredients,
+          this.cloneIngredient(newIngredient),
+        ];
         this.calculateIngredientMacros();
         console.log(
           "[DEBUG] Added new ingredient, total:",
@@ -739,14 +740,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     await this.removeKeyboardListeners();
     if (this.ingredientMode && this.returnUrl) {
       this.syncRecipeDraftIngredients();
-      const ingredientsCopy = this.selectedIngredients.map((ing) => ({
-        product: ing.product,
-        quantity: ing.quantity,
-        energyKcal100g: ing.energyKcal100g,
-        protein100g: ing.protein100g,
-        carbohydrates100g: ing.carbohydrates100g,
-        fat100g: ing.fat100g,
-      }));
+      const ingredientsCopy = this.cloneSelectedIngredients();
 
       this.navigationService.setTempData(
         "selectedIngredients",
@@ -985,7 +979,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
       this.navigationService.setTempData(
         "selectedIngredients",
-        this.selectedIngredients,
+        this.cloneSelectedIngredients(),
       );
     }
 
@@ -1164,7 +1158,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.calculateIngredientMacros();
       this.navigationService.setTempData(
         "selectedIngredients",
-        this.selectedIngredients,
+        this.cloneSelectedIngredients(),
       );
       if (this.currentMode === "products") {
         this.setSelectedIngredientsFirst();
@@ -1443,10 +1437,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         const newIngredient: CustomProduct = {
           product: product,
           quantity: quantity,
-          energyKcal100g: product.energyKcal100g,
-          protein100g: product.protein100g,
-          carbohydrates100g: product.carbohydrates100g,
-          fat100g: product.fat100g,
         };
         this.selectedIngredients = [...this.selectedIngredients, newIngredient];
         console.log(
@@ -1507,6 +1497,24 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private syncRecipeDraftIngredients(): void {
     if (!this.recipeDraftService.isActive()) return;
     this.recipeDraftService.setIngredients(this.selectedIngredients);
+  }
+
+  private cloneIngredient(ingredient: CustomProduct): CustomProduct {
+    return {
+      ...ingredient,
+      allergens: ingredient?.allergens ? [...ingredient.allergens] : undefined,
+      traces: ingredient?.traces ? [...ingredient.traces] : undefined,
+      product:
+        typeof ingredient?.product === "object" && ingredient.product
+          ? { ...ingredient.product }
+          : ingredient?.product,
+    };
+  }
+
+  private cloneSelectedIngredients(): CustomProduct[] {
+    return this.selectedIngredients.map((ingredient) =>
+      this.cloneIngredient(ingredient),
+    );
   }
 
   // Check if a product is already selected as ingredient
@@ -2489,15 +2497,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         );
       });
 
-      // Create a deep copy to avoid reference issues
-      const ingredientsCopy = this.selectedIngredients.map((ing) => ({
-        product: ing.product,
-        quantity: ing.quantity,
-        energyKcal100g: ing.energyKcal100g,
-        protein100g: ing.protein100g,
-        carbohydrates100g: ing.carbohydrates100g,
-        fat100g: ing.fat100g,
-      }));
+      const ingredientsCopy = this.cloneSelectedIngredients();
 
       // Store in temp storage (more reliable than navigation state)
       this.navigationService.setTempData(
@@ -2594,7 +2594,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.syncRecipeDraftIngredients();
     this.navigationService.setTempData(
       "selectedIngredients",
-      this.selectedIngredients,
+      this.cloneSelectedIngredients(),
     );
 
     this.navigationService.goToCreateProduct({

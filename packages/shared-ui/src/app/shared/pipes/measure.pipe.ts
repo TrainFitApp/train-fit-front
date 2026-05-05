@@ -16,25 +16,25 @@ export class MeasurePipe implements PipeTransform {
     node: string
   ) {
     let calculatedValue: number;
+    const resolvedValue = this.resolveNutritionValue(value, node);
+    const productQuantity = this.getProductQuantity(value);
+    const servingQuantity = this.getServingQuantity(value);
 
     if (MEASURE_FILTER_TYPES.cieng === measureType) {
-      const customProduct = value as CustomProduct;
-      calculatedValue = customProduct[node];
+      calculatedValue = resolvedValue;
     } else if (MEASURE_FILTER_TYPES.auto === measureType) {
-      const product = value as IProduct;
-      if (product.servingQuantity) {
-        calculatedValue = (product.servingQuantity * value[node]) / 100;
+      if (servingQuantity) {
+        calculatedValue = (servingQuantity * resolvedValue) / 100;
       } else {
-        calculatedValue = value[node];
+        calculatedValue = resolvedValue;
       }
     } else {
-      const product = value as IProduct;
       if (MEASURE_FILTER_TYPES.total === measureType) {
-        if (!product.productQuantity) return '-';
-        calculatedValue = (product.productQuantity * value[node]) / 100;
+        if (!productQuantity) return '-';
+        calculatedValue = (productQuantity * resolvedValue) / 100;
       } else {
-        if (!product.servingQuantity) return '-';
-        calculatedValue = (product.servingQuantity * value[node]) / 100;
+        if (!servingQuantity) return '-';
+        calculatedValue = (servingQuantity * resolvedValue) / 100;
       }
     }
 
@@ -47,5 +47,46 @@ export class MeasurePipe implements PipeTransform {
     }
 
     return calculatedValue;
+  }
+
+  private resolveNutritionValue(
+    value: CustomProduct | IProduct,
+    node: string
+  ): number {
+    const customProduct = value as CustomProduct;
+
+    if (customProduct?.product !== undefined) {
+      const customValue = (customProduct as any)?.[node];
+      if (customValue !== undefined && customValue !== null) {
+        return customValue;
+      }
+
+      const baseValue = (customProduct.product as any)?.[node];
+      if (baseValue !== undefined && baseValue !== null) {
+        return baseValue;
+      }
+    }
+
+    return ((value as any)?.[node] ?? 0) as number;
+  }
+
+  private getServingQuantity(value: CustomProduct | IProduct): number | null {
+    const customProduct = value as CustomProduct;
+    const servingQuantity =
+      customProduct?.product !== undefined
+        ? (customProduct.product as any)?.servingQuantity
+        : (value as IProduct)?.servingQuantity;
+
+    return typeof servingQuantity === 'number' ? servingQuantity : null;
+  }
+
+  private getProductQuantity(value: CustomProduct | IProduct): number | null {
+    const customProduct = value as CustomProduct;
+    const productQuantity =
+      customProduct?.product !== undefined
+        ? (customProduct.product as any)?.productQuantity
+        : (value as IProduct)?.productQuantity;
+
+    return typeof productQuantity === 'number' ? productQuantity : null;
   }
 }

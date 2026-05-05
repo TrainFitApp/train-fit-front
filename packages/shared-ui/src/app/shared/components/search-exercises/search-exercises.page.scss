@@ -412,6 +412,12 @@
     align-items: center;
     justify-content: center;
 
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .action-icon {
       font-size: 1.2rem;
       color: rgba(255, 255, 255, 0.6);
