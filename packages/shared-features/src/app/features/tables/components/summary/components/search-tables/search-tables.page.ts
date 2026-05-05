@@ -10,6 +10,7 @@ import { SearchFilterGroup } from 'src/app/shared/models/filterGroup';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 @Component({
   selector: 'app-search-tables',
@@ -28,6 +29,7 @@ export class SearchTablesPage implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
+  private readonly billingService = inject(BillingService);
 
   constructor(
     private utilService: UtilService,
@@ -122,8 +124,18 @@ export class SearchTablesPage implements OnInit {
 
     if (indexToDelete !== -1) this.tableList.splice(indexToDelete, 1);
 
-    // Si la tabla eliminada es la que está siendo usada actualmente
-    if (idTable === this.user.tableInUse) {
+    if (this.user?.ownTables) {
+      this.user = {
+        ...this.user,
+        ownTables: this.user.ownTables.filter(
+          (tableId) => tableId?.toString() !== idTable
+        ),
+      };
+      this.userService.setLocalUser = this.user;
+    }
+
+    // Si la tabla eliminada es la que esta siendo usada actualmente
+    if (idTable === this.getTableInUseId()) {
       // Limpiar los subjects primero
       this.workoutService.setCurrentWorkout = undefined;
       this.tableService.setCurrentTable = undefined;
@@ -132,12 +144,23 @@ export class SearchTablesPage implements OnInit {
       this.user.tableInUse = undefined;
       this.user.workoutInUse = undefined;
 
-      // Actualizar en la base de datos (setLocalUser se hace automáticamente en el tap del updateUser)
+      // Actualizar en la base de datos sin reintroducir la rutina eliminada en ownTables
       this.userService.updateUser(this.user).subscribe(() => {
+        void this.billingService.refreshBackendEntitlements();
         // Esperar a que la BD se actualice antes de navegar
         this.navigationService.goBack();
       });
+      return;
     }
+
+    void this.billingService.refreshBackendEntitlements();
+  }
+
+  private getTableInUseId(): string | null {
+    const tableInUse = this.user?.tableInUse;
+    if (!tableInUse) return null;
+    if (typeof tableInUse === 'string') return tableInUse;
+    return tableInUse?._id?.toString?.() || tableInUse?.toString?.() || null;
   }
 
   public close(): void {
