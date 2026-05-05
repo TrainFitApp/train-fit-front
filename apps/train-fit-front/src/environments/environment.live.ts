@@ -1,11 +1,10 @@
 import pkg from '../../package.json';
 
-const PORT = ':3000';
-// Usar IP local para que el dispositivo/simulator iOS pueda conectarse
-const API_URL_BASE = 'http://localhost' + PORT;
+const PORT = '';
+const API_URL_BASE = 'https://train-fit-back-production.up.railway.app' + PORT;
 
 export const environment = {
-  production: false,
+  production: true,
   APP_VERSION: pkg.version,
   APP_STORE_URL: 'https://apps.apple.com/es/app/trainfit/id6471257280',
   GOOGLE_PLAY_URL:
@@ -14,11 +13,6 @@ export const environment = {
   API_URL_BASE_BACKEND: API_URL_BASE,
   API_URL: API_URL_BASE + '/api',
   lang: 'ES',
-  revenueCat: {
-    enabled: true,
-    androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
-    iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
-    entitlementId: 'no_adds_and_features',
   auth: {
     clientFamily: 'trainfit-front',
     google: {
@@ -30,5 +24,11 @@ export const environment = {
     apple: {
       clientId: 'com.trainfit.trainfit',
     },
+  },
+  revenueCat: {
+    enabled: true,
+    androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
+    iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
+    entitlementId: 'no_adds_and_features',
   },
 };
