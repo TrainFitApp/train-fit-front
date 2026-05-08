@@ -116,6 +116,7 @@ export class ConfigExercisePage implements OnInit {
   public filterCategories = [
     "Cardio",
     "Empujes",
+    "Tirón",
     "Tirón horizontal",
     "Tirón vertical",
     "Cadena posterior",

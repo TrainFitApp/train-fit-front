@@ -19,6 +19,7 @@ export class FilterInputPage implements OnInit {
   public categories = [
     "Cardio",
     "Empujes",
+    "Tirón",
     "Tirón horizontal",
     "Tirón vertical",
     "Cadena posterior",
