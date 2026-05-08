@@ -392,8 +392,12 @@ export class WorkoutComponent {
     this.tableInUse.splits.forEach((splitTemp) => {
       workouts.forEach((workout) => {
         splitTemp.workouts.forEach((workoutTemp) => {
-          if (workout._id === workoutTemp._id)
-            workoutTemp.exercises = workout.exercises;
+          if (workout._id === workoutTemp._id) {
+            workoutTemp.exercises = this.mergeCustomExercises(
+              workoutTemp.exercises,
+              workout.exercises
+            );
+          }
         });
       });
     });
@@ -412,6 +416,31 @@ export class WorkoutComponent {
       workoutIndex: this.workoutIndex,
       exerciseIndex: newExerciseIndex,
     });
+  }
+
+  private mergeCustomExercises(
+    currentExercises: CustomExercise[] = [],
+    incomingExercises: CustomExercise[] = []
+  ): CustomExercise[] {
+    const mergedExercises = [...(currentExercises || [])];
+
+    (incomingExercises || []).forEach((incomingExercise) => {
+      const incomingId = incomingExercise?._id?.toString();
+      const existingIndex = incomingId
+        ? mergedExercises.findIndex(
+            (currentExercise) =>
+              currentExercise?._id?.toString() === incomingId
+          )
+        : -1;
+
+      if (existingIndex >= 0) {
+        mergedExercises[existingIndex] = incomingExercise;
+      } else {
+        mergedExercises.push(incomingExercise);
+      }
+    });
+
+    return mergedExercises;
   }
 
   public searchExercises(workout: Workout, currentSplit: Split) {

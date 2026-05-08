@@ -881,16 +881,45 @@ export class ConfigExercisePage implements OnInit {
             const indexCustomExercise = this.workout.exercises.findIndex(
               (exerciseTemp) => exerciseTemp._id === this.customExercise._id,
             );
-            // this.workout.exercises[indexCustomExercise] = this.customExercise;
+            if (indexCustomExercise >= 0) {
+              this.workout.exercises[indexCustomExercise] =
+                this.customExercise;
+            }
 
-            const tableInUse = this.tableService.tableInUse;
-            tableInUse.splits[this.splitIndex].workouts[
-              this.workoutIndex
-            ].exercises[indexCustomExercise] = this.customExercise;
+            const tableInUse = this.tableInUse || this.tableService.tableInUse;
+            const workoutInTable =
+              tableInUse?.splits?.[this.splitIndex]?.workouts?.[
+                this.workoutIndex
+              ];
+            const customExerciseId = this.customExercise._id?.toString();
+            let indexCustomExerciseInTable =
+              workoutInTable?.exercises?.findIndex(
+                (exerciseTemp) =>
+                  exerciseTemp._id?.toString() === customExerciseId,
+              ) ?? -1;
+
+            if (workoutInTable) {
+              if (!workoutInTable.exercises) {
+                workoutInTable.exercises = [];
+              }
+
+              if (indexCustomExerciseInTable >= 0) {
+                workoutInTable.exercises[indexCustomExerciseInTable] =
+                  this.customExercise;
+              } else {
+                workoutInTable.exercises.push(this.customExercise);
+                indexCustomExerciseInTable =
+                  workoutInTable.exercises.length - 1;
+              }
+            }
 
             // Si se editó el exercise propio, propagar el nombre/datos a todos los
             // customExercises de la tabla que referencien ese mismo exercise._id
-            if (this.isEditingOwnExercise && resCustomExercise.exercise) {
+            if (
+              this.isEditingOwnExercise &&
+              resCustomExercise.exercise &&
+              tableInUse?.splits
+            ) {
               const updatedExercise = resCustomExercise.exercise;
               const exerciseId = (updatedExercise as any)?._id;
               if (exerciseId) {
@@ -908,8 +937,16 @@ export class ConfigExercisePage implements OnInit {
             }
 
             // Pasar información sobre el tipo de cambio
+            if (tableInUse) {
+              this.tableInUse = tableInUse;
+              this.tableService.setCurrentTable = tableInUse;
+            }
+
             const changeInfo = {
-              exerciseIndex: indexCustomExercise,
+              exerciseIndex:
+                indexCustomExerciseInTable >= 0
+                  ? indexCustomExerciseInTable
+                  : indexCustomExercise,
               setsCreated: setsCreatedCount,
               setsUpdated: setsUpdatedCount,
               setsDeleted: setsDeletedCount,

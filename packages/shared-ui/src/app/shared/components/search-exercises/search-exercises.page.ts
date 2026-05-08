@@ -12,6 +12,7 @@ import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
+import { TableService } from 'src/app/core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
@@ -83,7 +84,8 @@ export class SearchExercisesPage implements OnInit {
     private userService: UserService,
     private platform: Platform,
     private customExerciseService: CustomExerciseService,
-    private workoutService: WorkoutService
+    private workoutService: WorkoutService,
+    private tableService: TableService
   ) {
     this.themeService.theme.subscribe((res: Theme) => (this.theme = res));
   }
@@ -296,6 +298,7 @@ export class SearchExercisesPage implements OnInit {
       }
 
       this.customExerciseService.deleteCustomExercises(deletedExercises).subscribe(() => {
+        this.tableService.setCurrentTable = this.tableInUse;
         this.load = true;
       });
 
@@ -341,6 +344,7 @@ export class SearchExercisesPage implements OnInit {
             }
          });
          
+         this.tableService.setCurrentTable = this.tableInUse;
          this.load = true;
       });
     }
