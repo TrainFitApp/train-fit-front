@@ -7,6 +7,8 @@ export class CustomProduct {
   product?: IProduct;
 
   mealId?: string;
+  customRecipeId?: string;
+  baseCustomProductId?: string | CustomProduct;
 
   // Overrides nutricionales
   energyKcal100g?: number | null;

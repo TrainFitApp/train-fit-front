@@ -2,7 +2,7 @@ import { CustomProduct } from './customProduct';
 import { Recipe } from './recipe';
 
 export interface ModifiedBaseCustomProduct extends Partial<CustomProduct> {
-  baseCustomProductId: string;
+  baseCustomProductId: string | CustomProduct;
   quantity: number;
 }
 

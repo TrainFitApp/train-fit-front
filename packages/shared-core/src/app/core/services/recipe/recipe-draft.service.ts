@@ -243,8 +243,15 @@ export class RecipeDraftService {
               ),
             ),
             modifiedBaseCustomProducts: (state.customRecipe.modifiedBaseCustomProducts || []).filter(
-              (item) =>
-                !removedBaseIds.has((item?.baseCustomProductId || '').toString()),
+              (item) => {
+                const baseCustomProductId =
+                  typeof item?.baseCustomProductId === 'string'
+                    ? item.baseCustomProductId
+                    : item?.baseCustomProductId?._id;
+                return !removedBaseIds.has(
+                  (baseCustomProductId || '').toString(),
+                );
+              },
             ),
             removedBaseCustomProductIds: (state.customRecipe.removedBaseCustomProductIds || []).filter(
               (id: any) => !removedBaseIds.has((id?._id || id || '').toString()),
