@@ -416,12 +416,15 @@ export class EditorPage implements OnInit {
     // Incluir el _id del usuario para la actualización
     userToUpdate._id = this.user._id;
 
-    // IMPORTANTE: Preservar workoutInUse y tableInUse para evitar que se deseleccionen
+    // IMPORTANTE: Preservar usos activos para evitar que se deseleccionen
     if (this.user.workoutInUse !== undefined) {
       userToUpdate.workoutInUse = this.user.workoutInUse;
     }
     if (this.user.tableInUse !== undefined) {
       userToUpdate.tableInUse = this.user.tableInUse;
+    }
+    if (this.user.dietInUse !== undefined) {
+      userToUpdate.dietInUse = this.user.dietInUse;
     }
 
     this.userService.updateUser(userToUpdate as User).subscribe({
