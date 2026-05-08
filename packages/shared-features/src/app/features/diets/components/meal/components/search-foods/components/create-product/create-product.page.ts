@@ -235,7 +235,7 @@ export class CreateProductPage implements OnInit {
           // Componer el customProduct con el nuevo producto
           const newIngredient = this.customProductService.composeCustomProduct(
             createdProduct,
-            this.productForm.controls.quantity.value,
+            toNum(this.productForm.controls.quantity.value) || 0,
             0
           );
 

@@ -16,7 +16,9 @@ export class MeasurePipe implements PipeTransform {
     node: string
   ) {
     let calculatedValue: number;
-    const resolvedValue = this.resolveNutritionValue(value, node);
+    const resolvedValue = this.toFiniteNumber(
+      this.resolveNutritionValue(value, node)
+    ) ?? 0;
     const productQuantity = this.getProductQuantity(value);
     const servingQuantity = this.getServingQuantity(value);
 
@@ -52,7 +54,7 @@ export class MeasurePipe implements PipeTransform {
   private resolveNutritionValue(
     value: CustomProduct | IProduct,
     node: string
-  ): number {
+  ): any {
     const customProduct = value as CustomProduct;
 
     if (customProduct?.product !== undefined) {
@@ -77,16 +79,16 @@ export class MeasurePipe implements PipeTransform {
         ? (customProduct.product as any)?.servingQuantity
         : (value as IProduct)?.servingQuantity;
 
-    return typeof servingQuantity === 'number' ? servingQuantity : null;
+    return this.toFiniteNumber(servingQuantity);
   }
 
   private getProductQuantity(value: CustomProduct | IProduct): number | null {
     const customProduct = value as CustomProduct;
-    if (
-      customProduct?.product !== undefined &&
-      typeof customProduct.quantity === 'number'
-    ) {
-      return customProduct.quantity;
+    if (customProduct?.product !== undefined) {
+      const customQuantity = this.toFiniteNumber(customProduct.quantity);
+      if (customQuantity !== null) {
+        return customQuantity;
+      }
     }
 
     const productQuantity =
@@ -94,6 +96,15 @@ export class MeasurePipe implements PipeTransform {
         ? (customProduct.product as any)?.productQuantity
         : (value as IProduct)?.productQuantity;
 
-    return typeof productQuantity === 'number' ? productQuantity : null;
+    return this.toFiniteNumber(productQuantity);
+  }
+
+  private toFiniteNumber(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }

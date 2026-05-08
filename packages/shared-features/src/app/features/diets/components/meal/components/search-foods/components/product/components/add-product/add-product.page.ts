@@ -123,6 +123,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   private targetMealName?: string;
   public editingIngredient = false;
   public recipeName?: string;
+  private ingredientEditingIndex: number | null = null;
 
   public user: User;
   public addCustomProductForm: FormGroup;
@@ -255,35 +256,63 @@ export class AddProductPage implements OnInit, OnDestroy {
       this.recipeName = state.recipeName;
     }
 
+    const stateEditingIngredientIndex =
+      typeof state.editingIngredientIndex === "number"
+        ? state.editingIngredientIndex
+        : null;
+    this.ingredientEditingIndex = stateEditingIngredientIndex;
+
     // Ingredient mode canonical source:
-    // always prefer the latest ingredient snapshot stored in tempData
-    // to avoid reopening AddProduct with stale state payload.
+    // prefer the explicit navigation payload for the clicked product.
+    // A stale editing index from a previous ingredient must not override it.
     if (this.ingredientMode && this.recipeDraftService.isActive()) {
-      const currentIngredient = this.recipeDraftService.editingIngredient();
-      if (currentIngredient) {
+      if (state.customProduct) {
+        const currentIngredient = state.customProduct as CustomProduct;
+        this.customProduct = currentIngredient;
+        this.product = currentIngredient.product as IProduct;
+        this.productQuantity = currentIngredient.quantity;
+        this.editingIngredient = true;
+        this.ingredientEditingIndex =
+          stateEditingIngredientIndex ??
+          this.findDraftIngredientIndex(currentIngredient);
+        this.recipeDraftService.setEditingIngredientIndex(
+          this.ingredientEditingIndex,
+        );
+      } else {
+        this.ingredientEditingIndex = null;
+        this.recipeDraftService.setEditingIngredientIndex(null);
+      }
+    } else if (this.ingredientMode) {
+      const selectedIngredients = this.navigationService.getTempData<
+        CustomProduct[]
+      >("selectedIngredients");
+
+      if (state.customProduct) {
+        const currentIngredient = state.customProduct as CustomProduct;
+        this.ingredientEditingIndex =
+          stateEditingIngredientIndex ??
+          this.findIngredientIndex(selectedIngredients || [], currentIngredient);
+        this.customProduct = currentIngredient;
+        this.product = currentIngredient.product as IProduct;
+        this.productQuantity = currentIngredient.quantity;
+        this.editingIngredient = true;
+      } else if (
+        stateEditingIngredientIndex !== null &&
+        stateEditingIngredientIndex >= 0 &&
+        selectedIngredients?.[stateEditingIngredientIndex]
+      ) {
+        const currentIngredient = selectedIngredients[stateEditingIngredientIndex];
         this.customProduct = currentIngredient;
         this.product = currentIngredient.product as IProduct;
         this.productQuantity = currentIngredient.quantity;
         this.editingIngredient = true;
       }
-    } else if (this.ingredientMode) {
-      const editingIngredientIndex = this.navigationService.getTempData<number>(
-        "editingIngredientIndex",
-      );
-      const selectedIngredients = this.navigationService.getTempData<
-        CustomProduct[]
-      >("selectedIngredients");
 
-      if (
-        typeof editingIngredientIndex === "number" &&
-        editingIngredientIndex >= 0 &&
-        selectedIngredients?.[editingIngredientIndex]
-      ) {
-        const currentIngredient = selectedIngredients[editingIngredientIndex];
-        this.customProduct = currentIngredient;
-        this.product = currentIngredient.product as IProduct;
-        this.productQuantity = currentIngredient.quantity;
-        this.editingIngredient = true;
+      if (this.ingredientEditingIndex !== null) {
+        this.navigationService.setTempData(
+          "editingIngredientIndex",
+          this.ingredientEditingIndex,
+        );
       }
     }
 
@@ -792,6 +821,7 @@ export class AddProductPage implements OnInit, OnDestroy {
           this.recipeDraftService.setEditingIngredientIndex(null);
         } else {
           const editingIngredientIndex =
+            this.ingredientEditingIndex ??
             this.navigationService.getTempData<number>(
               "editingIngredientIndex",
             );
@@ -1063,6 +1093,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     // Si el retorno es config-recipe, hacer pop
     if (this.returnUrl === "/search-foods/config-recipe") {
       console.log("AddProductPage: returning to config-recipe");
+      this.clearIngredientEditingContext();
       this.navigationService.backTo([this.returnUrl], {
         state: { selectedDate },
       });
@@ -1072,6 +1103,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     // Si el retorno es SearchFoods (o no hay returnUrl), hacer pop al SearchFoods previo
     if (this.returnUrl === "/search-foods") {
       console.log("AddProductPage: returning to search-foods");
+      this.clearIngredientEditingContext();
       this.navigationService.backTo(["/search-foods"], {
         state: {
           ...(result || {}),
@@ -1083,9 +1115,11 @@ export class AddProductPage implements OnInit, OnDestroy {
       });
     } else if (!this.returnUrl) {
       console.log("AddProductPage: no returnUrl, popping");
+      this.clearIngredientEditingContext();
       this.navigationService.backNoAnim();
     } else {
       console.log("AddProductPage: returning to " + this.returnUrl);
+      this.clearIngredientEditingContext();
       // Para otros returnUrl, mantener comportamiento anterior con posible resultado
       this.navigationService.backTo(this.returnUrl, {
         state: {
@@ -1094,6 +1128,49 @@ export class AddProductPage implements OnInit, OnDestroy {
         },
       });
     }
+  }
+
+  private findDraftIngredientIndex(ingredient: CustomProduct): number | null {
+    return this.findIngredientIndex(
+      this.recipeDraftService.ingredients(),
+      ingredient,
+    );
+  }
+
+  private findIngredientIndex(
+    ingredients: CustomProduct[],
+    ingredient: CustomProduct,
+  ): number | null {
+    const productId = this.getCustomProductProductId(ingredient);
+    if (!productId) return null;
+
+    const index = (ingredients || []).findIndex(
+      (currentIngredient) =>
+        this.getCustomProductProductId(currentIngredient) === productId,
+    );
+
+    return index >= 0 ? index : null;
+  }
+
+  private getCustomProductProductId(
+    customProduct: CustomProduct,
+  ): string | null {
+    const product = customProduct?.product as any;
+    if (!product) return null;
+    if (typeof product === "string") return product;
+    return product?._id?.toString?.() || null;
+  }
+
+  private clearIngredientEditingContext(): void {
+    if (!this.ingredientMode) return;
+
+    this.ingredientEditingIndex = null;
+
+    if (this.recipeDraftService.isActive()) {
+      this.recipeDraftService.setEditingIngredientIndex(null);
+    }
+
+    this.navigationService.clearTempData("editingIngredientIndex");
   }
 
   public changeAtributtes(name: PRODUCT_ATRR): void {

@@ -104,10 +104,20 @@ export class ProductComponent implements OnInit, OnChanges {
     console.log(
       '[DEBUG] Row clicked in ingredient mode, navigating to add-product'
     );
+    const selectedIngredient = this.customProduct || null;
+    const editingIngredientIndex = selectedIngredient
+      ? this.getSelectedIngredientIndex(selectedIngredient)
+      : null;
+
     // Navigate to add-product in ingredient mode
     this.navigationService.goToAddProduct({
       state: {
-        product: this.product,
+        product:
+          selectedIngredient && typeof selectedIngredient.product === 'object'
+            ? selectedIngredient.product
+            : this.product,
+        customProduct: selectedIngredient,
+        editingIngredientIndex,
         meal: this.meal,
         dietDay: this.dietDay,
         ingredientMode: true, // Special flag to handle differently
@@ -188,7 +198,9 @@ export class ProductComponent implements OnInit, OnChanges {
     } else {
       this.loading.value = true;
       const customProductToDelete = this.meal.customProducts.find(
-        (resCustomProduct) => resCustomProduct.product?._id === this.product._id
+        (resCustomProduct) =>
+          this.getCustomProductProductId(resCustomProduct) ===
+          this.getProductId(this.product)
       );
 
       if (!customProductToDelete) {
@@ -271,17 +283,46 @@ export class ProductComponent implements OnInit, OnChanges {
       return;
     }
 
+    const productId = this.getProductId(this.product);
     this.isChecked = !!this.meal.customProducts.find(
-      (customProductTemp) => customProductTemp.product?._id === this.product._id
+      (customProductTemp) =>
+        this.getCustomProductProductId(customProductTemp) === productId
     );
   }
 
   private existCustomProduct(): void {
+    const productId = this.getProductId(this.product);
     if (this.meal?.customProducts)
       this.customProduct = this.meal.customProducts.find(
         (customProductTemp) =>
-          customProductTemp.product?._id === this.product._id
+          this.getCustomProductProductId(customProductTemp) === productId
       );
+  }
+
+  private getSelectedIngredientIndex(
+    selectedIngredient: CustomProduct
+  ): number | null {
+    if (!this.meal?.customProducts?.length) return null;
+
+    const selectedProductId = this.getCustomProductProductId(selectedIngredient);
+    if (!selectedProductId) return null;
+
+    const index = this.meal.customProducts.findIndex(
+      (customProductTemp) =>
+        this.getCustomProductProductId(customProductTemp) === selectedProductId
+    );
+
+    return index >= 0 ? index : null;
+  }
+
+  private getCustomProductProductId(customProduct: CustomProduct): string | null {
+    return this.getProductId(customProduct?.product);
+  }
+
+  private getProductId(product: any): string | null {
+    if (!product) return null;
+    if (typeof product === 'string') return product;
+    return product?._id?.toString?.() || null;
   }
 
   private getLoading(): void {

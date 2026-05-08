@@ -495,91 +495,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     console.log("[DEBUG] this.ingredientMode:", this.ingredientMode);
     console.log("[DEBUG] state.ingredientMode:", state.ingredientMode);
 
-    if (newIngredient && this.ingredientMode && !this.recipeDraftService.isActive()) {
-      console.log(
-        "[DEBUG] Received new ingredient from add-product:",
-        newIngredient,
-      );
-      console.log(
-        "[DEBUG] Current selectedIngredients before processing:",
-        this.selectedIngredients.length,
-      );
-      console.log("[DEBUG] Full selectedIngredients array:");
-      this.selectedIngredients.forEach((ing, idx) => {
-        console.log(`  [${idx}]:`, {
-          name: ing.product?.name,
-          productId: ing.product?._id,
-          quantity: ing.quantity,
-        });
-      });
-      console.log("[DEBUG] newIngredient details:", {
-        name: newIngredient.product?.name,
-        productId: newIngredient.product?._id,
-        quantity: newIngredient.quantity,
-      });
-
-      // Get the product ID to compare
-      const newProductId = newIngredient.product?._id;
-      console.log("[DEBUG] Looking for product with ID:", newProductId);
-
-      // Check if already exists by product ID
-      const existingIngredient = this.selectedIngredients.find(
-        (ing) => ing.product?._id && ing.product._id === newProductId,
-      );
-
-      if (existingIngredient) {
-        // Update existing ingredient in place
-        console.log(
-          "[DEBUG] Ingredient already exists, updating:",
-          existingIngredient.product?.name,
-        );
-        this.selectedIngredients = this.selectedIngredients.map((ingredient) =>
-          ingredient.product?._id === newProductId
-            ? this.cloneIngredient(newIngredient)
-            : ingredient,
-        );
-
-        this.calculateIngredientMacros();
-        console.log("[DEBUG] Updated ingredient successfully");
-      } else {
-        // Add new ingredient
-        console.log(
-          "[DEBUG] Adding NEW ingredient:",
-          newIngredient.product?.name,
-        );
-        this.selectedIngredients = [
-          ...this.selectedIngredients,
-          this.cloneIngredient(newIngredient),
-        ];
-        this.calculateIngredientMacros();
-        console.log(
-          "[DEBUG] Added new ingredient, total:",
-          this.selectedIngredients.length,
-        );
-      }
-
-      // Final state after add/update
-      console.log(
-        "[DEBUG] FINAL selectedIngredients count:",
-        this.selectedIngredients.length,
-      );
-      console.log("[DEBUG] FINAL selectedIngredients:");
-      this.selectedIngredients.forEach((ing, idx) => {
-        console.log(`  [${idx}]:`, {
-          name: ing.product?.name,
-          productId: ing.product?._id,
-          quantity: ing.quantity,
-        });
-      });
-
-      // Clear the temp data
+    if (newIngredient && this.ingredientMode) {
+      this.applyNewIngredientToSelection(newIngredient);
       this.navigationService.clearTempData("newIngredient");
     }
 
     if (this.ingredientMode && this.recipeDraftService.isActive()) {
       this.selectedIngredients = this.recipeDraftService.ingredients();
       this.calculateIngredientMacros();
-      this.navigationService.clearTempData("newIngredient");
     }
 
     // Manejo de resultados al volver desde AddProduct por ruta (sin modales)
@@ -1497,6 +1420,50 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private syncRecipeDraftIngredients(): void {
     if (!this.recipeDraftService.isActive()) return;
     this.recipeDraftService.setIngredients(this.selectedIngredients);
+  }
+
+  private applyNewIngredientToSelection(newIngredient: CustomProduct): void {
+    if (this.recipeDraftService.isActive()) {
+      this.selectedIngredients = this.recipeDraftService.ingredients();
+    }
+
+    const clonedIngredient = this.cloneIngredient(newIngredient);
+    const newProductId = this.getIngredientProductId(clonedIngredient);
+    const existingIndex = newProductId
+      ? this.selectedIngredients.findIndex(
+          (ingredient) =>
+            this.getIngredientProductId(ingredient) === newProductId,
+        )
+      : -1;
+
+    if (existingIndex >= 0) {
+      const nextIngredients = [...this.selectedIngredients];
+      nextIngredients[existingIndex] = clonedIngredient;
+      this.selectedIngredients = nextIngredients;
+    } else {
+      this.selectedIngredients = [
+        ...this.selectedIngredients,
+        clonedIngredient,
+      ];
+    }
+
+    this.calculateIngredientMacros();
+    this.syncRecipeDraftIngredients();
+    this.navigationService.setTempData(
+      "selectedIngredients",
+      this.cloneSelectedIngredients(),
+    );
+
+    if (this.currentMode === "products") {
+      this.setSelectedIngredientsFirst();
+    }
+  }
+
+  private getIngredientProductId(ingredient: CustomProduct): string | null {
+    const product = ingredient?.product as any;
+    if (!product) return null;
+    if (typeof product === "string") return product;
+    return product?._id?.toString?.() || null;
   }
 
   private cloneIngredient(ingredient: CustomProduct): CustomProduct {

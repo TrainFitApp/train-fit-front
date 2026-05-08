@@ -519,6 +519,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public async addIngredients(): Promise<void> {
+    this.recipeDraftService.setEditingIngredientIndex(null);
     this.recipeDraftService.setForm(
       this.normalizeFormState(this.recipeForm.getRawValue()),
     );
