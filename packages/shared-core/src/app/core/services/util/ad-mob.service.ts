@@ -389,6 +389,54 @@ export class AdMobService {
     }
   }
 
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private waitForNextFrames(): Promise<void> {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+  }
+
+  private async waitForStableIosTabBar(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios') {
+      return;
+    }
+
+    let previousTop: number | null = null;
+    let previousBottom: number | null = null;
+
+    // Ionic can finish NavigationEnd before the tab bar has settled visually.
+    // Waiting briefly avoids pinning the native banner to a transitional rect.
+    await this.wait(120);
+
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await this.waitForNextFrames();
+      const rect = this.getTabBarRect();
+      const top = Math.round(rect?.top || 0);
+      const bottom = Math.round(rect?.bottom || 0);
+      const height = Math.round(rect?.height || 0);
+
+      if (top > 0 && bottom > top && height > 0) {
+        const isStable =
+          previousTop !== null &&
+          previousBottom !== null &&
+          Math.abs(top - previousTop) <= 1 &&
+          Math.abs(bottom - previousBottom) <= 1;
+
+        if (isStable) {
+          return;
+        }
+
+        previousTop = top;
+        previousBottom = bottom;
+      }
+
+      await this.wait(80);
+    }
+  }
+
   private getAndroidMajorVersion(): number | null {
     if (typeof navigator === 'undefined') {
       return null;
@@ -470,6 +518,8 @@ export class AdMobService {
   private async getBannerBottomMargin(context: BannerContext): Promise<number> {
     const bottomInset = await this.getBottomInset();
     if (context === 'tabs') {
+      await this.waitForStableIosTabBar();
+
       const tabRect = this.getTabBarRect();
       const viewportHeight = this.getViewportHeight();
       const tabHeight = Math.round(tabRect?.height || 0);
