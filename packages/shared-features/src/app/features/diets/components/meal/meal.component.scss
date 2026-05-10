@@ -237,12 +237,16 @@
   transition: 0.3s;
 }
 
-.meal-name {
-  margin-left: -6%;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-}
+  .meal-name {
+    margin-left: -6%;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+
+    ion-button {
+      --color: #ffffff;
+    }
+  }
 
 // Eliminar el borde inferior del ion-grid original que ya no es necesario
 ion-grid {

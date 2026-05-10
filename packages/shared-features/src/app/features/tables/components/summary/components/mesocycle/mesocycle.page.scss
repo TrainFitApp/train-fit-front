@@ -448,18 +448,31 @@ ion-skeleton-text {
 
       .select-wrapper {
         width: 100%;
+        color: #ffffff;
       }
 
       .micro-cycle-selector {
         --color: #ffffff;
-        --placeholder-color: rgba(255, 255, 255, 0.4);
+        --placeholder-color: rgba(255, 255, 255, 0.7);
         --padding-start: 8px;
         --padding-end: 28px;
         --padding-top: 0;
         --padding-bottom: 0;
+        color: #ffffff !important;
         min-height: 32px;
         font-size: 0.75rem;
         font-weight: 600;
+
+        &::part(text),
+        &::part(placeholder),
+        &::part(icon) {
+          color: #ffffff !important;
+          opacity: 1 !important;
+        }
+      }
+
+      .select-icon {
+        color: #ffffff !important;
       }
 
       .cycle-subtitle {
@@ -495,9 +508,13 @@ ion-skeleton-text {
     }
 
     .menu-btn {
-      --color: var(--ion-color-dark);
+      --color: #ffffff;
       --background: rgba(var(--ion-color-medium-rgb), 0.15);
       --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+
+      ion-icon {
+        color: #ffffff !important;
+      }
     }
 
     .delete-btn {

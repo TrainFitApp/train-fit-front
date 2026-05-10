@@ -1482,17 +1482,28 @@ ion-modal.app-update-required-modal::part(content) {
 }
 
 /* Espaciado global para anuncios de AdMob */
+body.has-ad-banner {
+  --trainfit-ad-banner-height: 50px;
+  --trainfit-tabs-height: 50px;
+  --trainfit-ad-banner-gap: 8px;
+  --trainfit-ad-bottom-space: calc(
+    var(--trainfit-ad-banner-height) + var(--trainfit-ad-banner-gap)
+  );
+  --trainfit-tabs-ad-bottom-space: calc(
+    var(--trainfit-tabs-height) + var(--trainfit-ad-bottom-space)
+  );
+}
+
 body.has-ad-banner ion-content {
-  --padding-bottom: 12px !important;
+  --padding-bottom: calc(var(--trainfit-ad-bottom-space) + 12px) !important;
 }
 
 body.has-ad-banner.has-tabs-ad ion-content {
-  --padding-bottom: 52px !important;
-  /* 52 del banner + 50 de los tabs */
+  --padding-bottom: calc(var(--trainfit-tabs-ad-bottom-space) + 16px) !important;
 }
 
 body.has-ad-banner.has-workout-ad ion-content {
-  --padding-bottom: 64px !important;
+  --padding-bottom: calc(var(--trainfit-ad-bottom-space) + 16px) !important;
 }
 
 /* Alert de cambios sin guardar: 2 botones arriba + 1 abajo */

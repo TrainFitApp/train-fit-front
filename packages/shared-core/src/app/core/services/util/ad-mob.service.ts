@@ -2,13 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import {
   AdMob,
   AdOptions,
+  AdMobBannerSize,
   BannerAdOptions,
+  BannerAdPluginEvents,
   BannerAdPosition,
   BannerAdSize,
   AdmobConsentStatus,
 } from '@capacitor-community/admob';
+import { App as CapacitorApp } from '@capacitor/app';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserService } from '../user/user.service';
@@ -84,6 +88,14 @@ export class AdMobService {
   private onBannerTabRoute = false;
   private bannerRequestId = 0;
   private currentBannerKey: 'tabs' | 'current-workout' | null = null;
+  private currentBannerAdId: string | null = null;
+  private readonly BANNER_FALLBACK_HEIGHT = 50;
+  private readonly TABS_FALLBACK_HEIGHT = 50;
+  private readonly BANNER_GAP = 8;
+  private bannerHeight = this.BANNER_FALLBACK_HEIGHT;
+  private tabsHeight = this.TABS_FALLBACK_HEIGHT;
+  private lastBannerMargin: number | null = null;
+  private resizeRefreshTimer?: ReturnType<typeof setTimeout>;
   private keyboardVisible = false;
   private keyboardListeners: PluginListenerHandle[] = [];
   private activeOverlayCount = 0;
@@ -94,6 +106,9 @@ export class AdMobService {
     this.initialize();
     this.initKeyboardBannerBehavior();
     this.initOverlayBannerBehavior();
+    this.initBannerSizeBehavior();
+    this.initViewportBannerBehavior();
+    this.initAppStateBannerBehavior();
     this.manageBannerPosition();
   }
 
@@ -156,6 +171,10 @@ export class AdMobService {
     margin: number = 0,
     adIdOverride?: string
   ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
     await this.initializing;
     const user: User = this.userService.getLocalUser;
     if (user.personalAds === undefined) await this.consent(user);
@@ -168,7 +187,7 @@ export class AdMobService {
           : this.ID_ANDROID_BANNER),
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: margin,
+      margin: Math.max(0, Math.round(margin)),
       isTesting: !environment.production,
       npa: !user.personalAds,
     };
@@ -188,6 +207,18 @@ export class AdMobService {
     this.bannerVisible = false;
     this.onBannerTabRoute = false;
     this.currentBannerKey = null;
+    this.currentBannerAdId = null;
+    this.lastBannerMargin = null;
+    this.clearBannerBodyClasses();
+  }
+
+  private async removeNativeBannerForReplacement(): Promise<void> {
+    try {
+      await AdMob.removeBanner();
+    } catch {
+      // ignore remove errors when no banner is currently attached
+    }
+    this.bannerVisible = false;
   }
 
   /**
@@ -240,71 +271,230 @@ export class AdMobService {
       : this.ID_ANDROID_BANNER;
   }
 
-  private getTabsBannerMargin(): number {
-    try {
-      const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
-      if (tabBar) {
-        const tabBarHeight = Math.round(tabBar.getBoundingClientRect().height);
-        if (tabBarHeight > 0) {
-          return tabBarHeight;
-        }
-      }
-    } catch {
-      // fallback below
-    }
-    return 50;
-  }
-
   private clearBannerBodyClasses(): void {
     document.body.classList.remove('has-ad-banner', 'has-tabs-ad', 'has-workout-ad');
+    document.body.style.removeProperty('--trainfit-ad-banner-height');
+    document.body.style.removeProperty('--trainfit-ad-banner-gap');
+    document.body.style.removeProperty('--trainfit-tabs-height');
+  }
+
+  private applyBannerLayoutVars(): void {
+    document.body.style.setProperty(
+      '--trainfit-ad-banner-height',
+      `${Math.max(this.bannerHeight, this.BANNER_FALLBACK_HEIGHT)}px`
+    );
+    document.body.style.setProperty('--trainfit-ad-banner-gap', `${this.BANNER_GAP}px`);
+    document.body.style.setProperty(
+      '--trainfit-tabs-height',
+      `${Math.max(this.tabsHeight, this.TABS_FALLBACK_HEIGHT)}px`
+    );
+  }
+
+  private getTabsHeight(): number {
+    try {
+      const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
+      const height = Math.round(tabBar?.getBoundingClientRect().height || 0);
+      return height > 0 ? height : this.TABS_FALLBACK_HEIGHT;
+    } catch {
+      return this.TABS_FALLBACK_HEIGHT;
+    }
+  }
+
+  private getCssSafeAreaBottom(): number {
+    if (typeof document === 'undefined' || !document.body) {
+      return 0;
+    }
+
+    const probe = document.createElement('div');
+    probe.style.cssText = [
+      'position:fixed',
+      'left:0',
+      'bottom:0',
+      'height:0',
+      'width:0',
+      'visibility:hidden',
+      'pointer-events:none',
+      'padding-bottom:env(safe-area-inset-bottom)',
+    ].join(';');
+
+    try {
+      document.body.appendChild(probe);
+      const value = Number.parseFloat(getComputedStyle(probe).paddingBottom || '0');
+      return Number.isFinite(value) ? Math.round(value) : 0;
+    } finally {
+      probe.remove();
+    }
+  }
+
+  private async getBottomInset(): Promise<number> {
+    if (!Capacitor.isNativePlatform()) {
+      return 0;
+    }
+
+    if (Capacitor.getPlatform() === 'android') {
+      try {
+        const insets = await EdgeToEdge.getInsets();
+        const density = window.devicePixelRatio || 1;
+        return Math.max(0, Math.round((insets?.bottom || 0) / density));
+      } catch {
+        return 0;
+      }
+    }
+
+    if (Capacitor.getPlatform() === 'ios') {
+      return this.getCssSafeAreaBottom();
+    }
+
+    return 0;
+  }
+
+  private async getBannerBottomMargin(
+    context: 'tabs' | 'current-workout'
+  ): Promise<number> {
+    const bottomInset = await this.getBottomInset();
+    this.tabsHeight = context === 'tabs' ? this.getTabsHeight() : 0;
+    this.applyBannerLayoutVars();
+
+    if (context === 'tabs') {
+      return this.tabsHeight + bottomInset + this.BANNER_GAP;
+    }
+
+    return bottomInset + this.BANNER_GAP;
+  }
+
+  private scheduleBannerRefresh(delay = 120): void {
+    if (this.resizeRefreshTimer) {
+      clearTimeout(this.resizeRefreshTimer);
+    }
+
+    this.resizeRefreshTimer = setTimeout(() => {
+      this.refreshBannerForRoute(this.router.url);
+    }, delay);
+  }
+
+  private initBannerSizeBehavior(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    void AdMob.addListener(
+      BannerAdPluginEvents.SizeChanged,
+      (info: AdMobBannerSize) => {
+        const height = Math.round(Number(info?.height || 0));
+        if (height <= 0) {
+          return;
+        }
+
+        this.bannerHeight = height;
+        if (this.currentBannerKey) {
+          this.applyBannerLayoutVars();
+        }
+      }
+    ).catch((error) => {
+      console.warn('No se pudo registrar el listener de tamano de banner:', error);
+    });
+  }
+
+  private initViewportBannerBehavior(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const onViewportChange = () => this.scheduleBannerRefresh();
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
+  }
+
+  private initAppStateBannerBehavior(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        this.scheduleBannerRefresh();
+      }
+    }).catch((error) => {
+      console.warn('No se pudo registrar el listener de estado de app:', error);
+    });
   }
 
   private refreshBannerForRoute(url: string): void {
+    void this.refreshBannerForRouteAsync(url);
+  }
+
+  private async refreshBannerForRouteAsync(url: string): Promise<void> {
     const user = this.userService.getLocalUser;
     if (
+      !Capacitor.isNativePlatform() ||
       !user ||
       !this.shouldShowAds(user) ||
       this.keyboardVisible ||
       this.activeOverlayCount > 0
     ) {
-      this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      await this.removeBanner();
       return;
     }
 
     const bannerContext = this.getBannerContext(url);
     if (!bannerContext) {
-      this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
-      return;
-    }
-
-    if (this.bannerVisible && this.currentBannerKey === bannerContext) {
+      await this.removeBanner();
       return;
     }
 
     const isTabs = bannerContext === 'tabs';
+    const requestId = ++this.bannerRequestId;
+    const margin = await this.getBannerBottomMargin(bannerContext);
+    const adId = this.getBannerAdId(bannerContext);
+
+    if (requestId !== this.bannerRequestId) {
+      return;
+    }
+
     document.body.classList.add('has-ad-banner');
     document.body.classList.toggle('has-tabs-ad', isTabs);
     document.body.classList.toggle('has-workout-ad', !isTabs);
+    this.applyBannerLayoutVars();
     this.onBannerTabRoute = isTabs;
-    this.currentBannerKey = bannerContext;
 
-    const adId = this.getBannerAdId(bannerContext);
-    const margin = isTabs ? this.getTabsBannerMargin() : 12;
-    const requestId = ++this.bannerRequestId;
+    if (
+      this.bannerVisible &&
+      this.currentBannerKey === bannerContext &&
+      this.lastBannerMargin === margin &&
+      this.currentBannerAdId === adId
+    ) {
+      return;
+    }
+
+    if (this.bannerVisible) {
+      await this.removeNativeBannerForReplacement();
+    }
+
+    if (requestId !== this.bannerRequestId) {
+      return;
+    }
+
+    this.currentBannerKey = bannerContext;
+    this.currentBannerAdId = adId;
+    this.lastBannerMargin = margin;
+
     this.showBanner(margin, adId)
       .then(() => {
         if (requestId !== this.bannerRequestId) {
-          this.removeBanner();
           return;
         }
         this.bannerVisible = true;
       })
       .catch((error) => {
         this.bannerVisible = false;
+        if (requestId === this.bannerRequestId) {
+          this.currentBannerKey = null;
+          this.currentBannerAdId = null;
+          this.lastBannerMargin = null;
+          this.clearBannerBodyClasses();
+        }
         console.error('Error mostrando banner:', error);
       });
   }
