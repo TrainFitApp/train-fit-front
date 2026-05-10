@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import {
+  AdLoadInfo,
   AdMob,
-  AdOptions,
   AdMobBannerSize,
+  AdMobError,
+  AdOptions,
+  AdmobConsentInfo,
+  AdmobConsentStatus,
   BannerAdOptions,
   BannerAdPluginEvents,
   BannerAdPosition,
   BannerAdSize,
-  AdmobConsentStatus,
+  InterstitialAdPluginEvents,
 } from '@capacitor-community/admob';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Keyboard } from '@capacitor/keyboard';
@@ -33,12 +37,24 @@ export type InterstitialPlacement =
   | 'acquire_routine'
   | 'profile_start';
 
+type BannerContext = 'tabs' | 'current-workout';
+type ActiveBannerRequest = {
+  context: BannerContext | 'manual';
+  adId: string;
+  margin: number;
+};
+type ActiveInterstitialRequest = {
+  placement: InterstitialPlacement;
+  adId: string;
+};
+type AdMobLogLevel = 'debug' | 'info' | 'warn' | 'error';
+
 @Injectable()
 export class AdMobService {
   private readonly ID_ANDROID_INTERSTITIAL_DEFAULT =
     'ca-app-pub-7032025540653355/1755796410';
   private readonly ID_IOS_INTERSTITIAL_DEFAULT =
-    'ca-app-pub-7032025540653355/1755796410';
+    'ca-app-pub-7032025540653355/5874037227';
 
   private readonly ID_ANDROID_BANNER = 'ca-app-pub-7032025540653355/9490763271';
   private readonly ID_IOS_BANNER = 'ca-app-pub-7032025540653355/3590300413';
@@ -77,17 +93,21 @@ export class AdMobService {
     profile_start: 'ca-app-pub-7032025540653355/5874037227',
   };
 
-  // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly billingService = inject(BillingService);
   private readonly router = inject(Router);
   private readonly _platform = inject(Platform);
 
+  private readonly useTestAds = !environment.production;
+  private readonly diagnosticLoggingEnabled =
+    !environment.production || Boolean((environment as any).adMob?.diagnostics);
+
   private initializing: Promise<void>;
+  private canRequestAds = true;
   private bannerVisible = false;
   private onBannerTabRoute = false;
   private bannerRequestId = 0;
-  private currentBannerKey: 'tabs' | 'current-workout' | null = null;
+  private currentBannerKey: BannerContext | null = null;
   private currentBannerAdId: string | null = null;
   private readonly BANNER_FALLBACK_HEIGHT = 50;
   private readonly TABS_FALLBACK_HEIGHT = 50;
@@ -98,11 +118,15 @@ export class AdMobService {
   private resizeRefreshTimer?: ReturnType<typeof setTimeout>;
   private keyboardVisible = false;
   private keyboardListeners: PluginListenerHandle[] = [];
+  private adMobListeners: PluginListenerHandle[] = [];
   private activeOverlayCount = 0;
   private profileStartInFlight = false;
   private lastProfileStartAt = 0;
+  private activeBannerRequest: ActiveBannerRequest | null = null;
+  private activeInterstitialRequest: ActiveInterstitialRequest | null = null;
 
   constructor() {
+    this.initAdMobEventLogging();
     this.initialize();
     this.initKeyboardBannerBehavior();
     this.initOverlayBannerBehavior();
@@ -112,118 +136,170 @@ export class AdMobService {
     this.manageBannerPosition();
   }
 
-  /**
-   * Muestra un anuncio Intersticial
-   */
   public async interstitial(
     placement: InterstitialPlacement = 'default'
   ): Promise<void> {
-    if (placement === 'profile_start') {
-      const now = Date.now();
-      if (this.profileStartInFlight) {
-        return;
-      }
-      // Guard anti-doble disparo en arranque/redirecciones rápidas
-      if (now - this.lastProfileStartAt < 10000) {
-        return;
-      }
-      this.profileStartInFlight = true;
-      this.lastProfileStartAt = now;
-    }
+    const profileGuardEnabled = placement === 'profile_start';
 
-    await this.initializing;
-    const user: User = this.userService.getLocalUser;
-    if (!this.shouldShowAds(user)) {
+    if (profileGuardEnabled && !this.reserveProfileStartSlot()) {
       return;
     }
-    if (user.personalAds === undefined) await this.consent(user);
-    const adId = this.getInterstitialAdId(placement);
-
-    const options: AdOptions = {
-      adId,
-      isTesting: !environment.production,
-      npa: !user.personalAds,
-    };
 
     try {
+      if (!Capacitor.isNativePlatform()) {
+        this.logAdEvent('debug', 'interstitial_skipped_non_native', {
+          placement,
+        });
+        return;
+      }
+
+      await this.initializing;
+
+      const user = this.userService.getLocalUser;
+      if (!user || !this.shouldShowAds(user)) {
+        this.logAdEvent('debug', 'interstitial_skipped_user_state', {
+          placement,
+          hasUser: Boolean(user),
+        });
+        return;
+      }
+
+      if (!(await this.ensureAdsCanBeRequested(user, placement))) {
+        return;
+      }
+
+      const adId = this.getInterstitialAdId(placement);
+      const options: AdOptions = {
+        adId,
+        isTesting: this.useTestAds,
+        npa: !user.personalAds,
+      };
+
+      this.activeInterstitialRequest = { placement, adId };
+      this.logAdEvent('info', 'interstitial_prepare_start', {
+        placement,
+        adUnit: this.getAdUnitSuffix(adId),
+        npa: options.npa,
+        isTesting: options.isTesting,
+      });
+
       await AdMob.prepareInterstitial(options);
+      this.logAdEvent('info', 'interstitial_show_start', {
+        placement,
+        adUnit: this.getAdUnitSuffix(adId),
+      });
       await AdMob.showInterstitial();
+    } catch (error) {
+      this.logAdEvent(
+        'error',
+        'interstitial_request_failed',
+        { placement },
+        error
+      );
+      throw error;
     } finally {
-      if (placement === 'profile_start') {
+      if (profileGuardEnabled) {
         this.profileStartInFlight = false;
       }
     }
   }
 
-  /**
-   * Alias legacy para no romper llamadas existentes tras migración.
-   */
   public async interstitialCapgo(): Promise<void> {
-    await this.interstitial();
+    await this.interstitial('acquire_routine');
   }
 
-
-
-  /**
-   * Muestra un Banner en una posición específica con un posible margen (ej: sobre los tabs)
-   */
   public async showBanner(
     margin: number = 0,
     adIdOverride?: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) {
-      return;
+      this.logAdEvent('debug', 'banner_skipped_non_native');
+      return false;
     }
 
     await this.initializing;
-    const user: User = this.userService.getLocalUser;
-    if (user.personalAds === undefined) await this.consent(user);
 
+    const user = this.userService.getLocalUser;
+    if (!user || !this.shouldShowAds(user)) {
+      this.logAdEvent('debug', 'banner_skipped_user_state', {
+        hasUser: Boolean(user),
+      });
+      return false;
+    }
+
+    if (!(await this.ensureAdsCanBeRequested(user, 'banner'))) {
+      return false;
+    }
+
+    const adId =
+      adIdOverride ||
+      (this._platform.is('ios') ? this.ID_IOS_BANNER : this.ID_ANDROID_BANNER);
+    const roundedMargin = Math.max(0, Math.round(margin));
     const options: BannerAdOptions = {
-      adId:
-        adIdOverride ||
-        (this._platform.is('ios')
-          ? this.ID_IOS_BANNER
-          : this.ID_ANDROID_BANNER),
+      adId,
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: Math.max(0, Math.round(margin)),
-      isTesting: !environment.production,
+      margin: roundedMargin,
+      isTesting: this.useTestAds,
       npa: !user.personalAds,
     };
 
+    this.activeBannerRequest = {
+      context: this.currentBannerKey || 'manual',
+      adId,
+      margin: roundedMargin,
+    };
+    this.logAdEvent('info', 'banner_show_start', {
+      context: this.activeBannerRequest.context,
+      adUnit: this.getAdUnitSuffix(adId),
+      margin: roundedMargin,
+      npa: options.npa,
+      isTesting: options.isTesting,
+    });
+
     await AdMob.showBanner(options);
+    return true;
   }
 
-  /**
-   * Elimina el banner actual
-   */
   public async removeBanner(): Promise<void> {
     try {
       await AdMob.removeBanner();
     } catch {
-      // ignore remove errors when no banner is currently attached
+      // No-op: removeBanner is called defensively during route and overlay changes.
     }
     this.bannerVisible = false;
     this.onBannerTabRoute = false;
     this.currentBannerKey = null;
     this.currentBannerAdId = null;
     this.lastBannerMargin = null;
+    this.activeBannerRequest = null;
     this.clearBannerBodyClasses();
+  }
+
+  private reserveProfileStartSlot(): boolean {
+    const now = Date.now();
+    if (this.profileStartInFlight) {
+      this.logAdEvent('debug', 'profile_start_skipped_in_flight');
+      return false;
+    }
+    if (now - this.lastProfileStartAt < 10000) {
+      this.logAdEvent('debug', 'profile_start_skipped_throttle');
+      return false;
+    }
+    this.profileStartInFlight = true;
+    this.lastProfileStartAt = now;
+    return true;
   }
 
   private async removeNativeBannerForReplacement(): Promise<void> {
     try {
       await AdMob.removeBanner();
     } catch {
-      // ignore remove errors when no banner is currently attached
+      // No-op: replacing a missing banner should not break the next request.
     }
     this.bannerVisible = false;
   }
 
-  /**
-   * Gestiona la posición del banner basándose en la ruta actual
-   */
   private manageBannerPosition(): void {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -231,7 +307,6 @@ export class AdMobService {
         this.refreshBannerForRoute(event.urlAfterRedirects);
       });
 
-    // Llamada inicial para la ruta actual
     this.refreshBannerForRoute(this.router.url);
   }
 
@@ -249,7 +324,7 @@ export class AdMobService {
     return path === '/current-workout';
   }
 
-  private getBannerContext(url: string): 'tabs' | 'current-workout' | null {
+  private getBannerContext(url: string): BannerContext | null {
     if (this.isMainTabsRootRoute(url)) {
       return 'tabs';
     }
@@ -259,7 +334,7 @@ export class AdMobService {
     return null;
   }
 
-  private getBannerAdId(context: 'tabs' | 'current-workout'): string {
+  private getBannerAdId(context: BannerContext): string {
     if (context === 'current-workout') {
       return this._platform.is('ios')
         ? this.ID_IOS_BANNER_CURRENT_WORKOUT
@@ -348,9 +423,7 @@ export class AdMobService {
     return 0;
   }
 
-  private async getBannerBottomMargin(
-    context: 'tabs' | 'current-workout'
-  ): Promise<number> {
+  private async getBannerBottomMargin(context: BannerContext): Promise<number> {
     const bottomInset = await this.getBottomInset();
     this.tabsHeight = context === 'tabs' ? this.getTabsHeight() : 0;
     this.applyBannerLayoutVars();
@@ -372,27 +445,148 @@ export class AdMobService {
     }, delay);
   }
 
+  private initAdMobEventLogging(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
+        this.logAdEvent('info', 'banner_loaded', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Loaded
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.FailedToLoad, (error: AdMobError) => {
+        this.logAdEvent(
+          'error',
+          'banner_failed_to_load',
+          this.getActiveBannerLogContext(),
+          error
+        );
+      }),
+      BannerAdPluginEvents.FailedToLoad
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Opened, () => {
+        this.logAdEvent('info', 'banner_opened', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Opened
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Closed, () => {
+        this.logAdEvent('info', 'banner_closed', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Closed
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.AdImpression, () => {
+        this.logAdEvent('info', 'banner_impression', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.AdImpression
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Loaded, (info: AdLoadInfo) => {
+        this.logAdEvent('info', 'interstitial_loaded', {
+          ...this.getActiveInterstitialLogContext(),
+          loadedAdUnit: this.getAdUnitSuffix(info?.adUnitId),
+        });
+      }),
+      InterstitialAdPluginEvents.Loaded
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToLoad,
+        (error: AdMobError) => {
+          this.logAdEvent(
+            'error',
+            'interstitial_failed_to_load',
+            this.getActiveInterstitialLogContext(),
+            error
+          );
+        }
+      ),
+      InterstitialAdPluginEvents.FailedToLoad
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Showed, () => {
+        this.logAdEvent(
+          'info',
+          'interstitial_showed',
+          this.getActiveInterstitialLogContext()
+        );
+      }),
+      InterstitialAdPluginEvents.Showed
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToShow,
+        (error: AdMobError) => {
+          this.logAdEvent(
+            'error',
+            'interstitial_failed_to_show',
+            this.getActiveInterstitialLogContext(),
+            error
+          );
+        }
+      ),
+      InterstitialAdPluginEvents.FailedToShow
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => {
+        this.logAdEvent(
+          'info',
+          'interstitial_dismissed',
+          this.getActiveInterstitialLogContext()
+        );
+      }),
+      InterstitialAdPluginEvents.Dismissed
+    );
+  }
+
+  private registerAdMobListener(
+    registration: Promise<PluginListenerHandle>,
+    eventName: string
+  ): void {
+    void registration
+      .then((listener) => this.adMobListeners.push(listener))
+      .catch((error) => {
+        this.logAdEvent(
+          'warn',
+          'admob_listener_registration_failed',
+          { eventName },
+          error
+        );
+      });
+  }
+
   private initBannerSizeBehavior(): void {
     if (!Capacitor.isNativePlatform()) {
       return;
     }
 
-    void AdMob.addListener(
-      BannerAdPluginEvents.SizeChanged,
-      (info: AdMobBannerSize) => {
-        const height = Math.round(Number(info?.height || 0));
-        if (height <= 0) {
-          return;
-        }
+    this.registerAdMobListener(
+      AdMob.addListener(
+        BannerAdPluginEvents.SizeChanged,
+        (info: AdMobBannerSize) => {
+          const height = Math.round(Number(info?.height || 0));
+          if (height <= 0) {
+            return;
+          }
 
-        this.bannerHeight = height;
-        if (this.currentBannerKey) {
-          this.applyBannerLayoutVars();
+          this.bannerHeight = height;
+          if (this.currentBannerKey) {
+            this.applyBannerLayoutVars();
+          }
+          this.logAdEvent('debug', 'banner_size_changed', {
+            ...this.getActiveBannerLogContext(),
+            width: Math.round(Number(info?.width || 0)),
+            height,
+          });
         }
-      }
-    ).catch((error) => {
-      console.warn('No se pudo registrar el listener de tamano de banner:', error);
-    });
+      ),
+      BannerAdPluginEvents.SizeChanged
+    );
   }
 
   private initViewportBannerBehavior(): void {
@@ -415,7 +609,7 @@ export class AdMobService {
         this.scheduleBannerRefresh();
       }
     }).catch((error) => {
-      console.warn('No se pudo registrar el listener de estado de app:', error);
+      this.logAdEvent('warn', 'app_state_listener_registration_failed', {}, error);
     });
   }
 
@@ -481,11 +675,17 @@ export class AdMobService {
     this.lastBannerMargin = margin;
 
     this.showBanner(margin, adId)
-      .then(() => {
+      .then((shown) => {
         if (requestId !== this.bannerRequestId) {
           return;
         }
-        this.bannerVisible = true;
+        this.bannerVisible = shown;
+        if (!shown) {
+          this.currentBannerKey = null;
+          this.currentBannerAdId = null;
+          this.lastBannerMargin = null;
+          this.clearBannerBodyClasses();
+        }
       })
       .catch((error) => {
         this.bannerVisible = false;
@@ -493,9 +693,15 @@ export class AdMobService {
           this.currentBannerKey = null;
           this.currentBannerAdId = null;
           this.lastBannerMargin = null;
+          this.activeBannerRequest = null;
           this.clearBannerBodyClasses();
         }
-        console.error('Error mostrando banner:', error);
+        this.logAdEvent(
+          'error',
+          'banner_show_failed',
+          { context: bannerContext, adUnit: this.getAdUnitSuffix(adId), margin },
+          error
+        );
       });
   }
 
@@ -508,7 +714,7 @@ export class AdMobService {
       this.keyboardVisible = true;
       this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      void this.removeBanner();
     }).then((listener) => this.keyboardListeners.push(listener));
 
     void Keyboard.addListener('keyboardDidHide', () => {
@@ -526,7 +732,7 @@ export class AdMobService {
       this.activeOverlayCount++;
       this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      void this.removeBanner();
     };
 
     const onDismiss = () => {
@@ -556,35 +762,140 @@ export class AdMobService {
   }
 
   private async doInitialize(): Promise<void> {
-    await AdMob.initialize();
-    const [trackingInfo, consentInfo] = await Promise.all([
-      AdMob.trackingAuthorizationStatus(),
-      AdMob.requestConsentInfo(),
-    ]);
-    if (trackingInfo.status === 'notDetermined')
-      await AdMob.requestTrackingAuthorization();
-    const authorizationStatus = await AdMob.trackingAuthorizationStatus();
-    if (
-      authorizationStatus.status === 'authorized' &&
-      consentInfo.isConsentFormAvailable &&
-      consentInfo.status === AdmobConsentStatus.REQUIRED
-    ) {
-      await AdMob.showConsentForm();
+    try {
+      await AdMob.initialize();
+      this.logAdEvent('info', 'sdk_initialized', {
+        isTesting: this.useTestAds,
+      });
+
+      const consentInfo = await this.requestConsentInfo('initialize');
+      await this.presentConsentFormIfRequired(consentInfo, 'initialize');
+      await this.requestTrackingAuthorizationIfNeeded();
+    } catch (error) {
+      this.logAdEvent('error', 'sdk_initialize_failed', {}, error);
     }
   }
 
-  public async consent(user: User): Promise<void> {
-    const consentInfo = await AdMob.requestConsentInfo();
+  public async consent(user: User): Promise<boolean> {
+    const consentInfo = await this.requestConsentInfo('user_consent');
+    const resolvedConsentInfo = await this.presentConsentFormIfRequired(
+      consentInfo,
+      'user_consent'
+    );
+
+    const personalAds =
+      user.personalAds === undefined
+        ? this.getDefaultPersonalAdsPreference(resolvedConsentInfo)
+        : Boolean(user.personalAds);
+
+    this.userService.setLocalUser = {
+      ...user,
+      personalAds,
+    };
+
+    return this.canRequestAds;
+  }
+
+  private async ensureAdsCanBeRequested(
+    user: User,
+    source: InterstitialPlacement | 'banner'
+  ): Promise<boolean> {
+    if (user.personalAds === undefined || !this.canRequestAds) {
+      await this.consent(user);
+    }
+
+    if (!this.canRequestAds) {
+      this.logAdEvent('warn', 'ad_request_blocked_by_consent', {
+        source,
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private async requestConsentInfo(
+    reason: string
+  ): Promise<AdmobConsentInfo | null> {
+    try {
+      const consentInfo = await AdMob.requestConsentInfo();
+      this.updateCanRequestAds(consentInfo, reason);
+      return consentInfo;
+    } catch (error) {
+      this.logAdEvent('warn', 'consent_info_request_failed', { reason }, error);
+      return null;
+    }
+  }
+
+  private async presentConsentFormIfRequired(
+    consentInfo: AdmobConsentInfo | null,
+    reason: string
+  ): Promise<AdmobConsentInfo | null> {
+    if (!consentInfo) {
+      return null;
+    }
+
     if (
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
     ) {
-      const { status } = await AdMob.showConsentForm();
-      user.personalAds = status === AdmobConsentStatus.OBTAINED;
-    } else {
-      user.personalAds = true;
+      try {
+        const updatedConsentInfo = await AdMob.showConsentForm();
+        this.updateCanRequestAds(updatedConsentInfo, `${reason}_form`);
+        return updatedConsentInfo;
+      } catch (error) {
+        this.logAdEvent('warn', 'consent_form_failed', { reason }, error);
+        return consentInfo;
+      }
     }
-    this.userService.setLocalUser = user;
+
+    return consentInfo;
+  }
+
+  private updateCanRequestAds(
+    consentInfo: AdmobConsentInfo,
+    reason: string
+  ): void {
+    if (typeof consentInfo.canRequestAds === 'boolean') {
+      this.canRequestAds = consentInfo.canRequestAds;
+    }
+
+    this.logAdEvent('debug', 'consent_state', {
+      reason,
+      status: consentInfo.status,
+      canRequestAds: this.canRequestAds,
+      isConsentFormAvailable: Boolean(consentInfo.isConsentFormAvailable),
+      privacyOptionsRequirementStatus:
+        consentInfo.privacyOptionsRequirementStatus || null,
+    });
+  }
+
+  private async requestTrackingAuthorizationIfNeeded(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios') {
+      return;
+    }
+
+    try {
+      const trackingInfo = await AdMob.trackingAuthorizationStatus();
+      if (trackingInfo.status === 'notDetermined') {
+        await AdMob.requestTrackingAuthorization();
+      }
+      const authorizationStatus = await AdMob.trackingAuthorizationStatus();
+      this.logAdEvent('info', 'tracking_authorization_status', {
+        status: authorizationStatus.status,
+      });
+    } catch (error) {
+      this.logAdEvent('warn', 'tracking_authorization_failed', {}, error);
+    }
+  }
+
+  private getDefaultPersonalAdsPreference(
+    consentInfo: AdmobConsentInfo | null
+  ): boolean {
+    return (
+      consentInfo?.status === AdmobConsentStatus.OBTAINED ||
+      consentInfo?.status === AdmobConsentStatus.NOT_REQUIRED
+    );
   }
 
   private getInterstitialAdId(placement: InterstitialPlacement): string {
@@ -610,5 +921,75 @@ export class AdMobService {
     }
 
     return !Boolean(user?.premium?.entitled);
+  }
+
+  private getActiveBannerLogContext(): Record<string, unknown> {
+    return {
+      context: this.activeBannerRequest?.context || this.currentBannerKey || null,
+      adUnit: this.getAdUnitSuffix(
+        this.activeBannerRequest?.adId || this.currentBannerAdId
+      ),
+      margin: this.activeBannerRequest?.margin ?? this.lastBannerMargin,
+    };
+  }
+
+  private getActiveInterstitialLogContext(): Record<string, unknown> {
+    return {
+      placement: this.activeInterstitialRequest?.placement || null,
+      adUnit: this.getAdUnitSuffix(this.activeInterstitialRequest?.adId),
+    };
+  }
+
+  private getAdUnitSuffix(adId?: string | null): string | null {
+    if (!adId) {
+      return null;
+    }
+    const separatorIndex = adId.lastIndexOf('/');
+    return separatorIndex >= 0 ? adId.slice(separatorIndex + 1) : adId;
+  }
+
+  private logAdEvent(
+    level: AdMobLogLevel,
+    event: string,
+    context: Record<string, unknown> = {},
+    error?: unknown
+  ): void {
+    if (
+      (level === 'debug' || level === 'info') &&
+      !this.diagnosticLoggingEnabled
+    ) {
+      return;
+    }
+
+    const payload = {
+      event,
+      platform: Capacitor.getPlatform(),
+      production: environment.production,
+      ...context,
+    };
+    const message = `[AdMob] ${event}`;
+    const errorSummary = error ? this.getErrorSummary(error) : undefined;
+
+    if (level === 'debug') {
+      console.debug(message, payload, errorSummary || '');
+      return;
+    }
+    if (level === 'info') {
+      console.info(message, payload, errorSummary || '');
+      return;
+    }
+    if (level === 'warn') {
+      console.warn(message, payload, errorSummary || '');
+      return;
+    }
+    console.error(message, payload, errorSummary || '');
+  }
+
+  private getErrorSummary(error: unknown): Record<string, unknown> {
+    const maybeError = error as { code?: unknown; message?: unknown };
+    return {
+      code: maybeError?.code ?? null,
+      message: maybeError?.message ?? String(error),
+    };
   }
 }
