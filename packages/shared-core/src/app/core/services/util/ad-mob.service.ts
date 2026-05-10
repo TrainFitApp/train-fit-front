@@ -111,9 +111,10 @@ export class AdMobService {
   private currentBannerAdId: string | null = null;
   private readonly BANNER_FALLBACK_HEIGHT = 50;
   private readonly TABS_FALLBACK_HEIGHT = 50;
-  private readonly BANNER_GAP = 8;
+  private readonly BANNER_GAP = 0;
   private bannerHeight = this.BANNER_FALLBACK_HEIGHT;
   private tabsHeight = this.TABS_FALLBACK_HEIGHT;
+  private tabsStackHeight = this.TABS_FALLBACK_HEIGHT;
   private lastBannerMargin: number | null = null;
   private resizeRefreshTimer?: ReturnType<typeof setTimeout>;
   private keyboardVisible = false;
@@ -351,6 +352,7 @@ export class AdMobService {
     document.body.style.removeProperty('--trainfit-ad-banner-height');
     document.body.style.removeProperty('--trainfit-ad-banner-gap');
     document.body.style.removeProperty('--trainfit-tabs-height');
+    document.body.style.removeProperty('--trainfit-tabs-stack-height');
   }
 
   private applyBannerLayoutVars(): void {
@@ -363,16 +365,58 @@ export class AdMobService {
       '--trainfit-tabs-height',
       `${Math.max(this.tabsHeight, this.TABS_FALLBACK_HEIGHT)}px`
     );
+    document.body.style.setProperty(
+      '--trainfit-tabs-stack-height',
+      `${Math.max(this.tabsStackHeight, this.TABS_FALLBACK_HEIGHT)}px`
+    );
   }
 
-  private getTabsHeight(): number {
+  private getViewportHeight(): number {
+    return Math.round(
+      window.innerHeight ||
+        document.documentElement.clientHeight ||
+        window.visualViewport?.height ||
+        0
+    );
+  }
+
+  private getTabBarRect(): DOMRect | null {
     try {
       const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
-      const height = Math.round(tabBar?.getBoundingClientRect().height || 0);
-      return height > 0 ? height : this.TABS_FALLBACK_HEIGHT;
+      return tabBar?.getBoundingClientRect() || null;
     } catch {
-      return this.TABS_FALLBACK_HEIGHT;
+      return null;
     }
+  }
+
+  private getAndroidMajorVersion(): number | null {
+    if (typeof navigator === 'undefined') {
+      return null;
+    }
+
+    const match = navigator.userAgent.match(/Android\s+(\d+)/i);
+    const version = match ? Number.parseInt(match[1], 10) : Number.NaN;
+    return Number.isFinite(version) ? version : null;
+  }
+
+  private getAndroidNativeBottomCorrection(
+    bottomInset: number,
+    viewportBottomGap: number
+  ): number {
+    if (Capacitor.getPlatform() !== 'android' || bottomInset <= 0) {
+      return 0;
+    }
+
+    const androidMajorVersion = this.getAndroidMajorVersion();
+    const edgeToEdgeIsEnforced =
+      androidMajorVersion === null || androidMajorVersion >= 15;
+    if (!edgeToEdgeIsEnforced) {
+      return 0;
+    }
+
+    // Android 15/16 can position native overlays from the decor view while the
+    // WebView already received navigation-bar insets. Add only the missing part.
+    return Math.max(0, bottomInset - Math.max(0, viewportBottomGap));
   }
 
   private getCssSafeAreaBottom(): number {
@@ -425,14 +469,48 @@ export class AdMobService {
 
   private async getBannerBottomMargin(context: BannerContext): Promise<number> {
     const bottomInset = await this.getBottomInset();
-    this.tabsHeight = context === 'tabs' ? this.getTabsHeight() : 0;
-    this.applyBannerLayoutVars();
-
     if (context === 'tabs') {
-      return this.tabsHeight + bottomInset + this.BANNER_GAP;
+      const tabRect = this.getTabBarRect();
+      const viewportHeight = this.getViewportHeight();
+      const tabHeight = Math.round(tabRect?.height || 0);
+      const hasUsableTabRect =
+        Boolean(tabRect) && viewportHeight > 0 && tabHeight > 0;
+
+      this.tabsHeight = hasUsableTabRect ? tabHeight : this.TABS_FALLBACK_HEIGHT;
+      this.tabsStackHeight = hasUsableTabRect
+        ? Math.max(this.tabsHeight, Math.round(viewportHeight - tabRect!.top))
+        : this.tabsHeight + (Capacitor.getPlatform() === 'ios' ? 0 : bottomInset);
+      this.applyBannerLayoutVars();
+
+      if (hasUsableTabRect) {
+        const viewportBottomGap = Math.max(
+          0,
+          Math.round(viewportHeight - tabRect!.bottom)
+        );
+        const androidNativeBottomCorrection = this.getAndroidNativeBottomCorrection(
+          bottomInset,
+          viewportBottomGap
+        );
+        const nativeAnchorBottom =
+          viewportHeight -
+          (Capacitor.getPlatform() === 'ios' ? this.getCssSafeAreaBottom() : 0) +
+          androidNativeBottomCorrection;
+        const desiredBannerBottom = tabRect!.top - this.BANNER_GAP;
+        const measuredMargin = Math.round(nativeAnchorBottom - desiredBannerBottom);
+
+        if (Number.isFinite(measuredMargin) && measuredMargin >= 0) {
+          return measuredMargin;
+        }
+      }
+
+      return this.tabsStackHeight + this.BANNER_GAP;
     }
 
-    return bottomInset + this.BANNER_GAP;
+    this.tabsHeight = 0;
+    this.tabsStackHeight = 0;
+    this.applyBannerLayoutVars();
+
+    return (Capacitor.getPlatform() === 'ios' ? 0 : bottomInset) + this.BANNER_GAP;
   }
 
   private scheduleBannerRefresh(delay = 120): void {
