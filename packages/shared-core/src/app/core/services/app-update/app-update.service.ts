@@ -10,6 +10,7 @@ import { HttpService } from '../http/http.service';
 
 @Injectable()
 export class AppUpdateService {
+  private readonly isRequiredUpdateScreenDisabled = true;
   private isChecking = false;
   private isModalOpen = false;
 
@@ -19,7 +20,12 @@ export class AppUpdateService {
   ) {}
 
   public async checkForRequiredUpdate(): Promise<void> {
-    if (!Capacitor.isNativePlatform() || this.isChecking || this.isModalOpen) {
+    if (
+      this.isRequiredUpdateScreenDisabled ||
+      !Capacitor.isNativePlatform() ||
+      this.isChecking ||
+      this.isModalOpen
+    ) {
       return;
     }
 
