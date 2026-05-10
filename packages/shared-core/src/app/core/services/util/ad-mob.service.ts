@@ -467,6 +467,94 @@ export class AdMobService {
     return Math.max(0, bottomInset - Math.max(0, viewportBottomGap));
   }
 
+  private getAndroidBottomInsetFallback(viewportHeight: number): number {
+    const androidMajorVersion = this.getAndroidMajorVersion();
+    const edgeToEdgeIsEnforced =
+      androidMajorVersion === null || androidMajorVersion >= 15;
+    if (!edgeToEdgeIsEnforced) {
+      return 0;
+    }
+
+    const screenHeight = Math.round(window.screen?.height || 0);
+    const screenGap = Math.max(0, screenHeight - viewportHeight);
+    if (screenGap >= 60) {
+      return 48;
+    }
+    if (screenGap >= 40) {
+      return screenGap;
+    }
+    return 0;
+  }
+
+  private measureTabsLayout(
+    tabRect: DOMRect | null,
+    viewportHeight: number,
+    fallbackBottomInset: number
+  ): boolean {
+    const tabHeight = Math.round(tabRect?.height || 0);
+    const hasUsableTabRect =
+      Boolean(tabRect) && viewportHeight > 0 && tabHeight > 0;
+
+    this.tabsHeight = hasUsableTabRect ? tabHeight : this.TABS_FALLBACK_HEIGHT;
+    this.tabsStackHeight = hasUsableTabRect
+      ? Math.max(this.tabsHeight, Math.round(viewportHeight - tabRect!.top))
+      : this.tabsHeight + fallbackBottomInset;
+    this.applyBannerLayoutVars();
+
+    return hasUsableTabRect;
+  }
+
+  private getAndroidTabsBannerMargin(
+    tabRect: DOMRect | null,
+    viewportHeight: number,
+    bottomInset: number
+  ): number {
+    const fallbackInset = this.getAndroidBottomInsetFallback(viewportHeight);
+    const hasUsableTabRect = this.measureTabsLayout(
+      tabRect,
+      viewportHeight,
+      bottomInset || fallbackInset
+    );
+
+    if (!hasUsableTabRect) {
+      return this.tabsStackHeight + this.BANNER_GAP;
+    }
+
+    const viewportBottomGap = Math.max(
+      0,
+      Math.round(viewportHeight - tabRect!.bottom)
+    );
+    const reliableBottomInset = Math.max(bottomInset, fallbackInset);
+    const androidNativeBottomCorrection = this.getAndroidNativeBottomCorrection(
+      reliableBottomInset,
+      viewportBottomGap
+    );
+
+    return this.tabsStackHeight + androidNativeBottomCorrection + this.BANNER_GAP;
+  }
+
+  private getIosTabsBannerMargin(
+    tabRect: DOMRect | null,
+    viewportHeight: number
+  ): number {
+    const safeAreaBottom = this.getCssSafeAreaBottom();
+    const hasUsableTabRect = this.measureTabsLayout(tabRect, viewportHeight, 0);
+
+    if (!hasUsableTabRect) {
+      return this.tabsStackHeight + this.BANNER_GAP;
+    }
+
+    const nativeAnchorBottom = viewportHeight - safeAreaBottom;
+    const desiredBannerBottom = tabRect!.top - this.BANNER_GAP;
+    const measuredMargin = Math.round(nativeAnchorBottom - desiredBannerBottom);
+
+    if (Number.isFinite(measuredMargin) && measuredMargin >= 0) {
+      return measuredMargin;
+    }
+
+    return this.tabsStackHeight + this.BANNER_GAP;
+  }
+
   private getCssSafeAreaBottom(): number {
     if (typeof document === 'undefined' || !document.body) {
       return 0;
@@ -518,42 +606,20 @@ export class AdMobService {
   private async getBannerBottomMargin(context: BannerContext): Promise<number> {
     const bottomInset = await this.getBottomInset();
     if (context === 'tabs') {
-      await this.waitForStableIosTabBar();
+      const platform = Capacitor.getPlatform();
+
+      if (platform === 'ios') {
+        await this.waitForStableIosTabBar();
+      }
 
       const tabRect = this.getTabBarRect();
       const viewportHeight = this.getViewportHeight();
-      const tabHeight = Math.round(tabRect?.height || 0);
-      const hasUsableTabRect =
-        Boolean(tabRect) && viewportHeight > 0 && tabHeight > 0;
 
-      this.tabsHeight = hasUsableTabRect ? tabHeight : this.TABS_FALLBACK_HEIGHT;
-      this.tabsStackHeight = hasUsableTabRect
-        ? Math.max(this.tabsHeight, Math.round(viewportHeight - tabRect!.top))
-        : this.tabsHeight + (Capacitor.getPlatform() === 'ios' ? 0 : bottomInset);
-      this.applyBannerLayoutVars();
-
-      if (hasUsableTabRect) {
-        const viewportBottomGap = Math.max(
-          0,
-          Math.round(viewportHeight - tabRect!.bottom)
-        );
-        const androidNativeBottomCorrection = this.getAndroidNativeBottomCorrection(
-          bottomInset,
-          viewportBottomGap
-        );
-        const nativeAnchorBottom =
-          viewportHeight -
-          (Capacitor.getPlatform() === 'ios' ? this.getCssSafeAreaBottom() : 0) +
-          androidNativeBottomCorrection;
-        const desiredBannerBottom = tabRect!.top - this.BANNER_GAP;
-        const measuredMargin = Math.round(nativeAnchorBottom - desiredBannerBottom);
-
-        if (Number.isFinite(measuredMargin) && measuredMargin >= 0) {
-          return measuredMargin;
-        }
+      if (platform === 'android') {
+        return this.getAndroidTabsBannerMargin(tabRect, viewportHeight, bottomInset);
       }
 
-      return this.tabsStackHeight + this.BANNER_GAP;
+      return this.getIosTabsBannerMargin(tabRect, viewportHeight);
     }
 
     this.tabsHeight = 0;
