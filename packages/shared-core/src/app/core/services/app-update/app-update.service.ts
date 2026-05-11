@@ -1,28 +1,27 @@
-import { Injectable } from '@angular/core';
-import { Browser } from '@capacitor/browser';
-import { Capacitor } from '@capacitor/core';
-import { ModalController } from '@ionic/angular';
-import { firstValueFrom } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { AppUpdateModalComponent } from 'src/app/features/app-update/app-update-modal.component';
-import { AppVersionResponse } from '../../models/app-version-response';
-import { HttpService } from '../http/http.service';
+import { Injectable } from "@angular/core";
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
+import { ModalController } from "@ionic/angular";
+import { firstValueFrom } from "rxjs";
+import { environment } from "src/environments/environment";
+import { AppUpdateModalComponent } from "src/app/features/app-update/app-update-modal.component";
+import { AppVersionResponse } from "../../models/app-version-response";
+import { HttpService } from "../http/http.service";
 
 @Injectable()
 export class AppUpdateService {
-  private readonly isRequiredUpdateScreenDisabled = true;
+  private readonly isRequiredUpdateScreenDisabled = false;
   private isChecking = false;
   private isModalOpen = false;
 
   constructor(
     private httpService: HttpService,
-    private modalController: ModalController
+    private modalController: ModalController,
   ) {}
 
   public async checkForRequiredUpdate(): Promise<void> {
     if (
       this.isRequiredUpdateScreenDisabled ||
-      !Capacitor.isNativePlatform() ||
       this.isChecking ||
       this.isModalOpen
     ) {
@@ -32,10 +31,10 @@ export class AppUpdateService {
     this.isChecking = true;
     try {
       const response = await firstValueFrom(
-        this.httpService.get<AppVersionResponse>('app/version')
+        this.httpService.get<AppVersionResponse>("app/version"),
       );
-      const backendVersion = String(response?.version || '').trim();
-      const appVersion = String(environment.APP_VERSION || '').trim();
+      const backendVersion = String(response?.version || "").trim();
+      const appVersion = String(environment.APP_VERSION || "").trim();
 
       if (!backendVersion || !appVersion || backendVersion === appVersion) {
         return;
@@ -44,7 +43,7 @@ export class AppUpdateService {
       await this.showRequiredUpdateModal(appVersion, backendVersion);
     } catch (error) {
       // Fail-safe: if version check cannot complete, users can keep using the app.
-      console.warn('App version check failed', error);
+      console.warn("App version check failed", error);
     } finally {
       this.isChecking = false;
     }
@@ -52,7 +51,7 @@ export class AppUpdateService {
 
   private async showRequiredUpdateModal(
     currentVersion: string,
-    requiredVersion: string
+    requiredVersion: string,
   ): Promise<void> {
     if (this.isModalOpen) {
       return;
@@ -66,7 +65,7 @@ export class AppUpdateService {
         requiredVersion,
         updateHandler: () => this.openStore(),
       },
-      cssClass: 'app-update-required-modal',
+      cssClass: "app-update-required-modal",
       backdropDismiss: false,
       canDismiss: false,
     });
@@ -77,12 +76,12 @@ export class AppUpdateService {
   private async openStore(): Promise<void> {
     const platform = Capacitor.getPlatform();
     const url =
-      platform === 'ios'
+      platform === "ios"
         ? environment.APP_STORE_URL
         : environment.GOOGLE_PLAY_URL;
 
     if (!url) {
-      console.warn('Missing store URL for update flow');
+      console.warn("Missing store URL for update flow");
       return;
     }
 
