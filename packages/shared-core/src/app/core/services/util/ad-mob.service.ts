@@ -1,14 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import {
+  AdLoadInfo,
   AdMob,
+  AdMobBannerSize,
+  AdMobError,
   AdOptions,
+  AdmobConsentInfo,
+  AdmobConsentStatus,
   BannerAdOptions,
+  BannerAdPluginEvents,
   BannerAdPosition,
   BannerAdSize,
-  AdmobConsentStatus,
+  InterstitialAdPluginEvents,
 } from '@capacitor-community/admob';
+import { App as CapacitorApp } from '@capacitor/app';
 import { Keyboard } from '@capacitor/keyboard';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { EdgeToEdge } from '@capawesome/capacitor-android-edge-to-edge-support';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { UserService } from '../user/user.service';
@@ -29,12 +37,24 @@ export type InterstitialPlacement =
   | 'acquire_routine'
   | 'profile_start';
 
+type BannerContext = 'tabs' | 'current-workout';
+type ActiveBannerRequest = {
+  context: BannerContext | 'manual';
+  adId: string;
+  margin: number;
+};
+type ActiveInterstitialRequest = {
+  placement: InterstitialPlacement;
+  adId: string;
+};
+type AdMobLogLevel = 'debug' | 'info' | 'warn' | 'error';
+
 @Injectable()
 export class AdMobService {
   private readonly ID_ANDROID_INTERSTITIAL_DEFAULT =
     'ca-app-pub-7032025540653355/1755796410';
   private readonly ID_IOS_INTERSTITIAL_DEFAULT =
-    'ca-app-pub-7032025540653355/1755796410';
+    'ca-app-pub-7032025540653355/5874037227';
 
   private readonly ID_ANDROID_BANNER = 'ca-app-pub-7032025540653355/9490763271';
   private readonly ID_IOS_BANNER = 'ca-app-pub-7032025540653355/3590300413';
@@ -73,126 +93,214 @@ export class AdMobService {
     profile_start: 'ca-app-pub-7032025540653355/5874037227',
   };
 
-  // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly billingService = inject(BillingService);
   private readonly router = inject(Router);
   private readonly _platform = inject(Platform);
 
+  private readonly useTestAds = !environment.production;
+  private readonly diagnosticLoggingEnabled =
+    !environment.production || Boolean((environment as any).adMob?.diagnostics);
+
   private initializing: Promise<void>;
+  private canRequestAds = true;
   private bannerVisible = false;
   private onBannerTabRoute = false;
   private bannerRequestId = 0;
-  private currentBannerKey: 'tabs' | 'current-workout' | null = null;
+  private currentBannerKey: BannerContext | null = null;
+  private currentBannerAdId: string | null = null;
+  private readonly BANNER_FALLBACK_HEIGHT = 50;
+  private readonly TABS_FALLBACK_HEIGHT = 50;
+  private readonly BANNER_GAP = 0;
+  private bannerHeight = this.BANNER_FALLBACK_HEIGHT;
+  private tabsHeight = this.TABS_FALLBACK_HEIGHT;
+  private tabsStackHeight = this.TABS_FALLBACK_HEIGHT;
+  private lastBannerMargin: number | null = null;
+  private resizeRefreshTimer?: ReturnType<typeof setTimeout>;
   private keyboardVisible = false;
   private keyboardListeners: PluginListenerHandle[] = [];
+  private adMobListeners: PluginListenerHandle[] = [];
   private activeOverlayCount = 0;
   private profileStartInFlight = false;
   private lastProfileStartAt = 0;
+  private activeBannerRequest: ActiveBannerRequest | null = null;
+  private activeInterstitialRequest: ActiveInterstitialRequest | null = null;
 
   constructor() {
+    this.initAdMobEventLogging();
     this.initialize();
     this.initKeyboardBannerBehavior();
     this.initOverlayBannerBehavior();
+    this.initBannerSizeBehavior();
+    this.initViewportBannerBehavior();
+    this.initAppStateBannerBehavior();
     this.manageBannerPosition();
   }
 
-  /**
-   * Muestra un anuncio Intersticial
-   */
   public async interstitial(
     placement: InterstitialPlacement = 'default'
   ): Promise<void> {
-    if (placement === 'profile_start') {
-      const now = Date.now();
-      if (this.profileStartInFlight) {
-        return;
-      }
-      // Guard anti-doble disparo en arranque/redirecciones rápidas
-      if (now - this.lastProfileStartAt < 10000) {
-        return;
-      }
-      this.profileStartInFlight = true;
-      this.lastProfileStartAt = now;
-    }
+    const profileGuardEnabled = placement === 'profile_start';
 
-    await this.initializing;
-    const user: User = this.userService.getLocalUser;
-    if (!this.shouldShowAds(user)) {
+    if (profileGuardEnabled && !this.reserveProfileStartSlot()) {
       return;
     }
-    if (user.personalAds === undefined) await this.consent(user);
-    const adId = this.getInterstitialAdId(placement);
-
-    const options: AdOptions = {
-      adId,
-      isTesting: !environment.production,
-      npa: !user.personalAds,
-    };
 
     try {
+      if (!Capacitor.isNativePlatform()) {
+        this.logAdEvent('debug', 'interstitial_skipped_non_native', {
+          placement,
+        });
+        return;
+      }
+
+      await this.initializing;
+
+      const user = this.userService.getLocalUser;
+      if (!user || !this.shouldShowAds(user)) {
+        this.logAdEvent('debug', 'interstitial_skipped_user_state', {
+          placement,
+          hasUser: Boolean(user),
+        });
+        return;
+      }
+
+      if (!(await this.ensureAdsCanBeRequested(user, placement))) {
+        return;
+      }
+
+      const adId = this.getInterstitialAdId(placement);
+      const options: AdOptions = {
+        adId,
+        isTesting: this.useTestAds,
+        npa: !user.personalAds,
+      };
+
+      this.activeInterstitialRequest = { placement, adId };
+      this.logAdEvent('info', 'interstitial_prepare_start', {
+        placement,
+        adUnit: this.getAdUnitSuffix(adId),
+        npa: options.npa,
+        isTesting: options.isTesting,
+      });
+
       await AdMob.prepareInterstitial(options);
+      this.logAdEvent('info', 'interstitial_show_start', {
+        placement,
+        adUnit: this.getAdUnitSuffix(adId),
+      });
       await AdMob.showInterstitial();
+    } catch (error) {
+      this.logAdEvent(
+        'error',
+        'interstitial_request_failed',
+        { placement },
+        error
+      );
+      throw error;
     } finally {
-      if (placement === 'profile_start') {
+      if (profileGuardEnabled) {
         this.profileStartInFlight = false;
       }
     }
   }
 
-  /**
-   * Alias legacy para no romper llamadas existentes tras migración.
-   */
   public async interstitialCapgo(): Promise<void> {
-    await this.interstitial();
+    await this.interstitial('acquire_routine');
   }
 
-
-
-  /**
-   * Muestra un Banner en una posición específica con un posible margen (ej: sobre los tabs)
-   */
   public async showBanner(
     margin: number = 0,
     adIdOverride?: string
-  ): Promise<void> {
-    await this.initializing;
-    const user: User = this.userService.getLocalUser;
-    if (user.personalAds === undefined) await this.consent(user);
+  ): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) {
+      this.logAdEvent('debug', 'banner_skipped_non_native');
+      return false;
+    }
 
+    await this.initializing;
+
+    const user = this.userService.getLocalUser;
+    if (!user || !this.shouldShowAds(user)) {
+      this.logAdEvent('debug', 'banner_skipped_user_state', {
+        hasUser: Boolean(user),
+      });
+      return false;
+    }
+
+    if (!(await this.ensureAdsCanBeRequested(user, 'banner'))) {
+      return false;
+    }
+
+    const adId =
+      adIdOverride ||
+      (this._platform.is('ios') ? this.ID_IOS_BANNER : this.ID_ANDROID_BANNER);
+    const roundedMargin = Math.max(0, Math.round(margin));
     const options: BannerAdOptions = {
-      adId:
-        adIdOverride ||
-        (this._platform.is('ios')
-          ? this.ID_IOS_BANNER
-          : this.ID_ANDROID_BANNER),
+      adId,
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: margin,
-      isTesting: !environment.production,
+      margin: roundedMargin,
+      isTesting: this.useTestAds,
       npa: !user.personalAds,
     };
 
+    this.activeBannerRequest = {
+      context: this.currentBannerKey || 'manual',
+      adId,
+      margin: roundedMargin,
+    };
+    this.logAdEvent('info', 'banner_show_start', {
+      context: this.activeBannerRequest.context,
+      adUnit: this.getAdUnitSuffix(adId),
+      margin: roundedMargin,
+      npa: options.npa,
+      isTesting: options.isTesting,
+    });
+
     await AdMob.showBanner(options);
+    return true;
   }
 
-  /**
-   * Elimina el banner actual
-   */
   public async removeBanner(): Promise<void> {
     try {
       await AdMob.removeBanner();
     } catch {
-      // ignore remove errors when no banner is currently attached
+      // No-op: removeBanner is called defensively during route and overlay changes.
     }
     this.bannerVisible = false;
     this.onBannerTabRoute = false;
     this.currentBannerKey = null;
+    this.currentBannerAdId = null;
+    this.lastBannerMargin = null;
+    this.activeBannerRequest = null;
+    this.clearBannerBodyClasses();
   }
 
-  /**
-   * Gestiona la posición del banner basándose en la ruta actual
-   */
+  private reserveProfileStartSlot(): boolean {
+    const now = Date.now();
+    if (this.profileStartInFlight) {
+      this.logAdEvent('debug', 'profile_start_skipped_in_flight');
+      return false;
+    }
+    if (now - this.lastProfileStartAt < 10000) {
+      this.logAdEvent('debug', 'profile_start_skipped_throttle');
+      return false;
+    }
+    this.profileStartInFlight = true;
+    this.lastProfileStartAt = now;
+    return true;
+  }
+
+  private async removeNativeBannerForReplacement(): Promise<void> {
+    try {
+      await AdMob.removeBanner();
+    } catch {
+      // No-op: replacing a missing banner should not break the next request.
+    }
+    this.bannerVisible = false;
+  }
+
   private manageBannerPosition(): void {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
@@ -200,7 +308,6 @@ export class AdMobService {
         this.refreshBannerForRoute(event.urlAfterRedirects);
       });
 
-    // Llamada inicial para la ruta actual
     this.refreshBannerForRoute(this.router.url);
   }
 
@@ -218,7 +325,7 @@ export class AdMobService {
     return path === '/current-workout';
   }
 
-  private getBannerContext(url: string): 'tabs' | 'current-workout' | null {
+  private getBannerContext(url: string): BannerContext | null {
     if (this.isMainTabsRootRoute(url)) {
       return 'tabs';
     }
@@ -228,7 +335,7 @@ export class AdMobService {
     return null;
   }
 
-  private getBannerAdId(context: 'tabs' | 'current-workout'): string {
+  private getBannerAdId(context: BannerContext): string {
     if (context === 'current-workout') {
       return this._platform.is('ios')
         ? this.ID_IOS_BANNER_CURRENT_WORKOUT
@@ -240,72 +347,555 @@ export class AdMobService {
       : this.ID_ANDROID_BANNER;
   }
 
-  private getTabsBannerMargin(): number {
-    try {
-      const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
-      if (tabBar) {
-        const tabBarHeight = Math.round(tabBar.getBoundingClientRect().height);
-        if (tabBarHeight > 0) {
-          return tabBarHeight;
-        }
-      }
-    } catch {
-      // fallback below
-    }
-    return 50;
-  }
-
   private clearBannerBodyClasses(): void {
     document.body.classList.remove('has-ad-banner', 'has-tabs-ad', 'has-workout-ad');
+    document.body.style.removeProperty('--trainfit-ad-banner-height');
+    document.body.style.removeProperty('--trainfit-ad-banner-gap');
+    document.body.style.removeProperty('--trainfit-tabs-height');
+    document.body.style.removeProperty('--trainfit-tabs-stack-height');
+  }
+
+  private applyBannerLayoutVars(): void {
+    document.body.style.setProperty(
+      '--trainfit-ad-banner-height',
+      `${Math.max(this.bannerHeight, this.BANNER_FALLBACK_HEIGHT)}px`
+    );
+    document.body.style.setProperty('--trainfit-ad-banner-gap', `${this.BANNER_GAP}px`);
+    document.body.style.setProperty(
+      '--trainfit-tabs-height',
+      `${Math.max(this.tabsHeight, this.TABS_FALLBACK_HEIGHT)}px`
+    );
+    document.body.style.setProperty(
+      '--trainfit-tabs-stack-height',
+      `${Math.max(this.tabsStackHeight, this.TABS_FALLBACK_HEIGHT)}px`
+    );
+  }
+
+  private getViewportHeight(): number {
+    return Math.round(
+      window.innerHeight ||
+        document.documentElement.clientHeight ||
+        window.visualViewport?.height ||
+        0
+    );
+  }
+
+  private getTabBarRect(): DOMRect | null {
+    try {
+      const tabBar = document.querySelector('ion-tab-bar') as HTMLElement | null;
+      return tabBar?.getBoundingClientRect() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private waitForNextFrames(): Promise<void> {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+  }
+
+  private async waitForStableIosTabBar(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios') {
+      return;
+    }
+
+    let previousTop: number | null = null;
+    let previousBottom: number | null = null;
+
+    // Ionic can finish NavigationEnd before the tab bar has settled visually.
+    // Waiting briefly avoids pinning the native banner to a transitional rect.
+    await this.wait(120);
+
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await this.waitForNextFrames();
+      const rect = this.getTabBarRect();
+      const top = Math.round(rect?.top || 0);
+      const bottom = Math.round(rect?.bottom || 0);
+      const height = Math.round(rect?.height || 0);
+
+      if (top > 0 && bottom > top && height > 0) {
+        const isStable =
+          previousTop !== null &&
+          previousBottom !== null &&
+          Math.abs(top - previousTop) <= 1 &&
+          Math.abs(bottom - previousBottom) <= 1;
+
+        if (isStable) {
+          return;
+        }
+
+        previousTop = top;
+        previousBottom = bottom;
+      }
+
+      await this.wait(80);
+    }
+  }
+
+  private getAndroidMajorVersion(): number | null {
+    if (typeof navigator === 'undefined') {
+      return null;
+    }
+
+    const match = navigator.userAgent.match(/Android\s+(\d+)/i);
+    const version = match ? Number.parseInt(match[1], 10) : Number.NaN;
+    return Number.isFinite(version) ? version : null;
+  }
+
+  private getAndroidNativeBottomCorrection(
+    bottomInset: number,
+    viewportBottomGap: number
+  ): number {
+    if (Capacitor.getPlatform() !== 'android' || bottomInset <= 0) {
+      return 0;
+    }
+
+    const androidMajorVersion = this.getAndroidMajorVersion();
+    const edgeToEdgeIsEnforced =
+      androidMajorVersion === null || androidMajorVersion >= 15;
+    if (!edgeToEdgeIsEnforced) {
+      return 0;
+    }
+
+    // Android 15/16 can position native overlays from the decor view while the
+    // WebView already received navigation-bar insets. Add only the missing part.
+    return Math.max(0, bottomInset - Math.max(0, viewportBottomGap));
+  }
+
+  private getAndroidBottomInsetFallback(viewportHeight: number): number {
+    const androidMajorVersion = this.getAndroidMajorVersion();
+    const edgeToEdgeIsEnforced =
+      androidMajorVersion === null || androidMajorVersion >= 15;
+    if (!edgeToEdgeIsEnforced) {
+      return 0;
+    }
+
+    const screenHeight = Math.round(window.screen?.height || 0);
+    const screenGap = Math.max(0, screenHeight - viewportHeight);
+    if (screenGap >= 60) {
+      return 48;
+    }
+    if (screenGap >= 40) {
+      return screenGap;
+    }
+    return 0;
+  }
+
+  private measureTabsLayout(
+    tabRect: DOMRect | null,
+    viewportHeight: number,
+    fallbackBottomInset: number
+  ): boolean {
+    const tabHeight = Math.round(tabRect?.height || 0);
+    const hasUsableTabRect =
+      Boolean(tabRect) && viewportHeight > 0 && tabHeight > 0;
+
+    this.tabsHeight = hasUsableTabRect ? tabHeight : this.TABS_FALLBACK_HEIGHT;
+    this.tabsStackHeight = hasUsableTabRect
+      ? Math.max(this.tabsHeight, Math.round(viewportHeight - tabRect!.top))
+      : this.tabsHeight + fallbackBottomInset;
+    this.applyBannerLayoutVars();
+
+    return hasUsableTabRect;
+  }
+
+  private getAndroidTabsBannerMargin(
+    tabRect: DOMRect | null,
+    viewportHeight: number,
+    bottomInset: number
+  ): number {
+    const fallbackInset = this.getAndroidBottomInsetFallback(viewportHeight);
+    const hasUsableTabRect = this.measureTabsLayout(
+      tabRect,
+      viewportHeight,
+      bottomInset || fallbackInset
+    );
+
+    if (!hasUsableTabRect) {
+      return this.tabsStackHeight + this.BANNER_GAP;
+    }
+
+    const viewportBottomGap = Math.max(
+      0,
+      Math.round(viewportHeight - tabRect!.bottom)
+    );
+    const reliableBottomInset = Math.max(bottomInset, fallbackInset);
+    const androidNativeBottomCorrection = this.getAndroidNativeBottomCorrection(
+      reliableBottomInset,
+      viewportBottomGap
+    );
+
+    return this.tabsStackHeight + androidNativeBottomCorrection + this.BANNER_GAP;
+  }
+
+  private getIosTabsBannerMargin(
+    tabRect: DOMRect | null,
+    viewportHeight: number
+  ): number {
+    const safeAreaBottom = this.getCssSafeAreaBottom();
+    const hasUsableTabRect = this.measureTabsLayout(tabRect, viewportHeight, 0);
+
+    if (!hasUsableTabRect) {
+      return this.tabsStackHeight + this.BANNER_GAP;
+    }
+
+    const nativeAnchorBottom = viewportHeight - safeAreaBottom;
+    const desiredBannerBottom = tabRect!.top - this.BANNER_GAP;
+    const measuredMargin = Math.round(nativeAnchorBottom - desiredBannerBottom);
+
+    if (Number.isFinite(measuredMargin) && measuredMargin >= 0) {
+      return measuredMargin;
+    }
+
+    return this.tabsStackHeight + this.BANNER_GAP;
+  }
+
+  private getCssSafeAreaBottom(): number {
+    if (typeof document === 'undefined' || !document.body) {
+      return 0;
+    }
+
+    const probe = document.createElement('div');
+    probe.style.cssText = [
+      'position:fixed',
+      'left:0',
+      'bottom:0',
+      'height:0',
+      'width:0',
+      'visibility:hidden',
+      'pointer-events:none',
+      'padding-bottom:env(safe-area-inset-bottom)',
+    ].join(';');
+
+    try {
+      document.body.appendChild(probe);
+      const value = Number.parseFloat(getComputedStyle(probe).paddingBottom || '0');
+      return Number.isFinite(value) ? Math.round(value) : 0;
+    } finally {
+      probe.remove();
+    }
+  }
+
+  private async getBottomInset(): Promise<number> {
+    if (!Capacitor.isNativePlatform()) {
+      return 0;
+    }
+
+    if (Capacitor.getPlatform() === 'android') {
+      try {
+        const insets = await EdgeToEdge.getInsets();
+        const density = window.devicePixelRatio || 1;
+        return Math.max(0, Math.round((insets?.bottom || 0) / density));
+      } catch {
+        return 0;
+      }
+    }
+
+    if (Capacitor.getPlatform() === 'ios') {
+      return this.getCssSafeAreaBottom();
+    }
+
+    return 0;
+  }
+
+  private async getBannerBottomMargin(context: BannerContext): Promise<number> {
+    const bottomInset = await this.getBottomInset();
+    if (context === 'tabs') {
+      const platform = Capacitor.getPlatform();
+
+      if (platform === 'ios') {
+        await this.waitForStableIosTabBar();
+      }
+
+      const tabRect = this.getTabBarRect();
+      const viewportHeight = this.getViewportHeight();
+
+      if (platform === 'android') {
+        return this.getAndroidTabsBannerMargin(tabRect, viewportHeight, bottomInset);
+      }
+
+      return this.getIosTabsBannerMargin(tabRect, viewportHeight);
+    }
+
+    this.tabsHeight = 0;
+    this.tabsStackHeight = 0;
+    this.applyBannerLayoutVars();
+
+    return (Capacitor.getPlatform() === 'ios' ? 0 : bottomInset) + this.BANNER_GAP;
+  }
+
+  private scheduleBannerRefresh(delay = 120): void {
+    if (this.resizeRefreshTimer) {
+      clearTimeout(this.resizeRefreshTimer);
+    }
+
+    this.resizeRefreshTimer = setTimeout(() => {
+      this.refreshBannerForRoute(this.router.url);
+    }, delay);
+  }
+
+  private initAdMobEventLogging(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
+        this.logAdEvent('info', 'banner_loaded', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Loaded
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.FailedToLoad, (error: AdMobError) => {
+        this.logAdEvent(
+          'error',
+          'banner_failed_to_load',
+          this.getActiveBannerLogContext(),
+          error
+        );
+      }),
+      BannerAdPluginEvents.FailedToLoad
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Opened, () => {
+        this.logAdEvent('info', 'banner_opened', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Opened
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.Closed, () => {
+        this.logAdEvent('info', 'banner_closed', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.Closed
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(BannerAdPluginEvents.AdImpression, () => {
+        this.logAdEvent('info', 'banner_impression', this.getActiveBannerLogContext());
+      }),
+      BannerAdPluginEvents.AdImpression
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Loaded, (info: AdLoadInfo) => {
+        this.logAdEvent('info', 'interstitial_loaded', {
+          ...this.getActiveInterstitialLogContext(),
+          loadedAdUnit: this.getAdUnitSuffix(info?.adUnitId),
+        });
+      }),
+      InterstitialAdPluginEvents.Loaded
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToLoad,
+        (error: AdMobError) => {
+          this.logAdEvent(
+            'error',
+            'interstitial_failed_to_load',
+            this.getActiveInterstitialLogContext(),
+            error
+          );
+        }
+      ),
+      InterstitialAdPluginEvents.FailedToLoad
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Showed, () => {
+        this.logAdEvent(
+          'info',
+          'interstitial_showed',
+          this.getActiveInterstitialLogContext()
+        );
+      }),
+      InterstitialAdPluginEvents.Showed
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(
+        InterstitialAdPluginEvents.FailedToShow,
+        (error: AdMobError) => {
+          this.logAdEvent(
+            'error',
+            'interstitial_failed_to_show',
+            this.getActiveInterstitialLogContext(),
+            error
+          );
+        }
+      ),
+      InterstitialAdPluginEvents.FailedToShow
+    );
+    this.registerAdMobListener(
+      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, () => {
+        this.logAdEvent(
+          'info',
+          'interstitial_dismissed',
+          this.getActiveInterstitialLogContext()
+        );
+      }),
+      InterstitialAdPluginEvents.Dismissed
+    );
+  }
+
+  private registerAdMobListener(
+    registration: Promise<PluginListenerHandle>,
+    eventName: string
+  ): void {
+    void registration
+      .then((listener) => this.adMobListeners.push(listener))
+      .catch((error) => {
+        this.logAdEvent(
+          'warn',
+          'admob_listener_registration_failed',
+          { eventName },
+          error
+        );
+      });
+  }
+
+  private initBannerSizeBehavior(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    this.registerAdMobListener(
+      AdMob.addListener(
+        BannerAdPluginEvents.SizeChanged,
+        (info: AdMobBannerSize) => {
+          const height = Math.round(Number(info?.height || 0));
+          if (height <= 0) {
+            return;
+          }
+
+          this.bannerHeight = height;
+          if (this.currentBannerKey) {
+            this.applyBannerLayoutVars();
+          }
+          this.logAdEvent('debug', 'banner_size_changed', {
+            ...this.getActiveBannerLogContext(),
+            width: Math.round(Number(info?.width || 0)),
+            height,
+          });
+        }
+      ),
+      BannerAdPluginEvents.SizeChanged
+    );
+  }
+
+  private initViewportBannerBehavior(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const onViewportChange = () => this.scheduleBannerRefresh();
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
+  }
+
+  private initAppStateBannerBehavior(): void {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    void CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        this.scheduleBannerRefresh();
+      }
+    }).catch((error) => {
+      this.logAdEvent('warn', 'app_state_listener_registration_failed', {}, error);
+    });
   }
 
   private refreshBannerForRoute(url: string): void {
+    void this.refreshBannerForRouteAsync(url);
+  }
+
+  private async refreshBannerForRouteAsync(url: string): Promise<void> {
     const user = this.userService.getLocalUser;
     if (
+      !Capacitor.isNativePlatform() ||
       !user ||
       !this.shouldShowAds(user) ||
       this.keyboardVisible ||
       this.activeOverlayCount > 0
     ) {
-      this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      await this.removeBanner();
       return;
     }
 
     const bannerContext = this.getBannerContext(url);
     if (!bannerContext) {
-      this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
-      return;
-    }
-
-    if (this.bannerVisible && this.currentBannerKey === bannerContext) {
+      await this.removeBanner();
       return;
     }
 
     const isTabs = bannerContext === 'tabs';
+    const requestId = ++this.bannerRequestId;
+    const margin = await this.getBannerBottomMargin(bannerContext);
+    const adId = this.getBannerAdId(bannerContext);
+
+    if (requestId !== this.bannerRequestId) {
+      return;
+    }
+
     document.body.classList.add('has-ad-banner');
     document.body.classList.toggle('has-tabs-ad', isTabs);
     document.body.classList.toggle('has-workout-ad', !isTabs);
+    this.applyBannerLayoutVars();
     this.onBannerTabRoute = isTabs;
-    this.currentBannerKey = bannerContext;
 
-    const adId = this.getBannerAdId(bannerContext);
-    const margin = isTabs ? this.getTabsBannerMargin() : 12;
-    const requestId = ++this.bannerRequestId;
+    if (
+      this.bannerVisible &&
+      this.currentBannerKey === bannerContext &&
+      this.lastBannerMargin === margin &&
+      this.currentBannerAdId === adId
+    ) {
+      return;
+    }
+
+    if (this.bannerVisible) {
+      await this.removeNativeBannerForReplacement();
+    }
+
+    if (requestId !== this.bannerRequestId) {
+      return;
+    }
+
+    this.currentBannerKey = bannerContext;
+    this.currentBannerAdId = adId;
+    this.lastBannerMargin = margin;
+
     this.showBanner(margin, adId)
-      .then(() => {
+      .then((shown) => {
         if (requestId !== this.bannerRequestId) {
-          this.removeBanner();
           return;
         }
-        this.bannerVisible = true;
+        this.bannerVisible = shown;
+        if (!shown) {
+          this.currentBannerKey = null;
+          this.currentBannerAdId = null;
+          this.lastBannerMargin = null;
+          this.clearBannerBodyClasses();
+        }
       })
       .catch((error) => {
         this.bannerVisible = false;
-        console.error('Error mostrando banner:', error);
+        if (requestId === this.bannerRequestId) {
+          this.currentBannerKey = null;
+          this.currentBannerAdId = null;
+          this.lastBannerMargin = null;
+          this.activeBannerRequest = null;
+          this.clearBannerBodyClasses();
+        }
+        this.logAdEvent(
+          'error',
+          'banner_show_failed',
+          { context: bannerContext, adUnit: this.getAdUnitSuffix(adId), margin },
+          error
+        );
       });
   }
 
@@ -318,7 +908,7 @@ export class AdMobService {
       this.keyboardVisible = true;
       this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      void this.removeBanner();
     }).then((listener) => this.keyboardListeners.push(listener));
 
     void Keyboard.addListener('keyboardDidHide', () => {
@@ -336,7 +926,7 @@ export class AdMobService {
       this.activeOverlayCount++;
       this.clearBannerBodyClasses();
       this.bannerRequestId++;
-      this.removeBanner();
+      void this.removeBanner();
     };
 
     const onDismiss = () => {
@@ -366,35 +956,140 @@ export class AdMobService {
   }
 
   private async doInitialize(): Promise<void> {
-    await AdMob.initialize();
-    const [trackingInfo, consentInfo] = await Promise.all([
-      AdMob.trackingAuthorizationStatus(),
-      AdMob.requestConsentInfo(),
-    ]);
-    if (trackingInfo.status === 'notDetermined')
-      await AdMob.requestTrackingAuthorization();
-    const authorizationStatus = await AdMob.trackingAuthorizationStatus();
-    if (
-      authorizationStatus.status === 'authorized' &&
-      consentInfo.isConsentFormAvailable &&
-      consentInfo.status === AdmobConsentStatus.REQUIRED
-    ) {
-      await AdMob.showConsentForm();
+    try {
+      await AdMob.initialize();
+      this.logAdEvent('info', 'sdk_initialized', {
+        isTesting: this.useTestAds,
+      });
+
+      const consentInfo = await this.requestConsentInfo('initialize');
+      await this.presentConsentFormIfRequired(consentInfo, 'initialize');
+      await this.requestTrackingAuthorizationIfNeeded();
+    } catch (error) {
+      this.logAdEvent('error', 'sdk_initialize_failed', {}, error);
     }
   }
 
-  public async consent(user: User): Promise<void> {
-    const consentInfo = await AdMob.requestConsentInfo();
+  public async consent(user: User): Promise<boolean> {
+    const consentInfo = await this.requestConsentInfo('user_consent');
+    const resolvedConsentInfo = await this.presentConsentFormIfRequired(
+      consentInfo,
+      'user_consent'
+    );
+
+    const personalAds =
+      user.personalAds === undefined
+        ? this.getDefaultPersonalAdsPreference(resolvedConsentInfo)
+        : Boolean(user.personalAds);
+
+    this.userService.setLocalUser = {
+      ...user,
+      personalAds,
+    };
+
+    return this.canRequestAds;
+  }
+
+  private async ensureAdsCanBeRequested(
+    user: User,
+    source: InterstitialPlacement | 'banner'
+  ): Promise<boolean> {
+    if (user.personalAds === undefined || !this.canRequestAds) {
+      await this.consent(user);
+    }
+
+    if (!this.canRequestAds) {
+      this.logAdEvent('warn', 'ad_request_blocked_by_consent', {
+        source,
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  private async requestConsentInfo(
+    reason: string
+  ): Promise<AdmobConsentInfo | null> {
+    try {
+      const consentInfo = await AdMob.requestConsentInfo();
+      this.updateCanRequestAds(consentInfo, reason);
+      return consentInfo;
+    } catch (error) {
+      this.logAdEvent('warn', 'consent_info_request_failed', { reason }, error);
+      return null;
+    }
+  }
+
+  private async presentConsentFormIfRequired(
+    consentInfo: AdmobConsentInfo | null,
+    reason: string
+  ): Promise<AdmobConsentInfo | null> {
+    if (!consentInfo) {
+      return null;
+    }
+
     if (
       consentInfo.isConsentFormAvailable &&
       consentInfo.status === AdmobConsentStatus.REQUIRED
     ) {
-      const { status } = await AdMob.showConsentForm();
-      user.personalAds = status === AdmobConsentStatus.OBTAINED;
-    } else {
-      user.personalAds = true;
+      try {
+        const updatedConsentInfo = await AdMob.showConsentForm();
+        this.updateCanRequestAds(updatedConsentInfo, `${reason}_form`);
+        return updatedConsentInfo;
+      } catch (error) {
+        this.logAdEvent('warn', 'consent_form_failed', { reason }, error);
+        return consentInfo;
+      }
     }
-    this.userService.setLocalUser = user;
+
+    return consentInfo;
+  }
+
+  private updateCanRequestAds(
+    consentInfo: AdmobConsentInfo,
+    reason: string
+  ): void {
+    if (typeof consentInfo.canRequestAds === 'boolean') {
+      this.canRequestAds = consentInfo.canRequestAds;
+    }
+
+    this.logAdEvent('debug', 'consent_state', {
+      reason,
+      status: consentInfo.status,
+      canRequestAds: this.canRequestAds,
+      isConsentFormAvailable: Boolean(consentInfo.isConsentFormAvailable),
+      privacyOptionsRequirementStatus:
+        consentInfo.privacyOptionsRequirementStatus || null,
+    });
+  }
+
+  private async requestTrackingAuthorizationIfNeeded(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'ios') {
+      return;
+    }
+
+    try {
+      const trackingInfo = await AdMob.trackingAuthorizationStatus();
+      if (trackingInfo.status === 'notDetermined') {
+        await AdMob.requestTrackingAuthorization();
+      }
+      const authorizationStatus = await AdMob.trackingAuthorizationStatus();
+      this.logAdEvent('info', 'tracking_authorization_status', {
+        status: authorizationStatus.status,
+      });
+    } catch (error) {
+      this.logAdEvent('warn', 'tracking_authorization_failed', {}, error);
+    }
+  }
+
+  private getDefaultPersonalAdsPreference(
+    consentInfo: AdmobConsentInfo | null
+  ): boolean {
+    return (
+      consentInfo?.status === AdmobConsentStatus.OBTAINED ||
+      consentInfo?.status === AdmobConsentStatus.NOT_REQUIRED
+    );
   }
 
   private getInterstitialAdId(placement: InterstitialPlacement): string {
@@ -420,5 +1115,75 @@ export class AdMobService {
     }
 
     return !Boolean(user?.premium?.entitled);
+  }
+
+  private getActiveBannerLogContext(): Record<string, unknown> {
+    return {
+      context: this.activeBannerRequest?.context || this.currentBannerKey || null,
+      adUnit: this.getAdUnitSuffix(
+        this.activeBannerRequest?.adId || this.currentBannerAdId
+      ),
+      margin: this.activeBannerRequest?.margin ?? this.lastBannerMargin,
+    };
+  }
+
+  private getActiveInterstitialLogContext(): Record<string, unknown> {
+    return {
+      placement: this.activeInterstitialRequest?.placement || null,
+      adUnit: this.getAdUnitSuffix(this.activeInterstitialRequest?.adId),
+    };
+  }
+
+  private getAdUnitSuffix(adId?: string | null): string | null {
+    if (!adId) {
+      return null;
+    }
+    const separatorIndex = adId.lastIndexOf('/');
+    return separatorIndex >= 0 ? adId.slice(separatorIndex + 1) : adId;
+  }
+
+  private logAdEvent(
+    level: AdMobLogLevel,
+    event: string,
+    context: Record<string, unknown> = {},
+    error?: unknown
+  ): void {
+    if (
+      (level === 'debug' || level === 'info') &&
+      !this.diagnosticLoggingEnabled
+    ) {
+      return;
+    }
+
+    const payload = {
+      event,
+      platform: Capacitor.getPlatform(),
+      production: environment.production,
+      ...context,
+    };
+    const message = `[AdMob] ${event}`;
+    const errorSummary = error ? this.getErrorSummary(error) : undefined;
+
+    if (level === 'debug') {
+      console.debug(message, payload, errorSummary || '');
+      return;
+    }
+    if (level === 'info') {
+      console.info(message, payload, errorSummary || '');
+      return;
+    }
+    if (level === 'warn') {
+      console.warn(message, payload, errorSummary || '');
+      return;
+    }
+    console.error(message, payload, errorSummary || '');
+  }
+
+  private getErrorSummary(error: unknown): Record<string, unknown> {
+    const maybeError = error as { code?: unknown; message?: unknown };
+    return {
+      code: maybeError?.code ?? null,
+      message: maybeError?.message ?? String(error),
+    };
   }
 }

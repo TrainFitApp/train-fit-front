@@ -120,9 +120,13 @@ img {
     }
 
     .back-btn {
-      --color: var(--ion-color-dark);
+      --color: #ffffff;
       --background: rgba(var(--ion-color-medium-rgb), 0.15);
       --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+
+      ion-icon {
+        color: #ffffff !important;
+      }
     }
 
     .play-btn {

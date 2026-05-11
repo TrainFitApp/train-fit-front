@@ -634,7 +634,7 @@ export class ProfilePage implements OnInit {
           cssClass: 'alert-button-success',
           handler: () => {
             this.adMobService
-              .interstitial()
+              .interstitial('start_statistics')
               .then(() => {
                 this.navigationService.goToStatistics();
               })

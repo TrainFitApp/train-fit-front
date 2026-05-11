@@ -113,6 +113,11 @@
 
 .menu-btn {
   background: rgba(var(--ion-color-medium-rgb), 0.15);
+  color: #ffffff;
+
+  ion-icon {
+    color: #ffffff !important;
+  }
 
   &:active {
     background: rgba(var(--ion-color-medium-rgb), 0.25);

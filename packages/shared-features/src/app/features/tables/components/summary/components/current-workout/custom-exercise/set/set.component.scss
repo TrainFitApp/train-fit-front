@@ -156,6 +156,10 @@ form {
         width: 36px;
         --color: #e2e8f0;
         --background-activated: rgba(var(--ion-color-medium-rgb), 0.1);
+
+        ion-icon {
+          color: #ffffff !important;
+        }
       }
 
       .delete-btn {
@@ -497,7 +501,7 @@ form.doned
 
   ion-icon {
     font-size: 1.2rem;
-    color: var(--ion-color-dark);
+    color: #ffffff;
   }
 
   .topset-btn {
@@ -516,12 +520,13 @@ form.doned
     --min-height: 32px;
     --min-width: 32px;
     --background: #0e0e0e;
-    --color: var(--ion-color-dark);
+    --color: #ffffff;
     --padding-start: 0.5rem;
     --padding-end: 0.5rem;
 
     ion-icon {
       font-size: 1rem;
+      color: #ffffff !important;
     }
   }
 }
