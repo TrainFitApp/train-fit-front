@@ -10,7 +10,7 @@ import { HttpService } from "../http/http.service";
 
 @Injectable()
 export class AppUpdateService {
-  private readonly isRequiredUpdateScreenDisabled = false;
+  private readonly isRequiredUpdateScreenDisabled = true;
   private isChecking = false;
   private isModalOpen = false;
 
