@@ -7,6 +7,15 @@ import {
 } from '@angular/animations';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import {
+  buildRirValue,
+  formatRirValue,
+  getRirNumberOptions,
+  isRirFail,
+  parseRirSelection,
+  RIR_FAIL_VALUE,
+  RirValue,
+} from 'src/app/core/models/rir';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
 @Component({
@@ -47,10 +56,10 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 export class RirPickerComponent implements OnInit {
   @Input() rirControl: FormControl;
   @Input() isDone: boolean = false;
-  @Output() rirChange = new EventEmitter<number | null>();
+  @Output() rirChange = new EventEmitter<RirValue>();
 
   public shimmerAnimationState = 'idle';
-  public selectedRirValue: number | null = null;
+  public selectedRirValue: RirValue = null;
 
   constructor(private ionicUtilService: IonicUtilService) {}
 
@@ -75,22 +84,40 @@ export class RirPickerComponent implements OnInit {
   }
 
   private async openWithController(): Promise<void> {
-    const options = this.getRirOptions().map((o) => ({
+    const selection = parseRirSelection(this.selectedRirValue);
+    const firstOptions = this.getFirstRirOptions().map((o) => ({
       text: o.text,
       value: o.value,
-      cssClass: o.value === -1 ? 'rir-option-fallo' : 'rir-option-number',
+      cssClass:
+        o.value === RIR_FAIL_VALUE
+          ? 'rir-option-fallo'
+          : 'rir-option-number',
     }));
-    const selectedIndex = Math.max(
+    const secondOptions = this.getSecondRirOptions().map((o) => ({
+      text: o.text,
+      value: o.value,
+      cssClass: o.value === null ? 'rir-option-empty' : 'rir-option-number',
+    }));
+    const selectedFirstIndex = Math.max(
       0,
-      options.findIndex((o) => o.value === this.selectedRirValue)
+      firstOptions.findIndex((o) => o.value === selection.first)
+    );
+    const selectedSecondIndex = Math.max(
+      0,
+      secondOptions.findIndex((o) => o.value === selection.second)
     );
 
     await this.ionicUtilService.showPicker({
       columns: [
         {
-          name: 'rir',
-          options,
-          selectedIndex,
+          name: 'rirFirst',
+          options: firstOptions,
+          selectedIndex: selectedFirstIndex,
+        },
+        {
+          name: 'rirSecond',
+          options: secondOptions,
+          selectedIndex: selectedSecondIndex,
         },
       ],
       buttons: [
@@ -101,7 +128,9 @@ export class RirPickerComponent implements OnInit {
         {
           text: 'OK',
           handler: (value: any) => {
-            const newValue = value?.rir?.value ?? null;
+            const firstValue = value?.rirFirst?.value ?? null;
+            const secondValue = value?.rirSecond?.value ?? null;
+            const newValue = buildRirValue(firstValue, secondValue);
             this.rirControl.patchValue(newValue);
             this.rirChange.emit(newValue);
             return true;
@@ -109,23 +138,35 @@ export class RirPickerComponent implements OnInit {
         },
       ],
       mode: 'ios',
+      cssClass: 'rir-picker-modal',
     });
   }
 
   public get displayValue(): string {
-    const value = this.rirControl.value;
-    if (value === null || value === undefined) return '-';
-    if (value === -1) return 'FALLO';
-    return value.toString();
+    return formatRirValue(this.rirControl.value);
   }
 
-  public getRirOptions(): Array<{ text: string; value: number | null }> {
+  public get displayIsFail(): boolean {
+    return isRirFail(this.rirControl.value);
+  }
+
+  public getFirstRirOptions(): Array<{ text: string; value: number | null }> {
     return [
       { text: '-', value: null },
-      { text: 'FALLO', value: -1 },
-      ...Array.from({ length: 11 }, (_, i) => ({
-        text: i.toString(),
-        value: i,
+      { text: 'FALLO', value: RIR_FAIL_VALUE },
+      ...getRirNumberOptions().map((value) => ({
+        text: value.toString(),
+        value,
+      })),
+    ];
+  }
+
+  public getSecondRirOptions(): Array<{ text: string; value: number | null }> {
+    return [
+      { text: '-', value: null },
+      ...getRirNumberOptions().map((value) => ({
+        text: value.toString(),
+        value,
       })),
     ];
   }

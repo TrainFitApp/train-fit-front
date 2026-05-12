@@ -11,6 +11,7 @@ import {
 import { AlertOptions, ModalOptions, ToastOptions } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
+import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
 import { Set } from 'src/app/core/models/set';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
@@ -295,13 +296,11 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public getRirDisplay(set: Set): string {
-    if (set.rir === -1) {
-      return 'FALLO';
-    } else if (set.rir !== undefined && set.rir !== null) {
-      return set.rir + '';
-    } else {
-      return ' - ';
-    }
+    return formatRirValue(set.rir, { emptyLabel: ' - ' });
+  }
+
+  public formatPerformedRir(rir: unknown): string {
+    return formatRirValue(rir, { includeUnit: true });
   }
 
   // Formateo de valores esperados para alinearse con workout.component
@@ -368,7 +367,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   public isFail(set: any): boolean {
     if (set?.doned) {
-      return set.rir === -1;
+      return isRirFail(set.rir);
     } else {
       return (
         Array.isArray(set?.expectedRir) &&

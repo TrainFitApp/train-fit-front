@@ -11,6 +11,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ModalController, ModalOptions, PopoverOptions } from '@ionic/angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { Set } from 'src/app/core/models/set';
+import { RirValue } from 'src/app/core/models/rir';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -125,7 +126,7 @@ export class SetComponent implements OnInit, OnChanges {
         if (resSetForm.rir === null || resSetForm.rir === undefined) {
           delete this.set.rir;
         } else {
-          // Store rir directly: -1 for fail, 0-10 for RIR
+          // Store performed RIR like expectedRir: [-1], [0-10], or [first, second].
           this.set.rir = resSetForm.rir;
         }
 
@@ -153,8 +154,8 @@ export class SetComponent implements OnInit, OnChanges {
     this.confSet.emit(set);
   }
 
-  public onRirValueChange(value: number | null): void {
-    // rir can now be: null, -1 (fail), or a number (0-10)
+  public onRirValueChange(value: RirValue): void {
+    // rir can be: null, [-1] (fail), [0-10], or [first, second] for ranges.
     if (this.rirFormControl?.value === value) {
       return;
     }

@@ -14,6 +14,7 @@ import {
   ToastOptions,
 } from '@ionic/angular';
 import { CustomExercise } from 'src/app/core/models/customExercise';
+import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
 import { Split } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -954,9 +955,13 @@ export class WorkoutComponent {
     return firstExpected || secondExpected;
   }
 
+  public formatPerformedRir(rir: unknown): string {
+    return formatRirValue(rir, { includeUnit: true });
+  }
+
   public isFail(set: any): boolean {
     if (set?.doned) {
-      return set.rir === -1;
+      return isRirFail(set.rir);
     }
 
     return !!(

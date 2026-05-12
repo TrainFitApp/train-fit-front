@@ -60,7 +60,7 @@ export class IonicUtilService {
   public async showPicker(options: {
     columns: Array<{
       name: string;
-      options: Array<{ text: string; value: any }>;
+      options: Array<{ text: string; value: any; cssClass?: string }>;
       selectedIndex?: number;
     }>;
     buttons?: Array<{
@@ -69,6 +69,7 @@ export class IonicUtilService {
       handler?: (value: any) => boolean | void;
     }>;
     mode?: 'ios' | 'md';
+    cssClass?: string | string[];
   }) {
     const picker = await this.pickerController.create({
       columns: options.columns,
@@ -82,6 +83,7 @@ export class IonicUtilService {
         },
       ],
       mode: options.mode || 'ios',
+      cssClass: options.cssClass,
       animated: true,
     });
 

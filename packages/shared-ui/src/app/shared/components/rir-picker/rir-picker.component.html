@@ -6,10 +6,10 @@
   (click)="onRirClick()"
 >
   <span class="rir-label">RIR</span>
-  <span class="rir-value" *ngIf="rirControl.value !== -1">{{
+  <span class="rir-value" *ngIf="!displayIsFail">{{
     displayValue
   }}</span>
-  <span class="rir-value fail-label" *ngIf="rirControl.value === -1">{{
+  <span class="rir-value fail-label" *ngIf="displayIsFail">{{
     displayValue
   }}</span>
 </div>

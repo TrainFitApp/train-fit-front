@@ -3,7 +3,7 @@ export class Set {
   reps?: number;
   expectedReps?: number[];
   weight?: number;
-  rir?: number;
+  rir?: number | number[];
   expectedRir?: number[];
   drop?: boolean;
   restPause?: number;
@@ -24,5 +24,5 @@ export class Set {
 export interface SubSerie {
   reps?: number;
   weight?: number;
-  rir?: number;
+  rir?: number | number[];
 }

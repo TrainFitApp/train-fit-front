@@ -138,6 +138,14 @@
       ion-picker-column-option.rir-option-number {
         background-image: linear-gradient(-225deg, #ffffff 0%, #ffffff 100%);
       }
+
+      ion-picker-column-option.rir-option-empty {
+        background-image: linear-gradient(
+          -225deg,
+          rgba(255, 255, 255, 0.55) 0%,
+          rgba(255, 255, 255, 0.55) 100%
+        );
+      }
     }
 
     .picker-highlight {

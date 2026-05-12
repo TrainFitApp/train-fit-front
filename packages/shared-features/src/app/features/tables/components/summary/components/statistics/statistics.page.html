@@ -653,7 +653,7 @@
                   <span class="subseries-val">{{ ds.weight }} kg</span>
                   <span class="subseries-val">× {{ ds.reps }}</span>
                   <span class="subseries-rir" *ngIf="ds.rir !== undefined"
-                    >RIR {{ ds.rir }}</span
+                    >RIR {{ formatPerformedRir(ds.rir) }}</span
                   >
                 </div>
               </div>
@@ -671,7 +671,7 @@
                   <span class="subseries-val">{{ rp.weight }} kg</span>
                   <span class="subseries-val">× {{ rp.reps }}</span>
                   <span class="subseries-rir" *ngIf="rp.rir !== undefined"
-                    >RIR {{ rp.rir }}</span
+                    >RIR {{ formatPerformedRir(rp.rir) }}</span
                   >
                 </div>
               </div>

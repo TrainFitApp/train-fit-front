@@ -11,6 +11,12 @@ import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Set as ISet } from 'src/app/core/models/set';
+import {
+  formatRirValue,
+  isRirFail,
+  normalizeRirValue,
+  RIR_FAIL_VALUE,
+} from 'src/app/core/models/rir';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
@@ -19,13 +25,14 @@ Chart.register(...registerables);
 interface SubSerie {
   reps?: number;
   weight?: number;
-  rir?: number;
+  rir?: number | number[];
 }
 
 interface SessionSet {
   weight?: number;
   reps?: number;
-  rir?: string | number;
+  rir?: string;
+  rirNumeric?: number;
   velocity?: number;
   timeMin?: number;
   timeSec?: number;
@@ -487,19 +494,28 @@ export class StatisticsPage implements OnInit, OnDestroy {
           );
 
           // Build SessionSet array with sub-series
-          const sessionSets: SessionSet[] = filteredSets.map((s) => ({
-            weight: s.weight || 0,
-            reps: s.reps || 0,
-            rir: s.rir !== undefined && s.rir !== null ? s.rir : '-',
-            velocity: s.velocity || 0,
-            timeMin: s.timeMin || 0,
-            timeSec: s.timeSec || 0,
-            isDropSet: s.drop === true,
-            isRestPause: !!(s.restPause && s.restPause > 0),
-            isFail: s.rir === -1,
-            dropSeries: s.dropSetSeries || [],
-            restPauseSeries: s.restPauseSeries || [],
-          }));
+          const sessionSets: SessionSet[] = filteredSets.map((s) => {
+            const normalizedRir = normalizeRirValue(s.rir);
+            const rirNumeric =
+              normalizedRir && normalizedRir[0] !== RIR_FAIL_VALUE
+                ? normalizedRir[0]
+                : undefined;
+
+            return {
+              weight: s.weight || 0,
+              reps: s.reps || 0,
+              rir: formatRirValue(normalizedRir),
+              rirNumeric,
+              velocity: s.velocity || 0,
+              timeMin: s.timeMin || 0,
+              timeSec: s.timeSec || 0,
+              isDropSet: s.drop === true,
+              isRestPause: !!(s.restPause && s.restPause > 0),
+              isFail: isRirFail(s.rir),
+              dropSeries: s.dropSetSeries || [],
+              restPauseSeries: s.restPauseSeries || [],
+            };
+          });
 
           // Real volume: base + all DS/RP sub-series
           const volumeBase = this.calculateVolume(filteredSets);
@@ -518,11 +534,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
           // Average RIR (only numeric, non-fail)
           const rirSets = sessionSets.filter(
-            (s) => typeof s.rir === 'number' && (s.rir as number) >= 0
+            (s) => typeof s.rirNumeric === 'number' && s.rirNumeric >= 0
           );
           const avgRir =
             rirSets.length > 0
-              ? rirSets.reduce((acc, s) => acc + (s.rir as number), 0) /
+              ? rirSets.reduce((acc, s) => acc + (s.rirNumeric ?? 0), 0) /
                 rirSets.length
               : -1;
 
@@ -534,8 +550,9 @@ export class StatisticsPage implements OnInit, OnDestroy {
               const reps = s.reps || 0;
               let factor = 0.5; // Default for RIR 4+ or no RIR
 
-              if (s.isFail || s.rir === 0 || s.rir === 1) factor = 1.0;
-              else if (s.rir === 2 || s.rir === 3) factor = 0.8;
+              if (s.isFail || s.rirNumeric === 0 || s.rirNumeric === 1)
+                factor = 1.0;
+              else if (s.rirNumeric === 2 || s.rirNumeric === 3) factor = 0.8;
 
               effectiveVolume += weight * reps * factor;
             });
@@ -571,7 +588,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             avgRir,
             minRir:
               rirSets.length > 0
-                ? Math.min(...rirSets.map((s) => s.rir as number))
+                ? Math.min(...rirSets.map((s) => s.rirNumeric ?? 0))
                 : -1,
             dropSetCount,
             restPauseCount,
@@ -1027,6 +1044,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const positive = diff > 0;
     if (inverse) return positive ? 'negative' : 'positive'; // for RIR: lower is better
     return positive ? 'positive' : 'negative';
+  }
+
+  public formatPerformedRir(rir: unknown): string {
+    return formatRirValue(rir);
   }
 
   private formatDate(date: Date): string {

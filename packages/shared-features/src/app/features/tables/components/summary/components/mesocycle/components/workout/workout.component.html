@@ -346,7 +346,7 @@
                     >
                       {{
                         set.doned
-                          ? set.rir + " RIR"
+                          ? formatPerformedRir(set.rir)
                           : formatExpectedRir(set.expectedRir)
                       }}</span
                     ><span *ngIf="set.drop">&nbsp;</span
