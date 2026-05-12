@@ -605,6 +605,10 @@ export class ProfilePage implements OnInit {
     this.navigationService.goToProfileUsers();
   }
 
+  public goToAppRuntimePolicy(): void {
+    this.navigationService.goToAppRuntimePolicy();
+  }
+
   public goToPremium(): void {
     this.navigationService.goToPremium();
   }

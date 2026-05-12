@@ -8,6 +8,9 @@ import { Component, Input } from '@angular/core';
 export class AppUpdateModalComponent {
   @Input() public currentVersion = '';
   @Input() public requiredVersion = '';
+  @Input() public title = 'Nueva version disponible';
+  @Input() public message =
+    'Para seguir usando TrainFit necesitas instalar la ultima version de la app. Hemos preparado mejoras importantes y queremos que tengas la experiencia mas estable.';
   @Input() public updateHandler: (() => Promise<void>) | null = null;
 
   public isOpeningStore = false;

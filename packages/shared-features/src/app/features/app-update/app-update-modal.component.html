@@ -4,22 +4,23 @@
       <ion-icon name="cloud-download-outline"></ion-icon>
     </div>
 
-    <p class="update-card__eyebrow">Actualización obligatoria</p>
-    <h1>Nueva versión disponible</h1>
+    <p class="update-card__eyebrow">Actualizacion obligatoria</p>
+    <h1>{{ title }}</h1>
 
-    <p class="update-card__message">
-      Para seguir usando TrainFit necesitas instalar la última versión de la app.
-      Hemos preparado mejoras importantes y queremos que tengas la experiencia mas
-      estable.
-    </p>
+    <p class="update-card__message">{{ message }}</p>
 
     <div class="update-card__versions">
       <span>Tu version: {{ currentVersion }}</span>
       <span>Version requerida: {{ requiredVersion }}</span>
     </div>
 
-    <ion-button expand="block" size="large" class="update-card__button" [disabled]="isOpeningStore"
-      (click)="updateNow()">
+    <ion-button
+      expand="block"
+      size="large"
+      class="update-card__button"
+      [disabled]="isOpeningStore"
+      (click)="updateNow()"
+    >
       <ion-spinner *ngIf="isOpeningStore" name="crescent"></ion-spinner>
       <span *ngIf="!isOpeningStore">Actualizar ahora</span>
     </ion-button>

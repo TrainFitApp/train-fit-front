@@ -1,87 +1,155 @@
-import { Injectable } from "@angular/core";
-import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
-import { ModalController } from "@ionic/angular";
-import { firstValueFrom } from "rxjs";
-import { environment } from "src/environments/environment";
-import { AppUpdateModalComponent } from "src/app/features/app-update/app-update-modal.component";
-import { AppVersionResponse } from "../../models/app-version-response";
-import { HttpService } from "../http/http.service";
+import { Injectable } from '@angular/core';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+import { ModalController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { AppRuntimeStatus } from '../../models/app-runtime-policy';
+import { AppUpdateModalComponent } from 'src/app/features/app-update/app-update-modal.component';
+import { MaintenanceModalComponent } from 'src/app/features/app-update/maintenance-modal.component';
+import { AppRuntimePolicyApiService } from './app-runtime-policy-api.service';
 
 @Injectable()
 export class AppUpdateService {
-  private readonly isRequiredUpdateScreenDisabled = true;
   private isChecking = false;
-  private isModalOpen = false;
+  private updateModal: HTMLIonModalElement | null = null;
+  private maintenanceModal: HTMLIonModalElement | null = null;
 
   constructor(
-    private httpService: HttpService,
-    private modalController: ModalController,
+    private readonly appRuntimePolicyApiService: AppRuntimePolicyApiService,
+    private readonly modalController: ModalController
   ) {}
 
   public async checkForRequiredUpdate(): Promise<void> {
-    if (
-      this.isRequiredUpdateScreenDisabled ||
-      this.isChecking ||
-      this.isModalOpen
-    ) {
+    if (this.isChecking) {
       return;
     }
 
     this.isChecking = true;
     try {
-      const response = await firstValueFrom(
-        this.httpService.get<AppVersionResponse>("app/version"),
+      const status = await firstValueFrom(
+        this.appRuntimePolicyApiService.getRuntimeStatus()
       );
-      const backendVersion = String(response?.version || "").trim();
-      const appVersion = String(environment.APP_VERSION || "").trim();
 
-      if (!backendVersion || !appVersion || backendVersion === appVersion) {
+      if (status?.maintenance?.applies) {
+        await this.dismissUpdateModal();
+        await this.showMaintenanceModal(status);
         return;
       }
 
-      await this.showRequiredUpdateModal(appVersion, backendVersion);
+      await this.dismissMaintenanceModal();
+
+      if (status?.updateRequired?.applies) {
+        await this.showRequiredUpdateModal(status);
+        return;
+      }
+
+      await this.dismissUpdateModal();
     } catch (error) {
-      // Fail-safe: if version check cannot complete, users can keep using the app.
-      console.warn("App version check failed", error);
+      // Fail-safe: if runtime policy cannot be loaded, users can keep using the app.
+      console.warn('App runtime policy check failed', error);
     } finally {
       this.isChecking = false;
     }
   }
 
-  private async showRequiredUpdateModal(
-    currentVersion: string,
-    requiredVersion: string,
-  ): Promise<void> {
-    if (this.isModalOpen) {
+  private async showMaintenanceModal(status: AppRuntimeStatus): Promise<void> {
+    if (this.maintenanceModal) {
       return;
     }
 
-    this.isModalOpen = true;
+    let modal: HTMLIonModalElement;
+    modal = await this.modalController.create({
+      component: MaintenanceModalComponent,
+      componentProps: {
+        title: status.maintenance.title,
+        message: status.maintenance.message,
+        expectedEndAt: status.maintenance.expectedEndAt,
+      },
+      cssClass: 'app-maintenance-modal',
+      backdropDismiss: false,
+      canDismiss: async (_data?: unknown, role?: string) =>
+        role === 'policy-cleared',
+    });
+
+    modal.onDidDismiss().then(() => {
+      if (this.maintenanceModal === modal) {
+        this.maintenanceModal = null;
+      }
+    });
+
+    this.maintenanceModal = modal;
+    await modal.present();
+  }
+
+  private async showRequiredUpdateModal(status: AppRuntimeStatus): Promise<void> {
+    if (this.updateModal) {
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: AppUpdateModalComponent,
       componentProps: {
-        currentVersion,
-        requiredVersion,
+        title: status.updateRequired.title,
+        message: status.updateRequired.message,
+        currentVersion:
+          status.updateRequired.currentVersion || environment.APP_VERSION,
+        requiredVersion: status.updateRequired.minVersion || 'ultima',
         updateHandler: () => this.openStore(),
       },
-      cssClass: "app-update-required-modal",
+      cssClass: 'app-update-required-modal',
       backdropDismiss: false,
-      canDismiss: false,
+      canDismiss: async (_data?: unknown, role?: string) =>
+        role === 'policy-cleared',
     });
 
+    modal.onDidDismiss().then(() => {
+      if (this.updateModal === modal) {
+        this.updateModal = null;
+      }
+    });
+
+    this.updateModal = modal;
     await modal.present();
+  }
+
+  private async dismissMaintenanceModal(): Promise<void> {
+    if (!this.maintenanceModal) {
+      return;
+    }
+
+    try {
+      await this.maintenanceModal.dismiss(undefined, 'policy-cleared');
+    } catch (error) {
+      console.warn('Failed to dismiss maintenance modal', error);
+    } finally {
+      this.maintenanceModal = null;
+    }
+  }
+
+  private async dismissUpdateModal(): Promise<void> {
+    if (!this.updateModal) {
+      return;
+    }
+
+    try {
+      await this.updateModal.dismiss(undefined, 'policy-cleared');
+    } catch (error) {
+      console.warn('Failed to dismiss update modal', error);
+    } finally {
+      this.updateModal = null;
+    }
   }
 
   private async openStore(): Promise<void> {
     const platform = Capacitor.getPlatform();
     const url =
-      platform === "ios"
+      platform === 'ios'
         ? environment.APP_STORE_URL
         : environment.GOOGLE_PLAY_URL;
 
     if (!url) {
-      console.warn("Missing store URL for update flow");
+      console.warn('Missing store URL for update flow');
       return;
     }
 

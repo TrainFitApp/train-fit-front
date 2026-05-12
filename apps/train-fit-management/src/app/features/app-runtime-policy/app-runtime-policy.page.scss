@@ -1,0 +1,123 @@
+.runtime-header {
+  background: #0b0f14;
+  color: #f8fafc;
+}
+
+.runtime-toolbar {
+  min-height: 76px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.runtime-toolbar h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.runtime-toolbar p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(148, 163, 184, 0.12);
+  color: #f8fafc;
+  font-size: 22px;
+}
+
+.runtime-content {
+  --background: #10151d;
+}
+
+.runtime-page {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.runtime-panel {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background: #151c26;
+}
+
+.panel-heading,
+.platform-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.panel-heading p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+ion-item {
+  --background: transparent;
+  --color: #f8fafc;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-top: 10px;
+}
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.platform-card {
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.platform-title span {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.save-button {
+  --border-radius: 8px;
+  min-height: 48px;
+}
+
+.runtime-loading {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  color: #cbd5e1;
+}
+
+@media (max-width: 720px) {
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+}

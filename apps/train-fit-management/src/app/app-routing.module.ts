@@ -111,6 +111,14 @@ const routes: Routes = [
       ).then((m) => m.ProfileUsersPageModule),
   },
   {
+    path: 'app-runtime-policy',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import('./features/app-runtime-policy/app-runtime-policy.module').then(
+        (m) => m.AppRuntimePolicyModule
+      ),
+  },
+  {
     path: 'disconnected',
     component: DisconnectedComponent,
   },

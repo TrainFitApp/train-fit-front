@@ -1,0 +1,145 @@
+<ion-header class="runtime-header">
+  <div class="runtime-toolbar">
+    <button class="icon-button" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <div>
+      <h1>Estado de la app</h1>
+      <p>Revision {{ draft.revision }} · {{ lastUpdatedLabel }}</p>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="runtime-content">
+  <section class="runtime-page" *ngIf="!isLoading; else loadingState">
+    <div class="runtime-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Mantenimiento</h2>
+          <p>Bloquea temporalmente a usuarios normales.</p>
+        </div>
+        <ion-toggle [(ngModel)]="draft.maintenance.enabled"></ion-toggle>
+      </div>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Titulo</ion-label>
+        <ion-input [(ngModel)]="draft.maintenance.title"></ion-input>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Mensaje</ion-label>
+        <ion-textarea
+          auto-grow="true"
+          [(ngModel)]="draft.maintenance.message"
+        ></ion-textarea>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Fin estimado</ion-label>
+        <ion-input
+          type="datetime-local"
+          [(ngModel)]="draft.maintenance.expectedEndAt"
+        ></ion-input>
+      </ion-item>
+    </div>
+
+    <div class="runtime-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Actualizacion requerida</h2>
+          <p>Controla cuando se muestra la pantalla de actualizar.</p>
+        </div>
+      </div>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Modo</ion-label>
+        <ion-select [(ngModel)]="draft.updateRequired.mode" interface="popover">
+          <ion-select-option
+            *ngFor="let mode of updateModes"
+            [value]="mode.value"
+          >
+            {{ mode.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Titulo</ion-label>
+        <ion-input [(ngModel)]="draft.updateRequired.title"></ion-input>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-label position="stacked">Mensaje</ion-label>
+        <ion-textarea
+          auto-grow="true"
+          [(ngModel)]="draft.updateRequired.message"
+        ></ion-textarea>
+      </ion-item>
+
+      <div class="platform-grid">
+        <div class="platform-card">
+          <div class="platform-title">
+            <span>iOS</span>
+            <ion-toggle
+              [(ngModel)]="draft.updateRequired.platforms.ios.enabled"
+            ></ion-toggle>
+          </div>
+          <ion-input
+            label="Version minima"
+            label-placement="stacked"
+            placeholder="101.2.14"
+            [(ngModel)]="draft.updateRequired.platforms.ios.minVersion"
+          ></ion-input>
+        </div>
+
+        <div class="platform-card">
+          <div class="platform-title">
+            <span>Android</span>
+            <ion-toggle
+              [(ngModel)]="draft.updateRequired.platforms.android.enabled"
+            ></ion-toggle>
+          </div>
+          <ion-input
+            label="Version minima"
+            label-placement="stacked"
+            placeholder="101.2.14"
+            [(ngModel)]="draft.updateRequired.platforms.android.minVersion"
+          ></ion-input>
+        </div>
+
+        <div class="platform-card">
+          <div class="platform-title">
+            <span>Web</span>
+            <ion-toggle
+              [(ngModel)]="draft.updateRequired.platforms.web.enabled"
+            ></ion-toggle>
+          </div>
+          <ion-input
+            label="Version minima"
+            label-placement="stacked"
+            placeholder="101.2.14"
+            [(ngModel)]="draft.updateRequired.platforms.web.minVersion"
+          ></ion-input>
+        </div>
+      </div>
+    </div>
+
+    <ion-button
+      expand="block"
+      size="large"
+      class="save-button"
+      [disabled]="isSaving"
+      (click)="savePolicy()"
+    >
+      <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+      <span *ngIf="!isSaving">Guardar estado</span>
+    </ion-button>
+  </section>
+
+  <ng-template #loadingState>
+    <div class="runtime-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando estado...</span>
+    </div>
+  </ng-template>
+</ion-content>

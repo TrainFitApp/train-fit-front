@@ -20,6 +20,7 @@ export class NavigationService {
   private readonly MESOCYCLE_ROUTE = 'mesocycle';
   private readonly PROFILE_ROUTE = 'tabs/profile';
   private readonly PROFILE_USERS_ROUTE = 'search-users';
+  private readonly APP_RUNTIME_POLICY_ROUTE = 'app-runtime-policy';
   private readonly CONFIGURATION_ROUTE = 'configuration';
   private readonly CONCEPTS_ROUTE = 'configuration/concepts';
   private readonly SUGGESTIONS_ROUTE = 'configuration/suggestions';
@@ -143,6 +144,10 @@ export class NavigationService {
 
   public goToProfileUsers(): void {
     this.navController.navigateForward([this.PROFILE_USERS_ROUTE]);
+  }
+
+  public goToAppRuntimePolicy(): void {
+    this.navController.navigateForward([this.APP_RUNTIME_POLICY_ROUTE]);
   }
 
   public goToCalculatorList(): void {

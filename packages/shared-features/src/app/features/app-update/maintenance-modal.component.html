@@ -1,0 +1,16 @@
+<ion-content class="update-screen" [fullscreen]="true">
+  <section class="update-card">
+    <div class="update-card__icon">
+      <ion-icon name="construct-outline"></ion-icon>
+    </div>
+
+    <p class="update-card__eyebrow">Servicio temporalmente pausado</p>
+    <h1>{{ title }}</h1>
+
+    <p class="update-card__message">{{ message }}</p>
+
+    <div class="update-card__versions" *ngIf="expectedEndLabel">
+      <span>Fin estimado: {{ expectedEndLabel }}</span>
+    </div>
+  </section>
+</ion-content>

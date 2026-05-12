@@ -22,6 +22,7 @@ export class JWTInterceptor implements HttpInterceptor {
   private readonly clientPlatform = Capacitor.getPlatform();
   private readonly clientFamily =
     environment.auth?.clientFamily || "trainfit-front";
+  private readonly clientVersion = environment.APP_VERSION || "";
 
   constructor(
     private authService: AuthService,
@@ -36,6 +37,7 @@ export class JWTInterceptor implements HttpInterceptor {
       setHeaders: {
         "x-client-platform": this.clientPlatform,
         "x-client-family": this.clientFamily,
+        "x-client-version": this.clientVersion,
       },
     });
 

@@ -53,6 +53,13 @@
         >
           <ion-icon color="secondary" name="apps-outline"></ion-icon>
         </button>
+        <button
+          *ngIf="showManagementEntry && !isImpersonating"
+          class="settings-btn"
+          (click)="goToAppRuntimePolicy()"
+        >
+          <ion-icon color="warning" name="construct-outline"></ion-icon>
+        </button>
       </div>
     </header>
   </div>
