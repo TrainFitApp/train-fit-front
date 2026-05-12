@@ -185,14 +185,13 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
         this.customExerciseService
           .addSetToCustomExercise(this.customExercise._id, res.data)
           .subscribe((resCustomExercise: CustomExercise) => {
-            const setAdded =
-              resCustomExercise.sets[resCustomExercise.sets.length - 1];
+            this.customExercise.sets = this.sortSets(resCustomExercise.sets);
 
             if (this.currentWorkout) {
               const ceTemp = this.currentWorkout.exercises.find(
                 (eTemp) => eTemp._id === resCustomExercise._id
               );
-              if (ceTemp) ceTemp.sets.push(setAdded);
+              if (ceTemp) ceTemp.sets = this.customExercise.sets;
 
               this.workoutService.setCurrentWorkout = this.currentWorkout;
             }
@@ -216,6 +215,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
       (setTemp) => setTemp._id === set._id
     );
     this.customExercise.sets.splice(indexSet, 1);
+    this.normalizeCurrentSetsOrder();
 
     if (this.currentWorkout) {
       this.workoutService.setCurrentWorkout = this.currentWorkout;
@@ -244,19 +244,23 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public copySet(set: Set, indexSet: number): void {
-    const newSet = { ...set };
+    this.normalizeCurrentSetsOrder();
+
+    const currentIndex = this.customExercise.sets.findIndex(
+      (setTemp) => setTemp._id === set._id
+    );
+    const insertIndex = currentIndex >= 0 ? currentIndex + 1 : indexSet + 1;
+    const sourceSet = this.customExercise.sets[currentIndex] || set;
+    const newSet = { ...sourceSet };
     delete newSet._id;
 
-    this.customExercise.sets.forEach((sTemp) => {
-      if (sTemp.order >= set.order) sTemp.order++;
-    });
-
-    this.customExercise.sets.splice(indexSet, 0, newSet);
+    this.customExercise.sets.splice(insertIndex, 0, newSet);
+    this.normalizeCurrentSetsOrder();
 
     this.customExerciseService
       .copySetOnCustomExercise(newSet.order, this.customExercise)
       .subscribe((resUCE) => {
-        this.customExercise.sets = resUCE.sets;
+        this.customExercise.sets = this.sortSets(resUCE.sets);
         if (this.currentWorkout) {
           this.workoutService.setCurrentWorkout = this.currentWorkout;
         }
@@ -265,6 +269,13 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   private sortCurrentSets(): void {
     this.customExercise.sets.sort((a, b) => a.order - b.order);
+  }
+
+  private normalizeCurrentSetsOrder(): void {
+    this.customExercise.sets = this.sortSets(this.customExercise.sets);
+    this.customExercise.sets.forEach((setTemp, index) => {
+      setTemp.order = index;
+    });
   }
 
   public sortSets(sets: any[]): any[] {

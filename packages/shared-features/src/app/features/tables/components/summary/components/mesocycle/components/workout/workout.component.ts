@@ -729,7 +729,8 @@ export class WorkoutComponent {
   }
 
   public sortSets(sets: any[]): any[] {
-    return sets.sort((a, b) => a.order - b.order);
+    if (!sets) return [];
+    return [...sets].sort((a, b) => a.order - b.order);
   }
 
   // TODO: Actualmente se usa workout.date para comprobar que un
