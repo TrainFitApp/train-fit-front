@@ -65,12 +65,14 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     COMPLETION_DELAY: 800,
     EXIT_ANIMATION_DELAY: 500,
   };
+  private readonly MAX_INITIAL_LOAD_RETRIES = 2;
 
   public email: string;
   public loadingStep = 0;
   public animationState = 'in';
   public progress = 0;
   public loadingText = 'Iniciando sesion...';
+  private initialLoadRetryCount = 0;
 
   private readonly loadingMessages = [
     'Iniciando sesion...',
@@ -157,6 +159,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
       )
       .subscribe(
         ([resTable, resDiet, resWorkoutInUse]) => {
+          this.initialLoadRetryCount = 0;
           this.updateLoadingStep(4);
           this.updateProgress(80);
 
@@ -192,13 +195,35 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           }
 
           console.error('Error cargando usuario inicial:', err);
-          this.userService.setLocalUser = null;
-          this.workoutService.setCurrentWorkout = null;
-          this.dietService.setCurrentDiet = null;
-          this.tableService.setCurrentTable = null;
-          this.authService.logout();
+          if (this.requiresRelogin(err)) {
+            this.userService.setLocalUser = null;
+            this.workoutService.setCurrentWorkout = null;
+            this.dietService.setCurrentDiet = null;
+            this.tableService.setCurrentTable = null;
+            this.authService.logout();
+            return;
+          }
+
+          if (this.initialLoadRetryCount < this.MAX_INITIAL_LOAD_RETRIES) {
+            this.initialLoadRetryCount += 1;
+            this.loadingText = 'Reintentando carga...';
+            this.updateProgress(20);
+            setTimeout(
+              () => this.startLoadingSequence(),
+              1200 * this.initialLoadRetryCount
+            );
+            return;
+          }
+
+          this.loadingText =
+            'No se pudo cargar la sesion. Revisa la conexion e intenta de nuevo.';
+          this.updateProgress(0);
         }
       );
+  }
+
+  private requiresRelogin(error: any): boolean {
+    return !!(error?.requiresRelogin || error?.error?.requiresRelogin);
   }
 
   private isUserRegistrationComplete(user: User): boolean {

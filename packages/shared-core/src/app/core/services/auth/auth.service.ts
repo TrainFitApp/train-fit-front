@@ -261,17 +261,22 @@ export class AuthService {
       : this.authApiService.refreshToken();
 
     this.refreshInFlight$ = refreshRequest$.pipe(
-      map((response: any) => {
+      switchMap((response: any) => {
         if (!!response?.error) {
           throw new Error(response?.error);
         }
 
         if (response?.refresh_token && this.refreshTokenStore.isNativeClient) {
-          this.refreshTokenStore.save(response.refresh_token).catch((error) => {
-            console.warn('Could not rotate native refresh token', error);
-          });
+          return from(
+            this.refreshTokenStore.save(response.refresh_token).catch((error) => {
+              console.warn('Could not rotate native refresh token', error);
+            })
+          ).pipe(map(() => response));
         }
 
+        return of(response);
+      }),
+      map((response: any) => {
         if (response?.access_token) {
           this.userLocalstorageService.setUserToken({
             access_token: response.access_token,
