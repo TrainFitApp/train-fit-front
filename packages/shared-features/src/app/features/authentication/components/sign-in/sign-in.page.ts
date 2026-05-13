@@ -4,6 +4,10 @@ import { Platform } from '@ionic/angular';
 import { Observer } from 'rxjs';
 import { Token } from 'src/app/core/models/token';
 import { User } from 'src/app/core/models/user';
+import {
+  AuthErrorService,
+  LoginErrorKind,
+} from 'src/app/core/services/auth/auth-error.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { GoogleAuthService } from 'src/app/core/services/auth/google-auth.service';
 import { AppleAuthService } from 'src/app/core/services/auth/apple-auth.service';
@@ -40,6 +44,8 @@ export class SignInPage implements OnInit {
   public isAndroid: boolean;
 
   public error: string;
+  public loginErrorKind: LoginErrorKind | null;
+  public isLoginErrorRetryable: boolean;
   private logoSyncTimeoutId?: ReturnType<typeof setTimeout>;
 
   public THEMES = Theme;
@@ -55,6 +61,7 @@ export class SignInPage implements OnInit {
     private themeService: ThemeService,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
+    private authErrorService: AuthErrorService,
     private userService: UserService,
     private _googleAuthService: GoogleAuthService,
     private _appleAuthService: AppleAuthService
@@ -64,6 +71,18 @@ export class SignInPage implements OnInit {
 
   public get formControls() {
     return this.loginForm.controls;
+  }
+
+  public get loginErrorIcon(): string {
+    switch (this.loginErrorKind) {
+      case 'invalid-credentials':
+        return 'lock-closed-outline';
+      case 'network':
+      case 'timeout':
+        return 'cloud-offline-outline';
+      default:
+        return 'alert-circle-outline';
+    }
   }
 
   public ngOnInit(): void {
@@ -82,6 +101,8 @@ export class SignInPage implements OnInit {
   private initVariables(): void {
     this.loading = false;
     this.error = '';
+    this.loginErrorKind = null;
+    this.isLoginErrorRetryable = false;
     this.showLogo = true;
     this.hasFormFocus = false;
 
@@ -106,20 +127,32 @@ export class SignInPage implements OnInit {
 
   private initForm(): void {
     this.loginForm = this.fb.group({
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
     });
+
+    this.loginForm.valueChanges.subscribe(() => this.clearLoginError());
   }
 
   public login(): void {
+    if (this.loading) {
+      return;
+    }
+
+    this.clearLoginError();
+
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
     this.loading = true;
     const observer: Observer<any> = {
       next: () => this.handleLoginCorrect(),
       error: (error) => {
-        this.handleLoginError(error);
-        this.loading = undefined;
+        void this.handleLoginError(error);
       },
-      complete: () => (this.loading = undefined),
+      complete: () => (this.loading = false),
     };
 
     this.authService
@@ -139,21 +172,22 @@ export class SignInPage implements OnInit {
    * 4. Si usuario nuevo o incompleto → ir a SignUp para completar datos
    */
   public async signInWithGoogle(): Promise<void> {
+    if (this.loading) {
+      return;
+    }
+
     try {
+      this.clearLoginError();
       this.loading = true;
 
       // 1. Obtener credenciales de Google
       const googleResponse = await this._googleAuthService.signIn();
-      console.log('Google sign-in response:', googleResponse);
 
       const email = googleResponse?.result?.profile?.email?.toLowerCase();
       const idToken = googleResponse?.result?.idToken;
 
       if (!email || !idToken) {
-        console.error('Google no retornó email o token válido', {
-          email,
-          idToken,
-        });
+        console.warn('[AUTH] google_sign_in_missing_credentials');
         this.ionicUtilService.showErrorToast(
           'No se pudo obtener datos de tu cuenta Google',
           'Error al iniciar sesión con Google',
@@ -165,14 +199,15 @@ export class SignInPage implements OnInit {
 
       // 2. Verificar con el backend (verifica token y devuelve/crea usuario)
       // Si el usuario no existe → backend devuelve 404 → handleSocialError redirige al registro
-      console.log(`[Google] Verificando usuario con email: ${email}`);
       this.authService.verifyGoogle(email, idToken).subscribe({
         next: (response) => this.handleSocialSuccess(response, 'Google'),
         error: (error) => this.handleSocialError(error, email, 'Google', idToken),
       });
     } catch (error: any) {
       // Este catch solo captura errores del plugin nativo de Google (no errores HTTP)
-      console.error('Error en el plugin de Google Sign In:', error);
+      console.warn('[AUTH] google_sign_in_plugin_failed', {
+        reason: error?.code || error?.message || 'unknown',
+      });
       // No mostrar toast si el usuario canceló (error de cancelación)
       const isCancelled =
         error?.message?.toLowerCase().includes('cancel') ||
@@ -192,12 +227,16 @@ export class SignInPage implements OnInit {
    * Sign in con Apple
    */
   public async signInWithApple(): Promise<void> {
+    if (this.loading) {
+      return;
+    }
+
     try {
+      this.clearLoginError();
       this.loading = true;
 
       // 1. Obtener credenciales de Apple
       const appleResponse = await this._appleAuthService.signIn();
-      console.log('Respuesta de Apple:', appleResponse);
 
       const idToken = appleResponse?.result?.idToken;
 
@@ -213,14 +252,11 @@ export class SignInPage implements OnInit {
           });
           if (decodedToken && decodedToken.email) {
             email = decodedToken.email.toLowerCase();
-            console.log('Email extraído del idToken:', email);
           }
         } catch (e) {
-          console.error('Error decodificando idToken de Apple:', e);
+          console.warn('[AUTH] apple_token_email_decode_failed');
         }
       }
-
-      console.log('Email final para procesar:', email);
 
       if (!idToken) {
         this.loading = false;
@@ -241,7 +277,9 @@ export class SignInPage implements OnInit {
     } catch (error: any) {
       // Solo capturar errores no HTTP (como problemas con el plugin de Apple)
       if (!error.status && !error.message?.includes('Usuario no encontrado')) {
-        console.error('Error en Apple Sign In:', error);
+        console.warn('[AUTH] apple_sign_in_plugin_failed', {
+          reason: error?.code || error?.message || 'unknown',
+        });
         this.ionicUtilService.showErrorToast(
           'Error al conectar con Apple',
           'Error al iniciar sesión con Apple',
@@ -290,18 +328,8 @@ export class SignInPage implements OnInit {
     provider: string,
     socialToken?: string
   ): void {
-    console.log(
-      `[${provider}] handleSocialError raw error:`,
-      JSON.stringify(error)
-    );
-
-    // Estrategia multi-capa para detectar "usuario no encontrado"
-    // El HttpErrorResponse de Angular puede llegar transformado de varias formas
-    const status =
-      error?.status ||
-      error?.error?.status ||
-      error?.statusCode ||
-      error?.originalError?.status;
+    const feedback = this.authErrorService.toLoginFeedback(error);
+    const status = feedback.status;
 
     // Buscar el mensaje en todas las capas posibles del error
     const message = (
@@ -314,26 +342,36 @@ export class SignInPage implements OnInit {
     // El backend devuelve { message: 'Usuario no encontrado' } con status 404
     const isNotFound =
       status === 404 ||
-      status === '404' ||
       message.includes('no encontrado') ||
       message.includes('not found') ||
       message.includes('usuario no encontrado');
 
-    console.log(
-      `[${provider}] isNotFound: ${isNotFound}, status: ${status}, message: ${message}`
-    );
-
     if (isNotFound) {
       this.createNewSocialUser(email, provider, socialToken);
     } else {
-      console.error(`Error en verificación ${provider}:`, error);
+      console.warn('[AUTH] social_sign_in_failed', {
+        provider,
+        status,
+        kind: feedback.kind,
+      });
       this.ionicUtilService.showErrorToast(
-        error,
+        this.getSocialAuthMessage(feedback, provider),
         `Error al iniciar sesión con ${provider}`,
         2500
       );
       this.loading = false;
     }
+  }
+
+  private getSocialAuthMessage(
+    feedback: { kind: LoginErrorKind; message: string },
+    provider: string
+  ): string {
+    if (['network', 'timeout', 'server'].includes(feedback.kind)) {
+      return feedback.message;
+    }
+
+    return `No se pudo iniciar sesión con ${provider}. Inténtalo de nuevo`;
   }
 
   /**
@@ -391,7 +429,10 @@ export class SignInPage implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error(`Error creando usuario ${provider}:`, error);
+        console.warn('[AUTH] social_user_creation_failed', {
+          provider,
+          status: error?.status,
+        });
         this.ionicUtilService.showErrorToast(
           error,
           `Error al crear cuenta con ${provider}`,
@@ -460,7 +501,9 @@ export class SignInPage implements OnInit {
           this.loading = false;
         },
         error: (error) => {
-          console.error(`Error creando usuario Apple:`, error);
+          console.warn('[AUTH] apple_user_creation_failed', {
+            status: error?.status,
+          });
           this.ionicUtilService.showErrorToast(
             error,
             'Error al crear cuenta con Apple'
@@ -480,60 +523,82 @@ export class SignInPage implements OnInit {
   }
 
   private handleLoginCorrect(): void {
-    this.loginForm.setErrors(null);
+    this.clearLoginError();
 
     this.userService
       .getUserByEmail(this.formControls.email.value.toLowerCase())
-      .subscribe((resUser) => {
-        this.userService.setLocalUser = resUser;
-        const colorMode: ColorMode = resUser.theme;
-        this.themeService.toggleColorMode(colorMode);
-        this.navigationService.goToUserLoader();
+      .subscribe({
+        next: (resUser) => {
+          this.userService.setLocalUser = resUser;
+          const colorMode: ColorMode = resUser.theme;
+          this.themeService.toggleColorMode(colorMode);
+          this.navigationService.goToUserLoader();
+        },
+        error: (error) => {
+          const feedback = this.authErrorService.toLoginFeedback(error);
+          this.setLoginFeedback({
+            ...feedback,
+            message:
+              feedback.kind === 'network' || feedback.kind === 'timeout'
+                ? feedback.message
+                : 'Ha ocurrido un error inesperado',
+          });
+          this.loading = false;
+        },
       });
   }
 
-  private async handleLoginError(error: any): Promise<void> {
+  private handleLoginError(error: any): void {
     this.loading = false;
+    const feedback = this.authErrorService.toLoginFeedback(error);
 
     // Detectar si el usuario no ha verificado su cuenta (error 403)
-    const errorCode = error?.error?.error || error?.error;
-    if (error?.status === 403 || errorCode === 'ACCOUNT_NOT_VERIFIED') {
-      const email =
-        error?.email || error?.error?.email || this.formControls.email.value;
+    if (feedback.kind === 'account-not-verified') {
+      const email = this.formControls.email.value;
       const extras = {
         state: {
-          data: { verifyEmailOnly: true, email: email, fromSignIn: true }, // fromSignIn para asegurar el flujo tradicional
+          data: { verifyEmailOnly: true, email: email, fromSignIn: true },
         },
       };
 
       this.ionicUtilService.showToast({
-        message: error?.message || 'Cuenta no verificada. Revisa tu correo.',
+        message: feedback.message,
         duration: 3000,
         color: 'warning',
+        icon: 'mail-unread-outline',
       });
 
       this.navigationService.goToSignUp(extras);
       return;
     }
 
-    this.loginForm.setErrors({
-      invalidCredentials: true,
+    console.warn('[AUTH] sign_in_failed', {
+      kind: feedback.kind,
+      status: feedback.status,
+      retryable: feedback.retryable,
     });
-
-    // Mostrar el mensaje de error del backend
-    await this.ionicUtilService.showErrorToast(
-      error,
-      'Usuario o contraseña incorrectos',
-      2500
-    );
+    this.setLoginFeedback(feedback);
   }
 
-  private showMailNotVerifiedNotification(error): void {
-    const alertOptions = {
-      header: 'Advertencia',
-      message: error.message,
-    };
-    this.ionicUtilService.showAlert(alertOptions);
+  private setLoginFeedback(feedback: {
+    kind: LoginErrorKind;
+    message: string;
+    retryable: boolean;
+  }): void {
+    this.error = feedback.message;
+    this.loginErrorKind = feedback.kind;
+    this.isLoginErrorRetryable = feedback.retryable;
+  }
+
+  private clearLoginError(): void {
+    if (!this.error && !this.loginErrorKind) {
+      return;
+    }
+
+    this.error = '';
+    this.loginErrorKind = null;
+    this.isLoginErrorRetryable = false;
+    this.loginForm?.setErrors(null);
   }
 
   public goToRestorePass(): void {

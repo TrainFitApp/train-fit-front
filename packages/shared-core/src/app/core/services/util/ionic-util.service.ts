@@ -200,14 +200,20 @@ export class IonicUtilService {
   }
 
   public async showToast(toast: ToastOptions) {
+    const cssClass = toast.cssClass
+      ? Array.isArray(toast.cssClass)
+        ? ['toast-safe-area', ...toast.cssClass]
+        : `toast-safe-area ${toast.cssClass}`
+      : 'toast-safe-area';
+
     const showToast = await this.toastController.create({
       // Forward all provided options to respect platform differences
       message: toast.message,
       duration: toast.duration,
-      position: 'bottom',
-      color: 'tertiary',
-      icon: 'information-circle-outline',
-      buttons: [
+      position: toast.position || 'bottom',
+      color: toast.color || 'tertiary',
+      icon: toast.icon || 'information-circle-outline',
+      buttons: toast.buttons || [
         {
           text: 'OK',
           role: 'cancel',
@@ -216,7 +222,7 @@ export class IonicUtilService {
       // Ensure keyboard closes so bottom toasts aren't hidden behind it on mobile
       keyboardClose: true,
       // Apply a CSS class for any additional styling
-      cssClass: 'toast-safe-area',
+      cssClass,
     });
 
     showToast.present();
@@ -258,7 +264,10 @@ export class IonicUtilService {
     defaultMessage: string = 'Ocurrió un error',
     duration: number = 3000
   ): Promise<void> {
-    const errorMessage = this.errorHandlerService.getErrorMessage(error);
+    const errorMessage = this.errorHandlerService.getFormattedErrorMessage(
+      error,
+      defaultMessage
+    );
     const toastColor = this.errorHandlerService.getToastColorByError(error);
     const toastIcon = this.errorHandlerService.getToastIconByError(error);
 

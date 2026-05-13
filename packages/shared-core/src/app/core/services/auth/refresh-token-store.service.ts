@@ -7,6 +7,8 @@ import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 })
 export class RefreshTokenStoreService {
   private static readonly REFRESH_TOKEN_KEY = 'auth_refresh_token';
+  private static readonly MISSING_TOKEN_MESSAGE =
+    'Item with given key does not exist';
   private cachedRefreshToken: string | null = null;
   private readonly nativePlatform = Capacitor.isNativePlatform();
 
@@ -51,15 +53,33 @@ export class RefreshTokenStoreService {
       return this.cachedRefreshToken;
     }
 
-    try {
-      const response = await SecureStoragePlugin.get({
-        key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
-      });
-      this.cachedRefreshToken = response?.value || null;
-      return this.cachedRefreshToken;
-    } catch (_error) {
-      return null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const response = await SecureStoragePlugin.get({
+          key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
+        });
+        this.cachedRefreshToken = response?.value || null;
+        return this.cachedRefreshToken;
+      } catch (error) {
+        if (this.isMissingTokenError(error)) {
+          return null;
+        }
+
+        if (attempt === 0) {
+          await this.delay(150);
+          continue;
+        }
+
+        throw {
+          status: 0,
+          message: 'Secure storage read failed',
+          transientAuthStorage: true,
+          error,
+        };
+      }
     }
+
+    return null;
   }
 
   public async clear(): Promise<void> {
@@ -75,5 +95,14 @@ export class RefreshTokenStoreService {
     } catch (_error) {
       // no-op: token may not exist yet
     }
+  }
+
+  private isMissingTokenError(error: any): boolean {
+    const message = String(error?.message || error || '');
+    return message.includes(RefreshTokenStoreService.MISSING_TOKEN_MESSAGE);
+  }
+
+  private delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 }

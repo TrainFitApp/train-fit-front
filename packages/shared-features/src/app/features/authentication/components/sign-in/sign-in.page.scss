@@ -99,6 +99,42 @@
   gap: 16px;
 }
 
+.login-feedback {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 93, 93, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 93, 93, 0.1);
+  color: #ffdede;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+
+  ion-icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: var(--danger);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.login-feedback--retryable {
+  border-color: rgba(254, 144, 0, 0.34);
+  background: rgba(254, 144, 0, 0.1);
+  color: #ffe6c2;
+
+  ion-icon {
+    color: var(--accent-primary);
+  }
+}
+
 .input-group {
   display: grid;
   gap: 8px;
@@ -123,6 +159,11 @@
     border-color: rgba(255, 93, 93, 0.72);
     box-shadow: 0 0 0 4px rgba(255, 93, 93, 0.12);
   }
+}
+
+.input-wrapper--auth-error {
+  border-color: rgba(255, 93, 93, 0.72);
+  box-shadow: 0 0 0 4px rgba(255, 93, 93, 0.12);
 }
 
 .input-icon {
@@ -266,6 +307,13 @@
 
   &:active {
     transform: translateY(0);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.62;
+    transform: none;
+    box-shadow: none;
   }
 
   &.apple {
