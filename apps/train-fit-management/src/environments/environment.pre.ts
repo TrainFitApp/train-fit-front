@@ -1,8 +1,7 @@
 import pkg from '../../package.json';
 
 const PORT = '';
-const API_URL_BASE =
-  'https://train-fit-back-production.up.railway.app' + PORT;
+const API_URL_BASE = 'https://train-fit-back-977t.onrender.com' + PORT;
 
 export const environment = {
   production: false,
@@ -21,15 +20,16 @@ export const environment = {
     androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
     iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
     entitlementId: 'no_adds_and_features',
-  auth: {
-    clientFamily: 'train-fit-management',
-    google: {
-      webClientId:
-        '775987417074-s1e767h7tps05ectmrb85uqh7hhp9p8n.apps.googleusercontent.com',
-      iosClientId: '',
-    },
-    apple: {
-      clientId: '',
+    auth: {
+      clientFamily: 'train-fit-management',
+      google: {
+        webClientId:
+          '775987417074-s1e767h7tps05ectmrb85uqh7hhp9p8n.apps.googleusercontent.com',
+        iosClientId: '',
+      },
+      apple: {
+        clientId: '',
+      },
     },
   },
 };
