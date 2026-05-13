@@ -25,9 +25,23 @@
         </div>
 
         <div *ngIf="!loading" class="form-fields">
+          <div
+            *ngIf="error"
+            class="login-feedback"
+            [class.login-feedback--retryable]="isLoginErrorRetryable"
+            role="alert"
+            aria-live="assertive"
+          >
+            <ion-icon [name]="loginErrorIcon" aria-hidden="true"></ion-icon>
+            <p>{{ error }}</p>
+          </div>
+
           <div class="input-group">
             <label class="sr-only" for="email">Correo electrónico</label>
-            <div class="input-wrapper">
+            <div
+              class="input-wrapper"
+              [class.input-wrapper--auth-error]="loginErrorKind === 'invalid-credentials'"
+            >
               <ion-icon name="mail-outline" class="input-icon"></ion-icon>
               <input
                 id="email"
@@ -56,7 +70,10 @@
 
           <div class="input-group">
             <label class="sr-only" for="password">Contraseña</label>
-            <div class="input-wrapper">
+            <div
+              class="input-wrapper"
+              [class.input-wrapper--auth-error]="loginErrorKind === 'invalid-credentials'"
+            >
               <ion-icon
                 name="lock-closed-outline"
                 class="input-icon"
@@ -110,7 +127,7 @@
             type="submit"
             expand="block"
             class="login-button"
-            [disabled]="!loginForm.valid"
+            [disabled]="loading || loginForm.invalid"
           >
             Iniciar sesión
           </ion-button>
@@ -123,6 +140,7 @@
               class="social-signin-button google"
               (click)="signInWithGoogle()"
               type="button"
+              [disabled]="loading"
             >
               <span class="social-logo" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24">
@@ -152,6 +170,7 @@
               class="social-signin-button apple"
               (click)="signInWithApple()"
               type="button"
+              [disabled]="loading"
             >
               <span class="social-logo" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 226 226">

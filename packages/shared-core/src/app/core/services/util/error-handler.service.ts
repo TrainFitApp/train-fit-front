@@ -8,47 +8,75 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ErrorHandlerService {
+  private readonly unexpectedMessage = 'Ha ocurrido un error inesperado';
+  private readonly connectionMessage = 'No se pudo conectar. Inténtalo de nuevo';
+  private readonly unsafeMessagePattern =
+    /(\/api\/|https?:\/\/|Http failure response|stack|trace|TypeError|ReferenceError|SyntaxError|AxiosError|Mongo(Error|ServerError)?|CastError|ECONN|ETIMEDOUT|ENOTFOUND|Cannot\s)/i;
+  private readonly sensitiveAuthPattern =
+    /(contraseña incorrecta|correo no encontrado|usuario (no existe|inexistente|no encontrado))/i;
+
   /**
    * Extrae un mensaje de error legible de una respuesta de error HTTP o cualquier error
    * @param error - El objeto de error (HttpErrorResponse, string, object, etc.)
    * @returns Un mensaje de error legible para mostrar al usuario
    */
   public getErrorMessage(error: any): string {
-    // Si es un string, devolverlo tal cual
+    const status = this.getStatus(error);
+
+    if (status === 0) {
+      return this.connectionMessage;
+    }
+
+    if (status && status >= 500) {
+      return this.unexpectedMessage;
+    }
+
+    const extractedMessage = this.extractMessage(error);
+    if (extractedMessage && !this.isUnsafeMessage(extractedMessage)) {
+      return extractedMessage;
+    }
+
+    if (status) {
+      return this.getDefaultErrorByStatus(status);
+    }
+
+    return this.unexpectedMessage;
+  }
+
+  private extractMessage(error: any): string | null {
     if (typeof error === 'string') {
       return error;
     }
 
-    // Si es un objeto con error.error
-    if (error?.error) {
-      // Backend express devuelve { message: "..." }
-      if (typeof error.error === 'object' && error.error.message) {
-        return error.error.message;
-      }
-
-      // Si error.error es directamente un string
-      if (typeof error.error === 'string') {
-        return error.error;
-      }
+    if (typeof error?.error === 'object' && error.error?.message) {
+      return error.error.message;
     }
 
-    // Si hay un mensaje directo
-    if (error?.message) {
+    if (typeof error?.error === 'string') {
+      return error.error;
+    }
+
+    if (typeof error?.message === 'string') {
       return error.message;
     }
 
-    // Si es una respuesta con statusMessage
-    if (error?.statusMessage) {
+    if (typeof error?.statusMessage === 'string') {
       return error.statusMessage;
     }
 
-    // Status code + mensaje predefinido
-    if (error?.status) {
-      return this.getDefaultErrorByStatus(error.status);
-    }
+    return null;
+  }
 
-    // Por defecto
-    return 'Ocurrió un error inesperado. Intenta de nuevo.';
+  private getStatus(error: any): number | undefined {
+    const status = Number(error?.status ?? error?.error?.status);
+    return Number.isFinite(status) ? status : undefined;
+  }
+
+  private isUnsafeMessage(message: string): boolean {
+    return (
+      this.unsafeMessagePattern.test(message) ||
+      this.sensitiveAuthPattern.test(message)
+    );
   }
 
   /**
@@ -64,15 +92,13 @@ export class ErrorHandlerService {
       409: 'Conflicto con los datos. Intenta de nuevo.',
       422: 'Datos inválidos. Verifica los campos.',
       429: 'Demasiadas solicitudes. Espera un momento.',
-      500: 'Error del servidor. Intenta más tarde.',
-      502: 'Puerta de enlace inválida. Intenta más tarde.',
-      503: 'Servicio no disponible. Intenta más tarde.',
-      504: 'Tiempo de espera del servidor. Intenta más tarde.',
+      500: this.unexpectedMessage,
+      502: this.unexpectedMessage,
+      503: this.connectionMessage,
+      504: 'La conexión tardó demasiado. Inténtalo de nuevo',
     };
 
-    return (
-      errorMessages[status] || 'Ocurrió un error inesperado. Intenta de nuevo.'
-    );
+    return errorMessages[status] || this.unexpectedMessage;
   }
 
   /**
@@ -81,10 +107,12 @@ export class ErrorHandlerService {
    */
   public getFormattedErrorMessage(error: any, defaultMessage?: string): string {
     const errorMsg = this.getErrorMessage(error);
+    const extractedMessage = this.extractMessage(error);
 
     if (
       defaultMessage &&
-      errorMsg === 'Ocurrió un error inesperado. Intenta de nuevo.'
+      (errorMsg === this.unexpectedMessage ||
+        (!!extractedMessage && this.isUnsafeMessage(extractedMessage)))
     ) {
       return defaultMessage;
     }
