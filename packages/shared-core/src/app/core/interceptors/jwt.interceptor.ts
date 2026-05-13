@@ -1,4 +1,5 @@
 import {
+  HttpContextToken,
   HttpErrorResponse,
   HttpEvent,
   HttpHandler,
@@ -13,6 +14,8 @@ import { environment } from "src/environments/environment";
 import { AuthApiService } from "../services/auth/auth-api.service";
 import { AuthService } from "../services/auth/auth.service";
 import { UserLocalstorageService } from "../services/user/user-localstorage.service";
+
+const AUTH_RETRY_ATTEMPTED = new HttpContextToken<boolean>(() => false);
 
 @Injectable()
 export class JWTInterceptor implements HttpInterceptor {
@@ -142,6 +145,14 @@ export class JWTInterceptor implements HttpInterceptor {
         return throwError(() => err);
       }
 
+      if (request.context.get(AUTH_RETRY_ATTEMPTED)) {
+        console.warn("[AUTH] Auth retry already attempted", {
+          status: err.status,
+          url: request.url,
+        });
+        return throwError(() => err);
+      }
+
       if (this.isRefreshing) {
         return this.refreshTokenSubject.pipe(
           filter((token) => token !== null),
@@ -149,7 +160,7 @@ export class JWTInterceptor implements HttpInterceptor {
           switchMap((token) => {
             if (token === "FAILED") return throwError(() => err);
             return this.intercept(
-              this.cloneRequestWithToken(request, token),
+              this.cloneRequestWithToken(request, token, true),
               next,
             );
           }),
@@ -166,7 +177,7 @@ export class JWTInterceptor implements HttpInterceptor {
           this.userLocalstorageService.setUserToken({ access_token: newToken });
           this.refreshTokenSubject.next(newToken);
           return this.intercept(
-            this.cloneRequestWithToken(request, newToken),
+            this.cloneRequestWithToken(request, newToken, true),
             next,
           );
         }),
@@ -203,10 +214,14 @@ export class JWTInterceptor implements HttpInterceptor {
   private cloneRequestWithToken(
     req: HttpRequest<unknown>,
     token: string,
+    markRetry = false,
   ): HttpRequest<unknown> {
     return req.clone({
       setHeaders: { Authorization: `Bearer ${token}` },
       withCredentials: true,
+      context: markRetry
+        ? req.context.set(AUTH_RETRY_ATTEMPTED, true)
+        : req.context,
     });
   }
 }

@@ -38,10 +38,27 @@ export class RefreshTokenStoreService {
     }
 
     this.cachedRefreshToken = refreshToken;
-    await SecureStoragePlugin.set({
-      key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
-      value: refreshToken,
-    });
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await SecureStoragePlugin.set({
+          key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
+          value: refreshToken,
+        });
+        return;
+      } catch (error) {
+        if (attempt === 0) {
+          await this.delay(150);
+          continue;
+        }
+
+        throw {
+          status: 0,
+          message: 'Secure storage write failed',
+          transientAuthStorage: true,
+          error,
+        };
+      }
+    }
   }
 
   public async get(): Promise<string | null> {
