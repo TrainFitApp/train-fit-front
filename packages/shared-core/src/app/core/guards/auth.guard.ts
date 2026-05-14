@@ -1,10 +1,27 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
+import { CanActivateFn, CanMatchFn, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import {
+  AUTH_LOGIN_CONNECTION_QUERY_VALUE,
+  AUTH_LOGIN_FEEDBACK_QUERY_PARAM,
+} from '../services/auth/auth-error.service';
 import { AuthService } from '../services/auth/auth.service';
 
-const checkToken = (): boolean | Observable<boolean> => {
+const createLoginRedirect = (
+  router: Router,
+  showConnectionIssue = false
+): UrlTree => {
+  return router.createUrlTree(['/sign-in'], {
+    queryParams: showConnectionIssue
+      ? {
+          [AUTH_LOGIN_FEEDBACK_QUERY_PARAM]: AUTH_LOGIN_CONNECTION_QUERY_VALUE,
+        }
+      : undefined,
+  });
+};
+
+const checkToken = (): boolean | Observable<boolean | UrlTree> => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -20,8 +37,7 @@ const checkToken = (): boolean | Observable<boolean> => {
       }
 
       console.info('[AUTH] auth_guard_redirect_login');
-      router.navigate(['/sign-in']);
-      return false;
+      return createLoginRedirect(router);
     }),
     catchError((err) => {
       if (err?.error?.requiresRelogin || err?.requiresRelogin) {
@@ -33,7 +49,7 @@ const checkToken = (): boolean | Observable<boolean> => {
         status: err?.status,
         message: err?.message,
       });
-      return of(false);
+      return of(createLoginRedirect(router, true));
     })
   );
 };

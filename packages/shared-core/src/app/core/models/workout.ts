@@ -4,7 +4,7 @@ export class Workout {
   _id: string;
   name: string;
   notes: string;
-  date?: Date;
+  date?: Date | null;
   cronometer?: Date;
   exercises: CustomExercise[];
 }

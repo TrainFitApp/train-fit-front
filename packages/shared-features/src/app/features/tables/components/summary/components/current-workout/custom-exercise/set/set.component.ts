@@ -238,17 +238,7 @@ export class SetComponent implements OnInit, OnChanges {
 
     this.ionicUtilService.showModal(modalOptions).then((resSet) => {
       if (resSet.data) {
-        this.setService.updateSet(resSet.data as Set).subscribe((resS) => {
-          const indexSet = this.currentWorkout.exercises[
-            this.indexCustomExercise
-          ].sets.findIndex((sTemp) => sTemp._id === resS._id);
-          this.currentWorkout.exercises[this.indexCustomExercise].sets[
-            indexSet
-          ] = resS;
-
-          // Actualizar la referencia local para que ngOnChanges detecte el cambio
-          this.set = resS;
-        });
+        this.updateSetFromModal(resSet.data as Set);
       }
     });
   }
@@ -285,17 +275,7 @@ export class SetComponent implements OnInit, OnChanges {
 
         this.ionicUtilService.showModal(modalOptions).then((resSet) => {
           if (resSet.data) {
-            this.setService.updateSet(resSet.data as Set).subscribe((resS) => {
-              const indexSet = this.currentWorkout.exercises[
-                this.indexCustomExercise
-              ].sets.findIndex((sTemp) => sTemp._id === resS._id);
-              this.currentWorkout.exercises[this.indexCustomExercise].sets[
-                indexSet
-              ] = resS;
-
-              // Actualizar la referencia local para que ngOnChanges detecte el cambio
-              this.set = resS;
-            });
+            this.updateSetFromModal(resSet.data as Set);
           }
         });
         break;
@@ -304,6 +284,17 @@ export class SetComponent implements OnInit, OnChanges {
         this.showDeleteSweetAlert();
         break;
     }
+  }
+
+  private updateSetFromModal(set: Set): void {
+    this.setService.updateSet(set).subscribe((resS) => {
+      const sets = this.currentWorkout.exercises[this.indexCustomExercise].sets;
+      const indexSet = sets.findIndex((sTemp) => sTemp._id === resS._id);
+
+      sets[indexSet] = resS;
+      this.set = resS;
+      this.workoutService.setCurrentWorkout = this.currentWorkout;
+    });
   }
 
   public isFail(set: any): boolean {

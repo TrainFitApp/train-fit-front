@@ -189,7 +189,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   private startWorkoutFlow(): void {
-    delete this.currentWorkout.date;
+    this.currentWorkout.date = null;
     this.workoutService.modifyWorkout(this.currentWorkout).subscribe(() => {
       this.user.workoutInUse = this.currentWorkout._id;
       this.userService.updateUser(this.user).subscribe(() => {

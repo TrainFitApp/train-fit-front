@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 
+export const AUTH_LOGIN_FEEDBACK_QUERY_PARAM = 'loginIssue';
+export const AUTH_LOGIN_CONNECTION_QUERY_VALUE = 'connection';
+
 export type LoginErrorKind =
   | 'invalid-credentials'
   | 'account-not-verified'

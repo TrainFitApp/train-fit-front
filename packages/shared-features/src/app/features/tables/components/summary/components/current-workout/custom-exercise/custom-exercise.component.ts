@@ -185,16 +185,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
         this.customExerciseService
           .addSetToCustomExercise(this.customExercise._id, res.data)
           .subscribe((resCustomExercise: CustomExercise) => {
-            this.customExercise.sets = this.sortSets(resCustomExercise.sets);
-
-            if (this.currentWorkout) {
-              const ceTemp = this.currentWorkout.exercises.find(
-                (eTemp) => eTemp._id === resCustomExercise._id
-              );
-              if (ceTemp) ceTemp.sets = this.customExercise.sets;
-
-              this.workoutService.setCurrentWorkout = this.currentWorkout;
-            }
+            this.replaceCurrentSets(resCustomExercise.sets);
           });
       }
     });
@@ -238,6 +229,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
             (sTemp) => sTemp._id === resS._id
           );
           this.customExercise.sets[indexSet] = resS;
+          this.replaceCurrentSets(this.customExercise.sets);
         });
       }
     });
@@ -260,10 +252,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
     this.customExerciseService
       .copySetOnCustomExercise(newSet.order, this.customExercise)
       .subscribe((resUCE) => {
-        this.customExercise.sets = this.sortSets(resUCE.sets);
-        if (this.currentWorkout) {
-          this.workoutService.setCurrentWorkout = this.currentWorkout;
-        }
+        this.replaceCurrentSets(resUCE.sets);
       });
   }
 
@@ -276,6 +265,23 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
     this.customExercise.sets.forEach((setTemp, index) => {
       setTemp.order = index;
     });
+  }
+
+  private replaceCurrentSets(sets: Set[]): void {
+    const normalizedSets = this.sortSets(sets);
+    this.customExercise.sets = normalizedSets;
+
+    if (!this.currentWorkout) return;
+
+    const currentCustomExercise = this.currentWorkout.exercises.find(
+      (exerciseTemp) => exerciseTemp._id === this.customExercise._id
+    );
+
+    if (currentCustomExercise) {
+      currentCustomExercise.sets = normalizedSets;
+    }
+
+    this.workoutService.setCurrentWorkout = this.currentWorkout;
   }
 
   public sortSets(sets: any[]): any[] {
@@ -388,6 +394,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public trackBySet(index: number, item: Set): string {
-    return item._id;
+    return item._id || `pending-${index}`;
   }
 }

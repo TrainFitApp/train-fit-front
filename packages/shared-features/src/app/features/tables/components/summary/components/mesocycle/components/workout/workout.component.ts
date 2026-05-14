@@ -883,7 +883,7 @@ export class WorkoutComponent {
   }
 
   private startWorkoutAndNavigate(): void {
-    delete this.workout.date;
+    this.workout.date = null;
     this.workoutService.modifyWorkout(this.workout).subscribe(() => {
       this.user.workoutInUse = this.workout._id;
 

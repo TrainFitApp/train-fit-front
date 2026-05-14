@@ -1,10 +1,13 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { Observer } from 'rxjs';
 import { Token } from 'src/app/core/models/token';
 import { User } from 'src/app/core/models/user';
 import {
+  AUTH_LOGIN_CONNECTION_QUERY_VALUE,
+  AUTH_LOGIN_FEEDBACK_QUERY_PARAM,
   AuthErrorService,
   LoginErrorKind,
 } from 'src/app/core/services/auth/auth-error.service';
@@ -57,6 +60,8 @@ export class SignInPage implements OnInit {
     private _platform: Platform,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private router: Router,
     private authService: AuthService,
     private themeService: ThemeService,
     private navigationService: NavigationService,
@@ -87,6 +92,7 @@ export class SignInPage implements OnInit {
 
   public ngOnInit(): void {
     this.initForm();
+    this.applyNavigationFeedback();
   }
 
   public ionViewWillLeave(): void {
@@ -599,6 +605,62 @@ export class SignInPage implements OnInit {
     this.loginErrorKind = null;
     this.isLoginErrorRetryable = false;
     this.loginForm?.setErrors(null);
+  }
+
+  private applyNavigationFeedback(): void {
+    if (this.applyQueryParamFeedback()) {
+      return;
+    }
+
+    const state = this.navigationService.getState<{
+      loginErrorKind?: LoginErrorKind;
+      loginErrorMessage?: string;
+      loginErrorRetryable?: boolean;
+    }>();
+
+    if (this.applyFeedbackState(state)) {
+      this.navigationService.clearStateKeys([
+        'loginErrorKind',
+        'loginErrorMessage',
+        'loginErrorRetryable',
+      ]);
+    }
+  }
+
+  private applyQueryParamFeedback(): boolean {
+    const issue = this.route.snapshot.queryParamMap.get(
+      AUTH_LOGIN_FEEDBACK_QUERY_PARAM
+    );
+
+    if (issue !== AUTH_LOGIN_CONNECTION_QUERY_VALUE) {
+      return false;
+    }
+
+    this.setLoginFeedback(this.authErrorService.toLoginFeedback({ status: 0 }));
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [AUTH_LOGIN_FEEDBACK_QUERY_PARAM]: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+    return true;
+  }
+
+  private applyFeedbackState(state?: {
+    loginErrorKind?: LoginErrorKind;
+    loginErrorMessage?: string;
+    loginErrorRetryable?: boolean;
+  } | null): boolean {
+    if (!state?.loginErrorMessage || !state?.loginErrorKind) {
+      return false;
+    }
+
+    this.setLoginFeedback({
+      kind: state.loginErrorKind,
+      message: state.loginErrorMessage,
+      retryable: state.loginErrorRetryable ?? true,
+    });
+    return true;
   }
 
   public goToRestorePass(): void {
