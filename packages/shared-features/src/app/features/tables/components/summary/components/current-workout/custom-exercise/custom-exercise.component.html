@@ -170,18 +170,32 @@
   </div>
 
   <!-- Current Sets -->
-  <app-set
-    *ngFor="let set of customExercise.sets; let i = index; trackBy: trackBySet"
-    [set]="set"
-    [index]="i"
-    [indexCustomExercise]="indexCustomExercise"
-    [currentWorkout]="currentWorkout"
-    (deleteSet)="deleteSet(set)"
-    (copySet)="copySet(set, i)"
-    (confSet)="configSet(set)"
-    [attr.id]="'set-' + indexCustomExercise + '-' + i"
-    class="current-set-container"
-  ></app-set>
+  <ng-container *ngFor="let row of getCurrentSetRows(); trackBy: trackBySetRow">
+    <app-set
+      *ngIf="row.type === 'set'; else pendingSetGhost"
+      [set]="row.set"
+      [index]="row.index"
+      [indexCustomExercise]="indexCustomExercise"
+      [currentWorkout]="currentWorkout"
+      (deleteSet)="deleteSet(row.set)"
+      (copySet)="copySet(row.set, row.index)"
+      (confSet)="configSet(row.set)"
+      [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
+      class="current-set-container"
+    ></app-set>
+
+    <ng-template #pendingSetGhost>
+      <div
+        class="current-set-container set-copy-progress"
+        [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
+      >
+        <ion-progress-bar
+          type="indeterminate"
+          color="primary"
+        ></ion-progress-bar>
+      </div>
+    </ng-template>
+  </ng-container>
 </div>
 
 <!-- Exercise Actions Header -->

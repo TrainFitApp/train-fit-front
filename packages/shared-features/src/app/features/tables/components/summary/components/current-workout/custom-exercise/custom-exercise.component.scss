@@ -235,6 +235,20 @@ ion-app.dark {
   border: 1px solid var(--ion-color-step-100);
 }
 
+.set-copy-progress {
+  min-height: 14px;
+  margin: 6px 0;
+  padding: 5px 14px;
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+  pointer-events: none;
+
+  ion-progress-bar {
+    height: 3px;
+    --background: rgba(var(--ion-color-primary-rgb), 0.18);
+    --progress-background: var(--ion-color-primary);
+  }
+}
+
 .table-container {
   background: #fe90000d;
   padding: 8px;

@@ -22,6 +22,13 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
 
+interface CurrentSetRow {
+  type: 'set' | 'pending';
+  key: string;
+  index: number;
+  set?: Set;
+}
+
 @Component({
   selector: 'app-custom-exercise',
   templateUrl: './custom-exercise.component.html',
@@ -45,6 +52,8 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   public historicalSplitIndex: number = -1;
   public animatingLeft: boolean = false;
   public animatingRight: boolean = false;
+  public pendingCopyInsertIndex: number | null = null;
+  private pendingCopyKey: number = 0;
 
   constructor(
     private customExerciseService: CustomExerciseService,
@@ -236,23 +245,44 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   }
 
   public copySet(set: Set, indexSet: number): void {
-    this.normalizeCurrentSetsOrder();
+    const normalizedSets = this.sortSets(this.customExercise.sets).map(
+      (setTemp, index) => ({
+        ...setTemp,
+        order: index,
+      })
+    );
 
-    const currentIndex = this.customExercise.sets.findIndex(
+    const currentIndex = normalizedSets.findIndex(
       (setTemp) => setTemp._id === set._id
     );
     const insertIndex = currentIndex >= 0 ? currentIndex + 1 : indexSet + 1;
-    const sourceSet = this.customExercise.sets[currentIndex] || set;
+    const sourceSet = normalizedSets[currentIndex] || set;
     const newSet = { ...sourceSet };
     delete newSet._id;
 
-    this.customExercise.sets.splice(insertIndex, 0, newSet);
-    this.normalizeCurrentSetsOrder();
+    const requestSets = [...normalizedSets];
+    requestSets.splice(insertIndex, 0, newSet);
+    requestSets.forEach((setTemp, index) => {
+      setTemp.order = index;
+    });
+
+    this.pendingCopyInsertIndex = insertIndex;
+    this.pendingCopyKey++;
 
     this.customExerciseService
-      .copySetOnCustomExercise(newSet.order, this.customExercise)
-      .subscribe((resUCE) => {
-        this.replaceCurrentSets(resUCE.sets);
+      .copySetOnCustomExercise(newSet.order, {
+        ...this.customExercise,
+        sets: requestSets,
+      })
+      .subscribe({
+        next: (resUCE) => {
+          this.pendingCopyInsertIndex = null;
+          this.replaceCurrentSets(resUCE.sets);
+        },
+        error: (error) => {
+          this.pendingCopyInsertIndex = null;
+          console.error('Error copying set:', error);
+        },
       });
   }
 
@@ -287,6 +317,32 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
   public sortSets(sets: any[]): any[] {
     if (!sets) return [];
     return [...sets].sort((a, b) => a.order - b.order);
+  }
+
+  public getCurrentSetRows(): CurrentSetRow[] {
+    const rows: CurrentSetRow[] = [];
+    const sets = this.customExercise?.sets || [];
+
+    for (let setIndex = 0; setIndex <= sets.length; setIndex++) {
+      if (this.pendingCopyInsertIndex === setIndex) {
+        rows.push({
+          type: 'pending',
+          key: `pending-copy-${this.pendingCopyKey}`,
+          index: rows.length,
+        });
+      }
+
+      if (setIndex < sets.length) {
+        rows.push({
+          type: 'set',
+          key: sets[setIndex]._id || `set-${setIndex}`,
+          index: rows.length,
+          set: sets[setIndex],
+        });
+      }
+    }
+
+    return rows;
   }
 
   public toggleAllSeries(event: Event): void {
@@ -395,5 +451,9 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   public trackBySet(index: number, item: Set): string {
     return item._id || `pending-${index}`;
+  }
+
+  public trackBySetRow(index: number, row: CurrentSetRow): string {
+    return row.key;
   }
 }
