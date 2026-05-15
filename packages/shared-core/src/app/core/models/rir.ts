@@ -33,20 +33,23 @@ export function buildRirValue(
   first: number | null | undefined,
   second: number | null | undefined
 ): RirValue {
-  if (first === null || first === undefined) {
-    return null;
-  }
-
-  if (first === RIR_FAIL_VALUE) {
+  if (first === RIR_FAIL_VALUE || second === RIR_FAIL_VALUE) {
     return [RIR_FAIL_VALUE];
   }
 
-  if (!isAllowedRirNumber(first)) {
+  const hasFirst = isAllowedRirNumber(first);
+  const hasSecond = isAllowedRirNumber(second);
+
+  if (!hasFirst && !hasSecond) {
     return null;
   }
 
-  if (!isAllowedRirNumber(second) || second === first) {
+  if (hasFirst && (!hasSecond || second === first)) {
     return [first];
+  }
+
+  if (!hasFirst && hasSecond) {
+    return [second];
   }
 
   return [first, second];
@@ -70,8 +73,14 @@ export function normalizeRirValue(value: unknown): RirValue {
       return [RIR_FAIL_VALUE];
     }
 
-    const first = Number(value[0]);
-    const second = value.length > 1 ? Number(value[1]) : null;
+    const first =
+      value[0] === null || value[0] === undefined || value[0] === ''
+        ? null
+        : Number(value[0]);
+    const second =
+      value[1] === null || value[1] === undefined || value[1] === ''
+        ? null
+        : Number(value[1]);
     return buildRirValue(first, second);
   }
 

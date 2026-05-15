@@ -96,7 +96,12 @@ export class RirPickerComponent implements OnInit {
     const secondOptions = this.getSecondRirOptions().map((o) => ({
       text: o.text,
       value: o.value,
-      cssClass: o.value === null ? 'rir-option-empty' : 'rir-option-number',
+      cssClass:
+        o.value === null
+          ? 'rir-option-empty'
+          : o.value === RIR_FAIL_VALUE
+          ? 'rir-option-fallo'
+          : 'rir-option-number',
     }));
     const selectedFirstIndex = Math.max(
       0,
@@ -164,6 +169,7 @@ export class RirPickerComponent implements OnInit {
   public getSecondRirOptions(): Array<{ text: string; value: number | null }> {
     return [
       { text: '-', value: null },
+      { text: 'FALLO', value: RIR_FAIL_VALUE },
       ...getRirNumberOptions().map((value) => ({
         text: value.toString(),
         value,
