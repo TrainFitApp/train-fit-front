@@ -1,7 +1,7 @@
 import pkg from '../../package.json';
 
 const PORT = '';
-const API_URL_BASE = 'https://train-fit-back-977t.onrender.com' + PORT;
+const API_URL_BASE = 'https://server.trainfit.net' + PORT;
 
 export const environment = {
   production: true,
