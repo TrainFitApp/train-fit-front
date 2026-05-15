@@ -7,35 +7,15 @@ export class UserLocalstorageService {
   public static readonly ACCESS_TOKEN_KEY = 'access_token';
 
   public getUserToken(): Token | null {
-    const currentUser = localStorage.getItem(
-      UserLocalstorageService.CURRENT_USER_KEY
-    );
-    if (!currentUser || currentUser.length <= 0) {
-      return null;
-    }
-
-    let token: Token | null = null;
-    try {
-      token = JSON.parse(currentUser) ?? null;
-    } catch (error) {}
-    return token;
+    return null;
   }
 
   public getAccessToken(): string | null {
-    const token = this.getUserToken();
-    return token ? token.access_token : null;
+    return null;
   }
 
   public setUserToken(token: Token): void {
-    if (!token) {
-      localStorage.removeItem(UserLocalstorageService.CURRENT_USER_KEY);
-      return;
-    }
-
-    localStorage.setItem(
-      UserLocalstorageService.CURRENT_USER_KEY,
-      JSON.stringify(token)
-    );
+    localStorage.removeItem(UserLocalstorageService.CURRENT_USER_KEY);
   }
 
   public removeUserToken(): void {

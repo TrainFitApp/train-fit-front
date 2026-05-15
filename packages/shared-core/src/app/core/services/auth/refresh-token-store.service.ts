@@ -44,13 +44,20 @@ export class RefreshTokenStoreService {
           key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
           value: refreshToken,
         });
+        console.info('[AUTH] native_refresh_token_saved', {
+          attempt: attempt + 1,
+        });
         return;
       } catch (error) {
         if (attempt === 0) {
+          console.warn('[AUTH] native_refresh_token_save_retry', {
+            reason: (error as any)?.message || String(error),
+          });
           await this.delay(150);
           continue;
         }
 
+        console.error('[AUTH] native_refresh_token_save_failed', error);
         throw {
           status: 0,
           message: 'Secure storage write failed',
@@ -76,17 +83,26 @@ export class RefreshTokenStoreService {
           key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
         });
         this.cachedRefreshToken = response?.value || null;
+        console.info('[AUTH] native_refresh_token_loaded', {
+          found: !!this.cachedRefreshToken,
+          attempt: attempt + 1,
+        });
         return this.cachedRefreshToken;
       } catch (error) {
         if (this.isMissingTokenError(error)) {
+          console.info('[AUTH] native_refresh_token_missing');
           return null;
         }
 
         if (attempt === 0) {
+          console.warn('[AUTH] native_refresh_token_load_retry', {
+            reason: (error as any)?.message || String(error),
+          });
           await this.delay(150);
           continue;
         }
 
+        console.error('[AUTH] native_refresh_token_load_failed', error);
         throw {
           status: 0,
           message: 'Secure storage read failed',

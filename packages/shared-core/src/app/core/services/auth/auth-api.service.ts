@@ -77,11 +77,11 @@ export class AuthApiService {
     );
   }
 
-  public revertImpersonation(adminAccessToken: string): Observable<any> {
+  public revertImpersonation(): Observable<any> {
     return this.http.post<any>(
       AuthApiService.REVERT_IMPERSONATE_ENDPOINT,
       {},
-      { "x-admin-access-token": adminAccessToken } as any,
+      undefined,
       true,
     );
   }

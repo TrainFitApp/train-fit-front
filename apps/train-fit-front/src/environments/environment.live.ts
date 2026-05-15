@@ -1,10 +1,11 @@
 import pkg from '../../package.json';
 
-const PORT = '';
-const API_URL_BASE = 'https://train-fit-back-production.up.railway.app' + PORT;
+const PORT = ':3000';
+// Usar IP local para que el dispositivo/simulator iOS pueda conectarse
+const API_URL_BASE = 'http://192.168.1.15' + PORT;
 
 export const environment = {
-  production: true,
+  production: false,
   APP_VERSION: pkg.version,
   APP_STORE_URL: 'https://apps.apple.com/es/app/trainfit/id6471257280',
   GOOGLE_PLAY_URL:

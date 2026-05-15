@@ -14,7 +14,6 @@ import { SEX } from 'src/app/shared/constants/sex';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
-import { Token } from 'src/app/core/models/token';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { takeUntil, take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -138,22 +137,31 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
         updateObs.subscribe({
           next: (res) => {
+            const finish = () => {
+              if (res?.user) {
+                this.userService.setLocalUser = res.user;
+                this.authService.setUser = res.user;
+              }
+              this.navigationService.goToUserLoader();
+              this.isProcessing = false;
+            };
+
             if (res?.access_token) {
-              const token: Token = {
-                access_token: res.access_token,
-                refresh_token: res.refresh_token,
-              };
-              const userDecoded = this.authService.getDecodedUser(token);
-              this.authService.persistAuthTokens(token);
-              this.authService.setUser = userDecoded;
+              this.authService.applyAuthResponse(res).subscribe({
+                next: finish,
+                error: (err) => {
+                  this.isProcessing = false;
+                  this.ionicUtilService.showErrorToast(
+                    err,
+                    'Error al guardar la sesión',
+                    3000
+                  );
+                },
+              });
+              return;
             }
 
-            if (res?.user) {
-              this.userService.setLocalUser = res.user;
-            }
-
-            this.navigationService.goToUserLoader();
-            this.isProcessing = false;
+            finish();
           },
           error: (err) => {
             this.isProcessing = false;
@@ -197,17 +205,16 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
         // Guardar token y navegar directamente a la app
         if (response?.access_token) {
-          const token: Token = {
-            access_token: response.access_token,
-            refresh_token: response.refresh_token,
-          };
-
-          const userDecoded = this.authService.getDecodedUser(token);
-          this.authService.persistAuthTokens(token);
-          this.authService.setUser = userDecoded;
-
-          // Navegar al user loader para cargar los datos del usuario
-          this.navigationService.goToUserLoader();
+          this.authService.applyAuthResponse(response).subscribe({
+            next: () => this.navigationService.goToUserLoader(),
+            error: (err) => {
+              this.ionicUtilService.showErrorToast(
+                err,
+                'Error al guardar la sesión',
+                3000
+              );
+            },
+          });
         } else {
           // Fallback si no viene el token
           this.navigationService.goToSignUp();
@@ -276,4 +283,3 @@ export class DataSheetPage implements OnInit, OnDestroy {
     this.signUpStateService.clearState();
   }
 }
-

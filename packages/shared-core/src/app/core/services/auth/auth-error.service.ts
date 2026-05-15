@@ -6,6 +6,7 @@ export const AUTH_LOGIN_CONNECTION_QUERY_VALUE = 'connection';
 export type LoginErrorKind =
   | 'invalid-credentials'
   | 'account-not-verified'
+  | 'storage'
   | 'network'
   | 'timeout'
   | 'server'
@@ -25,6 +26,8 @@ export interface LoginErrorFeedback {
 export class AuthErrorService {
   private readonly invalidCredentialsMessage =
     'Correo o contraseña incorrectos';
+  private readonly storageMessage =
+    'No se pudo guardar la sesion en el dispositivo. Intentalo de nuevo';
   private readonly connectionMessage = 'No se pudo conectar. Inténtalo de nuevo';
   private readonly timeoutMessage =
     'La conexión tardó demasiado. Inténtalo de nuevo';
@@ -50,6 +53,16 @@ export class AuthErrorService {
         kind: 'invalid-credentials',
         message: this.invalidCredentialsMessage,
         retryable: false,
+        status,
+        code,
+      };
+    }
+
+    if (this.isStorageError(error)) {
+      return {
+        kind: 'storage',
+        message: this.storageMessage,
+        retryable: true,
         status,
         code,
       };
@@ -117,6 +130,10 @@ export class AuthErrorService {
       error?.name === 'TimeoutError' ||
       error?.error?.name === 'TimeoutError'
     );
+  }
+
+  private isStorageError(error: any): boolean {
+    return !!(error?.transientAuthStorage || error?.error?.transientAuthStorage);
   }
 
   private isNetworkError(status: number | undefined, error: any): boolean {

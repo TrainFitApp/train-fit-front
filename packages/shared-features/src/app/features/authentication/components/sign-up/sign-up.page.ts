@@ -10,7 +10,6 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IonModal, Platform, ToastOptions } from '@ionic/angular';
 import { Subscription, Subject } from 'rxjs';
 import { User } from 'src/app/core/models/user';
-import { Token } from 'src/app/core/models/token';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -494,22 +493,31 @@ export class SignUpPage implements OnInit, OnDestroy {
 
           updateObs.subscribe({
             next: (res) => {
+              const finish = () => {
+                if (res?.user) {
+                  this.userService.setLocalUser = res.user;
+                  this.authService.setUser = res.user;
+                }
+                this.navigationService.goToUserLoader();
+                this.isProcessing = false;
+              };
+
               if (res?.access_token) {
-                const token: Token = {
-                  access_token: res.access_token,
-                  refresh_token: res.refresh_token,
-                };
-                const userDecoded = this.authService.getDecodedUser(token);
-                this.authService.persistAuthTokens(token);
-                this.authService.setUser = userDecoded;
+                this.authService.applyAuthResponse(res).subscribe({
+                  next: finish,
+                  error: (err) => {
+                    this.isProcessing = false;
+                    this.ionicUtilService.showErrorToast(
+                      err,
+                      'Error al guardar la sesión',
+                      3000
+                    );
+                  },
+                });
+                return;
               }
 
-              if (res?.user) {
-                this.userService.setLocalUser = res.user;
-              }
-
-              this.navigationService.goToUserLoader();
-              this.isProcessing = false;
+              finish();
             },
             error: (err) => {
               this.isProcessing = false;
@@ -544,15 +552,16 @@ export class SignUpPage implements OnInit, OnDestroy {
         });
 
         if (response?.access_token) {
-          const token: Token = {
-            access_token: response.access_token,
-            refresh_token: response.refresh_token,
-          };
-
-          const userDecoded = this.authService.getDecodedUser(token);
-          this.authService.persistAuthTokens(token);
-          this.authService.setUser = userDecoded;
-          this.navigationService.goToUserLoader();
+          this.authService.applyAuthResponse(response).subscribe({
+            next: () => this.navigationService.goToUserLoader(),
+            error: (err) => {
+              this.ionicUtilService.showErrorToast(
+                err,
+                'Error al guardar la sesión',
+                3000
+              );
+            },
+          });
         } else {
           this.navigationService.goToLoginPage();
         }
@@ -788,4 +797,3 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.ionicUtilService.showAlert(alertOptions);
   }
 }
-

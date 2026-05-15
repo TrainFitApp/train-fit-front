@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { Observer } from 'rxjs';
-import { Token } from 'src/app/core/models/token';
 import { User } from 'src/app/core/models/user';
 import {
   AUTH_LOGIN_CONNECTION_QUERY_VALUE,
@@ -300,28 +299,28 @@ export class SignInPage implements OnInit {
    * Maneja respuesta exitosa de social auth (Google/Apple)
    */
   private handleSocialSuccess(response: any, provider: string): void {
-    // Guardar token y usuario
-    const token: Token = {
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-    };
-    this.authService.persistAuthTokens(token);
+    this.authService.applyAuthResponse(response).subscribe({
+      next: () => {
+        this.userService.setLocalUser = response.user;
 
-    const userDecoded = this.authService.getDecodedUser(token);
-    this.authService.setUser = userDecoded;
-    this.userService.setLocalUser = response.user;
-
-    // Verificar si el usuario completó el registro
-    if (this.isUserRegistrationComplete(response.user)) {
-      // Usuario existente con registro completo → ir a Home
-      const colorMode: ColorMode = response.user.theme || 'dark';
-      this.themeService.toggleColorMode(colorMode);
-      this.navigationService.goToUserLoader();
-    } else {
-      // Usuario nuevo o incompleto → completar registro
-      this.navigationService.goToSignUp();
-    }
-    this.loading = false;
+        if (this.isUserRegistrationComplete(response.user)) {
+          const colorMode: ColorMode = response.user.theme || 'dark';
+          this.themeService.toggleColorMode(colorMode);
+          this.navigationService.goToUserLoader();
+        } else {
+          this.navigationService.goToSignUp();
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        this.ionicUtilService.showErrorToast(
+          error,
+          `Error al iniciar sesión con ${provider}`,
+          2500
+        );
+        this.loading = false;
+      },
+    });
   }
 
   /**
@@ -373,7 +372,7 @@ export class SignInPage implements OnInit {
     feedback: { kind: LoginErrorKind; message: string },
     provider: string
   ): string {
-    if (['network', 'timeout', 'server'].includes(feedback.kind)) {
+    if (['network', 'timeout', 'server', 'storage'].includes(feedback.kind)) {
       return feedback.message;
     }
 
@@ -419,20 +418,21 @@ export class SignInPage implements OnInit {
 
     createObs.subscribe({
       next: (response) => {
-        // Guardar token y usuario
-        const token: Token = {
-          access_token: response.access_token,
-          refresh_token: response.refresh_token,
-        };
-        this.authService.persistAuthTokens(token);
-
-        const userDecoded = this.authService.getDecodedUser(token);
-        this.authService.setUser = userDecoded;
-        this.userService.setLocalUser = response.user;
-
-        // Usuario nuevo → completar registro
-        this.navigationService.goToSignUp();
-        this.loading = false;
+        this.authService.applyAuthResponse(response).subscribe({
+          next: () => {
+            this.userService.setLocalUser = response.user;
+            this.navigationService.goToSignUp();
+            this.loading = false;
+          },
+          error: (error) => {
+            this.ionicUtilService.showErrorToast(
+              error,
+              `Error al crear cuenta con ${provider}`,
+              2500
+            );
+            this.loading = false;
+          },
+        });
       },
       error: (error) => {
         console.warn('[AUTH] social_user_creation_failed', {
@@ -495,16 +495,20 @@ export class SignInPage implements OnInit {
       .createAppleUser({ email } as User, new Date(), tokenApple)
       .subscribe({
         next: (response) => {
-          const token: Token = {
-            access_token: response.access_token,
-            refresh_token: response.refresh_token,
-          };
-          this.authService.persistAuthTokens(token);
-          const userDecoded = this.authService.getDecodedUser(token);
-          this.authService.setUser = userDecoded;
-          this.userService.setLocalUser = response.user;
-          this.navigationService.goToSignUp();
-          this.loading = false;
+          this.authService.applyAuthResponse(response).subscribe({
+            next: () => {
+              this.userService.setLocalUser = response.user;
+              this.navigationService.goToSignUp();
+              this.loading = false;
+            },
+            error: (error) => {
+              this.ionicUtilService.showErrorToast(
+                error,
+                'Error al crear cuenta con Apple'
+              );
+              this.loading = false;
+            },
+          });
         },
         error: (error) => {
           console.warn('[AUTH] apple_user_creation_failed', {

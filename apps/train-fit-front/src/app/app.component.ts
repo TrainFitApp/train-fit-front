@@ -81,6 +81,13 @@ export class AppComponent implements OnDestroy {
 
       void this.appUpdateService.checkForRequiredUpdate();
 
+      if (!this.authService.isAccessTokenExpiringSoon()) {
+        void this.billingService.getBackendEntitlements().catch((error) => {
+          console.warn('Foreground billing refresh failed', error);
+        });
+        return;
+      }
+
       this.authService.restoreSessionSilently().subscribe({
         next: (restored) => {
           if (!restored && !this.hasAuthenticatedSession) {

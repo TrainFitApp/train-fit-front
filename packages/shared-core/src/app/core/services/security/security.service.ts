@@ -41,27 +41,7 @@ export class SecurityService {
    * Returns true if token expires in less than 2 minutes
    */
   private isTokenExpiringSoon(): boolean {
-    try {
-      const tokenStr = localStorage.getItem('currentUser');
-      if (!tokenStr) return false;
-
-      const token = JSON.parse(tokenStr);
-      if (!token?.access_token) return false;
-
-      // Decode JWT to get expiration
-      const payload = this.decodeToken(token.access_token);
-      if (!payload?.exp) return false;
-
-      const expirationTime = payload.exp * 1000; // Convert to milliseconds
-      const currentTime = Date.now();
-      const timeUntilExpiration = expirationTime - currentTime;
-
-      // Refresh if less than 2 minutes remaining
-      return timeUntilExpiration < 2 * 60 * 1000;
-    } catch (error) {
-      console.error('Error checking token expiration:', error);
-      return false;
-    }
+    return false;
   }
 
   /**

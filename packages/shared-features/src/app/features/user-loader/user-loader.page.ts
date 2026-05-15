@@ -15,7 +15,6 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { TableService } from 'src/app/core/services/table/table.service';
-import { UserLocalstorageService } from 'src/app/core/services/user/user-localstorage.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
@@ -90,12 +89,9 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly themeService: ThemeService,
     private readonly navigationService: NavigationService,
     private readonly authService: AuthService,
-    private readonly billingService: BillingService,
-    private readonly userLocalStorage: UserLocalstorageService
+    private readonly billingService: BillingService
   ) {
-    this.email = this.authService.getDecodedUser(
-      this.userLocalStorage.getUserToken()
-    )?.email;
+    this.email = this.authService.user?.email;
   }
 
   ngOnInit(): void {
@@ -107,6 +103,11 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   }
 
   private startLoadingSequence(): void {
+    if (!this.email) {
+      this.authService.logout();
+      return;
+    }
+
     this.updateLoadingStep(1);
     this.updateProgress(10);
 

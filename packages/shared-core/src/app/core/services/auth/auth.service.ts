@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, from, Observable, of } from 'rxjs';
+import { BehaviorSubject, from, Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, map, shareReplay, switchMap } from 'rxjs/operators';
 import { Token } from '../../models/token';
 import { User } from '../../models/user';
@@ -11,10 +11,14 @@ import { RefreshTokenStoreService } from './refresh-token-store.service';
 
 @Injectable()
 export class AuthService {
-  private _user$: BehaviorSubject<User>;
-  private readonly EXPIRATION_KEY: string = 'exp';
+  private _user$: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(
+    null
+  );
+  private readonly EXPIRATION_KEY = 'exp';
+  private accessToken: string | null = null;
   private refreshInFlight$: Observable<any> | null = null;
   private isLoggingOut = false;
+  private impersonating = false;
 
   constructor(
     private authApiService: AuthApiService,
@@ -23,16 +27,11 @@ export class AuthService {
     private navigationService: NavigationService,
     private refreshTokenStore: RefreshTokenStoreService
   ) {
-    this.initUser();
+    this.userLocalstorageService.removeUserToken();
+    localStorage.removeItem('admin_token');
   }
 
-  private initUser() {
-    const token: Token = this.userLocalstorageService.getUserToken();
-    const user: User | null = this.getDecodedUser(token) ?? null;
-    this._user$ = new BehaviorSubject<User>(user);
-  }
-
-  public get user(): User {
+  public get user(): User | null {
     return this._user$.value;
   }
 
@@ -40,8 +39,16 @@ export class AuthService {
     return this._user$.asObservable();
   }
 
-  public set setUser(user) {
+  public set setUser(user: User | null) {
     this._user$.next(user);
+  }
+
+  public get isImpersonating(): boolean {
+    return this.impersonating;
+  }
+
+  public getAccessToken(): string | null {
+    return this.accessToken;
   }
 
   public isAuthenticated(): boolean {
@@ -49,28 +56,30 @@ export class AuthService {
   }
 
   public isSessionValid(): boolean {
-    const user =
-      this._user$?.value ??
-      this.getDecodedUser(this.userLocalstorageService.getUserToken());
-    let isSessionValid = false;
-    if (!!user) {
-      const jwtExpirationDate = user[this.EXPIRATION_KEY] ?? null;
-      isSessionValid =
-        !!jwtExpirationDate && jwtExpirationDate >= Date.now() / 1000;
+    const decoded = this.getDecodedUser({ access_token: this.accessToken || '' });
+    const jwtExpirationDate = decoded?.[this.EXPIRATION_KEY] ?? null;
+    return !!jwtExpirationDate && jwtExpirationDate >= Date.now() / 1000;
+  }
+
+  public isAccessTokenExpiringSoon(bufferSeconds = 60): boolean {
+    const decoded = this.getDecodedUser({ access_token: this.accessToken || '' });
+    const jwtExpirationDate = decoded?.[this.EXPIRATION_KEY] ?? null;
+    if (!jwtExpirationDate) {
+      return true;
     }
-    return isSessionValid;
+
+    return jwtExpirationDate <= Date.now() / 1000 + bufferSeconds;
   }
 
   public hasStoredAccessToken(): boolean {
-    const token = this.userLocalstorageService.getUserToken();
-    return !!token?.access_token;
+    return !!this.accessToken;
   }
 
-  public getDecodedUser(token: Token): User {
+  public getDecodedUser(token: Token): any {
     if (!token?.access_token || token.access_token.length <= 0) {
       return;
     }
-    let userDecoded: User = null;
+    let userDecoded: any = null;
     try {
       const tokenArraySplitted = token.access_token.split('.');
       if (tokenArraySplitted && tokenArraySplitted.length > 1) {
@@ -96,114 +105,40 @@ export class AuthService {
 
   public login(email: string, password: string): Observable<void> {
     return this.authApiService.login(email, password).pipe(
-      map((token: Token) => {
-        if (!!token?.error) {
-          throw new Error(token?.error);
-        }
-
-        const userDecoded = this.getDecodedUser(token);
-        this.persistAuthTokens(token);
-        this.setUser = userDecoded;
-      })
+      switchMap((response: any) => this.applyAuthResponse(response)),
+      map(() => undefined)
     );
   }
 
   public impersonate(userId: string): Observable<void> {
     return this.authApiService.impersonate(userId).pipe(
-      map((response: any) => {
-        if (!!response?.error) {
-          throw new Error(response?.error);
-        }
-
-        // Save current admin token to revert later
-        const currentToken = this.userLocalstorageService.getUserToken();
-        if (currentToken) {
-          localStorage.setItem('admin_token', JSON.stringify(currentToken));
-        }
-
-        const token = {
-          access_token: response.access_token,
-          refresh_token: response.refresh_token,
-        };
-        const userDecoded = this.getDecodedUser(token);
-        this.persistAuthTokens(token);
-        this.setUser = userDecoded;
-      })
+      switchMap((response: any) => this.applyAuthResponse(response)),
+      map(() => undefined)
     );
   }
 
-  public get isImpersonating(): boolean {
-    return !!localStorage.getItem('admin_token');
-  }
-
   public revertImpersonation(): Observable<void> {
-    const adminTokenStr = localStorage.getItem('admin_token');
-    if (!adminTokenStr) {
-      return of(undefined);
-    }
-
-    let adminToken: Token | null = null;
-    try {
-      adminToken = JSON.parse(adminTokenStr);
-    } catch (e) {
-      console.warn('Error reading admin token', e);
-      localStorage.removeItem('admin_token');
-      return of(undefined);
-    }
-
-    if (!adminToken?.access_token) {
-      localStorage.removeItem('admin_token');
-      return of(undefined);
-    }
-
-    return this.authApiService.revertImpersonation(adminToken.access_token).pipe(
-      map((response: any) => {
-        if (!!response?.error) {
-          throw new Error(response?.error);
-        }
-
-        const token = {
-          access_token: response.access_token,
-          refresh_token: response.refresh_token,
-        };
-        this.persistAuthTokens(token);
-        const userDecoded = this.getDecodedUser(token);
-        if (userDecoded) {
-          this.setUser = userDecoded;
-        }
-        localStorage.removeItem('admin_token');
-      }),
+    return this.authApiService.revertImpersonation().pipe(
+      switchMap((response: any) => this.applyAuthResponse(response)),
+      map(() => undefined),
       catchError((error) => {
-        console.warn('Error reverting impersonation', error);
-        if (error?.error?.requiresRelogin || error?.requiresRelogin) {
+        if (this.isTerminalAuthError(error)) {
           this.logout();
         }
-        throw error;
+        return throwError(() => error);
       })
     );
   }
 
   public revertImpersonationLocally(): void {
-    const adminTokenStr = localStorage.getItem('admin_token');
-    if (!adminTokenStr) {
-      return;
-    }
-
-    try {
-      const adminToken = JSON.parse(adminTokenStr);
-      this.persistAuthTokens(adminToken);
-      const userDecoded = this.getDecodedUser(adminToken);
-      if (userDecoded) {
-        this.setUser = userDecoded;
-      }
-    } catch (e) {
-      console.warn('Error reviving admin token', e);
-    } finally {
-      localStorage.removeItem('admin_token');
-    }
+    return;
   }
 
   public restoreSessionSilently(): Observable<boolean> {
+    return this.ensureAuthenticated();
+  }
+
+  public ensureAuthenticated(): Observable<boolean> {
     if (this.isSessionValid()) {
       return of(true);
     }
@@ -211,10 +146,7 @@ export class AuthService {
     return this.refreshToken().pipe(
       map((response: any) => !!response?.access_token),
       catchError((error) => {
-        if (error?.error?.requiresRelogin || error?.requiresRelogin) {
-          throw error;
-        }
-        if (this.isTransientAuthError(error)) {
+        if (this.isTerminalAuthError(error) || this.isTransientAuthError(error)) {
           throw error;
         }
         return of(false);
@@ -231,20 +163,66 @@ export class AuthService {
     );
   }
 
-  public persistAuthTokens(token: Partial<Token> | null | undefined): void {
+  public isTerminalAuthError(error: any): boolean {
+    const code = error?.code || error?.error?.code;
+    return (
+      error?.requiresRelogin === true ||
+      error?.error?.requiresRelogin === true ||
+      [
+        'SESSION_REPLACED',
+        'REFRESH_INVALID',
+        'REFRESH_EXPIRED',
+        'PASSWORD_CHANGED',
+      ].includes(code)
+    );
+  }
+
+  public async persistAuthTokens(
+    token: Partial<Token> | null | undefined
+  ): Promise<void> {
     if (!token?.access_token) {
       return;
     }
 
-    this.userLocalstorageService.setUserToken({
-      access_token: token.access_token,
-    });
-
     if (this.refreshTokenStore.isNativeClient && token.refresh_token) {
-      this.refreshTokenStore.save(token.refresh_token).catch((error) => {
-        console.warn('Could not store native refresh token', error);
+      console.info('[AUTH] persist_auth_tokens_native_refresh_start');
+      await this.refreshTokenStore.save(token.refresh_token);
+    }
+
+    this.accessToken = token.access_token;
+    const userDecoded = this.getDecodedUser({ access_token: token.access_token });
+    if (userDecoded) {
+      this._user$.next(userDecoded as User);
+      this.impersonating = !!userDecoded.imp;
+      console.info('[AUTH] access_token_applied', {
+        email: userDecoded.email || null,
+        impersonating: this.impersonating,
       });
     }
+  }
+
+  public applyAuthResponse(response: any): Observable<void> {
+    const token: Token = {
+      access_token: response?.access_token,
+      refresh_token: response?.refresh_token,
+      expires_in: response?.expires_in,
+      token_type: response?.token_type,
+    };
+
+    return from(this.persistAuthTokens(token)).pipe(
+      map(() => {
+        if (response?.user) {
+          this._user$.next(response.user);
+        }
+        this.impersonating = !!response?.is_impersonating;
+        console.info('[AUTH] auth_response_applied', {
+          hasAccessToken: !!response?.access_token,
+          hasRefreshToken: !!response?.refresh_token,
+          nativeClient: this.refreshTokenStore.isNativeClient,
+          impersonating: this.impersonating,
+        });
+      })
+    );
   }
 
   public refreshToken(): Observable<any> {
@@ -254,49 +232,25 @@ export class AuthService {
 
     const refreshRequest$ = this.refreshTokenStore.isNativeClient
       ? from(this.refreshTokenStore.get()).pipe(
-          switchMap((refreshToken) =>
-            this.authApiService.refreshTokenWithHeader(refreshToken || undefined)
-          )
+          switchMap((refreshToken) => {
+            if (!refreshToken) {
+              return throwError(() => ({
+                status: 401,
+                code: 'REFRESH_INVALID',
+                message: 'No refresh token',
+                requiresRelogin: true,
+              }));
+            }
+            console.info('[AUTH] refresh_with_native_token');
+            return this.authApiService.refreshTokenWithHeader(refreshToken);
+          })
         )
       : this.authApiService.refreshToken();
 
     this.refreshInFlight$ = refreshRequest$.pipe(
-      switchMap((response: any) => {
-        if (!!response?.error) {
-          throw new Error(response?.error);
-        }
-
-        if (response?.refresh_token && this.refreshTokenStore.isNativeClient) {
-          return from(
-            this.refreshTokenStore.save(response.refresh_token).catch((error) => {
-              console.warn('Could not rotate native refresh token', error);
-            })
-          ).pipe(map(() => response));
-        }
-
-        return of(response);
-      }),
-      map((response: any) => {
-        if (response?.access_token) {
-          this.userLocalstorageService.setUserToken({
-            access_token: response.access_token,
-          });
-        }
-
-        // Update in-memory user state safely (interceptor handles localStorage)
-        try {
-          const token: Token = { access_token: response.access_token };
-          const userDecoded = this.getDecodedUser(token);
-          if (userDecoded) {
-            this.setUser = userDecoded;
-          }
-        } catch (e) {
-          // Non-fatal: user state will be reloaded from localStorage on next navigation
-          console.warn('Could not decode user from refreshed token', e);
-        }
-
-        return response;
-      }),
+      switchMap((response: any) =>
+        this.applyAuthResponse(response).pipe(map(() => response))
+      ),
       finalize(() => {
         this.refreshInFlight$ = null;
       }),
@@ -324,7 +278,8 @@ export class AuthService {
       ? this.refreshTokenStore.peek()
       : null;
 
-    // Clear local state immediately to avoid race conditions and duplicate flows
+    this.accessToken = null;
+    this.impersonating = false;
     this.userLocalstorageService.removeUserToken();
     localStorage.removeItem('admin_token');
     this.refreshTokenStore.clear().catch((error) => {
@@ -334,11 +289,8 @@ export class AuthService {
     this._user$.next(null);
     this.navigationService.goToLoginPage();
 
-    // Best effort call to backend to clear httpOnly cookie and server-side token chain
     const logoutRequest$ = this.refreshTokenStore.isNativeClient
-      ? this.authApiService.logoutWithHeader(
-          nativeRefreshTokenSnapshot || undefined
-        )
+      ? this.authApiService.logoutWithHeader(nativeRefreshTokenSnapshot || undefined)
       : this.authApiService.logout();
 
     logoutRequest$.subscribe({
