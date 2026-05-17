@@ -1,34 +1,50 @@
 import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
-import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
+import { SecureStorageService } from '../security/secure-storage.service';
 
+/**
+ * RefreshTokenStoreService
+ *
+ * Manages secure persistence of the refresh token on native platforms via
+ * `SecureStorageService` (backed by `capacitor-secure-storage-plugin`,
+ * the free community plugin).
+ *
+ * Keeps an in-memory cache so that header-based logout/refresh retries can
+ * read the token synchronously via `peek()` without an async round-trip.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class RefreshTokenStoreService {
   private static readonly REFRESH_TOKEN_KEY = 'auth_refresh_token';
-  private static readonly MISSING_TOKEN_MESSAGE =
-    'Item with given key does not exist';
-  private cachedRefreshToken: string | null = null;
-  private readonly nativePlatform = Capacitor.isNativePlatform();
 
-  constructor() {
-    if (this.nativePlatform) {
-      // Warm up in-memory cache for fast header access (logout/refresh retries).
+  private cachedRefreshToken: string | null = null;
+
+  constructor(private secureStorage: SecureStorageService) {
+    if (this.isNativeClient) {
+      // Warm up the in-memory cache at boot so peek() is ready immediately.
       this.get().catch(() => undefined);
     }
   }
 
+  /** True when running on a native Capacitor platform (iOS / Android). */
   public get isNativeClient(): boolean {
-    return this.nativePlatform;
+    return this.secureStorage.isNativeClient;
   }
 
+  /**
+   * Synchronous peek at the cached refresh token.
+   * Use only where async is not possible (e.g. building logout headers).
+   */
   public peek(): string | null {
     return this.cachedRefreshToken;
   }
 
+  /**
+   * Persist `refreshToken` in secure storage and update the in-memory cache.
+   * Passing `null` / `undefined` delegates to `clear()`.
+   */
   public async save(refreshToken?: string | null): Promise<void> {
-    if (!this.nativePlatform) {
+    if (!this.isNativeClient) {
       return;
     }
 
@@ -38,26 +54,22 @@ export class RefreshTokenStoreService {
     }
 
     this.cachedRefreshToken = refreshToken;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        await SecureStoragePlugin.set({
-          key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
-          value: refreshToken,
-        });
-        console.info('[AUTH] native_refresh_token_saved', {
-          attempt: attempt + 1,
-        });
+        await this.secureStorage.set(RefreshTokenStoreService.REFRESH_TOKEN_KEY, refreshToken);
+        console.info('[AUTH] refresh_token_saved', { attempt: attempt + 1 });
         return;
       } catch (error) {
         if (attempt === 0) {
-          console.warn('[AUTH] native_refresh_token_save_retry', {
-            reason: (error as any)?.message || String(error),
+          console.warn('[AUTH] refresh_token_save_retry', {
+            reason: (error as any)?.message ?? String(error),
           });
           await this.delay(150);
           continue;
         }
 
-        console.error('[AUTH] native_refresh_token_save_failed', error);
+        console.error('[AUTH] refresh_token_save_failed', error);
         throw {
           status: 0,
           message: 'Secure storage write failed',
@@ -68,8 +80,12 @@ export class RefreshTokenStoreService {
     }
   }
 
+  /**
+   * Read the refresh token from secure storage.
+   * Returns `null` if the key does not exist.
+   */
   public async get(): Promise<string | null> {
-    if (!this.nativePlatform) {
+    if (!this.isNativeClient) {
       return null;
     }
 
@@ -77,32 +93,25 @@ export class RefreshTokenStoreService {
       return this.cachedRefreshToken;
     }
 
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const response = await SecureStoragePlugin.get({
-          key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
-        });
-        this.cachedRefreshToken = response?.value || null;
-        console.info('[AUTH] native_refresh_token_loaded', {
-          found: !!this.cachedRefreshToken,
+        const value = await this.secureStorage.get(RefreshTokenStoreService.REFRESH_TOKEN_KEY);
+        this.cachedRefreshToken = value;
+        console.info('[AUTH] refresh_token_loaded', {
+          found: !!value,
           attempt: attempt + 1,
         });
-        return this.cachedRefreshToken;
+        return value;
       } catch (error) {
-        if (this.isMissingTokenError(error)) {
-          console.info('[AUTH] native_refresh_token_missing');
-          return null;
-        }
-
         if (attempt === 0) {
-          console.warn('[AUTH] native_refresh_token_load_retry', {
-            reason: (error as any)?.message || String(error),
+          console.warn('[AUTH] refresh_token_load_retry', {
+            reason: (error as any)?.message ?? String(error),
           });
           await this.delay(150);
           continue;
         }
 
-        console.error('[AUTH] native_refresh_token_load_failed', error);
+        console.error('[AUTH] refresh_token_load_failed', error);
         throw {
           status: 0,
           message: 'Secure storage read failed',
@@ -115,27 +124,21 @@ export class RefreshTokenStoreService {
     return null;
   }
 
+  /**
+   * Wipe the refresh token from secure storage and clear the in-memory cache.
+   */
   public async clear(): Promise<void> {
     this.cachedRefreshToken = null;
-    if (!this.nativePlatform) {
+
+    if (!this.isNativeClient) {
       return;
     }
 
-    try {
-      await SecureStoragePlugin.remove({
-        key: RefreshTokenStoreService.REFRESH_TOKEN_KEY,
-      });
-    } catch (_error) {
-      // no-op: token may not exist yet
-    }
+    await this.secureStorage.remove(RefreshTokenStoreService.REFRESH_TOKEN_KEY);
+    console.info('[AUTH] refresh_token_cleared');
   }
 
-  private isMissingTokenError(error: any): boolean {
-    const message = String(error?.message || error || '');
-    return message.includes(RefreshTokenStoreService.MISSING_TOKEN_MESSAGE);
-  }
-
-  private delay(milliseconds: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
