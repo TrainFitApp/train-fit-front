@@ -102,16 +102,22 @@ export class RecipeService {
   public searchRecipes(
     search: string,
     page: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    filters?: {
+      own?: boolean;
+      fav?: boolean;
+      verified?: boolean;
+    }
   ): Observable<Recipe[]> {
-    return this.recipeApiService.searchRecipes(search, page, limit);
+    return this.recipeApiService.searchRecipes(search, page, limit, filters);
   }
 
   public getUserRecipes(
     page: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    search: string = ''
   ): Observable<Recipe[]> {
-    return this.recipeApiService.getUserRecipes(page, limit);
+    return this.recipeApiService.getUserRecipes(page, limit, search);
   }
 
   public getVerifiedRecipes(

@@ -1854,28 +1854,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.load = false;
     const search = this.searchFilterGroup.search || "";
     const requestPage = this.searchFilterGroup.page || 0;
-
-    let request$;
-
-    if (this.searchFilterGroup.ownFilter) {
-      // User's own recipes
-      request$ = this.recipeApiService.getUserRecipes(requestPage);
-    } else if (
-      this.searchFilterGroup.favFilter &&
-      this.searchFilterGroup.shieldFilter
-    ) {
-      // Favorites + Verified (start from favorites, filter verified locally)
-      request$ = this.recipeApiService.getArchivedRecipes(search, requestPage);
-    } else if (this.searchFilterGroup.shieldFilter) {
-      // Verified recipes
-      request$ = this.recipeApiService.getVerifiedRecipes(search, requestPage);
-    } else if (this.searchFilterGroup.favFilter) {
-      // Favorite recipes
-      request$ = this.recipeApiService.getArchivedRecipes(search, requestPage);
-    } else {
-      // All recipes (verified + user's own)
-      request$ = this.recipeApiService.searchRecipes(search, requestPage);
-    }
+    const request$ = this.recipeApiService.searchRecipes(search, requestPage, 10, {
+      own: !!this.searchFilterGroup.ownFilter,
+      fav: !!this.searchFilterGroup.favFilter,
+      verified: !!this.searchFilterGroup.shieldFilter,
+    });
 
     this.searchRecipesSub = request$.subscribe({
       next: (recipes: Recipe[]) => {
@@ -1883,33 +1866,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           return;
         }
 
-        // Apply local filters if needed
         let filtered = recipes;
-
-        // If own filter + fav, filter favorites from own
-        if (
-          this.searchFilterGroup.ownFilter &&
-          this.searchFilterGroup.favFilter
-        ) {
-          filtered = recipes.filter((r) =>
-            this.user?.archivedRecipes?.includes(r._id),
-          );
-        }
-
-        // If fav + verified, filter verified locally
-        if (
-          this.searchFilterGroup.favFilter &&
-          this.searchFilterGroup.shieldFilter
-        ) {
-          filtered = filtered.filter((r) => !!r.verified);
-        }
-
-        // Local search filter for own recipes
-        if (this.searchFilterGroup.ownFilter && search) {
-          filtered = filtered.filter((r) =>
-            r.name.toLowerCase().includes(search.toLowerCase()),
-          );
-        }
 
         // 🔧 FILTRAR DUPLICADOS: Evitar recetas que ya están en la lista
         const existingIds = new Set(this.recipes.map((r) => r._id));

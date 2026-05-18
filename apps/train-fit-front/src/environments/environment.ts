@@ -1,6 +1,6 @@
 import pkg from '../../package.json';
 
-const API_URL_BASE = 'https://train-fit-back-977t.onrender.com';
+const API_URL_BASE = 'http://localhost:3000';
 
 export const environment = {
   production: false,

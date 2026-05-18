@@ -28,12 +28,25 @@ export class RecipeApiService {
   public searchRecipes(
     search: string,
     page: number = 0,
-    limit: number = 10
+    limit: number = 10,
+    filters?: {
+      own?: boolean;
+      fav?: boolean;
+      verified?: boolean;
+    }
   ): Observable<Recipe[]> {
+    const params = new URLSearchParams({
+      search,
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (filters?.own) params.set('own', 'true');
+    if (filters?.fav) params.set('fav', 'true');
+    if (filters?.verified) params.set('verified', 'true');
+
     return this.http.get<Recipe[]>(
-      `${RecipeApiService.RECIPES_ENDPOINT}/search?search=${encodeURIComponent(
-        search
-      )}&page=${page}&limit=${limit}`
+      `${RecipeApiService.RECIPES_ENDPOINT}/search?${params.toString()}`
     );
   }
 
@@ -42,10 +55,13 @@ export class RecipeApiService {
    */
   public getUserRecipes(
     page: number = 0,
-    limit: number = 10
+    limit: number = 10,
+    search: string = ''
   ): Observable<Recipe[]> {
     return this.http.get<Recipe[]>(
-      `${RecipeApiService.RECIPES_ENDPOINT}/user?page=${page}&limit=${limit}`
+      `${RecipeApiService.RECIPES_ENDPOINT}/user?search=${encodeURIComponent(
+        search
+      )}&page=${page}&limit=${limit}`
     );
   }
 
