@@ -103,6 +103,14 @@ const routes: Routes = [
       ).then((m) => m.WeightInfoPageModule),
   },
   {
+    path: 'management-home',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        './features/management-home/management-home.module'
+      ).then((m) => m.ManagementHomePageModule),
+  },
+  {
     path: 'search-users',
     canMatch: [authMatchGuard],
     loadChildren: () =>

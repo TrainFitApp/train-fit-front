@@ -602,7 +602,7 @@ export class ProfilePage implements OnInit {
   }
 
   public goToUsers(): void {
-    this.navigationService.goToProfileUsers();
+    this.navigationService.goToManagementHome();
   }
 
   public goToPremium(): void {

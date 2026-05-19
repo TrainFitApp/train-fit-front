@@ -1,0 +1,101 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Variables de Entorno</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button class="tf-page-header__back-button" (click)="showAddForm = !showAddForm" aria-label="Añadir">
+          <ion-icon [name]="showAddForm ? 'close-outline' : 'add-outline'"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="env-content">
+  <div class="env-sections">
+    <!-- Add form -->
+    <div class="add-form" *ngIf="showAddForm">
+      <ion-card class="env-card add-card">
+        <div class="env-item">
+          <div class="env-fields">
+            <input class="env-input key-input" [(ngModel)]="newKey" placeholder="NOMBRE_VAR" />
+            <span class="env-equals">=</span>
+            <input class="env-input value-input" [(ngModel)]="newValue" placeholder="valor" />
+          </div>
+          <div class="env-actions">
+            <button class="env-btn save-btn" (click)="addEntry()">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-center" *ngIf="isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Env list -->
+    <div class="section-group" *ngIf="!isLoading">
+      <ion-card
+        class="env-card"
+        *ngFor="let entry of entries"
+        [class.is-commented]="entry.commented"
+      >
+        <div class="env-item">
+          <div class="env-fields">
+            <span class="env-key">{{ entry.key }}</span>
+            <span class="env-equals">=</span>
+
+            <ng-container *ngIf="editingKey === entry.key; else valueDisplay">
+              <input
+                class="env-input value-input editing"
+                [(ngModel)]="editValue"
+                (keyup.enter)="saveEdit(entry)"
+                (blur)="saveEdit(entry)"
+                autofocus
+              />
+            </ng-container>
+
+            <ng-template #valueDisplay>
+              <span class="env-value" (click)="startEdit(entry)">{{ entry.value || '—' }}</span>
+            </ng-template>
+          </div>
+
+          <div class="env-actions">
+            <ng-container *ngIf="editingKey === entry.key; else actionsDefault">
+              <button class="env-btn cancel-btn" (click)="cancelEdit()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </ng-container>
+
+            <ng-template #actionsDefault>
+              <button class="env-btn edit-btn" (click)="startEdit(entry)">
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button class="env-btn toggle-btn" [class.is-commented]="entry.commented" (click)="toggleEntry(entry)">
+                <ion-icon [name]="entry.commented ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              </button>
+              <button class="env-btn delete-btn" (click)="deleteEntry(entry)">
+                <ion-icon color="danger" name="trash-outline"></ion-icon>
+              </button>
+            </ng-template>
+          </div>
+        </div>
+      </ion-card>
+
+      <div class="empty-state" *ngIf="entries.length === 0">
+        <ion-icon name="cog-outline"></ion-icon>
+        <p>No hay variables de entorno</p>
+      </div>
+    </div>
+  </div>
+</ion-content>

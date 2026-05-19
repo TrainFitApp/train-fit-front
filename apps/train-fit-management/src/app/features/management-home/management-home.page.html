@@ -1,0 +1,47 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Panel de Administración</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="management-content">
+  <div class="management-sections">
+    <div class="section-group">
+      <ion-card class="management-card" (click)="goToUsers()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container users-icon">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Usuarios</h3>
+            <p>Gestionar usuarios, suscripciones y más</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
+      <ion-card class="management-card" (click)="goToAppConfig()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container config-icon">
+            <ion-icon name="code-slash-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Variables de Entorno</h3>
+            <p>Gestionar .env del servidor</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>

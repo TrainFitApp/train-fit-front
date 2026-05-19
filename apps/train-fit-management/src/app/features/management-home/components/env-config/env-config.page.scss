@@ -1,0 +1,199 @@
+.env-content {
+  --background: var(--ion-color-light);
+
+  .env-sections {
+    padding: 0 16px 24px;
+
+    .section-group {
+      margin-top: 8px;
+    }
+
+    .loading-center {
+      display: flex;
+      justify-content: center;
+      padding: 48px 0;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 0;
+      color: var(--ion-color-medium);
+
+      ion-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 15px;
+      }
+    }
+  }
+}
+
+.add-form {
+  margin-top: 16px;
+}
+
+.env-card {
+  margin: 0 0 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  &.is-commented {
+    opacity: 0.5;
+
+    .env-key,
+    .env-value {
+      text-decoration: line-through;
+    }
+  }
+
+  .env-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 8px;
+    min-height: 48px;
+  }
+
+  .env-fields {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .env-key {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .env-equals {
+    color: var(--ion-color-medium);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .env-value {
+    font-size: 13px;
+    color: var(--ion-text-color);
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+    flex: 1;
+    min-width: 0;
+
+    &:hover {
+      background: rgba(var(--ion-color-primary-rgb), 0.05);
+    }
+  }
+
+  .env-input {
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: var(--ion-text-color);
+    outline: none;
+    flex: 1;
+    min-width: 0;
+
+    &:focus {
+      border-color: var(--ion-color-primary);
+    }
+
+    &.key-input {
+      text-transform: uppercase;
+      flex: 0 1 160px;
+    }
+
+    &.editing {
+      border-color: var(--ion-color-primary);
+      background: rgba(var(--ion-color-primary-rgb), 0.08);
+    }
+  }
+
+  .env-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .env-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    transition: all 0.15s;
+
+    ion-icon {
+      font-size: 18px;
+    }
+
+    &:active {
+      transform: scale(0.9);
+    }
+
+    &.edit-btn:hover {
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      color: var(--ion-color-primary);
+    }
+
+    &.toggle-btn {
+      &.is-commented {
+        color: var(--ion-color-warning);
+      }
+
+      &:hover {
+        background: rgba(var(--ion-color-warning-rgb), 0.1);
+        color: var(--ion-color-warning);
+      }
+    }
+
+    &.delete-btn:hover {
+      background: rgba(var(--ion-color-danger-rgb), 0.1);
+      color: var(--ion-color-danger);
+    }
+
+    &.save-btn {
+      color: var(--ion-color-success);
+
+      &:hover {
+        background: rgba(var(--ion-color-success-rgb), 0.1);
+      }
+    }
+
+    &.cancel-btn:hover {
+      background: rgba(var(--ion-color-medium-rgb), 0.1);
+    }
+  }
+}
+
+.add-card .env-item {
+  background: rgba(var(--ion-color-primary-rgb), 0.03);
+  border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.2);
+}
