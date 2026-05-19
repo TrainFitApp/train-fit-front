@@ -163,6 +163,13 @@ export class UserAPIService {
   public deleteById(id: string): Observable<string> {
     return this.http.delete<string>(`${UserAPIService.USERS_ENDPOINT}/${id}`);
   }
+
+  public updateUserRoles(id: string, roles: string[]): Observable<{ message: string; roles: string[] }> {
+    return this.http.put<{ message: string; roles: string[] }>(
+      `${UserAPIService.USERS_ENDPOINT}/roles/${id}`,
+      { roles }
+    );
+  }
   public activateAccount(email: string, code: string): Observable<any> {
     return this.http.post<any>(`${UserAPIService.AUTH_ACTIVATE_ENDPOINT}`, {
       email,

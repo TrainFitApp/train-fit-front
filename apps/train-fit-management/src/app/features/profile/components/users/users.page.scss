@@ -470,6 +470,10 @@ ion-accordion {
     opacity: 0.4;
     pointer-events: none;
   }
+
+  &--full {
+    grid-column: 1 / -1;
+  }
 }
 
 .premium-admin-card {
@@ -541,5 +545,25 @@ ion-accordion {
   ion-icon {
     font-size: 1.1rem;
     color: var(--ion-color-secondary);
+  }
+}
+
+// ─── Role Select ──────────────────────────────────────────────────────────────
+.user-role-select {
+  --padding-end: 0;
+  --padding-start: 0;
+  margin: 0;
+  min-height: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  max-width: 100%;
+
+  &::part(icon) {
+    display: none;
+  }
+
+  &::part(text) {
+    padding: 0;
   }
 }

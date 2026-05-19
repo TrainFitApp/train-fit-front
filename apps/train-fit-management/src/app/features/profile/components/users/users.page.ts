@@ -16,6 +16,7 @@ import {
 } from 'src/app/core/services/billing/billing-api.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { UserAPIService } from 'src/app/core/services/user/user-api.service';
 import { UsersFilterPage } from './users-filter.page';
 import { UsersFilter } from './users-filter.model';
 
@@ -60,7 +61,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     private readonly billingApiService: BillingApiService,
     private readonly authService: AuthService,
     private readonly ionicUtilService: IonicUtilService,
-    private readonly navigationService: NavigationService
+    private readonly navigationService: NavigationService,
+    private readonly userAPIService: UserAPIService
   ) { }
 
   public ngOnInit(): void {
@@ -253,6 +255,34 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     this.clearUserHash(user);
+  }
+
+  public async changeUserRole(user: DashboardUser, roles: string[]): Promise<void> {
+    if (!user?._id) return;
+
+    const label = roles.includes('admin') ? 'Admin' : 'Usuario';
+    const prevLabel = user.roles?.includes('admin') ? 'Admin' : 'Usuario';
+
+    const alertRes = await this.ionicUtilService.showAlert({
+      header: 'Cambiar rol',
+      message: `¿Cambiar rol de <b>${this.getUserFullName(user)}</b> de <b>${prevLabel}</b> a <b>${label}</b>?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Cambiar', role: 'confirm' },
+      ],
+    });
+
+    if (alertRes?.role !== 'confirm') return;
+
+    this.userAPIService.updateUserRoles(user._id, roles).subscribe({
+      next: (res) => {
+        user.roles = res.roles;
+        this.ionicUtilService.showToast({ message: `Rol cambiado a ${label}` });
+      },
+      error: () => {
+        this.ionicUtilService.showToast({ message: 'Error al cambiar rol', color: 'danger' });
+      },
+    });
   }
 
   public async openPremiumDetails(user: DashboardUser): Promise<void> {

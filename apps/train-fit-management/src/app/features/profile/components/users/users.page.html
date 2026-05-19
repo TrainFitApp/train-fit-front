@@ -146,6 +146,24 @@
               </div>
             </div>
 
+            <!-- Role Select -->
+            <div class="detail-item detail-item--full">
+              <ion-icon name="shield-checkmark-outline" class="detail-icon var-secondary"></ion-icon>
+              <div class="detail-texts">
+                <span class="detail-title">Rol</span>
+                <ion-select
+                  [value]="user.roles || []"
+                  (ionChange)="changeUserRole(user, $event.detail.value)"
+                  interface="action-sheet"
+                  multiple="true"
+                  class="user-role-select"
+                >
+                  <ion-select-option value="user">Usuario</ion-select-option>
+                  <ion-select-option value="admin">Admin</ion-select-option>
+                </ion-select>
+              </div>
+            </div>
+
           </div>
           <div class="user-actions-footer">
             <ion-button expand="block" color="danger" fill="clear" (click)="confirmDeleteUser(user)">
