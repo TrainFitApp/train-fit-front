@@ -43,6 +43,19 @@
         </div>
       </ion-card>
 
+      <ion-card class="management-card" (click)="goToRepo()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container repo-icon">
+            <ion-icon name="git-branch-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Repositorio</h3>
+            <p>Token GitHub y git pull</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
       <ion-card class="management-card" (click)="confirmRestart()" tappable>
         <div class="management-item">
           <div class="item-icon-container restart-icon">

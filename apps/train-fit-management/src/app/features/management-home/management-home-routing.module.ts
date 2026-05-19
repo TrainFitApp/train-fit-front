@@ -14,6 +14,13 @@ const routes: Routes = [
         (m) => m.EnvConfigPageModule
       ),
   },
+  {
+    path: 'repo-config',
+    loadChildren: () =>
+      import('./components/repo-config/repo-config.module').then(
+        (m) => m.RepoConfigPageModule
+      ),
+  },
 ];
 
 @NgModule({

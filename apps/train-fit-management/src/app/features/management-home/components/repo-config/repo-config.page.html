@@ -1,0 +1,81 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Repositorio</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="repo-content">
+  <div class="repo-sections">
+    <!-- Token Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="key-outline"></ion-icon>
+        <span>TOKEN GITHUB</span>
+      </div>
+
+      <ion-card class="env-card">
+        <div class="env-item">
+          <input
+            class="env-input token-input"
+            [(ngModel)]="token"
+            placeholder="ghp_xxxxxxxxxxxx"
+            type="password"
+          />
+          <div class="env-actions">
+            <button class="env-btn save-btn" (click)="saveToken()">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+
+    <!-- Pull Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="git-branch-outline"></ion-icon>
+        <span>GIT PULL</span>
+      </div>
+
+      <ion-button expand="block" color="danger" class="pull-btn" (click)="confirmPull()" [disabled]="isPulling">
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+        {{ isPulling ? 'Ejecutando...' : 'Ejecutar Pull' }}
+      </ion-button>
+
+      <!-- Spinner -->
+      <div class="loading-center" *ngIf="isPulling">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <!-- Pull Result Banner -->
+      <button
+        class="pull-result-banner"
+        *ngIf="pullResult"
+        [class.is-success]="pullResult.success"
+        [class.is-error]="!pullResult.success"
+      >
+        <ion-icon
+          [name]="pullResult.success ? 'checkmark-circle-outline' : 'close-circle-outline'"
+          class="pull-result-banner__icon"
+        ></ion-icon>
+        <div class="pull-result-banner__text">
+          <span class="pull-result-banner__title">
+            {{ pullResult.success ? 'Pull completado' : 'Pull fallido' }}
+          </span>
+          <span class="pull-result-banner__sub">{{ pullResult.stdout || pullResult.stderr }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="pull-result-banner__arrow"></ion-icon>
+      </button>
+    </div>
+  </div>
+</ion-content>
