@@ -1,0 +1,53 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Base de Datos</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="db-content">
+  <div class="db-sections">
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="server-outline"></ion-icon>
+        <span>PERFILES DE BBDD</span>
+      </div>
+
+      <ion-card class="db-card">
+        <div class="db-item">
+          <div class="db-select-wrapper">
+            <ion-icon name="git-branch-outline" class="db-icon"></ion-icon>
+            <ion-select
+              [value]="selectedName"
+              (ionChange)="onDbChange($event)"
+              interface="action-sheet"
+              [interfaceOptions]="{header: 'Seleccionar BBDD'}"
+            >
+              <ion-select-option *ngFor="let profile of profiles" [value]="profile.name">
+                {{ profile.name }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+
+    <!-- Active profile banner -->
+    <button class="active-banner" *ngIf="profiles.length > 0">
+      <ion-icon name="checkmark-circle-outline" class="active-banner__icon"></ion-icon>
+      <div class="active-banner__text">
+        <span class="active-banner__title">Activa</span>
+        <span class="active-banner__sub">{{ getActiveName() }}</span>
+      </div>
+    </button>
+  </div>
+</ion-content>

@@ -52,6 +52,13 @@
               }
             }
 
+            &.db-icon {
+              background: rgba(var(--ion-color-secondary-rgb), 0.1);
+              ion-icon {
+                color: var(--ion-color-secondary);
+              }
+            }
+
             &.repo-icon {
               background: rgba(var(--ion-color-tertiary-rgb), 0.1);
               ion-icon {

@@ -43,6 +43,19 @@
         </div>
       </ion-card>
 
+      <ion-card class="management-card" (click)="goToDb()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container db-icon">
+            <ion-icon name="server-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Base de Datos</h3>
+            <p>Cambiar entre perfiles de BBDD</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
       <ion-card class="management-card" (click)="goToRepo()" tappable>
         <div class="management-item">
           <div class="item-icon-container repo-icon">

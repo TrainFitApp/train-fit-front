@@ -27,6 +27,10 @@ export class ManagementHomePage {
     void this.navController.navigateForward(['/management-home', 'repo-config']);
   }
 
+  public goToDb(): void {
+    void this.navController.navigateForward(['/management-home', 'db-config']);
+  }
+
   public goBack(): void {
     this.navigationService.goBack();
   }

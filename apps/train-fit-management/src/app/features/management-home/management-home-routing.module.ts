@@ -21,6 +21,13 @@ const routes: Routes = [
         (m) => m.RepoConfigPageModule
       ),
   },
+  {
+    path: 'db-config',
+    loadChildren: () =>
+      import('./components/db-config/db-config.module').then(
+        (m) => m.DbConfigPageModule
+      ),
+  },
 ];
 
 @NgModule({
