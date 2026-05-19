@@ -7,6 +7,7 @@ import {
   AUTH_LOGIN_FEEDBACK_QUERY_PARAM,
 } from '../services/auth/auth-error.service';
 import { AuthService } from '../services/auth/auth.service';
+import { PendingEmailVerificationService } from '../services/auth/pending-email-verification.service';
 
 const createLoginRedirect = (
   router: Router,
@@ -21,12 +22,19 @@ const createLoginRedirect = (
   });
 };
 
-const checkToken = (): boolean | Observable<boolean | UrlTree> => {
+const checkToken = (): boolean | UrlTree | Observable<boolean | UrlTree> => {
   const authService = inject(AuthService);
+  const pendingEmailVerificationService = inject(
+    PendingEmailVerificationService
+  );
   const router = inject(Router);
 
   if (authService.isAuthenticated()) {
     return true;
+  }
+
+  if (pendingEmailVerificationService.hasPendingVerification()) {
+    return router.createUrlTree(['/sign-in/sign-up']);
   }
 
   console.info('[AUTH] auth_guard_refresh_attempt');

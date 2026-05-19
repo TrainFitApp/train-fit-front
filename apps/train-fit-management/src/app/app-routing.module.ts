@@ -97,6 +97,7 @@ const routes: Routes = [
   },
   {
     path: 'weight-info',
+    canMatch: [authMatchGuard],
     loadChildren: () =>
       import(
         'src/app/features/diet-days/components/weight-info/weight-info.module'

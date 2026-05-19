@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
 import { AppUpdateService } from 'src/app/core/services/app-update/app-update.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 
@@ -23,6 +24,7 @@ export class AppComponent implements OnDestroy {
     private router: Router,
     private appUpdateService: AppUpdateService,
     private authService: AuthService,
+    private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
     private themeService: ThemeService
   ) {
@@ -35,17 +37,18 @@ export class AppComponent implements OnDestroy {
     // Check version BEFORE any routing (Inicio Total)
     await this.appUpdateService.checkForRequiredUpdate();
     
-    this.rootRoutes();
-    
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     this.initSessionTracking();
+    this.routeOnStartup();
     this.restoreSessionOnStartup();
     this.initForegroundBillingRefresh();
   }
 
-  private rootRoutes(): void {
-    this.router.navigate(['/'], { replaceUrl: true });
+  private routeOnStartup(): void {
+    if (this.shouldKeepPendingEmailVerificationVisible()) {
+      void this.router.navigate(['/sign-in/sign-up'], { replaceUrl: true });
+    }
   }
 
   private initSessionTracking(): void {
@@ -55,12 +58,20 @@ export class AppComponent implements OnDestroy {
   }
 
   private restoreSessionOnStartup(): void {
-    if (this.authService.isSessionValid()) {
+    if (
+      this.authService.isSessionValid() ||
+      this.shouldKeepPendingEmailVerificationVisible()
+    ) {
       return;
     }
 
     console.info('[AUTH] auth_bootstrap_refresh_attempt');
     this.authService.restoreSessionSilently().subscribe({
+      next: (restored) => {
+        if (restored && this.isPublicAuthRoute(this.router.url)) {
+          void this.router.navigate(['/user-loader'], { replaceUrl: true });
+        }
+      },
       error: (error) => {
         if (error?.error?.requiresRelogin || error?.requiresRelogin) {
           this.authService.logout();
@@ -80,6 +91,10 @@ export class AppComponent implements OnDestroy {
       }
 
       void this.appUpdateService.checkForRequiredUpdate();
+
+      if (this.shouldDeferAuthWorkForCurrentRoute()) {
+        return;
+      }
 
       if (!this.authService.isAccessTokenExpiringSoon()) {
         void this.billingService.getBackendEntitlements().catch((error) => {
@@ -107,6 +122,33 @@ export class AppComponent implements OnDestroy {
     }).then((listener) => {
       this.appStateListener = listener;
     });
+  }
+
+  private shouldKeepPendingEmailVerificationVisible(): boolean {
+    return (
+      !this.authService.isAuthenticated() &&
+      this.pendingEmailVerificationService.hasPendingVerification()
+    );
+  }
+
+  private shouldDeferAuthWorkForCurrentRoute(): boolean {
+    if (this.authService.isAuthenticated() || this.hasAuthenticatedSession) {
+      return false;
+    }
+
+    return (
+      this.pendingEmailVerificationService.hasPendingVerification() ||
+      this.isPublicAuthRoute(this.router.url)
+    );
+  }
+
+  private isPublicAuthRoute(url: string): boolean {
+    const path = (url || '').split('?')[0].split('#')[0];
+    return (
+      path === '/sign-in' ||
+      path.startsWith('/sign-in/sign-up') ||
+      path.startsWith('/sign-in/restore-password')
+    );
   }
 
   public ngOnDestroy(): void {
