@@ -8,6 +8,7 @@ import { BillingService } from '../billing/billing.service';
 import { NavigationService } from '../util/navigation.service';
 import { SecureStorageService } from '../security/secure-storage.service';
 import { AuthApiService } from './auth-api.service';
+import { PendingEmailVerificationService } from './pending-email-verification.service';
 import { RefreshTokenStoreService } from './refresh-token-store.service';
 
 /** Keys used in SecureStorage for token persistence on native. */
@@ -38,6 +39,7 @@ export class AuthService {
     private navigationService: NavigationService,
     private refreshTokenStore: RefreshTokenStoreService,
     private secureStorage: SecureStorageService,
+    private pendingEmailVerificationService: PendingEmailVerificationService,
   ) {
     // Legacy cleanup: never leave tokens in plain localStorage.
     this.userLocalstorageService.removeUserToken();
@@ -229,6 +231,7 @@ export class AuthService {
     if (userDecoded) {
       this._user$.next(userDecoded as User);
       this.impersonating = !!userDecoded.imp;
+      this.pendingEmailVerificationService.clear();
       console.info('[AUTH] access_token_applied', {
         email: userDecoded.email ?? null,
         impersonating: this.impersonating,

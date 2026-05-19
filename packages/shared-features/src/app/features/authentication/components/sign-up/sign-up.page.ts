@@ -39,6 +39,10 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import {
+  PendingEmailVerificationService,
+  PendingEmailVerificationState,
+} from 'src/app/core/services/auth/pending-email-verification.service';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
 import Swiper from 'swiper';
@@ -107,6 +111,7 @@ export class SignUpPage implements OnInit, OnDestroy {
   public objetiveMessage: string;
   public kcalTotal: number;
   public years: number;
+  private readonly RESEND_COOLDOWN_SECONDS = 60;
 
   public objetiveSelected: OBJETIVE_TYPE;
 
@@ -135,21 +140,31 @@ export class SignUpPage implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private authService: AuthService,
     private router: Router,
-    private signUpStateService: SignUpStateService
+    private signUpStateService: SignUpStateService,
+    private pendingEmailVerificationService: PendingEmailVerificationService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
 
     const navigation = this.router.getCurrentNavigation();
-    const fromSignIn = !!navigation?.extras?.state?.data?.fromSignIn;
+    const navigationData = navigation?.extras?.state?.data;
+    const pendingVerification = this.pendingEmailVerificationService.get();
+    const fromSignIn = !!navigationData?.fromSignIn;
+    const verificationEmail =
+      navigationData?.email ?? pendingVerification?.email ?? null;
 
-    this.verifyEmailOnly = !!navigation?.extras?.state?.data?.verifyEmailOnly;
+    this.verifyEmailOnly =
+      !!navigationData?.verifyEmailOnly || !!pendingVerification;
     if (this.verifyEmailOnly) {
       if (!this.user) {
         this.user = new User();
       }
-      this.user.email = navigation?.extras?.state?.data?.email;
+      this.user.email = verificationEmail;
       this.codeSended = true;
+      if (verificationEmail && !pendingVerification) {
+        this.pendingEmailVerificationService.markCodeSent(verificationEmail);
+      }
+      this.restoreResendCooldown(pendingVerification);
     }
 
     // Si NO hay usuario local o viene de Sign In, es registro tradicional (con email/pass)
@@ -461,6 +476,11 @@ export class SignUpPage implements OnInit, OnDestroy {
       this.userService.createUser(this.user, new Date()).subscribe({
         next: (resUser) => {
           this.user = resUser;
+          this.user.email =
+            this.user.email || this.signUpForm.get('email')?.value;
+          this.pendingEmailVerificationService.start(
+            this.user.email
+          );
           this.codeSended = true;
           this.mailToast();
           this.startResendCooldown();
@@ -542,6 +562,16 @@ export class SignUpPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.user?.email) {
+      this.pendingEmailVerificationService.clear();
+      this.ionicUtilService.showToast({
+        message: 'No se pudo recuperar el correo de verificaciÃ³n',
+        duration: 3000,
+      });
+      this.navigationService.goToLoginPage();
+      return;
+    }
+
     this.isProcessing = true;
 
     this.userService.activateAccount(this.user.email, code).subscribe({
@@ -563,6 +593,7 @@ export class SignUpPage implements OnInit, OnDestroy {
             },
           });
         } else {
+          this.pendingEmailVerificationService.clear();
           this.navigationService.goToLoginPage();
         }
         this.isProcessing = false;
@@ -580,10 +611,11 @@ export class SignUpPage implements OnInit, OnDestroy {
   public resendCode(): void {
     if (!this.user?.email || this.resendDisabled) return;
 
-    this.startResendCooldown();
     this.isProcessing = true;
     this.userService.sendMailCode(this.user.email).subscribe({
       next: () => {
+        this.pendingEmailVerificationService.markCodeSent(this.user.email);
+        this.startResendCooldown();
         this.ionicUtilService.showToast({
           message: 'Código reenviado',
           duration: 3000,
@@ -600,11 +632,17 @@ export class SignUpPage implements OnInit, OnDestroy {
     });
   }
 
-  private startResendCooldown() {
-    this.resendDisabled = true;
-    this.resendCountdown = 60;
-
+  private startResendCooldown(seconds = this.RESEND_COOLDOWN_SECONDS): void {
     if (this.resendInterval) clearInterval(this.resendInterval);
+
+    if (seconds <= 0) {
+      this.resendDisabled = false;
+      this.resendCountdown = 0;
+      return;
+    }
+
+    this.resendDisabled = true;
+    this.resendCountdown = seconds;
 
     this.resendInterval = setInterval(() => {
       this.resendCountdown--;
@@ -613,6 +651,22 @@ export class SignUpPage implements OnInit, OnDestroy {
         clearInterval(this.resendInterval);
       }
     }, 1000);
+  }
+
+  private restoreResendCooldown(
+    pendingVerification: PendingEmailVerificationState | null
+  ): void {
+    if (!pendingVerification?.codeSentAt) {
+      return;
+    }
+
+    const sentAt = new Date(pendingVerification.codeSentAt).getTime();
+    if (Number.isNaN(sentAt)) {
+      return;
+    }
+
+    const elapsedSeconds = Math.floor((Date.now() - sentAt) / 1000);
+    this.startResendCooldown(this.RESEND_COOLDOWN_SECONDS - elapsedSeconds);
   }
 
   public mailToast(): void {
@@ -786,8 +840,15 @@ export class SignUpPage implements OnInit, OnDestroy {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-primary',
           handler: () => {
-            this.authService.logout();
-            this.navigationService.goToLoginPage();
+            this.pendingEmailVerificationService.clear();
+            if (
+              this.authService.isAuthenticated() ||
+              this.authService.hasStoredAccessToken()
+            ) {
+              this.authService.logout();
+            } else {
+              this.navigationService.goToLoginPage();
+            }
             this.backButton$?.unsubscribe();
           },
         },

@@ -13,6 +13,7 @@ import {
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { GoogleAuthService } from 'src/app/core/services/auth/google-auth.service';
 import { AppleAuthService } from 'src/app/core/services/auth/apple-auth.service';
+import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -66,6 +67,7 @@ export class SignInPage implements OnInit {
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
     private authErrorService: AuthErrorService,
+    private pendingEmailVerificationService: PendingEmailVerificationService,
     private userService: UserService,
     private _googleAuthService: GoogleAuthService,
     private _appleAuthService: AppleAuthService
@@ -565,6 +567,7 @@ export class SignInPage implements OnInit {
     // Detectar si el usuario no ha verificado su cuenta (error 403)
     if (feedback.kind === 'account-not-verified') {
       const email = this.formControls.email.value;
+      this.pendingEmailVerificationService.markCodeSent(email);
       const extras = {
         state: {
           data: { verifyEmailOnly: true, email: email, fromSignIn: true },
