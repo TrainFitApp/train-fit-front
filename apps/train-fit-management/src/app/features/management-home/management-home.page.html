@@ -42,6 +42,19 @@
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>
       </ion-card>
+
+      <ion-card class="management-card" (click)="confirmRestart()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container restart-icon">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Reiniciar Servidor</h3>
+            <p>Reiniciar nginx + recargar PM2</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
     </div>
   </div>
 </ion-content>
