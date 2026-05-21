@@ -7,6 +7,8 @@ import { NgControl } from '@angular/forms';
 export class DecimalInputDirective {
   /** Max number of decimal places allowed. null = unlimited. 0 = integers only. */
   @Input() maxDecimals: number | null = null;
+  @Input() minValue: number | null = null;
+  @Input() maxValue: number | null = null;
 
   constructor(@Optional() @Self() private ngControl: NgControl) {}
 
@@ -40,6 +42,15 @@ export class DecimalInputDirective {
         const intPart = value.substring(0, dotIndex);
         const decPart = value.substring(dotIndex + 1, dotIndex + 1 + this.maxDecimals);
         value = intPart + '.' + decPart;
+      }
+    }
+
+    if (value !== '' && (this.minValue !== null || this.maxValue !== null)) {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        const min = this.minValue ?? parsed;
+        const max = this.maxValue ?? parsed;
+        value = Math.min(max, Math.max(min, parsed)).toString();
       }
     }
 

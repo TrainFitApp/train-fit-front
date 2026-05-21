@@ -20,6 +20,10 @@ import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 import { MUSCLE_GROUPS } from 'src/app/shared/constants/muscle-groups';
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-table-card',
@@ -267,6 +271,9 @@ export class TableCardPage {
           type: 'textarea' as 'textarea',
           value: this.tableCard.name,
           placeholder: 'Nombre de la rutina',
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
         },
       ],
       buttons: [
@@ -278,18 +285,22 @@ export class TableCardPage {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-primary',
           handler: (data) => {
-            if (data.tableName.trim() === '') {
+            const tableName = normalizeTextInput(
+              data.tableName,
+              VALIDATION_LIMITS.text.shortNameMax
+            );
+            if (tableName.length < VALIDATION_LIMITS.text.shortNameMin) {
               this.ionicUtilService.showToast({
                 message: 'El campo no puede estar vacío',
                 duration: 2000,
               });
               return false;
             }
-            this.tableCard.name = data.tableName;
+            this.tableCard.name = tableName;
             this.tableService.updateTableName(this.tableCard).subscribe(() => {
               this.tableService.setCurrentTable = {
                 ...this.tableService.tableInUse,
-                name: data.tableName,
+                name: tableName,
               };
               const message = 'Nombre de rutina actualizado';
               const duration = 1000;

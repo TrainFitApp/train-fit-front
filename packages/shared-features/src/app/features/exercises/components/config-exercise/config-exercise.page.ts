@@ -31,6 +31,13 @@ import { ManageSetComponent } from "src/app/features/tables/components/summary/c
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import {
+  normalizeLongTextInput,
+  normalizeTextInput,
+  optionalTrimmedLengthValidator,
+  trimmedLengthValidator,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
@@ -320,8 +327,20 @@ export class ConfigExercisePage implements OnInit {
     }
 
     this.form = new FormGroup({
-      name: new FormControl(exerciseConfig.exercise.name, Validators.required),
-      description: new FormControl(exerciseConfig.exercise.description || ""),
+      name: new FormControl(
+        exerciseConfig.exercise.name,
+        Validators.compose([
+          Validators.required,
+          trimmedLengthValidator(
+            VALIDATION_LIMITS.text.shortNameMin,
+            VALIDATION_LIMITS.text.shortNameMax,
+          ),
+        ]),
+      ),
+      description: new FormControl(
+        exerciseConfig.exercise.description || "",
+        optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.descriptionMax),
+      ),
     });
   }
 
@@ -1350,8 +1369,11 @@ export class ConfigExercisePage implements OnInit {
       {
         text: "CONFIRMAR",
         handler: (res) => {
-          this.noteToCreate = !!res.notes;
-          this.notes = res.notes;
+          this.notes = normalizeLongTextInput(
+            res.notes,
+            VALIDATION_LIMITS.text.noteMax,
+          );
+          this.noteToCreate = !!this.notes;
         },
       },
     ];
@@ -1361,6 +1383,9 @@ export class ConfigExercisePage implements OnInit {
         type: "textarea",
         value: this.notes,
         placeholder: "Tus notas...",
+        attributes: {
+          maxlength: VALIDATION_LIMITS.text.noteMax,
+        },
       },
     ];
 
@@ -1371,7 +1396,12 @@ export class ConfigExercisePage implements OnInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((res) => {
-      if (res.data) this.notes = res.data.values.notes;
+      if (res.data) {
+        this.notes = normalizeLongTextInput(
+          res.data.values.notes,
+          VALIDATION_LIMITS.text.noteMax,
+        );
+      }
     });
   }
 

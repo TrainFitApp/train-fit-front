@@ -10,6 +10,10 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-restore-password',
@@ -85,7 +89,11 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     if (this.needsEmailInput) {
       controls['email'] = new FormControl(
         null,
-        Validators.compose([Validators.required, Validators.email]),
+        Validators.compose([
+          Validators.required,
+          Validators.email,
+          Validators.maxLength(VALIDATION_LIMITS.auth.emailMax),
+        ]),
         (control) =>
           from(
             EmailExistValidator.createValidator(this.userService)(control)
@@ -155,12 +163,25 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       return;
     }
 
+    const code = normalizeTextInput(
+      this.codeInput.nativeElement.value,
+      VALIDATION_LIMITS.auth.codeMax
+    ).toLowerCase();
+    if (!code || !/^[a-z0-9]+$/.test(code)) {
+      this.ionicUtilService.showErrorToast(
+        'Introduce un código válido',
+        'Código inválido',
+        3000
+      );
+      return;
+    }
+
     this.loading = true;
     this.userService
       .checkRestoreCode(
         email,
         this.restorePassForm.controls.password.value,
-        this.codeInput.nativeElement.value.toString().toLowerCase()
+        code
       )
       .subscribe({
         next: () => {

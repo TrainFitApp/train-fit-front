@@ -10,6 +10,8 @@
     inputmode="decimal"
     class="numeric-value-input"
     [value]="displayValue"
+    [attr.min]="min"
+    [attr.max]="max"
     (focus)="onInputFocus($event)"
     (input)="onInputChange($event)"
     (click)="onInputClick()"

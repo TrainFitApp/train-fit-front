@@ -48,6 +48,11 @@ import { PasswordComplexity } from 'src/app/core/validators/password-complexity'
 import Swiper from 'swiper';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
+import {
+  normalizeTextInput,
+  trimmedLengthValidator,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-sign-up',
@@ -250,8 +255,26 @@ export class SignUpPage implements OnInit, OnDestroy {
   public initForm(): void {
     this.signUpForm = new FormGroup(
       {
-        name: new FormControl(null, Validators.required),
-        lastname: new FormControl(null, Validators.required),
+        name: new FormControl(
+          null,
+          Validators.compose([
+            Validators.required,
+            trimmedLengthValidator(
+              VALIDATION_LIMITS.text.personNameMin,
+              VALIDATION_LIMITS.text.personNameMax
+            ),
+          ])
+        ),
+        lastname: new FormControl(
+          null,
+          Validators.compose([
+            Validators.required,
+            trimmedLengthValidator(
+              VALIDATION_LIMITS.text.personNameMin,
+              VALIDATION_LIMITS.text.lastnameMax
+            ),
+          ])
+        ),
         weight: new FormControl(
           null,
           Validators.compose([
@@ -308,7 +331,11 @@ export class SignUpPage implements OnInit, OnDestroy {
       this.signUpForm
         .get('email')
         ?.setValidators(
-          Validators.compose([Validators.required, Validators.email])
+          Validators.compose([
+            Validators.required,
+            Validators.email,
+            Validators.maxLength(VALIDATION_LIMITS.auth.emailMax),
+          ])
         );
 
       this.signUpForm
@@ -553,7 +580,10 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   public verifyCode(): void {
-    const code = this.codeInput.nativeElement.value.toString().trim();
+    const code = normalizeTextInput(
+      this.codeInput.nativeElement.value,
+      VALIDATION_LIMITS.auth.codeMax
+    );
     if (!code) {
       this.ionicUtilService.showToast({
         message: 'Introduce el código',
@@ -562,10 +592,18 @@ export class SignUpPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (!/^[a-zA-Z0-9]+$/.test(code)) {
+      this.ionicUtilService.showToast({
+        message: 'Introduce un código válido',
+        duration: 3000,
+      });
+      return;
+    }
+
     if (!this.user?.email) {
       this.pendingEmailVerificationService.clear();
       this.ionicUtilService.showToast({
-        message: 'No se pudo recuperar el correo de verificaciÃ³n',
+        message: 'No se pudo recuperar el correo de verificación',
         duration: 3000,
       });
       this.navigationService.goToLoginPage();
@@ -772,6 +810,20 @@ export class SignUpPage implements OnInit, OnDestroy {
 
     this.user = {
       ...this.signUpForm.value,
+      name: normalizeTextInput(
+        this.signUpForm.controls.name.value,
+        VALIDATION_LIMITS.text.personNameMax
+      ),
+      lastname: normalizeTextInput(
+        this.signUpForm.controls.lastname.value,
+        VALIDATION_LIMITS.text.lastnameMax
+      ),
+      email: this.signUpForm.controls.email.value
+        ? normalizeTextInput(
+            this.signUpForm.controls.email.value,
+            VALIDATION_LIMITS.auth.emailMax
+          ).toLowerCase()
+        : this.signUpForm.controls.email.value,
       activity: activity,
       objetive: finalKcal,
     };

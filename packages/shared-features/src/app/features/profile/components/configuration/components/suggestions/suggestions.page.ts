@@ -3,6 +3,10 @@ import { Component, ViewChild } from '@angular/core';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import {
+  normalizeLongTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-suggestions',
@@ -26,8 +30,11 @@ export class SuggestionsPage {
   public sendSuggestions(): void {
     this.isSending = true;
     const email = this.userService.getLocalUser?.email || this.userEmail;
-    const message = (this.ionTextArea?.value || '').trim();
-    if (message.length < 20) {
+    const message = normalizeLongTextInput(
+      this.ionTextArea?.value || '',
+      VALIDATION_LIMITS.text.feedbackMax
+    );
+    if (message.length < VALIDATION_LIMITS.text.feedbackMin) {
       this.isSending = false;
       return;
     }

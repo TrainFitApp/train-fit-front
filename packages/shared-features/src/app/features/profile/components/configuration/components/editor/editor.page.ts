@@ -29,6 +29,10 @@ import {
 } from "src/app/shared/constants/training";
 import { USER_VALIDATIONS } from "src/app/shared/constants/user-validations";
 import { MACROS_VALUES, MacrosData } from "src/app/shared/models/macros-data";
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 @Component({
   selector: "app-editor",
@@ -386,6 +390,14 @@ export class EditorPage implements OnInit {
     // Crear objeto con solo los campos que han cambiado
     const userToUpdate: Partial<User> = {};
     const formValue = this.userForm.value;
+    formValue.name = normalizeTextInput(
+      formValue.name,
+      VALIDATION_LIMITS.text.personNameMax,
+    );
+    formValue.lastname = normalizeTextInput(
+      formValue.lastname,
+      VALIDATION_LIMITS.text.lastnameMax,
+    );
 
     // Comparar cada campo con el valor inicial y solo incluir los que han cambiado
     Object.keys(formValue).forEach((key) => {

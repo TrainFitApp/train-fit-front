@@ -39,6 +39,11 @@ import {
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
+import {
+  normalizeLongTextInput,
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-workout',
@@ -577,6 +582,9 @@ export class WorkoutComponent {
           name: 'notes',
           type: 'textarea',
           value: this.workout.notes,
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.noteMax,
+          },
           placeholder: 'Escribe tus notas aquí...',
         },
       ],
@@ -589,8 +597,12 @@ export class WorkoutComponent {
         {
           text: 'GUARDAR',
           handler: (data) => {
-            if (data.notes && data.notes.trim() !== '') {
-              this.workout.notes = data.notes;
+            const notes = normalizeLongTextInput(
+              data.notes,
+              VALIDATION_LIMITS.text.noteMax
+            );
+            if (notes) {
+              this.workout.notes = notes;
               this.workoutService
                 .modifyWorkout(this.workout)
                 .subscribe(
@@ -655,6 +667,9 @@ export class WorkoutComponent {
           name: 'name',
           type: 'text',
           value: this.workout.name,
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
           placeholder: 'Nombre del entrenamiento',
         },
       ],
@@ -667,19 +682,23 @@ export class WorkoutComponent {
         {
           text: 'GUARDAR',
           handler: (data) => {
-            if (data.name && data.name.trim() !== '') {
+            const name = normalizeTextInput(
+              data.name,
+              VALIDATION_LIMITS.text.shortNameMax
+            );
+            if (name.length >= VALIDATION_LIMITS.text.shortNameMin) {
               this.load = false;
               this.workoutService
                 .updateWorkoutsName(
                   this.tableInUse._id,
                   this.workout._id,
-                  data.name
+                  name
                 )
                 .subscribe(() => {
                   // Emitir evento para que mesocycle actualice solo los nombres
                   this.workoutNameUpdatedEvent.emit({
                     workoutIndex: this.workoutIndex,
-                    newName: data.name,
+                    newName: name,
                   });
 
                   this.load = true;

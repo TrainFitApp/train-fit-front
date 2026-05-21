@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -15,6 +15,10 @@ import {
 } from 'src/app/shared/animations/shake';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 import { DateRange } from 'src/app/shared/models/dateRange';
+import {
+  numberRangeValidator,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-daily-weight',
@@ -85,6 +89,13 @@ export class DailyWeightComponent implements OnInit {
   }
 
   public saveWeight(): void {
+    if (this.weightForm.invalid) {
+      this.ionicUtilService.showToast({
+        message: 'Introduce un peso válido',
+        duration: 2000,
+      });
+      return;
+    }
     this.saveDayWeight(this.weightForm.get('weight').value);
   }
 
@@ -110,7 +121,13 @@ export class DailyWeightComponent implements OnInit {
 
   private initForm(): void {
     this.weightForm = new FormGroup({
-      weight: new FormControl(this.dietDay ? this.dietDay.weight : null),
+      weight: new FormControl(this.dietDay ? this.dietDay.weight : null, [
+        Validators.required,
+        numberRangeValidator(
+          VALIDATION_LIMITS.profile.weightMin,
+          VALIDATION_LIMITS.profile.weightMax
+        ),
+      ]),
     });
   }
 

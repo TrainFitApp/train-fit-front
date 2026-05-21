@@ -149,6 +149,9 @@
                 [inputControl]="getFormControl('velocity')"
                 label="Vel"
                 placeholder="0.0"
+                [min]="0"
+                [max]="80"
+                [maxDecimals]="1"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('velocity', $event)"
               ></app-numeric-input>
@@ -158,6 +161,9 @@
                 [inputControl]="getFormControl('timeMin')"
                 label="Min"
                 placeholder="0"
+                [min]="0"
+                [max]="999"
+                [maxDecimals]="0"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('timeMin', $event)"
               ></app-numeric-input>
@@ -167,6 +173,9 @@
                 [inputControl]="getFormControl('timeSec')"
                 label="Seg"
                 placeholder="0"
+                [min]="0"
+                [max]="59"
+                [maxDecimals]="0"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('timeSec', $event)"
               ></app-numeric-input>
@@ -190,6 +199,9 @@
                 [inputControl]="getFormControl('weight')"
                 label="Peso"
                 placeholder="0.0"
+                [min]="0"
+                [max]="1000"
+                [maxDecimals]="2"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('weight', $event)"
               ></app-numeric-input>
@@ -199,6 +211,9 @@
                 [inputControl]="getFormControl('reps')"
                 label="Reps"
                 placeholder="0"
+                [min]="0"
+                [max]="500"
+                [maxDecimals]="0"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('reps', $event)"
               ></app-numeric-input>

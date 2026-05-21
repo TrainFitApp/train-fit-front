@@ -70,9 +70,10 @@
                   [class.highlight-code]="highlightCodeInput"
                 >
                   <ion-input
-                    type="number"
+                    type="text"
                     inputmode="numeric"
                     formControlName="code"
+                    [maxlength]="32"
                     class="custom-input"
                     #barcodeInput
                     (ionInput)="onCodeInputChange()"

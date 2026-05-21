@@ -21,6 +21,7 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { Subscription } from "rxjs";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import { VALIDATION_LIMITS } from "src/app/core/constants/validation-limits";
 
 @Component({
   selector: "app-nutrition-editor",
@@ -78,7 +79,7 @@ export class NutritionEditorPage implements OnInit {
     return Math.round((+x + Number.EPSILON) * 10) / 10;
   }
 
-  private clamp(x: number, a: number, b: number): number {
+  private clamp(x: unknown, a: number, b: number): number {
     return Math.min(b, Math.max(a, +x || 0));
   }
 
@@ -253,7 +254,11 @@ export class NutritionEditorPage implements OnInit {
   public onTargetKcalChange(event: any): void {
     if (this.state.updating) return; // Prevent loop
 
-    this.state.targetKcal = this.clamp(event.target.value, 0, 100000);
+    this.state.targetKcal = this.clamp(
+      event.target.value,
+      VALIDATION_LIMITS.profile.kcalMin,
+      VALIDATION_LIMITS.profile.kcalMax,
+    );
 
     // Al cambiar calorías, siempre queremos escalar los gramos manteniendo la distribución (%)
     // Esto evita que la barra se "rompa" (supere 100%)
@@ -291,7 +296,11 @@ export class NutritionEditorPage implements OnInit {
 
   public onMacroInput(key: "p" | "c" | "f", event: any): void {
     if (this.state.updating) return;
-    const val = this.clamp(event.target.value, 0, 10000);
+    const val = this.clamp(
+      event.target.value,
+      VALIDATION_LIMITS.profile.macroGramsMin,
+      VALIDATION_LIMITS.profile.macroGramsMax,
+    );
 
     // Actualizar gramos
     this.state.grams[key] = val;
@@ -374,7 +383,11 @@ export class NutritionEditorPage implements OnInit {
 
   public onPercentInput(key: "p" | "c" | "f", event: any): void {
     if (this.state.updating) return;
-    const val = this.clamp(event.target.value, 0, 100);
+    const val = this.clamp(
+      event.target.value,
+      VALIDATION_LIMITS.profile.percentMin,
+      VALIDATION_LIMITS.profile.percentMax,
+    );
 
     this.state.pct[key] = val;
     this.state.grams[key] = this.gramsFromPct(
@@ -725,8 +738,11 @@ export class NutritionEditorPage implements OnInit {
     const cPerKg = document.getElementById("cPerKg") as HTMLInputElement;
     const fPerKg = document.getElementById("fPerKg") as HTMLInputElement;
 
-    const w = +(weightKg?.value || 0);
-    if (w <= 0) return;
+    const w = this.clamp(
+      weightKg?.value,
+      VALIDATION_LIMITS.profile.weightMin,
+      VALIDATION_LIMITS.profile.weightMax,
+    );
 
     const p = +(pPerKg?.value || 0);
     const c = +(cPerKg?.value || 0);
@@ -973,6 +989,22 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public isValidConfiguration(): boolean {
+    if (
+      this.state.targetKcal < VALIDATION_LIMITS.profile.kcalMin ||
+      this.state.targetKcal > VALIDATION_LIMITS.profile.kcalMax
+    ) {
+      return false;
+    }
+    if (
+      this.state.grams.p < VALIDATION_LIMITS.profile.macroGramsMin ||
+      this.state.grams.c < VALIDATION_LIMITS.profile.macroGramsMin ||
+      this.state.grams.f < VALIDATION_LIMITS.profile.macroGramsMin ||
+      this.state.grams.p > VALIDATION_LIMITS.profile.macroGramsMax ||
+      this.state.grams.c > VALIDATION_LIMITS.profile.macroGramsMax ||
+      this.state.grams.f > VALIDATION_LIMITS.profile.macroGramsMax
+    ) {
+      return false;
+    }
     const totalKcalFromMacros = this.kcalFromGrams();
     const delta = Math.abs(totalKcalFromMacros - this.state.targetKcal);
     return delta <= 25; // Margen de error de 25 kcal

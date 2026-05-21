@@ -48,6 +48,9 @@ export class NumericInputComponent implements OnInit {
   @Input() label: string = 'Valor';
   @Input() isDone: boolean = false;
   @Input() placeholder: string = '';
+  @Input() min: number | null = null;
+  @Input() max: number | null = null;
+  @Input() maxDecimals: number | null = null;
   @Output() valueChange = new EventEmitter<number | null>();
 
   public shimmerAnimationState = 'idle';
@@ -103,23 +106,40 @@ export class NumericInputComponent implements OnInit {
       return;
     }
 
-    const normalizedValue = String(rawValue)
+    let normalizedValue = String(rawValue)
       .replace(/,/g, '.')
       .replace(/[^0-9.]/g, '');
 
     const parts = normalizedValue.split('.');
-    const sanitizedValue =
+    normalizedValue =
       parts.length > 2
         ? `${parts[0]}.${parts.slice(1).join('')}`
         : normalizedValue;
 
-    if (event?.target) {
-      event.target.value = sanitizedValue;
+    if (this.maxDecimals !== null) {
+      const dotIndex = normalizedValue.indexOf('.');
+      if (this.maxDecimals === 0 && dotIndex !== -1) {
+        normalizedValue = normalizedValue.substring(0, dotIndex);
+      } else if (dotIndex !== -1) {
+        normalizedValue =
+          normalizedValue.substring(0, dotIndex) +
+          '.' +
+          normalizedValue.substring(dotIndex + 1, dotIndex + 1 + this.maxDecimals);
+      }
     }
 
-    const numValue = sanitizedValue === '' ? null : Number(sanitizedValue);
-    const safeValue =
-      numValue === null || Number.isNaN(numValue) ? null : numValue;
+    if (event?.target) {
+      event.target.value = normalizedValue;
+    }
+
+    const numValue = normalizedValue === '' ? null : Number(normalizedValue);
+    let safeValue =
+      numValue === null || !Number.isFinite(numValue) ? null : numValue;
+
+    if (safeValue !== null) {
+      if (this.min !== null && safeValue < this.min) safeValue = this.min;
+      if (this.max !== null && safeValue > this.max) safeValue = this.max;
+    }
 
     this.inputControl.patchValue(safeValue);
     this.valueChange.emit(safeValue);

@@ -25,6 +25,10 @@ import {
   UserValidationErrors,
 } from '../../validators/user-validation-errors';
 import { IonicUtilService } from './ionic-util.service';
+import {
+  normalizeLongTextInput,
+  VALIDATION_LIMITS,
+} from '../../constants/validation-limits';
 
 @Injectable()
 export class UtilService {
@@ -362,6 +366,9 @@ export class UtilService {
           type: 'textarea' as 'textarea',
           placeholder: 'Escribe tus notas aquí...',
           value: object['notes'] || '',
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.noteMax,
+          },
         },
       ],
       buttons: [
@@ -372,7 +379,11 @@ export class UtilService {
         {
           text: 'GUARDAR',
           handler: (data) => {
-            if (!data.notes || data.notes.trim() === '') {
+            const notes = normalizeLongTextInput(
+              data.notes,
+              VALIDATION_LIMITS.text.noteMax
+            );
+            if (!notes) {
               const errorAlert = {
                 header: 'Error',
                 message: 'El campo no puede estar vacío',
@@ -389,7 +400,10 @@ export class UtilService {
 
     return this.ionicUtilService.showAlert(alertOptions).then((result) => {
       if (result.role !== 'cancel' && result.data?.values?.notes) {
-        object['notes'] = result.data.values.notes;
+        object['notes'] = normalizeLongTextInput(
+          result.data.values.notes,
+          VALIDATION_LIMITS.text.noteMax
+        );
 
         if ((object as Workout).exercises)
           this.handleWorkout(object as Workout, service as WorkoutService);

@@ -21,6 +21,14 @@ import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.se
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import {
+  normalizeLongTextInput,
+  normalizeTextInput,
+  numberRangeValidator,
+  optionalTrimmedLengthValidator,
+  trimmedLengthValidator,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 export enum PRODUCT_ATRR {
   name = 0,
@@ -1182,10 +1190,23 @@ export class AddProductPage implements OnInit, OnDestroy {
         },
         {
           text: "CONFIRMAR",
-          handler: (res) =>
+          handler: (res) => {
+            const max =
+              name === PRODUCT_ATRR.name
+                ? VALIDATION_LIMITS.text.productNameMax
+                : VALIDATION_LIMITS.text.brandMax;
+            const value = normalizeTextInput(res.attribute, max);
+            if (
+              name === PRODUCT_ATRR.name &&
+              value.length < VALIDATION_LIMITS.text.shortNameMin
+            ) {
+              return false;
+            }
             this.addCustomProductForm.controls[
               name === PRODUCT_ATRR.name ? "name" : "brand"
-            ].setValue(res.attribute),
+            ].setValue(value);
+            return true;
+          },
         },
       ];
       const alertInputs: AlertInput[] = [
@@ -1194,6 +1215,12 @@ export class AddProductPage implements OnInit, OnDestroy {
           type: "textarea",
           value: this.product[name === PRODUCT_ATRR.name ? "name" : "brand"],
           placeholder: `${name === PRODUCT_ATRR.name ? "Nombre" : "Marca"}`,
+          attributes: {
+            maxlength:
+              name === PRODUCT_ATRR.name
+                ? VALIDATION_LIMITS.text.productNameMax
+                : VALIDATION_LIMITS.text.brandMax,
+          },
         },
       ];
 
@@ -1299,13 +1326,20 @@ export class AddProductPage implements OnInit, OnDestroy {
       quantityControl.setErrors(null);
       portionsControl.setValidators([
         Validators.required,
-        Validators.min(0.01),
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.quantityMin,
+          VALIDATION_LIMITS.nutrition.quantityMax,
+        ),
       ]);
     } else {
       // En modo gramos: gramos es obligatorio, raciones no
-      quantityControl.setValidators(
-        this.meal || this.ingredientMode ? [Validators.required] : [],
-      );
+      quantityControl.setValidators([
+        ...(this.meal || this.ingredientMode ? [Validators.required] : []),
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.quantityMin,
+          VALIDATION_LIMITS.nutrition.quantityMax,
+        ),
+      ]);
       portionsControl.clearValidators();
       portionsControl.setErrors(null);
     }
@@ -1319,8 +1353,14 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (isCustomProductTarget) {
       this.applyCustomProductNutritionOverrides(target, formValues);
     } else {
-      target.name = formValues.name;
-      target.brand = formValues.brand;
+      target.name = normalizeTextInput(
+        formValues.name,
+        VALIDATION_LIMITS.text.productNameMax,
+      );
+      target.brand = normalizeTextInput(
+        formValues.brand,
+        VALIDATION_LIMITS.text.brandMax,
+      );
       this.setProductNutritionFields(target, formValues);
       target.vegan = this.product.vegan;
       target.vegetarian = this.product.vegetarian;
@@ -1338,9 +1378,22 @@ export class AddProductPage implements OnInit, OnDestroy {
         : text;
 
     if (!isCustomProductTarget) {
-      target.ingredients = formValues.ingredients;
-      target.allergens = splitText(formValues.allergens);
-      target.traces = splitText(formValues.traces);
+      target.ingredients = normalizeLongTextInput(
+        formValues.ingredients,
+        VALIDATION_LIMITS.text.ingredientsMax,
+      );
+      target.allergens = splitText(
+        normalizeLongTextInput(
+          formValues.allergens,
+          VALIDATION_LIMITS.text.allergensMax,
+        ),
+      );
+      target.traces = splitText(
+        normalizeLongTextInput(
+          formValues.traces,
+          VALIDATION_LIMITS.text.allergensMax,
+        ),
+      );
     }
   }
 
@@ -1771,6 +1824,8 @@ export class AddProductPage implements OnInit, OnDestroy {
       ),
     });
 
+    this.applyProductValidators();
+
     this.addCustomProductForm.markAllAsTouched();
 
     // Sincronizar validadores según el modo inicial (puede haber arrancado en 'portions')
@@ -1790,6 +1845,118 @@ export class AddProductPage implements OnInit, OnDestroy {
         energyKcal100g: roundedValue,
       });
     }
+  }
+
+  private applyProductValidators(): void {
+    this.addCustomProductForm.get("name")?.setValidators([
+      Validators.required,
+      trimmedLengthValidator(
+        VALIDATION_LIMITS.text.shortNameMin,
+        VALIDATION_LIMITS.text.productNameMax,
+      ),
+    ]);
+    this.addCustomProductForm.get("brand")?.setValidators([
+      optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.brandMax),
+    ]);
+    this.addCustomProductForm.get("energyKcal100g")?.setValidators([
+      Validators.required,
+      numberRangeValidator(
+        VALIDATION_LIMITS.nutrition.kcal100gMin,
+        VALIDATION_LIMITS.nutrition.kcal100gMax,
+      ),
+    ]);
+
+    ["protein100g", "carbohydrates100g", "fat100g"].forEach((field) =>
+      this.addCustomProductForm.get(field)?.setValidators([
+        Validators.required,
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.grams100gMin,
+          VALIDATION_LIMITS.nutrition.grams100gMax,
+        ),
+      ]),
+    );
+
+    [
+      "saturatedFat100g",
+      "sugars100g",
+      "fiber100g",
+      "salt100g",
+      "transFat100g",
+      "omega3100g",
+      "omega6100g",
+      "omega9100g",
+      "alcohol100g",
+    ].forEach((field) =>
+      this.addCustomProductForm.get(field)?.setValidators([
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.grams100gMin,
+          VALIDATION_LIMITS.nutrition.grams100gMax,
+        ),
+      ]),
+    );
+
+    [
+      "calcium100g",
+      "iron100g",
+      "magnesium100g",
+      "phosphorus100g",
+      "potassium100g",
+      "zinc100g",
+      "copper100g",
+      "manganese100g",
+      "selenium100g",
+      "iodine100g",
+      "sodium100g",
+      "vitaminA100g",
+      "vitaminD100g",
+      "vitaminE100g",
+      "vitaminK100g",
+      "vitaminC100g",
+      "vitaminB1100g",
+      "vitaminB2100g",
+      "vitaminB3100g",
+      "vitaminB5100g",
+      "vitaminB6100g",
+      "vitaminB9100g",
+      "vitaminB12100g",
+      "biotin100g",
+      "cholesterol100g",
+      "caffeine100g",
+      "taurine100g",
+    ].forEach((field) =>
+      this.addCustomProductForm.get(field)?.setValidators([
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.microDisplayMin,
+          VALIDATION_LIMITS.nutrition.microDisplayMax,
+        ),
+      ]),
+    );
+
+    this.addCustomProductForm.get("quantity")?.setValidators([
+      ...(this.meal || this.ingredientMode ? [Validators.required] : []),
+      numberRangeValidator(
+        VALIDATION_LIMITS.nutrition.quantityMin,
+        VALIDATION_LIMITS.nutrition.quantityMax,
+      ),
+    ]);
+    this.addCustomProductForm.get("portions")?.setValidators([
+      numberRangeValidator(
+        VALIDATION_LIMITS.nutrition.quantityMin,
+        VALIDATION_LIMITS.nutrition.quantityMax,
+      ),
+    ]);
+    this.addCustomProductForm.get("ingredients")?.setValidators([
+      optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.ingredientsMax),
+    ]);
+    ["allergens", "traces"].forEach((field) =>
+      this.addCustomProductForm.get(field)?.setValidators([
+        optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.allergensMax),
+      ]),
+    );
+
+    Object.values(this.addCustomProductForm.controls).forEach((control) =>
+      control.updateValueAndValidity({ emitEvent: false }),
+    );
   }
 
   public roundMicro(event: any, controlName: string): void {

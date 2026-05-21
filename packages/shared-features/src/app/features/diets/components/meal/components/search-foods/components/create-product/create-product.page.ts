@@ -16,6 +16,15 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import {
+  barcodeValidator,
+  normalizeLongTextInput,
+  normalizeTextInput,
+  numberRangeValidator,
+  optionalTrimmedLengthValidator,
+  trimmedLengthValidator,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-create-product',
@@ -70,7 +79,41 @@ export class CreateProductPage implements OnInit {
   }
 
   public createCustomProduct(): void {
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      this.ionicUtilService.showToast({
+        message: 'Hay campos inválidos',
+        duration: 2000,
+        color: 'warning',
+      });
+      return;
+    }
+
     const formValues = { ...this.productForm.value };
+    formValues.code = normalizeTextInput(
+      formValues.code,
+      VALIDATION_LIMITS.product.barcodeMax
+    );
+    formValues.name = normalizeTextInput(
+      formValues.name,
+      VALIDATION_LIMITS.text.productNameMax
+    );
+    formValues.brand = normalizeTextInput(
+      formValues.brand,
+      VALIDATION_LIMITS.text.brandMax
+    );
+    formValues.ingredients = normalizeLongTextInput(
+      formValues.ingredients,
+      VALIDATION_LIMITS.text.ingredientsMax
+    );
+    formValues.allergens = normalizeLongTextInput(
+      formValues.allergens,
+      VALIDATION_LIMITS.text.allergensMax
+    );
+    formValues.traces = normalizeLongTextInput(
+      formValues.traces,
+      VALIDATION_LIMITS.text.allergensMax
+    );
 
     // Unit conversions (UI -> DB/g)
     const mgToG = (val: any) =>
@@ -576,6 +619,8 @@ export class CreateProductPage implements OnInit {
       quantity: new FormControl(null, this.meal ? Validators.required : null),
     });
 
+    this.applyProductValidators();
+
     // Si estamos en modo edición, rellenamos el formulario
     if (this.isEditMode && this.editingProduct) {
       const p = this.editingProduct;
@@ -653,6 +698,120 @@ export class CreateProductPage implements OnInit {
         this.productForm.get('code')?.updateValueAndValidity();
       }
     });
+  }
+
+  private applyProductValidators(): void {
+    this.productForm.get('code')?.setValidators([
+      barcodeValidator(),
+      Validators.maxLength(VALIDATION_LIMITS.product.barcodeMax),
+    ]);
+    this.productForm.get('name')?.setValidators([
+      Validators.required,
+      trimmedLengthValidator(
+        VALIDATION_LIMITS.text.shortNameMin,
+        VALIDATION_LIMITS.text.productNameMax
+      ),
+    ]);
+    this.productForm.get('brand')?.setValidators([
+      optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.brandMax),
+    ]);
+    this.productForm.get('energyKcal100g')?.setValidators([
+      Validators.required,
+      numberRangeValidator(
+        VALIDATION_LIMITS.nutrition.kcal100gMin,
+        VALIDATION_LIMITS.nutrition.kcal100gMax
+      ),
+    ]);
+
+    ['carbohydrates100g', 'fat100g', 'protein100g'].forEach((field) =>
+      this.productForm.get(field)?.setValidators([
+        Validators.required,
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.grams100gMin,
+          VALIDATION_LIMITS.nutrition.grams100gMax
+        ),
+      ])
+    );
+
+    [
+      'fiber100g',
+      'sugars100g',
+      'salt100g',
+      'saturatedFat100g',
+      'alcohol100g',
+      'omega3100g',
+      'omega6100g',
+      'omega9100g',
+      'transFat100g',
+      'productQuantity',
+      'servingQuantity',
+    ].forEach((field) =>
+      this.productForm.get(field)?.setValidators([
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.grams100gMin,
+          field.endsWith('Quantity')
+            ? VALIDATION_LIMITS.nutrition.quantityMax
+            : VALIDATION_LIMITS.nutrition.grams100gMax
+        ),
+      ])
+    );
+
+    [
+      'calcium100g',
+      'iron100g',
+      'magnesium100g',
+      'phosphorus100g',
+      'potassium100g',
+      'zinc100g',
+      'copper100g',
+      'manganese100g',
+      'cholesterol100g',
+      'sodium100g',
+      'selenium100g',
+      'iodine100g',
+      'vitaminB1100g',
+      'vitaminB2100g',
+      'vitaminB3100g',
+      'vitaminB5100g',
+      'vitaminB6100g',
+      'vitaminC100g',
+      'vitaminE100g',
+      'caffeine100g',
+      'taurine100g',
+      'vitaminA100g',
+      'vitaminB9100g',
+      'vitaminB12100g',
+      'vitaminD100g',
+      'vitaminK100g',
+      'biotin100g',
+    ].forEach((field) =>
+      this.productForm.get(field)?.setValidators([
+        numberRangeValidator(
+          VALIDATION_LIMITS.nutrition.microDisplayMin,
+          VALIDATION_LIMITS.nutrition.microDisplayMax
+        ),
+      ])
+    );
+
+    this.productForm.get('ingredients')?.setValidators([
+      optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.ingredientsMax),
+    ]);
+    ['allergens', 'traces'].forEach((field) =>
+      this.productForm.get(field)?.setValidators([
+        optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.allergensMax),
+      ])
+    );
+    this.productForm.get('quantity')?.setValidators([
+      ...(this.meal ? [Validators.required] : []),
+      numberRangeValidator(
+        VALIDATION_LIMITS.nutrition.quantityMin,
+        VALIDATION_LIMITS.nutrition.quantityMax
+      ),
+    ]);
+
+    Object.values(this.productForm.controls).forEach((control) =>
+      control.updateValueAndValidity({ emitEvent: false })
+    );
   }
 
   private loadParametersFromRoute(): void {

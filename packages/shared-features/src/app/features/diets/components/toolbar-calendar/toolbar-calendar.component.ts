@@ -18,6 +18,10 @@ import {
 } from 'src/app/shared/constants/actions';
 import { MONTHS } from 'src/app/shared/constants/months';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
+import {
+  normalizeLongTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-toolbar-calendar',
@@ -185,6 +189,9 @@ export class ToolbarCalendarComponent {
           type: 'textarea',
           placeholder: 'Escribe tu nota aquí...',
           value: this.dietDay.notes || '',
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.noteMax,
+          },
         },
       ],
       buttons: [
@@ -196,7 +203,10 @@ export class ToolbarCalendarComponent {
         {
           text: 'Guardar',
           handler: (data) => {
-            this.dietDay.notes = data.notes;
+            this.dietDay.notes = normalizeLongTextInput(
+              data.notes,
+              VALIDATION_LIMITS.text.noteMax
+            );
             (this._service as DietDayService)
               .updateDietDay(this.dietDay)
               .subscribe(() => {

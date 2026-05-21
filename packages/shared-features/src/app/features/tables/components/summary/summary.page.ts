@@ -17,6 +17,10 @@ import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
 import { Theme } from "src/app/shared/models/theme";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 @Component({
   selector: "app-summary",
@@ -97,6 +101,9 @@ export class SummaryPage {
           type: "text",
           placeholder: "Nombre de la rutina",
           value: "",
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
         },
       ],
       buttons: [
@@ -109,7 +116,11 @@ export class SummaryPage {
           text: "CREAR",
           cssClass: "alert-button-success",
           handler: (data) => {
-            if (!data.routineName || data.routineName.trim() === "") {
+            const routineName = normalizeTextInput(
+              data.routineName,
+              VALIDATION_LIMITS.text.shortNameMax,
+            );
+            if (routineName.length < VALIDATION_LIMITS.text.shortNameMin) {
               const toastOptions: ToastOptions = {
                 message: "El campo no puede estar vacio",
                 duration: 2000,
@@ -125,8 +136,12 @@ export class SummaryPage {
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
       if (result.role !== "cancel" && result.data?.values?.routineName) {
+        const routineName = normalizeTextInput(
+          result.data.values.routineName,
+          VALIDATION_LIMITS.text.shortNameMax,
+        );
         this.tableService
-          .createTableToUser(this.user._id, result.data.values.routineName)
+          .createTableToUser(this.user._id, routineName)
           .subscribe({
             next: (resTable) => {
               this.tableInUse = resTable;

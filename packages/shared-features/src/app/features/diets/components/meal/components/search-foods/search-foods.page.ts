@@ -51,6 +51,10 @@ import {
   ACTION_TYPES,
   ACTIONS,
 } from "src/app/shared/constants/actions";
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 @Component({
   selector: "app-products",
@@ -784,11 +788,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       new Error().stack,
     );
     this.searchFilterGroup.page = 0;
-    if (event)
-      this.searchFilterGroup.search =
+    if (event) {
+      this.searchFilterGroup.search = normalizeTextInput(
         typeof event === "string"
           ? event
-          : this.utilService.getEventString(event);
+          : this.utilService.getEventString(event),
+        VALIDATION_LIMITS.text.searchMax,
+      );
+      this.searchBarValue = this.searchFilterGroup.search;
+    }
 
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       this.load = true;
@@ -1760,7 +1768,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private shouldSkipProductsSearch(): boolean {
-    const search = (this.searchFilterGroup?.search || "").trim();
+    const search = normalizeTextInput(
+      this.searchFilterGroup?.search,
+      VALIDATION_LIMITS.text.searchMax,
+    );
+    this.searchFilterGroup.search = search;
     return search.length === 1;
   }
 

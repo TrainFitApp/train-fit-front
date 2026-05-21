@@ -28,6 +28,10 @@ import {
   SOCIAL_NETWORK_VALUES,
 } from 'src/app/shared/constants/social-network';
 import { Theme } from 'src/app/shared/models/theme';
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-sign-in',
@@ -134,7 +138,14 @@ export class SignInPage implements OnInit {
 
   private initForm(): void {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.maxLength(VALIDATION_LIMITS.auth.emailMax),
+        ],
+      ],
       password: ['', Validators.required],
     });
 
@@ -477,9 +488,13 @@ export class SignInPage implements OnInit {
         {
           text: 'Continuar',
           handler: (data) => {
-            if (data.email && data.email.includes('@')) {
+            const email = normalizeTextInput(
+              data.email,
+              VALIDATION_LIMITS.auth.emailMax
+            ).toLowerCase();
+            if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
               this.loading = true;
-              this.executeCreateAppleUser(data.email.toLowerCase(), tokenApple);
+              this.executeCreateAppleUser(email, tokenApple);
             } else {
               this.ionicUtilService.showErrorToast(
                 'Por favor, introduce un email válido'

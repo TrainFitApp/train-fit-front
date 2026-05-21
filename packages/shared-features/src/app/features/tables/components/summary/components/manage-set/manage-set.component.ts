@@ -3,6 +3,11 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { ModalController, Platform, ToastOptions } from '@ionic/angular';
 import { Set } from 'src/app/core/models/set';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import {
+  integerRangeValidator,
+  numberRangeValidator,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-manage-set',
@@ -78,23 +83,58 @@ export class ManageSetComponent implements OnInit {
   public initSetForm(): void {
     if (this.isCardio) {
       this.setForm = new FormGroup({
-        expectedSec: new FormControl(this.set?.expectedSec),
-        expectedMin: new FormControl(this.set?.expectedMin),
-        velocity: new FormControl(this.set?.velocity),
+        expectedSec: new FormControl(this.set?.expectedSec, [
+          integerRangeValidator(
+            VALIDATION_LIMITS.workout.secondsMin,
+            VALIDATION_LIMITS.workout.secondsMax
+          ),
+        ]),
+        expectedMin: new FormControl(this.set?.expectedMin, [
+          integerRangeValidator(
+            VALIDATION_LIMITS.workout.minutesMin,
+            VALIDATION_LIMITS.workout.minutesMax
+          ),
+        ]),
+        velocity: new FormControl(this.set?.velocity, [
+          numberRangeValidator(
+            VALIDATION_LIMITS.workout.velocityMin,
+            VALIDATION_LIMITS.workout.velocityMax
+          ),
+        ]),
       });
     } else {
       // Detectar si el set tiene fallo (expectedRir es [-1])
       const hasFail = this.set?.expectedRir?.[0] === -1;
 
       this.setForm = new FormGroup({
-        weight: new FormControl(this.set?.weight),
+        weight: new FormControl(this.set?.weight, [
+          numberRangeValidator(
+            VALIDATION_LIMITS.workout.weightMin,
+            VALIDATION_LIMITS.workout.weightMax
+          ),
+        ]),
         drop: new FormControl(this.set?.drop),
-        restPause: new FormControl(this.set?.restPause),
+        restPause: new FormControl(this.set?.restPause, [
+          integerRangeValidator(
+            VALIDATION_LIMITS.workout.restPauseMin,
+            VALIDATION_LIMITS.workout.restPauseMax
+          ),
+        ]),
         restPauseEnabled: new FormControl(this.set?.restPause ? true : false),
         rir: new FormControl(this.set?.rir),
         isFail: new FormControl(hasFail),
-        rangeREPStart: new FormControl(this.set?.expectedReps?.[0]),
-        rangeREPEnd: new FormControl(this.set?.expectedReps?.[1]),
+        rangeREPStart: new FormControl(this.set?.expectedReps?.[0], [
+          integerRangeValidator(
+            VALIDATION_LIMITS.workout.repsMin,
+            VALIDATION_LIMITS.workout.repsMax
+          ),
+        ]),
+        rangeREPEnd: new FormControl(this.set?.expectedReps?.[1], [
+          integerRangeValidator(
+            VALIDATION_LIMITS.workout.repsMin,
+            VALIDATION_LIMITS.workout.repsMax
+          ),
+        ]),
         // No mostrar -1 en los campos de RIR, dejar vacío si hay fallo
         rangeRIRStart: new FormControl(
           hasFail ? null : this.set?.expectedRir?.[0]
@@ -102,7 +142,12 @@ export class ManageSetComponent implements OnInit {
         rangeRIREnd: new FormControl(
           hasFail ? null : this.set?.expectedRir?.[1]
         ),
-        velocity: new FormControl(this.set?.velocity),
+        velocity: new FormControl(this.set?.velocity, [
+          numberRangeValidator(
+            VALIDATION_LIMITS.workout.velocityMin,
+            VALIDATION_LIMITS.workout.velocityMax
+          ),
+        ]),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {
@@ -250,6 +295,15 @@ export class ManageSetComponent implements OnInit {
   }
 
   public submit(): void {
+    if (this.setForm.invalid || this.isRepsRangeInvalid || this.isRirRangeInvalid) {
+      const toastOptions: ToastOptions = {
+        message: 'Hay valores fuera de rango',
+        duration: 3000,
+      };
+      this.ionicUtilService.showToast(toastOptions);
+      return;
+    }
+
     // Validación: Si rest pause está marcado pero no hay segundos
     if (
       this.setForm.get('restPauseEnabled')?.value &&

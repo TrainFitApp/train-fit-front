@@ -26,6 +26,11 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { SetService } from 'src/app/core/services/set/set.service';
+import {
+  integerRangeValidator,
+  numberRangeValidator,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-set',
@@ -99,12 +104,37 @@ export class SetComponent implements OnInit, OnChanges {
   private initForm(): void {
     this.setForm = new FormGroup({
       doned: new FormControl(this.set?.doned),
-      reps: new FormControl(this.set?.reps),
-      weight: new FormControl(this.set?.weight),
+      reps: new FormControl(this.set?.reps, [
+        integerRangeValidator(
+          VALIDATION_LIMITS.workout.repsMin,
+          VALIDATION_LIMITS.workout.repsMax
+        ),
+      ]),
+      weight: new FormControl(this.set?.weight, [
+        numberRangeValidator(
+          VALIDATION_LIMITS.workout.weightMin,
+          VALIDATION_LIMITS.workout.weightMax
+        ),
+      ]),
       rir: new FormControl(this.set?.rir ?? null),
-      velocity: new FormControl(this.set?.velocity),
-      timeMin: new FormControl(this.set?.timeMin),
-      timeSec: new FormControl(this.set?.timeSec),
+      velocity: new FormControl(this.set?.velocity, [
+        numberRangeValidator(
+          VALIDATION_LIMITS.workout.velocityMin,
+          VALIDATION_LIMITS.workout.velocityMax
+        ),
+      ]),
+      timeMin: new FormControl(this.set?.timeMin, [
+        integerRangeValidator(
+          VALIDATION_LIMITS.workout.minutesMin,
+          VALIDATION_LIMITS.workout.minutesMax
+        ),
+      ]),
+      timeSec: new FormControl(this.set?.timeSec, [
+        integerRangeValidator(
+          VALIDATION_LIMITS.workout.secondsMin,
+          VALIDATION_LIMITS.workout.secondsMax
+        ),
+      ]),
     });
 
     this.setForm.valueChanges
@@ -115,6 +145,9 @@ export class SetComponent implements OnInit, OnChanges {
         )
       )
       .subscribe((resSetForm) => {
+        if (this.setForm.invalid) {
+          return;
+        }
         // Actualizar solo los valores ejecutados, NO los objetivos
         this.set.velocity = resSetForm.velocity;
         this.set.timeMin = resSetForm.timeMin;

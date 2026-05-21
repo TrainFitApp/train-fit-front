@@ -28,6 +28,10 @@ import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
+import {
   ACTION_TYPE,
   ACTION_TYPES,
   ACTION_VALUES,
@@ -380,6 +384,9 @@ export class MealComponent implements OnInit, OnChanges {
           type: 'text',
           value: this.meal.name,
           placeholder: 'Nombre de la comida',
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
         },
       ],
       buttons: [
@@ -391,8 +398,12 @@ export class MealComponent implements OnInit, OnChanges {
           text: 'GUARDAR',
           cssClass: 'alert-button-success',
           handler: (data) => {
-            if (data.name && data.name.trim() !== '') {
-              this.meal.name = data.name;
+            const name = normalizeTextInput(
+              data.name,
+              VALIDATION_LIMITS.text.shortNameMax
+            );
+            if (name.length >= VALIDATION_LIMITS.text.shortNameMin) {
+              this.meal.name = name;
               this.mealService.modifyMeal(this.meal).subscribe(() => {
                 const message = `Nombre de meal actualizado`;
                 const duration = 500;

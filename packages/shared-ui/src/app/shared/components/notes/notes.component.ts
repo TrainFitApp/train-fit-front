@@ -19,6 +19,10 @@ import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import {
+  normalizeLongTextInput,
+  VALIDATION_LIMITS,
+} from 'src/app/core/constants/validation-limits';
 
 @Component({
   selector: 'app-notes',
@@ -82,6 +86,9 @@ export class NotesComponent implements OnInit, OnChanges {
           type: 'textarea',
           placeholder: 'Escribe tus notas aquí...',
           value: currentNotes || '',
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.noteMax,
+          },
         },
       ],
       buttons: [
@@ -101,7 +108,10 @@ export class NotesComponent implements OnInit, OnChanges {
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
       if (result.role !== 'cancel') {
-        const newNotes = (result.data?.values?.notes || '').trim();
+        const newNotes = normalizeLongTextInput(
+          result.data?.values?.notes || '',
+          VALIDATION_LIMITS.text.noteMax
+        );
         const previousNotes = this.object?.notes;
         if (this.object) {
           this.object.notes = newNotes;

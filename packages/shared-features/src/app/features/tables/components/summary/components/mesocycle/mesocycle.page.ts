@@ -29,6 +29,10 @@ import {
 import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
 import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
+import {
+  normalizeTextInput,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -522,6 +526,9 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           type: "textarea" as "textarea",
           value: this.tableInUse?.name,
           placeholder: "Nombre de la rutina",
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
         },
       ],
       buttons: [
@@ -533,7 +540,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           text: "CONFIRMAR",
           cssClass: "alert-button-primary",
           handler: (data) => {
-            if (data.tableName.trim() === "") {
+            const tableName = normalizeTextInput(
+              data.tableName,
+              VALIDATION_LIMITS.text.shortNameMax,
+            );
+            if (tableName.length < VALIDATION_LIMITS.text.shortNameMin) {
               this.ionicUtilService.showToast({
                 message: "El campo no puede estar vacío",
                 duration: 2000,
@@ -541,7 +552,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
               });
               return false;
             }
-            this.tableInUse.name = data.tableName;
+            this.tableInUse.name = tableName;
             this.tableService.updateTableName(this.tableInUse).subscribe(() => {
               this.tableService.setCurrentTable = this.tableInUse;
               const message = "Nombre de rutina actualizado";
@@ -599,6 +610,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           placeholder: "Ej: Empujes",
           attributes: {
             required: true,
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
           },
         },
       ],
@@ -611,12 +623,16 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           text: "AÑADIR",
           cssClass: "alert-button-confirm",
           handler: (data: any) => {
-            if (!data.workoutName || data.workoutName.trim() === "") {
+            const workoutName = normalizeTextInput(
+              data.workoutName,
+              VALIDATION_LIMITS.text.shortNameMax,
+            );
+            if (workoutName.length < VALIDATION_LIMITS.text.shortNameMin) {
               return false; // Prevent closing if empty
             }
 
             let workout = new Workout();
-            workout.name = data.workoutName.trim();
+            workout.name = workoutName;
 
             this.workoutService
               .addWorkoutsToSplits(this.user.tableInUse, workout)
@@ -824,6 +840,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           placeholder: "Nombre de la rutina",
           attributes: {
             required: true,
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
           },
         },
       ],
@@ -840,12 +857,16 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           text: "CREAR",
           cssClass: "alert-button-success",
           handler: (data: any) => {
-            if (!data.tableName || data.tableName.trim() === "") {
+            const tableName = normalizeTextInput(
+              data.tableName,
+              VALIDATION_LIMITS.text.shortNameMax,
+            );
+            if (tableName.length < VALIDATION_LIMITS.text.shortNameMin) {
               return false; // Prevent closing if empty
             }
 
             this.tableService
-              .createTableToUser(this.user._id, data.tableName.trim())
+              .createTableToUser(this.user._id, tableName)
               .subscribe((resTable) => {
                 this.tableInUse = resTable;
                 this.user.tableInUse = this.tableInUse._id;
@@ -1134,6 +1155,9 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           name: "workoutName",
           type: "text",
           placeholder: "Nombre",
+          attributes: {
+            maxlength: VALIDATION_LIMITS.text.shortNameMax,
+          },
         },
       ],
       buttons: [
@@ -1147,16 +1171,20 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         {
           text: "CONFIRMAR",
           handler: (data) => {
-            if (data.workoutName && data.workoutName.trim() !== "") {
+            const workoutName = normalizeTextInput(
+              data.workoutName,
+              VALIDATION_LIMITS.text.shortNameMax,
+            );
+            if (workoutName.length >= VALIDATION_LIMITS.text.shortNameMin) {
               const workout = this.workoutService.getStandarWorkout();
-              workout.name = data.workoutName;
+              workout.name = workoutName;
               this.workoutService
                 .addWorkoutsToSplits(this.user.tableInUse, workout)
                 .subscribe((resSplits) => {
                   this.tableInUse.splits = resSplits;
                   this.tableService.setCurrentTable = this.tableInUse;
                   const toastOptions: ToastOptions = {
-                    message: data.workoutName + " añadido",
+                    message: workoutName + " añadido",
                     duration: 500,
                   };
                   this.ionicUtilService.showToast(toastOptions);

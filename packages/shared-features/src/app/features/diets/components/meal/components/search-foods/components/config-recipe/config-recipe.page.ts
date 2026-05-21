@@ -23,6 +23,14 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { fadeIn } from "src/app/shared/animations/fade";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import {
+  normalizeLongTextInput,
+  normalizeTextInput,
+  numberRangeValidator,
+  optionalTrimmedLengthValidator,
+  trimmedLengthValidator,
+  VALIDATION_LIMITS,
+} from "src/app/core/constants/validation-limits";
 
 export type ConfigRecipeMode = "create" | "add" | "edit";
 
@@ -165,10 +173,38 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     this.user = this.userService.getLocalUser;
     this.recipeNutrition = this.recipeService.getEmptyRecipeNutrition();
     this.recipeForm = this.fb.group({
-      name: ["", [Validators.required, Validators.minLength(2)]],
-      description: [""],
-      quantityCooked: [null, [Validators.min(1)]],
-      quantity: [null, [Validators.min(1)]],
+      name: [
+        "",
+        [
+          Validators.required,
+          trimmedLengthValidator(
+            VALIDATION_LIMITS.text.shortNameMin,
+            VALIDATION_LIMITS.text.shortNameMax,
+          ),
+        ],
+      ],
+      description: [
+        "",
+        optionalTrimmedLengthValidator(VALIDATION_LIMITS.text.descriptionMax),
+      ],
+      quantityCooked: [
+        null,
+        [
+          numberRangeValidator(
+            VALIDATION_LIMITS.nutrition.recipeQuantityMin,
+            VALIDATION_LIMITS.nutrition.recipeQuantityMax,
+          ),
+        ],
+      ],
+      quantity: [
+        null,
+        [
+          numberRangeValidator(
+            VALIDATION_LIMITS.nutrition.recipeQuantityMin,
+            VALIDATION_LIMITS.nutrition.recipeQuantityMax,
+          ),
+        ],
+      ],
     });
 
     this.recipeForm
@@ -874,8 +910,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     const raw = this.recipeForm.getRawValue();
     const composePayload: any = {
       recipe: {
-        name: raw.name,
-        description: raw.description || undefined,
+        name: normalizeTextInput(raw.name, VALIDATION_LIMITS.text.shortNameMax),
+        description:
+          normalizeLongTextInput(
+            raw.description,
+            VALIDATION_LIMITS.text.descriptionMax,
+          ) || undefined,
         customProducts: this.normalizeCustomProducts(this.ingredients),
       },
     };
@@ -937,8 +977,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       // Editar la receta original y editar la envoltura son caminos distintos.
       // Guardar la base no debe vaciar ni tocar los deltas del CustomRecipe.
       const recipeUpdatePayload: any = {
-        name: raw.name,
-        description: raw.description || undefined,
+        name: normalizeTextInput(raw.name, VALIDATION_LIMITS.text.shortNameMax),
+        description:
+          normalizeLongTextInput(
+            raw.description,
+            VALIDATION_LIMITS.text.descriptionMax,
+          ) || undefined,
       };
 
       // Si solo cambian nombre/descripcion, evitamos resincronizar ingredientes
@@ -1247,6 +1291,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (value === null || value === undefined || value === "") return null;
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    if (parsed > VALIDATION_LIMITS.nutrition.recipeQuantityMax) return null;
     return parsed;
   }
 
@@ -1259,7 +1304,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
     const textValue = typeof value === "string" ? value.trim() : `${value}`;
     const parsed = Number(value);
-    if (textValue.startsWith("-") || !Number.isFinite(parsed) || parsed <= 0) {
+    if (
+      textValue.startsWith("-") ||
+      !Number.isFinite(parsed) ||
+      parsed <= 0 ||
+      parsed > VALIDATION_LIMITS.nutrition.recipeQuantityMax
+    ) {
       control?.setValue(null, { emitEvent: false });
     }
   }
