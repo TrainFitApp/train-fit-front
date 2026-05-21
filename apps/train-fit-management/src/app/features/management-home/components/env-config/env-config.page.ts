@@ -1,5 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { finalize } from 'rxjs';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription, finalize } from 'rxjs';
+import { Platform } from '@ionic/angular';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { EnvApiService, EnvEntry } from './services/env-api.service';
@@ -9,7 +10,8 @@ import { EnvApiService, EnvEntry } from './services/env-api.service';
   templateUrl: './env-config.page.html',
   styleUrls: ['./env-config.page.scss'],
 })
-export class EnvConfigPage implements OnInit {
+export class EnvConfigPage implements OnInit, OnDestroy {
+  private readonly platform = inject(Platform);
   private readonly navigationService = inject(NavigationService);
   private readonly envApi = inject(EnvApiService);
   private readonly ionicUtil = inject(IonicUtilService);
@@ -22,12 +24,25 @@ export class EnvConfigPage implements OnInit {
   public newKey = '';
   public newValue = '';
 
+  private backButtonSubscription: Subscription | null = null;
+
   public ngOnInit(): void {
     this.loadEntries();
+    this.registerHardwareBackButton();
+  }
+
+  public ngOnDestroy(): void {
+    this.backButtonSubscription?.unsubscribe();
   }
 
   public goBack(): void {
     this.navigationService.goBack();
+  }
+
+  private registerHardwareBackButton(): void {
+    this.backButtonSubscription = this.platform.backButton.subscribeWithPriority(10, () => {
+      this.goBack();
+    });
   }
 
   public loadEntries(): void {
