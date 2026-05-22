@@ -1,5 +1,8 @@
 {
   "name": "@trainfit/shared-core",
   "private": true,
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
 }

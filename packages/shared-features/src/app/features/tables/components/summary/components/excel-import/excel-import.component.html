@@ -1,0 +1,110 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Importar con IA</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="preview-header">
+    <h2>{{ preview.name }}</h2>
+    <div class="stats-row">
+      <span class="stat-chip">{{ getSplitCount() }} splits</span>
+      <span class="stat-chip">{{ getWorkoutCount() }} workouts</span>
+      <span class="stat-chip">{{ getExerciseCount() }} ejercicios</span>
+      <span class="stat-chip">{{ getTotalSets() }} series</span>
+    </div>
+    <p class="preview-hint">Revisa los datos interpretados por la IA antes de confirmar.</p>
+  </div>
+
+  <div class="tree">
+    <div *ngFor="let split of preview.splits; let si = index" class="tree-split">
+      <div class="tree-node split-node" (click)="toggleSplit(si)">
+        <ion-icon
+          [name]="isSplitExpanded(si) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+        ></ion-icon>
+        <ion-icon name="folder-outline" class="node-icon"></ion-icon>
+        <span class="node-label">{{ split.name || 'Split ' + (si + 1) }}</span>
+        <span class="node-count">{{ split.workouts?.length || 0 }} workouts</span>
+      </div>
+
+      <div class="tree-children" *ngIf="isSplitExpanded(si)">
+        <div *ngFor="let workout of split.workouts; let wi = index" class="tree-workout">
+          <div class="tree-node workout-node" (click)="toggleWorkout(si + '-' + wi)">
+            <ion-icon
+              [name]="isWorkoutExpanded(si + '-' + wi) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+            ></ion-icon>
+            <ion-icon name="barbell-outline" class="node-icon"></ion-icon>
+            <span class="node-label">{{ workout.name || 'Entrenamiento ' + (wi + 1) }}</span>
+            <span class="node-count">{{ workout.exercises?.length || 0 }} ejercicios</span>
+          </div>
+
+          <div class="tree-children" *ngIf="isWorkoutExpanded(si + '-' + wi)">
+            <div *ngFor="let exercise of workout.exercises; let ei = index" class="tree-exercise">
+              <div class="tree-node exercise-node" (click)="toggleExercise(si + '-' + wi + '-' + ei)">
+                <ion-icon
+                  [name]="isExerciseExpanded(si + '-' + wi + '-' + ei) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                ></ion-icon>
+                <ion-icon
+                  [name]="exercise.shouldCreate ? 'add-circle-outline' : 'checkmark-circle-outline'"
+                  [color]="exercise.shouldCreate ? 'warning' : 'success'"
+                  class="node-icon"
+                ></ion-icon>
+                <span class="node-label">{{ exercise.name }}</span>
+                <ion-badge color="warning" *ngIf="exercise.shouldCreate">NUEVO</ion-badge>
+                <ion-badge color="success" *ngIf="!exercise.shouldCreate">EXISTE</ion-badge>
+                <span class="node-count">{{ exercise.sets?.length || 0 }} series</span>
+              </div>
+
+              <div class="exercise-detail" *ngIf="isExerciseExpanded(si + '-' + wi + '-' + ei)">
+                <div class="sets-preview" *ngIf="exercise.sets?.length > 0">
+                  <div class="set-header-row">
+                    <span class="set-col set-col--reps">Reps</span>
+                    <span class="set-col set-col--rir">RIR</span>
+                    <span class="set-col set-col--weight">Peso</span>
+                    <span class="set-col set-col--mod">Mod</span>
+                  </div>
+                  <div class="set-row" *ngFor="let set of exercise.sets; let si = index">
+                    <span class="set-col set-col--reps">{{ formatExpectedReps([set]) }}</span>
+                    <span class="set-col set-col--rir">{{ formatExpectedRir([set]) }}</span>
+                    <span class="set-col set-col--weight">{{ formatWeight([set]) }}</span>
+                    <span class="set-col set-col--mod">{{ getSetModifiers([set]) }}</span>
+                  </div>
+                </div>
+                <div class="exercise-empty" *ngIf="!exercise.sets || exercise.sets.length === 0">
+                  Sin series
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-state" *ngIf="!workout.exercises || workout.exercises.length === 0">
+              Sin ejercicios
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!split.workouts || split.workouts.length === 0">
+          Sin workouts
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" color="medium" (click)="cancel()">Cancelar</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button fill="solid" color="success" (click)="confirm()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Confirmar Importación
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

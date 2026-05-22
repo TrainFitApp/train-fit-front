@@ -1,5 +1,6 @@
 import { Component, ViewChild, effect, inject } from "@angular/core";
 import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
+import { ModalController } from "@ionic/angular";
 import { CustomExercise } from "src/app/core/models/customExercise";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
@@ -17,6 +18,9 @@ import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
 import { Theme } from "src/app/shared/models/theme";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import { AiImportService } from "src/app/core/services/ai-import/ai-import.service";
+import { AiTablePreview } from "src/app/core/models/ai-import";
+import { ExcelImportComponent } from "./components/excel-import/excel-import.component";
 
 @Component({
   selector: "app-summary",
@@ -45,6 +49,8 @@ export class SummaryPage {
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
   private readonly billingService = inject(BillingService);
+  private readonly aiImportService = inject(AiImportService);
+  private readonly modalController = inject(ModalController);
 
   constructor(
     public platform: Platform,
@@ -160,6 +166,104 @@ export class SummaryPage {
           });
       }
     });
+  }
+
+  public async importExcels(): Promise<void> {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx,.xls,.csv';
+
+    fileInput.onchange = async (event: any) => {
+      const file = event.target?.files?.[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        this.ionicUtilService.showErrorToast(null, 'El archivo excede el límite de 10MB');
+        return;
+      }
+
+      try {
+        await this.ionicUtilService.showLoading({
+          message: 'Leyendo archivo Excel...',
+        });
+
+        const { sheets, fileName } = await this.aiImportService.parseExcel(file);
+
+        await this.ionicUtilService.hideLoading();
+
+        await this.ionicUtilService.showLoading({
+          message: 'IA interpretando la rutina...',
+        });
+
+        const preview = await this.aiImportService.interpretExcel(sheets, fileName);
+
+        await this.ionicUtilService.hideLoading();
+        await this.showImportPreview(preview);
+      } catch (error: any) {
+        await this.ionicUtilService.hideLoading();
+        this.ionicUtilService.showErrorToast(error, 'Error al importar el archivo');
+      }
+    };
+
+    fileInput.click();
+  }
+
+  private async showImportPreview(preview: AiTablePreview): Promise<void> {
+    const modal = await this.modalController.create({
+      component: ExcelImportComponent,
+      componentProps: { preview },
+      cssClass: 'excel-import-modal',
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.confirmed) {
+      await this.confirmImport(preview);
+    }
+  }
+
+  private async confirmImport(preview: AiTablePreview): Promise<void> {
+    if (await this.billingService.isFreshLimitReached("routines")) {
+      await this.showRoutineLimitAlert();
+      return;
+    }
+
+    try {
+      await this.ionicUtilService.showLoading({
+        message: 'Creando rutina...',
+      });
+
+      const table = await this.aiImportService.createTable(preview);
+
+      await this.ionicUtilService.hideLoading();
+
+      this.tableService.setCurrentTable = table;
+      this.user.tableInUse = table._id;
+      this.user.workoutInUse = undefined;
+      const tableIdStr = table._id;
+      if (!this.user.ownTables.find((id: any) => String(id) === String(tableIdStr))) {
+        this.user.ownTables.push(table._id);
+      }
+      this.userService.setLocalUser = this.user;
+      void this.billingService.refreshBackendEntitlements();
+
+      const toastOptions: ToastOptions = {
+        message: 'Rutina importada correctamente',
+        duration: 2000,
+      };
+      this.ionicUtilService.showToast(toastOptions);
+
+      this.navigationService.goToMesocycle();
+    } catch (error: any) {
+      await this.ionicUtilService.hideLoading();
+      if (error?.code === 'PREMIUM_LIMIT_ROUTINES') {
+        await this.showRoutineLimitAlert();
+        return;
+      }
+      this.ionicUtilService.showErrorToast(error, 'Error al crear la rutina importada');
+    }
   }
 
   private async showRoutineLimitAlert(): Promise<void> {

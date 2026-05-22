@@ -20,6 +20,8 @@ import { DietAPIService } from './services/diet/diet-api.service';
 import { DietService } from './services/diet/diet.service';
 import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
+import { AiImportApiService } from './services/ai-import/ai-import-api.service';
+import { AiImportService } from './services/ai-import/ai-import.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
@@ -93,6 +95,8 @@ import { MatchPasswords } from './validators/matchPasswords';
     SetAPIService,
     ExerciseService,
     ExerciseAPIService,
+    AiImportService,
+    AiImportApiService,
     // Interceptors
     {
       provide: HTTP_INTERCEPTORS,
