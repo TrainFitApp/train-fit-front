@@ -43,6 +43,9 @@ export class SummaryPage {
 
   public workout: Workout;
 
+  public aiLoading = false;
+  public aiLoadingMessage = '';
+
   // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
@@ -183,24 +186,18 @@ export class SummaryPage {
       }
 
       try {
-        await this.ionicUtilService.showLoading({
-          message: 'Leyendo archivo Excel...',
-        });
+        this.showAiLoading('Leyendo archivo Excel...');
 
         const { sheets, fileName } = await this.aiImportService.parseExcel(file);
 
-        await this.ionicUtilService.hideLoading();
-
-        await this.ionicUtilService.showLoading({
-          message: 'IA interpretando la rutina...',
-        });
+        this.aiLoadingMessage = 'IA analizando la rutina...';
 
         const preview = await this.aiImportService.interpretExcel(sheets, fileName);
 
-        await this.ionicUtilService.hideLoading();
+        this.hideAiLoading();
         await this.showImportPreview(preview);
       } catch (error: any) {
-        await this.ionicUtilService.hideLoading();
+        this.hideAiLoading();
         this.ionicUtilService.showErrorToast(error, 'Error al importar el archivo');
       }
     };
@@ -212,7 +209,7 @@ export class SummaryPage {
     const modal = await this.modalController.create({
       component: ExcelImportComponent,
       componentProps: { preview },
-      cssClass: 'excel-import-modal',
+      cssClass: 'fullscreen-modal',
     });
 
     await modal.present();
@@ -231,13 +228,11 @@ export class SummaryPage {
     }
 
     try {
-      await this.ionicUtilService.showLoading({
-        message: 'Creando rutina...',
-      });
+      this.showAiLoading('Creando rutina en TrainFit...');
 
       const table = await this.aiImportService.createTable(preview);
 
-      await this.ionicUtilService.hideLoading();
+      this.hideAiLoading();
 
       this.tableService.setCurrentTable = table;
       this.user.tableInUse = table._id;
@@ -264,6 +259,19 @@ export class SummaryPage {
       }
       this.ionicUtilService.showErrorToast(error, 'Error al crear la rutina importada');
     }
+  }
+
+  private showAiLoading(message: string): void {
+    this.aiLoadingMessage = message;
+    this.aiLoading = true;
+    const tabBar = document.querySelector('ion-tab-bar');
+    if (tabBar) tabBar.style.display = 'none';
+  }
+
+  private hideAiLoading(): void {
+    this.aiLoading = false;
+    const tabBar = document.querySelector('ion-tab-bar');
+    if (tabBar) tabBar.style.display = '';
   }
 
   private async showRoutineLimitAlert(): Promise<void> {

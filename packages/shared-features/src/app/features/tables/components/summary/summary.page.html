@@ -47,9 +47,12 @@
           <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
           Crear Rutina
         </button>
-        <button class="nav-btn" (click)="importExcels()">
-          <ion-icon name="document-text-outline" class="nav-icon"></ion-icon>
-          Importar Excels con IA
+        <button class="nav-btn nav-btn--full" (click)="importExcels()">
+          <ion-icon name="color-wand-outline" class="nav-icon"></ion-icon>
+          <span class="nav-btn__text">
+            <span class="nav-btn__title">Importar Excels con IA</span>
+            <span class="nav-btn__desc">Sube tu Excel y conviértelo en rutina automáticamente</span>
+          </span>
         </button>
       </div>
 
@@ -233,3 +236,21 @@
     </div>
   </div>
 </ion-content>
+
+<!-- AI Import Loading Overlay -->
+<div class="ai-loading-overlay" *ngIf="aiLoading">
+  <div class="ai-loading-content">
+    <div class="ai-loading-spinner">
+      <div class="spinner-ring"></div>
+      <ion-icon name="color-wand-outline" class="spinner-icon"></ion-icon>
+    </div>
+    <div class="ai-loading-title">TrainFit</div>
+    <div class="ai-loading-message">{{ aiLoadingMessage }}</div>
+    <div class="ai-loading-sub">Esto puede tardar unos segundos...</div>
+    <div class="ai-loading-dots">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AiTablePreview, AiSplitPreview, AiWorkoutPreview, AiExercisePreview, AiSetPreview } from 'src/app/core/models/ai-import';
+import { AiTablePreview, AiSetPreview } from 'src/app/core/models/ai-import';
 
 @Component({
   selector: 'app-excel-import',
@@ -123,6 +123,23 @@ export class ExcelImportComponent implements OnInit {
     if (!sets || sets.length === 0) return '-';
     const w = sets[0].weight;
     return w ? `${w} kg` : '-';
+  }
+
+  public formatIntensity(sets: AiSetPreview[]): string {
+    if (!sets || sets.length === 0) return '-';
+    const s = sets[0];
+    const parts: string[] = [];
+
+    if (s.expectedRir?.[0] === -1) {
+      parts.push('FALLO');
+    } else if (s.expectedRir?.length) {
+      parts.push(s.expectedRir.join('-') + ' RIR');
+    }
+
+    if (s.drop) parts.push('DS');
+    if (s.restPause) parts.push(`RP ${s.restPause}s`);
+
+    return parts.length ? parts.join(' · ') : '-';
   }
 
   public hasSetModifiers(sets: AiSetPreview[]): boolean {
