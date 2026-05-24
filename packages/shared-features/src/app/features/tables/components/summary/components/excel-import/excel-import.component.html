@@ -114,9 +114,8 @@
                 <div class="sets-preview" *ngIf="exercise.sets?.length > 0">
                   <div class="set-header-row">
                     <span class="set-col set-col--reps">Reps</span>
-                    <span class="set-col set-col--rir">Peso</span>
-                    <span class="set-col set-col--weight">Int</span>
-                    <span class="set-col set-col--mod"></span>
+                    <span class="set-col set-col--weight">Peso</span>
+                    <span class="set-col set-col--int">Int</span>
                   </div>
                   <div class="set-row" *ngFor="let set of exercise.sets">
                     <span class="set-col set-col--reps">{{ formatExpectedReps([set]) }}</span>
