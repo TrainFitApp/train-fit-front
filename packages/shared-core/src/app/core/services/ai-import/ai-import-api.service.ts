@@ -10,7 +10,7 @@ export class AiImportApiService {
 
   public interpretExcel(
     sheets: ExcelSheetData[],
-    fileName: string
+    fileName: string,
   ): Observable<AiTablePreview> {
     return this.http.post<AiTablePreview>('ai/interpret-excel', {
       sheets,

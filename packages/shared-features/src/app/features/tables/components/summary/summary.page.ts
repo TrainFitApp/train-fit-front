@@ -186,13 +186,9 @@ export class SummaryPage {
       }
 
       try {
-        this.showAiLoading('Leyendo archivo Excel...');
+        this.showAiLoading('IA analizando la rutina...');
 
-        const { sheets, fileName } = await this.aiImportService.parseExcel(file);
-
-        this.aiLoadingMessage = 'IA analizando la rutina...';
-
-        const preview = await this.aiImportService.interpretExcel(sheets, fileName);
+        const preview = await this.aiImportService.interpretExcel(file);
 
         this.hideAiLoading();
         await this.showImportPreview(preview);
