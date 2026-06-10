@@ -26,6 +26,7 @@
   <!-- Split Content -->
   <div
     class="split-content-container"
+    [class.split-content-container--locked]="isCurrentSplitLocked()"
     [style.height]="tableInUseAux?.splits.length > 0 ? 'initial': '100%'"
   >
     <ng-container
@@ -268,6 +269,31 @@
         ><strong>CREAR ENTRENAMIENTO</strong>
       </ion-button>
     </ng-container>
+
+    <div
+      *ngIf="isCurrentSplitLocked()"
+      class="microcycle-lock-overlay"
+      (click)="openPremiumFromLockedSplit($event)"
+    >
+      <div class="microcycle-lock-panel" (click)="$event.stopPropagation()">
+        <div class="microcycle-lock-icon">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <h2>Micro-ciclo bloqueado</h2>
+        <p>
+          Has superado los {{ microcyclesPerRoutineLimit }} micro-ciclos
+          incluidos en el modo Free. Activa Pro para seguir esta rutina.
+        </p>
+        <ion-button
+          expand="block"
+          shape="round"
+          class="microcycle-lock-cta"
+          (click)="openPremiumFromLockedSplit($event)"
+        >
+          Hazte Pro
+        </ion-button>
+      </div>
+    </div>
   </div>
 </ion-content>
 
@@ -277,7 +303,7 @@
 
 <app-actions-fab
   class="fixed"
-  *ngIf="tableMode === TABLE_MODE_TYPES.mesocycle && pasteMode"
+  *ngIf="tableMode === TABLE_MODE_TYPES.mesocycle && pasteMode && !isCurrentSplitLocked()"
   [currentWorkoutMode]="!!user.workoutInUse"
   [tableInUse]="tableInUse"
   [loading]="loadingFab"
@@ -303,6 +329,7 @@
           <div
             class="cycle-number"
             [class.completed]="isCurrentSplitCompleted(currentSplit)"
+            [class.locked]="isCurrentSplitLocked()"
           >
             {{ currentSplitIndex + 1 }}
           </div>
@@ -323,6 +350,7 @@
                   [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
                 >
                   MICRO-CICLO {{ splitItem.originalIndex + 1 }}
+                  {{ isSplitLocked(splitItem.originalIndex) ? '- PRO' : '' }}
                   <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
                 </ion-select-option>
               </ion-select>
@@ -338,6 +366,7 @@
           <ion-button
             fill="clear"
             class="action-btn menu-btn ripple-effect"
+            [disabled]="isCurrentSplitLocked()"
             (click)="showSplitMenu($event)"
           >
             <ion-icon name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>

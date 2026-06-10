@@ -18,6 +18,7 @@ import { Workout } from "src/app/core/models/workout";
 import { SplitService } from "src/app/core/services/split/split.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { UtilService } from "src/app/core/services/util/util.service";
@@ -74,6 +75,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public tableMode: string;
   public openWorkoutIndex: number;
+  public microcyclesPerRoutineLimit: number | null = null;
 
   public TABLE_MODE_TYPES = TABLE_MODE_TYPES;
 
@@ -119,6 +121,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     public utilService: UtilService,
     public platform: Platform,
     private splitService: SplitService,
+    private billingService: BillingService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
@@ -190,6 +193,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public ionViewDidEnter(): void {
+    void this.loadMicrocycleLimit();
+
     if (!this.tableInUse?.splits?.length) return;
 
     // Si no hay entrenamiento en uso, auto-posicionamos según progreso (caso Summary -> Mesocycle)
@@ -368,6 +373,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public initVariables(): void {
     console.log("init");
+    void this.loadMicrocycleLimit();
 
     this.utilService.getTableMode.subscribe(
       (resTableMode) => (this.tableMode = resTableMode),
@@ -448,6 +454,28 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         }
       }, 200);
     }
+  }
+
+  private async loadMicrocycleLimit(): Promise<void> {
+    const entitlements = await this.billingService.getBackendEntitlements();
+    this.microcyclesPerRoutineLimit =
+      entitlements?.limits?.microcyclesPerRoutine ?? null;
+    this.cdr.markForCheck();
+  }
+
+  public isSplitLocked(splitIndex: number): boolean {
+    if (this.user?.premium?.entitled) return false;
+    if (typeof this.microcyclesPerRoutineLimit !== "number") return false;
+    return splitIndex >= this.microcyclesPerRoutineLimit;
+  }
+
+  public isCurrentSplitLocked(): boolean {
+    return this.isSplitLocked(this.currentSplitIndex);
+  }
+
+  public openPremiumFromLockedSplit(event?: Event): void {
+    event?.stopPropagation();
+    this.navigationService.goToPremium();
   }
 
   private updateCurrentSplit(): void {
@@ -589,6 +617,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addWorkout(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     const alertOptions = {
       header: "Añadir entrenamiento",
       message: "Introduce el nombre del entrenamiento",
@@ -1053,6 +1086,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public onCloseFab(actionFab: ACTIONS_FAB_TYPES): void {
+    if (
+      this.isCurrentSplitLocked() &&
+      actionFab !== ACTIONS_FAB_TYPES.cancelCopy
+    ) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     switch (actionFab) {
       case ACTIONS_FAB_TYPES.addWorkout:
         this.addWorkoutToSplit();
@@ -1126,6 +1167,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   private addWorkoutToSplit(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     this.loadingFab = true;
     const alertOptions: AlertOptions = {
       header: ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value,
@@ -1188,6 +1234,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async showSplitMenu(event: Event): Promise<void> {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit(event);
+      return;
+    }
+
     const popoverOptions = {
       component: SplitMenuPopoverComponent,
       event: event,
