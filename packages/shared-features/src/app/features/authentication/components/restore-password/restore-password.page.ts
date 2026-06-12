@@ -1,15 +1,12 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastOptions } from '@ionic/angular';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { ModalController } from '@ionic/angular';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import { PasswordComplexity } from 'src/app/core/validators/password-complexity';
-import { EmailExistValidator } from 'src/app/core/validators/email-exist';
 
 @Component({
   selector: 'app-restore-password',
@@ -63,7 +60,6 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     this.needsEmailInput = !this.localEmail;
   }
 
-  // TODO: Validador que compruebe que el correo existe
   private initForm(): void {
     const controls: { [key: string]: FormControl } = {
       password: new FormControl(
@@ -85,11 +81,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     if (this.needsEmailInput) {
       controls['email'] = new FormControl(
         null,
-        Validators.compose([Validators.required, Validators.email]),
-        (control) =>
-          from(
-            EmailExistValidator.createValidator(this.userService)(control)
-          ).pipe(map((res) => (res ? null : { emailExist: true })))
+        Validators.compose([Validators.required, Validators.email])
       );
     }
 
@@ -126,15 +118,15 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
           this.showFormErrors = false;
           this.startResendCooldown();
           this.ionicUtilService.showSuccessToast(
-            '¡Código enviado, revisa spam!',
+            'Si existe una cuenta con ese correo, enviaremos un código. Revisa spam.',
             3000
           );
         },
-        error: (err) => {
+        error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
-            err,
-            'Error al enviar código',
+            'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
+            'Solicitud no completada',
             3000
           );
         },
@@ -175,9 +167,13 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             this.codeAccepted = true;
           }
         },
-        error: (err) => {
+        error: () => {
           this.loading = false;
-          this.ionicUtilService.showErrorToast(err, 'Código inválido', 3000);
+          this.ionicUtilService.showErrorToast(
+            'El código no es válido o ha expirado.',
+            'Código inválido',
+            3000
+          );
         },
       });
   }
@@ -211,7 +207,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             this.navigationService.goToLoginPage();
           }
         },
-        error: (err) => {
+        error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
             err,
@@ -236,15 +232,15 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.ionicUtilService.showSuccessToast(
-          '¡Código reenviado, revisa spam!',
+          'Si existe una cuenta con ese correo, enviaremos un código. Revisa spam.',
           3000
         );
       },
-      error: (err) => {
+      error: () => {
         this.loading = false;
         this.ionicUtilService.showErrorToast(
-          err,
-          'Error al reenviar código',
+          'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
+          'Solicitud no completada',
           3000
         );
       },
