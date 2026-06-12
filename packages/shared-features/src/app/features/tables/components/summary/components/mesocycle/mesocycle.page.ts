@@ -1045,6 +1045,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addFirstSplitToTable(): void {
+    if (this.loadingFab) return;
+
     this.loadingFab = true;
 
     const idSplit = this.tableInUse.splits[this._currentSplitIndex]?._id;

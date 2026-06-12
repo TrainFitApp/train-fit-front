@@ -1054,7 +1054,7 @@
     <ion-button
       expand="block"
       size="large"
-      [disabled]="productForm.invalid"
+      [disabled]="productForm.invalid || saveInProgress"
       (click)="createCustomProduct()"
       class="create-button"
     >
@@ -1062,5 +1062,11 @@
         <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
       </div>
     </ion-button>
+    <ion-progress-bar
+      *ngIf="saveInProgress"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>

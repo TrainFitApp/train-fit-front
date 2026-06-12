@@ -653,6 +653,8 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   public async addCustomProduct(): Promise<void> {
+    if (this.loading.value || this.autoPersistInProgress) return;
+
     await this.goBack({
       forceSave: true,
       forceCreateMealProduct: true,

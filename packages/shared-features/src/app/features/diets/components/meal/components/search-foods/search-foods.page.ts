@@ -69,6 +69,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     [],
   );
   public recipes: Recipe[] = [];
+  public loadingRecipeIds = new Set<string>();
   public idUser: string;
 
   public load: boolean;
@@ -1917,6 +1918,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeQuickAdd(recipe: Recipe): void {
+    if (this.isRecipeLoading(recipe)) return;
+
     const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
@@ -1939,6 +1942,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (!this.meal || !recipe?._id) {
       return;
     }
+
+    this.setRecipeLoading(recipe, true);
 
     const quantity = 100;
 
@@ -1984,6 +1989,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         });
       },
       error: (error) => {
+        this.setRecipeLoading(recipe, false);
         console.error("[quickAddRecipeToMeal] Error:", error);
         this.ionicUtilService.showToast({
           message: "No se pudo añadir la receta",
@@ -1991,7 +1997,26 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           color: "danger",
         });
       },
+      complete: () => {
+        this.setRecipeLoading(recipe, false);
+      },
     });
+  }
+
+  public isRecipeLoading(recipe: Recipe): boolean {
+    return !!recipe?._id && this.loadingRecipeIds.has(recipe._id);
+  }
+
+  private setRecipeLoading(recipe: Recipe, loading: boolean): void {
+    if (!recipe?._id) return;
+
+    const nextLoadingRecipeIds = new Set(this.loadingRecipeIds);
+    if (loading) {
+      nextLoadingRecipeIds.add(recipe._id);
+    } else {
+      nextLoadingRecipeIds.delete(recipe._id);
+    }
+    this.loadingRecipeIds = nextLoadingRecipeIds;
   }
 
   private removeRecipeFromMeal(instance: any): void {

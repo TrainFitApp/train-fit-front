@@ -35,6 +35,7 @@ export class CreateProductPage implements OnInit {
 
   public productForm: FormGroup;
   public loading = { value: false };
+  public saveInProgress = false;
 
   public isEditMode: boolean = false;
   public editingProduct: IProduct;
@@ -70,6 +71,10 @@ export class CreateProductPage implements OnInit {
   }
 
   public createCustomProduct(): void {
+    if (this.saveInProgress || this.productForm.invalid) return;
+
+    this.saveInProgress = true;
+
     const formValues = { ...this.productForm.value };
 
     // Unit conversions (UI -> DB/g)
@@ -213,6 +218,7 @@ export class CreateProductPage implements OnInit {
           this.navigationService.backNoAnim();
         },
         error: (err) => {
+          this.saveInProgress = false;
           console.error('[EditProduct] Error al actualizar:', err);
           const toastOptions: ToastOptions = {
             message: 'Error al actualizar el producto. Inténtalo de nuevo.',
@@ -256,6 +262,7 @@ export class CreateProductPage implements OnInit {
           this.navigationService.backNoAnim();
         },
         error: (error) => {
+          this.saveInProgress = false;
           console.error('[ERROR] Failed to create product in DB:', error);
           const toastOptions: ToastOptions = {
             message: 'Error al crear el producto. Inténtalo de nuevo.',
@@ -294,51 +301,75 @@ export class CreateProductPage implements OnInit {
           idDietInUse,
           this.user._id
         )
-        .subscribe(() => {
-          this.navigationService.setTempData('searchFoodsResult', {
-            createdViaCreateProduct: true,
-          });
+        .subscribe({
+          next: () => {
+            this.navigationService.setTempData('searchFoodsResult', {
+              createdViaCreateProduct: true,
+            });
 
-          this.adMobService.interstitial('create_product'); // Estrategia AdMob
+            this.adMobService.interstitial('create_product'); // Estrategia AdMob
 
-          if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
-            this.navigationService.backNoAnim();
-          } else if (this.returnUrl) {
-            const resultState = { result: { refresh: true } };
-            const parentUrl = this.returnUrl.replace(
-              /\/(create-product|add-product)$/i,
-              '/search-foods'
-            );
-            if (parentUrl.endsWith('/search-foods')) {
+            if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
               this.navigationService.backNoAnim();
+            } else if (this.returnUrl) {
+              const resultState = { result: { refresh: true } };
+              const parentUrl = this.returnUrl.replace(
+                /\/(create-product|add-product)$/i,
+                '/search-foods'
+              );
+              if (parentUrl.endsWith('/search-foods')) {
+                this.navigationService.backNoAnim();
+              } else {
+                this.navigationService.backTo(parentUrl, {
+                  state: resultState,
+                });
+              }
             } else {
-              this.navigationService.backTo(parentUrl, { state: resultState });
+              this.navigationService.backNoAnim();
             }
-          } else {
-            this.navigationService.backNoAnim();
-          }
+          },
+          error: () => {
+            this.saveInProgress = false;
+            const toastOptions: ToastOptions = {
+              message: 'Error al crear el producto. Intentalo de nuevo.',
+              duration: 2000,
+              color: 'danger',
+            };
+            this.ionicUtilService.showToast(toastOptions);
+          },
         });
     }
     // Si provienen de profile (sin meal)
     else {
       newProduct.userId = this.user._id;
-      this.productService.saveProduct(newProduct).subscribe((resProduct) => {
-        this.navigationService.setTempData('searchFoodsResult', {
-          refresh: true,
-          switchSegmentToOwn: true,
-        });
+      this.productService.saveProduct(newProduct).subscribe({
+        next: (resProduct) => {
+          this.navigationService.setTempData('searchFoodsResult', {
+            refresh: true,
+            switchSegmentToOwn: true,
+          });
 
-        const toastOptions: ToastOptions = {
-          message: resProduct.name + ' añadido',
-          duration: 1000,
-        };
-        this.ionicUtilService.showToast(toastOptions);
-        this.adMobService.interstitial('create_product'); // Estrategia AdMob
-        if (this.returnUrl && !this.returnUrl.includes('/search-foods')) {
-          this.navigationService.backTo(this.returnUrl);
-        } else {
-          this.navigationService.backNoAnim();
-        }
+          const toastOptions: ToastOptions = {
+            message: resProduct.name + ' añadido',
+            duration: 1000,
+          };
+          this.ionicUtilService.showToast(toastOptions);
+          this.adMobService.interstitial('create_product'); // Estrategia AdMob
+          if (this.returnUrl && !this.returnUrl.includes('/search-foods')) {
+            this.navigationService.backTo(this.returnUrl);
+          } else {
+            this.navigationService.backNoAnim();
+          }
+        },
+        error: () => {
+          this.saveInProgress = false;
+          const toastOptions: ToastOptions = {
+            message: 'Error al crear el producto. Intentalo de nuevo.',
+            duration: 2000,
+            color: 'danger',
+          };
+          this.ionicUtilService.showToast(toastOptions);
+        },
       });
     }
   }

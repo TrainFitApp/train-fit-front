@@ -315,9 +315,16 @@
     expand="block"
     shape="round"
     class="ion-margin t-add-micro"
+    [disabled]="loadingFab"
     (click)="addFirstSplitToTable()"
     ><strong>AÑADIR MICRO-CICLO</strong></ion-button
   >
+  <ion-progress-bar
+    *ngIf="loadingFab"
+    class="t-add-micro-progress"
+    type="indeterminate"
+    color="primary"
+  ></ion-progress-bar>
 </ng-template>
 
 <ion-footer *ngIf="tableInUse?.splits.length > 0">
