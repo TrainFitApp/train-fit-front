@@ -66,10 +66,7 @@ export class ConfigurationPage {
           text: 'CONFIRMAR',
           cssClass: 'alert-button-primary',
           handler: () => {
-            this.userService.setLocalUser = null;
-            this.workoutService.setCurrentWorkout = null;
-            this.dietService.setCurrentDiet = null;
-            this.tableService.setCurrentTable = null;
+            this.clearUserCache();
             this.authService.logout();
           },
         },
@@ -150,6 +147,7 @@ export class ConfigurationPage {
           role: 'destructive',
           handler: () => {
             this.userService.deleteById(this.user._id).subscribe((_) => {
+              this.clearUserCache();
               this.authService.logout();
             });
           },
@@ -161,6 +159,13 @@ export class ConfigurationPage {
 
   public close(): void {
     this.navigationService.goBack();
+  }
+
+  private clearUserCache(): void {
+    this.userService.setLocalUser = null;
+    this.workoutService.setCurrentWorkout = null;
+    this.dietService.setCurrentDiet = null;
+    this.tableService.setCurrentTable = null;
   }
 
   public editNutritionalGoals(): void {
