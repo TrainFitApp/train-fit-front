@@ -268,6 +268,64 @@
         (click)="addWorkout()"
         ><strong>CREAR ENTRENAMIENTO</strong>
       </ion-button>
+
+      <section class="workout-template-panel" *ngIf="shouldShowWorkoutTemplates">
+        <ion-accordion-group class="workout-template-dropdown">
+          <ion-accordion value="templates">
+            <div slot="header" class="workout-template-trigger">
+              <div class="workout-template-trigger__text">
+                <h2>Plantillas rápidas</h2>
+                <p>Crear entrenamientos base para esta rutina</p>
+              </div>
+              <ion-icon
+                class="workout-template-trigger__icon"
+                name="chevron-down-outline"
+              ></ion-icon>
+            </div>
+
+            <div slot="content" class="workout-template-content">
+              <ion-progress-bar
+                *ngIf="workoutTemplateLoadingId"
+                type="indeterminate"
+                color="primary"
+              ></ion-progress-bar>
+
+              <div class="workout-template-grid">
+                <button
+                  type="button"
+                  class="workout-template-option"
+                  *ngFor="let template of workoutTemplates"
+                  [disabled]="!!workoutTemplateLoadingId"
+                  (click)="confirmWorkoutTemplate(template)"
+                >
+                  <div class="workout-template-option__body">
+                    <div class="workout-template-option__top">
+                      <span class="workout-template-option__name">
+                        {{ template.name }}
+                      </span>
+                      <span class="workout-template-option__days">
+                        {{ template.description }}
+                      </span>
+                    </div>
+                    <div class="workout-template-option__preview">
+                      <span
+                        class="workout-template-option__chip"
+                        *ngFor="let workoutName of template.workouts"
+                      >
+                        {{ workoutName }}
+                      </span>
+                    </div>
+                  </div>
+                  <ion-icon
+                    class="workout-template-option__arrow"
+                    name="chevron-forward-outline"
+                  ></ion-icon>
+                </button>
+              </div>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </section>
     </ng-container>
 
     <div
