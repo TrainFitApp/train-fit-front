@@ -51,7 +51,6 @@ export class OrderExercisesPage implements OnInit {
     }
     const movedIndex = this.initialCustomExercisesOrder.splice(fromIndex, 1)[0];
     this.initialCustomExercisesOrder.splice(toIndex, 0, movedIndex);
-    console.log('Updated Order of Indices:', this.initialCustomExercisesOrder);
     ev.detail.complete();
     this.hasOrder = true;
   }

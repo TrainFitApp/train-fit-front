@@ -215,33 +215,25 @@ export class WorkoutComponent {
         data: {
           type: 'delete',
         },
-        handler: () => {
-          console.log('Delete clicked');
-        },
+        handler: () => {},
       },
       {
         text: 'Twitter',
         icon: 'logo-twitter',
         data: 10,
-        handler: () => {
-          console.log('Share clicked');
-        },
+        handler: () => {},
       },
       {
         text: 'Instagram',
         icon: 'logo-instagram',
         data: 'Data value',
-        handler: () => {
-          console.log('Play clicked');
-        },
+        handler: () => {},
       },
       {
         text: 'CANCELAR',
         icon: 'close',
         role: 'cancel',
-        handler: () => {
-          console.log('Cancel clicked');
-        },
+        handler: () => {},
       },
     ];
 
@@ -822,14 +814,6 @@ export class WorkoutComponent {
 
     const isCurrentWorkout =
       this.workoutService.currentWorkout?._id === this.workout._id;
-
-    console.debug('[WorkoutComponent] Exercise note updated', {
-      tableId: this.tableInUse?._id,
-      workoutId: this.workout?._id,
-      customExerciseId: customExercise?._id,
-      isCurrentWorkout,
-      noteExists: !!note,
-    });
 
     if (isCurrentWorkout) {
       this.workoutService.setCurrentWorkout = this.workout;

@@ -9,7 +9,7 @@ import {
   EventEmitter,
 } from '@angular/core';
 import { AlertOptions, ModalOptions, ToastOptions } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
 import { Set } from 'src/app/core/models/set';
@@ -18,7 +18,6 @@ import { Workout } from 'src/app/core/models/workout';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { SetService } from 'src/app/core/services/set/set.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
 
@@ -57,7 +56,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
 
   constructor(
     private customExerciseService: CustomExerciseService,
-    private utilService: UtilService,
     private setService: SetService,
     private ionicUtilService: IonicUtilService,
     private workoutService: WorkoutService
@@ -200,14 +198,63 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
     });
   }
 
-  public manageNote(): void {
-    this.utilService
-      .manageNote(this.customExercise, this.customExerciseService)
-      .then((changed) => {
-        if (changed && this.currentWorkout) {
-          this.workoutService.setCurrentWorkout = this.currentWorkout;
-        }
+  public async manageNote(): Promise<void> {
+    if (!this.customExercise) return;
+
+    const previousNotes = this.customExercise.notes || '';
+    const alertOptions: AlertOptions = {
+      header: 'Notas',
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: 'Escribe tus notas aqui...',
+          value: previousNotes,
+        },
+      ],
+      buttons: [
+        {
+          text: 'CANCELAR',
+          role: 'cancel',
+        },
+        {
+          text: 'GUARDAR',
+          cssClass: 'alert-button-success',
+        },
+      ],
+    };
+
+    const result = await this.ionicUtilService.showAlert(alertOptions);
+    if (result.role === 'cancel') return;
+
+    const newNotes = (result.data?.values?.notes || '').trim();
+    if (!newNotes) {
+      await this.ionicUtilService.showAlert({
+        header: 'Error',
+        message: 'El campo no puede estar vacio',
+        buttons: ['OK'],
       });
+      return;
+    }
+
+    if (newNotes === previousNotes.trim()) return;
+
+    try {
+      const updatedCustomExercise = await firstValueFrom(
+        this.customExerciseService.updateCustomExercise({
+          ...this.customExercise,
+          notes: newNotes,
+        })
+      );
+
+      this.replaceCurrentExercise(updatedCustomExercise);
+    } catch {
+      await this.ionicUtilService.showAlert({
+        header: 'Error',
+        message: 'No se pudo guardar la nota. Intentalo de nuevo.',
+        buttons: ['OK'],
+      });
+    }
   }
 
   public deleteSet(set: Set): void {
@@ -312,6 +359,29 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
     }
 
     this.workoutService.setCurrentWorkout = this.currentWorkout;
+  }
+
+  private replaceCurrentExercise(customExercise: CustomExercise): void {
+    if (!customExercise?._id) return;
+
+    const updatedCustomExercise = {
+      ...customExercise,
+      sets: this.sortSets(customExercise.sets || []),
+    };
+
+    this.customExercise = updatedCustomExercise;
+
+    if (!this.currentWorkout?.exercises) return;
+
+    const exerciseIndex = this.currentWorkout.exercises.findIndex(
+      (exerciseTemp) => exerciseTemp._id === updatedCustomExercise._id
+    );
+
+    if (exerciseIndex !== -1) {
+      this.currentWorkout.exercises[exerciseIndex] = updatedCustomExercise;
+    }
+
+    this.workoutService.setCurrentWorkout = { ...this.currentWorkout };
   }
 
   public sortSets(sets: any[]): any[] {

@@ -313,13 +313,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (!mismatch) return;
 
-    console.debug("[MesocyclePage] Note mismatch detected, syncing table", {
-      tableId: this.tableInUse?._id,
-      customExerciseId: mismatch.customExerciseId,
-      localNote: mismatch.localNote,
-      signalNote: mismatch.signalNote,
-    });
-
     this.tableService.setCurrentTable = this.tableInUse;
   }
 
@@ -372,7 +365,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public initVariables(): void {
-    console.log("init");
     void this.loadMicrocycleLimit();
 
     this.utilService.getTableMode.subscribe(

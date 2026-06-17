@@ -115,33 +115,13 @@ export class NotesComponent implements OnInit, OnChanges {
 
                 this.syncNotesToTableAndWorkout(this.object, this.object.notes);
 
-                if (persistedNotes !== newNotes) {
-                  console.debug('[NotesComponent] Notes mismatch after update', {
-                    noteType: this.noteType,
-                    previousNotes,
-                    requestedNotes: newNotes,
-                    persistedNotes,
-                    objectId: (this.object as any)?._id,
-                  });
-                } else {
-                  console.debug('[NotesComponent] Notes updated', {
-                    noteType: this.noteType,
-                    objectId: (this.object as any)?._id,
-                  });
-                }
-
                 this.update.emit(persistedNotes);
               },
-              error: (error) => {
+              error: () => {
                 this.object.notes = previousNotes || '';
 
                 this.syncNotesToTableAndWorkout(this.object, previousNotes);
 
-                console.debug('[NotesComponent] Notes update failed', {
-                  noteType: this.noteType,
-                  objectId: (this.object as any)?._id,
-                  error,
-                });
                 this.update.emit(previousNotes);
                 this.isLoading = false;
                 this.scrollToNote();
@@ -154,10 +134,6 @@ export class NotesComponent implements OnInit, OnChanges {
             return;
           }
         }
-        console.debug('[NotesComponent] Notes updated locally (no service)', {
-          noteType: this.noteType,
-          objectId: (this.object as any)?._id,
-        });
         this.update.emit(newNotes);
       }
     });
@@ -191,32 +167,13 @@ export class NotesComponent implements OnInit, OnChanges {
 
                     this.syncNotesToTableAndWorkout(this.object, this.object.notes);
 
-                    if (persistedNotes !== '') {
-                      console.debug('[NotesComponent] Note delete mismatch after update', {
-                        noteType: this.noteType,
-                        previousNotes,
-                        persistedNotes,
-                        objectId: (this.object as any)?._id,
-                      });
-                    } else {
-                      console.debug('[NotesComponent] Note deleted', {
-                        noteType: this.noteType,
-                        objectId: (this.object as any)?._id,
-                      });
-                    }
-
                     this.update.emit(persistedNotes);
                   },
-                  error: (error) => {
+                  error: () => {
                     this.object.notes = previousNotes || '';
 
                     this.syncNotesToTableAndWorkout(this.object, previousNotes);
 
-                    console.debug('[NotesComponent] Note delete failed', {
-                      noteType: this.noteType,
-                      objectId: (this.object as any)?._id,
-                      error,
-                    });
                     this.update.emit(previousNotes);
                     this.isLoading = false;
                     this.scrollToNote();
@@ -229,10 +186,6 @@ export class NotesComponent implements OnInit, OnChanges {
                 return;
               }
             }
-            console.debug('[NotesComponent] Note deleted locally (no service)', {
-              noteType: this.noteType,
-              objectId: (this.object as any)?._id,
-            });
             this.update.emit(undefined);
           },
         },
