@@ -119,15 +119,28 @@
             ></ion-icon>
           </button>
           <div class="description-card" *ngIf="showDescriptionDetails">
-            <div class="input-wrapper textarea-wrapper">
-              <ion-textarea
-                formControlName="description"
-                placeholder="Descripción opcional..."
-                [autoGrow]="true"
-                [rows]="3"
-                class="custom-textarea"
-              ></ion-textarea>
-            </div>
+            <ng-container *ngIf="showRecipeDescriptionSteps; else descriptionInput">
+              <div class="description-steps">
+                <div
+                  class="description-step"
+                  *ngFor="let step of recipeDescriptionSteps; let i = index"
+                >
+                  <span class="description-step-index">{{ i + 1 }}</span>
+                  <p class="description-step-text">{{ step }}</p>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #descriptionInput>
+              <div class="input-wrapper textarea-wrapper">
+                <ion-textarea
+                  formControlName="description"
+                  placeholder="Descripción opcional..."
+                  [autoGrow]="true"
+                  [rows]="3"
+                  class="custom-textarea"
+                ></ion-textarea>
+              </div>
+            </ng-template>
           </div>
         </div>
 

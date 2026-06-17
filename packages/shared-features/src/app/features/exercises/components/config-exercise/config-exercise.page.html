@@ -567,9 +567,15 @@
 
         <!-- Description Content Row -->
         <div class="exercise-description">
-          <p class="description-text">
-            {{ exercise?.description ?? customExercise?.exercise?.description }}
-          </p>
+          <div class="description-steps">
+            <div
+              class="description-step"
+              *ngFor="let step of getExerciseDescriptionSteps(); let i = index"
+            >
+              <span class="description-step-index">{{ i + 1 }}</span>
+              <p class="description-step-text">{{ step }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

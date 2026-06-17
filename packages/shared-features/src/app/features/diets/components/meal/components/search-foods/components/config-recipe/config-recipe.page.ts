@@ -23,6 +23,7 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { fadeIn } from "src/app/shared/animations/fade";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
+import { splitTextIntoSteps } from "src/app/shared/utils";
 
 export type ConfigRecipeMode = "create" | "add" | "edit";
 
@@ -399,6 +400,18 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
   public get canSave(): boolean {
     return this.recipeForm.valid && this.ingredients.length >= 2;
+  }
+
+  public get recipeDescriptionSteps(): string[] {
+    return splitTextIntoSteps(this.recipeForm.getRawValue()?.description);
+  }
+
+  public get showRecipeDescriptionSteps(): boolean {
+    return (
+      !this.editingBaseRecipe &&
+      !this.isCreateMode &&
+      this.recipeDescriptionSteps.length > 0
+    );
   }
 
   public get showPortionFields(): boolean {

@@ -36,6 +36,7 @@ import { ExerciseService } from "src/app/core/services/exercise/exercise.service
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
 import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
 import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
+import { splitTextIntoSteps } from "src/app/shared/utils";
 
 @Component({
   selector: "app-config-exercise",
@@ -124,6 +125,12 @@ export class ConfigExercisePage implements OnInit {
     "Tren inferior",
     "Torso/Tren superior",
   ];
+
+  public getExerciseDescriptionSteps(): string[] {
+    return splitTextIntoSteps(
+      this.exercise?.description ?? this.customExercise?.exercise?.description,
+    );
+  }
 
   public filterMuscleGroup1: string[] = [
     "Brazos",

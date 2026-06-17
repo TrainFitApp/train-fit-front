@@ -498,6 +498,42 @@
     animation: slideDown 0.2s ease forwards;
   }
 
+  .description-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .description-step {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .description-step-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    color: var(--ion-color-primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .description-step-text {
+    margin: 2px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   .description-input-group {
     margin-bottom: 0;
   }
