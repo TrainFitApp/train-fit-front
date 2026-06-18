@@ -1,5 +1,10 @@
 <ion-list>
-  <ion-item [button]="true" [detail]="true" (click)="duplicateSplit()">
+  <ion-item
+    [button]="true"
+    [detail]="true"
+    [disabled]="duplicateDisabled"
+    (click)="duplicateSplit()"
+  >
     <ion-icon
       name="duplicate-outline"
       color="secondary"

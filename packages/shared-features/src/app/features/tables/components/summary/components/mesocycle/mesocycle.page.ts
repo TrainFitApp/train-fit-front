@@ -30,6 +30,7 @@ import {
 import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
 import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
+import { DeleteSplitsModalComponent } from "./components/delete-splits-modal/delete-splits-modal.component";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -1088,7 +1089,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public onCloseFab(actionFab: ACTIONS_FAB_TYPES): void {
     if (
       this.isCurrentSplitLocked() &&
-      actionFab !== ACTIONS_FAB_TYPES.cancelCopy
+      actionFab !== ACTIONS_FAB_TYPES.cancelCopy &&
+      actionFab !== ACTIONS_FAB_TYPES.deleteMicrocycle
     ) {
       this.openPremiumFromLockedSplit();
       return;
@@ -1110,60 +1112,175 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
   }
 
-  public deleteSplit(): void {
+  public async deleteSplit(): Promise<void> {
+    if (!this.tableInUse?.splits?.length) return;
+
+    const modalResult = await this.ionicUtilService.showModal({
+      component: DeleteSplitsModalComponent,
+      componentProps: {
+        splits: this.tableInUse.splits,
+        currentSplitIndex: this._currentSplitIndex,
+        workoutInUse: this.user?.workoutInUse,
+      },
+      cssClass: "delete-splits-modal",
+      initialBreakpoint: 1,
+      breakpoints: [0, 0.5, 0.85, 1],
+    });
+
+    const splitIds = modalResult.data?.splitIds as string[] | undefined;
+    if (modalResult.role !== "confirm" || !splitIds?.length) return;
+
+    const splitCount = splitIds.length;
     const alertOptions: AlertOptions = {
       header: ACTIONS_FAB[ACTIONS_FAB_TYPES.deleteMicrocycle].value,
-      message: "¿Estás seguro de eliminar este micro-ciclo?",
+      message:
+        splitCount === 1
+          ? "Se eliminará el micro-ciclo seleccionado y todos sus datos."
+          : `Se eliminarán ${splitCount} micro-ciclos y todos sus datos.`,
       buttons: [
         {
           text: "CANCELAR",
           role: "cancel",
-          handler: () => {
-            this.loadingFab = false;
-          },
         },
         {
           text: "ELIMINAR",
           role: "destructive",
           handler: () => {
-            this.loadingFab = true;
-            this.loadingSplit = true;
-            this.setCurrentSplit();
-
-            if (
-              this.currentSplit.workouts.find(
-                (workout) => workout._id === this.user.workoutInUse,
-              )
-            )
-              this.userService
-                .updateUser({ ...this.user, workoutInUse: undefined })
-                .subscribe();
-
-            this.splitService
-              .deleteSplit(this.tableInUse._id, this.currentSplit._id)
-              .subscribe(() => {
-                this.tableInUse.splits.splice(this._currentSplitIndex, 1);
-                this.tableService.setCurrentTable = this.tableInUse;
-
-                this.splitService._addOrDeleteSplitSlide$.next(false);
-
-                const toastOptions: ToastOptions = {
-                  message: "Micro-ciclo eliminado",
-                  duration: 500,
-                };
-                this.ionicUtilService.showToast(toastOptions);
-                this.loadingFab = false;
-                this.loadingSplit = false;
-              });
+            this.deleteSelectedSplits(splitIds);
           },
         },
       ],
     };
-    this.ionicUtilService.showAlert(alertOptions);
+
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 
-  private setCurrentSplit(): void {
-    this.currentSplit = this.tableInUse?.splits[this._currentSplitIndex];
+  private deleteSelectedSplits(splitIds: string[]): void {
+    this.loadingFab = true;
+    this.loadingSplit = true;
+
+    const previousSplits = [...this.tableInUse.splits];
+    const selectedSplitIds = new Set(splitIds);
+    const deletedWorkoutIds = new Set(
+      previousSplits
+        .filter((split) => selectedSplitIds.has(split._id))
+        .flatMap((split) => split.workouts || [])
+        .map((workout) => workout._id),
+    );
+
+    this.splitService
+      .deleteSplits(this.tableInUse._id, splitIds)
+      .subscribe({
+        next: (response) => {
+          this.applyDeletedSplits(
+            previousSplits,
+            response.deletedSplitIds,
+            response.clearedWorkoutInUse,
+            deletedWorkoutIds,
+          );
+
+          const deletedCount = response.deletedSplitIds.length;
+          const toastOptions: ToastOptions = {
+            message:
+              deletedCount === 1
+                ? "Micro-ciclo eliminado"
+                : `${deletedCount} micro-ciclos eliminados`,
+            duration: 800,
+          };
+          this.ionicUtilService.showToast(toastOptions);
+          this.loadingFab = false;
+          this.loadingSplit = false;
+        },
+        error: (error) => {
+          this.loadingFab = false;
+          this.loadingSplit = false;
+          void this.ionicUtilService.showAlert({
+            header: "Error",
+            message:
+              error?.error?.message ||
+              "No se pudieron eliminar los micro-ciclos",
+            buttons: ["OK"],
+          });
+        },
+      });
+  }
+
+  private applyDeletedSplits(
+    previousSplits: Split[],
+    deletedIds: string[],
+    clearedWorkoutInUse: boolean,
+    deletedWorkoutIds: Set<string>,
+  ): void {
+    const deletedSplitIds = new Set(deletedIds);
+    const previousCurrentIndex = this._currentSplitIndex;
+    const previousCurrentSplitId =
+      previousSplits[previousCurrentIndex]?._id;
+    const remainingSplits = previousSplits.filter(
+      (split) => !deletedSplitIds.has(split._id),
+    );
+
+    let targetSplitIndex = 0;
+    if (remainingSplits.length > 0) {
+      const survivingCurrentIndex = remainingSplits.findIndex(
+        (split) => split._id === previousCurrentSplitId,
+      );
+
+      if (survivingCurrentIndex !== -1) {
+        targetSplitIndex = survivingCurrentIndex;
+      } else {
+        const previousSurvivingSplit = previousSplits
+          .slice(0, previousCurrentIndex)
+          .reverse()
+          .find((split) => !deletedSplitIds.has(split._id));
+
+        if (previousSurvivingSplit) {
+          targetSplitIndex = remainingSplits.findIndex(
+            (split) => split._id === previousSurvivingSplit._id,
+          );
+        }
+      }
+    }
+
+    this.tableInUse = {
+      ...this.tableInUse,
+      splits: remainingSplits,
+    };
+    this.tableInUseAux = JSON.parse(JSON.stringify(this.tableInUse));
+    this.updateReversedSplitsWithIndex();
+
+    const workoutInUseId = this.user?.workoutInUse?.toString();
+    const currentWorkoutId = this.workoutService.currentWorkout?._id;
+    const shouldClearWorkoutInUse =
+      clearedWorkoutInUse ||
+      (workoutInUseId && deletedWorkoutIds.has(workoutInUseId));
+    const shouldClearCurrentWorkout =
+      shouldClearWorkoutInUse ||
+      (currentWorkoutId && deletedWorkoutIds.has(currentWorkoutId));
+
+    if (shouldClearWorkoutInUse) {
+      if (this.user) {
+        const updatedUser = { ...this.user };
+        delete updatedUser.workoutInUse;
+        this.user = updatedUser;
+        this.userService.setLocalUser = updatedUser;
+      }
+    }
+
+    if (shouldClearCurrentWorkout) {
+      this.currentWorkout = undefined;
+      this.workoutService.setCurrentWorkout = null;
+    }
+
+    this.tableService.setCurrentTable = this.tableInUse;
+
+    if (remainingSplits.length > 0) {
+      this.currentSplitIndex = targetSplitIndex;
+    } else {
+      this._currentSplitIndex = 0;
+      this.currentSplit = undefined;
+      this.openWorkoutIndex = undefined;
+      this.currentIndex.emit(0);
+    }
   }
 
   private addWorkoutToSplit(): void {
@@ -1234,17 +1351,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async showSplitMenu(event: Event): Promise<void> {
-    if (this.isCurrentSplitLocked()) {
-      this.openPremiumFromLockedSplit(event);
-      return;
-    }
-
     const popoverOptions = {
       component: SplitMenuPopoverComponent,
       event: event,
       componentProps: {
         onDuplicate: () => this.addSplitToTable(),
         onDelete: () => this.deleteSplit(),
+        duplicateDisabled: this.isCurrentSplitLocked(),
       },
     };
 

@@ -1,0 +1,67 @@
+<ion-header class="delete-header">
+  <div class="delete-toolbar">
+    <ion-title>Eliminar microciclos</ion-title>
+    <ion-button
+      fill="clear"
+      class="close-button"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</ion-header>
+
+<ion-content class="delete-content">
+  <div class="selection-summary">
+    <strong>Selecciona los microciclos</strong>
+    <span>
+      {{ selectedCount }}
+      {{ selectedCount === 1 ? 'seleccionado' : 'seleccionados' }}
+    </span>
+  </div>
+
+  <ion-list class="split-list">
+    <ion-item
+      *ngFor="let split of splits; let index = index; trackBy: trackBySplit"
+      class="split-row"
+      [class.selected]="isSelected(split._id)"
+      [button]="true"
+      [detail]="false"
+      lines="none"
+      (click)="toggleSplit(split._id)"
+    >
+      <ion-checkbox
+        slot="start"
+        [checked]="isSelected(split._id)"
+        [attr.aria-label]="'Seleccionar microciclo ' + (index + 1)"
+        (click)="$event.stopPropagation()"
+        (ionChange)="setSplitSelected(split._id, $event.detail.checked)"
+      ></ion-checkbox>
+
+      <ion-label>
+        <h2>MICRO-CICLO {{ index + 1 }}</h2>
+        <p *ngIf="containsActiveWorkout(split)" class="active-status">
+          Contiene el entrenamiento activo
+        </p>
+        <p
+          *ngIf="!containsActiveWorkout(split)"
+          [class.completed-status]="isSplitCompleted(split)"
+        >
+          {{ isSplitCompleted(split) ? 'Completado' : 'Pendiente' }}
+        </p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer class="delete-footer">
+  <ion-button
+    expand="block"
+    color="danger"
+    [disabled]="selectedCount === 0"
+    (click)="confirmSelection()"
+  >
+    ELIMINAR ({{ selectedCount }})
+  </ion-button>
+</ion-footer>

@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
-import { SplitAPIService } from './split-api.service';
+import {
+  DeleteSplitsResponse,
+  SplitAPIService,
+} from './split-api.service';
 
 @Injectable()
 export class SplitService {
@@ -40,6 +43,13 @@ export class SplitService {
 
   public deleteSplit(idTable: string, idSplit: string): Observable<any> {
     return this.splitAPIService.deleteSplit(idTable, idSplit);
+  }
+
+  public deleteSplits(
+    idTable: string,
+    splitIds: string[]
+  ): Observable<DeleteSplitsResponse> {
+    return this.splitAPIService.deleteSplits(idTable, splitIds);
   }
 
   public getStandarSplit(): Split {

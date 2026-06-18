@@ -366,7 +366,7 @@
           <ion-button
             fill="clear"
             class="action-btn menu-btn ripple-effect"
-            [disabled]="isCurrentSplitLocked()"
+            [disabled]="loadingSplit"
             (click)="showSplitMenu($event)"
           >
             <ion-icon name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>

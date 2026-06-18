@@ -1,0 +1,121 @@
+:host {
+  --surface: #101010;
+  --surface-raised: #181818;
+  --border: rgba(255, 255, 255, 0.1);
+  --muted: #9ca3af;
+}
+
+.delete-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.delete-toolbar {
+  min-height: 60px;
+  padding: 8px 12px 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  ion-title {
+    padding: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.close-button {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  --color: var(--ion-color-primary);
+  --border-radius: 8px;
+}
+
+.delete-content {
+  --background: #0a0a0b;
+}
+
+.selection-summary {
+  min-height: 64px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #fff;
+  border-bottom: 1px solid var(--border);
+
+  strong {
+    font-size: 0.95rem;
+  }
+
+  span {
+    color: var(--muted);
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+}
+
+.split-list {
+  padding: 0 16px;
+  background: transparent;
+}
+
+.split-row {
+  --background: transparent;
+  --background-hover: rgba(255, 255, 255, 0.04);
+  --background-activated: rgba(255, 255, 255, 0.06);
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --inner-padding-end: 4px;
+  min-height: 72px;
+  border-bottom: 1px solid var(--border);
+
+  &.selected {
+    --background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+
+  ion-checkbox {
+    margin-inline-end: 16px;
+    --size: 24px;
+    --checkbox-background-checked: var(--ion-color-primary);
+    --border-color-checked: var(--ion-color-primary);
+  }
+
+  h2 {
+    margin: 0 0 5px;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .completed-status {
+    color: var(--ion-color-success);
+  }
+
+  .active-status {
+    color: var(--ion-color-primary);
+  }
+}
+
+.delete-footer {
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+
+  ion-button {
+    min-height: 48px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 0;
+    --border-radius: 8px;
+  }
+}
