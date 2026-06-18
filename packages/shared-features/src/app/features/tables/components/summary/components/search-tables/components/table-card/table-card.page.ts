@@ -6,25 +6,25 @@ import {
   OnInit,
   Output,
   ViewChild,
-} from '@angular/core';
-import { PopoverController, ToastOptions } from '@ionic/angular';
-import Chart from 'chart.js/auto';
-import { Table } from 'src/app/core/models/table';
-import { User } from 'src/app/core/models/user';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { BillingService } from 'src/app/core/services/billing/billing.service';
+} from "@angular/core";
+import { PopoverController, ToastOptions } from "@ionic/angular";
+import Chart from "chart.js/auto";
+import { Table } from "src/app/core/models/table";
+import { User } from "src/app/core/models/user";
+import { TableService } from "src/app/core/services/table/table.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 
-import { MUSCLE_GROUPS } from 'src/app/shared/constants/muscle-groups';
+import { MUSCLE_GROUPS } from "src/app/shared/constants/muscle-groups";
 
 @Component({
-  selector: 'app-table-card',
-  templateUrl: './table-card.page.html',
-  styleUrls: ['./table-card.page.scss'],
+  selector: "app-table-card",
+  templateUrl: "./table-card.page.html",
+  styleUrls: ["./table-card.page.scss"],
 })
 export class TableCardPage {
   @Input()
@@ -41,7 +41,7 @@ export class TableCardPage {
   @Output()
   public deletedTable = new EventEmitter<string>();
 
-  @ViewChild('bar', { static: false })
+  @ViewChild("bar", { static: false })
   public barChartRef: ElementRef;
 
   public loadAction: boolean = true;
@@ -51,20 +51,36 @@ export class TableCardPage {
 
   public MUSCLE_GROUPS = MUSCLE_GROUPS;
   public isMenuOpen = false;
+  public scheduleExpanded = false;
   public menuEvent?: Event;
 
   public get microcyclesCount(): number {
-    if (typeof this.tableCard?.microcyclesCount === 'number') {
+    if (typeof this.tableCard?.microcyclesCount === "number") {
       return this.tableCard.microcyclesCount;
     }
     return this.tableCard?.splits?.length || 0;
   }
 
   public get workoutsCount(): number {
-    if (typeof this.tableCard?.workoutsCount === 'number') {
+    if (typeof this.tableCard?.workoutsCount === "number") {
       return this.tableCard.workoutsCount;
     }
     return this.tableCard?.splits?.[0]?.workouts?.length || 0;
+  }
+
+  public get workoutNames(): string[] {
+    return (this.tableCard?.workoutNames || [])
+      .map((name) => name?.trim())
+      .filter(Boolean);
+  }
+
+  public get routineType(): string {
+    return this.tableCard?.type?.trim() || "";
+  }
+
+  public toggleSchedule(event: Event): void {
+    event.stopPropagation();
+    this.scheduleExpanded = !this.scheduleExpanded;
   }
 
   constructor(
@@ -76,7 +92,7 @@ export class TableCardPage {
     private popoverController: PopoverController,
     private adMobService: AdMobService,
     private billingService: BillingService
-  ) { }
+  ) {}
 
   public setSelectedTableCard(): void {
     if (!this.own) {
@@ -101,25 +117,25 @@ export class TableCardPage {
       labels: labels,
       datasets: [
         {
-          label: 'Ejercicios',
+          label: "Ejercicios",
           data: [1, 2, 3, 4, 5, 6, 5],
           backgroundColor: [
-            'rgba(255, 99, 132, 0.2)',
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(255, 205, 86, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-            'rgba(54, 162, 235, 0.2)',
-            'rgba(153, 102, 255, 0.2)',
-            'rgba(201, 203, 207, 0.2)',
+            "rgba(255, 99, 132, 0.2)",
+            "rgba(255, 159, 64, 0.2)",
+            "rgba(255, 205, 86, 0.2)",
+            "rgba(75, 192, 192, 0.2)",
+            "rgba(54, 162, 235, 0.2)",
+            "rgba(153, 102, 255, 0.2)",
+            "rgba(201, 203, 207, 0.2)",
           ],
           borderColor: [
-            'rgb(255, 99, 132)',
-            'rgb(255, 159, 64)',
-            'rgb(255, 205, 86)',
-            'rgb(75, 192, 192)',
-            'rgb(54, 162, 235)',
-            'rgb(153, 102, 255)',
-            'rgb(201, 203, 207)',
+            "rgb(255, 99, 132)",
+            "rgb(255, 159, 64)",
+            "rgb(255, 205, 86)",
+            "rgb(75, 192, 192)",
+            "rgb(54, 162, 235)",
+            "rgb(153, 102, 255)",
+            "rgb(201, 203, 207)",
           ],
           borderWidth: 2,
         },
@@ -130,10 +146,10 @@ export class TableCardPage {
 
     this.context = (<HTMLCanvasElement>(
       this.barChartRef.nativeElement
-    )).getContext('2d');
+    )).getContext("2d");
 
     this.bar = new Chart(this.context, {
-      type: 'bar',
+      type: "bar",
       data: data,
       options: {
         plugins: {
@@ -153,17 +169,17 @@ export class TableCardPage {
   public useTable(): void {
     if (this.user.tableInUse) {
       const alOptions = {
-        header: 'Rutina en uso',
+        header: "Rutina en uso",
         message:
-          'Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas',
+          "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",
         buttons: [
           {
-            text: 'CANCELAR',
-            role: 'cancel',
+            text: "CANCELAR",
+            role: "cancel",
           },
           {
-            text: 'CONFIRMAR',
-            role: 'confirm',
+            text: "CONFIRMAR",
+            role: "confirm",
             handler: () => this.showConfirmationDialog(),
           },
         ],
@@ -176,28 +192,28 @@ export class TableCardPage {
 
   private showConfirmationDialog(): void {
     const html = this.ownFilter
-      ? 'Siempre puedes pausar y elegir otra'
-      : 'Se añadirá a Mis rutinas y se iniciará';
+      ? "Siempre puedes pausar y elegir otra"
+      : "Se añadirá a Mis rutinas y se iniciará";
 
     const alertOptions = {
-      header: 'Usar ' + this.tableCard.name,
+      header: "Usar " + this.tableCard.name,
       message: html,
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
-          cssClass: 'alert-button-primary',
+          text: "CANCELAR",
+          role: "cancel",
+          cssClass: "alert-button-primary",
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-success',
+          text: "CONFIRMAR",
+          cssClass: "alert-button-success",
           handler: () => {
             if (!this.user?.premium?.entitled) {
               this.adMobService
-                .interstitial('acquire_routine')
+                .interstitial("acquire_routine")
                 .catch((error) =>
                   console.error(
-                    'Error mostrando interstitial acquire_routine:',
+                    "Error mostrando interstitial acquire_routine:",
                     error
                   )
                 );
@@ -217,7 +233,7 @@ export class TableCardPage {
                       this.navigationService.goToMesocycle();
                       this.loadAction = true;
                       const toastOptions: ToastOptions = {
-                        message: 'Rutina iniciada con éxito',
+                        message: "Rutina iniciada con éxito",
                         duration: 2000,
                       };
                       this.ionicUtilService.showToast(toastOptions);
@@ -241,12 +257,13 @@ export class TableCardPage {
                     this.loadAction = true;
                     void this.billingService.refreshBackendEntitlements();
                     const toastOptions: ToastOptions = {
-                      message: 'Rutina adquirida e iniciada con exito',
+                      message: "Rutina adquirida e iniciada con exito",
                       duration: 2000,
                     };
                     this.ionicUtilService.showToast(toastOptions);
                   },
-                  error: (error) => this.handleRoutineLimitOrGenericError(error),
+                  error: (error) =>
+                    this.handleRoutineLimitOrGenericError(error),
                 });
             }
           },
@@ -260,27 +277,27 @@ export class TableCardPage {
   public editTableName(): void {
     this.popoverController.dismiss();
     const alertOptions = {
-      header: 'Editar nombre de rutina',
+      header: "Editar nombre de rutina",
       inputs: [
         {
-          name: 'tableName',
-          type: 'textarea' as 'textarea',
+          name: "tableName",
+          type: "textarea" as "textarea",
           value: this.tableCard.name,
-          placeholder: 'Nombre de la rutina',
+          placeholder: "Nombre de la rutina",
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
+          text: "CANCELAR",
+          role: "cancel",
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-primary',
+          text: "CONFIRMAR",
+          cssClass: "alert-button-primary",
           handler: (data) => {
-            if (data.tableName.trim() === '') {
+            if (data.tableName.trim() === "") {
               this.ionicUtilService.showToast({
-                message: 'El campo no puede estar vacío',
+                message: "El campo no puede estar vacío",
                 duration: 2000,
               });
               return false;
@@ -291,7 +308,7 @@ export class TableCardPage {
                 ...this.tableService.tableInUse,
                 name: data.tableName,
               };
-              const message = 'Nombre de rutina actualizado';
+              const message = "Nombre de rutina actualizado";
               const duration = 1000;
               const toastOptions: ToastOptions = {
                 message: message,
@@ -311,33 +328,31 @@ export class TableCardPage {
     this.popoverController.dismiss();
     event.stopPropagation();
     const alertOptions = {
-      header: 'Duplicar ' + this.tableCard.name,
-      message: 'Se copiará todo el contenido de la rutina',
+      header: "Duplicar " + this.tableCard.name,
+      message: "Se copiará todo el contenido de la rutina",
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
+          text: "CANCELAR",
+          role: "cancel",
         },
         {
-          text: 'CONFIRMAR',
-          cssClass: 'alert-button-confirm',
+          text: "CONFIRMAR",
+          cssClass: "alert-button-confirm",
           handler: () => {
             this.loadAction = false;
-            this.tableService
-              .copyOwnTable(this.user._id, idTable)
-              .subscribe({
-                next: (resTable) => {
-                  this.copyOwnTableEv.emit(resTable);
-                  void this.billingService.refreshBackendEntitlements();
-                  const toastOptions: ToastOptions = {
-                    message: this.tableCard.name + ' copiada',
-                    duration: 1000,
-                  };
-                  this.ionicUtilService.showToast(toastOptions);
-                  this.loadAction = true;
-                },
-                error: (error) => this.handleRoutineLimitOrGenericError(error),
-              });
+            this.tableService.copyOwnTable(this.user._id, idTable).subscribe({
+              next: (resTable) => {
+                this.copyOwnTableEv.emit(resTable);
+                void this.billingService.refreshBackendEntitlements();
+                const toastOptions: ToastOptions = {
+                  message: this.tableCard.name + " copiada",
+                  duration: 1000,
+                };
+                this.ionicUtilService.showToast(toastOptions);
+                this.loadAction = true;
+              },
+              error: (error) => this.handleRoutineLimitOrGenericError(error),
+            });
           },
         },
       ],
@@ -349,10 +364,10 @@ export class TableCardPage {
   private handleRoutineLimitOrGenericError(error: any): void {
     this.loadAction = true;
 
-    if (error?.error?.code === 'PREMIUM_LIMIT_ROUTINES') {
+    if (error?.error?.code === "PREMIUM_LIMIT_ROUTINES") {
       void this.ionicUtilService.showPremiumLimitAlert({
         message:
-          'Has alcanzado el limite de rutinas. Activa Pro para crear mas.',
+          "Has alcanzado el limite de rutinas. Activa Pro para crear mas.",
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
@@ -360,7 +375,7 @@ export class TableCardPage {
 
     this.ionicUtilService.showErrorToast(
       error,
-      'No se pudo completar la accion',
+      "No se pudo completar la accion"
     );
   }
 
@@ -369,21 +384,21 @@ export class TableCardPage {
     event.stopPropagation();
     const message =
       this.user.tableInUse === idTable
-        ? 'Esta rutina está actualmente en uso. Si la eliminas se te desvinculará y después se eliminará de manera irreversible'
-        : 'Se eliminará la rutina de manera irreversible';
+        ? "Esta rutina está actualmente en uso. Si la eliminas se te desvinculará y después se eliminará de manera irreversible"
+        : "Se eliminará la rutina de manera irreversible";
 
     const alertOptions = {
-      header: 'Eliminar ' + this.tableCard.name,
+      header: "Eliminar " + this.tableCard.name,
       message,
       buttons: [
         {
-          text: 'CANCELAR',
-          role: 'cancel',
+          text: "CANCELAR",
+          role: "cancel",
         },
         {
-          text: 'ELIMINAR',
-          role: 'destructive',
-          cssClass: 'alert-button-confirm',
+          text: "ELIMINAR",
+          role: "destructive",
+          cssClass: "alert-button-confirm",
           handler: () => {
             this.loadAction = false;
             this.tableService
@@ -392,7 +407,7 @@ export class TableCardPage {
                 this.deletedTable.emit(idTable);
                 void this.billingService.refreshBackendEntitlements();
                 const toastOptions: ToastOptions = {
-                  message: this.tableCard.name + ' eliminada',
+                  message: this.tableCard.name + " eliminada",
                   duration: 1000,
                 };
                 this.ionicUtilService.showToast(toastOptions);

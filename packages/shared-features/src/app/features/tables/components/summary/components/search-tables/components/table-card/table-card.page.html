@@ -1,111 +1,89 @@
 <ion-card
   class="professional-table-card"
   [class.selected]="user?.tableInUse === tableCard._id"
-  [class.has-image]="tableCard.urlImage"
-  [style.background-image]="
-    tableCard.urlImage ? 'url(' + tableCard.urlImage + ')' : 'none'
-  "
   (click)="setSelectedTableCard()"
 >
-  <div
-    class="card-overlay"
-    [class.selected-overlay]="tableCard.urlImage && user?.tableInUse === tableCard._id"
-  >
-    <!-- Header Section -->
-    <div class="card-header-section">
-      <div class="header-top">
-        <div class="title-section">
-          <h2 class="card-title">{{ tableCard?.name }}</h2>
-          <div class="title-underline"></div>
-        </div>
+  <div class="card-overlay">
+    <header class="routine-header">
+      <div class="routine-heading">
+        <span *ngIf="routineType" class="routine-type">{{ routineType }}</span>
+        <h2 class="card-title">{{ tableCard?.name }}</h2>
       </div>
 
-      <!-- Status and Actions Row -->
-      <div class="status-actions-row">
-        <div class="status-section">
-          <div *ngIf="loadAction && own" class="status-badge active-badge">
-            <ion-icon name="checkmark-circle" class="status-icon"></ion-icon>
-            <span>Rutina Activa</span>
-          </div>
-          <div *ngIf="loadAction && !own && ownFilter">
-            <button
-              class="select-routine-btn"
-              (click)="useTable(); $event.stopPropagation()"
-            >
-              <ion-icon
-                name="arrow-down-circle-outline"
-                class="select-icon"
-              ></ion-icon>
-              <span>Seleccionar Rutina</span>
-            </button>
-          </div>
-        </div>
+      <button
+        *ngIf="ownFilter"
+        class="action-btn menu-btn"
+        aria-label="Opciones de la rutina"
+        (click)="openMenu($event)"
+      >
+        <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+      </button>
+    </header>
 
-        <div *ngIf="loadAction; else noLoad" class="action-buttons">
-          <button
-            *ngIf="ownFilter"
-            class="action-btn menu-btn"
-            (click)="openMenu($event)"
-          >
-            <ion-icon name="ellipsis-vertical-outline"></ion-icon>
-          </button>
-          <button
-            *ngIf="!ownFilter"
-            class="select-routine-btn save-btn"
-            (click)="useTable(); $event.stopPropagation()"
-          >
-            <ion-icon name="cart-outline" class="select-icon"></ion-icon>
-            <span>Adquirir</span>
-          </button>
-        </div>
-
-        <ng-template #noLoad>
-          <div class="loading-section">
-            <ion-spinner color="primary" name="dots"></ion-spinner>
-          </div>
-        </ng-template>
+    <div *ngIf="tableCard" class="routine-content">
+      <div *ngIf="own" class="active-status">
+        <span class="active-dot"></span>
+        <span>RUTINA ACTIVA</span>
       </div>
-    </div>
-    <!-- Content Section -->
-    <div *ngIf="tableCard; else load" class="card-content-section">
-      <!-- Stats Section -->
-      <div class="stats-container">
-        <div class="stat-item microcycles-stat">
-          <div class="stat-top-row">
-            <div class="stat-icon">
-              <ion-icon name="layers-outline"></ion-icon>
-            </div>
-            <span class="stat-number"
-              >{{ microcyclesCount }}</span
-            >
-          </div>
-          <span class="stat-label"><strong>Micro-ciclos</strong></span>
-        </div>
 
-        <div class="stat-divider"></div>
-
-        <div class="stat-item workouts-stat">
-          <div class="stat-top-row">
-            <div class="stat-icon">
-              <ion-icon name="barbell-outline"></ion-icon>
-            </div>
-            <span class="stat-number"
-              >{{ workoutsCount }}</span
-            >
-          </div>
-          <span class="stat-label"><strong>Entrenamientos</strong></span>
-        </div>
+      <div class="routine-meta" aria-label="Resumen de la rutina">
+        <span class="meta-chip meta-chip-primary">
+          {{ microcyclesCount }} {{ microcyclesCount === 1 ? 'microciclo' :
+          'microciclos' }}
+        </span>
+        <span class="meta-chip">
+          {{ workoutsCount }} {{ workoutsCount === 1 ? 'entrenamiento' :
+          'entrenamientos' }}
+        </span>
       </div>
+
+      <section *ngIf="workoutNames.length > 0" class="routine-schedule">
+        <button
+          class="schedule-trigger"
+          type="button"
+          [attr.aria-expanded]="scheduleExpanded"
+          (click)="toggleSchedule($event)"
+        >
+          <span>Distribución del microciclo</span>
+          <ion-icon
+            [name]="scheduleExpanded ? 'chevron-up-outline' : 'chevron-down-outline'"
+          ></ion-icon>
+        </button>
+        <div
+          *ngIf="scheduleExpanded"
+          class="schedule-chips schedule-chips-expanded"
+        >
+          <span *ngFor="let workoutName of workoutNames" class="schedule-chip">
+            {{ workoutName }}
+          </span>
+        </div>
+      </section>
     </div>
 
-    <ng-template #load>
-      <ion-card-content style="display: flex; justify-content: center">
-        <ion-spinner name="dots" color="primary"></ion-spinner>
-      </ion-card-content>
-    </ng-template>
+    <footer *ngIf="!own" class="routine-actions">
+      <button
+        *ngIf="loadAction; else loadingAction"
+        class="primary-action-btn"
+        (click)="useTable(); $event.stopPropagation()"
+      >
+        <ion-icon
+          [name]="ownFilter ? 'play-outline' : 'add-outline'"
+          class="action-icon"
+        ></ion-icon>
+        <span>{{ ownFilter ? 'SELECCIONAR RUTINA' : 'ADQUIRIR RUTINA' }}</span>
+      </button>
+
+      <ng-template #loadingAction>
+        <div class="loading-action" aria-label="Procesando rutina">
+          <ion-progress-bar
+            type="indeterminate"
+            color="primary"
+          ></ion-progress-bar>
+        </div>
+      </ng-template>
+    </footer>
   </div>
 
-  <!-- Popover para opciones de menú -->
   <ion-popover
     [isOpen]="isMenuOpen"
     [event]="menuEvent"

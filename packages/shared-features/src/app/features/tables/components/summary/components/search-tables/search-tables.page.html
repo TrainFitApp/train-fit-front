@@ -2,7 +2,11 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button
+          class="tf-page-header__back-button"
+          aria-label="Volver"
+          (click)="close()"
+        >
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -14,12 +18,11 @@
   </div>
 </ion-header>
 
-
 <ion-content class="search-tables-content">
-  <ng-container *ngIf="load else notLoad">
+  <ng-container *ngIf="load; else notLoad">
     <ng-container *ngIf="tableList.length > 0; else noTables">
       <app-table-card
-        *ngFor="let tableCard of tableList; let i = index"
+        *ngFor="let tableCard of tableList"
         [user]="user"
         [ownFilter]="searchFilterGroup.ownFilter"
         [own]="tableCard._id === user.tableInUse"
@@ -37,59 +40,49 @@
   </ng-container>
 
   <ng-template #notLoad>
-    <!-- Skeleton cards que replican la estructura de table-card -->
     <div class="skeleton-table-card" *ngFor="let i of [1, 2, 3]">
-      <div class="skeleton-overlay">
-        <!-- Header Section -->
-        <div class="skeleton-header-section">
-          <div class="skeleton-header-top">
-            <div class="skeleton-title-section">
-              <ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-underline"></ion-skeleton-text>
-            </div>
-          </div>
+      <div class="skeleton-heading">
+        <ion-skeleton-text
+          [animated]="true"
+          class="skeleton-title"
+        ></ion-skeleton-text>
+        <ion-skeleton-text
+          *ngIf="searchFilterGroup.ownFilter"
+          [animated]="true"
+          class="skeleton-menu"
+        ></ion-skeleton-text>
+      </div>
 
-          <!-- Status and Actions Row -->
-          <div class="skeleton-status-actions-row">
-            <div class="skeleton-status-section">
-              <!-- Badge o botón según ownFilter -->
-              <ion-skeleton-text 
-                [animated]="true" 
-                [class.skeleton-badge]="searchFilterGroup.ownFilter"
-                [class.skeleton-select-btn]="!searchFilterGroup.ownFilter"
-              ></ion-skeleton-text>
-            </div>
-            <div class="skeleton-action-buttons">
-              <ion-skeleton-text 
-                [animated]="true" 
-                [class.skeleton-menu-btn]="searchFilterGroup.ownFilter"
-                [class.skeleton-acquire-btn]="!searchFilterGroup.ownFilter"
-              ></ion-skeleton-text>
-            </div>
-          </div>
-        </div>
+      <div class="skeleton-chips">
+        <ion-skeleton-text
+          [animated]="true"
+          class="skeleton-chip"
+        ></ion-skeleton-text>
+        <ion-skeleton-text
+          [animated]="true"
+          class="skeleton-chip skeleton-chip-wide"
+        ></ion-skeleton-text>
+      </div>
 
-        <!-- Stats Section -->
-        <div class="skeleton-stats-container">
-          <div class="skeleton-stat-item">
-            <div class="skeleton-stat-top-row">
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
-            </div>
-            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
-          </div>
-
-          <div class="skeleton-stat-divider"></div>
-
-          <div class="skeleton-stat-item">
-            <div class="skeleton-stat-top-row">
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
-            </div>
-            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
-          </div>
+      <div class="skeleton-schedule">
+        <ion-skeleton-text
+          [animated]="true"
+          class="skeleton-label"
+        ></ion-skeleton-text>
+        <div class="skeleton-chips">
+          <ion-skeleton-text
+            *ngFor="let day of [1, 2, 3]"
+            [animated]="true"
+            class="skeleton-day"
+          ></ion-skeleton-text>
         </div>
       </div>
+
+      <ion-skeleton-text
+        *ngIf="!searchFilterGroup.ownFilter"
+        [animated]="true"
+        class="skeleton-action"
+      ></ion-skeleton-text>
     </div>
   </ng-template>
 
