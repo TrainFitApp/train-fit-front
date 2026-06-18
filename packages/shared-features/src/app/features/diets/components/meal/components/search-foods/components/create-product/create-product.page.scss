@@ -74,8 +74,7 @@
 // Tarjetas principales
 .product-header-card,
 .nutrition-card,
-.additional-info-card,
-.quantity-card {
+.additional-info-card {
   background: #141414 !important;
   border: 1px solid #252525 !important;
   border-radius: var(--border-radius);
@@ -319,28 +318,6 @@ ion-accordion[value="additional-info"] {
     color: var(--ion-color-secondary);
     font-weight: 600;
     margin-left: 8px;
-  }
-}
-
-// Sección de cantidad - Compacta con mejor visibilidad
-.quantity-section {
-
-  // Input de cantidad con fuente más grande
-  .custom-input {
-    font-size: 1.2rem !important;
-    font-weight: 600;
-    color: var(--text-primary) !important;
-  }
-
-  .custom-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .input-unit {
-    color: var(--text-secondary);
-    background: rgba(37, 37, 37, 0.3);
   }
 }
 
@@ -657,7 +634,6 @@ ion-accordion[value="additional-info"] {
 }
 
 // Specific card types - Clean style like add-product
-.quantity-card,
 .info-card,
 .nutrition-card,
 .quantities-card,

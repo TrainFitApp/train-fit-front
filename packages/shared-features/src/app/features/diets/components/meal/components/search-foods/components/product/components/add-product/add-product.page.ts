@@ -1987,6 +1987,12 @@ export class AddProductPage implements OnInit, OnDestroy {
       if (params["isScanned"]) {
         this.isScanned = params["isScanned"] === "true";
       }
+      if (params["ingredientMode"]) {
+        this.ingredientMode = params["ingredientMode"] === "true";
+      }
+      if (params["returnUrl"]) {
+        this.returnUrl = this.normalizeReturnUrl(params["returnUrl"]);
+      }
 
       if (needsInit && this.product && !this.addCustomProductForm) {
         if (!this.ingredientMode) {
