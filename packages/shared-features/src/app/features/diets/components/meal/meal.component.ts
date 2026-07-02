@@ -222,7 +222,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.loadPaste = true;
     if (!this.dietDay._id) {
       this.dietDay = this.dietDayService.getStandardDietDay(
-        new Date(this.dietDay.date)
+        this.dietDay.date
       );
       this.dietDay = await this.dietDayService
         .createDietDay(this.dietDay)

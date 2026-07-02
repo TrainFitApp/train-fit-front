@@ -15,7 +15,7 @@ export class DietDayAPIService {
 
   public getDietDayByIdDietAndDate(
     id: string,
-    date: Date
+    date: string
   ): Observable<DietDay> {
     return this.http.post<DietDay>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${id}`,
@@ -53,7 +53,7 @@ export class DietDayAPIService {
   public createDayWeightOnNewDietDay(
     dayWeight: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ) {
     return this.http.post<DietDay>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/on/new/${dietInUseId}`,
@@ -68,7 +68,7 @@ export class DietDayAPIService {
     customProduct: CustomProduct,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date,
+    currentDate: string,
     idUser?: string
   ) {
     return this.http.post<DietDay>(
@@ -123,7 +123,7 @@ export class DietDayAPIService {
     customRecipe: CustomRecipe,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ): Observable<DietDay> {
     return this.http.post<DietDay>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/recipe/new/${dietInUseId}`,
