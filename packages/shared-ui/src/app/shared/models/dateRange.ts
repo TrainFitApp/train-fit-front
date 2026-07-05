@@ -1,8 +1,8 @@
 export class DateRange {
-    minDate: Date;
-    maxDate: Date;
+    minDate: string;
+    maxDate: string;
 
-    constructor(minDate: Date, maxDate: Date) {
+    constructor(minDate: string, maxDate: string) {
         this.minDate = minDate;
         this.maxDate = maxDate;
     }
