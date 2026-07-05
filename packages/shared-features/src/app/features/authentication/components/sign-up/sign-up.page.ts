@@ -6,7 +6,14 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { take } from 'rxjs/operators';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { IonModal, Platform, ToastOptions } from '@ionic/angular';
 import { Subscription, Subject } from 'rxjs';
 import { User } from 'src/app/core/models/user';
@@ -128,6 +135,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
+  private readonly MIN_SIGN_UP_AGE = 13;
+  private readonly MAX_SIGN_UP_AGE = 120;
+  private _defaultBirthDate: string | null = null;
   private _maxDate: string | null = null;
   private _minDate: string | null = null;
 
@@ -269,8 +279,11 @@ export class SignUpPage implements OnInit, OnDestroy {
           ])
         ),
         birth: new FormControl(
-          this.getMaxDate(),
-          Validators.compose([Validators.required])
+          this.getDefaultBirthDate(),
+          Validators.compose([
+            Validators.required,
+            this.birthDateAgeRangeValidator(),
+          ])
         ),
         steps: new FormControl(null, Validators.required),
         objetive: new FormControl(null, Validators.required),
@@ -692,8 +705,9 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public getMaxDate(): string {
     if (!this._maxDate) {
-      const maxDate = new Date();
-      maxDate.setFullYear(maxDate.getFullYear() - 13);
+      const maxDate = this.getTodayDateOnly();
+      maxDate.setFullYear(maxDate.getFullYear() - this.MIN_SIGN_UP_AGE);
+      maxDate.setMonth(11, 31);
       this._maxDate = maxDate.toISOString();
     }
     return this._maxDate;
@@ -701,11 +715,70 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public getMinDate(): string {
     if (!this._minDate) {
-      const minDate = new Date();
-      minDate.setFullYear(minDate.getFullYear() - 120);
+      const minDate = this.getTodayDateOnly();
+      minDate.setFullYear(minDate.getFullYear() - this.MAX_SIGN_UP_AGE);
+      minDate.setMonth(0, 1);
       this._minDate = minDate.toISOString();
     }
     return this._minDate;
+  }
+
+  private getDefaultBirthDate(): string {
+    if (!this._defaultBirthDate) {
+      const defaultBirthDate = this.getTodayDateOnly();
+      defaultBirthDate.setFullYear(
+        defaultBirthDate.getFullYear() - this.MIN_SIGN_UP_AGE
+      );
+      this._defaultBirthDate = defaultBirthDate.toISOString();
+    }
+    return this._defaultBirthDate;
+  }
+
+  private birthDateAgeRangeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+
+      const birthDate = this.toDateOnly(control.value);
+      if (!birthDate) {
+        return { invalidDate: true };
+      }
+
+      const youngestAllowedBirthDate = this.getTodayDateOnly();
+      youngestAllowedBirthDate.setFullYear(
+        youngestAllowedBirthDate.getFullYear() - this.MIN_SIGN_UP_AGE
+      );
+
+      if (birthDate > youngestAllowedBirthDate) {
+        return { minAge: true };
+      }
+
+      const oldestAllowedBirthDate = this.getTodayDateOnly();
+      oldestAllowedBirthDate.setFullYear(
+        oldestAllowedBirthDate.getFullYear() - this.MAX_SIGN_UP_AGE
+      );
+
+      if (birthDate < oldestAllowedBirthDate) {
+        return { maxAge: true };
+      }
+
+      return null;
+    };
+  }
+
+  private getTodayDateOnly(): Date {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  }
+
+  private toDateOnly(value: string | Date): Date | null {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   private getControlsForSlideIndex(index: number): string[] {

@@ -7,7 +7,7 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AlertOptions } from '@ionic/angular';
+import { AlertOptions, ModalOptions, PopoverOptions } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
@@ -25,9 +25,16 @@ import {
 } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
+import {
+  ACTION_TYPE,
+  ACTION_TYPES,
+  ACTIONS,
+} from 'src/app/shared/constants/actions';
 import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { OrderExercisesPage } from '../mesocycle/components/order-exercises/order-exercises.page';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -420,6 +427,52 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public manageNote(): void {
     this.utilService.manageNote(this.currentWorkout, this.workoutService);
+  }
+
+  public openWorkoutOptions(event: Event): void {
+    const popoverOptions: PopoverOptions = {
+      component: PopoverActionsComponent,
+      event,
+      showBackdrop: false,
+      componentProps: {
+        actionsPopover: this.getWorkoutOptions(),
+      },
+    };
+
+    this.ionicUtilService.showPopover(popoverOptions).then((res) => {
+      if (!res?.data) return;
+
+      switch (res.data.id) {
+        case ACTIONS[ACTION_TYPES.note].id:
+          this.manageNote();
+          break;
+        case ACTIONS[ACTION_TYPES.moveExercises].id:
+          this.openOrderExercisesModal();
+          break;
+      }
+    });
+  }
+
+  public openOrderExercisesModal(): void {
+    if (!this.currentWorkout || !this.tableInUse) return;
+
+    const modalOptions: ModalOptions = {
+      component: OrderExercisesPage,
+      componentProps: {
+        customExercises: this.currentWorkout.exercises || [],
+        idWorkout: this.currentWorkout._id,
+        idTable: this.tableInUse._id,
+      },
+    };
+
+    this.ionicUtilService.showModal(modalOptions);
+  }
+
+  private getWorkoutOptions(): ACTION_TYPE[] {
+    return [
+      ACTIONS[ACTION_TYPES.note],
+      ACTIONS[ACTION_TYPES.moveExercises],
+    ];
   }
 
   public async navigateYTVideo(url: string, exercise?: any) {

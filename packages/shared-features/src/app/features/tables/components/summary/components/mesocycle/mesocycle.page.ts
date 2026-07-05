@@ -38,6 +38,52 @@ interface PreserveFinishedWorkoutSplitState {
   workoutId: string;
 }
 
+interface WorkoutTemplate {
+  id: string;
+  name: string;
+  description: string;
+  workouts: string[];
+}
+
+const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
+  {
+    id: "upper-lower",
+    name: "Torso / Pierna",
+    description: "4 dias",
+    workouts: ["Torso A", "Pierna A", "Torso B", "Pierna B"],
+  },
+  {
+    id: "push-pull-legs",
+    name: "Push / Pull / Legs",
+    description: "6 dias",
+    workouts: ["Empuje (Push) A", "Tirón (Pull) A", "Pierna (Legs) A", "Empuje (Push) B", "Tirón (Pull) B", "Pierna (Legs) B"],
+  },
+  {
+    id: "full-body",
+    name: "Full Body",
+    description: "3 dias",
+    workouts: ["Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C"],
+  },
+  {
+    id: "arnold-split",
+    name: "Arnold Split",
+    description: "3 dias",
+    workouts: ["Pecho y Espalda", "Hombros y Brazos", "Piernas y Abdomen"],
+  },
+  {
+    id: "weider",
+    name: "Rutina Weider",
+    description: "5 dias",
+    workouts: ["Pecho", "Espalda", "Hombros", "Piernas", "Brazos"],
+  },
+  {
+    id: "push-pull",
+    name: "Empuje / Tirón",
+    description: "4 dias",
+    workouts: ["Empuje A", "Tirón A", "Empuje B", "Tirón B"],
+  },
+];
+
 @Component({
   selector: "app-mesocycle",
   templateUrl: "./mesocycle.page.html",
@@ -76,8 +122,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public tableMode: string;
   public openWorkoutIndex: number;
   public microcyclesPerRoutineLimit: number | null = null;
+  public workoutTemplateLoadingId: string | null = null;
 
   public TABLE_MODE_TYPES = TABLE_MODE_TYPES;
+  public readonly workoutTemplates = WORKOUT_TEMPLATES;
 
   // Control de animaciones de navegación
   public animatingLeft: boolean = false;
@@ -672,6 +720,94 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public get shouldShowWorkoutTemplates(): boolean {
+    const workoutCount =
+      this.tableInUse?.splits?.reduce(
+        (total, split) => total + (split.workouts?.length ?? 0),
+        0
+      ) ?? 0;
+
+    return (
+      !this.loadingSplit &&
+      !this.pasteMode &&
+      (workoutCount === 0 || this.workoutTemplateLoadingId !== null)
+    );
+  }
+
+  public confirmWorkoutTemplate(template: WorkoutTemplate): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
+    if (this.workoutTemplateLoadingId) return;
+
+    const workoutList = template.workouts
+      .map((workoutName) => `- ${workoutName}`)
+      .join("\n");
+    const alertOptions: AlertOptions = {
+      header: template.name,
+      message: `Se crearan estos entrenamientos en la rutina:\n\n${workoutList}`,
+      buttons: [
+        {
+          text: "CANCELAR",
+          role: "cancel",
+        },
+        {
+          text: "CREAR",
+          cssClass: "alert-button-confirm",
+          handler: () => {
+            this.createWorkoutTemplate(template);
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private createWorkoutTemplate(template: WorkoutTemplate): void {
+    this.workoutTemplateLoadingId = template.id;
+    this.createTemplateWorkoutAtIndex(template, 0);
+  }
+
+  private createTemplateWorkoutAtIndex(
+    template: WorkoutTemplate,
+    workoutIndex: number
+  ): void {
+    const workoutName = template.workouts[workoutIndex];
+    if (!workoutName) {
+      this.workoutTemplateLoadingId = null;
+      this.updateCurrentSplit();
+      this.ionicUtilService.showToast({
+        message: `${template.name} creada`,
+        duration: 1200,
+        color: "success",
+      } as ToastOptions);
+      return;
+    }
+
+    const workout = new Workout();
+    workout.name = workoutName;
+
+    this.workoutService
+      .addWorkoutsToSplits(this.user.tableInUse, workout)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.createTemplateWorkoutAtIndex(template, workoutIndex + 1);
+        },
+        error: (error) => {
+          this.workoutTemplateLoadingId = null;
+          this.ionicUtilService.showErrorToast(
+            error,
+            "No se pudo crear la plantilla"
+          );
+        },
+      });
   }
 
   public workoutIndexPaste: number;
