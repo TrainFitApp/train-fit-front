@@ -53,7 +53,7 @@ export class DietDayService {
 
   public getDietDayByIdDietAndDate(
     id: string,
-    date: Date
+    date: string
   ): Observable<DietDay> {
     return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date);
   }
@@ -82,7 +82,7 @@ export class DietDayService {
   public createDayWeightOnNewDietDay(
     dayWeight: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ) {
     return this.dietDayAPIService
       .createDayWeightOnNewDietDay(dayWeight, dietInUseId, currentDate)
@@ -190,7 +190,7 @@ export class DietDayService {
     customProduct: CustomProduct,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date,
+    currentDate: string,
     idUser?: string
   ) {
     return this.dietDayAPIService.createCustomProductOnNewDietDay(
@@ -224,11 +224,8 @@ export class DietDayService {
     return this.dietDayAPIService.deleteDietDay(idDiet, idDietDay).pipe(
       take(1),
       tap(() => {
-        // Vaciar el currentDietDay local para evitar refresh y llamadas extra a la API
-        // Garantizar que la fecha sea un objeto Date
-        const dateRaw: any = this.currentDietDay?.date;
-        const date: Date = dateRaw ? new Date(dateRaw) : new Date();
-        const clearedDietDay = this.getStandardDietDay(date);
+        const dateStr: string = this.currentDietDay?.date || this.utilService.formatDateToYYYYMMDD(new Date());
+        const clearedDietDay = this.getStandardDietDay(dateStr);
         this.setCurrentDietDay = clearedDietDay;
         this.utilService.setUnselected = true;
       })
@@ -462,7 +459,7 @@ export class DietDayService {
     return fat;
   }
 
-  public getStandardDietDay(date: Date) {
+  public getStandardDietDay(date: string) {
     let dietDay = new DietDay();
     dietDay.date = date;
 
@@ -486,9 +483,10 @@ export class DietDayService {
       const date = new Date(
         new Date(firstWeekDay).setDate(new Date(firstWeekDay).getDate() + i)
       );
+      const dateStr = this.utilService.formatDateToYYYYMMDD(date);
 
       const dietDay = dietDays.find(
-        (dietDay) => new Date(dietDay.date).getDate() === date.getDate()
+        (dietDay) => dietDay.date === dateStr
       );
 
       if (dietDay?._id) {
@@ -496,7 +494,7 @@ export class DietDayService {
         week.push(dietDay);
       } else {
         const newDietDay = new DietDay();
-        newDietDay.date = date;
+        newDietDay.date = dateStr;
         newDietDay.weight = undefined;
         week.push(newDietDay);
       }

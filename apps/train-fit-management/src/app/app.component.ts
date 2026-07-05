@@ -58,7 +58,7 @@ export class AppComponent implements OnDestroy {
     console.info('[AUTH] auth_bootstrap_refresh_attempt');
     this.authService.restoreSessionSilently().subscribe({
       next: (restored) => {
-        if (restored && this.isPublicAuthRoute(this.router.url)) {
+        if (restored && !this.router.url.includes('/user-loader')) {
           void this.router.navigate(['/user-loader'], { replaceUrl: true });
         }
       },
