@@ -20,18 +20,14 @@ export class DayWeightService {
     const dayWeights: DayWeight[] = [];
 
     for (const dietDay of dietDays) {
-      let dayWeight: DayWeight = {
-        date: new Date(dietDay.date),  
+      const parsedDate = new Date(dietDay.date);
+      const dayWeight: DayWeight = {
+        date: parsedDate,
         weight: dietDay.weight,
-        name: days[new Date(dietDay.date).getDay()],
+        name: days[parsedDate.getDay()],
         notes: dietDay.notes,
         meals: dietDay.meals,
       };
-      dayWeight.date = new Date(dietDay.date);
-      dayWeight.weight = dietDay.weight;
-      dayWeight.name = days[new Date(dietDay.date).getDay()];
-      dayWeight.notes = dietDay.notes;
-      dayWeight.meals = dietDay.meals;
       dayWeights.push(dayWeight);
     }
 

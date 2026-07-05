@@ -78,7 +78,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     if (day) {
       this.selectedDate = day;
       this.selectDate.emit({
-        selectedDate: this.selectedDate,
+        selectedDate: this.utilService.formatDateToYYYYMMDD(day),
         weekDays,
         monthDays,
       });
@@ -148,23 +148,22 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   }
 
   private fetchDietDaysForMonth(): void {
-    const firstDayOfMonth = new Date(
-      this.currentDate.getFullYear(),
-      this.currentDate.getMonth(),
-      1
+    const firstDayStr = this.utilService.formatDateToYYYYMMDD(
+      new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1)
     );
     const lastDayOfMonth = new Date(
       this.currentDate.getFullYear(),
       this.currentDate.getMonth() + 1,
       0
     );
+    const lastDayStr = this.utilService.formatDateToYYYYMMDD(lastDayOfMonth);
 
     this.loading.emit(true);
 
     this.dietDayService
       .getDietDaysBetweenDatesByIdDiet(
         this.idDiet,
-        new DateRange(firstDayOfMonth, lastDayOfMonth)
+        new DateRange(firstDayStr, lastDayStr)
       )
       .subscribe({
         next: (dietDays) => {
@@ -261,8 +260,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
     // Mapeamos los días obtenidos del servicio de dieta por su fecha.
     this.dietDays.forEach((dietDay) => {
-      const dateKey = this.formatDateKey(new Date(dietDay.date));
-      dietDaysMap.set(dateKey, dietDay);
+      dietDaysMap.set(dietDay.date, dietDay);
     });
 
     // Actualizar todos los meses con los pesos de DietDays

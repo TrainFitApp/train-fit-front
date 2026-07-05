@@ -63,7 +63,7 @@
       <!-- Información del peso -->
       <div class="weight-info-card">
         <div class="weight-current">
-          <div class="weight-day">{{ days[selectedDate.getDay() - 1] }}</div>
+          <div class="weight-day">{{ days[getDayOfWeek(selectedDate)] }}</div>
           <div class="weight-value">
             {{ currentWeight ? currentWeight + ' Kg' : 'Sin registro' }}
           </div>
