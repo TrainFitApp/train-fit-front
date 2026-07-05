@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="close()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Editar</h1>
+        <h1 class="tf-page-header__title">{{ 'EDITOR.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -23,33 +23,33 @@
     <form [formGroup]="userForm">
       <ion-card class="profile-card">
         <ion-card-header>
-          <ion-card-title color="primary"> DATOS PERSONALES </ion-card-title>
+          <ion-card-title color="primary"> {{ 'EDITOR.PERSONAL_DATA' | translate }} </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
           <div class="form-container">
             <div class="input-row">
               <div class="input-group">
-                <label class="input-label">Nombre *</label>
+                <label class="input-label">{{ 'EDITOR.NAME' | translate }}</label>
                 <div class="input-wrapper">
                   <input
                     type="text"
                     formControlName="name"
                     class="modern-input"
-                    placeholder="Tu nombre"
+                    placeholder="{{ 'EDITOR.NAME_PLACEHOLDER' | translate }}"
                     appCursorEnd
                   />
                   <ion-icon name="person-outline" class="input-icon"></ion-icon>
                 </div>
               </div>
               <div class="input-group">
-                <label class="input-label">Apellido</label>
+                <label class="input-label">{{ 'EDITOR.LASTNAME' | translate }}</label>
                 <div class="input-wrapper">
                   <input
                     type="text"
                     formControlName="lastname"
                     class="modern-input"
-                    placeholder="Tu apellido"
+                    placeholder="{{ 'EDITOR.LASTNAME_PLACEHOLDER' | translate }}"
                     appCursorEnd
                   />
                   <ion-icon name="people-outline" class="input-icon"></ion-icon>
@@ -59,7 +59,7 @@
 
             <div class="input-row">
               <div class="input-group full-width">
-                <label class="input-label">Correo electrónico</label>
+                <label class="input-label">{{ 'EDITOR.EMAIL' | translate }}</label>
                 <div class="informative-badge">
                   <span class="badge-text">{{ user?.email }}</span>
                   <ion-icon name="mail-outline" class="badge-icon"></ion-icon>
@@ -69,13 +69,13 @@
 
             <div class="input-row">
               <div class="input-group">
-                <label class="input-label">Peso (kg)</label>
+                <label class="input-label">{{ 'EDITOR.WEIGHT' | translate }}</label>
                 <div class="input-wrapper">
                   <input
                      type="text" inputmode="decimal"
                     formControlName="weight"
                     class="modern-input"
-                    placeholder="70"
+                    placeholder="{{ 'EDITOR.WEIGHT_PLACEHOLDER' | translate }}"
                     appCursorEnd
                     appDecimalInput
                   />
@@ -86,14 +86,14 @@
                 </div>
               </div>
               <div class="input-group">
-                <label class="input-label">Altura (cm) *</label>
+                <label class="input-label">{{ 'EDITOR.HEIGHT' | translate }}</label>
                 <div class="input-wrapper">
                   <input
                     type="number"
                     inputmode="numeric"
                     formControlName="height"
                     class="modern-input"
-                    placeholder="175"
+                    placeholder="{{ 'EDITOR.HEIGHT_PLACEHOLDER' | translate }}"
                     appCursorEnd
                   />
                   <ion-icon name="resize-outline" class="input-icon"></ion-icon>
@@ -103,20 +103,20 @@
 
             <div class="input-row">
               <div class="input-group full-width">
-                <ion-label class="input-label">Sexo *</ion-label>
+                <ion-label class="input-label">{{ 'EDITOR.SEX' | translate }}</ion-label>
                 <div class="select-wrapper">
                   <ion-select
                     formControlName="sex"
                     interface="action-sheet"
                     mode="ios"
-                    cancelText="Cancelar"
-                    placeholder="Selecciona tu sexo"
+                    cancelText="{{ 'EDITOR.CANCEL_BTN' | translate }}"
+                    placeholder="{{ 'EDITOR.SEX_PLACEHOLDER' | translate }}"
                   >
                     <ion-select-option [value]="SEX_TYPES.female"
-                      >Mujer</ion-select-option
+                      >{{ 'EDITOR.FEMALE' | translate }}</ion-select-option
                     >
                     <ion-select-option [value]="SEX_TYPES.male"
-                      >Hombre</ion-select-option
+                      >{{ 'EDITOR.MALE' | translate }}</ion-select-option
                     >
                   </ion-select>
                   <ion-icon
@@ -129,21 +129,20 @@
 
             <div class="input-row">
               <div class="input-group full-width">
-                <label class="input-label">Fecha de nacimiento *</label>
+                <label class="input-label">{{ 'EDITOR.BIRTH_DATE' | translate }}</label>
                 <div class="datetime-enhanced-wrapper">
                   <div class="datetime-display" (click)="openDatePicker()">
                     <span
                       class="date-text"
                       [class.placeholder]="!userForm.get('birth')?.value"
                     >
-                      {{ getFormattedBirthDate() || 'Selecciona tu fecha de
-                      nacimiento' }}
+                      {{ getFormattedBirthDate() || ('EDITOR.BIRTH_PLACEHOLDER' | translate) }}
                     </span>
                     <div
                       class="age-indicator"
                       *ngIf="userForm.get('birth')?.value"
                     >
-                      <span class="age-text">{{ calculateAge() }} años</span>
+                      <span class="age-text">{{ 'EDITOR.AGE_YEARS' | translate:{ age: calculateAge() } }}</span>
                     </div>
                   </div>
                   <ion-icon
@@ -170,8 +169,8 @@
                         mode="ios"
                         presentation="date"
                         [preferWheel]="true"
-                        [doneText]="'CONFIRMAR'"
-                        [cancelText]="'CANCELAR'"
+                        [doneText]="'COMMON.OK' | translate"
+                        [cancelText]="'COMMON.CANCEL' | translate"
                         formControlName="birth"
                         [max]="getMaxDate()"
                         [min]="getMinDate()"
@@ -181,7 +180,7 @@
                       >
                         <div slot="title" class="datetime-title">
                           <ion-icon name="calendar-outline"></ion-icon>
-                          <span>Fecha de nacimiento</span>
+                          <span>{{ 'EDITOR.BIRTH_MODAL_TITLE' | translate }}</span>
                         </div>
                       </ion-datetime>
                     </ng-template>
@@ -194,25 +193,25 @@
       </ion-card>
       <ion-card class="profile-card">
         <ion-card-header>
-          <ion-card-title color="primary"> ACTIVIDAD FÍSICA </ion-card-title>
+          <ion-card-title color="primary"> {{ 'EDITOR.PHYSICAL_ACTIVITY' | translate }} </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
           <div class="input-group full-width">
-            <ion-label class="input-label">Cantidad de pasos diarios</ion-label>
+            <ion-label class="input-label">{{ 'EDITOR.DAILY_STEPS' | translate }}</ion-label>
             <div class="select-wrapper">
               <ion-select
                 formControlName="steps"
                 interface="action-sheet"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="Selecciona tu nivel de pasos"
+                cancelText="{{ 'EDITOR.CANCEL_BTN' | translate }}"
+                placeholder="{{ 'EDITOR.STEPS_PLACEHOLDER' | translate }}"
               >
                 <ion-select-option
                   *ngFor="let stepValue of STEPS_VALUES"
                   [value]="stepValue.value"
                 >
-                  {{ stepValue.name }}
+                  {{ stepValue.name | translate }}
                 </ion-select-option>
               </ion-select>
               <ion-icon
@@ -231,7 +230,7 @@
         [class.highlight-card]="shouldHighlightActivity"
       >
         <ion-card-header>
-          <ion-card-title color="primary"> NIVEL DE ACTIVIDAD </ion-card-title>
+          <ion-card-title color="primary"> {{ 'EDITOR.ACTIVITY_LEVEL' | translate }} </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
@@ -240,21 +239,21 @@
             *ngIf="userForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
           >
             <ion-label class="input-label"
-              >Selecciona tu nivel de actividad<span> *</span></ion-label
+              >{{ 'EDITOR.ACTIVITY_LABEL' | translate }}</ion-label
             >
             <div class="select-wrapper">
               <ion-select
                 formControlName="activity"
                 interface="action-sheet"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="Selecciona tu nivel de actividad"
+                cancelText="{{ 'EDITOR.CANCEL_BTN' | translate }}"
+                placeholder="{{ 'EDITOR.ACTIVITY_PLACEHOLDER' | translate }}"
               >
                 <ion-select-option
                   *ngFor="let activity of ACTIVITY_FACTOR_VALUES"
                   [value]="activity.value"
                 >
-                  {{ activity.name }}
+                  {{ activity.name | translate }}
                 </ion-select-option>
               </ion-select>
               <ion-icon
@@ -267,9 +266,9 @@
           <ion-card class="info-card" *ngIf="userForm.controls.activity.value">
             <ion-card-content>
               <ion-label class="info-title" color="primary"
-                >{{ activityType?.name }}</ion-label
+                >{{ activityType?.name | translate }}</ion-label
               >
-              <p class="info-description">{{ activityType?.description }}</p>
+              <p class="info-description">{{ activityType?.description | translate }}</p>
             </ion-card-content>
           </ion-card>
         </ion-card-content>
@@ -278,28 +277,28 @@
       <ion-card class="profile-card">
         <ion-card-header>
           <ion-card-title color="primary">
-            FRECUENCIA DE ENTRENAMIENTO
+            {{ 'EDITOR.TRAINING_FREQUENCY' | translate }}
           </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
           <div class="input-group full-width">
             <ion-label class="input-label"
-              >Frecuencia de entrenamiento</ion-label
+              >{{ 'EDITOR.TRAINING_LABEL' | translate }}</ion-label
             >
             <div class="select-wrapper">
               <ion-select
                 formControlName="training"
                 interface="action-sheet"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="Selecciona tu frecuencia de entrenamiento"
+                cancelText="{{ 'EDITOR.CANCEL_BTN' | translate }}"
+                placeholder="{{ 'EDITOR.TRAINING_PLACEHOLDER' | translate }}"
               >
                 <ion-select-option
                   *ngFor="let training of TRAINING_TYPE_VALUES"
                   [value]="training.value"
                 >
-                  {{ training.name }}
+                  {{ training.name | translate }}
                 </ion-select-option>
               </ion-select>
               <ion-icon
@@ -312,26 +311,26 @@
       </ion-card>
       <ion-card class="profile-card">
         <ion-card-header>
-          <ion-card-title color="primary"> OBJETIVO </ion-card-title>
+          <ion-card-title color="primary"> {{ 'EDITOR.OBJECTIVE' | translate }} </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
           <div class="input-group full-width">
-            <ion-label class="input-label">Selecciona tu objetivo</ion-label>
+            <ion-label class="input-label">{{ 'EDITOR.OBJECTIVE_LABEL' | translate }}</ion-label>
             <div class="select-wrapper">
               <ion-select
                 formControlName="objetiveType"
                 interface="action-sheet"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="Selecciona tu objetivo"
+                cancelText="{{ 'EDITOR.CANCEL_BTN' | translate }}"
+                placeholder="{{ 'EDITOR.OBJECTIVE_PLACEHOLDER' | translate }}"
                 (ionChange)="selectObjetiveFromSelect($event)"
               >
                 <ion-select-option
                   *ngFor="let objetive of OBJETIVES_VALUES"
                   [value]="objetive.id"
                 >
-                  {{ objetive.name }}
+                  {{ objetive.name | translate }}
                 </ion-select-option>
               </ion-select>
               <ion-icon
@@ -344,18 +343,14 @@
           <ion-card class="info-card">
             <ion-card-content>
               <ion-label class="info-title" color="primary"
-                >{{ objetiveSelected.name }}</ion-label
+                >{{ objetiveSelected.name | translate }}</ion-label
               >
               <p class="info-description">
-                Te encontrarás en {{ objetiveSelected.key }} calórico
+                {{ 'EDITOR.OBJECTIVE_DESC' | translate:{ key: objetiveSelected.key } }}
                 <ng-container
                   *ngIf="objetiveSelected.key !== OBJETIVES[OBJETIVE_TYPES.maintenance].key"
                 >
-                  de
-                  <strong
-                    >{{ Math.abs(userForm.controls.objetive.value) }}
-                    kcal</strong
-                  >
+                  {{ 'EDITOR.OBJECTIVE_DESC_VALUE' | translate:{ kcal: Math.abs(userForm.controls.objetive.value) } }}
                 </ng-container>
               </p>
             </ion-card-content>
@@ -365,13 +360,13 @@
             *ngIf="objetiveSelected.key !== OBJETIVES[OBJETIVE_TYPES.maintenance].key"
             class="objective-slider"
           >
-            <ion-label class="section-label">
-              Selecciona tu
-              <strong
-                >{{ OBJETIVES[OBJETIVE_TYPES.gain].key === objetiveSelected.key
-                ? 'superávit energético' : 'déficit energético' }}</strong
-              >
-              (kcal)
+            <ion-label class="section-label"
+              [innerHTML]="
+                OBJETIVES[OBJETIVE_TYPES.gain].key === objetiveSelected.key
+                  ? ('EDITOR.SELECT_SUPERAVIT' | translate)
+                  : ('EDITOR.SELECT_DEFICIT' | translate)
+              "
+            >
             </ion-label>
             <ion-range
               formControlName="objetive"
@@ -392,7 +387,7 @@
       </ion-card>
       <ion-card class="profile-card macros-card">
         <ion-card-header>
-          <ion-card-title color="primary"> MACRONUTRIENTES </ion-card-title>
+          <ion-card-title color="primary"> {{ 'EDITOR.MACRONUTRIENTS' | translate }} </ion-card-title>
         </ion-card-header>
 
         <ion-card-content>
@@ -403,8 +398,7 @@
               color="danger"
             ></ion-icon>
             <ion-label class="ion-text-wrap" color="danger">
-              Proteínas, CBH y Grasas deben coincidir con el total de kcal
-              (margen de error: 25 kcal)
+              {{ 'EDITOR.ERROR_MSG' | translate }}
             </ion-label>
           </ion-item>
 
@@ -418,26 +412,26 @@
             "
           >
             <div class="kpi">
-              <div class="title">Kcal</div>
+              <div class="title">{{ 'EDITOR.CALORIES' | translate }}</div>
               <div class="value">
                 {{ userForm.controls.kcalTotal.value?.toFixed(0) || 0 }}
               </div>
             </div>
             <div class="kpi">
-              <div class="title">Proteínas</div>
+              <div class="title">{{ 'EDITOR.PROTEINS' | translate }}</div>
               <div class="value">
                 {{ userForm.controls.proteinsGTotal.value?.toFixed(0) || 0 }}g
               </div>
             </div>
             <div class="kpi">
-              <div class="title">Hidratos</div>
+              <div class="title">{{ 'EDITOR.CARBS' | translate }}</div>
               <div class="value">
                 {{ userForm.controls.carbohydratesGTotal.value?.toFixed(0) || 0
                 }}g
               </div>
             </div>
             <div class="kpi">
-              <div class="title">Grasas</div>
+              <div class="title">{{ 'EDITOR.FATS' | translate }}</div>
               <div class="value">
                 {{ userForm.controls.fatGTotal.value?.toFixed(0) || 0 }}g
               </div>
@@ -454,7 +448,7 @@
           (click)="updateUser()"
           [disabled]="loading"
         >
-          Guardar Cambios
+          {{ 'EDITOR.SAVE_CHANGES' | translate }}
         </ion-button>
       </div>
     </form>

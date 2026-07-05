@@ -1,19 +1,20 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 interface Tip {
   icon: string;
   text: string;
 }
 
-const TIPS: Tip[] = [
-  { icon: 'barbell-outline', text: 'Sabías que contamos con +250 ejercicios en la biblioteca' },
-  { icon: 'flash-outline', text: 'TrainFit está enfocada para los que entrenan en serio y al grano, sin tonterías' },
-  { icon: 'create-outline', text: 'Aprovecha las notas para apuntar info de tu dieta o entrenamiento' },
-  { icon: 'copy-outline', text: 'Sabías que puedes copiar tus microciclos con tan solo 2 clics' },
-  { icon: 'nutrition-outline', text: 'Sabías que puedes crear tus propias recetas' },
-  { icon: 'bar-chart-outline', text: 'Sabías que tienes un apartado con tus estadísticas de entrenamiento' },
-  { icon: 'scale-outline', text: 'Sabías que puedes registrar tu peso diario y ver estadísticas' },
-  { icon: 'trophy-outline', text: 'TrainFit, la app #1 elegida por usuarios intermedios y avanzados' },
+const TIP_KEYS = [
+  { icon: 'barbell-outline', key: 'AI_LOADING.FUN_FACT_1' },
+  { icon: 'flash-outline', key: 'AI_LOADING.FUN_FACT_2' },
+  { icon: 'create-outline', key: 'AI_LOADING.FUN_FACT_3' },
+  { icon: 'copy-outline', key: 'AI_LOADING.FUN_FACT_4' },
+  { icon: 'nutrition-outline', key: 'AI_LOADING.FUN_FACT_5' },
+  { icon: 'bar-chart-outline', key: 'AI_LOADING.FUN_FACT_6' },
+  { icon: 'scale-outline', key: 'AI_LOADING.FUN_FACT_7' },
+  { icon: 'trophy-outline', key: 'AI_LOADING.FUN_FACT_8' },
 ];
 
 @Component({
@@ -32,12 +33,18 @@ export class AiLoadingOverlayComponent implements OnInit, OnDestroy {
 
   @Input() message = '';
 
-  currentTip = Math.floor(Math.random() * TIPS.length);
+  currentTip = Math.floor(Math.random() * TIP_KEYS.length);
   animating = false;
 
   private intervalId: ReturnType<typeof setInterval> | undefined;
 
-  readonly tips = TIPS;
+  readonly tips = TIP_KEYS;
+
+  constructor(private translate: TranslateService) {}
+
+  get currentTipText(): string {
+    return this.translate.instant(this.tips[this.currentTip].key);
+  }
 
   ngOnInit(): void {
     if (this.visible) this.startRotation();
@@ -62,7 +69,7 @@ export class AiLoadingOverlayComponent implements OnInit, OnDestroy {
   private nextTip(): void {
     this.animating = true;
     setTimeout(() => {
-      let next = Math.floor(Math.random() * this.tips.length);
+      let next = Math.floor(Math.random() * TIP_KEYS.length);
       if (next === this.currentTip) next = (next + 1) % this.tips.length;
       this.currentTip = next;
       this.animating = false;

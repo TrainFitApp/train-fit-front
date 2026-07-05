@@ -36,6 +36,7 @@ import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.se
 import { RecipeApiService } from "src/app/core/services/recipe/recipe-api.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { BarCodeScannerService } from "src/app/core/services/util/bar-code-scanner.service";
+import { TranslateService } from "@ngx-translate/core";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { UtilService } from "src/app/core/services/util/util.service";
@@ -179,6 +180,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
     private cdr: ChangeDetectorRef,
     private billingService: BillingService,
+    private translate: TranslateService,
   ) {
     this.utilService.setMeasureFilter = MEASURE_FILTER_TYPES.auto;
   }
@@ -911,7 +913,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (!scannedCode) return;
 
     await this.ionicUtilService.showLoading({
-      message: "Buscando producto...",
+      message: this.translate.instant('SEARCH_FOODS.SEARCHING_PRODUCT'),
       spinner: "crescent",
       cssClass: "loading-orange",
     });
@@ -965,12 +967,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         },
         error: (_) => {
           this.ionicUtilService.hideLoading();
-          const alertOptions = {
-            header: "Error",
-            message: "No se pudo buscar el producto",
-            buttons: ["OK"],
-          };
-          this.ionicUtilService.showAlert(alertOptions);
+          const t = this.translate.instant.bind(this.translate);
+          this.ionicUtilService.showAlert({
+            header: t('COMMON.ERROR'),
+            message: t('SEARCH_FOODS.PRODUCT_NOT_FOUND'),
+            buttons: [t('COMMON.OK')],
+          });
         },
         complete: () => {
           this.productByCodeSub = undefined;
@@ -990,18 +992,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async openCreateActionSheet(): Promise<void> {
+    const t = this.translate.instant.bind(this.translate);
     const actionSheetOptions: ActionSheetOptions = {
       cssClass: "create-action-sheet",
       mode: "ios",
       buttons: [
         {
-          text: "Nuevo Producto",
+          text: t('ACTIONS_FAB.NEW_PRODUCT'),
           icon: "nutrition-outline",
           data: ACTIONS_FAB_TYPES.createProduct,
           cssClass: "action-sheet-product",
         },
         {
-          text: "Nueva Receta",
+          text: t('ACTIONS_FAB.NEW_RECIPE'),
           icon: "restaurant-outline",
           data: ACTIONS_FAB_TYPES.createRecipe,
           cssClass: "action-sheet-recipe",
@@ -1023,30 +1026,30 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
    */
   public deleteProduct(productId: string): void {
     const product = this.products?.find((p) => p._id === productId);
-    const productName = product ? product.name : "este producto";
+    const productName = product ? product.name : this.translate.instant('COMMON.THIS') + " producto";
+    const t = this.translate.instant.bind(this.translate);
 
     const alertOptions: AlertOptions = {
-      header: "Eliminar producto",
-      message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
+      header: t('SEARCH_FOODS.DELETE_PRODUCT_HEADER'),
+      message: t('SEARCH_FOODS.DELETE_PRODUCT_CONFIRM', { name: productName }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: t('COMMON.DELETE').toUpperCase(),
           role: "destructive",
           handler: () => {
             this.productService.deleteProduct(productId).subscribe({
               next: () => {
                 this.handleProductDeletedLocally(productId);
-                // Refrescar la lista de productos
                 this.search();
               },
               error: (err) => {
                 console.error("[deleteProduct] Error:", err);
                 this.ionicUtilService.showToast({
-                  message: "Error al eliminar el producto",
+                  message: t('SEARCH_FOODS.DELETE_PRODUCT_ERROR'),
                   duration: 2000,
                   color: "danger",
                 });
@@ -1532,55 +1535,49 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private handleDeselectAll(): void {
-    // In ingredient mode, just clear the selected ingredients array
     if (this.ingredientMode) {
       this.selectedIngredients = [];
       this.ingredientMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
       this.ionicUtilService.showToast({
-        message: "Ingredientes deseleccionados",
+        message: this.translate.instant('SEARCH_FOODS.INGREDIENTS_DESELECTED'),
         duration: 1500,
         position: "bottom",
       });
       return;
     }
 
-    // Verify meal exists
     if (!this.meal || !this.meal._id) {
       console.error("No meal selected");
       return;
     }
 
-    // Determine what to delete based on current mode (segment)
     const isRecipeMode = this.currentMode === "recipes";
-    const itemType = isRecipeMode ? "recetas" : "productos";
-    const itemTypePlural = isRecipeMode ? "Recetas" : "Productos";
+    const itemTypeKey = isRecipeMode ? 'SEARCH_FOODS.ITEM_TYPE_RECIPES' : 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS';
+    const itemTypePluralKey = isRecipeMode ? 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' : 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP';
+    const t = this.translate.instant.bind(this.translate);
+    const itemType = t(itemTypeKey);
+    const itemTypePlural = t(itemTypePluralKey);
 
     const alertOptions = {
-      header: `Eliminar ${itemType}`,
-      message:
-        `¿Estás seguro de eliminar todas las ${itemType} de ` +
-        this.meal.name +
-        "?",
+      header: t('SEARCH_FOODS.DELETE_ITEMS_HEADER', { itemType }),
+      message: t('SEARCH_FOODS.DELETE_ITEMS_CONFIRM', { itemType, mealName: this.meal.name }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: t('COMMON.DELETE').toUpperCase(),
           cssClass: "danger",
           handler: () => {
-            // Call the appropriate service method based on current segment
             const observable = isRecipeMode
               ? this.mealService.deleteMealRecipes(this.meal._id)
               : this.mealService.deleteMealCustomProducts(this.meal._id);
 
             observable.subscribe({
               next: (updatedMeal) => {
-                // Update local meal with the response from backend
                 this.meal = updatedMeal;
 
-                // Update the meal in the dietDay
                 if (this.dietDay) {
                   const mealIndex = this.dietDay.meals.findIndex(
                     (m) => m._id === this.meal._id,
@@ -1588,21 +1585,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                   if (mealIndex !== -1) {
                     this.dietDay.meals[mealIndex] = updatedMeal;
                   }
-
-                  // Update dietDay in service to recalculate macros
                   this.dietDayService.setCurrentDietDay = this.dietDay;
                 }
 
                 this.utilService.setUnselected = true;
                 this.ionicUtilService.showToast({
-                  message: `${itemTypePlural} eliminadas de ${this.meal.name}`,
+                  message: t('SEARCH_FOODS.ITEMS_DELETED', { itemType: itemTypePlural, mealName: this.meal.name }),
                   duration: 1000,
                 });
               },
               error: (err) => {
-                console.error(`Error deleting ${itemType}:`, err);
+                console.error(`Error deleting:`, err);
                 this.ionicUtilService.showToast({
-                  message: `Error al eliminar ${itemType}`,
+                  message: t('SEARCH_FOODS.ITEMS_DELETE_ERROR', { itemType }),
                   duration: 2000,
                   color: "danger",
                 });
@@ -1983,7 +1978,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
 
         this.ionicUtilService.showToast({
-          message: "Receta añadida a la comida",
+          message: this.translate.instant('SEARCH_FOODS.RECIPE_ADDED'),
           duration: 1500,
           color: "success",
         });
@@ -1992,7 +1987,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.setRecipeLoading(recipe, false);
         console.error("[quickAddRecipeToMeal] Error:", error);
         this.ionicUtilService.showToast({
-          message: "No se pudo añadir la receta",
+          message: this.translate.instant('SEARCH_FOODS.RECIPE_ADD_ERROR'),
           duration: 2000,
           color: "danger",
         });
@@ -2022,26 +2017,23 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private removeRecipeFromMeal(instance: any): void {
     if (!this.meal?._id || !instance._id) return;
 
-    // Show confirmation
+    const t = this.translate.instant.bind(this.translate);
     this.ionicUtilService.showAlert({
-      header: "¿Eliminar receta?",
-      message:
-        "¿Estás seguro de que quieres eliminar esta receta de la comida?",
+      header: t('SEARCH_FOODS.DELETE_RECIPE_CONFIRM_HEADER'),
+      message: t('SEARCH_FOODS.DELETE_RECIPE_CONFIRM_MESSAGE'),
       buttons: [
         {
-          text: "Cancelar",
+          text: t('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "Eliminar",
+          text: t('COMMON.DELETE'),
           role: "confirm",
           handler: () => {
-            // Delete the CustomRecipe
             this.mealService
               .deleteMealCustomRecipe(this.meal!._id!, instance._id)
               .subscribe({
                 next: (updatedMeal) => {
-                  // Update local state
                   this.meal = updatedMeal;
                   if (this.dietDay) {
                     const mealIndex = this.dietDay.meals.findIndex(
@@ -2053,7 +2045,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                     }
                   }
                   this.ionicUtilService.showToast({
-                    message: "Receta eliminada de la comida",
+                    message: t('SEARCH_FOODS.RECIPE_DELETED_FROM_MEAL'),
                     duration: 2000,
                     color: "success",
                   });
@@ -2061,7 +2053,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                 error: (err) => {
                   console.error("Error deleting recipe instance:", err);
                   this.ionicUtilService.showToast({
-                    message: "Error al eliminar la receta",
+                    message: t('SEARCH_FOODS.RECIPE_DELETE_ERROR'),
                     duration: 2000,
                     color: "danger",
                   });
@@ -2176,9 +2168,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeFavoriteToggle(recipe: Recipe): void {
+    const t = this.translate.instant.bind(this.translate);
     this.recipeApiService.toggleArchived(recipe._id).subscribe({
       next: (res) => {
-        // Update local user favorites
         if (res.isArchived) {
           if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
           this.user.archivedRecipes.push(recipe._id);
@@ -2188,20 +2180,18 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
         this.userService.setLocalUser = this.user;
 
-        const toastOptions: ToastOptions = {
+        this.ionicUtilService.showToast({
           message: res.isArchived
-            ? "Receta añadida a favoritos"
-            : "Receta eliminada de favoritos",
+            ? t('SEARCH_FOODS.RECIPE_ADDED_FAV')
+            : t('SEARCH_FOODS.RECIPE_REMOVED_FAV'),
           duration: 1500,
-        };
-        this.ionicUtilService.showToast(toastOptions);
+        });
       },
       error: () => {
-        const toastOptions: ToastOptions = {
-          message: "Error al actualizar favoritos",
+        this.ionicUtilService.showToast({
+          message: t('SEARCH_FOODS.FAV_UPDATE_ERROR'),
           duration: 1500,
-        };
-        this.ionicUtilService.showToast(toastOptions);
+        });
       },
     });
   }
@@ -2351,8 +2341,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private async createRecipe(): Promise<void> {
     if (await this.billingService.isFreshLimitReached("recipes")) {
       await this.ionicUtilService.showPremiumLimitAlert({
-        message:
-          "Has alcanzado el limite de recetas propias. Activa Pro para crear mas.",
+        message: this.translate.instant('SEARCH_FOODS.PREMIUM_LIMIT_RECIPES'),
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
@@ -2507,12 +2496,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
    */
   public createRecipeFromIngredients(): void {
     if (this.selectedIngredients.length < 2) {
-      const toastOptions = {
-        message: "Necesitas al menos 2 ingredientes para crear una receta",
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('SEARCH_FOODS.MIN_INGREDIENTS'),
         duration: 2000,
         color: "warning",
-      };
-      this.ionicUtilService.showToast(toastOptions);
+      });
       return;
     }
 

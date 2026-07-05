@@ -1,9 +1,8 @@
 <ion-header>
-  <!-- Header personalizado -->
   <div class="weight-info-header">
     <div class="header-content">
       <div class="back-section">
-        <button class="back-button" (click)="goBack()" aria-label="Volver">
+        <button class="back-button" (click)="goBack()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -19,9 +18,7 @@
 ></ion-header>
 
 <ion-content>
-  <!-- Contenido principal -->
   <div class="weight-info-container">
-    <!-- Calendario -->
     <div class="calendar-section">
       <app-calendar
         class="weight-calendar"
@@ -32,7 +29,6 @@
       ></app-calendar>
     </div>
 
-    <!-- Notas -->
     <div class="notes-section" *ngIf="currentNotes">
       <app-notes
         [notes]="currentNotes"
@@ -42,9 +38,7 @@
       ></app-notes>
     </div>
 
-    <!-- Sección del gráfico -->
     <div class="chart-section">
-      <!-- Selector de rango -->
       <div class="range-selector">
         <ion-segment
           class="range-segment"
@@ -52,20 +46,19 @@
           (ionChange)="chartRangeChange($event)"
         >
           <ion-segment-button [value]="CHART_RANGES.week">
-            <ion-label>Semanal</ion-label>
+            <ion-label>{{ 'WEIGHT_INFO.WEEK_LABEL' | translate }}</ion-label>
           </ion-segment-button>
           <ion-segment-button [value]="CHART_RANGES.month">
-            <ion-label>Mensual</ion-label>
+            <ion-label>{{ 'WEIGHT_INFO.MONTH_LABEL' | translate }}</ion-label>
           </ion-segment-button>
         </ion-segment>
       </div>
 
-      <!-- Información del peso -->
       <div class="weight-info-card">
         <div class="weight-current">
           <div class="weight-day">{{ days[getDayOfWeek(selectedDate)] }}</div>
           <div class="weight-value">
-            {{ currentWeight ? currentWeight + ' Kg' : 'Sin registro' }}
+            {{ currentWeight ? currentWeight + ' Kg' : ('WEIGHT_INFO.NO_RECORD' | translate) }}
           </div>
         </div>
 
@@ -75,21 +68,20 @@
             *ngIf="chartRange === CHART_RANGES.week"
             style="color: #ffffff"
           >
-            Semana {{ getWeekOfMonth() }}
+            {{ 'WEIGHT_INFO.WEEK' | translate:{ number: getWeekOfMonth() } }}
           </div>
           <div class="stat-item" *ngIf="chartRange === CHART_RANGES.month">
-            <span class="stat-label">Media mensual:</span>
+            <span class="stat-label">{{ 'WEIGHT_INFO.MONTHLY_AVERAGE' | translate }}</span>
             <span class="stat-value"
-              >{{ average ? average + ' Kg' : 'Sin registros' }}</span
+              >{{ average ? average + ' Kg' : ('WEIGHT_INFO.NO_RECORDS' | translate) }}</span
             >
           </div>
           <div class="stat-item" *ngIf="chartRange === CHART_RANGES.year">
-            Media anual
+            {{ 'WEIGHT_INFO.YEARLY_AVERAGE' | translate }}
           </div>
         </div>
       </div>
 
-      <!-- Contenedor del gráfico -->
       <div class="chart-container">
         <canvas id="dayWeight"></canvas>
       </div>

@@ -21,6 +21,7 @@ import { UserService } from "src/app/core/services/user/user.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { TranslateService } from "@ngx-translate/core";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import {
@@ -172,6 +173,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     private billingService: BillingService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
+    private translate: TranslateService,
     private cdr: ChangeDetectorRef,
   ) {
     this.initVariables();
@@ -591,27 +593,27 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public editTableName(): void {
     const alertOptions = {
-      header: "Editar nombre de rutina",
+      header: this.translate.instant('TABLES.EDIT_ROUTINE_NAME'),
       inputs: [
         {
           name: "tableName",
           type: "textarea" as "textarea",
           value: this.tableInUse?.name,
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: "alert-button-primary",
           handler: (data) => {
             if (data.tableName.trim() === "") {
               this.ionicUtilService.showToast({
-                message: "El campo no puede estar vacío",
+                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
                 duration: 2000,
                 color: "danger",
               });
@@ -620,7 +622,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             this.tableInUse.name = data.tableName;
             this.tableService.updateTableName(this.tableInUse).subscribe(() => {
               this.tableService.setCurrentTable = this.tableInUse;
-              const message = "Nombre de rutina actualizado";
+              const message = this.translate.instant('TABLES.ROUTINE_NAME_UPDATED');
               const duration = 1000;
               const toastOptions: ToastOptions = {
                 message: message,
@@ -638,15 +640,15 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public unlinkTable(): void {
     const alertOptions = {
-      header: "Salir de " + this.tableInUse.name,
-      message: "Podrás volver a encontrar esta rutina en Mis rutinas",
+      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
+      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: "alert-button-primary",
           handler: () => {
             this.tableInUse = undefined;
@@ -671,13 +673,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
 
     const alertOptions = {
-      header: "Añadir entrenamiento",
-      message: "Introduce el nombre del entrenamiento",
+      header: this.translate.instant('TABLES.ADD_WORKOUT_ALERT'),
+      message: this.translate.instant('TABLES.ADD_WORKOUT_MSG'),
       inputs: [
         {
           name: "workoutName",
           type: "text" as "text",
-          placeholder: "Ej: Empujes",
+          placeholder: this.translate.instant('TABLES.WORKOUT_EXAMPLE'),
           attributes: {
             required: true,
           },
@@ -685,11 +687,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "AÑADIR",
+          text: this.translate.instant('TABLES.ADD_BTN'),
           cssClass: "alert-button-confirm",
           handler: (data: any) => {
             if (!data.workoutName || data.workoutName.trim() === "") {
@@ -705,11 +707,9 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 this.tableInUse.splits = resSplits;
                 this.tableService.setCurrentTable = this.tableInUse;
 
-                const message = "Entrenamiento " + workout.name + " añadido";
-                const duration = 500;
                 const toastOptions: ToastOptions = {
-                  message: message,
-                  duration: duration,
+                  message: this.translate.instant('TABLES.WORKOUT_ADDED', { name: workout.name }),
+                  duration: 500,
                 };
                 this.ionicUtilService.showToast(toastOptions);
               });
@@ -749,14 +749,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       .join("\n");
     const alertOptions: AlertOptions = {
       header: template.name,
-      message: `Se crearan estos entrenamientos en la rutina:\n\n${workoutList}`,
+      message: this.translate.instant('TABLES.TEMPLATE_CREATE_CONFIRM', { workoutList }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "CREAR",
+          text: this.translate.instant('TABLES.CREATE_TEMPLATE_BTN'),
           cssClass: "alert-button-confirm",
           handler: () => {
             this.createWorkoutTemplate(template);
@@ -782,7 +782,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       this.workoutTemplateLoadingId = null;
       this.updateCurrentSplit();
       this.ionicUtilService.showToast({
-        message: `${template.name} creada`,
+        message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: template.name }),
         duration: 1200,
         color: "success",
       } as ToastOptions);
@@ -804,7 +804,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           this.workoutTemplateLoadingId = null;
           this.ionicUtilService.showErrorToast(
             error,
-            "No se pudo crear la plantilla"
+            this.translate.instant('TABLES.TEMPLATE_CREATE_ERROR')
           );
         },
       });
@@ -984,13 +984,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.loadTable = false;
 
     const alertOptions = {
-      header: "Crear rutina",
-      message: "Introduce el nombre de la rutina",
+      header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG_MESO'),
       inputs: [
         {
           name: "tableName",
           type: "text" as "text",
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           attributes: {
             required: true,
           },
@@ -998,7 +998,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
           handler: () => {
@@ -1006,7 +1006,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           },
         },
         {
-          text: "CREAR",
+          text: this.translate.instant('TABLES.CREATE_BTN'),
           cssClass: "alert-button-success",
           handler: (data: any) => {
             if (!data.tableName || data.tableName.trim() === "") {
@@ -1039,11 +1039,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (this.tableInUse.splits.length > 20) {
       alertOptions = {
-        header: "Error",
-        message: "Número máximo de micro-ciclos alcanzados",
+        header: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR'),
+        message: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR_MSG'),
         buttons: [
           {
-            text: "CONFIRMAR",
+            text: this.translate.instant('COMMON.CONFIRM'),
             role: "cancel",
           },
         ],
@@ -1057,23 +1057,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       const isLast =
         this._currentSplitIndex === this.tableInUse.splits.length - 1;
       const message = isLast
-        ? "Se creará uno nuevo copiando los datos del actual incluyendo notas"
-        : "Se creará uno nuevo entre el micro-ciclo " +
-          (this._currentSplitIndex + 1) +
-          " y " +
-          (this._currentSplitIndex + 2) +
-          ", copiando los datos del actual incluyendo notas";
+        ? this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_LAST')
+        : this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_BETWEEN', { current: this._currentSplitIndex + 1, next: this._currentSplitIndex + 2 });
       alertOptions = {
         header: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
         cssClass: "alert-grid-buttons",
         message: message,
         buttons: [
           {
-            text: "CANCELAR",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
           },
           {
-            text: "SIN SERIES",
+            text: this.translate.instant('TABLES.WITHOUT_SERIES'),
             handler: () => {
               this.loadingSplit = true;
               const idSplit =
@@ -1091,7 +1087,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -1104,7 +1100,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             },
           },
           {
-            text: "COMPLETO",
+            text: this.translate.instant('TABLES.COMPLETE_COPY'),
             cssClass: "alert-button-success",
             handler: () => {
               this.loadingSplit = true;
@@ -1123,7 +1119,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -1141,11 +1137,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         message: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
         buttons: [
           {
-            text: "CANCELAR",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
           },
           {
-            text: "CONFIRMAR",
+            text: this.translate.instant('COMMON.CONFIRM'),
             cssClass: "alert-button-primary",
             handler: () => {
               const idSplit =
@@ -1163,7 +1159,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -1193,7 +1189,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         this.splitService._addOrDeleteSplitSlide$.next(true);
 
         const toastOptions: ToastOptions = {
-          message: "Micro-ciclo añadido",
+          message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
           duration: 500,
         };
         this.ionicUtilService.showToast(toastOptions);
@@ -1209,15 +1205,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (error?.error?.code === "PREMIUM_LIMIT_MICROCYCLES") {
       this.ionicUtilService.showPremiumLimitAlert({
-        message:
-          "Has alcanzado el limite de micro-ciclos para esta rutina. Activa Pro para seguir anadiendo.",
+        message: this.translate.instant('TABLES.PREMIUM_LIMIT_MICROCYCLES'),
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
     }
 
     this.ionicUtilService.showToast({
-      message: error?.error?.message || "No se pudo anadir el micro-ciclo",
+      message: error?.error?.message || this.translate.instant('TABLES.ADD_MICROCYCLE_ERROR'),
       duration: 2000,
       color: "danger",
     });
@@ -1251,17 +1246,17 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public deleteSplit(): void {
     const alertOptions: AlertOptions = {
       header: ACTIONS_FAB[ACTIONS_FAB_TYPES.deleteMicrocycle].value,
-      message: "¿Estás seguro de eliminar este micro-ciclo?",
+      message: this.translate.instant('TABLES.DELETE_MICROCYCLE_CONFIRM'),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           handler: () => {
             this.loadingFab = false;
           },
         },
         {
-          text: "ELIMINAR",
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: "destructive",
           handler: () => {
             this.loadingFab = true;
@@ -1286,7 +1281,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 this.splitService._addOrDeleteSplitSlide$.next(false);
 
                 const toastOptions: ToastOptions = {
-                  message: "Micro-ciclo eliminado",
+                  message: this.translate.instant('TABLES.MICROCYCLE_DELETED'),
                   duration: 500,
                 };
                 this.ionicUtilService.showToast(toastOptions);
@@ -1317,19 +1312,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         {
           name: "workoutName",
           type: "text",
-          placeholder: "Nombre",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           handler: () => {
             this.loadingFab = false;
           },
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           handler: (data) => {
             if (data.workoutName && data.workoutName.trim() !== "") {
               const workout = this.workoutService.getStandarWorkout();
@@ -1340,7 +1335,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                   this.tableInUse.splits = resSplits;
                   this.tableService.setCurrentTable = this.tableInUse;
                   const toastOptions: ToastOptions = {
-                    message: data.workoutName + " añadido",
+                    message: this.translate.instant('TABLES.WORKOUT_ADDED_SIMPLE', { name: data.workoutName }),
                     duration: 500,
                   };
                   this.ionicUtilService.showToast(toastOptions);
@@ -1348,9 +1343,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 });
               return true;
             } else {
-              // Show error if name is empty
               const errorToast: ToastOptions = {
-                message: "El nombre no puede estar vacío",
+                message: this.translate.instant('TABLES.WORKOUT_NAME_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(errorToast);

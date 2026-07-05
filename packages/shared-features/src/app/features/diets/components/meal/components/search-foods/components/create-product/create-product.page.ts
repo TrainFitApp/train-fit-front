@@ -12,6 +12,7 @@ import { ProductService } from 'src/app/core/services/product/product.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { BarCodeScannerService } from 'src/app/core/services/util/bar-code-scanner.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
@@ -54,7 +55,8 @@ export class CreateProductPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -195,34 +197,31 @@ export class CreateProductPage implements OnInit {
       );
       this.productService.updateProduct(newProduct).subscribe({
         next: (updatedProduct: IProduct) => {
+          const t = this.translate.instant.bind(this.translate);
           this.dietDayService.syncUpdatedProductInCurrentDietDay(
             updatedProduct || newProduct
           );
 
-          const toastOptions: ToastOptions = {
-            message: `¡${
-              updatedProduct?.name || newProduct.name
-            } actualizado con éxito!`,
+          this.ionicUtilService.showToast({
+            message: t('CREATE_PRODUCT.UPDATE_SUCCESS', { name: updatedProduct?.name || newProduct.name }),
             duration: 2000,
             color: 'success',
-          };
-          this.ionicUtilService.showToast(toastOptions);
+          });
           this.navigationService.setTempData(
             'updatedProductForAddProduct',
             updatedProduct || newProduct
           );
-          this.adMobService.interstitial('create_product'); // Estrategia AdMob
+          this.adMobService.interstitial('create_product');
           this.navigationService.backNoAnim();
         },
         error: (err) => {
           this.saveInProgress = false;
           console.error('[EditProduct] Error al actualizar:', err);
-          const toastOptions: ToastOptions = {
-            message: 'Error al actualizar el producto. Inténtalo de nuevo.',
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('CREATE_PRODUCT.UPDATE_ERROR'),
             duration: 2000,
             color: 'danger',
-          };
-          this.ionicUtilService.showToast(toastOptions);
+          });
         },
       });
       return;
@@ -238,7 +237,7 @@ export class CreateProductPage implements OnInit {
           switchSegmentToOwn: true,
         });
         this.ionicUtilService.showToast({
-          message: createdProduct.name + ' creado',
+          message: this.translate.instant('CREATE_PRODUCT.CREATE_SUCCESS', { name: createdProduct.name }),
           duration: 1200,
           color: 'success',
         });
@@ -249,7 +248,7 @@ export class CreateProductPage implements OnInit {
         this.saveInProgress = false;
         console.error('[CreateProduct] Error al crear:', error);
         this.ionicUtilService.showToast({
-          message: 'Error al crear el producto. Inténtalo de nuevo.',
+          message: this.translate.instant('CREATE_PRODUCT.CREATE_ERROR'),
           duration: 2000,
           color: 'danger',
         });
@@ -265,7 +264,7 @@ export class CreateProductPage implements OnInit {
     const idUser = this.user?._id || this.userService.getLocalUser?._id;
     if (idUser) {
       await this.ionicUtilService.showLoading({
-        message: 'Buscando producto...',
+        message: this.translate.instant('CREATE_PRODUCT.SEARCHING'),
         spinner: 'crescent',
         cssClass: 'loading-orange',
       });
@@ -280,41 +279,39 @@ export class CreateProductPage implements OnInit {
               // 🔧 FIX: Producto encontrado - manejar según modo
               this.ionicUtilService.hideLoading();
 
-              if (this.ingredientMode) {
-                // ✅ MODO INGREDIENTE: Mostrar alert y crear CustomProduct local
-                console.log(
-                  '[DEBUG] create-product.openScanner: producto encontrado en ingredientMode'
-                );
-                const alertOptions = {
-                  header: 'Producto encontrado',
-                  message: `¿Deseas usar el producto "${product.name}" existente?`,
-                  buttons: [
-                    {
-                      text: 'Cancelar',
-                      role: 'cancel',
-                      handler: () => {
-                        // Mantener código en input para seguir creando
-                        this.codeBar = scannedCode;
-                        if (this.productForm) {
-                          this.productForm.get('code')?.setValue(this.codeBar);
-                          this.productForm
-                            .get('code')
-                            ?.updateValueAndValidity();
-                        }
-                        this.highlightCodeInput = true;
-                        setTimeout(() => this.barcodeInput?.setFocus(), 250);
+                if (this.ingredientMode) {
+                  console.log(
+                    '[DEBUG] create-product.openScanner: producto encontrado en ingredientMode'
+                  );
+                  const t = this.translate.instant.bind(this.translate);
+                  this.ionicUtilService.showAlert({
+                    header: t('CREATE_PRODUCT.PRODUCT_FOUND_HEADER'),
+                    message: t('CREATE_PRODUCT.PRODUCT_FOUND_MESSAGE', { name: product.name }),
+                    buttons: [
+                      {
+                        text: t('COMMON.CANCEL'),
+                        role: 'cancel',
+                        handler: () => {
+                          this.codeBar = scannedCode;
+                          if (this.productForm) {
+                            this.productForm.get('code')?.setValue(this.codeBar);
+                            this.productForm
+                              .get('code')
+                              ?.updateValueAndValidity();
+                          }
+                          this.highlightCodeInput = true;
+                          setTimeout(() => this.barcodeInput?.setFocus(), 250);
+                        },
                       },
-                    },
-                    {
-                      text: 'Usar',
-                      handler: () => {
-                        this.openAddProduct(product, true);
+                      {
+                        text: t('CREATE_PRODUCT.USE_PRODUCT'),
+                        handler: () => {
+                          this.openAddProduct(product, true);
+                        },
                       },
-                    },
-                  ],
-                };
-                this.ionicUtilService.showAlert(alertOptions);
-              } else {
+                    ],
+                  });
+                } else {
                 this.openAddProduct(product, true);
               }
             } else {
@@ -331,12 +328,12 @@ export class CreateProductPage implements OnInit {
           },
           error: (_) => {
             this.ionicUtilService.hideLoading();
-            const alertOptions = {
-              header: 'Error',
-              message: 'No se pudo buscar el producto',
-              buttons: ['OK'],
-            };
-            this.ionicUtilService.showAlert(alertOptions);
+            const t = this.translate.instant.bind(this.translate);
+            this.ionicUtilService.showAlert({
+              header: t('COMMON.ERROR'),
+              message: t('CREATE_PRODUCT.SEARCH_ERROR'),
+              buttons: [t('COMMON.OK')],
+            });
           },
           complete: () => {
             this.productByCodeSub = undefined;

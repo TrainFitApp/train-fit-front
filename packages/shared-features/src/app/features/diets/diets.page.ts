@@ -7,6 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { AlertOptions, ToastOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -63,7 +64,8 @@ export class DietsPage implements OnInit {
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
     private navigationService: NavigationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translate: TranslateService
   ) {
     this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
 
@@ -143,17 +145,17 @@ export class DietsPage implements OnInit {
   }
 
   public showCloseAlert(): void {
+    const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
-      header: 'Borrar nota',
-      message:
-        '¿Estás seguro de que quieres eliminar esta nota? Esta acción no se puede deshacer.',
+      header: t('DIETS.DELETE_NOTE_HEADER'),
+      message: t('DIETS.DELETE_NOTE_MESSAGE'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'BORRAR',
+          text: t('DIETS.DELETE_NOTE_CONFIRM'),
           role: 'destructive',
           handler: () => {
             delete this.meal.notes;
@@ -184,11 +186,9 @@ export class DietsPage implements OnInit {
         this.dietDay = resDietDay;
         this.dietDayService.setCurrentDietDay = this.dietDay;
         this.isPasting = false;
-        const message = 'Día pegado con éxito';
-        const duration = 1000;
         const toastOptions: ToastOptions = {
-          message: message,
-          duration: duration,
+          message: this.translate.instant('DIETS.DAY_PASTED_SUCCESS'),
+          duration: 1000,
         };
         this.ionicUtilService.showToast(toastOptions);
       });

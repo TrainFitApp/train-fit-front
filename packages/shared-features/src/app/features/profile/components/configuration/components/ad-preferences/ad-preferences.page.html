@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="modalController.dismiss()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="modalController.dismiss()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Anuncios</h1>
+        <h1 class="tf-page-header__title">{{ 'AD_PREFERENCES.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -23,10 +23,9 @@
           <div class="intro-icon">
             <ion-icon name="sparkles-outline"></ion-icon>
           </div>
-          <h2>Preferencias de anuncios</h2>
+          <h2>{{ 'AD_PREFERENCES.HEADER' | translate }}</h2>
           <p>
-            Para mantener TrainFit gratuita usamos AdMob. Puedes elegir si
-            prefieres anuncios personalizados o no personalizados.
+            {{ 'AD_PREFERENCES.DESCRIPTION' | translate }}
           </p>
         </div>
 
@@ -34,15 +33,15 @@
           <div class="info-item">
             <ion-icon name="person-circle-outline"></ion-icon>
             <div>
-              <strong>Anuncios personalizados</strong>
-              <span>Basados en tu actividad e intereses.</span>
+              <strong>{{ 'AD_PREFERENCES.PERSONALIZED' | translate }}</strong>
+              <span>{{ 'AD_PREFERENCES.PERSONALIZED_DESC' | translate }}</span>
             </div>
           </div>
           <div class="info-item">
             <ion-icon name="shield-checkmark-outline"></ion-icon>
             <div>
-              <strong>Anuncios no personalizados</strong>
-              <span>No usan tu actividad, serán menos relevantes.</span>
+              <strong>{{ 'AD_PREFERENCES.NON_PERSONALIZED' | translate }}</strong>
+              <span>{{ 'AD_PREFERENCES.NON_PERSONALIZED_DESC' | translate }}</span>
             </div>
           </div>
         </div>
@@ -61,8 +60,8 @@
           >
             <ion-radio slot="start" [value]="true"></ion-radio>
             <ion-label>
-              <h3>Anuncios personalizados</h3>
-              <p>Recomendaciones más adaptadas a ti</p>
+              <h3>{{ 'AD_PREFERENCES.PERSONALIZED_OPTION' | translate }}</h3>
+              <p>{{ 'AD_PREFERENCES.PERSONALIZED_OPTION_DESC' | translate }}</p>
             </ion-label>
           </ion-item>
 
@@ -75,8 +74,8 @@
           >
             <ion-radio slot="start" [value]="false"></ion-radio>
             <ion-label>
-              <h3>Anuncios no personalizados</h3>
-              <p>Menor personalización, misma funcionalidad</p>
+              <h3>{{ 'AD_PREFERENCES.NON_PERSONALIZED_OPTION' | translate }}</h3>
+              <p>{{ 'AD_PREFERENCES.NON_PERSONALIZED_OPTION_DESC' | translate }}</p>
             </ion-label>
           </ion-item>
         </ion-radio-group>
@@ -87,6 +86,6 @@
 
 <ion-footer class="ad-footer">
   <ion-button expand="block" (click)="dismiss()">
-    <strong>Guardar preferencia</strong>
+    <strong>{{ 'AD_PREFERENCES.SAVE' | translate }}</strong>
   </ion-button>
 </ion-footer>

@@ -2,7 +2,6 @@
   class="note-wrapper"
   #noteRef
   [ngClass]="{ 'previous-session': isPrevious, disabled: isLoading }"
-  [attr.aria-disabled]="isLoading ? 'true' : null"
   (click)="showManageNotesAlert($event)"
 >
   <div class="note-card">

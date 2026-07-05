@@ -19,6 +19,7 @@ import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-notes',
@@ -56,7 +57,8 @@ export class NotesComponent implements OnInit, OnChanges {
     private customExerciseService: CustomExerciseService,
     private dietDayService: DietDayService,
     private ionicUtilService: IonicUtilService,
-    private tableService: TableService
+    private tableService: TableService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -75,22 +77,22 @@ export class NotesComponent implements OnInit, OnChanges {
     const currentNotes = this.object ? this.object.notes : this.notes;
 
     const alertOptions: AlertOptions = {
-      header: 'Notas',
+      header: this.translate.instant('NOTES.TITLE'),
       inputs: [
         {
           name: 'notes',
           type: 'textarea',
-          placeholder: 'Escribe tus notas aquí...',
+          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
           value: currentNotes || '',
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           cssClass: 'alert-button-success',
           handler: (data) => {
             return true;
@@ -167,15 +169,15 @@ export class NotesComponent implements OnInit, OnChanges {
     event.stopPropagation();
     if (this.isLoading) return;
     const alertOptions: AlertOptions = {
-      header: 'Eliminar nota',
-      message: '¿Estás seguro de que quieres eliminar esta nota?',
+      header: this.translate.instant('NOTES.DELETE_TITLE'),
+      message: this.translate.instant('NOTES.DELETE_CONFIRM'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('NOTES.DELETE'),
           role: 'destructive',
           handler: () => {
             const previousNotes = this.object?.notes;
@@ -273,26 +275,26 @@ export class NotesComponent implements OnInit, OnChanges {
 
     if (this.object) {
       if ((this.object as Workout).exercises) {
-        if (!this.type) this.noteType = 'Nota del entrenamiento';
+        if (!this.type) this.noteType = this.translate.instant('NOTES.WORKOUT_NOTE');
         this.updateService$ = this.workoutService.modifyWorkout(
           this.object as Workout
         );
       } else if ((this.object as CustomExercise).sets) {
-        if (!this.type) this.noteType = 'Nota del ejercicio';
+        if (!this.type) this.noteType = this.translate.instant('NOTES.EXERCISE_NOTE');
         this.updateService$ = this.customExerciseService.updateCustomExercise(
           this.object as CustomExercise
         );
       } else if ((this.object as DietDay).meals) {
-        if (!this.type) this.noteType = 'Notas del día';
+        if (!this.type) this.noteType = this.translate.instant('NOTES.DAY_NOTES');
         this.updateService$ = this.dietDayService.updateDietDay(
           this.object as DietDay
         );
       } else {
-        if (!this.type) this.noteType = 'Notas de la comida';
+        if (!this.type) this.noteType = this.translate.instant('NOTES.MEAL_NOTES');
         this.updateService$ = this.mealService.modifyMeal(this.object as Meal);
       }
     } else if (!this.type) {
-      this.noteType = 'Notas';
+      this.noteType = this.translate.instant('NOTES.TITLE');
     }
   }
 

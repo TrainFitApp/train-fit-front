@@ -15,7 +15,7 @@
     <div class="tip-carousel">
       <div class="tip-track" [class.fade-out]="animating">
         <ion-icon [name]="tips[currentTip].icon" class="tip-icon"></ion-icon>
-        <div class="tip-text">{{ tips[currentTip].text }}</div>
+        <div class="tip-text">{{ currentTipText }}</div>
       </div>
     </div>
   </div>

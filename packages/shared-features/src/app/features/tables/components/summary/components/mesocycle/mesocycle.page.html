@@ -46,10 +46,9 @@
                 class="info-icon"
               ></ion-icon>
               <div class="info-text">
-                <span class="info-title">Modo copia activado</span>
+                <span class="info-title">{{ 'TABLES.COPY_MODE' | translate }}</span>
                 <p>
-                  Ahora puedes navegar entre micro-ciclos y pegar este
-                  entrenamiento para otro día
+                  {{ 'TABLES.COPY_MODE_DESC' | translate }}
                   <ion-label color="tertiary"
                     ><strong>{{ workout.name }}</strong></ion-label
                   >.
@@ -104,11 +103,9 @@
             <ion-grid slot="header" class="skeleton-workout-header">
               <ion-row>
                 <ion-col class="ion-no-padding" size="9.6">
-                  <!-- Primera fila: Botón menú + Texto "Hoy" + Nombre workout + Chevron -->
                   <ion-row>
                     <ion-col class="skeleton-meal-name">
                       <div class="skeleton-header-row">
-                        <!-- Nombre del workout - font-size: x-large equivale a ~24px -->
                         <ion-skeleton-text
                           animated
                           style="
@@ -122,11 +119,9 @@
                     </ion-col>
                   </ion-row>
 
-                  <!-- Segunda fila: Información de ejercicios y series -->
                   <ion-row>
                     <ion-col>
                       <div class="skeleton-exercise-info">
-                        <!-- Texto cantidad de ejercicios - font-size: default (~16px) -->
                         <ion-skeleton-text
                           animated
                           style="
@@ -136,7 +131,6 @@
                             margin-right: 12px;
                           "
                         ></ion-skeleton-text>
-                        <!-- Texto series totales - font-size: small (~14px) -->
                         <ion-skeleton-text
                           animated
                           style="width: 70px; height: 14px; border-radius: 4px"
@@ -145,7 +139,6 @@
                     </ion-col>
                   </ion-row>
 
-                  <!-- Tercera fila: Fecha del workout - font-size: x-small (~10px) -->
                   <ion-row>
                     <ion-col>
                       <ion-skeleton-text
@@ -161,15 +154,12 @@
                   </ion-row>
                 </ion-col>
 
-                <!-- Columna de botones de acción -->
                 <ion-col class="ion-no-padding" size="2.4">
                   <div class="skeleton-action-buttons">
-                    <!-- Botón play/stop - font-size: xx-large equivale a ~32px -->
                     <ion-skeleton-text
                       animated
                       style="width: 52px; height: 52px; border-radius: 14px"
                     ></ion-skeleton-text>
-                    <!-- Botón clipboard - font-size: xx-large equivale a ~32px -->
                     <ion-skeleton-text
                       animated
                       style="width: 52px; height: 52px; border-radius: 14px"
@@ -179,28 +169,22 @@
               </ion-row>
             </ion-grid>
 
-            <!-- Contenido del acordeón: ejercicios detallados -->
             <div slot="content" class="skeleton-workout-content">
               <div class="skeleton-exercise" *ngFor="let exercise of [1,2,3]">
-                <!-- Header del ejercicio -->
                 <div class="skeleton-exercise-header">
                   <div class="skeleton-exercise-title">
-                    <!-- Nombre del ejercicio - Tamaño más realista -->
                     <ion-skeleton-text
                       animated
                       style="width: 45%; height: 18px; border-radius: 14px"
                     ></ion-skeleton-text>
                   </div>
-                  <!-- Botón de menú del ejercicio - Tamaño real del ion-button -->
                   <ion-skeleton-text
                     animated
                     style="width: 32px; height: 32px; border-radius: 16px"
                   ></ion-skeleton-text>
                 </div>
 
-                <!-- Información del ejercicio -->
                 <div class="skeleton-exercise-info-detail">
-                  <!-- Músculos trabajados - Tamaño más realista -->
                   <ion-skeleton-text
                     animated
                     style="
@@ -210,7 +194,6 @@
                       margin-top: 14px;
                     "
                   ></ion-skeleton-text>
-                  <!-- Tipo de ejercicio - Tamaño más realista -->
                   <ion-skeleton-text
                     animated
                     style="
@@ -222,31 +205,25 @@
                   ></ion-skeleton-text>
                 </div>
 
-                <!-- Series del ejercicio -->
                 <div class="skeleton-sets-container">
                   <div class="skeleton-set" *ngFor="let set of [1,2,3]">
                     <div class="skeleton-set-row">
-                      <!-- Número de serie - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 24px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Peso - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 45px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Repeticiones - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 35px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- RIR - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 30px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Botón check - Tamaño real del ion-button -->
                       <ion-skeleton-text
                         animated
                         style="width: 24px; height: 24px; border-radius: 12px"
@@ -266,7 +243,7 @@
         shape="round"
         class="ion-margin t-add-workout"
         (click)="addWorkout()"
-        ><strong>CREAR ENTRENAMIENTO</strong>
+        ><strong>{{ 'TABLES.CREATE_WORKOUT' | translate }}</strong>
       </ion-button>
 
       <section class="workout-template-panel" *ngIf="shouldShowWorkoutTemplates">
@@ -274,8 +251,8 @@
           <ion-accordion value="templates">
             <div slot="header" class="workout-template-trigger">
               <div class="workout-template-trigger__text">
-                <h2>Plantillas rápidas</h2>
-                <p>Crear entrenamientos base para esta rutina</p>
+                <h2>{{ 'TABLES.QUICK_TEMPLATES' | translate }}</h2>
+                <p>{{ 'TABLES.QUICK_TEMPLATES_DESC' | translate }}</p>
               </div>
               <ion-icon
                 class="workout-template-trigger__icon"
@@ -337,10 +314,9 @@
         <div class="microcycle-lock-icon">
           <ion-icon name="lock-closed-outline"></ion-icon>
         </div>
-        <h2>Micro-ciclo bloqueado</h2>
+        <h2>{{ 'TABLES.MICROCYCLE_LOCKED' | translate }}</h2>
         <p>
-          Has superado los {{ microcyclesPerRoutineLimit }} micro-ciclos
-          incluidos en el modo Free. Activa Pro para seguir esta rutina.
+          {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit: microcyclesPerRoutineLimit } }}
         </p>
         <ion-button
           expand="block"
@@ -348,7 +324,7 @@
           class="microcycle-lock-cta"
           (click)="openPremiumFromLockedSplit($event)"
         >
-          Hazte Pro
+          {{ 'TABLES.GO_PRO' | translate }}
         </ion-button>
       </div>
     </div>
@@ -375,7 +351,7 @@
     class="ion-margin t-add-micro"
     [disabled]="loadingFab"
     (click)="addFirstSplitToTable()"
-    ><strong>AÑADIR MICRO-CICLO</strong></ion-button
+    ><strong>{{ 'TABLES.ADD_MICROCYCLE' | translate }}</strong></ion-button
   >
   <ion-progress-bar
     *ngIf="loadingFab"
@@ -406,23 +382,23 @@
                 interface="action-sheet"
                 [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="MICRO-CICLO"
+                cancelText="{{ 'COMMON.CANCEL' | translate }}"
+                placeholder="{{ 'TABLES.MICROCYCLE_SELECTOR' | translate }}"
               >
                 <ion-select-option
                   *ngFor="let splitItem of reversedSplitsWithIndex"
                   [value]="splitItem.originalIndex"
                   [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
                 >
-                  MICRO-CICLO {{ splitItem.originalIndex + 1 }}
-                  {{ isSplitLocked(splitItem.originalIndex) ? '- PRO' : '' }}
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{ splitItem.originalIndex + 1 }}
+                  {{ isSplitLocked(splitItem.originalIndex) ? ('TABLES.PRO_BADGE' | translate) : '' }}
                   <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
                 </ion-select-option>
               </ion-select>
               <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
             </div>
             <div class="cycle-subtitle">
-              de {{ tableInUse?.splits?.length || 0 }} en total
+              {{ 'TABLES.OF_TOTAL' | translate:{ total: tableInUse?.splits?.length || 0 } }}
             </div>
           </div>
         </div>

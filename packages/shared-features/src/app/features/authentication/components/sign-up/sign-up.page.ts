@@ -55,6 +55,7 @@ import { PasswordComplexity } from 'src/app/core/validators/password-complexity'
 import Swiper from 'swiper';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { EmailExistValidator } from 'src/app/core/validators/email-exist';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sign-up',
@@ -151,7 +152,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private signUpStateService: SignUpStateService,
-    private pendingEmailVerificationService: PendingEmailVerificationService
+    private pendingEmailVerificationService: PendingEmailVerificationService,
+    private translate: TranslateService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
@@ -506,8 +508,8 @@ export class SignUpPage implements OnInit, OnDestroy {
         error: (err) => {
           this.isProcessing = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'Error al completar el registro',
-            'Error',
+            err?.error?.message || this.translate.instant('SIGN_UP.REGISTER_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },
@@ -542,7 +544,7 @@ export class SignUpPage implements OnInit, OnDestroy {
                     this.isProcessing = false;
                     this.ionicUtilService.showErrorToast(
                       err,
-                      'Error al guardar la sesión',
+                      this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                       3000
                     );
                   },
@@ -555,8 +557,8 @@ export class SignUpPage implements OnInit, OnDestroy {
             error: (err) => {
               this.isProcessing = false;
               this.ionicUtilService.showErrorToast(
-                err?.error?.message || 'Error al completar el registro social',
-                'Error',
+                err?.error?.message || this.translate.instant('SIGN_UP.SOCIAL_REGISTER_ERROR'),
+                this.translate.instant('COMMON.ERROR'),
                 3000
               );
             },
@@ -569,7 +571,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     const code = this.codeInput.nativeElement.value.toString().trim();
     if (!code) {
       this.ionicUtilService.showToast({
-        message: 'Introduce el código',
+        message: this.translate.instant('SIGN_UP.ENTER_CODE'),
         duration: 3000,
       });
       return;
@@ -578,7 +580,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     if (!this.user?.email) {
       this.pendingEmailVerificationService.clear();
       this.ionicUtilService.showToast({
-        message: 'No se pudo recuperar el correo de verificaciÃ³n',
+        message: this.translate.instant('SIGN_UP.RECOVER_EMAIL_ERROR'),
         duration: 3000,
       });
       this.navigationService.goToLoginPage();
@@ -590,7 +592,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.userService.activateAccount(this.user.email, code).subscribe({
       next: (response: any) => {
         this.ionicUtilService.showToast({
-          message: 'Cuenta activada correctamente',
+          message: this.translate.instant('SIGN_UP.ACCOUNT_ACTIVATED'),
           duration: 3000,
         });
 
@@ -600,7 +602,7 @@ export class SignUpPage implements OnInit, OnDestroy {
             error: (err) => {
               this.ionicUtilService.showErrorToast(
                 err,
-                'Error al guardar la sesión',
+                this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                 3000
               );
             },
@@ -613,7 +615,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'Código incorrecto',
+          message: err?.error?.message || this.translate.instant('SIGN_UP.INCORRECT_CODE'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -630,14 +632,14 @@ export class SignUpPage implements OnInit, OnDestroy {
         this.pendingEmailVerificationService.markCodeSent(this.user.email);
         this.startResendCooldown();
         this.ionicUtilService.showToast({
-          message: 'Código reenviado',
+          message: this.translate.instant('SIGN_UP.CODE_RESENT'),
           duration: 3000,
         });
         this.isProcessing = false;
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: 'Error al reenviar código',
+          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -684,7 +686,7 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public mailToast(): void {
     const toast: ToastOptions = {
-      message: 'Código enviado a tu correo',
+      message: this.translate.instant('SIGN_UP.CODE_SENT_TO_EMAIL'),
       duration: 7000,
     };
     this.ionicUtilService.showToast(toast);
@@ -849,9 +851,9 @@ export class SignUpPage implements OnInit, OnDestroy {
       objetive: finalKcal,
     };
 
-    if (this.user.objetive > 0) this.objetiveMessage = 'Superávit calórico';
-    else if (this.user.objetive < 0) this.objetiveMessage = 'Déficit calórico';
-    else this.objetiveMessage = 'Mantenimiento';
+    if (this.user.objetive > 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_SURPLUS');
+    else if (this.user.objetive < 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_DEFICIT');
+    else this.objetiveMessage = this.translate.instant('SIGN_UP.MAINTENANCE');
 
     this.years = this.dateValue;
     this.kcalTotal = this.userService.calculateKcal(this.user);
@@ -902,15 +904,15 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   private showExitConfirm(): void {
     const alertOptions = {
-      header: 'Volver atrás',
-      message: 'Perderá todo el progreso',
+      header: this.translate.instant('COMMON.BACK'),
+      message: this.translate.instant('COMMON.LOSE_PROGRESS'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM').toUpperCase(),
           cssClass: 'alert-button-primary',
           handler: () => {
             this.pendingEmailVerificationService.clear();

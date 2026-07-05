@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { ModalController, ModalOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { DayWeightService } from 'src/app/core/services/util/day-weight.service';
@@ -28,29 +29,12 @@ export class WeightInfoPage {
   public currentWeight: number | undefined;
   public currentNotes: string | undefined;
   public dietDay: DietDay | undefined;
-  public days = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-    'Domingo',
-  ];
-  public months = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ];
+  public get days(): string[] {
+    return this.translate.instant('WEIGHT_INFO.DAYS');
+  }
+  public get months(): string[] {
+    return this.translate.instant('WEIGHT_INFO.MONTHS');
+  }
 
   public load = true;
 
@@ -75,6 +59,8 @@ export class WeightInfoPage {
   public WEEK_DAYS: typeof WEEK_DAYS;
   public CHART_RANGES = CHART_RANGES;
   public chartRange: string;
+
+  private translate = inject(TranslateService);
 
   constructor(
     private utilService: UtilService,
@@ -306,19 +292,19 @@ export class WeightInfoPage {
       case CHART_RANGES.week:
         this.pointRadius = POINT_RADIUS.week;
         this.indexCurrentDate = parsed.getDay() - 1;
-        this.label = 'Peso semanal';
+        this.label = this.translate.instant('WEIGHT_INFO.WEEKLY');
         this.getWeekRange();
         break;
       case CHART_RANGES.month:
         this.pointRadius = POINT_RADIUS.month;
         this.indexCurrentDate = parsed.getDate() - 1;
-        this.label = 'Peso mensual';
+        this.label = this.translate.instant('WEIGHT_INFO.MONTHLY');
         this.setMonthRange();
         break;
       default:
         this.pointRadius = POINT_RADIUS.year;
         this.indexCurrentDate = parsed.getMonth();
-        this.label = 'Peso anual';
+        this.label = this.translate.instant('WEIGHT_INFO.YEARLY');
         this.setYearRange();
         break;
     }
@@ -354,20 +340,7 @@ export class WeightInfoPage {
     this.dateMin = `${year}-01-01`;
     this.dateMax = `${year}-12-31`;
     this.dateRange = new DateRange(this.dateMin, this.dateMax);
-    this.labels = [
-      'Ene',
-      'Feb',
-      'Mar',
-      'Abr',
-      'May',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dic',
-    ];
+    this.labels = this.translate.instant('WEIGHT_INFO.MONTHS_SHORT');
   }
 
   private getDietDaysWeights(dietDays: DietDay[]) {

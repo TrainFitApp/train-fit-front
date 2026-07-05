@@ -1,4 +1,5 @@
 import { Injectable, QueryList } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, ValidationErrors } from '@angular/forms';
 import { Chart, ChartData, ChartOptions, ChartType } from 'chart.js';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -128,7 +129,10 @@ export class UtilService {
     this._scrollToExercise$.next(data);
   }
 
-  constructor(private ionicUtilService: IonicUtilService) {}
+  constructor(
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
+  ) {}
 
   public getFirstWeekDay(dateObject: Date, dayIndex: number) {
     const dayOfWeek = dateObject.getDay(),
@@ -412,28 +416,28 @@ export class UtilService {
       | TableService
   ): Promise<boolean> {
     const alertOptions = {
-      header: 'Notas',
+      header: this.translate.instant('COMMON.NOTES'),
       inputs: [
         {
           name: 'notes',
           type: 'textarea' as 'textarea',
-          placeholder: 'Escribe tus notas aquí...',
+          placeholder: this.translate.instant('COMMON.WRITE_NOTES_HERE'),
           value: object['notes'] || '',
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             if (!data.notes || data.notes.trim() === '') {
               const errorAlert = {
-                header: 'Error',
-                message: 'El campo no puede estar vacío',
-                buttons: ['OK'],
+                header: this.translate.instant('COMMON.ERROR'),
+                message: this.translate.instant('COMMON.FIELD_REQUIRED'),
+                buttons: [this.translate.instant('COMMON.OK')],
               };
               this.ionicUtilService.showAlert(errorAlert);
               return false;

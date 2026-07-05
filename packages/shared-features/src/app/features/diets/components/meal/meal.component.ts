@@ -22,6 +22,7 @@ import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { CustomRecipeApiService } from 'src/app/core/services/custom-recipe/custom-recipe-api.service';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
@@ -77,7 +78,8 @@ export class MealComponent implements OnInit, OnChanges {
     private customProductService: CustomProductService,
     private customRecipeService: CustomRecipeApiService,
     private recipeService: RecipeService,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -138,18 +140,18 @@ export class MealComponent implements OnInit, OnChanges {
 
   public deleteRecipe(meal: Meal, instance: CustomRecipe): void {
     const recipeName =
-      typeof instance.recipe === 'object' ? instance.recipe.name : 'esta receta';
+      typeof instance.recipe === 'object' ? instance.recipe.name : this.translate.instant('COMMON.THIS');
 
     const alertOptions: AlertOptions = {
-      header: 'Eliminar receta',
-      message: `¿Estás seguro de que quieres eliminar ${recipeName}?`,
+      header: this.translate.instant('MEAL.DELETE_RECIPE_HEADER'),
+      message: this.translate.instant('MEAL.DELETE_RECIPE_CONFIRM', { name: recipeName }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('COMMON.DELETE').toUpperCase(),
           role: 'destructive',
           handler: () => {
             const indexMeal = this.dietDay.meals.findIndex(
@@ -181,16 +183,17 @@ export class MealComponent implements OnInit, OnChanges {
 
   public deleteProduct(meal: Meal, product: CustomProduct): void {
     const productTemp = product.product;
+    const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
-      header: 'Eliminar producto',
-      message: `¿Estás seguro de que quieres eliminar ${productTemp.name}?`,
+      header: t('MEAL.DELETE_PRODUCT_HEADER'),
+      message: t('MEAL.DELETE_PRODUCT_CONFIRM', { name: productTemp.name }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: t('COMMON.DELETE').toUpperCase(),
           role: 'destructive',
           handler: () => {
             const indexMeal = this.dietDay.meals.findIndex(
@@ -240,13 +243,14 @@ export class MealComponent implements OnInit, OnChanges {
       (this.meal.customRecipes?.length ?? 0) !== 0;
 
     if (canMerge) {
+      const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
         cssClass: 'alert-grid-buttons',
-        header: 'Pegar',
-        message: '¿Desea fusionar ambas comidas?',
+        header: t('MEAL.PASTE_HEADER'),
+        message: t('MEAL.PASTE_MERGE_MESSAGE'),
         buttons: [
           {
-            text: 'CANCELAR',
+            text: t('COMMON.CANCEL').toUpperCase(),
             role: 'cancel',
             handler: () => {
               this.pasteMode = false;
@@ -257,13 +261,13 @@ export class MealComponent implements OnInit, OnChanges {
             },
           },
           {
-            text: 'REEMPLAZAR',
+            text: t('MEAL.PASTE_REPLACE'),
             handler: () => {
               this.handleMealPaste(false);
             },
           },
           {
-            text: 'FUSIONAR',
+            text: t('MEAL.PASTE_MERGE'),
             handler: () => {
               this.handleMealPaste(true);
             },
@@ -301,11 +305,10 @@ export class MealComponent implements OnInit, OnChanges {
 
       this.loadPaste = false;
 
-      const toast: ToastOptions = {
-        message: 'Productos copiados',
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
         duration: 2000,
-      };
-      this.ionicUtilService.showToast(toast);
+      });
     });
   }
 
@@ -322,9 +325,10 @@ export class MealComponent implements OnInit, OnChanges {
   public getRecipeName(instance: CustomRecipe): string {
     const recipe =
       typeof instance.recipe === 'object' ? instance.recipe : null;
-    if (!recipe) return 'Receta sin nombre';
+    const noName = this.translate.instant('MEAL.RECIPE_NO_NAME');
+    if (!recipe) return noName;
 
-    return recipe.name || 'Receta sin nombre';
+    return recipe.name || noName;
   }
 
   public getRecipeConsumedQuantity(instance: CustomRecipe): number {
@@ -362,53 +366,48 @@ export class MealComponent implements OnInit, OnChanges {
       const showPopover = this.ionicUtilService.showPopover(popover);
       showPopover.then((res) => this.handleActions(res.data));
     } else {
-      const toastOptions: ToastOptions = {
-        message: 'No hay acciones disponibles',
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('COMMON.NO_ACTIONS'),
         duration: 500,
-      };
-      this.ionicUtilService.showToast(toastOptions);
+      });
     }
   }
 
   private openEditNameAlert(): void {
+    const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
-      header: 'Editar nombre',
-      message: 'Meal',
+      header: t('MEAL.EDIT_NAME_HEADER'),
       inputs: [
         {
           name: 'name',
           type: 'text',
           value: this.meal.name,
-          placeholder: 'Nombre de la comida',
+          placeholder: t('MEAL.NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'GUARDAR',
+          text: t('COMMON.SAVE').toUpperCase(),
           cssClass: 'alert-button-success',
           handler: (data) => {
             if (data.name && data.name.trim() !== '') {
               this.meal.name = data.name;
               this.mealService.modifyMeal(this.meal).subscribe(() => {
-                const message = `Nombre de meal actualizado`;
-                const duration = 500;
-                const toastOptions: ToastOptions = {
-                  message,
-                  duration,
-                };
-                this.ionicUtilService.showToast(toastOptions);
+                this.ionicUtilService.showToast({
+                  message: t('MEAL.NAME_UPDATED'),
+                  duration: 500,
+                });
               });
               return true;
             } else {
-              const toastOptions: ToastOptions = {
-                message: 'El campo no puede estar vacío',
+              this.ionicUtilService.showToast({
+                message: t('COMMON.FIELD_REQUIRED'),
                 duration: 2000,
-              };
-              this.ionicUtilService.showToast(toastOptions);
+              });
               return false;
             }
           },
@@ -545,16 +544,17 @@ export class MealComponent implements OnInit, OnChanges {
 
   private emptyMeal(): void {
     if (this.meal) {
+      const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
-        header: 'Vaciar comida',
-        message: `¿Estás seguro de que quieres vaciar ${this.meal.name}?`,
+        header: t('MEAL.EMPTY_MEAL_HEADER'),
+        message: t('MEAL.EMPTY_MEAL_CONFIRM', { name: this.meal.name }),
         buttons: [
           {
-            text: 'CANCELAR',
+            text: t('COMMON.CANCEL').toUpperCase(),
             role: 'cancel',
           },
           {
-            text: 'VACIAR',
+            text: t('MEAL.DELETE_EMPTY'),
             role: 'destructive',
             handler: () => {
               const observables = [
@@ -568,11 +568,10 @@ export class MealComponent implements OnInit, OnChanges {
                 this.dietDayService.setCurrentDietDay = this.dietDay;
                 this.utilService.setUnselected = true;
 
-                const showToast: ToastOptions = {
-                  message: `${this.meal.name} vaciada`,
+                this.ionicUtilService.showToast({
+                  message: t('MEAL.EMPTY_MEAL_SUCCESS', { name: this.meal.name }),
                   duration: 1000,
-                };
-                this.ionicUtilService.showToast(showToast);
+                });
               });
             },
           },

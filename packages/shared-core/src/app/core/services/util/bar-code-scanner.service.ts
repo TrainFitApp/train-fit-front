@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerAndroidScanningLibrary,
@@ -14,16 +15,18 @@ import { IonicUtilService } from './ionic-util.service';
 export class BarCodeScannerService {
   private flashEnabled = false;
 
-  constructor(private ionicUtilService: IonicUtilService) { }
+  constructor(
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
+  ) { }
 
   public async startScanner(): Promise<string | undefined> {
     try {
       if (!Capacitor.isNativePlatform() && !this.isSecureOrigin()) {
         await this.ionicUtilService.showAlert({
-          header: 'Cámara bloqueada',
-          message:
-            'Para usar el escáner en navegador, abre la app en https o localhost. En móvil conectando por IP (http) el navegador bloquea la cámara.',
-          buttons: ['OK'],
+          header: this.translate.instant('BARCODE.CAMERA_BLOCKED'),
+          message: this.translate.instant('BARCODE.CAMERA_BLOCKED_MSG'),
+          buttons: [this.translate.instant('COMMON.OK')],
         });
       }
 
@@ -50,11 +53,11 @@ export class BarCodeScannerService {
       }
       // Sin resultados (no cancel): mostrar aviso con alerta de Ionic
       const alertOptions: AlertOptions = {
-        header: 'Error',
-        message: 'Datos no encontrados',
+        header: this.translate.instant('COMMON.ERROR'),
+        message: this.translate.instant('BARCODE.NO_DATA'),
         buttons: [
           {
-            text: 'ACEPTAR',
+            text: this.translate.instant('ACTIONS.ACCEPT'),
             cssClass: 'primary',
           },
         ],
@@ -63,16 +66,15 @@ export class BarCodeScannerService {
       return undefined;
     } catch (error: any) {
       const msg = (error && error.message) || '';
-      // Si el error parece ser por cancelación del usuario, no mostrar mensaje
       if (/cancel/i.test(msg)) {
         return undefined;
       }
       const alertOptions: AlertOptions = {
-        header: 'Error',
-        message: msg || 'Acceso a cámara no permitido o error de escaneo',
+        header: this.translate.instant('COMMON.ERROR'),
+        message: msg || this.translate.instant('BARCODE.CAMERA_ERROR'),
         buttons: [
           {
-            text: 'ACEPTAR',
+            text: this.translate.instant('ACTIONS.ACCEPT'),
             cssClass: 'primary',
           },
         ],
@@ -87,11 +89,11 @@ export class BarCodeScannerService {
     // Notificamos al usuario y mantenemos el estado local para el icono.
     this.flashEnabled = enabled;
     const alertOptions: AlertOptions = {
-      header: 'Información',
-      message: 'Control de flash no disponible con este escáner',
+      header: this.translate.instant('COMMON.INFORMATION'),
+      message: this.translate.instant('BARCODE.FLASH_UNAVAILABLE'),
       buttons: [
         {
-          text: 'ACEPTAR',
+          text: this.translate.instant('ACTIONS.ACCEPT'),
           cssClass: 'primary',
         },
       ],
@@ -107,11 +109,11 @@ export class BarCodeScannerService {
     try {
       console.log('Función de galería no implementada en este plugin');
       const alertOptions: AlertOptions = {
-        header: 'Información',
-        message: 'Función de galería no disponible',
+        header: this.translate.instant('COMMON.INFORMATION'),
+        message: this.translate.instant('BARCODE.GALLERY_UNAVAILABLE'),
         buttons: [
           {
-            text: 'ACEPTAR',
+            text: this.translate.instant('ACTIONS.ACCEPT'),
             cssClass: 'primary',
           },
         ],
@@ -121,11 +123,11 @@ export class BarCodeScannerService {
     } catch (error) {
       console.error('Error al acceder a la galería:', error);
       const alertOptions: AlertOptions = {
-        header: 'Error',
-        message: 'Error al acceder a la galería',
+        header: this.translate.instant('COMMON.ERROR'),
+        message: this.translate.instant('BARCODE.GALLERY_ERROR'),
         buttons: [
           {
-            text: 'ACEPTAR',
+            text: this.translate.instant('ACTIONS.ACCEPT'),
             cssClass: 'primary',
           },
         ],

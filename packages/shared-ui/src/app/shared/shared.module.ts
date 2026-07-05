@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { CursorEndDirective } from 'src/app/core/directives/cursor-end.directive';
 import { DecimalInputDirective } from 'src/app/core/directives/decimal-input.directive';
 import { HideKeyboardOnScrollDirective } from 'src/app/core/directives/hide-keyboard-on-scroll.directive';
@@ -46,13 +47,14 @@ import { SafePipe } from './pipes/safe.pipe';
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
   ],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
     AiLoadingOverlayComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    TranslateModule,
     PopoverActionsComponent,
     FilterInputPage,
     NotesComponent,

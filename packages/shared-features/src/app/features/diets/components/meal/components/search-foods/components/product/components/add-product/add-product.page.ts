@@ -19,6 +19,7 @@ import { DietDayService } from "src/app/core/services/diet-day/diet-day.service"
 import { ProductService } from "src/app/core/services/product/product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { TranslateService } from "@ngx-translate/core";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 
@@ -222,6 +223,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     private productService: ProductService,
     private activatedRoute: ActivatedRoute,
     private platform: Platform,
+    private translate: TranslateService,
   ) {
     // Effect para el usuario
     effect(() => {
@@ -375,7 +377,7 @@ export class AddProductPage implements OnInit, OnDestroy {
       return this.recipeName;
     }
 
-    return this.meal ? this.meal.name : "Tus productos";
+    return this.meal ? this.meal.name : this.translate.instant('ADD_PRODUCT.YOUR_PRODUCTS');
   }
 
   public ionViewWillEnter(): void {
@@ -397,15 +399,13 @@ export class AddProductPage implements OnInit, OnDestroy {
       this.navigationService.clearTempData("updatedProductForAddProduct");
 
       if (this.meal && this.customProduct) {
-        // CASO 1: El producto está en una meal → preguntar si actualizar los valores nutricionales
-        // del customProduct con los del nuevo producto base (encapsulamiento independiente)
+        const t = this.translate.instant.bind(this.translate);
         this.ionicUtilService.showAlert({
-          header: "Producto actualizado",
-          message:
-            "Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?",
+          header: t('ADD_PRODUCT.PRODUCT_UPDATED_HEADER'),
+          message: t('ADD_PRODUCT.PRODUCT_UPDATED_MESSAGE'),
           buttons: [
             {
-              text: "Mantener",
+              text: t('ADD_PRODUCT.KEEP'),
               role: "cancel",
               handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
@@ -432,7 +432,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: "Guardar",
+              text: t('COMMON.SAVE'),
               handler: () => {
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
                 this.product = updatedProductFromTemp;
@@ -467,22 +467,21 @@ export class AddProductPage implements OnInit, OnDestroy {
       }
     }
 
-    if (state && state.updatedProduct) {
-      console.log(
-        "[AddProduct] ionViewWillEnter: updatedProduct recibido:",
-        state.updatedProduct?.name,
-      );
-      if (this.meal && this.customProduct) {
-        // Si estamos editando un CustomProduct existente, preguntamos si queremos actualizar con los nuevos valores del producto base
-        this.ionicUtilService.showAlert({
-          header: "Producto actualizado",
-          message:
-            "Has modificado el producto base. ¿También deseas actualizar los valores nutricionales de esta entrada en tu comida?",
-          buttons: [
-            {
-              text: "Mantener",
-              role: "cancel",
-              handler: () => {
+      if (state && state.updatedProduct) {
+        console.log(
+          "[AddProduct] ionViewWillEnter: updatedProduct recibido:",
+          state.updatedProduct?.name,
+        );
+        if (this.meal && this.customProduct) {
+          const t = this.translate.instant.bind(this.translate);
+          this.ionicUtilService.showAlert({
+            header: t('ADD_PRODUCT.PRODUCT_UPDATED_HEADER'),
+            message: t('ADD_PRODUCT.PRODUCT_UPDATED_MESSAGE'),
+            buttons: [
+              {
+                text: t('ADD_PRODUCT.KEEP'),
+                role: "cancel",
+                handler: () => {
                 // Actualizar referencia del producto base pero mantener los valores nutricionales del customProduct
                 // con los valores anteriores (no sincroniza nutrición)
                 const oldProduct = this.product;
@@ -506,7 +505,7 @@ export class AddProductPage implements OnInit, OnDestroy {
               },
             },
             {
-              text: "Guardar",
+              text: t('COMMON.SAVE'),
               handler: () => {
                 this.product = state.updatedProduct;
                 // Actualizar producto base y sincronizar los valores nutricionales del customProduct
@@ -765,7 +764,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     if (this.addCustomProductForm.invalid) {
       this.ionicUtilService.showToast({
-        message: "Hay campos inválidos. No se han guardado esos cambios.",
+        message: this.translate.instant('ADD_PRODUCT.INVALID_FIELDS'),
         duration: 1400,
         color: "warning",
       });
@@ -920,7 +919,7 @@ export class AddProductPage implements OnInit, OnDestroy {
     } catch (error) {
       console.error("[AddProduct] Error al guardar cambios automáticos", error);
       this.ionicUtilService.showToast({
-        message: "No se pudieron guardar los cambios automáticamente.",
+        message: this.translate.instant('ADD_PRODUCT.AUTO_SAVE_ERROR'),
         duration: 1600,
         color: "danger",
       });
@@ -934,23 +933,24 @@ export class AddProductPage implements OnInit, OnDestroy {
   private async askForUnsavedChangesAction(): Promise<
     "cancel" | "save" | "discard"
   > {
+    const t = this.translate.instant.bind(this.translate);
     const alertResult = await this.ionicUtilService.showAlert({
       cssClass: "unsaved-exit-alert",
-      header: "Hay cambios sin guardar",
-      message: "¿Quieres guardar antes de salir?",
+      header: t('ADD_PRODUCT.UNSAVED_CHANGES_HEADER'),
+      message: t('ADD_PRODUCT.UNSAVED_CHANGES_MESSAGE'),
       buttons: [
         {
-          text: "Cancelar",
+          text: t('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "unsaved-neutral-btn unsaved-cancel-btn",
         },
         {
-          text: "Guardar",
+          text: t('COMMON.SAVE'),
           role: "save",
           cssClass: "unsaved-save-btn",
         },
         {
-          text: "Descartar",
+          text: t('ADD_PRODUCT.DISCARD'),
           role: "discard",
           cssClass: "unsaved-neutral-btn unsaved-discard-btn",
         },
@@ -1005,13 +1005,13 @@ export class AddProductPage implements OnInit, OnDestroy {
         if (isFavorite && archivedIndex === -1) {
           archivedProducts.push(this.product._id);
           this.ionicUtilService.showToast({
-            message: this.product.name + " archivado",
+            message: this.translate.instant('ADD_PRODUCT.PRODUCT_ARCHIVED', { name: this.product.name }),
             duration: 1000,
           });
         } else if (!isFavorite && archivedIndex > -1) {
           archivedProducts.splice(archivedIndex, 1);
           this.ionicUtilService.showToast({
-            message: this.product.name + " desarchivado",
+            message: this.translate.instant('ADD_PRODUCT.PRODUCT_UNARCHIVED', { name: this.product.name }),
             duration: 1000,
           });
         }
@@ -1063,12 +1063,10 @@ export class AddProductPage implements OnInit, OnDestroy {
     });
 
     if (closeAll) {
-      const toastOptions: ToastOptions = {
-        // B-02 FIX: usar optional chaining para evitar 'undefined' si this.meal es null
-        message: "Producto añadido a " + (this.meal?.name || "la comida"),
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('ADD_PRODUCT.PRODUCT_ADDED_TO_MEAL', { mealName: this.meal?.name || this.translate.instant('COMMON.THE_MEAL') }),
         duration: 1000,
-      };
-      this.ionicUtilService.showToast(toastOptions);
+      });
     }
 
     const result = params?.deleteOwnProduct
@@ -1177,16 +1175,18 @@ export class AddProductPage implements OnInit, OnDestroy {
 
   public changeAtributtes(name: PRODUCT_ATRR): void {
     if (!this.meal) {
+      const t = this.translate.instant.bind(this.translate);
+      const isName = name === PRODUCT_ATRR.name;
       const alertButtons: AlertButton[] = [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "CONFIRMAR",
+          text: t('COMMON.CONFIRM'),
           handler: (res) =>
             this.addCustomProductForm.controls[
-              name === PRODUCT_ATRR.name ? "name" : "brand"
+              isName ? "name" : "brand"
             ].setValue(res.attribute),
         },
       ];
@@ -1194,13 +1194,13 @@ export class AddProductPage implements OnInit, OnDestroy {
         {
           name: "attribute",
           type: "textarea",
-          value: this.product[name === PRODUCT_ATRR.name ? "name" : "brand"],
-          placeholder: `${name === PRODUCT_ATRR.name ? "Nombre" : "Marca"}`,
+          value: this.product[isName ? "name" : "brand"],
+          placeholder: isName ? t('ADD_PRODUCT.NAME_PLACEHOLDER') : t('ADD_PRODUCT.BRAND_PLACEHOLDER'),
         },
       ];
 
       const alertOptions: AlertOptions = {
-        header: `${name === PRODUCT_ATRR.name ? "Nombre" : "Marca"} producto`,
+        header: isName ? t('ADD_PRODUCT.NAME_PRODUCT') : t('ADD_PRODUCT.BRAND_PRODUCT'),
         inputs: alertInputs,
         buttons: alertButtons,
       };
@@ -1369,16 +1369,17 @@ export class AddProductPage implements OnInit, OnDestroy {
       const productName = this.product
         ? this.product.name
         : this.customProduct.product.name;
+      const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
-        header: "Eliminar producto",
-        message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
+        header: t('ADD_PRODUCT.DELETE_PRODUCT_HEADER'),
+        message: t('ADD_PRODUCT.DELETE_PRODUCT_CONFIRM', { name: productName }),
         buttons: [
           {
-            text: "CANCELAR",
+            text: t('COMMON.CANCEL').toUpperCase(),
             role: "cancel",
           },
           {
-            text: "ELIMINAR",
+            text: t('COMMON.DELETE').toUpperCase(),
             role: "destructive",
             handler: () => {
               this.productService
@@ -1511,11 +1512,10 @@ export class AddProductPage implements OnInit, OnDestroy {
                     }
                   }
 
-                  const toastOptions: ToastOptions = {
-                    message: `${this.product.name} eliminado con éxito`,
+                  this.ionicUtilService.showToast({
+                    message: this.translate.instant('ADD_PRODUCT.PRODUCT_DELETED', { name: this.product.name }),
                     duration: 1000,
-                  };
-                  this.ionicUtilService.showToast(toastOptions);
+                  });
                   this.goBack({ deleteOwnProduct: this.product._id });
                 });
             },

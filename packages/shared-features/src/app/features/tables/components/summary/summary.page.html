@@ -25,8 +25,8 @@
   <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <div class="premium-banner__text">
-      <span class="premium-banner__title">Hazte Pro</span>
-      <span class="premium-banner__sub">Rutinas ilimitadas, sin anuncios y más</span>
+      <span class="premium-banner__title">{{ 'TABLES.GO_PRO' | translate }}</span>
+      <span class="premium-banner__sub">{{ 'TABLES.GO_PRO_SUBTITLE' | translate }}</span>
     </div>
     <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
   </button>
@@ -37,21 +37,21 @@
       <div class="nav-buttons">
         <button class="nav-btn" (click)="openSearchTables(true)">
           <ion-icon name="library-outline" class="nav-icon"></ion-icon>
-          Mis Rutinas
+          {{ 'TABLES.MY_ROUTINES' | translate }}
         </button>
         <button class="nav-btn" (click)="openSearchTables()">
           <ion-icon name="search-outline" class="nav-icon"></ion-icon>
-          Buscar Rutinas
+          {{ 'TABLES.SEARCH_ROUTINES' | translate }}
         </button>
         <button class="nav-btn" (click)="createTableAndAddToUser()">
           <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
-          Crear Rutina
+          {{ 'TABLES.CREATE_ROUTINE_BTN' | translate }}
         </button>
         <button class="nav-btn nav-btn--full" (click)="importExcels()">
           <ion-icon name="color-wand-outline" class="nav-icon"></ion-icon>
           <span class="nav-btn__text">
-            <span class="nav-btn__title">Importar Excels con IA</span>
-            <span class="nav-btn__desc">Sube tu Excel y conviértelo en rutina automáticamente</span>
+            <span class="nav-btn__title">{{ 'TABLES.IMPORT_EXCEL_AI' | translate }}</span>
+            <span class="nav-btn__desc">{{ 'TABLES.IMPORT_EXCEL_AI_DESC' | translate }}</span>
           </span>
           <ion-icon name="chevron-forward-outline" class="nav-btn__arrow"></ion-icon>
         </button>
@@ -65,14 +65,13 @@
         >
           <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
           <div class="info-text">
-            <span class="info-title">Rutina actual</span>
+            <span class="info-title">{{ 'TABLES.CURRENT_ROUTINE' | translate }}</span>
           </div>
         </div>
         <div *ngIf="tableInUse; else notTableInUse">
           <div class="routine-name">{{ tableInUse.name }}</div>
           <div class="routine-description">
-            Microciclo {{ countDoneSplits() + 1 }} de {{
-            tableInUse.splits.length }}
+            {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: countDoneSplits() + 1, total: tableInUse.splits.length } }}
           </div>
 
           <!-- Indicadores de splits -->
@@ -90,16 +89,16 @@
           >
             <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
             <div class="info-text">
-              <span class="info-title">Estadísticas</span>
+              <span class="info-title">{{ 'TABLES.STATISTICS' | translate }}</span>
             </div>
           </div>
         </div>
         <ng-template #notTableInUse>
           <div class="routine-name" (click)="openSearchTables()">
-            No hay rutina en uso
+            {{ 'TABLES.NO_ROUTINE_IN_USE' | translate }}
           </div>
           <div class="routine-description">
-            Selecciona una rutina para comenzar
+            {{ 'TABLES.SELECT_ROUTINE_TO_START' | translate }}
           </div>
         </ng-template>
       </div>
@@ -116,9 +115,9 @@
         >
           <div class="workout-header">
             <div>
-              <div class="workout-title">Día {{ workout.name }}</div>
+              <div class="workout-title">{{ 'TABLES.DAY' | translate }} {{ workout.name }}</div>
             </div>
-            <div class="workout-status">En Progreso</div>
+            <div class="workout-status">{{ 'TABLES.IN_PROGRESS' | translate }}</div>
           </div>
 
           <div class="progress-bar">
@@ -140,7 +139,7 @@
                   >
                     {{ getCompletedExercises() }}/{{ workout.exercises.length }}
                   </div>
-                  <div class="stat-label">ejercicios</div>
+                  <div class="stat-label">{{ 'TABLES.EXERCISES' | translate }}</div>
                 </div>
               </div>
             </div>
@@ -155,7 +154,7 @@
                   >
                     {{ getCompletedSets() }}/{{ getTotalSets() }}
                   </div>
-                  <div class="stat-label">series</div>
+                  <div class="stat-label">{{ 'TABLES.SERIES' | translate }}</div>
                 </div>
               </div>
             </div>
@@ -166,7 +165,7 @@
             *ngIf="workout && workout.notes"
             [notes]="workout.notes"
             [object]="workout"
-            type="Nota del entrenamiento"
+            type="{{ 'TABLES.WORKOUT_NOTE_TYPE' | translate }}"
             [isPrevious]="false"
             (click)="$event.stopPropagation()"
           ></app-notes>
@@ -177,7 +176,7 @@
             <ion-accordion value="exercises">
               <ion-item slot="header" color="light">
                 <ion-label
-                  >Lista de Ejercicios ({{ workout.exercises.length
+                  >{{ 'TABLES.EXERCISE_LIST' | translate }} ({{ workout.exercises.length
                   }})</ion-label
                 >
               </ion-item>
@@ -217,7 +216,7 @@
             (click)="selectWorkout(); $event.stopPropagation()"
           >
             <div class="info-text">
-              <span class="info-title">Reanudar entrenamiento</span>
+              <span class="info-title">{{ 'TABLES.RESUME_WORKOUT' | translate }}</span>
             </div>
           </div>
         </div>
@@ -227,9 +226,9 @@
             class="routine-empty"
             (click)="openMesocycle(); $event.stopPropagation()"
           >
-            <div class="routine-name">Sin entrenamiento en uso</div>
+            <div class="routine-name">{{ 'TABLES.NO_WORKOUT_IN_USE' | translate }}</div>
             <div class="routine-description">
-              Selecciona un entrenamiento para comenzar
+              {{ 'TABLES.SELECT_WORKOUT_TO_START' | translate }}
             </div>
           </div>
         </ng-template>

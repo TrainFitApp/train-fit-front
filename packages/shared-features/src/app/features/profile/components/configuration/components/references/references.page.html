@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Referencias</h1>
+        <h1 class="tf-page-header__title">{{ 'REFERENCES.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -19,14 +19,11 @@
   <ion-list>
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Fuentes Confiables</ion-card-title>
-        <ion-card-subtitle>Basadas en información verificada</ion-card-subtitle>
+        <ion-card-title>{{ 'REFERENCES.SOURCES_TITLE' | translate }}</ion-card-title>
+        <ion-card-subtitle>{{ 'REFERENCES.SOURCES_SUBTITLE' | translate }}</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
-        <p>
-          Las recomendaciones nutricionales en <strong>TrainFit</strong> están
-          basadas en información de fuentes confiables como:
-        </p>
+        <p [innerHTML]="'REFERENCES.DESCRIPTION' | translate"></p>
         <ion-list>
           <ion-item lines="none">
             <ion-icon
@@ -35,7 +32,7 @@
               color="success"
             ></ion-icon>
             <ion-label>
-              Ministerio de Sanidad, Consumo y Bienestar Social:
+              {{ 'REFERENCES.MINISTERIO' | translate }}
               <a
                 href="https://estilosdevidasaludable.sanidad.gob.es/alimentacionSaludable/home.htm"
                 target="_blank"
@@ -51,8 +48,7 @@
               color="success"
             ></ion-icon>
             <ion-label>
-              Estrategia NAOS (Nutrición, Actividad Física y Prevención de la
-              Obesidad):
+              {{ 'REFERENCES.NAOS' | translate }}
               <a
                 href="https://www.aesan.gob.es/AECOSAN/web/nutricion/seccion/estrategia_naos.htm"
                 target="_blank"
@@ -68,7 +64,7 @@
               color="success"
             ></ion-icon>
             <ion-label>
-              Organización Mundial de la Salud (OMS):
+              {{ 'REFERENCES.OMS' | translate }}
               <a
                 href="https://www.who.int/es/news-room/fact-sheets/detail/healthy-diet"
                 target="_blank"
@@ -84,7 +80,7 @@
               color="success"
             ></ion-icon>
             <ion-label>
-              Fundación Española de la Nutrición (FEN):
+              {{ 'REFERENCES.FEN' | translate }}
               <a
                 href="https://www.fen.org.es/storage/app/media/imgPublicaciones/2018/libro-la-alimentacion-espanola.pdf"
                 target="_blank"
@@ -99,16 +95,10 @@
 
     <ion-card>
       <ion-card-header>
-        <ion-card-title>Nota Importante</ion-card-title>
+        <ion-card-title>{{ 'REFERENCES.NOTE_TITLE' | translate }}</ion-card-title>
       </ion-card-header>
       <ion-card-content>
-        <p>
-          Los servicios prestados no se consideran servicios médicos en virtud
-          de la <strong>Ley 44/2003, de 21 de noviembre</strong>, de ordenación
-          de las profesiones sanitarias. En caso de tener problemas de salud,
-          por favor consulte a un médico antes de empezar a usar
-          <strong>TrainFit</strong>.
-        </p>
+        <p [innerHTML]="'REFERENCES.NOTE_TEXT' | translate"></p>
       </ion-card-content>
     </ion-card>
   </ion-list></ion-content

@@ -10,7 +10,7 @@
       >
         <ion-icon name="apps-outline"></ion-icon>
         <span class="label">{{
-          currentMode === "products" ? "Todos" : "Todas"
+          currentMode === 'products' ? ('FILTER.CHIP_ALL_PRODUCTS' | translate) : ('FILTER.CHIP_ALL_RECIPES' | translate)
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
@@ -25,7 +25,7 @@
       >
         <ion-icon name="person"></ion-icon>
         <span class="label">{{
-          currentMode === "products" ? "Añadidos por mí" : "Añadidas por mí"
+          currentMode === 'products' ? ('FILTER.CHIP_ADDED_BY_ME_PRODUCTS' | translate) : ('FILTER.CHIP_ADDED_BY_ME_RECIPES' | translate)
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
@@ -40,7 +40,7 @@
       >
         <ion-icon name="shield"></ion-icon>
         <span class="label">{{
-          currentMode === "products" ? "Verificados" : "Verificadas"
+          currentMode === 'products' ? ('FILTER.CHIP_VERIFIED_PRODUCTS' | translate) : ('FILTER.CHIP_VERIFIED_RECIPES' | translate)
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
@@ -54,7 +54,7 @@
       >
         <ion-icon name="bookmark"></ion-icon>
         <span class="label">{{
-          currentMode === "products" ? "Favoritos" : "Favoritas"
+          currentMode === 'products' ? ('FILTER.CHIP_FAVORITES_PRODUCTS' | translate) : ('FILTER.CHIP_FAVORITES_RECIPES' | translate)
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
