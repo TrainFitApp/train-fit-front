@@ -37,7 +37,7 @@ export class UtilService {
   private _tableMode$ = new BehaviorSubject<TABLE_MODE_TYPES>(
     TABLE_MODE_TYPES.mesocycle
   );
-  private _currentDate$ = new BehaviorSubject<Date>(new Date());
+  private _currentDate$ = new BehaviorSubject<string>(this.formatDateToYYYYMMDD(new Date()));
   private _refresh$ = new BehaviorSubject<boolean>(false);
   private _scrollToExercise$ = new Subject<{
     workoutIndex: number;
@@ -104,7 +104,7 @@ export class UtilService {
     return this._currentDate$.asObservable();
   }
 
-  public set setCurrentDate(date: Date) {
+  public set setCurrentDate(date: string) {
     this._currentDate$.next(date);
   }
 
@@ -141,22 +141,22 @@ export class UtilService {
   }
 
   public getWeekRange(selectedDate: Date): {
-    dateMin: Date;
-    dateMax: Date;
+    dateMin: string;
+    dateMax: string;
     dateRange: DateRange;
     labels: string[];
   } {
     const dateMin = this.getFirstWeekDay(selectedDate, WEEK_DAYS.monday);
-    dateMin.setHours(0, 0, 0, 0);
+    const dateMinStr = this.formatDateToYYYYMMDD(dateMin);
 
     const dateMax = new Date(dateMin);
     dateMax.setDate(dateMin.getDate() + 6);
-    dateMax.setHours(23, 59, 59, 59);
+    const dateMaxStr = this.formatDateToYYYYMMDD(dateMax);
 
-    const dateRange = new DateRange(dateMin, dateMax);
+    const dateRange = new DateRange(dateMinStr, dateMaxStr);
     const labels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
-    return { dateMin, dateMax, dateRange, labels };
+    return { dateMin: dateMinStr, dateMax: dateMaxStr, dateRange, labels };
   }
 
   public numberDaysBetween(dateMin: Date, dateMax: Date) {
@@ -189,18 +189,12 @@ export class UtilService {
   }
 
   public sortListByDates(objs: any[]) {
-    return objs.sort(
-      (objA, objB) =>
-        new Date(objA.date).getTime() - new Date(objB.date).getTime()
-    );
-  }
-
-  public datesAreOnSameDay(first: Date, second: Date): boolean {
-    return (
-      first.getFullYear() === second.getFullYear() &&
-      first.getMonth() === second.getMonth() &&
-      first.getDate() === second.getDate()
-    );
+    return objs.sort((objA, objB) => {
+      if (typeof objA.date === 'string' && typeof objB.date === 'string') {
+        return objA.date.localeCompare(objB.date);
+      }
+      return new Date(objA.date).getTime() - new Date(objB.date).getTime();
+    });
   }
 
   public average(numbers: number[]): number {
@@ -214,6 +208,69 @@ export class UtilService {
 
   public toStringDateDateFormat(date: Date): string {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  }
+
+  public formatDateToYYYYMMDD(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  public parseYYYYMMDD(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  public formatDateKey(date: Date): string {
+    return this.formatDateToYYYYMMDD(date);
+  }
+
+  public datesAreOnSameDay(first: Date, second: Date): boolean {
+    return (
+      first.getFullYear() === second.getFullYear() &&
+      first.getMonth() === second.getMonth() &&
+      first.getDate() === second.getDate()
+    );
+  }
+
+  public datesStrAreOnSameDay(first: string, second: string): boolean {
+    return first === second;
+  }
+
+  public getFirstWeekDayStr(dateStr: string, dayIndex: number): string {
+    const dateObj = this.parseYYYYMMDD(dateStr);
+    const dayOfWeek = dateObj.getDay();
+    const firstDayOfWeek = new Date(dateObj);
+    const diff = dayOfWeek >= dayIndex ? dayOfWeek - dayIndex : 6 - dayOfWeek;
+    firstDayOfWeek.setDate(dateObj.getDate() - diff);
+    return this.formatDateToYYYYMMDD(firstDayOfWeek);
+  }
+
+  public getWeekRangeStr(selectedDate: string): {
+    dateMin: string;
+    dateMax: string;
+    dateRange: DateRange;
+    labels: string[];
+  } {
+    const dateMin = this.getFirstWeekDayStr(selectedDate, WEEK_DAYS.monday);
+    const parsedMin = this.parseYYYYMMDD(dateMin);
+    const dateMaxDate = new Date(parsedMin);
+    dateMaxDate.setDate(parsedMin.getDate() + 6);
+    const dateMax = this.formatDateToYYYYMMDD(dateMaxDate);
+    const dateRange = new DateRange(dateMin, dateMax);
+    const labels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    return { dateMin, dateMax, dateRange, labels };
+  }
+
+  public numberDaysBetweenStr(dateMin: string, dateMax: string): number {
+    const a = this.parseYYYYMMDD(dateMin);
+    const b = this.parseYYYYMMDD(dateMax);
+    return Math.round(Math.abs(b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  public getWeekOfMonthFromStr(dateStr: string): number {
+    return this.getWeekOfMonth(this.parseYYYYMMDD(dateStr));
   }
 
   public initFakeModalState(): void {

@@ -35,7 +35,7 @@ export class DietsPage implements OnInit {
   public meal: Meal;
   public dietDay: DietDay;
 
-  public selectedDate = new Date();
+  public selectedDate: string;
 
   public dietDay$: Subscription;
   public timeOut$: any;
@@ -65,6 +65,8 @@ export class DietsPage implements OnInit {
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef
   ) {
+    this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
+
     // Effect para el usuario
     effect(() => {
       this.user = this.userService.localUser();
@@ -74,7 +76,7 @@ export class DietsPage implements OnInit {
     this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
       this.dietDay = resDietDay;
       if (resDietDay && resDietDay.date) {
-        this.selectedDate = new Date(resDietDay.date);
+        this.selectedDate = resDietDay.date;
       }
     });
   }
@@ -83,7 +85,7 @@ export class DietsPage implements OnInit {
     // Check if we have a selectedDate in navigation state (returning from config-recipe/search-foods)
     const state = window.history.state;
     if (state && state.selectedDate) {
-      this.selectedDate = new Date(state.selectedDate);
+      this.selectedDate = state.selectedDate;
     }
 
     if (state?.updatedDietDay) {
@@ -120,9 +122,9 @@ export class DietsPage implements OnInit {
     this.utilService.manageNote(this.dietDay, this.dietDayService);
   }
 
-  public setDietDayByDate(date: Date): void {
+  public setDietDayByDate(dateStr: string): void {
     this.load = false;
-    this.selectedDate = date;
+    this.selectedDate = dateStr;
 
     this.utilService.setCurrentDate = this.selectedDate;
     if (this.dietDay$) this.dietDay$.unsubscribe();
@@ -164,9 +166,8 @@ export class DietsPage implements OnInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  public selectCalendarDay(dateISO: string): void {
-    const date = new Date(dateISO);
-    this.setDietDayByDate(date);
+  public selectCalendarDay(dateStr: string): void {
+    this.setDietDayByDate(dateStr);
   }
 
   public pasteDietDay(): void {
