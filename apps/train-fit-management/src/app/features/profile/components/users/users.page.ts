@@ -10,6 +10,7 @@ import {
 import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { TranslateService } from '@ngx-translate/core';
 import {
   AdminPremiumDuration,
   BillingApiService,
@@ -62,7 +63,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly navigationService: NavigationService,
-    private readonly userAPIService: UserAPIService
+    private readonly userAPIService: UserAPIService,
+    private readonly translate: TranslateService
   ) { }
 
   public ngOnInit(): void {
@@ -129,7 +131,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public getUserFullName(user: User): string {
-    return `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim() || 'Sin nombre';
+    return `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim() || this.translate.instant('MANAGEMENT.USERS.NO_NAME');
   }
 
   public isPremiumUser(user: User): boolean {
@@ -173,13 +175,14 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   public getPremiumStatusLabel(user: User): string {
+    const expiration = this.getPremiumExpirationLabel(user);
     if (this.isManualPremiumUser(user)) {
-      return `Pro manual${this.getPremiumExpirationLabel(user)}`;
+      return this.translate.instant('MANAGEMENT.USERS.PREMIUM_MANUAL', { expiration });
     }
     if (this.isStorePremiumUser(user)) {
-      return `Activo via Store${this.getPremiumExpirationLabel(user)}`;
+      return this.translate.instant('MANAGEMENT.USERS.PREMIUM_STORE', { expiration });
     }
-    return 'Sin Pro';
+    return this.translate.instant('MANAGEMENT.USERS.PREMIUM_NONE');
   }
 
   public getPremiumExpirationLabel(user: User): string {
@@ -221,11 +224,11 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Revocar',
-      message: `Seguro que quieres revocar el Pro manual a ${this.getUserFullName(user)}?`,
+      header: this.translate.instant('MANAGEMENT.USERS.REVOKE_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.REVOKE_MESSAGE', { name: this.getUserFullName(user) }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Revocar', role: 'confirm' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('MANAGEMENT.USERS.REVOKE_CONFIRM'), role: 'confirm' },
       ],
     });
 
@@ -242,11 +245,11 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Eliminar hash',
-      message: `Seguro que quieres eliminar el hash de ${this.getUserFullName(user)}?`,
+      header: this.translate.instant('MANAGEMENT.USERS.DELETE_HASH_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.DELETE_HASH_MESSAGE', { name: this.getUserFullName(user) }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Eliminar', role: 'confirm' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('COMMON.DELETE'), role: 'confirm' },
       ],
     });
 
@@ -260,15 +263,23 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   public async changeUserRole(user: DashboardUser, roles: string[]): Promise<void> {
     if (!user?._id) return;
 
-    const label = roles.includes('admin') ? 'Admin' : 'Usuario';
-    const prevLabel = user.roles?.includes('admin') ? 'Admin' : 'Usuario';
+    const label = roles.includes('admin')
+      ? this.translate.instant('MANAGEMENT.USERS.ROLE_ADMIN')
+      : this.translate.instant('MANAGEMENT.USERS.ROLE_USER');
+    const prevLabel = user.roles?.includes('admin')
+      ? this.translate.instant('MANAGEMENT.USERS.ROLE_ADMIN')
+      : this.translate.instant('MANAGEMENT.USERS.ROLE_USER');
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Cambiar rol',
-      message: `¿Cambiar rol de <b>${this.getUserFullName(user)}</b> de <b>${prevLabel}</b> a <b>${label}</b>?`,
+      header: this.translate.instant('MANAGEMENT.USERS.ROLE_CHANGE_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.ROLE_CHANGE_MESSAGE', {
+        name: this.getUserFullName(user),
+        prevLabel,
+        label,
+      }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Cambiar', role: 'confirm' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('MANAGEMENT.USERS.ROLE_CHANGE_CONFIRM'), role: 'confirm' },
       ],
     });
 
@@ -277,10 +288,10 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     this.userAPIService.updateUserRoles(user._id, roles).subscribe({
       next: (res) => {
         user.roles = res.roles;
-        this.ionicUtilService.showToast({ message: `Rol cambiado a ${label}` });
+        this.ionicUtilService.showToast({ message: this.translate.instant('MANAGEMENT.USERS.ROLE_CHANGED', { label }) });
       },
       error: () => {
-        this.ionicUtilService.showToast({ message: 'Error al cambiar rol', color: 'danger' });
+        this.ionicUtilService.showToast({ message: this.translate.instant('MANAGEMENT.USERS.ROLE_CHANGE_ERROR'), color: 'danger' });
       },
     });
   }
@@ -301,14 +312,13 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
     if (isManual) {
       buttons.push(
-
         {
-          text: 'Extender',
+          text: this.translate.instant('MANAGEMENT.USERS.PREMIUM_EXTEND'),
           handler: () => {
             this.confirmExtendPremium(user);
           },
         }, {
-        text: 'Revocar',
+        text: this.translate.instant('MANAGEMENT.USERS.PREMIUM_REVOKE'),
         role: 'destructive',
         cssClass: 'alert-button-danger',
         handler: () => {
@@ -319,13 +329,13 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     }
 
     buttons.push({
-      text: 'Cerrar',
+      text: this.translate.instant('MANAGEMENT.USERS.PREMIUM_CLOSE'),
       role: 'cancel',
     });
 
     await this.ionicUtilService.showAlert({
-      header: 'Detalle Suscripción Pro',
-      message: `Estado: ${statusLabel}`,
+      header: this.translate.instant('MANAGEMENT.USERS.PREMIUM_DETAIL_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.PREMIUM_DETAIL_MESSAGE', { statusLabel }),
       cssClass: 'alert-grid-buttons',
       buttons: buttons,
     });
@@ -373,7 +383,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   public getLastLoginLabel(user: User): string {
     if (!user?.lastLogin) {
-      return 'Sin actividad';
+      return this.translate.instant('MANAGEMENT.USERS.LAST_LOGIN_NONE');
     }
     return new Intl.DateTimeFormat('es-ES', {
       day: '2-digit',
@@ -433,12 +443,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
             );
           }
 
-          await this.ionicUtilService.showSuccessToast('Hash eliminado');
+          await this.ionicUtilService.showSuccessToast(this.translate.instant('MANAGEMENT.USERS.HASH_REMOVED'));
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo eliminar el hash del usuario'
+            this.translate.instant('MANAGEMENT.USERS.HASH_REMOVE_ERROR')
           );
         },
       });
@@ -460,12 +470,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       .subscribe({
         next: async (updatedUser) => {
           this.replaceUser(updatedUser);
-          await this.ionicUtilService.showSuccessToast('Pro manual activado');
+          await this.ionicUtilService.showSuccessToast(this.translate.instant('MANAGEMENT.USERS.PREMIUM_GRANTED'));
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo activar Pro manual'
+            this.translate.instant('MANAGEMENT.USERS.PREMIUM_GRANT_ERROR')
           );
         },
       });
@@ -487,12 +497,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       .subscribe({
         next: async (updatedUser) => {
           this.replaceUser(updatedUser);
-          await this.ionicUtilService.showSuccessToast('Pro manual extendido');
+          await this.ionicUtilService.showSuccessToast(this.translate.instant('MANAGEMENT.USERS.PREMIUM_EXTENDED'));
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo extender Pro manual'
+            this.translate.instant('MANAGEMENT.USERS.PREMIUM_EXTEND_ERROR')
           );
         },
       });
@@ -519,12 +529,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
               (listUser) => listUser._id !== updatedUser?._id
             );
           }
-          await this.ionicUtilService.showSuccessToast('Pro manual revocado');
+          await this.ionicUtilService.showSuccessToast(this.translate.instant('MANAGEMENT.USERS.PREMIUM_REVOKED'));
         },
         error: async (error) => {
           await this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo revocar Pro manual'
+            this.translate.instant('MANAGEMENT.USERS.PREMIUM_REVOKE_ERROR')
           );
         },
       });
@@ -532,13 +542,13 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   private async pickPremiumDuration(): Promise<AdminPremiumDuration | null> {
     const response = await this.ionicUtilService.showActionSheet({
-      header: 'Duracion de Pro manual',
+      header: this.translate.instant('MANAGEMENT.USERS.DURATION_HEADER'),
       buttons: [
-        { text: '1 dia', data: { type: 'preset', value: '1d' } },
-        { text: '1 semana', data: { type: 'preset', value: '1w' } },
-        { text: '1 mes', data: { type: 'preset', value: '1m' } },
-        { text: '1 año', data: { type: 'preset', value: '1y' } },
-        { text: 'Fecha personalizada', role: 'custom' },
+        { text: this.translate.instant('MANAGEMENT.USERS.DURATION_1D'), data: { type: 'preset', value: '1d' } },
+        { text: this.translate.instant('MANAGEMENT.USERS.DURATION_1W'), data: { type: 'preset', value: '1w' } },
+        { text: this.translate.instant('MANAGEMENT.USERS.DURATION_1M'), data: { type: 'preset', value: '1m' } },
+        { text: this.translate.instant('MANAGEMENT.USERS.DURATION_1Y'), data: { type: 'preset', value: '1y' } },
+        { text: this.translate.instant('MANAGEMENT.USERS.DURATION_CUSTOM'), role: 'custom' },
       ],
     });
 
@@ -552,8 +562,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   private async pickCustomExpirationDate(): Promise<AdminPremiumDuration | null> {
     const response = await this.ionicUtilService.showAlert({
-      header: 'Fecha personalizada',
-      message: 'Elige fecha y hora de expiracion del Pro manual.',
+      header: this.translate.instant('MANAGEMENT.USERS.CUSTOM_DATE_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.CUSTOM_DATE_MESSAGE'),
       inputs: [
         {
           name: 'expiresAt',
@@ -561,8 +571,8 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         },
       ],
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Aplicar', role: 'confirm' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('MANAGEMENT.USERS.CUSTOM_DATE_APPLY'), role: 'confirm' },
       ],
     });
 
@@ -574,7 +584,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     const expiresAt = new Date(value);
     if (Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) {
       await this.ionicUtilService.showWarningToast(
-        'La fecha debe ser posterior a la actual'
+        this.translate.instant('MANAGEMENT.USERS.CUSTOM_DATE_FUTURE')
       );
       return null;
     }
@@ -593,18 +603,18 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
 
   public async confirmDeleteUser(user: User): Promise<void> {
     const alertOptions: AlertOptions = {
-      header: 'Eliminar usuario',
-      message: `Estas seguro que deseas eliminar permanentemente a ${this.getUserFullName(
-        user
-      )}? Esta accion no se puede deshacer.`,
+      header: this.translate.instant('MANAGEMENT.USERS.DELETE_USER_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.DELETE_USER_MESSAGE', {
+        name: this.getUserFullName(user),
+      }),
       buttons: [
         {
-          text: 'Cancelar',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'alert-button-cancel',
         },
         {
-          text: 'Eliminar',
+          text: this.translate.instant('COMMON.DELETE'),
           role: 'confirm',
           cssClass: 'alert-button-danger',
         },
@@ -626,12 +636,12 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
       next: async () => {
         this.users = this.users.filter((u) => u._id !== user._id);
         if (this.totalUsers > 0) this.totalUsers--;
-        await this.ionicUtilService.showSuccessToast('Usuario eliminado con exito');
+        await this.ionicUtilService.showSuccessToast(this.translate.instant('MANAGEMENT.USERS.DELETED_SUCCESS'));
       },
       error: async (error) => {
         await this.ionicUtilService.showErrorToast(
           error,
-          'No se pudo eliminar el usuario'
+          this.translate.instant('MANAGEMENT.USERS.DELETE_ERROR')
         );
       },
     });
@@ -643,17 +653,17 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
     const localUser = this.userService.getLocalUser;
     if (!localUser?.roles?.includes('admin')) {
       await this.ionicUtilService.showErrorToast(
-        'Solo los administradores pueden impersonar usuarios'
+        this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_NOT_ADMIN')
       );
       return;
     }
 
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Iniciar sesion como usuario',
-      message: `Estas seguro que deseas iniciar sesion como ${this.getUserFullName(user)}?`,
+      header: this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_HEADER'),
+      message: this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_MESSAGE', { name: this.getUserFullName(user) }),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Conectar', role: 'confirm' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_CONFIRM'), role: 'confirm' },
       ],
     });
 
@@ -665,13 +675,13 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
   }
 
   private async impersonate(user: User): Promise<void> {
-    await this.ionicUtilService.showLoading({ message: 'Conectando...' });
+    await this.ionicUtilService.showLoading({ message: this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_LOADING') });
 
     this.authService.impersonate(user._id).subscribe({
       next: async () => {
         await this.ionicUtilService.hideLoading();
         await this.ionicUtilService.showSuccessToast(
-          `Conectado como ${this.getUserFullName(user)}`
+          this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_SUCCESS', { name: this.getUserFullName(user) })
         );
         window.location.href = '/';
       },
@@ -679,7 +689,7 @@ export class ProfileUsersPage implements OnInit, OnDestroy {
         await this.ionicUtilService.hideLoading();
         await this.ionicUtilService.showErrorToast(
           err,
-          'No se pudo iniciar sesion como este usuario'
+          this.translate.instant('MANAGEMENT.USERS.IMPERSONATE_ERROR')
         );
       },
     });

@@ -1,4 +1,4 @@
-import { Injectable, QueryList } from '@angular/core';
+import { Injector, Injectable, QueryList } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { FormGroup, ValidationErrors } from '@angular/forms';
 import { Chart, ChartData, ChartOptions, ChartType } from 'chart.js';
@@ -46,6 +46,15 @@ export class UtilService {
     highlightClass: string;
   }>();
   private imageCache: { [url: string]: HTMLImageElement } = {};
+
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
 
   private _isTourInit: boolean;
 
@@ -131,7 +140,7 @@ export class UtilService {
 
   constructor(
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private injector: Injector
   ) {}
 
   public getFirstWeekDay(dateObject: Date, dayIndex: number) {

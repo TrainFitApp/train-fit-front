@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
@@ -44,11 +44,19 @@ export class BillingService {
   private initializePromise: Promise<void> | null = null;
   private configured = false;
   private cachedEntitlements: BillingEntitlements | null = null;
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
 
   constructor(
+    private readonly injector: Injector,
     private readonly billingApiService: BillingApiService,
     private readonly userService: UserService,
-    private readonly translate: TranslateService
   ) {}
 
   public get isBillingEnabled(): boolean {

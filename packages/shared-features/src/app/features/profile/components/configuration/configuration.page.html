@@ -18,6 +18,25 @@
 <ion-content class="configuration-content">
   <!-- Configuration Sections -->
   <div class="config-sections">
+    <!-- TrainFit Pro Section — top -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="diamond-outline"></ion-icon>
+        <span>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card config-card--premium">
+        <ion-item button class="config-item" (click)="openPremiumPage()">
+          <div slot="start" class="item-icon-container premium-icon">
+            <ion-icon name="diamond-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
     <!-- Profile Options Section -->
     <div class="section-group">
       <div class="section-header">
@@ -47,24 +66,6 @@
         </ion-item>
 
         <div class="divider"></div>
-      </ion-card>
-    </div>
-
-    <div class="section-group">
-      <div class="section-header">
-        <ion-icon name="diamond-outline"></ion-icon>
-        <span>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</span>
-      </div>
-
-      <ion-card class="config-card config-card--premium">
-        <ion-item button class="config-item" (click)="openPremiumPage()">
-          <div slot="start" class="item-icon-container premium-icon">
-            <ion-icon name="diamond-outline" color="warning"></ion-icon>
-          </div>
-          <ion-label>
-            <h3>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</h3>
-          </ion-label>
-        </ion-item>
       </ion-card>
     </div>
 
@@ -112,6 +113,36 @@
           </div>
           <ion-label>
             <h3>{{ 'CONFIGURATION.SUGGESTIONS' | translate }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Language Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="language-outline"></ion-icon>
+        <span>{{ 'CONFIGURATION.LANGUAGE' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="switchLang('es')">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="checkbox-outline" [color]="currentLang === 'es' ? 'primary' : 'medium'"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Español</h3>
+          </ion-label>
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="switchLang('en')">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="checkbox-outline" [color]="currentLang === 'en' ? 'primary' : 'medium'"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>English</h3>
           </ion-label>
         </ion-item>
       </ion-card>

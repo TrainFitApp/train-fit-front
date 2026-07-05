@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 export const AUTH_LOGIN_FEEDBACK_QUERY_PARAM = 'loginIssue';
@@ -25,7 +25,16 @@ export interface LoginErrorFeedback {
   providedIn: 'root',
 })
 export class AuthErrorService {
-  constructor(private translate: TranslateService) {}
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
+
+  constructor(private injector: Injector) {}
 
   public toLoginFeedback(error: any): LoginErrorFeedback {
     const status = this.getStatus(error);

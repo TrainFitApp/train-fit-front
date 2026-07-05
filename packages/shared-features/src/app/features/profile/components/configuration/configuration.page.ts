@@ -4,6 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -28,6 +29,8 @@ export class ConfigurationPage {
 
   public THEMES = Theme;
 
+  public currentLang: string = 'es';
+
   constructor(
     private readonly userService: UserService,
     private readonly themeService: ThemeService,
@@ -38,10 +41,17 @@ export class ConfigurationPage {
     private readonly workoutService: WorkoutService,
     private readonly navigationService: NavigationService,
     private readonly translate: TranslateService,
+    private readonly i18nService: I18nService,
   ) {
     this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
     this.isPremium = !!this.user?.premium?.entitled;
+    this.currentLang = this.i18nService.current;
+  }
+
+  public switchLang(lang: 'es' | 'en'): void {
+    this.i18nService.switchLang(lang);
+    this.currentLang = lang;
   }
 
   public toggleColor(): void {

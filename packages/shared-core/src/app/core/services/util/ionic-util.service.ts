@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
   ActionSheetController,
@@ -25,6 +25,14 @@ import { ErrorHandlerService } from './error-handler.service';
 })
 export class IonicUtilService {
   private loading: HTMLIonLoadingElement | null = null;
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
 
   constructor(
     private actionSheetController: ActionSheetController,
@@ -36,7 +44,7 @@ export class IonicUtilService {
     private pickerController: PickerController,
     private platform: Platform,
     private errorHandlerService: ErrorHandlerService,
-    private translate: TranslateService
+    private injector: Injector
   ) {
     this.configureStatusBar();
   }
