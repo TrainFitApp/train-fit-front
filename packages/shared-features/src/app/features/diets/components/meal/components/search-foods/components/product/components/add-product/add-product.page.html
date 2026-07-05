@@ -1379,10 +1379,10 @@
 <ion-footer *ngIf="isDietMode" class="elegant-footer">
   <div class="footer-content">
     <ion-button
-      *ngIf="(meal || ingredientMode) && !loading.value; else loadingTemplate"
+      *ngIf="meal || ingredientMode"
       expand="block"
       class="save-button-global"
-      [disabled]="addCustomProductForm.invalid"
+      [disabled]="addCustomProductForm.invalid || loading.value"
       (click)="addCustomProduct()"
     >
       <div class="button-content">
@@ -1393,19 +1393,11 @@
         </span>
       </div>
     </ion-button>
-
-    <ng-template #loadingTemplate>
-      <ion-button
-        *ngIf="meal || ingredientMode"
-        expand="block"
-        class="save-button-global"
-        disabled
-      >
-        <div class="loading-content">
-          <ion-spinner name="crescent" color="light"></ion-spinner>
-          <span class="loading-text">Procesando...</span>
-        </div>
-      </ion-button>
-    </ng-template>
+    <ion-progress-bar
+      *ngIf="loading.value"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>

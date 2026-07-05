@@ -17,6 +17,7 @@ import { PopoverActionsComponent } from './components/popover-actions/popover-ac
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
+import { AiLoadingOverlayComponent } from './components/ai-loading-overlay/ai-loading-overlay.component';
 import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
@@ -24,6 +25,7 @@ import { SafePipe } from './pipes/safe.pipe';
 
 @NgModule({
   declarations: [
+    AiLoadingOverlayComponent,
     PopoverActionsComponent,
     FilterInputPage,
     NotesComponent,
@@ -46,6 +48,7 @@ import { SafePipe } from './pipes/safe.pipe';
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
   exports: [
+    AiLoadingOverlayComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

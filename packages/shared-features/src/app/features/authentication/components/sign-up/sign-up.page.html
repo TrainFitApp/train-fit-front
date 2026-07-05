@@ -119,6 +119,12 @@
                   <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
                     >La fecha de nacimiento es obligatoria</span
                   >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['minAge']"
+                    >Debes tener al menos 13 aÃ±os</span
+                  >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['maxAge']"
+                    >Introduce una fecha de nacimiento vÃ¡lida</span
+                  >
                 </div>
               </div>
             </div>

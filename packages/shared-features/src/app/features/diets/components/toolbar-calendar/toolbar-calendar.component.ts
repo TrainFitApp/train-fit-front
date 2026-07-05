@@ -74,7 +74,7 @@ export class ToolbarCalendarComponent {
   }
 
   public selectToday(): void {
-    this.selectCalendarDayEmit.emit(new Date().toISOString());
+    this.selectCalendarDayEmit.emit(this.utilService.formatDateToYYYYMMDD(new Date()));
   }
 
   public onDateSelected(dateISO: string): void {
@@ -215,7 +215,7 @@ export class ToolbarCalendarComponent {
     const alertOptions: AlertOptions = {
       header: '¿Estás seguro?',
       message: `Se eliminará el día ${this.utilService.toStringDateDateFormat(
-        new Date(this.dietDay.date)
+        this.utilService.parseYYYYMMDD(this.dietDay.date)
       )}`,
       buttons: [
         {
@@ -234,12 +234,10 @@ export class ToolbarCalendarComponent {
               )
               .subscribe(() => {
                 const date = this.utilService.toStringDateDateFormat(
-                  new Date(this.dietDay.date)
+                  this.utilService.parseYYYYMMDD(this.dietDay.date)
                 );
                 const message = `${date} eliminado`;
                 this.showToast(message);
-                // No emitir refresh para evitar llamada adicional a la API.
-                // El servicio ya vacía el currentDietDay local.
               });
           },
         },
@@ -251,8 +249,9 @@ export class ToolbarCalendarComponent {
 
   private setFullDate(): void {
     this.utilService.getCurrentDate.subscribe((resDate) => {
-      this.month = MONTHS[resDate.getMonth()];
-      this.year = resDate.getFullYear();
+      const d = this.utilService.parseYYYYMMDD(resDate);
+      this.month = MONTHS[d.getMonth()];
+      this.year = d.getFullYear();
     });
   }
 }

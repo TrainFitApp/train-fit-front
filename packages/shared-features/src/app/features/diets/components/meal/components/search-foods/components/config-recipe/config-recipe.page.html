@@ -380,8 +380,7 @@
       [disabled]="!canSave || loading"
       (click)="save()"
     >
-      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-      <ng-container *ngIf="!loading">
+      <ng-container>
         <span>
           {{
             isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
@@ -389,5 +388,11 @@
         </span>
       </ng-container>
     </ion-button>
+    <ion-progress-bar
+      *ngIf="loading"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>

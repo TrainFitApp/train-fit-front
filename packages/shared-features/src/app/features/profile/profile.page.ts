@@ -560,7 +560,7 @@ export class ProfilePage implements OnInit {
 
   private getCurrentDietDay() {
     if (this.user?.dietInUse) {
-      const today = new Date();
+      const today = this.utilService.formatDateToYYYYMMDD(new Date());
 
       if (this.dietDay$) this.dietDay$.unsubscribe();
 

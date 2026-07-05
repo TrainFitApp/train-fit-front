@@ -18,6 +18,7 @@ import { Workout } from "src/app/core/models/workout";
 import { SplitService } from "src/app/core/services/split/split.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
+import { BillingService } from "src/app/core/services/billing/billing.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { UtilService } from "src/app/core/services/util/util.service";
@@ -36,6 +37,52 @@ interface PreserveFinishedWorkoutSplitState {
   splitIndex: number;
   workoutId: string;
 }
+
+interface WorkoutTemplate {
+  id: string;
+  name: string;
+  description: string;
+  workouts: string[];
+}
+
+const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
+  {
+    id: "upper-lower",
+    name: "Torso / Pierna",
+    description: "4 dias",
+    workouts: ["Torso A", "Pierna A", "Torso B", "Pierna B"],
+  },
+  {
+    id: "push-pull-legs",
+    name: "Push / Pull / Legs",
+    description: "6 dias",
+    workouts: ["Empuje (Push) A", "Tirón (Pull) A", "Pierna (Legs) A", "Empuje (Push) B", "Tirón (Pull) B", "Pierna (Legs) B"],
+  },
+  {
+    id: "full-body",
+    name: "Full Body",
+    description: "3 dias",
+    workouts: ["Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C"],
+  },
+  {
+    id: "arnold-split",
+    name: "Arnold Split",
+    description: "3 dias",
+    workouts: ["Pecho y Espalda", "Hombros y Brazos", "Piernas y Abdomen"],
+  },
+  {
+    id: "weider",
+    name: "Rutina Weider",
+    description: "5 dias",
+    workouts: ["Pecho", "Espalda", "Hombros", "Piernas", "Brazos"],
+  },
+  {
+    id: "push-pull",
+    name: "Empuje / Tirón",
+    description: "4 dias",
+    workouts: ["Empuje A", "Tirón A", "Empuje B", "Tirón B"],
+  },
+];
 
 @Component({
   selector: "app-mesocycle",
@@ -74,8 +121,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public tableMode: string;
   public openWorkoutIndex: number;
+  public microcyclesPerRoutineLimit: number | null = null;
+  public workoutTemplateLoadingId: string | null = null;
 
   public TABLE_MODE_TYPES = TABLE_MODE_TYPES;
+  public readonly workoutTemplates = WORKOUT_TEMPLATES;
 
   // Control de animaciones de navegación
   public animatingLeft: boolean = false;
@@ -119,6 +169,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     public utilService: UtilService,
     public platform: Platform,
     private splitService: SplitService,
+    private billingService: BillingService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
@@ -190,6 +241,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public ionViewDidEnter(): void {
+    void this.loadMicrocycleLimit();
+
     if (!this.tableInUse?.splits?.length) return;
 
     // Si no hay entrenamiento en uso, auto-posicionamos según progreso (caso Summary -> Mesocycle)
@@ -368,6 +421,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public initVariables(): void {
     console.log("init");
+    void this.loadMicrocycleLimit();
 
     this.utilService.getTableMode.subscribe(
       (resTableMode) => (this.tableMode = resTableMode),
@@ -448,6 +502,28 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         }
       }, 200);
     }
+  }
+
+  private async loadMicrocycleLimit(): Promise<void> {
+    const entitlements = await this.billingService.getBackendEntitlements();
+    this.microcyclesPerRoutineLimit =
+      entitlements?.limits?.microcyclesPerRoutine ?? null;
+    this.cdr.markForCheck();
+  }
+
+  public isSplitLocked(splitIndex: number): boolean {
+    if (this.user?.premium?.entitled) return false;
+    if (typeof this.microcyclesPerRoutineLimit !== "number") return false;
+    return splitIndex >= this.microcyclesPerRoutineLimit;
+  }
+
+  public isCurrentSplitLocked(): boolean {
+    return this.isSplitLocked(this.currentSplitIndex);
+  }
+
+  public openPremiumFromLockedSplit(event?: Event): void {
+    event?.stopPropagation();
+    this.navigationService.goToPremium();
   }
 
   private updateCurrentSplit(): void {
@@ -589,6 +665,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addWorkout(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     const alertOptions = {
       header: "Añadir entrenamiento",
       message: "Introduce el nombre del entrenamiento",
@@ -639,6 +720,94 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public get shouldShowWorkoutTemplates(): boolean {
+    const workoutCount =
+      this.tableInUse?.splits?.reduce(
+        (total, split) => total + (split.workouts?.length ?? 0),
+        0
+      ) ?? 0;
+
+    return (
+      !this.loadingSplit &&
+      !this.pasteMode &&
+      (workoutCount === 0 || this.workoutTemplateLoadingId !== null)
+    );
+  }
+
+  public confirmWorkoutTemplate(template: WorkoutTemplate): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
+    if (this.workoutTemplateLoadingId) return;
+
+    const workoutList = template.workouts
+      .map((workoutName) => `- ${workoutName}`)
+      .join("\n");
+    const alertOptions: AlertOptions = {
+      header: template.name,
+      message: `Se crearan estos entrenamientos en la rutina:\n\n${workoutList}`,
+      buttons: [
+        {
+          text: "CANCELAR",
+          role: "cancel",
+        },
+        {
+          text: "CREAR",
+          cssClass: "alert-button-confirm",
+          handler: () => {
+            this.createWorkoutTemplate(template);
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private createWorkoutTemplate(template: WorkoutTemplate): void {
+    this.workoutTemplateLoadingId = template.id;
+    this.createTemplateWorkoutAtIndex(template, 0);
+  }
+
+  private createTemplateWorkoutAtIndex(
+    template: WorkoutTemplate,
+    workoutIndex: number
+  ): void {
+    const workoutName = template.workouts[workoutIndex];
+    if (!workoutName) {
+      this.workoutTemplateLoadingId = null;
+      this.updateCurrentSplit();
+      this.ionicUtilService.showToast({
+        message: `${template.name} creada`,
+        duration: 1200,
+        color: "success",
+      } as ToastOptions);
+      return;
+    }
+
+    const workout = new Workout();
+    workout.name = workoutName;
+
+    this.workoutService
+      .addWorkoutsToSplits(this.user.tableInUse, workout)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.createTemplateWorkoutAtIndex(template, workoutIndex + 1);
+        },
+        error: (error) => {
+          this.workoutTemplateLoadingId = null;
+          this.ionicUtilService.showErrorToast(
+            error,
+            "No se pudo crear la plantilla"
+          );
+        },
+      });
   }
 
   public workoutIndexPaste: number;
@@ -1012,6 +1181,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addFirstSplitToTable(): void {
+    if (this.loadingFab) return;
+
     this.loadingFab = true;
 
     const idSplit = this.tableInUse.splits[this._currentSplitIndex]?._id;
@@ -1053,6 +1224,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public onCloseFab(actionFab: ACTIONS_FAB_TYPES): void {
+    if (
+      this.isCurrentSplitLocked() &&
+      actionFab !== ACTIONS_FAB_TYPES.cancelCopy
+    ) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     switch (actionFab) {
       case ACTIONS_FAB_TYPES.addWorkout:
         this.addWorkoutToSplit();
@@ -1126,6 +1305,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   private addWorkoutToSplit(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
     this.loadingFab = true;
     const alertOptions: AlertOptions = {
       header: ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value,
@@ -1188,6 +1372,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async showSplitMenu(event: Event): Promise<void> {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit(event);
+      return;
+    }
+
     const popoverOptions = {
       component: SplitMenuPopoverComponent,
       event: event,

@@ -58,6 +58,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   };
 
   public animateBars = false;
+  private readonly hideTabsClass = 'hide-tabs';
 
   ngOnInit() {
     this.user = this.user ?? ({} as User);
@@ -86,7 +87,24 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.showTabs();
     this.dietDaySub?.unsubscribe();
+  }
+
+  ionViewWillEnter(): void {
+    this.hideTabs();
+  }
+
+  ionViewWillLeave(): void {
+    this.showTabs();
+  }
+
+  private hideTabs(): void {
+    document.body.classList.add(this.hideTabsClass);
+  }
+
+  private showTabs(): void {
+    document.body.classList.remove(this.hideTabsClass);
   }
 
   private personalizeReferences() {

@@ -268,7 +268,14 @@
         </div>
 
         <div class="no-sets-message" *ngIf="exercise?.sets.length === 0">
-          <span class="no-sets-text">No hay series</span>
+          <button
+            type="button"
+            class="add-sets-button"
+            (click)="addExerciseModal(exercise); $event.stopPropagation()"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>Añadir series</span>
+          </button>
         </div>
 
         <div *ngIf="exercise?.sets.length > 0" class="table-container">

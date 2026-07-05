@@ -653,6 +653,8 @@ export class AddProductPage implements OnInit, OnDestroy {
   }
 
   public async addCustomProduct(): Promise<void> {
+    if (this.loading.value || this.autoPersistInProgress) return;
+
     await this.goBack({
       forceSave: true,
       forceCreateMealProduct: true,
@@ -1984,6 +1986,12 @@ export class AddProductPage implements OnInit, OnDestroy {
       }
       if (params["isScanned"]) {
         this.isScanned = params["isScanned"] === "true";
+      }
+      if (params["ingredientMode"]) {
+        this.ingredientMode = params["ingredientMode"] === "true";
+      }
+      if (params["returnUrl"]) {
+        this.returnUrl = this.normalizeReturnUrl(params["returnUrl"]);
       }
 
       if (needsInit && this.product && !this.addCustomProductForm) {
