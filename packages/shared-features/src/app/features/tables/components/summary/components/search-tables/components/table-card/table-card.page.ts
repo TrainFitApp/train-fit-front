@@ -155,7 +155,7 @@ export class TableCardPage {
       const alOptions = {
         header: 'Rutina en uso',
         message:
-          'Tienes una rutina en uso actualmente, si seleccionas otra, se guardrá la actual en Mis rutinas',
+          'Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas',
         buttons: [
           {
             text: 'CANCELAR',
