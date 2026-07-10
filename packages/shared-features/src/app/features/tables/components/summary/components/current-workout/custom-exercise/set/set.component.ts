@@ -125,12 +125,10 @@ export class SetComponent implements OnInit, OnChanges {
         this.set.reps = resSetForm.reps;
         this.set.weight = resSetForm.weight;
 
-        if (resSetForm.rir === null || resSetForm.rir === undefined) {
-          delete this.set.rir;
-        } else {
-          // Store performed RIR like expectedRir: [-1], [0-10], or [first, second].
-          this.set.rir = resSetForm.rir;
-        }
+        // Store performed RIR like expectedRir: [-1], [0-10], or [first, second].
+        // Explicit null (not `delete`) so a cleared value is still sent to the
+        // backend and can be unset there, instead of silently keeping the old one.
+        this.set.rir = resSetForm.rir ?? null;
 
         this.setService.updateSet(this.set).subscribe(() => {
           if (this.currentWorkout) {
@@ -163,11 +161,8 @@ export class SetComponent implements OnInit, OnChanges {
     }
 
     // Keep local object in sync immediately; persistence still happens via form valueChanges.
-    if (value === null || value === undefined) {
-      delete this.set.rir;
-    } else {
-      this.set.rir = value;
-    }
+    // Explicit null (not `delete`) so a cleared value still gets sent and unset on save.
+    this.set.rir = value ?? null;
 
     this.setForm.patchValue({ rir: value });
   }

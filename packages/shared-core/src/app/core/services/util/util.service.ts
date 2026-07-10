@@ -441,25 +441,16 @@ export class UtilService {
         },
         {
           text: this.translate.instant('COMMON.SAVE'),
-          handler: (data) => {
-            if (!data.notes || data.notes.trim() === '') {
-              const errorAlert = {
-                header: this.translate.instant('COMMON.ERROR'),
-                message: this.translate.instant('COMMON.FIELD_REQUIRED'),
-                buttons: [this.translate.instant('COMMON.OK')],
-              };
-              this.ionicUtilService.showAlert(errorAlert);
-              return false;
-            }
-            return true;
-          },
+          handler: () => true,
         },
       ],
     };
 
     return this.ionicUtilService.showAlert(alertOptions).then((result) => {
-      if (result.role !== 'cancel' && result.data?.values?.notes) {
-        object['notes'] = result.data.values.notes;
+      if (result.role !== 'cancel' && result.data?.values?.notes !== undefined) {
+        // Empty text means "clear the note" — must go through so it's persisted
+        // as such, instead of being silently dropped like before.
+        object['notes'] = (result.data.values.notes || '').trim();
 
         if ((object as Workout).exercises)
           this.handleWorkout(object as Workout, service as WorkoutService);
