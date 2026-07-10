@@ -1,97 +1,71 @@
-<ion-header class="modern-search-header">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+<ion-header class="minimal-header">
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="close()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Buscar rutinas</h1>
+
+      <div class="search-section">
+        <ion-searchbar
+          #searchbar
+          (ionInput)="searchTables($event)"
+          debounce="250"
+          placeholder="{{ 'COMMON.SEARCH' | translate }}"
+          mode="ios"
+          animated
+          class="custom-searchbar"
+        ></ion-searchbar>
       </div>
-      <div class="tf-page-header__actions"></div>
+
+      <div class="actions-section">
+      </div>
     </div>
+
+    <!-- Table filter icons for Todas / Mis Rutinas (copia exacta de search-exercises) -->
+    <app-table-filter-icons
+      *ngIf="user && user._id"
+      (filterSelection)="onFilterModeChange($event)"
+    >
+    </app-table-filter-icons>
   </div>
+
 </ion-header>
 
+<ion-content class="exercises-content">
+  <div class="exercises-list" *ngIf="tableList.length > 0; else emptyTables">
+    <app-table-card
+      *ngFor="let tableCard of tableList; let i = index"
+      [user]="user"
+      [ownFilter]="searchFilterGroup.ownFilter"
+      [own]="tableCard._id === user.tableInUse"
+      [tableCard]="tableCard"
+      (duplicateTableEv)="duplicateTable($event)"
+      (deletedTable)="deleteTable($event)"
+    ></app-table-card>
+  </div>
 
-<ion-content class="search-tables-content">
-  <ng-container *ngIf="load else notLoad">
-    <ng-container *ngIf="tableList.length > 0; else noTables">
-      <app-table-card
-        *ngFor="let tableCard of tableList; let i = index"
-        [user]="user"
-        [ownFilter]="searchFilterGroup.ownFilter"
-        [own]="tableCard._id === user.tableInUse"
-        [tableCard]="tableCard"
-        (duplicateTableEv)="duplicateTable($event)"
-        (deletedTable)="deleteTable($event)"
-      ></app-table-card>
-    </ng-container>
-
-    <ng-template #noTables>
-      <ion-item>
-        <ion-label>No hay coincidencias</ion-label>
-      </ion-item>
-    </ng-template>
-  </ng-container>
-
-  <ng-template #notLoad>
-    <!-- Skeleton cards que replican la estructura de table-card -->
-    <div class="skeleton-table-card" *ngFor="let i of [1, 2, 3]">
-      <div class="skeleton-overlay">
-        <!-- Header Section -->
-        <div class="skeleton-header-section">
-          <div class="skeleton-header-top">
-            <div class="skeleton-title-section">
-              <ion-skeleton-text [animated]="true" class="skeleton-title"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-underline"></ion-skeleton-text>
-            </div>
-          </div>
-
-          <!-- Status and Actions Row -->
-          <div class="skeleton-status-actions-row">
-            <div class="skeleton-status-section">
-              <!-- Badge o botón según ownFilter -->
-              <ion-skeleton-text 
-                [animated]="true" 
-                [class.skeleton-badge]="searchFilterGroup.ownFilter"
-                [class.skeleton-select-btn]="!searchFilterGroup.ownFilter"
-              ></ion-skeleton-text>
-            </div>
-            <div class="skeleton-action-buttons">
-              <ion-skeleton-text 
-                [animated]="true" 
-                [class.skeleton-menu-btn]="searchFilterGroup.ownFilter"
-                [class.skeleton-acquire-btn]="!searchFilterGroup.ownFilter"
-              ></ion-skeleton-text>
-            </div>
-          </div>
+  <ng-template #emptyTables>
+    <ng-container *ngIf="load">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <ion-icon name="search-outline"></ion-icon>
         </div>
-
-        <!-- Stats Section -->
-        <div class="skeleton-stats-container">
-          <div class="skeleton-stat-item">
-            <div class="skeleton-stat-top-row">
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
-            </div>
-            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
-          </div>
-
-          <div class="skeleton-stat-divider"></div>
-
-          <div class="skeleton-stat-item">
-            <div class="skeleton-stat-top-row">
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-icon"></ion-skeleton-text>
-              <ion-skeleton-text [animated]="true" class="skeleton-stat-number"></ion-skeleton-text>
-            </div>
-            <ion-skeleton-text [animated]="true" class="skeleton-stat-label"></ion-skeleton-text>
-          </div>
-        </div>
+        <h3 class="empty-title">{{ 'TABLES.NO_MATCHES' | translate }}</h3>
+        <p class="empty-message">
+          {{ 'TABLES.NO_MATCHES_MSG' | translate }}
+        </p>
       </div>
-    </div>
+    </ng-container>
   </ng-template>
+
+  <div class="skeleton-container" *ngIf="!load">
+    <app-skeleton-loader
+      [rows]="2"
+      [detailColumns]="4"
+    ></app-skeleton-loader>
+  </div>
 
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">
     <ion-infinite-scroll-content loadingSpinner="crescent">

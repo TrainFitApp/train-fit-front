@@ -11,6 +11,7 @@ import { ActionsFabComponent } from './components/actions-fab/actions-fab.compon
 import { DisconnectedComponent } from './components/disconnected/disconnected.component';
 import { FilterIconsComponent } from './components/filter-icons/filter-icons.component';
 import { ExerciseFilterIconsComponent } from './components/exercise-filter-icons/exercise-filter-icons.component';
+import { TableFilterIconsComponent } from './components/filter-icons/table-filter-icons.component';
 import { FilterInputPage } from './components/filter-input/filter-input.page';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
@@ -35,6 +36,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     NumericInputComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
+    TableFilterIconsComponent,
     SearchExercisesPage,
     ActionsFabComponent,
     MeasurePipe,
@@ -65,6 +67,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     NumericInputComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
+    TableFilterIconsComponent,
     SearchExercisesPage,
     ActionsFabComponent,
     RirPickerComponent,

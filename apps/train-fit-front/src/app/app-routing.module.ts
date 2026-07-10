@@ -58,7 +58,7 @@ const routes: Routes = [
       ).then((m) => m.StatisticsPageModule),
   },
   {
-    path: 'search-tables/:own',
+    path: 'search-tables',
     canMatch: [authMatchGuard],
     loadChildren: () =>
       import(

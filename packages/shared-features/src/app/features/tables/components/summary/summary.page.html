@@ -35,15 +35,11 @@
     <div class="main-content">
       <!-- Botones de navegación principales -->
       <div class="nav-buttons">
-        <button class="nav-btn" (click)="openSearchTables(true)">
-          <ion-icon name="library-outline" class="nav-icon"></ion-icon>
-          {{ 'TABLES.MY_ROUTINES' | translate }}
-        </button>
-        <button class="nav-btn" (click)="openSearchTables()">
+        <button class="nav-btn nav-btn--search" (click)="openSearchTables()">
           <ion-icon name="search-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.SEARCH_ROUTINES' | translate }}
         </button>
-        <button class="nav-btn" (click)="createTableAndAddToUser()">
+        <button class="nav-btn nav-btn--create" (click)="createTableAndAddToUser()">
           <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.CREATE_ROUTINE_BTN' | translate }}
         </button>

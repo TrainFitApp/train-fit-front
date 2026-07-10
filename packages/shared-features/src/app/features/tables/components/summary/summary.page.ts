@@ -350,8 +350,8 @@ export class SummaryPage {
     else this.openSearchTables();
   }
 
-  public openSearchTables(isOwn?: boolean): void {
-    this.navigationService.goToSearchTables(isOwn);
+  public openSearchTables(): void {
+    this.navigationService.goToSearchTables();
   }
 
   public async goToStatistics(): Promise<void> {

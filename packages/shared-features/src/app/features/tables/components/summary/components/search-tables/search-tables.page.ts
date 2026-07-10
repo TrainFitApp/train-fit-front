@@ -1,5 +1,4 @@
 import { Component, OnInit, effect, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -11,6 +10,9 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { TranslateService } from '@ngx-translate/core';
+
+export type TablesFilterMode = 'all' | 'mine';
 
 @Component({
   selector: 'app-search-tables',
@@ -24,17 +26,26 @@ export class SearchTablesPage implements OnInit {
   public searchFilterGroup: SearchFilterGroup;
   public load: boolean;
 
-  // Inyección de servicios con Signals
+  private _currentFilterMode: TablesFilterMode = 'all';
+  public get currentFilterMode(): TablesFilterMode {
+    return this._currentFilterMode;
+  }
+  public set currentFilterMode(value: TablesFilterMode) {
+    this._currentFilterMode = value;
+    this.applyFilterMode();
+  }
+
+  // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
   private readonly billingService = inject(BillingService);
+  private readonly translate = inject(TranslateService);
 
   constructor(
     private utilService: UtilService,
     private navigationService: NavigationService,
-    private activatedRoute: ActivatedRoute
   ) {
     // Effect para el usuario
     effect(() => {
@@ -42,13 +53,22 @@ export class SearchTablesPage implements OnInit {
     });
 
     this.searchFilterGroup = new SearchFilterGroup();
-
-    this.searchFilterGroup.ownFilter =
-      this.activatedRoute.snapshot.paramMap.get('own') === 'true';
   }
 
   public ngOnInit(): void {
     this.searchFilterGroup.userId = this.user._id;
+    this.applyFilterMode();
+    this.tableList = [];
+    this.searchTables();
+  }
+
+  private applyFilterMode(): void {
+    if (this.currentFilterMode === 'mine') {
+      this.searchFilterGroup.ownFilter = true;
+    } else {
+      this.searchFilterGroup.ownFilter = false;
+    }
+    this.searchFilterGroup.page = 0;
     this.tableList = [];
     this.searchTables();
   }
@@ -80,12 +100,24 @@ export class SearchTablesPage implements OnInit {
         );
 
     this.load = false;
+    this.searchFilterGroup.page = 0;
     this.tableService
       .getSearchTables(this.searchFilterGroup, this.user._id)
       .subscribe((resTables) => {
         this.tableList = this.prioritizeActiveTable(resTables || []);
         this.load = true;
       });
+  }
+
+  public onFilterModeChange(filterGroup: SearchFilterGroup): void {
+    this.searchFilterGroup = filterGroup;
+    this.searchFilterGroup.page = 0;
+    this.tableList = [];
+    this.searchTables();
+  }
+
+  public selectAllFilter(): void {
+    this.currentFilterMode = 'all';
   }
 
   public duplicateTable(copiedTable: Table): void {
@@ -114,7 +146,7 @@ export class SearchTablesPage implements OnInit {
       ]);
     }
 
-    this.adMobService.interstitialCapgo(); // Migrado a Capgo AdMob
+    this.adMobService.interstitialCapgo();
   }
 
   public deleteTable(idTable: string): void {
@@ -134,20 +166,15 @@ export class SearchTablesPage implements OnInit {
       this.userService.setLocalUser = this.user;
     }
 
-    // Si la tabla eliminada es la que esta siendo usada actualmente
     if (idTable === this.getTableInUseId()) {
-      // Limpiar los subjects primero
       this.workoutService.setCurrentWorkout = undefined;
       this.tableService.setCurrentTable = undefined;
 
-      // Limpiar todos los datos del usuario relacionados con esta tabla
       this.user.tableInUse = undefined;
       this.user.workoutInUse = undefined;
 
-      // Actualizar en la base de datos sin reintroducir la rutina eliminada
       this.userService.updateUser(this.user).subscribe(() => {
         void this.billingService.refreshBackendEntitlements();
-        // Esperar a que la BD se actualice antes de navegar
         this.navigationService.goBack();
       });
       return;
@@ -186,4 +213,3 @@ export class SearchTablesPage implements OnInit {
     return [activeTable, ...rest];
   }
 }
-
