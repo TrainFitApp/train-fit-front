@@ -210,7 +210,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
-            err,
+            'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
             'Error al cambiar contraseña',
             3000
           );
