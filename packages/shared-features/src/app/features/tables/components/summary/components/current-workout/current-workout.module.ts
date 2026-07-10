@@ -5,6 +5,7 @@ import { CustomExerciseComponent } from './custom-exercise/custom-exercise.compo
 import { SetComponent } from './custom-exercise/set/set.component';
 import { RouterModule, Routes } from '@angular/router';
 import { OrderExercisesPageModule } from '../mesocycle/components/order-exercises/order-exercises.module';
+import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
 
 const routes: Routes = [
   {
@@ -14,7 +15,12 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [CurrentWorkoutPage, CustomExerciseComponent, SetComponent],
+  declarations: [
+    CurrentWorkoutPage,
+    CustomExerciseComponent,
+    SetComponent,
+    WorkoutSummaryModalComponent,
+  ],
   imports: [SharedModule, RouterModule.forChild(routes), OrderExercisesPageModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

@@ -1,0 +1,51 @@
+<ion-header class="minimal-header">
+  <div class="summary-toolbar">
+    <button class="summary-close-button" (click)="close()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="summary-content" [fullscreen]="true">
+  <div class="summary-card">
+    <div class="summary-badge">
+      <ion-icon name="checkmark-outline"></ion-icon>
+    </div>
+
+    <h1 class="summary-title">{{ 'TABLES.SUMMARY_CONGRATS' | translate }}</h1>
+    <p class="summary-workout-name">{{ summary?.workoutName }}</p>
+
+    <div class="summary-time">
+      <ion-icon name="stopwatch-outline"></ion-icon>
+      <span>{{ elapsedLabel }}</span>
+    </div>
+
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-value">{{ summary?.exercisesCount || 0 }}</span>
+        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_EXERCISES' | translate }}</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">{{ summary?.setsCount || 0 }}</span>
+        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_SETS' | translate }}</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-value">{{ volumeLabel }}</span>
+        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_VOLUME' | translate }}</span>
+      </div>
+    </div>
+
+    <p class="summary-finished-at">{{ finishedAtLabel }}</p>
+  </div>
+</ion-content>
+
+<ion-footer class="summary-footer">
+  <ion-button
+    expand="block"
+    size="large"
+    class="summary-continue-btn"
+    (click)="close()"
+  >
+    {{ 'TABLES.SUMMARY_CONTINUE' | translate }}
+  </ion-button>
+</ion-footer>

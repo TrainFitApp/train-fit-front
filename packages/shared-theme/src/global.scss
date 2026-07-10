@@ -157,6 +157,18 @@ ion-modal.birthdate-datetime-modal ion-button {
   --border-radius: 10px;
 }
 
+/* Resumen de entrenamiento finalizado */
+ion-modal.workout-summary-modal {
+  --width: 100%;
+  --height: 100%;
+  --border-radius: 0;
+  --background: #121212;
+}
+
+ion-modal.workout-summary-modal::part(content) {
+  border-radius: 0;
+}
+
 /* Selects: diseño unificado, limpio y sutil */
 ion-select {
   --padding-start: 14px;

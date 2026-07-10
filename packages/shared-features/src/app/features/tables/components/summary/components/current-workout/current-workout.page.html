@@ -13,6 +13,10 @@
                   >{{ currentWorkout?.name }}</span
                 >
               </div>
+              <div class="workout-chrono" *ngIf="currentWorkout?.startedAt">
+                <ion-icon name="stopwatch-outline"></ion-icon>
+                <span>{{ elapsedLabel }}</span>
+              </div>
             </div>
           </div>
           <div class="workout-actions">

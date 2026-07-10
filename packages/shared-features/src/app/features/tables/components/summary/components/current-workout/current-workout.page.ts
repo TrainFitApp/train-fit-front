@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertOptions, ModalOptions, PopoverOptions } from '@ionic/angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Table } from 'src/app/core/models/table';
@@ -36,6 +36,8 @@ import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { OrderExercisesPage } from '../mesocycle/components/order-exercises/order-exercises.page';
+import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
+import { WorkoutSummary } from './workout-summary-modal/workout-summary.model';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -136,6 +138,10 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           if (isNewWorkout && this.tableInUse) {
             this.setPreviousWorkout();
           }
+
+          this.syncElapsedTimer();
+        } else {
+          this.stopElapsedTicker();
         }
       },
       { allowSignalWrites: true }
@@ -197,6 +203,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   private startWorkoutFlow(): void {
     this.currentWorkout.date = null;
+    // Solo la primera vez: si ya existe (retomando tras "detener"), se conserva
+    // para que el tiempo transcurrido siga contando desde el inicio real.
+    if (!this.currentWorkout.startedAt) {
+      this.currentWorkout.startedAt = new Date();
+    }
     this.workoutService.modifyWorkout(this.currentWorkout).subscribe(() => {
       this.user.workoutInUse = this.currentWorkout._id;
       this.userService.updateUser(this.user).subscribe(() => {
@@ -296,6 +307,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
               .subscribe({
                 next: (result) => {
                   const updatedWorkout = result?.workout;
+                  let summary: WorkoutSummary | null = null;
 
                   if (updatedWorkout && updatedWorkout.date) {
                     const serverDate = new Date(updatedWorkout.date);
@@ -314,6 +326,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                       });
 
                     this.tableService.setCurrentTable = this.tableInUse;
+
+                    summary = this.buildWorkoutSummary(
+                      this.currentWorkout,
+                      serverDate
+                    );
                   } else {
                     console.error(
                       'Warning: Workout date was not saved properly by server'
@@ -326,22 +343,40 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   this.preserveFinishedWorkoutSplitIfCompleted(
                     this.currentWorkout._id
                   );
-                  this.navigationService.goBack();
-                  const successAlertOptions = {
-                    header: this.translate.instant('TABLES.COMPLETED_TITLE'),
-                    message: this.translate.instant('TABLES.WORKOUT_FINISHED_SUCCESS', { name: this.currentWorkout.name }),
-                    buttons: [
-                      {
-                        text: this.translate.instant('COMMON.OK'),
-                        cssClass: 'alert-button-primary',
-                      },
-                    ],
-                  };
-                  this.ionicUtilService.showAlert(successAlertOptions);
 
-                  this.currentWorkout = undefined;
-                  this.workoutService.setCurrentWorkout = null;
+                  this.stopElapsedTicker();
                   this.loading = false;
+
+                  const finishAndNavigateBack = () => {
+                    this.currentWorkout = undefined;
+                    this.workoutService.setCurrentWorkout = null;
+                    this.navigationService.goBack();
+                  };
+
+                  if (summary) {
+                    this.ionicUtilService
+                      .showModal({
+                        component: WorkoutSummaryModalComponent,
+                        componentProps: { summary },
+                        cssClass: 'workout-summary-modal',
+                      })
+                      .then(finishAndNavigateBack);
+                  } else {
+                    // Fallback si por algún motivo no se pudo construir el
+                    // resumen: no bloquear el cierre del entrenamiento.
+                    this.ionicUtilService
+                      .showAlert({
+                        header: this.translate.instant('TABLES.COMPLETED_TITLE'),
+                        message: this.translate.instant('TABLES.WORKOUT_FINISHED_SUCCESS', { name: this.currentWorkout?.name }),
+                        buttons: [
+                          {
+                            text: this.translate.instant('COMMON.OK'),
+                            cssClass: 'alert-button-primary',
+                          },
+                        ],
+                      })
+                      .then(finishAndNavigateBack);
+                  }
                 },
                 error: (err) => {
                   console.error('Error finishing workout:', err);
@@ -617,5 +652,99 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public trackByCustomExercise(index: number, item: CustomExercise): string {
     return item._id;
+  }
+
+  // ---------- Cronómetro (basado en timestamps, no en un contador acumulado) ----------
+  public elapsedLabel: string = '00:00:00';
+  private elapsedTickerSub?: Subscription;
+
+  private syncElapsedTimer(): void {
+    if (!this.currentWorkout || this.currentWorkout.date) {
+      // Sin workout activo, o ya finalizado: no seguir contando, solo mostrar
+      // la foto final (o el estado vacío por defecto).
+      this.stopElapsedTicker();
+      this.updateElapsedLabel();
+      return;
+    }
+
+    // Workout en curso pero sin startedAt: sesión iniciada antes de que
+    // existiera esta funcionalidad. Backfill best-effort para que el
+    // cronómetro arranque ya en vez de quedar roto para siempre.
+    if (!this.currentWorkout.startedAt) {
+      this.currentWorkout.startedAt = new Date();
+      this.workoutService.modifyWorkout(this.currentWorkout).subscribe();
+    }
+
+    this.updateElapsedLabel();
+    if (!this.elapsedTickerSub) {
+      this.elapsedTickerSub = interval(1000)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.updateElapsedLabel());
+    }
+  }
+
+  private stopElapsedTicker(): void {
+    this.elapsedTickerSub?.unsubscribe();
+    this.elapsedTickerSub = undefined;
+  }
+
+  private updateElapsedLabel(): void {
+    this.elapsedLabel = this.formatElapsedMs(this.getElapsedMs());
+  }
+
+  private getElapsedMs(): number {
+    if (!this.currentWorkout?.startedAt) return 0;
+    const start = new Date(this.currentWorkout.startedAt).getTime();
+    const end = this.currentWorkout.date
+      ? new Date(this.currentWorkout.date).getTime()
+      : Date.now();
+    return Math.max(0, end - start);
+  }
+
+  private formatElapsedMs(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  }
+
+  private buildWorkoutSummary(
+    workout: Workout,
+    finishedAt: Date
+  ): WorkoutSummary {
+    let exercisesCount = 0;
+    let setsCount = 0;
+    let volumeKg = 0;
+
+    (workout.exercises || []).forEach((customExercise) => {
+      const doneSets = (customExercise.sets || []).filter((set) => set.doned);
+      if (doneSets.length === 0) return;
+
+      exercisesCount += 1;
+      setsCount += doneSets.length;
+
+      if (!customExercise.exercise?.isCardio) {
+        doneSets.forEach((set) => {
+          const weight = Number(set.weight) || 0;
+          const reps = Number(set.reps) || 0;
+          volumeKg += weight * reps;
+        });
+      }
+    });
+
+    const elapsedMs = workout.startedAt
+      ? Math.max(0, finishedAt.getTime() - new Date(workout.startedAt).getTime())
+      : null;
+
+    return {
+      workoutName: workout.name,
+      elapsedMs,
+      exercisesCount,
+      setsCount,
+      volumeKg: Math.round(volumeKg),
+      finishedAt,
+    };
   }
 }
