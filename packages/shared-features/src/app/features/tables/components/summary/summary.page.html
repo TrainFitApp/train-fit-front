@@ -69,7 +69,7 @@
           </div>
         </div>
         <div *ngIf="tableInUse; else notTableInUse">
-          <div class="routine-name">{{ tableInUse.name }}</div>
+          <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
             {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: countDoneSplits() + 1, total: tableInUse.splits.length } }}
           </div>
@@ -190,7 +190,7 @@
                       class="exercise-name"
                       [class.completed]="isCustomExerciseCompleted(exercise)"
                     >
-                      {{ exercise.exercise.name }}
+                      {{ exercise.exercise.name | translateDb }}
                     </div>
                     <div class="exercise-icons">
                       <ion-icon

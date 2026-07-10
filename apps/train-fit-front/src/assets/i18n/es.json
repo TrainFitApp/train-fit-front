@@ -1239,5 +1239,13 @@
     "NOTE_TITLE": "Nota Importante",
     "NOTE_TEXT": "Los servicios prestados no se consideran servicios médicos profesionales.",
     "DESCRIPTION": "Las recomendaciones nutricionales en TrainFit se basan en fuentes oficiales."
+  },
+  "EXERCISE_FILTER": {
+    "ALL_EXERCISES": "Todos los ejercicios",
+    "MY_EXERCISES": "Mis ejercicios",
+    "FAVORITE_EXERCISES": "Ejercicios favoritos",
+    "ALL": "Todo",
+    "FAVORITES": "Favoritos",
+    "NO_CATEGORIES": "No hay categorías"
   }
 }

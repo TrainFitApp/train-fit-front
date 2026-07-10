@@ -247,7 +247,7 @@
               class="exercise-name"
               [class.completed]="isCustomExerciseCompleted(exercise)"
             >
-              {{ exercise.exercise.name }}
+              {{ exercise.exercise.name | translateDb }}
             </div>
             <div class="exercise-icons">
               <ion-button

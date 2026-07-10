@@ -9,7 +9,7 @@
         (click)="selectAllFilter()"
       >
         <ion-icon name="apps-outline"></ion-icon>
-        <span class="label">Todo</span>
+        <span class="label">{{ 'EXERCISE_FILTER.ALL' | translate }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
 
@@ -21,7 +21,7 @@
         (click)="addFilter('own')"
       >
         <ion-icon name="person"></ion-icon>
-        <span class="label">Mis ejercicios</span>
+        <span class="label">{{ 'EXERCISE_FILTER.MY_EXERCISES' | translate }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
 
@@ -33,7 +33,7 @@
         (click)="addFilter('fav')"
       >
         <ion-icon name="bookmark"></ion-icon>
-        <span class="label">Favoritos</span>
+        <span class="label">{{ 'EXERCISE_FILTER.FAVORITES' | translate }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
     </div>

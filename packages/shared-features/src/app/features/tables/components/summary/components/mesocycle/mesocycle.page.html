@@ -10,7 +10,7 @@
         </div>
         <div class="title-section">
           <h1 class="page-title" (click)="editTableName()">
-            {{ tableInUse?.name }}
+            {{ tableInUse?.name | translateDb }}
           </h1>
         </div>
         <div class="actions-section" *ngIf="!pasteMode">

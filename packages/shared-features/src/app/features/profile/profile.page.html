@@ -215,7 +215,7 @@
         </h2>
       </div>
       <div class="workout-status">
-        <p class="workout-title">{{ tableInUse.name }}</p>
+        <p class="workout-title">{{ tableInUse.name | translateDb }}</p>
         <p class="workout-subtitle" *ngIf="user?.workoutInUse && workoutInUse">
           {{ 'PROFILE.MICROCYCLE' | translate:{ split: getCurrentPlayingSplit() } }}
         </p>

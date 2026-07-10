@@ -49,7 +49,7 @@
           [outline]="searchFilterGroupExercises.category.includes(category)"
           color="primary"
         >
-          <ion-label>{{ category }}</ion-label>
+          <ion-label>{{ category | translateDb }}</ion-label>
           <ion-icon
             name="close-circle"
             (click)="spliceCategory(category)"
@@ -75,7 +75,7 @@
           [outline]="searchFilterGroupExercises.muscleGroups1.includes(muscle)"
           color="primary"
         >
-          <ion-label>{{ muscle }}</ion-label>
+          <ion-label>{{ muscle | translateDb }}</ion-label>
           <ion-icon
             name="close-circle"
             (click)="spliceMuscleGroup1(muscle)"
@@ -102,7 +102,7 @@
           color="primary"
           (click)="spliceMuscleGroup2(muscle)"
         >
-          <ion-label>{{ muscle }}</ion-label>
+          <ion-label>{{ muscle | translateDb }}</ion-label>
           <ion-icon
             name="close-circle"
             (click)="spliceMuscleGroup2(muscle)"
@@ -128,13 +128,13 @@
       <div class="exercise-image">
         <img
           [src]="(exercise?.gifUrl ? exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
-          alt="{{ exercise?.name }}"
+          alt="{{ exercise?.name | translateDb }}"
         />
       </div>
 
       <div class="exercise-info">
         <div class="exercise-header">
-          <h3 class="exercise-name">{{ exercise?.name }}</h3>
+          <h3 class="exercise-name">{{ exercise?.name | translateDb }}</h3>
           <span class="exercise-category">
             {{ exercise?.category | category }}
           </span>
@@ -150,7 +150,7 @@
             *ngFor="let mg of getValidMuscleGroups(exercise)"
           >
             <ion-icon name="barbell-outline"></ion-icon>
-            <span class="label">{{ mg }}</span>
+            <span class="label">{{ mg | translateDb }}</span>
             <ion-ripple-effect></ion-ripple-effect>
           </button>
         </div>

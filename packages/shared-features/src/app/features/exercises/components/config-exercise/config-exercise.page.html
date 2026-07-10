@@ -339,7 +339,7 @@
                 [class.is-active]="details.category.includes(category)"
                 (click)="selectCategory(category)"
               >
-                <span class="label">{{ category }}</span>
+                <span class="label">{{ category | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -359,7 +359,7 @@
                 [class.is-active]="details.muscleGroups1.includes(muscle)"
                 (click)="selectMuscleGroup1(muscle)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -379,7 +379,7 @@
                 [class.is-active]="details.muscleGroups2.includes(muscle)"
                 (click)="selectMuscleGroup2(muscle)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -402,7 +402,7 @@
                 [class.is-active]="details.equipment.includes(equip)"
                 (click)="selectEquipment(equip)"
               >
-                <span class="label">{{ equip }}</span>
+                <span class="label">{{ equip | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -428,7 +428,7 @@
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let category of getValidDetails(details.category)"
               >
-                <span class="label">{{ category }}</span>
+                <span class="label">{{ category | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -447,7 +447,7 @@
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let muscle of getValidDetails(details.muscleGroups1)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -466,7 +466,7 @@
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let muscle of getValidDetails(details.muscleGroups2)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -488,7 +488,7 @@
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let equip of getValidDetails(details.equipment)"
               >
-                <span class="label">{{ equip }}</span>
+                <span class="label">{{ equip | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -542,7 +542,7 @@
             *ngFor="let mg of getExerciseMuscleGroups()"
           >
             <ion-icon name="barbell-outline"></ion-icon>
-            <span class="label">{{ mg }}</span>
+                  <span class="label">{{ mg | translateDb }}</span>
             <ion-ripple-effect></ion-ripple-effect>
           </button>
         </div>

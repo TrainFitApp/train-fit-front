@@ -20,7 +20,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 
-import { MUSCLE_GROUPS } from 'src/app/shared/constants/muscle-groups';
+import { MUSCLE_GROUPS_ES } from 'src/app/shared/constants/muscle-groups';
 
 @Component({
   selector: 'app-table-card',
@@ -50,7 +50,7 @@ export class TableCardPage {
   public context: CanvasRenderingContext2D;
   public bar: Chart;
 
-  public MUSCLE_GROUPS = MUSCLE_GROUPS;
+  public MUSCLE_GROUPS = MUSCLE_GROUPS_ES;
   public isMenuOpen = false;
   public menuEvent?: Event;
 

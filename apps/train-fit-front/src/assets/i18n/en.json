@@ -1239,5 +1239,13 @@
     "NOTE_TITLE": "Important Note",
     "NOTE_TEXT": "The services provided are not considered professional medical services.",
     "DESCRIPTION": "TrainFit's nutritional recommendations are based on official sources."
+  },
+  "EXERCISE_FILTER": {
+    "ALL_EXERCISES": "All exercises",
+    "MY_EXERCISES": "My exercises",
+    "FAVORITE_EXERCISES": "Favorite exercises",
+    "ALL": "All",
+    "FAVORITES": "Favorites",
+    "NO_CATEGORIES": "No categories"
   }
 }

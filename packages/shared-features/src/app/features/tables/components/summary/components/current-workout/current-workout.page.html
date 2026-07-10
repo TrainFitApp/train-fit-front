@@ -129,7 +129,7 @@
                   class="exercise-name-text"
                   [class.completed]="isCustomExerciseCompleted(exercise)"
                 >
-                  {{ exercise.exercise.name }}
+                  {{ exercise.exercise.name | translateDb }}
                 </span>
               </div>
 
