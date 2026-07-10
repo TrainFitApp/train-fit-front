@@ -2,22 +2,20 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Ficha</h1>
+        <h1 class="tf-page-header__title">{{ 'SIGN_UP.DATA_SHEET.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
   </div>
 </ion-header>
 
-
 <ion-content class="compact-content">
   <ng-container *ngIf="!codeSended">
-    <!-- Características físicas compactas con nombre como título -->
     <ion-card class="stats-card">
       <div class="card-header">
         <ion-icon name="person-circle-outline"></ion-icon>
@@ -27,87 +25,82 @@
         <div class="stat-item">
           <ion-icon name="body-outline"></ion-icon>
           <div class="stat-value">{{ user.weight }} kg</div>
-          <div class="stat-label">Peso</div>
+          <div class="stat-label">{{ 'SIGN_UP.DATA_SHEET.WEIGHT' | translate }}</div>
         </div>
         <div class="stat-item">
           <ion-icon name="resize-outline"></ion-icon>
           <div class="stat-value">{{ user.height }} cm</div>
-          <div class="stat-label">Altura</div>
+          <div class="stat-label">{{ 'SIGN_UP.DATA_SHEET.HEIGHT' | translate }}</div>
         </div>
         <div class="stat-item">
           <ion-icon name="calendar-outline"></ion-icon>
-          <div class="stat-value">{{ getAge(user.birth) }} años</div>
-          <div class="stat-label">Edad</div>
+          <div class="stat-value">{{ getAge(user.birth) }} {{ 'SIGN_UP.DATA_SHEET.YEARS' | translate }}</div>
+          <div class="stat-label">{{ 'SIGN_UP.DATA_SHEET.AGE' | translate }}</div>
         </div>
         <div class="stat-item">
           <ion-icon name="person-outline"></ion-icon>
           <div class="stat-value">{{ SEX[user.sex] }}</div>
-          <div class="stat-label">Sexo</div>
+          <div class="stat-label">{{ 'SIGN_UP.DATA_SHEET.SEX' | translate }}</div>
         </div>
       </div>
     </ion-card>
 
-    <!-- Actividad -->
     <ion-card class="info-card" *ngIf="activityType">
       <div class="card-header">
         <ion-icon name="flash-outline"></ion-icon>
-        <span class="card-title">NIVEL DE ACTIVIDAD</span>
+        <span class="card-title">{{ 'SIGN_UP.DATA_SHEET.ACTIVITY_LEVEL' | translate }}</span>
       </div>
       <div class="card-content">
-        <div class="activity-name">{{ activityType.name }}</div>
+        <div class="activity-name">{{ activityType.name | translate }}</div>
       </div>
     </ion-card>
 
-    <!-- Objetivo -->
     <ion-card class="info-card objective-card">
       <div class="card-header">
         <ion-icon name="rocket-outline"></ion-icon>
-        <span class="card-title">OBJETIVO DIARIO</span>
+        <span class="card-title">{{ 'SIGN_UP.DATA_SHEET.DAILY_GOAL' | translate }}</span>
       </div>
       <div class="card-content objective-content">
         <div class="objective-message">{{ objetiveMessage }}</div>
-        <div class="calories">{{ user.kcalTotal }} <span class="unit">kcal</span></div>
+        <div class="calories">{{ user.kcalTotal }} <span class="unit">{{ 'SIGN_UP.DATA_SHEET.KCAL' | translate }}</span></div>
       </div>
     </ion-card>
 
-    <!-- Advertencia -->
     <ion-card class="info-card warning-card">
       <div class="warning-content">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <div class="warning-text">
-          <h5 class="card-title">ADVERTENCIA</h5>
-          <p>Te enviaremos un correo con un código de verificación</p>
+          <h5 class="card-title">{{ 'SIGN_UP.DATA_SHEET.WARNING' | translate }}</h5>
+          <p>{{ 'SIGN_UP.DATA_SHEET.WARNING_TEXT' | translate }}</p>
         </div>
       </div>
     </ion-card>
 
-    <!-- Botón -->
     <div class="action-container">
       <ion-button *ngIf="!isProcessing" (click)="register()" expand="block" class="submit-button">
-        DEFEAT YOUR LIMITS
+        {{ 'SIGN_UP.DATA_SHEET.CTA' | translate }}
       </ion-button>
 
       <ion-button *ngIf="isProcessing" expand="block" [disabled]="true" class="submit-button">
         <div class="loading-container">
-          Procesando
+          {{ 'SIGN_UP.DATA_SHEET.PROCESSING' | translate }}
           <ion-spinner name="dots"></ion-spinner>
         </div>
       </ion-button>
     </div>
   </ng-container>
 
-  <!-- PANTALLA DE CÓDIGO (Estilo Restore Password) -->
   <ng-container *ngIf="codeSended">
     <div class="content-wrapper">
       <div class="verification-message">
         <ion-label>
-          Introduce el <strong>código de verificación</strong> que hemos
-          enviado a <strong>{{ user.email }}</strong>
+          {{ 'SIGN_UP.VERIFY_MESSAGE' | translate }}
+          <strong>{{ user.email }}</strong>
         </ion-label>
         <p
           style="font-size: 0.85em; color: var(--text-secondary); margin-top: 12px; margin-bottom: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
           <ion-icon name="alert-circle-outline" style="font-size: 16px;"></ion-icon>
-          <span>Revisa la carpeta de <strong>Spam</strong> si no lo encuentras</span>
+          <span>{{ 'SIGN_UP.SPAM_WARNING' | translate }}</span>
         </p>
       </div>
 
@@ -115,22 +108,22 @@
         <div class="input-group">
           <div class="input-wrapper verification-input">
             <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
-            <input type="text" placeholder="Código" class="input-field verification-field" #codeInput />
+            <input type="text" [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate" class="input-field verification-field" #codeInput />
           </div>
         </div>
       </div>
 
       <ion-button expand="block" class="login-button" (click)="verifyCode()" [disabled]="isProcessing">
-        <span *ngIf="!isProcessing">VERIFICAR CÓDIGO</span>
+        <span *ngIf="!isProcessing">{{ 'SIGN_UP.VERIFY_CODE_BUTTON' | translate }}</span>
         <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
       </ion-button>
 
       <div style="margin-top: 20px; text-align: center;">
         <p style="font-size: 0.9em; color: var(--ion-color-medium);">
-          ¿No has recibido el código?
+          {{ 'SIGN_UP.NO_CODE' | translate }}
         </p>
         <ion-button fill="clear" size="small" (click)="resendCode()" [disabled]="isProcessing || resendDisabled">
-          {{ resendDisabled ? 'Reenviar en ' + resendCountdown + 's' : 'Reenviar código' }}
+          {{ resendDisabled ? ('SIGN_UP.RESEND_IN' | translate) + ' ' + resendCountdown + 's' : ('SIGN_UP.RESEND_CODE' | translate) }}
         </ion-button>
       </div>
     </div>

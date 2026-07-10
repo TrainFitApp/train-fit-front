@@ -9,11 +9,10 @@
         #swiperSignUp
       >
         <ng-container *ngIf="!verifyEmailOnly">
-          <!-- Nombre y Apellido en el mismo swipe -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Cuéntanos sobre ti</h2>
-              <p class="section-subtitle">Empecemos con lo básico.</p>
+              <h2 class="section-title">{{ 'SIGN_UP.TELL_US_ABOUT_YOU' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.START_WITH_BASICS' | translate }}</p>
 
               <div class="input-group">
                 <div class="input-wrapper">
@@ -23,7 +22,7 @@
                     id="name"
                     formControlName="name"
                     class="input-field"
-                    placeholder="Nombre"
+                    [placeholder]="'SIGN_UP.NAME_PLACEHOLDER' | translate"
                     required
                   />
                 </div>
@@ -32,7 +31,7 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('name')?.errors?.['required']"
-                    >El nombre es obligatorio</span
+                    >{{ 'SIGN_UP.NAME_REQUIRED' | translate }}</span
                   >
                 </div>
               </div>
@@ -45,7 +44,7 @@
                     id="lastname"
                     formControlName="lastname"
                     class="input-field"
-                    placeholder="Apellido"
+                    [placeholder]="'SIGN_UP.LASTNAME_PLACEHOLDER' | translate"
                     required
                   />
                 </div>
@@ -54,18 +53,17 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('lastname')?.errors?.['required']"
-                    >Apellidos obligatorios</span
+                    >{{ 'SIGN_UP.LASTNAME_REQUIRED' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Fecha de nacimiento en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Fecha de nacimiento</h2>
-              <p class="section-subtitle">Selecciona tu fecha de nacimiento.</p>
+              <h2 class="section-title">{{ 'SIGN_UP.BIRTH_DATE' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.SELECT_BIRTH_DATE' | translate }}</p>
 
               <div class="input-group">
                 <div
@@ -100,13 +98,13 @@
                         [min]="getMinDate()"
                         [showDefaultButtons]="true"
                         locale="es-ES"
-                        [doneText]="'CONFIRMAR'"
-                        [cancelText]="'CANCELAR'"
+                        [doneText]="('COMMON.CONFIRM' | translate)"
+                        [cancelText]="('COMMON.CANCEL' | translate)"
                         (ionChange)="onDateChange($event)"
                       >
                         <div slot="title" class="datetime-title">
                           <ion-icon name="calendar-outline"></ion-icon>
-                          <span>Fecha de nacimiento</span>
+                          <span>{{ 'SIGN_UP.BIRTH_DATE' | translate }}</span>
                         </div>
                       </ion-datetime>
                     </ng-template>
@@ -117,18 +115,23 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
-                    >La fecha de nacimiento es obligatoria</span
+                    >{{ 'SIGN_UP.BIRTH_REQUIRED' | translate }}</span
+                  >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['minAge']"
+                    >{{ 'SIGN_UP.BIRTH_MIN_AGE' | translate }}</span
+                  >
+                  <span *ngIf="signUpForm.get('birth')?.errors?.['maxAge']"
+                    >{{ 'SIGN_UP.BIRTH_INVALID' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Peso en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Tu peso</h2>
-              <p class="section-subtitle">Introduce tu peso en kilogramos.</p>
+              <h2 class="section-title">{{ 'SIGN_UP.YOUR_WEIGHT' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.WEIGHT_SUBTITLE' | translate }}</p>
               <div class="input-group">
                 <div class="input-wrapper">
                   <ion-icon
@@ -142,7 +145,7 @@
                     formControlName="weight"
                     class="input-field"
                     step="0.1"
-                    placeholder="Peso"
+                    [placeholder]="'SIGN_UP.WEIGHT_PLACEHOLDER' | translate"
                     required
                     appDecimalInput
                   />
@@ -152,25 +155,24 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
-                    >El peso es obligatorio</span
+                    >{{ 'SIGN_UP.WEIGHT_REQUIRED' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
-                    >El peso mínimo es 30 kg</span
+                    >{{ 'SIGN_UP.WEIGHT_MIN' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
-                    >El peso máximo es 300 kg</span
+                    >{{ 'SIGN_UP.WEIGHT_MAX' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Altura en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Tu altura</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.YOUR_HEIGHT' | translate }}</h2>
               <p class="section-subtitle">
-                Introduce tu altura en centímetros.
+                {{ 'SIGN_UP.HEIGHT_SUBTITLE' | translate }}
               </p>
               <div class="input-group">
                 <div class="input-wrapper">
@@ -181,7 +183,7 @@
                     id="height"
                     formControlName="height"
                     class="input-field"
-                    placeholder="Altura en cm"
+                    [placeholder]="'SIGN_UP.HEIGHT_PLACEHOLDER' | translate"
                     required
                   />
                 </div>
@@ -190,25 +192,24 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('height')?.errors?.['required']"
-                    >La altura es obligatoria</span
+                    >{{ 'SIGN_UP.HEIGHT_REQUIRED' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('height')?.errors?.['min']"
-                    >La altura mínima es 70 cm</span
+                    >{{ 'SIGN_UP.HEIGHT_MIN' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('height')?.errors?.['max']"
-                    >La altura máxima es 300 cm</span
+                    >{{ 'SIGN_UP.HEIGHT_MAX' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Sexo en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Sexo</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.SEX' | translate }}</h2>
               <p class="section-subtitle">
-                Selecciona tu sexo asignado al nacer.
+                {{ 'SIGN_UP.SEX_SUBTITLE' | translate }}
               </p>
               <div class="choice-group">
                 <div
@@ -224,7 +225,7 @@
                       [value]="SEX_TYPES.male"
                       formControlName="sex"
                     />
-                    <label for="male"><span>Masculino</span></label>
+                    <label for="male"><span>{{ 'SIGN_UP.MALE' | translate }}</span></label>
                   </div>
                   <div class="gender-option">
                     <input
@@ -233,7 +234,7 @@
                       [value]="SEX_TYPES.female"
                       formControlName="sex"
                     />
-                    <label for="female"><span>Femenino</span></label>
+                    <label for="female"><span>{{ 'SIGN_UP.FEMALE' | translate }}</span></label>
                   </div>
                 </div>
                 <div
@@ -241,19 +242,18 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('sex')?.errors?.['required']"
-                    >El sexo es obligatorio</span
+                    >{{ 'SIGN_UP.SEX_REQUIRED' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Pasos por día en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Tu actividad diaria</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.DAILY_ACTIVITY' | translate }}</h2>
               <p class="section-subtitle">
-                ¿Cuántos pasos das al día aproximadamente?
+                {{ 'SIGN_UP.DAILY_ACTIVITY_SUBTITLE' | translate }}
               </p>
               <div
                 class="selection-options"
@@ -267,14 +267,14 @@
                   [class.selected]="signUpForm.get('steps')?.value === stepValue.value"
                   (click)="selectSteps(stepValue.value)"
                 >
-                  <h3 class="selection-title">{{ stepValue.name }}</h3>
+                  <h3 class="selection-title">{{ stepValue.name | translate }}</h3>
                 </div>
               </div>
               <div
                 *ngIf="signUpForm.get('steps')?.invalid && signUpForm.get('steps')?.touched"
                 class="validation-error"
               >
-                <span>Los pasos diarios son obligatorios</span>
+                <span>{{ 'SIGN_UP.STEPS_REQUIRED' | translate }}</span>
               </div>
             </div>
           </swiper-slide>
@@ -283,9 +283,9 @@
             *ngIf="signUpForm.controls.steps.value && signUpForm.controls.steps.value === STEPS[STEPS_TYPES.notCounted].value"
           >
             <div class="form-section">
-              <h2 class="section-title">Tu nivel de actividad</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.ACTIVITY_LEVEL' | translate }}</h2>
               <p class="section-subtitle">
-                Describe tu nivel de actividad general, sin contar el ejercicio.
+                {{ 'SIGN_UP.ACTIVITY_LEVEL_SUBTITLE' | translate }}
               </p>
 
               <div
@@ -300,8 +300,8 @@
                   [class.selected]="signUpForm.controls.activity.value === activity.value"
                   (click)="selectActivity(activity.value)"
                 >
-                  <h3 class="selection-title">{{ activity.name }}</h3>
-                  <p class="selection-desc">{{ activity.description }}</p>
+                  <h3 class="selection-title">{{ activity.name | translate }}</h3>
+                  <p class="selection-desc">{{ activity.description | translate }}</p>
                 </div>
               </div>
 
@@ -309,22 +309,17 @@
                 *ngIf="signUpForm.get('activity')?.invalid && signUpForm.get('activity')?.touched"
                 class="validation-error"
               >
-                <span>El nivel de actividad es obligatorio</span>
+                <span>{{ 'SIGN_UP.ACTIVITY_REQUIRED' | translate }}</span>
               </div>
 
-              <!-- <div *ngIf="signUpForm.controls.activity.value " class="activity-info">
-            <h3 class="activity-title">{{ activityType?.name }}</h3>
-            <p class="activity-description">{{ activityType?.description }}</p>
-          </div> -->
             </div>
           </swiper-slide>
 
-          <!-- Días de entrenamiento en swipe separado -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Días de entrenamiento</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.TRAINING_DAYS' | translate }}</h2>
               <p class="section-subtitle">
-                ¿Cuántos días entrenas con pesas a la semana?
+                {{ 'SIGN_UP.TRAINING_DAYS_SUBTITLE' | translate }}
               </p>
 
               <div
@@ -339,23 +334,22 @@
                   [class.selected]="signUpForm.controls.training.value === training.value"
                   (click)="selectTraining(training.value)"
                 >
-                  <h3 class="selection-title">{{ training.name }}</h3>
+                  <h3 class="selection-title">{{ training.name | translate }}</h3>
                 </div>
               </div>
               <div
                 *ngIf="signUpForm.get('training')?.invalid && signUpForm.get('training')?.touched"
                 class="validation-error"
               >
-                <span>Los días de entrenamiento son obligatorios</span>
+                <span>{{ 'SIGN_UP.TRAINING_REQUIRED' | translate }}</span>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Objetivo en swipe separado (con selector de calorías) -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">¿Cuál es tu objetivo?</h2>
-              <p class="section-subtitle">Selecciona tu meta principal.</p>
+              <h2 class="section-title">{{ 'SIGN_UP.WHAT_IS_YOUR_GOAL' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.SELECT_MAIN_GOAL' | translate }}</p>
               <div
                 class="selection-options"
                 [ngClass]="{
@@ -368,24 +362,24 @@
                   [class.selected]="signUpForm.get('objetive')?.value === objetive.value"
                   (click)="selectObjetive(objetive)"
                 >
-                  <h3 class="selection-title">{{ objetive.name }}</h3>
+                  <h3 class="selection-title">{{ objetive.name | translate }}</h3>
                   <p
                     class="selection-desc"
                     *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.gain].key"
                   >
-                    Priorizar el crecimiento y la fuerza muscular.
+                    {{ 'SIGN_UP.GOAL_GAIN_DESC' | translate }}
                   </p>
                   <p
                     class="selection-desc"
                     *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.loss].key"
                   >
-                    Optimizar tu plan para la quema de grasa.
+                    {{ 'SIGN_UP.GOAL_LOSS_DESC' | translate }}
                   </p>
                   <p
                     class="selection-desc"
                     *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.maintenance].key"
                   >
-                    Mantener tu físico y mejorar tu salud.
+                    {{ 'SIGN_UP.GOAL_MAINTENANCE_DESC' | translate }}
                   </p>
                 </div>
               </div>
@@ -394,7 +388,7 @@
                 *ngIf="signUpForm.get('objetive')?.invalid && signUpForm.get('objetive')?.touched"
                 class="validation-error"
               >
-                <span>Tu objetivo principal es obligatorio</span>
+                <span>{{ 'SIGN_UP.GOAL_REQUIRED' | translate }}</span>
               </div>
 
               <div
@@ -402,12 +396,12 @@
                 class="calorie-selector"
               >
                 <h3 class="calorie-title">
-                  Selecciona tu
+                  {{ 'SIGN_UP.SELECT_YOUR' | translate }}
                   <span class="calorie-type">
-                    {{ signUpForm.get('objetive').value > 0 ? 'superávit' :
-                    'déficit' }}
+                    {{ signUpForm.get('objetive').value > 0 ? ('SIGN_UP.SURPLUS' | translate) :
+                    ('SIGN_UP.DEFICIT' | translate) }}
                   </span>
-                  calórico
+                  {{ 'SIGN_UP.CALORIC' | translate }}
                 </h3>
                 <ion-range
                   class="ion-margin ion-padding"
@@ -425,32 +419,30 @@
                 ></ion-range>
 
                 <p class="calorie-description">
-                  Cuanto
+                  {{ 'SIGN_UP.THE_MORE' | translate }}
                   <span class="highlight"
-                    >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
-                    }}</span
+                    >{{ signUpForm.controls.objetive.value > 0 ? ('SIGN_UP.MORE' | translate) : ('SIGN_UP.LESS' | translate) }}</span
                   >
-                  kcal selecciones, la
+                  {{ 'SIGN_UP.KCAL_SELECT' | translate }}
                   <span class="highlight"
-                    >{{ signUpForm.controls.objetive.value > 0 ? 'subida' :
-                    'bajada' }}</span
+                    >{{ signUpForm.controls.objetive.value > 0 ? ('SIGN_UP.INCREASE' | translate) :
+                    ('SIGN_UP.DECREASE' | translate) }}</span
                   >
-                  de peso será
+                  {{ 'SIGN_UP.WILL_BE' | translate }}
                   <span class="highlight"
-                    >{{ signUpForm.controls.objetive.value > 0 ? 'más' : 'menos'
-                    }} agresiva</span
+                    >{{ signUpForm.controls.objetive.value > 0 ? ('SIGN_UP.MORE' | translate) : ('SIGN_UP.LESS' | translate)
+                    }} {{ 'SIGN_UP.AGGRESSIVE' | translate }}</span
                   >
                 </p>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Email en swipe separado (solo si aplica) -->
           <swiper-slide *ngIf="registerSocialPending">
             <div class="form-section">
-              <h2 class="section-title">Tu correo electrónico</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.YOUR_EMAIL' | translate }}</h2>
               <p class="section-subtitle">
-                Te enviaremos un mail de activación.
+                {{ 'SIGN_UP.EMAIL_SUBTITLE' | translate }}
               </p>
               <div class="input-group">
                 <div
@@ -462,7 +454,7 @@
                   <ion-icon name="mail-outline" class="input-icon"></ion-icon>
                   <input
                     type="email"
-                    placeholder="Email *"
+                    [placeholder]="'SIGN_UP.EMAIL_PLACEHOLDER' | translate"
                     formControlName="email"
                     class="input-field"
                   />
@@ -472,25 +464,24 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('email')?.errors?.['required']"
-                    >El email es obligatorio</span
+                    >{{ 'SIGN_UP.EMAIL_REQUIRED' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('email')?.errors?.['email']"
-                    >Ingresa un email válido</span
+                    >{{ 'SIGN_UP.EMAIL_INVALID' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('email')?.errors?.['emailExist']"
-                    >Este correo ya está registrado</span
+                    >{{ 'SIGN_UP.EMAIL_EXISTS' | translate }}</span
                   >
                 </div>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Contraseña y repetir contraseña en el mismo swipe (solo si aplica) -->
           <swiper-slide *ngIf="registerSocialPending">
             <div class="form-section">
-              <h2 class="section-title">Contraseña</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.PASSWORD' | translate }}</h2>
               <p class="section-subtitle">
-                Crea y confirma una contraseña segura.
+                {{ 'SIGN_UP.PASSWORD_SUBTITLE' | translate }}
               </p>
               <div class="input-group">
                 <div class="input-wrapper">
@@ -500,7 +491,7 @@
                   ></ion-icon>
                   <input
                     [type]="showPass ? 'text' : 'password'"
-                    placeholder="Contraseña *"
+                    [placeholder]="'SIGN_UP.PASSWORD_PLACEHOLDER' | translate"
                     formControlName="password"
                     class="input-field"
                   />
@@ -520,18 +511,18 @@
                   class="validation-error"
                 >
                   <span *ngIf="signUpForm.get('password')?.errors?.['required']"
-                    >La contraseña es obligatoria</span
+                    >{{ 'SIGN_UP.PASS_REQUIRED' | translate }}</span
                   >
                   <span *ngIf="signUpForm.get('password')?.errors?.['length']"
-                    >La contraseña debe tener entre 6 y 15 caracteres</span
+                    >{{ 'SIGN_UP.PASS_LENGTH' | translate }}</span
                   >
                   <span
                     *ngIf="signUpForm.get('password')?.errors?.['uppercase']"
-                    >Debe incluir al menos una letra mayúscula</span
+                    >{{ 'SIGN_UP.PASS_UPPERCASE' | translate }}</span
                   >
                   <span
                     *ngIf="signUpForm.get('password')?.errors?.['lowercase']"
-                    >Debe incluir al menos una letra minúscula</span
+                    >{{ 'SIGN_UP.PASS_LOWERCASE' | translate }}</span
                   >
                 </div>
               </div>
@@ -544,7 +535,7 @@
                   ></ion-icon>
                   <input
                     [type]="showPassRep ? 'text' : 'password'"
-                    placeholder="Repita la contraseña *"
+                    [placeholder]="'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate"
                     formControlName="passwordRep"
                     class="input-field"
                   />
@@ -566,38 +557,36 @@
                   <span
                     *ngIf="signUpForm.get('passwordRep')?.errors?.['required']"
                   >
-                    Confirma tu contraseña
+                    {{ 'SIGN_UP.PASS_CONFIRM' | translate }}
                   </span>
                   <span
                     *ngIf="signUpForm.get('passwordRep')?.errors?.['length']"
-                    >La contraseña debe tener entre 6 y 15 caracteres</span
+                    >{{ 'SIGN_UP.PASS_LENGTH' | translate }}</span
                   >
                   <span
                     *ngIf="signUpForm.get('passwordRep')?.errors?.['uppercase']"
-                    >Debe incluir al menos una letra mayúscula</span
+                    >{{ 'SIGN_UP.PASS_UPPERCASE' | translate }}</span
                   >
                   <span
                     *ngIf="signUpForm.get('passwordRep')?.errors?.['lowercase']"
-                    >Debe incluir al menos una letra minúscula</span
+                    >{{ 'SIGN_UP.PASS_LOWERCASE' | translate }}</span
                   >
                 </div>
               </div>
 
-              <!-- Error de coincidencia de contraseñas (a nivel de formulario) -->
               <div
                 *ngIf="(signUpForm.get('password')?.touched || signUpForm.get('passwordRep')?.touched) && signUpForm.errors?.['notSame']"
                 class="validation-error"
               >
-                <span>Las contraseñas no coinciden</span>
+                <span>{{ 'SIGN_UP.PASS_NOT_MATCH' | translate }}</span>
               </div>
             </div>
           </swiper-slide>
 
-          <!-- Términos, Privacidad y botón VER FICHA en el mismo swipe -->
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">Finalizar registro</h2>
-              <p class="section-subtitle">Acepta las condiciones y continúa.</p>
+              <h2 class="section-title">{{ 'SIGN_UP.FINISH_REGISTRATION' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
               <div class="checkbox-section">
                 <div
                   class="checkbox-item"
@@ -613,12 +602,12 @@
                     (click)="$event.stopPropagation()"
                   ></ion-checkbox>
                   <span class="checkbox-label">
-                    Acepto los
+                    {{ 'SIGN_UP.I_ACCEPT' | translate }}
                     <a
                       [href]="LINKS.termsAndConditions"
                       class="checkbox-link"
                       (click)="$event.stopPropagation()"
-                      >Términos y Condiciones</a
+                      >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a
                     >
                   </span>
                   <ion-icon
@@ -631,7 +620,7 @@
                   *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
                   class="validation-error"
                 >
-                  <span>Aceptar los Términos y Condiciones es obligatorio</span>
+                  <span>{{ 'SIGN_UP.TERMS_REQUIRED' | translate }}</span>
                 </div>
 
                 <div
@@ -648,12 +637,12 @@
                     (click)="$event.stopPropagation()"
                   ></ion-checkbox>
                   <span class="checkbox-label">
-                    He leído la
+                    {{ 'SIGN_UP.I_HAVE_READ' | translate }}
                     <a
                       [href]="LINKS.privacyAndPolicy"
                       class="checkbox-link"
                       (click)="$event.stopPropagation()"
-                      >Política de Privacidad</a
+                      >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a
                     >
                   </span>
                   <ion-icon
@@ -666,7 +655,7 @@
                   *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
                   class="validation-error"
                 >
-                  <span>Aceptar la Política de Privacidad es obligatorio</span>
+                  <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
                 </div>
               </div>
               <div class="submit-button-container">
@@ -677,7 +666,7 @@
                   [disabled]="signUpForm.invalid"
                   *ngIf="!isLastDataSlide"
                 >
-                  <strong>VER FICHA</strong>
+                  <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
                 </ion-button>
               </div>
               <div *ngIf="signUpForm.invalid && error" class="error-message">
@@ -686,12 +675,11 @@
               </div>
             </div>
           </swiper-slide>
-          <!-- Ficha de Datos (Resumen) -->
+
           <swiper-slide>
             <div class="form-section compact-section">
-              <h2 class="section-title">Tu ficha de bienvenida</h2>
+              <h2 class="section-title">{{ 'SIGN_UP.WELCOME_SHEET' | translate }}</h2>
 
-              <!-- Características físicas compactas -->
               <div class="stats-card-modern">
                 <div class="card-header-modern">
                   <ion-icon name="person-circle-outline"></ion-icon>
@@ -703,58 +691,55 @@
                   <div class="stat-item-modern">
                     <ion-icon name="fitness-outline"></ion-icon>
                     <div class="stat-value-modern">{{ weight }} kg</div>
-                    <div class="stat-label-modern">Peso</div>
+                    <div class="stat-label-modern">{{ 'SIGN_UP.WEIGHT_LABEL' | translate }}</div>
                   </div>
                   <div class="stat-item-modern">
                     <ion-icon name="resize-outline"></ion-icon>
                     <div class="stat-value-modern">{{ height }} cm</div>
-                    <div class="stat-label-modern">Altura</div>
+                    <div class="stat-label-modern">{{ 'SIGN_UP.HEIGHT_LABEL' | translate }}</div>
                   </div>
                   <div class="stat-item-modern">
                     <ion-icon name="calendar-outline"></ion-icon>
-                    <div class="stat-value-modern">{{ years }} años</div>
-                    <div class="stat-label-modern">Edad</div>
+                    <div class="stat-value-modern">{{ years }} {{ 'SIGN_UP.YEARS' | translate }}</div>
+                    <div class="stat-label-modern">{{ 'SIGN_UP.AGE_LABEL' | translate }}</div>
                   </div>
                   <div class="stat-item-modern">
                     <ion-icon name="person-outline"></ion-icon>
                     <div class="stat-value-modern">
-                      {{ sex === SEX_TYPES.male ? 'Masc.' : 'Fem.' }}
+                      {{ sex === SEX_TYPES.male ? ('SIGN_UP.MALE_SHORT' | translate) : ('SIGN_UP.FEMALE_SHORT' | translate) }}
                     </div>
-                    <div class="stat-label-modern">Sexo</div>
+                    <div class="stat-label-modern">{{ 'SIGN_UP.SEX_LABEL' | translate }}</div>
                   </div>
                 </div>
               </div>
 
-              <!-- Actividad -->
               <div class="info-card-modern" *ngIf="activityType">
                 <div class="card-header-modern">
                   <ion-icon name="flash-outline"></ion-icon>
-                  <span class="card-title-modern">NIVEL DE ACTIVIDAD</span>
+                  <span class="card-title-modern">{{ 'SIGN_UP.ACTIVITY_LEVEL_TITLE' | translate }}</span>
                 </div>
                 <div class="card-content-modern">
                   <div class="activity-name-modern">
-                    {{ activityType.name }}
+                    {{ activityType.name | translate }}
                   </div>
                 </div>
               </div>
 
-              <!-- Objetivo -->
               <div class="info-card-modern objective-card-modern">
                 <div class="card-header-modern">
                   <ion-icon name="rocket-outline"></ion-icon>
-                  <span class="card-title-modern">OBJETIVO DIARIO</span>
+                  <span class="card-title-modern">{{ 'SIGN_UP.DAILY_GOAL' | translate }}</span>
                 </div>
                 <div class="card-content-modern objective-content-modern">
                   <div class="objective-message-modern">
                     {{ objetiveMessage }}
                   </div>
                   <div class="calories-modern">
-                    {{ kcalTotal }} <span class="unit-modern">kcal</span>
+                    {{ kcalTotal }} <span class="unit-modern">{{ 'SIGN_UP.KCAL' | translate }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Advertencia (solo si registro tradicional) -->
               <div
                 class="info-card-modern warning-card-modern"
                 *ngIf="registerSocialPending"
@@ -762,8 +747,8 @@
                 <div class="warning-content-modern">
                   <ion-icon name="alert-circle-outline"></ion-icon>
                   <div class="warning-text-modern">
-                    <h5 class="card-title-modern">ADVERTENCIA</h5>
-                    <p>Te enviaremos un correo con un código de verificación</p>
+                    <h5 class="card-title-modern">{{ 'SIGN_UP.WARNING' | translate }}</h5>
+                    <p>{{ 'SIGN_UP.VERIFICATION_EMAIL_WARNING' | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -771,21 +756,19 @@
           </swiper-slide>
         </ng-container>
 
-        <!-- Slide de Verificación (solo si aplica y el código ha sido enviado) -->
         <swiper-slide
           *ngIf="verifyEmailOnly || (registerSocialPending && codeSended)"
         >
           <div class="form-section verification-section">
-            <h2 class="section-title">Verifica tu cuenta</h2>
+            <h2 class="section-title">{{ 'SIGN_UP.VERIFY_ACCOUNT' | translate }}</h2>
             <p class="section-subtitle">
-              Introduce el código enviado a tu email.
+              {{ 'SIGN_UP.VERIFY_SUBTITLE' | translate }}
             </p>
 
             <div class="verification-wrapper-modern">
               <div class="verification-message-modern">
                 <ion-label>
-                  Introduce el <strong>código de verificación</strong> que hemos
-                  enviado a
+                  {{ 'SIGN_UP.VERIFY_MESSAGE' | translate }}
                   <strong
                     >{{ verifyEmailOnly ? user.email :
                     signUpForm.get('email')?.value }}</strong
@@ -793,10 +776,7 @@
                 </ion-label>
                 <p class="spam-warning-modern">
                   <ion-icon name="alert-circle-outline"></ion-icon>
-                  <span
-                    >Revisa la carpeta de <strong>Spam</strong> si no lo
-                    encuentras</span
-                  >
+                  <span>{{ 'SIGN_UP.SPAM_WARNING' | translate }}</span>
                 </p>
               </div>
 
@@ -809,7 +789,7 @@
                     ></ion-icon>
                     <input
                       type="text"
-                      placeholder="Código"
+                      [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"
                       class="input-field-modern verification-field-modern"
                       #codeInput
                     />
@@ -823,20 +803,20 @@
                 (click)="verifyCode()"
                 [disabled]="isProcessing"
               >
-                <span *ngIf="!isProcessing">VERIFICAR CÓDIGO</span>
+                <span *ngIf="!isProcessing">{{ 'SIGN_UP.VERIFY_CODE_BUTTON' | translate }}</span>
                 <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
               </ion-button>
 
               <div class="resend-container-modern">
-                <p>¿No has recibido el código?</p>
+                <p>{{ 'SIGN_UP.NO_CODE' | translate }}</p>
                 <ion-button
                   fill="clear"
                   size="small"
                   (click)="resendCode()"
                   [disabled]="isProcessing || resendDisabled"
                 >
-                  {{ resendDisabled ? 'Reenviar en ' + resendCountdown + 's' :
-                  'Reenviar código' }}
+                  {{ resendDisabled ? ('SIGN_UP.RESEND_IN' | translate) + ' ' + resendCountdown + 's' :
+                  ('SIGN_UP.RESEND_CODE' | translate) }}
                 </ion-button>
               </div>
             </div>
@@ -856,7 +836,7 @@
       fill="outline"
     >
       <ion-icon name="exit-outline" slot="start"></ion-icon>
-      Salir
+      {{ 'SIGN_UP.EXIT' | translate }}
     </ion-button>
     <ion-button
       class="nav-button prev"
@@ -865,14 +845,14 @@
       fill="outline"
     >
       <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-      Anterior
+      {{ 'SIGN_UP.PREVIOUS' | translate }}
     </ion-button>
     <ion-button
       class="nav-button next"
       (click)="nextSlide()"
       *ngIf="existNext && !isLastDataSlide && !isLastFormSlide && !verifyEmailOnly"
     >
-      <strong>SIGUIENTE</strong>
+      <strong>{{ 'SIGN_UP.NEXT' | translate }}</strong>
       <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
     </ion-button>
 
@@ -882,7 +862,7 @@
       *ngIf="isLastDataSlide && !codeSended"
       [disabled]="isProcessing"
     >
-      <span *ngIf="!isProcessing"><strong>FINALIZAR</strong></span>
+      <span *ngIf="!isProcessing"><strong>{{ 'SIGN_UP.FINALIZE' | translate }}</strong></span>
       <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
       <ion-icon
         name="checkmark-circle-outline"

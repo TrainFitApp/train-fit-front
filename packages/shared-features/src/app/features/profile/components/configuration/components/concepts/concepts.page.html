@@ -11,7 +11,7 @@
         <ion-searchbar
           (ionInput)="searchConcepts($event)"
           debounce="500"
-          placeholder="Buscar conceptos..."
+          placeholder="{{ 'CONCEPTS.SEARCH_PLACEHOLDER' | translate }}"
           mode="ios"
           animated
           class="custom-searchbar"
@@ -36,7 +36,7 @@
         <ion-card-header class="concept-header">
           <div class="concept-title-row">
             <ion-card-title class="concept-title"
-              >{{ concept.name }}</ion-card-title
+              >{{ 'CONCEPTS.' + concept.key | translate }}</ion-card-title
             >
             <ion-chip
               class="concept-type-chip"
@@ -45,13 +45,13 @@
               <ion-icon
                 [name]="concept.type === CONCEPT_TYPES.nutrition ? 'nutrition-outline' : 'barbell-outline'"
               ></ion-icon>
-              <ion-label>{{ concept.type || 'General' }}</ion-label>
+              <ion-label>{{ getTypeLabel(concept.type) }}</ion-label>
             </ion-chip>
           </div>
         </ion-card-header>
 
         <ion-card-content class="concept-content">
-          <p class="concept-description">{{ concept.description }}</p>
+          <p class="concept-description">{{ 'CONCEPTS.' + concept.key + '_DESC' | translate }}</p>
         </ion-card-content>
       </ion-card>
     </div>
@@ -60,8 +60,8 @@
   <ng-template #noResults>
     <div class="no-results">
       <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
-      <h3>No se encontraron resultados</h3>
-      <p>Intenta con otros términos de búsqueda</p>
+      <h3>{{ 'CONCEPTS.NO_RESULTS_TITLE' | translate }}</h3>
+      <p>{{ 'CONCEPTS.NO_RESULTS_TEXT' | translate }}</p>
     </div>
   </ng-template>
 </ion-content>

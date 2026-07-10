@@ -6,7 +6,14 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { take } from 'rxjs/operators';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { IonModal, Platform, ToastOptions } from '@ionic/angular';
 import { Subscription, Subject } from 'rxjs';
 import { User } from 'src/app/core/models/user';
@@ -53,6 +60,7 @@ import {
   trimmedLengthValidator,
   VALIDATION_LIMITS,
 } from 'src/app/core/constants/validation-limits';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sign-up',
@@ -133,6 +141,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
+  private readonly MIN_SIGN_UP_AGE = 13;
+  private readonly MAX_SIGN_UP_AGE = 120;
+  private _defaultBirthDate: string | null = null;
   private _maxDate: string | null = null;
   private _minDate: string | null = null;
 
@@ -146,7 +157,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private signUpStateService: SignUpStateService,
-    private pendingEmailVerificationService: PendingEmailVerificationService
+    private pendingEmailVerificationService: PendingEmailVerificationService,
+    private translate: TranslateService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
@@ -292,8 +304,11 @@ export class SignUpPage implements OnInit, OnDestroy {
           ])
         ),
         birth: new FormControl(
-          this.getMaxDate(),
-          Validators.compose([Validators.required])
+          this.getDefaultBirthDate(),
+          Validators.compose([
+            Validators.required,
+            this.birthDateAgeRangeValidator(),
+          ])
         ),
         steps: new FormControl(null, Validators.required),
         objetive: new FormControl(null, Validators.required),
@@ -520,8 +535,8 @@ export class SignUpPage implements OnInit, OnDestroy {
         error: (err) => {
           this.isProcessing = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'Error al completar el registro',
-            'Error',
+            err?.error?.message || this.translate.instant('SIGN_UP.REGISTER_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },
@@ -556,7 +571,7 @@ export class SignUpPage implements OnInit, OnDestroy {
                     this.isProcessing = false;
                     this.ionicUtilService.showErrorToast(
                       err,
-                      'Error al guardar la sesión',
+                      this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                       3000
                     );
                   },
@@ -569,8 +584,8 @@ export class SignUpPage implements OnInit, OnDestroy {
             error: (err) => {
               this.isProcessing = false;
               this.ionicUtilService.showErrorToast(
-                err?.error?.message || 'Error al completar el registro social',
-                'Error',
+                err?.error?.message || this.translate.instant('SIGN_UP.SOCIAL_REGISTER_ERROR'),
+                this.translate.instant('COMMON.ERROR'),
                 3000
               );
             },
@@ -586,7 +601,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     );
     if (!code) {
       this.ionicUtilService.showToast({
-        message: 'Introduce el código',
+        message: this.translate.instant('SIGN_UP.ENTER_CODE'),
         duration: 3000,
       });
       return;
@@ -603,7 +618,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     if (!this.user?.email) {
       this.pendingEmailVerificationService.clear();
       this.ionicUtilService.showToast({
-        message: 'No se pudo recuperar el correo de verificación',
+        message: this.translate.instant('SIGN_UP.RECOVER_EMAIL_ERROR'),
         duration: 3000,
       });
       this.navigationService.goToLoginPage();
@@ -615,7 +630,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.userService.activateAccount(this.user.email, code).subscribe({
       next: (response: any) => {
         this.ionicUtilService.showToast({
-          message: 'Cuenta activada correctamente',
+          message: this.translate.instant('SIGN_UP.ACCOUNT_ACTIVATED'),
           duration: 3000,
         });
 
@@ -625,7 +640,7 @@ export class SignUpPage implements OnInit, OnDestroy {
             error: (err) => {
               this.ionicUtilService.showErrorToast(
                 err,
-                'Error al guardar la sesión',
+                this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                 3000
               );
             },
@@ -638,7 +653,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'Código incorrecto',
+          message: err?.error?.message || this.translate.instant('SIGN_UP.INCORRECT_CODE'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -655,14 +670,14 @@ export class SignUpPage implements OnInit, OnDestroy {
         this.pendingEmailVerificationService.markCodeSent(this.user.email);
         this.startResendCooldown();
         this.ionicUtilService.showToast({
-          message: 'Código reenviado',
+          message: this.translate.instant('SIGN_UP.CODE_RESENT'),
           duration: 3000,
         });
         this.isProcessing = false;
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: 'Error al reenviar código',
+          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -709,7 +724,7 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public mailToast(): void {
     const toast: ToastOptions = {
-      message: 'Código enviado a tu correo',
+      message: this.translate.instant('SIGN_UP.CODE_SENT_TO_EMAIL'),
       duration: 7000,
     };
     this.ionicUtilService.showToast(toast);
@@ -730,8 +745,9 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public getMaxDate(): string {
     if (!this._maxDate) {
-      const maxDate = new Date();
-      maxDate.setFullYear(maxDate.getFullYear() - 13);
+      const maxDate = this.getTodayDateOnly();
+      maxDate.setFullYear(maxDate.getFullYear() - this.MIN_SIGN_UP_AGE);
+      maxDate.setMonth(11, 31);
       this._maxDate = maxDate.toISOString();
     }
     return this._maxDate;
@@ -739,11 +755,70 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public getMinDate(): string {
     if (!this._minDate) {
-      const minDate = new Date();
-      minDate.setFullYear(minDate.getFullYear() - 120);
+      const minDate = this.getTodayDateOnly();
+      minDate.setFullYear(minDate.getFullYear() - this.MAX_SIGN_UP_AGE);
+      minDate.setMonth(0, 1);
       this._minDate = minDate.toISOString();
     }
     return this._minDate;
+  }
+
+  private getDefaultBirthDate(): string {
+    if (!this._defaultBirthDate) {
+      const defaultBirthDate = this.getTodayDateOnly();
+      defaultBirthDate.setFullYear(
+        defaultBirthDate.getFullYear() - this.MIN_SIGN_UP_AGE
+      );
+      this._defaultBirthDate = defaultBirthDate.toISOString();
+    }
+    return this._defaultBirthDate;
+  }
+
+  private birthDateAgeRangeValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+
+      const birthDate = this.toDateOnly(control.value);
+      if (!birthDate) {
+        return { invalidDate: true };
+      }
+
+      const youngestAllowedBirthDate = this.getTodayDateOnly();
+      youngestAllowedBirthDate.setFullYear(
+        youngestAllowedBirthDate.getFullYear() - this.MIN_SIGN_UP_AGE
+      );
+
+      if (birthDate > youngestAllowedBirthDate) {
+        return { minAge: true };
+      }
+
+      const oldestAllowedBirthDate = this.getTodayDateOnly();
+      oldestAllowedBirthDate.setFullYear(
+        oldestAllowedBirthDate.getFullYear() - this.MAX_SIGN_UP_AGE
+      );
+
+      if (birthDate < oldestAllowedBirthDate) {
+        return { maxAge: true };
+      }
+
+      return null;
+    };
+  }
+
+  private getTodayDateOnly(): Date {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  }
+
+  private toDateOnly(value: string | Date): Date | null {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   private getControlsForSlideIndex(index: number): string[] {
@@ -828,9 +903,9 @@ export class SignUpPage implements OnInit, OnDestroy {
       objetive: finalKcal,
     };
 
-    if (this.user.objetive > 0) this.objetiveMessage = 'Superávit calórico';
-    else if (this.user.objetive < 0) this.objetiveMessage = 'Déficit calórico';
-    else this.objetiveMessage = 'Mantenimiento';
+    if (this.user.objetive > 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_SURPLUS');
+    else if (this.user.objetive < 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_DEFICIT');
+    else this.objetiveMessage = this.translate.instant('SIGN_UP.MAINTENANCE');
 
     this.years = this.dateValue;
     this.kcalTotal = this.userService.calculateKcal(this.user);
@@ -881,15 +956,15 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   private showExitConfirm(): void {
     const alertOptions = {
-      header: 'Volver atrás',
-      message: 'Perderá todo el progreso',
+      header: this.translate.instant('COMMON.BACK'),
+      message: this.translate.instant('COMMON.LOSE_PROGRESS'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL').toUpperCase(),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM').toUpperCase(),
           cssClass: 'alert-button-primary',
           handler: () => {
             this.pendingEmailVerificationService.clear();

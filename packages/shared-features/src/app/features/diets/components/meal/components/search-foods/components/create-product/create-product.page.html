@@ -24,33 +24,6 @@
   <div class="form-container">
     <form [formGroup]="productForm" class="elegant-form">
       <div class="form-sections">
-        <!-- Campo de cantidad (Solo si hay comida) -->
-        <ion-card class="quantity-card" *ngIf="meal">
-          <ion-card-header>
-            <ion-card-title class="card-title">
-              Cantidad a consumir *
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="quantity-section">
-              <div class="custom-input-container">
-                <div class="input-wrapper">
-                  <ion-input
-                    type="text"
-                    inputmode="decimal"
-                    formControlName="quantity"
-                    class="custom-input"
-                    placeholder="100"
-                    appDecimalInput
-                    [maxDecimals]="2"
-                  ></ion-input>
-                  <span class="input-unit">g</span>
-                </div>
-              </div>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
         <!-- Información general -->
         <ion-card class="product-header-card">
           <ion-card-header>
@@ -102,8 +75,13 @@
                     formControlName="name"
                     class="custom-input"
                     placeholder="Ej: Pechuga de pollo"
+                    [maxlength]="VALIDATION_LIMITS.text.productNameMax"
                   ></ion-input>
                 </div>
+                <app-char-counter
+                  [value]="productForm.get('name')?.value"
+                  [max]="VALIDATION_LIMITS.text.productNameMax"
+                ></app-char-counter>
               </div>
 
               <!-- Marca -->
@@ -115,8 +93,13 @@
                     formControlName="brand"
                     class="custom-input"
                     placeholder="Ej: Carrefour"
+                    [maxlength]="VALIDATION_LIMITS.text.brandMax"
                   ></ion-input>
                 </div>
+                <app-char-counter
+                  [value]="productForm.get('brand')?.value"
+                  [max]="VALIDATION_LIMITS.text.brandMax"
+                ></app-char-counter>
               </div>
             </div>
           </ion-card-content>
@@ -1010,7 +993,12 @@
                       class="custom-info-textarea"
                       formControlName="ingredients"
                       placeholder="Ej: Trigo, azúcar, sal..."
+                      [maxlength]="VALIDATION_LIMITS.text.ingredientsMax"
                     ></ion-textarea>
+                    <app-char-counter
+                      [value]="productForm.get('ingredients')?.value"
+                      [max]="VALIDATION_LIMITS.text.ingredientsMax"
+                    ></app-char-counter>
                   </div>
 
                   <div class="text-info-card">
@@ -1022,7 +1010,12 @@
                       class="custom-info-textarea"
                       formControlName="allergens"
                       placeholder="Ej: Gluten, leche, soja..."
+                      [maxlength]="VALIDATION_LIMITS.text.allergensMax"
                     ></ion-textarea>
+                    <app-char-counter
+                      [value]="productForm.get('allergens')?.value"
+                      [max]="VALIDATION_LIMITS.text.allergensMax"
+                    ></app-char-counter>
                   </div>
 
                   <div class="text-info-card">
@@ -1034,7 +1027,12 @@
                       class="custom-info-textarea"
                       formControlName="traces"
                       placeholder="Ej: Frutos de cáscara..."
+                      [maxlength]="VALIDATION_LIMITS.text.allergensMax"
                     ></ion-textarea>
+                    <app-char-counter
+                      [value]="productForm.get('traces')?.value"
+                      [max]="VALIDATION_LIMITS.text.allergensMax"
+                    ></app-char-counter>
                   </div>
                 </div>
               </div>
@@ -1055,7 +1053,7 @@
     <ion-button
       expand="block"
       size="large"
-      [disabled]="productForm.invalid"
+      [disabled]="productForm.invalid || saveInProgress"
       (click)="createCustomProduct()"
       class="create-button"
     >
@@ -1063,5 +1061,11 @@
         <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
       </div>
     </ion-button>
+    <ion-progress-bar
+      *ngIf="saveInProgress"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>

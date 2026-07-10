@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Panel de Administración</h1>
+        <h1 class="tf-page-header__title">{{ 'MANAGEMENT.HOME.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -23,8 +23,8 @@
             <ion-icon name="people-outline"></ion-icon>
           </div>
           <ion-label>
-            <h3>Usuarios</h3>
-            <p>Gestionar usuarios, suscripciones y más</p>
+            <h3>{{ 'MANAGEMENT.HOME.USERS' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.USERS_DESC' | translate }}</p>
           </ion-label>
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>
@@ -36,8 +36,8 @@
             <ion-icon name="code-slash-outline"></ion-icon>
           </div>
           <ion-label>
-            <h3>Variables de Entorno</h3>
-            <p>Gestionar .env del servidor</p>
+            <h3>{{ 'MANAGEMENT.HOME.ENV_VARS' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.ENV_VARS_DESC' | translate }}</p>
           </ion-label>
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>
@@ -49,8 +49,8 @@
             <ion-icon name="server-outline"></ion-icon>
           </div>
           <ion-label>
-            <h3>Base de Datos</h3>
-            <p>Cambiar entre perfiles de BBDD</p>
+            <h3>{{ 'MANAGEMENT.HOME.DATABASE' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.DATABASE_DESC' | translate }}</p>
           </ion-label>
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>
@@ -62,8 +62,8 @@
             <ion-icon name="git-branch-outline"></ion-icon>
           </div>
           <ion-label>
-            <h3>Repositorio</h3>
-            <p>Token GitHub y git pull</p>
+            <h3>{{ 'MANAGEMENT.HOME.REPOSITORY' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.REPOSITORY_DESC' | translate }}</p>
           </ion-label>
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>
@@ -75,8 +75,8 @@
             <ion-icon name="refresh-outline"></ion-icon>
           </div>
           <ion-label>
-            <h3>Reiniciar Servidor</h3>
-            <p>Reiniciar nginx + recargar PM2</p>
+            <h3>{{ 'MANAGEMENT.HOME.RESTART_SERVER' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.RESTART_SERVER_DESC' | translate }}</p>
           </ion-label>
           <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
         </div>

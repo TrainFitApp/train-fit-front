@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActionSheetButton, ActionSheetOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { Table } from 'src/app/core/models/table';
@@ -56,7 +57,8 @@ export class ActionsFabComponent implements OnInit {
 
   constructor(
     private utilService: UtilService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -148,13 +150,13 @@ export class ActionsFabComponent implements OnInit {
       mode: 'ios',
       buttons: [
         {
-          text: 'Nuevo Producto',
+          text: this.translate.instant('ACTIONS_FAB.NEW_PRODUCT'),
           icon: 'nutrition-outline',
           data: ACTIONS_FAB_TYPES.createProduct,
           cssClass: 'action-sheet-product',
         },
         {
-          text: 'Nueva Receta',
+          text: this.translate.instant('ACTIONS_FAB.NEW_RECIPE'),
           icon: 'restaurant-outline',
           data: ACTIONS_FAB_TYPES.createRecipe,
           cssClass: 'action-sheet-recipe',
@@ -174,7 +176,7 @@ export class ActionsFabComponent implements OnInit {
     const actionSheetButtons: ActionSheetButton[] = [];
     for (let i = 0; i < this.optionsFab.length; i++) {
       const actionSheetButton: ActionSheetButton = {
-        text: this.optionsFab[i].value,
+        text: this.translate.instant(this.optionsFab[i].value),
         icon: this.optionsFab[i].icon,
         data: this.optionsFab[i].id,
         role: this.optionsFab[i].role,
@@ -183,7 +185,7 @@ export class ActionsFabComponent implements OnInit {
     }
 
     const actionSheetOptions: ActionSheetOptions = {
-      header: 'OPCIONES',
+      header: this.translate.instant('ACTIONS_FAB.OPTIONS'),
       buttons: actionSheetButtons,
     };
     this.ionicUtilService

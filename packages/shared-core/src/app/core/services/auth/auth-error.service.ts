@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 export const AUTH_LOGIN_FEEDBACK_QUERY_PARAM = 'loginIssue';
 export const AUTH_LOGIN_CONNECTION_QUERY_VALUE = 'connection';
@@ -24,14 +25,16 @@ export interface LoginErrorFeedback {
   providedIn: 'root',
 })
 export class AuthErrorService {
-  private readonly invalidCredentialsMessage =
-    'Correo o contraseña incorrectos';
-  private readonly storageMessage =
-    'No se pudo guardar la sesion en el dispositivo. Intentalo de nuevo';
-  private readonly connectionMessage = 'No se pudo conectar. Inténtalo de nuevo';
-  private readonly timeoutMessage =
-    'La conexión tardó demasiado. Inténtalo de nuevo';
-  private readonly unexpectedMessage = 'Ha ocurrido un error inesperado';
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
+
+  constructor(private injector: Injector) {}
 
   public toLoginFeedback(error: any): LoginErrorFeedback {
     const status = this.getStatus(error);
@@ -40,8 +43,7 @@ export class AuthErrorService {
     if (this.isAccountNotVerified(status, code)) {
       return {
         kind: 'account-not-verified',
-        message:
-          'Cuenta no verificada. Te hemos enviado un nuevo código al correo.',
+        message: this.translate.instant('AUTH_ERRORS.ACCOUNT_NOT_VERIFIED'),
         retryable: false,
         status,
         code,
@@ -51,7 +53,7 @@ export class AuthErrorService {
     if (this.isInvalidCredentials(status, code)) {
       return {
         kind: 'invalid-credentials',
-        message: this.invalidCredentialsMessage,
+        message: this.translate.instant('AUTH_ERRORS.INVALID_CREDENTIALS'),
         retryable: false,
         status,
         code,
@@ -61,7 +63,7 @@ export class AuthErrorService {
     if (this.isStorageError(error)) {
       return {
         kind: 'storage',
-        message: this.storageMessage,
+        message: this.translate.instant('AUTH_ERRORS.STORAGE'),
         retryable: true,
         status,
         code,
@@ -71,7 +73,7 @@ export class AuthErrorService {
     if (this.isTimeout(status, error)) {
       return {
         kind: 'timeout',
-        message: this.timeoutMessage,
+        message: this.translate.instant('AUTH_ERRORS.TIMEOUT'),
         retryable: true,
         status,
         code,
@@ -81,7 +83,7 @@ export class AuthErrorService {
     if (this.isNetworkError(status, error)) {
       return {
         kind: 'network',
-        message: this.connectionMessage,
+        message: this.translate.instant('AUTH_ERRORS.NETWORK'),
         retryable: true,
         status,
         code,
@@ -91,7 +93,7 @@ export class AuthErrorService {
     if (status && status >= 500) {
       return {
         kind: 'server',
-        message: this.unexpectedMessage,
+        message: this.translate.instant('AUTH_ERRORS.UNEXPECTED'),
         retryable: true,
         status,
         code,
@@ -100,7 +102,7 @@ export class AuthErrorService {
 
     return {
       kind: 'unexpected',
-      message: this.unexpectedMessage,
+      message: this.translate.instant('AUTH_ERRORS.UNEXPECTED'),
       retryable: true,
       status,
       code,

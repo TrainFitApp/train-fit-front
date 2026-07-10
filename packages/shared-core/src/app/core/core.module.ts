@@ -3,6 +3,7 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { JWTInterceptor } from './interceptors/jwt.interceptor';
+import { I18nModule } from './i18n/i18n.module';
 import { AuthApiService } from './services/auth/auth-api.service';
 import { AuthService } from './services/auth/auth.service';
 import { GoogleAuthService } from './services/auth/google-auth.service';
@@ -20,6 +21,8 @@ import { DietAPIService } from './services/diet/diet-api.service';
 import { DietService } from './services/diet/diet.service';
 import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
+import { AiImportApiService } from './services/ai-import/ai-import-api.service';
+import { AiImportService } from './services/ai-import/ai-import.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
@@ -47,7 +50,8 @@ import { WorkoutService } from './services/workout/workout.service';
 import { MatchPasswords } from './validators/matchPasswords';
 
 @NgModule({
-  exports: [BrowserModule, BrowserAnimationsModule, HttpClientModule],
+  imports: [I18nModule],
+  exports: [BrowserModule, BrowserAnimationsModule, HttpClientModule, I18nModule],
   providers: [
     // Services
     // General & Utils
@@ -93,6 +97,8 @@ import { MatchPasswords } from './validators/matchPasswords';
     SetAPIService,
     ExerciseService,
     ExerciseAPIService,
+    AiImportService,
+    AiImportApiService,
     // Interceptors
     {
       provide: HTTP_INTERCEPTORS,

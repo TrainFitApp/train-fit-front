@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { TranslateService } from "@ngx-translate/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
 import {
@@ -50,6 +51,7 @@ import { FilterInputPage } from "src/app/shared/components/filter-input/filter-i
   styleUrls: ["./config-exercise.page.scss"],
 })
 export class ConfigExercisePage implements OnInit {
+  public VALIDATION_LIMITS = VALIDATION_LIMITS;
   public muscleGroups: string[] = [
     "Espalda",
     "Pecho",
@@ -189,6 +191,7 @@ export class ConfigExercisePage implements OnInit {
     private adMobService: AdMobService,
     private billingService: BillingService,
     private navigationService: NavigationService,
+    private translate: TranslateService,
   ) {}
 
   public ngOnInit(): void {
@@ -382,12 +385,11 @@ export class ConfigExercisePage implements OnInit {
       if (res.data) {
         if (currentIsCardio !== !!res.data.isCardio) {
           const alertOptions: AlertOptions = {
-            header: "Advertencia",
-            message:
-              "No se puede intercambiar un ejercicio cardiovascular con uno de fuerza",
+            header: this.translate.instant("EXERCISE_CONFIG.WARNING"),
+            message: this.translate.instant("EXERCISE_CONFIG.CANT_SWAP_CARDIO_STRENGTH"),
             buttons: [
               {
-                text: "CONFIRMAR",
+                text: this.translate.instant("COMMON.CONFIRM"),
                 role: "destructive",
               },
             ],
@@ -415,17 +417,16 @@ export class ConfigExercisePage implements OnInit {
     else {
       if (this.hasExerciseChanges()) {
         const alertOptions: AlertOptions = {
-          header: "Cambios sin guardar",
-          message:
-            "Si sales del modo edición se perderán los cambios del ejercicio. ¿Deseas continuar?",
+          header: this.translate.instant("EXERCISE_CONFIG.UNSAVED_CHANGES"),
+          message: this.translate.instant("EXERCISE_CONFIG.LEAVE_EDIT_MODE_WARNING"),
           cssClass: "alert-grid-buttons",
           buttons: [
             {
-              text: "CANCELAR",
+              text: this.translate.instant("COMMON.CANCEL"),
               role: "cancel",
             },
             {
-              text: "DESCARTAR",
+              text: this.translate.instant("ACTIONS.DISCARD"),
               role: "confirm",
               cssClass: "alert-button-primary",
               handler: () => {
@@ -605,7 +606,7 @@ export class ConfigExercisePage implements OnInit {
 
       this.isEditingOwnExercise = false;
       const toastOptions: ToastOptions = {
-        message: "Ejercicio actualizado con éxito",
+        message: this.translate.instant("EXERCISE_CONFIG.EXERCISE_UPDATED"),
         duration: 1800,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -1124,16 +1125,15 @@ export class ConfigExercisePage implements OnInit {
 
     if (this.setList?.length > 0) {
       const alertOptions: AlertOptions = {
-        header: "Cambiar tipo de ejercicio",
-        message:
-          "Si cambias entre Fuerza y Cardio se eliminarán todas las series configuradas. ¿Deseas continuar?",
+        header: this.translate.instant("EXERCISE_CONFIG.CHANGE_EXERCISE_TYPE"),
+        message: this.translate.instant("EXERCISE_CONFIG.SWITCH_MODE_WARNING"),
         buttons: [
           {
-            text: "Cancelar",
+            text: this.translate.instant("COMMON.CANCEL"),
             role: "cancel",
           },
           {
-            text: "Confirmar",
+            text: this.translate.instant("COMMON.CONFIRM"),
             role: "confirm",
             cssClass: "alert-button-primary",
           },
@@ -1228,19 +1228,18 @@ export class ConfigExercisePage implements OnInit {
 
   private async showExerciseLimitAlert(): Promise<void> {
     await this.ionicUtilService.showPremiumLimitAlert({
-      message:
-        "Has alcanzado el limite de ejercicios propios. Activa Pro para crear mas.",
+      message: this.translate.instant("EXERCISE_CONFIG.LIMIT_REACHED"),
       onUpgrade: () => this.navigationService.goToPremium(),
     });
   }
 
   private async showInvalidExerciseFormAlert(): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: "Datos incompletos",
-      message: "Introduce al menos un nombre para guardar el ejercicio.",
+      header: this.translate.instant("EXERCISE_CONFIG.INCOMPLETE_DATA"),
+      message: this.translate.instant("EXERCISE_CONFIG.ENTER_NAME"),
       buttons: [
         {
-          text: "OK",
+          text: this.translate.instant("COMMON.OK"),
           role: "cancel",
         },
       ],
@@ -1260,7 +1259,7 @@ export class ConfigExercisePage implements OnInit {
     ).then((resTable) => {
       this.tableService.setCurrentTable = resTable;
       const toastOptions: ToastOptions = {
-        message: "Ejercicio sustituido con éxito",
+        message: this.translate.instant("EXERCISE_CONFIG.EXERCISE_REPLACED"),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -1311,8 +1310,8 @@ export class ConfigExercisePage implements OnInit {
       });
     const toastOptions: ToastOptions = {
       message: this.exerciseArchived
-        ? "Ejercicio eliminado de favoritos"
-        : "Ejercicio añadido a favoritos",
+        ? this.translate.instant("EXERCISE_CONFIG.FAVORITE_REMOVED")
+        : this.translate.instant("EXERCISE_CONFIG.FAVORITE_ADDED"),
       duration: 2000,
     };
     this.ionicUtilService.showToast(toastOptions);
@@ -1363,11 +1362,11 @@ export class ConfigExercisePage implements OnInit {
   public manageNote(): void {
     const alertButtons: AlertButton[] = [
       {
-        text: "Cancelar",
+        text: this.translate.instant("COMMON.CANCEL"),
         role: "cancel",
       },
       {
-        text: "CONFIRMAR",
+        text: this.translate.instant("COMMON.CONFIRM"),
         handler: (res) => {
           this.notes = normalizeLongTextInput(
             res.notes,
@@ -1382,7 +1381,7 @@ export class ConfigExercisePage implements OnInit {
         name: "notes",
         type: "textarea",
         value: this.notes,
-        placeholder: "Tus notas...",
+        placeholder: this.translate.instant("EXERCISE_CONFIG.YOUR_NOTES"),
         attributes: {
           maxlength: VALIDATION_LIMITS.text.noteMax,
         },
@@ -1390,7 +1389,7 @@ export class ConfigExercisePage implements OnInit {
     ];
 
     const alertOptions: AlertOptions = {
-      header: "Notas",
+      header: this.translate.instant("EXERCISE_CONFIG.NOTES"),
       inputs: alertInputs,
       buttons: alertButtons,
     };
@@ -1552,16 +1551,16 @@ export class ConfigExercisePage implements OnInit {
   private checkChanges(): void {
     if (this.hasChanges()) {
       const alertOptions: AlertOptions = {
-        header: "Cambios sin guardar",
-        message: "¿Quieres guardar los cambios antes de salir?",
+        header: this.translate.instant("COMMON.UNSAVED_CHANGES"),
+        message: this.translate.instant("COMMON.UNSAVED_CHANGES_SAVE"),
         cssClass: "alert-grid-buttons",
         buttons: [
           {
-            text: "CANCELAR",
+            text: this.translate.instant("COMMON.CANCEL"),
             role: "cancel",
           },
           {
-            text: "DESCARTAR",
+            text: this.translate.instant("ACTIONS.DISCARD"),
             role: "destructive",
             handler: () => {
               // Revertir cambios locales si es necesario
@@ -1582,7 +1581,7 @@ export class ConfigExercisePage implements OnInit {
             },
           },
           {
-            text: "GUARDAR",
+            text: this.translate.instant("COMMON.SAVE"),
             cssClass: "alert-button-confirm",
             handler: async () => {
               await this.saveFromHeaderBack();
@@ -1681,32 +1680,32 @@ export class ConfigExercisePage implements OnInit {
 
     const impact = this.getExerciseDeleteImpact(currentExerciseObj._id);
     const impactLines: string[] = [
-      "Se eliminará permanentemente este ejercicio creado por ti.",
-      "También se borrarán todas sus series y de todos los lugares donde se use.",
-      "Se quitará automáticamente de favoritos y de cualquier entrenamiento/microciclo donde aparezca.",
+      this.translate.instant("EXERCISE_CONFIG.DELETE_IMPACT_1"),
+      this.translate.instant("EXERCISE_CONFIG.DELETE_IMPACT_2"),
+      this.translate.instant("EXERCISE_CONFIG.DELETE_IMPACT_3"),
     ];
 
     if (impact.occurrences > 0) {
       impactLines.push(
-        `En tu rutina actual afecta a ${impact.occurrences} instancia${
-          impact.occurrences === 1 ? "" : "s"
-        }, ${impact.workouts} entrenamiento${
-          impact.workouts === 1 ? "" : "s"
-        } y ${impact.splits} micro-ciclo${impact.splits === 1 ? "" : "s"}.`,
+        this.translate.instant("EXERCISE_CONFIG.DELETE_IMPACT_COUNT", {
+          occurrences: impact.occurrences,
+          workouts: impact.workouts,
+          splits: impact.splits,
+        }),
       );
     }
 
     const alertOptions: any = {
-      header: "Eliminar ejercicio",
+      header: this.translate.instant("EXERCISE_CONFIG.DELETE_EXERCISE"),
       message: impactLines.join(" "),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant("COMMON.CANCEL"),
           role: "cancel",
           cssClass: "secondary",
         },
         {
-          text: "ELIMINAR",
+          text: this.translate.instant("ACTIONS.DELETE"),
           role: "destructive",
           handler: () => {
             this.exerciseService
@@ -1751,7 +1750,7 @@ export class ConfigExercisePage implements OnInit {
                   }
 
                   this.ionicUtilService.showToast({
-                    message: "Ejercicio eliminado",
+                    message: this.translate.instant("EXERCISE_CONFIG.DELETED"),
                     duration: 2000,
                   });
                   void this.billingService.refreshBackendEntitlements();
@@ -1769,7 +1768,7 @@ export class ConfigExercisePage implements OnInit {
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: "No se pudo eliminar el ejercicio",
+                    message: this.translate.instant("EXERCISE_CONFIG.DELETE_FAILED"),
                     duration: 2500,
                   });
                 },

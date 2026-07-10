@@ -21,6 +21,7 @@ import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { fadeIn } from "src/app/shared/animations/fade";
+import { TranslateService } from "@ngx-translate/core";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import {
@@ -41,6 +42,8 @@ export type ConfigRecipeMode = "create" | "add" | "edit";
   animations: [fadeIn],
 })
 export class ConfigRecipePage implements OnInit, OnDestroy {
+  public VALIDATION_LIMITS = VALIDATION_LIMITS;
+
   private static readonly INGREDIENT_SNAPSHOT_FIELDS: Array<
     keyof CustomProduct
   > = [
@@ -169,6 +172,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     private platform: Platform,
     private adMobService: AdMobService,
     private billingService: BillingService,
+    private translate: TranslateService,
   ) {
     this.user = this.userService.getLocalUser;
     this.recipeNutrition = this.recipeService.getEmptyRecipeNutrition();
@@ -412,10 +416,11 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get pageTitle(): string {
-    if (this.editingBaseRecipe) return "Editar receta original";
-    if (this.isCreateMode) return "Crear receta";
-    if (this.isAddMode) return "Añadir receta";
-    return "Editar receta";
+    const t = this.translate.instant.bind(this.translate);
+    if (this.editingBaseRecipe) return t('CONFIG_RECIPE.EDIT_ORIGINAL');
+    if (this.isCreateMode) return t('CONFIG_RECIPE.CREATE_RECIPE');
+    if (this.isAddMode) return t('CONFIG_RECIPE.ADD_RECIPE');
+    return t('CONFIG_RECIPE.EDIT_RECIPE');
   }
 
   public get canEditOriginalRecipe(): boolean {
@@ -446,13 +451,14 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get footerMacrosHint(): string {
+    const t = this.translate.instant.bind(this.translate);
     if (!this.footerUsesConsumedQuantity) {
-      return "* Sin ración consumida: valores de la ración a 0.";
+      return t('CONFIG_RECIPE.NO_CONSUMED_PORTION');
     }
 
     return this.recipeNutrition.portionBasis === "cooked"
-      ? "* Ración consumida calculada sobre el peso total cocinado."
-      : "* Ración consumida calculada sobre el peso en crudo.";
+      ? t('CONFIG_RECIPE.PORTION_COOKED')
+      : t('CONFIG_RECIPE.PORTION_RAW');
   }
 
   public get footerKcal(): number {
@@ -472,9 +478,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get per100Title(): string {
+    const t = this.translate.instant.bind(this.translate);
     return this.recipeNutrition.per100Basis === "cooked"
-      ? "Información nutricional por 100g cocinado"
-      : "Información nutricional por 100g en crudo";
+      ? t('CONFIG_RECIPE.NUTRITION_PER_100_COOKED')
+      : t('CONFIG_RECIPE.NUTRITION_PER_100_RAW');
   }
 
   public get per100Kcal(): number {
@@ -494,7 +501,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public get baseRecipePer100Title(): string {
-    return "Información nutricional por 100g en crudo";
+    return this.translate.instant('CONFIG_RECIPE.NUTRITION_PER_100_RAW');
   }
 
   public async startEditingOriginalRecipe(): Promise<void> {
@@ -504,13 +511,13 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       !this.editingBaseRecipe &&
       this.buildWrapperSnapshot() !== this.wrapperInitialSnapshot
     ) {
+      const t = this.translate.instant.bind(this.translate);
       const shouldDiscard = await this.ionicUtilService.showAlert({
-        header: "Cambios sin guardar",
-        message:
-          "Tienes cambios sin guardar en esta configuración. Si editas la receta original, se descartarán.",
+        header: t('COMMON.UNSAVED_CHANGES'),
+        message: t('CONFIG_RECIPE.UNSAVED_EDIT_ORIGINAL_MESSAGE'),
         buttons: [
-          { text: "Cancelar", role: "cancel" },
-          { text: "Descartar", role: "destructive" },
+          { text: t('COMMON.CANCEL'), role: "cancel" },
+          { text: t('CONFIG_RECIPE.DISCARD'), role: "destructive" },
         ],
       });
 
@@ -626,15 +633,16 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   }
 
   public getIngredientName(ingredient: CustomProduct): string {
-    return ingredient.product?.name || "Ingrediente";
+    return ingredient.product?.name || this.translate.instant('CONFIG_RECIPE.INGREDIENT_DEFAULT_NAME');
   }
 
   public getIngredientStatus(ingredient: CustomProduct): string | null {
     if (!this.recipe || this.editingBaseRecipe) return null;
     const original = this.getOriginalIngredient(ingredient);
-    if (!original) return "Añadido";
+    const t = this.translate.instant.bind(this.translate);
+    if (!original) return t('CONFIG_RECIPE.INGREDIENT_ADDED');
     if (!this.recipeService.areCustomProductsEquivalent(original, ingredient)) {
-      return "Modificado";
+      return t('CONFIG_RECIPE.INGREDIENT_MODIFIED');
     }
     return null;
   }
@@ -730,17 +738,17 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private async confirmDiscardChanges(): Promise<boolean> {
     if (!this.hasUnsavedChanges()) return true;
 
+    const t = this.translate.instant.bind(this.translate);
     const result = await this.ionicUtilService.showAlert({
-      header: "Hay cambios sin guardar",
-      message:
-        "Si sales ahora, se descartarán los cambios realizados en la receta.",
+      header: t('COMMON.UNSAVED_CHANGES'),
+      message: t('CONFIG_RECIPE.UNSAVED_EXIT_MESSAGE'),
       buttons: [
         {
-          text: "Cancelar",
+          text: t('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "Descartar",
+          text: t('CONFIG_RECIPE.DISCARD'),
           role: "destructive",
         },
       ],
@@ -834,7 +842,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       next: (res) => {
         this.isFavorite = res.isArchived;
       },
-      error: () => this.showToast("Error al actualizar favoritos", "danger"),
+      error: () => this.showToast(this.translate.instant('SEARCH_FOODS.FAV_UPDATE_ERROR'), "danger"),
     });
   }
 
@@ -842,20 +850,19 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     if (!this.canDeleteOwnRecipe || !this.recipe?._id || this.loading) return;
 
     const recipeId = this.recipe._id;
-    const recipeName = this.recipe.name || "esta receta";
+    const recipeName = this.recipe.name || this.translate.instant('COMMON.THIS') + " receta";
+    const t = this.translate.instant.bind(this.translate);
 
     this.ionicUtilService.showAlert({
-      header: "Eliminar receta",
-      message:
-        `¿Estás seguro de que quieres eliminar ${recipeName}? ` +
-        "Se eliminará la receta base, todas sus configuraciones asociadas y desaparecerá de todas las comidas de todos los días donde se haya usado.",
+      header: t('CONFIG_RECIPE.DELETE_RECIPE_HEADER'),
+      message: t('CONFIG_RECIPE.DELETE_RECIPE_CONFIRM', { name: recipeName }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: t('COMMON.DELETE').toUpperCase(),
           role: "destructive",
           handler: () => {
             void this.confirmDeleteOwnRecipe(recipeId);
@@ -874,12 +881,12 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       await firstValueFrom(this.recipeService.delete(recipeId));
       this.removeDeletedRecipeLocally(recipeId);
       void this.billingService.refreshBackendEntitlements();
-      await this.showToast("Receta eliminada");
+      await this.showToast(this.translate.instant('CONFIG_RECIPE.RECIPE_DELETED'));
       this.navigateAfterRecipeDeleted(recipeId);
     } catch (error) {
       console.error("[deleteOwnRecipe] Error:", error);
       this.loading = false;
-      await this.showToast("Error al eliminar la receta", "danger");
+      await this.showToast(this.translate.instant('CONFIG_RECIPE.RECIPE_DELETE_ERROR'), "danger");
     }
   }
 
@@ -901,7 +908,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         this.loading = false;
         return;
       }
-      this.showToast("Error guardando la receta", "danger");
+      this.showToast(this.translate.instant('CONFIG_RECIPE.SAVE_ERROR'), "danger");
       this.loading = false;
     }
   }
@@ -1013,7 +1020,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.persistSelectedIngredients();
       this.captureInitialSnapshot();
       this.loading = false;
-      await this.showToast("Receta original actualizada");
+      await this.showToast(this.translate.instant('CONFIG_RECIPE.ORIGINAL_UPDATED'));
       return;
     }
 
@@ -1053,15 +1060,15 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       return;
     }
 
+    const t = this.translate.instant.bind(this.translate);
     this.loading = false;
     await this.ionicUtilService.showAlert({
-      header: "Modificar receta original",
-      message:
-        "Has modificado los valores originales de la receta. Si confirmas, el cambio se reflejará en todos los sitios donde se use.",
+      header: t('CONFIG_RECIPE.MODIFY_ORIGINAL_HEADER'),
+      message: t('CONFIG_RECIPE.MODIFY_ORIGINAL_MESSAGE'),
       buttons: [
-        { text: "Cancelar", role: "cancel" },
+        { text: t('COMMON.CANCEL'), role: "cancel" },
         {
-          text: "Confirmar",
+          text: t('COMMON.CONFIRM'),
           handler: () => {
             this.loading = true;
             this.updateExistingRecipe(true);
@@ -1369,8 +1376,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
     }
 
     void this.ionicUtilService.showPremiumLimitAlert({
-      message:
-        "Has alcanzado el limite de recetas propias. Activa Pro para crear mas.",
+      message: this.translate.instant('CONFIG_RECIPE.PREMIUM_LIMIT_RECIPES'),
       onUpgrade: () => this.navigationService.goToPremium(),
     });
     return true;

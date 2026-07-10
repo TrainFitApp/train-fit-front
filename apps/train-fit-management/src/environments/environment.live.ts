@@ -14,11 +14,6 @@ export const environment = {
   API_URL_BASE_BACKEND: API_URL_BASE,
   API_URL: API_URL_BASE + '/api',
   lang: 'ES',
-  revenueCat: {
-    enabled: true,
-    androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
-    iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
-    entitlementId: 'no_adds_and_features',
   auth: {
     clientFamily: 'train-fit-management',
     google: {
@@ -29,5 +24,11 @@ export const environment = {
     apple: {
       clientId: '',
     },
+  },
+  revenueCat: {
+    enabled: true,
+    androidApiKey: 'goog_pvSUJOuehaZgKpwrUOLIaHJfBev',
+    iosApiKey: 'appl_dELMaNRdIcHVKUJYHKdSLbAQRdl',
+    entitlementId: 'no_adds_and_features',
   },
 };

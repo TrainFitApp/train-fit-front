@@ -30,7 +30,7 @@ export class DailyWeightComponent implements OnInit {
   @Input()
   public user: User;
   @Input()
-  public selectedDate: Date;
+  public selectedDate: string;
 
   @Output()
   public createdDietDay = new EventEmitter();
@@ -73,18 +73,16 @@ export class DailyWeightComponent implements OnInit {
       return;
     }
 
-    const firstWeekDay = this.utilService.getFirstWeekDay(
+    const firstWeekDayStr = this._utilService.getFirstWeekDayStr(
       this.selectedDate,
       WEEK_DAYS.monday
     );
-    firstWeekDay.setHours(0, 0, 0, 0);
-    const weekKey = firstWeekDay.toISOString();
 
-    if (this.loadedWeekKey === weekKey) {
+    if (this.loadedWeekKey === firstWeekDayStr) {
       return;
     }
 
-    this.loadedWeekKey = weekKey;
+    this.loadedWeekKey = firstWeekDayStr;
     this.getDietDaysWeightsOnWeek();
   }
 
@@ -247,7 +245,8 @@ export class DailyWeightComponent implements OnInit {
           this.dietDayService.setCurrentDietDay = resDietDay;
 
           // Añadir el nuevo dietDay a la semana local
-          const dayOfWeek = this.selectedDate.getDay();
+          const parsed = this._utilService.parseYYYYMMDD(this.selectedDate);
+          const dayOfWeek = parsed.getDay();
           const weekIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Lunes = 0, Domingo = 6
           this.week[weekIndex] = resDietDay;
 
@@ -328,20 +327,16 @@ export class DailyWeightComponent implements OnInit {
   }
 
   private getDietDaysWeightsOnWeek(): void {
-    this.firstWeekDay = this.utilService.getFirstWeekDay(
-      this.selectedDate,
-      WEEK_DAYS.monday
+    const { dateMin, dateMax, dateRange } = this._utilService.getWeekRangeStr(
+      this.selectedDate
     );
-    this.firstWeekDay.setHours(0, 0, 0, 0);
-    this.lastWeekDay = new Date(
-      new Date(this.firstWeekDay).setDate(this.firstWeekDay.getDate() + 6)
-    );
-    this.lastWeekDay.setHours(23, 59, 59, 59);
+    this.firstWeekDay = this._utilService.parseYYYYMMDD(dateMin);
+    this.lastWeekDay = this._utilService.parseYYYYMMDD(dateMax);
 
     this.dietDayService
       .getDietDaysBetweenDatesByIdDiet(
         this.user.dietInUse,
-        new DateRange(this.firstWeekDay, this.lastWeekDay)
+        dateRange
       )
       .subscribe((resDietsDay) => {
         this.week = this.dietDayService.getWeek(this.firstWeekDay, resDietsDay);

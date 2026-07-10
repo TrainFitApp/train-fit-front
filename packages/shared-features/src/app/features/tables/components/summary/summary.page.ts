@@ -1,5 +1,7 @@
 import { Component, ViewChild, effect, inject } from "@angular/core";
 import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
+import { ModalController } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { CustomExercise } from "src/app/core/models/customExercise";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
@@ -21,6 +23,9 @@ import {
   normalizeTextInput,
   VALIDATION_LIMITS,
 } from "src/app/core/constants/validation-limits";
+import { AiImportService } from "src/app/core/services/ai-import/ai-import.service";
+import { AiTablePreview } from "src/app/core/models/ai-import";
+import { ExcelImportComponent } from "./components/excel-import/excel-import.component";
 
 @Component({
   selector: "app-summary",
@@ -43,12 +48,18 @@ export class SummaryPage {
 
   public workout: Workout;
 
+  public aiLoading = false;
+  public aiLoadingMessage = '';
+
   // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
   private readonly billingService = inject(BillingService);
+  private readonly aiImportService = inject(AiImportService);
+  private readonly modalController = inject(ModalController);
+  private readonly translate = inject(TranslateService);
 
   constructor(
     public platform: Platform,
@@ -93,13 +104,13 @@ export class SummaryPage {
     }
 
     const alertOptions: AlertOptions = {
-      header: "Crear rutina",
-      message: "Introduce el nombre para tu nueva rutina de entrenamiento",
+      header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG'),
       inputs: [
         {
           name: "routineName",
           type: "text",
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           value: "",
           attributes: {
             maxlength: VALIDATION_LIMITS.text.shortNameMax,
@@ -108,12 +119,12 @@ export class SummaryPage {
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
         },
         {
-          text: "CREAR",
+          text: this.translate.instant('TABLES.CREATE_BTN'),
           cssClass: "alert-button-success",
           handler: (data) => {
             const routineName = normalizeTextInput(
@@ -122,7 +133,7 @@ export class SummaryPage {
             );
             if (routineName.length < VALIDATION_LIMITS.text.shortNameMin) {
               const toastOptions: ToastOptions = {
-                message: "El campo no puede estar vacio",
+                message: this.translate.instant('COMMON.FIELD_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -157,7 +168,7 @@ export class SummaryPage {
                 this.adMobService.interstitial("create_routine");
               }
               const toastOptions: ToastOptions = {
-                message: "Rutina creada con exito",
+                message: this.translate.instant('TABLES.ROUTINE_CREATED_SUCCESS'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -169,7 +180,7 @@ export class SummaryPage {
 
               this.ionicUtilService.showErrorToast(
                 error,
-                "No se pudo crear la rutina",
+                this.translate.instant('TABLES.ROUTINE_CREATE_ERROR'),
               );
             },
           });
@@ -177,9 +188,110 @@ export class SummaryPage {
     });
   }
 
+  public async importExcels(): Promise<void> {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.xlsx,.xls,.csv';
+
+    fileInput.onchange = async (event: any) => {
+      const file = event.target?.files?.[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        this.ionicUtilService.showErrorToast(null, this.translate.instant('TABLES.FILE_TOO_LARGE'));
+        return;
+      }
+
+      try {
+        this.showAiLoading(this.translate.instant('TABLES.AI_ANALYZING'));
+
+        const { sheets, fileName } = await this.aiImportService.parseExcel(file);
+
+        const preview = await this.aiImportService.interpretExcel(sheets, fileName);
+
+        this.hideAiLoading();
+        await this.showImportPreview(preview);
+      } catch (error: any) {
+        this.hideAiLoading();
+        this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.IMPORT_ERROR'));
+      }
+    };
+
+    fileInput.click();
+  }
+
+  private async showImportPreview(preview: AiTablePreview): Promise<void> {
+    const modal = await this.modalController.create({
+      component: ExcelImportComponent,
+      componentProps: { preview },
+      cssClass: 'fullscreen-modal',
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+
+    if (data?.confirmed) {
+      await this.confirmImport(preview);
+    }
+  }
+
+  private async confirmImport(preview: AiTablePreview): Promise<void> {
+    if (await this.billingService.isFreshLimitReached("routines")) {
+      await this.showRoutineLimitAlert();
+      return;
+    }
+
+    try {
+      this.showAiLoading(this.translate.instant('TABLES.CREATING_ROUTINE'));
+
+      const table = await this.aiImportService.createTable(preview);
+
+      this.hideAiLoading();
+
+      this.tableService.setCurrentTable = table;
+      this.user.tableInUse = table._id;
+      this.user.workoutInUse = undefined;
+      const tableIdStr = table._id;
+      if (!this.user.ownTables.find((id: any) => String(id) === String(tableIdStr))) {
+        this.user.ownTables.push(table._id);
+      }
+      this.userService.setLocalUser = this.user;
+      void this.billingService.refreshBackendEntitlements();
+
+      const toastOptions: ToastOptions = {
+        message: this.translate.instant('TABLES.ROUTINE_IMPORTED_SUCCESS'),
+        duration: 2000,
+      };
+      this.ionicUtilService.showToast(toastOptions);
+
+      this.navigationService.goToMesocycle();
+    } catch (error: any) {
+      await this.ionicUtilService.hideLoading();
+      if (error?.code === 'PREMIUM_LIMIT_ROUTINES') {
+        await this.showRoutineLimitAlert();
+        return;
+      }
+      this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.ROUTINE_IMPORT_ERROR'));
+    }
+  }
+
+  private showAiLoading(message: string): void {
+    this.aiLoadingMessage = message;
+    this.aiLoading = true;
+    const tabBar = document.querySelector('ion-tab-bar');
+    if (tabBar) tabBar.style.display = 'none';
+  }
+
+  private hideAiLoading(): void {
+    this.aiLoading = false;
+    const tabBar = document.querySelector('ion-tab-bar');
+    if (tabBar) tabBar.style.display = '';
+  }
+
   private async showRoutineLimitAlert(): Promise<void> {
     await this.ionicUtilService.showPremiumLimitAlert({
-      message: "Has alcanzado el limite de rutinas. Activa Pro para crear mas.",
+      message: this.translate.instant('TABLES.ROUTINE_LIMIT_REACHED'),
       onUpgrade: () => this.navigationService.goToPremium(),
     });
   }
@@ -264,17 +376,17 @@ export class SummaryPage {
     }
 
     const alertOptions: AlertOptions = {
-      header: "Estadísticas Premium",
+      header: this.translate.instant('TABLES.PREMIUM_STATISTICS'),
       message:
-        "Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.",
+        this.translate.instant('TABLES.PREMIUM_STATISTICS_MSG'),
       buttons: [
         {
-          text: "Cancelar",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
         },
         {
-          text: "Ver Anuncio",
+          text: this.translate.instant('TABLES.WATCH_AD'),
           cssClass: "alert-button-success",
           handler: () => {
             this.adMobService
@@ -373,7 +485,7 @@ export class SummaryPage {
     const alertOptions: AlertOptions = {
       header: exercise.exercise.name,
       message: exercise.notes,
-      buttons: ["CONFIRMAR"],
+      buttons: [this.translate.instant('COMMON.CONFIRM')],
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }

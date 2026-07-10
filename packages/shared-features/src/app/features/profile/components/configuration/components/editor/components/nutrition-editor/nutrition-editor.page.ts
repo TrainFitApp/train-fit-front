@@ -14,6 +14,7 @@ import {
   Platform,
   IonContent,
 } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { UserService } from "src/app/core/services/user/user.service";
 import { User } from "src/app/core/models/user";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
@@ -68,6 +69,7 @@ export class NutritionEditorPage implements OnInit {
     private cdr: ChangeDetectorRef,
     private adMobService: AdMobService,
     private billingService: BillingService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit() {
@@ -841,7 +843,6 @@ export class NutritionEditorPage implements OnInit {
     const g = this.state.grams[k] || 0;
     const pct = this.state.pct[k] || 0;
     const kcal = this.round1(g * this.state.kcalPerG[k]);
-    const nameMap = { p: "Proteínas", c: "Carbohidratos", f: "Grasas" };
     return `<b>${g || 0} g</b> • <b>${kcal} kcal</b> • <b>${pct || 0}%</b>`;
   }
 
@@ -861,8 +862,7 @@ export class NutritionEditorPage implements OnInit {
 
       // Mostrar toast informativo
       const toast: ToastOptions = {
-        message:
-          "Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico",
+        message: this.translate.instant('NUTRITION_EDITOR.INVALID_CONFIG_MSG'),
         duration: 3000,
         color: "warning",
       };
@@ -887,16 +887,15 @@ export class NutritionEditorPage implements OnInit {
 
     // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
     const alertOptions = {
-      header: "Guardar Configuración",
-      message:
-        "Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.",
+      header: this.translate.instant('NUTRITION_EDITOR.SAVE_HEADER'),
+      message: this.translate.instant('NUTRITION_EDITOR.SAVE_MSG'),
       buttons: [
         {
-          text: "Cancelar",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "Ver Anuncio",
+          text: this.translate.instant('PROFILE.WATCH_AD'),
           cssClass: "alert-button-success",
           handler: () => {
             this.adMobService
@@ -950,7 +949,7 @@ export class NutritionEditorPage implements OnInit {
 
           // Mostrar toast de confirmación
           const toast: ToastOptions = {
-            message: "Objetivos nutricionales guardados",
+            message: this.translate.instant('NUTRITION_EDITOR.SAVE_SUCCESS'),
             duration: 2000,
           };
           this.ionicUtilService.showToast(toast);
@@ -968,7 +967,7 @@ export class NutritionEditorPage implements OnInit {
 
           // Mostrar toast de error
           const errorToast: ToastOptions = {
-            message: "Error al guardar. Cambios guardados localmente.",
+            message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
             duration: 3000,
           };
           this.ionicUtilService.showToast(errorToast);
@@ -1039,8 +1038,12 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public getMacroName(key: string): string {
-    const names = { p: "Proteínas", c: "CBH", f: "Grasas" };
     const macroKey = key as "p" | "c" | "f";
+    const names = {
+      p: this.translate.instant('NUTRITION_EDITOR.PROTEINS'),
+      c: this.translate.instant('NUTRITION_EDITOR.CBH'),
+      f: this.translate.instant('NUTRITION_EDITOR.FATS'),
+    };
     return names[macroKey];
   }
 
@@ -1253,17 +1256,17 @@ export class NutritionEditorPage implements OnInit {
     if (this.hasUnsavedChanges()) {
       console.log("Has unsaved changes, showing confirmation modal");
       const alertOptions = {
-        header: "Cambios sin guardar",
-        message: "¿Estás seguro de que quieres salir sin guardar los cambios?",
+        header: this.translate.instant('NUTRITION_EDITOR.UNSAVED_HEADER'),
+        message: this.translate.instant('NUTRITION_EDITOR.UNSAVED_MSG'),
         cssClass: "alert-grid-buttons",
         buttons: [
           {
-            text: "Cancelar",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
             cssClass: "secondary",
           },
           {
-            text: "Guardar",
+            text: this.translate.instant('COMMON.SAVE'),
             handler: async () => {
               // Llamar a save() y esperar a que complete
               await this.save();
@@ -1272,7 +1275,7 @@ export class NutritionEditorPage implements OnInit {
             },
           },
           {
-            text: "DESCARTAR",
+            text: this.translate.instant('EDITOR.DISCARD_BTN'),
             role: "destructive",
             handler: () => {
               this.restoreOriginalState();

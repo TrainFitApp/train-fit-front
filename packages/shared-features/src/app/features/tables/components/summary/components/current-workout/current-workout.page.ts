@@ -7,7 +7,7 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AlertOptions } from '@ionic/angular';
+import { AlertOptions, ModalOptions, PopoverOptions } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
@@ -19,15 +19,23 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { TranslateService } from '@ngx-translate/core';
 import {
   ColorMode,
   ThemeService,
 } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
+import {
+  ACTION_TYPE,
+  ACTION_TYPES,
+  ACTIONS,
+} from 'src/app/shared/constants/actions';
 import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
+import { OrderExercisesPage } from '../mesocycle/components/order-exercises/order-exercises.page';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -91,6 +99,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     private customExerciseService: CustomExerciseService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
+    private translate: TranslateService,
     private themeService: ThemeService
   ) {
     // Effect para el usuario
@@ -157,17 +166,15 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public playWorkout(): void {
     const alertOptions = {
-      header: 'Comenzar entrenamiento',
-      message:
-        this.currentWorkout.name +
-        ' se mostrará en la pesataña de summary y perfil como entrenamiento en uso',
+      header: this.translate.instant('TABLES.START_WORKOUT_ALT'),
+      message: this.translate.instant('TABLES.START_WORKOUT_CONFIRM', { name: this.currentWorkout.name }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'INICIAR',
+          text: this.translate.instant('TABLES.START'),
           handler: () => {
             if (this.user?.premium?.entitled) {
               this.startWorkoutFlow();
@@ -201,16 +208,16 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   public stopWorkout(): void {
     if (this.currentWorkout._id === this.user.workoutInUse) {
       const alertOptions: AlertOptions = {
-        header: 'Detener entrenamiento',
-        message: `¿Desea parar el entrenamiento ${this.currentWorkout.name}?`,
+        header: this.translate.instant('TABLES.STOP_WORKOUT'),
+        message: this.translate.instant('TABLES.STOP_WORKOUT_CONFIRM', { name: this.currentWorkout.name }),
         buttons: [
           {
-            text: 'CANCELAR',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
             cssClass: 'secondary',
           },
           {
-            text: 'DETENER',
+            text: this.translate.instant('TABLES.STOP_BTN'),
             cssClass: 'danger',
             handler: () => {
               // Sincronizar el workout completo con la tabla antes de navegar
@@ -267,22 +274,18 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     if (this.sweetAlertOpened) return;
     this.sweetAlertOpened = true;
     const alertOptions = {
-      header: 'Finalizar',
-      message:
-        'Terminar el entrenamiento ' +
-        this.currentWorkout.name +
-        ' a fecha del ' +
-        this.utilService.toStringDateDateFormat(new Date()),
+      header: this.translate.instant('TABLES.FINISH_ALERT'),
+      message: this.translate.instant('TABLES.FINISH_WORKOUT_CONFIRM', { name: this.currentWorkout.name, date: this.utilService.toStringDateDateFormat(new Date()) }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           handler: () => {
             this.loading = false;
           },
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'success',
           handler: () => {
             this.loading = true;
@@ -325,11 +328,11 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   );
                   this.navigationService.goBack();
                   const successAlertOptions = {
-                    header: 'Completado',
-                    message: `¡${this.currentWorkout.name} finalizado con éxito!`,
+                    header: this.translate.instant('TABLES.COMPLETED_TITLE'),
+                    message: this.translate.instant('TABLES.WORKOUT_FINISHED_SUCCESS', { name: this.currentWorkout.name }),
                     buttons: [
                       {
-                        text: 'OK',
+                        text: this.translate.instant('COMMON.OK'),
                         cssClass: 'alert-button-primary',
                       },
                     ],
@@ -344,10 +347,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   console.error('Error finishing workout:', err);
                   this.loading = false;
                   this.ionicUtilService.showAlert({
-                    header: 'Error',
-                    message:
-                      'No se pudo finalizar el entrenamiento. Inténtalo de nuevo.',
-                    buttons: ['OK'],
+                    header: this.translate.instant('TABLES.FINISH_ERROR_TITLE'),
+                    message: this.translate.instant('TABLES.FINISH_ERROR'),
+                    buttons: [this.translate.instant('COMMON.OK')],
                   });
                 },
               });
@@ -420,6 +422,52 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public manageNote(): void {
     this.utilService.manageNote(this.currentWorkout, this.workoutService);
+  }
+
+  public openWorkoutOptions(event: Event): void {
+    const popoverOptions: PopoverOptions = {
+      component: PopoverActionsComponent,
+      event,
+      showBackdrop: false,
+      componentProps: {
+        actionsPopover: this.getWorkoutOptions(),
+      },
+    };
+
+    this.ionicUtilService.showPopover(popoverOptions).then((res) => {
+      if (!res?.data) return;
+
+      switch (res.data.id) {
+        case ACTIONS[ACTION_TYPES.note].id:
+          this.manageNote();
+          break;
+        case ACTIONS[ACTION_TYPES.moveExercises].id:
+          this.openOrderExercisesModal();
+          break;
+      }
+    });
+  }
+
+  public openOrderExercisesModal(): void {
+    if (!this.currentWorkout || !this.tableInUse) return;
+
+    const modalOptions: ModalOptions = {
+      component: OrderExercisesPage,
+      componentProps: {
+        customExercises: this.currentWorkout.exercises || [],
+        idWorkout: this.currentWorkout._id,
+        idTable: this.tableInUse._id,
+      },
+    };
+
+    this.ionicUtilService.showModal(modalOptions);
+  }
+
+  private getWorkoutOptions(): ACTION_TYPE[] {
+    return [
+      ACTIONS[ACTION_TYPES.note],
+      ACTIONS[ACTION_TYPES.moveExercises],
+    ];
   }
 
   public async navigateYTVideo(url: string, exercise?: any) {

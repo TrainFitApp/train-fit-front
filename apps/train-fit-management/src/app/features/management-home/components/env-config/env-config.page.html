@@ -24,14 +24,18 @@
     <div class="add-form" *ngIf="showAddForm">
       <ion-card class="env-card add-card">
         <div class="env-item">
-          <div class="env-fields">
+          <div class="env-field-group">
+            <label class="env-field-label">CLAVE</label>
             <input class="env-input key-input" [(ngModel)]="newKey" placeholder="NOMBRE_VAR" />
-            <span class="env-equals">=</span>
+          </div>
+          <div class="env-field-group">
+            <label class="env-field-label">VALOR</label>
             <input class="env-input value-input" [(ngModel)]="newValue" placeholder="valor" />
           </div>
           <div class="env-actions">
             <button class="env-btn save-btn" (click)="addEntry()">
               <ion-icon name="checkmark-outline"></ion-icon>
+              <span>Añadir</span>
             </button>
           </div>
         </div>
@@ -51,20 +55,21 @@
         [class.is-commented]="entry.commented"
       >
         <div class="env-item">
-          <div class="env-fields">
+          <div class="env-field-group">
+            <label class="env-field-label">CLAVE</label>
             <span class="env-key">{{ entry.key }}</span>
-            <span class="env-equals">=</span>
+          </div>
 
+          <div class="env-field-group">
+            <label class="env-field-label">VALOR</label>
             <ng-container *ngIf="editingKey === entry.key; else valueDisplay">
               <input
                 class="env-input value-input editing"
                 [(ngModel)]="editValue"
                 (keyup.enter)="saveEdit(entry)"
-                (blur)="saveEdit(entry)"
                 autofocus
               />
             </ng-container>
-
             <ng-template #valueDisplay>
               <span class="env-value" (click)="startEdit(entry)">{{ entry.value || '—' }}</span>
             </ng-template>
@@ -72,20 +77,26 @@
 
           <div class="env-actions">
             <ng-container *ngIf="editingKey === entry.key; else actionsDefault">
-              <button class="env-btn cancel-btn" (click)="cancelEdit()">
+              <button class="env-btn edit-btn" (click)="cancelEdit()">
                 <ion-icon name="close-outline"></ion-icon>
+              </button>
+              <button class="env-btn save-btn" (click)="saveEdit(entry)">
+                <ion-icon name="checkmark-outline"></ion-icon>
               </button>
             </ng-container>
 
             <ng-template #actionsDefault>
               <button class="env-btn edit-btn" (click)="startEdit(entry)">
                 <ion-icon name="create-outline"></ion-icon>
+                <span>Editar</span>
               </button>
               <button class="env-btn toggle-btn" [class.is-commented]="entry.commented" (click)="toggleEntry(entry)">
                 <ion-icon [name]="entry.commented ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+                <span>{{ entry.commented ? 'Oculto' : 'Visible' }}</span>
               </button>
               <button class="env-btn delete-btn" (click)="deleteEntry(entry)">
                 <ion-icon color="danger" name="trash-outline"></ion-icon>
+                <span>Eliminar</span>
               </button>
             </ng-template>
           </div>

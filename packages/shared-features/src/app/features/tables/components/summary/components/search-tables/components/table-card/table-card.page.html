@@ -25,7 +25,7 @@
         <div class="status-section">
           <div *ngIf="loadAction && own" class="status-badge active-badge">
             <ion-icon name="checkmark-circle" class="status-icon"></ion-icon>
-            <span>Rutina Activa</span>
+            <span>{{ 'TABLES.ROUTINE_ACTIVE' | translate }}</span>
           </div>
           <div *ngIf="loadAction && !own && ownFilter">
             <button
@@ -36,7 +36,7 @@
                 name="arrow-down-circle-outline"
                 class="select-icon"
               ></ion-icon>
-              <span>Seleccionar Rutina</span>
+              <span>{{ 'TABLES.SELECT_ROUTINE' | translate }}</span>
             </button>
           </div>
         </div>
@@ -55,7 +55,7 @@
             (click)="useTable(); $event.stopPropagation()"
           >
             <ion-icon name="cart-outline" class="select-icon"></ion-icon>
-            <span>Adquirir</span>
+            <span>{{ 'TABLES.ACQUIRE' | translate }}</span>
           </button>
         </div>
 
@@ -79,7 +79,7 @@
               >{{ microcyclesCount }}</span
             >
           </div>
-          <span class="stat-label"><strong>Micro-ciclos</strong></span>
+          <span class="stat-label"><strong>{{ 'TABLES.MICROCYCLES_STAT' | translate }}</strong></span>
         </div>
 
         <div class="stat-divider"></div>
@@ -93,7 +93,7 @@
               >{{ workoutsCount }}</span
             >
           </div>
-          <span class="stat-label"><strong>Entrenamientos</strong></span>
+          <span class="stat-label"><strong>{{ 'TABLES.WORKOUTS_STAT' | translate }}</strong></span>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@
             color="alternative"
             slot="start"
           ></ion-icon>
-          <ion-label class="ion-text-wrap"><strong>NOMBRE</strong></ion-label>
+          <ion-label class="ion-text-wrap"><strong>{{ 'TABLES.NAME_OPTION' | translate }}</strong></ion-label>
         </ion-item>
         <ion-item
           [button]="true"
@@ -132,7 +132,7 @@
             color="secondary"
             slot="start"
           ></ion-icon>
-          <ion-label class="ion-text-wrap"><strong>DUPLICAR</strong></ion-label>
+          <ion-label class="ion-text-wrap"><strong>{{ 'ACTIONS.DUPLICATE' | translate }}</strong></ion-label>
         </ion-item>
         <ion-item
           [button]="true"
@@ -144,7 +144,7 @@
             color="danger"
             slot="start"
           ></ion-icon>
-          <ion-label class="ion-text-wrap"><strong>ELIMINAR</strong></ion-label>
+          <ion-label class="ion-text-wrap"><strong>{{ 'ACTIONS.DELETE' | translate }}</strong></ion-label>
         </ion-item>
       </ion-list>
     </ng-template>

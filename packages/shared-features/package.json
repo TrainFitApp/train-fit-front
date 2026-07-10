@@ -1,5 +1,8 @@
 {
   "name": "@trainfit/shared-features",
   "private": true,
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "devDependencies": {
+    "@types/xlsx": "^0.0.35"
+  }
 }

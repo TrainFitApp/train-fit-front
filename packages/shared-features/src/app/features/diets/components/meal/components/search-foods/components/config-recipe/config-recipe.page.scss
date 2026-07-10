@@ -1730,6 +1730,13 @@
       --color: var(--ion-color-medium-contrast);
     }
   }
+
+  .save-progress {
+    height: 3px;
+    margin-top: 8px;
+    --background: rgba(var(--ion-color-primary-rgb), 0.18);
+    --progress-background: var(--ion-color-primary);
+  }
 }
 
 .recipe-save-footer {

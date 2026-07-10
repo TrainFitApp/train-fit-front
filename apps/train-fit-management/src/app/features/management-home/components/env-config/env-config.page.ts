@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { finalize } from 'rxjs';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription, finalize } from 'rxjs';
+import { Platform } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { EnvApiService, EnvEntry } from './services/env-api.service';
@@ -9,10 +11,12 @@ import { EnvApiService, EnvEntry } from './services/env-api.service';
   templateUrl: './env-config.page.html',
   styleUrls: ['./env-config.page.scss'],
 })
-export class EnvConfigPage implements OnInit {
+export class EnvConfigPage implements OnInit, OnDestroy {
+  private readonly platform = inject(Platform);
   private readonly navigationService = inject(NavigationService);
   private readonly envApi = inject(EnvApiService);
   private readonly ionicUtil = inject(IonicUtilService);
+  private readonly translate = inject(TranslateService);
 
   public entries: EnvEntry[] = [];
   public isLoading = false;
@@ -22,12 +26,25 @@ export class EnvConfigPage implements OnInit {
   public newKey = '';
   public newValue = '';
 
+  private backButtonSubscription: Subscription | null = null;
+
   public ngOnInit(): void {
     this.loadEntries();
+    this.registerHardwareBackButton();
+  }
+
+  public ngOnDestroy(): void {
+    this.backButtonSubscription?.unsubscribe();
   }
 
   public goBack(): void {
     this.navigationService.goBack();
+  }
+
+  private registerHardwareBackButton(): void {
+    this.backButtonSubscription = this.platform.backButton.subscribeWithPriority(10, () => {
+      this.goBack();
+    });
   }
 
   public loadEntries(): void {
@@ -37,7 +54,7 @@ export class EnvConfigPage implements OnInit {
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: (res) => (this.entries = res.entries),
-        error: (err) => this.ionicUtil.showErrorToast(err, 'Error al cargar variables'),
+        error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.ENV.LOAD_ERROR')),
       });
   }
 
@@ -57,9 +74,9 @@ export class EnvConfigPage implements OnInit {
         Object.assign(entry, res.entry);
         this.editingKey = null;
         this.editValue = '';
-        this.ionicUtil.showSuccessToast('Variable actualizada');
+        this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.ENV.UPDATED_SUCCESS'));
       },
-      error: (err) => this.ionicUtil.showErrorToast(err, 'Error al actualizar'),
+      error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.ENV.UPDATE_ERROR')),
     });
   }
 
@@ -68,21 +85,21 @@ export class EnvConfigPage implements OnInit {
       next: (res) => {
         Object.assign(entry, res.entry);
         this.ionicUtil.showSuccessToast(
-          entry.commented ? 'Variable deshabilitada' : 'Variable habilitada'
+          entry.commented ? this.translate.instant('MANAGEMENT.ENV.TOGGLE_DISABLED') : this.translate.instant('MANAGEMENT.ENV.TOGGLE_ENABLED')
         );
       },
-      error: (err) => this.ionicUtil.showErrorToast(err, 'Error al cambiar estado'),
+      error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.ENV.TOGGLE_ERROR')),
     });
   }
 
   public deleteEntry(entry: EnvEntry): void {
     this.ionicUtil
       .showAlert({
-        header: 'Eliminar variable',
-        message: `¿Eliminar "${entry.key}" definitivamente?`,
+        header: this.translate.instant('MANAGEMENT.ENV.DELETE_HEADER'),
+        message: this.translate.instant('MANAGEMENT.ENV.DELETE_MESSAGE', { key: entry.key }),
         buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Eliminar', role: 'confirm', cssClass: 'danger-btn' },
+          { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+          { text: this.translate.instant('COMMON.DELETE'), role: 'confirm', cssClass: 'danger-btn' },
         ],
       })
       .then((alertRes) => {
@@ -90,9 +107,9 @@ export class EnvConfigPage implements OnInit {
           this.envApi.delete(entry.key).subscribe({
             next: () => {
               this.entries = this.entries.filter((e) => e.key !== entry.key);
-              this.ionicUtil.showSuccessToast('Variable eliminada');
+              this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.ENV.DELETED_SUCCESS'));
             },
-            error: (err) => this.ionicUtil.showErrorToast(err, 'Error al eliminar'),
+            error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.ENV.DELETE_ERROR')),
           });
         }
       });
@@ -100,7 +117,7 @@ export class EnvConfigPage implements OnInit {
 
   public addEntry(): void {
     if (!this.newKey || !/^[A-Z_][A-Z0-9_]*$/.test(this.newKey)) {
-      this.ionicUtil.showWarningToast('Formato de clave inválido (solo MAYUSCULAS, números, _)');
+      this.ionicUtil.showWarningToast(this.translate.instant('MANAGEMENT.ENV.INVALID_KEY'));
       return;
     }
     this.envApi.create(this.newKey, this.newValue).subscribe({
@@ -109,9 +126,9 @@ export class EnvConfigPage implements OnInit {
         this.showAddForm = false;
         this.newKey = '';
         this.newValue = '';
-        this.ionicUtil.showSuccessToast('Variable creada');
+        this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.ENV.CREATED_SUCCESS'));
       },
-      error: (err) => this.ionicUtil.showErrorToast(err, 'Error al crear'),
+      error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.ENV.CREATE_ERROR')),
     });
   }
 }

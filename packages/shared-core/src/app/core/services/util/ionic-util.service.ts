@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import {
   ActionSheetController,
   ActionSheetOptions,
@@ -24,6 +25,14 @@ import { ErrorHandlerService } from './error-handler.service';
 })
 export class IonicUtilService {
   private loading: HTMLIonLoadingElement | null = null;
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
 
   constructor(
     private actionSheetController: ActionSheetController,
@@ -34,7 +43,8 @@ export class IonicUtilService {
     private loadingController: LoadingController,
     private pickerController: PickerController,
     private platform: Platform,
-    private errorHandlerService: ErrorHandlerService
+    private errorHandlerService: ErrorHandlerService,
+    private injector: Injector
   ) {
     this.configureStatusBar();
   }
@@ -75,11 +85,11 @@ export class IonicUtilService {
       columns: options.columns,
       buttons: options.buttons || [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
         },
       ],
       mode: options.mode || 'ios',
@@ -215,7 +225,7 @@ export class IonicUtilService {
       icon: toast.icon || 'information-circle-outline',
       buttons: toast.buttons || [
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           role: 'cancel',
         },
       ],
@@ -235,15 +245,15 @@ export class IonicUtilService {
     onUpgrade?: () => void | Promise<void>;
   }) {
     return this.showAlert({
-      header: options.header ?? 'Limite Free alcanzado',
+      header: options.header ?? this.translate.instant('PREMIUM.LIMIT_REACHED'),
       message: options.message,
       buttons: [
         {
-          text: 'Cancelar',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'Hazte Pro',
+          text: this.translate.instant('PREMIUM.GO_PRO'),
           cssClass: 'alert-button-primary',
           handler: () => {
             void options.onUpgrade?.();
@@ -261,7 +271,7 @@ export class IonicUtilService {
    */
   public async showErrorToast(
     error: any,
-    defaultMessage: string = 'Ocurrió un error',
+    defaultMessage: string = 'Ocurrió un error', // kept as literal fallback, consumer should provide translated message
     duration: number = 3000
   ): Promise<void> {
     const errorMessage = this.errorHandlerService.getFormattedErrorMessage(
@@ -279,7 +289,7 @@ export class IonicUtilService {
       icon: toastIcon,
       buttons: [
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           role: 'cancel',
         },
       ],
@@ -296,7 +306,7 @@ export class IonicUtilService {
    * @param duration - Duración en milisegundos (default 2000)
    */
   public async showSuccessToast(
-    message: string = 'Operación exitosa',
+    message: string = this.translate.instant('COMMON.SUCCESS'),
     duration: number = 2000
   ): Promise<void> {
     const showToast = await this.toastController.create({
@@ -307,7 +317,7 @@ export class IonicUtilService {
       icon: 'checkmark-circle-outline',
       buttons: [
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           role: 'cancel',
         },
       ],
@@ -324,7 +334,7 @@ export class IonicUtilService {
    * @param duration - Duración en milisegundos (default 2500)
    */
   public async showWarningToast(
-    message: string = 'Advertencia',
+    message: string = this.translate.instant('COMMON.WARNING'),
     duration: number = 2500
   ): Promise<void> {
     const showToast = await this.toastController.create({
@@ -335,7 +345,7 @@ export class IonicUtilService {
       icon: 'alert-circle-outline',
       buttons: [
         {
-          text: 'OK',
+          text: this.translate.instant('COMMON.OK'),
           role: 'cancel',
         },
       ],
@@ -356,7 +366,7 @@ export class IonicUtilService {
     cssClass?: string;
   }): Promise<void> {
     const loadingOptions: LoadingOptions = {
-      message: options?.message ?? 'Cargando, por favor espera...',
+      message: options?.message ?? this.translate.instant('COMMON.LOADING'),
       spinner: options?.spinner ?? 'crescent',
       cssClass: options?.cssClass,
     } as LoadingOptions;
@@ -385,10 +395,10 @@ export class IonicUtilService {
   public async showNotes(title: string, content: string): Promise<void> {
     const alert = await this.alertController.create({
       header: title,
-      message: content || 'No hay información disponible.',
+      message: content || this.translate.instant('COMMON.NO_INFO'),
       buttons: [
         {
-          text: 'CERRAR',
+          text: this.translate.instant('COMMON.CERRAR'),
           role: 'cancel',
           cssClass: 'alert-button-primary',
         },

@@ -1,4 +1,9 @@
-<div class="recipe-card" [class.is-checked]="isChecked" (click)="onCardClick()">
+<div
+  class="recipe-card"
+  [class.is-checked]="isChecked"
+  [class.is-loading]="loading"
+  (click)="onCardClick()"
+>
   <div class="recipe-content">
     <!-- Header: Name and Actions -->
     <div class="recipe-header">
@@ -28,6 +33,7 @@
           <ion-checkbox
             mode="ios"
             [checked]="isChecked"
+            [disabled]="loading"
             style="pointer-events: none"
           ></ion-checkbox>
         </div>
@@ -67,5 +73,11 @@
         Verificada
       </span>
     </div>
+    <ion-progress-bar
+      *ngIf="loading"
+      class="card-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </div>

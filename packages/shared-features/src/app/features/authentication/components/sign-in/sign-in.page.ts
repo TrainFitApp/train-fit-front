@@ -16,6 +16,7 @@ import { AppleAuthService } from 'src/app/core/services/auth/apple-auth.service'
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import {
   ColorMode,
@@ -74,7 +75,8 @@ export class SignInPage implements OnInit {
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private userService: UserService,
     private _googleAuthService: GoogleAuthService,
-    private _appleAuthService: AppleAuthService
+    private _appleAuthService: AppleAuthService,
+    private translate: TranslateService
   ) {
     this.initVariables();
   }
@@ -207,8 +209,8 @@ export class SignInPage implements OnInit {
       if (!email || !idToken) {
         console.warn('[AUTH] google_sign_in_missing_credentials');
         this.ionicUtilService.showErrorToast(
-          'No se pudo obtener datos de tu cuenta Google',
-          'Error al iniciar sesión con Google',
+          this.translate.instant('SIGN_IN.GOOGLE_NO_DATA'),
+          this.translate.instant('SIGN_IN.GOOGLE_LOGIN_ERROR'),
           2500
         );
         this.loading = false;
@@ -229,11 +231,11 @@ export class SignInPage implements OnInit {
       // No mostrar toast si el usuario canceló (error de cancelación)
       const isCancelled =
         error?.message?.toLowerCase().includes('cancel') ||
-        error?.code === '12501'; // Google Sign-In cancelled
+        error?.code === '12501';
       if (!isCancelled) {
         this.ionicUtilService.showErrorToast(
-          'Error al conectar con Google',
-          'Error al iniciar sesión con Google',
+          this.translate.instant('SIGN_IN.GOOGLE_CONNECT_ERROR'),
+          this.translate.instant('SIGN_IN.GOOGLE_LOGIN_ERROR'),
           2500
         );
       }
@@ -241,9 +243,6 @@ export class SignInPage implements OnInit {
     }
   }
 
-  /**
-   * Sign in con Apple
-   */
   public async signInWithApple(): Promise<void> {
     if (this.loading) {
       return;
@@ -253,7 +252,6 @@ export class SignInPage implements OnInit {
       this.clearLoginError();
       this.loading = true;
 
-      // 1. Obtener credenciales de Apple
       const appleResponse = await this._appleAuthService.signIn();
 
       const idToken = appleResponse?.result?.idToken;
@@ -262,7 +260,6 @@ export class SignInPage implements OnInit {
         ? appleResponse.result.profile.email.toLowerCase()
         : null;
 
-      // Fallback: Intentar obtener email del idToken si no viene en el profile
       if (!email && idToken) {
         try {
           const decodedToken = this.authService.getDecodedUser({
@@ -279,28 +276,26 @@ export class SignInPage implements OnInit {
       if (!idToken) {
         this.loading = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo obtener token de Apple',
-          'Error al iniciar sesión con Apple',
+          this.translate.instant('SIGN_IN.APPLE_NO_TOKEN'),
+          this.translate.instant('SIGN_IN.APPLE_LOGIN_ERROR'),
           2500
         );
         return;
       }
 
-      // 2. Verificar con el backend
       this.authService.verifyApple(email, idToken).subscribe({
         next: (response) => this.handleSocialSuccess(response, 'Apple'),
         error: (error) =>
           this.handleSocialError(error, email, 'Apple', idToken),
       });
     } catch (error: any) {
-      // Solo capturar errores no HTTP (como problemas con el plugin de Apple)
       if (!error.status && !error.message?.includes('Usuario no encontrado')) {
         console.warn('[AUTH] apple_sign_in_plugin_failed', {
           reason: error?.code || error?.message || 'unknown',
         });
         this.ionicUtilService.showErrorToast(
-          'Error al conectar con Apple',
-          'Error al iniciar sesión con Apple',
+          this.translate.instant('SIGN_IN.APPLE_CONNECT_ERROR'),
+          this.translate.instant('SIGN_IN.APPLE_LOGIN_ERROR'),
           2500
         );
       }
@@ -328,7 +323,7 @@ export class SignInPage implements OnInit {
       error: (error) => {
         this.ionicUtilService.showErrorToast(
           error,
-          `Error al iniciar sesión con ${provider}`,
+          this.translate.instant('SIGN_IN.LOGIN_ERROR_WITH_PROVIDER', { provider }),
           2500
         );
         this.loading = false;
@@ -336,10 +331,6 @@ export class SignInPage implements OnInit {
     });
   }
 
-  /**
-   * Maneja error de social auth (usuario no existe)
-   * Detecta el 404 de múltiples formas para mayor robustez
-   */
   private handleSocialError(
     error: any,
     email: string | null,
@@ -349,7 +340,6 @@ export class SignInPage implements OnInit {
     const feedback = this.authErrorService.toLoginFeedback(error);
     const status = feedback.status;
 
-    // Buscar el mensaje en todas las capas posibles del error
     const message = (
       error?.error?.message ||
       error?.message ||
@@ -357,7 +347,6 @@ export class SignInPage implements OnInit {
       ''
     ).toLowerCase();
 
-    // El backend devuelve { message: 'Usuario no encontrado' } con status 404
     const isNotFound =
       status === 404 ||
       message.includes('no encontrado') ||
@@ -374,7 +363,7 @@ export class SignInPage implements OnInit {
       });
       this.ionicUtilService.showErrorToast(
         this.getSocialAuthMessage(feedback, provider),
-        `Error al iniciar sesión con ${provider}`,
+        this.translate.instant('SIGN_IN.LOGIN_ERROR_WITH_PROVIDER', { provider }),
         2500
       );
       this.loading = false;
@@ -389,7 +378,7 @@ export class SignInPage implements OnInit {
       return feedback.message;
     }
 
-    return `No se pudo iniciar sesión con ${provider}. Inténtalo de nuevo`;
+    return this.translate.instant('SIGN_IN.SOCIAL_AUTH_RETRY', { provider });
   }
 
   /**
@@ -408,8 +397,8 @@ export class SignInPage implements OnInit {
 
     if (!socialToken) {
       this.ionicUtilService.showErrorToast(
-        `No se pudo completar el registro con ${provider}`,
-        `Error al crear cuenta con ${provider}`,
+        this.translate.instant('SIGN_IN.REGISTER_ERROR_WITH_PROVIDER', { provider }),
+        this.translate.instant('SIGN_IN.CREATE_ACCOUNT_ERROR_WITH_PROVIDER', { provider }),
         2500
       );
       this.loading = false;
@@ -440,7 +429,7 @@ export class SignInPage implements OnInit {
           error: (error) => {
             this.ionicUtilService.showErrorToast(
               error,
-              `Error al crear cuenta con ${provider}`,
+              this.translate.instant('SIGN_IN.CREATE_ACCOUNT_ERROR_WITH_PROVIDER', { provider }),
               2500
             );
             this.loading = false;
@@ -454,7 +443,7 @@ export class SignInPage implements OnInit {
         });
         this.ionicUtilService.showErrorToast(
           error,
-          `Error al crear cuenta con ${provider}`,
+          this.translate.instant('SIGN_IN.CREATE_ACCOUNT_ERROR_WITH_PROVIDER', { provider }),
           2500
         );
         this.loading = false;
@@ -470,23 +459,22 @@ export class SignInPage implements OnInit {
   ): Promise<void> {
     this.loading = false;
     const alert = await this.ionicUtilService.showAlert({
-      header: 'Email requerido',
-      message:
-        'Apple no ha proporcionado tu correo. Por favor, introdúcelo para completar tu registro.',
+      header: this.translate.instant('SIGN_IN.EMAIL_REQUIRED'),
+      message: this.translate.instant('SIGN_IN.APPLE_EMAIL_MESSAGE'),
       inputs: [
         {
           name: 'email',
           type: 'email',
-          placeholder: 'tu@email.com',
+          placeholder: this.translate.instant('SIGN_IN.EMAIL_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'Cancelar',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'Continuar',
+          text: this.translate.instant('SIGN_IN.CONTINUE'),
           handler: (data) => {
             const email = normalizeTextInput(
               data.email,
@@ -497,7 +485,7 @@ export class SignInPage implements OnInit {
               this.executeCreateAppleUser(email, tokenApple);
             } else {
               this.ionicUtilService.showErrorToast(
-                'Por favor, introduce un email válido'
+                this.translate.instant('SIGN_IN.VALID_EMAIL')
               );
               return false;
             }
@@ -521,7 +509,7 @@ export class SignInPage implements OnInit {
             error: (error) => {
               this.ionicUtilService.showErrorToast(
                 error,
-                'Error al crear cuenta con Apple'
+                this.translate.instant('SIGN_IN.CREATE_ACCOUNT_ERROR_WITH_PROVIDER', { provider: 'Apple' })
               );
               this.loading = false;
             },
@@ -533,7 +521,7 @@ export class SignInPage implements OnInit {
           });
           this.ionicUtilService.showErrorToast(
             error,
-            'Error al crear cuenta con Apple'
+            this.translate.instant('SIGN_IN.CREATE_ACCOUNT_ERROR_WITH_PROVIDER', { provider: 'Apple' })
           );
           this.loading = false;
         },
@@ -568,7 +556,7 @@ export class SignInPage implements OnInit {
             message:
               feedback.kind === 'network' || feedback.kind === 'timeout'
                 ? feedback.message
-                : 'Ha ocurrido un error inesperado',
+                : this.translate.instant('SIGN_IN.UNEXPECTED_ERROR'),
           });
           this.loading = false;
         },

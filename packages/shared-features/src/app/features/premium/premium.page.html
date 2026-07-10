@@ -5,13 +5,13 @@
         <button
           class="tf-page-header__back-button"
           (click)="close()"
-          aria-label="Volver"
+          [attr.aria-label]="'COMMON.BACK' | translate"
         >
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Trainfit Pro</h1>
+        <h1 class="tf-page-header__title">{{ 'PREMIUM.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -30,19 +30,19 @@
 
         <!-- Estado FREE -->
         <ng-container *ngIf="!isPremium">
-          <h2 class="hero-title">Entrena sin límites</h2>
+          <h2 class="hero-title">{{ 'PREMIUM.TRAIN_UNLIMITED' | translate }}</h2>
           <p class="hero-subtitle">
-            Rutinas ilimitadas, sin anuncios y el máximo de la app.
+            {{ 'PREMIUM.HERO_SUBTITLE' | translate }}
           </p>
           <div class="hero-chips">
             <span class="hero-chip"
-              ><ion-icon name="infinite-outline"></ion-icon> Rutinas</span
+              ><ion-icon name="infinite-outline"></ion-icon> {{ 'PREMIUM.ROUTINES' | translate }}</span
             >
             <span class="hero-chip"
-              ><ion-icon name="flash-outline"></ion-icon> Sin anuncios</span
+              ><ion-icon name="flash-outline"></ion-icon> {{ 'PREMIUM.NO_ADS' | translate }}</span
             >
             <span class="hero-chip"
-              ><ion-icon name="nutrition-outline"></ion-icon> Recetas</span
+              ><ion-icon name="nutrition-outline"></ion-icon> {{ 'PREMIUM.RECIPES' | translate }}</span
             >
           </div>
         </ng-container>
@@ -51,12 +51,12 @@
         <ng-container *ngIf="isPremium">
           <div class="hero-status-badge">
             <ion-icon name="checkmark-circle"></ion-icon>
-            <span>Pro activo</span>
+            <span>{{ 'PREMIUM.PRO_ACTIVE' | translate }}</span>
           </div>
-          <h2 class="hero-title hero-title--premium">Tu cuenta es Pro</h2>
+          <h2 class="hero-title hero-title--premium">{{ 'PREMIUM.YOUR_ACCOUNT_IS_PRO' | translate }}</h2>
           <div class="hero-plan-info" *ngIf="entitlements">
             <div class="hero-plan-row">
-              <span class="hero-plan-label">Plan</span>
+              <span class="hero-plan-label">{{ 'PREMIUM.PLAN' | translate }}</span>
               <span class="hero-plan-value"> {{ currentPlanLabel }} </span>
             </div>
             <div class="hero-plan-divider"></div>
@@ -87,14 +87,14 @@
             <div class="plan-radio__dot"></div>
           </div>
           <div class="plan-info">
-            <span class="plan-name">Plan Anual</span>
-            <span class="plan-sub">El más popular</span>
+            <span class="plan-name">{{ 'PREMIUM.ANNUAL_PLAN' | translate }}</span>
+            <span class="plan-sub">{{ 'PREMIUM.MOST_POPULAR' | translate }}</span>
           </div>
           <div class="plan-price">
             <strong>{{ annualPriceLabel }}</strong>
-            <small>/año</small>
+            <small>{{ 'PREMIUM.PER_YEAR' | translate }}</small>
           </div>
-          <div class="plan-badge-tag" aria-hidden="true">-40%</div>
+          <div class="plan-badge-tag" aria-hidden="true">{{ 'PREMIUM.DISCOUNT_40' | translate }}</div>
         </button>
 
         <button
@@ -110,12 +110,12 @@
             <div class="plan-radio__dot"></div>
           </div>
           <div class="plan-info">
-            <span class="plan-name">Plan Mensual</span>
-            <span class="plan-sub">Sin permanencia</span>
+            <span class="plan-name">{{ 'PREMIUM.MONTHLY_PLAN' | translate }}</span>
+            <span class="plan-sub">{{ 'PREMIUM.NO_COMMITMENT' | translate }}</span>
           </div>
           <div class="plan-price">
             <strong>{{ monthlyPriceLabel }}</strong>
-            <small>/mes</small>
+            <small>{{ 'PREMIUM.PER_MONTH' | translate }}</small>
           </div>
         </button>
       </div>
@@ -134,17 +134,14 @@
           *ngIf="!isPurchasingAnnual && !isPurchasingMonthly"
           name="diamond-outline"
         ></ion-icon>
-        <span
-          >{{ (isPurchasingAnnual || isPurchasingMonthly) ? 'Procesando...' :
-          'Activar Pro' }}</span
-        >
+          <span>{{ (isPurchasingAnnual || isPurchasingMonthly) ? ('COMMON.PROCESSING' | translate) : ('PREMIUM.ACTIVATE_PRO' | translate) }}</span>
       </button>
 
-      <p class="trust-line">Cancela cuando quieras · Pago seguro</p>
+      <p class="trust-line">{{ 'PREMIUM.TRUST_LINE' | translate }}</p>
 
       <div class="legal-card">
         <p class="legal-caption">
-          {{ selectedPlanPriceCaption }} Cancela cuando quieras.
+          {{ selectedPlanPriceCaption }} {{ 'PREMIUM.CANCEL_ANYTIME' | translate }}.
         </p>
         <div class="legal-links">
           <button
@@ -152,7 +149,7 @@
             type="button"
             (click)="openPrivacyPolicy()"
           >
-            Política de privacidad
+            {{ 'PREMIUM.PRIVACY_POLICY' | translate }}
           </button>
           <button
             class="legal-link-btn"
@@ -168,38 +165,38 @@
     <!-- TABLA COMPARATIVA -->
     <section class="compare-card" *ngIf="!isPremium">
       <div class="compare-header">
-        <span class="compare-col-feature">Función</span>
-        <span class="compare-col-tier">Free</span>
-        <span class="compare-col-tier compare-col-tier--premium">Pro</span>
+        <span class="compare-col-feature">{{ 'PREMIUM.FEATURE' | translate }}</span>
+        <span class="compare-col-tier">{{ 'PREMIUM.FREE' | translate }}</span>
+        <span class="compare-col-tier compare-col-tier--premium">{{ 'PREMIUM.PRO' | translate }}</span>
       </div>
       <div class="compare-row">
-        <span class="compare-feature">Rutinas</span>
+        <span class="compare-feature">{{ 'PREMIUM.ROUTINES' | translate }}</span>
         <span class="compare-free">1</span>
         <span class="compare-premium"
           ><ion-icon name="infinite-outline"></ion-icon
         ></span>
       </div>
       <div class="compare-row">
-        <span class="compare-feature">Microciclos</span>
+        <span class="compare-feature">{{ 'PREMIUM.MICROCYCLES' | translate }}</span>
         <span class="compare-free">4</span>
         <span class="compare-premium">21</span>
       </div>
       <div class="compare-row">
-        <span class="compare-feature">Ejercicios propios</span>
+        <span class="compare-feature">{{ 'PREMIUM.OWN_EXERCISES' | translate }}</span>
         <span class="compare-free">2</span>
         <span class="compare-premium"
           ><ion-icon name="infinite-outline"></ion-icon
         ></span>
       </div>
       <div class="compare-row">
-        <span class="compare-feature">Recetas propias</span>
+        <span class="compare-feature">{{ 'PREMIUM.OWN_RECIPES' | translate }}</span>
         <span class="compare-free">2</span>
         <span class="compare-premium"
           ><ion-icon name="infinite-outline"></ion-icon
         ></span>
       </div>
       <div class="compare-row">
-        <span class="compare-feature">Sin anuncios</span>
+        <span class="compare-feature">{{ 'PREMIUM.NO_ADS' | translate }}</span>
         <span class="compare-free"
           ><ion-icon name="close-circle" class="icon-no"></ion-icon
         ></span>
@@ -229,19 +226,19 @@
       <section class="status-card status-card--current" *ngIf="entitlements">
         <div class="status-row status-row--stacked">
           <div class="status-copy">
-            <span class="status-label">Estado</span>
+            <span class="status-label">{{ 'PREMIUM.STATUS' | translate }}</span>
             <p class="status-description">{{ premiumStatusDescription }}</p>
           </div>
           <span class="status-value status-value--active">
-            <ion-icon name="checkmark-circle"></ion-icon> Activo
+            <ion-icon name="checkmark-circle"></ion-icon> {{ 'PREMIUM.ACTIVE' | translate }}
           </span>
         </div>
       </section>
 
       <section class="status-card" *ngIf="entitlements && showChangeToAnnual">
         <div class="status-row">
-          <span class="status-label">Mejora tu plan</span>
-          <span class="status-value">Ahorra con el plan anual</span>
+          <span class="status-label">{{ 'PREMIUM.UPGRADE_PLAN' | translate }}</span>
+          <span class="status-value">{{ 'PREMIUM.SAVE_WITH_ANNUAL' | translate }}</span>
         </div>
 
         <button
@@ -254,7 +251,7 @@
             name="crescent"
             class="cta-spinner-sm"
           ></ion-spinner>
-          <span>Cambiar a anual</span>
+          <span>{{ 'PREMIUM.SWITCH_TO_ANNUAL' | translate }}</span>
         </button>
       </section>
 
@@ -269,7 +266,7 @@
           name="crescent"
           class="cta-spinner"
         ></ion-spinner>
-        <span>Gestionar suscripción</span>
+        <span>{{ 'PREMIUM.MANAGE_SUBSCRIPTION' | translate }}</span>
       </button>
 
       <button
@@ -283,7 +280,7 @@
           name="crescent"
           class="cta-spinner-sm"
         ></ion-spinner>
-        <span>Restaurar compras</span>
+      <span>{{ 'PREMIUM.RESTORE_PURCHASES' | translate }}</span>
       </button>
     </ng-container>
 
@@ -293,33 +290,22 @@
       *ngIf="platform === 'android' && !isManualPremium"
     >
       <ion-icon name="information-circle-outline"></ion-icon>
-      <p>
-        Para modificar o cancelar tu suscripción: Google Play &rsaquo; avatar
-        &rsaquo; Suscripciones. Los cambios pueden tardar unos segundos en
-        sincronizarse.
-      </p>
+      <p>{{ 'PREMIUM.ANDROID_MANAGE_NOTE' | translate }}</p>
     </div>
 
     <div class="runtime-note" *ngIf="platform === 'ios' && !isManualPremium">
       <ion-icon name="information-circle-outline"></ion-icon>
-      <p>
-        Para modificar o cancelar tu suscripción: Ajustes &rsaquo; [tu nombre]
-        &rsaquo; Suscripciones. Los cambios pueden tardar unos segundos en
-        sincronizarse.
-      </p>
+      <p>{{ 'PREMIUM.IOS_MANAGE_NOTE' | translate }}</p>
     </div>
 
     <div class="runtime-note" *ngIf="isManualPremium">
       <ion-icon name="information-circle-outline"></ion-icon>
-      <p>
-        Tu acceso Pro ha sido asignado por TrainFit. Si tienes dudas sobre su
-        duración o necesitas ayuda, contacta con soporte.
-      </p>
+      <p>{{ 'PREMIUM.MANUAL_ACCESS_NOTE' | translate }}</p>
     </div>
 
     <div class="runtime-note" *ngIf="!isNativeBillingAvailable">
       <ion-icon name="information-circle-outline"></ion-icon>
-      <p>Las compras in-app se completan desde la app.</p>
+      <p>{{ 'PREMIUM.NATIVE_BILLING_NOTE' | translate }}</p>
     </div>
   </div>
 </ion-content>

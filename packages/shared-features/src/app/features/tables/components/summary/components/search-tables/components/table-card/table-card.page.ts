@@ -15,6 +15,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { TranslateService } from '@ngx-translate/core';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
@@ -78,6 +79,7 @@ export class TableCardPage {
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private popoverController: PopoverController,
+    private translate: TranslateService,
     private adMobService: AdMobService,
     private billingService: BillingService
   ) { }
@@ -157,16 +159,15 @@ export class TableCardPage {
   public useTable(): void {
     if (this.user.tableInUse) {
       const alOptions = {
-        header: 'Rutina en uso',
-        message:
-          'Tienes una rutina en uso actualmente, si seleccionas otra, se guardrá la actual en Mis rutinas',
+        header: this.translate.instant('TABLES.ROUTINE_IN_USE'),
+        message: this.translate.instant('TABLES.ROUTINE_IN_USE_MSG'),
         buttons: [
           {
-            text: 'CANCELAR',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
           },
           {
-            text: 'CONFIRMAR',
+            text: this.translate.instant('COMMON.CONFIRM'),
             role: 'confirm',
             handler: () => this.showConfirmationDialog(),
           },
@@ -180,20 +181,20 @@ export class TableCardPage {
 
   private showConfirmationDialog(): void {
     const html = this.ownFilter
-      ? 'Siempre puedes pausar y elegir otra'
-      : 'Se añadirá a Mis rutinas y se iniciará';
+      ? this.translate.instant('TABLES.ROUTINE_CAN_PAUSE')
+      : this.translate.instant('TABLES.ROUTINE_WILL_BE_ADDED');
 
     const alertOptions = {
-      header: 'Usar ' + this.tableCard.name,
+      header: this.translate.instant('TABLES.USE_ROUTINE', { name: this.tableCard.name }),
       message: html,
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'alert-button-primary',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'alert-button-success',
           handler: () => {
             if (!this.user?.premium?.entitled) {
@@ -221,7 +222,7 @@ export class TableCardPage {
                       this.navigationService.goToMesocycle();
                       this.loadAction = true;
                       const toastOptions: ToastOptions = {
-                        message: 'Rutina iniciada con éxito',
+                        message: this.translate.instant('TABLES.ROUTINE_STARTED_SUCCESS'),
                         duration: 2000,
                       };
                       this.ionicUtilService.showToast(toastOptions);
@@ -245,7 +246,7 @@ export class TableCardPage {
                     this.loadAction = true;
                     void this.billingService.refreshBackendEntitlements();
                     const toastOptions: ToastOptions = {
-                      message: 'Rutina adquirida e iniciada con exito',
+                      message: this.translate.instant('TABLES.ROUTINE_ACQUIRED_SUCCESS'),
                       duration: 2000,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -264,13 +265,13 @@ export class TableCardPage {
   public editTableName(): void {
     this.popoverController.dismiss();
     const alertOptions = {
-      header: 'Editar nombre de rutina',
+      header: this.translate.instant('TABLES.EDIT_ROUTINE_NAME'),
       inputs: [
         {
           name: 'tableName',
           type: 'textarea' as 'textarea',
           value: this.tableCard.name,
-          placeholder: 'Nombre de la rutina',
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           attributes: {
             maxlength: VALIDATION_LIMITS.text.shortNameMax,
           },
@@ -278,11 +279,11 @@ export class TableCardPage {
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'alert-button-primary',
           handler: (data) => {
             const tableName = normalizeTextInput(
@@ -291,7 +292,7 @@ export class TableCardPage {
             );
             if (tableName.length < VALIDATION_LIMITS.text.shortNameMin) {
               this.ionicUtilService.showToast({
-                message: 'El campo no puede estar vacío',
+                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
                 duration: 2000,
               });
               return false;
@@ -302,11 +303,9 @@ export class TableCardPage {
                 ...this.tableService.tableInUse,
                 name: tableName,
               };
-              const message = 'Nombre de rutina actualizado';
-              const duration = 1000;
               const toastOptions: ToastOptions = {
-                message: message,
-                duration: duration,
+                message: this.translate.instant('TABLES.ROUTINE_NAME_UPDATED'),
+                duration: 1000,
               };
               this.ionicUtilService.showToast(toastOptions);
             });
@@ -322,15 +321,15 @@ export class TableCardPage {
     this.popoverController.dismiss();
     event.stopPropagation();
     const alertOptions = {
-      header: 'Duplicar ' + this.tableCard.name,
-      message: 'Se copiará todo el contenido de la rutina',
+      header: this.translate.instant('TABLES.DUPLICATE_ROUTINE', { name: this.tableCard.name }),
+      message: this.translate.instant('TABLES.DUPLICATE_ROUTINE_MSG'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'alert-button-confirm',
           handler: () => {
             this.loadAction = false;
@@ -341,7 +340,7 @@ export class TableCardPage {
                   this.copyOwnTableEv.emit(resTable);
                   void this.billingService.refreshBackendEntitlements();
                   const toastOptions: ToastOptions = {
-                    message: this.tableCard.name + ' copiada',
+                    message: this.translate.instant('TABLES.ROUTINE_COPIED', { name: this.tableCard.name }),
                     duration: 1000,
                   };
                   this.ionicUtilService.showToast(toastOptions);
@@ -362,8 +361,7 @@ export class TableCardPage {
 
     if (error?.error?.code === 'PREMIUM_LIMIT_ROUTINES') {
       void this.ionicUtilService.showPremiumLimitAlert({
-        message:
-          'Has alcanzado el limite de rutinas. Activa Pro para crear mas.',
+        message: this.translate.instant('TABLES.ROUTINE_LIMIT_REACHED'),
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
@@ -371,28 +369,27 @@ export class TableCardPage {
 
     this.ionicUtilService.showErrorToast(
       error,
-      'No se pudo completar la accion',
+      this.translate.instant('TABLES.ROUTINE_ACTION_ERROR'),
     );
   }
 
   public deleteTable(idTable: string, event: Event): void {
     this.popoverController.dismiss();
     event.stopPropagation();
-    const message =
-      this.user.tableInUse === idTable
-        ? 'Esta rutina está actualmente en uso. Si la eliminas se te desvinculará y después se eliminará de manera irreversible'
-        : 'Se eliminará la rutina de manera irreversible';
+    const message = this.user.tableInUse === idTable
+      ? this.translate.instant('TABLES.DELETE_ROUTINE_IN_USE_MSG')
+      : this.translate.instant('TABLES.DELETE_ROUTINE_MSG');
 
     const alertOptions = {
-      header: 'Eliminar ' + this.tableCard.name,
+      header: this.translate.instant('TABLES.DELETE_ROUTINE', { name: this.tableCard.name }),
       message,
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: 'destructive',
           cssClass: 'alert-button-confirm',
           handler: () => {
@@ -403,7 +400,7 @@ export class TableCardPage {
                 this.deletedTable.emit(idTable);
                 void this.billingService.refreshBackendEntitlements();
                 const toastOptions: ToastOptions = {
-                  message: this.tableCard.name + ' eliminada',
+                  message: this.translate.instant('TABLES.ROUTINE_DELETED', { name: this.tableCard.name }),
                   duration: 1000,
                 };
                 this.ionicUtilService.showToast(toastOptions);

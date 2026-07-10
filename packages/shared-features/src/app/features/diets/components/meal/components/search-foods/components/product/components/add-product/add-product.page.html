@@ -1342,7 +1342,12 @@
                   class="custom-info-textarea"
                   formControlName="ingredients"
                   placeholder="Ej: Trigo, azúcar, sal..."
+                  [maxlength]="VALIDATION_LIMITS.text.ingredientsMax"
                 ></ion-textarea>
+                <app-char-counter
+                  [value]="addCustomProductForm.get('ingredients')?.value"
+                  [max]="VALIDATION_LIMITS.text.ingredientsMax"
+                ></app-char-counter>
               </div>
 
               <div class="text-info-card">
@@ -1354,7 +1359,12 @@
                   class="custom-info-textarea"
                   formControlName="allergens"
                   placeholder="Ej: Gluten, leche, soja..."
+                  [maxlength]="VALIDATION_LIMITS.text.allergensMax"
                 ></ion-textarea>
+                <app-char-counter
+                  [value]="addCustomProductForm.get('allergens')?.value"
+                  [max]="VALIDATION_LIMITS.text.allergensMax"
+                ></app-char-counter>
               </div>
 
               <div class="text-info-card">
@@ -1366,7 +1376,12 @@
                   class="custom-info-textarea"
                   formControlName="traces"
                   placeholder="Ej: Frutos de cáscara..."
+                  [maxlength]="VALIDATION_LIMITS.text.allergensMax"
                 ></ion-textarea>
+                <app-char-counter
+                  [value]="addCustomProductForm.get('traces')?.value"
+                  [max]="VALIDATION_LIMITS.text.allergensMax"
+                ></app-char-counter>
               </div>
             </div>
           </div>
@@ -1379,10 +1394,10 @@
 <ion-footer *ngIf="isDietMode" class="elegant-footer">
   <div class="footer-content">
     <ion-button
-      *ngIf="(meal || ingredientMode) && !loading.value; else loadingTemplate"
+      *ngIf="meal || ingredientMode"
       expand="block"
       class="save-button-global"
-      [disabled]="addCustomProductForm.invalid"
+      [disabled]="addCustomProductForm.invalid || loading.value"
       (click)="addCustomProduct()"
     >
       <div class="button-content">
@@ -1393,19 +1408,11 @@
         </span>
       </div>
     </ion-button>
-
-    <ng-template #loadingTemplate>
-      <ion-button
-        *ngIf="meal || ingredientMode"
-        expand="block"
-        class="save-button-global"
-        disabled
-      >
-        <div class="loading-content">
-          <ion-spinner name="crescent" color="light"></ion-spinner>
-          <span class="loading-text">Procesando...</span>
-        </div>
-      </ion-button>
-    </ng-template>
+    <ion-progress-bar
+      *ngIf="loading.value"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>

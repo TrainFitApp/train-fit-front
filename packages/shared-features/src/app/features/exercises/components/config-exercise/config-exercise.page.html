@@ -9,7 +9,7 @@
       </div>
 
       <div class="title-section">
-        <h1 class="page-title">Añadir ejercicio</h1>
+        <h1 class="page-title">{{ 'EXERCISE_CONFIG.ADD_EXERCISE' | translate }}</h1>
       </div>
 
       <div class="actions-section">
@@ -55,18 +55,23 @@
           </div>
           <div class="exercise-details" [class.create-mode]="isCreateMode">
             <ion-label *ngIf="!isCreateMode" class="exercise-label">
-              EJERCICIO
+              {{ 'EXERCISE_CONFIG.EXERCISE_LABEL' | translate }}
             </ion-label>
             <ng-container
               *ngIf="isCreateMode || isEditingOwnExercise; else exerciseNameLabel"
             >
               <ion-input
                 formControlName="name"
-                placeholder="Nombre de nuevo ejercicio"
+                [placeholder]="'EXERCISE_CONFIG.NEW_EXERCISE_NAME' | translate"
                 fill="solid"
                 mode="ios"
                 class="exercise-name-input"
+                [maxlength]="VALIDATION_LIMITS.text.shortNameMax"
               ></ion-input>
+              <app-char-counter
+                [value]="form.get('name')?.value"
+                [max]="VALIDATION_LIMITS.text.shortNameMax"
+              ></app-char-counter>
             </ng-container>
             <ng-template #exerciseNameLabel>
               <ion-label class="exercise-name ion-text-wrap"
@@ -102,12 +107,17 @@
         >
           <ion-textarea
             formControlName="description"
-            placeholder="Descripción del ejercicio..."
+            [placeholder]="'EXERCISE_CONFIG.DESCRIPTION_PLACEHOLDER' | translate"
             fill="solid"
             mode="ios"
             class="exercise-description-input"
             rows="3"
+            [maxlength]="VALIDATION_LIMITS.text.descriptionMax"
           ></ion-textarea>
+          <app-char-counter
+            [value]="form.get('description')?.value"
+            [max]="VALIDATION_LIMITS.text.descriptionMax"
+          ></app-char-counter>
 
           <div class="exercise-mode-section">
             <ion-segment
@@ -116,10 +126,10 @@
               (ionChange)="setExerciseMode($event.detail.value)"
             >
               <ion-segment-button value="fuerza">
-                <ion-label>Fuerza</ion-label>
+                <ion-label>{{ 'EXERCISE_CONFIG.STRENGTH' | translate }}</ion-label>
               </ion-segment-button>
               <ion-segment-button value="cardio">
-                <ion-label>Cardio</ion-label>
+                <ion-label>{{ 'EXERCISE_CONFIG.CARDIO' | translate }}</ion-label>
               </ion-segment-button>
             </ion-segment>
           </div>
@@ -132,7 +142,7 @@
             (click)="configSets()"
           >
             <ion-icon name="barbell-outline" slot="start"></ion-icon>
-            <span class="add-sets-text">AÑADIR SERIES</span>
+            <span class="add-sets-text">{{ 'EXERCISE_CONFIG.ADD_SETS' | translate }}</span>
           </ion-button>
         </div>
       </div>
@@ -156,7 +166,7 @@
       [notes]="notes"
       (update)="notes = $event"
       [detail]="true"
-      type="Notas del ejercicio"
+      [type]="'EXERCISE_CONFIG.EXERCISE_NOTES' | translate"
     ></app-notes>
 
     <!-- Sets List -->
@@ -169,7 +179,7 @@
                 <ion-icon name="bar-chart-outline"></ion-icon>
               </div>
               <div class="sets-title">
-                <h3>Series configuradas</h3>
+                <h3>{{ 'EXERCISE_CONFIG.SETS_CONFIGURED' | translate }}</h3>
                 <span class="sets-count"
                   >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
                   }}</span
@@ -191,7 +201,7 @@
                   <ion-label color="secondary">
                     <strong>
                       {{ set.displayOrder }}.
-                      <span *ngIf="!set.drop && !set.restPause">SERIE</span>
+                      <span *ngIf="!set.drop && !set.restPause">{{ 'EXERCISE_CONFIG.SET' | translate }}</span>
                     </strong>
                   </ion-label>
                   &nbsp;
@@ -252,7 +262,7 @@
                       <span
                         *ngIf="set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)"
                         class="fail-label"
-                        >FALLO</span
+                        >{{ 'EXERCISE_CONFIG.FAILURE' | translate }}</span
                       >
                     </ng-template>
                   </div>
@@ -279,7 +289,7 @@
           <div class="empty-icon">
             <ion-icon name="bar-chart-outline"></ion-icon>
           </div>
-          <p class="empty-text">Aún no tienes series configuradas</p>
+          <p class="empty-text">{{ 'EXERCISE_CONFIG.NO_SETS' | translate }}</p>
         </div>
       </ng-template>
     </div>
@@ -294,7 +304,7 @@
         <!-- Header with Title -->
         <div class="exercise-details ion-text-center">
           <ion-label class="exercise-name ion-text-wrap">
-            Categorías, grupos musculares y equipamiento
+            {{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}
           </ion-label>
         </div>
 
@@ -315,7 +325,7 @@
             >
             </ion-icon>
             <span class="add-sets-text"
-              >{{ showFilters ? 'OCULTAR DETALLES' : 'AÑADIR DETALLES' }}</span
+              >{{ showFilters ? ('EXERCISE_CONFIG.HIDE_DETAILS' | translate) : ('EXERCISE_CONFIG.ADD_DETAILS' | translate) }}</span
             >
           </ion-button>
         </div>
@@ -329,7 +339,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Categorías</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.CATEGORIES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -349,7 +359,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Principales</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.PRIMARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -369,7 +379,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Secundarios</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.SECONDARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -392,7 +402,7 @@
                 name="construct-outline"
                 class="section-icon"
               ></ion-icon>
-              <h4 class="section-title">Equipamiento</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.EQUIPMENT' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -421,7 +431,7 @@
           >
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Categorías</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.CATEGORIES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
@@ -440,7 +450,7 @@
           >
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Principales</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.PRIMARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
@@ -459,7 +469,7 @@
           >
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Secundarios</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.SECONDARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
@@ -481,7 +491,7 @@
                 name="construct-outline"
                 class="section-icon"
               ></ion-icon>
-              <h4 class="section-title">Equipamiento</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.EQUIPMENT' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
@@ -503,7 +513,7 @@
           <div class="video-icon">
             <ion-icon name="play-circle-outline"></ion-icon>
           </div>
-          <h3 class="video-title">Video demostrativo</h3>
+          <h3 class="video-title">{{ 'EXERCISE_CONFIG.DEMO_VIDEO' | translate }}</h3>
         </div>
       </div>
       <div class="video-container">
@@ -530,7 +540,7 @@
             <div class="muscle-groups-icon">
               <ion-icon name="body-outline"></ion-icon>
             </div>
-            <h3 class="muscle-groups-title">Grupos musculares</h3>
+            <h3 class="muscle-groups-title">{{ 'EXERCISE_CONFIG.MUSCLE_GROUPS' | translate }}</h3>
           </div>
         </div>
 
@@ -561,7 +571,7 @@
             <div class="description-icon">
               <ion-icon name="document-text-outline"></ion-icon>
             </div>
-            <h3 class="description-title">Descripción</h3>
+            <h3 class="description-title">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</h3>
           </div>
         </div>
 
@@ -586,7 +596,7 @@
       [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
     >
       <div class="button-content">
-        <span>GUARDAR CAMBIOS</span>
+        <span>{{ 'EXERCISE_CONFIG.SAVE_CHANGES' | translate }}</span>
       </div>
     </ion-button>
 
@@ -599,7 +609,7 @@
         [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
       >
         <div class="button-content">
-          <span>GUARDAR EJERCICIO</span>
+          <span>{{ 'EXERCISE_CONFIG.SAVE_EXERCISE' | translate }}</span>
         </div>
       </ion-button>
     </ng-template>
@@ -608,7 +618,7 @@
       <ion-button expand="block" size="large" disabled>
         <div class="loading-content">
           <ion-spinner name="crescent" color="light"></ion-spinner>
-          <span class="loading-text">Procesando...</span>
+          <span class="loading-text">{{ 'COMMON.PROCESSING' | translate }}</span>
         </div>
       </ion-button>
     </ng-template>

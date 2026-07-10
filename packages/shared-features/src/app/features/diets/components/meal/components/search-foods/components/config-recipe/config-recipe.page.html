@@ -100,8 +100,13 @@
               placeholder="Ej: Pollo salteado"
               class="custom-input"
               #nameInput
+              [maxlength]="VALIDATION_LIMITS.text.shortNameMax"
             ></ion-input>
           </div>
+          <app-char-counter
+            [value]="recipeForm.get('name')?.value"
+            [max]="VALIDATION_LIMITS.text.shortNameMax"
+          ></app-char-counter>
         </div>
 
         <div class="description-explainer" [class.expanded]="showDescriptionDetails">
@@ -126,7 +131,12 @@
                 [autoGrow]="true"
                 [rows]="3"
                 class="custom-textarea"
+                [maxlength]="VALIDATION_LIMITS.text.descriptionMax"
               ></ion-textarea>
+              <app-char-counter
+                [value]="recipeForm.get('description')?.value"
+                [max]="VALIDATION_LIMITS.text.descriptionMax"
+              ></app-char-counter>
             </div>
           </div>
         </div>
@@ -380,8 +390,7 @@
       [disabled]="!canSave || loading"
       (click)="save()"
     >
-      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-      <ng-container *ngIf="!loading">
+      <ng-container>
         <span>
           {{
             isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
@@ -389,5 +398,11 @@
         </span>
       </ng-container>
     </ion-button>
+    <ion-progress-bar
+      *ngIf="loading"
+      class="save-progress"
+      type="indeterminate"
+      color="primary"
+    ></ion-progress-bar>
   </div>
 </ion-footer>
