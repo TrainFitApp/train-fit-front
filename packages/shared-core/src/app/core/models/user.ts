@@ -30,6 +30,7 @@ export class User {
   access_token?: string;
   hash?: string;
   theme?: ColorMode;
+  lang?: 'es' | 'en';
   provider?: 'google' | 'apple';
   personalAds?: boolean;
   premium?: {

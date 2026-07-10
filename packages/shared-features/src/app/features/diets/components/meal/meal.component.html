@@ -94,7 +94,7 @@
                   ></ion-icon>
                 </ion-button>
               </ion-buttons>
-              <span style="font-size: x-large">{{ meal.name }}</span> &nbsp;
+              <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
               <ion-icon
                 *ngIf="
                   meal.customProducts.length > 0 ||
@@ -202,7 +202,7 @@
         class="section-header"
       >
         <ion-label color="primary">
-          <strong>Recetas</strong>
+          <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</strong>
         </ion-label>
       </div>
 
@@ -264,7 +264,7 @@
         style="margin-top: 10px"
       >
         <ion-label color="primary">
-          <strong>Productos</strong>
+          <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</strong>
         </ion-label>
       </div>
 

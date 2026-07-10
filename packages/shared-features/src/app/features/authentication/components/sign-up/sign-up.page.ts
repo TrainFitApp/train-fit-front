@@ -45,6 +45,7 @@ import { TRAINING_TYPE } from 'src/app/shared/constants/training';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import {
   PendingEmailVerificationService,
@@ -153,7 +154,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     private router: Router,
     private signUpStateService: SignUpStateService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private i18nService: I18nService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
@@ -849,6 +851,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       ...this.signUpForm.value,
       activity: activity,
       objetive: finalKcal,
+      lang: this.i18nService.current as 'es' | 'en',
     };
 
     if (this.user.objetive > 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_SURPLUS');

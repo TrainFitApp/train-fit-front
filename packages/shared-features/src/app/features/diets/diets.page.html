@@ -83,8 +83,8 @@
         first-day-of-week="1"
         #datetime
         [showDefaultButtons]="true"
-        doneText="CONFIRMAR"
-        cancelText="CANCELAR"
+        [doneText]="'COMMON.CONFIRM' | translate"
+        [cancelText]="'COMMON.CANCEL' | translate"
         presentation="date"
         (ionChange)="selectCalendarDay(datetime.value.toString())"
       ></ion-datetime>

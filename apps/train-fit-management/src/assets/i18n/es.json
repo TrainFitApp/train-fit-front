@@ -257,7 +257,7 @@
   "SIGN_IN": {
     "VERIFYING_CREDENTIALS": "Verificando credenciales...",
     "EMAIL_LABEL": "Correo electrónico",
-    "EMAIL_PLACEHOLDER": "tu@email.com",
+    "EMAIL_PLACEHOLDER": "Email",
     "EMAIL_REQUIRED_VALIDATION": "El correo electrónico es obligatorio",
     "EMAIL_VALID_VALIDATION": "Correo electrónico válido",
     "PASSWORD_LABEL": "Contraseña",

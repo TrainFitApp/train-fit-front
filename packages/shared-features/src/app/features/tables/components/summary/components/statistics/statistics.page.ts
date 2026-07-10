@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { AlertOptions, NavController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
@@ -194,15 +195,25 @@ export class StatisticsPage implements OnInit, OnDestroy {
     '#ffc409',
     '#4a9eff',
   ];
-  public weekDaysHeader = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  public weekDaysHeader: string[];
 
   constructor(
     private tableService: TableService,
     private navCtrl: NavController,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    public translate: TranslateService
   ) {}
 
   ngOnInit() {
+    this.weekDaysHeader = [
+      this.translate.instant('COMMON.MON'),
+      this.translate.instant('COMMON.TUE'),
+      this.translate.instant('COMMON.WED'),
+      this.translate.instant('COMMON.THU'),
+      this.translate.instant('COMMON.FRI'),
+      this.translate.instant('COMMON.SAT'),
+      this.translate.instant('COMMON.SUN'),
+    ];
     this.table = this.tableService.currentTable();
     if (this.table && this.table.splits) {
       this.extractWorkouts();
@@ -307,23 +318,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
   }
 
   private generateMonthYearString() {
-    const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
-    ];
-    this.monthYearString = `${
-      months[this.calendarCurrentDate.getMonth()]
-    } ${this.calendarCurrentDate.getFullYear()}`;
+    const locale = this.translate.currentLang === 'en' ? 'en' : 'es';
+    this.monthYearString = this.calendarCurrentDate.toLocaleDateString(locale, {
+      month: 'long',
+      year: 'numeric',
+    });
   }
 
   private generateCalendarDays() {
@@ -407,7 +406,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     this.selectedExerciseId = exerciseId;
     const exercise = this.exercises.find((ex) => ex._id === exerciseId);
     if (exercise) {
-      this.selectedExerciseName = exercise.exercise?.name || 'Ejercicio';
+      this.selectedExerciseName = exercise.exercise?.name || this.translate.instant('TABLES.STATS_SELECT_EXERCISE');
       this.selectedSetIndex = 0; // Reset a primera serie
       this.chartMode = 'evolution'; // Default mode
       this.generateHistoryData();
@@ -767,7 +766,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
           datasets: [
             {
               type: 'bar',
-              label: 'Tiempo Total (min)',
+              label: this.translate.instant('TABLES.STATS_TOTAL_TIME') + ' (min)',
               data: timeData,
               backgroundColor: 'rgba(56, 128, 255, 0.4)',
               borderColor: '#3880ff',
@@ -777,7 +776,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             },
             {
               type: 'line',
-              label: 'Mejor Velocidad (km/h)',
+              label: this.translate.instant('TABLES.STATS_BEST_SPEED') + ' (km/h)',
               data: velocityData,
               borderColor: '#fe9000',
               borderWidth: 2,
@@ -799,8 +798,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  if (ctx.datasetIndex === 0) return ` Tiempo: ${ctx.raw} min`;
-                  return ` Velocidad: ${ctx.raw} km/h`;
+                  if (ctx.datasetIndex === 0) return ` ${this.translate.instant('TABLES.STATS_TIME')}: ${ctx.raw} min`;
+                  return ` ${this.translate.instant('TABLES.STATS_SPEED')}: ${ctx.raw} km/h`;
                 },
               },
             },
@@ -843,7 +842,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
           datasets: [
             {
               type: 'bar',
-              label: 'Vol. Efectivo (kg)',
+              label: this.translate.instant('TABLES.STATS_EFFECTIVE_VOLUME') + ' (kg)',
               data: volData,
               backgroundColor: 'rgba(254, 144, 0, 0.4)',
               borderColor: '#fe9000',
@@ -853,7 +852,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             },
             {
               type: 'line',
-              label: 'RIR Medio',
+              label: this.translate.instant('TABLES.STATS_AVG_RIR'),
               data: rirData,
               borderColor: '#3880ff',
               backgroundColor: 'transparent',
@@ -876,8 +875,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  if (ctx.datasetIndex === 0) return ` Volumen: ${ctx.raw} kg`;
-                  return ` RIR Medio: ${ctx.raw}`;
+                  if (ctx.datasetIndex === 0) return ` ${this.translate.instant('TABLES.STATS_VOLUME')}: ${ctx.raw} kg`;
+                  return ` ${this.translate.instant('TABLES.STATS_AVG_RIR')}: ${ctx.raw}`;
                 },
               },
             },
@@ -917,7 +916,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // --- Chart: Progression (Weight and Reps of Selected/Best Set) ---
   private buildProgressionChart(data: SessionData[]) {
     const ctx = this.progressionCanvas.nativeElement.getContext('2d');
-    const labels = data.map((h) => `Microciclo ${h.splitIndex}`);
+    const labels = data.map((h) => this.translate.instant('TABLES.STATS_MICROCYCLE', { n: h.splitIndex }));
 
     let weightData: (number | null)[] = [];
     let repsData: (number | null)[] = [];
@@ -943,7 +942,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
         labels,
         datasets: [
           {
-            label: this.isCardio ? 'Velocidad' : 'Peso (kg)',
+            label: this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)',
             data: weightData as any,
             borderColor: '#fe9000',
             backgroundColor: 'rgba(254, 144, 0, 0.12)',
@@ -959,7 +958,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             yAxisID: 'y',
           },
           {
-            label: this.isCardio ? 'Tiempo' : 'Reps',
+            label: this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS'),
             data: repsData as any,
             borderColor: '#3880ff',
             backgroundColor: 'rgba(56, 128, 255, 0.05)',
@@ -993,10 +992,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
                 if (v == null) return '';
                 if (ctx.datasetIndex === 0)
                   return ` ${
-                    this.isCardio ? 'Velocidad' : 'Peso'
+                    this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT')
                   }: ${v} ${yUnit}`;
                 return ` ${
-                  this.isCardio ? 'Tiempo' : 'Reps'
+                  this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS')
                 }: ${v} ${repsUnit}`;
               },
             },
@@ -1021,11 +1020,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
     });
   }
 
-  public async showNoteAlert(notes: string, title: string = 'Nota') {
+  public async showNoteAlert(notes: string, title: string = this.translate.instant('NOTES.TITLE')) {
     const alertOptions: AlertOptions = {
       header: title,
       message: notes,
-      buttons: ['OK'],
+      buttons: [this.translate.instant('COMMON.OK')],
       cssClass: 'notes-alert',
     };
     await this.ionicUtilService.showAlert(alertOptions);

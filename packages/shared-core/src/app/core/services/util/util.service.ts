@@ -27,7 +27,9 @@ import {
 } from '../../validators/user-validation-errors';
 import { IonicUtilService } from './ionic-util.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class UtilService {
   private _measureFilter$ = new BehaviorSubject<MEASURE_FILTER_TYPES>(
     MEASURE_FILTER_TYPES.racion

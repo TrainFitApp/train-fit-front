@@ -24,6 +24,7 @@ import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
 import { SafePipe } from './pipes/safe.pipe';
 import { TranslateDbPipe } from './pipes/translate-db.pipe';
+import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 
 @NgModule({
   declarations: [
@@ -43,6 +44,7 @@ import { TranslateDbPipe } from './pipes/translate-db.pipe';
     ExpectedPipe,
     CategoryPipe,
     TranslateDbPipe,
+    TranslateDescPipe,
     DisconnectedComponent,
     VideoModalComponent,
     CursorEndDirective,
@@ -72,6 +74,7 @@ import { TranslateDbPipe } from './pipes/translate-db.pipe';
     ExpectedPipe,
     CategoryPipe,
     TranslateDbPipe,
+    TranslateDescPipe,
     DisconnectedComponent,
     CursorEndDirective,
     DecimalInputDirective,

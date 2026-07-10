@@ -226,21 +226,68 @@
     border: 1px solid #252525;
 
     .weight-current {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       padding-bottom: 16px;
       border-bottom: 1px solid #252525;
 
-      .weight-day {
-        font-size: 16px;
-        color: var(--pe-muted);
-        text-transform: capitalize;
-        margin-bottom: 8px;
+      .weight-day-value {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .weight-day {
+          font-size: 16px;
+          color: var(--pe-muted);
+          text-transform: capitalize;
+        }
+
+        .weight-value {
+          font-size: 28px;
+          font-weight: 600;
+          color: var(--pe-text);
+        }
       }
 
-      .weight-value {
-        font-size: 28px;
-        font-weight: 600;
-        color: var(--pe-text);
+      .weight-trend {
+        .trend-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .trend-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+
+            .trend-icon {
+              font-size: 16px;
+
+              &.up {
+                color: #ef4444;
+              }
+
+              &.down {
+                color: #10b981;
+              }
+
+              &.stable {
+                color: #f59e0b;
+              }
+            }
+          }
+
+          .trend-text {
+            font-size: 14px;
+            color: #d1d5db;
+            font-weight: 500;
+          }
+        }
       }
     }
 
@@ -424,16 +471,16 @@
       margin: 6px;
 
       .weight-current {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        .weight-day-value {
+          gap: 8px;
 
-        .weight-day {
-          font-size: 15px;
-        }
+          .weight-day {
+            font-size: 15px;
+          }
 
-        .weight-value {
-          font-size: 24px;
+          .weight-value {
+            font-size: 24px;
+          }
         }
       }
 

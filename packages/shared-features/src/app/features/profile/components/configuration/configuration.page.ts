@@ -52,6 +52,10 @@ export class ConfigurationPage {
   public switchLang(lang: 'es' | 'en'): void {
     this.i18nService.switchLang(lang);
     this.currentLang = lang;
+    this.user.lang = lang;
+    this.userService.updateUser(this.user).subscribe(() => {
+      this.navigationService.goToUserLoader();
+    });
   }
 
   public toggleColor(): void {

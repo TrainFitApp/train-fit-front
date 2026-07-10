@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Estadísticas de Rutina</h1>
+        <h1 class="tf-page-header__title">{{ 'TABLES.STATS_PAGE_TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -22,7 +22,7 @@
       <ion-card-header>
         <ion-card-subtitle>
           <span class="section-icon"></span>
-          Calendario de Rutina
+          {{ 'TABLES.STATS_CALENDAR_TITLE' | translate }}
         </ion-card-subtitle>
       </ion-card-header>
 
@@ -65,7 +65,7 @@
           *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
         >
           <ion-text color="medium">
-            <p class="legend-title">Tipos de Entrenamiento:</p>
+            <p class="legend-title">{{ 'TABLES.STATS_TRAINING_TYPES' | translate }}</p>
           </ion-text>
           <div class="legend-items">
             <ion-chip
@@ -76,7 +76,7 @@
                 class="workout-dot"
                 [style.background-color]="type.color"
               ></div>
-              <ion-label>{{ type.name }}</ion-label>
+              <ion-label>{{ type.name | translateDb }}</ion-label>
             </ion-chip>
           </div>
         </div>
@@ -88,7 +88,7 @@
       <ion-card-header>
         <ion-card-subtitle>
           <span class="section-icon"></span>
-          Seleccionar Entrenamiento
+          {{ 'TABLES.STATS_SELECT_WORKOUT' | translate }}
         </ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
@@ -98,12 +98,12 @@
               mode="ios"
               interface="action-sheet"
               [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
-              placeholder="Elige un entrenamiento"
+              [placeholder]="'TABLES.STATS_CHOOSE_WORKOUT' | translate"
               [value]="selectedWorkoutName"
               (ionChange)="onWorkoutChange($event)"
             >
               <ion-select-option *ngFor="let w of workouts" [value]="w.name">
-                {{ w.name }} ({{ w.exercises.length }} {{ 'TABLES.EXERCISE_PLURAL' | translate }})
+                {{ w.name | translateDb }} ({{ w.exercises.length }} {{ 'TABLES.EXERCISE_PLURAL' | translate }})
               </ion-select-option>
             </ion-select>
             <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
@@ -117,7 +117,7 @@
       <ion-card-header>
         <ion-card-subtitle>
           <span class="section-icon"></span>
-          Seleccionar Ejercicio
+          {{ 'TABLES.STATS_SELECT_EXERCISE' | translate }}
         </ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
@@ -127,7 +127,7 @@
               mode="ios"
               interface="action-sheet"
               [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
-              placeholder="Elige un ejercicio"
+              [placeholder]="'TABLES.STATS_CHOOSE_EXERCISE' | translate"
               [disabled]="!selectedWorkoutName"
               [value]="selectedExerciseId"
               (ionChange)="onExerciseChange($event)"
@@ -149,7 +149,7 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? 'Mejor Velocidad' : 'Récord Personal' }}
+                {{ isCardio ? ('TABLES.STATS_BEST_SPEED' | translate) : ('TABLES.STATS_PERSONAL_RECORD' | translate) }}
               </div>
               <div class="stat-value">
                 {{ personalRecord | number:'1.0-1' }}<small
@@ -163,7 +163,7 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? 'Tiempo Total' : '1RM Estimado' }}
+                {{ isCardio ? ('TABLES.STATS_TOTAL_TIME' | translate) : ('TABLES.STATS_ESTIMATED_1RM' | translate) }}
               </div>
               <div class="stat-value">
                 {{ isCardio ? (metrics.max1RM | number:'1.0-0') :
@@ -177,7 +177,7 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? 'Sesiones Realizadas' : 'Volumen Real' }}
+                {{ isCardio ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
               </div>
               <div class="stat-value">
                 {{ metrics.totalVolume | number:'1.0-0' }}
@@ -185,7 +185,7 @@
               </div>
               <div class="stat-change">
                 <ion-text color="medium"
-                  >{{ isCardio ? 'este mes' : 'acumulado' }}</ion-text
+                  >{{ isCardio ? ('TABLES.STATS_THIS_MONTH' | translate) : ('TABLES.STATS_ACCUMULATED' | translate) }}</ion-text
                 >
               </div>
             </ion-card-content>
@@ -195,11 +195,11 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? 'Sesiones Totales' : 'Veces Completado' }}
+                {{ isCardio ? ('TABLES.STATS_TOTAL_SESSIONS' | translate) : ('TABLES.STATS_COMPLETED_TIMES' | translate) }}
               </div>
               <div class="stat-value">{{ workoutCompletionCount }}</div>
               <div class="stat-change">
-                <ion-text color="medium">sesiones</ion-text>
+                <ion-text color="medium">{{ 'TABLES.STATS_SESSIONS' | translate }}</ion-text>
               </div>
             </ion-card-content>
           </ion-card>
@@ -214,7 +214,7 @@
     >
       <ion-card-header>
         <div class="comparison-header">
-          <ion-card-title>Comparativa</ion-card-title>
+          <ion-card-title>{{ 'TABLES.STATS_COMPARISON' | translate }}</ion-card-title>
           <div class="comparison-selectors">
             <div class="compare-select-wrapper">
               <ion-select
@@ -225,7 +225,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
-                  M{{ o.splitIndex }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
                 </ion-select-option>
               </ion-select>
               <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
@@ -243,7 +243,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
-                  M{{ o.splitIndex }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
                 </ion-select-option>
               </ion-select>
               <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
@@ -257,7 +257,7 @@
           <div class="comparison-item" *ngIf="isCardio">
             <div class="comparison-item-label">
               <ion-icon name="speedometer-outline"></ion-icon>
-              Mejor Velocidad
+              {{ 'TABLES.STATS_BEST_SPEED' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -280,7 +280,7 @@
                 comparisonData.velocityPct | number:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.velocityDiff === 0" class="neutral"
-                >Sin cambio</span
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
               >
             </div>
           </div>
@@ -289,7 +289,7 @@
           <div class="comparison-item" *ngIf="isCardio">
             <div class="comparison-item-label">
               <ion-icon name="time-outline"></ion-icon>
-              Tiempo Total
+              {{ 'TABLES.STATS_TOTAL_TIME' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -312,7 +312,7 @@
                 comparisonData.timePct | number:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.timeDiff === 0" class="neutral"
-                >Sin cambio</span
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
               >
             </div>
           </div>
@@ -321,7 +321,7 @@
           <div class="comparison-item" *ngIf="!isCardio">
             <div class="comparison-item-label">
               <ion-icon name="barbell-outline"></ion-icon>
-              Mejor serie
+              {{ 'TABLES.STATS_BEST_SET' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -344,7 +344,7 @@
                 comparisonData.weightPct | number:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.weightDiff === 0" class="neutral"
-                >Sin cambio</span
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
               >
             </div>
           </div>
@@ -353,7 +353,7 @@
           <div class="comparison-item" *ngIf="!isCardio">
             <div class="comparison-item-label">
               <ion-icon name="trending-up-outline"></ion-icon>
-              Volumen Efectivo
+              {{ 'TABLES.STATS_EFFECTIVE_VOLUME' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -376,7 +376,7 @@
                 comparisonData.effVolumePct | number:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.effVolumeDiff === 0" class="neutral"
-                >Sin cambio</span
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
               >
             </div>
           </div>
@@ -385,7 +385,7 @@
           <div class="comparison-item" *ngIf="!isCardio">
             <div class="comparison-item-label">
               <ion-icon name="speedometer-outline"></ion-icon>
-              RIR Medio
+              {{ 'TABLES.STATS_AVG_RIR' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -410,7 +410,7 @@
                 comparisonData.rirDiff | number:'1.1-1' }} RIR
               </span>
               <span *ngIf="comparisonData.rirDiff === 0" class="neutral"
-                >Igual</span
+                >{{ 'TABLES.STATS_SAME' | translate }}</span
               >
             </div>
           </div>
@@ -419,7 +419,7 @@
           <div class="comparison-item">
             <div class="comparison-item-label">
               <ion-icon name="list-outline"></ion-icon>
-              Series
+              {{ 'TABLES.STATS_SETS' | translate }}
             </div>
             <div class="comparison-item-values">
               <span class="prev-val">{{ comparisonData.prevSets }}</span>
@@ -435,10 +435,10 @@
             >
               <span *ngIf="comparisonData.setsDiff !== 0"
                 >{{ comparisonData.setsDiff > 0 ? '+' : '' }}{{
-                comparisonData.setsDiff }} series</span
+                comparisonData.setsDiff }} {{ 'TABLES.STATS_SETS' | translate | lowercase }}</span
               >
               <span *ngIf="comparisonData.setsDiff === 0" class="neutral"
-                >Igual</span
+                >{{ 'TABLES.STATS_SAME' | translate }}</span
               >
             </div>
           </div>
@@ -450,7 +450,7 @@
           >
             <div class="comparison-item-label">
               <ion-icon name="flash-outline"></ion-icon>
-              Técnicas avanzadas
+              {{ 'TABLES.STATS_ADVANCED_TECHNIQUES' | translate }}
             </div>
             <div class="technique-row">
               <span
@@ -496,15 +496,15 @@
             mode="ios"
           >
             <ion-segment-button value="evolution">
-              <ion-label>Evolución</ion-label>
+              <ion-label>{{ 'TABLES.STATS_EVOLUTION' | translate }}</ion-label>
             </ion-segment-button>
             <ion-segment-button value="volume">
-              <ion-label>Volumen</ion-label>
+              <ion-label>{{ 'TABLES.STATS_VOLUME' | translate }}</ion-label>
             </ion-segment-button>
           </ion-segment>
         </div>
         <div class="chart-header-main" *ngIf="chartMode === 'evolution'">
-          <ion-card-title>Progresión Directa</ion-card-title>
+          <ion-card-title>{{ 'TABLES.STATS_DIRECT_PROGRESSION' | translate }}</ion-card-title>
           <ion-select
             mode="ios"
             interface="popover"
@@ -516,15 +516,14 @@
               *ngFor="let idx of availableSetOptions"
               [value]="idx"
             >
-              Serie {{ idx + 1 }}
+              {{ 'TABLES.STATS_SET' | translate: {n: idx + 1} }}
             </ion-select-option>
           </ion-select>
         </div>
         <div class="chart-header-main" *ngIf="chartMode === 'volume'">
-          <ion-card-title>Carga de Trabajo</ion-card-title>
+          <ion-card-title>{{ 'TABLES.STATS_WORKLOAD' | translate }}</ion-card-title>
           <ion-text color="medium" style="font-size: 0.8rem">
-            {{ isCardio ? 'Tiempo vs Velocidad' : 'Volumen Efectivo vs RIR
-            Medio' }}
+            {{ isCardio ? ('TABLES.STATS_TIME_VS_SPEED' | translate) : ('TABLES.STATS_EFF_VOLUME_VS_RIR' | translate) }}
           </ion-text>
         </div>
       </ion-card-header>
@@ -538,24 +537,24 @@
     <!-- Data Table -->
     <ion-card *ngIf="selectedExerciseId && historyData.length > 0">
       <ion-card-header>
-        <ion-card-title>Historial Detallado</ion-card-title>
+        <ion-card-title>{{ 'TABLES.STATS_DETAILED_HISTORY' | translate }}</ion-card-title>
       </ion-card-header>
       <ion-card-content>
         <!-- Table Header -->
         <div class="history-table-header" [class.is-cardio]="isCardio">
-          <span class="header-col-session">Sesión</span>
+          <span class="header-col-session">{{ 'TABLES.STATS_SESSION' | translate }}</span>
 
           <ng-container *ngIf="!isCardio">
-            <span class="header-col-weight">Peso</span>
-            <span class="header-col-reps">Reps</span>
+            <span class="header-col-weight">{{ 'TABLES.STATS_WEIGHT' | translate }}</span>
+            <span class="header-col-reps">{{ 'TABLES.STATS_REPS' | translate }}</span>
           </ng-container>
 
           <ng-container *ngIf="isCardio">
-            <span class="header-col-weight">Veloc.</span>
-            <span class="header-col-reps">Tiempo</span>
+            <span class="header-col-weight">{{ 'TABLES.STATS_SPEED' | translate }}</span>
+            <span class="header-col-reps">{{ 'TABLES.STATS_TIME' | translate }}</span>
           </ng-container>
 
-          <span class="header-col-rir" *ngIf="!isCardio">Intensidad</span>
+          <span class="header-col-rir" *ngIf="!isCardio">{{ 'TABLES.STATS_INTENSITY' | translate }}</span>
         </div>
 
         <ion-list lines="none" class="history-list">
@@ -566,7 +565,7 @@
                    NO por whitespace entre elementos inline (causa del bug) -->
               <div class="session-header-left">
                 <span class="week-badge-label"
-                  >Microciclo {{ session.splitIndex }}</span
+                  >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: session.splitIndex} }}</span
                 >
                 <span class="session-date"
                   >{{ session.date | date:'dd/MM/yyyy' }}</span
@@ -577,7 +576,7 @@
                 name="create-outline"
                 color="primary"
                 class="session-note-icon clickable"
-                (click)="showNoteAlert(session.notes, 'Nota del Microciclo ' + session.splitIndex)"
+                (click)="showNoteAlert(session.notes, translate.instant('TABLES.STATS_MICROCYCLE_NOTE', {n: session.splitIndex}))"
               ></ion-icon>
             </div>
 
@@ -588,7 +587,7 @@
             >
               <div class="history-row-content" [class.is-cardio]="isCardio">
                 <div class="col-session">
-                  <span class="set-index">Set {{ i + 1 }}</span>
+                  <span class="set-index">{{ 'TABLES.STATS_SET_LABEL' | translate: {n: i + 1} }}</span>
                 </div>
 
                 <!-- Strength Content -->
@@ -602,7 +601,7 @@
                   </div>
                   <div class="col-rir">
                     <!-- FALLO -->
-                    <span *ngIf="set.isFail" class="fail-label">FALLO</span>
+                    <span *ngIf="set.isFail" class="fail-label">{{ 'TABLES.STATS_FAILURE' | translate }}</span>
                     <!-- RIR normal -->
                     <span
                       *ngIf="!set.isFail && set.rir !== '-'"
@@ -649,7 +648,7 @@
                   class="subseries-item"
                   *ngFor="let ds of set.dropSeries; let j = index"
                 >
-                  <span class="subseries-label">↓ Drop {{ j + 1 }}</span>
+                  <span class="subseries-label">{{ 'TABLES.STATS_DROP' | translate: {n: j + 1} }}</span>
                   <span class="subseries-val">{{ ds.weight }} kg</span>
                   <span class="subseries-val">× {{ ds.reps }}</span>
                   <span class="subseries-rir" *ngIf="ds.rir !== undefined"
@@ -667,7 +666,7 @@
                   class="subseries-item"
                   *ngFor="let rp of set.restPauseSeries; let j = index"
                 >
-                  <span class="subseries-label">↺ RP {{ j + 1 }}</span>
+                  <span class="subseries-label">{{ 'TABLES.STATS_RP' | translate: {n: j + 1} }}</span>
                   <span class="subseries-val">{{ rp.weight }} kg</span>
                   <span class="subseries-val">× {{ rp.reps }}</span>
                   <span class="subseries-rir" *ngIf="rp.rir !== undefined"
@@ -687,8 +686,8 @@
       *ngIf="!selectedWorkoutName || !selectedExerciseId"
     >
       <ion-icon name="stats-chart-outline"></ion-icon>
-      <h3>Selecciona Rutina y Ejercicio</h3>
-      <p>Para ver estadísticas detalladas de tu progreso.</p>
+      <h3>{{ 'TABLES.STATS_SELECT_ROUTINE_EXERCISE' | translate }}</h3>
+      <p>{{ 'TABLES.STATS_SELECT_HINT' | translate }}</p>
     </div>
 
     <div
@@ -696,8 +695,8 @@
       *ngIf="selectedExerciseId && historyData.length === 0"
     >
       <ion-icon name="alert-circle-outline"></ion-icon>
-      <h3>Sin Datos</h3>
-      <p>No se ha registrado actividad para este ejercicio aún.</p>
+      <h3>{{ 'TABLES.STATS_NO_DATA' | translate }}</h3>
+      <p>{{ 'TABLES.STATS_NO_DATA_HINT' | translate }}</p>
     </div>
   </div>
 </ion-content>

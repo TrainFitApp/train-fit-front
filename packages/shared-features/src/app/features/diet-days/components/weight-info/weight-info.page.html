@@ -56,9 +56,25 @@
 
       <div class="weight-info-card">
         <div class="weight-current">
-          <div class="weight-day">{{ days[getDayOfWeek(selectedDate)] }}</div>
-          <div class="weight-value">
-            {{ currentWeight ? currentWeight + ' Kg' : ('WEIGHT_INFO.NO_RECORD' | translate) }}
+          <div class="weight-day-value">
+            <div class="weight-day">{{ days[getDayOfWeek(selectedDate)] }}</div>
+            <div class="weight-value">
+              {{ currentWeight ? currentWeight + ' Kg' : ('WEIGHT_INFO.NO_RECORD' | translate) }}
+            </div>
+          </div>
+          <div class="weight-trend">
+            <div class="trend-indicator">
+              <div class="trend-icon-wrapper">
+                <ion-icon
+                  [name]="getTrendIcon()"
+                  class="trend-icon"
+                  [class.up]="getTrend() === 'up'"
+                  [class.down]="getTrend() === 'down'"
+                  [class.stable]="getTrend() === 'stable'"
+                ></ion-icon>
+              </div>
+              <span class="trend-text">{{ getTrendText() }}</span>
+            </div>
           </div>
         </div>
 

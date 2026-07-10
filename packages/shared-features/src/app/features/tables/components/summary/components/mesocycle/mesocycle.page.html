@@ -50,7 +50,7 @@
                 <p>
                   {{ 'TABLES.COPY_MODE_DESC' | translate }}
                   <ion-label color="tertiary"
-                    ><strong>{{ workout.name }}</strong></ion-label
+                    ><strong>{{ workout.name | translateDb }}</strong></ion-label
                   >.
                 </p>
               </div>
@@ -278,10 +278,10 @@
                   <div class="workout-template-option__body">
                     <div class="workout-template-option__top">
                       <span class="workout-template-option__name">
-                        {{ template.name }}
+                        {{ template.name | translateDb }}
                       </span>
                       <span class="workout-template-option__days">
-                        {{ template.description }}
+                        {{ template.description | translateDb }}
                       </span>
                     </div>
                     <div class="workout-template-option__preview">
@@ -289,7 +289,7 @@
                         class="workout-template-option__chip"
                         *ngFor="let workoutName of template.workouts"
                       >
-                        {{ workoutName }}
+                        {{ workoutName | translateDb }}
                       </span>
                     </div>
                   </div>

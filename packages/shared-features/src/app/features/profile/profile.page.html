@@ -279,48 +279,7 @@
     </ng-template>
   </div>
 
-  <!-- Personal Information Section -->
-  <div class="personal-info-section-compact">
-    <div class="compact-header">
-      <ion-icon
-        name="person-outline"
-        class="header-icon"
-        color="primary"
-      ></ion-icon>
-      <span class="header-title">{{ 'PROFILE.PERSONAL_INFO' | translate }}</span>
-      <button class="personal-info-btn" (click)="edit()">
-        <ion-icon name="create-outline"></ion-icon>
-      </button>
-    </div>
 
-    <!-- First row: Age, Weight, Height -->
-    <div class="info-row">
-      <div class="info-item-compact">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <span class="info-text">{{ 'PROFILE.YEARS_OLD' | translate:{ age: getUserAge() } }}</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="scale-outline"></ion-icon>
-        <span class="info-text">{{ user.weight }} {{ 'PROFILE.KG' | translate }}</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="resize-outline"></ion-icon>
-        <span class="info-text">{{ user.height }} {{ 'PROFILE.CM' | translate }}</span>
-      </div>
-    </div>
-
-    <!-- Second row: Steps, Training -->
-    <div class="info-row">
-      <div class="info-item-compact">
-        <ion-icon name="walk-outline"></ion-icon>
-        <span class="info-text">{{ getStepsDescription() }}</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="barbell-outline"></ion-icon>
-        <span class="info-text">{{ getTrainingDescription() }}</span>
-      </div>
-    </div>
-  </div>
 
   <!-- TODO -->
 

@@ -129,7 +129,7 @@ export class NavigationService {
   }
 
   public goToWeightInfo(): void {
-    this.navController.navigateForward([this.WEIGHT_INFO_ROUTE], {
+    this.navController.navigateForward(['/' + this.WEIGHT_INFO_ROUTE], {
       animated: true,
     });
   }

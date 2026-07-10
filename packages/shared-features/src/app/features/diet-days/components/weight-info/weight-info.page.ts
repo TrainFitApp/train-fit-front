@@ -25,7 +25,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
   animations: [fadeIn, fadeOut],
 })
 export class WeightInfoPage {
-  public selectedDate: string = this.utilService.formatDateToYYYYMMDD(new Date());
+  public selectedDate: string;
   public currentWeight: number | undefined;
   public currentNotes: string | undefined;
   public dietDay: DietDay | undefined;
@@ -69,7 +69,9 @@ export class WeightInfoPage {
     private userService: UserService,
     private cdref: ChangeDetectorRef,
     private navigationService: NavigationService
-  ) {}
+  ) {
+    this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
+  }
 
   public ionViewWillEnter(): void {
     const d = this.utilService.parseYYYYMMDD(this.selectedDate);
@@ -443,6 +445,34 @@ export class WeightInfoPage {
   public getDayOfWeek(dateStr: string): number {
     const d = this.utilService.parseYYYYMMDD(dateStr);
     return d.getDay() - 1;
+  }
+
+  public getTrend(): string {
+    const actualWeights = this.weights.filter((w) => w !== undefined && w !== null);
+    if (actualWeights.length < 2) return 'stable';
+    const current = actualWeights[actualWeights.length - 1];
+    const previous = actualWeights[actualWeights.length - 2];
+    if (current > previous) return 'up';
+    if (current < previous) return 'down';
+    return 'stable';
+  }
+
+  public getTrendText(): string {
+    const trend = this.getTrend();
+    switch (trend) {
+      case 'up': return this.translate.instant('WEIGHT_INFO.TREND_UP');
+      case 'down': return this.translate.instant('WEIGHT_INFO.TREND_DOWN');
+      default: return this.translate.instant('WEIGHT_INFO.TREND_STABLE');
+    }
+  }
+
+  public getTrendIcon(): string {
+    const trend = this.getTrend();
+    switch (trend) {
+      case 'up': return 'trending-up-outline';
+      case 'down': return 'trending-down-outline';
+      default: return 'remove-outline';
+    }
   }
 
   public goBack(): void {

@@ -41,7 +41,7 @@
                     ? 'var(--ion-color-success)'
                     : 'var(--ion-text-color)'
                 "
-                >{{ workout.name }}</span
+                >{{ workout.name | translateDb }}</span
               >
             </div>
             &nbsp;
@@ -108,11 +108,11 @@
             >
               <ion-buttons slot="buttons">
                 <ion-button color="primary" (click)="datetime.cancel(true)"
-                  >CANCEL</ion-button
+                  >{{ 'COMMON.CANCEL' | translate }}</ion-button
                 >
 
                 <ion-button color="primary" (click)="datetime.confirm(true)"
-                  >OK</ion-button
+                  >{{ 'COMMON.OK' | translate }}</ion-button
                 >
               </ion-buttons></ion-datetime
             >
@@ -137,7 +137,7 @@
             <ion-chip
               color="secondary"
               *ngFor="let group of getWorkoutMuscleGroups()"
-              >{{ group }}</ion-chip
+              >{{ group | translateDb }}</ion-chip
             >
           </ion-col></ion-row
         >
