@@ -17,6 +17,7 @@ import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { takeUntil, take } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-data-sheet',
@@ -48,7 +49,8 @@ export class DataSheetPage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private utilService: UtilService,
     private authService: AuthService,
-    private signUpStateService: SignUpStateService
+    private signUpStateService: SignUpStateService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -85,9 +87,9 @@ export class DataSheetPage implements OnInit, OnDestroy {
         this.registerSocialPending = pending;
       });
 
-    if (this.user.objetive > 0) this.objetiveMessage = 'Superávit calórico';
-    else if (this.user.objetive < 0) this.objetiveMessage = 'Déficit calórico';
-    else this.objetiveMessage = 'Mantenimiento';
+    if (this.user.objetive > 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_SURPLUS');
+    else if (this.user.objetive < 0) this.objetiveMessage = this.translate.instant('SIGN_UP.CALORIC_DEFICIT');
+    else this.objetiveMessage = this.translate.instant('SIGN_UP.MAINTENANCE');
   }
 
   public goBack(): void {
@@ -115,8 +117,8 @@ export class DataSheetPage implements OnInit, OnDestroy {
         error: (err) => {
           this.isProcessing = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'Error al completar el registro',
-            'Error',
+            err?.error?.message || this.translate.instant('SIGN_UP.REGISTER_ERROR'),
+            this.translate.instant('COMMON.ERROR'),
             3000
           );
         },
@@ -153,7 +155,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
                   this.isProcessing = false;
                   this.ionicUtilService.showErrorToast(
                     err,
-                    'Error al guardar la sesión',
+                    this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                     3000
                   );
                 },
@@ -166,8 +168,8 @@ export class DataSheetPage implements OnInit, OnDestroy {
           error: (err) => {
             this.isProcessing = false;
             this.ionicUtilService.showErrorToast(
-              err?.error?.message || 'Error al completar el registro social',
-              'Error',
+              err?.error?.message || this.translate.instant('SIGN_UP.SOCIAL_REGISTER_ERROR'),
+              this.translate.instant('COMMON.ERROR'),
               3000
             );
           },
@@ -178,7 +180,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
   public mailToast(): void {
     const toast: ToastOptions = {
-      message: 'Código enviado a tu correo',
+      message: this.translate.instant('SIGN_UP.CODE_SENT_TO_EMAIL'),
       duration: 7000,
     };
     this.ionicUtilService.showToast(toast);
@@ -188,7 +190,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
     const code = this.codeInput.nativeElement.value.toString().trim();
     if (!code) {
       this.ionicUtilService.showToast({
-        message: 'Introduce el código',
+        message: this.translate.instant('SIGN_UP.ENTER_CODE'),
         duration: 3000,
       });
       return;
@@ -199,24 +201,22 @@ export class DataSheetPage implements OnInit, OnDestroy {
     this.userService.activateAccount(this.user.email, code).subscribe({
       next: (response: any) => {
         this.ionicUtilService.showToast({
-          message: 'Cuenta activada correctamente',
+          message: this.translate.instant('SIGN_UP.ACCOUNT_ACTIVATED'),
           duration: 3000,
         });
 
-        // Guardar token y navegar directamente a la app
         if (response?.access_token) {
           this.authService.applyAuthResponse(response).subscribe({
             next: () => this.navigationService.goToUserLoader(),
             error: (err) => {
               this.ionicUtilService.showErrorToast(
                 err,
-                'Error al guardar la sesión',
+                this.translate.instant('SIGN_UP.SESSION_SAVE_ERROR'),
                 3000
               );
             },
           });
         } else {
-          // Fallback si no viene el token
           this.navigationService.goToSignUp();
           this.navigationService.goToLoginPage();
         }
@@ -225,7 +225,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: err?.error?.message || 'Código incorrecto',
+          message: err?.error?.message || this.translate.instant('SIGN_UP.INCORRECT_CODE'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -241,7 +241,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
     this.userService.sendMailCode(this.user.email).subscribe({
       next: () => {
         this.ionicUtilService.showToast({
-          message: 'Código reenviado',
+          message: this.translate.instant('SIGN_UP.CODE_RESENT'),
           duration: 3000,
         });
         this.isProcessing = false;
@@ -249,7 +249,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
       error: (err) => {
         console.error(err);
         this.ionicUtilService.showToast({
-          message: 'Error al reenviar código',
+          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
           duration: 3000,
         });
         this.isProcessing = false;

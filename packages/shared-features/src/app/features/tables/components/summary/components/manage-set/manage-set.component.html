@@ -2,9 +2,7 @@
   <div class="manage-set-toolbar">
     <div class="header-content">
       <div class="title-section">
-        <ion-title class="manage-set-title"
-          >Serie <ion-text color="secondary">objetivo</ion-text></ion-title
-        >
+        <ion-title class="manage-set-title">{{ 'TABLES.SET_OBJECTIVE_TITLE' | translate }}</ion-title>
       </div>
       <ion-buttons slot="end">
         <button class="close-action-button ripple-effect" (click)="close()">
@@ -21,9 +19,7 @@
       <ng-container *ngIf="isCardio; else notCardio">
         <div class="field-section">
           <div class="field-label">
-            <span class="label-text"
-              >TIEMPO <ion-text color="secondary">ESPERADO</ion-text></span
-            >
+            <span class="label-text">{{ 'TABLES.EXPECTED_TIME_LABEL' | translate }}</span>
           </div>
           <div class="input-row">
             <div class="input-field">
@@ -32,7 +28,7 @@
                 type="number"
                 inputmode="decimal"
                 fill="outline"
-                placeholder="MIN"
+                placeholder="{{ 'TABLES.MIN' | translate }}"
                 appCursorEnd
               ></ion-input>
             </div>
@@ -42,7 +38,7 @@
                 type="number"
                 inputmode="decimal"
                 fill="outline"
-                placeholder="SEG"
+                placeholder="{{ 'TABLES.SEG' | translate }}"
                 appCursorEnd
               ></ion-input>
             </div>
@@ -51,7 +47,7 @@
 
         <div class="field-section">
           <div class="field-label">
-            <span class="label-text">VELOCIDAD</span>
+            <span class="label-text">{{ 'TABLES.VELOCITY' | translate }}</span>
           </div>
           <div class="input-row">
             <div class="input-field">
@@ -60,7 +56,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
-                placeholder="Velocidad"
+                placeholder="{{ 'TABLES.VELOCITY_PLACEHOLDER' | translate }}"
                 appCursorEnd
                 appDecimalInput
               ></ion-input>
@@ -78,11 +74,11 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
-                placeholder="Peso"
+                placeholder="{{ 'TABLES.WEIGHT_PLACEHOLDER' | translate }}"
                 appCursorEnd
                 appDecimalInput
               >
-                <div slot="end" class="input-suffix">KG</div>
+                <div slot="end" class="input-suffix">{{ 'TABLES.KG' | translate }}</div>
               </ion-input>
             </div>
           </div>
@@ -90,7 +86,7 @@
 
         <div class="field-section">
           <div class="field-label">
-            <span class="label-text">RANGO DE REPETICIONES</span>
+            <span class="label-text">{{ 'TABLES.REP_RANGE' | translate }}</span>
           </div>
 
           <div class="input-row">
@@ -172,9 +168,7 @@
                 name="alert-circle-outline"
                 class="error-icon"
               ></ion-icon>
-              <span class="error-text"
-                >El valor final debe ser mayor al inicial</span
-              >
+              <span class="error-text">{{ 'TABLES.RANGE_ERROR' | translate }}</span>
             </div>
           </div>
         </div>
@@ -184,7 +178,7 @@
           [class.disabled]="setForm.controls.isFail.value"
         >
           <div class="field-label">
-            <span class="label-text">RANGO DE RIR</span>
+            <span class="label-text">{{ 'TABLES.RIR_RANGE' | translate }}</span>
           </div>
 
           <div class="input-row">
@@ -272,9 +266,7 @@
                 name="alert-circle-outline"
                 class="error-icon"
               ></ion-icon>
-              <span class="error-text"
-                >El valor final debe ser mayor al inicial</span
-              >
+              <span class="error-text">{{ 'TABLES.RANGE_ERROR' | translate }}</span>
             </div>
           </div>
         </div>
@@ -287,38 +279,13 @@
               class="modern-checkbox"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
-            <span class="checkbox-label">FALLO</span>
+            <span class="checkbox-label">{{ 'TABLES.FAIL' | translate }}</span>
             <ion-icon
               name="skull-outline"
               class="checkbox-icon"
               color="primary"
             ></ion-icon>
           </div>
-
-          <!-- <ion-item>
-          <ion-label>RPE</ion-label>
-          <ion-buttons slot="end">
-            <ion-button
-              *ngIf="setForm.get('rpe').value > 0"
-              (click)="
-                setForm.get('rpe').setValue(setForm.get('rpe').value - 1)
-              "
-            >
-              <ion-icon
-                slot="icon-only"
-                name="remove-circle-outline"
-              ></ion-icon>
-            </ion-button>
-            <ion-input style="width: 2em" formControlName="rpe"></ion-input>
-            <ion-button
-              (click)="
-                setForm.get('rpe').setValue(setForm.get('rpe').value + 1)
-              "
-            >
-              <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-item> -->
 
           <div class="checkbox-item" (click)="toggleCheckbox('drop')">
             <ion-checkbox
@@ -327,7 +294,7 @@
               class="modern-checkbox"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
-            <span class="checkbox-label">DROP SET</span>
+            <span class="checkbox-label">{{ 'TABLES.DROP_SET' | translate }}</span>
             <ion-icon
               name="analytics-outline"
               class="checkbox-icon"
@@ -335,25 +302,6 @@
             ></ion-icon>
           </div>
 
-          <!-- <ion-item-divider>
-          <ion-label> TIPO DE SERIE </ion-label>
-          <ion-icon
-            color="secondary"
-            name="albums-outline"
-            style="margin-right: 1em"
-            slot="end"
-          ></ion-icon>
-        </ion-item-divider> -->
-
-          <!-- <ion-item>
-          <ion-label>TOP SET</ion-label>
-          <ion-checkbox formControlName="top"></ion-checkbox>
-        </ion-item> -->
-
-          <!-- <ion-item>
-          <ion-label>PAP</ion-label>
-          <ion-checkbox formControlName="pap"></ion-checkbox>
-        </ion-item> -->
           <div class="checkbox-item" (click)="toggleRestPause()">
             <ion-checkbox
               #restPauseCheckbox
@@ -362,7 +310,7 @@
               class="modern-checkbox"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
-            <span class="checkbox-label">REST PAUSE</span>
+            <span class="checkbox-label">{{ 'TABLES.REST_PAUSE' | translate }}</span>
             <ion-icon
               name="hourglass-outline"
               class="checkbox-icon"
@@ -376,7 +324,7 @@
           *ngIf="setForm.get('restPauseEnabled')?.value"
         >
           <div class="field-label">
-            <span class="label-text">TIEMPO DE DESCANSO (SEGS)</span>
+            <span class="label-text">{{ 'TABLES.REST_TIME' | translate }}</span>
           </div>
           <div class="input-row">
             <div class="input-field">
@@ -385,7 +333,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
-                placeholder="SEGS"
+                placeholder="{{ 'TABLES.REST_PLACEHOLDER' | translate }}"
                 appCursorEnd
                 appDecimalInput
               >
@@ -396,7 +344,7 @@
       </ng-template>
     </div>
 
-    <!-- Card explicativo: configuraci├│n de serie objetivo -->
+    <!-- Card explicativo -->
     <div class="info-explainer">
       <div class="info-card">
         <ion-icon
@@ -404,11 +352,9 @@
           class="info-icon"
         ></ion-icon>
         <div class="info-text">
-          <span class="info-title">Serie objetivo esperada</span>
+          <span class="info-title">{{ 'TABLES.SET_OBJECTIVE_CARD_TITLE' | translate }}</span>
           <p>
-            Define aquí la marca que esperas alcanzar en la serie. Durante el
-            entrenamiento podrás registrar lo realizado y establecerla como
-            completada.
+            {{ 'TABLES.SET_OBJECTIVE_CARD_DESC' | translate }}
           </p>
         </div>
       </div>
@@ -423,6 +369,6 @@
     class="ion-margin t-add-workout"
     (click)="submit()"
   >
-    <strong>GUARDAR</strong>
+    <strong>{{ 'TABLES.SAVE_BTN' | translate }}</strong>
   </ion-button>
 </ion-footer>

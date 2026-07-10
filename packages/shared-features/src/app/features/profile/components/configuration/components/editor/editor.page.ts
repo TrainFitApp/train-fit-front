@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { IonContent, IonModal, Platform, ToastOptions } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { Subscription, merge } from "rxjs";
 import { User } from "src/app/core/models/user";
 import { UserService } from "src/app/core/services/user/user.service";
@@ -81,6 +82,7 @@ export class EditorPage implements OnInit {
     private userService: UserService,
     private ionicUtilService: IonicUtilService,
     private platform: Platform,
+    private translate: TranslateService,
   ) {}
 
   public get activityType(): ACTIVITY_FACTOR_TYPE {
@@ -266,22 +268,22 @@ export class EditorPage implements OnInit {
         this.hasObjetiveChange()
       ) {
         const alertOptions = {
-          header: "Guardar antes de salir",
-          message: "Tienes cambios sin guardar. ¿Qué deseas hacer?",
+          header: this.translate.instant('EDITOR.SAVE_HEADER'),
+          message: this.translate.instant('EDITOR.SAVE_MSG'),
           cssClass: "alert-grid-buttons",
           buttons: [
             {
-              text: "CANCELAR",
+              text: this.translate.instant('EDITOR.CANCEL_BTN'),
               role: "cancel",
             },
             {
-              text: "GUARDAR",
+              text: this.translate.instant('EDITOR.SAVE_BTN'),
               handler: () => {
                 this.updateUser();
               },
             },
             {
-              text: "DESCARTAR",
+              text: this.translate.instant('EDITOR.DISCARD_BTN'),
               role: "destructive",
               handler: () => {
                 this.objetiveSelected = this.initialObjetiveType;
@@ -296,12 +298,11 @@ export class EditorPage implements OnInit {
       } else this.ionicUtilService.closeModal();
     } else {
       const alertOptions = {
-        header: "Faltan campos requeridos",
-        message:
-          "Por favor, completa todos los campos obligatorios antes de continuar.",
+        header: this.translate.instant('EDITOR.MISSING_FIELDS_HEADER'),
+        message: this.translate.instant('EDITOR.MISSING_FIELDS_CLOSE'),
         buttons: [
           {
-            text: "ENTENDIDO",
+            text: this.translate.instant('EDITOR.UNDERSTOOD'),
             role: "cancel",
           },
         ],
@@ -367,12 +368,11 @@ export class EditorPage implements OnInit {
 
     if (!this.userForm.valid) {
       const alertOptions = {
-        header: "Faltan campos requeridos",
-        message:
-          "Por favor, completa todos los campos obligatorios antes de guardar.",
+        header: this.translate.instant('EDITOR.MISSING_FIELDS_HEADER'),
+        message: this.translate.instant('EDITOR.MISSING_FIELDS_SAVE'),
         buttons: [
           {
-            text: "ENTENDIDO",
+            text: this.translate.instant('EDITOR.UNDERSTOOD'),
             role: "cancel",
           },
         ],
@@ -405,7 +405,7 @@ export class EditorPage implements OnInit {
     // Solo actualizar si hay cambios
     if (Object.keys(userToUpdate).length === 0) {
       this.ionicUtilService.showToast({
-        message: "No hay cambios para guardar",
+        message: this.translate.instant('EDITOR.NO_CHANGES_MSG'),
         color: "warning",
         duration: 2000,
       } as ToastOptions);
@@ -432,7 +432,7 @@ export class EditorPage implements OnInit {
         this.user = user;
         this.userService.setLocalUser = user; // Actualizar el usuario local
         this.ionicUtilService.showToast({
-          message: "Usuario actualizado correctamente",
+          message: this.translate.instant('EDITOR.UPDATE_SUCCESS'),
           color: "success",
           duration: 2000,
         } as ToastOptions);
@@ -441,7 +441,7 @@ export class EditorPage implements OnInit {
       },
       error: (error) => {
         this.ionicUtilService.showToast({
-          message: "Error al actualizar el usuario",
+          message: this.translate.instant('EDITOR.UPDATE_ERROR'),
           color: "danger",
           duration: 2000,
         } as ToastOptions);
@@ -615,7 +615,7 @@ export class EditorPage implements OnInit {
     ) {
       const buttons: any[] = [
         {
-          text: "RELLENAR",
+          text: this.translate.instant('EDITOR.FILL_BTN'),
           handler: () => {
             this.scrollToActivityAndHighlight();
           },
@@ -624,7 +624,7 @@ export class EditorPage implements OnInit {
 
       if (isClosing) {
         buttons.push({
-          text: "DESCARTAR",
+          text: this.translate.instant('EDITOR.DISCARD_BTN2'),
           role: "destructive",
           handler: () => {
             this.objetiveSelected = this.initialObjetiveType;
@@ -636,9 +636,8 @@ export class EditorPage implements OnInit {
       }
 
       const alertOptions = {
-        header: "Nivel de actividad obligatorio",
-        message:
-          "Has seleccionado que no cuentas tus pasos, por lo que es obligatorio rellenar el nivel de actividad.",
+        header: this.translate.instant('EDITOR.ACTIVITY_REQUIRED_HEADER'),
+        message: this.translate.instant('EDITOR.ACTIVITY_REQUIRED_MSG'),
         buttons: buttons,
       };
       this.ionicUtilService.showAlert(alertOptions);

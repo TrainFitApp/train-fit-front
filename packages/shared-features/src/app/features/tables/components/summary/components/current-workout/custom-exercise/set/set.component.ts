@@ -15,6 +15,7 @@ import { RirValue } from 'src/app/core/models/rir';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TranslateService } from '@ngx-translate/core';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
@@ -63,7 +64,8 @@ export class SetComponent implements OnInit, OnChanges {
     private workoutService: WorkoutService,
     private customExerciseService: CustomExerciseService,
     private modalController: ModalController,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -183,15 +185,15 @@ export class SetComponent implements OnInit, OnChanges {
 
   public showDeleteSweetAlert(): void {
     const alertOptions = {
-      header: 'Eliminar serie',
-      message: '¿Estás seguro de que quieres eliminar esta serie?',
+      header: this.translate.instant('TABLES.DELETE_SET'),
+      message: this.translate.instant('TABLES.DELETE_SET_CONFIRM'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: 'destructive',
           handler: () => {
             this.setForm.disable({ emitEvent: false });

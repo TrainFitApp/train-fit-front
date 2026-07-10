@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { CONCEPTS, CONCEPT_TYPES, CONCEPT_VALUES } from './constants/concepts';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -16,13 +16,20 @@ export class ConceptsPage {
 
   constructor(
     public navigationService: NavigationService,
-    private readonly utilService: UtilService
+    private readonly utilService: UtilService,
+    private readonly translate: TranslateService,
   ) {
     this.getConceptsOrderedAlphabetically();
   }
 
   public closeModal(): void {
     this.navigationService.goBack();
+  }
+
+  public getTypeLabel(type: string): string {
+    if (type === CONCEPT_TYPES.nutrition) return this.translate.instant('CONCEPTS.NUTRITION');
+    if (type === CONCEPT_TYPES.training) return this.translate.instant('CONCEPTS.TRAINING');
+    return this.translate.instant('CONCEPTS.GENERAL');
   }
 
   private getConceptsOrderedAlphabetically(): void {

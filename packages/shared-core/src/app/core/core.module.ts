@@ -3,6 +3,7 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { JWTInterceptor } from './interceptors/jwt.interceptor';
+import { I18nModule } from './i18n/i18n.module';
 import { AuthApiService } from './services/auth/auth-api.service';
 import { AuthService } from './services/auth/auth.service';
 import { GoogleAuthService } from './services/auth/google-auth.service';
@@ -49,7 +50,8 @@ import { WorkoutService } from './services/workout/workout.service';
 import { MatchPasswords } from './validators/matchPasswords';
 
 @NgModule({
-  exports: [BrowserModule, BrowserAnimationsModule, HttpClientModule],
+  imports: [I18nModule],
+  exports: [BrowserModule, BrowserAnimationsModule, HttpClientModule, I18nModule],
   providers: [
     // Services
     // General & Utils

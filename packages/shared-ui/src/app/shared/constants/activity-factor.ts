@@ -16,35 +16,33 @@ export type ACTIVITY_FACTOR_TYPE = {
 export const ACTIVITY_FACTOR = {
   [ACTIVITY_FACTOR_TYPES.veryLight]: {
     id: ACTIVITY_FACTOR_TYPES.veryLight,
-    name: 'Muy ligero',
+    name: 'ACTIVITY_FACTOR.VERY_LIGHT',
     value: 1.15,
-    description: 'Poco o ningún movimiento físico, principalmente inactivo',
+    description: 'ACTIVITY_FACTOR.VERY_LIGHT_DESC',
   },
   [ACTIVITY_FACTOR_TYPES.light]: {
     id: ACTIVITY_FACTOR_TYPES.light,
-    name: 'Ligero',
+    name: 'ACTIVITY_FACTOR.LIGHT',
     value: 1.3,
-    description: 'Actividad física mínima, como estar sentado o de pie',
+    description: 'ACTIVITY_FACTOR.LIGHT_DESC',
   },
   [ACTIVITY_FACTOR_TYPES.moderate]: {
     id: ACTIVITY_FACTOR_TYPES.moderate,
-    name: 'Moderado',
+    name: 'ACTIVITY_FACTOR.MODERATE',
     value: 1.45,
-    description:
-      'Actividad física regular, como caminar o tareas domésticas ligeras',
+    description: 'ACTIVITY_FACTOR.MODERATE_DESC',
   },
   [ACTIVITY_FACTOR_TYPES.active]: {
     id: ACTIVITY_FACTOR_TYPES.active,
-    name: 'Activo',
+    name: 'ACTIVITY_FACTOR.ACTIVE',
     value: 1.6,
-    description: 'Participación regular en actividades físicas, como correr',
+    description: 'ACTIVITY_FACTOR.ACTIVE_DESC',
   },
   [ACTIVITY_FACTOR_TYPES.veryActive]: {
     id: ACTIVITY_FACTOR_TYPES.veryActive,
-    name: 'Muy activo',
+    name: 'ACTIVITY_FACTOR.VERY_ACTIVE',
     value: 1.75,
-    description:
-      'Nivel alto de actividad física, como entrenamientos cardiovasculares intensos',
+    description: 'ACTIVITY_FACTOR.VERY_ACTIVE_DESC',
   },
 };
 

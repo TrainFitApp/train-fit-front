@@ -32,6 +32,10 @@
   --fat-color: #eab308;
 }
 
+body.hide-tabs ion-tab-bar {
+  display: none;
+}
+
 /*
  * Unificación de estilos para ion-datetime en popovers/modales (global)
  * - Evita contenido cortado estableciendo overflow visible en el contenedor

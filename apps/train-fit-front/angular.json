@@ -103,6 +103,9 @@
             "production": {
               "browserTarget": "app:build:production"
             },
+            "pre": {
+              "browserTarget": "app:build:pre"
+            },
             "live": {
               "browserTarget": "app:build:live"
             },

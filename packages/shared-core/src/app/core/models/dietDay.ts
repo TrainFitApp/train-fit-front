@@ -3,7 +3,7 @@ import { Meal } from './meal';
 export class DietDay {
   _id: string;
   weight: number;
-  date: Date;
+  date: string;
   notes: string;
   steps: number;
   meals: Meal[];

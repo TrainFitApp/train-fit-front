@@ -19,22 +19,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.02,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.05,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.07,
         },
       };
@@ -42,22 +42,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.0862,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.107,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.14,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.162,
         },
       };
@@ -65,22 +65,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.24,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.264,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.301,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.326,
         },
       };
@@ -88,22 +88,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.321,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.348,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.387,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.413,
         },
       };
@@ -111,22 +111,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.402,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.431,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.472,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.5,
         },
       };
@@ -134,22 +134,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.547,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.578,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.625,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.655,
         },
       };
@@ -157,22 +157,22 @@ export const calculateTrainingValues = (selectedStep: number) => {
       return {
         [TRAINING_TYPES.veryLight]: {
           id: TRAINING_TYPES.veryLight,
-          name: 'Ninguno',
+          name: 'TRAINING.NONE',
           value: 1.683,
         },
         [TRAINING_TYPES.light]: {
           id: TRAINING_TYPES.light,
-          name: '1 o 2 días',
+          name: 'TRAINING.ONE_OR_TWO',
           value: 1.717,
         },
         [TRAINING_TYPES.moderate]: {
           id: TRAINING_TYPES.moderate,
-          name: '3 o 4 días',
+          name: 'TRAINING.THREE_OR_FOUR',
           value: 1.767,
         },
         [TRAINING_TYPES.active]: {
           id: TRAINING_TYPES.active,
-          name: '5 o 6 días',
+          name: 'TRAINING.FIVE_OR_SIX',
           value: 1.801,
         },
       };

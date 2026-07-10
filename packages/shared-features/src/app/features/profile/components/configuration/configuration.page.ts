@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { AlertButton, AlertOptions, ModalOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -27,6 +29,8 @@ export class ConfigurationPage {
 
   public THEMES = Theme;
 
+  public currentLang: string = 'es';
+
   constructor(
     private readonly userService: UserService,
     private readonly themeService: ThemeService,
@@ -36,10 +40,18 @@ export class ConfigurationPage {
     private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,
     private readonly navigationService: NavigationService,
+    private readonly translate: TranslateService,
+    private readonly i18nService: I18nService,
   ) {
     this.theme = this.themeService.getTheme;
     this.user = this.userService.getLocalUser;
     this.isPremium = !!this.user?.premium?.entitled;
+    this.currentLang = this.i18nService.current;
+  }
+
+  public switchLang(lang: 'es' | 'en'): void {
+    this.i18nService.switchLang(lang);
+    this.currentLang = lang;
   }
 
   public toggleColor(): void {
@@ -55,15 +67,15 @@ export class ConfigurationPage {
 
   public logout(): void {
     const alertOptions = {
-      header: 'Cerrar sesión',
-      message: '¿Estás seguro de cerrar sesión?',
+      header: this.translate.instant('CONFIGURATION.LOGOUT_HEADER'),
+      message: this.translate.instant('CONFIGURATION.LOGOUT_MSG'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('CONFIGURATION.CONFIRM'),
           cssClass: 'alert-button-primary',
           handler: () => {
             this.userService.setLocalUser = null;
@@ -103,14 +115,14 @@ export class ConfigurationPage {
       next: (userUpdated) => {
         this.user = userUpdated;
         this.ionicUtilService.showToast({
-          message: 'Preferencias de anuncios actualizadas',
+          message: this.translate.instant('CONFIGURATION.AD_UPDATED'),
           duration: 1400,
           color: 'success',
         });
       },
       error: () => {
         this.ionicUtilService.showToast({
-          message: 'No se pudieron guardar las preferencias',
+          message: this.translate.instant('CONFIGURATION.AD_UPDATE_ERROR'),
           duration: 1600,
           color: 'danger',
         });
@@ -119,8 +131,8 @@ export class ConfigurationPage {
   }
 
   public openTrainers(): void {
-    const header = 'Modo entrenadores';
-    const message = 'No disponible';
+    const header = this.translate.instant('CONFIGURATION.TRAINER_MODE_HEADER');
+    const message = this.translate.instant('CONFIGURATION.TRAINER_MODE_MSG');
     const buttons: AlertButton[] = [
       {
         text: 'OK',
@@ -138,15 +150,15 @@ export class ConfigurationPage {
 
   public deleteAccount(): void {
     const alertOptions = {
-      header: 'Eliminar cuenta',
-      message: 'Esta acción no se puede deshacer',
+      header: this.translate.instant('CONFIGURATION.DELETE_HEADER'),
+      message: this.translate.instant('CONFIGURATION.DELETE_MSG'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
           role: 'cancel',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('CONFIGURATION.DELETE_BTN'),
           role: 'destructive',
           handler: () => {
             this.userService.deleteById(this.user._id).subscribe((_) => {

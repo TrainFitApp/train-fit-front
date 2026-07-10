@@ -102,6 +102,7 @@
           [meal]="meal"
           [dietDay]="dietDay"
           [user]="user"
+          [loading]="isRecipeLoading(recipe)"
           (toggle)="onRecipeToggle($event)"
           (quickAdd)="onRecipeQuickAdd($event)"
           (edit)="onRecipeEdit($event)"

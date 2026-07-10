@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ModalController, Platform, ToastOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Set } from 'src/app/core/models/set';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
@@ -19,6 +20,7 @@ export class ManageSetComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private ionicUtilService: IonicUtilService,
+    private translate: TranslateService,
     private platform: Platform
   ) {}
 
@@ -56,15 +58,15 @@ export class ManageSetComponent implements OnInit {
 
   private showExitConfirmation(): void {
     const alertOptions = {
-      header: 'Cambios sin guardar',
-      message: '¿Deseas salir sin guardar los cambios?',
+      header: this.translate.instant('COMMON.UNSAVED_CHANGES'),
+      message: this.translate.instant('COMMON.UNSAVED_CHANGES_EXIT'),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
         {
-          text: 'CONFIRMAR',
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'alert-button-primary',
           handler: () => {
             this.modalController.dismiss();
@@ -257,7 +259,7 @@ export class ManageSetComponent implements OnInit {
         this.setForm.get('restPause')?.value <= 0)
     ) {
       const toastOptions: ToastOptions = {
-        message: 'Debes ingresar los segundos de descanso para REST PAUSE',
+        message: this.translate.instant('TABLES.REST_PAUSE_REQUIRED'),
         duration: 3000,
       };
       this.ionicUtilService.showToast(toastOptions);

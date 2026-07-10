@@ -16,23 +16,23 @@ export const MEASURE_FILTER: {
 } = {
   [MEASURE_FILTER_TYPES.auto]: {
     id: MEASURE_FILTER_TYPES.auto,
-    name: 'Auto',
-    description: 'Automático',
+    name: 'MEASURE_FILTER.AUTO',
+    description: 'MEASURE_FILTER.AUTO_DESC',
   },
   [MEASURE_FILTER_TYPES.total]: {
     id: MEASURE_FILTER_TYPES.total,
-    name: 'Peso total',
-    description: 'Por peso total',
+    name: 'MEASURE_FILTER.TOTAL_WEIGHT',
+    description: 'MEASURE_FILTER.TOTAL_WEIGHT_DESC',
   },
   [MEASURE_FILTER_TYPES.cieng]: {
     id: MEASURE_FILTER_TYPES.cieng,
-    name: 'Cada 100g',
-    description: 'Por cada 100g',
+    name: 'MEASURE_FILTER.PER_100G',
+    description: 'MEASURE_FILTER.PER_100G_DESC',
   },
   [MEASURE_FILTER_TYPES.racion]: {
     id: MEASURE_FILTER_TYPES.racion,
-    name: 'Ración',
-    description: 'Por ración',
+    name: 'MEASURE_FILTER.SERVING',
+    description: 'MEASURE_FILTER.SERVING_DESC',
   },
 };
 

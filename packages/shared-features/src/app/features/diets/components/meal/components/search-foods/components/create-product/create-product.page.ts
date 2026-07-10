@@ -7,12 +7,12 @@ import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
-import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { ProductService } from 'src/app/core/services/product/product.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { BarCodeScannerService } from 'src/app/core/services/util/bar-code-scanner.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { Theme } from 'src/app/shared/models/theme';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
@@ -34,7 +34,7 @@ export class CreateProductPage implements OnInit {
   @Input() public theme: Theme;
 
   public productForm: FormGroup;
-  public loading = { value: false };
+  public saveInProgress = false;
 
   public isEditMode: boolean = false;
   public editingProduct: IProduct;
@@ -49,14 +49,14 @@ export class CreateProductPage implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private customProductService: CustomProductService,
     private dietDayService: DietDayService,
     private ionicUtilService: IonicUtilService,
     private userService: UserService,
     private activatedRoute: ActivatedRoute,
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -70,6 +70,10 @@ export class CreateProductPage implements OnInit {
   }
 
   public createCustomProduct(): void {
+    if (this.saveInProgress || this.productForm.invalid) return;
+
+    this.saveInProgress = true;
+
     const formValues = { ...this.productForm.value };
 
     // Unit conversions (UI -> DB/g)
@@ -193,154 +197,63 @@ export class CreateProductPage implements OnInit {
       );
       this.productService.updateProduct(newProduct).subscribe({
         next: (updatedProduct: IProduct) => {
+          const t = this.translate.instant.bind(this.translate);
           this.dietDayService.syncUpdatedProductInCurrentDietDay(
             updatedProduct || newProduct
           );
 
-          const toastOptions: ToastOptions = {
-            message: `¡${
-              updatedProduct?.name || newProduct.name
-            } actualizado con éxito!`,
+          this.ionicUtilService.showToast({
+            message: t('CREATE_PRODUCT.UPDATE_SUCCESS', { name: updatedProduct?.name || newProduct.name }),
             duration: 2000,
             color: 'success',
-          };
-          this.ionicUtilService.showToast(toastOptions);
+          });
           this.navigationService.setTempData(
             'updatedProductForAddProduct',
             updatedProduct || newProduct
           );
-          this.adMobService.interstitial('create_product'); // Estrategia AdMob
+          this.adMobService.interstitial('create_product');
           this.navigationService.backNoAnim();
         },
         error: (err) => {
+          this.saveInProgress = false;
           console.error('[EditProduct] Error al actualizar:', err);
-          const toastOptions: ToastOptions = {
-            message: 'Error al actualizar el producto. Inténtalo de nuevo.',
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('CREATE_PRODUCT.UPDATE_ERROR'),
             duration: 2000,
             color: 'danger',
-          };
-          this.ionicUtilService.showToast(toastOptions);
-        },
-      });
-      return;
-    }
-
-    // 🔧 Ingredient mode: crear producto en DB y volver con el nuevo ingrediente
-    if (this.ingredientMode) {
-      // Añadir userId para que sea un producto del usuario
-      newProduct.userId = this.user._id;
-
-      this.productService.saveProduct(newProduct).subscribe({
-        next: (createdProduct: IProduct) => {
-          // Componer el customProduct con el nuevo producto
-          const newIngredient = this.customProductService.composeCustomProduct(
-            createdProduct,
-            toNum(this.productForm.controls.quantity.value) || 0,
-            0
-          );
-
-          this.customProductService.mapNutritionalValues(
-            createdProduct,
-            newIngredient
-          );
-
-          this.navigationService.setTempData('newIngredient', newIngredient);
-
-          const toastOptions: ToastOptions = {
-            message: `${createdProduct.name} creado con éxito`,
-            duration: 1500,
-            color: 'success',
-          };
-          this.ionicUtilService.showToast(toastOptions);
-          this.adMobService.interstitial('create_product'); // Estrategia AdMob
-          this.navigationService.backNoAnim();
-        },
-        error: (error) => {
-          console.error('[ERROR] Failed to create product in DB:', error);
-          const toastOptions: ToastOptions = {
-            message: 'Error al crear el producto. Inténtalo de nuevo.',
-            duration: 2000,
-            color: 'danger',
-          };
-          this.ionicUtilService.showToast(toastOptions);
-        },
-      });
-      return;
-    }
-
-    // CREATE (modo normal)
-    if (this.meal) {
-      // Añadir userId al producto para identificarlo como propiedad del usuario
-      newProduct.userId = this.user._id;
-      const newCustomProduct = this.customProductService.composeCustomProduct(
-        newProduct,
-        toNum(this.productForm.controls.quantity.value) || 0,
-        0
-      );
-
-      this.customProductService.mapNutritionalValues(
-        newProduct,
-        newCustomProduct
-      );
-
-      const idDietInUse = !this.dietDay._id ? this.user.dietInUse : undefined;
-
-      this.dietDayService
-        .createCustomProduct(
-          this.loading,
-          this.dietDay,
-          newCustomProduct,
-          this.meal,
-          idDietInUse,
-          this.user._id
-        )
-        .subscribe(() => {
-          this.navigationService.setTempData('searchFoodsResult', {
-            createdViaCreateProduct: true,
           });
-
-          this.adMobService.interstitial('create_product'); // Estrategia AdMob
-
-          if (this.returnUrl && this.returnUrl.includes('/search-foods')) {
-            this.navigationService.backNoAnim();
-          } else if (this.returnUrl) {
-            const resultState = { result: { refresh: true } };
-            const parentUrl = this.returnUrl.replace(
-              /\/(create-product|add-product)$/i,
-              '/search-foods'
-            );
-            if (parentUrl.endsWith('/search-foods')) {
-              this.navigationService.backNoAnim();
-            } else {
-              this.navigationService.backTo(parentUrl, { state: resultState });
-            }
-          } else {
-            this.navigationService.backNoAnim();
-          }
-        });
+        },
+      });
+      return;
     }
-    // Si provienen de profile (sin meal)
-    else {
-      newProduct.userId = this.user._id;
-      this.productService.saveProduct(newProduct).subscribe((resProduct) => {
+
+    // Crear solo el Product base. La cantidad y su posible incorporación a
+    // una meal/receta pertenecen al flujo de add-product.
+    newProduct.userId = this.user._id;
+    this.productService.saveProduct(newProduct).subscribe({
+      next: (createdProduct: IProduct) => {
         this.navigationService.setTempData('searchFoodsResult', {
           refresh: true,
           switchSegmentToOwn: true,
         });
-
-        const toastOptions: ToastOptions = {
-          message: resProduct.name + ' añadido',
-          duration: 1000,
-        };
-        this.ionicUtilService.showToast(toastOptions);
-        this.adMobService.interstitial('create_product'); // Estrategia AdMob
-        if (this.returnUrl && !this.returnUrl.includes('/search-foods')) {
-          this.navigationService.backTo(this.returnUrl);
-        } else {
-          this.navigationService.backNoAnim();
-        }
-      });
-    }
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('CREATE_PRODUCT.CREATE_SUCCESS', { name: createdProduct.name }),
+          duration: 1200,
+          color: 'success',
+        });
+        this.adMobService.interstitial('create_product');
+        this.openAddProduct(createdProduct, false);
+      },
+      error: (error) => {
+        this.saveInProgress = false;
+        console.error('[CreateProduct] Error al crear:', error);
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('CREATE_PRODUCT.CREATE_ERROR'),
+          duration: 2000,
+          color: 'danger',
+        });
+      },
+    });
   }
 
   public async openScanner(): Promise<void> {
@@ -351,7 +264,7 @@ export class CreateProductPage implements OnInit {
     const idUser = this.user?._id || this.userService.getLocalUser?._id;
     if (idUser) {
       await this.ionicUtilService.showLoading({
-        message: 'Buscando producto...',
+        message: this.translate.instant('CREATE_PRODUCT.SEARCHING'),
         spinner: 'crescent',
         cssClass: 'loading-orange',
       });
@@ -366,101 +279,40 @@ export class CreateProductPage implements OnInit {
               // 🔧 FIX: Producto encontrado - manejar según modo
               this.ionicUtilService.hideLoading();
 
-              if (this.ingredientMode) {
-                // ✅ MODO INGREDIENTE: Mostrar alert y crear CustomProduct local
-                console.log(
-                  '[DEBUG] create-product.openScanner: producto encontrado en ingredientMode'
-                );
-                const alertOptions = {
-                  header: 'Producto encontrado',
-                  message: `¿Deseas usar el producto "${product.name}" existente?`,
-                  buttons: [
-                    {
-                      text: 'Cancelar',
-                      role: 'cancel',
-                      handler: () => {
-                        // Mantener código en input para seguir creando
-                        this.codeBar = scannedCode;
-                        if (this.productForm) {
-                          this.productForm.get('code')?.setValue(this.codeBar);
-                          this.productForm
-                            .get('code')
-                            ?.updateValueAndValidity();
-                        }
-                        this.highlightCodeInput = true;
-                        setTimeout(() => this.barcodeInput?.setFocus(), 250);
+                if (this.ingredientMode) {
+                  console.log(
+                    '[DEBUG] create-product.openScanner: producto encontrado en ingredientMode'
+                  );
+                  const t = this.translate.instant.bind(this.translate);
+                  this.ionicUtilService.showAlert({
+                    header: t('CREATE_PRODUCT.PRODUCT_FOUND_HEADER'),
+                    message: t('CREATE_PRODUCT.PRODUCT_FOUND_MESSAGE', { name: product.name }),
+                    buttons: [
+                      {
+                        text: t('COMMON.CANCEL'),
+                        role: 'cancel',
+                        handler: () => {
+                          this.codeBar = scannedCode;
+                          if (this.productForm) {
+                            this.productForm.get('code')?.setValue(this.codeBar);
+                            this.productForm
+                              .get('code')
+                              ?.updateValueAndValidity();
+                          }
+                          this.highlightCodeInput = true;
+                          setTimeout(() => this.barcodeInput?.setFocus(), 250);
+                        },
                       },
-                    },
-                    {
-                      text: 'Usar',
-                      handler: () => {
-                        // Crear CustomProduct local y volver a search-foods
-                        const newIngredient =
-                          this.customProductService.composeCustomProduct(
-                            product,
-                            this.productForm.controls.quantity.value || 100,
-                            0
-                          );
-                        this.navigationService.setTempData(
-                          'newIngredient',
-                          newIngredient
-                        );
-                        const toastOptions = {
-                          message: `${product.name} añadido a la receta`,
-                          duration: 1500,
-                          color: 'success',
-                        };
-                        this.ionicUtilService.showToast(toastOptions);
-                        this.navigationService.backNoAnim();
+                      {
+                        text: t('CREATE_PRODUCT.USE_PRODUCT'),
+                        handler: () => {
+                          this.openAddProduct(product, true);
+                        },
                       },
-                    },
-                  ],
-                };
-                this.ionicUtilService.showAlert(alertOptions);
-              } else if (this.meal && this.dietDay) {
-                // MODO NORMAL con meal: Navegar a add-product
-                console.log(
-                  '[DEBUG] create-product.openScanner: navegar a add-product (normal mode con meal)'
-                );
-                const queryParams: any = {
-                  product: JSON.stringify(product),
-                  isScanned: true,
-                  productQuantity: product.servingQuantity,
-                  dietDay: JSON.stringify(this.dietDay),
-                  meal: JSON.stringify(this.meal),
-                };
-                this.navigationService.goToAddProduct({
-                  replaceUrl: false,
-                  queryParams,
-                  state: {
-                    product,
-                    isScanned: true,
-                    productQuantity: product.servingQuantity,
-                    dietDay: this.dietDay,
-                    meal: this.meal,
-                    returnUrl: '/search-foods',
-                  },
-                });
-              } else {
-                // MODO NORMAL sin meal: Navegar a add-product
-                console.log(
-                  '[DEBUG] create-product.openScanner: navegar a add-product (normal mode sin meal)'
-                );
-                const queryParams: any = {
-                  product: JSON.stringify(product),
-                  isScanned: true,
-                  productQuantity: product.servingQuantity,
-                };
-                this.navigationService.goToAddProduct({
-                  replaceUrl: false,
-                  queryParams,
-                  state: {
-                    product,
-                    isScanned: true,
-                    productQuantity: product.servingQuantity,
-                    returnUrl: '/search-foods',
-                  },
-                });
+                    ],
+                  });
+                } else {
+                this.openAddProduct(product, true);
               }
             } else {
               // ✅ Producto no encontrado: mantener código en input
@@ -476,12 +328,12 @@ export class CreateProductPage implements OnInit {
           },
           error: (_) => {
             this.ionicUtilService.hideLoading();
-            const alertOptions = {
-              header: 'Error',
-              message: 'No se pudo buscar el producto',
-              buttons: ['OK'],
-            };
-            this.ionicUtilService.showAlert(alertOptions);
+            const t = this.translate.instant.bind(this.translate);
+            this.ionicUtilService.showAlert({
+              header: t('COMMON.ERROR'),
+              message: t('CREATE_PRODUCT.SEARCH_ERROR'),
+              buttons: [t('COMMON.OK')],
+            });
           },
           complete: () => {
             this.productByCodeSub = undefined;
@@ -493,6 +345,35 @@ export class CreateProductPage implements OnInit {
   public goBack(): void {
     this.cancelProductLookup();
     this.navigationService.backNoAnim();
+  }
+
+  private openAddProduct(
+    product: IProduct,
+    isScanned: boolean,
+  ): void {
+    const returnUrl = this.returnUrl || '/search-foods';
+    const queryParams: any = {
+      product: JSON.stringify(product),
+      isScanned: String(isScanned),
+      ingredientMode: String(this.ingredientMode),
+      returnUrl,
+    };
+
+    if (this.meal) queryParams.meal = JSON.stringify(this.meal);
+    if (this.dietDay) queryParams.dietDay = JSON.stringify(this.dietDay);
+
+    this.navigationService.goToAddProduct({
+      replaceUrl: false,
+      queryParams,
+      state: {
+        product,
+        isScanned,
+        ingredientMode: this.ingredientMode,
+        meal: this.meal,
+        dietDay: this.dietDay,
+        returnUrl,
+      },
+    });
   }
 
   private initForm(): void {
@@ -572,8 +453,6 @@ export class CreateProductPage implements OnInit {
       lactoseFree: new FormControl(false),
       glutenFree: new FormControl(false),
 
-      // Quantity for meal
-      quantity: new FormControl(null, this.meal ? Validators.required : null),
     });
 
     // Si estamos en modo edición, rellenamos el formulario

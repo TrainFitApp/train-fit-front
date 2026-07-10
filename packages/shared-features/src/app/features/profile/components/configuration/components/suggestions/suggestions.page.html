@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="close()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Reportes y sugerencias</h1>
+        <h1 class="tf-page-header__title">{{ 'SUGGESTIONS.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -20,7 +20,7 @@
   <div class="header-section">
     <div class="header-content">
       <div class="header-info">
-        <h3 class="page-subtitle">Tus comentarios nos ayudan a mejorar</h3>
+        <h3 class="page-subtitle">{{ 'SUGGESTIONS.SUBTITLE' | translate }}</h3>
       </div>
       <div class="header-icon">
         <ion-icon name="chatbubbles-outline" class="main-icon"></ion-icon>
@@ -36,7 +36,7 @@
     <div class="feedback-content"></div>
     <ion-textarea
       #ionTextArea
-      placeholder="Comparte tus sugerencias o reporta algún problema..."
+      placeholder="{{ 'SUGGESTIONS.PLACEHOLDER' | translate }}"
       rows="4"
       class="feedback-textarea"
     ></ion-textarea>
@@ -46,7 +46,7 @@
       *ngIf="(ionTextArea?.value?.trim()?.length || 0) < 20"
     >
       <ion-icon name="information-circle-outline" color="warning"></ion-icon>
-      <ion-text color="medium">Mínimo 20 caracteres</ion-text>
+      <ion-text color="medium">{{ 'SUGGESTIONS.MIN_CHARS' | translate }}</ion-text>
     </div>
   </div>
 
@@ -61,7 +61,7 @@
       class="send-button"
     >
       <ion-icon name="send-outline" slot="start"></ion-icon>
-      <strong>ENVIAR</strong>
+      <strong>{{ 'SUGGESTIONS.SEND' | translate }}</strong>
     </ion-button>
   </div>
 
@@ -69,7 +69,7 @@
     <div class="action-section">
       <ion-button expand="block" disabled>
         <ion-spinner name="crescent" color="light"></ion-spinner>
-        <strong style="margin-left: 8px">Procesando...</strong>
+        <strong style="margin-left: 8px">{{ 'SUGGESTIONS.PROCESSING' | translate }}</strong>
       </ion-button>
     </div>
   </ng-template>
@@ -79,8 +79,8 @@
     <div class="info-card">
       <ion-icon name="heart-outline" class="info-icon"></ion-icon>
       <div class="info-text">
-        <h3>¡Gracias por tu feedback!</h3>
-        <p>Cada comentario nos ayuda a crear una mejor experiencia para ti</p>
+        <h3>{{ 'SUGGESTIONS.FOOTER_TITLE' | translate }}</h3>
+        <p>{{ 'SUGGESTIONS.FOOTER_TEXT' | translate }}</p>
       </div>
     </div>
   </div>

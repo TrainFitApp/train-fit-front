@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { ModalController, ModalOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { Location } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { DayWeightService } from 'src/app/core/services/util/day-weight.service';
@@ -24,41 +25,24 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
   animations: [fadeIn, fadeOut],
 })
 export class WeightInfoPage {
-  public selectedDate: Date = new Date();
+  public selectedDate: string = this.utilService.formatDateToYYYYMMDD(new Date());
   public currentWeight: number | undefined;
   public currentNotes: string | undefined;
   public dietDay: DietDay | undefined;
-  public days = [
-    'Lunes',
-    'Martes',
-    'Miércoles',
-    'Jueves',
-    'Viernes',
-    'Sábado',
-    'Domingo',
-  ];
-  public months = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ];
+  public get days(): string[] {
+    return this.translate.instant('WEIGHT_INFO.DAYS');
+  }
+  public get months(): string[] {
+    return this.translate.instant('WEIGHT_INFO.MONTHS');
+  }
 
   public load = true;
 
   public dietDays: DietDay[] = [];
   public daysWeight: DayWeight[] = [];
 
-  public dateMin: Date;
-  public dateMax: Date;
+  public dateMin: string;
+  public dateMax: string;
   public dateRange: DateRange;
 
   public label: string;
@@ -76,6 +60,8 @@ export class WeightInfoPage {
   public CHART_RANGES = CHART_RANGES;
   public chartRange: string;
 
+  private translate = inject(TranslateService);
+
   constructor(
     private utilService: UtilService,
     private dietDayService: DietDayService,
@@ -86,9 +72,8 @@ export class WeightInfoPage {
   ) {}
 
   public ionViewWillEnter(): void {
-    this.monthYear = `${
-      this.months[this.selectedDate.getMonth()]
-    } ${this.selectedDate.getFullYear()}`;
+    const d = this.utilService.parseYYYYMMDD(this.selectedDate);
+    this.monthYear = `${this.months[d.getMonth()]} ${d.getFullYear()}`;
     this.chartRange = CHART_RANGES.week;
     this.getChartConfigurationByRange();
     this.getDietDays();
@@ -142,7 +127,10 @@ export class WeightInfoPage {
         const selectedWeekDay = event.weekDays.find(
           (wTemp) =>
             wTemp.date &&
-            this.utilService.datesAreOnSameDay(wTemp.date, this.selectedDate)
+            this.utilService.datesStrAreOnSameDay(
+              this.utilService.formatDateToYYYYMMDD(wTemp.date),
+              this.selectedDate
+            )
         );
 
         this.currentWeight = selectedWeekDay?.weight;
@@ -157,7 +145,10 @@ export class WeightInfoPage {
         const selectedMonthDay = event.monthDays.find(
           (wTemp) =>
             wTemp.date &&
-            this.utilService.datesAreOnSameDay(wTemp.date, this.selectedDate)
+            this.utilService.datesStrAreOnSameDay(
+              this.utilService.formatDateToYYYYMMDD(wTemp.date),
+              this.selectedDate
+            )
         );
 
         this.currentWeight = selectedMonthDay?.weight;
@@ -296,23 +287,24 @@ export class WeightInfoPage {
   }
 
   public getChartConfigurationByRange(): void {
+    const parsed = this.utilService.parseYYYYMMDD(this.selectedDate);
     switch (this.chartRange) {
       case CHART_RANGES.week:
         this.pointRadius = POINT_RADIUS.week;
-        this.indexCurrentDate = this.selectedDate.getDay() - 1;
-        this.label = 'Peso semanal';
+        this.indexCurrentDate = parsed.getDay() - 1;
+        this.label = this.translate.instant('WEIGHT_INFO.WEEKLY');
         this.getWeekRange();
         break;
       case CHART_RANGES.month:
         this.pointRadius = POINT_RADIUS.month;
-        this.indexCurrentDate = this.selectedDate.getDate() - 1;
-        this.label = 'Peso mensual';
+        this.indexCurrentDate = parsed.getDate() - 1;
+        this.label = this.translate.instant('WEIGHT_INFO.MONTHLY');
         this.setMonthRange();
         break;
       default:
         this.pointRadius = POINT_RADIUS.year;
-        this.indexCurrentDate = this.selectedDate.getMonth();
-        this.label = 'Peso anual';
+        this.indexCurrentDate = parsed.getMonth();
+        this.label = this.translate.instant('WEIGHT_INFO.YEARLY');
         this.setYearRange();
         break;
     }
@@ -320,7 +312,7 @@ export class WeightInfoPage {
 
   private getWeekRange(): void {
     const { dateMin, dateMax, dateRange, labels } =
-      this.utilService.getWeekRange(this.selectedDate);
+      this.utilService.getWeekRangeStr(this.selectedDate);
 
     this.dateMin = dateMin;
     this.dateMax = dateMax;
@@ -329,80 +321,58 @@ export class WeightInfoPage {
   }
 
   public getWeekOfMonth(): number {
-    return this.utilService.getWeekOfMonth(this.selectedDate);
+    return this.utilService.getWeekOfMonthFromStr(this.selectedDate);
   }
 
   private setMonthRange(): void {
-    this.dateMin = new Date(
-      this.selectedDate.getFullYear(),
-      this.selectedDate.getMonth(),
-      1
-    );
-    this.dateMax = new Date(
-      this.selectedDate.getFullYear(),
-      this.selectedDate.getMonth() + 1,
-      0
-    );
-    this.dateMax.setHours(23, 59, 59, 59);
+    const parsed = this.utilService.parseYYYYMMDD(this.selectedDate);
+    const year = parsed.getFullYear();
+    const month = parsed.getMonth();
+    this.dateMin = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    this.dateMax = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
     this.dateRange = new DateRange(this.dateMin, this.dateMax);
-    //TODO: repetido
-    const days = this.utilService.numberDaysBetween(this.dateMin, this.dateMax);
-    this.labels = this.utilService.numberArray(days);
+    this.labels = this.utilService.numberArray(lastDay);
   }
 
   private setYearRange(): void {
-    this.dateMin = new Date(this.selectedDate.getFullYear(), 0, 1);
-    this.dateMax = new Date(this.selectedDate.getFullYear(), 11, 31);
-    this.dateMax.setHours(23, 59, 59, 59);
+    const year = this.utilService.parseYYYYMMDD(this.selectedDate).getFullYear();
+    this.dateMin = `${year}-01-01`;
+    this.dateMax = `${year}-12-31`;
     this.dateRange = new DateRange(this.dateMin, this.dateMax);
-    this.labels = [
-      'Ene',
-      'Feb',
-      'Mar',
-      'Abr',
-      'May',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dic',
-    ];
+    this.labels = this.translate.instant('WEIGHT_INFO.MONTHS_SHORT');
   }
 
   private getDietDaysWeights(dietDays: DietDay[]) {
     this.dietDays = [];
-    const days: number = this.utilService.numberDaysBetween(
+    const days: number = this.utilService.numberDaysBetweenStr(
       this.dateMin,
       this.dateMax
     );
 
-    for (let i = 0; i < days; i++) {
+    const dateMinParsed = this.utilService.parseYYYYMMDD(this.dateMin);
+
+    for (let i = 0; i <= days; i++) {
       const date = new Date(
-        new Date(this.dateMin).setDate(new Date(this.dateMin).getDate() + i)
+        new Date(dateMinParsed).setDate(dateMinParsed.getDate() + i)
       );
+      const dateStr = this.utilService.formatDateToYYYYMMDD(date);
 
       const dietDay = dietDays.find(
-        (dietDay) => new Date(dietDay.date).getDate() === date.getDate()
+        (dietDay) => dietDay.date === dateStr
       );
 
       if (dietDay?._id) {
-        // if (!dietDay.weight) dietDay.weight = 0;
         this.dietDays.push(dietDay);
       } else {
         const newDietDay = new DietDay();
-        newDietDay.date = date;
-        // newDietDay.weight = 0;
+        newDietDay.date = dateStr;
         this.dietDays.push(newDietDay);
       }
     }
 
-    const currentDietDay = this.dietDays.find((dietDayTemp) =>
-      this.utilService.datesAreOnSameDay(
-        new Date(dietDayTemp.date),
-        this.selectedDate
-      )
+    const currentDietDay = this.dietDays.find(
+      (dietDayTemp) => dietDayTemp.date === this.selectedDate
     );
 
     this.dietDay = currentDietDay;
@@ -416,22 +386,21 @@ export class WeightInfoPage {
   }
 
   private getDietDaysWeightsMonthAverage(dietDays: DietDay[]): void {
-    const days: number = this.utilService.numberDaysBetween(
-      this.dateMin,
-      this.dateMax
-    );
+    const dateMinParsed = this.utilService.parseYYYYMMDD(this.dateMin);
+    const dietDaysMap = new Map<string, DietDay>();
+    dietDays.forEach((dd) => {
+      if (dd?.date) dietDaysMap.set(dd.date, dd);
+    });
 
-    let dietDaysTemp: DietDay[] = [];
-    for (let i = 0; i < days; i++) {
+    const lastDay = this.utilService.parseYYYYMMDD(this.dateMax).getDate();
+    const dietDaysTemp: (DietDay | undefined)[] = [];
+
+    for (let i = 0; i <= lastDay; i++) {
       const date = new Date(
-        new Date(this.dateMin).setDate(new Date(this.dateMin).getDate() + i)
+        new Date(dateMinParsed).setDate(dateMinParsed.getDate() + i)
       );
-
-      const dietDay = dietDays.find(
-        (dietDay) => new Date(dietDay.date).getDate() === date.getDate()
-      );
-
-      dietDaysTemp.push(dietDay);
+      const dateStr = this.utilService.formatDateToYYYYMMDD(date);
+      dietDaysTemp.push(dietDaysMap.get(dateStr));
     }
 
     // Inicializar arrays de 12 elementos para almacenar los valores y contadores de cada mes
@@ -469,6 +438,11 @@ export class WeightInfoPage {
 
   private getAverage(): void {
     this.average = Number(this.utilService.average(this.weights).toFixed(1));
+  }
+
+  public getDayOfWeek(dateStr: string): number {
+    const d = this.utilService.parseYYYYMMDD(dateStr);
+    return d.getDay() - 1;
   }
 
   public goBack(): void {
