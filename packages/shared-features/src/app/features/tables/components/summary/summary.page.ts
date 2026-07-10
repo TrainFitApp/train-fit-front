@@ -143,7 +143,7 @@ export class SummaryPage {
               this.tableInUse = resTable;
               this.user.tableInUse = this.tableInUse._id;
               this.user.workoutInUse = undefined;
-              this.user.ownTables.push(this.tableInUse._id);
+              this.user.tables.push(this.tableInUse._id);
               this.userService.setLocalUser = this.user;
               this.tableService.setCurrentTable = this.tableInUse;
               void this.billingService.refreshBackendEntitlements();
@@ -238,8 +238,8 @@ export class SummaryPage {
       this.user.tableInUse = table._id;
       this.user.workoutInUse = undefined;
       const tableIdStr = table._id;
-      if (!this.user.ownTables.find((id: any) => String(id) === String(tableIdStr))) {
-        this.user.ownTables.push(table._id);
+      if (!this.user.tables.find((id: any) => String(id) === String(tableIdStr))) {
+        this.user.tables.push(table._id);
       }
       this.userService.setLocalUser = this.user;
       void this.billingService.refreshBackendEntitlements();

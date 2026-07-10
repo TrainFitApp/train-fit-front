@@ -24,11 +24,11 @@ export class TableAPIService {
   }
 
   public copyTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`owntables/copy/${idUser}/${idTable}`);
+    return this.http.get<Table>(`tables/user/copy/${idUser}/${idTable}`);
   }
 
-  public copyOwnTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`owntables/copy/own/${idUser}/${idTable}`);
+  public duplicateTable(idUser: string, idTable: string): Observable<Table> {
+    return this.http.get<Table>(`tables/user/copy/own/${idUser}/${idTable}`);
   }
 
   public copySharedTable(idUser: string, idTable: string): Observable<Table> {
@@ -49,7 +49,7 @@ export class TableAPIService {
   }
 
   public createTableToUser(idUser: string, name: string): Observable<Table> {
-    return this.http.post<Table>(`owntables/${idUser}`, { name });
+    return this.http.post<Table>(`tables/user/${idUser}`, { name });
   }
 
   public updateTableName(table: Table): Observable<string> {
@@ -57,6 +57,6 @@ export class TableAPIService {
   }
 
   public deleteTableById(idUser: string, idTable: string): Observable<Table> {
-    return this.http.delete<Table>(`owntables/${idUser}/${idTable}`);
+    return this.http.delete<Table>(`tables/user/${idUser}/${idTable}`);
   }
 }

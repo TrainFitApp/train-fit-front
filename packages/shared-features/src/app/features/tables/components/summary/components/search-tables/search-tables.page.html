@@ -24,7 +24,7 @@
         [ownFilter]="searchFilterGroup.ownFilter"
         [own]="tableCard._id === user.tableInUse"
         [tableCard]="tableCard"
-        (copyOwnTableEv)="copyOwnTable($event)"
+        (duplicateTableEv)="duplicateTable($event)"
         (deletedTable)="deleteTable($event)"
       ></app-table-card>
     </ng-container>

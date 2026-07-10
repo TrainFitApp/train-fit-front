@@ -88,17 +88,17 @@ export class SearchTablesPage implements OnInit {
       });
   }
 
-  public copyOwnTable(copiedTable: Table): void {
+  public duplicateTable(copiedTable: Table): void {
     if (!copiedTable?._id) {
       return;
     }
 
-    if (!this.user.ownTables) {
-      this.user.ownTables = [];
+    if (!this.user.tables) {
+      this.user.tables = [];
     }
 
-    if (!this.user.ownTables.includes(copiedTable._id)) {
-      this.user.ownTables.push(copiedTable._id);
+    if (!this.user.tables.includes(copiedTable._id)) {
+      this.user.tables.push(copiedTable._id);
     }
 
     this.userService.setLocalUser = this.user;
@@ -124,10 +124,10 @@ export class SearchTablesPage implements OnInit {
 
     if (indexToDelete !== -1) this.tableList.splice(indexToDelete, 1);
 
-    if (this.user?.ownTables) {
+    if (this.user?.tables) {
       this.user = {
         ...this.user,
-        ownTables: this.user.ownTables.filter(
+        tables: this.user.tables.filter(
           (tableId) => tableId?.toString() !== idTable
         ),
       };
@@ -144,7 +144,7 @@ export class SearchTablesPage implements OnInit {
       this.user.tableInUse = undefined;
       this.user.workoutInUse = undefined;
 
-      // Actualizar en la base de datos sin reintroducir la rutina eliminada en ownTables
+      // Actualizar en la base de datos sin reintroducir la rutina eliminada
       this.userService.updateUser(this.user).subscribe(() => {
         void this.billingService.refreshBackendEntitlements();
         // Esperar a que la BD se actualice antes de navegar
