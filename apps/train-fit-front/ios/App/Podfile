@@ -16,6 +16,7 @@ def capacitor_pods
   pod 'CapacitorBarcodeScanner', :path => '../../../../node_modules/@capacitor/barcode-scanner'
   pod 'CapacitorBrowser', :path => '../../../../node_modules/@capacitor/browser'
   pod 'CapacitorKeyboard', :path => '../../../../node_modules/@capacitor/keyboard'
+  pod 'CapacitorLocalNotifications', :path => '../../../../node_modules/@capacitor/local-notifications'
   pod 'CapacitorNetwork', :path => '../../../../node_modules/@capacitor/network'
   pod 'CapgoCapacitorNavigationBar', :path => '../../../../node_modules/@capgo/capacitor-navigation-bar'
   pod 'CapgoCapacitorSocialLogin', :path => '../../../../node_modules/@capgo/capacitor-social-login'
