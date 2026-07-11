@@ -1591,6 +1591,7 @@
     "NO_CHART_DATA": "Add your first measurement to see the evolution",
     "NO_RECORDS": "No records in this period",
     "HELPER_TEXT": "Only filled fields will be saved. Measure what you want, when you want.",
+    "MAX_VALUE": "Max 999",
     "ENTER_AT_LEAST_ONE": "Enter at least one measurement",
     "ERROR_SAVING": "Error saving measurement",
     "SAVING": "Saving...",
