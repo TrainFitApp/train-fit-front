@@ -6,10 +6,10 @@
         class="modern-pill"
         [class.is-active]="isAllSelected()"
         [disabled]="disabled"
-        (click)="selectAllFilter()"
+        (click)="addFilter('all')"
       >
-        <ion-icon name="apps-outline"></ion-icon>
-        <span class="label">{{ 'TABLES.FILTER_ALL' | translate }}</span>
+        <ion-icon name="library-outline"></ion-icon>
+        <span class="label">{{ 'TABLES.FILTER_DEFAULT' | translate }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
 
@@ -25,12 +25,5 @@
         <ion-ripple-effect></ion-ripple-effect>
       </button>
     </div>
-  </div>
-  <div class="filter-info-row">
-    <button type="button" class="modern-pill info-pill">
-      <span class="label">{{ filterDescription }}</span>
-      <ion-icon name="search-outline" color="primary"></ion-icon>
-      <ion-ripple-effect></ion-ripple-effect>
-    </button>
   </div>
 </div>

@@ -502,7 +502,7 @@
     "DELETE_MESSAGE": "Day {{date}} will be deleted",
     "DELETE_SUCCESS": "{{date}} deleted"
   },
-  "SEARCH_FOODS": {
+"SEARCH_FOODS": {
     "SEARCHING_PRODUCT": "Searching product...",
     "PRODUCT_NOT_FOUND": "Could not find the product",
     "DELETE_PRODUCT_HEADER": "Delete product",
@@ -527,7 +527,11 @@
     "ITEM_TYPE_PRODUCTS": "products",
     "ITEM_TYPE_RECIPES": "recipes",
     "ITEM_TYPE_PRODUCTS_CAP": "Products",
-    "ITEM_TYPE_RECIPES_CAP": "Recipes"
+    "ITEM_TYPE_RECIPES_CAP": "Recipes",
+    "NO_MATCHES": "No matches found",
+    "NO_MATCHES_MSG": "Try another term or create a new product",
+    "CREATE_PRODUCT": "Create product",
+    "CREATE_RECIPE": "Create recipe"
   },
   "CONFIG_RECIPE": {
     "EDIT_ORIGINAL": "Edit original recipe",
@@ -604,7 +608,9 @@
     "FATS": "Fats *",
     "SATURATED": "Saturated",
     "CARBS": "Carbohydrates *",
+    "CARBOHYDRATES": "Carbohydrates",
     "OF_WHICH_SUGARS": "of which sugars",
+    "SUGAR": "Sugars",
     "FIBER": "Fiber",
     "PROTEINS": "Protein *",
     "PROTEIN_LABEL": "Protein",
@@ -908,9 +914,10 @@
     "CREATE_ROUTINE_BTN": "Create Routine",
     "IMPORT_EXCEL_AI": "Import Excel with AI",
     "IMPORT_EXCEL_AI_DESC": "Upload your Excel and convert it into a routine automatically",
-    "FILTER_ALL": "All routines",
+    "FILTER_DEFAULT": "Default",
     "FILTER_MINE": "My routines",
     "NO_MATCHES": "No matches found",
+    "NO_MATCHES_MSG": "No routines found with that criteria",
     "CURRENT_ROUTINE": "Current Routine",
     "MICROCYCLE_OF": "Microcycle {{current}} of {{total}}",
     "STATISTICS": "Statistics",
@@ -1534,7 +1541,11 @@
     "SOURCES_SUBTITLE": "Based on verified information",
     "NOTE_TITLE": "Important Note",
     "NOTE_TEXT": "The services provided are not considered professional medical services.",
-    "DESCRIPTION": "TrainFit's nutritional recommendations are based on official sources."
+    "DESCRIPTION": "TrainFit's nutritional recommendations are based on official sources.",
+    "MINISTERIO": "Ministry of Health",
+    "NAOS": "NAOS Strategy (Nutrition, Physical Activity and Obesity Prevention)",
+    "OMS": "World Health Organization (WHO)",
+    "FEN": "Spanish Nutrition Foundation (FEN)"
   },
   "EXERCISE_FILTER": {
     "ALL_EXERCISES": "All exercises",

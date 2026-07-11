@@ -502,7 +502,7 @@
     "DELETE_MESSAGE": "Se eliminará el día {{date}}",
     "DELETE_SUCCESS": "{{date}} eliminado"
   },
-  "SEARCH_FOODS": {
+"SEARCH_FOODS": {
     "SEARCHING_PRODUCT": "Buscando producto...",
     "PRODUCT_NOT_FOUND": "No se pudo buscar el producto",
     "DELETE_PRODUCT_HEADER": "Eliminar producto",
@@ -527,7 +527,11 @@
     "ITEM_TYPE_PRODUCTS": "productos",
     "ITEM_TYPE_RECIPES": "recetas",
     "ITEM_TYPE_PRODUCTS_CAP": "Productos",
-    "ITEM_TYPE_RECIPES_CAP": "Recetas"
+    "ITEM_TYPE_RECIPES_CAP": "Recetas",
+    "NO_MATCHES": "No hay coincidencias",
+    "NO_MATCHES_MSG": "Prueba con otro término o crea un producto nuevo",
+    "CREATE_PRODUCT": "Crear producto",
+    "CREATE_RECIPE": "Crear receta"
   },
   "CONFIG_RECIPE": {
     "EDIT_ORIGINAL": "Editar receta original",
@@ -604,7 +608,9 @@
     "FATS": "Grasas *",
     "SATURATED": "Saturadas",
     "CARBS": "Carbohidratos *",
+    "CARBOHYDRATES": "Hidratos de carbono",
     "OF_WHICH_SUGARS": "de los cuales azúcares",
+    "SUGAR": "Azúcares",
     "FIBER": "Fibra",
     "PROTEINS": "Proteínas *",
     "PROTEIN_LABEL": "Proteína",
@@ -908,12 +914,10 @@
     "CREATE_ROUTINE_BTN": "Crear Rutina",
     "IMPORT_EXCEL_AI": "Importar Excels con IA",
     "IMPORT_EXCEL_AI_DESC": "Sube tu Excel y conviértelo en rutina automáticamente",
-    "FILTER_ALL": "Todas las rutinas",
+    "FILTER_DEFAULT": "Predeterminadas",
     "FILTER_MINE": "Mis rutinas",
     "NO_MATCHES": "No hay coincidencias",
-    "FILTER_ALL": "Todas las rutinas",
-    "FILTER_MINE": "Mis rutinas",
-    "NO_MATCHES": "No hay coincidencias",
+    "NO_MATCHES_MSG": "No se encontraron rutinas con ese criterio",
     "CURRENT_ROUTINE": "Rutina actual",
     "MICROCYCLE_OF": "Microciclo {{current}} de {{total}}",
     "STATISTICS": "Estadísticas",
@@ -1537,7 +1541,11 @@
     "SOURCES_SUBTITLE": "Basadas en información verificada",
     "NOTE_TITLE": "Nota Importante",
     "NOTE_TEXT": "Los servicios prestados no se consideran servicios médicos profesionales.",
-    "DESCRIPTION": "Las recomendaciones nutricionales en TrainFit se basan en fuentes oficiales."
+    "DESCRIPTION": "Las recomendaciones nutricionales en TrainFit se basan en fuentes oficiales.",
+    "MINISTERIO": "Ministerio de Sanidad",
+    "NAOS": "Estrategia NAOS (Nutrición, Actividad Física y Prevención de la Obesidad)",
+    "OMS": "Organización Mundial de la Salud (OMS)",
+    "FEN": "Fundación Española de la Nutrición (FEN)"
   },
   "EXERCISE_FILTER": {
     "ALL_EXERCISES": "Todos los ejercicios",

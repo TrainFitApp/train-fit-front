@@ -14,42 +14,17 @@ export class TableFilterIconsComponent implements OnInit {
   @Output()
   public filterSelection = new EventEmitter<SearchFilterGroup>();
 
-  public filterDescription: string;
-
   public ownFilter: boolean = false;
 
   constructor(private translate: TranslateService) {}
 
-  public ngOnInit(): void {
-    this.filterDescription = this.translate.instant('TABLES.FILTER_ALL');
-  }
+  public ngOnInit(): void {}
 
-  public addFilter(filter: string): void {
+public addFilter(filter: string): void {
     switch (filter) {
       case 'own':
         this.ownFilter = !this.ownFilter;
         break;
-    }
-
-    this.setFilterDescription();
-  }
-
-  public selectAllFilter(): void {
-    this.ownFilter = false;
-    this.setFilterDescription();
-  }
-
-  public isAllSelected(): boolean {
-    return !this.ownFilter;
-  }
-
-  public setFilterDescription(): void {
-    this.filterDescription = '';
-
-    if (this.ownFilter) {
-      this.filterDescription = this.translate.instant('TABLES.FILTER_MINE');
-    } else {
-      this.filterDescription = this.translate.instant('TABLES.FILTER_ALL');
     }
 
     const filterGroup: SearchFilterGroup = {
@@ -59,5 +34,21 @@ export class TableFilterIconsComponent implements OnInit {
     };
 
     this.filterSelection.emit(filterGroup);
+  }
+
+  public selectAllFilter(): void {
+    this.ownFilter = false;
+
+    const filterGroup: SearchFilterGroup = {
+      favFilter: false,
+      ownFilter: this.ownFilter,
+      shieldFilter: false,
+    };
+
+    this.filterSelection.emit(filterGroup);
+  }
+
+  public isAllSelected(): boolean {
+    return !this.ownFilter;
   }
 }

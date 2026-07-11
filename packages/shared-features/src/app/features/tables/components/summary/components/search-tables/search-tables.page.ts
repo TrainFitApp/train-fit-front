@@ -65,8 +65,10 @@ export class SearchTablesPage implements OnInit {
   private applyFilterMode(): void {
     if (this.currentFilterMode === 'mine') {
       this.searchFilterGroup.ownFilter = true;
+      this.searchFilterGroup.defaultOnly = false;
     } else {
       this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.defaultOnly = true;
     }
     this.searchFilterGroup.page = 0;
     this.tableList = [];

@@ -60,7 +60,8 @@ export class TableService {
         searchFilterGroup.search,
         searchFilterGroup.page,
         idUser,
-        searchFilterGroup.ownFilter
+        searchFilterGroup.ownFilter,
+        searchFilterGroup.defaultOnly
       )
       .pipe(distinctUntilChanged());
   }

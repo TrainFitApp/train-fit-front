@@ -39,12 +39,14 @@ export class TableAPIService {
     search: string,
     page: number,
     idUser: string,
-    isOwn: boolean
+    isOwn: boolean,
+    defaultOnly: boolean = false
   ): Observable<Table[]> {
     return this.http.post<Table[]>(`tables/search?page=${page}&limit=5`, {
       search,
       idUser,
       isOwn,
+      defaultOnly,
     });
   }
 
