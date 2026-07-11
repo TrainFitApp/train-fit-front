@@ -1,0 +1,66 @@
+<ion-header class="modal-header">
+  <ion-toolbar>
+    <ion-title>{{ 'ANTHROPOMETRY.MODAL_TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <button class="save-action-button" (click)="onSave()" [disabled]="form.invalid || isLoading">
+        {{ 'COMMON.SAVE' | translate }}
+      </button>
+      <button class="close-action-button ripple-effect" (click)="onCancel()">
+        <ion-icon name="close" color="primary"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<div class="modal-content">
+  <form [formGroup]="form" (ngSubmit)="onSave()">
+    <div class="date-section">
+      <span class="section-label">{{ 'ANTHROPOMETRY.DATE_LABEL' | translate }}</span>
+      <div class="date-display">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>{{ selectedDate | date:'fullDate' }}</span>
+      </div>
+    </div>
+
+    <div class="measurements-list">
+      <div class="measurement-row" *ngFor="let field of measurementFields">
+        <div class="measurement-info">
+          <span class="measurement-label">{{ field.label | translate }}</span>
+          <div class="measurement-input-wrapper">
+            <ion-input
+              type="number"
+              [formControlName]="field.key"
+              [placeholder]="'ANTHROPOMETRY.PLACEHOLDER' | translate"
+              class="measurement-input"
+              [step]="0.1"
+              min="0"
+              max="999"
+              inputmode="decimal"
+            ></ion-input>
+            <span class="unit">{{ field.unit }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="helper-text">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>{{ 'ANTHROPOMETRY.HELPER_TEXT' | translate }}</span>
+    </div>
+  </form>
+</div>
+
+<ion-footer class="modal-footer">
+  <ion-button fill="clear" (click)="onCancel()" expand="block" [disabled]="isLoading">
+    {{ 'COMMON.CANCEL' | translate }}
+  </ion-button>
+  <ion-button
+    class="save-button"
+    expand="block"
+    type="submit"
+    [disabled]="form.invalid || isLoading"
+  >
+    <ion-icon *ngIf="isLoading" name="refresh-outline" class="spin" slot="start"></ion-icon>
+    {{ isLoading ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
+  </ion-button>
+</ion-footer>
