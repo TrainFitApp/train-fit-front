@@ -97,7 +97,7 @@
 
       <ion-card class="config-card">
         <ion-item class="config-item">
-          <div slot="start" class="item-icon-container">
+          <div slot="start" class="item-icon-container reminder-icon">
             <ion-icon name="scale-outline" color="warning"></ion-icon>
           </div>
           <ion-label>
@@ -156,7 +156,7 @@
             <ion-label>{{ 'NOTIFICATIONS.TIME' | translate }}</ion-label>
             <ion-datetime-button id="notif-time-trigger" datetime="notif-datetime" slot="end"></ion-datetime-button>
           </ion-item>
-          <ion-modal [keepContentsMounted]="true" trigger="notif-time-trigger">
+          <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="datetime-modal" trigger="notif-time-trigger">
             <ng-template>
               <ion-datetime
                 id="notif-datetime"
@@ -168,7 +168,12 @@
                 [cancelText]="'COMMON.CANCEL' | translate"
                 [(ngModel)]="notifTime"
                 (ionChange)="onSettingsChange()"
-              ></ion-datetime>
+              >
+                <div slot="title" class="datetime-title">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+                </div>
+              </ion-datetime>
             </ng-template>
           </ion-modal>
         </ng-container>
