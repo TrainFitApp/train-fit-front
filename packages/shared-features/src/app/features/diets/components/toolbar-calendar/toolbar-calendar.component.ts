@@ -106,11 +106,6 @@ export class ToolbarCalendarComponent {
       this.ionicUtilService.showPopover(popover).then((res) => {
         this.handleAction(res.data);
       });
-    } else {
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('COMMON.NO_ACTIONS'),
-        duration: 500,
-      });
     }
   }
 
@@ -131,6 +126,11 @@ export class ToolbarCalendarComponent {
         if (b.id === ACTIONS[this.ACTION_TYPES.delete].id) return -1;
         return 0;
       });
+    } else {
+      // Only show Note option when diet-day doesn't exist yet
+      this.actionsPopover = this.ACTION_VALUES.filter(
+        (actionTemp) => actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
+      );
     }
   }
 
