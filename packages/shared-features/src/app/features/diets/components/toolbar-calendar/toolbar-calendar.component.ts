@@ -231,7 +231,7 @@ export class ToolbarCalendarComponent {
       ],
     };
 
-    this.ionicUtilService.showAlert(alertOptions).then((result) => {
+    this.ionicUtilService.showAlert(alertOptions).then(async (result) => {
       if (result.role === 'cancel') return;
 
       const notesValue = (result.data?.values?.notes || '').trim();
@@ -256,12 +256,23 @@ export class ToolbarCalendarComponent {
         return;
       }
 
-      this.dietDay.notes = notesValue;
-      (this._service as DietDayService)
-        .updateDietDay(this.dietDay)
-        .subscribe(() => {
+      if (!this.dietDay._id) {
+        const newDietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
+        const createdDietDay = await this.dietDayService.createDietDay(newDietDay).toPromise();
+        await this.dietService.addDietDietDay(this.dietId, createdDietDay._id).toPromise();
+        createdDietDay.notes = notesValue;
+        (this._service as DietDayService).updateDietDay(createdDietDay).subscribe(() => {
+          this.selectCalendarDayEmit.emit(createdDietDay.date);
           this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
         });
+      } else {
+        this.dietDay.notes = notesValue;
+        (this._service as DietDayService)
+          .updateDietDay(this.dietDay)
+          .subscribe(() => {
+            this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
+          });
+      }
     });
   }
 

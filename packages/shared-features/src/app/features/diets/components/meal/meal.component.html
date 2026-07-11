@@ -83,28 +83,29 @@
                 >
                   <ion-icon
                     style="border-radius: 20px"
-                    [color]="
-                      meal.customProducts.length > 0 ||
-                      (meal.customRecipes &&
-                        meal.customRecipes.length > 0)
-                        ? 'primary'
-                        : ''
-                    "
-                    name="ellipsis-vertical-outline"
-                  ></ion-icon>
-                </ion-button>
-              </ion-buttons>
-              <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
-              <ion-icon
-                *ngIf="
-                  meal.customProducts.length > 0 ||
-                  (meal.customRecipes &&
-                    meal.customRecipes.length > 0)
-                "
-                style="font-size: x-large"
-                name="chevron-down-outline"
-                [ngClass]="arrowRotate ? 'rotate' : 'start'"
-              ></ion-icon>
+                  color="primary"
+                  name="ellipsis-vertical-outline"
+                ></ion-icon>
+              </ion-button>
+            </ion-buttons>
+            <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
+            <ion-icon
+              *ngIf="
+                meal.customProducts.length > 0 ||
+                (meal.customRecipes &&
+                  meal.customRecipes.length > 0) ||
+                meal?.notes
+              "
+              style="font-size: x-large"
+              name="chevron-down-outline"
+              [ngClass]="arrowRotate ? 'rotate' : 'start'"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="meal?.notes && !arrowRotate"
+              style="font-size: large; margin-left: 4px"
+              name="create-outline"
+              color="secondary"
+            ></ion-icon>
             </ion-col>
           </ion-row>
           <ion-row
@@ -183,7 +184,8 @@
     <ion-list
       *ngIf="
         meal.customProducts.length > 0 ||
-        (meal.customRecipes && meal.customRecipes.length > 0)
+        (meal.customRecipes && meal.customRecipes.length > 0) ||
+        meal?.notes
       "
       slot="content"
       (click)="$event.stopPropagation()"

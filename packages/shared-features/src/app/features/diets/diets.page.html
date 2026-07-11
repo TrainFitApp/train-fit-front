@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="action-wrapper">
-            <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote()">
+            <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(); $event.stopPropagation()">
               <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
