@@ -447,8 +447,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     if (!this.swiper) return false;
     const slides = this.getPresentSlidesControls();
     const formIndex = this.registerSocialPending
-      ? slides.length - 4
-      : slides.length - 3;
+      ? slides.length - 3
+      : slides.length - 2;
     return this.swiper.activeIndex === formIndex;
   }
 
