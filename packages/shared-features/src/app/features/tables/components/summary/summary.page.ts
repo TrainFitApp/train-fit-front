@@ -143,6 +143,7 @@ export class SummaryPage {
               this.tableInUse = resTable;
               this.user.tableInUse = this.tableInUse._id;
               this.user.workoutInUse = undefined;
+              if (!this.user.tables) this.user.tables = [];
               this.user.tables.push(this.tableInUse._id);
               this.userService.setLocalUser = this.user;
               this.tableService.setCurrentTable = this.tableInUse;
@@ -237,8 +238,8 @@ export class SummaryPage {
       this.tableService.setCurrentTable = table;
       this.user.tableInUse = table._id;
       this.user.workoutInUse = undefined;
-      const tableIdStr = table._id;
-      if (!this.user.tables.find((id: any) => String(id) === String(tableIdStr))) {
+      if (!this.user.tables) this.user.tables = [];
+      if (!this.user.tables.find((id: any) => String(id) === String(table._id))) {
         this.user.tables.push(table._id);
       }
       this.userService.setLocalUser = this.user;

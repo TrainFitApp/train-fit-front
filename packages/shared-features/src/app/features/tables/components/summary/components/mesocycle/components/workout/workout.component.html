@@ -226,7 +226,7 @@
     </ion-row>
   </ion-grid>
 
-  <div slot="content">
+  <div slot="content" *ngIf="workout?.exercises.length !== 0">
     <app-notes
       *ngIf="workout?.notes"
       [notes]="workout.notes"

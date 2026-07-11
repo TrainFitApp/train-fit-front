@@ -1018,6 +1018,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
               .subscribe((resTable) => {
                 this.tableInUse = resTable;
                 this.user.tableInUse = this.tableInUse._id;
+                if (!this.user.tables) this.user.tables = [];
                 this.user.tables.push(this.tableInUse._id);
                 this.userService.setLocalUser = this.user;
                 this.tableService.setCurrentTable = this.tableInUse;
