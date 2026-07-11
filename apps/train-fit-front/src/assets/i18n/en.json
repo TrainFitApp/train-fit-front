@@ -1158,6 +1158,26 @@
     "TRAINER_MODE_MSG": "Not available",
     "LANGUAGE": "Language"
   },
+  "NOTIFICATIONS": {
+    "TITLE": "Reminders",
+    "WEIGHT_REMINDER": "Weigh-in reminder",
+    "WEIGHT_REMINDER_DESC": "Daily reminder to log your weight",
+    "FREQUENCY": "Frequency",
+    "DAILY": "Daily",
+    "WEEKLY": "Weekly",
+    "CUSTOM_INTERVAL": "Every X days",
+    "DAY_OF_WEEK": "Day of week",
+    "EVERY_X_DAYS": "Every {{days}} days",
+    "TIME": "Reminder time",
+    "PERMISSION_DENIED": "Notification permission was denied. Please enable it in your device settings.",
+    "SUNDAY": "Sunday",
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday",
+    "SATURDAY": "Saturday"
+  },
   "LANGUAGES": {
     "SPANISH": "Spanish",
     "ENGLISH": "English"

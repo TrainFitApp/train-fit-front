@@ -44,6 +44,7 @@ import { BarCodeScannerService } from './services/util/bar-code-scanner.service'
 import { DayWeightService } from './services/util/day-weight.service';
 import { IonicUtilService } from './services/util/ionic-util.service';
 import { NavigationService } from './services/util/navigation.service';
+import { NotificationService } from './services/util/notification.service';
 import { ThemeService } from './services/util/theme.service';
 import { UtilService } from './services/util/util.service';
 import { WorkoutAPIService } from './services/workout/workout-api.service';
@@ -63,6 +64,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     BarCodeScannerService,
     NavigationService,
     DayWeightService,
+    NotificationService,
     AdMobService,
     AppUpdateService,
     // Features

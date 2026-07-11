@@ -1158,6 +1158,26 @@
     "TRAINER_MODE_MSG": "No disponible",
     "LANGUAGE": "Idioma"
   },
+  "NOTIFICATIONS": {
+    "TITLE": "Recordatorios",
+    "WEIGHT_REMINDER": "Recordatorio de peso",
+    "WEIGHT_REMINDER_DESC": "Recordatorio diario para registrar tu peso",
+    "FREQUENCY": "Frecuencia",
+    "DAILY": "A diario",
+    "WEEKLY": "Semanal",
+    "CUSTOM_INTERVAL": "Cada X días",
+    "DAY_OF_WEEK": "Día de la semana",
+    "EVERY_X_DAYS": "Cada {{days}} días",
+    "TIME": "Hora del recordatorio",
+    "PERMISSION_DENIED": "Permiso de notificaciones denegado. Actívalo en los ajustes del dispositivo.",
+    "SUNDAY": "Domingo",
+    "MONDAY": "Lunes",
+    "TUESDAY": "Martes",
+    "WEDNESDAY": "Miércoles",
+    "THURSDAY": "Jueves",
+    "FRIDAY": "Viernes",
+    "SATURDAY": "Sábado"
+  },
   "LANGUAGES": {
     "SPANISH": "Español",
     "ENGLISH": "Inglés"

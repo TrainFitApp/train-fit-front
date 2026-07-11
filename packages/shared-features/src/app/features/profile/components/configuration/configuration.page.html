@@ -88,6 +88,93 @@
       </ion-card>
     </div>
 
+    <!-- Reminders Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="alarm-outline"></ion-icon>
+        <span>{{ 'NOTIFICATIONS.TITLE' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item class="config-item">
+          <div slot="start" class="item-icon-container">
+            <ion-icon name="scale-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'NOTIFICATIONS.WEIGHT_REMINDER' | translate }}</h3>
+            <p>{{ 'NOTIFICATIONS.WEIGHT_REMINDER_DESC' | translate }}</p>
+          </ion-label>
+          <ion-toggle slot="end" [(ngModel)]="notifEnabled" (ionChange)="onToggleReminder()"></ion-toggle>
+        </ion-item>
+
+        <ng-container *ngIf="notifEnabled">
+          <div class="divider"></div>
+
+          <ion-item class="config-item">
+            <ion-label>{{ 'NOTIFICATIONS.FREQUENCY' | translate }}</ion-label>
+            <ion-select [(ngModel)]="notifFrequency" (ionChange)="onSettingsChange()" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+              <ion-select-option value="daily">{{ 'NOTIFICATIONS.DAILY' | translate }}</ion-select-option>
+              <ion-select-option value="weekly">{{ 'NOTIFICATIONS.WEEKLY' | translate }}</ion-select-option>
+              <ion-select-option value="interval">{{ 'NOTIFICATIONS.CUSTOM_INTERVAL' | translate }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ng-container *ngIf="notifFrequency === 'weekly'">
+            <div class="divider"></div>
+            <ion-item class="config-item">
+              <ion-label>{{ 'NOTIFICATIONS.DAY_OF_WEEK' | translate }}</ion-label>
+              <ion-select [(ngModel)]="notifWeekday" (ionChange)="onSettingsChange()" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+                <ion-select-option [value]="1">{{ 'NOTIFICATIONS.SUNDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="2">{{ 'NOTIFICATIONS.MONDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="3">{{ 'NOTIFICATIONS.TUESDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="4">{{ 'NOTIFICATIONS.WEDNESDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="5">{{ 'NOTIFICATIONS.THURSDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="6">{{ 'NOTIFICATIONS.FRIDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="7">{{ 'NOTIFICATIONS.SATURDAY' | translate }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ng-container>
+
+          <ng-container *ngIf="notifFrequency === 'interval'">
+            <div class="divider"></div>
+            <ion-item class="config-item">
+              <ion-label>{{ 'NOTIFICATIONS.EVERY_X_DAYS' | translate:{ days: notifIntervalDays } }}</ion-label>
+              <div slot="end" class="stepper" style="display:flex; align-items:center; gap:8px;">
+                <ion-button fill="clear" size="small" (click)="changeInterval(-1)">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </ion-button>
+                <span style="min-width:24px;text-align:center;">{{ notifIntervalDays }}</span>
+                <ion-button fill="clear" size="small" (click)="changeInterval(1)">
+                  <ion-icon name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-item>
+          </ng-container>
+
+          <div class="divider"></div>
+          <ion-item class="config-item">
+            <ion-label>{{ 'NOTIFICATIONS.TIME' | translate }}</ion-label>
+            <ion-datetime-button id="notif-time-trigger" datetime="notif-datetime" slot="end"></ion-datetime-button>
+          </ion-item>
+          <ion-modal [keepContentsMounted]="true" trigger="notif-time-trigger">
+            <ng-template>
+              <ion-datetime
+                id="notif-datetime"
+                mode="ios"
+                presentation="time"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                [doneText]="'COMMON.OK' | translate"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [(ngModel)]="notifTime"
+                (ionChange)="onSettingsChange()"
+              ></ion-datetime>
+            </ng-template>
+          </ion-modal>
+        </ng-container>
+      </ion-card>
+    </div>
+
     <!-- Help & Resources Section -->
     <div class="section-group">
       <div class="section-header">
