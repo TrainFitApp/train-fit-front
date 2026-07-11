@@ -180,6 +180,7 @@
       (deleteSet)="deleteSet(row.set)"
       (copySet)="copySet(row.set, row.index)"
       (confSet)="configSet(row.set)"
+      (reorderSets)="openOrderSetsModal()"
       [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
       class="current-set-container"
     ></app-set>

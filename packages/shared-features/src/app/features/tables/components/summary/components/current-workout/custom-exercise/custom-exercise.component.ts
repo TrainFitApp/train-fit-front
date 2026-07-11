@@ -21,6 +21,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
+import { OrderSetsPage } from './order-sets/order-sets.page';
 
 interface CurrentSetRow {
   type: 'set' | 'pending';
@@ -220,6 +221,21 @@ export class CustomExerciseComponent implements OnInit, OnChanges {
     if (this.currentWorkout) {
       this.workoutService.setCurrentWorkout = this.currentWorkout;
     }
+  }
+
+  public openOrderSetsModal(): void {
+    const modalOptions: ModalOptions = {
+      component: OrderSetsPage,
+      componentProps: {
+        customExercise: this.customExercise,
+      },
+    };
+
+    this.ionicUtilService.showModal(modalOptions).then((res) => {
+      if (res.data) {
+        this.replaceCurrentSets(res.data.sets);
+      }
+    });
   }
 
   public configSet(set: Set): void {

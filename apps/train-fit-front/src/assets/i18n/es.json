@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Mover ejercicios",
     "DESELECT_ALL": "Deseleccionar todo",
     "DUPLICATE": "Duplicar",
+    "MOVE_SETS": "Mover series",
     "DISCARD": "DESCARTAR",
     "ACCEPT": "ACEPTAR"
   },
@@ -1442,6 +1443,17 @@
     "ALERT_CANCEL": "Cancelar",
     "ALERT_CONFIRM": "Confirmar",
     "TOAST_RESET": "Has restablecido el orden de los ejercicios"
+  },
+  "ORDER_SETS": {
+    "TITLE": "Ordenar Series",
+    "HINT": "Cambiar orden",
+    "SAVE": "Guardar Orden",
+    "ALERT_HEADER": "¿Estás seguro?",
+    "ALERT_MESSAGE": "¿Deseas guardar los cambios en el orden de las series?",
+    "ALERT_CANCEL": "Cancelar",
+    "ALERT_CONFIRM": "Confirmar",
+    "TOAST_RESET": "Has restablecido el orden de las series",
+    "SET_LABEL": "Serie {{number}}"
   },
   "CONCEPTS": {
     "SEARCH_PLACEHOLDER": "Buscar conceptos...",

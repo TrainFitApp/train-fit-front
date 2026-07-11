@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Move exercises",
     "DESELECT_ALL": "Deselect all",
     "DUPLICATE": "Duplicate",
+    "MOVE_SETS": "Move sets",
     "DISCARD": "DISCARD",
     "ACCEPT": "ACCEPT"
   },
@@ -1442,6 +1443,17 @@
     "ALERT_CANCEL": "Cancel",
     "ALERT_CONFIRM": "Confirm",
     "TOAST_RESET": "You have reset the exercise order"
+  },
+  "ORDER_SETS": {
+    "TITLE": "Sort Sets",
+    "HINT": "Change order",
+    "SAVE": "Save Order",
+    "ALERT_HEADER": "Are you sure?",
+    "ALERT_MESSAGE": "Do you want to save the changes to the set order?",
+    "ALERT_CANCEL": "Cancel",
+    "ALERT_CONFIRM": "Confirm",
+    "TOAST_RESET": "You have reset the set order",
+    "SET_LABEL": "Set {{number}}"
   },
   "CONCEPTS": {
     "SEARCH_PLACEHOLDER": "Search concepts...",
