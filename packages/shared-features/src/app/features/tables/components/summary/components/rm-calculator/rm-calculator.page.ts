@@ -5,6 +5,7 @@ import {
   RmFormula,
   RmPercentageRow,
 } from 'src/app/core/services/rm-calculator/rm-calculator.service';
+import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 // Descendente: la fila del 1RM (100%) aparece primero.
 const PERCENTAGES_DESC = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
@@ -35,7 +36,8 @@ export class RmCalculatorPage {
 
   constructor(
     private rmCalculatorService: RmCalculatorService,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private adMobService: AdMobService
   ) {}
 
   public goBack(): void {
@@ -62,6 +64,12 @@ export class RmCalculatorPage {
     this.selectedTableFormula = this.recommendedFormula;
     this.hasCalculated = true;
     this.updatePercentageTable();
+
+    // AdMobService ya comprueba internamente si el usuario es premium/adsEnabled;
+    // en usuarios pro esto no hace nada.
+    void this.adMobService.interstitial('rm_calculator').catch((error) => {
+      console.error('Error showing rm_calculator interstitial:', error);
+    });
   }
 
   public selectTableFormula(value: any): void {
