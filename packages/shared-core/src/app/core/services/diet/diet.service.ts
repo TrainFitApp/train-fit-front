@@ -132,4 +132,8 @@ export class DietService {
 
     return diet;
   }
+
+  public updatePinnedNote(dietId: string, notes: string): Observable<Diet> {
+    return this.http.patch<Diet>(`diets/${dietId}/pinned-note`, { notes });
+  }
 }

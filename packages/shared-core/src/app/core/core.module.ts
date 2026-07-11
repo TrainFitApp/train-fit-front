@@ -26,6 +26,8 @@ import { AiImportService } from './services/ai-import/ai-import.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
+import { PinnedExerciseNoteAPIService } from './services/pinned-exercise-note/pinned-exercise-note-api.service';
+import { PinnedExerciseNoteService } from './services/pinned-exercise-note/pinned-exercise-note.service';
 
 import { ProductAPIService } from './services/product/product-api.service';
 import { ProductService } from './services/product/product.service';
@@ -93,6 +95,8 @@ import { MatchPasswords } from './validators/matchPasswords';
     WorkoutAPIService,
     CustomExerciseService,
     CustomExerciseAPIService,
+    PinnedExerciseNoteService,
+    PinnedExerciseNoteAPIService,
     SetService,
     SetAPIService,
     ExerciseService,

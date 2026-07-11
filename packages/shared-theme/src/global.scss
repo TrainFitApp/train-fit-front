@@ -567,6 +567,7 @@ ion-header {
       padding: 16px 24px 24px 24px !important;
       display: flex !important;
       flex-direction: row !important;
+      flex-wrap: wrap !important;
       gap: 12px !important;
       justify-content: center !important;
       align-items: center !important;
@@ -609,6 +610,29 @@ ion-header {
         &.alert-button-role-destructive {
           background: var(--ion-color-danger) !important;
           color: #ffffff !important;
+        }
+      }
+
+      // Botón de pin (alternativo, azulado) — ocupa fila completa debajo
+      .alert-button-pin {
+        flex: 0 0 100% !important;
+        max-width: none !important;
+        margin-top: 4px !important;
+        background: #3880ff !important;
+        color: #ffffff !important;
+
+        border-radius: 12px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.3px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+
+        &:hover {
+          filter: brightness(1.1) !important;
         }
       }
     }

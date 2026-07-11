@@ -7,7 +7,7 @@ import {
   EventEmitter,
 } from '@angular/core';
 import { ElementRef, ViewChild } from '@angular/core';
-import { AlertOptions, ToastOptions } from '@ionic/angular';
+import { AlertButton, AlertOptions, ToastOptions } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -20,6 +20,8 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { TranslateService } from '@ngx-translate/core';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
+import { PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
 
 @Component({
   selector: 'app-notes',
@@ -41,6 +43,12 @@ export class NotesComponent implements OnInit, OnChanges {
   public canDelete: boolean = true;
   @Input()
   public canModify: boolean = true;
+  @Input()
+  public tableId: string;
+  @Input()
+  public workoutIndex: number;
+  @Input()
+  public exerciseIndex: number;
 
   @Output()
   public update = new EventEmitter<string | undefined>();
@@ -58,7 +66,8 @@ export class NotesComponent implements OnInit, OnChanges {
     private dietDayService: DietDayService,
     private ionicUtilService: IonicUtilService,
     private tableService: TableService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
   ) {}
 
   public ngOnInit(): void {
@@ -75,6 +84,31 @@ export class NotesComponent implements OnInit, OnChanges {
     if (this.isLoading) return;
 
     const currentNotes = this.object ? this.object.notes : this.notes;
+    const isCustomExercise = this.object && (this.object as CustomExercise).sets !== undefined;
+    const showPinOption = isCustomExercise && this.tableId && this.workoutIndex !== undefined && this.exerciseIndex !== undefined;
+
+    let shouldPin = false;
+
+    const saveButtons: AlertButton[] = [
+      {
+        text: this.translate.instant('COMMON.SAVE'),
+        handler: (data) => {
+          shouldPin = false;
+          return true;
+        },
+      },
+    ];
+
+    if (showPinOption) {
+      saveButtons.push({
+        text: this.translate.instant('NOTES.PIN_TO_POSITION'),
+        cssClass: 'alert-button-pin',
+        handler: (data) => {
+          shouldPin = true;
+          return true;
+        },
+      });
+    }
 
     const alertOptions: AlertOptions = {
       header: this.translate.instant('NOTES.TITLE'),
@@ -91,23 +125,33 @@ export class NotesComponent implements OnInit, OnChanges {
           text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
         },
-        {
-          text: this.translate.instant('COMMON.SAVE'),
-          cssClass: 'alert-button-success',
-          handler: (data) => {
-            return true;
-          },
-        },
+        ...saveButtons,
       ],
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
       if (result.role !== 'cancel') {
         const newNotes = (result.data?.values?.notes || '').trim();
+
+        if (shouldPin && this.tableId && this.workoutIndex !== undefined && this.exerciseIndex !== undefined) {
+          const dto: PinnedExerciseNoteUpsertDto = {
+            tableId: this.tableId,
+            workoutIndex: this.workoutIndex,
+            exerciseIndex: this.exerciseIndex,
+            notes: newNotes,
+          };
+          this.pinnedExerciseNoteService.upsert(dto).subscribe({
+            next: () => console.debug('[NotesComponent] Pinned note saved'),
+            error: (err) => console.error('[NotesComponent] Failed to save pinned note', err),
+          });
+          return;
+        }
+
         const previousNotes = this.object?.notes;
         if (this.object) {
           this.object.notes = newNotes;
           this.syncNotesToTableAndWorkout(this.object, newNotes);
+
           if (this.updateService$) {
             this.isLoading = true;
             this.updateService$.subscribe({
