@@ -120,6 +120,70 @@ ion-modal.birthdate-datetime-modal ion-datetime {
   padding: 14px 14px 12px;
 }
 
+/* Tema unificado para selector de hora (shared entre sign-up y configuración) */
+ion-modal.time-datetime-modal {
+  --width: min(420px, 92vw);
+  --height: auto;
+  --max-height: 78vh;
+  --border-radius: 22px;
+  --backdrop-opacity: 0.58;
+  --box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+ion-modal.time-datetime-modal::part(content) {
+  border-radius: 22px;
+  border: 1px solid rgba(254, 144, 0, 0.25);
+  background: #121212;
+  overflow: hidden;
+}
+
+ion-modal.time-datetime-modal ion-datetime {
+  --background: transparent;
+  --color: #f4f4f5;
+  --title-color: #f4f4f5;
+  --wheel-highlight-background: rgba(254, 144, 0, 0.18);
+  --wheel-fade-background-rgb: 18, 18, 18;
+  --wheel-highlight-border-radius: 14px;
+  padding: 14px 14px 12px;
+}
+
+ion-modal.time-datetime-modal .datetime-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(254, 144, 0, 0.2);
+}
+
+ion-modal.time-datetime-modal .datetime-title span,
+ion-modal.time-datetime-modal .datetime-title ion-icon {
+  color: #fe9000;
+  text-shadow: none;
+}
+
+ion-modal.time-datetime-modal .datetime-title ion-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  background: rgba(254, 144, 0, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-modal.time-datetime-modal .datetime-title span {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+ion-modal.time-datetime-modal ion-button {
+  --border-radius: 10px;
+}
+
 ion-modal.birthdate-datetime-modal .datetime-title {
   display: inline-flex;
   align-items: center;

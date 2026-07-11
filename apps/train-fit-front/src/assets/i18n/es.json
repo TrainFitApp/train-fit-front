@@ -412,6 +412,8 @@
     "PRIVACY_REQUIRED": "Aceptar la Política de Privacidad es obligatorio",
     "VIEW_SHEET": "VER FICHA",
     "WELCOME_SHEET": "Tu ficha de bienvenida",
+    "NOTIF_TITLE": "Recordatorio de peso",
+    "NOTIF_SUBTITLE": "Configura un recordatorio diario para no olvidar registrar tu peso.",
     "WEIGHT_LABEL": "Peso",
     "HEIGHT_LABEL": "Altura",
     "YEARS": "años",

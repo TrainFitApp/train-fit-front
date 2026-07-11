@@ -412,6 +412,8 @@
     "PRIVACY_REQUIRED": "Accepting the Privacy Policy is required",
     "VIEW_SHEET": "VIEW SHEET",
     "WELCOME_SHEET": "Your welcome sheet",
+    "NOTIF_TITLE": "Weigh-in reminder",
+    "NOTIF_SUBTITLE": "Set up a daily reminder to log your weight.",
     "WEIGHT_LABEL": "Weight",
     "HEIGHT_LABEL": "Height",
     "YEARS": "years",
