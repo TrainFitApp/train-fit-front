@@ -164,6 +164,13 @@ export class UserAPIService {
     return this.http.delete<string>(`${UserAPIService.USERS_ENDPOINT}/${id}`);
   }
 
+  public verifyPassword(password: string): Observable<{ valid: boolean }> {
+    return this.http.post<{ valid: boolean }>(
+      `${UserAPIService.USERS_ENDPOINT}/verify-password`,
+      { password }
+    );
+  }
+
   public updateUserRoles(id: string, roles: string[]): Observable<{ message: string; roles: string[] }> {
     return this.http.put<{ message: string; roles: string[] }>(
       `${UserAPIService.USERS_ENDPOINT}/roles/${id}`,

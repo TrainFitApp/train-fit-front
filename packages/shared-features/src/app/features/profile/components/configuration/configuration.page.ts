@@ -153,9 +153,24 @@ export class ConfigurationPage {
   }
 
   public deleteAccount(): void {
-    const alertOptions = {
+    // Cuentas sociales (Google/Apple) no tienen contraseña propia que verificar.
+    if (this.user?.provider) {
+      this.confirmDeleteAccountWithoutPassword();
+      return;
+    }
+
+    const alertOptions: AlertOptions = {
       header: this.translate.instant('CONFIGURATION.DELETE_HEADER'),
       message: this.translate.instant('CONFIGURATION.DELETE_MSG'),
+      inputs: [
+        {
+          name: 'password',
+          type: 'password',
+          placeholder: this.translate.instant(
+            'CONFIGURATION.DELETE_PASSWORD_PLACEHOLDER',
+          ),
+        },
+      ],
       buttons: [
         {
           text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
@@ -164,15 +179,95 @@ export class ConfigurationPage {
         {
           text: this.translate.instant('CONFIGURATION.DELETE_BTN'),
           role: 'destructive',
-          handler: () => {
-            this.userService.deleteById(this.user._id).subscribe((_) => {
-              this.authService.logout();
-            });
+          handler: (data) => {
+            if (!data?.password) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant(
+                  'CONFIGURATION.DELETE_PASSWORD_REQUIRED',
+                ),
+                duration: 2000,
+                color: 'warning',
+              });
+              return false;
+            }
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions).then((result) => {
+      if (result.role === 'cancel') return;
+
+      const password = result.data?.values?.password;
+      if (!password) return;
+
+      this.userService.verifyPassword(password).subscribe({
+        next: () => this.performAccountDeletion(),
+        error: () => {
+          this.ionicUtilService.showToast({
+            message: this.translate.instant(
+              'CONFIGURATION.DELETE_PASSWORD_INCORRECT',
+            ),
+            duration: 2500,
+            color: 'danger',
+          });
+        },
+      });
+    });
+  }
+
+  private confirmDeleteAccountWithoutPassword(): void {
+    // Cuentas Google/Apple no tienen contraseña propia que pedir: en su lugar,
+    // se exige escribir la palabra de confirmación tal cual.
+    const confirmWord = this.translate.instant('CONFIGURATION.DELETE_CONFIRM_WORD');
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('CONFIGURATION.DELETE_HEADER'),
+      message: this.translate.instant('CONFIGURATION.DELETE_MSG_SOCIAL', {
+        word: confirmWord.toUpperCase(),
+      }),
+      inputs: [
+        {
+          name: 'confirmWord',
+          type: 'text',
+          placeholder: confirmWord.toUpperCase(),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('CONFIGURATION.DELETE_BTN'),
+          role: 'destructive',
+          handler: (data) => {
+            const typed = (data?.confirmWord || '').trim().toLowerCase();
+            if (typed !== confirmWord.trim().toLowerCase()) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant(
+                  'CONFIGURATION.DELETE_CONFIRM_WORD_MISMATCH',
+                  { word: confirmWord.toUpperCase() },
+                ),
+                duration: 2200,
+                color: 'warning',
+              });
+              return false;
+            }
+            this.performAccountDeletion();
+            return true;
           },
         },
       ],
     };
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private performAccountDeletion(): void {
+    this.userService.deleteById(this.user._id).subscribe(() => {
+      this.authService.logout();
+    });
   }
 
   public close(): void {
