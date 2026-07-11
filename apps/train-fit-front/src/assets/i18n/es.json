@@ -1193,7 +1193,12 @@
     "WORKOUT_NOTE": "Nota del entrenamiento",
     "EXERCISE_NOTE": "Nota del ejercicio",
     "DAY_NOTES": "Notas del día",
-    "MEAL_NOTES": "Notas de la comida"
+    "MEAL_NOTES": "Notas de la comida",
+    "PIN_EXERCISE_NOTE": "Anclar nota (visible en todos los splits)",
+    "PINNED_TO_POSITION": "Nota anclada",
+    "PIN_TO_POSITION": "Anclar nota",
+    "DELETE_PINNED_TITLE": "Eliminar nota anclada",
+    "DELETE_PINNED_CONFIRM": "¿Seguro que quieres eliminar esta nota anclada?"
   },
   "DISCONNECTED": {
     "EYEBROW": "Sin conexión",

@@ -14,6 +14,7 @@ import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -51,6 +52,7 @@ export class DietsPage implements OnInit {
   public isNoteHidden: boolean;
   public isArchivingDietDay = false;
   public load = false;
+  public pinnedNote: string | null = null;
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -60,6 +62,7 @@ export class DietsPage implements OnInit {
 
   constructor(
     private dietDayService: DietDayService,
+    private dietService: DietService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
@@ -72,6 +75,9 @@ export class DietsPage implements OnInit {
     // Effect para el usuario
     effect(() => {
       this.user = this.userService.localUser();
+      if (this.user?.dietInUse) {
+        this.loadPinnedNote();
+      }
     });
 
     // Effect para el dietDay actual
@@ -122,6 +128,86 @@ export class DietsPage implements OnInit {
 
   public manageNote(): void {
     this.utilService.manageNote(this.dietDay, this.dietDayService);
+  }
+
+  public onPinnedNoteChange(pinnedNote: string | null): void {
+    this.pinnedNote = pinnedNote;
+  }
+
+  public editPinnedNote(): void {
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('NOTES.TITLE'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: this.pinnedNote,
+          placeholder: t('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: t('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: t('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            this.dietService.updatePinnedNote(this.user.dietInUse, newNotes).subscribe({
+              next: (diet) => {
+                this.pinnedNote = diet.pinnedNote || null;
+              },
+              error: (err) => console.error('[DietsPage] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public deletePinnedNote(): void {
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('NOTES.DELETE_PINNED_TITLE'),
+      message: t('NOTES.DELETE_PINNED_CONFIRM'),
+      buttons: [
+        {
+          text: t('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: t('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.dietService.updatePinnedNote(this.user.dietInUse, '').subscribe({
+              next: () => {
+                this.pinnedNote = null;
+              },
+              error: (err) => console.error('[DietsPage] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private loadPinnedNote(): void {
+    if (this.user?.dietInUse) {
+      this.dietService.getDietById(this.user.dietInUse).subscribe({
+        next: (diet) => {
+          this.pinnedNote = diet.pinnedNote || null;
+        },
+        error: (err) => console.error('[DietsPage] Failed to load pinned note', err),
+      });
+    }
   }
 
   public setDietDayByDate(dateStr: string): void {

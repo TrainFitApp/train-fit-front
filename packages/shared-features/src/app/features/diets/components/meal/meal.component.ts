@@ -350,27 +350,17 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public openPopoverOptions(event: Event): void {
-    if (
-      this.meal.customProducts?.length > 0 ||
-      this.meal.customRecipes?.length > 0
-    ) {
-      const popover: PopoverOptions = {
-        component: PopoverActionsComponent,
-        componentProps: {
-          actionsPopover: this.getActionsPopover(),
-        },
-        event: event,
-        mode: 'ios',
-      };
+    const popover: PopoverOptions = {
+      component: PopoverActionsComponent,
+      componentProps: {
+        actionsPopover: this.getActionsPopover(),
+      },
+      event: event,
+      mode: 'ios',
+    };
 
-      const showPopover = this.ionicUtilService.showPopover(popover);
-      showPopover.then((res) => this.handleActions(res.data));
-    } else {
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('COMMON.NO_ACTIONS'),
-        duration: 500,
-      });
-    }
+    const showPopover = this.ionicUtilService.showPopover(popover);
+    showPopover.then((res) => this.handleActions(res.data));
   }
 
   private openEditNameAlert(): void {
@@ -419,7 +409,64 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   private manageNote(): void {
-    this.utilService.manageNote(this.meal, this.mealService);
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('COMMON.NOTES'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: t('COMMON.WRITE_NOTES_HERE'),
+          value: this.meal.notes || '',
+        },
+      ],
+      buttons: [
+        {
+          text: t('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: t('COMMON.SAVE'),
+          handler: (data) => {
+            if (!data.notes || data.notes.trim() === '') {
+              const errorAlert: AlertOptions = {
+                header: t('COMMON.ERROR'),
+                message: t('COMMON.FIELD_REQUIRED'),
+                buttons: [t('COMMON.OK')],
+              };
+              this.ionicUtilService.showAlert(errorAlert);
+              return false;
+            }
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions).then(async (result) => {
+      if (result.role === 'cancel' || !result.data?.values?.notes) return;
+      const notesValue = result.data.values.notes.trim();
+
+      if (!this.dietDay._id) {
+        this.dietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
+        this.dietDay = await this.dietDayService.createDietDay(this.dietDay).toPromise();
+        this.meal = this.dietDay.meals.find((m) => m.name === this.meal.name);
+        await this.dietService.addDietDietDay(this.user.dietInUse, this.dietDay._id).toPromise();
+        this.dietDayService.setCurrentDietDay = this.dietDay;
+      }
+
+      this.meal.notes = notesValue;
+      this.mealService.modifyMeal(this.meal).subscribe({
+        next: () => {
+          const toast: ToastOptions = {
+            message: t('TOOLBAR_CALENDAR.NOTE_UPDATED'),
+            duration: 2000,
+          };
+          this.ionicUtilService.showToast(toast);
+        },
+        error: (err) => console.error('[MealComponent] Failed to save note', err),
+      });
+    });
   }
 
   public getCustomProductInfo(
@@ -496,8 +543,7 @@ export class MealComponent implements OnInit, OnChanges {
     ) {
       actions = actions.filter(
         (actionTemp) =>
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id
+          actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
       );
     } else {
       actions = actions.filter(
