@@ -29,6 +29,7 @@ export class NavigationService {
   private readonly PREMIUM_ROUTE = 'premium';
   private readonly SEARCH_TABLES_ROUTE = 'search-tables';
   private readonly CURRENT_WORKOUT_ROUTE = 'current-workout';
+  private readonly RM_CALCULATOR_ROUTE = 'rm-calculator';
   private readonly SIGN_UP_ROUTE = 'sign-in/sign-up';
   private readonly DATA_SHEET_ROUTE = 'sign-in/sign-up/data-sheet';
   private readonly RESTORE_PASSWORD_ROUTE = 'sign-in/restore-password';
@@ -125,6 +126,10 @@ export class NavigationService {
 
   public goToStatistics(): void {
     this.navController.navigateForward(['/statistics']);
+  }
+
+  public goToRmCalculator(): void {
+    this.navController.navigateForward([this.RM_CALCULATOR_ROUTE]);
   }
 
   public goToWeightInfo(): void {

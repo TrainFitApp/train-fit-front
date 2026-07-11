@@ -23,6 +23,7 @@ import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
 import { AiImportApiService } from './services/ai-import/ai-import-api.service';
 import { AiImportService } from './services/ai-import/ai-import.service';
+import { RmCalculatorService } from './services/rm-calculator/rm-calculator.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
@@ -99,6 +100,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     ExerciseAPIService,
     AiImportService,
     AiImportApiService,
+    RmCalculatorService,
     // Interceptors
     {
       provide: HTTP_INTERCEPTORS,

@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Mover ejercicios",
     "DESELECT_ALL": "Deseleccionar todo",
     "DUPLICATE": "Duplicar",
+    "RM_CALCULATOR": "Calculadora de RM",
     "DISCARD": "DESCARTAR",
     "ACCEPT": "ACEPTAR"
   },
@@ -914,6 +915,7 @@
     "CREATE_ROUTINE_BTN": "Crear Rutina",
     "IMPORT_EXCEL_AI": "Importar Excels con IA",
     "IMPORT_EXCEL_AI_DESC": "Sube tu Excel y conviértelo en rutina automáticamente",
+    "RM_CALCULATOR_BTN": "Calculadora de RM",
     "FILTER_DEFAULT": "Predeterminadas",
     "FILTER_MINE": "Mis rutinas",
     "NO_MATCHES": "No hay coincidencias",
@@ -1121,6 +1123,18 @@
     "STATS_SELECT_HINT": "Para ver estadísticas detalladas de tu progreso.",
     "STATS_NO_DATA": "Sin Datos",
     "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún."
+  },
+  "RM_CALCULATOR": {
+    "TITLE": "Calculadora de RM",
+    "WEIGHT_LABEL": "Peso levantado",
+    "REPS_LABEL": "Repeticiones realizadas",
+    "REPS_UNIT": "reps",
+    "CALCULATE_BTN": "Calcular",
+    "RANGE_WARNING": "Fuera de 1-15 repeticiones las fórmulas pierden precisión.",
+    "ESTIMATES_TITLE": "Estimaciones de tu 1RM",
+    "RECOMMENDED_BADGE": "Recomendada",
+    "PERCENTAGE_TABLE_TITLE": "Tabla de porcentajes",
+    "WEIGHT_COL": "Peso"
   },
   "CONFIGURATION": {
     "TITLE": "Configuración",

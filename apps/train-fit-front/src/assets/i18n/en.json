@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Move exercises",
     "DESELECT_ALL": "Deselect all",
     "DUPLICATE": "Duplicate",
+    "RM_CALCULATOR": "1RM Calculator",
     "DISCARD": "DISCARD",
     "ACCEPT": "ACCEPT"
   },
@@ -914,6 +915,7 @@
     "CREATE_ROUTINE_BTN": "Create Routine",
     "IMPORT_EXCEL_AI": "Import Excel with AI",
     "IMPORT_EXCEL_AI_DESC": "Upload your Excel and convert it into a routine automatically",
+    "RM_CALCULATOR_BTN": "1RM Calculator",
     "FILTER_DEFAULT": "Default",
     "FILTER_MINE": "My routines",
     "NO_MATCHES": "No matches found",
@@ -1121,6 +1123,18 @@
     "STATS_SELECT_HINT": "To see detailed statistics of your progress.",
     "STATS_NO_DATA": "No Data",
     "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet."
+  },
+  "RM_CALCULATOR": {
+    "TITLE": "1RM Calculator",
+    "WEIGHT_LABEL": "Weight lifted",
+    "REPS_LABEL": "Reps performed",
+    "REPS_UNIT": "reps",
+    "CALCULATE_BTN": "Calculate",
+    "RANGE_WARNING": "Outside 1-15 reps the formulas lose precision.",
+    "ESTIMATES_TITLE": "Your 1RM estimates",
+    "RECOMMENDED_BADGE": "Recommended",
+    "PERCENTAGE_TABLE_TITLE": "Percentage table",
+    "WEIGHT_COL": "Weight"
   },
   "CONFIGURATION": {
     "TITLE": "Settings",
