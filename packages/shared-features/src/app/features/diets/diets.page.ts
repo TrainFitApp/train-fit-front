@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { AlertOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import {
   CUSTOM_PRODUCT_VALUES,
   CustomProduct,
@@ -17,6 +17,7 @@ import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
+import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
@@ -32,6 +33,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
+import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
 
 @Component({
   selector: 'app-diets',
@@ -67,6 +69,7 @@ export class DietsPage implements OnInit {
   public isArchivingDietDay = false;
   public load = false;
   public pinnedNote: string | null = null;
+  public currentAnthropometry: Anthropometry | null = null;
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -79,6 +82,7 @@ export class DietsPage implements OnInit {
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
+    private anthropometryService: AnthropometryService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
     private navigationService: NavigationService,
@@ -354,19 +358,37 @@ export class DietsPage implements OnInit {
   public setDietDayByDate(dateStr: string): void {
     this.load = false;
     this.selectedDate = dateStr;
+    this.currentAnthropometry = null;
 
     this.utilService.setCurrentDate = this.selectedDate;
     if (this.dietDay$) this.dietDay$.unsubscribe();
-    this.dietDay$ = this.dietDayService
-      .getDietDayByIdDietAndDate(this.user.dietInUse, this.selectedDate)
-      .subscribe((resDietDay) => {
-        if (resDietDay) this.dietDay = resDietDay;
-        else
-          this.dietDay = this.dietDayService.getStandardDietDay(this.selectedDate);
+    this.dietDay$ = forkJoin({
+      dietDay: this.dietDayService.getDietDayByIdDietAndDate(
+        this.user.dietInUse,
+        this.selectedDate
+      ),
+      anthropometry: this.anthropometryService.getAnthropometryByDate(
+        this.selectedDate
+      ),
+    }).subscribe(({ dietDay, anthropometry }) => {
+        this.currentAnthropometry = anthropometry || null;
+        if (dietDay) this.dietDay = dietDay;
+        else this.dietDay = this.dietDayService.getStandardDietDay(this.selectedDate);
+        if (this.currentAnthropometry?.weight !== undefined) {
+          this.dietDay.weight = this.currentAnthropometry.weight;
+        }
         this.dietDayService.setCurrentDietDay = this.dietDay;
         this.load = true;
         this.cdr.detectChanges();
       });
+  }
+
+  public onAnthropometrySaved(anthropometry: Anthropometry): void {
+    this.currentAnthropometry = anthropometry;
+    if (this.dietDay && anthropometry?.weight !== undefined) {
+      this.dietDay.weight = anthropometry.weight;
+      this.dietDayService.setCurrentDietDay = { ...this.dietDay };
+    }
   }
 
   public showCloseAlert(): void {

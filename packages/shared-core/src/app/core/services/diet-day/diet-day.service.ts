@@ -59,7 +59,7 @@ export class DietDayService {
     return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date).pipe(
       map((response: { dietDay: DietDay; anthropometry: any }) => {
         // If anthropometry has weight, set it on the dietDay for backwards compatibility
-        if (response?.anthropometry?.weight !== undefined) {
+        if (response?.dietDay && response?.anthropometry?.weight !== undefined) {
           response.dietDay.weight = response.anthropometry.weight;
         }
         return response.dietDay;

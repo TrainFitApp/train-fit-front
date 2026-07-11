@@ -90,6 +90,8 @@
   <app-daily-weight
     [user]="user"
     [selectedDate]="selectedDate"
+    [anthropometry]="currentAnthropometry"
+    (anthropometrySaved)="onAnthropometrySaved($event)"
     (createdDietDay)="scrollBottom()"
     (scrollToBottom)="scrollBottom()"
   ></app-daily-weight>
