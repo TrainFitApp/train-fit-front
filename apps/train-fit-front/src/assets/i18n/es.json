@@ -1453,7 +1453,14 @@
     "ALERT_CANCEL": "Cancelar",
     "ALERT_CONFIRM": "Confirmar",
     "TOAST_RESET": "Has restablecido el orden de las series",
-    "SET_LABEL": "Serie {{number}}"
+    "SET_LABEL": "Serie {{number}}",
+    "OBJETIVO": "Objetivo",
+    "FALLO": "Fallo",
+    "DROP_SET": "DS",
+    "EJECUTADO": "Ejecutado",
+    "NO_EJECUTADO": "No ejecutado",
+    "HECHA": "Hecha",
+    "PENDIENTE": "Pendiente"
   },
   "CONCEPTS": {
     "SEARCH_PLACEHOLDER": "Buscar conceptos...",
