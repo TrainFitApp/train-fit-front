@@ -538,7 +538,7 @@ export class SignUpPage implements OnInit, OnDestroy {
         s.includes('termsAndConditions') &&
         s.includes('policyAndPrivacy'),
     );
-    const notifIndex = termsIndex + 1;
+    const notifIndex = termsIndex - 1;
 
     if (this.swiper.activeIndex === notifIndex) {
       this.notifPermissionAttempted = true;
@@ -928,8 +928,8 @@ export class SignUpPage implements OnInit, OnDestroy {
       slides.push(['password', 'passwordRep']);
     }
 
-    slides.push(['termsAndConditions', 'policyAndPrivacy']);
     slides.push([]); // Notificaciones
+    slides.push(['termsAndConditions', 'policyAndPrivacy']);
     slides.push([]); // Ficha de datos
     if (this.registerSocialPending) {
       slides.push([]); // Verificación

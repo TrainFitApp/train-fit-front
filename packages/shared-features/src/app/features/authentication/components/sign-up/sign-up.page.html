@@ -585,99 +585,6 @@
 
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">{{ 'SIGN_UP.FINISH_REGISTRATION' | translate }}</h2>
-              <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
-              <div class="checkbox-section">
-                <div
-                  class="checkbox-item"
-                  (click)="toggleControl('termsAndConditions')"
-                  [ngClass]="{
-                  'has-error': signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched
-                }"
-                >
-                  <ion-checkbox
-                    formControlName="termsAndConditions"
-                    mode="ios"
-                    class="modern-checkbox"
-                    (click)="$event.stopPropagation()"
-                  ></ion-checkbox>
-                  <span class="checkbox-label">
-                    {{ 'SIGN_UP.I_ACCEPT' | translate }}
-                    <a
-                      [href]="LINKS.termsAndConditions"
-                      class="checkbox-link"
-                      (click)="$event.stopPropagation()"
-                      >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a
-                    >
-                  </span>
-                  <ion-icon
-                    name="document-text-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
-                </div>
-                <div
-                  *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
-                  class="validation-error"
-                >
-                  <span>{{ 'SIGN_UP.TERMS_REQUIRED' | translate }}</span>
-                </div>
-
-                <div
-                  class="checkbox-item"
-                  (click)="toggleControl('policyAndPrivacy')"
-                  [ngClass]="{
-                  'has-error': signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched
-                }"
-                >
-                  <ion-checkbox
-                    formControlName="policyAndPrivacy"
-                    mode="ios"
-                    class="modern-checkbox"
-                    (click)="$event.stopPropagation()"
-                  ></ion-checkbox>
-                  <span class="checkbox-label">
-                    {{ 'SIGN_UP.I_HAVE_READ' | translate }}
-                    <a
-                      [href]="LINKS.privacyAndPolicy"
-                      class="checkbox-link"
-                      (click)="$event.stopPropagation()"
-                      >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a
-                    >
-                  </span>
-                  <ion-icon
-                    name="shield-checkmark-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
-                </div>
-                <div
-                  *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
-                  class="validation-error"
-                >
-                  <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
-                </div>
-              </div>
-              <div class="submit-button-container">
-                <ion-button
-                  type="submit"
-                  expand="block"
-                  class="submit-button"
-                  [disabled]="signUpForm.invalid"
-                  *ngIf="!isLastDataSlide"
-                >
-                  <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
-                </ion-button>
-              </div>
-              <div *ngIf="signUpForm.invalid && error" class="error-message">
-                <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
-                <span class="error-text">{{ error }}</span>
-              </div>
-            </div>
-          </swiper-slide>
-
-          <swiper-slide>
-            <div class="form-section">
               <h2 class="section-title">{{ 'SIGN_UP.NOTIF_TITLE' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.NOTIF_SUBTITLE' | translate }}</p>
 
@@ -766,6 +673,99 @@
                     </ng-template>
                   </ion-modal>
                 </ng-container>
+              </div>
+            </div>
+          </swiper-slide>
+
+          <swiper-slide>
+            <div class="form-section">
+              <h2 class="section-title">{{ 'SIGN_UP.FINISH_REGISTRATION' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
+              <div class="checkbox-section">
+                <div
+                  class="checkbox-item"
+                  (click)="toggleControl('termsAndConditions')"
+                  [ngClass]="{
+                  'has-error': signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched
+                }"
+                >
+                  <ion-checkbox
+                    formControlName="termsAndConditions"
+                    mode="ios"
+                    class="modern-checkbox"
+                    (click)="$event.stopPropagation()"
+                  ></ion-checkbox>
+                  <span class="checkbox-label">
+                    {{ 'SIGN_UP.I_ACCEPT' | translate }}
+                    <a
+                      [href]="LINKS.termsAndConditions"
+                      class="checkbox-link"
+                      (click)="$event.stopPropagation()"
+                      >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a
+                    >
+                  </span>
+                  <ion-icon
+                    name="document-text-outline"
+                    class="checkbox-icon"
+                    color="primary"
+                  ></ion-icon>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
+                  class="validation-error"
+                >
+                  <span>{{ 'SIGN_UP.TERMS_REQUIRED' | translate }}</span>
+                </div>
+
+                <div
+                  class="checkbox-item"
+                  (click)="toggleControl('policyAndPrivacy')"
+                  [ngClass]="{
+                  'has-error': signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched
+                }"
+                >
+                  <ion-checkbox
+                    formControlName="policyAndPrivacy"
+                    mode="ios"
+                    class="modern-checkbox"
+                    (click)="$event.stopPropagation()"
+                  ></ion-checkbox>
+                  <span class="checkbox-label">
+                    {{ 'SIGN_UP.I_HAVE_READ' | translate }}
+                    <a
+                      [href]="LINKS.privacyAndPolicy"
+                      class="checkbox-link"
+                      (click)="$event.stopPropagation()"
+                      >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a
+                    >
+                  </span>
+                  <ion-icon
+                    name="shield-checkmark-outline"
+                    class="checkbox-icon"
+                    color="primary"
+                  ></ion-icon>
+                </div>
+                <div
+                  *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
+                  class="validation-error"
+                >
+                  <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
+                </div>
+              </div>
+              <div class="submit-button-container">
+                <ion-button
+                  type="submit"
+                  expand="block"
+                  class="submit-button"
+                  [disabled]="signUpForm.invalid"
+                  *ngIf="!isLastDataSlide"
+                >
+                  <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
+                </ion-button>
+              </div>
+              <div *ngIf="signUpForm.invalid && error" class="error-message">
+                <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
+                <span class="error-text">{{ error }}</span>
               </div>
             </div>
           </swiper-slide>
