@@ -40,6 +40,7 @@ import { TableService } from './services/table/table.service';
 import { UserAPIService } from './services/user/user-api.service';
 import { UserLocalstorageService } from './services/user/user-localstorage.service';
 import { UserService } from './services/user/user.service';
+import { AnthropometryService } from './services/anthropometry/anthropometry.service';
 import { AdMobService } from './services/util/ad-mob.service';
 import { BarCodeScannerService } from './services/util/bar-code-scanner.service';
 import { DayWeightService } from './services/util/day-weight.service';
@@ -76,6 +77,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     UserService,
     UserAPIService,
     UserLocalstorageService,
+    AnthropometryService,
     DietService,
     DietAPIService,
     DietDayService,

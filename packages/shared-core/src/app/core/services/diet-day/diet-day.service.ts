@@ -1,6 +1,6 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, take, tap, of } from 'rxjs';
+import { Observable, take, tap, map, of } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
@@ -14,6 +14,7 @@ import { CustomRecipe } from '../../models/customRecipe';
 import { RecipeService } from '../recipe/recipe.service';
 import { DietDayAPIService } from './diet-day-api.service';
 import { Recipe } from '../../models/recipe';
+import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 @Injectable()
 export class DietDayService {
@@ -55,7 +56,15 @@ export class DietDayService {
     id: string,
     date: string
   ): Observable<DietDay> {
-    return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date);
+    return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date).pipe(
+      map((response: { dietDay: DietDay; anthropometry: any }) => {
+        // If anthropometry has weight, set it on the dietDay for backwards compatibility
+        if (response?.anthropometry?.weight !== undefined) {
+          response.dietDay.weight = response.anthropometry.weight;
+        }
+        return response.dietDay;
+      })
+    );
   }
 
   public getDietDaysBetweenDatesByIdDiet(
@@ -86,7 +95,15 @@ export class DietDayService {
   ) {
     return this.dietDayAPIService
       .createDayWeightOnNewDietDay(dayWeight, dietInUseId, currentDate)
-      .pipe(take(1));
+      .pipe(
+        take(1),
+        map((response: { dietDay: DietDay; anthropometry: Anthropometry | null }) => {
+          if (response?.anthropometry?.weight !== undefined) {
+            response.dietDay.weight = response.anthropometry.weight;
+          }
+          return response.dietDay;
+        })
+      );
   }
 
   public createCustomProduct(
