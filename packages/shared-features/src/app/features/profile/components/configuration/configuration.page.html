@@ -154,9 +154,13 @@
           <div class="divider"></div>
           <ion-item class="config-item">
             <ion-label>{{ 'NOTIFICATIONS.TIME' | translate }}</ion-label>
-            <ion-datetime-button id="notif-time-trigger" datetime="notif-datetime" slot="end"></ion-datetime-button>
+            <ion-datetime-button id="notif-time-trigger" datetime="notif-datetime" slot="end" class="hidden-datetime-button"></ion-datetime-button>
+            <div class="time-display" (click)="openTimePicker()">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ getNotifTimeDisplay() }}</span>
+            </div>
           </ion-item>
-          <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="datetime-modal" trigger="notif-time-trigger">
+          <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="time-datetime-modal" trigger="notif-time-trigger" (willPresent)="isTimeModalOpen = true" (willDismiss)="isTimeModalOpen = false">
             <ng-template>
               <ion-datetime
                 id="notif-datetime"

@@ -37,6 +37,7 @@ export class ConfigurationPage {
   public notifWeekday: number = 1;
   public notifIntervalDays: number = 2;
   public notifTime: string = '';
+  public isTimeModalOpen: boolean = false;
 
   constructor(
     private readonly userService: UserService,
@@ -96,6 +97,21 @@ export class ConfigurationPage {
       this.notifIntervalDays = newVal;
       void this.saveNotifSettings();
     }
+  }
+
+  public openTimePicker(): void {
+    const trigger = document.getElementById('notif-time-trigger');
+    if (trigger) {
+      trigger.click();
+    }
+  }
+
+  public getNotifTimeDisplay(): string {
+    if (!this.notifTime) return '--:--';
+    const date = new Date(this.notifTime);
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
   }
 
   private async saveNotifSettings(): Promise<void> {
