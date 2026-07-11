@@ -494,7 +494,18 @@
     "EMPTY_MEAL_HEADER": "Vaciar comida",
     "EMPTY_MEAL_CONFIRM": "¿Estás seguro de que quieres vaciar {{name}}?",
     "EMPTY_MEAL_SUCCESS": "{{name}} vaciada",
-    "DELETE_EMPTY": "VACIAR"
+    "DELETE_EMPTY": "VACIAR",
+    "COPIED_FULL_MEAL": "Comida copiada",
+    "COPIED_SELECTION": "Selección copiada",
+    "FULL_MEAL": "Comida completa",
+    "TAP_TO_PASTE": "Toca una comida para pegar",
+    "ITEM": "elemento",
+    "ITEMS": "elementos",
+    "CLIPBOARD_FULL_MEAL": "Comida completa en portapapeles",
+    "CLIPBOARD_SELECTION": "Selección en portapapeles",
+    "CLIPBOARD_TAP_TO_PASTE": "Toca una comida para pegar",
+    "ITEM_COUNT_SINGULAR": "elemento",
+    "ITEM_COUNT_PLURAL": "elementos"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copiado al portapapeles",

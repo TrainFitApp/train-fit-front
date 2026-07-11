@@ -358,6 +358,63 @@ ion-spinner {
   }
 }
 
+// Selection Mode Styles
+.meal-item {
+  &.selected {
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    border-color: var(--ion-color-primary);
+    border-width: 2px;
+
+    .item-header .item-name {
+      color: var(--ion-color-primary);
+    }
+  }
+
+  ion-checkbox {
+    --color-checked: var(--ion-color-primary);
+    --border-color: var(--ion-color-primary);
+    --background-checked: var(--ion-color-primary);
+    --size: 22px;
+  }
+
+  .item-select-checkbox {
+    margin-right: 10px;
+    flex: 0 0 auto;
+    min-width: 22px;
+    z-index: 1;
+  }
+}
+
+.meal-name .meal-select-checkbox {
+  --color-checked: var(--ion-color-primary);
+  --border-color: var(--ion-color-primary);
+  --background-checked: var(--ion-color-primary);
+  --size: 24px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.meal-card {
+  &.selection-mode {
+    ion-accordion ion-grid.t-meal {
+      border-bottom: 2px solid var(--ion-color-primary);
+    }
+
+    .meal-name {
+      background: rgba(var(--ion-color-primary-rgb), 0.05);
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+  }
+
+  &.copy-muted {
+    opacity: 0.45;
+    filter: grayscale(0.35);
+    pointer-events: none;
+  }
+}
+
 // Estilos para skeleton loader del meal component
 .meal-skeleton-accordion {
   background: #141414;

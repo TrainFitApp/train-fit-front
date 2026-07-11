@@ -22,6 +22,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
+import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 
 @Component({
   selector: 'app-diets',
@@ -44,6 +45,9 @@ export class DietsPage implements OnInit {
   public scrolling: boolean;
 
   public mealIdPaste: string;
+  public mealIndexPaste: number;
+  public copyMealId: string;
+  public copyMealIndex: number;
 
   public pasteDietDayMode: boolean;
   public pasteMode: boolean;
@@ -57,7 +61,6 @@ export class DietsPage implements OnInit {
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
-  // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
 
   constructor(
@@ -72,7 +75,6 @@ export class DietsPage implements OnInit {
   ) {
     this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
 
-    // Effect para el usuario
     effect(() => {
       this.user = this.userService.localUser();
       if (this.user?.dietInUse) {
@@ -80,17 +82,19 @@ export class DietsPage implements OnInit {
       }
     });
 
-    // Effect para el dietDay actual
     this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
       this.dietDay = resDietDay;
       if (resDietDay && resDietDay.date) {
         this.selectedDate = resDietDay.date;
       }
     });
+
+    this.mealService.mealClipboard$.subscribe((clipboard: MealClipboard | null) => {
+      this.pasteMode = !!clipboard && !this.copyMealId;
+    });
   }
 
   public ionViewWillEnter(): void {
-    // Check if we have a selectedDate in navigation state (returning from config-recipe/search-foods)
     const state = window.history.state;
     if (state && state.selectedDate) {
       this.selectedDate = state.selectedDate;
@@ -109,7 +113,6 @@ export class DietsPage implements OnInit {
       }
     }
 
-    // Resync dates-slider each time the page comes back to view.
     this.utilService.setCurrentDate = this.selectedDate;
   }
 
@@ -124,6 +127,154 @@ export class DietsPage implements OnInit {
   public paste(event): void {
     this.pasteMode = event?.paste ?? undefined;
     this.mealIdPaste = event?.mealId ?? undefined;
+    this.mealIndexPaste = event?.mealIndex ?? undefined;
+    this.copyMealId = undefined;
+    this.copyMealIndex = undefined;
+  }
+
+  public onCopySelection(event: {
+    mealId: string;
+    mealIndex: number;
+    selectionMode: boolean;
+    meal: Meal;
+    productIds?: string[];
+    recipeIds?: string[];
+    isFullMeal?: boolean;
+  }): void {
+    const hasSelection =
+      !!event.isFullMeal ||
+      (event.productIds?.length ?? 0) > 0 ||
+      (event.recipeIds?.length ?? 0) > 0;
+
+    this.copyMealId = event.selectionMode && !hasSelection ? event.mealId : undefined;
+    this.copyMealIndex =
+      event.selectionMode && !hasSelection ? event.mealIndex : undefined;
+    this.pasteMode = event.selectionMode && hasSelection;
+    this.mealIdPaste = event.mealId;
+    this.mealIndexPaste = event.mealIndex;
+  }
+
+  public clearClipboard(): void {
+    this.mealService.clearMealClipboard();
+    this.copyMealId = undefined;
+    this.copyMealIndex = undefined;
+    this.pasteMode = false;
+    this.mealIdPaste = undefined;
+    this.mealIndexPaste = undefined;
+  }
+
+  public get hasActiveClipboard(): boolean {
+    return this.mealService.hasMealClipboard();
+  }
+
+  public get clipboard(): MealClipboard | null {
+    return this.mealService.getMealClipboard;
+  }
+
+  public get clipboardItemCount(): number {
+    const clipboard = this.clipboard;
+    if (!clipboard) return 0;
+    return clipboard.getTotalItemsCount();
+  }
+
+  public get clipboardMealName(): string {
+    return this.clipboard?.mealClipboard?.name || '';
+  }
+
+  public getSelectedProducts(): any[] {
+    const clipboard = this.clipboard;
+    if (!clipboard || clipboard.isFullMeal) {
+      return clipboard?.mealClipboard?.customProducts || [];
+    }
+    return (clipboard.mealClipboard?.customProducts || []).filter((cp) =>
+      clipboard.selectedProducts.includes(cp._id)
+    );
+  }
+
+  public getSelectedRecipes(): any[] {
+    const clipboard = this.clipboard;
+    if (!clipboard || clipboard.isFullMeal) {
+      return clipboard?.mealClipboard?.customRecipes || [];
+    }
+    return (clipboard.mealClipboard?.customRecipes || []).filter((cr) =>
+      clipboard.selectedRecipes.includes(cr._id)
+    );
+  }
+
+  public getClipboardTotalKcal(): number {
+    let total = 0;
+    this.getSelectedProducts().forEach((cp) => {
+      total += this.getProductKcal(cp);
+    });
+    this.getSelectedRecipes().forEach((cr) => {
+      total += this.getRecipeKcal(cr);
+    });
+    return total;
+  }
+
+  public getClipboardTotalProtein(): number {
+    let total = 0;
+    this.getSelectedProducts().forEach((cp) => {
+      total += this.getProductProtein(cp);
+    });
+    this.getSelectedRecipes().forEach((cr) => {
+      total += this.getRecipeProtein(cr);
+    });
+    return total;
+  }
+
+  public getClipboardTotalCarbs(): number {
+    let total = 0;
+    this.getSelectedProducts().forEach((cp) => {
+      total += this.getProductCarbs(cp);
+    });
+    this.getSelectedRecipes().forEach((cr) => {
+      total += this.getRecipeCarbs(cr);
+    });
+    return total;
+  }
+
+  public getClipboardTotalFat(): number {
+    let total = 0;
+    this.getSelectedProducts().forEach((cp) => {
+      total += this.getProductFat(cp);
+    });
+    this.getSelectedRecipes().forEach((cr) => {
+      total += this.getRecipeFat(cr);
+    });
+    return total;
+  }
+
+  public getProductKcal(product: any): number {
+    return product?.product?.kcal || 0;
+  }
+
+  public getProductProtein(product: any): number {
+    return product?.product?.protein || 0;
+  }
+
+  public getProductCarbs(product: any): number {
+    return product?.product?.carbohydrate || 0;
+  }
+
+  public getProductFat(product: any): number {
+    return product?.product?.fat || 0;
+  }
+
+  public getRecipeKcal(recipe: any): number {
+    return recipe?.recipe?.kcal || 0;
+  }
+
+  public getRecipeProtein(recipe: any): number {
+    return recipe?.recipe?.protein || 0;
+  }
+
+  public getRecipeCarbs(recipe: any): number {
+    return recipe?.recipe?.carbohydrate || 0;
+  }
+
+  public getRecipeFat(recipe: any): number {
+    return recipe?.recipe?.fat || 0;
   }
 
   public manageNote(): void {
@@ -221,9 +372,7 @@ export class DietsPage implements OnInit {
       .subscribe((resDietDay) => {
         if (resDietDay) this.dietDay = resDietDay;
         else
-          this.dietDay = this.dietDayService.getStandardDietDay(
-            this.selectedDate
-          );
+          this.dietDay = this.dietDayService.getStandardDietDay(this.selectedDate);
         this.dietDayService.setCurrentDietDay = this.dietDay;
         this.load = true;
         this.cdr.detectChanges();
@@ -291,5 +440,4 @@ export class DietsPage implements OnInit {
   public goToPremium(): void {
     this.navigationService.goToPremium();
   }
-
 }

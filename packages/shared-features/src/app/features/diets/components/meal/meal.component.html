@@ -1,4 +1,8 @@
-<div class="meal-card">
+<div
+  class="meal-card"
+  [class.selection-mode]="selectionMode"
+  [class.copy-muted]="activeCopyMealIndex !== undefined && activeCopyMealIndex !== mealIndex"
+>
   <ion-progress-bar *ngIf="loadPaste" type="indeterminate"></ion-progress-bar>
 
   <!-- Skeleton Loader -->
@@ -69,7 +73,7 @@
   </ng-container>
 
   <!-- Contenido real -->
-  <ion-accordion *ngIf="load" (click)="arrowRotate = !arrowRotate">
+  <ion-accordion *ngIf="load" #mealAccordion [value]="'meal-' + mealIndex" (click)="arrowRotate = !arrowRotate">
     <ion-grid class="t-meal" slot="header">
       <ion-row>
         <ion-col class="ion-no-padding" size="9.6">
@@ -83,29 +87,40 @@
                 >
                   <ion-icon
                     style="border-radius: 20px"
-                  color="primary"
-                  name="ellipsis-vertical-outline"
-                ></ion-icon>
-              </ion-button>
-            </ion-buttons>
-            <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
-            <ion-icon
-              *ngIf="
-                meal.customProducts.length > 0 ||
-                (meal.customRecipes &&
-                  meal.customRecipes.length > 0) ||
-                meal?.notes
-              "
-              style="font-size: x-large"
-              name="chevron-down-outline"
-              [ngClass]="arrowRotate ? 'rotate' : 'start'"
-            ></ion-icon>
-            <ion-icon
-              *ngIf="meal?.notes && !arrowRotate"
-              style="font-size: large; margin-left: 4px"
-              name="create-outline"
-              color="secondary"
-            ></ion-icon>
+                    color="primary"
+                    name="ellipsis-vertical-outline"
+                  ></ion-icon>
+                </ion-button>
+              </ion-buttons>
+
+              <!-- Checkbox para seleccionar toda la meal (modo selección) -->
+              <ion-checkbox
+                *ngIf="selectionMode"
+                class="meal-select-checkbox"
+                mode="ios"
+                [checked]="isAllSelected()"
+                (ionChange)="onSelectAllChange($event)"
+                (click)="$event.stopPropagation()"
+                color="primary"
+              ></ion-checkbox>
+
+              <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
+              <ion-icon
+                *ngIf="
+                  meal.customProducts.length > 0 ||
+                  (meal.customRecipes && meal.customRecipes.length > 0) ||
+                  meal?.notes
+                "
+                style="font-size: x-large"
+                name="chevron-down-outline"
+                [ngClass]="arrowRotate ? 'rotate' : 'start'"
+              ></ion-icon>
+              <ion-icon
+                *ngIf="meal?.notes && !arrowRotate"
+                style="font-size: large; margin-left: 4px"
+                name="create-outline"
+                color="secondary"
+              ></ion-icon>
             </ion-col>
           </ion-row>
           <ion-row
@@ -113,8 +128,7 @@
             style="font-size: small; text-align: center; color: gray"
             *ngIf="
               meal.customProducts.length > 0 ||
-              (meal.customRecipes &&
-                meal.customRecipes.length > 0)
+              (meal.customRecipes && meal.customRecipes.length > 0)
             "
           >
             <ion-col size="3" class="macro-col">
@@ -171,7 +185,15 @@
             ></ion-spinner>
 
             <ion-button
-              *ngIf="!pasteMode && !loadPaste"
+              *ngIf="selectionMode && !loadPaste"
+              fill="clear"
+              style="height: 100%; margin-left: -5%; font-size: x-large"
+              (click)="cancelSelection(); $event.stopPropagation()"
+              ><ion-icon color="danger" name="close-circle-outline"></ion-icon
+            ></ion-button>
+
+            <ion-button
+              *ngIf="!selectionMode && !pasteMode && !loadPaste"
               style="height: 100%; margin-left: -5%; font-size: xx-large"
               (click)="openSearchFoods(); $event.stopPropagation()"
               ><ion-icon color="primary" name="add-circle-outline"></ion-icon
@@ -198,9 +220,7 @@
 
       <!-- Recipes Section -->
       <div
-        *ngIf="
-          meal.customRecipes && meal.customRecipes.length > 0
-        "
+        *ngIf="meal.customRecipes && meal.customRecipes.length > 0"
         class="section-header"
       >
         <ion-label color="primary">
@@ -211,8 +231,19 @@
       <div
         *ngFor="let instance of getCustomRecipesOrdered(meal)"
         class="meal-item recipe-item"
-        (click)="editCustomRecipe(instance)"
+        [class.selected]="selectionMode && isRecipeSelected(instance)"
+        (click)="toggleRecipeSelection(instance)"
       >
+        <ion-checkbox
+          *ngIf="selectionMode"
+          class="item-select-checkbox"
+          mode="ios"
+          [checked]="isRecipeSelected(instance)"
+          (ionChange)="onRecipeSelectionChange(instance, $event)"
+          (click)="$event.stopPropagation()"
+          color="primary"
+        ></ion-checkbox>
+
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
@@ -249,6 +280,7 @@
 
         <div class="item-actions">
           <ion-button
+            *ngIf="!selectionMode"
             fill="clear"
             size="small"
             class="delete-button"
@@ -273,8 +305,19 @@
       <div
         *ngFor="let product of getProductsAndOwnProductsOrdered(meal)"
         class="meal-item product-item"
-        (click)="editCustomProduct(product)"
+        [class.selected]="selectionMode && isProductSelected(product)"
+        (click)="toggleProductSelection(product)"
       >
+        <ion-checkbox
+          *ngIf="selectionMode"
+          class="item-select-checkbox"
+          mode="ios"
+          [checked]="isProductSelected(product)"
+          (ionChange)="onProductSelectionChange(product, $event)"
+          (click)="$event.stopPropagation()"
+          color="primary"
+        ></ion-checkbox>
+
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
@@ -286,26 +329,22 @@
           <div class="nutrition-info">
             <div class="nutrition-item calories">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy)
-                  | number : "1.0-0"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy) | number : "1.0-0"
               }}</span>
             </div>
             <div class="nutrition-item protein">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein)
-                  | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein) | number : "1.1-1"
               }}</span>
             </div>
             <div class="nutrition-item carbs">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates)
-                  | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates) | number : "1.1-1"
               }}</span>
             </div>
             <div class="nutrition-item fat">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat)
-                  | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat) | number : "1.1-1"
               }}</span>
             </div>
           </div>
@@ -313,6 +352,7 @@
 
         <div class="item-actions">
           <ion-button
+            *ngIf="!selectionMode"
             fill="clear"
             size="small"
             class="delete-button"
