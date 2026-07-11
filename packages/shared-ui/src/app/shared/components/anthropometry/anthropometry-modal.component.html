@@ -1,18 +1,31 @@
-<ion-header class="modal-header">
-  <ion-toolbar>
-    <ion-title>{{ 'ANTHROPOMETRY.MODAL_TITLE' | translate }}</ion-title>
-    <ion-buttons slot="end">
-      <button class="save-action-button" (click)="onSave()" [disabled]="form.invalid || isLoading">
-        {{ 'COMMON.SAVE' | translate }}
-      </button>
-      <button class="close-action-button ripple-effect" (click)="onCancel()">
-        <ion-icon name="close" color="primary"></ion-icon>
-      </button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="onCancel()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'ANTHROPOMETRY.MODAL_TITLE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <ion-button
+          class="save-header-button"
+          (click)="onSave()"
+          [disabled]="form.invalid || isLoading"
+          color="primary"
+          fill="solid"
+        >
+          <ion-icon *ngIf="isLoading" name="refresh-outline" class="spin" slot="start"></ion-icon>
+          {{ isLoading ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
 </ion-header>
 
-<div class="modal-content">
+<ion-content class="modal-content">
   <form [formGroup]="form" (ngSubmit)="onSave()">
     <div class="date-section">
       <span class="section-label">{{ 'ANTHROPOMETRY.DATE_LABEL' | translate }}</span>
@@ -43,8 +56,9 @@
               min="0"
               max="999"
               inputmode="decimal"
-            ></ion-input>
-            <span class="unit">{{ field.unit }}</span>
+            >
+              <div slot="end" class="input-suffix">{{ field.unit }}</div>
+            </ion-input>
           </div>
         </div>
       </div>
@@ -55,19 +69,4 @@
       <span>{{ 'ANTHROPOMETRY.HELPER_TEXT' | translate }}</span>
     </div>
   </form>
-</div>
-
-<ion-footer class="modal-footer">
-  <ion-button fill="clear" (click)="onCancel()" expand="block" [disabled]="isLoading">
-    {{ 'COMMON.CANCEL' | translate }}
-  </ion-button>
-  <ion-button
-    class="save-button"
-    expand="block"
-    type="submit"
-    [disabled]="form.invalid || isLoading"
-  >
-    <ion-icon *ngIf="isLoading" name="refresh-outline" class="spin" slot="start"></ion-icon>
-    {{ isLoading ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
-  </ion-button>
-</ion-footer>
+</ion-content>

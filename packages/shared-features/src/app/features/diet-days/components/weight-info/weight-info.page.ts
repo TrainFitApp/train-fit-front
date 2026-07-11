@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
@@ -10,6 +10,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { Anthropometry } from './models/anthropometry';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
+import { CalendarComponent } from '../calendar/calendar.component';
 
 @Component({
   selector: 'app-weight-info',
@@ -18,6 +19,9 @@ import { AnthropometryModalComponent } from 'src/app/shared/components/anthropom
   animations: [fadeIn, fadeOut],
 })
 export class WeightInfoPage {
+  @ViewChild('weightCalendar')
+  private weightCalendar?: CalendarComponent;
+
   public selectedDate: string;
   public currentAnthropometry: Anthropometry | null = null;
   public currentNotes: string | undefined;
@@ -153,14 +157,48 @@ export class WeightInfoPage {
         selectedDate: this.selectedDate,
         existingData: this.currentAnthropometry,
       },
-      cssClass: 'anthropometry-modal',
-      initialBreakpoint: 1,
-      breakpoints: [0, 0.5, 1],
+      cssClass: 'fullscreen-modal',
     });
 
     if (modalResult.role === 'saved') {
+      const savedAnthropometry = modalResult.data as Anthropometry | undefined;
+
+      if (savedAnthropometry) {
+        this.upsertAnthropometryData(savedAnthropometry);
+        this.weightCalendar?.upsertWeightForDate(
+          savedAnthropometry.date,
+          savedAnthropometry.weight,
+          savedAnthropometry.notes
+        );
+      }
+
+      this.weightCalendar?.refreshDietDaysForMonth();
       this.loadAnthropometryData();
     }
+  }
+
+  private upsertAnthropometryData(anthropometry: Anthropometry): void {
+    const existingIndex = this.allAnthropometryData.findIndex(
+      (item) => item.date === anthropometry.date
+    );
+
+    if (existingIndex >= 0) {
+      this.allAnthropometryData = this.allAnthropometryData.map((item, index) =>
+        index === existingIndex ? anthropometry : item
+      );
+    } else {
+      this.allAnthropometryData = [...this.allAnthropometryData, anthropometry];
+    }
+
+    this.allAnthropometryData = [...this.allAnthropometryData].sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
+    this.currentAnthropometry =
+      anthropometry.date === this.selectedDate
+        ? anthropometry
+        : this.allAnthropometryData.find((a) => a.date === this.selectedDate) || null;
+    this.currentNotes = this.currentAnthropometry?.notes;
+    this.cdref.detectChanges();
   }
 
   public goBack(): void {

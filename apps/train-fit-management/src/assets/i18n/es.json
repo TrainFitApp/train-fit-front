@@ -906,7 +906,7 @@
     "MICROCYCLES_STAT": "Micro-ciclos",
     "WORKOUTS_STAT": "Entrenamientos",
     "NAME_OPTION": "NOMBRE",
-    "ROUTINE_IN_USE": "Rutina en uso",
+    "ROUTINE_IN_USE": "Rutina",
     "ROUTINE_IN_USE_MSG": "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",
     "ROUTINE_CAN_PAUSE": "Siempre puedes pausar y elegir otra",
     "ROUTINE_WILL_BE_ADDED": "Se añadirá a Mis rutinas y se iniciará",

@@ -1041,7 +1041,7 @@
     "MICROCYCLES_STAT": "Micro-cycles",
     "WORKOUTS_STAT": "Workouts",
     "NAME_OPTION": "NAME",
-    "ROUTINE_IN_USE": "Routine in use",
+    "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",

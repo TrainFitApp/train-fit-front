@@ -22,6 +22,7 @@
   <div class="weight-info-container">
     <div class="calendar-section">
       <app-calendar
+        #weightCalendar
         class="weight-calendar"
         [fetchOnInit]="true"
         (selectDate)="selectDate($event)"
