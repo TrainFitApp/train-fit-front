@@ -9,13 +9,22 @@ import {
 import { AlertOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
+import {
+  CUSTOM_PRODUCT_VALUES,
+  CustomProduct,
+} from 'src/app/core/models/customProduct';
+import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
+import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
+import {
+  RecipeMacros,
+  RecipeService,
+} from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -48,6 +57,7 @@ export class DietsPage implements OnInit {
   public mealIndexPaste: number;
   public copyMealId: string;
   public copyMealIndex: number;
+  public clipboardClearCounter = 0;
 
   public pasteDietDayMode: boolean;
   public pasteMode: boolean;
@@ -69,6 +79,8 @@ export class DietsPage implements OnInit {
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
+    private customProductService: CustomProductService,
+    private recipeService: RecipeService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService
@@ -125,6 +137,11 @@ export class DietsPage implements OnInit {
   }
 
   public paste(event): void {
+    if (event?.pasted) {
+      this.clearClipboard();
+      return;
+    }
+
     this.pasteMode = event?.paste ?? undefined;
     this.mealIdPaste = event?.mealId ?? undefined;
     this.mealIndexPaste = event?.mealIndex ?? undefined;
@@ -161,6 +178,7 @@ export class DietsPage implements OnInit {
     this.pasteMode = false;
     this.mealIdPaste = undefined;
     this.mealIndexPaste = undefined;
+    this.clipboardClearCounter += 1;
   }
 
   public get hasActiveClipboard(): boolean {
@@ -181,7 +199,7 @@ export class DietsPage implements OnInit {
     return this.clipboard?.mealClipboard?.name || '';
   }
 
-  public getSelectedProducts(): any[] {
+  public getSelectedProducts(): CustomProduct[] {
     const clipboard = this.clipboard;
     if (!clipboard || clipboard.isFullMeal) {
       return clipboard?.mealClipboard?.customProducts || [];
@@ -191,7 +209,7 @@ export class DietsPage implements OnInit {
     );
   }
 
-  public getSelectedRecipes(): any[] {
+  public getSelectedRecipes(): CustomRecipe[] {
     const clipboard = this.clipboard;
     if (!clipboard || clipboard.isFullMeal) {
       return clipboard?.mealClipboard?.customRecipes || [];
@@ -202,79 +220,51 @@ export class DietsPage implements OnInit {
   }
 
   public getClipboardTotalKcal(): number {
-    let total = 0;
-    this.getSelectedProducts().forEach((cp) => {
-      total += this.getProductKcal(cp);
-    });
-    this.getSelectedRecipes().forEach((cr) => {
-      total += this.getRecipeKcal(cr);
-    });
-    return total;
+    return this.getClipboardMacros().kcal;
   }
 
   public getClipboardTotalProtein(): number {
-    let total = 0;
-    this.getSelectedProducts().forEach((cp) => {
-      total += this.getProductProtein(cp);
-    });
-    this.getSelectedRecipes().forEach((cr) => {
-      total += this.getRecipeProtein(cr);
-    });
-    return total;
+    return this.getClipboardMacros().protein;
   }
 
   public getClipboardTotalCarbs(): number {
-    let total = 0;
-    this.getSelectedProducts().forEach((cp) => {
-      total += this.getProductCarbs(cp);
-    });
-    this.getSelectedRecipes().forEach((cr) => {
-      total += this.getRecipeCarbs(cr);
-    });
-    return total;
+    return this.getClipboardMacros().carbs;
   }
 
   public getClipboardTotalFat(): number {
-    let total = 0;
-    this.getSelectedProducts().forEach((cp) => {
-      total += this.getProductFat(cp);
+    return this.getClipboardMacros().fat;
+  }
+
+  private getClipboardMacros(): RecipeMacros {
+    const totals: RecipeMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+
+    this.getSelectedProducts().forEach((customProduct) => {
+      const macros = this.customProductService.getMacros(customProduct);
+      totals.kcal += macros.kcal;
+      totals.protein += macros.protein;
+      totals.carbs += macros.carbs;
+      totals.fat += macros.fat;
     });
-    this.getSelectedRecipes().forEach((cr) => {
-      total += this.getRecipeFat(cr);
+
+    this.getSelectedRecipes().forEach((customRecipe) => {
+      const macros = this.getCustomRecipeMacros(customRecipe);
+      totals.kcal += macros.kcal;
+      totals.protein += macros.protein;
+      totals.carbs += macros.carbs;
+      totals.fat += macros.fat;
     });
-    return total;
+
+    return totals;
   }
 
-  public getProductKcal(product: any): number {
-    return product?.product?.kcal || 0;
-  }
+  private getCustomRecipeMacros(customRecipe: CustomRecipe): RecipeMacros {
+    const recipe =
+      typeof customRecipe.recipe === 'object' ? customRecipe.recipe : null;
 
-  public getProductProtein(product: any): number {
-    return product?.product?.protein || 0;
-  }
+    if (!recipe) return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
-  public getProductCarbs(product: any): number {
-    return product?.product?.carbohydrate || 0;
-  }
-
-  public getProductFat(product: any): number {
-    return product?.product?.fat || 0;
-  }
-
-  public getRecipeKcal(recipe: any): number {
-    return recipe?.recipe?.kcal || 0;
-  }
-
-  public getRecipeProtein(recipe: any): number {
-    return recipe?.recipe?.protein || 0;
-  }
-
-  public getRecipeCarbs(recipe: any): number {
-    return recipe?.recipe?.carbohydrate || 0;
-  }
-
-  public getRecipeFat(recipe: any): number {
-    return recipe?.recipe?.fat || 0;
+    return this.recipeService.calculateCustomRecipeTotals(recipe, customRecipe)
+      .portionMacros;
   }
 
   public manageNote(): void {

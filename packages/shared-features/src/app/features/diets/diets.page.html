@@ -80,6 +80,7 @@
         [load]="load"
         [pasteMode]="pasteMode && copyMealIndex !== j && mealIndexPaste !== j"
         [activeCopyMealIndex]="copyMealIndex"
+        [clipboardClearCounter]="clipboardClearCounter"
         (pasteEvent)="paste($event)"
         (copyEvent)="onCopySelection($event)"
       ></app-meal>

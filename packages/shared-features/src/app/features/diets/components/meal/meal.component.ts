@@ -57,6 +57,8 @@ export class MealComponent implements OnInit, OnChanges {
   @Input()
   public activeCopyMealIndex?: number;
   @Input()
+  public clipboardClearCounter = 0;
+  @Input()
   public mealIndex!: number;
   @Output()
   public updateMacros = new EventEmitter();
@@ -115,6 +117,13 @@ export class MealComponent implements OnInit, OnChanges {
     ) {
       this.selectionMode = false;
       this.clearSelection();
+    }
+    if (
+      changes.clipboardClearCounter &&
+      !changes.clipboardClearCounter.firstChange &&
+      this.selectionMode
+    ) {
+      this.exitSelectionMode();
     }
   }
 
@@ -317,7 +326,7 @@ export class MealComponent implements OnInit, OnChanges {
         (mealTemp) => mealTemp._id === resMeal._id
       );
       this.dietDay.meals[indexMeal] = resMeal;
-      this.pasteEvent.emit();
+      this.pasteEvent.emit({ pasted: true });
 
       this.getMealInfo();
 
@@ -735,15 +744,23 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public cancelSelection(): void {
-    this.selectionMode = false;
-    this.clearSelection();
-    this.arrowRotate = false;
+    this.exitSelectionMode();
     this.mealService.clearMealClipboard();
     this.copyEvent.emit({
       mealId: this.meal._id,
       mealIndex: this.mealIndex,
       selectionMode: false,
     });
+  }
+
+  private exitSelectionMode(): void {
+    this.selectionMode = false;
+    this.clearSelection();
+    this.arrowRotate = false;
+  }
+
+  public get hasActiveClipboard(): boolean {
+    return this.mealService.hasMealClipboard();
   }
 
   public isProductSelected(product: CustomProduct): boolean {
