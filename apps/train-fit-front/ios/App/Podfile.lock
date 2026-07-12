@@ -26,6 +26,8 @@ PODS:
   - CapacitorCordova (7.6.2)
   - CapacitorKeyboard (7.0.6):
     - Capacitor
+  - CapacitorLocalNotifications (7.0.7):
+    - Capacitor
   - CapacitorNetwork (7.0.4):
     - Capacitor
   - CapacitorSecureStoragePlugin (0.12.0):
@@ -94,6 +96,7 @@ DEPENDENCIES:
   - "CapacitorCommunityAdmob (from `../../../../node_modules/@capacitor-community/admob`)"
   - "CapacitorCordova (from `../../../../node_modules/@capacitor/ios`)"
   - "CapacitorKeyboard (from `../../../../node_modules/@capacitor/keyboard`)"
+  - "CapacitorLocalNotifications (from `../../../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorNetwork (from `../../../../node_modules/@capacitor/network`)"
   - CapacitorSecureStoragePlugin (from `../../../../node_modules/capacitor-secure-storage-plugin`)
   - "CapgoCapacitorNavigationBar (from `../../../../node_modules/@capgo/capacitor-navigation-bar`)"
@@ -139,6 +142,8 @@ EXTERNAL SOURCES:
     :path: "../../../../node_modules/@capacitor/ios"
   CapacitorKeyboard:
     :path: "../../../../node_modules/@capacitor/keyboard"
+  CapacitorLocalNotifications:
+    :path: "../../../../node_modules/@capacitor/local-notifications"
   CapacitorNetwork:
     :path: "../../../../node_modules/@capacitor/network"
   CapacitorSecureStoragePlugin:
@@ -163,6 +168,7 @@ SPEC CHECKSUMS:
   CapacitorCommunityAdmob: 04498ca8d01a097aa7d9d80584094b6b3419ec3f
   CapacitorCordova: 8214697bed435f6e7c5e3ed86d1632a8c42f7d77
   CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
+  CapacitorLocalNotifications: 71124afe526ac00585314bff34651bd023f86e37
   CapacitorNetwork: b719d692a8d1310da8d26d6648d3aa1ef1e100e1
   CapacitorSecureStoragePlugin: 50de0808ad398aa401e00f9e58adf88c77cb3c25
   CapgoCapacitorNavigationBar: 3c59704af4b6774bebb36beaab82643c141dfa83
@@ -187,6 +193,6 @@ SPEC CHECKSUMS:
   RevenueCatUI: c6acb3648fa58ccb4f0f178556ed0278b796234f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 6869865fdf100ba4ead41ec96e3a1d82cd2d8ace
+PODFILE CHECKSUM: 1069c522b7a1380a6c8553856b83eadfe89ce786
 
 COCOAPODS: 1.16.2

@@ -585,6 +585,100 @@
 
           <swiper-slide>
             <div class="form-section">
+              <h2 class="section-title">{{ 'SIGN_UP.NOTIF_TITLE' | translate }}</h2>
+              <p class="section-subtitle">{{ 'SIGN_UP.NOTIF_SUBTITLE' | translate }}</p>
+
+              <div class="signup-notif-card">
+                <div class="signup-notif-row">
+                  <div class="signup-notif-info">
+                    <ion-icon name="scale-outline" class="signup-notif-icon"></ion-icon>
+                    <div>
+                      <span class="signup-notif-label">{{ 'NOTIFICATIONS.WEIGHT_REMINDER' | translate }}</span>
+                      <span class="signup-notif-desc">{{ 'NOTIFICATIONS.WEIGHT_REMINDER_DESC' | translate }}</span>
+                    </div>
+                  </div>
+                  <ion-toggle [(ngModel)]="notifEnabled" (ionChange)="onNotifToggle()" [ngModelOptions]="{standalone: true}"></ion-toggle>
+                </div>
+
+                <ng-container *ngIf="notifEnabled">
+                  <div class="signup-notif-divider"></div>
+
+                  <div class="signup-notif-option">
+                    <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.FREQUENCY' | translate }}</span>
+                    <ion-select [(ngModel)]="notifFrequency" (ionChange)="onNotifSettingsChange()" [ngModelOptions]="{standalone: true}" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+                      <ion-select-option value="daily">{{ 'NOTIFICATIONS.DAILY' | translate }}</ion-select-option>
+                      <ion-select-option value="weekly">{{ 'NOTIFICATIONS.WEEKLY' | translate }}</ion-select-option>
+                      <ion-select-option value="interval">{{ 'NOTIFICATIONS.CUSTOM_INTERVAL' | translate }}</ion-select-option>
+                    </ion-select>
+                  </div>
+
+                  <ng-container *ngIf="notifFrequency === 'weekly'">
+                    <div class="signup-notif-divider"></div>
+                    <div class="signup-notif-option">
+                      <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.DAY_OF_WEEK' | translate }}</span>
+                      <ion-select [(ngModel)]="notifWeekday" (ionChange)="onNotifSettingsChange()" [ngModelOptions]="{standalone: true}" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+                        <ion-select-option [value]="1">{{ 'NOTIFICATIONS.SUNDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="2">{{ 'NOTIFICATIONS.MONDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="3">{{ 'NOTIFICATIONS.TUESDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="4">{{ 'NOTIFICATIONS.WEDNESDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="5">{{ 'NOTIFICATIONS.THURSDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="6">{{ 'NOTIFICATIONS.FRIDAY' | translate }}</ion-select-option>
+                        <ion-select-option [value]="7">{{ 'NOTIFICATIONS.SATURDAY' | translate }}</ion-select-option>
+                      </ion-select>
+                    </div>
+                  </ng-container>
+
+                  <ng-container *ngIf="notifFrequency === 'interval'">
+                    <div class="signup-notif-divider"></div>
+                    <div class="signup-notif-option">
+                      <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.EVERY_X_DAYS' | translate:{ days: notifIntervalDays } }}</span>
+                      <div class="signup-notif-stepper">
+                        <ion-button fill="clear" size="small" (click)="changeNotifInterval(-1)">
+                          <ion-icon name="remove-outline"></ion-icon>
+                        </ion-button>
+                        <span class="signup-stepper-value">{{ notifIntervalDays }}</span>
+                        <ion-button fill="clear" size="small" (click)="changeNotifInterval(1)">
+                          <ion-icon name="add-outline"></ion-icon>
+                        </ion-button>
+                      </div>
+                    </div>
+                  </ng-container>
+
+                  <div class="signup-notif-divider"></div>
+                  <div class="signup-notif-option">
+                    <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+                    <div class="signup-time-display" id="signup-notif-time-trigger">
+                      <ion-icon name="time-outline"></ion-icon>
+                      <span>{{ getNotifTimeDisplay() }}</span>
+                    </div>
+                  </div>
+                  <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="time-datetime-modal" trigger="signup-notif-time-trigger" (willPresent)="isTimeModalOpen = true" (willDismiss)="isTimeModalOpen = false">
+                    <ng-template>
+                      <ion-datetime
+                        id="signup-notif-datetime"
+                        mode="ios"
+                        presentation="time"
+                        [preferWheel]="true"
+                        [showDefaultButtons]="true"
+                        [doneText]="'COMMON.OK' | translate"
+                        [cancelText]="'COMMON.CANCEL' | translate"
+                        [(ngModel)]="notifTime"
+                        (ionChange)="onNotifSettingsChange()"
+                      >
+                        <div slot="title" class="datetime-title">
+                          <ion-icon name="time-outline"></ion-icon>
+                          <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+                        </div>
+                      </ion-datetime>
+                    </ng-template>
+                  </ion-modal>
+                </ng-container>
+              </div>
+            </div>
+          </swiper-slide>
+
+          <swiper-slide>
+            <div class="form-section">
               <h2 class="section-title">{{ 'SIGN_UP.FINISH_REGISTRATION' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
               <div class="checkbox-section">

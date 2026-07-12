@@ -174,6 +174,10 @@ export class UserService {
     return this.userAPIService.deleteById(id);
   }
 
+  public verifyPassword(password: string) {
+    return this.userAPIService.verifyPassword(password).pipe(take(1));
+  }
+
   public restorePassword(email: string, newPassword: string) {
     return this.userAPIService
       .restorePassword(email, newPassword)

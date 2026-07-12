@@ -24,12 +24,12 @@ export class User {
   tableInUse: any;
   workoutInUse: any;
   diets: Diet[];
-  tables: Table[];
   dayWeights: DayWeight[];
-  ownTables: string[];
+  tables: string[];
   access_token?: string;
   hash?: string;
   theme?: ColorMode;
+  lang?: 'es' | 'en';
   provider?: 'google' | 'apple';
   personalAds?: boolean;
   premium?: {

@@ -100,7 +100,7 @@
                       [name]="exercise.shouldCreate ? 'add-circle-outline' : 'checkmark-circle-outline'"
                     ></ion-icon>
                   </div>
-                  <span class="node-label">{{ exercise.name }}</span>
+                  <span class="node-label">{{ exercise.name | translateDb }}</span>
                 </div>
                 <div class="node-right">
                   <span class="pill-badge" [class.pill-badge--new]="exercise.shouldCreate" [class.pill-badge--exists]="!exercise.shouldCreate">

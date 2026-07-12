@@ -9,6 +9,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { NotificationService, NotificationFrequency } from 'src/app/core/services/util/notification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { Theme } from 'src/app/shared/models/theme';
@@ -31,6 +32,13 @@ export class ConfigurationPage {
 
   public currentLang: string = 'es';
 
+  public notifEnabled: boolean = false;
+  public notifFrequency: NotificationFrequency = 'daily';
+  public notifWeekday: number = 1;
+  public notifIntervalDays: number = 2;
+  public notifTime: string = '';
+  public isTimeModalOpen: boolean = false;
+
   constructor(
     private readonly userService: UserService,
     private readonly themeService: ThemeService,
@@ -40,6 +48,7 @@ export class ConfigurationPage {
     private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,
     private readonly navigationService: NavigationService,
+    private readonly notificationService: NotificationService,
     private readonly translate: TranslateService,
     private readonly i18nService: I18nService,
   ) {
@@ -47,11 +56,86 @@ export class ConfigurationPage {
     this.user = this.userService.getLocalUser;
     this.isPremium = !!this.user?.premium?.entitled;
     this.currentLang = this.i18nService.current;
+    this.loadNotificationSettings();
+  }
+
+  private loadNotificationSettings(): void {
+    const settings = this.notificationService.getSettings();
+    this.notifEnabled = settings.enabled;
+    this.notifFrequency = settings.frequency;
+    this.notifWeekday = settings.weekday ?? 1;
+    this.notifIntervalDays = settings.intervalDays ?? 2;
+
+    const date = new Date();
+    date.setHours(settings.hour, settings.minute, 0, 0);
+    this.notifTime = date.toISOString();
+  }
+
+  public async onToggleReminder(): Promise<void> {
+    if (this.notifEnabled) {
+      const granted = await this.notificationService.requestPermissions();
+      if (!granted) {
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('NOTIFICATIONS.PERMISSION_DENIED'),
+          duration: 2000,
+          color: 'warning',
+        });
+        this.notifEnabled = false;
+        return;
+      }
+    }
+    await this.saveNotifSettings();
+  }
+
+  public async onSettingsChange(): Promise<void> {
+    await this.saveNotifSettings();
+  }
+
+  public changeInterval(delta: number): void {
+    const newVal = this.notifIntervalDays + delta;
+    if (newVal >= 1 && newVal <= 60) {
+      this.notifIntervalDays = newVal;
+      void this.saveNotifSettings();
+    }
+  }
+
+  public openTimePicker(): void {
+    const trigger = document.getElementById('notif-time-trigger');
+    if (trigger) {
+      trigger.click();
+    }
+  }
+
+  public getNotifTimeDisplay(): string {
+    if (!this.notifTime) return '--:--';
+    const date = new Date(this.notifTime);
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  private async saveNotifSettings(): Promise<void> {
+    const timeDate = new Date(this.notifTime);
+    const hour = timeDate.getHours();
+    const minute = timeDate.getMinutes();
+
+    await this.notificationService.saveAndSchedule({
+      enabled: this.notifEnabled,
+      hour,
+      minute,
+      frequency: this.notifFrequency,
+      weekday: this.notifFrequency === 'weekly' ? this.notifWeekday : undefined,
+      intervalDays: this.notifFrequency === 'interval' ? this.notifIntervalDays : undefined,
+    });
   }
 
   public switchLang(lang: 'es' | 'en'): void {
     this.i18nService.switchLang(lang);
     this.currentLang = lang;
+    this.user.lang = lang;
+    this.userService.updateUser(this.user).subscribe(() => {
+      this.navigationService.goToUserLoader();
+    });
   }
 
   public toggleColor(): void {
@@ -149,9 +233,24 @@ export class ConfigurationPage {
   }
 
   public deleteAccount(): void {
-    const alertOptions = {
+    // Cuentas sociales (Google/Apple) no tienen contraseña propia que verificar.
+    if (this.user?.provider) {
+      this.confirmDeleteAccountWithoutPassword();
+      return;
+    }
+
+    const alertOptions: AlertOptions = {
       header: this.translate.instant('CONFIGURATION.DELETE_HEADER'),
       message: this.translate.instant('CONFIGURATION.DELETE_MSG'),
+      inputs: [
+        {
+          name: 'password',
+          type: 'password',
+          placeholder: this.translate.instant(
+            'CONFIGURATION.DELETE_PASSWORD_PLACEHOLDER',
+          ),
+        },
+      ],
       buttons: [
         {
           text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
@@ -160,15 +259,95 @@ export class ConfigurationPage {
         {
           text: this.translate.instant('CONFIGURATION.DELETE_BTN'),
           role: 'destructive',
-          handler: () => {
-            this.userService.deleteById(this.user._id).subscribe((_) => {
-              this.authService.logout();
-            });
+          handler: (data) => {
+            if (!data?.password) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant(
+                  'CONFIGURATION.DELETE_PASSWORD_REQUIRED',
+                ),
+                duration: 2000,
+                color: 'warning',
+              });
+              return false;
+            }
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions).then((result) => {
+      if (result.role === 'cancel') return;
+
+      const password = result.data?.values?.password;
+      if (!password) return;
+
+      this.userService.verifyPassword(password).subscribe({
+        next: () => this.performAccountDeletion(),
+        error: () => {
+          this.ionicUtilService.showToast({
+            message: this.translate.instant(
+              'CONFIGURATION.DELETE_PASSWORD_INCORRECT',
+            ),
+            duration: 2500,
+            color: 'danger',
+          });
+        },
+      });
+    });
+  }
+
+  private confirmDeleteAccountWithoutPassword(): void {
+    // Cuentas Google/Apple no tienen contraseña propia que pedir: en su lugar,
+    // se exige escribir la palabra de confirmación tal cual.
+    const confirmWord = this.translate.instant('CONFIGURATION.DELETE_CONFIRM_WORD');
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('CONFIGURATION.DELETE_HEADER'),
+      message: this.translate.instant('CONFIGURATION.DELETE_MSG_SOCIAL', {
+        word: confirmWord.toUpperCase(),
+      }),
+      inputs: [
+        {
+          name: 'confirmWord',
+          type: 'text',
+          placeholder: confirmWord.toUpperCase(),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('CONFIGURATION.CANCEL_BTN'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('CONFIGURATION.DELETE_BTN'),
+          role: 'destructive',
+          handler: (data) => {
+            const typed = (data?.confirmWord || '').trim().toLowerCase();
+            if (typed !== confirmWord.trim().toLowerCase()) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant(
+                  'CONFIGURATION.DELETE_CONFIRM_WORD_MISMATCH',
+                  { word: confirmWord.toUpperCase() },
+                ),
+                duration: 2200,
+                color: 'warning',
+              });
+              return false;
+            }
+            this.performAccountDeletion();
+            return true;
           },
         },
       ],
     };
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private performAccountDeletion(): void {
+    this.userService.deleteById(this.user._id).subscribe(() => {
+      this.authService.logout();
+    });
   }
 
   public close(): void {

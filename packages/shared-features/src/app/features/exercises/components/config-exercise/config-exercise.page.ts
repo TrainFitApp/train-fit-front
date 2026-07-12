@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -32,18 +32,19 @@ import { ManageSetComponent } from "src/app/features/tables/components/summary/c
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
-
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
 import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
 import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
+import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
+import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/models/pinned-exercise-note";
 
 @Component({
   selector: "app-config-exercise",
   templateUrl: "./config-exercise.page.html",
   styleUrls: ["./config-exercise.page.scss"],
 })
-export class ConfigExercisePage implements OnInit {
+export class ConfigExercisePage implements OnInit, OnDestroy {
   public muscleGroups: string[] = [
     "Espalda",
     "Pecho",
@@ -113,6 +114,14 @@ export class ConfigExercisePage implements OnInit {
     muscleGroups2: string[];
     equipment: string[];
   };
+
+  public pinnedNote: PinnedExerciseNote | null = null;
+  private pinnedNoteCacheSub: Subscription | null = null;
+
+  public get exerciseIndex(): number {
+    if (!this.workout?.exercises || !this.customExercise?._id) return -1;
+    return this.workout.exercises.findIndex((e) => e._id === this.customExercise._id);
+  }
 
   public filterCategories = [
     "Cardio",
@@ -184,6 +193,7 @@ export class ConfigExercisePage implements OnInit {
     private billingService: BillingService,
     private navigationService: NavigationService,
     private translate: TranslateService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
   ) {}
 
   public ngOnInit(): void {
@@ -226,6 +236,14 @@ export class ConfigExercisePage implements OnInit {
         equipment: [...this.details.equipment],
       };
     }
+    this.loadPinnedNote();
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
+      this.loadPinnedNote();
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.pinnedNoteCacheSub?.unsubscribe();
   }
 
   private syncDetailsFromExercise(exercise: Exercise): void {
@@ -237,6 +255,92 @@ export class ConfigExercisePage implements OnInit {
     this.details.muscleGroups1 = [...(exercise.muscleGroups1 || [])];
     this.details.muscleGroups2 = [...(exercise.muscleGroups2 || [])];
     this.details.equipment = [...(exercise.equipment || [])];
+  }
+
+  private loadPinnedNote(): void {
+    if (this.tableInUse?._id && this.workout?._id && this.workoutIndex !== undefined && this.customExercise) {
+      const exerciseIndex = this.workout.exercises.findIndex(e => e._id === this.customExercise._id);
+      this.pinnedExerciseNoteService
+        .getByPosition(this.tableInUse._id, this.workoutIndex, exerciseIndex)
+        .subscribe((note) => {
+          this.pinnedNote = note;
+        });
+    }
+  }
+
+  public deletePinnedNote(): void {
+    if (!this.pinnedNote) return;
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.DELETE_PINNED_TITLE'),
+      message: this.translate.instant('NOTES.DELETE_PINNED_CONFIRM'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.pinnedExerciseNoteService.delete(this.pinnedNote._id, this.tableInUse._id).subscribe({
+              next: () => {
+                this.pinnedNote = null;
+                console.debug('[ConfigExercisePage] Pinned note deleted');
+              },
+              error: (err) => console.error('[ConfigExercisePage] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public editPinnedNote(): void {
+    if (!this.pinnedNote) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.TITLE'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: this.pinnedNote.notes,
+          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            const exerciseIdx = this.exerciseIndex;
+            if (exerciseIdx < 0) return false;
+            const dto: PinnedExerciseNoteUpsertDto = {
+              tableId: this.tableInUse._id,
+              workoutIndex: this.workoutIndex,
+              exerciseIndex: exerciseIdx,
+              notes: newNotes,
+            };
+            this.pinnedExerciseNoteService.upsert(dto).subscribe({
+              next: (updated) => {
+                this.pinnedNote = updated;
+                console.debug('[ConfigExercisePage] Pinned note updated');
+              },
+              error: (err) => console.error('[ConfigExercisePage] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   public ionViewDidEnter(): void {
@@ -798,7 +902,6 @@ export class ConfigExercisePage implements OnInit {
         const otherWorkouts =
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
-        this.load = true;
         void this.billingService.refreshBackendEntitlements();
         this.adMobService.interstitial("create_exercise"); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
@@ -960,7 +1063,6 @@ export class ConfigExercisePage implements OnInit {
             if (!this._idExerciseToAdd) {
               // Cerrar el modal con toda la información necesaria
               this.modalController.dismiss({ setChangeInfo: changeInfo });
-              this.load = true;
               this.syncWorkoutInUseAfterExerciseChange();
               resolve();
             } else {
@@ -970,14 +1072,12 @@ export class ConfigExercisePage implements OnInit {
                   // Actualizar la tabla en changeInfo con la tabla final del servicio
                   changeInfo.tableInUse = this.tableService.tableInUse;
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
-                  this.load = true;
                   resolve();
                 })
                 .catch(() => {
                   // En caso de error fallback: cerrar modal y resolver
                   changeInfo.tableInUse = this.tableService.tableInUse;
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
-                  this.load = true;
                   resolve();
                 });
             }
@@ -1041,13 +1141,11 @@ export class ConfigExercisePage implements OnInit {
             .getTableById(this.user.tableInUse)
             .toPromise()
             .then((resTable) => {
-              this.load = true;
               this.tableInUse = resTable;
               this.modalController.dismiss(resWorkoutsUpdates);
             });
         });
       } else {
-        this.load = true;
         this.modalController.dismiss();
         return Promise.resolve();
       }
@@ -1244,7 +1342,6 @@ export class ConfigExercisePage implements OnInit {
       };
       this.ionicUtilService.showToast(toastOptions);
       this.syncWorkoutInUseAfterExerciseChange();
-      this.load = true;
     });
   }
 
@@ -1339,20 +1436,40 @@ export class ConfigExercisePage implements OnInit {
     return (groups || []).filter((g) => g && g.trim().length > 0);
   }
 
+  public onNotesUpdate(notes: string | undefined): void {
+    this.notes = notes;
+  }
+
   public manageNote(): void {
-    const alertButtons: AlertButton[] = [
-      {
-        text: this.translate.instant("COMMON.CANCEL"),
-        role: "cancel",
-      },
+    const isCustomExercise = this.customExercise?.sets !== undefined;
+    const showPinOption = isCustomExercise && this.tableInUse?._id && this.workoutIndex !== undefined;
+
+    let shouldPin = false;
+
+    const confirmButtons: AlertButton[] = [
       {
         text: this.translate.instant("COMMON.CONFIRM"),
         handler: (res) => {
+          shouldPin = false;
           this.noteToCreate = !!res.notes;
           this.notes = res.notes;
+          return true;
         },
       },
     ];
+
+    if (showPinOption) {
+      confirmButtons.push({
+        text: this.translate.instant('NOTES.PIN_TO_POSITION'),
+        cssClass: 'alert-button-pin',
+        handler: (res) => {
+          shouldPin = true;
+          this.noteToCreate = !!res.notes;
+          return true;
+        },
+      });
+    }
+
     const alertInputs: AlertInput[] = [
       {
         name: "notes",
@@ -1365,11 +1482,37 @@ export class ConfigExercisePage implements OnInit {
     const alertOptions: AlertOptions = {
       header: this.translate.instant("EXERCISE_CONFIG.NOTES"),
       inputs: alertInputs,
-      buttons: alertButtons,
+      buttons: [
+        {
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+        },
+        ...confirmButtons,
+      ],
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((res) => {
-      if (res.data) this.notes = res.data.values.notes;
+      if (shouldPin && this.tableInUse?._id && this.workoutIndex !== undefined) {
+        const exerciseIdx = this.exerciseIndex;
+        if (exerciseIdx >= 0) {
+          const dto: PinnedExerciseNoteUpsertDto = {
+            tableId: this.tableInUse._id,
+            workoutIndex: this.workoutIndex,
+            exerciseIndex: exerciseIdx,
+            notes: res.data?.values?.notes || '',
+          };
+          this.pinnedExerciseNoteService.upsert(dto).subscribe({
+            next: (note) => {
+              this.pinnedNote = note;
+            },
+            error: (err) => console.error('[ConfigExercisePage] Failed to save pinned note', err),
+          });
+        }
+        return;
+      }
+      if (res.data) {
+        this.notes = res.data.values.notes;
+      }
     });
   }
 

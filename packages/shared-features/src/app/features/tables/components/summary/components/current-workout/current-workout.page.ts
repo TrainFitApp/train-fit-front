@@ -482,6 +482,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         case ACTIONS[ACTION_TYPES.moveExercises].id:
           this.openOrderExercisesModal();
           break;
+        case ACTIONS[ACTION_TYPES.rmCalculator].id:
+          this.navigationService.goToRmCalculator();
+          break;
       }
     });
   }
@@ -505,6 +508,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     return [
       ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.moveExercises],
+      ACTIONS[ACTION_TYPES.rmCalculator],
     ];
   }
 

@@ -1,26 +1,28 @@
-<ion-header>
-  <div class="weight-info-header">
-    <div class="header-content">
-      <div class="back-section">
-        <button class="back-button" (click)="goBack()">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-
-      <div class="title-section">
-        <h1 class="page-title">{{ monthYear }}</h1>
-      </div>
+<ion-header class="weight-info-header">
+  <div class="header-content">
+    <div class="back-section">
+      <button class="back-button" (click)="goBack()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
     </div>
 
-    <div class="progress-bar" [style.visibility]="load ? 'hidden' : 'visible'">
-      <div class="progress-indicator"></div>
-    </div></div
-></ion-header>
+    <div class="title-section">
+      <h1 class="page-title">{{ monthYear }}</h1>
+    </div>
+
+    <div class="actions-section"></div>
+  </div>
+
+  <div class="progress-bar" [style.visibility]="load ? 'hidden' : 'visible'">
+    <div class="progress-indicator"></div>
+  </div>
+</ion-header>
 
 <ion-content>
   <div class="weight-info-container">
     <div class="calendar-section">
       <app-calendar
+        #weightCalendar
         class="weight-calendar"
         [fetchOnInit]="true"
         (selectDate)="selectDate($event)"
@@ -29,62 +31,46 @@
       ></app-calendar>
     </div>
 
-    <div class="notes-section" *ngIf="currentNotes">
-      <app-notes
-        [notes]="currentNotes"
-        [detail]="true"
-        [canDelete]="false"
-        [canModify]="false"
-      ></app-notes>
+    <div class="add-measurement-section">
+      <button class="add-measurement-btn" (click)="openAnthropometryModal()">
+        <ion-icon name="body-outline" class="btn-icon"></ion-icon>
+        <span class="btn-text">
+          <span class="btn-title">{{ 'ANTHROPOMETRY.ADD_MEASUREMENT' | translate }}</span>
+          <span class="btn-desc">{{ 'ANTHROPOMETRY.ADD_MEASUREMENT_DESC' | translate }}</span>
+        </span>
+        <ion-icon name="chevron-forward-outline" class="btn-arrow"></ion-icon>
+      </button>
     </div>
 
-    <div class="chart-section">
-      <div class="range-selector">
-        <ion-segment
-          class="range-segment"
-          [value]="chartRange"
-          (ionChange)="chartRangeChange($event)"
-        >
-          <ion-segment-button [value]="CHART_RANGES.week">
-            <ion-label>{{ 'WEIGHT_INFO.WEEK_LABEL' | translate }}</ion-label>
-          </ion-segment-button>
-          <ion-segment-button [value]="CHART_RANGES.month">
-            <ion-label>{{ 'WEIGHT_INFO.MONTH_LABEL' | translate }}</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </div>
-
-      <div class="weight-info-card">
-        <div class="weight-current">
-          <div class="weight-day">{{ days[getDayOfWeek(selectedDate)] }}</div>
-          <div class="weight-value">
-            {{ currentWeight ? currentWeight + ' Kg' : ('WEIGHT_INFO.NO_RECORD' | translate) }}
-          </div>
-        </div>
-
-        <div class="weight-stats">
-          <div
-            class="stat-item"
-            *ngIf="chartRange === CHART_RANGES.week"
-            style="color: #ffffff"
+      <div class="chart-section">
+        <div class="range-selector">
+          <ion-segment
+            class="range-segment"
+            [value]="chartRange"
+            (ionChange)="chartRangeChange($event)"
+            mode="ios"
           >
-            {{ 'WEIGHT_INFO.WEEK' | translate:{ number: getWeekOfMonth() } }}
-          </div>
-          <div class="stat-item" *ngIf="chartRange === CHART_RANGES.month">
-            <span class="stat-label">{{ 'WEIGHT_INFO.MONTHLY_AVERAGE' | translate }}</span>
-            <span class="stat-value"
-              >{{ average ? average + ' Kg' : ('WEIGHT_INFO.NO_RECORDS' | translate) }}</span
-            >
-          </div>
-          <div class="stat-item" *ngIf="chartRange === CHART_RANGES.year">
-            {{ 'WEIGHT_INFO.YEARLY_AVERAGE' | translate }}
-          </div>
+            <ion-segment-button [value]="CHART_RANGES.week">
+              <ion-label>{{ 'WEIGHT_INFO.WEEK_LABEL' | translate }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button [value]="CHART_RANGES.month">
+              <ion-label>{{ 'WEIGHT_INFO.MONTH_LABEL' | translate }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
         </div>
-      </div>
 
-      <div class="chart-container">
-        <canvas id="dayWeight"></canvas>
+        <div *ngIf="allAnthropometryData.length > 0; else noRecords">
+          <app-anthropometry-chart
+            class="anthropometry-chart"
+            [data]="allAnthropometryData"
+          ></app-anthropometry-chart>
+        </div>
+        <ng-template #noRecords>
+          <div class="no-records">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>{{ 'ANTHROPOMETRY.NO_RECORDS' | translate }}</span>
+          </div>
+        </ng-template>
       </div>
-    </div>
   </div>
 </ion-content>

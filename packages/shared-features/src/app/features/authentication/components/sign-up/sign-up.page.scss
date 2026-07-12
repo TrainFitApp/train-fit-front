@@ -1624,3 +1624,128 @@ ion-input {
 .finalize-btn {
   --box-shadow: 0 4px 15px rgba(254, 144, 0, 0.4);
 }
+
+.signup-notif-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(254, 144, 0, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+
+  .signup-notif-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    .signup-notif-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .signup-notif-icon {
+        font-size: 24px;
+        color: #fe9000;
+        min-width: 24px;
+      }
+
+      .signup-notif-label {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+        color: #f4f4f5;
+        margin-bottom: 2px;
+      }
+
+      .signup-notif-desc {
+        display: block;
+        font-size: 13px;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+
+  .signup-notif-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 12px 0;
+  }
+
+  .signup-notif-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+
+    .signup-notif-option-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #f4f4f5;
+      white-space: nowrap;
+    }
+
+    ion-select {
+      --padding-start: 10px;
+      --padding-end: 30px;
+      --color: #fe9000;
+      min-height: 38px;
+      width: auto;
+      max-width: 160px;
+      border: 1px solid rgba(254, 144, 0, 0.25);
+      border-radius: 10px;
+      background: rgba(254, 144, 0, 0.08);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .signup-notif-stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      ion-button {
+        --padding-start: 6px;
+        --padding-end: 6px;
+        --color: #fe9000;
+        margin: 0;
+        height: 32px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+
+      .signup-stepper-value {
+        min-width: 24px;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fe9000;
+      }
+    }
+  }
+
+  .signup-time-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(254, 144, 0, 0.08);
+    border: 1px solid rgba(254, 144, 0, 0.25);
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 16px;
+      color: #fe9000;
+    }
+
+    span {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fe9000;
+      letter-spacing: 0.5px;
+    }
+  }
+}

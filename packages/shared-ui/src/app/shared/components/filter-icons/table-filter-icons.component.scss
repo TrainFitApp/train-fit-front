@@ -1,0 +1,124 @@
+.icon-product-filters {
+  display: flex;
+  justify-content: center;
+}
+
+// Estilos para el contenedor de scroll horizontal
+.filter-icons-container {
+  width: 100%;
+  padding: 0;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  padding: 4px 16px;
+  white-space: nowrap;
+  min-width: max-content;
+
+  ion-chip {
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+}
+
+.filter-info-row {
+  display: flex;
+  gap: 8px;
+  padding: 2px 16px;
+  white-space: normal;
+}
+
+// Modern pill replacement for chips
+.modern-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  min-height: 32px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(120%) blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  position: relative;
+}
+
+.modern-pill .label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.modern-pill ion-icon {
+  font-size: 18px;
+}
+
+.modern-pill:active {
+  transform: scale(0.98);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.modern-pill.is-active {
+  background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+  color: #121212;
+  border-color: transparent;
+}
+
+.modern-pill[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.modern-pill.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.info-pill {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.25);
+}
+
+// Estilos para chips seleccionados
+ion-chip.custom-chip-selected {
+  --background: #141414 !important;
+  --color: white !important;
+  border: 1px solid var(--ion-color-primary) !important;
+  background: #141414 !important;
+
+  ion-label {
+    color: white !important;
+  }
+
+  ion-icon {
+    color: var(--ion-color-primary) !important;
+  }
+}
+
+// Estilos para chips no seleccionados
+ion-chip.custom-chip-unselected {
+  --background: var(--ion-color-light) !important;
+  --color: var(--ion-color-primary) !important;
+  border: none !important;
+  background: var(--ion-color-light) !important;
+
+  ion-label {
+    color: var(--ion-color-primary) !important;
+  }
+
+  ion-icon {
+    color: var(--ion-color-primary) !important;
+  }
+}
+.filter-chips-scroll {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.filter-chips-scroll::-webkit-scrollbar {
+  display: none;
+}

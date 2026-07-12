@@ -2,9 +2,12 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   Output,
   ViewChild,
+  OnInit,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import {
   ActionSheetOptions,
   AlertOptions,
@@ -40,6 +43,8 @@ import {
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
+import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
 import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
 import { buildWorkoutSummary } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model';
 
@@ -48,7 +53,7 @@ import { buildWorkoutSummary } from 'src/app/features/tables/components/summary/
   templateUrl: './workout.component.html',
   styleUrls: ['./workout.component.scss'],
 })
-export class WorkoutComponent {
+export class WorkoutComponent implements OnDestroy {
   @Input()
   public user: User;
 
@@ -129,6 +134,9 @@ export class WorkoutComponent {
 
   public test: boolean = false;
 
+  public pinnedNotes: PinnedExerciseNote[] = [];
+  private pinnedNoteCacheSub: Subscription | null = null;
+
   constructor(
     private userService: UserService,
     private modalController: ModalController,
@@ -139,8 +147,116 @@ export class WorkoutComponent {
     private tableService: TableService,
     private navigationService: NavigationService,
     private adMobService: AdMobService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
   ) {}
+
+  ngOnInit(): void {
+    this.loadPinnedNotes();
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
+      this.loadPinnedNotes();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pinnedNoteCacheSub?.unsubscribe();
+  }
+
+  private loadPinnedNotes(): void {
+    if (this.tableInUse?._id) {
+      this.pinnedExerciseNoteService.getByTable(this.tableInUse._id).subscribe((notes) => {
+        this.pinnedNotes = notes;
+      });
+    }
+  }
+
+  public getPinnedNote(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+    return this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+  }
+
+  public deletePinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.DELETE_PINNED_TITLE'),
+      message: this.translate.instant('NOTES.DELETE_PINNED_CONFIRM'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.pinnedExerciseNoteService.delete(note._id, this.tableInUse._id).subscribe({
+              next: () => {
+                this.pinnedNotes = this.pinnedNotes.filter((n) => n._id !== note._id);
+                console.debug('[WorkoutComponent] Pinned note deleted');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public editPinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.TITLE'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: note.notes,
+          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            const dto: PinnedExerciseNoteUpsertDto = {
+              tableId: this.tableInUse._id,
+              workoutIndex,
+              exerciseIndex,
+              notes: newNotes,
+            };
+            this.pinnedExerciseNoteService.upsert(dto).subscribe({
+              next: (updated) => {
+                const idx = this.pinnedNotes.findIndex((n) => n._id === note._id);
+                if (idx >= 0) this.pinnedNotes[idx] = updated;
+                console.debug('[WorkoutComponent] Pinned note updated');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
 
   public workoutActions(
     event,

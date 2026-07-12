@@ -35,15 +35,11 @@
     <div class="main-content">
       <!-- Botones de navegación principales -->
       <div class="nav-buttons">
-        <button class="nav-btn" (click)="openSearchTables(true)">
-          <ion-icon name="library-outline" class="nav-icon"></ion-icon>
-          {{ 'TABLES.MY_ROUTINES' | translate }}
-        </button>
-        <button class="nav-btn" (click)="openSearchTables()">
+        <button class="nav-btn nav-btn--search" (click)="openSearchTables()">
           <ion-icon name="search-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.SEARCH_ROUTINES' | translate }}
         </button>
-        <button class="nav-btn" (click)="createTableAndAddToUser()">
+        <button class="nav-btn nav-btn--create" (click)="createTableAndAddToUser()">
           <ion-icon name="add-circle-outline" class="nav-icon"></ion-icon>
           {{ 'TABLES.CREATE_ROUTINE_BTN' | translate }}
         </button>
@@ -55,21 +51,41 @@
           </span>
           <ion-icon name="chevron-forward-outline" class="nav-btn__arrow"></ion-icon>
         </button>
+        <button class="nav-btn nav-btn--full" routerLink="/rm-calculator">
+          <ion-icon name="calculator-outline" class="nav-icon"></ion-icon>
+          <span class="nav-btn__text">
+            <span class="nav-btn__title">{{ 'TABLES.RM_CALCULATOR_BTN' | translate }}</span>
+          </span>
+          <ion-icon name="chevron-forward-outline" class="nav-btn__arrow"></ion-icon>
+        </button>
       </div>
 
-      <!-- Rutina Actual -->
+      <!-- Rutina en Uso -->
       <div class="section current-routine">
-        <div
-          class="info-card info-card--primary"
-          (click)="openMesocycle(); $event.stopPropagation()"
-        >
-          <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
-          <div class="info-text">
-            <span class="info-title">{{ 'TABLES.CURRENT_ROUTINE' | translate }}</span>
-          </div>
-        </div>
         <div *ngIf="tableInUse; else notTableInUse">
-          <div class="routine-name">{{ tableInUse.name }}</div>
+          <div class="routine-buttons-row">
+            <div
+              class="info-card info-card--primary info-card--full"
+              (click)="openMesocycle(); $event.stopPropagation()"
+            >
+              <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
+              <div class="info-text">
+                <span class="info-title">{{ 'TABLES.ROUTINE_IN_USE' | translate }}</span>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
+            </div>
+            <div
+              class="info-card info-card--orange info-card--full"
+              (click)="goToStatistics(); $event.stopPropagation()"
+            >
+              <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
+              <div class="info-text">
+                <span class="info-title">{{ 'TABLES.STATISTICS' | translate }}</span>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
+            </div>
+          </div>
+          <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
             {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: countDoneSplits() + 1, total: tableInUse.splits.length } }}
           </div>
@@ -81,16 +97,6 @@
               *ngFor="let split of tableInUse.splits"
               [ngClass]="getSplitClass(split)"
             ></div>
-          </div>
-
-          <div
-            class="info-card info-card--orange stats-card-btn"
-            (click)="goToStatistics(); $event.stopPropagation()"
-          >
-            <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
-            <div class="info-text">
-              <span class="info-title">{{ 'TABLES.STATISTICS' | translate }}</span>
-            </div>
           </div>
         </div>
         <ng-template #notTableInUse>
@@ -115,7 +121,7 @@
         >
           <div class="workout-header">
             <div>
-              <div class="workout-title">{{ 'TABLES.DAY' | translate }} {{ workout.name }}</div>
+              <div class="workout-title">{{ 'TABLES.DAY' | translate }} {{ workout.name | translateDb }}</div>
             </div>
             <div class="workout-status">{{ 'TABLES.IN_PROGRESS' | translate }}</div>
           </div>
@@ -190,7 +196,7 @@
                       class="exercise-name"
                       [class.completed]="isCustomExerciseCompleted(exercise)"
                     >
-                      {{ exercise.exercise.name }}
+                      {{ exercise.exercise.name | translateDb }}
                     </div>
                     <div class="exercise-icons">
                       <ion-icon
@@ -215,9 +221,11 @@
             class="info-card info-card--orange summary-info-card"
             (click)="selectWorkout(); $event.stopPropagation()"
           >
+            <ion-icon name="barbell-outline" class="info-icon"></ion-icon>
             <div class="info-text">
               <span class="info-title">{{ 'TABLES.RESUME_WORKOUT' | translate }}</span>
             </div>
+            <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
           </div>
         </div>
 

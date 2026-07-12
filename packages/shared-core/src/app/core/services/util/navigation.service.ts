@@ -27,9 +27,9 @@ export class NavigationService {
   private readonly REFERENCES_ROUTE = 'configuration/references';
   private readonly CALCULATOR_LIST_ROUTE = 'tabs/profile/calculator-list';
   private readonly PREMIUM_ROUTE = 'premium';
-  private readonly SEARCH_TABLES_ROUTE = 'search-tables/false';
-  private readonly SEARCH_OWN_TABLES_ROUTE = 'search-tables/true';
+  private readonly SEARCH_TABLES_ROUTE = 'search-tables';
   private readonly CURRENT_WORKOUT_ROUTE = 'current-workout';
+  private readonly RM_CALCULATOR_ROUTE = 'rm-calculator';
   private readonly SIGN_UP_ROUTE = 'sign-in/sign-up';
   private readonly DATA_SHEET_ROUTE = 'sign-in/sign-up/data-sheet';
   private readonly RESTORE_PASSWORD_ROUTE = 'sign-in/restore-password';
@@ -107,9 +107,9 @@ export class NavigationService {
     this.navController.navigateRoot([this.NO_CONECTION_ROUTE]);
   }
 
-  public goToSearchTables(isOwn?: boolean): void {
+  public goToSearchTables(): void {
     this.navController.navigateForward(
-      [isOwn ? this.SEARCH_OWN_TABLES_ROUTE : this.SEARCH_TABLES_ROUTE],
+      [this.SEARCH_TABLES_ROUTE],
       {
         animated: false,
       }
@@ -128,8 +128,12 @@ export class NavigationService {
     this.navController.navigateForward(['/statistics']);
   }
 
+  public goToRmCalculator(): void {
+    this.navController.navigateForward([this.RM_CALCULATOR_ROUTE]);
+  }
+
   public goToWeightInfo(): void {
-    this.navController.navigateForward([this.WEIGHT_INFO_ROUTE], {
+    this.navController.navigateForward(['/' + this.WEIGHT_INFO_ROUTE], {
       animated: true,
     });
   }

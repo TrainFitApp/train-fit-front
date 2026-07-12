@@ -93,7 +93,7 @@
 
     <!-- Info warning -->
     <div class="info-warning" *ngIf="checkIfInfoExist()">
-      No hay información
+      {{ 'ADD_PRODUCT.NO_INFO' | translate }}
       {{ MEASURE_FILTER[MEASURE_FILTER[this.measureFilter].id].name | translate }}
     </div>
     <ion-progress-bar
