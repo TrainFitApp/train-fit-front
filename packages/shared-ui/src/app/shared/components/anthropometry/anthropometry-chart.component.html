@@ -1,0 +1,47 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <div class="chart-title-section">
+      <h3>{{ 'ANTHROPOMETRY.CHART_TITLE' | translate }}</h3>
+      <p class="chart-subtitle">{{ 'ANTHROPOMETRY.CHART_SUBTITLE' | translate }}</p>
+    </div>
+
+    <div class="metric-toggles" *ngIf="availableMetrics.length > 1">
+      <div class="toggle-group">
+        <span class="toggle-label">{{ 'ANTHROPOMETRY.SHOW' | translate }}:</span>
+        <div class="toggles" role="group" aria-label="Metric toggles">
+          <button
+            type="button"
+            class="metric-toggle"
+            *ngFor="let metric of metricConfig"
+            [class.active]="isMetricSelected(metric.key)"
+            [class.disabled]="!isMetricAvailable(metric.key)"
+            (click)="isMetricAvailable(metric.key) && toggleMetric(metric.key)"
+            [attr.aria-pressed]="isMetricSelected(metric.key)"
+            [style.--metric-color]="getMetricColor(metric.key)"
+          >
+            <span class="toggle-dot"></span>
+            <span class="toggle-text">{{ getMetricLabel(metric.key) }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="chart-legend" *ngIf="selectedMetrics.size > 0">
+    <div class="legend-item" *ngFor="let metric of metricConfig" [class.hidden]="!isMetricSelected(metric.key)">
+      <span class="legend-color" [style.background-color]="getMetricColor(metric.key)"></span>
+      <span class="legend-label">{{ getMetricLabel(metric.key) }}</span>
+      <span class="legend-axis" *ngIf="metric.yAxisID === 'yWeight'">{{ 'ANTHROPOMETRY.WEIGHT_AXIS' | translate }}</span>
+      <span class="legend-axis" *ngIf="metric.yAxisID === 'yBody'">{{ 'ANTHROPOMETRY.BODY_AXIS' | translate }}</span>
+    </div>
+  </div>
+
+  <div class="no-data" *ngIf="data.length === 0 || availableMetrics.length === 0">
+    <ion-icon name="analytics-outline"></ion-icon>
+    <p>{{ 'ANTHROPOMETRY.NO_CHART_DATA' | translate }}</p>
+  </div>
+</div>

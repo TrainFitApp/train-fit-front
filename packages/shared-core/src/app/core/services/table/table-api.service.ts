@@ -24,32 +24,39 @@ export class TableAPIService {
   }
 
   public copyTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`owntables/copy/${idUser}/${idTable}`);
+    return this.http.post<Table>(`tables/copy/${idTable}`, { idUser });
   }
 
-  public copyOwnTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`owntables/copy/own/${idUser}/${idTable}`);
+  public duplicateTable(idUser: string, idTable: string): Observable<Table> {
+    return this.http.post<Table>(`tables/duplicate/${idTable}`, { idUser });
   }
 
   public copySharedTable(idUser: string, idTable: string): Observable<Table> {
-    return this.http.get<Table>(`/share/${idUser}/${idTable}`);
+    return this.http.get<Table>(`tables/share/${idUser}/${idTable}`);
   }
 
   public getSearchTables(
     search: string,
     page: number,
     idUser: string,
-    isOwn: boolean
+    isOwn: boolean,
+    defaultOnly: boolean = false
   ): Observable<Table[]> {
     return this.http.post<Table[]>(`tables/search?page=${page}&limit=5`, {
       search,
       idUser,
       isOwn,
+      defaultOnly,
     });
   }
 
+  public getTables(page: number, limit: number, own: boolean): Observable<Table[]> {
+    const url = `tables?page=${page}&limit=${limit}&own=${own}`;
+    return this.http.get<Table[]>(url);
+  }
+
   public createTableToUser(idUser: string, name: string): Observable<Table> {
-    return this.http.post<Table>(`owntables/${idUser}`, { name });
+    return this.http.post<Table>(`tables/user/${idUser}`, { name });
   }
 
   public updateTableName(table: Table): Observable<string> {
@@ -57,6 +64,6 @@ export class TableAPIService {
   }
 
   public deleteTableById(idUser: string, idTable: string): Observable<Table> {
-    return this.http.delete<Table>(`owntables/${idUser}/${idTable}`);
+    return this.http.delete<Table>(`tables/${idUser}/${idTable}`);
   }
 }

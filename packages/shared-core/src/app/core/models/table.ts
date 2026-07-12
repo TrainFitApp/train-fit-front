@@ -4,6 +4,7 @@ export class Table {
     _id: string;
     name: string;
     type: string;
+    userId?: string;
     splits: Split[];
     urlImage?: string;
     description?: string;

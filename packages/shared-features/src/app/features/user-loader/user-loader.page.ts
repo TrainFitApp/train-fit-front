@@ -12,6 +12,7 @@ import { Diet } from 'src/app/core/models/diet';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
@@ -89,6 +90,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly workoutService: WorkoutService,
     private readonly themeService: ThemeService,
     private readonly navigationService: NavigationService,
+    private readonly i18nService: I18nService,
     private readonly authService: AuthService,
     private readonly billingService: BillingService,
     private readonly translate: TranslateService
@@ -121,6 +123,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.updateLoadingStep(2);
           this.updateProgress(30);
           this.userService.setLocalUser = resUser;
+          if (resUser.lang) this.i18nService.switchLang(resUser.lang);
 
           return from(this.billingService.logIn(resUser?._id)).pipe(
             catchError((error) => {

@@ -25,7 +25,8 @@ export type InterstitialPlacement =
   | 'create_exercise'
   | 'create_recipe'
   | 'acquire_routine'
-  | 'profile_start';
+  | 'profile_start'
+  | 'rm_calculator';
 
 type ActiveInterstitialRequest = {
   placement: InterstitialPlacement;
@@ -53,6 +54,7 @@ export class AdMobService {
     create_recipe: 'ca-app-pub-7032025540653355/1879866567',
     acquire_routine: 'ca-app-pub-7032025540653355/9629095154',
     profile_start: 'ca-app-pub-7032025540653355/4314458216',
+    rm_calculator: 'ca-app-pub-7032025540653355/1114289586',
   };
 
   private readonly INTERSTITIAL_IOS: Record<
@@ -68,6 +70,7 @@ export class AdMobService {
     create_recipe: 'ca-app-pub-7032025540653355/4753441916',
     acquire_routine: 'ca-app-pub-7032025540653355/2238959219',
     profile_start: 'ca-app-pub-7032025540653355/5874037227',
+    rm_calculator: 'ca-app-pub-7032025540653355/5464185440',
   };
 
   private readonly userService = inject(UserService);

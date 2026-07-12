@@ -57,14 +57,14 @@
           <div class="product-details">
             <h2 class="product-name">{{ product.name }}</h2>
             <div class="product-brand-row">
-              <p class="product-brand">{{ product.brand || 'Sin marca' }}</p>
+              <p class="product-brand">{{ product.brand || ('ADD_PRODUCT.NO_BRAND' | translate) }}</p>
               <ion-chip
                 *ngIf="product.verified"
                 color="success"
                 class="verified-chip"
               >
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
-                <ion-label>Verificado</ion-label>
+                <ion-label>{{ 'ADD_PRODUCT.VERIFIED' | translate }}</ion-label>
               </ion-chip>
             </div>
           </div>
@@ -82,13 +82,12 @@
         >
           <div class="quantity-container">
             <div class="quantity-header">
-              <span class="quantity-label">CANTIDAD</span>
+              <span class="quantity-label">{{ 'ADD_PRODUCT.AMOUNT' | translate }}</span>
               <span
                 class="serving-hint"
                 *ngIf="hasPortions && selectedUnit === 'portions'"
               >
-                1 ración = {{ product?.servingQuantity ||
-                customProduct?.product?.servingQuantity }}<small>g</small>
+                {{ 'ADD_PRODUCT.PER_SERVING' | translate:{ value: product?.servingQuantity || customProduct?.product?.servingQuantity } }}<small>g</small>
               </span>
             </div>
 
@@ -125,15 +124,15 @@
                   [value]="selectedUnit"
                   interface="action-sheet"
                   mode="ios"
-                  cancelText="Cancelar"
+                  [cancelText]="'ADD_PRODUCT.CANCEL' | translate"
                   (ionChange)="changeUnit($event.detail.value)"
                   toggleIcon="chevron-down-outline"
                   class="unit-select-elegant"
                   [disabled]="!hasPortions"
                 >
-                  <ion-select-option value="g">Gramos</ion-select-option>
+                  <ion-select-option value="g">{{ 'ADD_PRODUCT.GRAMS' | translate }}</ion-select-option>
                   <ion-select-option *ngIf="hasPortions" value="portions"
-                    >Ración</ion-select-option
+                    >{{ 'ADD_PRODUCT.SERVING' | translate }}</ion-select-option
                   >
                 </ion-select>
               </div>
@@ -149,28 +148,28 @@
           <div class="dietary-grid icons-only">
             <div class="dietary-option active vegan" *ngIf="product?.vegan">
               <ion-icon name="leaf"></ion-icon>
-              <span class="tooltip-text">Vegano</span>
+              <span class="tooltip-text">{{ 'ADD_PRODUCT.VEGAN' | translate }}</span>
             </div>
             <div
               class="dietary-option active vegetarian"
               *ngIf="product?.vegetarian"
             >
               <ion-icon name="leaf"></ion-icon>
-              <span class="tooltip-text">Vegetariano</span>
+              <span class="tooltip-text">{{ 'ADD_PRODUCT.VEGETARIAN' | translate }}</span>
             </div>
             <div
               class="dietary-option active lactose-free"
               *ngIf="product?.lactoseFree"
             >
               <ion-icon name="water"></ion-icon>
-              <span class="tooltip-text">Sin Lactosa</span>
+              <span class="tooltip-text">{{ 'ADD_PRODUCT.LACTOSE_FREE' | translate }}</span>
             </div>
             <div
               class="dietary-option active gluten-free"
               *ngIf="product?.glutenFree"
             >
               <ion-icon name="nutrition"></ion-icon>
-              <span class="tooltip-text">Sin Gluten</span>
+              <span class="tooltip-text">{{ 'ADD_PRODUCT.GLUTEN_FREE' | translate }}</span>
             </div>
           </div>
         </div>
@@ -189,15 +188,15 @@
             <span class="summary-value"
               >{{ totalProtein }}<small>g</small></span
             >
-            <span class="summary-label protein">Proteína</span>
+            <span class="summary-label protein">{{ 'ADD_PRODUCT.PROTEIN_LABEL' | translate }}</span>
           </div>
           <div class="summary-item">
             <span class="summary-value">{{ totalCarbs }}<small>g</small></span>
-            <span class="summary-label carbs">CBH</span>
+            <span class="summary-label carbs">{{ 'ADD_PRODUCT.CARBS_LABEL' | translate }}</span>
           </div>
           <div class="summary-item">
             <span class="summary-value">{{ totalFat }}<small>g</small></span>
-            <span class="summary-label fat">Grasas</span>
+            <span class="summary-label fat">{{ 'ADD_PRODUCT.FAT_LABEL' | translate }}</span>
           </div>
         </div>
       </ion-card-content>
@@ -207,8 +206,8 @@
     <ion-card class="nutrition-card">
       <ion-card-header>
         <ion-card-title class="nutrition-title">
-          Información nutricional
-          <ion-note>(por cada 100g)</ion-note>
+          {{ 'ADD_PRODUCT.NUTRITION_INFO' | translate }}
+          <ion-note>{{ 'ADD_PRODUCT.PER_100G' | translate }}</ion-note>
         </ion-card-title>
       </ion-card-header>
 
@@ -219,7 +218,7 @@
             <div class="custom-input-container calories-input">
               <ion-label class="custom-label calories-label">
                 <ion-icon name="flame-outline"></ion-icon>
-                Calorías *
+                {{ 'ADD_PRODUCT.CALORIES' | translate }}
               </ion-label>
               <div class="input-wrapper calories-wrapper">
                 <button
@@ -253,7 +252,7 @@
             <div class="macros-header">
               <ion-text class="macros-title">
                 <ion-icon name="analytics-outline"></ion-icon>
-                Macronutrientes
+                {{ 'ADD_PRODUCT.MACRONUTRIENTS' | translate }}
               </ion-text>
             </div>
 
@@ -262,7 +261,7 @@
                 <div class="custom-input-container fat-input">
                   <ion-label class="custom-label fat-label">
                     <div class="macro-dot fat-dot"></div>
-                    Grasas *
+                    {{ 'ADD_PRODUCT.FATS' | translate }}
                   </ion-label>
                   <div class="input-wrapper">
                     <button
@@ -294,7 +293,7 @@
                 <div class="macro-item saturated-fat-macro">
                   <div class="custom-input-container saturated-fat-input">
                     <ion-label class="custom-label saturated-fat-label">
-                      Saturadas
+                      {{ 'ADD_PRODUCT.SATURATED' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <button
@@ -325,7 +324,7 @@
                 <div class="custom-input-container carbs-input">
                   <ion-label class="custom-label carbs-label">
                     <div class="macro-dot carbs-dot"></div>
-                    Carbohidratos *
+                    {{ 'ADD_PRODUCT.CARBS' | translate }}
                   </ion-label>
                   <div class="input-wrapper">
                     <button
@@ -358,7 +357,7 @@
               <div class="macro-item sugars-macro">
                 <div class="custom-input-container sugars-input">
                   <ion-label class="custom-label sugars-label">
-                    de los cuales azúcares
+                    {{ 'ADD_PRODUCT.OF_WHICH_SUGARS' | translate }}
                   </ion-label>
                   <div class="input-wrapper">
                     <button
@@ -390,7 +389,7 @@
                 <div class="custom-input-container fiber-input">
                   <ion-label class="custom-label fiber-label">
                     <div class="macro-dot fiber-dot"></div>
-                    Fibra
+                    {{ 'ADD_PRODUCT.FIBER' | translate }}
                   </ion-label>
                   <div class="input-wrapper">
                     <button
@@ -421,7 +420,7 @@
                 <div class="custom-input-container protein-input">
                   <ion-label class="custom-label protein-label">
                     <div class="macro-dot protein-dot"></div>
-                    Proteínas *
+                    {{ 'ADD_PRODUCT.PROTEINS' | translate }}
                   </ion-label>
                   <div class="input-wrapper">
                     <button
@@ -462,20 +461,20 @@
           <ion-item slot="header" lines="none">
             <ion-label class="nutrition-title">
               <ion-icon name="add-circle-outline"></ion-icon>
-              Información completa
+              {{ 'ADD_PRODUCT.COMPLETE_INFO' | translate }}
             </ion-label>
           </ion-item>
 
           <div slot="content" class="ion-padding">
             <!-- Minerales -->
             <ion-list-header>
-              <ion-label>Minerales</ion-label>
+              <ion-label>{{ 'ADD_PRODUCT.MINERALS' | translate }}</ion-label>
             </ion-list-header>
             <div class="macros-grid">
               <!-- Calcio -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Calcio</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.CALCIUM' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('calcium100g')"
@@ -500,7 +499,7 @@
               <!-- Hierro -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Hierro</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.IRON' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('iron100g')"
@@ -525,7 +524,7 @@
               <!-- Magnesio -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Magnesio</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.MAGNESIUM' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('magnesium100g')"
@@ -550,7 +549,7 @@
               <!-- Fósforo -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Fósforo</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.PHOSPHORUS' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('phosphorus100g')"
@@ -575,7 +574,7 @@
               <!-- Potasio -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Potasio</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.POTASSIUM' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('potassium100g')"
@@ -600,7 +599,7 @@
               <!-- Zinc -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Zinc</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.ZINC' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('zinc100g')"
@@ -625,7 +624,7 @@
               <!-- Cobre -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Cobre</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.COPPER' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('copper100g')"
@@ -650,7 +649,7 @@
               <!-- Manganeso -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Manganeso</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.MANGANESE' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('manganese100g')"
@@ -675,7 +674,7 @@
               <!-- Selenio -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Selenio</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.SELENIUM' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('selenium100g')"
@@ -700,7 +699,7 @@
               <!-- Yodo -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Yodo</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.IODINE' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('iodine100g')"
@@ -725,7 +724,7 @@
               <!-- Sodio (mg) -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Sodio</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.SODIUM' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('sodium100g')"
@@ -750,7 +749,7 @@
               <!-- Sal (g) -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Sal</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.SALT' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('salt100g')"
@@ -777,13 +776,13 @@
 
             <!-- Vitaminas -->
             <ion-list-header>
-              <ion-label>Vitaminas</ion-label>
+              <ion-label>{{ 'ADD_PRODUCT.VITAMINS' | translate }}</ion-label>
             </ion-list-header>
             <div class="macros-grid">
               <!-- Vitamina A -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. A</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_A' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminA100g')"
@@ -808,7 +807,7 @@
               <!-- Vitamina D -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. D</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_D' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminD100g')"
@@ -833,7 +832,7 @@
               <!-- Vitamina E -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. E</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_E' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminE100g')"
@@ -858,7 +857,7 @@
               <!-- Vitamina K -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. K</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_K' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminK100g')"
@@ -883,7 +882,7 @@
               <!-- Vitamina C -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. C</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_C' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminC100g')"
@@ -908,7 +907,7 @@
               <!-- Vitamina B1 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B1</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B1' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB1100g')"
@@ -933,7 +932,7 @@
               <!-- Vitamina B2 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B2</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B2' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB2100g')"
@@ -958,7 +957,7 @@
               <!-- Vitamina B3 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B3</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B3' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB3100g')"
@@ -983,7 +982,7 @@
               <!-- Vitamina B5 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B5</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B5' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB5100g')"
@@ -1008,7 +1007,7 @@
               <!-- Vitamina B6 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B6</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B6' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB6100g')"
@@ -1034,7 +1033,7 @@
               <!-- Vitamina B9 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B9</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B9' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB9100g')"
@@ -1060,7 +1059,7 @@
               <!-- Vitamina B12 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Vit. B12</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.VIT_B12' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('vitaminB12100g')"
@@ -1086,7 +1085,7 @@
               <!-- Biotina -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Biotina</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.BIOTIN' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('biotin100g')"
@@ -1113,13 +1112,13 @@
 
             <!-- Otros -->
             <ion-list-header>
-              <ion-label>Ácidos Grasos/Otros</ion-label>
+              <ion-label>{{ 'ADD_PRODUCT.FATTY_ACIDS' | translate }}</ion-label>
             </ion-list-header>
             <div class="macros-grid">
               <!-- Colesterol -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Colesterol</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.CHOLESTEROL' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('cholesterol100g')"
@@ -1145,7 +1144,7 @@
               <!-- Grasas Trans -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Grasas Trans</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.TRANS_FAT' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('transFat100g')"
@@ -1172,7 +1171,7 @@
               <!-- Omega 3 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Omega 3</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.OMEGA_3' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('omega3100g')"
@@ -1199,7 +1198,7 @@
               <!-- Omega 6 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Omega 6</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.OMEGA_6' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('omega6100g')"
@@ -1226,7 +1225,7 @@
               <!-- Omega 9 -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Omega 9</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.OMEGA_9' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('omega9100g')"
@@ -1253,7 +1252,7 @@
               <!-- Cafeína -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Cafeína</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.CAFFEINE' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('caffeine100g')"
@@ -1279,7 +1278,7 @@
               <!-- Taurina -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Taurina</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.TAURINE' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('taurine100g')"
@@ -1305,7 +1304,7 @@
               <!-- Alcohol -->
               <div class="macro-item">
                 <div class="custom-input-container">
-                  <ion-label class="custom-label">Alcohol</ion-label>
+                  <ion-label class="custom-label">{{ 'ADD_PRODUCT.ALCOHOL' | translate }}</ion-label>
                   <div class="input-wrapper">
                     <button
                       *ngIf="showOverrideMeta('alcohol100g')"
@@ -1335,37 +1334,37 @@
             <div class="text-info-grid ion-margin-top">
               <div class="text-info-card">
                 <div class="text-info-header">
-                  <ion-label>Ingredientes</ion-label>
+                  <ion-label>{{ 'ADD_PRODUCT.INGREDIENTS' | translate }}</ion-label>
                 </div>
                 <ion-textarea
                   rows="3"
                   class="custom-info-textarea"
                   formControlName="ingredients"
-                  placeholder="Ej: Trigo, azúcar, sal..."
+                  [placeholder]="'ADD_PRODUCT.INGREDIENTS_PLACEHOLDER' | translate"
                 ></ion-textarea>
               </div>
 
               <div class="text-info-card">
                 <div class="text-info-header">
-                  <ion-label>Alérgenos</ion-label>
+                  <ion-label>{{ 'ADD_PRODUCT.ALLERGENS' | translate }}</ion-label>
                 </div>
                 <ion-textarea
                   rows="2"
                   class="custom-info-textarea"
                   formControlName="allergens"
-                  placeholder="Ej: Gluten, leche, soja..."
+                  [placeholder]="'ADD_PRODUCT.ALLERGENS_PLACEHOLDER' | translate"
                 ></ion-textarea>
               </div>
 
               <div class="text-info-card">
                 <div class="text-info-header">
-                  <ion-label>Trazas</ion-label>
+                  <ion-label>{{ 'ADD_PRODUCT.TRACES' | translate }}</ion-label>
                 </div>
                 <ion-textarea
                   rows="2"
                   class="custom-info-textarea"
                   formControlName="traces"
-                  placeholder="Ej: Frutos de cáscara..."
+                  [placeholder]="'ADD_PRODUCT.TRACES_PLACEHOLDER' | translate"
                 ></ion-textarea>
               </div>
             </div>
@@ -1387,9 +1386,8 @@
     >
       <div class="button-content">
         <span>
-          {{ ingredientMode ? (editingIngredient ? 'GUARDAR INGREDIENTE' :
-          'AÑADIR INGREDIENTE') : (customProduct ? 'GUARDAR CAMBIOS' : 'AÑADIR
-          PRODUCTO') }}
+          {{ ingredientMode ? (editingIngredient ? ('ADD_PRODUCT.SAVE_INGREDIENT' | translate) :
+          ('ADD_PRODUCT.ADD_INGREDIENT' | translate)) : (customProduct ? ('ADD_PRODUCT.SAVE_CHANGES' | translate) : ('ADD_PRODUCT.ADD_PRODUCT_BTN' | translate)) }}
         </span>
       </div>
     </ion-button>

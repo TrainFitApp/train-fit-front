@@ -211,7 +211,7 @@
 
   .nav-buttons {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-bottom: 8px;
   }
@@ -406,6 +406,13 @@
       flex-shrink: 0;
     }
 
+    .info-arrow {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
     .info-text {
       flex: 1;
 
@@ -436,6 +443,38 @@
 
       .section-title {
         margin-bottom: 0;
+      }
+    }
+
+    // Fila de botones rutina en uso + estadísticas
+    .routine-buttons-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+
+      .info-card--full {
+        flex: 1;
+        margin-bottom: 0;
+        padding: 12px 14px;
+
+        .info-icon {
+          font-size: 1.3rem;
+        }
+
+        .info-title {
+          font-size: 0.85rem;
+        }
+
+        .info-arrow {
+          font-size: 18px;
+          color: rgba(255, 255, 255, 0.25);
+          flex-shrink: 0;
+          margin-left: auto;
+        }
+      }
+
+      .info-card--orange {
+        margin-top: 0;
       }
     }
 

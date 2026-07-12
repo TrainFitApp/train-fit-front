@@ -43,8 +43,8 @@ export class TableService {
     return this.tableAPIService.copyTable(idUser, idTable).pipe(take(1));
   }
 
-  public copyOwnTable(idUser: string, idTable: string): Observable<Table> {
-    return this.tableAPIService.copyOwnTable(idUser, idTable).pipe(take(1));
+  public duplicateTable(idUser: string, idTable: string): Observable<Table> {
+    return this.tableAPIService.duplicateTable(idUser, idTable).pipe(take(1));
   }
 
   public copySharedTable(idUser: string, idTable: string): Observable<Table> {
@@ -60,7 +60,8 @@ export class TableService {
         searchFilterGroup.search,
         searchFilterGroup.page,
         idUser,
-        searchFilterGroup.ownFilter
+        searchFilterGroup.ownFilter,
+        searchFilterGroup.defaultOnly
       )
       .pipe(distinctUntilChanged());
   }

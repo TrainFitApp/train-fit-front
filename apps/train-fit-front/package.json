@@ -41,6 +41,7 @@
     "@capacitor/core": "^7.0.0",
     "@capacitor/ios": "^7.0.0",
     "@capacitor/keyboard": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.7",
     "@capacitor/network": "^7.0.0",
     "@capawesome/capacitor-android-edge-to-edge-support": "^7.2.3",
     "@capgo/capacitor-navigation-bar": "^7.3.14",

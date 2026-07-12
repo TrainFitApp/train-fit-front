@@ -8,9 +8,13 @@ import { DecimalInputDirective } from 'src/app/core/directives/decimal-input.dir
 import { HideKeyboardOnScrollDirective } from 'src/app/core/directives/hide-keyboard-on-scroll.directive';
 import { VideoModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
+import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
+import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
+import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
 import { DisconnectedComponent } from './components/disconnected/disconnected.component';
 import { FilterIconsComponent } from './components/filter-icons/filter-icons.component';
 import { ExerciseFilterIconsComponent } from './components/exercise-filter-icons/exercise-filter-icons.component';
+import { TableFilterIconsComponent } from './components/filter-icons/table-filter-icons.component';
 import { FilterInputPage } from './components/filter-input/filter-input.page';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
@@ -23,6 +27,8 @@ import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
 import { SafePipe } from './pipes/safe.pipe';
+import { TranslateDbPipe } from './pipes/translate-db.pipe';
+import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 
 @NgModule({
   declarations: [
@@ -33,6 +39,7 @@ import { SafePipe } from './pipes/safe.pipe';
     NumericInputComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
+    TableFilterIconsComponent,
     SearchExercisesPage,
     ActionsFabComponent,
     MeasurePipe,
@@ -41,11 +48,16 @@ import { SafePipe } from './pipes/safe.pipe';
     SafePipe,
     ExpectedPipe,
     CategoryPipe,
+    TranslateDbPipe,
+    TranslateDescPipe,
     DisconnectedComponent,
     VideoModalComponent,
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
+    AnthropometryCardComponent,
+    AnthropometryModalComponent,
+    AnthropometryChartComponent,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
@@ -61,6 +73,7 @@ import { SafePipe } from './pipes/safe.pipe';
     NumericInputComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
+    TableFilterIconsComponent,
     SearchExercisesPage,
     ActionsFabComponent,
     RirPickerComponent,
@@ -69,10 +82,15 @@ import { SafePipe } from './pipes/safe.pipe';
     SafePipe,
     ExpectedPipe,
     CategoryPipe,
+    TranslateDbPipe,
+    TranslateDescPipe,
     DisconnectedComponent,
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
+    AnthropometryCardComponent,
+    AnthropometryModalComponent,
+    AnthropometryChartComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

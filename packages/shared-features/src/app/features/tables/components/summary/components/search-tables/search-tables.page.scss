@@ -1,365 +1,290 @@
-// Header moderno y elegante
-.modern-search-header {
-  --background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-bottom: none;
+// Minimalist Header Styles (copia exacta de search-exercises)
+.minimal-header {
+  --background: rgba(255, 255, 255, 0.98);
+  --border-color: rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-color);
+}
 
-  .header-toolbar {
-    --background: transparent;
-    --border-width: 0;
-    --min-height: 120px;
-    padding: 0;
+.search-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
 
-    .header-content {
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      height: 100%;
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    min-height: 60px;
+    gap: 12px;
 
-      .back-section {
+    .back-section {
+      flex-shrink: 0;
+
+      .back-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
-        gap: 16px;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
 
-        .modern-back-button {
-          --background: rgba(var(--ion-color-primary-rgb), 0.1);
-          --background-activated: rgba(var(--ion-color-primary-rgb), 0.2);
-          --color: var(--ion-color-primary);
-          --border-radius: 12px;
-          --padding-start: 12px;
-          --padding-end: 12px;
-          --box-shadow: none;
-
-          ion-icon {
-            font-size: 1.5rem;
-            font-weight: 600;
-
-          }
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
         }
 
-        .header-title {
-          margin: 0;
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          letter-spacing: -0.02em;
-          line-height: 1.2;
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .search-section {
+      flex: 1;
+      min-width: 0;
+
+      .custom-searchbar {
+        --background: rgba(255, 255, 255, 0.05);
+        --border-radius: 8px;
+        --box-shadow: none;
+        --color: rgba(255, 255, 255, 0.9);
+        --placeholder-color: rgba(255, 255, 255, 0.5);
+        --icon-color: rgba(255, 255, 255, 0.7);
+        --clear-button-color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+        padding: 0;
+
+        &.searchbar-has-focus {
+          --background: rgba(255, 255, 255, 0.08);
+        }
+      }
+    }
+
+    .actions-section {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+
+      .action-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
         }
       }
     }
   }
 }
 
-ion-content {
-  --background: #f8f9fa;
+// Filters Section (copia exacta)
+.filters-section {
+  padding: 12px 16px 8px;
 
-  app-table-card {
-    margin: 16px 24px;
+  .filter-group {
+    .filter-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
 
-    &:first-child {
-      margin-top: 24px;
-    }
+      .filter-icon {
+        font-size: 1rem;
+        color: var(--ion-color-primary);
+      }
 
-    &:last-child {
-      margin-bottom: 100px;
-    }
-  }
-
-  ion-item {
-    --background: transparent;
-    --border-color: transparent;
-    text-align: center;
-    margin: 60px 24px;
-
-    ion-label {
-      color: #6c757d;
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-  }
-}
-
-ion-infinite-scroll {
-  ion-infinite-scroll-content {
-    --color: var(--ion-color-primary);
-  }
-}
-
-app-skeleton-loader {
-  margin: 24px;
-}
-
-@media (max-width: 576px) {
-  .modern-search-header {
-    .header-toolbar {
-      --min-height: 100px;
-
-      .header-content {
-        padding: 16px 20px;
-        gap: 16px;
-
-        .back-section {
-          gap: 12px;
-
-          .modern-back-button {
-            --padding-start: 10px;
-            --padding-end: 10px;
-
-            ion-icon {
-              font-size: 1.4rem;
-            }
-          }
-
-          .header-title {
-            font-size: 1.5rem;
-          }
-        }
+      .filter-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--ion-color-medium);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
       }
     }
-  }
 
-  ion-content {
-    app-table-card {
-      margin: 12px 20px;
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
 
-      &:first-child {
-        margin-top: 20px;
-      }
-    }
-  }
-}
+      .modern-chip {
+        --background: rgba(var(--ion-color-primary-rgb), 0.1);
+        --color: var(--ion-color-primary);
+        border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        height: 32px;
 
-.modern-search-header {
-  --background: #252525;
-
-  .header-toolbar {
-    .header-content {
-      .back-section {
-        .modern-back-button {
-          --background: rgba(var(--ion-color-primary-rgb), 0.15);
-          --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
-          --color: var(--ion-color-primary-tint);
-        }
-
-        .header-title {
-          color: #ffffff;
+        ion-icon {
+          font-size: 1rem;
+          margin-left: 4px;
         }
       }
     }
   }
 }
 
-/* iOS native swipe-back: avoid painting solid background on ion-header itself.
-   Keep visual background on the inner header container instead. */
-ion-header.modern-search-header {
-  --background: transparent !important;
-  background: transparent !important;
-}
+// Exercises Content (copia exacta)
+.exercises-content {
+  --padding-bottom: 92px;
 
-ion-header.modern-search-header::after {
-  background-image: none !important;
-}
-
-ion-header.modern-search-header .tf-page-header {
-  background: var(--bg-primary);
-}
-
-ion-content.search-tables-content {
-  --background: transparent !important;
-  background: transparent !important;
-}
-
-ion-content.search-tables-content::part(background) {
-  background: transparent !important;
-}
-
-ion-content.search-tables-content::part(scroll) {
-  background: var(--bg-primary);
-}
-
-ion-content {
-  --background: var(--bg-primary);
-
-  ion-item {
-    ion-label {
-      color: #8e8e93;
-    }
+  .exercises-list {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 }
 
-// Skeleton Table Card Styles
-.skeleton-table-card {
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--bg-secondary, #1c1c1e);
-  position: relative;
-  margin: 16px 24px;
-  border: 1px solid #252525;
-  min-height: 280px;
+// Footer (copia exacta)
+.search-tables-footer {
+  --background: transparent;
+  --border-width: 0;
+  padding: 8px 12px;
 
-  &:first-child {
-    margin-top: 24px;
+  .footer-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 }
 
-.skeleton-overlay {
-  height: 100%;
-  min-height: 280px;
+.add-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
   display: flex;
-  flex-direction: column;
-  padding: 0;
-}
-
-.skeleton-header-section {
-  padding: 24px 20px 16px;
-  flex-shrink: 0;
-}
-
-.skeleton-header-top {
-  margin-bottom: 16px;
-}
-
-.skeleton-title-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.skeleton-title {
-  width: 60%;
-  height: 28px;
-  border-radius: 6px;
-  --background: rgba(255, 255, 255, 0.1);
-  --background-rgb: 255, 255, 255;
-}
-
-.skeleton-underline {
-  width: 40px;
-  height: 3px;
-  border-radius: 2px;
-  --background: rgba(var(--ion-color-primary-rgb), 0.3);
-  --background-rgb: var(--ion-color-primary-rgb);
-}
-
-.skeleton-status-actions-row {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-}
-
-.skeleton-status-section {
-  flex: 1;
-}
-
-.skeleton-badge {
-  width: 120px;
-  height: 32px;
-  border-radius: 16px;
-  --background: rgba(var(--ion-color-success-rgb), 0.15);
-  --background-rgb: var(--ion-color-success-rgb);
-}
-
-.skeleton-select-btn {
-  width: 160px;
-  height: 40px;
-  border-radius: 12px;
-  --background: rgba(var(--ion-color-primary-rgb), 0.15);
-  --background-rgb: var(--ion-color-primary-rgb);
-}
-
-.skeleton-action-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.skeleton-menu-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  --background: rgba(255, 255, 255, 0.1);
-  --background-rgb: 255, 255, 255;
-}
-
-.skeleton-acquire-btn {
-  width: 100px;
-  height: 40px;
-  border-radius: 12px;
-  --background: rgba(var(--ion-color-secondary-rgb), 0.15);
-  --background-rgb: var(--ion-color-secondary-rgb);
-}
-
-.skeleton-stats-container {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 24px;
-  padding: 20px;
-  margin-top: auto;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 16px;
-  margin: auto 16px 16px 16px;
+  padding: 0;
+
+  ion-icon {
+    font-size: 22px;
+  }
 }
 
-.skeleton-stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
+// Table Cards (adaptado de .translucent-card / .exercise-card)
+.translucent-card {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    background-color: rgba(var(--ion-color-primary-rgb), 0.04);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    background-color: #1a1a1a;
+  }
 }
 
-.skeleton-stat-top-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+// Empty State (copia exacta)
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
 
-.skeleton-stat-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  --background: rgba(255, 255, 255, 0.15);
-  --background-rgb: 255, 255, 255;
-}
+  .empty-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(var(--ion-color-medium-rgb), 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
 
-.skeleton-stat-number {
-  width: 30px;
-  height: 24px;
-  border-radius: 4px;
-  --background: rgba(255, 255, 255, 0.2);
-  --background-rgb: 255, 255, 255;
-}
-
-.skeleton-stat-label {
-  width: 80px;
-  height: 16px;
-  border-radius: 4px;
-  --background: rgba(255, 255, 255, 0.1);
-  --background-rgb: 255, 255, 255;
-}
-
-.skeleton-stat-divider {
-  width: 1px;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-@media (max-width: 576px) {
-  .skeleton-table-card {
-    margin: 12px 20px;
-
-    &:first-child {
-      margin-top: 20px;
+    ion-icon {
+      font-size: 2.5rem;
+      color: var(--ion-color-medium);
     }
   }
 
-  .skeleton-title {
-    height: 24px;
+  .empty-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 8px 0;
   }
 
-  .skeleton-select-btn {
-    width: 140px;
-    height: 36px;
+  .empty-message {
+    font-size: 0.9rem;
+    color: var(--ion-color-medium);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// Skeleton Container
+.skeleton-container {
+  padding: 16px;
+}
+
+// Dark theme support (copia exacta)
+@media (prefers-color-scheme: dark) {
+  .minimal-header {
+    --background: rgba(20, 20, 20, 0.98);
+    --border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .exercises-content {
+    background: var(--bg-primary);
+  }
+
+  .translucent-card {
+    background: #141414;
+    border-color: #252525;
+  }
+
+  .empty-state {
+    .empty-title {
+      color: #ffffff;
+    }
+  }
+}
+
+// Responsive (copia exacta)
+@media (max-width: 768px) {
+  .search-header {
+    .header-content {
+      padding: 12px 16px;
+      min-height: 56px;
+
+      .back-section .back-button,
+      .actions-section .action-button {
+        width: 36px;
+        height: 36px;
+
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+    }
   }
 }

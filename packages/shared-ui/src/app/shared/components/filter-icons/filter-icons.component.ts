@@ -281,19 +281,19 @@ export class FilterIconsComponent implements OnInit, OnChanges {
           name: 'measureFilter',
           options: [
             {
-              text: MEASURE_FILTER[MEASURE_FILTER_TYPES.auto].description,
+              text: this.translate.instant(MEASURE_FILTER[MEASURE_FILTER_TYPES.auto].description),
               value: MEASURE_FILTER[MEASURE_FILTER_TYPES.auto].id,
             },
             {
-              text: MEASURE_FILTER[MEASURE_FILTER_TYPES.cieng].description,
+              text: this.translate.instant(MEASURE_FILTER[MEASURE_FILTER_TYPES.cieng].description),
               value: MEASURE_FILTER[MEASURE_FILTER_TYPES.cieng].id,
             },
             {
-              text: MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].description,
+              text: this.translate.instant(MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].description),
               value: MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].id,
             },
             {
-              text: MEASURE_FILTER[MEASURE_FILTER_TYPES.total].description,
+              text: this.translate.instant(MEASURE_FILTER[MEASURE_FILTER_TYPES.total].description),
               value: MEASURE_FILTER[MEASURE_FILTER_TYPES.total].id,
             },
           ],

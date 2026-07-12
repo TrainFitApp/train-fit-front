@@ -51,6 +51,8 @@ export class SetComponent implements OnInit, OnChanges {
   public copySet = new EventEmitter();
   @Output()
   public confSet = new EventEmitter();
+  @Output()
+  public reorderSets = new EventEmitter<void>();
 
   public isDeleting: boolean;
   public setForm: FormGroup = new FormGroup({});
@@ -247,7 +249,8 @@ export class SetComponent implements OnInit, OnChanges {
       (actionTemp) =>
         actionTemp.id === ACTIONS[this.ACTION_TYPES.duplicate].id ||
         actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id ||
-        actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id
+        actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
+        actionTemp.id === ACTIONS[this.ACTION_TYPES.moveSets].id
     );
 
     return actions;
@@ -279,6 +282,10 @@ export class SetComponent implements OnInit, OnChanges {
 
       case ACTIONS[this.ACTION_TYPES.delete].id:
         this.showDeleteSweetAlert();
+        break;
+
+      case ACTIONS[this.ACTION_TYPES.moveSets].id:
+        this.reorderSets.emit();
         break;
     }
   }
