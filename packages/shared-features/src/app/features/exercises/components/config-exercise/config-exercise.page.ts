@@ -902,7 +902,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         const otherWorkouts =
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
-        this.load = true;
         void this.billingService.refreshBackendEntitlements();
         this.adMobService.interstitial("create_exercise"); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
@@ -1064,7 +1063,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
             if (!this._idExerciseToAdd) {
               // Cerrar el modal con toda la información necesaria
               this.modalController.dismiss({ setChangeInfo: changeInfo });
-              this.load = true;
               this.syncWorkoutInUseAfterExerciseChange();
               resolve();
             } else {
@@ -1074,14 +1072,12 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
                   // Actualizar la tabla en changeInfo con la tabla final del servicio
                   changeInfo.tableInUse = this.tableService.tableInUse;
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
-                  this.load = true;
                   resolve();
                 })
                 .catch(() => {
                   // En caso de error fallback: cerrar modal y resolver
                   changeInfo.tableInUse = this.tableService.tableInUse;
                   this.modalController.dismiss({ setChangeInfo: changeInfo });
-                  this.load = true;
                   resolve();
                 });
             }
@@ -1145,13 +1141,11 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
             .getTableById(this.user.tableInUse)
             .toPromise()
             .then((resTable) => {
-              this.load = true;
               this.tableInUse = resTable;
               this.modalController.dismiss(resWorkoutsUpdates);
             });
         });
       } else {
-        this.load = true;
         this.modalController.dismiss();
         return Promise.resolve();
       }
@@ -1348,7 +1342,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       };
       this.ionicUtilService.showToast(toastOptions);
       this.syncWorkoutInUseAfterExerciseChange();
-      this.load = true;
     });
   }
 

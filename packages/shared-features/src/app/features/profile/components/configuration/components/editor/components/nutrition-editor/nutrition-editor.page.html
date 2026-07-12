@@ -375,7 +375,7 @@
         <button
           class="save-button"
           (click)="save()"
-          [disabled]="!isValidConfiguration()"
+          [disabled]="!isValidConfiguration() || isSaving"
         >
           {{ 'NUTRITION_EDITOR.GUARDAR' | translate }}
         </button>

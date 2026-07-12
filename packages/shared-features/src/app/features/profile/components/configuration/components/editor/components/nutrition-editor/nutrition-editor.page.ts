@@ -34,6 +34,7 @@ export class NutritionEditorPage implements OnInit {
 
   public user: User;
   public Math = Math; // Hacer Math disponible en el template
+  public isSaving: boolean = false;
 
   // Estado principal
   public state = {
@@ -909,6 +910,11 @@ export class NutritionEditorPage implements OnInit {
   }
 
   private executeSave(): void {
+    if (this.isSaving || !this.user) {
+      return;
+    }
+    this.isSaving = true;
+
     // Actualizar el usuario actual con los nuevos valores
     if (this.user) {
       this.user.kcalTotal = Math.round(this.state.targetKcal);

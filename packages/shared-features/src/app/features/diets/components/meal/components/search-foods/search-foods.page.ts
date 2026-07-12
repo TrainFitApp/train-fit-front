@@ -528,12 +528,20 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     } else if (result?.createdViaAddProduct) {
       // Switch to products segment when creating a product
       this.currentMode = "products";
+      // Mostrar "Todos los productos": no dejar arrastrado un filtro own/fav/shield previo
+      this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.favFilter = false;
+      this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
       shouldSearch = true;
     } else if (result?.createdViaCreateProduct) {
       // Switch to products segment when creating a custom product
       this.currentMode = "products";
+      // Mostrar "Todos los productos": no dejar arrastrado un filtro own/fav/shield previo
+      this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.favFilter = false;
+      this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
       shouldSearch = true;
@@ -541,14 +549,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       // Force refresh requested
       this.syncMealAndDietDayFromService();
       shouldSearch = true;
-      if (result?.switchSegmentToOwn) {
-        this.currentMode = "products";
-        if (this.searchFilterGroup) {
-          this.searchFilterGroup.ownFilter = true;
-          this.searchFilterGroup.shieldFilter = false;
-          this.searchFilterGroup.favFilter = false;
-        }
-      }
     } else if (!returningFromConfigRecipe) {
       // Only do initial search on first entry
       if (!this.hasInitialized) {
