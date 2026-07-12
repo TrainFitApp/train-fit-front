@@ -27,6 +27,8 @@ import { RmCalculatorService } from './services/rm-calculator/rm-calculator.serv
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
+import { PinnedExerciseNoteAPIService } from './services/pinned-exercise-note/pinned-exercise-note-api.service';
+import { PinnedExerciseNoteService } from './services/pinned-exercise-note/pinned-exercise-note.service';
 
 import { ProductAPIService } from './services/product/product-api.service';
 import { ProductService } from './services/product/product.service';
@@ -39,11 +41,13 @@ import { TableService } from './services/table/table.service';
 import { UserAPIService } from './services/user/user-api.service';
 import { UserLocalstorageService } from './services/user/user-localstorage.service';
 import { UserService } from './services/user/user.service';
+import { AnthropometryService } from './services/anthropometry/anthropometry.service';
 import { AdMobService } from './services/util/ad-mob.service';
 import { BarCodeScannerService } from './services/util/bar-code-scanner.service';
 import { DayWeightService } from './services/util/day-weight.service';
 import { IonicUtilService } from './services/util/ionic-util.service';
 import { NavigationService } from './services/util/navigation.service';
+import { NotificationService } from './services/util/notification.service';
 import { ThemeService } from './services/util/theme.service';
 import { UtilService } from './services/util/util.service';
 import { WorkoutAPIService } from './services/workout/workout-api.service';
@@ -63,6 +67,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     BarCodeScannerService,
     NavigationService,
     DayWeightService,
+    NotificationService,
     AdMobService,
     AppUpdateService,
     // Features
@@ -75,6 +80,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     UserService,
     UserAPIService,
     UserLocalstorageService,
+    AnthropometryService,
     DietService,
     DietAPIService,
     DietDayService,
@@ -94,6 +100,8 @@ import { MatchPasswords } from './validators/matchPasswords';
     WorkoutAPIService,
     CustomExerciseService,
     CustomExerciseAPIService,
+    PinnedExerciseNoteService,
+    PinnedExerciseNoteAPIService,
     SetService,
     SetAPIService,
     ExerciseService,

@@ -1,0 +1,138 @@
+<ion-header class="filter-header">
+  <div class="filter-toolbar">
+    <div class="header-content">
+      <div class="title-section">
+        <ion-title class="filter-title">{{ 'ORDER_SETS.TITLE' | translate }}</ion-title>
+      </div>
+      <ion-buttons slot="end">
+        <button
+          class="close-action-button ripple-effect"
+          (click)="dismissModal()"
+        >
+          <ion-icon name="close" color="primary"></ion-icon>
+        </button>
+      </ion-buttons>
+    </div>
+  </div>
+  <ion-progress-bar *ngIf="loading" type="indeterminate"></ion-progress-bar>
+</ion-header>
+
+<ion-content class="content-modern">
+  <div class="container-elegant">
+    <div class="header-with-button">
+      <div class="info-section">
+        <div class="info-content">
+          <ion-icon name="swap-vertical" class="info-icon"></ion-icon>
+          <p class="info-text">{{ 'ORDER_SETS.HINT' | translate }}</p>
+        </div>
+      </div>
+      <ion-button
+        fill="clear"
+        class="action-btn menu-btn ripple-effect external-refresh-btn"
+        (click)="refreshOrder()"
+      >
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+    <ion-list class="list-elegant">
+      <ion-reorder-group
+        *ngIf="showReorderGroup"
+        [disabled]="false"
+        (ionItemReorder)="handleReorder($any($event))"
+        class="reorder-group-modern"
+      >
+        <ion-item
+          *ngFor="let set of auxSets; let i = index"
+          class="set-card"
+          [ngClass]="{
+            'set-done': set.doned,
+            'set-pending': !set.doned,
+            'set-drop': set.drop,
+            'set-rest-pause': set.restPause
+          }"
+          lines="none"
+        >
+          <div class="set-card-content">
+            <div class="set-number" [ngClass]="{ 'number-done': set.doned }">
+              {{ i + 1 }}
+            </div>
+
+            <div class="set-info">
+<div class="set-expected">
+                <span class="expected-label">{{ 'ORDER_SETS.OBJETIVO' | translate }}</span>
+                <div class="set-values">
+                  <span class="set-weight" *ngIf="set.expectedReps?.length">
+                    {{ formatExpectedReps(set.expectedReps) }}
+                  </span>
+                  <span class="set-weight" *ngIf="!set.expectedReps?.length && set.weight">
+                    {{ set.weight }} kg
+                  </span>
+                  <span class="set-separator" *ngIf="(set.expectedReps?.length && set.weight) || (set.expectedRir?.length && set.expectedReps?.length)">·</span>
+                  <span class="set-weight" *ngIf="set.weight && set.expectedReps?.length">
+                    {{ set.weight }} kg
+                  </span>
+                  <span class="set-rir" *ngIf="set.expectedRir?.length && !isFail(set)">
+                    {{ formatExpectedRir(set.expectedRir) }}
+                  </span>
+                  <span class="fail-badge" *ngIf="isFail(set)">{{ 'ORDER_SETS.FALLO' | translate }}</span>
+                  <span class="drop-badge" *ngIf="set.drop">{{ 'ORDER_SETS.DROP_SET' | translate }}</span>
+                  <span class="rp-badge" *ngIf="set.restPause">RP {{ set.restPause }}s</span>
+                </div>
+</div>
+
+              <div class="set-executed" *ngIf="set.doned; else notExecuted">
+                <span class="executed-label">{{ 'ORDER_SETS.EJECUTADO' | translate }}</span>
+                <div class="set-values">
+                  <span class="set-weight">{{ set.weight ? set.weight + ' kg' : '—' }}</span>
+                  <span class="set-separator" *ngIf="set.weight && set.reps">·</span>
+                  <span class="set-weight">{{ set.reps ? set.reps + ' reps' : '—' }}</span>
+                  <span class="set-separator" *ngIf="set.rir && set.rir !== null">·</span>
+                  <span class="set-rir" *ngIf="set.rir && set.rir !== null">
+                    {{ formatPerformedRir(set.rir) }}
+                  </span>
+                  <span class="drop-badge" *ngIf="set.drop">{{ 'ORDER_SETS.DROP_SET' | translate }}</span>
+                  <span class="rp-badge" *ngIf="set.restPause">RP {{ set.restPause }}s</span>
+                </div>
+              </div>
+
+              <ng-template #notExecuted>
+                <div class="set-executed not-executed">
+                  <span class="executed-label">{{ 'ORDER_SETS.NO_EJECUTADO' | translate }}</span>
+                </div>
+              </ng-template>
+
+              <div class="set-meta">
+                <span class="done-badge" *ngIf="set.doned">
+                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  {{ 'ORDER_SETS.HECHA' | translate }}
+                </span>
+                <span class="pending-badge" *ngIf="!set.doned">{{ 'ORDER_SETS.PENDIENTE' | translate }}</span>
+              </div>
+            </div>
+
+            <div class="exercise-icons">
+              <ion-reorder class="reorder-modern">
+                <ion-icon name="swap-vertical" class="reorder-icon"></ion-icon>
+              </ion-reorder>
+            </div>
+          </div>
+        </ion-item>
+      </ion-reorder-group>
+    </ion-list>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <div *ngIf="showReorderGroup" class="action-section">
+    <ion-button
+      *ngIf="!loading"
+      expand="block"
+      (click)="dismissModal()"
+      class="save-button-elegant"
+      fill="solid"
+    >
+      {{ 'ORDER_SETS.SAVE' | translate }}
+    </ion-button>
+  </div>
+</ion-footer>

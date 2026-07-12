@@ -9,7 +9,7 @@ import { MealAPIService } from './meal-api.service';
 
 @Injectable()
 export class MealService {
-  private mealClipboard: Meal;
+  private mealClipboardSubject = new BehaviorSubject<MealClipboard | null>(null);
   private _currentMeal$ = new BehaviorSubject<Meal>(null);
 
   constructor(private mealAPIService: MealAPIService) {}
@@ -22,12 +22,41 @@ export class MealService {
     this._currentMeal$.next(meal);
   }
 
-  public get getMealClipboard() {
-    return this.mealClipboard;
+  public get getMealClipboard(): MealClipboard | null {
+    return this.mealClipboardSubject.value;
+  }
+
+  public get mealClipboard$(): Observable<MealClipboard | null> {
+    return this.mealClipboardSubject.asObservable();
   }
 
   public set setMealClipboard(mealClipboard: Meal) {
-    this.mealClipboard = mealClipboard;
+    this.mealClipboardSubject.next(new MealClipboard(mealClipboard, null));
+  }
+
+  public setFullMealClipboard(mealClipboard: Meal, mealToPaste: Meal): void {
+    const clipboard = new MealClipboard(mealClipboard, mealToPaste);
+    clipboard.setFullMeal();
+    this.mealClipboardSubject.next(clipboard);
+  }
+
+  public setPartialMealClipboard(
+    mealClipboard: Meal,
+    mealToPaste: Meal,
+    productIds: string[],
+    recipeIds: string[]
+  ): void {
+    const clipboard = new MealClipboard(mealClipboard, mealToPaste);
+    clipboard.setPartialSelection(productIds, recipeIds);
+    this.mealClipboardSubject.next(clipboard);
+  }
+
+  public clearMealClipboard(): void {
+    this.mealClipboardSubject.next(null);
+  }
+
+  public hasMealClipboard(): boolean {
+    return !!this.mealClipboardSubject.value;
   }
 
   public searchAllWithFilters(

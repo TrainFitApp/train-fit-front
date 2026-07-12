@@ -1,4 +1,3 @@
-// Header personalizado
 .weight-info-header {
   background: #141414;
   border-bottom: 1px solid #252525;
@@ -9,550 +8,204 @@
     justify-content: space-between;
     padding: 16px 20px;
     min-height: 60px;
+    gap: 12px;
+  }
 
-    .back-section {
-      .back-button {
-        background: rgba(255, 255, 255, 0.05);
-        border: none;
-        border-radius: 8px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: rgba(255, 255, 255, 0.7);
+  .back-section {
+    flex-shrink: 0;
 
-        &:active {
-          transform: scale(0.95);
-        }
+    .back-button {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
 
+      &:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.1);
+      }
 
-        ion-icon {
-          font-size: 20px;
-        }
+      ion-icon {
+        font-size: 20px;
       }
     }
+  }
 
-    .title-section {
-      flex: 1;
-      text-align: center;
+  .title-section {
+    flex: 1;
+    text-align: center;
 
-      .page-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #ffffff;
-        margin: 0;
-        letter-spacing: 0.3px;
-      }
+    .page-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
     }
+  }
 
-    .actions-section {
-      width: 40px; // Para mantener el título centrado
+  .actions-section {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .action-button {
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
+
+      &:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
     }
   }
 
   .progress-bar {
-    height: 3px;
-    background: rgba(255, 255, 255, 0.1);
-    overflow: hidden;
+    height: 2px;
+    background: transparent;
+    visibility: hidden;
 
     .progress-indicator {
       height: 100%;
-      background: linear-gradient(90deg, #FE9000, #ff8c00);
-      animation: progressAnimation 1.5s infinite;
+      background: var(--accent);
+      animation: progress 1.5s ease-in-out infinite;
     }
   }
 }
 
-// Contenedor principal
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
 .weight-info-container {
-  background: #141414;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  
-}
-
-// Sección del calendario
-.calendar-section {
-  .weight-calendar {
-    background: #141414;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-}
-
-// Sección de notas
-.notes-section {
-  background: #141414;
-  border: 1px solid #252525;
-  border-radius: 12px;
   padding: 16px;
-}
-
-// Sección del gráfico
-.chart-section {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
 
-
-  // Selector de rango
-  .range-selector {
-    background: #141414;
-    border: 1px solid #252525;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    color: white;
-
-    .range-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-      .range-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #ffffff;
-        margin: 0;
-      }
-
-      .range-indicator {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .indicator-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #FE9000;
-          animation: pulse 2s infinite;
-        }
-
-        .indicator-text {
-          font-size: 12px;
-          color: #9ca3af;
-          font-weight: 500;
-        }
-      }
-    }
-
-    .range-buttons {
-      display: flex;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 10px;
-      padding: 4px;
-      gap: 4px;
-
-      .range-button {
-        flex: 1;
-        background: transparent;
-        border: none;
-        border-radius: 8px;
-        padding: 14px 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-        font-weight: 500;
-        position: relative;
-        overflow: hidden;
-
-
-        &::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(254, 144, 0, 0.1), transparent);
-          transition: left 0.5s ease;
-        }
-
-        &:active {
-          transform: scale(0.98);
-        }
-
-
-
-        &.active {
-          background: linear-gradient(135deg, #FE9000, #FF7A00);
-          color: #ffffff;
-          transform: translateY(-1px);
-        }
-
-        .button-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 6px;
-
-          ion-icon {
-            font-size: 20px;
-            transition: transform 0.2s ease;
-          }
-
-          span {
-            font-weight: 500;
-            font-size: 12px;
-          }
-        }
-
-        &.active .button-content ion-icon {
-          transform: scale(1.1);
-        }
-      }
-    }
-  }
-
-  // Tarjeta de información del peso
-  .weight-info-card {
+.add-measurement-section {
+  .add-measurement-btn {
+    width: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-    margin: 8px;
-    background: #141414;
-    border-radius: 12px;
-    border: 1px solid #252525;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: rgba(254, 144, 0, 0.04);
+    border: 1px solid rgba(254, 144, 0, 0.2);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
 
-    .weight-current {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #252525;
-
-      .weight-day-value {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .weight-day {
-          font-size: 16px;
-          color: var(--pe-muted);
-          text-transform: capitalize;
-        }
-
-        .weight-value {
-          font-size: 28px;
-          font-weight: 600;
-          color: var(--pe-text);
-        }
-      }
-
-      .weight-trend {
-        .trend-indicator {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          .trend-icon-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-
-            .trend-icon {
-              font-size: 16px;
-
-              &.up {
-                color: #ef4444;
-              }
-
-              &.down {
-                color: #10b981;
-              }
-
-              &.stable {
-                color: #f59e0b;
-              }
-            }
-          }
-
-          .trend-text {
-            font-size: 14px;
-            color: #d1d5db;
-            font-weight: 500;
-          }
-        }
-      }
+    &:hover {
+      background: rgba(254, 144, 0, 0.08);
+      border-color: rgba(254, 144, 0, 0.35);
     }
 
-    .weight-stats {
+    .btn-icon {
+      font-size: 24px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .btn-text {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-
-      .stat-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 15px;
-
-        .stat-label {
-          color: var(--pe-muted);
-        }
-
-        .stat-value {
-          font-weight: 500;
-          color: var(--pe-text);
-        }
-      }
-    }
-  }
-
-  // Contenedor del gráfico
-  .chart-container {
-    background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%);
-    border-radius: 16px;
-    padding: 24px;
-    margin: 16px 0;
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    position: relative;
-    min-height: 350px;
-    flex-shrink: 0;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #d4af37, transparent);
-      opacity: 0.6;
+      align-items: flex-start;
+      gap: 2px;
+      text-align: left;
     }
 
-    .chart-header {
-      margin-bottom: 20px;
-      text-align: center;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-
-      .chart-title {
-        color: #ffffff;
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 8px 0;
-      }
-
-      .chart-legend {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        margin-bottom: 16px;
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.8);
-
-          .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-
-            &.current {
-              background: #ffffff;
-              border: 2px solid #d4af37;
-            }
-
-            &.normal {
-              background: #d4af37;
-              border: 2px solid #f4d03f;
-            }
-          }
-        }
-      }
+    .btn-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
     }
 
-    canvas {
-      width: 100% !important;
-      height: 300px !important;
-      border-radius: 8px;
-      background: rgba(0, 0, 0, 0.1);
-      position: relative;
-      z-index: 1;
+    .btn-desc {
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.4);
+      line-height: 1.3;
     }
 
-    .chart-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at center,
-          transparent 60%,
-          rgba(20, 20, 20, 0.1) 100%);
+    .btn-arrow {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.2);
+      margin-left: auto;
     }
   }
 }
 
-// Animaciones
-@keyframes progressAnimation {
-  0% {
-    transform: translateX(-100%);
+.chart-section {
+  .range-selector {
+    margin-bottom: 12px;
   }
 
-  100% {
-    transform: translateX(100%);
+  .no-records {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 20px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+
+    ion-icon {
+      font-size: 48px;
+      color: rgba(255, 255, 255, 0.15);
+    }
+
+    span {
+      font-size: 14px;
+      font-weight: 500;
+    }
   }
 }
 
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
+.anthropometry-chart {
+  flex: 1;
+  min-height: 400px;
 }
 
-// Responsividad móvil optimizada
 @media (max-width: 768px) {
-  .weight-info-header {
-    .header-content {
-      padding: 12px 16px;
-      min-height: 56px;
+  .weight-info-header .header-content {
+    padding: 12px 16px;
+    min-height: 56px;
 
-      .back-section .back-button {
-        width: 36px;
-        height: 36px;
+    .back-section .back-button,
+    .actions-section .action-button {
+      width: 36px;
+      height: 36px;
 
-        ion-icon {
-          font-size: 18px;
-        }
-      }
-
-      .title-section .page-title {
-        font-size: 16px;
-      }
-
-      .actions-section {
-        width: 36px;
+      ion-icon {
+        font-size: 18px;
       }
     }
   }
 
-  .weight-info-container {
-    padding: 16px;
-    gap: 16px;
-  }
-
-  .chart-section {
-    .range-selector .range-buttons .range-button {
-      padding: 10px 12px;
-      font-size: 13px;
-    }
-
-    .weight-info-card {
-      padding: 16px;
-      margin: 6px;
-
-      .weight-current {
-        .weight-day-value {
-          gap: 8px;
-
-          .weight-day {
-            font-size: 15px;
-          }
-
-          .weight-value {
-            font-size: 24px;
-          }
-        }
-      }
-
-      .weight-stats {
-        .stat-item {
-          font-size: 14px;
-        }
-      }
-    }
-
-    .chart-container {
-      padding: 16px;
-      min-height: 250px;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .weight-info-container {
-    padding: 8px;
-    gap: 8px;
-  }
-
-  .chart-section {
-    .range-selector .range-buttons {
-      gap: 4px;
-
-      .range-button {
-        padding: 8px 12px;
-        font-size: 12px;
-      }
-    }
-
-    .weight-info-card {
-      padding: 14px;
-      margin: 4px;
-
-      .weight-current {
-        .weight-day {
-          font-size: 14px;
-        }
-
-        .weight-value {
-          font-size: 22px;
-        }
-      }
-
-      .weight-stats {
-        .stat-item {
-          font-size: 13px;
-        }
-      }
-    }
-
-    .chart-container {
-      min-height: 200px;
-    }
-  }
-}
-
-// Estilos específicos para elementos heredados
-ion-label>h4 {
-  color: #FE9000;
-}
-
-// Estilos para el ion-segment
-.range-segment {
-  ion-segment-button {
-    &.segment-button-checked {
-      --background: var(--ion-color-primary);
-      --color: #ffffff;
-      --indicator-color: var(--ion-color-primary);
-    }
+  .anthropometry-chart {
+    min-height: 350px;
   }
 }
