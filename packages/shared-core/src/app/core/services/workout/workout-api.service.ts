@@ -35,6 +35,17 @@ export class WorkoutAPIService {
     );
   }
 
+  public duplicateWorkoutRow(
+    idTable: string,
+    idWorkout: string,
+    nameSuffix: string
+  ): Observable<Split[]> {
+    return this.http.post<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/duplicate-row/${idTable}/${idWorkout}`,
+      { nameSuffix }
+    );
+  }
+
   public addExerciseToWorkouts(
     workoutIds: string[],
     exerciseId: string

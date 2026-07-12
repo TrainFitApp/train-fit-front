@@ -115,6 +115,11 @@ export class WorkoutComponent implements OnDestroy {
     newName: string;
   }>();
 
+  @Output()
+  public workoutDuplicatedEvent = new EventEmitter<{
+    workoutIndex: number;
+  }>();
+
   public workoutClipboard: Workout;
 
   public note: string;
@@ -285,6 +290,10 @@ export class WorkoutComponent implements OnDestroy {
             this.utilService.setCancelMode = true;
             break;
 
+          case ACTIONS[this.ACTION_TYPES.duplicate].id:
+            this.duplicateWorkoutRow();
+            break;
+
           // case ACTIONS[this.ACTION_TYPES.share].id:
           //   this.presentActionSheet();
           //   break;
@@ -418,6 +427,41 @@ export class WorkoutComponent implements OnDestroy {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private duplicateWorkoutRow(): void {
+    this.load = false;
+
+    const nameSuffix = this.translate.instant('TABLES.WORKOUT_COPY_SUFFIX');
+
+    this.workoutService
+      .duplicateWorkoutRow(this.tableInUse._id, this.workout._id, nameSuffix)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+
+          const duplicatedWorkoutIndex = this.workoutIndex + 1;
+          this.workoutDuplicatedEvent.emit({
+            workoutIndex: duplicatedWorkoutIndex,
+          });
+
+          const toastOptions: ToastOptions = {
+            message: this.translate.instant('TABLES.WORKOUT_DUPLICATED'),
+            duration: 1000,
+            color: 'success',
+          };
+          this.ionicUtilService.showToast(toastOptions);
+          this.load = true;
+        },
+        error: (error) => {
+          this.load = true;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('TABLES.WORKOUT_DUPLICATE_ERROR')
+          );
+        },
+      });
   }
 
   public async deleteExercises(indexWorkout: number, indexExercise: number) {
@@ -636,13 +680,13 @@ export class WorkoutComponent implements OnDestroy {
       actions = actions.filter(
         (actionTemp) =>
           actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id
+          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id ||
+          actionTemp.id === ACTIONS[this.ACTION_TYPES.duplicate].id
       );
     } else
       actions = actions.filter(
         (actionTemp) =>
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id
       );
 
     return actions;

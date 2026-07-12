@@ -946,6 +946,12 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
   }
 
+  public onWorkoutDuplicated(event: { workoutIndex: number }): void {
+    this.openWorkoutIndex = event.workoutIndex;
+    this.updateCurrentSplit();
+    this.scrollToOpenWorkout();
+  }
+
   /**
    * Hace scroll a un ejercicio con reintentos para esperar que el DOM se actualice
    */

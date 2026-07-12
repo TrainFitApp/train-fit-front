@@ -58,6 +58,16 @@ export class WorkoutService {
     return this.workoutAPIService.addWorkoutsToSplits(idTable, workout);
   }
 
+  public duplicateWorkoutRow(
+    idTable: string,
+    idWorkout: string,
+    nameSuffix: string
+  ): Observable<Split[]> {
+    return this.workoutAPIService
+      .duplicateWorkoutRow(idTable, idWorkout, nameSuffix)
+      .pipe(take(1));
+  }
+
   public addExerciseToWorkouts(
     workoutIds: string[],
     exerciseId: string
