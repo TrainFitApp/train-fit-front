@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="closeModal()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="closeModal()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Ajustar Objetivos</h1>
+        <h1 class="tf-page-header__title">{{ 'NUTRITION_EDITOR.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -15,12 +15,12 @@
 </ion-header>
 
 
-<ion-content role="main" aria-label="Editor de objetivos nutricionales">
+<ion-content>
   <div class="main-content">
     <!-- Objetivo de Calorías -->
     <div class="card calories-card">
       <h2 class="card-title">
-        <i class="fa fa-bullseye"></i>Objetivo de Calorías
+        <i class="fa fa-bullseye"></i>{{ 'NUTRITION_EDITOR.CALORIES_GOAL' | translate }}
       </h2>
       <div class="input-group">
         <input
@@ -32,11 +32,10 @@
           (input)="onTargetKcalChange($event)"
           inputmode="numeric"
           pattern="[0-9]*"
-          aria-label="Objetivo de calorías"
           placeholder="0"
           appCursorEnd
         />
-        <span class="calories-label">kcal</span>
+        <span class="calories-label">{{ 'NUTRITION_EDITOR.KCAL' | translate }}</span>
         <button
           id="caloriesLock"
           class="lock-button calories-lock-button"
@@ -55,7 +54,7 @@
     <!-- Distribución de Macronutrientes -->
     <div class="card macros-card">
       <h2 class="card-title">
-        <i class="fa fa-pie-chart"></i>Distribución de Macronutrientes
+        <i class="fa fa-pie-chart"></i>{{ 'NUTRITION_EDITOR.MACRO_DISTRIBUTION' | translate }}
       </h2>
 
       <!-- SINGLE UNIFIED SLIDER -->
@@ -109,8 +108,8 @@
         <div class="macro-info">
           <span class="macro-dot"></span>
           <div class="macro-text">
-            <span class="macro-name">Proteínas</span>
-            <span class="macro-kcal-info">{{ getKcalByMacro('p') }} kcal</span>
+            <span class="macro-name">{{ 'NUTRITION_EDITOR.PROTEINS' | translate }}</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('p') }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span>
           </div>
         </div>
         <div class="macro-inputs">
@@ -147,7 +146,7 @@
             class="lock-toggle"
             [class.is-locked]="state.lock.p"
             (click)="toggleLock('p')"
-            [title]="state.lock.p ? 'Desbloquear' : 'Bloquear'"
+            [title]="state.lock.p ? ('NUTRITION_EDITOR.UNLOCK' | translate) : ('NUTRITION_EDITOR.LOCK' | translate)"
           >
             <i
               class="fa"
@@ -163,8 +162,8 @@
         <div class="macro-info">
           <span class="macro-dot"></span>
           <div class="macro-text">
-            <span class="macro-name">CBH</span>
-            <span class="macro-kcal-info">{{ getKcalByMacro('c') }} kcal</span>
+            <span class="macro-name">{{ 'NUTRITION_EDITOR.CBH' | translate }}</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('c') }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span>
           </div>
         </div>
         <div class="macro-inputs">
@@ -201,7 +200,7 @@
             class="lock-toggle"
             [class.is-locked]="state.lock.c"
             (click)="toggleLock('c')"
-            [title]="state.lock.c ? 'Desbloquear' : 'Bloquear'"
+            [title]="state.lock.c ? ('NUTRITION_EDITOR.UNLOCK' | translate) : ('NUTRITION_EDITOR.LOCK' | translate)"
           >
             <i
               class="fa"
@@ -217,8 +216,8 @@
         <div class="macro-info">
           <span class="macro-dot"></span>
           <div class="macro-text">
-            <span class="macro-name">Grasas</span>
-            <span class="macro-kcal-info">{{ getKcalByMacro('f') }} kcal</span>
+            <span class="macro-name">{{ 'NUTRITION_EDITOR.FATS' | translate }}</span>
+            <span class="macro-kcal-info">{{ getKcalByMacro('f') }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span>
           </div>
         </div>
         <div class="macro-inputs">
@@ -255,7 +254,7 @@
             class="lock-toggle"
             [class.is-locked]="state.lock.f"
             (click)="toggleLock('f')"
-            [title]="state.lock.f ? 'Desbloquear' : 'Bloquear'"
+            [title]="state.lock.f ? ('NUTRITION_EDITOR.UNLOCK' | translate) : ('NUTRITION_EDITOR.LOCK' | translate)"
           >
             <i
               class="fa"
@@ -274,10 +273,9 @@
         <div class="info-card warning-card" *ngIf="hasKcalExcess()">
           <i class="fa fa-exclamation-triangle info-icon"></i>
           <div class="info-text">
-            <span class="info-title">Exceso de Calorías</span>
+            <span class="info-title">{{ 'NUTRITION_EDITOR.CALORIE_EXCESS_TITLE' | translate }}</span>
             <p>
-              Los macronutrientes exceden el objetivo en {{
-              round1(Math.abs(getKcalDifference())) }} kcal
+              {{ 'NUTRITION_EDITOR.CALORIE_EXCESS_MSG' | translate:{ kcal: round1(Math.abs(getKcalDifference())) } }}
             </p>
           </div>
         </div>
@@ -285,9 +283,9 @@
         <div class="info-card warning-card" *ngIf="hasPercentageExcess()">
           <i class="fa fa-exclamation-triangle info-icon"></i>
           <div class="info-text">
-            <span class="info-title">Exceso de Porcentaje</span>
+            <span class="info-title">{{ 'NUTRITION_EDITOR.PERCENT_EXCESS_TITLE' | translate }}</span>
             <p>
-              La suma de porcentajes excede el 100% ({{ getPercentageSum() }}%)
+              {{ 'NUTRITION_EDITOR.PERCENT_EXCESS_MSG' | translate:{ percent: getPercentageSum() } }}
             </p>
           </div>
         </div>
@@ -296,31 +294,31 @@
       <!-- Información de Calorías -->
       <div class="summary-section calories-summary">
         <h3 class="summary-subtitle">
-          <i class="fa fa-fire"></i>Balance Calórico
+          <i class="fa fa-fire"></i>{{ 'NUTRITION_EDITOR.BALANCE_TITLE' | translate }}
         </h3>
         <div class="summary-row">
-          <span class="summary-label">Objetivo:</span>
+          <span class="summary-label">{{ 'NUTRITION_EDITOR.GOAL_LABEL' | translate }}</span>
           <span class="summary-value target-kcal"
-            >{{ state.targetKcal }} kcal</span
+            >{{ state.targetKcal }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span
           >
         </div>
         <div class="summary-row">
-          <span class="summary-label">Total de macros:</span>
+          <span class="summary-label">{{ 'NUTRITION_EDITOR.TOTAL_MACROS' | translate }}</span>
           <span
             class="summary-value total-kcal"
             [class.excess]="hasKcalExcess()"
-            >{{ getTotalKcalFromMacros() }} kcal</span
+            >{{ getTotalKcalFromMacros() }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span
           >
         </div>
         <div class="summary-row">
-          <span class="summary-label">Diferencia:</span>
+          <span class="summary-label">{{ 'NUTRITION_EDITOR.DIFFERENCE' | translate }}</span>
           <span
             class="summary-value difference-kcal"
             [class.positive]="getKcalDifference() > 0"
             [class.negative]="getKcalDifference() < 0"
           >
             {{ getKcalDifference() > 0 ? '+' : '' }}{{
-            round1(getKcalDifference()) }} kcal
+            round1(getKcalDifference()) }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}
           </span>
         </div>
       </div>
@@ -346,7 +344,7 @@
               >({{ round1(state.pct[macro]) }}%)</span
             >
             <span class="macro-summary-kcal"
-              >{{ getKcalByMacro(macro) }} kcal</span
+              >{{ getKcalByMacro(macro) }} {{ 'NUTRITION_EDITOR.KCAL' | translate }}</span
             >
           </div>
         </div>
@@ -358,21 +356,18 @@
           <div
             class="chart-bar-segment chart-protein"
             [style.width.%]="state.pct.p"
-            [title]="'Proteínas: ' + round1(state.pct.p) + '%'"
           ></div>
           <div
             class="chart-bar-segment chart-carbs"
             [style.width.%]="state.pct.c"
-            [title]="'CBH: ' + round1(state.pct.c) + '%'"
           ></div>
           <div
             class="chart-bar-segment chart-fat"
             [style.width.%]="state.pct.f"
-            [title]="'Grasas: ' + round1(state.pct.f) + '%'"
           ></div>
         </div>
         <div class="percentage-total" [class.excess]="hasPercentageExcess()">
-          Total: {{ getPercentageSum() }}%
+          {{ 'NUTRITION_EDITOR.TOTAL_LABEL' | translate:{ percent: getPercentageSum() } }}
         </div>
       </div>
 
@@ -380,13 +375,13 @@
         <button
           class="save-button"
           (click)="save()"
-          [disabled]="!isValidConfiguration()"
+          [disabled]="!isValidConfiguration() || isSaving"
         >
-          GUARDAR
+          {{ 'NUTRITION_EDITOR.GUARDAR' | translate }}
         </button>
 
         <button class="recalculate-button" (click)="autoCalculate()">
-          RECALCULAR
+          {{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}
         </button>
       </div>
     </div>

@@ -33,9 +33,7 @@
               [style.color]="workout.date ? 'var(--ion-color-success)' : ''"
             >
               <strong [style.color]="workoutColor"
-                >{{
-                  workoutColor === "var(--ion-color-medium)" ? "Día" : "Hoy"
-                }}&nbsp;</strong
+                >{{ (workoutColor === 'var(--ion-color-medium)' ? 'TABLES.DAY' : 'TABLES.TODAY') | translate }}&nbsp;</strong
               >
               <span
                 [style.color]="
@@ -43,7 +41,7 @@
                     ? 'var(--ion-color-success)'
                     : 'var(--ion-text-color)'
                 "
-                >{{ workout.name }}</span
+                >{{ workout.name | translateDb }}</span
               >
             </div>
             &nbsp;
@@ -60,10 +58,10 @@
             <ion-label class="ion-margin" color="medium"
               ><strong>{{
                 workout.exercises.length === 0
-                  ? "No hay ejercicios asignados"
+                  ? ('TABLES.NO_EXERCISES' | translate)
                   : workout.exercises.length === 1
-                  ? workout.exercises.length + " ejercicio"
-                  : workout.exercises.length + " ejercicios"
+                  ? workout.exercises.length + ' ' + ('TABLES.EXERCISE_SINGULAR' | translate)
+                  : workout.exercises.length + ' ' + ('TABLES.EXERCISE_PLURAL' | translate)
               }}</strong></ion-label
             >
             <ion-label
@@ -71,7 +69,7 @@
               style="font-size: small"
               class="ion-margin"
               color="tertiary"
-              ><strong>{{ getWorkoutSets() }} series</strong></ion-label
+              ><strong>{{ getWorkoutSets() }} {{ 'TABLES.SERIES' | translate }}</strong></ion-label
             >
           </ion-col>
         </ion-row>
@@ -100,8 +98,8 @@
               [value]="getISODate(workout.date)"
               first-day-of-week="1"
               #datetime
-              doneText="CONFIRMAR"
-              cancelText="CANCELAR"
+              doneText="{{ 'COMMON.CONFIRM' | translate }}"
+              cancelText="{{ 'COMMON.CANCEL' | translate }}"
               presentation="date"
               display-seconds="true"
               (ionChange)="
@@ -110,11 +108,11 @@
             >
               <ion-buttons slot="buttons">
                 <ion-button color="primary" (click)="datetime.cancel(true)"
-                  >CANCEL</ion-button
+                  >{{ 'COMMON.CANCEL' | translate }}</ion-button
                 >
 
                 <ion-button color="primary" (click)="datetime.confirm(true)"
-                  >OK</ion-button
+                  >{{ 'COMMON.OK' | translate }}</ion-button
                 >
               </ion-buttons></ion-datetime
             >
@@ -129,7 +127,7 @@
                 visibleMuscleGroups = !visibleMuscleGroups;
                 $event.stopPropagation()
               "
-              >Músculos principales</ion-chip
+              >{{ 'TABLES.MAIN_MUSCLES' | translate }}</ion-chip
             >
           </ion-col>
         </ion-row>
@@ -139,7 +137,7 @@
             <ion-chip
               color="secondary"
               *ngFor="let group of getWorkoutMuscleGroups()"
-              >{{ group }}</ion-chip
+              >{{ group | translateDb }}</ion-chip
             >
           </ion-col></ion-row
         >
@@ -167,7 +165,7 @@
 
           <ng-container *ngIf="load && pasteMode && alreadyCopied()">
             <span class="workout-copied" (click)="showNavigationToast($event)"
-              >COPIADO</span
+              >{{ 'TABLES.COPIED' | translate }}</span
             >
           </ng-container>
 
@@ -228,7 +226,7 @@
     </ion-row>
   </ion-grid>
 
-  <div slot="content">
+  <div slot="content" *ngIf="workout?.exercises.length !== 0">
     <app-notes
       *ngIf="workout?.notes"
       [notes]="workout.notes"
@@ -244,12 +242,34 @@
         (click)="addExerciseModal(exercise)"
       >
         <div class="exercise-item">
+          <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, i) as pinnedNote" (click)="$event.stopPropagation()">
+            <div class="pinned-note-wrapper" (click)="editPinnedNote(workoutIndex, i); $event.stopPropagation()">
+              <div class="pinned-note-card">
+                <div class="card-header">
+                  <div class="left-section">
+                    <div class="icon-wrapper">
+                      <ion-icon name="pin"></ion-icon>
+                    </div>
+                    <div class="header-row">
+                      <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+                    </div>
+                  </div>
+                  <div class="action-wrapper">
+                    <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(workoutIndex, i); $event.stopPropagation()">
+                      <ion-icon name="close" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+                <p class="text">{{ pinnedNote.notes }}</p>
+              </div>
+            </div>
+          </div>
           <div class="exercise-info">
             <div
               class="exercise-name"
               [class.completed]="isCustomExerciseCompleted(exercise)"
             >
-              {{ exercise.exercise.name }}
+              {{ exercise.exercise.name | translateDb }}
             </div>
             <div class="exercise-icons">
               <ion-button
@@ -268,25 +288,32 @@
         </div>
 
         <div class="no-sets-message" *ngIf="exercise?.sets.length === 0">
-          <span class="no-sets-text">No hay series</span>
+          <button
+            type="button"
+            class="add-sets-button"
+            (click)="addExerciseModal(exercise); $event.stopPropagation()"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>{{ 'TABLES.ADD_SERIES' | translate }}</span>
+          </button>
         </div>
 
         <div *ngIf="exercise?.sets.length > 0" class="table-container">
           <table class="table previous-session-table">
             <thead>
               <tr>
-                <th style="width: 60px; min-width: 60px">Serie</th>
+                <th style="width: 60px; min-width: 60px">{{ 'TABLES.SERIES' | translate }}</th>
                 <ng-container
                   *ngIf="exercise.exercise.isCardio; else nonCardioHeaders"
                 >
-                  <th>Velocidad</th>
-                  <th>Minutos</th>
-                  <th>Segundos</th>
+                  <th>{{ 'TABLES.VELOCITY' | translate }}</th>
+                  <th>{{ 'TABLES.MIN' | translate }}</th>
+                  <th>{{ 'TABLES.SEG' | translate }}</th>
                 </ng-container>
                 <ng-template #nonCardioHeaders>
-                  <th>Peso</th>
-                  <th>Reps</th>
-                  <th>Intensidad</th>
+                  <th>{{ 'TABLES.KG' | translate }}</th>
+                  <th>{{ 'TABLES.REP_RANGE' | translate }}</th>
+                  <th>{{ 'TABLES.RIR_RANGE' | translate }}</th>
                 </ng-template>
               </tr>
             </thead>
@@ -332,7 +359,7 @@
                     }}
                   </td>
                   <td>
-                    <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
+                    <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
                     <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
                     <span
                       *ngIf="
@@ -350,10 +377,10 @@
                           : formatExpectedRir(set.expectedRir)
                       }}</span
                     ><span *ngIf="set.drop">&nbsp;</span
-                    ><span *ngIf="set.drop" class="intensity-drop">DS</span
+                    ><span *ngIf="set.drop" class="intensity-drop">{{ 'TABLES.DROP_SET' | translate }}</span
                     ><span *ngIf="set.restPause">&nbsp;</span
                     ><span *ngIf="set.restPause" class="intensity-rp"
-                      >RP {{ set.restPause }} Seg</span
+                      >RP {{ set.restPause }} {{ 'TABLES.SEG' | translate }}</span
                     >
                     <span
                       *ngIf="
@@ -378,6 +405,9 @@
           <app-notes
             [object]="exercise"
             [notes]="exercise.notes"
+            [tableId]="tableInUse._id"
+            [workoutIndex]="workoutIndex"
+            [exerciseIndex]="i"
             (update)="updateExerciseNote($event, exercise)"
           ></app-notes>
         </div>
@@ -387,7 +417,7 @@
     <ng-template #emptyWorkout>
       <ion-item>
         <ion-label>
-          <p>No hay ejercicios asignados</p>
+          <p>{{ 'TABLES.NO_EXERCISES' | translate }}</p>
         </ion-label>
       </ion-item>
     </ng-template>

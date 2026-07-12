@@ -1,5 +1,6 @@
 import { Component, OnInit, effect, inject } from '@angular/core';
 import { Browser } from '@capacitor/browser';
+import { TranslateService } from '@ngx-translate/core';
 import {
   AlertButton,
   AlertOptions,
@@ -91,7 +92,7 @@ export class ProfilePage implements OnInit {
   public macrosData = new MacrosData();
   public macrosBars: MacrosBars;
 
-  public label = 'Pasos';
+  public label = 'PROFILE.STEPS';
   public labels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
   public chartRange: string;
@@ -151,7 +152,8 @@ export class ProfilePage implements OnInit {
     private dietDayService: DietDayService,
     private navigationService: NavigationService,
     public platform: Platform,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private translate: TranslateService,
   ) {
     // Effect para el usuario
     effect(() => {
@@ -210,13 +212,15 @@ export class ProfilePage implements OnInit {
   }
 
   public showAlertInfo(): void {
-    let message: string = 'Objetivo mantener peso';
+    let message: string;
 
     if (this.user.objetive !== 0)
       message =
         this.user.objetive > 0
-          ? `Objetivo de superávit calórico de ${this.user.objetive} kcal`
-          : `Objetivo de déficit calórico de ${this.user.objetive} kcal`;
+          ? this.translate.instant('PROFILE.WEIGHT_GOAL_SURPLUS', { kcal: this.user.objetive })
+          : this.translate.instant('PROFILE.WEIGHT_GOAL_DEFICIT', { kcal: Math.abs(this.user.objetive) });
+    else
+      message = this.translate.instant('PROFILE.WEIGHT_GOAL_KEEP');
 
     const toastOptions: ToastOptions = {
       message: message,
@@ -259,18 +263,19 @@ export class ProfilePage implements OnInit {
   }
 
   public getTrainingDescription(): string {
-    if (!this.user) return 'No configurado';
+    const notConfigured = this.translate.instant('PROFILE.NOT_CONFIGURED');
+    if (!this.user) return notConfigured;
 
     const steps = this.user.steps || 1.37;
     const training = this.user.training || 1.0;
 
     const trainingValues = calculateTrainingValues(steps);
-    if (!trainingValues) return 'No configurado';
+    if (!trainingValues) return notConfigured;
 
     const trainingOption = Object.values(trainingValues).find(
       (t) => t.value === training
     );
-    return trainingOption ? trainingOption.name : 'No configurado';
+    return trainingOption ? trainingOption.name : notConfigured;
   }
 
   private initTrainingValues(): void {
@@ -374,15 +379,15 @@ export class ProfilePage implements OnInit {
   private setObjetiveMessage(): void {
     if (this.user) {
       if (this.user.objetive > 0) {
-        this.objetiveMessage = 'Superávit calórico';
+        this.objetiveMessage = this.translate.instant('PROFILE.CALORIC_SURPLUS');
         this.iconArrowObjetive = 'caret-up-outline';
         this.colorObjetive = 'success';
       } else if (this.user.objetive < 0) {
-        this.objetiveMessage = 'Déficit calórico';
+        this.objetiveMessage = this.translate.instant('PROFILE.CALORIC_DEFICIT');
         this.iconArrowObjetive = 'caret-down-outline';
         this.colorObjetive = 'danger';
       } else {
-        this.objetiveMessage = 'Mantenimiento';
+        this.objetiveMessage = this.translate.instant('PROFILE.MAINTENANCE');
         this.iconArrowObjetive = 'chevron-collapse-outline';
         this.colorObjetive = 'tertiary';
       }
@@ -514,7 +519,7 @@ export class ProfilePage implements OnInit {
   public async playStopDiet(diet: Diet) {
     const buttons: AlertButton[] = [
       {
-        text: 'CANCELAR',
+        text: this.translate.instant('COMMON.CANCEL').toUpperCase(),
         role: 'cancel',
       },
       {
@@ -527,7 +532,7 @@ export class ProfilePage implements OnInit {
     ];
     const alertInput: AlertOptions = {
       header: diet.name,
-      message: 'Dejar de seguir dieta',
+      message: this.translate.instant('PROFILE.STOP_DIET'),
       buttons: buttons,
     };
     await this.ionicUtilService.showAlert(alertInput);
@@ -560,7 +565,7 @@ export class ProfilePage implements OnInit {
 
   private getCurrentDietDay() {
     if (this.user?.dietInUse) {
-      const today = new Date();
+      const today = this.utilService.formatDateToYYYYMMDD(new Date());
 
       if (this.dietDay$) this.dietDay$.unsubscribe();
 
@@ -620,17 +625,16 @@ export class ProfilePage implements OnInit {
     }
 
     const alertOptions: AlertOptions = {
-      header: 'Estadísticas Premium',
-      message:
-        'Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.',
+      header: this.translate.instant('PROFILE.PREMIUM_STATS_HEADER'),
+      message: this.translate.instant('PROFILE.PREMIUM_STATS_MSG'),
       buttons: [
         {
-          text: 'Cancelar',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'alert-button-primary',
         },
         {
-          text: 'Ver Anuncio',
+          text: this.translate.instant('PROFILE.WATCH_AD'),
           cssClass: 'alert-button-success',
           handler: () => {
             this.adMobService
@@ -639,7 +643,7 @@ export class ProfilePage implements OnInit {
                 this.navigationService.goToStatistics();
               })
               .catch((err) => {
-                console.error('Error al mostrar anuncio intersticial', err);
+                console.error(this.translate.instant('PROFILE.REFRESH_PREMIUM_ERROR'), err);
                 this.navigationService.goToStatistics();
               });
           },
@@ -812,9 +816,9 @@ export class ProfilePage implements OnInit {
 
   public getNutritionLabel(): string {
     if (this.showRemainingNutrition) {
-      return 'restantes';
+      return this.translate.instant('PROFILE.REMAINING');
     } else {
-      return `de ${Math.round(this.user.kcalTotal).toLocaleString()} kcal`;
+      return this.translate.instant('PROFILE.OF_KCAL', { kcal: Math.round(this.user.kcalTotal).toLocaleString() });
     }
   }
 
@@ -934,11 +938,11 @@ export class ProfilePage implements OnInit {
 
   public async revertImpersonation(): Promise<void> {
     const alertRes = await this.ionicUtilService.showAlert({
-      header: 'Terminar sesión temporal',
-      message: '¿Quieres volver a tu sesión de administrador?',
+      header: this.translate.instant('PROFILE.REVERT_IMP_HEADER'),
+      message: this.translate.instant('PROFILE.REVERT_IMP_MSG'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Volver', role: 'confirm', cssClass: 'danger-btn' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('PROFILE.REVERT'), role: 'confirm', cssClass: 'danger-btn' },
       ],
     });
 
@@ -946,14 +950,14 @@ export class ProfilePage implements OnInit {
       this.authService.revertImpersonation().subscribe({
         next: () => {
           this.ionicUtilService.showSuccessToast(
-            'Sesion de administrador restaurada'
+            this.translate.instant('PROFILE.SESSION_RESTORED')
           );
           window.location.href = '/profile/users';
         },
         error: (error) => {
           this.ionicUtilService.showErrorToast(
             error,
-            'No se pudo restaurar la sesion de administrador'
+            this.translate.instant('PROFILE.SESSION_RESTORE_ERROR')
           );
         },
       });
@@ -961,14 +965,14 @@ export class ProfilePage implements OnInit {
   }
 
   public get premiumPlanLabel(): string {
-    return 'Pro';
+    return this.translate.instant('PROFILE.PRO_LABEL');
   }
 
   private async refreshPremiumState(): Promise<void> {
     try {
       await this.billingService.getBackendEntitlements();
     } catch (error) {
-      console.warn('No se pudo refrescar estado premium en profile', error);
+      console.warn(this.translate.instant('PROFILE.REFRESH_PREMIUM_ERROR'), error);
     }
   }
 }

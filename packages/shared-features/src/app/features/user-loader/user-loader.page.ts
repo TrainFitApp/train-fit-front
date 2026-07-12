@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, forkJoin, from, of, switchMap } from 'rxjs';
 import {
   trigger,
@@ -11,6 +12,7 @@ import { Diet } from 'src/app/core/models/diet';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout } from 'src/app/core/models/workout';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
@@ -70,15 +72,15 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   public loadingStep = 0;
   public animationState = 'in';
   public progress = 0;
-  public loadingText = 'Iniciando sesion...';
+  public loadingText: string;
   private initialLoadRetryCount = 0;
 
   private readonly loadingMessages = [
-    'Iniciando sesion...',
-    'Cargando perfil...',
-    'Preparando rutinas...',
-    'Cargando dieta...',
-    'Finalizando...',
+    'USER_LOADER.LOGGING_IN',
+    'USER_LOADER.LOADING_PROFILE',
+    'USER_LOADER.PREPARING_ROUTINES',
+    'USER_LOADER.LOADING_DIET',
+    'USER_LOADER.FINALIZING',
   ];
 
   constructor(
@@ -88,8 +90,10 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly workoutService: WorkoutService,
     private readonly themeService: ThemeService,
     private readonly navigationService: NavigationService,
+    private readonly i18nService: I18nService,
     private readonly authService: AuthService,
-    private readonly billingService: BillingService
+    private readonly billingService: BillingService,
+    private readonly translate: TranslateService
   ) {
     this.email = this.authService.user?.email;
   }
@@ -108,6 +112,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
       return;
     }
 
+    this.loadingText = this.translate.instant(this.loadingMessages[0]);
     this.updateLoadingStep(1);
     this.updateProgress(10);
 
@@ -118,6 +123,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.updateLoadingStep(2);
           this.updateProgress(30);
           this.userService.setLocalUser = resUser;
+          if (resUser.lang) this.i18nService.switchLang(resUser.lang);
 
           return from(this.billingService.logIn(resUser?._id)).pipe(
             catchError((error) => {
@@ -179,7 +185,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           setTimeout(() => {
             this.updateLoadingStep(5);
             this.updateProgress(100);
-            this.loadingText = 'Listo!';
+            this.loadingText = this.translate.instant('USER_LOADER.READY');
 
             setTimeout(() => {
               this.startExitAnimation();
@@ -207,7 +213,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
 
           if (this.initialLoadRetryCount < this.MAX_INITIAL_LOAD_RETRIES) {
             this.initialLoadRetryCount += 1;
-            this.loadingText = 'Reintentando carga...';
+            this.loadingText = this.translate.instant('USER_LOADER.RETRYING');
             this.updateProgress(20);
             setTimeout(
               () => this.startLoadingSequence(),
@@ -216,8 +222,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
             return;
           }
 
-          this.loadingText =
-            'No se pudo cargar la sesion. Revisa la conexion e intenta de nuevo.';
+          this.loadingText = this.translate.instant('USER_LOADER.FAILED');
           this.updateProgress(0);
         }
       );
@@ -242,7 +247,7 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   private updateLoadingStep(step: number): void {
     this.loadingStep = step;
     if (step <= this.loadingMessages.length) {
-      this.loadingText = this.loadingMessages[step - 1];
+      this.loadingText = this.translate.instant(this.loadingMessages[step - 1]);
     }
   }
 }

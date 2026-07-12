@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="close()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Configuración</h1>
+        <h1 class="tf-page-header__title">{{ 'CONFIGURATION.TITLE' | translate }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -18,11 +18,30 @@
 <ion-content class="configuration-content">
   <!-- Configuration Sections -->
   <div class="config-sections">
+    <!-- TrainFit Pro Section — top -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="diamond-outline"></ion-icon>
+        <span>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card config-card--premium">
+        <ion-item button class="config-item" (click)="openPremiumPage()">
+          <div slot="start" class="item-icon-container premium-icon">
+            <ion-icon name="diamond-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
     <!-- Profile Options Section -->
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="settings-outline"></ion-icon>
-        <span>Opciones del Perfil</span>
+        <span>{{ 'CONFIGURATION.PROFILE_OPTIONS' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -31,9 +50,8 @@
             <ion-icon name="restaurant-outline" color="secondary"></ion-icon>
           </div>
           <ion-label>
-            <h3>Objetivos nutricionales</h3>
+            <h3>{{ 'CONFIGURATION.NUTRITIONAL_GOALS' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
 
         <div class="divider"></div>
@@ -43,7 +61,7 @@
             <ion-icon name="person-outline" color="secondary"></ion-icon>
           </div>
           <ion-label>
-            <h3>Editar perfil</h3>
+            <h3>{{ 'CONFIGURATION.EDIT_PROFILE' | translate }}</h3>
           </ion-label>
         </ion-item>
 
@@ -51,29 +69,11 @@
       </ion-card>
     </div>
 
-    <div class="section-group">
-      <div class="section-header">
-        <ion-icon name="diamond-outline"></ion-icon>
-        <span>Trainfit Pro</span>
-      </div>
-
-      <ion-card class="config-card config-card--premium">
-        <ion-item button class="config-item" (click)="openPremiumPage()">
-          <div slot="start" class="item-icon-container premium-icon">
-            <ion-icon name="diamond-outline" color="warning"></ion-icon>
-          </div>
-          <ion-label>
-            <h3>Trainfit Pro</h3>
-          </ion-label>
-        </ion-item>
-      </ion-card>
-    </div>
-
     <!-- Privacy Section -->
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="eye-outline"></ion-icon>
-        <span>Privacidad</span>
+        <span>{{ 'CONFIGURATION.PRIVACY' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -82,10 +82,105 @@
             <ion-icon name="pricetags-outline" color="tertiary"></ion-icon>
           </div>
           <ion-label>
-            <h3>Preferencias de anuncios</h3>
+            <h3>{{ 'CONFIGURATION.AD_PREFERENCES' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Reminders Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="alarm-outline"></ion-icon>
+        <span>{{ 'NOTIFICATIONS.TITLE' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item class="config-item">
+          <div slot="start" class="item-icon-container reminder-icon">
+            <ion-icon name="scale-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'NOTIFICATIONS.WEIGHT_REMINDER' | translate }}</h3>
+            <p>{{ 'NOTIFICATIONS.WEIGHT_REMINDER_DESC' | translate }}</p>
+          </ion-label>
+          <ion-toggle slot="end" [(ngModel)]="notifEnabled" (ionChange)="onToggleReminder()"></ion-toggle>
+        </ion-item>
+
+        <ng-container *ngIf="notifEnabled">
+          <div class="divider"></div>
+
+          <ion-item class="config-item">
+            <ion-label>{{ 'NOTIFICATIONS.FREQUENCY' | translate }}</ion-label>
+            <ion-select [(ngModel)]="notifFrequency" (ionChange)="onSettingsChange()" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+              <ion-select-option value="daily">{{ 'NOTIFICATIONS.DAILY' | translate }}</ion-select-option>
+              <ion-select-option value="weekly">{{ 'NOTIFICATIONS.WEEKLY' | translate }}</ion-select-option>
+              <ion-select-option value="interval">{{ 'NOTIFICATIONS.CUSTOM_INTERVAL' | translate }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ng-container *ngIf="notifFrequency === 'weekly'">
+            <div class="divider"></div>
+            <ion-item class="config-item">
+              <ion-label>{{ 'NOTIFICATIONS.DAY_OF_WEEK' | translate }}</ion-label>
+              <ion-select [(ngModel)]="notifWeekday" (ionChange)="onSettingsChange()" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
+                <ion-select-option [value]="1">{{ 'NOTIFICATIONS.SUNDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="2">{{ 'NOTIFICATIONS.MONDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="3">{{ 'NOTIFICATIONS.TUESDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="4">{{ 'NOTIFICATIONS.WEDNESDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="5">{{ 'NOTIFICATIONS.THURSDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="6">{{ 'NOTIFICATIONS.FRIDAY' | translate }}</ion-select-option>
+                <ion-select-option [value]="7">{{ 'NOTIFICATIONS.SATURDAY' | translate }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ng-container>
+
+          <ng-container *ngIf="notifFrequency === 'interval'">
+            <div class="divider"></div>
+            <ion-item class="config-item">
+              <ion-label>{{ 'NOTIFICATIONS.EVERY_X_DAYS' | translate:{ days: notifIntervalDays } }}</ion-label>
+              <div slot="end" class="stepper" style="display:flex; align-items:center; gap:8px;">
+                <ion-button fill="clear" size="small" (click)="changeInterval(-1)">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </ion-button>
+                <span style="min-width:24px;text-align:center;">{{ notifIntervalDays }}</span>
+                <ion-button fill="clear" size="small" (click)="changeInterval(1)">
+                  <ion-icon name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-item>
+          </ng-container>
+
+          <div class="divider"></div>
+          <ion-item class="config-item">
+            <ion-label>{{ 'NOTIFICATIONS.TIME' | translate }}</ion-label>
+            <ion-datetime-button id="notif-time-trigger" datetime="notif-datetime" slot="end" class="hidden-datetime-button"></ion-datetime-button>
+            <div class="time-display" (click)="openTimePicker()">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ getNotifTimeDisplay() }}</span>
+            </div>
+          </ion-item>
+          <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="time-datetime-modal" trigger="notif-time-trigger" (willPresent)="isTimeModalOpen = true" (willDismiss)="isTimeModalOpen = false">
+            <ng-template>
+              <ion-datetime
+                id="notif-datetime"
+                mode="ios"
+                presentation="time"
+                [preferWheel]="true"
+                [showDefaultButtons]="true"
+                [doneText]="'COMMON.OK' | translate"
+                [cancelText]="'COMMON.CANCEL' | translate"
+                [(ngModel)]="notifTime"
+                (ionChange)="onSettingsChange()"
+              >
+                <div slot="title" class="datetime-title">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
+                </div>
+              </ion-datetime>
+            </ng-template>
+          </ion-modal>
+        </ng-container>
       </ion-card>
     </div>
 
@@ -93,7 +188,7 @@
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="help-circle-outline"></ion-icon>
-        <span>Ayuda y Recursos</span>
+        <span>{{ 'CONFIGURATION.HELP_RESOURCES' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -102,22 +197,9 @@
             <ion-icon name="library-outline" color="tertiary"></ion-icon>
           </div>
           <ion-label>
-            <h3>Diccionario</h3>
+            <h3>{{ 'CONFIGURATION.DICTIONARY' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
-
-        <!--      <div class="divider"></div>
-        
-        <ion-item button class="config-item" (click)="openTutorialsModal()">
-          <div slot="start" class="item-icon-container help-icon">
-            <ion-icon name="color-wand-outline" color="tertiary"></ion-icon>
-          </div>
-          <ion-label>
-            <h3>Tutoriales</h3>
-          </ion-label>
-         <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> 
-        </ion-item> -->
 
         <div class="divider"></div>
 
@@ -126,9 +208,38 @@
             <ion-icon name="mail-open-outline" color="tertiary"></ion-icon>
           </div>
           <ion-label>
-            <h3>Reportes y sugerencias</h3>
+            <h3>{{ 'CONFIGURATION.SUGGESTIONS' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- Language Section -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="language-outline"></ion-icon>
+        <span>{{ 'CONFIGURATION.LANGUAGE' | translate }}</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="switchLang('es')">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="checkbox-outline" [color]="currentLang === 'es' ? 'primary' : 'medium'"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'LANGUAGES.SPANISH' | translate }}</h3>
+          </ion-label>
+        </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="switchLang('en')">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="checkbox-outline" [color]="currentLang === 'en' ? 'primary' : 'medium'"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'LANGUAGES.ENGLISH' | translate }}</h3>
+          </ion-label>
         </ion-item>
       </ion-card>
     </div>
@@ -137,7 +248,7 @@
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="document-text-outline"></ion-icon>
-        <span>Legal e Información</span>
+        <span>{{ 'CONFIGURATION.LEGAL_INFO' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -146,9 +257,8 @@
             <ion-icon name="file-tray-full-outline" color="medium"></ion-icon>
           </div>
           <ion-label>
-            <h3>Política y privacidad</h3>
+            <h3>{{ 'CONFIGURATION.PRIVACY_POLICY' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
 
         <div class="divider"></div>
@@ -158,9 +268,8 @@
             <ion-icon name="people-outline" color="medium"></ion-icon>
           </div>
           <ion-label>
-            <h3>Nosotros</h3>
+            <h3>{{ 'CONFIGURATION.ABOUT_US' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
 
         <div class="divider"></div>
@@ -173,9 +282,8 @@
             ></ion-icon>
           </div>
           <ion-label>
-            <h3>Términos y condiciones</h3>
+            <h3>{{ 'CONFIGURATION.TERMS' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
 
         <div class="divider"></div>
@@ -185,9 +293,8 @@
             <ion-icon name="link-outline" color="medium"></ion-icon>
           </div>
           <ion-label>
-            <h3>Referencias</h3>
+            <h3>{{ 'CONFIGURATION.REFERENCES' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
       </ion-card>
     </div>
@@ -195,7 +302,7 @@
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="shield-checkmark-outline"></ion-icon>
-        <span>Seguridad</span>
+        <span>{{ 'CONFIGURATION.SECURITY' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -204,9 +311,8 @@
             <ion-icon name="key-outline" color="medium"></ion-icon>
           </div>
           <ion-label>
-            <h3>Cambiar contraseña</h3>
+            <h3>{{ 'CONFIGURATION.CHANGE_PASSWORD' | translate }}</h3>
           </ion-label>
-          <!--  <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
       </ion-card>
     </div>
@@ -215,7 +321,7 @@
     <div class="section-group">
       <div class="section-header">
         <ion-icon name="person-outline"></ion-icon>
-        <span>Cuenta</span>
+        <span>{{ 'CONFIGURATION.ACCOUNT' | translate }}</span>
       </div>
 
       <ion-card class="config-card">
@@ -224,9 +330,8 @@
             <ion-icon name="log-out-outline" color="medium"></ion-icon>
           </div>
           <ion-label>
-            <h3>Cerrar sesión</h3>
+            <h3>{{ 'CONFIGURATION.LOGOUT' | translate }}</h3>
           </ion-label>
-          <!--    <ion-icon slot="end" name="chevron-forward-outline" class="chevron-icon"></ion-icon> -->
         </ion-item>
 
         <div class="divider"></div>
@@ -240,7 +345,7 @@
             <ion-icon name="trash-outline" color="danger"></ion-icon>
           </div>
           <ion-label>
-            <h3>Eliminar cuenta</h3>
+            <h3>{{ 'CONFIGURATION.DELETE_ACCOUNT' | translate }}</h3>
           </ion-label>
         </ion-item>
       </ion-card>

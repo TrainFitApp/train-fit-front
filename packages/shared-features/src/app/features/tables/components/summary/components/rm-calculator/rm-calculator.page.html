@@ -1,0 +1,120 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'RM_CALCULATOR.TITLE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content>
+  <div class="content">
+    <ion-card class="input-card">
+      <ion-card-content>
+        <div class="field">
+          <ion-label class="field-label">{{ 'RM_CALCULATOR.WEIGHT_LABEL' | translate }}</ion-label>
+          <div class="field-input-wrapper">
+            <ion-input
+              type="number"
+              inputmode="decimal"
+              [(ngModel)]="weight"
+              placeholder="0"
+              class="field-input"
+            ></ion-input>
+            <span class="field-unit">kg</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <ion-label class="field-label">{{ 'RM_CALCULATOR.REPS_LABEL' | translate }}</ion-label>
+          <div class="field-input-wrapper">
+            <ion-input
+              type="number"
+              inputmode="numeric"
+              [(ngModel)]="reps"
+              placeholder="0"
+              class="field-input"
+            ></ion-input>
+            <span class="field-unit">{{ 'RM_CALCULATOR.REPS_UNIT' | translate }}</span>
+          </div>
+        </div>
+
+        <ion-button expand="block" class="calculate-btn" [disabled]="!canCalculate" (click)="calculate()">
+          <ion-icon name="calculator-outline" slot="start"></ion-icon>
+          {{ 'RM_CALCULATOR.CALCULATE_BTN' | translate }}
+        </ion-button>
+
+        <div class="range-warning" *ngIf="showRangeWarning">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>{{ 'RM_CALCULATOR.RANGE_WARNING' | translate }}</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ng-container *ngIf="hasCalculated && results">
+      <ion-card class="results-card">
+        <ion-card-header>
+          <ion-card-subtitle>{{ 'RM_CALCULATOR.ESTIMATES_TITLE' | translate }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <div
+            class="formula-row"
+            *ngFor="let formula of formulas"
+            [class.formula-row--recommended]="formula === recommendedFormula"
+          >
+            <div class="formula-main">
+              <div class="formula-header">
+                <span class="formula-name">{{ formulaLabel(formula) }}</span>
+                <span class="recommended-badge" *ngIf="formula === recommendedFormula">
+                  {{ 'RM_CALCULATOR.RECOMMENDED_BADGE' | translate }}
+                </span>
+              </div>
+              <span class="formula-description">{{ formulaDescription(formula) }}</span>
+            </div>
+            <span class="formula-value">{{ round1(results[formula]) }} kg</span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="percentage-card">
+        <ion-card-header>
+          <ion-card-subtitle>{{ 'RM_CALCULATOR.PERCENTAGE_TABLE_TITLE' | translate }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-segment
+            mode="ios"
+            [value]="selectedTableFormula"
+            (ionChange)="selectTableFormula($event.detail.value)"
+            class="table-formula-segment"
+          >
+            <ion-segment-button *ngFor="let formula of formulas" [value]="formula">
+              <ion-label>{{ formulaLabel(formula) }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <div class="percentage-grid">
+            <div class="percentage-row percentage-row--header">
+              <span>%</span>
+              <span>{{ 'RM_CALCULATOR.WEIGHT_COL' | translate }}</span>
+            </div>
+            <div
+              class="percentage-row"
+              *ngFor="let row of percentageTable"
+              [class.percentage-row--hundred]="row.percentage === 100"
+            >
+              <span class="percentage-value">{{ row.percentage }}%</span>
+              <span class="percentage-weight">{{ row.weight }} kg</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+  </div>
+</ion-content>

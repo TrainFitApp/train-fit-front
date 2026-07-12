@@ -7,7 +7,7 @@
         </button>
       </div>
       <div class="search-section">
-        <ion-searchbar class="users-search" [value]="search" placeholder="Buscar usuarios" animated="true"
+        <ion-searchbar class="users-search" [value]="search" [placeholder]="'MANAGEMENT.USERS.SEARCH_PLACEHOLDER' | translate" animated="true"
           show-clear-button="focus" (ionInput)="onSearchChange($event)"></ion-searchbar>
       </div>
       <div class="actions-section">
@@ -22,19 +22,19 @@
     <div class="filter-group">
       <div class="filter-header">
         <ion-icon name="filter-outline" class="filter-icon"></ion-icon>
-        <span class="filter-title">FILTROS ACTIVOS</span>
+        <span class="filter-title">{{ 'MANAGEMENT.USERS.FILTERS_ACTIVE' | translate }}</span>
       </div>
       <div class="chips-container">
         <ion-chip *ngIf="filters.premiumOnly" class="modern-chip" color="primary">
-          <ion-label>Premium</ion-label>
+          <ion-label>{{ 'MANAGEMENT.USERS.FILTER_PREMIUM' | translate }}</ion-label>
           <ion-icon name="close-circle" (click)="clearPremiumFilter()"></ion-icon>
         </ion-chip>
         <ion-chip *ngIf="filters.withHashOnly" class="modern-chip" color="primary">
-          <ion-label>Hash</ion-label>
+          <ion-label>{{ 'MANAGEMENT.USERS.FILTER_HASH' | translate }}</ion-label>
           <ion-icon name="close-circle" (click)="clearHashFilter()"></ion-icon>
         </ion-chip>
         <ion-chip *ngIf="filters.activitySort" class="modern-chip" color="primary">
-          <ion-label>Actividad: {{ filters.activitySort === 'asc' ? 'Ascendente' : 'Descendente' }}</ion-label>
+          <ion-label>{{ 'MANAGEMENT.USERS.FILTER_ACTIVITY' | translate:{sort: (filters.activitySort === 'asc' ? ('MANAGEMENT.USERS.FILTER_ASC' | translate) : ('MANAGEMENT.USERS.FILTER_DESC' | translate))} }}</ion-label>
           <ion-icon name="close-circle" (click)="clearActivityFilter()"></ion-icon>
         </ion-chip>
       </div>
@@ -45,17 +45,17 @@
 <ion-content class="users-content">
   <section class="users-page">
     <div class="users-count" *ngIf="!isLoading || users.length">
-      <span>{{ formattedTotalUsers }} usuarios</span>
+      <span>{{ 'MANAGEMENT.USERS.COUNT' | translate:{count: formattedTotalUsers} }}</span>
     </div>
 
     <div class="users-state" *ngIf="isLoading && !users.length">
       <ion-spinner name="crescent"></ion-spinner>
-      <span>Cargando usuarios...</span>
+      <span>{{ 'MANAGEMENT.USERS.LOADING' | translate }}</span>
     </div>
 
     <div class="users-state" *ngIf="!isLoading && !users.length">
       <ion-icon name="people-outline"></ion-icon>
-      <span>No hay usuarios para mostrar.</span>
+      <span>{{ 'MANAGEMENT.USERS.NO_USERS' | translate }}</span>
     </div>
 
     <ion-accordion-group class="users-list" expand="inset" *ngIf="users.length">
@@ -75,7 +75,7 @@
             <div class="user-card__status" [class.is-online]="isUserOnline(user)">
               <ion-icon [name]="isUserOnline(user) ? 'ellipse' : 'ellipse-outline'"
                 [color]="isUserOnline(user) ? 'success' : 'medium'"></ion-icon>
-              <span>{{ isUserOnline(user) ? 'Activo' : 'Última conexión ' + getLastLoginLabel(user) }}</span>
+              <span>{{ isUserOnline(user) ? ('MANAGEMENT.USERS.STATUS_ACTIVE' | translate) : ('MANAGEMENT.USERS.STATUS_LAST_LOGIN' | translate:{date: getLastLoginLabel(user)}) }}</span>
             </div>
           </ion-label>
         </ion-item>
@@ -90,10 +90,10 @@
                 class="detail-icon" [class.var-primary]="!isPremiumUser(user)"
                 [class.var-accent]="isPremiumUser(user)"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Premium</span>
-                <span class="detail-value">{{ isPremiumUser(user) ? 'Pro' : 'Sin Pro' }}</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.PREMIUM_TITLE' | translate }}</span>
+                <span class="detail-value">{{ isPremiumUser(user) ? ('MANAGEMENT.USERS.PRO_VALUE' | translate) : ('MANAGEMENT.USERS.NO_PRO_VALUE' | translate) }}</span>
                 <span class="detail-action-link" *ngIf="!isPremiumActionRunning(user)">
-                  {{ isPremiumUser(user) ? 'Ver detalle' : 'Activar Pro' }}
+                  {{ isPremiumUser(user) ? ('MANAGEMENT.USERS.VIEW_DETAIL' | translate) : ('MANAGEMENT.USERS.ACTIVATE_PRO' | translate) }}
                 </span>
               </div>
             </div>
@@ -105,43 +105,43 @@
               <ion-icon [name]="isRemovingUserHash(user) ? 'hourglass-outline' : 'key-outline'"
                 class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Hash Pendiente</span>
-                <span class="detail-value text-danger">Eliminar Hash</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.HASH_PENDING' | translate }}</span>
+                <span class="detail-value text-danger">{{ 'MANAGEMENT.USERS.DELETE_HASH_ACTION' | translate }}</span>
               </div>
             </div>
 
             <div class="detail-item">
               <ion-icon name="fitness-outline" class="detail-icon var-accent"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Workout Actual</span>
-                <span class="detail-value">{{ (user.hasWorkoutInUse || user.workoutInUse) ? 'Sí' : 'No' }}</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.WORKOUT_ACTIVE' | translate }}</span>
+                <span class="detail-value">{{ (user.hasWorkoutInUse || user.workoutInUse) ? ('MANAGEMENT.USERS.WORKOUT_YES' | translate) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="list-outline" class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Rutina Activa</span>
-                <span class="detail-value">{{ (user.hasTableInUse || user.tableInUse) ? (user.tableSplitsCount ? user.tableSplitsCount + ' splits' : 'Sí') : 'No' }}</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.ROUTINE_ACTIVE' | translate }}</span>
+                <span class="detail-value">{{ (user.hasTableInUse || user.tableInUse) ? (user.tableSplitsCount ? ('MANAGEMENT.USERS.SPLITS_COUNT' | translate:{count: user.tableSplitsCount}) : ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="fast-food-outline" class="detail-icon var-tertiary"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Días Dieta</span>
-                <span class="detail-value">{{ (user.hasDietInUse || user.dietInUse) ? (user.dietDaysCount || 'Sí') : 'No' }}</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.DIET_DAYS' | translate }}</span>
+                <span class="detail-value">{{ (user.hasDietInUse || user.dietInUse) ? (user.dietDaysCount || ('MANAGEMENT.USERS.WORKOUT_YES' | translate)) : ('MANAGEMENT.USERS.WORKOUT_NO' | translate) }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="restaurant-outline" class="detail-icon var-primary"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Productos</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.PRODUCTS' | translate }}</span>
                 <span class="detail-value">{{ user.productsCount || 0 }}</span>
               </div>
             </div>
             <div class="detail-item">
               <ion-icon name="barbell-outline" class="detail-icon var-accent"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Ejercicios</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.EXERCISES' | translate }}</span>
                 <span class="detail-value">{{ user.exercisesCount || 0 }}</span>
               </div>
             </div>
@@ -150,7 +150,7 @@
             <div class="detail-item detail-item--full">
               <ion-icon name="shield-checkmark-outline" class="detail-icon var-secondary"></ion-icon>
               <div class="detail-texts">
-                <span class="detail-title">Rol</span>
+                <span class="detail-title">{{ 'MANAGEMENT.USERS.ROLE' | translate }}</span>
                 <ion-select
                   [value]="user.roles || []"
                   (ionChange)="changeUserRole(user, $event.detail.value)"
@@ -158,8 +158,8 @@
                   multiple="true"
                   class="user-role-select"
                 >
-                  <ion-select-option value="user">Usuario</ion-select-option>
-                  <ion-select-option value="admin">Admin</ion-select-option>
+                  <ion-select-option value="user">{{ 'MANAGEMENT.USERS.ROLE_VALUE_USER' | translate }}</ion-select-option>
+                  <ion-select-option value="admin">{{ 'MANAGEMENT.USERS.ROLE_VALUE_ADMIN' | translate }}</ion-select-option>
                 </ion-select>
               </div>
             </div>
@@ -168,7 +168,7 @@
           <div class="user-actions-footer">
             <ion-button expand="block" color="danger" fill="clear" (click)="confirmDeleteUser(user)">
               <ion-icon slot="start" name="trash-outline"></ion-icon>
-              Eliminar usuario
+              {{ 'MANAGEMENT.USERS.DELETE_USER_BTN' | translate }}
             </ion-button>
           </div>
         </div>
@@ -177,7 +177,7 @@
 
     <ion-infinite-scroll *ngIf="users.length && hasMoreUsers" threshold="120px" (ionInfinite)="loadMoreUsers($event)">
       <ion-infinite-scroll-content loading-spinner="crescent"
-        loading-text="Cargando mas usuarios..."></ion-infinite-scroll-content>
+        [loadingText]="'MANAGEMENT.USERS.LOADING_MORE' | translate"></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </section>
 </ion-content>

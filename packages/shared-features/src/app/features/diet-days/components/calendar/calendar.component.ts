@@ -78,11 +78,39 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     if (day) {
       this.selectedDate = day;
       this.selectDate.emit({
-        selectedDate: this.selectedDate,
+        selectedDate: this.utilService.formatDateToYYYYMMDD(day),
         weekDays,
         monthDays,
       });
       this.cdRef.detectChanges();
+    }
+  }
+
+  public refreshDietDaysForMonth(): void {
+    this.fetchDietDaysForMonth();
+  }
+
+  public upsertWeightForDate(dateStr: string, weight?: number, notes?: string): void {
+    if (typeof weight !== 'number') {
+      return;
+    }
+
+    const allMonths = [this.previousMonth, this.currentMonth, this.nextMonth];
+
+    for (const month of allMonths) {
+      for (const week of month) {
+        const day = week.days.find((item) => {
+          return item?.date && this.formatDateKey(item.date) === dateStr;
+        });
+
+        if (day) {
+          day.weight = weight;
+          day.notes = notes;
+          this.updateWeekAverage(week);
+          this.cdRef.detectChanges();
+          return;
+        }
+      }
     }
   }
 
@@ -148,23 +176,22 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   }
 
   private fetchDietDaysForMonth(): void {
-    const firstDayOfMonth = new Date(
-      this.currentDate.getFullYear(),
-      this.currentDate.getMonth(),
-      1
+    const firstDayStr = this.utilService.formatDateToYYYYMMDD(
+      new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1)
     );
     const lastDayOfMonth = new Date(
       this.currentDate.getFullYear(),
       this.currentDate.getMonth() + 1,
       0
     );
+    const lastDayStr = this.utilService.formatDateToYYYYMMDD(lastDayOfMonth);
 
     this.loading.emit(true);
 
     this.dietDayService
       .getDietDaysBetweenDatesByIdDiet(
         this.idDiet,
-        new DateRange(firstDayOfMonth, lastDayOfMonth)
+        new DateRange(firstDayStr, lastDayStr)
       )
       .subscribe({
         next: (dietDays) => {
@@ -261,8 +288,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
     // Mapeamos los días obtenidos del servicio de dieta por su fecha.
     this.dietDays.forEach((dietDay) => {
-      const dateKey = this.formatDateKey(new Date(dietDay.date));
-      dietDaysMap.set(dateKey, dietDay);
+      dietDaysMap.set(dietDay.date, dietDay);
     });
 
     // Actualizar todos los meses con los pesos de DietDays
@@ -292,12 +318,7 @@ export class CalendarComponent implements OnInit, AfterViewInit {
           }
         }
 
-        // Calcular el promedio de peso de la semana si existen días con peso
-        if (daysWithWeight > 0) {
-          week.averageWeight = totalWeight / daysWithWeight; // Promedio semanal
-        } else {
-          week.averageWeight = null; // Si no hay peso, dejar como null
-        }
+        this.setWeekAverage(week, totalWeight, daysWithWeight);
       }
     }
 
@@ -311,6 +332,24 @@ export class CalendarComponent implements OnInit, AfterViewInit {
     return `${date.getFullYear()}-${(date.getMonth() + 1)
       .toString()
       .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+  }
+
+  private updateWeekAverage(week: any): void {
+    let totalWeight = 0;
+    let daysWithWeight = 0;
+
+    for (const day of week.days) {
+      if (day?.date && typeof day.weight === 'number' && day.weight !== 0) {
+        totalWeight += day.weight;
+        daysWithWeight++;
+      }
+    }
+
+    this.setWeekAverage(week, totalWeight, daysWithWeight);
+  }
+
+  private setWeekAverage(week: any, totalWeight: number, daysWithWeight: number): void {
+    week.averageWeight = daysWithWeight > 0 ? totalWeight / daysWithWeight : null;
   }
 }
 

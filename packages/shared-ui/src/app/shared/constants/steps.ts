@@ -18,37 +18,37 @@ export type STEP_TYPE = {
 export const STEPS = {
   [STEPS_TYPES.notCounted]: {
     id: STEPS_TYPES.notCounted,
-    name: 'No los he contado',
+    name: 'STEPS.NOT_COUNTED',
     value: 1,
   },
   [STEPS_TYPES.lessThan1000]: {
     id: STEPS_TYPES.lessThan1000,
-    name: 'Menos de 1000',
+    name: 'STEPS.LESS_THAN_1000',
     value: 1.2,
   },
   [STEPS_TYPES.between2000And6000]: {
     id: STEPS_TYPES.between2000And6000,
-    name: 'Entre 2000 y 6000',
+    name: 'STEPS.BETWEEN_2000_6000',
     value: 1.37,
   },
   [STEPS_TYPES.between7000And9000]: {
     id: STEPS_TYPES.between7000And9000,
-    name: 'Entre 7000 y 9000',
+    name: 'STEPS.BETWEEN_7000_9000',
     value: 1.46,
   },
   [STEPS_TYPES.betweenThan10000And15000]: {
     id: STEPS_TYPES.betweenThan10000And15000,
-    name: 'Entre 10000 y 15000',
+    name: 'STEPS.BETWEEN_10000_15000',
     value: 1.55,
   },
   [STEPS_TYPES.betweenThan16000And18000]: {
     id: STEPS_TYPES.betweenThan16000And18000,
-    name: 'Entre 16000 y 18000',
+    name: 'STEPS.BETWEEN_16000_18000',
     value: 1.71,
   },
   [STEPS_TYPES.moreThan19000]: {
     id: STEPS_TYPES.moreThan19000,
-    name: 'Más de 19000',
+    name: 'STEPS.MORE_THAN_19000',
     value: 1.86,
   },
 };

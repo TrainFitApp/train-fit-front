@@ -1,4 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 // No importar IonTextarea directamente para compatibilidad con NgModules
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -20,7 +21,8 @@ export class SuggestionsPage {
   constructor(
     private navigationService: NavigationService,
     private userService: UserService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService,
   ) {}
 
   public sendSuggestions(): void {
@@ -34,9 +36,9 @@ export class SuggestionsPage {
     this.userService.sendSuggestions(email, message).subscribe(
       () => {
         const alertOptions = {
-          header: 'Éxito',
-          message: '¡Sugerencia enviada!',
-          buttons: ['OK'],
+          header: this.translate.instant('SUGGESTIONS.SUCCESS_HEADER'),
+          message: this.translate.instant('SUGGESTIONS.SUCCESS_MSG'),
+          buttons: [this.translate.instant('COMMON.OK')],
         };
         this.ionicUtilService.showAlert(alertOptions);
         this.showThanks = true;
@@ -46,9 +48,9 @@ export class SuggestionsPage {
       () => {
         this.isSending = false;
         this.ionicUtilService.showAlert({
-          header: 'Error',
-          message: 'No se pudo enviar la sugerencia. Por favor, inténtalo de nuevo más tarde.',
-          buttons: ['OK'],
+          header: this.translate.instant('SUGGESTIONS.ERROR_HEADER'),
+          message: this.translate.instant('SUGGESTIONS.ERROR_MSG'),
+          buttons: [this.translate.instant('COMMON.OK')],
         });
       }
     );

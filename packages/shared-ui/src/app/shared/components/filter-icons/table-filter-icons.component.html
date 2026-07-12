@@ -1,0 +1,29 @@
+<div class="filter-icons-container">
+  <div class="filter-chips-scroll">
+    <div class="filter-chips">
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="isAllSelected()"
+        [disabled]="disabled"
+        (click)="addFilter('all')"
+      >
+        <ion-icon name="library-outline"></ion-icon>
+        <span class="label">{{ 'TABLES.FILTER_DEFAULT' | translate }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="ownFilter"
+        [disabled]="disabled"
+        (click)="addFilter('own')"
+      >
+        <ion-icon name="person"></ion-icon>
+        <span class="label">{{ 'TABLES.FILTER_MINE' | translate }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+    </div>
+  </div>
+</div>

@@ -19,9 +19,9 @@
         (focusout)="onFormFocusOut()"
         novalidate
       >
-        <div *ngIf="loading" class="loading-container" aria-live="polite">
+        <div *ngIf="loading" class="loading-container">
           <ion-spinner name="dots" color="primary"></ion-spinner>
-          <p class="loading-text">Verificando credenciales...</p>
+          <p class="loading-text">{{ 'SIGN_IN.VERIFYING_CREDENTIALS' | translate }}</p>
         </div>
 
         <div *ngIf="!loading" class="form-fields">
@@ -29,15 +29,12 @@
             *ngIf="error"
             class="login-feedback"
             [class.login-feedback--retryable]="isLoginErrorRetryable"
-            role="alert"
-            aria-live="assertive"
           >
-            <ion-icon [name]="loginErrorIcon" aria-hidden="true"></ion-icon>
+            <ion-icon [name]="loginErrorIcon"></ion-icon>
             <p>{{ error }}</p>
           </div>
 
           <div class="input-group">
-            <label class="sr-only" for="email">Correo electrónico</label>
             <div
               class="input-wrapper"
               [class.input-wrapper--auth-error]="loginErrorKind === 'invalid-credentials'"
@@ -49,7 +46,7 @@
                 enterkeyhint="next"
                 inputmode="email"
                 autocomplete="email"
-                placeholder="Correo electrónico"
+                [placeholder]="'SIGN_IN.EMAIL_PLACEHOLDER' | translate"
                 formControlName="email"
                 class="input-field"
                 (keydown.enter)="passwordInput.focus()"
@@ -60,16 +57,15 @@
               class="validation-error"
             >
               <span *ngIf="loginForm.get('email')?.errors?.['required']"
-                >El correo electrónico es obligatorio</span
+                >{{ 'SIGN_IN.EMAIL_REQUIRED_VALIDATION' | translate }}</span
               >
               <span *ngIf="loginForm.get('email')?.errors?.['email']"
-                >Correo electrónico válido</span
+                >{{ 'SIGN_IN.EMAIL_VALID_VALIDATION' | translate }}</span
               >
             </div>
           </div>
 
           <div class="input-group">
-            <label class="sr-only" for="password">Contraseña</label>
             <div
               class="input-wrapper"
               [class.input-wrapper--auth-error]="loginErrorKind === 'invalid-credentials'"
@@ -84,7 +80,7 @@
                 [type]="showPass ? 'text' : 'password'"
                 enterkeyhint="done"
                 autocomplete="current-password"
-                placeholder="Contraseña"
+                [placeholder]="'SIGN_IN.PASSWORD_PLACEHOLDER' | translate"
                 formControlName="password"
                 class="input-field"
               />
@@ -93,7 +89,6 @@
                 class="password-toggle"
                 (click)="showPass = !showPass"
                 type="button"
-                [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
               >
                 <ion-icon
                   [name]="showPass ? 'eye-off-outline' : 'eye-outline'"
@@ -105,10 +100,10 @@
               class="validation-error"
             >
               <span *ngIf="loginForm.get('password')?.errors?.['required']"
-                >La contraseña es obligatoria</span
+                >{{ 'SIGN_IN.PASSWORD_REQUIRED_VALIDATION' | translate }}</span
               >
               <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
-                >La contraseña debe tener al menos 6 caracteres</span
+                >{{ 'SIGN_IN.PASSWORD_MINLENGTH_VALIDATION' | translate }}</span
               >
             </div>
           </div>
@@ -119,7 +114,7 @@
               (click)="goToRestorePass()"
               type="button"
             >
-              ¿Olvidaste tu contraseña?
+              {{ 'SIGN_IN.FORGOT_PASSWORD' | translate }}
             </button>
           </div>
 
@@ -129,10 +124,10 @@
             class="login-button"
             [disabled]="loading || loginForm.invalid"
           >
-            Iniciar sesión
+            {{ 'SIGN_IN.LOGIN' | translate }}
           </ion-button>
 
-          <div class="divider">O accede con</div>
+          <div class="divider">{{ 'SIGN_IN.OR_ACCESS_WITH' | translate }}</div>
 
           <div class="social-login">
             <button
@@ -142,7 +137,7 @@
               type="button"
               [disabled]="loading"
             >
-              <span class="social-logo" aria-hidden="true">
+              <span class="social-logo">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -162,7 +157,7 @@
                   />
                 </svg>
               </span>
-              <span class="button-text">Continuar con Google</span>
+              <span class="button-text">{{ 'SIGN_IN.CONTINUE_WITH_GOOGLE' | translate }}</span>
             </button>
 
             <button
@@ -172,7 +167,7 @@
               type="button"
               [disabled]="loading"
             >
-              <span class="social-logo" aria-hidden="true">
+              <span class="social-logo">
                 <svg width="20" height="20" viewBox="0 0 226 226">
                   <path
                     d="M170.18,91.8c-0.25,29.35,24.01,43.46,25.06,44.1c-0.12,0.4 -3.93,13.43 -12.92,26.54c-7.77,11.33 -15.84,22.61 -28.46,22.84c-12.4,0.23 -16.4,-7.34 -30.56,-7.34c-14.16,0 -18.6,7.11 -30.56,7.57c-12.18,0.47 -21.43-12.31 -29.28-23.64c-16.05-23.18 -28.32-65.5 -11.75-94.13c8.23-14.22,22.87-23.23,38.86-23.47c12.18-0.23,23.68,8.2,31.14,8.2c7.46,0,21.37-10.27,35.91-8.77c6.09,0.25,23.18,2.44,34.19,18.52C190.96,65.37,170.47,73.49,170.18,91.8z M138.83,38.03c6.51-7.88,10.89-18.82,9.69-29.74c-9.39,0.38-20.75,6.26-27.48,14.14c-6.03,6.96-11.31,18.15-9.88,28.8C121.57,51.98,132.32,45.9,138.83,38.03z"
@@ -180,18 +175,18 @@
                   />
                 </svg>
               </span>
-              <span class="button-text">Continuar con Apple</span>
+              <span class="button-text">{{ 'SIGN_IN.CONTINUE_WITH_APPLE' | translate }}</span>
             </button>
           </div>
 
           <p class="signup-link">
-            ¿Aún no tienes cuenta?
+            {{ 'SIGN_IN.NO_ACCOUNT' | translate }}
             <button
               class="text-link signup-action"
               (click)="navigateSignUp()"
               type="button"
             >
-              Crear cuenta
+              {{ 'SIGN_IN.CREATE_ACCOUNT' | translate }}
             </button>
           </p>
         </div>

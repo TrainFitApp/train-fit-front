@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { HttpService } from 'src/app/core/services/http/http.service';
@@ -14,6 +15,7 @@ export class ManagementHomePage {
   private readonly navController = inject(NavController);
   private readonly ionicUtil = inject(IonicUtilService);
   private readonly http = inject(HttpService);
+  private readonly translate = inject(TranslateService);
 
   public goToUsers(): void {
     this.navigationService.goToProfileUsers();
@@ -37,17 +39,17 @@ export class ManagementHomePage {
 
   public confirmRestart(): void {
     this.ionicUtil.showAlert({
-      header: 'Reiniciar Servidor',
-      message: '¿Reiniciar nginx y recargar procesos PM2? Los servicios se detendrán brevemente.',
+      header: this.translate.instant('MANAGEMENT.CONFIRM_RESTART.HEADER'),
+      message: this.translate.instant('MANAGEMENT.CONFIRM_RESTART.MESSAGE'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Reiniciar', role: 'confirm', cssClass: 'danger-btn' },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant('MANAGEMENT.CONFIRM_RESTART.CONFIRM'), role: 'confirm', cssClass: 'danger-btn' },
       ],
     }).then((alertRes) => {
       if (alertRes?.role === 'confirm') {
         this.http.post('server/restart', {}).subscribe({
-          next: () => this.ionicUtil.showSuccessToast('Comando de reinicio ejecutado'),
-          error: (err) => this.ionicUtil.showErrorToast(err, 'Error al ejecutar reinicio'),
+          next: () => this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.RESTART.SUCCESS')),
+          error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.RESTART.ERROR')),
         });
       }
     });

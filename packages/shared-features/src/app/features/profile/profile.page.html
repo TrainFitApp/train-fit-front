@@ -61,8 +61,8 @@
   <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <div class="premium-banner__text">
-      <span class="premium-banner__title">Hazte Pro</span>
-      <span class="premium-banner__sub">Rutinas ilimitadas, sin anuncios y más</span>
+      <span class="premium-banner__title">{{ 'PROFILE.GO_PRO' | translate }}</span>
+      <span class="premium-banner__sub">{{ 'PROFILE.PREMIUM_SUBTITLE' | translate }}</span>
     </div>
     <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
   </button>
@@ -72,7 +72,7 @@
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="restaurant-outline" color="primary"></ion-icon>
-        Macros {{ showRemainingNutrition ? 'restantes' : 'consumidos' }}
+        {{ showRemainingNutrition ? ('PROFILE.MACROS_REMAINING' | translate) : ('PROFILE.MACROS_CONSUMED' | translate) }}
       </h3>
       <div class="section-actions">
         <ion-toggle
@@ -98,7 +98,7 @@
         <div class="macro-row">
           <div class="macro-info">
             <div class="macro-color protein"></div>
-            <span class="macro-name">Proteína</span>
+            <span class="macro-name">{{ 'PROFILE.PROTEIN' | translate }}</span>
           </div>
           <div
             class="macro-values"
@@ -116,7 +116,7 @@
         <div class="macro-row">
           <div class="macro-info">
             <div class="macro-color carbs"></div>
-            <span class="macro-name">CBH</span>
+            <span class="macro-name">{{ 'PROFILE.CBH' | translate }}</span>
           </div>
           <div
             class="macro-values"
@@ -134,7 +134,7 @@
         <div class="macro-row">
           <div class="macro-info">
             <div class="macro-color fats"></div>
-            <span class="macro-name">Grasas</span>
+            <span class="macro-name">{{ 'PROFILE.FATS' | translate }}</span>
           </div>
           <div
             class="macro-values"
@@ -154,7 +154,7 @@
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="scale-outline" color="primary"></ion-icon>
-        Progreso de Peso
+        {{ 'PROFILE.WEIGHT_PROGRESS' | translate }}
       </h3>
       <div class="section-actions">
         <button class="weight-progress-btn" (click)="goToWeightInfo()">
@@ -165,14 +165,14 @@
 
     <div class="weight-grid">
       <div class="weight-metric" (click)="showInfo(INFO.currentWeight)">
-        <div class="weight-metric-label">Peso de hoy</div>
+        <div class="weight-metric-label">{{ 'PROFILE.TODAY_WEIGHT' | translate }}</div>
         <div class="weight-metric-value">
           {{ getTodayWeight() ? ((getTodayWeight() | number:'1.0-2') + 'kg') :
           '-' }}
         </div>
       </div>
       <div class="weight-metric" (click)="showInfo(INFO.pastAverageWeight)">
-        <div class="weight-metric-label">Media semanal anterior</div>
+        <div class="weight-metric-label">{{ 'PROFILE.PREV_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
           {{ (prevWeightAverage || 0) | number:'1.0-2' }}kg
         </div>
@@ -182,7 +182,7 @@
         class="weight-metric full-width"
         (click)="showInfo(INFO.averageWeight)"
       >
-        <div class="weight-metric-label">Media semanal actual</div>
+        <div class="weight-metric-label">{{ 'PROFILE.CURR_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
           {{ currWeightAverage === 0 ? '-' : ((currWeightAverage || 0) |
           number:'1.0-2') + 'kg' }}
@@ -211,17 +211,16 @@
     >
       <div class="card-header">
         <h2 class="card-title">
-          <ion-icon name="barbell-outline" color="primary"></ion-icon> Rutina
-          Activa
+          <ion-icon name="barbell-outline" color="primary"></ion-icon> {{ 'PROFILE.ACTIVE_ROUTINE' | translate }}
         </h2>
       </div>
       <div class="workout-status">
-        <p class="workout-title">{{ tableInUse.name }}</p>
+        <p class="workout-title">{{ tableInUse.name | translateDb }}</p>
         <p class="workout-subtitle" *ngIf="user?.workoutInUse && workoutInUse">
-          Micro-ciclo {{ getCurrentPlayingSplit() }}
+          {{ 'PROFILE.MICROCYCLE' | translate:{ split: getCurrentPlayingSplit() } }}
         </p>
         <p class="workout-subtitle" *ngIf="!user?.workoutInUse">
-          {{ tableInUse.splits?.length || 0 }} microciclos disponibles
+          {{ 'PROFILE.MICROCYCLES_AVAILABLE' | translate:{ count: tableInUse.splits?.length || 0 } }}
         </p>
       </div>
       <div class="workout-progress" *ngIf="user?.workoutInUse && workoutInUse">
@@ -233,13 +232,12 @@
             'active': !isWorkoutInUseEnded,
             'completed': isWorkoutInUseEnded
           }"
-            >{{ isWorkoutInUseEnded ? 'Completado' : 'Activo' }}</span
+            >{{ isWorkoutInUseEnded ? ('PROFILE.COMPLETED' | translate) : ('PROFILE.ACTIVE' | translate) }}</span
           >
         </div>
         <div class="progress-indicator">
           <span class="progress-text"
-            >{{ completedExercises }} / {{ workoutInUse.exercises.length }}
-            ejercicios completados</span
+            >{{ 'PROFILE.EXERCISES_COMPLETED' | translate:{ completed: completedExercises, total: workoutInUse.exercises.length } }}</span
           >
         </div>
         <div class="progress-bar-bg">
@@ -256,7 +254,7 @@
         >
           <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
           <div class="info-text">
-            <span class="info-title">Estadísticas</span>
+            <span class="info-title">{{ 'PROFILE.STATISTICS' | translate }}</span>
           </div>
         </div>
       </div>
@@ -269,67 +267,26 @@
           <div class="no-routine-icon">
             <ion-icon name="calendar-outline" color="primary"></ion-icon>
           </div>
-          <p class="no-routine-text">No tienes una rutina activa</p>
+          <p class="no-routine-text">{{ 'PROFILE.NO_ROUTINE_TITLE' | translate }}</p>
           <p class="no-routine-subtext">
-            Explora las rutinas y empieza a entrenar.
+            {{ 'PROFILE.NO_ROUTINE_SUBTITLE' | translate }}
           </p>
           <ion-button class="primary-action-btn" (click)="goToSummary()"
-            >Seleccionar Rutina</ion-button
+            >{{ 'PROFILE.SELECT_ROUTINE' | translate }}</ion-button
           >
         </div>
       </div>
     </ng-template>
   </div>
 
-  <!-- Personal Information Section -->
-  <div class="personal-info-section-compact">
-    <div class="compact-header">
-      <ion-icon
-        name="person-outline"
-        class="header-icon"
-        color="primary"
-      ></ion-icon>
-      <span class="header-title">Información Personal</span>
-      <button class="personal-info-btn" (click)="edit()">
-        <ion-icon name="create-outline"></ion-icon>
-      </button>
-    </div>
 
-    <!-- First row: Age, Weight, Height -->
-    <div class="info-row">
-      <div class="info-item-compact">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <span class="info-text">{{ getUserAge() }} años</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="scale-outline"></ion-icon>
-        <span class="info-text">{{ user.weight }} kg</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="resize-outline"></ion-icon>
-        <span class="info-text">{{ user.height }} cm</span>
-      </div>
-    </div>
-
-    <!-- Second row: Steps, Training -->
-    <div class="info-row">
-      <div class="info-item-compact">
-        <ion-icon name="walk-outline"></ion-icon>
-        <span class="info-text">{{ getStepsDescription() }}</span>
-      </div>
-      <div class="info-item-compact">
-        <ion-icon name="barbell-outline"></ion-icon>
-        <span class="info-text">{{ getTrainingDescription() }}</span>
-      </div>
-    </div>
-  </div>
 
   <!-- TODO -->
 
   <ion-grid class="social-networks-section">
     <ion-row
       ><ion-col class="ion-text-center"
-        ><ion-label color="medium">Redes sociales</ion-label></ion-col
+        ><ion-label color="medium">{{ 'PROFILE.SOCIAL_NETWORKS' | translate }}</ion-label></ion-col
       >
     </ion-row>
     <ion-row class="ion-justify-content-center">

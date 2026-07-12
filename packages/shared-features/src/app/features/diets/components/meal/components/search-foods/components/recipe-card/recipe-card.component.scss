@@ -10,6 +10,10 @@
         border-color: var(--ion-color-primary);
         background-color: rgba(var(--ion-color-primary-rgb), 0.04);
     }
+
+    &.is-loading {
+        pointer-events: none;
+    }
 }
 
 .recipe-card:active {
@@ -189,4 +193,11 @@
         background: rgba(var(--ion-color-success-rgb), 0.15);
         color: var(--ion-color-success);
     }
+}
+
+.card-progress {
+    height: 3px;
+    margin-top: 4px;
+    --background: rgba(var(--ion-color-primary-rgb), 0.18);
+    --progress-background: var(--ion-color-primary);
 }

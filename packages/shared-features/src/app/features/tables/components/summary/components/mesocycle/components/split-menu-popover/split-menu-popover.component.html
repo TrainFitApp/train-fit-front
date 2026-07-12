@@ -5,10 +5,10 @@
       color="secondary"
       slot="start"
     ></ion-icon>
-    <ion-label class="ion-text-wrap"><strong>DUPLICAR</strong></ion-label>
+    <ion-label class="ion-text-wrap"><strong>{{ 'ACTIONS.DUPLICATE' | translate }}</strong></ion-label>
   </ion-item>
   <ion-item [button]="true" [detail]="true" (click)="deleteSplit()">
     <ion-icon name="trash-bin-outline" color="danger" slot="start"></ion-icon>
-    <ion-label class="ion-text-wrap"><strong>ELIMINAR</strong></ion-label>
+    <ion-label class="ion-text-wrap"><strong>{{ 'ACTIONS.DELETE' | translate }}</strong></ion-label>
   </ion-item>
 </ion-list>

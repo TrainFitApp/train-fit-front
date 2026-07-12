@@ -16,19 +16,19 @@ export const OBJETIVES: {
 } = {
   [OBJETIVE_TYPES.gain]: {
     id: OBJETIVE_TYPES.gain,
-    name: 'Ganancia Peso',
+    name: 'OBJETIVES.GAIN_WEIGHT',
     key: 'superávit',
     value: 300,
   },
   [OBJETIVE_TYPES.maintenance]: {
     id: OBJETIVE_TYPES.maintenance,
-    name: 'Mantener Peso',
+    name: 'OBJETIVES.MAINTAIN_WEIGHT',
     key: 'mantenimiento',
     value: 0,
   },
   [OBJETIVE_TYPES.loss]: {
     id: OBJETIVE_TYPES.loss,
-    name: 'Perder Peso',
+    name: 'OBJETIVES.LOSE_WEIGHT',
     key: 'déficit',
     value: -300,
   },

@@ -77,15 +77,15 @@
           <div class="no-results-icon">
             <ion-icon name="search-outline"></ion-icon>
           </div>
-          <h3>No hay coincidencias</h3>
-          <p>Prueba con otro término o crea un producto nuevo.</p>
+          <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
+          <p>{{ 'SEARCH_FOODS.NO_MATCHES_MSG' | translate }}</p>
           <button
             class="no-results-action"
             type="button"
             (click)="createProductFromEmptyState()"
           >
             <ion-icon name="add-circle-outline"></ion-icon>
-            Crear producto
+            {{ 'SEARCH_FOODS.CREATE_PRODUCT' | translate }}
           </button>
         </div>
         <ng-template #keepLoadedProductsState></ng-template>
@@ -102,6 +102,7 @@
           [meal]="meal"
           [dietDay]="dietDay"
           [user]="user"
+          [loading]="isRecipeLoading(recipe)"
           (toggle)="onRecipeToggle($event)"
           (quickAdd)="onRecipeQuickAdd($event)"
           (edit)="onRecipeEdit($event)"
@@ -116,15 +117,15 @@
           <div class="no-results-icon">
             <ion-icon name="restaurant-outline"></ion-icon>
           </div>
-          <h3>No hay coincidencias</h3>
-          <p>Prueba con otro término o crea una receta nueva.</p>
+          <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
+          <p>{{ 'SEARCH_FOODS.NO_MATCHES_MSG' | translate }}</p>
           <button
             class="no-results-action"
             type="button"
             (click)="createRecipeFromEmptyState()"
           >
             <ion-icon name="add-circle-outline"></ion-icon>
-            Crear receta
+            {{ 'SEARCH_FOODS.CREATE_RECIPE' | translate }}
           </button>
         </div>
       </ng-container>
@@ -215,7 +216,7 @@
           (click)="setMode('products')"
         >
           <ion-icon name="nutrition-outline"></ion-icon>
-          <span>Productos</span>
+          <span>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</span>
         </button>
         <button
           type="button"
@@ -224,7 +225,7 @@
           (click)="setMode('recipes')"
         >
           <ion-icon name="restaurant-outline"></ion-icon>
-          <span>Recetas</span>
+          <span>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</span>
         </button>
         <div
           class="mode-indicator"

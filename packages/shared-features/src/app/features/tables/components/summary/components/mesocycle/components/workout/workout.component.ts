@@ -2,9 +2,12 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   Output,
   ViewChild,
+  OnInit,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import {
   ActionSheetOptions,
   AlertOptions,
@@ -24,6 +27,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { TranslateService } from '@ngx-translate/core';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -39,13 +43,15 @@ import {
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
+import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
 
 @Component({
   selector: 'app-workout',
   templateUrl: './workout.component.html',
   styleUrls: ['./workout.component.scss'],
 })
-export class WorkoutComponent {
+export class WorkoutComponent implements OnDestroy {
   @Input()
   public user: User;
 
@@ -126,6 +132,9 @@ export class WorkoutComponent {
 
   public test: boolean = false;
 
+  public pinnedNotes: PinnedExerciseNote[] = [];
+  private pinnedNoteCacheSub: Subscription | null = null;
+
   constructor(
     private userService: UserService,
     private modalController: ModalController,
@@ -135,8 +144,117 @@ export class WorkoutComponent {
     private ionicUtilService: IonicUtilService,
     private tableService: TableService,
     private navigationService: NavigationService,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private translate: TranslateService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
   ) {}
+
+  ngOnInit(): void {
+    this.loadPinnedNotes();
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
+      this.loadPinnedNotes();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pinnedNoteCacheSub?.unsubscribe();
+  }
+
+  private loadPinnedNotes(): void {
+    if (this.tableInUse?._id) {
+      this.pinnedExerciseNoteService.getByTable(this.tableInUse._id).subscribe((notes) => {
+        this.pinnedNotes = notes;
+      });
+    }
+  }
+
+  public getPinnedNote(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+    return this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+  }
+
+  public deletePinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.DELETE_PINNED_TITLE'),
+      message: this.translate.instant('NOTES.DELETE_PINNED_CONFIRM'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.pinnedExerciseNoteService.delete(note._id, this.tableInUse._id).subscribe({
+              next: () => {
+                this.pinnedNotes = this.pinnedNotes.filter((n) => n._id !== note._id);
+                console.debug('[WorkoutComponent] Pinned note deleted');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public editPinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.TITLE'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: note.notes,
+          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            const dto: PinnedExerciseNoteUpsertDto = {
+              tableId: this.tableInUse._id,
+              workoutIndex,
+              exerciseIndex,
+              notes: newNotes,
+            };
+            this.pinnedExerciseNoteService.upsert(dto).subscribe({
+              next: (updated) => {
+                const idx = this.pinnedNotes.findIndex((n) => n._id === note._id);
+                if (idx >= 0) this.pinnedNotes[idx] = updated;
+                console.debug('[WorkoutComponent] Pinned note updated');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
 
   public workoutActions(
     event,
@@ -255,16 +373,16 @@ export class WorkoutComponent {
 
   private deleteWorkouts(workoutIndex: number): void {
     const alertOptions: AlertOptions = {
-      header: 'Eliminar entrenamientos',
-      message: `Se borrarán todos los entrenamientos ${this.workout.name} de todos los micro-ciclos`,
+      header: this.translate.instant('TABLES.DELETE_WORKOUTS'),
+      message: this.translate.instant('TABLES.DELETE_WORKOUTS_CONFIRM', { name: this.workout.name }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           cssClass: 'danger',
           handler: () => {
             const workoutsToDelete: Workout[] = [];
@@ -289,7 +407,7 @@ export class WorkoutComponent {
               .deleteWorkouts(workoutsToDelete)
               .subscribe(() => {
                 const toastOptions: ToastOptions = {
-                  message: `¡${workoutsToDelete[0].name} eliminado con éxito!`,
+                  message: this.translate.instant('TABLES.WORKOUT_DELETED_SUCCESS', { name: workoutsToDelete[0].name }),
                   duration: 2000,
                 };
                 this.ionicUtilService.showToast(toastOptions);
@@ -329,16 +447,16 @@ export class WorkoutComponent {
     indexExercise: number
   ) {
     const alertOptions: AlertOptions = {
-      header: 'Eliminar ejercicio',
-      message: `¿Estás seguro de que quieres eliminar ${exerciseName}? Esto lo eliminará también de todos los micro-ciclos.`,
+      header: this.translate.instant('TABLES.DELETE_EXERCISE'),
+      message: this.translate.instant('TABLES.DELETE_EXERCISE_CONFIRM', { name: exerciseName }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: 'destructive',
           handler: () => {
             this.deleteExercises(indexWorkout, indexExercise);
@@ -501,7 +619,7 @@ export class WorkoutComponent {
         });
 
         const toast: ToastOptions = {
-          message: 'Entrenamiento pegado',
+          message: this.translate.instant('TABLES.WORKOUT_PASTED'),
           duration: 2000,
         };
         this.ionicUtilService.showToast(toast);
@@ -571,23 +689,23 @@ export class WorkoutComponent {
 
   private setWorkoutNote(): void {
     const alertOptions: AlertOptions = {
-      header: 'Notas',
+      header: this.translate.instant('TABLES.WORKOUT_NOTE'),
       inputs: [
         {
           name: 'notes',
           type: 'textarea',
           value: this.workout.notes,
-          placeholder: 'Escribe tus notas aquí...',
+          placeholder: this.translate.instant('TABLES.WORKOUT_NOTES_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             if (data.notes && data.notes.trim() !== '') {
               this.workout.notes = data.notes;
@@ -599,7 +717,7 @@ export class WorkoutComponent {
                 );
             } else {
               const toastOptions: ToastOptions = {
-                message: 'El campo no puede estar vacío',
+                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -649,23 +767,23 @@ export class WorkoutComponent {
 
   private updateWorkoutName(): void {
     const alertOptions: AlertOptions = {
-      header: 'Cambiar nombre',
+      header: this.translate.instant('TABLES.CHANGE_NAME'),
       inputs: [
         {
           name: 'name',
           type: 'text',
           value: this.workout.name,
-          placeholder: 'Nombre del entrenamiento',
+          placeholder: this.translate.instant('TABLES.WORKOUT_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             if (data.name && data.name.trim() !== '') {
               this.load = false;
@@ -684,7 +802,7 @@ export class WorkoutComponent {
 
                   this.load = true;
                   const toastOptions: ToastOptions = {
-                    message: 'Nombre de entrenamientos actualizados',
+                    message: this.translate.instant('TABLES.WORKOUT_NAME_UPDATED'),
                     duration: 1000,
                   };
 
@@ -775,7 +893,7 @@ export class WorkoutComponent {
     this.workoutService.modifyWorkout(workout).subscribe(() => {
       this.tableService.setCurrentTable = this.tableInUse;
       const toastOptions: ToastOptions = {
-        message: 'Fecha actualizada',
+        message: this.translate.instant('TABLES.DATE_UPDATED'),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -841,18 +959,16 @@ export class WorkoutComponent {
   public playWorkout(): void {
     if (this.workout._id !== this.user.workoutInUse) {
       const alertOptions: AlertOptions = {
-        header: 'Iniciar entrenamiento',
-        message:
-          this.workout.name +
-          ' se mostrará en la pestaña de resumen y perfil como entrenamiento en uso',
+        header: this.translate.instant('TABLES.START_WORKOUT'),
+        message: this.translate.instant('TABLES.START_WORKOUT_CONFIRM', { name: this.workout.name }),
         buttons: [
           {
-            text: 'CANCELAR',
+            text: this.translate.instant('COMMON.CANCEL'),
             role: 'cancel',
             cssClass: 'secondary',
           },
           {
-            text: 'INICIAR',
+            text: this.translate.instant('TABLES.START'),
             handler: () => {
               if (this.user?.premium?.entitled) {
                 this.startWorkoutAndNavigate();
@@ -975,8 +1091,7 @@ export class WorkoutComponent {
     event.stopPropagation();
 
     const toastOptions: ToastOptions = {
-      message:
-        'Navega a otros micro-ciclos para pegar el entrenamiento que tienes copiado',
+      message: this.translate.instant('TABLES.NAVIGATE_PASTE_MSG'),
       duration: 2000,
     };
 
