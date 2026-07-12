@@ -1,0 +1,238 @@
+:host {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.minimal-header {
+  --background: transparent;
+  --border-color: transparent;
+}
+
+.summary-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.summary-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  .train-text {
+    color: #ffffff;
+  }
+
+  .fit-text {
+    background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.summary-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.summary-content {
+  --background: #121212;
+
+  &::part(scroll) {
+    display: flex;
+    min-height: 100%;
+    align-items: center;
+  }
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  padding: 8px 28px 32px;
+  margin: 0 auto;
+  max-width: 420px;
+}
+
+.summary-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(45, 211, 111, 0.15);
+  border: 1px solid rgba(45, 211, 111, 0.35);
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: scale(0.9);
+  animation: badgeIn 420ms var(--ease-out) 60ms forwards;
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--ion-color-success);
+  }
+}
+
+.summary-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.summary-workout-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ion-color-secondary);
+  margin: 0 0 24px;
+  opacity: 0.95;
+}
+
+.summary-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  background: rgba(254, 144, 0, 0.12);
+  border: 1px solid rgba(254, 144, 0, 0.25);
+  margin-bottom: 24px;
+
+  ion-icon {
+    font-size: 24px;
+    color: var(--ion-color-primary);
+  }
+
+  span {
+    font-size: 1.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+  }
+}
+
+.summary-stats {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: statIn 360ms var(--ease-out) forwards;
+
+  &:nth-child(1) {
+    animation-delay: 140ms;
+  }
+  &:nth-child(2) {
+    animation-delay: 180ms;
+  }
+  &:nth-child(3) {
+    animation-delay: 220ms;
+  }
+}
+
+.summary-stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-stat-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-finished-at {
+  font-size: 0.82rem;
+  color: var(--ion-color-medium);
+  margin: 0;
+  opacity: 0.85;
+}
+
+.summary-footer {
+  --background: #141414;
+  background: #141414;
+  border-top: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+
+  ion-toolbar,
+  &::part(background) {
+    background: #141414;
+  }
+
+  padding: 12px 20px calc(12px + var(--ion-safe-area-bottom, 0px));
+}
+
+.summary-continue-btn {
+  width: 100%;
+  margin: 0;
+  height: 48px;
+  --border-radius: 14px;
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  font-weight: 700;
+  transition: transform 160ms ease-out;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+@keyframes badgeIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes statIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-badge,
+  .summary-stat {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

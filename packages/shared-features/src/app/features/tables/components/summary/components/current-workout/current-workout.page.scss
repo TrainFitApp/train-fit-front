@@ -96,6 +96,31 @@ img {
           }
         }
       }
+
+      .workout-chrono {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 6px;
+        width: fit-content;
+        padding: 3px 9px;
+        border-radius: 10px;
+        background: rgba(254, 144, 0, 0.12);
+        border: 1px solid rgba(254, 144, 0, 0.22);
+
+        ion-icon {
+          font-size: 13px;
+          color: var(--ion-color-primary);
+        }
+
+        span {
+          font-size: 0.78rem;
+          font-weight: 600;
+          font-variant-numeric: tabular-nums;
+          color: #ffffff;
+          letter-spacing: 0.3px;
+        }
+      }
     }
   }
 

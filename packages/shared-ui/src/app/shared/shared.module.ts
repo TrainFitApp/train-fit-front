@@ -7,6 +7,7 @@ import { CursorEndDirective } from 'src/app/core/directives/cursor-end.directive
 import { DecimalInputDirective } from 'src/app/core/directives/decimal-input.directive';
 import { HideKeyboardOnScrollDirective } from 'src/app/core/directives/hide-keyboard-on-scroll.directive';
 import { VideoModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
+import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
 import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
@@ -52,6 +53,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     TranslateDescPipe,
     DisconnectedComponent,
     VideoModalComponent,
+    WorkoutSummaryModalComponent,
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,

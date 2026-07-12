@@ -15,7 +15,11 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  declarations: [CurrentWorkoutPage, CustomExerciseComponent, SetComponent],
+  declarations: [
+    CurrentWorkoutPage,
+    CustomExerciseComponent,
+    SetComponent,
+  ],
   imports: [SharedModule, RouterModule.forChild(routes), OrderExercisesPageModule, OrderSetsPageModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
