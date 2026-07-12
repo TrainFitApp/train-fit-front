@@ -51,7 +51,7 @@
         </ion-card-header>
 
         <ion-card-content class="concept-content">
-          <p class="concept-description">{{ 'CONCEPTS.' + concept.key + '_DESC' | translate }}</p>
+          <p class="concept-description">{{ concept.description | translateDb }}</p>
         </ion-card-content>
       </ion-card>
     </div>

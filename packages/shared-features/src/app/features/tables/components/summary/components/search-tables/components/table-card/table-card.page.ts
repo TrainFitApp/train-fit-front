@@ -20,7 +20,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 
-import { MUSCLE_GROUPS } from 'src/app/shared/constants/muscle-groups';
+import { MUSCLE_GROUPS_ES } from 'src/app/shared/constants/muscle-groups';
 
 @Component({
   selector: 'app-table-card',
@@ -38,7 +38,7 @@ export class TableCardPage {
   public ownFilter: boolean;
 
   @Output()
-  public copyOwnTableEv = new EventEmitter<Table>();
+  public duplicateTableEv = new EventEmitter<Table>();
   @Output()
   public deletedTable = new EventEmitter<string>();
 
@@ -50,7 +50,7 @@ export class TableCardPage {
   public context: CanvasRenderingContext2D;
   public bar: Chart;
 
-  public MUSCLE_GROUPS = MUSCLE_GROUPS;
+  public MUSCLE_GROUPS = MUSCLE_GROUPS_ES;
   public isMenuOpen = false;
   public menuEvent?: Event;
 
@@ -231,7 +231,8 @@ export class TableCardPage {
                 .subscribe({
                   next: (resTable) => {
                     this.user.tableInUse = resTable._id;
-                    this.user.ownTables.push(resTable._id);
+                    if (!this.user.tables) this.user.tables = [];
+                    this.user.tables.push(resTable._id);
                     this.tableService.setCurrentTable = resTable;
                     this.workoutService.setCurrentWorkout = undefined;
                     delete this.user.workoutInUse;
@@ -306,7 +307,7 @@ export class TableCardPage {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  public copyOwnTable(idTable: string, event: Event): void {
+  public duplicateTable(idTable: string, event: Event): void {
     this.popoverController.dismiss();
     event.stopPropagation();
     const alertOptions = {
@@ -323,10 +324,10 @@ export class TableCardPage {
           handler: () => {
             this.loadAction = false;
             this.tableService
-              .copyOwnTable(this.user._id, idTable)
+              .duplicateTable(this.user._id, idTable)
               .subscribe({
                 next: (resTable) => {
-                  this.copyOwnTableEv.emit(resTable);
+                  this.duplicateTableEv.emit(resTable);
                   void this.billingService.refreshBackendEntitlements();
                   const toastOptions: ToastOptions = {
                     message: this.translate.instant('TABLES.ROUTINE_COPIED', { name: this.tableCard.name }),

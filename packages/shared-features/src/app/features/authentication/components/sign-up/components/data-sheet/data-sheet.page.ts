@@ -13,6 +13,7 @@ import { NavigationService } from 'src/app/core/services/util/navigation.service
 import { SEX } from 'src/app/shared/constants/sex';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { SignUpStateService } from 'src/app/core/services/auth/sign-up-state.service';
 import { takeUntil, take } from 'rxjs/operators';
@@ -50,7 +51,8 @@ export class DataSheetPage implements OnInit, OnDestroy {
     private utilService: UtilService,
     private authService: AuthService,
     private signUpStateService: SignUpStateService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private i18nService: I18nService
   ) {}
 
   public ngOnInit(): void {
@@ -60,6 +62,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
       .subscribe((user) => {
         if (user) {
           this.user = user;
+          this.user.lang = this.i18nService.current as 'es' | 'en';
           // Calcular kcal totales para mostrar en la ficha
           this.user.kcalTotal = this.userService.calculateKcal(this.user);
         }

@@ -10,6 +10,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-order-exercises',
@@ -31,7 +32,8 @@ export class OrderExercisesPage implements OnInit {
     private tableService: TableService,
     private userService: UserService,
     private modalController: ModalController,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -59,18 +61,18 @@ export class OrderExercisesPage implements OnInit {
   public dismissModal(): void {
     if (this.hasOrder) {
       const alertOptions: AlertOptions = {
-        header: '¿Estás seguro?',
-        message: '¿Deseas guardar los cambios en el orden de los ejercicios?',
+        header: this.translate.instant('ORDER_EXERCISES.ALERT_HEADER'),
+        message: this.translate.instant('ORDER_EXERCISES.ALERT_MESSAGE'),
         buttons: [
           {
-            text: 'Cancelar',
+            text: this.translate.instant('ORDER_EXERCISES.ALERT_CANCEL'),
             role: 'cancel',
             handler: () => {
               this.modalController.dismiss();
             },
           },
           {
-            text: 'Confirmar',
+            text: this.translate.instant('ORDER_EXERCISES.ALERT_CONFIRM'),
             handler: () => {
               this.loading = true;
               this.workoutService
@@ -143,7 +145,7 @@ export class OrderExercisesPage implements OnInit {
 
     // Mostrar toast de confirmación usando ionic util
     this.ionicUtilService.showToast({
-      message: 'Has restablecido el orden de los ejercicios',
+      message: this.translate.instant('ORDER_EXERCISES.TOAST_RESET'),
       duration: 2000,
       position: 'bottom',
       color: 'success',

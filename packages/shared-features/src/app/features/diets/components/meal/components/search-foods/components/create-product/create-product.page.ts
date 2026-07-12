@@ -234,7 +234,6 @@ export class CreateProductPage implements OnInit {
       next: (createdProduct: IProduct) => {
         this.navigationService.setTempData('searchFoodsResult', {
           refresh: true,
-          switchSegmentToOwn: true,
         });
         this.ionicUtilService.showToast({
           message: this.translate.instant('CREATE_PRODUCT.CREATE_SUCCESS', { name: createdProduct.name }),

@@ -15,7 +15,7 @@
     <div class="card-header-section">
       <div class="header-top">
         <div class="title-section">
-          <h2 class="card-title">{{ tableCard?.name }}</h2>
+          <h2 class="card-title">{{ tableCard?.name | translateDb }}</h2>
           <div class="title-underline"></div>
         </div>
       </div>
@@ -125,7 +125,7 @@
         <ion-item
           [button]="true"
           [detail]="true"
-          (click)="copyOwnTable(tableCard._id, $event)"
+          (click)="duplicateTable(tableCard._id, $event)"
         >
           <ion-icon
             name="duplicate-outline"

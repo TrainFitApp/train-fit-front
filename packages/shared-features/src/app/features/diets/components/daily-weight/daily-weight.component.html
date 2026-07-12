@@ -5,11 +5,10 @@
     <div class="card-header">
       <div class="header-content">
         <div class="info-section">
-          <h3 class="card-title">Peso diario</h3>
+          <h3 class="card-title">{{ 'DIETS.DAILY_WEIGHT' | translate }}</h3>
           <p class="card-date">{{ selectedDate | date : "dd/MM/yyyy" }}</p>
           <p class="card-average">
-            Media semanal ({{ weeklyAverage ? weeklyAverage.toFixed(2) : 0 }}
-            Kg)
+            {{ 'DIETS.WEEKLY_AVERAGE' | translate:{ value: weeklyAverage ? weeklyAverage.toFixed(2) : 0 } }}
           </p>
         </div>
         <div class="actions-section">
@@ -35,7 +34,7 @@
                 #inputWeight
                 formControlName="weight"
                 type="text" inputmode="decimal"
-                placeholder="Peso en kg"
+                [placeholder]="'DIETS.WEIGHT_IN_KG' | translate"
                 class="weight-input"
                 step="0.1"
                 min="0"

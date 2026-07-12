@@ -1,5 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
@@ -7,6 +8,14 @@ import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service'
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
+
+interface NutrientItem {
+  n: string;
+  v: number;
+  g: number;
+  u: string;
+  t?: string;
+}
 
 @Component({
   selector: 'app-nutritional-objectives',
@@ -22,7 +31,18 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   private dietDayService = inject(DietDayService);
   private recipeService = inject(RecipeService);
   private userService = inject(UserService);
+  private translate = inject(TranslateService);
   private dietDaySub?: Subscription;
+
+  public kcalRemainingPrefix = '';
+  public kcalRemainingValue = '';
+  public kcalRemainingSuffix = '';
+  public kcalExceededPrefix = '';
+  public kcalExceededValue = '';
+  public kcalExceededSuffix = '';
+  public minerals: NutrientItem[] = [];
+  public vitamins: NutrientItem[] = [];
+  public otherNutrients: NutrientItem[] = [];
 
   // Reference values (RDA/AI) in grams
   public references = {
@@ -75,10 +95,14 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
         this.dietDay = day;
       }
       this.calculateNutritionalData();
+      this.buildNutrientArrays();
+      this.updateCalorieText();
     });
 
     this.personalizeReferences();
     this.calculateNutritionalData();
+    this.buildNutrientArrays();
+    this.updateCalorieText();
 
     // Trigger animations after a short delay for smoothness
     setTimeout(() => {
@@ -134,6 +158,62 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
 
     // 6. Colesterol: Límite estándar de 300mg
     this.references.cholesterol = 0.3;
+  }
+
+  private updateCalorieText() {
+    const diff = this.user.kcalTotal - this.nutritionalData.energyKcal;
+    const value = Math.abs(diff).toLocaleString(undefined, { maximumFractionDigits: 0 });
+    if (diff >= 0) {
+      this.kcalRemainingPrefix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_REMAINING_PREFIX');
+      this.kcalRemainingValue = value;
+      this.kcalRemainingSuffix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_REMAINING_SUFFIX');
+    } else {
+      this.kcalExceededPrefix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_EXCEEDED_PREFIX');
+      this.kcalExceededValue = value;
+      this.kcalExceededSuffix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_EXCEEDED_SUFFIX');
+    }
+  }
+
+  private buildNutrientArrays() {
+    this.minerals = [
+      { n: 'ADD_PRODUCT.CALCIUM', v: this.nutritionalData.calcium * 1000, g: this.references.calcium * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.IRON', v: this.nutritionalData.iron * 1000, g: this.references.iron * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.MAGNESIUM', v: this.nutritionalData.magnesium * 1000, g: this.references.magnesium * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.PHOSPHORUS', v: this.nutritionalData.phosphorus * 1000, g: this.references.phosphorus * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.POTASSIUM', v: this.nutritionalData.potassium * 1000, g: this.references.potassium * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.ZINC', v: this.nutritionalData.zinc * 1000, g: this.references.zinc * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.SODIUM', v: this.nutritionalData.sodium * 1000, g: this.references.sodium * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.COPPER', v: this.nutritionalData.copper * 1000, g: this.references.copper * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.MANGANESE', v: this.nutritionalData.manganese * 1000, g: this.references.manganese * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'ADD_PRODUCT.SELENIUM', v: this.nutritionalData.selenium * 1000000, g: this.references.selenium * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'ADD_PRODUCT.IODINE', v: this.nutritionalData.iodine * 1000000, g: this.references.iodine * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+    ];
+    this.vitamins = [
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_A', v: this.nutritionalData.vitaminA * 1000000, g: this.references.vitaminA * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_C', v: this.nutritionalData.vitaminC * 1000, g: this.references.vitaminC * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_D', v: this.nutritionalData.vitaminD * 1000000, g: this.references.vitaminD * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_E', v: this.nutritionalData.vitaminE * 1000, g: this.references.vitaminE * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_K', v: this.nutritionalData.vitaminK * 1000000, g: this.references.vitaminK * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B1', v: this.nutritionalData.vitaminB1 * 1000, g: this.references.vitaminB1 * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B2', v: this.nutritionalData.vitaminB2 * 1000, g: this.references.vitaminB2 * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B3', v: this.nutritionalData.vitaminB3 * 1000, g: this.references.vitaminB3 * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B5', v: this.nutritionalData.vitaminB5 * 1000, g: this.references.vitaminB5 * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B6', v: this.nutritionalData.vitaminB6 * 1000, g: this.references.vitaminB6 * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B9', v: this.nutritionalData.vitaminB9 * 1000000, g: this.references.vitaminB9 * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.VITAMIN_B12', v: this.nutritionalData.vitaminB12 * 1000000, g: this.references.vitaminB12 * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+      { n: 'NUTRITIONAL_OBJECTIVES.BIOTIN', v: this.nutritionalData.biotin * 1000000, g: this.references.biotin * 1000000, u: 'NUTRITIONAL_OBJECTIVES.MICROGRAMS' },
+    ];
+    this.otherNutrients = [
+      { n: 'NUTRITIONAL_OBJECTIVES.OMEGA_3', v: this.nutritionalData.omega3, g: 1.6, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'requirement' },
+      { n: 'NUTRITIONAL_OBJECTIVES.OMEGA_6', v: this.nutritionalData.omega6, g: 17, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'requirement' },
+      { n: 'NUTRITIONAL_OBJECTIVES.OMEGA_9', v: this.nutritionalData.omega9, g: 12, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'requirement' },
+      { n: 'NUTRITIONAL_OBJECTIVES.SATURATED_FAT', v: this.nutritionalData.saturatedFat, g: this.references.saturatedFat, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'limit' },
+      { n: 'NUTRITIONAL_OBJECTIVES.TRANS_FAT', v: this.nutritionalData.transFat, g: 2, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'limit' },
+      { n: 'NUTRITIONAL_OBJECTIVES.CHOLESTEROL', v: this.nutritionalData.cholesterol * 1000, g: this.references.cholesterol * 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS', t: 'limit' },
+      { n: 'NUTRITIONAL_OBJECTIVES.CAFFEINE', v: this.nutritionalData.caffeine * 1000, g: 400, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS', t: 'limit' },
+      { n: 'NUTRITIONAL_OBJECTIVES.TAURINE', v: this.nutritionalData.taurine * 1000, g: 1000, u: 'NUTRITIONAL_OBJECTIVES.MILLIGRAMS', t: 'limit' },
+      { n: 'NUTRITIONAL_OBJECTIVES.ALCOHOL', v: this.nutritionalData.alcohol, g: 10, u: 'NUTRITIONAL_OBJECTIVES.GRAMS', t: 'limit' },
+    ];
   }
 
   goBack() {

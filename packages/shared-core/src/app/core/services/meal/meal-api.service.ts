@@ -27,9 +27,13 @@ export class MealAPIService {
     );
   }
 
-  public pasteMeal(meals: MealClipboard, merge?: boolean): Observable<Meal> {
+  public pasteMeal(clipboard: MealClipboard, merge?: boolean): Observable<Meal> {
+    const mealToSend = clipboard.getFilteredMeal();
     return this.http.put<Meal>(`${MealAPIService.MEAL_ENDPOINT}/paste`, {
-      meals,
+      meals: {
+        mealClipboard: mealToSend,
+        mealToPaste: clipboard.mealToPaste,
+      },
       merge,
     });
   }

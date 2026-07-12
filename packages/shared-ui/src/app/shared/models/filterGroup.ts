@@ -4,6 +4,7 @@ export class SearchFilterGroup {
   public ownFilter?: boolean = false;
   public favFilter?: boolean = false;
   public shieldFilter?: boolean = false;
+  public defaultOnly?: boolean = false;
   public userId?: string;
 }
 

@@ -1,6 +1,9 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { from, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -44,7 +47,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     public modalController: ModalController,
     private userService: UserService,
     private utilService: UtilService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -103,8 +107,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         : this.userService.getLocalUser?.email;
       if (!email) {
         this.ionicUtilService.showErrorToast(
-          'No se encontró el correo del usuario. Inicia sesión y vuelve a intentarlo.',
-          'Error',
+          this.translate.instant('RESTORE_PASSWORD.TOAST_USER_EMAIL_NOT_FOUND'),
+          this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_DEFAULT'),
           3000
         );
         return;
@@ -118,15 +122,15 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
           this.showFormErrors = false;
           this.startResendCooldown();
           this.ionicUtilService.showSuccessToast(
-            'Si existe una cuenta con ese correo, enviaremos un código. Revisa spam.',
+            this.translate.instant('RESTORE_PASSWORD.TOAST_CODE_SENT'),
             3000
           );
         },
         error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
-            'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
-            'Solicitud no completada',
+            err,
+            this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_SEND_CODE'),
             3000
           );
         },
@@ -140,8 +144,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       : this.userService.getLocalUser?.email;
     if (!email) {
       this.ionicUtilService.showErrorToast(
-        'No se encontró el correo del usuario. Inicia sesión y vuelve a intentarlo.',
-        'Error',
+        this.translate.instant('RESTORE_PASSWORD.TOAST_USER_EMAIL_NOT_FOUND'),
+        this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_DEFAULT'),
         3000
       );
       return;
@@ -158,7 +162,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         next: () => {
           this.loading = false;
           this.ionicUtilService.showSuccessToast(
-            '¡Contraseña cambiada con éxito!',
+            this.translate.instant('RESTORE_PASSWORD.TOAST_PASSWORD_CHANGED'),
             2000
           );
           if (this.userService.getLocalUser) {
@@ -170,8 +174,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
-            'El código no es válido o ha expirado.',
-            'Código inválido',
+            err,
+            this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_INVALID_CODE'),
             3000
           );
         },
@@ -184,8 +188,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       : this.userService.getLocalUser?.email;
     if (!email) {
       this.ionicUtilService.showErrorToast(
-        'No se encontró el correo del usuario. Inicia sesión y vuelve a intentarlo.',
-        'Error',
+        this.translate.instant('RESTORE_PASSWORD.TOAST_USER_EMAIL_NOT_FOUND'),
+        this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_DEFAULT'),
         3000
       );
       return;
@@ -198,7 +202,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         next: () => {
           this.loading = false;
           this.ionicUtilService.showSuccessToast(
-            'Revise el correo para finalizar el cambio de contraseña',
+            this.translate.instant('RESTORE_PASSWORD.TOAST_CHECK_EMAIL'),
             3000
           );
           if (this.userService.getLocalUser) {
@@ -210,8 +214,8 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         error: () => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
-            'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
-            'Error al cambiar contraseña',
+            err,
+            this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_CHANGE_PASSWORD'),
             3000
           );
         },
@@ -232,15 +236,15 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       next: () => {
         this.loading = false;
         this.ionicUtilService.showSuccessToast(
-          'Si existe una cuenta con ese correo, enviaremos un código. Revisa spam.',
+          this.translate.instant('RESTORE_PASSWORD.TOAST_CODE_RESENT'),
           3000
         );
       },
-      error: () => {
+      error: (err: any) => {
         this.loading = false;
         this.ionicUtilService.showErrorToast(
-          'No se pudo procesar la solicitud. Inténtalo de nuevo en unos minutos.',
-          'Solicitud no completada',
+          err,
+          this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_RESEND_CODE'),
           3000
         );
       },

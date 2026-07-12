@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { SearchFilterGroup } from '../../models/filterGroup';
 
 @Component({
@@ -18,10 +19,10 @@ export class ExerciseFilterIconsComponent implements OnInit {
   public ownFilter: boolean = false;
   public favFilter: boolean = false;
 
-  constructor() {}
+  constructor(private translate: TranslateService) {}
 
   public ngOnInit(): void {
-    this.filterDescription = 'Todos los ejercicios';
+    this.filterDescription = this.translate.instant('EXERCISE_FILTER.ALL_EXERCISES');
   }
 
   public addFilter(filter: string): void {
@@ -57,11 +58,11 @@ export class ExerciseFilterIconsComponent implements OnInit {
     this.filterDescription = '';
 
     if (this.ownFilter) {
-      this.filterDescription = 'Mis ejercicios';
+      this.filterDescription = this.translate.instant('EXERCISE_FILTER.MY_EXERCISES');
     } else if (this.favFilter) {
-      this.filterDescription = 'Ejercicios favoritos';
+      this.filterDescription = this.translate.instant('EXERCISE_FILTER.FAVORITE_EXERCISES');
     } else {
-      this.filterDescription = 'Todos los ejercicios';
+      this.filterDescription = this.translate.instant('EXERCISE_FILTER.ALL_EXERCISES');
     }
 
     const filterGroup: SearchFilterGroup = {

@@ -257,7 +257,7 @@
   "SIGN_IN": {
     "VERIFYING_CREDENTIALS": "Verifying credentials...",
     "EMAIL_LABEL": "Email",
-    "EMAIL_PLACEHOLDER": "your@email.com",
+    "EMAIL_PLACEHOLDER": "Email",
     "EMAIL_REQUIRED_VALIDATION": "Email is required",
     "EMAIL_VALID_VALIDATION": "Valid email required",
     "PASSWORD_LABEL": "Password",
@@ -446,7 +446,12 @@
     "EMPTY_MEAL_HEADER": "Empty meal",
     "EMPTY_MEAL_CONFIRM": "Are you sure you want to empty {{name}}?",
     "EMPTY_MEAL_SUCCESS": "{{name}} emptied",
-    "DELETE_EMPTY": "EMPTY"
+    "DELETE_EMPTY": "EMPTY",
+    "CLIPBOARD_FULL_MEAL": "Full meal in clipboard",
+    "CLIPBOARD_SELECTION": "Selection in clipboard",
+    "CLIPBOARD_TAP_TO_PASTE": "Tap a meal to paste",
+    "ITEM_COUNT_SINGULAR": "item",
+    "ITEM_COUNT_PLURAL": "items"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copied to clipboard",
@@ -906,7 +911,7 @@
     "MICROCYCLES_STAT": "Micro-cycles",
     "WORKOUTS_STAT": "Workouts",
     "NAME_OPTION": "NAME",
-    "ROUTINE_IN_USE": "Routine in use",
+    "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",
