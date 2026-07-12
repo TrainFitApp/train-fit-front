@@ -9,6 +9,7 @@ export enum ACTION_TYPES {
   moveExercises = 7,
   note = 8,
   duplicate = 9,
+  viewSummary = 10,
 }
 
 export type ACTION_TYPE = {
@@ -80,6 +81,12 @@ export const ACTIONS: {
     value: 'ACTIONS.DUPLICATE',
     icon: 'duplicate-outline',
     color: 'secondary',
+  },
+  [ACTION_TYPES.viewSummary]: {
+    id: ACTION_TYPES.viewSummary,
+    value: 'ACTIONS.VIEW_SUMMARY',
+    icon: 'stats-chart-outline',
+    color: 'primary',
   },
 };
 

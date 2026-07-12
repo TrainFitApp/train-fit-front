@@ -37,7 +37,10 @@ import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { OrderExercisesPage } from '../mesocycle/components/order-exercises/order-exercises.page';
 import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
-import { WorkoutSummary } from './workout-summary-modal/workout-summary.model';
+import {
+  WorkoutSummary,
+  buildWorkoutSummary,
+} from './workout-summary-modal/workout-summary.model';
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -327,7 +330,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
                     this.tableService.setCurrentTable = this.tableInUse;
 
-                    summary = this.buildWorkoutSummary(
+                    summary = buildWorkoutSummary(
                       this.currentWorkout,
                       serverDate
                     );
@@ -710,41 +713,4 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
 
-  private buildWorkoutSummary(
-    workout: Workout,
-    finishedAt: Date
-  ): WorkoutSummary {
-    let exercisesCount = 0;
-    let setsCount = 0;
-    let volumeKg = 0;
-
-    (workout.exercises || []).forEach((customExercise) => {
-      const doneSets = (customExercise.sets || []).filter((set) => set.doned);
-      if (doneSets.length === 0) return;
-
-      exercisesCount += 1;
-      setsCount += doneSets.length;
-
-      if (!customExercise.exercise?.isCardio) {
-        doneSets.forEach((set) => {
-          const weight = Number(set.weight) || 0;
-          const reps = Number(set.reps) || 0;
-          volumeKg += weight * reps;
-        });
-      }
-    });
-
-    const elapsedMs = workout.startedAt
-      ? Math.max(0, finishedAt.getTime() - new Date(workout.startedAt).getTime())
-      : null;
-
-    return {
-      workoutName: workout.name,
-      elapsedMs,
-      exercisesCount,
-      setsCount,
-      volumeKg: Math.round(volumeKg),
-      finishedAt,
-    };
-  }
 }

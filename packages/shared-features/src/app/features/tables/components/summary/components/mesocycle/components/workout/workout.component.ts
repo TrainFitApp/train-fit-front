@@ -40,6 +40,8 @@ import {
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
+import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
+import { buildWorkoutSummary } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model';
 
 @Component({
   selector: 'app-workout',
@@ -188,8 +190,31 @@ export class WorkoutComponent {
           case ACTIONS[this.ACTION_TYPES.delete].id:
             this.deleteWorkouts(workoutIndex);
             break;
+
+          case ACTIONS[this.ACTION_TYPES.viewSummary].id:
+            this.viewWorkoutSummary();
+            break;
         }
       }
+    });
+  }
+
+  private viewWorkoutSummary(): void {
+    // Solo tiene sentido para un entreno ya terminado (workout.date presente).
+    if (!this.workout.date) return;
+
+    const summary = buildWorkoutSummary(
+      this.workout,
+      new Date(this.workout.date)
+    );
+
+    this.ionicUtilService.showModal({
+      component: WorkoutSummaryModalComponent,
+      componentProps: {
+        summary,
+        closeButtonLabel: this.translate.instant('COMMON.CERRAR'),
+      },
+      cssClass: 'workout-summary-modal',
     });
   }
 
@@ -522,12 +547,19 @@ export class WorkoutComponent {
           actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
           actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id
       );
-    } else
+    } else {
       actions = actions.filter(
         (actionTemp) =>
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id
       );
+
+      // "Ver resumen" solo se ofrece si el entreno ya está terminado.
+      if (this.workout.date) {
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.viewSummary]];
+      }
+    }
 
     return actions;
   }

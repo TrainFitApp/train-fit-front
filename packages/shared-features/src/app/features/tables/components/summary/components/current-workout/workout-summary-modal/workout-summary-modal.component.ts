@@ -10,11 +10,20 @@ import { WorkoutSummary } from './workout-summary.model';
 })
 export class WorkoutSummaryModalComponent {
   @Input() public summary: WorkoutSummary;
+  // Justo al terminar un entreno tiene sentido "Continuar" (cierra y navega
+  // atrás, desde fuera del modal); al consultar el resumen de un entreno ya
+  // terminado tiempo atrás (ej. desde mesocycle) no hay a dónde "continuar",
+  // así que el llamador puede pasar otro texto (ej. "Cerrar").
+  @Input() public closeButtonLabel?: string;
 
   constructor(
     private modalController: ModalController,
     private translate: TranslateService
   ) {}
+
+  public get resolvedCloseButtonLabel(): string {
+    return this.closeButtonLabel || this.translate.instant('TABLES.SUMMARY_CONTINUE');
+  }
 
   public close(): void {
     this.modalController.dismiss();

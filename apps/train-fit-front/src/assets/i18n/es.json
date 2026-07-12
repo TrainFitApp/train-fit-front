@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Mover ejercicios",
     "DESELECT_ALL": "Deseleccionar todo",
     "DUPLICATE": "Duplicar",
+    "VIEW_SUMMARY": "Ver resumen",
     "DISCARD": "DESCARTAR",
     "ACCEPT": "ACEPTAR"
   },
@@ -895,7 +896,7 @@
     "SUMMARY_CONGRATS": "¡Entrenamiento completado!",
     "SUMMARY_EXERCISES": "Ejercicios",
     "SUMMARY_SETS": "Series",
-    "SUMMARY_VOLUME": "Volumen",
+    "SUMMARY_VOLUME": "Kg totales levantados",
     "SUMMARY_CONTINUE": "Continuar",
     "FINISH_ERROR": "No se pudo finalizar el entrenamiento. Inténtalo de nuevo.",
     "FINISH_ERROR_TITLE": "Error",

@@ -9,8 +9,26 @@
 
 .summary-toolbar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   padding: 8px 12px;
+}
+
+.summary-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  .train-text {
+    color: #ffffff;
+  }
+
+  .fit-text {
+    background: linear-gradient(135deg, #fe9000 0%, #ff6b35 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 .summary-close-button {

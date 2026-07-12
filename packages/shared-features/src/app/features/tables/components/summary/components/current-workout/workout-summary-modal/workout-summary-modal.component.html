@@ -1,5 +1,8 @@
 <ion-header class="minimal-header">
   <div class="summary-toolbar">
+    <strong class="summary-brand">
+      <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+    </strong>
     <button class="summary-close-button" (click)="close()">
       <ion-icon name="close-outline"></ion-icon>
     </button>
@@ -22,7 +25,7 @@
 
     <div class="summary-stats">
       <div class="summary-stat">
-        <span class="summary-stat-value">{{ summary?.exercisesCount || 0 }}</span>
+        <span class="summary-stat-value">{{ summary?.exercisesCount || 0 }} / {{ summary?.exercisesTotal || 0 }}</span>
         <span class="summary-stat-label">{{ 'TABLES.SUMMARY_EXERCISES' | translate }}</span>
       </div>
       <div class="summary-stat">
@@ -46,6 +49,6 @@
     class="summary-continue-btn"
     (click)="close()"
   >
-    {{ 'TABLES.SUMMARY_CONTINUE' | translate }}
+    {{ resolvedCloseButtonLabel }}
   </ion-button>
 </ion-footer>
