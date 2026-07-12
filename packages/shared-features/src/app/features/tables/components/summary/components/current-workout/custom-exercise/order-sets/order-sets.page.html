@@ -59,8 +59,8 @@
             </div>
 
             <div class="set-info">
-              <div class="set-expected">
-                <span class="expected-label">Objetivo</span>
+<div class="set-expected">
+                <span class="expected-label">{{ 'ORDER_SETS.OBJETIVO' | translate }}</span>
                 <div class="set-values">
                   <span class="set-weight" *ngIf="set.expectedReps?.length">
                     {{ formatExpectedReps(set.expectedReps) }}
@@ -75,14 +75,14 @@
                   <span class="set-rir" *ngIf="set.expectedRir?.length && !isFail(set)">
                     {{ formatExpectedRir(set.expectedRir) }}
                   </span>
-                  <span class="fail-badge" *ngIf="isFail(set)">FALLO</span>
-                  <span class="drop-badge" *ngIf="set.drop">DS</span>
+                  <span class="fail-badge" *ngIf="isFail(set)">{{ 'ORDER_SETS.FALLO' | translate }}</span>
+                  <span class="drop-badge" *ngIf="set.drop">{{ 'ORDER_SETS.DROP_SET' | translate }}</span>
                   <span class="rp-badge" *ngIf="set.restPause">RP {{ set.restPause }}s</span>
                 </div>
-              </div>
+</div>
 
               <div class="set-executed" *ngIf="set.doned; else notExecuted">
-                <span class="executed-label">Ejecutado</span>
+                <span class="executed-label">{{ 'ORDER_SETS.EJECUTADO' | translate }}</span>
                 <div class="set-values">
                   <span class="set-weight">{{ set.weight ? set.weight + ' kg' : '—' }}</span>
                   <span class="set-separator" *ngIf="set.weight && set.reps">·</span>
@@ -91,23 +91,23 @@
                   <span class="set-rir" *ngIf="set.rir && set.rir !== null">
                     {{ formatPerformedRir(set.rir) }}
                   </span>
-                  <span class="drop-badge" *ngIf="set.drop">DS</span>
+                  <span class="drop-badge" *ngIf="set.drop">{{ 'ORDER_SETS.DROP_SET' | translate }}</span>
                   <span class="rp-badge" *ngIf="set.restPause">RP {{ set.restPause }}s</span>
                 </div>
               </div>
 
               <ng-template #notExecuted>
                 <div class="set-executed not-executed">
-                  <span class="executed-label">No ejecutado</span>
+                  <span class="executed-label">{{ 'ORDER_SETS.NO_EJECUTADO' | translate }}</span>
                 </div>
               </ng-template>
 
               <div class="set-meta">
                 <span class="done-badge" *ngIf="set.doned">
                   <ion-icon name="checkmark-circle" color="success"></ion-icon>
-                  Hecha
+                  {{ 'ORDER_SETS.HECHA' | translate }}
                 </span>
-                <span class="pending-badge" *ngIf="!set.doned">Pendiente</span>
+                <span class="pending-badge" *ngIf="!set.doned">{{ 'ORDER_SETS.PENDIENTE' | translate }}</span>
               </div>
             </div>
 

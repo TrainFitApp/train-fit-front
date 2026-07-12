@@ -231,6 +231,7 @@ export class TableCardPage {
                 .subscribe({
                   next: (resTable) => {
                     this.user.tableInUse = resTable._id;
+                    if (!this.user.tables) this.user.tables = [];
                     this.user.tables.push(resTable._id);
                     this.tableService.setCurrentTable = resTable;
                     this.workoutService.setCurrentWorkout = undefined;

@@ -6,6 +6,8 @@ import {
   OnChanges,
   SimpleChanges,
   Output,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
@@ -53,11 +55,20 @@ export class MealComponent implements OnInit, OnChanges {
   @Input()
   public pasteMode = false;
   @Input()
+  public activeCopyMealIndex?: number;
+  @Input()
+  public clipboardClearCounter = 0;
+  @Input()
   public mealIndex!: number;
   @Output()
   public updateMacros = new EventEmitter();
   @Output()
   public pasteEvent = new EventEmitter();
+  @Output()
+  public copyEvent = new EventEmitter();
+
+  @ViewChild('mealAccordion', { read: ElementRef })
+  public mealAccordion!: ElementRef<HTMLIonAccordionElement>;
 
   public loadPaste!: boolean;
 
@@ -68,6 +79,10 @@ export class MealComponent implements OnInit, OnChanges {
   public ACTION_VALUES = ACTION_VALUES;
   public ACTION_TYPES = ACTION_TYPES;
   public CUSTOM_PRODUCT_KEYS = CUSTOM_PRODUCT_KEYS;
+
+  public selectionMode = false;
+  public selectedProductIds = new Set<string>();
+  public selectedRecipeIds = new Set<string>();
 
   constructor(
     private utilService: UtilService,
@@ -90,6 +105,26 @@ export class MealComponent implements OnInit, OnChanges {
     if (changes.meal || changes.dietDay) {
       this.getMealInfo();
     }
+    if (changes.pasteMode && this.pasteMode) {
+      this.selectionMode = false;
+      this.clearSelection();
+    }
+    if (
+      changes.activeCopyMealIndex &&
+      this.selectionMode &&
+      this.activeCopyMealIndex !== undefined &&
+      this.activeCopyMealIndex !== this.mealIndex
+    ) {
+      this.selectionMode = false;
+      this.clearSelection();
+    }
+    if (
+      changes.clipboardClearCounter &&
+      !changes.clipboardClearCounter.firstChange &&
+      this.selectionMode
+    ) {
+      this.exitSelectionMode();
+    }
   }
 
   public openSearchFoods(): void {
@@ -104,6 +139,7 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public editCustomProduct(customProduct: CustomProduct): void {
+    if (this.selectionMode) return;
     const product = customProduct.product;
     const isOwnProduct = !!product?.userId;
     const queryParams: any = {
@@ -118,7 +154,7 @@ export class MealComponent implements OnInit, OnChanges {
     this.navigationService.goToAddProduct({
       replaceUrl: false,
       queryParams,
-      state: { 
+      state: {
         returnUrl: '/tabs/diets',
         selectedDate: this.dietDay.date,
       },
@@ -126,6 +162,7 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public editCustomRecipe(instance: CustomRecipe): void {
+    if (this.selectionMode) return;
     this.navigationService.goToConfigRecipe({
       state: {
         mode: 'edit',
@@ -159,14 +196,9 @@ export class MealComponent implements OnInit, OnChanges {
             );
 
             const indexRecipe =
-              this.dietDay.meals[indexMeal].customRecipes.indexOf(
-                instance
-              );
+              this.dietDay.meals[indexMeal].customRecipes.indexOf(instance);
 
-            this.dietDay.meals[indexMeal].customRecipes.splice(
-              indexRecipe,
-              1
-            );
+            this.dietDay.meals[indexMeal].customRecipes.splice(indexRecipe, 1);
 
             this.customRecipeService
               .delete(instance._id!)
@@ -203,16 +235,11 @@ export class MealComponent implements OnInit, OnChanges {
             const indexProduct =
               this.dietDay.meals[indexMeal].customProducts.indexOf(product);
 
-            this.dietDay.meals[indexMeal].customProducts.splice(
-              indexProduct,
-              1
-            );
+            this.dietDay.meals[indexMeal].customProducts.splice(indexProduct, 1);
 
             this.mealService
               .deleteMealProduct(meal._id, product._id)
-              .subscribe(
-                () => (this.dietDayService.setCurrentDietDay = this.dietDay)
-              );
+              .subscribe(() => (this.dietDayService.setCurrentDietDay = this.dietDay));
           },
         },
       ],
@@ -224,9 +251,7 @@ export class MealComponent implements OnInit, OnChanges {
   public async createMealFromClipboard(meal: Meal): Promise<void> {
     this.loadPaste = true;
     if (!this.dietDay._id) {
-      this.dietDay = this.dietDayService.getStandardDietDay(
-        this.dietDay.date
-      );
+      this.dietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
       this.dietDay = await this.dietDayService
         .createDietDay(this.dietDay)
         .toPromise();
@@ -238,11 +263,17 @@ export class MealComponent implements OnInit, OnChanges {
         .toPromise();
     }
 
+    const clipboard = this.mealService.getMealClipboard;
+    if (!clipboard) {
+      this.loadPaste = false;
+      return;
+    }
+
     const canMerge =
       this.meal.customProducts.length !== 0 ||
       (this.meal.customRecipes?.length ?? 0) !== 0;
 
-    if (canMerge) {
+    if (clipboard.isFullMeal && canMerge) {
       const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
         cssClass: 'alert-grid-buttons',
@@ -254,9 +285,7 @@ export class MealComponent implements OnInit, OnChanges {
             role: 'cancel',
             handler: () => {
               this.pasteMode = false;
-              this.pasteEvent.emit({
-                paste: this.pasteMode,
-              });
+              this.pasteEvent.emit({ paste: this.pasteMode });
               this.loadPaste = false;
             },
           },
@@ -282,13 +311,14 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   private handleMealPaste(merge: boolean): void {
-    const mealClipboard = new MealClipboard(
-      this.mealService.getMealClipboard,
-      this.meal
-    );
-    const pasteMealObservable = merge
-      ? this.mealService.pasteMeal(mealClipboard, merge)
-      : this.mealService.pasteMeal(mealClipboard);
+    const clipboard = this.mealService.getMealClipboard;
+    if (!clipboard) return;
+
+    clipboard.mealToPaste = this.meal;
+
+    const pasteMealObservable = clipboard.isFullMeal
+      ? this.mealService.pasteMeal(clipboard, merge)
+      : this.mealService.pasteMeal(clipboard, true);
 
     pasteMealObservable.subscribe((resMeal) => {
       this.meal = resMeal;
@@ -296,8 +326,7 @@ export class MealComponent implements OnInit, OnChanges {
         (mealTemp) => mealTemp._id === resMeal._id
       );
       this.dietDay.meals[indexMeal] = resMeal;
-      // TODO: esto es necesario?
-      this.pasteEvent.emit();
+      this.pasteEvent.emit({ pasted: true });
 
       this.getMealInfo();
 
@@ -323,8 +352,7 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public getRecipeName(instance: CustomRecipe): string {
-    const recipe =
-      typeof instance.recipe === 'object' ? instance.recipe : null;
+    const recipe = typeof instance.recipe === 'object' ? instance.recipe : null;
     const noName = this.translate.instant('MEAL.RECIPE_NO_NAME');
     if (!recipe) return noName;
 
@@ -342,35 +370,23 @@ export class MealComponent implements OnInit, OnChanges {
     carbs: number;
     fat: number;
   } {
-    const recipe =
-      typeof instance.recipe === 'object' ? instance.recipe : null;
-    if (!recipe)
-      return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    const recipe = typeof instance.recipe === 'object' ? instance.recipe : null;
+    if (!recipe) return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
     return this.recipeService.calculateCustomRecipeTotals(recipe, instance).portionMacros;
   }
 
   public openPopoverOptions(event: Event): void {
-    if (
-      this.meal.customProducts?.length > 0 ||
-      this.meal.customRecipes?.length > 0
-    ) {
-      const popover: PopoverOptions = {
-        component: PopoverActionsComponent,
-        componentProps: {
-          actionsPopover: this.getActionsPopover(),
-        },
-        event: event,
-        mode: 'ios',
-      };
+    const popover: PopoverOptions = {
+      component: PopoverActionsComponent,
+      componentProps: {
+        actionsPopover: this.getActionsPopover(),
+      },
+      event: event,
+      mode: 'ios',
+    };
 
-      const showPopover = this.ionicUtilService.showPopover(popover);
-      showPopover.then((res) => this.handleActions(res.data));
-    } else {
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('COMMON.NO_ACTIONS'),
-        duration: 500,
-      });
-    }
+    const showPopover = this.ionicUtilService.showPopover(popover);
+    showPopover.then((res) => this.handleActions(res.data));
   }
 
   private openEditNameAlert(): void {
@@ -419,7 +435,64 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   private manageNote(): void {
-    this.utilService.manageNote(this.meal, this.mealService);
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('COMMON.NOTES'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: t('COMMON.WRITE_NOTES_HERE'),
+          value: this.meal.notes || '',
+        },
+      ],
+      buttons: [
+        {
+          text: t('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: t('COMMON.SAVE'),
+          handler: (data) => {
+            if (!data.notes || data.notes.trim() === '') {
+              const errorAlert: AlertOptions = {
+                header: t('COMMON.ERROR'),
+                message: t('COMMON.FIELD_REQUIRED'),
+                buttons: [t('COMMON.OK')],
+              };
+              this.ionicUtilService.showAlert(errorAlert);
+              return false;
+            }
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions).then(async (result) => {
+      if (result.role === 'cancel' || !result.data?.values?.notes) return;
+      const notesValue = result.data.values.notes.trim();
+
+      if (!this.dietDay._id) {
+        this.dietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
+        this.dietDay = await this.dietDayService.createDietDay(this.dietDay).toPromise();
+        this.meal = this.dietDay.meals.find((m) => m.name === this.meal.name);
+        await this.dietService.addDietDietDay(this.user.dietInUse, this.dietDay._id).toPromise();
+        this.dietDayService.setCurrentDietDay = this.dietDay;
+      }
+
+      this.meal.notes = notesValue;
+      this.mealService.modifyMeal(this.meal).subscribe({
+        next: () => {
+          const toast: ToastOptions = {
+            message: t('TOOLBAR_CALENDAR.NOTE_UPDATED'),
+            duration: 2000,
+          };
+          this.ionicUtilService.showToast(toast);
+        },
+        error: (err) => console.error('[MealComponent] Failed to save note', err),
+      });
+    });
   }
 
   public getCustomProductInfo(
@@ -474,7 +547,6 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   private getMealInfo(): void {
-    // Keep internal meal properties synced for other logic
     this.meal.kcal = this.mealKcal;
     this.meal.protein = this.mealProtein;
     this.meal.carbohydrate = this.mealCarbs;
@@ -495,9 +567,7 @@ export class MealComponent implements OnInit, OnChanges {
       (this.meal.customRecipes?.length || 0) === 0
     ) {
       actions = actions.filter(
-        (actionTemp) =>
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id
+        (actionTemp) => actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
       );
     } else {
       actions = actions.filter(
@@ -509,7 +579,6 @@ export class MealComponent implements OnInit, OnChanges {
       );
     }
 
-    // Sort to put delete at the end
     return actions.sort((a, b) => {
       if (a.id === ACTIONS[this.ACTION_TYPES.delete].id) return 1;
       if (b.id === ACTIONS[this.ACTION_TYPES.delete].id) return -1;
@@ -524,12 +593,7 @@ export class MealComponent implements OnInit, OnChanges {
         break;
 
       case ACTIONS[this.ACTION_TYPES.copy].id:
-        this.pasteMode = true;
-        this.mealService.setMealClipboard = this.meal;
-        this.pasteEvent.emit({
-          mealId: this.meal._id,
-          paste: this.pasteMode,
-        });
+        this.enterSelectionMode();
         break;
 
       case ACTIONS[this.ACTION_TYPES.note].id:
@@ -540,6 +604,189 @@ export class MealComponent implements OnInit, OnChanges {
         this.emptyMeal();
         break;
     }
+  }
+
+  private enterSelectionMode(): void {
+    this.selectionMode = true;
+    this.clearSelection();
+    this.arrowRotate = true;
+    this.openAccordion();
+
+    this.copyEvent.emit({
+      mealId: this.meal._id,
+      mealIndex: this.mealIndex,
+      selectionMode: true,
+      meal: this.meal,
+    });
+  }
+
+  private openAccordion(): void {
+    setTimeout(() => {
+      const accordion = this.mealAccordion?.nativeElement;
+      const group = accordion?.closest('ion-accordion-group') as
+        | HTMLIonAccordionGroupElement
+        | null;
+      if (!group) return;
+
+      const mealValue = `meal-${this.mealIndex}`;
+      const currentValue = group.value;
+      if (Array.isArray(currentValue)) {
+        group.value = currentValue.includes(mealValue)
+          ? currentValue
+          : [...currentValue, mealValue];
+        return;
+      }
+
+      group.value = currentValue ? [currentValue, mealValue] : [mealValue];
+    });
+  }
+
+  public onSelectAllChange(event: Event): void {
+    const checked = (event as CustomEvent).detail?.checked;
+    if (checked) {
+      this.selectAllItems();
+    } else {
+      this.clearSelection();
+    }
+    this.updateClipboardSelection();
+  }
+
+  public onProductSelectionChange(product: CustomProduct, event: Event): void {
+    const checked = (event as CustomEvent).detail?.checked ?? !(event as MouseEvent).ctrlKey;
+    if (checked) {
+      this.selectedProductIds.add(product._id);
+    } else {
+      this.selectedProductIds.delete(product._id);
+    }
+    this.updateClipboardSelection();
+  }
+
+  public onRecipeSelectionChange(recipe: CustomRecipe, event: Event): void {
+    const checked = (event as CustomEvent).detail?.checked ?? !(event as MouseEvent).ctrlKey;
+    if (checked) {
+      this.selectedRecipeIds.add(recipe._id);
+    } else {
+      this.selectedRecipeIds.delete(recipe._id);
+    }
+    this.updateClipboardSelection();
+  }
+
+  public toggleProductSelection(product: CustomProduct): void {
+    if (!this.selectionMode) {
+      this.editCustomProduct(product);
+      return;
+    }
+
+    if (this.selectedProductIds.has(product._id)) {
+      this.selectedProductIds.delete(product._id);
+    } else {
+      this.selectedProductIds.add(product._id);
+    }
+    this.updateClipboardSelection();
+  }
+
+  public toggleRecipeSelection(recipe: CustomRecipe): void {
+    if (!this.selectionMode) {
+      this.editCustomRecipe(recipe);
+      return;
+    }
+
+    if (this.selectedRecipeIds.has(recipe._id)) {
+      this.selectedRecipeIds.delete(recipe._id);
+    } else {
+      this.selectedRecipeIds.add(recipe._id);
+    }
+    this.updateClipboardSelection();
+  }
+
+  private selectAllItems(): void {
+    this.meal.customProducts?.forEach((cp) => this.selectedProductIds.add(cp._id));
+    this.meal.customRecipes?.forEach((cr) => this.selectedRecipeIds.add(cr._id));
+  }
+
+  private clearSelection(): void {
+    this.selectedProductIds.clear();
+    this.selectedRecipeIds.clear();
+  }
+
+  private updateClipboardSelection(): void {
+    const productIds = Array.from(this.selectedProductIds);
+    const recipeIds = Array.from(this.selectedRecipeIds);
+    const totalProducts = this.meal.customProducts?.length ?? 0;
+    const totalRecipes = this.meal.customRecipes?.length ?? 0;
+    const isFullMeal = 
+      productIds.length === totalProducts &&
+      recipeIds.length === totalRecipes &&
+      (totalProducts > 0 || totalRecipes > 0);
+
+    if (isFullMeal) {
+      this.mealService.setFullMealClipboard(this.meal, this.meal);
+    } else if (productIds.length > 0 || recipeIds.length > 0) {
+      this.mealService.setPartialMealClipboard(
+        this.meal,
+        this.meal,
+        productIds,
+        recipeIds
+      );
+    } else {
+      this.mealService.clearMealClipboard();
+    }
+
+    this.copyEvent.emit({
+      mealId: this.meal._id,
+      mealIndex: this.mealIndex,
+      selectionMode: true,
+      meal: this.meal,
+      productIds,
+      recipeIds,
+      isFullMeal,
+    });
+  }
+
+  public cancelSelection(): void {
+    this.exitSelectionMode();
+    this.mealService.clearMealClipboard();
+    this.copyEvent.emit({
+      mealId: this.meal._id,
+      mealIndex: this.mealIndex,
+      selectionMode: false,
+    });
+  }
+
+  private exitSelectionMode(): void {
+    this.selectionMode = false;
+    this.clearSelection();
+    this.arrowRotate = false;
+  }
+
+  public get hasActiveClipboard(): boolean {
+    return this.mealService.hasMealClipboard();
+  }
+
+  public isProductSelected(product: CustomProduct): boolean {
+    return this.selectedProductIds.has(product._id);
+  }
+
+  public isRecipeSelected(recipe: CustomRecipe): boolean {
+    return this.selectedRecipeIds.has(recipe._id);
+  }
+
+  public isAllSelected(): boolean {
+    const productCount = this.meal.customProducts?.length ?? 0;
+    const recipeCount = this.meal.customRecipes?.length ?? 0;
+    return (
+      this.selectedProductIds.size === productCount &&
+      this.selectedRecipeIds.size === recipeCount &&
+      (productCount > 0 || recipeCount > 0)
+    );
+  }
+
+  public isAnySelected(): boolean {
+    return this.selectedProductIds.size > 0 || this.selectedRecipeIds.size > 0;
+  }
+
+  public getSelectedCount(): number {
+    return this.selectedProductIds.size + this.selectedRecipeIds.size;
   }
 
   private emptyMeal(): void {

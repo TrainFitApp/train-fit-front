@@ -9,7 +9,8 @@ export enum ACTION_TYPES {
   moveExercises = 7,
   note = 8,
   duplicate = 9,
-  moveSets = 10,
+  rmCalculator = 10,
+  moveSets = 11,
 }
 
 export type ACTION_TYPE = {
@@ -81,6 +82,12 @@ export const ACTIONS: {
     value: 'ACTIONS.DUPLICATE',
     icon: 'duplicate-outline',
     color: 'secondary',
+  },
+  [ACTION_TYPES.rmCalculator]: {
+    id: ACTION_TYPES.rmCalculator,
+    value: 'ACTIONS.RM_CALCULATOR',
+    icon: 'calculator-outline',
+    color: 'primary',
   },
   [ACTION_TYPES.moveSets]: {
     id: ACTION_TYPES.moveSets,

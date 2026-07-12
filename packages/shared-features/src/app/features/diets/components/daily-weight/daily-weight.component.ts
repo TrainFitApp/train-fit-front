@@ -1,9 +1,18 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ToastOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
+import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -15,6 +24,7 @@ import {
 } from 'src/app/shared/animations/shake';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 import { DateRange } from 'src/app/shared/models/dateRange';
+import { Anthropometry } from '../../../diet-days/components/weight-info/models/anthropometry';
 
 @Component({
   selector: 'app-daily-weight',
@@ -22,16 +32,20 @@ import { DateRange } from 'src/app/shared/models/dateRange';
   styleUrls: ['./daily-weight.component.scss'],
   animations: [shake],
 })
-export class DailyWeightComponent implements OnInit {
+export class DailyWeightComponent implements OnInit, OnChanges {
   @Input()
   public user: User;
   @Input()
   public selectedDate: string;
+  @Input()
+  public anthropometry: Anthropometry | null = null;
 
   @Output()
   public createdDietDay = new EventEmitter();
   @Output()
   public scrollToBottom = new EventEmitter<void>();
+  @Output()
+  public anthropometrySaved = new EventEmitter<Anthropometry>();
 
   public dietDay: DietDay;
   public firstWeekDay: Date;
@@ -50,6 +64,7 @@ export class DailyWeightComponent implements OnInit {
 
   constructor(
     private dietDayService: DietDayService,
+    private anthropometryService: AnthropometryService,
     private utilService: UtilService,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
@@ -62,6 +77,20 @@ export class DailyWeightComponent implements OnInit {
       this.initForm();
       this.refreshWeekDataIfNeeded();
     });
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes.anthropometry && !changes.anthropometry.firstChange) {
+      this.initForm();
+    }
+    if (
+      changes.selectedDate &&
+      !changes.selectedDate.firstChange &&
+      changes.selectedDate.currentValue !== changes.selectedDate.previousValue
+    ) {
+      this.loadedWeekKey = null;
+      this.refreshWeekDataIfNeeded();
+    }
   }
 
   private refreshWeekDataIfNeeded(): void {
@@ -107,8 +136,12 @@ export class DailyWeightComponent implements OnInit {
   }
 
   private initForm(): void {
+    const weight =
+      this.anthropometry?.weight ??
+      (this.dietDay?.date === this.selectedDate ? this.dietDay?.weight : null);
+
     this.weightForm = new FormGroup({
-      weight: new FormControl(this.dietDay ? this.dietDay.weight : null),
+      weight: new FormControl(weight ?? null),
     });
   }
 
@@ -181,98 +214,53 @@ export class DailyWeightComponent implements OnInit {
   private saveDayWeight(weight: number): void {
     this.isLoad = false;
     this.showSuccess = false;
+    const parsedWeight = Number(weight);
 
     const message = 'Peso guardado';
     const duration = 500;
     const toastOptions: ToastOptions = { message, duration };
 
-    if (this.dietDay._id) {
-      this.dietDay.weight = weight;
-      this.dietDayService
-        .updateDietDay(this.dietDay)
-        .subscribe((resDietDay) => {
-          this.updateWeightOnCurrentDietDay(resDietDay);
+    if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
+      this.isLoad = true;
+      return;
+    }
 
-          // Recalcular el promedio semanal localmente
-          const weightsInWeek = this.week
-            .map((d) => d.weight)
-            .filter((w) => w !== null && w !== undefined);
-          this.weeklyAverage =
-            weightsInWeek.length > 0
-              ? weightsInWeek.reduce((sum, w) => sum + w, 0) /
-                weightsInWeek.length
-              : 0;
+    this.anthropometryService
+      .upsertAnthropometry({
+        ...(this.anthropometry || {}),
+        date: this.selectedDate,
+        weight: parsedWeight,
+      })
+      .subscribe((anthropometry) => {
+        this.anthropometry = anthropometry;
+        if (this.dietDay) {
+          this.dietDay.weight = anthropometry.weight;
+        }
+        this.updateWeightOnCurrentDate(anthropometry.weight);
+        this.refreshWeekAfterSave();
+        this.anthropometrySaved.emit(anthropometry);
+        this.ionicUtilService.showToast(toastOptions);
+        this.isLoad = true;
+        this.showSuccess = true;
+        setTimeout(() => {
+          this.showSuccess = false;
+        }, 2000);
+        setTimeout(() => this.createdDietDay.emit());
+      });
+  }
 
-          // Actualizar el gráfico con los datos locales
-          this.updateChart(this.week.map((dietDayTemp) => dietDayTemp.weight));
-
-          this.ionicUtilService.showToast(toastOptions);
-
-          // Mostrar animación de éxito
-          this.isLoad = true;
-          this.showSuccess = true;
-
-          // Resetear animación después de 2 segundos
-          setTimeout(() => {
-            this.showSuccess = false;
-          }, 2000);
-        });
-    } else {
-      this.dietDayService
-        .createDayWeightOnNewDietDay(
-          weight,
-          this.user.dietInUse,
-          this.selectedDate
-        )
-        .subscribe((resDietDay) => {
-          this.dietDayService.setCurrentDietDay = resDietDay;
-
-          // Añadir el nuevo dietDay a la semana local
-          const parsed = this._utilService.parseYYYYMMDD(this.selectedDate);
-          const dayOfWeek = parsed.getDay();
-          const weekIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Lunes = 0, Domingo = 6
-          this.week[weekIndex] = resDietDay;
-
-          // Recalcular el promedio semanal localmente
-          const weightsInWeek = this.week
-            .map((d) => d.weight)
-            .filter((w) => w !== null && w !== undefined);
-          this.weeklyAverage =
-            weightsInWeek.length > 0
-              ? weightsInWeek.reduce((sum, w) => sum + w, 0) /
-                weightsInWeek.length
-              : 0;
-
-          // Inicializar o actualizar el gráfico
-          if (!this.chart) {
-            this.initChart();
-          } else {
-            this.updateChart(this.week.map((resWeek) => resWeek.weight));
-          }
-
-          this.ionicUtilService.showToast(toastOptions);
-
-          // Mostrar animación de éxito
-          this.isLoad = true;
-          this.showSuccess = true;
-
-          // Resetear animación después de 2 segundos
-          setTimeout(() => {
-            this.showSuccess = false;
-          }, 2000);
-
-          setTimeout(() => this.createdDietDay.emit());
-        });
+  private updateWeightOnCurrentDate(weight: number): void {
+    const index = this.week.findIndex(
+      (dietDayTemp) => dietDayTemp.date === this.selectedDate
+    );
+    if (index !== -1) {
+      this.week[index].weight = weight;
     }
   }
 
-  private updateWeightOnCurrentDietDay(dietDay: DietDay): void {
-    const index = this.week.findIndex(
-      (dietDayTemp) => dietDayTemp._id === dietDay._id
-    );
-    if (index !== -1) {
-      this.week[index].weight = dietDay.weight;
-    }
+  private refreshWeekAfterSave(): void {
+    this.loadedWeekKey = null;
+    this.getDietDaysWeightsOnWeek();
   }
 
   public getCheckIconName(): string {
@@ -313,6 +301,7 @@ export class DailyWeightComponent implements OnInit {
     const { dateMin, dateMax, dateRange } = this._utilService.getWeekRangeStr(
       this.selectedDate
     );
+    this.loadedWeekKey = dateMin;
     this.firstWeekDay = this._utilService.parseYYYYMMDD(dateMin);
     this.lastWeekDay = this._utilService.parseYYYYMMDD(dateMax);
 

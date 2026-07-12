@@ -3,8 +3,10 @@
     <app-toolbar-calendar
       [load]="load"
       [dietDay]="dietDay"
+      [dietId]="user?.dietInUse"
       (selectCalendarDayEmit)="selectCalendarDay($event)"
       (pasteDietDayMode)="pasteDietDayMode = true"
+      (pinnedNoteChange)="onPinnedNoteChange($event)"
     ></app-toolbar-calendar>
   </div>
 </ion-header>
@@ -36,6 +38,29 @@
     [detail]="true"
   ></app-notes>
 
+  <div class="pinned-note-container" *ngIf="pinnedNote">
+    <div class="pinned-note-wrapper" (click)="editPinnedNote()">
+      <div class="pinned-note-card">
+        <div class="card-header">
+          <div class="left-section">
+            <div class="icon-wrapper">
+              <ion-icon name="pin"></ion-icon>
+            </div>
+            <div class="header-row">
+              <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+            </div>
+          </div>
+          <div class="action-wrapper">
+            <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(); $event.stopPropagation()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <p class="text">{{ pinnedNote }}</p>
+      </div>
+    </div>
+  </div>
+
   <ion-button
     *ngIf="pasteDietDayMode && !isPasting;"
     expand="block"
@@ -53,8 +78,11 @@
         [mealIndex]="j"
         [user]="user"
         [load]="load"
-        [pasteMode]="pasteMode"
+        [pasteMode]="pasteMode && copyMealIndex !== j && mealIndexPaste !== j"
+        [activeCopyMealIndex]="copyMealIndex"
+        [clipboardClearCounter]="clipboardClearCounter"
         (pasteEvent)="paste($event)"
+        (copyEvent)="onCopySelection($event)"
       ></app-meal>
     </ion-accordion-group>
   </ion-grid>
@@ -62,20 +90,50 @@
   <app-daily-weight
     [user]="user"
     [selectedDate]="selectedDate"
+    [anthropometry]="currentAnthropometry"
+    (anthropometrySaved)="onAnthropometrySaved($event)"
     (createdDietDay)="scrollBottom()"
     (scrollToBottom)="scrollBottom()"
   ></app-daily-weight>
 
-  <ion-fab
-    *ngIf="pasteMode || pasteDietDayMode"
-    vertical="bottom"
-    horizontal="end"
-    slot="fixed"
+  <!-- Floating Clipboard Bar -->
+  <div
+    *ngIf="hasActiveClipboard"
+    class="clipboard-floating-bar"
+    [class.full-meal]="clipboard?.isFullMeal"
+    [class.partial-selection]="clipboard && !clipboard.isFullMeal"
   >
-    <ion-fab-button (click)="pasteMode = false; pasteDietDayMode = false;">
-      <ion-icon name="arrow-undo-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    <div class="clipboard-bar-content">
+      <div class="clipboard-info">
+        <span class="clipboard-icon">
+          <ion-icon name="clipboard-outline"></ion-icon>
+        </span>
+        <div class="clipboard-text">
+          <span class="clipboard-title">
+            {{ clipboard?.isFullMeal ? ('MEAL.CLIPBOARD_FULL_MEAL' | translate) : ('MEAL.CLIPBOARD_SELECTION' | translate) }}
+          </span>
+          <span class="clipboard-detail">
+            {{ clipboardMealName }} · {{ clipboardItemCount }} {{ clipboardItemCount === 1 ? ('MEAL.ITEM_COUNT_SINGULAR' | translate) : ('MEAL.ITEM_COUNT_PLURAL' | translate) }}
+          </span>
+        </div>
+      </div>
+      <div class="clipboard-macros">
+        <span class="macro calories"><ion-icon name="flame-outline"></ion-icon>{{ getClipboardTotalKcal() | number: '1.0-0' }}</span>
+        <span class="macro protein"><ion-icon name="nutrition-outline"></ion-icon>{{ getClipboardTotalProtein() | number: '1.1-1' }}g</span>
+        <span class="macro carbs"><ion-icon name="leaf-outline"></ion-icon>{{ getClipboardTotalCarbs() | number: '1.1-1' }}g</span>
+        <span class="macro fat"><ion-icon name="water-outline"></ion-icon>{{ getClipboardTotalFat() | number: '1.1-1' }}g</span>
+      </div>
+      <ion-button
+        fill="clear"
+        size="small"
+        color="danger"
+        class="cancel-btn"
+        (click)="clearClipboard()"
+      >
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
 
   <ion-popover trigger="calendar-diets">
     <ng-template>

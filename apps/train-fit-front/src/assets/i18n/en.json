@@ -7,6 +7,7 @@
     "MOVE_EXERCISES": "Move exercises",
     "DESELECT_ALL": "Deselect all",
     "DUPLICATE": "Duplicate",
+    "RM_CALCULATOR": "1RM Calculator",
     "MOVE_SETS": "Move sets",
     "DISCARD": "DISCARD",
     "ACCEPT": "ACCEPT"
@@ -412,6 +413,8 @@
     "PRIVACY_REQUIRED": "Accepting the Privacy Policy is required",
     "VIEW_SHEET": "VIEW SHEET",
     "WELCOME_SHEET": "Your welcome sheet",
+    "NOTIF_TITLE": "Weigh-in reminder",
+    "NOTIF_SUBTITLE": "Set up a daily reminder to log your weight.",
     "WEIGHT_LABEL": "Weight",
     "HEIGHT_LABEL": "Height",
     "YEARS": "years",
@@ -492,7 +495,12 @@
     "EMPTY_MEAL_HEADER": "Empty meal",
     "EMPTY_MEAL_CONFIRM": "Are you sure you want to empty {{name}}?",
     "EMPTY_MEAL_SUCCESS": "{{name}} emptied",
-    "DELETE_EMPTY": "EMPTY"
+    "DELETE_EMPTY": "EMPTY",
+    "CLIPBOARD_FULL_MEAL": "Full meal in clipboard",
+    "CLIPBOARD_SELECTION": "Selection in clipboard",
+    "CLIPBOARD_TAP_TO_PASTE": "Tap a meal to paste",
+    "ITEM_COUNT_SINGULAR": "item",
+    "ITEM_COUNT_PLURAL": "items"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copied to clipboard",
@@ -673,6 +681,7 @@
     "YEARLY": "Yearly weight",
     "WEEK_LABEL": "Weekly",
     "MONTH_LABEL": "Monthly",
+    "AVERAGE": "Average",
     "NO_RECORD": "No record",
     "WEEK": "Week {{number}}",
     "MONTHLY_AVERAGE": "Monthly average:",
@@ -915,6 +924,7 @@
     "CREATE_ROUTINE_BTN": "Create Routine",
     "IMPORT_EXCEL_AI": "Import Excel with AI",
     "IMPORT_EXCEL_AI_DESC": "Upload your Excel and convert it into a routine automatically",
+    "RM_CALCULATOR_BTN": "1RM Calculator",
     "FILTER_DEFAULT": "Default",
     "FILTER_MINE": "My routines",
     "NO_MATCHES": "No matches found",
@@ -1038,7 +1048,7 @@
     "MICROCYCLES_STAT": "Micro-cycles",
     "WORKOUTS_STAT": "Workouts",
     "NAME_OPTION": "NAME",
-    "ROUTINE_IN_USE": "Routine in use",
+    "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",
@@ -1123,6 +1133,18 @@
     "STATS_NO_DATA": "No Data",
     "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet."
   },
+  "RM_CALCULATOR": {
+    "TITLE": "1RM Calculator",
+    "WEIGHT_LABEL": "Weight lifted",
+    "REPS_LABEL": "Reps performed",
+    "REPS_UNIT": "reps",
+    "CALCULATE_BTN": "Calculate",
+    "RANGE_WARNING": "Outside 1-15 reps the formulas lose precision.",
+    "ESTIMATES_TITLE": "Your 1RM estimates",
+    "RECOMMENDED_BADGE": "Recommended",
+    "PERCENTAGE_TABLE_TITLE": "Percentage table",
+    "WEIGHT_COL": "Weight"
+  },
   "CONFIGURATION": {
     "TITLE": "Settings",
     "PROFILE_OPTIONS": "Profile Options",
@@ -1163,6 +1185,26 @@
     "TRAINER_MODE_MSG": "Not available",
     "LANGUAGE": "Language"
   },
+  "NOTIFICATIONS": {
+    "TITLE": "Reminders",
+    "WEIGHT_REMINDER": "Weigh-in reminder",
+    "WEIGHT_REMINDER_DESC": "Daily reminder to log your weight",
+    "FREQUENCY": "Frequency",
+    "DAILY": "Daily",
+    "WEEKLY": "Weekly",
+    "CUSTOM_INTERVAL": "Every X days",
+    "DAY_OF_WEEK": "Day of week",
+    "EVERY_X_DAYS": "Every {{days}} days",
+    "TIME": "Reminder time",
+    "PERMISSION_DENIED": "Notification permission was denied. Please enable it in your device settings.",
+    "SUNDAY": "Sunday",
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday",
+    "SATURDAY": "Saturday"
+  },
   "LANGUAGES": {
     "SPANISH": "Spanish",
     "ENGLISH": "English"
@@ -1176,7 +1218,12 @@
     "WORKOUT_NOTE": "Workout Note",
     "EXERCISE_NOTE": "Exercise Note",
     "DAY_NOTES": "Day Notes",
-    "MEAL_NOTES": "Meal Notes"
+    "MEAL_NOTES": "Meal Notes",
+    "PIN_EXERCISE_NOTE": "Pin note (visible in all splits)",
+    "PINNED_TO_POSITION": "Pinned note",
+    "PIN_TO_POSITION": "Pin note",
+    "DELETE_PINNED_TITLE": "Delete pinned note",
+    "DELETE_PINNED_CONFIRM": "Are you sure you want to delete this pinned note?"
   },
   "DISCONNECTED": {
     "EYEBROW": "No connection",
@@ -1459,7 +1506,14 @@
     "ALERT_CANCEL": "Cancel",
     "ALERT_CONFIRM": "Confirm",
     "TOAST_RESET": "You have reset the set order",
-    "SET_LABEL": "Set {{number}}"
+    "SET_LABEL": "Set {{number}}",
+    "OBJETIVO": "Target",
+    "FALLO": "Fail",
+    "DROP_SET": "DS",
+    "EJECUTADO": "Executed",
+    "NO_EJECUTADO": "Not executed",
+    "HECHA": "Done",
+    "PENDIENTE": "Pending"
   },
   "CONCEPTS": {
     "SEARCH_PLACEHOLDER": "Search concepts...",
@@ -1572,5 +1626,46 @@
     "ALL": "All",
     "FAVORITES": "Favorites",
     "NO_CATEGORIES": "No categories"
+  },
+  "ANTHROPOMETRY": {
+    "TITLE": "Anthropometry",
+    "MODAL_TITLE": "New measurement",
+    "EDIT_TITLE": "Edit measurement",
+    "ADD_TITLE": "Add measurement",
+    "ADD_MEASUREMENT": "Add measurement",
+    "ADD_MEASUREMENT_DESC": "Log your weight and body measurements",
+    "DATE_LABEL": "Date",
+    "DATE": "Date",
+    "PLACEHOLDER": "Optional",
+    "OPTIONAL": "Optional",
+    "NO_DATA": "No anthropometric data",
+    "NO_DATA_CHART": "No data to display in chart",
+    "NO_CHART_DATA": "Add your first measurement to see the evolution",
+    "NO_RECORDS": "No records in this period",
+    "HELPER_TEXT": "Only filled fields will be saved. Measure what you want, when you want.",
+    "MAX_VALUE": "Max 999",
+    "ENTER_AT_LEAST_ONE": "Enter at least one measurement",
+    "ERROR_SAVING": "Error saving measurement",
+    "SAVING": "Saving...",
+    "SAVE": "Save",
+    "CANCEL": "Cancel",
+    "SELECT_METRICS": "Show:",
+    "SHOW": "Show",
+    "CHART_TITLE": "Anthropometric Evolution",
+    "CHART_SUBTITLE": "Toggle metrics by clicking the buttons",
+    "WEIGHT": "Weight",
+    "NECK": "Neck",
+    "CHEST": "Chest",
+    "BICEPS_RELAXED": "Biceps relaxed",
+    "BICEPS_CONTRACTED": "Biceps contracted",
+    "WAIST": "Waist",
+    "ABDOMEN": "Abdomen",
+    "HIP": "Hip",
+    "THIGH_CONTRACTED": "Thigh contracted",
+    "THIGH_RELAXED": "Thigh relaxed",
+    "CALF": "Calf",
+    "WEIGHT_AXIS": "Weight (kg)",
+    "BODY_AXIS": "Body measurements (cm)",
+    "BODY_MEASUREMENTS": "Body measurements"
   }
 }

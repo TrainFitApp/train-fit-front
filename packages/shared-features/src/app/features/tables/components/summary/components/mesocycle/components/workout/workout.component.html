@@ -226,7 +226,7 @@
     </ion-row>
   </ion-grid>
 
-  <div slot="content">
+  <div slot="content" *ngIf="workout?.exercises.length !== 0">
     <app-notes
       *ngIf="workout?.notes"
       [notes]="workout.notes"
@@ -242,6 +242,28 @@
         (click)="addExerciseModal(exercise)"
       >
         <div class="exercise-item">
+          <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, i) as pinnedNote" (click)="$event.stopPropagation()">
+            <div class="pinned-note-wrapper" (click)="editPinnedNote(workoutIndex, i); $event.stopPropagation()">
+              <div class="pinned-note-card">
+                <div class="card-header">
+                  <div class="left-section">
+                    <div class="icon-wrapper">
+                      <ion-icon name="pin"></ion-icon>
+                    </div>
+                    <div class="header-row">
+                      <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+                    </div>
+                  </div>
+                  <div class="action-wrapper">
+                    <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(workoutIndex, i); $event.stopPropagation()">
+                      <ion-icon name="close" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+                <p class="text">{{ pinnedNote.notes }}</p>
+              </div>
+            </div>
+          </div>
           <div class="exercise-info">
             <div
               class="exercise-name"
@@ -383,6 +405,9 @@
           <app-notes
             [object]="exercise"
             [notes]="exercise.notes"
+            [tableId]="tableInUse._id"
+            [workoutIndex]="workoutIndex"
+            [exerciseIndex]="i"
             (update)="updateExerciseNote($event, exercise)"
           ></app-notes>
         </div>

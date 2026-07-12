@@ -127,10 +127,7 @@ export class SearchTablesPage implements OnInit {
       return;
     }
 
-    if (!this.user.tables) {
-      this.user.tables = [];
-    }
-
+    if (!this.user.tables) this.user.tables = [];
     if (!this.user.tables.includes(copiedTable._id)) {
       this.user.tables.push(copiedTable._id);
     }
@@ -165,8 +162,9 @@ export class SearchTablesPage implements OnInit {
           (tableId) => tableId?.toString() !== idTable
         ),
       };
-      this.userService.setLocalUser = this.user;
     }
+
+    this.userService.setLocalUser = this.user;
 
     if (idTable === this.getTableInUseId()) {
       this.workoutService.setCurrentWorkout = undefined;

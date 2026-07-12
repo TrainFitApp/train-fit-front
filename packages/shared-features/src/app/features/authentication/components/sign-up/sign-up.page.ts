@@ -20,6 +20,7 @@ import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { NotificationService, NotificationFrequency } from 'src/app/core/services/util/notification.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import {
@@ -137,6 +138,14 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
+  public notifEnabled: boolean = false;
+  public notifFrequency: NotificationFrequency = 'daily';
+  public notifWeekday: number = 1;
+  public notifIntervalDays: number = 2;
+  public notifTime: string = '';
+  public isTimeModalOpen: boolean = false;
+  private notifPermissionAttempted: boolean = false;
+
   private readonly MIN_SIGN_UP_AGE = 13;
   private readonly MAX_SIGN_UP_AGE = 120;
   private _defaultBirthDate: string | null = null;
@@ -155,7 +164,8 @@ export class SignUpPage implements OnInit, OnDestroy {
     private signUpStateService: SignUpStateService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private translate: TranslateService,
-    private i18nService: I18nService
+    private i18nService: I18nService,
+    private notificationService: NotificationService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
@@ -257,8 +267,11 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   private initVariables(): void {
     this.existNext = true;
-    // Inicializar opciones de entrenamiento con valores por defecto
     this.updateTrainingOptions();
+
+    const date = new Date();
+    date.setHours(9, 0, 0, 0);
+    this.notifTime = date.toISOString();
   }
 
   public initForm(): void {
@@ -404,7 +417,11 @@ export class SignUpPage implements OnInit, OnDestroy {
     swiperEl.initialize();
 
     this.swiper = this.swiperSignUpRef?.nativeElement.swiper;
-    this.swiper.on('slideChange', () => this.checkNextAndPrev());
+    this.swiper.on('slideChange', () => {
+      this.checkNextAndPrev();
+      this.checkNotificationSlide();
+    });
+    setTimeout(() => this.checkNotificationSlide(), 300);
   }
 
   private checkNextAndPrev(): void {
@@ -432,7 +449,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     const formIndex = this.registerSocialPending
       ? slides.length - 3
       : slides.length - 2;
-    return this.swiper.activeIndex >= formIndex;
+    return this.swiper.activeIndex === formIndex;
   }
 
   public customFormatter(value: number): string {
@@ -478,6 +495,97 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public prevSlide(): void {
     this.swiperSignUpRef.nativeElement.swiper.slidePrev();
+  }
+
+  public async onNotifToggle(): Promise<void> {
+    if (this.notifEnabled) {
+      const granted = await this.requestNotifPermission();
+      if (!granted) {
+        this.notifEnabled = false;
+        return;
+      }
+    }
+    await this.saveNotifSettings();
+  }
+
+  public async onNotifSettingsChange(): Promise<void> {
+    await this.saveNotifSettings();
+  }
+
+  public changeNotifInterval(delta: number): void {
+    const newVal = this.notifIntervalDays + delta;
+    if (newVal >= 1 && newVal <= 60) {
+      this.notifIntervalDays = newVal;
+      void this.saveNotifSettings();
+    }
+  }
+
+  public getNotifTimeDisplay(): string {
+    if (!this.notifTime) return '--:--';
+    const date = new Date(this.notifTime);
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  private checkNotificationSlide(): void {
+    if (this.notifPermissionAttempted || this.verifyEmailOnly || !this.swiper) return;
+
+    const slides = this.getPresentSlidesControls();
+    const termsIndex = slides.findIndex(
+      (s) =>
+        Array.isArray(s) &&
+        s.includes('termsAndConditions') &&
+        s.includes('policyAndPrivacy'),
+    );
+    const notifIndex = termsIndex - 1;
+
+    if (this.swiper.activeIndex === notifIndex) {
+      this.notifPermissionAttempted = true;
+      void this.requestNotifPermission();
+    }
+  }
+
+  private async requestNotifPermission(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform()) return false;
+    try {
+      const granted = await this.notificationService.requestPermissions();
+      if (!granted) {
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('NOTIFICATIONS.PERMISSION_DENIED'),
+          duration: 2000,
+          color: 'warning',
+        });
+        return false;
+      }
+      this.notifEnabled = true;
+      if (!this.notifTime) {
+        const date = new Date();
+        date.setHours(9, 0, 0, 0);
+        this.notifTime = date.toISOString();
+      }
+      await this.saveNotifSettings();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async saveNotifSettings(): Promise<void> {
+    if (!this.notifTime) {
+      const date = new Date();
+      date.setHours(9, 0, 0, 0);
+      this.notifTime = date.toISOString();
+    }
+    const timeDate = new Date(this.notifTime);
+    await this.notificationService.saveAndSchedule({
+      enabled: this.notifEnabled,
+      hour: timeDate.getHours(),
+      minute: timeDate.getMinutes(),
+      frequency: this.notifFrequency,
+      weekday: this.notifFrequency === 'weekly' ? this.notifWeekday : undefined,
+      intervalDays: this.notifFrequency === 'interval' ? this.notifIntervalDays : undefined,
+    });
   }
 
   public exitRegistration(): void {
@@ -820,6 +928,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       slides.push(['password', 'passwordRep']);
     }
 
+    slides.push([]); // Notificaciones
     slides.push(['termsAndConditions', 'policyAndPrivacy']);
     slides.push([]); // Ficha de datos
     if (this.registerSocialPending) {
