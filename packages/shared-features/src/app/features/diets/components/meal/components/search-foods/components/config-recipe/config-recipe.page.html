@@ -131,14 +131,47 @@
               </div>
             </ng-container>
             <ng-template #descriptionInput>
-              <div class="input-wrapper textarea-wrapper">
-                <ion-textarea
-                  formControlName="description"
-                  placeholder="Descripción opcional..."
-                  [autoGrow]="true"
-                  [rows]="3"
-                  class="custom-textarea"
-                ></ion-textarea>
+              <div class="description-steps-editor">
+                <div
+                  class="description-step editable"
+                  *ngFor="let step of descriptionSteps; let i = index; trackBy: trackByIndex"
+                >
+                  <span class="description-step-index">{{ i + 1 }}</span>
+                  <ion-textarea
+                    #stepTextarea
+                    [autoGrow]="true"
+                    rows="1"
+                    [value]="step"
+                    (ionInput)="onDescriptionStepChange(i, $event.detail.value)"
+                    placeholder="Paso {{ i + 1 }}"
+                    [maxlength]="maxStepLength"
+                    [counter]="true"
+                    class="description-step-input"
+                  ></ion-textarea>
+                  <ion-button
+                    fill="clear"
+                    class="remove-step-btn"
+                    (click)="removeDescriptionStep(i)"
+                  >
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </div>
+
+                <ion-button
+                  fill="clear"
+                  class="add-step-btn"
+                  [disabled]="descriptionSteps.length >= maxDescriptionSteps"
+                  (click)="addDescriptionStep()"
+                >
+                  <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                  <span>Añadir paso</span>
+                </ion-button>
+                <span
+                  class="steps-limit-hint"
+                  *ngIf="descriptionSteps.length >= maxDescriptionSteps"
+                >
+                  Máximo {{ maxDescriptionSteps }} pasos
+                </span>
               </div>
             </ng-template>
           </div>

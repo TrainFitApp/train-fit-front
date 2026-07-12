@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { ToastController, Platform, IonContent } from "@ionic/angular";
 import { Subject, firstValueFrom, takeUntil } from "rxjs";
@@ -107,6 +107,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   public editingBaseRecipe = false;
   public showDescriptionDetails = false;
   public weightExplainerExpanded = false;
+
+  public descriptionSteps: string[] = [];
+
+  @ViewChildren("stepTextarea") private stepTextareaRefs: QueryList<any>;
 
   public calculatedMacros = {
     kcal: 0,
@@ -289,6 +293,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
 
       if (formState) {
         this.recipeForm.patchValue(formState);
+        this.syncDescriptionStepsFromForm();
       }
 
       this.startRecipeDraft();
@@ -331,6 +336,8 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       this.recipeForm.get("name")?.disable();
       this.recipeForm.get("description")?.disable();
     }
+
+    this.syncDescriptionStepsFromForm();
   }
 
   private initializeBackButtonHandler(): void {
@@ -415,6 +422,44 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
       !this.isCreateMode &&
       this.recipeDescriptionSteps.length > 0
     );
+  }
+
+  public readonly maxDescriptionSteps = 20;
+  public readonly maxStepLength = 300;
+
+  public trackByIndex(index: number): number {
+    return index;
+  }
+
+  public addDescriptionStep(): void {
+    if (this.descriptionSteps.length >= this.maxDescriptionSteps) return;
+
+    this.descriptionSteps.push("");
+    this.syncDescriptionFormFromSteps();
+    setTimeout(() => this.stepTextareaRefs?.last?.setFocus(), 0);
+  }
+
+  public removeDescriptionStep(index: number): void {
+    this.descriptionSteps.splice(index, 1);
+    this.syncDescriptionFormFromSteps();
+  }
+
+  public onDescriptionStepChange(index: number, value: string): void {
+    this.descriptionSteps[index] = (value ?? "").slice(0, this.maxStepLength);
+    this.syncDescriptionFormFromSteps();
+  }
+
+  private syncDescriptionStepsFromForm(): void {
+    this.descriptionSteps = splitTextIntoSteps(
+      this.recipeForm.getRawValue()?.description,
+    );
+  }
+
+  private syncDescriptionFormFromSteps(): void {
+    this.recipeForm
+      .get("description")
+      ?.setValue(this.descriptionSteps.join("\n"));
+    this.recipeForm.get("description")?.markAsDirty();
   }
 
   public get showPortionFields(): boolean {
