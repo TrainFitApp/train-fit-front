@@ -355,6 +355,34 @@ export class SummaryPage {
     this.navigationService.goToSearchTables();
   }
 
+  public unlinkTable(): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
+      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: "cancel",
+        },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          cssClass: "alert-button-primary",
+          handler: () => {
+            this.tableInUse = undefined;
+            this.user.tableInUse = undefined;
+            this.user.workoutInUse = undefined;
+            this.workout = undefined;
+            this.workoutService.setCurrentWorkout = undefined;
+            this.tableService.setCurrentTable = undefined;
+            this.userService.updateUser(this.user).subscribe();
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
   public async goToStatistics(): Promise<void> {
     if (!this.shouldRequireAdPrompt()) {
       this.navigationService.goToStatistics();

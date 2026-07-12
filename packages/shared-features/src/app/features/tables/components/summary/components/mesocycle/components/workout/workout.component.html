@@ -9,6 +9,7 @@
           <ion-col class="meal-name">
             <ion-buttons class="workout-actions-buttons">
               <ion-button
+                *ngIf="stateSelected === STATES.static"
                 fill="clear"
                 class="action-btn menu-btn ripple-effect"
                 [ngClass]="{
@@ -217,8 +218,17 @@
             *ngIf="stateSelected === STATES.move"
             style="height: 100%; margin-left: -5%; font-size: xx-large"
           >
-            <ion-reorder slot="start">
-              <ion-icon color="primary" name="reorder-two-outline"></ion-icon>
+            <ion-spinner
+              *ngIf="savingWorkoutOrder"
+              style="transform: scale(0.8)"
+              name="crescent"
+              color="primary"
+            ></ion-spinner>
+            <ion-reorder *ngIf="!savingWorkoutOrder" slot="start">
+              <ion-icon
+                color="primary"
+                name="chevron-expand-outline"
+              ></ion-icon>
             </ion-reorder>
           </ion-button>
         </ion-buttons>

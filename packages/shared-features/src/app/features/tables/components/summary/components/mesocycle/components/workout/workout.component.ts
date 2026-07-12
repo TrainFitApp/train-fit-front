@@ -74,6 +74,9 @@ export class WorkoutComponent implements OnDestroy {
   public stateSelected: number;
 
   @Input()
+  public savingWorkoutOrder = false;
+
+  @Input()
   public isPopoverOpen: boolean;
 
   @Input()

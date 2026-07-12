@@ -68,6 +68,15 @@ export class WorkoutService {
       .pipe(take(1));
   }
 
+  public reorderWorkoutRows(
+    idTable: string,
+    workoutIdsOrder: string[]
+  ): Observable<Split[]> {
+    return this.workoutAPIService
+      .reorderWorkoutRows(idTable, workoutIdsOrder)
+      .pipe(take(1));
+  }
+
   public addExerciseToWorkouts(
     workoutIds: string[],
     exerciseId: string

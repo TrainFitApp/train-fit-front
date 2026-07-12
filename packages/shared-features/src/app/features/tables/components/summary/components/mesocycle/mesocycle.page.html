@@ -14,8 +14,40 @@
           </h1>
         </div>
         <div class="actions-section" *ngIf="!pasteMode">
-          <button class="action-button ripple-effect" (click)="unlinkTable()">
-            <ion-icon name="close" color="primary"></ion-icon>
+          <button
+            *ngIf="stateSelected !== STATES.move"
+            class="action-button ripple-effect"
+            [disabled]="loadingSplit || !currentSplit?.workouts?.length"
+            (click)="enterWorkoutMoveMode()"
+          >
+            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+          </button>
+
+          <button
+            *ngIf="stateSelected === STATES.move"
+            class="action-button ripple-effect"
+            [disabled]="savingWorkoutOrder"
+            (click)="cancelWorkoutMoveMode()"
+          >
+            <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+          </button>
+
+          <button
+            *ngIf="stateSelected === STATES.move"
+            class="action-button action-button--confirm ripple-effect"
+            [disabled]="savingWorkoutOrder"
+            (click)="confirmWorkoutOrder()"
+          >
+            <ion-spinner
+              *ngIf="savingWorkoutOrder"
+              name="crescent"
+              color="success"
+            ></ion-spinner>
+            <ion-icon
+              *ngIf="!savingWorkoutOrder"
+              name="checkmark-outline"
+              color="success"
+            ></ion-icon>
           </button>
         </div>
       </div>
@@ -33,58 +65,66 @@
       *ngIf="tableInUseAux?.splits.length > 0 && currentSplit; else emptySplits;"
     >
       <ng-container *ngIf="currentSplit.workouts?.length > 0 && !loadingSplit">
-        <ng-container
-          *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
+        <ion-reorder-group
+          class="workout-reorder-group"
+          [disabled]="stateSelected !== STATES.move || savingWorkoutOrder"
+          (ionItemReorder)="handleWorkoutReorder($event)"
         >
           <div
-            class="info-explainer"
-            *ngIf="pasteMode && workoutIndexPaste === ind"
+            class="workout-reorder-row"
+            *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
           >
-            <div class="info-card">
-              <ion-icon
-                name="information-circle-outline"
-                class="info-icon"
-              ></ion-icon>
-              <div class="info-text">
-                <span class="info-title">{{ 'TABLES.COPY_MODE' | translate }}</span>
-                <p>
-                  {{ 'TABLES.COPY_MODE_DESC' | translate }}
-                  <ion-label color="tertiary"
-                    ><strong>{{ workout.name | translateDb }}</strong></ion-label
-                  >.
-                </p>
+            <div
+              class="info-explainer"
+              *ngIf="pasteMode && workoutIndexPaste === ind"
+            >
+              <div class="info-card">
+                <ion-icon
+                  name="information-circle-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title">{{ 'TABLES.COPY_MODE' | translate }}</span>
+                  <p>
+                    {{ 'TABLES.COPY_MODE_DESC' | translate }}
+                    <ion-label color="tertiary"
+                      ><strong>{{ workout.name | translateDb }}</strong></ion-label
+                    >.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <ion-accordion-group
-            [id]="'workout-' + ind"
-            [multiple]="true"
-            [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
-            (ionChange)="toggleAccordion($event, ind)"
-            [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
-            [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
-          >
-            <app-workout
-              [user]="user"
-              [split]="currentSplit"
-              [splitIndex]="currentSplitIndex"
-              [tableInUse]="tableInUse"
-              [workout]="workout"
-              [workoutColor]="user?.workoutInUse === workout._id ? 'var(--ion-color-secondary)' : 'var(--ion-color-medium)'"
-              [workoutIndex]="ind"
-              [stateSelected]="stateSelected"
-              [pasteMode]="pasteMode"
-              (pasteEvent)="paste($event)"
-              (exerciseAddedEvent)="onExerciseAdded($event)"
-              (setAddedEvent)="onSetAdded($event)"
-              (setUpdatedEvent)="onSetUpdated($event)"
-              (setDeletedEvent)="onSetDeleted($event)"
-              (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
-              (workoutDuplicatedEvent)="onWorkoutDuplicated($event)"
-            ></app-workout>
-          </ion-accordion-group>
-        </ng-container>
+            <ion-accordion-group
+              [id]="'workout-' + ind"
+              [multiple]="true"
+              [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
+              (ionChange)="toggleAccordion($event, ind)"
+              [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
+              [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
+            >
+              <app-workout
+                [user]="user"
+                [split]="currentSplit"
+                [splitIndex]="currentSplitIndex"
+                [tableInUse]="tableInUse"
+                [workout]="workout"
+                [workoutColor]="user?.workoutInUse === workout._id ? 'var(--ion-color-secondary)' : 'var(--ion-color-medium)'"
+                [workoutIndex]="ind"
+                [stateSelected]="stateSelected"
+                [savingWorkoutOrder]="savingWorkoutOrder"
+                [pasteMode]="pasteMode"
+                (pasteEvent)="paste($event)"
+                (exerciseAddedEvent)="onExerciseAdded($event)"
+                (setAddedEvent)="onSetAdded($event)"
+                (setUpdatedEvent)="onSetUpdated($event)"
+                (setDeletedEvent)="onSetDeleted($event)"
+                (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
+                (workoutDuplicatedEvent)="onWorkoutDuplicated($event)"
+              ></app-workout>
+            </ion-accordion-group>
+          </div>
+        </ion-reorder-group>
       </ng-container>
 
       <!-- Skeleton Loader con acordeones detallados -->
@@ -239,7 +279,7 @@
       </ng-container>
 
       <ion-button
-        *ngIf="!loadingSplit && !pasteMode"
+        *ngIf="!loadingSplit && !pasteMode && stateSelected === STATES.static"
         expand="block"
         shape="round"
         class="ion-margin t-add-workout"
@@ -247,7 +287,10 @@
         ><strong>{{ 'TABLES.CREATE_WORKOUT' | translate }}</strong>
       </ion-button>
 
-      <section class="workout-template-panel" *ngIf="shouldShowWorkoutTemplates">
+      <section
+        class="workout-template-panel"
+        *ngIf="stateSelected === STATES.static && shouldShowWorkoutTemplates"
+      >
         <ion-accordion-group class="workout-template-dropdown">
           <ion-accordion value="templates">
             <div slot="header" class="workout-template-trigger">
@@ -404,7 +447,10 @@
           </div>
         </div>
 
-        <div *ngIf="!pasteMode" class="micro-cycle-actions">
+        <div
+          *ngIf="!pasteMode && stateSelected === STATES.static"
+          class="micro-cycle-actions"
+        >
           <ion-button
             fill="clear"
             class="action-btn menu-btn ripple-effect"
@@ -423,7 +469,7 @@
           class="nav-arrow nav-arrow-left ripple-effect"
           [class.animating]="animatingLeft"
           mode="md"
-          [disabled]="currentSplitIndex === 0 || loadingSplit"
+          [disabled]="currentSplitIndex === 0 || loadingSplit || stateSelected === STATES.move"
           (click)="navigateToPreviousSplit()"
         >
           <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
@@ -436,7 +482,7 @@
           class="nav-arrow nav-arrow-right ripple-effect"
           [class.animating]="animatingRight"
           mode="md"
-          [disabled]="currentSplitIndex === tableInUseAux?.splits.length - 1 || loadingSplit"
+          [disabled]="currentSplitIndex === tableInUseAux?.splits.length - 1 || loadingSplit || stateSelected === STATES.move"
           (click)="navigateToNextSplit()"
         >
           <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>

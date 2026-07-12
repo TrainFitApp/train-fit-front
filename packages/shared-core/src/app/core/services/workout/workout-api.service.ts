@@ -46,6 +46,16 @@ export class WorkoutAPIService {
     );
   }
 
+  public reorderWorkoutRows(
+    idTable: string,
+    workoutIdsOrder: string[]
+  ): Observable<Split[]> {
+    return this.http.put<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/rows/order/${idTable}`,
+      { workoutIdsOrder }
+    );
+  }
+
   public addExerciseToWorkouts(
     workoutIds: string[],
     exerciseId: string

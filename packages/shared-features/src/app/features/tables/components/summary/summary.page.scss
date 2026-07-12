@@ -380,6 +380,11 @@
       --card-color-rgb: var(--ion-color-primary-rgb);
     }
 
+    .info-card--danger {
+      --card-color: var(--ion-color-danger);
+      --card-color-rgb: var(--ion-color-danger-rgb);
+    }
+
     // Botón de estadísticas: más pequeño y menos ancho que el resto
     .stats-card-btn {
       padding: 7px 16px;
@@ -454,8 +459,9 @@
 
       .info-card--full {
         flex: 1;
+        min-width: 0;
         margin-bottom: 0;
-        padding: 12px 14px;
+        padding: 12px 10px;
 
         .info-icon {
           font-size: 1.3rem;
@@ -463,6 +469,10 @@
 
         .info-title {
           font-size: 0.85rem;
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .info-arrow {
@@ -736,4 +746,3 @@ ion-card-title {
   color: var(--pe-muted-2);
   flex-shrink: 0;
 }
-
