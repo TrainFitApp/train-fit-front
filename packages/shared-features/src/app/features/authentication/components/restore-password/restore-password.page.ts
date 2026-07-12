@@ -126,7 +126,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             3000
           );
         },
-        error: () => {
+        error: (err: any) => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
             err,
@@ -171,7 +171,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             this.codeAccepted = true;
           }
         },
-        error: () => {
+        error: (err: any) => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
             err,
@@ -211,7 +211,7 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
             this.navigationService.goToLoginPage();
           }
         },
-        error: () => {
+        error: (err: any) => {
           this.loading = false;
           this.ionicUtilService.showErrorToast(
             err,
