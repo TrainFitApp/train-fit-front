@@ -20,6 +20,11 @@ import {
 } from 'src/app/core/models/rir';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import {
+  ExerciseHistoryService,
+  ExerciseHistoryStats,
+} from 'src/app/core/services/exercise-history/exercise-history.service';
+import { take } from 'rxjs/operators';
 
 Chart.register(...registerables);
 
@@ -197,10 +202,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
   ];
   public weekDaysHeader: string[];
 
+  public historicalStats: ExerciseHistoryStats | null = null;
+  public historicalStatsLoading = false;
+
   constructor(
     private tableService: TableService,
     private navCtrl: NavController,
     private ionicUtilService: IonicUtilService,
+    private exerciseHistoryService: ExerciseHistoryService,
     public translate: TranslateService
   ) {}
 
@@ -410,7 +419,28 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.selectedSetIndex = 0; // Reset a primera serie
       this.chartMode = 'evolution'; // Default mode
       this.generateHistoryData();
+      this.loadHistoricalStats(exercise);
     }
+  }
+
+  // Histórico a través de TODAS las rutinas del usuario (no solo la actual)
+  // — distinto de generateHistoryData()/personalRecord, que están
+  // escopeados a la rutina abierta + el nombre de workout seleccionado.
+  private loadHistoricalStats(exercise: CustomExercise): void {
+    this.historicalStats = null;
+    this.historicalStatsLoading = true;
+    this.exerciseHistoryService
+      .getStatsForExercise$(exercise.exercise?._id ?? null, exercise.exercise?.name ?? '')
+      .pipe(take(1))
+      .subscribe({
+        next: (stats) => {
+          this.historicalStats = stats;
+          this.historicalStatsLoading = false;
+        },
+        error: () => {
+          this.historicalStatsLoading = false;
+        },
+      });
   }
 
   public onChartModeChange(event: any) {

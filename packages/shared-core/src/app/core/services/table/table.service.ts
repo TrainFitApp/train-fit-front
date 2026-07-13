@@ -66,6 +66,14 @@ export class TableService {
       .pipe(distinctUntilChanged());
   }
 
+  // Todas las rutinas propias del usuario, completamente pobladas
+  // (splits->workouts->exercises->sets), para agregaciones históricas
+  // (ej. ExerciseHistoryService). Distinto de getSearchTables(), que solo
+  // trae name/thumbnail para las tarjetas de búsqueda.
+  public getAllOwnTables(limit = 200): Observable<Table[]> {
+    return this.tableAPIService.getTables(0, limit, true).pipe(take(1));
+  }
+
   public getStandarTable() {
     const table = new Table();
     table.name = 'Rutina predeterminada';

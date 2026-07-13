@@ -207,6 +207,53 @@
       </ion-row>
     </ion-grid>
 
+    <!-- All-Time Historical Stats -->
+    <ion-card
+      class="historical-stats-card"
+      *ngIf="selectedExerciseId && !isCardio"
+    >
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="trophy-outline"></ion-icon>
+          {{ 'TABLES.STATS_ALL_TIME_TITLE' | translate }}
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="historicalStatsLoading" class="historical-stats-loading">
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+        <ng-container *ngIf="!historicalStatsLoading">
+          <ion-row *ngIf="historicalStats?.bestSet as best; else noHistoricalData">
+            <ion-col size="6">
+              <ion-card class="stat-card">
+                <ion-card-content>
+                  <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</div>
+                  <div class="stat-value">
+                    {{ best.weight | number:'1.0-1' }}<small>kg</small> × {{ best.reps }}
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+            <ion-col size="6">
+              <ion-card class="stat-card">
+                <ion-card-content>
+                  <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</div>
+                  <div class="stat-value">
+                    {{ historicalStats.maxWeightEver | number:'1.0-1' }}<small>kg</small>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+          <ng-template #noHistoricalData>
+            <ion-text color="medium" class="historical-stats-empty">
+              {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}
+            </ion-text>
+          </ng-template>
+        </ng-container>
+      </ion-card-content>
+    </ion-card>
+
     <!-- Comparison Card -->
     <ion-card
       class="comparison-card"

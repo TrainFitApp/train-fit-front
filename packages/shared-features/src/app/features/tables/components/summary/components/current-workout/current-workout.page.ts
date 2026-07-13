@@ -26,6 +26,7 @@ import {
 } from 'src/app/core/services/util/theme.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { ExerciseHistoryService } from 'src/app/core/services/exercise-history/exercise-history.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTION_TYPE,
@@ -98,6 +99,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly workoutService = inject(WorkoutService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly adMobService = inject(AdMobService);
+  private readonly exerciseHistoryService = inject(ExerciseHistoryService);
 
   constructor(
     private navigationService: NavigationService,
@@ -309,6 +311,9 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
               .finishWorkout(this.currentWorkout._id, finishDate)
               .subscribe({
                 next: (result) => {
+                  // Un PR recién hecho debe verse sin esperar a recargar la app.
+                  this.exerciseHistoryService.invalidateCache();
+
                   const updatedWorkout = result?.workout;
                   let summary: WorkoutSummary | null = null;
 

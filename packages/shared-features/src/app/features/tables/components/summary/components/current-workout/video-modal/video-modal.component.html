@@ -47,6 +47,43 @@
     <div class="no-video">Video no disponible</div>
   </ng-template>
 
+  <!-- Historical Stats Section -->
+  <div class="elegant-card historical-stats-card" *ngIf="exercise && !exercise.isCardio">
+    <div class="card-content">
+      <div class="historical-stats-header">
+        <div class="historical-stats-info">
+          <div class="historical-stats-icon">
+            <ion-icon name="trophy-outline"></ion-icon>
+          </div>
+          <h3 class="historical-stats-title">{{ 'TABLES.STATS_ALL_TIME_TITLE' | translate }}</h3>
+        </div>
+      </div>
+
+      <div *ngIf="historicalStatsLoading" class="historical-stats-loading">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+
+      <div *ngIf="!historicalStatsLoading && historicalStats?.bestSet as best" class="historical-stats-row">
+        <div class="historical-stat-chip">
+          <span class="label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</span>
+          <span class="value">{{ best.weight }}kg × {{ best.reps }}</span>
+        </div>
+        <div class="historical-stat-chip">
+          <span class="label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</span>
+          <span class="value">{{ historicalStats.maxWeightEver }}kg</span>
+        </div>
+      </div>
+
+      <ion-text
+        *ngIf="!historicalStatsLoading && !historicalStats?.bestSet"
+        color="medium"
+        class="historical-stats-empty"
+      >
+        {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}
+      </ion-text>
+    </div>
+  </div>
+
   <!-- Muscle Groups Section -->
   <div class="elegant-card muscle-groups-card" *ngIf="getValidMuscleGroups().length > 0">
     <div class="card-content">
