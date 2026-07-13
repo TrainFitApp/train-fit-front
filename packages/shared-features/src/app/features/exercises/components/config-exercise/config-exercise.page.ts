@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -38,6 +38,8 @@ import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
 import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from "src/app/core/models/pinned-exercise-note";
+import { splitTextIntoSteps } from "src/app/shared/utils";
+import { EXERCISE_DESCRIPTIONS_ES_EN } from "src/app/shared/constants/db-translations/exercise-descriptions-es-en.map";
 
 @Component({
   selector: "app-config-exercise",
@@ -134,6 +136,60 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     "Tren inferior",
     "Torso/Tren superior",
   ];
+
+  public getExerciseDescriptionSteps(): string[] {
+    return splitTextIntoSteps(this.getTranslatedExerciseDescription());
+  }
+
+  public descriptionSteps: string[] = [];
+  public readonly maxDescriptionSteps = 20;
+  public readonly maxStepLength = 300;
+
+  @ViewChildren("stepTextarea") private stepTextareaRefs: QueryList<any>;
+
+  public trackByIndex(index: number): number {
+    return index;
+  }
+
+  public addDescriptionStep(): void {
+    if (this.descriptionSteps.length >= this.maxDescriptionSteps) return;
+
+    this.descriptionSteps.push("");
+    this.syncDescriptionFormFromSteps();
+    setTimeout(() => this.stepTextareaRefs?.last?.setFocus(), 0);
+  }
+
+  public removeDescriptionStep(index: number): void {
+    this.descriptionSteps.splice(index, 1);
+    this.syncDescriptionFormFromSteps();
+  }
+
+  public onDescriptionStepChange(index: number, value: string): void {
+    this.descriptionSteps[index] = (value ?? "").slice(0, this.maxStepLength);
+    this.syncDescriptionFormFromSteps();
+  }
+
+  private syncDescriptionStepsFromForm(): void {
+    this.descriptionSteps = splitTextIntoSteps(this.form?.get("description")?.value);
+  }
+
+  private syncDescriptionFormFromSteps(): void {
+    this.form?.get("description")?.setValue(this.descriptionSteps.join("\n"));
+    this.form?.get("description")?.markAsDirty();
+  }
+
+  private getTranslatedExerciseDescription(): string {
+    const targetExercise = this.exercise ?? this.customExercise?.exercise;
+    if (!targetExercise) return "";
+
+    const currentLang = this.translate.currentLang || "es";
+    if (currentLang === "en") {
+      const translated = EXERCISE_DESCRIPTIONS_ES_EN[targetExercise.name];
+      if (translated) return translated;
+    }
+
+    return targetExercise.description || "";
+  }
 
   public filterMuscleGroup1: string[] = [
     "Brazos",
@@ -429,6 +485,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       name: new FormControl(exerciseConfig.exercise.name, Validators.required),
       description: new FormControl(exerciseConfig.exercise.description || ""),
     });
+
+    this.syncDescriptionStepsFromForm();
   }
 
   private isExerciseArchived(): void {
@@ -561,6 +619,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       description: baseExercise.description || "",
     });
     this.form?.markAsPristine();
+    this.syncDescriptionStepsFromForm();
 
     if (this.originalDetails) {
       this.details.category = [...this.originalDetails.category];

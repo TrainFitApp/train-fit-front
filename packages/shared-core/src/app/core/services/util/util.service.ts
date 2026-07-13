@@ -405,14 +405,18 @@ export class UtilService {
     );
   }
 
+  // Los workouts saltados (`rest`) no cuentan como entrenados, pero tampoco
+  // bloquean el micro-ciclo indefinidamente: se excluyen de la comprobación.
   public isSplitDoned(split: Split): boolean {
-    return split.workouts.every((wTemp) => wTemp.date);
+    return split.workouts
+      .filter((wTemp) => !wTemp.rest)
+      .every((wTemp) => wTemp.date);
   }
 
   public getCurrentPlayingSplit(table: Table): number {
     return (
       table.splits.findIndex((split) =>
-        split.workouts.some((workout) => !workout.date)
+        split.workouts.some((workout) => !workout.date && !workout.rest)
       ) + 1
     );
   }

@@ -11,5 +11,8 @@ export class Workout {
   // elapsed time as `(date ?? now) - startedAt` — no interval-accumulated
   // counter, so it survives app kills/backgrounding/navigation untouched.
   startedAt?: Date | null;
+  // True when the user explicitly skipped this training day. Mutually
+  // exclusive with `date`: a skipped workout is never marked as finished.
+  rest?: boolean;
   exercises: CustomExercise[];
 }

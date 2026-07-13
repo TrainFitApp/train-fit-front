@@ -12,6 +12,11 @@ export interface FinishWorkoutResponse {
   userUpdated: boolean;
 }
 
+export interface SkipWorkoutResponse {
+  workout: Workout;
+  userUpdated: boolean;
+}
+
 @Injectable()
 export class WorkoutAPIService {
   private static readonly WORKOUT_ENDPOINT = 'workouts';
@@ -94,6 +99,16 @@ export class WorkoutAPIService {
     return this.http.put<FinishWorkoutResponse>(`workouts/finish`, {
       workoutId,
       date,
+    });
+  }
+
+  public skipWorkout(
+    workoutId: string,
+    rest: boolean
+  ): Observable<SkipWorkoutResponse> {
+    return this.http.put<SkipWorkoutResponse>(`workouts/skip`, {
+      workoutId,
+      rest,
     });
   }
 

@@ -498,6 +498,110 @@
     animation: slideDown 0.2s ease forwards;
   }
 
+  .description-steps-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .description-step.editable {
+    grid-template-columns: 26px minmax(0, 1fr) 44px;
+    align-items: center;
+  }
+
+  .description-step-input {
+    --background: rgba(255, 255, 255, 0.03);
+    --color: var(--text-primary);
+    --placeholder-color: var(--text-muted);
+    --border-radius: 10px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    width: 100%;
+
+    &::part(native) {
+      width: 100%;
+      min-width: 100%;
+    }
+  }
+
+  .remove-step-btn {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    --padding-start: 0;
+    --padding-end: 0;
+    --color: var(--text-secondary);
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  .add-step-btn {
+    align-self: flex-start;
+    --padding-start: 12px;
+    --padding-end: 14px;
+    --color: var(--ion-color-primary);
+    font-weight: 600;
+    font-size: 0.86rem;
+    min-height: 44px;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &[disabled] {
+      opacity: 0.45;
+    }
+  }
+
+  .steps-limit-hint {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    margin-top: -4px;
+  }
+
+  .description-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .description-step {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .description-step-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    color: var(--ion-color-primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .description-step-text {
+    margin: 2px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   .description-input-group {
     margin-bottom: 0;
   }
