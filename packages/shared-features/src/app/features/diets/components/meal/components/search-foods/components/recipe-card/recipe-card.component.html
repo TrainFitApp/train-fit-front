@@ -9,7 +9,14 @@
     <div class="recipe-header">
       <div class="recipe-info">
         <div class="name-row">
-          <span class="recipe-name">{{ recipe.name }}</span>
+          <span class="recipe-name">
+            <ion-icon
+              *ngIf="showRecentIcon"
+              name="time-outline"
+              class="recent-product-icon"
+            ></ion-icon>
+            {{ recipe.name }}
+          </span>
           <span
             class="recipe-qty"
             [ngStyle]="{ 'font-weight': isChecked ? 'bolder' : '' }"

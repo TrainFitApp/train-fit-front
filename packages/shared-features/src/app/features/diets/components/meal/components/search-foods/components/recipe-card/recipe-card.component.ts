@@ -28,6 +28,8 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() dietDay: DietDay;
   @Input() user: User;
   @Input() loading = false;
+  @Input() recentCustomRecipe?: any | null = null;
+  @Input() showRecentIcon: boolean = false;
 
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
@@ -164,6 +166,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
 
     if (this.foundInstance) {
       return consumed ?? 0;
+    }
+
+    const recentQty = this.toPositiveNumber(this.recentCustomRecipe?.quantity);
+    if (recentQty !== null) {
+      return recentQty;
     }
 
     switch (this.measureFilter) {

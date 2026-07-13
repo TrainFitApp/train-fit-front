@@ -43,6 +43,10 @@ export class ProductComponent implements OnInit, OnChanges {
   public ingredientMode: boolean = false;
   @Input()
   public isIngredientSelected: boolean = false;
+  @Input()
+  public recentCustomProduct?: CustomProduct | null;
+  @Input()
+  public showRecentIcon: boolean = false;
 
   @Output()
   public delete = new EventEmitter<string>();
@@ -93,7 +97,12 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes.meal || changes.isIngredientSelected || changes.product) {
+    if (
+      changes.meal ||
+      changes.isIngredientSelected ||
+      changes.product ||
+      changes.recentCustomProduct
+    ) {
       this.existCustomProduct();
       this.isProductChecked();
       this.setBrand();
@@ -102,6 +111,10 @@ export class ProductComponent implements OnInit, OnChanges {
 
   public get isBusy(): boolean {
     return this.loading.value || this.actionLoading;
+  }
+
+  public get displayCustomProduct(): CustomProduct | null {
+    return this.customProduct || this.recentCustomProduct || null;
   }
 
   public onCardClick(): void {
@@ -145,11 +158,11 @@ export class ProductComponent implements OnInit, OnChanges {
       productName: this.product.name,
       productId: this.product._id,
       isChecked: this.isChecked,
-      quantity: this.productQuantity || 100,
+      quantity: this.getEffectiveQuantity(),
     });
     this.ingredientToggle.emit({
       product: this.product,
-      quantity: this.productQuantity || 100,
+      quantity: this.getEffectiveQuantity(),
       checked: this.isChecked,
     });
   }
@@ -164,17 +177,13 @@ export class ProductComponent implements OnInit, OnChanges {
       this.isChecked = checked;
       this.ingredientToggle.emit({
         product: this.product,
-        quantity: this.productQuantity || 100,
+        quantity: this.getEffectiveQuantity(),
         checked: checked,
       });
       return;
     }
 
-    const newCustomProduct = this.customProductService.composeCustomProduct(
-      this.product,
-      this.productQuantity,
-      0
-    );
+    const newCustomProduct = this.buildCustomProductForAdd();
 
     if (checked) {
       if (
@@ -262,7 +271,7 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public checkIfInfoExist(): boolean {
-    if (typeof this.customProduct?.quantity === 'number' && this.customProduct.quantity > 0) {
+    if (typeof this.displayCustomProduct?.quantity === 'number' && this.displayCustomProduct.quantity > 0) {
       return false;
     }
 
@@ -365,7 +374,7 @@ export class ProductComponent implements OnInit, OnChanges {
       dietDay: JSON.stringify(this.dietDay),
       meal: JSON.stringify(this.meal),
       product: JSON.stringify(this.product),
-      productQuantity: this.productQuantity,
+      productQuantity: this.getEffectiveQuantity(),
     };
     this.navigationService.goToAddProduct({
       replaceUrl: false,
@@ -374,7 +383,7 @@ export class ProductComponent implements OnInit, OnChanges {
         dietDay: this.dietDay,
         meal: this.meal,
         product: this.product,
-        productQuantity: this.productQuantity,
+        productQuantity: this.getEffectiveQuantity(),
         ingredientMode: this.ingredientMode,
         customProduct: this.customProduct, // Pass existing customProduct for editing
         returnUrl: '/search-foods',
@@ -383,8 +392,43 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   private setBrand(): void {
-    this.brand = this.customProduct
-      ? this.customProduct.product?.brand
+    this.brand = this.displayCustomProduct
+      ? this.displayCustomProduct.product?.brand
       : this.product.brand;
+  }
+
+  private getEffectiveQuantity(): number {
+    return (
+      this.customProduct?.quantity ??
+      this.recentCustomProduct?.quantity ??
+      this.productQuantity ??
+      100
+    );
+  }
+
+  private buildCustomProductForAdd(): CustomProduct {
+    if (this.recentCustomProduct && !this.customProduct) {
+      const recentPayload = { ...this.recentCustomProduct } as CustomProduct & {
+        lastUsedAt?: string;
+      };
+      delete recentPayload._id;
+      delete recentPayload.mealId;
+      delete recentPayload.customRecipeId;
+      delete recentPayload.baseCustomProductId;
+      delete recentPayload.lastUsedAt;
+
+      return {
+        ...recentPayload,
+        quantity: this.getEffectiveQuantity(),
+        order: 0,
+        product: this.product,
+      };
+    }
+
+    return this.customProductService.composeCustomProduct(
+      this.product,
+      this.getEffectiveQuantity(),
+      0
+    );
   }
 }

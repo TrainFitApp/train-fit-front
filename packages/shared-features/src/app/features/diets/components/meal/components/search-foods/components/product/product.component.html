@@ -10,16 +10,23 @@
     <div class="product-header">
       <div class="product-info">
         <div class="name-row">
-          <span class="product-name">{{ product.name }}</span>
+          <span class="product-name">
+            <ion-icon
+              *ngIf="showRecentIcon"
+              name="time-outline"
+              class="recent-product-icon"
+            ></ion-icon>
+            {{ product.name }}
+          </span>
           <span
             class="product-qty"
-            [ngStyle]="{ 'font-weight': !!customProduct ? 'bolder' : '' }"
+            [ngStyle]="{ 'font-weight': !!displayCustomProduct ? 'bolder' : '' }"
             [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
-              (customProduct?.quantity ?? productQuantity | number : "1.0-0")
+              (displayCustomProduct?.quantity ?? productQuantity | number : "1.0-0")
                 ? "(" +
-                  (customProduct?.quantity ?? productQuantity
+                  (displayCustomProduct?.quantity ?? productQuantity
                     | number : "1.0-0") +
                   "g)"
                 : "-"
@@ -53,9 +60,9 @@
       <div class="macro-item">
         <div class="macro-dot kcal"></div>
         <span class="macro-value">{{
-          (customProduct || product)
+          (displayCustomProduct || product)
             | measure
-              : (customProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
+              : (displayCustomProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
               : CUSTOM_PRODUCT_KEYS.energy
         }}</span>
       </div>
@@ -63,9 +70,9 @@
       <div class="macro-item">
         <div class="macro-dot protein"></div>
         <span class="macro-value">{{
-          (customProduct || product)
+          (displayCustomProduct || product)
             | measure
-              : (customProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
+              : (displayCustomProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
               : CUSTOM_PRODUCT_KEYS.protein
         }}</span>
       </div>
@@ -73,9 +80,9 @@
       <div class="macro-item">
         <div class="macro-dot carbs"></div>
         <span class="macro-value">{{
-          (customProduct || product)
+          (displayCustomProduct || product)
             | measure
-              : (customProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
+              : (displayCustomProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
               : CUSTOM_PRODUCT_KEYS.carbohydrates
         }}</span>
       </div>
@@ -83,9 +90,9 @@
       <div class="macro-item">
         <div class="macro-dot fat"></div>
         <span class="macro-value">{{
-          (customProduct || product)
+          (displayCustomProduct || product)
             | measure
-              : (customProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
+              : (displayCustomProduct ? MEASURE_FILTER_TYPES.total : measureFilter)
               : CUSTOM_PRODUCT_KEYS.fat
         }}</span>
       </div>
