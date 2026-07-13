@@ -62,6 +62,8 @@
           [product]="product"
           [ingredientMode]="ingredientMode"
           [isIngredientSelected]="isIngredientSelected(product)"
+          [recentCustomProduct]="getRecentCustomProduct(product)"
+          [showRecentIcon]="isRecentProduct(product)"
           (delete)="deleteProduct($event)"
           (ingredientToggle)="onIngredientToggle($event)"
         ></app-product>
@@ -72,7 +74,7 @@
       <ng-container *ngIf="load">
         <div
           class="no-results-card"
-          *ngIf="!isSearchTooShortForProducts(); else keepLoadedProductsState"
+          *ngIf="shouldShowProductsEmptyState(); else keepLoadedProductsState"
         >
           <div class="no-results-icon">
             <ion-icon name="search-outline"></ion-icon>
@@ -103,6 +105,8 @@
           [dietDay]="dietDay"
           [user]="user"
           [loading]="isRecipeLoading(recipe)"
+          [recentCustomRecipe]="getRecentCustomRecipe(recipe)"
+          [showRecentIcon]="isRecentRecipe(recipe)"
           (toggle)="onRecipeToggle($event)"
           (quickAdd)="onRecipeQuickAdd($event)"
           (edit)="onRecipeEdit($event)"
@@ -113,7 +117,7 @@
 
     <ng-template #noRecipes>
       <ng-container *ngIf="load">
-        <div class="no-results-card">
+        <div class="no-results-card" *ngIf="hasStartedFoodSearch">
           <div class="no-results-icon">
             <ion-icon name="restaurant-outline"></ion-icon>
           </div>
@@ -195,7 +199,10 @@
     </div>
   </ng-container>
 
-  <ion-infinite-scroll (ionInfinite)="loadData($event)">
+  <ion-infinite-scroll
+    [disabled]="!hasStartedFoodSearch || !load"
+    (ionInfinite)="loadData($event)"
+  >
     <ion-infinite-scroll-content loadingSpinner="crescent">
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>

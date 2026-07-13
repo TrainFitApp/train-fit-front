@@ -30,6 +30,7 @@ import { IProduct } from "src/app/core/models/product";
 import { Recipe } from "src/app/core/models/recipe";
 import { User } from "src/app/core/models/user";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
+import { DietService } from "src/app/core/services/diet/diet.service";
 import { MealService } from "src/app/core/services/meal/meal.service";
 import { ProductService } from "src/app/core/services/product/product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
@@ -70,6 +71,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     [],
   );
   public recipes: Recipe[] = [];
+  public recentCustomProducts: CustomProduct[] = [];
+  public recentCustomRecipes: any[] = [];
+  public hasStartedFoodSearch: boolean = false;
   public loadingRecipeIds = new Set<string>();
   public idUser: string;
 
@@ -151,7 +155,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private returnUrl?: string;
   private hasInitialized = false;
+  private readonly recentProductsLimit = 15;
+  private readonly recentRecipesLimit = 15;
   private productByCodeSub?: Subscription;
+  private recentProductsSub?: Subscription;
+  private recentRecipesSub?: Subscription;
   private searchProductsSub?: Subscription;
   private searchRecipesSub?: Subscription;
   private productsRequestVersion = 0;
@@ -166,6 +174,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   constructor(
     private dietDayService: DietDayService,
+    private dietService: DietService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
@@ -263,6 +272,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
         if (savedState.ingredientMode !== undefined) {
           this.ingredientMode = savedState.ingredientMode;
+        }
+        if (savedState.hasStartedFoodSearch !== undefined) {
+          this.hasStartedFoodSearch = !!savedState.hasStartedFoodSearch;
         }
 
         // Get UPDATED meal and dietDay from service (they may have been updated in config-recipe)
@@ -429,13 +441,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
       this.calculateIngredientMacros();
 
-      // Force initial search when entering ingredient mode
-      // BUT: Skip search if we're returning from add-product with a new ingredient
-      if (!returningFromConfigRecipe && !hasNewIngredient) {
-        console.log("[DEBUG] Ingredient mode: performing initial search");
-        this.hasInitialized = true; // Mark as initialized to prevent double search
-        this.search();
-      } else if (hasNewIngredient) {
+      if (hasNewIngredient) {
         console.log(
           "[DEBUG] Skipping search - processing newIngredient instead",
         );
@@ -534,6 +540,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
+      this.markFoodSearchStarted();
       shouldSearch = true;
     } else if (result?.createdViaCreateProduct) {
       // Switch to products segment when creating a custom product
@@ -544,20 +551,20 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
+      this.markFoodSearchStarted();
       shouldSearch = true;
     } else if (result?.refresh) {
       // Force refresh requested
       this.syncMealAndDietDayFromService();
+      this.markFoodSearchStarted();
       shouldSearch = true;
     } else if (!returningFromConfigRecipe) {
-      // Only do initial search on first entry
       if (!this.hasInitialized) {
         console.log(
-          "[DEBUG - INIT] About to call search(), currentMode:",
+          "[DEBUG - INIT] Loading recent products only, currentMode:",
           this.currentMode,
         );
         this.hasInitialized = true;
-        shouldSearch = true;
       }
     } else {
       console.log(
@@ -570,13 +577,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           ? !this.recipes || this.recipes.length === 0
           : !this.products || this.products.length === 0;
 
-      // If active segment list is empty, execute search
       if (activeListIsEmpty) {
         console.log(
-          "[DEBUG] Active segment list is empty, executing search anyway",
+          "[DEBUG] Active segment list is empty",
           this.currentMode,
         );
-        shouldSearch = true;
+        shouldSearch = this.hasStartedFoodSearch;
       } else {
         // Ensure load is true to hide skeletons
         this.load = true;
@@ -586,6 +592,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     // Execute search only once if needed
     if (shouldSearch) {
       this.search();
+    } else if (!this.hasStartedFoodSearch) {
+      if (this.currentMode === "products") {
+        this.loadRecentProductsForMeal();
+      } else if (this.currentMode === "recipes") {
+        this.loadRecentRecipesForMeal();
+      } else {
+        this.load = true;
+      }
     }
 
     // 🍎 iOS: Inhabilitar gesto de ir hacia atrás si estamos en modo ingrediente
@@ -622,6 +636,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
     if (this.backButton$) {
@@ -674,6 +690,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
     }
     this.cancelProductLookup();
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
 
@@ -786,12 +804,27 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       event,
       new Error().stack,
     );
+    if (event !== undefined) {
+      this.markFoodSearchStarted();
+    }
+
+    if (!this.hasStartedFoodSearch) {
+      if (this.currentMode === "products") {
+        this.loadRecentProductsForMeal();
+      } else if (this.currentMode === "recipes") {
+        this.loadRecentRecipesForMeal();
+      }
+      return;
+    }
+
     this.searchFilterGroup.page = 0;
-    if (event)
+    if (event !== undefined) {
       this.searchFilterGroup.search =
         typeof event === "string"
           ? event
           : this.utilService.getEventString(event);
+      this.searchBarValue = this.searchFilterGroup.search;
+    }
 
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       this.load = true;
@@ -809,6 +842,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public setFilterIconsValueBySelection(event: SearchFilterGroup): void {
+    this.markFoodSearchStarted();
     Object.assign(this.searchFilterGroup, event);
     this.searchFilterGroup.page = 0;
 
@@ -848,13 +882,24 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.shieldFilter = false;
       this.searchFilterGroup.page = 0;
 
+      this.products = [];
+      this.recipes = [];
+
+      // If no search has been performed yet, load recent items first
+      // This ensures recent recipes/products appear before any API search
+      if (!this.hasStartedFoodSearch) {
+        if (mode === "products") {
+          this.loadRecentProductsForMeal();
+        } else {
+          this.loadRecentRecipesForMeal();
+        }
+        return;
+      }
+
       if (mode === "products" && this.shouldSkipProductsSearch()) {
         this.load = true;
         return;
       }
-
-      this.products = [];
-      this.recipes = [];
 
       if (mode === "products") {
         this.searchProducts();
@@ -876,6 +921,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public loadData(event: InfiniteScrollCustomEvent): void {
+    if (!this.hasStartedFoodSearch) {
+      event.target.complete();
+      return;
+    }
+
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       event.target.complete();
       return;
@@ -1465,9 +1515,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private getIngredientProductId(ingredient: CustomProduct): string | null {
     const product = ingredient?.product as any;
+    return this.getProductId(product);
+  }
+
+  private getCustomProductProductId(
+    customProduct: CustomProduct | null | undefined,
+  ): string | null {
+    return this.getProductId(customProduct?.product);
+  }
+
+  private getProductId(product: any): string | null {
     if (!product) return null;
     if (typeof product === "string") return product;
-    return product?._id?.toString?.() || null;
+    return product?._id?.toString?.() || product?.toString?.() || null;
   }
 
   private cloneIngredient(ingredient: CustomProduct): CustomProduct {
@@ -1480,6 +1540,22 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           ? { ...ingredient.product }
           : ingredient?.product,
     };
+  }
+
+  private cloneRecentCustomProduct(customProduct: any, keepBaseCustomProductId?: boolean): any {
+    if (!customProduct) return customProduct;
+
+    const cloned = { ...customProduct };
+    delete cloned._id;
+    delete cloned.customRecipeId;
+    delete cloned.mealId;
+    delete cloned.lastUsedAt;
+
+    if (!keepBaseCustomProductId) {
+      delete cloned.baseCustomProductId;
+    }
+
+    return cloned;
   }
 
   private cloneSelectedIngredients(): CustomProduct[] {
@@ -1499,6 +1575,45 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     // Uncomment for debugging
     // console.log('[DEBUG] isIngredientSelected for', product.name, ':', isSelected);
     return isSelected;
+  }
+
+  public getRecentCustomProduct(product: IProduct): CustomProduct | null {
+    const productId = this.getProductId(product);
+    if (!productId) {
+      return null;
+    }
+
+    return (
+      this.recentCustomProducts.find(
+        (customProduct) =>
+          this.getCustomProductProductId(customProduct) === productId,
+      ) || null
+    );
+  }
+
+  public isRecentProduct(product: IProduct): boolean {
+    return !!this.getRecentCustomProduct(product);
+  }
+
+  public getRecentCustomRecipe(recipe: Recipe): any | null {
+    const recipeId = recipe?._id;
+    if (!recipeId) {
+      return null;
+    }
+
+    return (
+      this.recentCustomRecipes.find((customRecipe) => {
+        const recipeRef =
+          typeof customRecipe?.recipe === "object"
+            ? customRecipe.recipe
+            : null;
+        return recipeRef?._id === recipeId;
+      }) || null
+    );
+  }
+
+  public isRecentRecipe(recipe: Recipe): boolean {
+    return !!this.getRecentCustomRecipe(recipe);
   }
 
   // Create a virtual meal for ingredient mode to show quantities in product cards
@@ -1686,6 +1801,162 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return dietDay.meals[mealIndex];
   }
 
+  private markFoodSearchStarted(): void {
+    this.hasStartedFoodSearch = true;
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
+  }
+
+  private loadRecentProductsForMeal(): void {
+    if (this.hasStartedFoodSearch || this.currentMode !== "products") {
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (!dietId || mealIndex === -1) {
+      this.recentCustomProducts = [];
+      this.products = [];
+      this.load = true;
+      return;
+    }
+
+    this.load = false;
+    this.recentProductsSub?.unsubscribe();
+    this.recentProductsSub = this.dietService
+      .getRecentMealProducts(dietId, mealIndex, {
+        limit: this.recentProductsLimit,
+      })
+      .subscribe({
+        next: (customProducts) => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomProducts = customProducts || [];
+          this.products = this.getProductsFromCustomProducts(
+            this.recentCustomProducts,
+          );
+
+          if (this.ingredientMode) {
+            this.setSelectedIngredientsFirst();
+          } else if (this.meal) {
+            this.setCustomProductsFirst();
+          }
+
+          this.load = true;
+        },
+        error: () => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomProducts = [];
+          this.products = [];
+          this.load = true;
+        },
+      });
+  }
+
+  private loadRecentRecipesForMeal(): void {
+    if (this.hasStartedFoodSearch || this.currentMode !== "recipes") {
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (!dietId || mealIndex === -1) {
+      this.recentCustomRecipes = [];
+      this.recipes = [];
+      this.load = true;
+      return;
+    }
+
+    this.load = false;
+    this.recentRecipesSub?.unsubscribe();
+    this.recentRecipesSub = this.dietService
+      .getRecentMealRecipes(dietId, mealIndex, {
+        limit: this.recentRecipesLimit,
+      })
+      .subscribe({
+        next: (customRecipes) => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomRecipes = customRecipes || [];
+          this.recipes = this.getRecipesFromCustomRecipes(
+            this.recentCustomRecipes,
+          );
+
+          if (this.meal) {
+            this.setCustomRecipesFirst();
+          }
+
+          this.load = true;
+        },
+        error: () => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomRecipes = [];
+          this.recipes = [];
+          this.load = true;
+        },
+      });
+  }
+
+  private getRecipesFromCustomRecipes(customRecipes: any[]): Recipe[] {
+    const recipes: Recipe[] = [];
+    const recipeIds = new Set<string>();
+
+    for (const customRecipe of customRecipes || []) {
+      const recipe =
+        typeof customRecipe?.recipe === "object"
+          ? customRecipe.recipe
+          : null;
+      const recipeId = recipe?._id?.toString();
+
+      if (!recipe || !recipeId || recipeIds.has(recipeId)) {
+        continue;
+      }
+
+      recipeIds.add(recipeId);
+      recipes.push(recipe);
+    }
+
+    return recipes;
+  }
+
+  private getProductsFromCustomProducts(
+    customProducts: CustomProduct[],
+  ): IProduct[] {
+    const products: IProduct[] = [];
+    const productIds = new Set<string>();
+
+    for (const customProduct of customProducts || []) {
+      const product =
+        typeof customProduct?.product === "object"
+          ? customProduct.product
+          : null;
+      const productId = this.getProductId(product);
+
+      if (!product || !productId || productIds.has(productId)) {
+        continue;
+      }
+
+      productIds.add(productId);
+      products.push(product);
+    }
+
+    return products;
+  }
+
   private searchProducts(): void {
     if (this.shouldSkipProductsSearch()) {
       this.load = true;
@@ -1762,6 +2033,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   public isSearchTooShortForProducts(): boolean {
     return this.shouldSkipProductsSearch();
+  }
+
+  public shouldShowProductsEmptyState(): boolean {
+    return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
   }
 
   public createProductFromEmptyState(): void {
@@ -1907,8 +2182,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       // If already in meal, edit it
       this.editRecipeFromMeal(recipe, existingInstance);
     } else {
-      // If not in meal, add it
-      this.addRecipeToMeal(recipe);
+      // If not in meal, add it with recent data if available
+      const recentCustomRecipe = this.getRecentCustomRecipe(recipe);
+      this.addRecipeToMeal(recipe, recentCustomRecipe);
     }
   }
 
@@ -1922,7 +2198,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.quickAddRecipeToMeal(recipe);
+    const recentCustomRecipe = this.getRecentCustomRecipe(recipe);
+    this.quickAddRecipeToMeal(recipe, recentCustomRecipe);
   }
 
   public onRecipeRemove(recipe: Recipe): void {
@@ -1933,23 +2210,43 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
   }
 
-  private quickAddRecipeToMeal(recipe: Recipe): void {
+  private quickAddRecipeToMeal(recipe: Recipe, recentCustomRecipe?: any): void {
     if (!this.meal || !recipe?._id) {
       return;
     }
 
     this.setRecipeLoading(recipe, true);
 
-    const quantity = 100;
+    let quantity = 100;
+    let quantityCooked = null;
+    let addedCustomProducts: any[] = [];
+    let modifiedBaseCustomProducts: any[] = [];
+    let removedBaseCustomProductIds: any[] = [];
+
+    if (recentCustomRecipe) {
+      quantity = recentCustomRecipe.quantity ?? 100;
+      quantityCooked = recentCustomRecipe.quantityCooked ?? null;
+
+      addedCustomProducts = (recentCustomRecipe.addedCustomProducts || []).map(
+        (cp: any) => this.cloneRecentCustomProduct(cp),
+      );
+
+      modifiedBaseCustomProducts = (
+        recentCustomRecipe.modifiedBaseCustomProducts || []
+      ).map((cp: any) => this.cloneRecentCustomProduct(cp, true));
+
+      removedBaseCustomProductIds =
+        recentCustomRecipe.removedBaseCustomProductIds || [];
+    }
 
     const composePayload: any = {
       recipeId: recipe._id,
       customRecipe: {
         quantity,
-        quantityCooked: null,
-        modifiedBaseCustomProducts: [],
-        removedBaseCustomProductIds: [],
-        addedCustomProducts: [],
+        quantityCooked,
+        modifiedBaseCustomProducts,
+        removedBaseCustomProductIds,
+        addedCustomProducts,
       },
       context: this.buildRecipeComposeContext(),
     };
@@ -2065,7 +2362,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     });
   }
 
-  private addRecipeToMeal(recipe: Recipe): void {
+  private addRecipeToMeal(recipe: Recipe, recentCustomRecipe?: any): void {
     // Save current search state to restore when returning
     this.navigationService.setTempData("searchFoodsState", {
       searchFilterGroup: { ...this.searchFilterGroup },
@@ -2075,18 +2372,26 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
+
+    const navState: any = {
+      mode: "add",
+      recipe: recipe,
+      meal: this.meal,
+      dietDay: this.dietDay,
+      returnUrl: "/search-foods",
+      selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
+    };
+
+    // Pass recent custom recipe data so config-recipe pre-fills quantity and modifications
+    if (recentCustomRecipe) {
+      navState.customRecipe = recentCustomRecipe;
+    }
 
     // Navigate to add recipe flow
     this.navigationService.goToConfigRecipe({
-      state: {
-        mode: "add",
-        recipe: recipe,
-        meal: this.meal,
-        dietDay: this.dietDay,
-        returnUrl: "/search-foods",
-        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
-      },
+      state: navState,
     });
   }
 
@@ -2142,6 +2447,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
 
     this.navigationService.goToConfigRecipe({
@@ -2356,6 +2662,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
 
     this.navigationService.goToConfigRecipe({
