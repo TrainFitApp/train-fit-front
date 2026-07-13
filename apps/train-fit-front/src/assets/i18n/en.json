@@ -1446,7 +1446,24 @@
     "UNSAVED_HEADER": "Unsaved changes",
     "UNSAVED_MSG": "Are you sure you want to leave without saving?",
     "UNLOCK": "Unlock",
-    "LOCK": "Lock"
+    "LOCK": "Lock",
+    "DELETE_HEADER": "Delete Goal",
+    "DELETE_MSG": "Delete \"{{name}}\"?",
+    "USAR": "USE",
+    "USE_HEADER": "Use this goal",
+    "USE_MSG": "This nutritional goal will be used and the previous one will remain saved."
+  },
+  "NUTRITION_GOALS": {
+    "TITLE": "Nutritional Goals",
+    "NAME_PLACEHOLDER": "Goal name",
+    "KCAL": "Kcal",
+    "PROTEIN": "Protein",
+    "CARBS": "Carbs",
+    "FAT": "Fat",
+    "EMPTY": "No goals yet. Tap + to start.",
+    "IN_USE": "In use",
+    "DELETE_HEADER": "Delete Goal",
+    "DELETE_MSG": "Delete \"{{name}}\"?"
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Detailed Information",

@@ -4,7 +4,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
+import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionalData } from 'src/app/shared/models/nutritional-data';
@@ -27,8 +29,16 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   @Input() user: User;
 
   public nutritionalData: NutritionalData = new NutritionalData();
+  public activeGoal: NutritionalGoal | null = null;
+
+  public get kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
+  public get proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
+  public get carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
+  public get fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
+
   private navCtrl = inject(NavController);
   private dietDayService = inject(DietDayService);
+  private nutritionalGoalService = inject(NutritionalGoalService);
   private recipeService = inject(RecipeService);
   private userService = inject(UserService);
   private translate = inject(TranslateService);
@@ -83,11 +93,22 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.user = this.user ?? ({} as User);
 
-    // Compatibilidad: si viene por input (flujo previo) lo respeta;
-    // si se abre por ruta, toma user desde el servicio global.
     const localUser = this.userService.localUser();
     if (!this.user?._id && localUser) {
       this.user = localUser;
+    }
+
+    if (this.user?.goalInUse) {
+      const goal = this.nutritionalGoalService.getGoalById(this.user.goalInUse);
+      if (goal) {
+        this.activeGoal = goal;
+      } else {
+        this.nutritionalGoalService.refreshFromServer().subscribe((goals) => {
+          this.activeGoal = goals.find((g) => g._id === this.user.goalInUse) || null;
+          this.personalizeReferences();
+          this.updateCalorieText();
+        });
+      }
     }
 
     this.dietDaySub = this.dietDayService.getCurrentDietDay.subscribe((day) => {
@@ -104,7 +125,6 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
     this.buildNutrientArrays();
     this.updateCalorieText();
 
-    // Trigger animations after a short delay for smoothness
     setTimeout(() => {
       this.animateBars = true;
     }, 300);
@@ -132,9 +152,8 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   private personalizeReferences() {
-    if (!this.user || !this.user.kcalTotal) return;
-
-    const kcal = this.user.kcalTotal;
+    const kcal = this.kcalTotal;
+    if (!kcal) return;
     const isFemale = this.user.sex === 0; // SEX_TYPES.female = 0
 
     // 1. Fibra: 14g por cada 1000 kcal (Recomendación clínica estándar)
@@ -161,7 +180,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   private updateCalorieText() {
-    const diff = this.user.kcalTotal - this.nutritionalData.energyKcal;
+    const diff = this.kcalTotal - this.nutritionalData.energyKcal;
     const value = Math.abs(diff).toLocaleString(undefined, { maximumFractionDigits: 0 });
     if (diff >= 0) {
       this.kcalRemainingPrefix = this.translate.instant('NUTRITIONAL_OBJECTIVES.KCAL_REMAINING_PREFIX');

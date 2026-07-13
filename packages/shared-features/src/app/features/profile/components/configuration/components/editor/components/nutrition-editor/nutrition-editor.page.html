@@ -9,7 +9,11 @@
       <div class="tf-page-header__title-section">
         <h1 class="tf-page-header__title">{{ 'NUTRITION_EDITOR.TITLE' | translate }}</h1>
       </div>
-      <div class="tf-page-header__actions"></div>
+      <div class="tf-page-header__actions">
+        <button class="tf-page-header__action-button" (click)="deleteGoal()" *ngIf="goal">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
     </div>
   </div>
 </ion-header>
@@ -17,6 +21,11 @@
 
 <ion-content>
   <div class="main-content">
+    <button class="auto-calc-btn auto-calc-btn--primary" (click)="useGoal()" *ngIf="goal">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <span>{{ 'NUTRITION_EDITOR.USAR' | translate }}</span>
+    </button>
+
     <!-- Objetivo de Calorías -->
     <div class="card calories-card">
       <h2 class="card-title">
@@ -49,6 +58,10 @@
           ></i>
         </button>
       </div>
+      <button class="auto-calc-btn" style="margin-top: 12px" (click)="autoCalculate()">
+        <ion-icon name="calculator-outline"></ion-icon>
+        <span>{{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}</span>
+      </button>
     </div>
 
     <!-- Distribución de Macronutrientes -->
@@ -378,10 +391,6 @@
           [disabled]="!isValidConfiguration() || isSaving"
         >
           {{ 'NUTRITION_EDITOR.GUARDAR' | translate }}
-        </button>
-
-        <button class="recalculate-button" (click)="autoCalculate()">
-          {{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}
         </button>
       </div>
     </div>

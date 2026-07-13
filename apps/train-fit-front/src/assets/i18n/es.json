@@ -1452,7 +1452,24 @@
     "UNSAVED_HEADER": "Cambios sin guardar",
     "UNSAVED_MSG": "¿Estás seguro de que quieres salir sin guardar los cambios?",
     "UNLOCK": "Desbloquear",
-    "LOCK": "Bloquear"
+    "LOCK": "Bloquear",
+    "DELETE_HEADER": "Eliminar objetivo",
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
+    "USAR": "USAR",
+    "USE_HEADER": "Usar este objetivo",
+    "USE_MSG": "Este objetivo nutricional se utilizará y el anterior quedará guardado."
+  },
+  "NUTRITION_GOALS": {
+    "TITLE": "Objetivos Nutricionales",
+    "NAME_PLACEHOLDER": "Nombre del objetivo",
+    "KCAL": "Kcal",
+    "PROTEIN": "Proteína",
+    "CARBS": "Carboh.",
+    "FAT": "Grasa",
+    "EMPTY": "Aún no hay objetivos. Toca + para empezar.",
+    "IN_USE": "En uso",
+    "DELETE_HEADER": "Eliminar objetivo",
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?"
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Información detallada",

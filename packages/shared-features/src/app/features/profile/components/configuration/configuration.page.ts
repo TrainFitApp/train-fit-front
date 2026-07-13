@@ -16,6 +16,7 @@ import { Theme } from 'src/app/shared/models/theme';
 import { AdPreferencesPage } from './components/ad-preferences/ad-preferences.page';
 import { NutritionEditorPage } from './components/editor/components/nutrition-editor/nutrition-editor.page';
 import { EditorPage } from './components/editor/editor.page';
+import { GoalListPage } from './components/goal-list/goal-list.page';
 
 @Component({
   selector: 'app-configuration',
@@ -354,13 +355,16 @@ export class ConfigurationPage {
     this.navigationService.goBack();
   }
 
-  public editNutritionalGoals(): void {
+  public async editNutritionalGoals(): Promise<void> {
+    const user = this.userService.getLocalUser;
+    if (!user?._id) return;
+
     const modal: ModalOptions = {
-      component: NutritionEditorPage,
+      component: GoalListPage,
       cssClass: 'fullscreen-modal'
     }
 
-    this.ionicUtilService.showModal(modal);
+    await this.ionicUtilService.showModal(modal);
   }
 
   public editPersonalData(): void {
