@@ -669,10 +669,10 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.customProduct?.product?.servingQuantity ??
         0;
       const portions = this.normalizeNumericInput(formValues?.portions) ?? 0;
-      return portions * servingQuantity;
+      return Math.round(portions * servingQuantity);
     }
 
-    return this.normalizeNumericInput(formValues?.quantity) ?? 0;
+    return Math.round(this.normalizeNumericInput(formValues?.quantity) ?? 0);
   }
 
   private buildPersistSnapshot(): string {

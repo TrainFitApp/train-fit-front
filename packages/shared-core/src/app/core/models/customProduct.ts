@@ -5,6 +5,7 @@ export class CustomProduct {
   quantity!: number;
   order?: number;
   product?: IProduct;
+  lastUsedAt?: string;
 
   mealId?: string;
   customRecipeId?: string;

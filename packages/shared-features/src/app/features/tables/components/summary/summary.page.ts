@@ -315,11 +315,9 @@ export class SummaryPage {
   public countDoneSplits(): number {
     return (
       this.tableInUse.splits.reduce((totalDoneSplits, split) => {
-        // Verificar si todos los workouts en el split tienen todos los sets hechos
-        const allWorkoutsDone = split.workouts.every((workout) => workout.date);
-
-        // Si todos los sets de todos los ejercicios en todos los workouts están hechos, sumar el split
-        return allWorkoutsDone ? totalDoneSplits + 1 : totalDoneSplits;
+        return this.utilService.isSplitDoned(split)
+          ? totalDoneSplits + 1
+          : totalDoneSplits;
       }, 0) - 1
     );
   }
@@ -353,6 +351,34 @@ export class SummaryPage {
 
   public openSearchTables(): void {
     this.navigationService.goToSearchTables();
+  }
+
+  public unlinkTable(): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
+      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: "cancel",
+        },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          cssClass: "alert-button-primary",
+          handler: () => {
+            this.tableInUse = undefined;
+            this.user.tableInUse = undefined;
+            this.user.workoutInUse = undefined;
+            this.workout = undefined;
+            this.workoutService.setCurrentWorkout = undefined;
+            this.tableService.setCurrentTable = undefined;
+            this.userService.updateUser(this.user).subscribe();
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   public async goToStatistics(): Promise<void> {

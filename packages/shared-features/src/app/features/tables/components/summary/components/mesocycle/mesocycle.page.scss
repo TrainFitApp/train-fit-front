@@ -933,6 +933,10 @@ ion-accordion-group {
         color: rgba(255, 255, 255, 0.7);
         transition: all 0.2s ease;
 
+        &[disabled] {
+          opacity: 0.45;
+        }
+
         &:active {
           transform: scale(0.95);
           background: rgba(255, 255, 255, 0.1);
@@ -941,9 +945,26 @@ ion-accordion-group {
         ion-icon {
           font-size: 20px;
         }
+
+        ion-spinner {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .action-button--confirm {
+        background: rgba(var(--ion-color-success-rgb), 0.1);
       }
     }
   }
+}
+
+.workout-reorder-group {
+  display: block;
+}
+
+.workout-reorder-row {
+  display: block;
 }
 
 // Responsividad móvil

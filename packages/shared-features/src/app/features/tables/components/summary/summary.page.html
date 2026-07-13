@@ -84,6 +84,16 @@
               </div>
               <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
             </div>
+            <div
+              class="info-card info-card--danger info-card--full"
+              (click)="unlinkTable(); $event.stopPropagation()"
+            >
+              <ion-icon name="close" class="info-icon"></ion-icon>
+              <div class="info-text">
+                <span class="info-title">{{ 'COMMON.EXIT' | translate }}</span>
+              </div>
+              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
+            </div>
           </div>
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">

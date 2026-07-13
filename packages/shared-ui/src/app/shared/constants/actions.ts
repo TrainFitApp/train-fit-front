@@ -11,6 +11,9 @@ export enum ACTION_TYPES {
   duplicate = 9,
   rmCalculator = 10,
   moveSets = 11,
+  viewSummary = 12,
+  skipWorkout = 13,
+  unskipWorkout = 14,
 }
 
 export type ACTION_TYPE = {
@@ -93,6 +96,24 @@ export const ACTIONS: {
     id: ACTION_TYPES.moveSets,
     value: 'ACTIONS.MOVE_SETS',
     icon: 'swap-vertical',
+    color: 'medium',
+  },
+  [ACTION_TYPES.viewSummary]: {
+    id: ACTION_TYPES.viewSummary,
+    value: 'ACTIONS.VIEW_SUMMARY',
+    icon: 'stats-chart-outline',
+    color: 'primary',
+  },
+  [ACTION_TYPES.skipWorkout]: {
+    id: ACTION_TYPES.skipWorkout,
+    value: 'ACTIONS.SKIP_WORKOUT',
+    icon: 'play-skip-forward-outline',
+    color: 'alternative',
+  },
+  [ACTION_TYPES.unskipWorkout]: {
+    id: ACTION_TYPES.unskipWorkout,
+    value: 'ACTIONS.UNSKIP_WORKOUT',
+    icon: 'arrow-undo-outline',
     color: 'medium',
   },
 };

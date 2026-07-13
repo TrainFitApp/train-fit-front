@@ -124,8 +124,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public openWorkoutIndex: number;
   public microcyclesPerRoutineLimit: number | null = null;
   public workoutTemplateLoadingId: string | null = null;
+  public savingWorkoutOrder = false;
 
   public TABLE_MODE_TYPES = TABLE_MODE_TYPES;
+  public STATES = STATES;
   public readonly workoutTemplates = WORKOUT_TEMPLATES;
 
   // Control de animaciones de navegación
@@ -133,6 +135,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public animatingRight: boolean = false;
   private readonly preserveFinishedWorkoutSplitKey =
     "preserveFinishedWorkoutSplit";
+  private workoutOrderSnapshot: Workout[][] | null = null;
 
   // Getter para obtener splits ordenados por índice descendente
   private _reversedSplitsWithIndex: Array<{
@@ -349,6 +352,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public ionViewWillLeave(): void {
     this.validateAndSyncTableNotes();
+    this.cancelWorkoutMoveMode();
     this.cancelCopyMode();
   }
 
@@ -813,6 +817,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public workoutIndexPaste: number;
 
   public paste(event): void {
+    if (this.stateSelected === STATES.move) return;
+
     this.pasteMode = event?.paste ?? undefined;
     this.workoutIdPaste = event?.workoutId ?? undefined;
     this.workoutIndexPaste = event?.workoutIndex ?? undefined;
@@ -944,6 +950,98 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     if (this.currentSplit?.workouts[event.workoutIndex]) {
       this.currentSplit.workouts[event.workoutIndex].name = event.newName;
     }
+  }
+
+  public onWorkoutDuplicated(event: { workoutIndex: number }): void {
+    this.openWorkoutIndex = event.workoutIndex;
+    this.updateCurrentSplit();
+    this.scrollToOpenWorkout();
+  }
+
+  public enterWorkoutMoveMode(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
+    if (!this.currentSplit?.workouts?.length || this.savingWorkoutOrder) return;
+
+    this.cancelCopyMode();
+    this.workoutOrderSnapshot = this.tableInUse.splits.map((split) => [
+      ...(split.workouts || []),
+    ]);
+    this.stateSelected = STATES.move;
+    this.openWorkoutIndex = undefined;
+  }
+
+  public cancelWorkoutMoveMode(): void {
+    if (this.stateSelected !== STATES.move) return;
+
+    if (this.workoutOrderSnapshot) {
+      this.tableInUse.splits.forEach((split, splitIndex) => {
+        split.workouts = [...(this.workoutOrderSnapshot?.[splitIndex] || [])];
+      });
+      this.updateCurrentSplit();
+    }
+
+    this.workoutOrderSnapshot = null;
+    this.stateSelected = STATES.static;
+    this.savingWorkoutOrder = false;
+  }
+
+  public handleWorkoutReorder(event: CustomEvent): void {
+    if (this.stateSelected !== STATES.move) {
+      event.detail.complete();
+      return;
+    }
+
+    const fromIndex = event.detail.from;
+    const toIndex = event.detail.to;
+
+    this.tableInUse.splits.forEach((splitTemp) => {
+      const [movedWorkout] = splitTemp.workouts.splice(fromIndex, 1);
+      splitTemp.workouts.splice(toIndex, 0, movedWorkout);
+    });
+
+    event.detail.complete();
+    this.updateCurrentSplit();
+  }
+
+  public confirmWorkoutOrder(): void {
+    if (this.stateSelected !== STATES.move || this.savingWorkoutOrder) return;
+
+    const workoutIdsOrder =
+      this.tableInUse.splits[this.currentSplitIndex]?.workouts?.map(
+        (workout) => workout._id,
+      ) || [];
+
+    if (!workoutIdsOrder.length) return;
+
+    this.savingWorkoutOrder = true;
+    this.workoutService
+      .reorderWorkoutRows(this.tableInUse._id, workoutIdsOrder)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.updateCurrentSplit();
+          this.workoutOrderSnapshot = null;
+          this.stateSelected = STATES.static;
+          this.savingWorkoutOrder = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('TABLES.WORKOUT_ORDER_UPDATED'),
+            duration: 1000,
+            color: "success",
+          } as ToastOptions);
+        },
+        error: (error) => {
+          this.savingWorkoutOrder = false;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('TABLES.WORKOUT_ORDER_UPDATE_ERROR'),
+          );
+        },
+      });
   }
 
   /**

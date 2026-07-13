@@ -385,7 +385,7 @@ ion-grid {
     }
 
     // Reorder button (primary style)
-    &:has(ion-icon[name="reorder-two-outline"]) {
+    &:has(ion-icon[name="chevron-expand-outline"]) {
       --color: var(--ion-color-primary);
       --background: rgba(var(--ion-color-primary-rgb), 0.15);
       --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);

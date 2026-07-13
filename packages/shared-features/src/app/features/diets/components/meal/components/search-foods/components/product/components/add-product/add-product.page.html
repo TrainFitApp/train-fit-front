@@ -95,13 +95,13 @@
               <ion-input
                 *ngIf="selectedUnit === 'g'"
                 type="text"
-                inputmode="decimal"
+                inputmode="numeric"
                 formControlName="quantity"
                 class="main-amount-input"
                 placeholder="0"
                 appCursorEnd
                 appDecimalInput
-                [maxDecimals]="2"
+                [maxDecimals]="0"
               >
               </ion-input>
               <ion-input
