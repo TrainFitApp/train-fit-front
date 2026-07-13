@@ -576,7 +576,9 @@ export class MealComponent implements OnInit, OnChanges {
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveExercises].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.edit].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id
       );
     }
 

@@ -12,6 +12,8 @@ export enum ACTION_TYPES {
   rmCalculator = 10,
   moveSets = 11,
   viewSummary = 12,
+  skipWorkout = 13,
+  unskipWorkout = 14,
 }
 
 export type ACTION_TYPE = {
@@ -101,6 +103,18 @@ export const ACTIONS: {
     value: 'ACTIONS.VIEW_SUMMARY',
     icon: 'stats-chart-outline',
     color: 'primary',
+  },
+  [ACTION_TYPES.skipWorkout]: {
+    id: ACTION_TYPES.skipWorkout,
+    value: 'ACTIONS.SKIP_WORKOUT',
+    icon: 'play-skip-forward-outline',
+    color: 'alternative',
+  },
+  [ACTION_TYPES.unskipWorkout]: {
+    id: ACTION_TYPES.unskipWorkout,
+    value: 'ACTIONS.UNSKIP_WORKOUT',
+    icon: 'arrow-undo-outline',
+    color: 'medium',
   },
 };
 

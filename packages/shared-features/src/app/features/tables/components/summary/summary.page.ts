@@ -315,11 +315,9 @@ export class SummaryPage {
   public countDoneSplits(): number {
     return (
       this.tableInUse.splits.reduce((totalDoneSplits, split) => {
-        // Verificar si todos los workouts en el split tienen todos los sets hechos
-        const allWorkoutsDone = split.workouts.every((workout) => workout.date);
-
-        // Si todos los sets de todos los ejercicios en todos los workouts están hechos, sumar el split
-        return allWorkoutsDone ? totalDoneSplits + 1 : totalDoneSplits;
+        return this.utilService.isSplitDoned(split)
+          ? totalDoneSplits + 1
+          : totalDoneSplits;
       }, 0) - 1
     );
   }
