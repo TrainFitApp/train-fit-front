@@ -1,0 +1,78 @@
+<ion-header class="delete-header" mode="ios">
+  <div class="delete-toolbar">
+    <div class="toolbar-title-group">
+      <ion-title>Eliminar microciclos</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="delete-content">
+  <div class="selection-summary">
+    <strong>Selecciona los microciclos</strong>
+    <span class="selection-chip" [class.has-selection]="selectedCount > 0">
+      {{ selectedCount }}
+      {{ selectedCount === 1 ? 'seleccionado' : 'seleccionados' }}
+    </span>
+  </div>
+
+  <div class="split-list">
+    <div
+      *ngFor="let split of splits; let index = index; trackBy: trackBySplit"
+      class="split-row"
+      [class.selected]="isSelected(split._id)"
+      tabindex="0"
+      (click)="toggleSplit(split._id)"
+      (keyup.enter)="toggleSplit(split._id)"
+      (keyup.space)="toggleSplit(split._id)"
+    >
+      <ion-checkbox
+        mode="ios"
+        class="split-checkbox"
+        [checked]="isSelected(split._id)"
+        [attr.aria-label]="'Seleccionar microciclo ' + (index + 1)"
+        (click)="$event.stopPropagation()"
+        (ionChange)="setSplitSelected(split._id, $event.detail.checked)"
+      ></ion-checkbox>
+
+      <div class="split-info">
+        <h2>Micro-ciclo {{ index + 1 }}</h2>
+        <span
+          class="status-pill"
+          [class.status-active]="containsActiveWorkout(split)"
+          [class.status-completed]="!containsActiveWorkout(split) && isSplitCompleted(split)"
+          [class.status-pending]="!containsActiveWorkout(split) && !isSplitCompleted(split)"
+        >
+          <ion-icon
+            [name]="containsActiveWorkout(split) ? 'flash' : (isSplitCompleted(split) ? 'checkmark-circle' : 'ellipse-outline')"
+          ></ion-icon>
+          {{
+            containsActiveWorkout(split)
+              ? 'Entrenamiento activo'
+              : (isSplitCompleted(split) ? 'Completado' : 'Pendiente')
+          }}
+        </span>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="delete-footer">
+  <ion-button
+    expand="block"
+    mode="ios"
+    color="danger"
+    class="delete-confirm-btn"
+    [disabled]="selectedCount === 0"
+    (click)="confirmSelection()"
+  >
+    <ion-icon name="trash-outline" slot="start"></ion-icon>
+    Eliminar ({{ selectedCount }})
+  </ion-button>
+</ion-footer>
