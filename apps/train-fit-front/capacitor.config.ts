@@ -25,6 +25,10 @@ const config: CapacitorConfig = {
     EdgeToEdge: {
       backgroundColor: '#000000',
     },
+    LocalNotifications: {
+      smallIcon: 'ic_notification',
+      iconColor: '#FE9000',
+    },
   },
 };
 

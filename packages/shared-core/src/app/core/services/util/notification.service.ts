@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
-import { LocalNotifications, LocalNotificationSchema, Schedule } from '@capacitor/local-notifications';
+import { LocalNotifications, LocalNotificationSchema, Schedule, Channel } from '@capacitor/local-notifications';
+import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 
 export type NotificationFrequency = 'daily' | 'weekly' | 'interval';
 
@@ -16,34 +17,81 @@ export interface NotificationSettings {
 @Injectable()
 export class NotificationService {
   private readonly STORAGE_KEY = 'trainfit_notification_settings';
+  private readonly CHANNEL_ID = 'trainfit-weight-reminder';
+  private cachedSettings: NotificationSettings | null = null;
 
   constructor() {}
 
   public async initialize(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
-    const settings = this.getSettings();
+    await this.createChannel();
+    const settings = await this.getSettings();
     if (settings.enabled) {
       await this.cancelAll();
       await this.scheduleReminder(settings);
     }
   }
 
+  private async createChannel(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const channel: Channel = {
+        id: this.CHANNEL_ID,
+        name: 'Recordatorio de peso',
+        description: 'Notificaciones para recordar registrar tu peso',
+        importance: 4,
+        vibration: true,
+        lights: true,
+      };
+      await LocalNotifications.createChannel(channel);
+    } catch (e) {
+      console.warn('[NotificationService] Error creating channel', e);
+    }
+  }
+
+  public async requestExactAlarmIfNeeded(): Promise<void> {
+    if (Capacitor.getPlatform() !== 'android') return;
+    try {
+      const status = await LocalNotifications.checkExactNotificationSetting();
+      if (status.exact_alarm !== 'granted') {
+        await LocalNotifications.changeExactNotificationSetting();
+      }
+    } catch (e) {
+      console.warn('[NotificationService] Error requesting exact alarm', e);
+    }
+  }
+
   public async requestPermissions(): Promise<boolean> {
     if (!Capacitor.isNativePlatform()) return false;
     const perm = await LocalNotifications.requestPermissions();
-    return perm.display === 'granted';
+    const granted = perm.display === 'granted';
+    if (granted && Capacitor.getPlatform() === 'android') {
+      await this.requestExactAlarmIfNeeded();
+    }
+    return granted;
   }
 
-  public getSettings(): NotificationSettings {
-    const raw = localStorage.getItem(this.STORAGE_KEY);
-    if (!raw) {
+  public async getSettings(): Promise<NotificationSettings> {
+    if (this.cachedSettings) return this.cachedSettings;
+    try {
+      const { value } = await SecureStoragePlugin.get({ key: this.STORAGE_KEY });
+      if (!value) {
+        return { enabled: false, hour: 9, minute: 0, frequency: 'daily' };
+      }
+      this.cachedSettings = JSON.parse(value);
+      return this.cachedSettings;
+    } catch {
       return { enabled: false, hour: 9, minute: 0, frequency: 'daily' };
     }
-    return JSON.parse(raw);
   }
 
   public async saveAndSchedule(settings: NotificationSettings): Promise<void> {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+    this.cachedSettings = settings;
+    try {
+      await SecureStoragePlugin.set({ key: this.STORAGE_KEY, value: JSON.stringify(settings) });
+    } catch (e) {
+      console.warn('[NotificationService] Error saving settings', e);
+    }
     if (settings.enabled) {
       await this.cancelAll();
       await this.scheduleReminder(settings);
@@ -71,8 +119,8 @@ export class NotificationService {
 
     if (frequency === 'daily') {
       const schedule: Schedule = {
-        every: 'day',
         on: { hour, minute },
+        allowWhileIdle: true,
       };
       await LocalNotifications.schedule({
         notifications: [
@@ -81,13 +129,14 @@ export class NotificationService {
             title,
             body,
             schedule,
+            channelId: this.CHANNEL_ID,
           },
         ],
       });
     } else if (frequency === 'weekly' && weekday) {
       const schedule: Schedule = {
-        every: 'week',
         on: { weekday, hour, minute },
+        allowWhileIdle: true,
       };
       await LocalNotifications.schedule({
         notifications: [
@@ -96,6 +145,7 @@ export class NotificationService {
             title,
             body,
             schedule,
+            channelId: this.CHANNEL_ID,
           },
         ],
       });
@@ -130,7 +180,8 @@ export class NotificationService {
         id: id++,
         title,
         body,
-        schedule: { at: fireDate },
+        schedule: { at: fireDate, allowWhileIdle: true },
+        channelId: this.CHANNEL_ID,
       });
     }
 

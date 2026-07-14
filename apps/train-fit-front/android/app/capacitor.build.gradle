@@ -14,6 +14,7 @@ dependencies {
     implementation project(':capacitor-barcode-scanner')
     implementation project(':capacitor-browser')
     implementation project(':capacitor-keyboard')
+    implementation project(':capacitor-local-notifications')
     implementation project(':capacitor-network')
     implementation project(':capawesome-capacitor-android-edge-to-edge-support')
     implementation project(':capgo-capacitor-navigation-bar')
