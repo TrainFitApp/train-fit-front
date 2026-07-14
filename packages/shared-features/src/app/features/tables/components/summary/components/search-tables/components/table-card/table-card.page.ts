@@ -68,6 +68,15 @@ export class TableCardPage {
     return this.tableCard?.splits?.[0]?.workouts?.length || 0;
   }
 
+  public get hasBackgroundImage(): boolean {
+    return this.getUsableBackgroundImageUrl() !== '';
+  }
+
+  public get backgroundImage(): string {
+    const imageUrl = this.getUsableBackgroundImageUrl();
+    return imageUrl ? `url(${imageUrl})` : 'none';
+  }
+
   constructor(
     private userService: UserService,
     private tableService: TableService,
@@ -79,6 +88,16 @@ export class TableCardPage {
     private adMobService: AdMobService,
     private billingService: BillingService
   ) { }
+
+  private getUsableBackgroundImageUrl(): string {
+    const imageUrl = this.tableCard?.urlImage?.trim() || '';
+    const normalizedImageUrl = imageUrl.replace(/^\/+/, '');
+
+    if (!normalizedImageUrl) return '';
+    if (normalizedImageUrl.startsWith('assets/img/tablas/')) return '';
+
+    return imageUrl;
+  }
 
   public setSelectedTableCard(): void {
     if (!this.own) {
@@ -349,7 +368,10 @@ export class TableCardPage {
   private handleRoutineLimitOrGenericError(error: any): void {
     this.loadAction = true;
 
-    if (error?.error?.code === 'PREMIUM_LIMIT_ROUTINES') {
+    if (
+      error?.code === 'PREMIUM_LIMIT_ROUTINES' ||
+      error?.error?.code === 'PREMIUM_LIMIT_ROUTINES'
+    ) {
       void this.ionicUtilService.showPremiumLimitAlert({
         message: this.translate.instant('TABLES.ROUTINE_LIMIT_REACHED'),
         onUpgrade: () => this.navigationService.goToPremium(),

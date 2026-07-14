@@ -322,7 +322,10 @@ export class SummaryPage {
   }
 
   private handleRoutineLimitError(error: any): boolean {
-    if (error?.error?.code !== "PREMIUM_LIMIT_ROUTINES") {
+    if (
+      error?.code !== "PREMIUM_LIMIT_ROUTINES" &&
+      error?.error?.code !== "PREMIUM_LIMIT_ROUTINES"
+    ) {
       return false;
     }
 
