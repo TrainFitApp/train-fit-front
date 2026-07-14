@@ -1299,6 +1299,7 @@ export class NutritionEditorPage implements OnInit {
     const alertOptions = {
       header: this.translate.instant('NUTRITION_EDITOR.DELETE_HEADER'),
       message: this.translate.instant('NUTRITION_EDITOR.DELETE_MSG', { name: this.goal.name }),
+      cssClass: "custom-alert",
       buttons: [
         {
           text: this.translate.instant('COMMON.CANCEL'),

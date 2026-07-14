@@ -128,6 +128,7 @@ export class GoalListPage implements OnInit, OnDestroy {
     const alert = await this.alertController.create({
       header: this.translate.instant('NUTRITION_GOALS.DELETE_HEADER'),
       message: this.translate.instant('NUTRITION_GOALS.DELETE_MSG', { name: goal.name }),
+      cssClass: 'custom-alert',
       buttons: [
         {
           text: this.translate.instant('COMMON.CANCEL'),
