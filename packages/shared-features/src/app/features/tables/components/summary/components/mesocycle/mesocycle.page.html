@@ -54,12 +54,15 @@
     </div>
   </div>
 </ion-header>
-<ion-content>
+<ion-content
+  [scrollY]="!isCurrentSplitLocked()"
+  [class.mesocycle-content--locked]="isCurrentSplitLocked()"
+>
   <!-- Split Content -->
   <div
     class="split-content-container"
     [class.split-content-container--locked]="isCurrentSplitLocked()"
-    [style.height]="tableInUseAux?.splits.length > 0 ? 'initial': '100%'"
+    [style.height]="isCurrentSplitLocked() || tableInUseAux?.splits.length === 0 ? '100%' : 'initial'"
   >
     <ng-container
       *ngIf="tableInUseAux?.splits.length > 0 && currentSplit; else emptySplits;"

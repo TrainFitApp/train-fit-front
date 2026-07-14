@@ -3,6 +3,10 @@ ion-footer {
   --border-color: transparent;
 }
 
+ion-content.mesocycle-content--locked {
+  --overflow: hidden;
+}
+
 .navigation-header {
   display: flex;
   align-items: center;
@@ -35,7 +39,10 @@ ion-accordion-group.current-workout-group {
 }
 
 .split-content-container--locked {
-  min-height: calc(100vh - 190px);
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .microcycle-lock-overlay {
@@ -50,10 +57,14 @@ ion-accordion-group.current-workout-group {
   background: rgba(10, 10, 10, 0.68);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .microcycle-lock-panel {
   width: min(100%, 360px);
+  max-height: 100%;
+  overflow: auto;
   padding: 24px 20px 20px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
@@ -61,6 +72,7 @@ ion-accordion-group.current-workout-group {
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
   text-align: center;
   color: #ffffff;
+  touch-action: auto;
 
   h2 {
     margin: 14px 0 8px;
