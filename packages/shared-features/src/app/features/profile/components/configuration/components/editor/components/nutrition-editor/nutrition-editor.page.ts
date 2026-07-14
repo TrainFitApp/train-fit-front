@@ -839,6 +839,16 @@ export class NutritionEditorPage implements OnInit {
 
   // ---------- Guardar ----------
   public async save(): Promise<void> {
+    if (this.state.grams.p === 0 || this.state.grams.c === 0 || this.state.grams.f === 0) {
+      const toast: ToastOptions = {
+        message: this.translate.instant('NUTRITION_EDITOR.MISSING_VALUES'),
+        duration: 3000,
+        color: "warning",
+      };
+      await this.ionicUtilService.showToast(toast);
+      return;
+    }
+
     if (!this.isValidConfiguration()) {
       console.warn("Configuración inválida, no se puede guardar");
 
@@ -1240,6 +1250,48 @@ export class NutritionEditorPage implements OnInit {
     } else {
       this.modalController.dismiss();
     }
+  }
+
+  async renameGoal() {
+    if (!this.goal) return;
+    const alertOptions = {
+      header: this.translate.instant('NUTRITION_EDITOR.RENAME_HEADER'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text' as const,
+          value: this.goal.name,
+          placeholder: this.translate.instant('NUTRITION_GOALS.NAME_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newName = data?.name?.trim();
+            if (!newName) return false;
+            this.nutritionalGoalService.update(this.goal._id, { name: newName }).subscribe({
+              next: (updated) => {
+                this.goal = updated;
+              },
+              error: () => {
+                const toast: ToastOptions = {
+                  message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                  duration: 3000,
+                };
+                this.ionicUtilService.showToast(toast);
+              },
+            });
+            return true;
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 
   async deleteGoal() {
