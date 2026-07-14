@@ -1242,6 +1242,48 @@ export class NutritionEditorPage implements OnInit {
     }
   }
 
+  async renameGoal() {
+    if (!this.goal) return;
+    const alertOptions = {
+      header: this.translate.instant('NUTRITION_EDITOR.RENAME_HEADER'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text' as const,
+          value: this.goal.name,
+          placeholder: this.translate.instant('NUTRITION_GOALS.NAME_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newName = data?.name?.trim();
+            if (!newName) return false;
+            this.nutritionalGoalService.update(this.goal._id, { name: newName }).subscribe({
+              next: (updated) => {
+                this.goal = updated;
+              },
+              error: () => {
+                const toast: ToastOptions = {
+                  message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                  duration: 3000,
+                };
+                this.ionicUtilService.showToast(toast);
+              },
+            });
+            return true;
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
   async deleteGoal() {
     if (!this.goal) return;
     const alertOptions = {

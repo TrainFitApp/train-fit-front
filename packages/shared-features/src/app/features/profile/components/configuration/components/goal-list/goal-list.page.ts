@@ -158,4 +158,16 @@ export class GoalListPage implements OnInit, OnDestroy {
     });
     await alert.present();
   }
+
+  public getMacroPct(goal: NutritionalGoal, macro: 'p' | 'c' | 'f'): number {
+    const kcalPerG = { p: 4, c: 4, f: 9 };
+    const grams = {
+      p: goal.proteinsGTotal || 0,
+      c: goal.carbohydratesGTotal || 0,
+      f: goal.fatGTotal || 0,
+    };
+    const total = grams.p * kcalPerG.p + grams.c * kcalPerG.c + grams.f * kcalPerG.f;
+    if (total <= 0) return 0;
+    return Math.round((grams[macro] * kcalPerG[macro] / total) * 100);
+  }
 }

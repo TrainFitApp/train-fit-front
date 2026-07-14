@@ -957,5 +957,18 @@
     "EXPECTED_TIME_LABEL": "TIEMPO ESPERADO",
     "SET_OBJECTIVE_CARD_TITLE": "Serie objetivo esperada",
     "SET_OBJECTIVE_CARD_DESC": "Define aquí la marca que esperas alcanzar en la serie. Durante el entrenamiento podrás registrar lo realizado y establecerla como completada."
+  },
+  "NUTRITION_GOALS": {
+    "TITLE": "Objetivos Nutricionales",
+    "NAME_PLACEHOLDER": "Nombre del objetivo",
+    "KCAL": "Kcal",
+    "PROTEIN": "P",
+    "CARBS": "Carboh.",
+    "CBHS": "CBH",
+    "FAT": "G",
+    "EMPTY": "Aún no hay objetivos. Toca + para empezar.",
+    "IN_USE": "En uso",
+    "DELETE_HEADER": "Eliminar objetivo",
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?"
   }
 }

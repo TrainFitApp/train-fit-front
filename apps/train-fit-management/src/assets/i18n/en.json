@@ -1250,5 +1250,18 @@
     "NOTE_TITLE": "Important Note",
     "NOTE_TEXT": "The services provided are not considered professional medical services.",
     "DESCRIPTION": "TrainFit's nutritional recommendations are based on official sources."
+  },
+  "NUTRITION_GOALS": {
+    "TITLE": "Nutritional Goals",
+    "NAME_PLACEHOLDER": "Goal name",
+    "KCAL": "Kcal",
+    "PROTEIN": "P",
+    "CARBS": "Carbs",
+    "CBHS": "CBH",
+    "FAT": "G",
+    "EMPTY": "No goals yet. Tap + to start.",
+    "IN_USE": "In use",
+    "DELETE_HEADER": "Delete Goal",
+    "DELETE_MSG": "Delete \"{{name}}\"?"
   }
 }

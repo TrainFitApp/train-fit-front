@@ -54,26 +54,36 @@
               {{ 'NUTRITION_GOALS.IN_USE' | translate }}
             </span>
             <button class="delete-goal-btn" (click)="deleteGoal(goal, $event)">
-              <ion-icon name="trash-outline" color="danger"></ion-icon>
+              <ion-icon name="close-outline" color="danger"></ion-icon>
             </button>
           </div>
         </div>
         <div class="goal-card__macros">
-          <div class="macro-item">
-            <span class="macro-label">{{ 'NUTRITION_GOALS.KCAL' | translate }}</span>
-            <span class="macro-value">{{ goal.kcalTotal }}</span>
+          <div class="macro-bar">
+            <div class="macro-bar__segment macro-bar__segment--protein" [style.width.%]="getMacroPct(goal, 'p')"></div>
+            <div class="macro-bar__segment macro-bar__segment--carbs" [style.width.%]="getMacroPct(goal, 'c')"></div>
+            <div class="macro-bar__segment macro-bar__segment--fat" [style.width.%]="getMacroPct(goal, 'f')"></div>
           </div>
-          <div class="macro-item">
-            <span class="macro-label protein">{{ 'NUTRITION_GOALS.PROTEIN' | translate }}</span>
-            <span class="macro-value">{{ goal.proteinsGTotal }}g</span>
+          <div class="macro-details">
+            <div class="macro-detail">
+              <span class="macro-dot macro-dot--protein"></span>
+              <span class="macro-detail__name">{{ 'NUTRITION_GOALS.PROTEIN' | translate }}</span>
+              <span class="macro-detail__value">{{ goal.proteinsGTotal }}g</span>
+            </div>
+            <div class="macro-detail">
+              <span class="macro-dot macro-dot--carbs"></span>
+              <span class="macro-detail__name">{{ 'NUTRITION_GOALS.CBHS' | translate }}</span>
+              <span class="macro-detail__value">{{ goal.carbohydratesGTotal }}g</span>
+            </div>
+            <div class="macro-detail">
+              <span class="macro-dot macro-dot--fat"></span>
+              <span class="macro-detail__name">{{ 'NUTRITION_GOALS.FAT' | translate }}</span>
+              <span class="macro-detail__value">{{ goal.fatGTotal }}g</span>
+            </div>
           </div>
-          <div class="macro-item">
-            <span class="macro-label carbs">{{ 'NUTRITION_GOALS.CARBS' | translate }}</span>
-            <span class="macro-value">{{ goal.carbohydratesGTotal }}g</span>
-          </div>
-          <div class="macro-item">
-            <span class="macro-label fat">{{ 'NUTRITION_GOALS.FAT' | translate }}</span>
-            <span class="macro-value">{{ goal.fatGTotal }}g</span>
+          <div class="macro-kcal">
+            <span class="macro-kcal__value">{{ goal.kcalTotal }}</span>
+            <span class="macro-kcal__unit">kcal</span>
           </div>
         </div>
       </div>
