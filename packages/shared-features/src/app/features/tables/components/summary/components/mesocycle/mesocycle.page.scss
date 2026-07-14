@@ -3,10 +3,6 @@ ion-footer {
   --border-color: transparent;
 }
 
-ion-content.mesocycle-content--locked {
-  --overflow: hidden;
-}
-
 .navigation-header {
   display: flex;
   align-items: center;
@@ -39,10 +35,7 @@ ion-accordion-group.current-workout-group {
 }
 
 .split-content-container--locked {
-  height: 100%;
   min-height: 100%;
-  max-height: 100%;
-  overflow: hidden;
 }
 
 .microcycle-lock-overlay {
@@ -54,6 +47,7 @@ ion-accordion-group.current-workout-group {
   align-items: center;
   justify-content: center;
   padding: 24px 18px;
+  pointer-events: auto;
   background: rgba(10, 10, 10, 0.68);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
