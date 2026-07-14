@@ -153,13 +153,6 @@
 
 <!-- Premium Current Sets Section -->
 <div class="premium-current-sets">
-  <!-- Current Sets Headers -->
-  <div class="current-sets-headers">
-    <div class="current-session-title">
-      <span class="current-title-text">Sesión actual</span>
-    </div>
-  </div>
-
   <!-- Pinned Exercise Note (visible in all splits at this position) -->
   <div class="pinned-note-container" *ngIf="pinnedNote">
     <div class="pinned-note-wrapper" (click)="editPinnedNote(); $event.stopPropagation()">
@@ -181,6 +174,13 @@
         </div>
         <p class="text">{{ pinnedNote.notes }}</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Current Sets Headers -->
+  <div class="current-sets-headers">
+    <div class="current-session-title">
+      <span class="current-title-text">Sesión actual</span>
     </div>
   </div>
 

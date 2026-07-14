@@ -2036,7 +2036,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public shouldShowProductsEmptyState(): boolean {
-    return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
+    return (this.hasStartedFoodSearch && !this.isSearchTooShortForProducts()) || (this.load && !this.hasStartedFoodSearch);
   }
 
   public createProductFromEmptyState(): void {

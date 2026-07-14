@@ -22,6 +22,9 @@ import { BillingService } from "src/app/core/services/billing/billing.service";
 import { AiImportService } from "src/app/core/services/ai-import/ai-import.service";
 import { AiTablePreview } from "src/app/core/models/ai-import";
 import { ExcelImportComponent } from "./components/excel-import/excel-import.component";
+import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
+import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: "app-summary",
@@ -47,6 +50,9 @@ export class SummaryPage {
   public aiLoading = false;
   public aiLoadingMessage = '';
 
+  public pinnedNotes: PinnedExerciseNote[] = [];
+  private pinnedNoteCacheSub: Subscription | null = null;
+
   // Inyección de servicios
   private readonly userService = inject(UserService);
   private readonly tableService = inject(TableService);
@@ -56,6 +62,7 @@ export class SummaryPage {
   private readonly aiImportService = inject(AiImportService);
   private readonly modalController = inject(ModalController);
   private readonly translate = inject(TranslateService);
+  private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
 
   constructor(
     public platform: Platform,
@@ -80,9 +87,41 @@ export class SummaryPage {
     });
   }
 
-  public ionViewWillEnter(): void {}
+  public ionViewWillEnter(): void {
+    this.loadPinnedNotes();
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
+      this.loadPinnedNotes();
+    });
+  }
 
-  public ionViewWillLeave(): void {}
+  public ionViewWillLeave(): void {
+    this.pinnedNoteCacheSub?.unsubscribe();
+  }
+
+  private loadPinnedNotes(): void {
+    if (this.tableInUse?._id) {
+      this.pinnedExerciseNoteService.getByTable(this.tableInUse._id).subscribe((notes) => {
+        this.pinnedNotes = notes;
+      });
+    }
+  }
+
+  public getExercisePinnedNote(exerciseIndex: number): PinnedExerciseNote | undefined {
+    const workoutIndex = this.getWorkoutIndex();
+    if (workoutIndex < 0) return undefined;
+    return this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+  }
+
+  private getWorkoutIndex(): number {
+    if (!this.tableInUse || !this.workout) return -1;
+    for (const split of this.tableInUse.splits) {
+      const idx = split.workouts.findIndex((w: any) => w._id === this.workout._id);
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  }
 
   public onTabChange(event: { tab: string }): void {
     let tableMode: TABLE_MODE_TYPES;
@@ -497,6 +536,18 @@ export class SummaryPage {
     const alertOptions: AlertOptions = {
       header: exercise.exercise.name,
       message: exercise.notes,
+      buttons: [this.translate.instant('COMMON.CONFIRM')],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public async showPinnedNoteAlert(exerciseIndex: number): Promise<void> {
+    const note = this.getExercisePinnedNote(exerciseIndex);
+    if (!note) return;
+    const exercise = this.workout?.exercises?.[exerciseIndex];
+    const alertOptions: AlertOptions = {
+      header: exercise?.exercise?.name,
+      message: note.notes,
       buttons: [this.translate.instant('COMMON.CONFIRM')],
     };
     await this.ionicUtilService.showAlert(alertOptions);
