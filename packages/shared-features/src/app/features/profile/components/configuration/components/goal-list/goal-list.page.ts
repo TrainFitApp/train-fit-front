@@ -79,7 +79,14 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   confirmCreateGoal() {
     const name = this.newGoalName.trim();
-    if (!name) return;
+    if (!name) {
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('NUTRITION_GOALS.REQUIRED_FIELDS'),
+        duration: 2000,
+        color: 'warning',
+      });
+      return;
+    }
 
     this.nutritionalGoalService.create({ name })
       .pipe(takeUntil(this.destroy$))

@@ -1463,6 +1463,7 @@
     "SAVE_SUCCESS": "Objetivos nutricionales guardados",
     "SAVE_ERROR": "Error al guardar. Cambios guardados localmente.",
     "INVALID_CONFIG_MSG": "Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico",
+    "MISSING_VALUES": "Faltan valores. Rellena todos los macronutrientes.",
     "UNSAVED_HEADER": "Cambios sin guardar",
     "UNSAVED_MSG": "¿Estás seguro de que quieres salir sin guardar los cambios?",
     "UNLOCK": "Desbloquear",
@@ -1485,7 +1486,8 @@
     "EMPTY": "Aún no hay objetivos. Toca + para empezar.",
     "IN_USE": "En uso",
     "DELETE_HEADER": "Eliminar objetivo",
-    "DELETE_MSG": "¿Eliminar \"{{name}}\"?"
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
+    "REQUIRED_FIELDS": "Faltan campos por completar"
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Información detallada",

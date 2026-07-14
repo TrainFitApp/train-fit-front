@@ -1203,6 +1203,7 @@
     "SAVE_SUCCESS": "Nutritional goals saved",
     "SAVE_ERROR": "Error saving. Changes saved locally.",
     "INVALID_CONFIG_MSG": "Please adjust macronutrients to match the calorie goal",
+    "MISSING_VALUES": "Missing values. Fill in all macronutrients.",
     "UNSAVED_HEADER": "Unsaved changes",
     "UNSAVED_MSG": "Are you sure you want to leave without saving?",
     "UNLOCK": "Unlock",
@@ -1262,6 +1263,7 @@
     "EMPTY": "No goals yet. Tap + to start.",
     "IN_USE": "In use",
     "DELETE_HEADER": "Delete Goal",
-    "DELETE_MSG": "Delete \"{{name}}\"?"
+    "DELETE_MSG": "Delete \"{{name}}\"?",
+    "REQUIRED_FIELDS": "Missing required fields"
   }
 }

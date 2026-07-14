@@ -58,7 +58,7 @@
           <ion-icon name="calculator-outline"></ion-icon>
           <span>{{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}</span>
         </button>
-        <button class="auto-calc-btn auto-calc-btn--primary" (click)="useGoal()" *ngIf="goal">
+        <button class="auto-calc-btn auto-calc-btn--primary" (click)="useGoal()" *ngIf="goal && goal._id !== user?.goalInUse">
           <ion-icon name="checkmark-circle-outline"></ion-icon>
           <span>{{ 'NUTRITION_EDITOR.USAR' | translate }}</span>
         </button>

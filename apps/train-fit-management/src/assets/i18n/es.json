@@ -958,6 +958,43 @@
     "SET_OBJECTIVE_CARD_TITLE": "Serie objetivo esperada",
     "SET_OBJECTIVE_CARD_DESC": "Define aquí la marca que esperas alcanzar en la serie. Durante el entrenamiento podrás registrar lo realizado y establecerla como completada."
   },
+  "NUTRITION_EDITOR": {
+    "TITLE": "Ajustar Objetivos",
+    "CALORIES_GOAL": "Objetivo de Calorías",
+    "KCAL": "kcal",
+    "MACRO_DISTRIBUTION": "Distribución de Macronutrientes",
+    "PROTEINS": "Proteínas",
+    "CBH": "CBH",
+    "FATS": "Grasas",
+    "GUARDAR": "GUARDAR",
+    "RECALCULAR": "RECALCULAR",
+    "CALORIE_EXCESS_TITLE": "Exceso de Calorías",
+    "CALORIE_EXCESS_MSG": "Los macronutrientes exceden el objetivo en {{kcal}} kcal",
+    "PERCENT_EXCESS_TITLE": "Exceso de Porcentaje",
+    "PERCENT_EXCESS_MSG": "La suma de porcentajes excede el 100% ({{percent}}%)",
+    "BALANCE_TITLE": "Balance Calórico",
+    "GOAL_LABEL": "Objetivo:",
+    "TOTAL_MACROS": "Total de macros:",
+    "DIFFERENCE": "Diferencia:",
+    "TOTAL_LABEL": "Total: {{percent}}%",
+    "SAVE_HEADER": "Guardar Configuración",
+    "SAVE_MSG": "Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.",
+    "SAVE_SUCCESS": "Objetivos nutricionales guardados",
+    "SAVE_ERROR": "Error al guardar. Cambios guardados localmente.",
+    "INVALID_CONFIG_MSG": "Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico",
+    "MISSING_VALUES": "Faltan valores. Rellena todos los macronutrientes.",
+    "UNSAVED_HEADER": "Cambios sin guardar",
+    "UNSAVED_MSG": "¿Estás seguro de que quieres salir sin guardar los cambios?",
+    "UNLOCK": "Desbloquear",
+    "LOCK": "Bloquear",
+    "RENAME_HEADER": "Renombrar objetivo",
+    "DELETE_HEADER": "Eliminar objetivo",
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
+    "USAR": "USAR",
+    "USE_HEADER": "Usar este objetivo",
+    "USE_MSG": "Este objetivo nutricional se utilizará y el anterior quedará guardado.",
+    "NAME_PLACEHOLDER": "Nombre del objetivo"
+  },
   "NUTRITION_GOALS": {
     "TITLE": "Objetivos Nutricionales",
     "NAME_PLACEHOLDER": "Nombre del objetivo",
@@ -969,6 +1006,7 @@
     "EMPTY": "Aún no hay objetivos. Toca + para empezar.",
     "IN_USE": "En uso",
     "DELETE_HEADER": "Eliminar objetivo",
-    "DELETE_MSG": "¿Eliminar \"{{name}}\"?"
+    "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
+    "REQUIRED_FIELDS": "Faltan campos por completar"
   }
 }

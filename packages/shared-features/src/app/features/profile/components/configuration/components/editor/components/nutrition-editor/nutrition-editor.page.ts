@@ -839,6 +839,16 @@ export class NutritionEditorPage implements OnInit {
 
   // ---------- Guardar ----------
   public async save(): Promise<void> {
+    if (this.state.grams.p === 0 || this.state.grams.c === 0 || this.state.grams.f === 0) {
+      const toast: ToastOptions = {
+        message: this.translate.instant('NUTRITION_EDITOR.MISSING_VALUES'),
+        duration: 3000,
+        color: "warning",
+      };
+      await this.ionicUtilService.showToast(toast);
+      return;
+    }
+
     if (!this.isValidConfiguration()) {
       console.warn("Configuración inválida, no se puede guardar");
 
