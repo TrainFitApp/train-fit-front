@@ -27,6 +27,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() meal: Meal;
   @Input() dietDay: DietDay;
   @Input() user: User;
+  @Input() loading = false;
+  @Input() recentCustomRecipe?: any | null = null;
+  @Input() showRecentIcon: boolean = false;
 
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
@@ -132,6 +135,8 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public onCardClick(): void {
+    if (this.loading) return;
+
     // Click on card always goes to add/edit mode
     this.toggle.emit(this.recipe);
   }
@@ -139,6 +144,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onCheckboxClick(event: Event): void {
     // Stop propagation so card click doesn't fire
     event.stopPropagation();
+    if (this.loading) return;
 
     // If checked, remove from meal
     if (this.isChecked) {
@@ -160,6 +166,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
 
     if (this.foundInstance) {
       return consumed ?? 0;
+    }
+
+    const recentQty = this.toPositiveNumber(this.recentCustomRecipe?.quantity);
+    if (recentQty !== null) {
+      return recentQty;
     }
 
     switch (this.measureFilter) {

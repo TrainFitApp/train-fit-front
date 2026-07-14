@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { finalize } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { RepoApiService } from './services/repo-api.service';
@@ -13,6 +14,7 @@ export class RepoConfigPage implements OnInit {
   private readonly navigationService = inject(NavigationService);
   private readonly repoApi = inject(RepoApiService);
   private readonly ionicUtil = inject(IonicUtilService);
+  private readonly translate = inject(TranslateService);
 
   public token = '';
   public isPulling = false;
@@ -35,19 +37,19 @@ export class RepoConfigPage implements OnInit {
 
   public saveToken(): void {
     this.repoApi.saveToken(this.token).subscribe({
-      next: () => this.ionicUtil.showSuccessToast('Token guardado'),
-      error: (err) => this.ionicUtil.showErrorToast(err, 'Error al guardar token'),
+      next: () => this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.REPO.TOKEN_SAVED')),
+      error: (err) => this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.REPO.TOKEN_SAVE_ERROR')),
     });
   }
 
   public confirmPull(): void {
     this.ionicUtil
       .showAlert({
-        header: 'Git Pull',
-        message: '¿Ejecutar sudo git pull? Los cambios se aplicarán al servidor.',
+        header: this.translate.instant('MANAGEMENT.REPO.PULL_HEADER'),
+        message: this.translate.instant('MANAGEMENT.REPO.PULL_MESSAGE'),
         buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { text: 'Pull', role: 'confirm', cssClass: 'danger-btn' },
+          { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+          { text: this.translate.instant('MANAGEMENT.REPO.PULL_CONFIRM'), role: 'confirm', cssClass: 'danger-btn' },
         ],
       })
       .then((alertRes) => {
@@ -67,14 +69,14 @@ export class RepoConfigPage implements OnInit {
         next: (res) => {
           this.pullResult = res;
           if (res.success) {
-            this.ionicUtil.showSuccessToast('Pull completado');
+            this.ionicUtil.showSuccessToast(this.translate.instant('MANAGEMENT.REPO.PULL_SUCCESS'));
           } else {
-            this.ionicUtil.showErrorToast(new Error(res.stderr), 'Error en pull');
+            this.ionicUtil.showErrorToast(new Error(res.stderr), this.translate.instant('MANAGEMENT.REPO.PULL_ERROR'));
           }
         },
         error: (err) => {
           this.pullResult = { success: false, stdout: '', stderr: err.message || 'Error de conexión' };
-          this.ionicUtil.showErrorToast(err, 'Error al ejecutar pull');
+          this.ionicUtil.showErrorToast(err, this.translate.instant('MANAGEMENT.REPO.PULL_EXEC_ERROR'));
         },
       });
   }

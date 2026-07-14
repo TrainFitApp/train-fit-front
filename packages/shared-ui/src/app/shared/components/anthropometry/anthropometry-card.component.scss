@@ -1,0 +1,139 @@
+.anthropometry-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  overflow: hidden;
+
+  &.empty {
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+
+      ion-icon {
+        font-size: 48px;
+        color: #d4af37;
+        margin-bottom: 16px;
+        opacity: 0.7;
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 20px 0;
+        font-size: 15px;
+      }
+
+      ion-button {
+        --border-color: #d4af37;
+        --color: #d4af37;
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border-bottom: 1px solid #252525;
+
+    ion-icon {
+      font-size: 24px;
+      color: #d4af37;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #ffffff;
+      flex: 1;
+    }
+
+    .date {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+    }
+  }
+
+  .measurements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 20px;
+
+    .measurement-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: rgba(212, 175, 55, 0.3);
+        background: rgba(212, 175, 55, 0.05);
+      }
+
+      .measurement-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        line-height: 1.2;
+      }
+
+      .measurement-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+  }
+
+  .card-footer {
+    padding: 0 20px 20px;
+
+    ion-button {
+      --background: rgba(212, 175, 55, 0.1);
+      --border-color: #d4af37;
+      --color: #d4af37;
+      --background-hover: rgba(212, 175, 55, 0.2);
+      --border-radius: 10px;
+      height: 48px;
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .measurements-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 16px;
+
+    .measurement-item {
+      padding: 12px 8px;
+
+      .measurement-label {
+        font-size: 10px;
+      }
+
+      .measurement-value {
+        font-size: 15px;
+      }
+    }
+  }
+}

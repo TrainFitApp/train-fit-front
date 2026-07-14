@@ -4,6 +4,7 @@ import { DateRange } from 'src/app/shared/models/dateRange';
 import { CustomProduct } from '../../models/customProduct';
 import { CustomRecipe } from '../../models/customRecipe';
 import { DietDay } from '../../models/dietDay';
+import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
 
@@ -15,9 +16,9 @@ export class DietDayAPIService {
 
   public getDietDayByIdDietAndDate(
     id: string,
-    date: Date
-  ): Observable<DietDay> {
-    return this.http.post<DietDay>(
+    date: string
+  ): Observable<{ dietDay: DietDay; anthropometry: Anthropometry | null }> {
+    return this.http.post<{ dietDay: DietDay; anthropometry: Anthropometry | null }>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${id}`,
       { date }
     );
@@ -53,9 +54,9 @@ export class DietDayAPIService {
   public createDayWeightOnNewDietDay(
     dayWeight: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ) {
-    return this.http.post<DietDay>(
+    return this.http.post<{ dietDay: DietDay; anthropometry: Anthropometry | null }>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/on/new/${dietInUseId}`,
       {
         dayWeight,
@@ -68,7 +69,7 @@ export class DietDayAPIService {
     customProduct: CustomProduct,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date,
+    currentDate: string,
     idUser?: string
   ) {
     return this.http.post<DietDay>(
@@ -123,7 +124,7 @@ export class DietDayAPIService {
     customRecipe: CustomRecipe,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ): Observable<DietDay> {
     return this.http.post<DietDay>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}/create/recipe/new/${dietInUseId}`,

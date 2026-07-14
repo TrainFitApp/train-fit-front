@@ -2,9 +2,12 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   Output,
   ViewChild,
+  OnInit,
 } from '@angular/core';
+import { Subscription, tap } from 'rxjs';
 import {
   ActionSheetOptions,
   AlertOptions,
@@ -24,6 +27,7 @@ import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+import { TranslateService } from '@ngx-translate/core';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -39,13 +43,17 @@ import {
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
+import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
+import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
+import { buildWorkoutSummary } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model';
 
 @Component({
   selector: 'app-workout',
   templateUrl: './workout.component.html',
   styleUrls: ['./workout.component.scss'],
 })
-export class WorkoutComponent {
+export class WorkoutComponent implements OnDestroy {
   @Input()
   public user: User;
 
@@ -66,6 +74,9 @@ export class WorkoutComponent {
 
   @Input()
   public stateSelected: number;
+
+  @Input()
+  public savingWorkoutOrder = false;
 
   @Input()
   public isPopoverOpen: boolean;
@@ -109,6 +120,11 @@ export class WorkoutComponent {
     newName: string;
   }>();
 
+  @Output()
+  public workoutDuplicatedEvent = new EventEmitter<{
+    workoutIndex: number;
+  }>();
+
   public workoutClipboard: Workout;
 
   public note: string;
@@ -126,6 +142,9 @@ export class WorkoutComponent {
 
   public test: boolean = false;
 
+  public pinnedNotes: PinnedExerciseNote[] = [];
+  private pinnedNoteCacheSub: Subscription | null = null;
+
   constructor(
     private userService: UserService,
     private modalController: ModalController,
@@ -135,8 +154,117 @@ export class WorkoutComponent {
     private ionicUtilService: IonicUtilService,
     private tableService: TableService,
     private navigationService: NavigationService,
-    private adMobService: AdMobService
+    private adMobService: AdMobService,
+    private translate: TranslateService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService
   ) {}
+
+  ngOnInit(): void {
+    this.loadPinnedNotes();
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
+      this.loadPinnedNotes();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.pinnedNoteCacheSub?.unsubscribe();
+  }
+
+  private loadPinnedNotes(): void {
+    if (this.tableInUse?._id) {
+      this.pinnedExerciseNoteService.getByTable(this.tableInUse._id).subscribe((notes) => {
+        this.pinnedNotes = notes;
+      });
+    }
+  }
+
+  public getPinnedNote(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+    return this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+  }
+
+  public deletePinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.DELETE_PINNED_TITLE'),
+      message: this.translate.instant('NOTES.DELETE_PINNED_CONFIRM'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.pinnedExerciseNoteService.delete(note._id, this.tableInUse._id).subscribe({
+              next: () => {
+                this.pinnedNotes = this.pinnedNotes.filter((n) => n._id !== note._id);
+                console.debug('[WorkoutComponent] Pinned note deleted');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public editPinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('NOTES.TITLE'),
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: note.notes,
+          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            const dto: PinnedExerciseNoteUpsertDto = {
+              tableId: this.tableInUse._id,
+              workoutIndex,
+              exerciseIndex,
+              notes: newNotes,
+            };
+            this.pinnedExerciseNoteService.upsert(dto).subscribe({
+              next: (updated) => {
+                const idx = this.pinnedNotes.findIndex((n) => n._id === note._id);
+                if (idx >= 0) this.pinnedNotes[idx] = updated;
+                console.debug('[WorkoutComponent] Pinned note updated');
+              },
+              error: (err) => console.error('[WorkoutComponent] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
 
   public workoutActions(
     event,
@@ -167,6 +295,10 @@ export class WorkoutComponent {
             this.utilService.setCancelMode = true;
             break;
 
+          case ACTIONS[this.ACTION_TYPES.duplicate].id:
+            this.duplicateWorkoutRow();
+            break;
+
           // case ACTIONS[this.ACTION_TYPES.share].id:
           //   this.presentActionSheet();
           //   break;
@@ -186,8 +318,39 @@ export class WorkoutComponent {
           case ACTIONS[this.ACTION_TYPES.delete].id:
             this.deleteWorkouts(workoutIndex);
             break;
+
+          case ACTIONS[this.ACTION_TYPES.viewSummary].id:
+            this.viewWorkoutSummary();
+            break;
+
+          case ACTIONS[this.ACTION_TYPES.skipWorkout].id:
+            this.skipWorkout();
+            break;
+
+          case ACTIONS[this.ACTION_TYPES.unskipWorkout].id:
+            this.unskipWorkout();
+            break;
         }
       }
+    });
+  }
+
+  private viewWorkoutSummary(): void {
+    // Solo tiene sentido para un entreno ya terminado (workout.date presente).
+    if (!this.workout.date) return;
+
+    const summary = buildWorkoutSummary(
+      this.workout,
+      new Date(this.workout.date)
+    );
+
+    this.ionicUtilService.showModal({
+      component: WorkoutSummaryModalComponent,
+      componentProps: {
+        summary,
+        closeButtonLabel: this.translate.instant('COMMON.CERRAR'),
+      },
+      cssClass: 'workout-summary-modal',
     });
   }
 
@@ -255,16 +418,16 @@ export class WorkoutComponent {
 
   private deleteWorkouts(workoutIndex: number): void {
     const alertOptions: AlertOptions = {
-      header: 'Eliminar entrenamientos',
-      message: `Se borrarán todos los entrenamientos ${this.workout.name} de todos los micro-ciclos`,
+      header: this.translate.instant('TABLES.DELETE_WORKOUTS'),
+      message: this.translate.instant('TABLES.DELETE_WORKOUTS_CONFIRM', { name: this.workout.name }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           cssClass: 'danger',
           handler: () => {
             const workoutsToDelete: Workout[] = [];
@@ -289,7 +452,7 @@ export class WorkoutComponent {
               .deleteWorkouts(workoutsToDelete)
               .subscribe(() => {
                 const toastOptions: ToastOptions = {
-                  message: `¡${workoutsToDelete[0].name} eliminado con éxito!`,
+                  message: this.translate.instant('TABLES.WORKOUT_DELETED_SUCCESS', { name: workoutsToDelete[0].name }),
                   duration: 2000,
                 };
                 this.ionicUtilService.showToast(toastOptions);
@@ -300,6 +463,110 @@ export class WorkoutComponent {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private skipWorkout(): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.SKIP_WORKOUT'),
+      message: this.translate.instant('TABLES.SKIP_WORKOUT_CONFIRM', { name: this.workout.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: this.translate.instant('TABLES.SKIP_BTN'),
+          handler: () => {
+            this.applyWorkoutSkip(this.workout, true).subscribe(() => {
+              const toastOptions: ToastOptions = {
+                message: this.translate.instant('TABLES.WORKOUT_SKIPPED_SUCCESS', { name: this.workout.name }),
+                duration: 2000,
+              };
+              this.ionicUtilService.showToast(toastOptions);
+            });
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private unskipWorkout(): void {
+    this.applyWorkoutSkip(this.workout, false).subscribe(() => {
+      const toastOptions: ToastOptions = {
+        message: this.translate.instant('TABLES.WORKOUT_UNSKIPPED_SUCCESS', { name: this.workout.name }),
+        duration: 2000,
+      };
+      this.ionicUtilService.showToast(toastOptions);
+    });
+  }
+
+  // Persiste el flag `rest` del workout y refleja el resultado en el estado local
+  // (tabla en uso + usuario si el workout saltado era el que tenía en curso).
+  private applyWorkoutSkip(workout: Workout, rest: boolean) {
+    return this.workoutService.skipWorkout(workout._id, rest).pipe(
+      tap(() => {
+        workout.rest = rest;
+        if (rest) {
+          delete workout.date;
+          if (this.user.workoutInUse === workout._id) {
+            delete this.user.workoutInUse;
+          }
+        }
+
+        // `workout` puede ser una copia desconectada (mesocycle reconstruye
+        // currentSplit.workouts en cada refresco); sincronizar por _id contra
+        // el grafo real de tableInUse antes de propagar la señal, si no el
+        // efecto de mesocycle.page.ts la reconstruye a partir del dato viejo.
+        this.tableInUse.splits
+          .flatMap((splitTemp) => splitTemp.workouts)
+          .forEach((wTemp) => {
+            if (wTemp._id === workout._id) {
+              wTemp.rest = rest;
+              if (rest) delete wTemp.date;
+            }
+          });
+
+        this.tableService.setCurrentTable = this.tableInUse;
+      })
+    );
+  }
+
+  private duplicateWorkoutRow(): void {
+    this.load = false;
+
+    const nameSuffix = this.translate.instant('TABLES.WORKOUT_COPY_SUFFIX');
+
+    this.workoutService
+      .duplicateWorkoutRow(this.tableInUse._id, this.workout._id, nameSuffix)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+
+          const duplicatedWorkoutIndex = this.workoutIndex + 1;
+          this.workoutDuplicatedEvent.emit({
+            workoutIndex: duplicatedWorkoutIndex,
+          });
+
+          const toastOptions: ToastOptions = {
+            message: this.translate.instant('TABLES.WORKOUT_DUPLICATED'),
+            duration: 1000,
+            color: 'success',
+          };
+          this.ionicUtilService.showToast(toastOptions);
+          this.load = true;
+        },
+        error: (error) => {
+          this.load = true;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('TABLES.WORKOUT_DUPLICATE_ERROR')
+          );
+        },
+      });
   }
 
   public async deleteExercises(indexWorkout: number, indexExercise: number) {
@@ -329,16 +596,16 @@ export class WorkoutComponent {
     indexExercise: number
   ) {
     const alertOptions: AlertOptions = {
-      header: 'Eliminar ejercicio',
-      message: `¿Estás seguro de que quieres eliminar ${exerciseName}? Esto lo eliminará también de todos los micro-ciclos.`,
+      header: this.translate.instant('TABLES.DELETE_EXERCISE'),
+      message: this.translate.instant('TABLES.DELETE_EXERCISE_CONFIRM', { name: exerciseName }),
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'ELIMINAR',
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: 'destructive',
           handler: () => {
             this.deleteExercises(indexWorkout, indexExercise);
@@ -501,7 +768,7 @@ export class WorkoutComponent {
         });
 
         const toast: ToastOptions = {
-          message: 'Entrenamiento pegado',
+          message: this.translate.instant('TABLES.WORKOUT_PASTED'),
           duration: 2000,
         };
         this.ionicUtilService.showToast(toast);
@@ -518,14 +785,33 @@ export class WorkoutComponent {
       actions = actions.filter(
         (actionTemp) =>
           actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id
+          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id ||
+          actionTemp.id === ACTIONS[this.ACTION_TYPES.duplicate].id
       );
-    } else
+    } else {
       actions = actions.filter(
         (actionTemp) =>
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id
       );
+
+      // "Ver resumen" solo se ofrece si el entreno ya está terminado.
+      if (this.workout.date) {
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.viewSummary]];
+      }
+
+      // "Saltar día" solo si aún no está terminado ni saltado;
+      // "Quitar descanso" solo si ya está marcado como saltado.
+      if (this.workout.rest) {
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.unskipWorkout]];
+      } else if (!this.workout.date) {
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.skipWorkout]];
+      }
+    }
 
     return actions;
   }
@@ -571,23 +857,23 @@ export class WorkoutComponent {
 
   private setWorkoutNote(): void {
     const alertOptions: AlertOptions = {
-      header: 'Notas',
+      header: this.translate.instant('TABLES.WORKOUT_NOTE'),
       inputs: [
         {
           name: 'notes',
           type: 'textarea',
           value: this.workout.notes,
-          placeholder: 'Escribe tus notas aquí...',
+          placeholder: this.translate.instant('TABLES.WORKOUT_NOTES_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             if (data.notes && data.notes.trim() !== '') {
               this.workout.notes = data.notes;
@@ -599,7 +885,7 @@ export class WorkoutComponent {
                 );
             } else {
               const toastOptions: ToastOptions = {
-                message: 'El campo no puede estar vacío',
+                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -649,23 +935,23 @@ export class WorkoutComponent {
 
   private updateWorkoutName(): void {
     const alertOptions: AlertOptions = {
-      header: 'Cambiar nombre',
+      header: this.translate.instant('TABLES.CHANGE_NAME'),
       inputs: [
         {
           name: 'name',
           type: 'text',
           value: this.workout.name,
-          placeholder: 'Nombre del entrenamiento',
+          placeholder: this.translate.instant('TABLES.WORKOUT_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: 'CANCELAR',
+          text: this.translate.instant('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'GUARDAR',
+          text: this.translate.instant('COMMON.SAVE'),
           handler: (data) => {
             if (data.name && data.name.trim() !== '') {
               this.load = false;
@@ -684,7 +970,7 @@ export class WorkoutComponent {
 
                   this.load = true;
                   const toastOptions: ToastOptions = {
-                    message: 'Nombre de entrenamientos actualizados',
+                    message: this.translate.instant('TABLES.WORKOUT_NAME_UPDATED'),
                     duration: 1000,
                   };
 
@@ -739,6 +1025,13 @@ export class WorkoutComponent {
     return this.utilService.isWorkoutDoned(this.workout);
   }
 
+  // Verde = terminado (workout.date), azul = saltado (workout.rest).
+  public getWorkoutStatusColor(fallback: string = ''): string {
+    if (this.workout.date) return 'var(--ion-color-success)';
+    if (this.workout.rest) return 'var(--ion-color-alternative)';
+    return fallback;
+  }
+
   public getWorkoutSets(): number {
     return this.workout.exercises.reduce((totalSets, exercise) => {
       return totalSets + exercise.sets.length;
@@ -775,7 +1068,7 @@ export class WorkoutComponent {
     this.workoutService.modifyWorkout(workout).subscribe(() => {
       this.tableService.setCurrentTable = this.tableInUse;
       const toastOptions: ToastOptions = {
-        message: 'Fecha actualizada',
+        message: this.translate.instant('TABLES.DATE_UPDATED'),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -840,46 +1133,94 @@ export class WorkoutComponent {
 
   public playWorkout(): void {
     if (this.workout._id !== this.user.workoutInUse) {
-      const alertOptions: AlertOptions = {
-        header: 'Iniciar entrenamiento',
-        message:
-          this.workout.name +
-          ' se mostrará en la pestaña de resumen y perfil como entrenamiento en uso',
-        buttons: [
-          {
-            text: 'CANCELAR',
-            role: 'cancel',
-            cssClass: 'secondary',
-          },
-          {
-            text: 'INICIAR',
-            handler: () => {
-              if (this.user?.premium?.entitled) {
-                this.startWorkoutAndNavigate();
-                return;
-              }
+      const previousWorkout = this.getPreviousWorkout();
+      const previousPending =
+        previousWorkout && !previousWorkout.date && !previousWorkout.rest;
 
-              this.adMobService
-                .interstitial('start_workout')
-                .then(() => {
-                  this.startWorkoutAndNavigate();
-                })
-                .catch((error) => {
-                  console.error(
-                    'Error al mostrar anuncio start_workout:',
-                    error
-                  );
-                });
-            },
-          },
-        ],
-      };
-      this.ionicUtilService.showAlert(alertOptions);
+      if (previousPending) {
+        this.confirmSkipPreviousWorkout(previousWorkout);
+        return;
+      }
+
+      this.showStartWorkoutAlert();
       return;
     }
 
     this.workoutService.setCurrentWorkout = this.workout;
     this.navigationService.goToCurrentWorkout();
+  }
+
+  // Entrenamiento inmediatamente anterior en la rutina completa, cruzando
+  // micro-ciclos (orden = Table.splits[].workouts[] tal cual se muestran).
+  private getPreviousWorkout(): Workout | null {
+    const flatWorkouts =
+      this.tableInUse?.splits?.flatMap((splitTemp) => splitTemp.workouts) ??
+      [];
+    const currentIndex = flatWorkouts.findIndex(
+      (workoutTemp) => workoutTemp._id === this.workout._id
+    );
+
+    if (currentIndex <= 0) return null;
+    return flatWorkouts[currentIndex - 1];
+  }
+
+  private confirmSkipPreviousWorkout(previousWorkout: Workout): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING'),
+      message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG', { name: previousWorkout.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: this.translate.instant('TABLES.SKIP_AND_CONTINUE_BTN'),
+          handler: () => {
+            this.applyWorkoutSkip(previousWorkout, true).subscribe(() => {
+              this.showStartWorkoutAlert();
+            });
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private showStartWorkoutAlert(): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.START_WORKOUT'),
+      message: this.translate.instant('TABLES.START_WORKOUT_CONFIRM', { name: this.workout.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: this.translate.instant('TABLES.START'),
+          handler: () => {
+            if (this.user?.premium?.entitled) {
+              this.startWorkoutAndNavigate();
+              return;
+            }
+
+            this.adMobService
+              .interstitial('start_workout')
+              .then(() => {
+                this.startWorkoutAndNavigate();
+              })
+              .catch((error) => {
+                console.error(
+                  'Error al mostrar anuncio start_workout:',
+                  error
+                );
+              });
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   private startWorkoutAndNavigate(): void {
@@ -975,8 +1316,7 @@ export class WorkoutComponent {
     event.stopPropagation();
 
     const toastOptions: ToastOptions = {
-      message:
-        'Navega a otros micro-ciclos para pegar el entrenamiento que tienes copiado',
+      message: this.translate.instant('TABLES.NAVIGATE_PASTE_MSG'),
       duration: 2000,
     };
 

@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DietDayService } from '../diet-day/diet-day.service';
 import { ProductService } from '../product/product.service';
+import { CustomProduct } from '../../models/customProduct';
 import { Diet } from '../../models/diet';
 import { HttpService } from '../http/http.service';
 
@@ -47,6 +48,40 @@ export class DietService {
 
   getDietById(id: number): Observable<Diet> {
     return this.http.get<Diet>(`diets/${id}`);
+  }
+
+  getRecentMealProducts(
+    dietId: string,
+    mealIndex: number,
+    options: {
+      limit?: number;
+    } = {}
+  ): Observable<CustomProduct[]> {
+    const params = new URLSearchParams({
+      mealIndex: String(mealIndex),
+      limit: String(options.limit || 15),
+    });
+
+    return this.http.get<CustomProduct[]>(
+      `diets/${dietId}/recent-products?${params.toString()}`
+    );
+  }
+
+  getRecentMealRecipes(
+    dietId: string,
+    mealIndex: number,
+    options: {
+      limit?: number;
+    } = {}
+  ): Observable<any[]> {
+    const params = new URLSearchParams({
+      mealIndex: String(mealIndex),
+      limit: String(options.limit || 15),
+    });
+
+    return this.http.get<any[]>(
+      `diets/${dietId}/recent-recipes?${params.toString()}`
+    );
   }
 
   createDiet(diet: Diet): Observable<Diet> {
@@ -131,5 +166,9 @@ export class DietService {
     diet.dietsDay = [];
 
     return diet;
+  }
+
+  public updatePinnedNote(dietId: string, notes: string): Observable<Diet> {
+    return this.http.patch<Diet>(`diets/${dietId}/pinned-note`, { notes });
   }
 }

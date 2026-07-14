@@ -9,7 +9,7 @@
       </div>
 
       <div class="title-section">
-        <h1 class="page-title">Añadir ejercicio</h1>
+        <h1 class="page-title">{{ 'EXERCISE_CONFIG.ADD_EXERCISE' | translate }}</h1>
       </div>
 
       <div class="actions-section">
@@ -55,14 +55,14 @@
           </div>
           <div class="exercise-details" [class.create-mode]="isCreateMode">
             <ion-label *ngIf="!isCreateMode" class="exercise-label">
-              EJERCICIO
+              {{ 'EXERCISE_CONFIG.EXERCISE_LABEL' | translate }}
             </ion-label>
             <ng-container
               *ngIf="isCreateMode || isEditingOwnExercise; else exerciseNameLabel"
             >
               <ion-input
                 formControlName="name"
-                placeholder="Nombre de nuevo ejercicio"
+                [placeholder]="'EXERCISE_CONFIG.NEW_EXERCISE_NAME' | translate"
                 fill="solid"
                 mode="ios"
                 class="exercise-name-input"
@@ -70,7 +70,7 @@
             </ng-container>
             <ng-template #exerciseNameLabel>
               <ion-label class="exercise-name ion-text-wrap"
-                >{{ form.get('name')?.value }}</ion-label
+                >{{ form.get('name')?.value | translateDb }}</ion-label
               >
             </ng-template>
           </div>
@@ -100,14 +100,51 @@
           *ngIf="isCreateMode || isEditingOwnExercise"
           class="exercise-description-section"
         >
-          <ion-textarea
-            formControlName="description"
-            placeholder="Descripción del ejercicio..."
-            fill="solid"
-            mode="ios"
-            class="exercise-description-input"
-            rows="3"
-          ></ion-textarea>
+          <div class="description-steps-editor">
+            <div
+              class="description-step editable"
+              *ngFor="let step of descriptionSteps; let i = index; trackBy: trackByIndex"
+            >
+              <span class="description-step-index">{{ i + 1 }}</span>
+              <ion-textarea
+                #stepTextarea
+                [autoGrow]="true"
+                rows="1"
+                [value]="step"
+                (ionInput)="onDescriptionStepChange(i, $event.detail.value)"
+                [placeholder]="'EXERCISE_CONFIG.STEP_PLACEHOLDER' | translate: { n: i + 1 }"
+                [maxlength]="maxStepLength"
+                [counter]="true"
+                fill="solid"
+                mode="ios"
+                class="description-step-input"
+              ></ion-textarea>
+              <ion-button
+                fill="clear"
+                class="remove-step-btn"
+                (click)="removeDescriptionStep(i)"
+              >
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+
+            <ion-button
+              fill="clear"
+              color="secondary"
+              class="add-step-btn"
+              [disabled]="descriptionSteps.length >= maxDescriptionSteps"
+              (click)="addDescriptionStep()"
+            >
+              <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+              <span>{{ 'EXERCISE_CONFIG.ADD_STEP' | translate }}</span>
+            </ion-button>
+            <span
+              class="steps-limit-hint"
+              *ngIf="descriptionSteps.length >= maxDescriptionSteps"
+            >
+              {{ 'EXERCISE_CONFIG.STEPS_LIMIT_REACHED' | translate: { max: maxDescriptionSteps } }}
+            </span>
+          </div>
 
           <div class="exercise-mode-section">
             <ion-segment
@@ -116,10 +153,10 @@
               (ionChange)="setExerciseMode($event.detail.value)"
             >
               <ion-segment-button value="fuerza">
-                <ion-label>Fuerza</ion-label>
+                <ion-label>{{ 'EXERCISE_CONFIG.STRENGTH' | translate }}</ion-label>
               </ion-segment-button>
               <ion-segment-button value="cardio">
-                <ion-label>Cardio</ion-label>
+                <ion-label>{{ 'EXERCISE_CONFIG.CARDIO' | translate }}</ion-label>
               </ion-segment-button>
             </ion-segment>
           </div>
@@ -132,7 +169,7 @@
             (click)="configSets()"
           >
             <ion-icon name="barbell-outline" slot="start"></ion-icon>
-            <span class="add-sets-text">AÑADIR SERIES</span>
+            <span class="add-sets-text">{{ 'EXERCISE_CONFIG.ADD_SETS' | translate }}</span>
           </ion-button>
         </div>
       </div>
@@ -151,12 +188,38 @@
             </ion-buttons> -->
 
     <!-- Notes Section -->
+    <div class="pinned-note-container" *ngIf="pinnedNote">
+      <div class="pinned-note-wrapper" (click)="editPinnedNote(); $event.stopPropagation()">
+        <div class="pinned-note-card">
+          <div class="card-header">
+            <div class="left-section">
+              <div class="icon-wrapper">
+                <ion-icon name="pin"></ion-icon>
+              </div>
+              <div class="header-row">
+                <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+              </div>
+            </div>
+            <div class="action-wrapper">
+              <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(); $event.stopPropagation()">
+                <ion-icon name="close" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <p class="text">{{ pinnedNote.notes }}</p>
+        </div>
+      </div>
+    </div>
     <app-notes
       *ngIf="notes"
+      [object]="customExercise"
       [notes]="notes"
-      (update)="notes = $event"
+      [tableId]="tableInUse?._id"
+      [workoutIndex]="workoutIndex"
+      [exerciseIndex]="exerciseIndex"
+      (update)="onNotesUpdate($event)"
       [detail]="true"
-      type="Notas del ejercicio"
+      [type]="'EXERCISE_CONFIG.EXERCISE_NOTES' | translate"
     ></app-notes>
 
     <!-- Sets List -->
@@ -169,7 +232,7 @@
                 <ion-icon name="bar-chart-outline"></ion-icon>
               </div>
               <div class="sets-title">
-                <h3>Series configuradas</h3>
+                <h3>{{ 'EXERCISE_CONFIG.SETS_CONFIGURED' | translate }}</h3>
                 <span class="sets-count"
                   >{{ setList.length }} serie{{ setList.length !== 1 ? 's' : ''
                   }}</span
@@ -191,7 +254,7 @@
                   <ion-label color="secondary">
                     <strong>
                       {{ set.displayOrder }}.
-                      <span *ngIf="!set.drop && !set.restPause">SERIE</span>
+                      <span *ngIf="!set.drop && !set.restPause">{{ 'EXERCISE_CONFIG.SET' | translate }}</span>
                     </strong>
                   </ion-label>
                   &nbsp;
@@ -252,7 +315,7 @@
                       <span
                         *ngIf="set.expectedRir && (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)"
                         class="fail-label"
-                        >FALLO</span
+                        >{{ 'EXERCISE_CONFIG.FAILURE' | translate }}</span
                       >
                     </ng-template>
                   </div>
@@ -279,7 +342,7 @@
           <div class="empty-icon">
             <ion-icon name="bar-chart-outline"></ion-icon>
           </div>
-          <p class="empty-text">Aún no tienes series configuradas</p>
+          <p class="empty-text">{{ 'EXERCISE_CONFIG.NO_SETS' | translate }}</p>
         </div>
       </ng-template>
     </div>
@@ -294,7 +357,7 @@
         <!-- Header with Title -->
         <div class="exercise-details ion-text-center">
           <ion-label class="exercise-name ion-text-wrap">
-            Categorías, grupos musculares y equipamiento
+            {{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}
           </ion-label>
         </div>
 
@@ -315,7 +378,7 @@
             >
             </ion-icon>
             <span class="add-sets-text"
-              >{{ showFilters ? 'OCULTAR DETALLES' : 'AÑADIR DETALLES' }}</span
+              >{{ showFilters ? ('EXERCISE_CONFIG.HIDE_DETAILS' | translate) : ('EXERCISE_CONFIG.ADD_DETAILS' | translate) }}</span
             >
           </ion-button>
         </div>
@@ -329,7 +392,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Categorías</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.CATEGORIES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -339,7 +402,7 @@
                 [class.is-active]="details.category.includes(category)"
                 (click)="selectCategory(category)"
               >
-                <span class="label">{{ category }}</span>
+                <span class="label">{{ category | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -349,7 +412,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Principales</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.PRIMARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -359,7 +422,7 @@
                 [class.is-active]="details.muscleGroups1.includes(muscle)"
                 (click)="selectMuscleGroup1(muscle)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -369,7 +432,7 @@
           <div class="filter-section">
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Secundarios</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.SECONDARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -379,7 +442,7 @@
                 [class.is-active]="details.muscleGroups2.includes(muscle)"
                 (click)="selectMuscleGroup2(muscle)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -392,7 +455,7 @@
                 name="construct-outline"
                 class="section-icon"
               ></ion-icon>
-              <h4 class="section-title">Equipamiento</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.EQUIPMENT' | translate }}</h4>
             </div>
             <div class="chips-container">
               <button
@@ -402,7 +465,7 @@
                 [class.is-active]="details.equipment.includes(equip)"
                 (click)="selectEquipment(equip)"
               >
-                <span class="label">{{ equip }}</span>
+                <span class="label">{{ equip | translateDb }}</span>
                 <ion-ripple-effect></ion-ripple-effect>
               </button>
             </div>
@@ -421,14 +484,14 @@
           >
             <div class="section-header">
               <ion-icon name="grid-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Categorías</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.CATEGORIES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let category of getValidDetails(details.category)"
               >
-                <span class="label">{{ category }}</span>
+                <span class="label">{{ category | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -440,14 +503,14 @@
           >
             <div class="section-header">
               <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Principales</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.PRIMARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let muscle of getValidDetails(details.muscleGroups1)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -459,14 +522,14 @@
           >
             <div class="section-header">
               <ion-icon name="body-outline" class="section-icon"></ion-icon>
-              <h4 class="section-title">Músculos Secundarios</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.SECONDARY_MUSCLES' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let muscle of getValidDetails(details.muscleGroups2)"
               >
-                <span class="label">{{ muscle }}</span>
+                <span class="label">{{ muscle | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -481,14 +544,14 @@
                 name="construct-outline"
                 class="section-icon"
               ></ion-icon>
-              <h4 class="section-title">Equipamiento</h4>
+              <h4 class="section-title">{{ 'EXERCISE_CONFIG.EQUIPMENT' | translate }}</h4>
             </div>
             <div class="chips-container">
               <div
                 class="modern-pill filter-chip is-active readonly"
                 *ngFor="let equip of getValidDetails(details.equipment)"
               >
-                <span class="label">{{ equip }}</span>
+                <span class="label">{{ equip | translateDb }}</span>
               </div>
             </div>
           </div>
@@ -503,7 +566,7 @@
           <div class="video-icon">
             <ion-icon name="play-circle-outline"></ion-icon>
           </div>
-          <h3 class="video-title">Video demostrativo</h3>
+          <h3 class="video-title">{{ 'EXERCISE_CONFIG.DEMO_VIDEO' | translate }}</h3>
         </div>
       </div>
       <div class="video-container">
@@ -530,7 +593,7 @@
             <div class="muscle-groups-icon">
               <ion-icon name="body-outline"></ion-icon>
             </div>
-            <h3 class="muscle-groups-title">Grupos musculares</h3>
+            <h3 class="muscle-groups-title">{{ 'EXERCISE_CONFIG.MUSCLE_GROUPS' | translate }}</h3>
           </div>
         </div>
 
@@ -542,7 +605,7 @@
             *ngFor="let mg of getExerciseMuscleGroups()"
           >
             <ion-icon name="barbell-outline"></ion-icon>
-            <span class="label">{{ mg }}</span>
+                  <span class="label">{{ mg | translateDb }}</span>
             <ion-ripple-effect></ion-ripple-effect>
           </button>
         </div>
@@ -561,15 +624,21 @@
             <div class="description-icon">
               <ion-icon name="document-text-outline"></ion-icon>
             </div>
-            <h3 class="description-title">Descripción</h3>
+            <h3 class="description-title">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</h3>
           </div>
         </div>
 
         <!-- Description Content Row -->
         <div class="exercise-description">
-          <p class="description-text">
-            {{ exercise?.description ?? customExercise?.exercise?.description }}
-          </p>
+          <div class="description-steps">
+            <div
+              class="description-step"
+              *ngFor="let step of getExerciseDescriptionSteps(); let i = index"
+            >
+              <span class="description-step-index">{{ i + 1 }}</span>
+              <p class="description-step-text">{{ step }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -586,7 +655,7 @@
       [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
     >
       <div class="button-content">
-        <span>GUARDAR CAMBIOS</span>
+        <span>{{ 'EXERCISE_CONFIG.SAVE_CHANGES' | translate }}</span>
       </div>
     </ion-button>
 
@@ -599,7 +668,7 @@
         [disabled]="form?.invalid || !form?.get('name')?.value?.trim()"
       >
         <div class="button-content">
-          <span>GUARDAR EJERCICIO</span>
+          <span>{{ 'EXERCISE_CONFIG.SAVE_EXERCISE' | translate }}</span>
         </div>
       </ion-button>
     </ng-template>
@@ -608,7 +677,7 @@
       <ion-button expand="block" size="large" disabled>
         <div class="loading-content">
           <ion-spinner name="crescent" color="light"></ion-spinner>
-          <span class="loading-text">Procesando...</span>
+          <span class="loading-text">{{ 'COMMON.PROCESSING' | translate }}</span>
         </div>
       </ion-button>
     </ng-template>

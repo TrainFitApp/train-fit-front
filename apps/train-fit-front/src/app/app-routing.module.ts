@@ -58,7 +58,15 @@ const routes: Routes = [
       ).then((m) => m.StatisticsPageModule),
   },
   {
-    path: 'search-tables/:own',
+    path: 'rm-calculator',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/tables/components/summary/components/rm-calculator/rm-calculator.module'
+      ).then((m) => m.RmCalculatorPageModule),
+  },
+  {
+    path: 'search-tables',
     canMatch: [authMatchGuard],
     loadChildren: () =>
       import(

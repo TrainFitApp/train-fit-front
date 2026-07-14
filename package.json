@@ -7,16 +7,36 @@
   ],
   "scripts": {
     "serve": "npm run start --workspace @trainfit/train-fit-front",
+    "serve:pre": "npm run start:pre --workspace @trainfit/train-fit-front",
+    "serve:pro": "npm run start:pro --workspace @trainfit/train-fit-front",
     "serve:m": "npm run start --workspace @trainfit/train-fit-management",
+    "serve:pre:m": "npm run start:pre --workspace @trainfit/train-fit-management",
+    "serve:pro:m": "npm run start:pro --workspace @trainfit/train-fit-management",
+    "build:pre": "npm run build:pre --workspace @trainfit/train-fit-front",
+    "build:pro": "npm run build:pro --workspace @trainfit/train-fit-front",
     "build:i": "npm run build:i --workspace @trainfit/train-fit-front",
     "build:a": "npm run build:a --workspace @trainfit/train-fit-front",
+    "build:i:pre": "npm run build:i:pre --workspace @trainfit/train-fit-front",
+    "build:a:pre": "npm run build:a:pre --workspace @trainfit/train-fit-front",
+    "build:i:pro": "npm run build:i:pro --workspace @trainfit/train-fit-front",
+    "build:a:pro": "npm run build:a:pro --workspace @trainfit/train-fit-front",
+    "build:pre:m": "npm run build:pre --workspace @trainfit/train-fit-management",
+    "build:pro:m": "npm run build:pro --workspace @trainfit/train-fit-management",
     "build:i:m": "npm run build:i --workspace @trainfit/train-fit-management",
     "build:a:m": "npm run build:a --workspace @trainfit/train-fit-management",
+    "build:i:pre:m": "npm run build:i:pre --workspace @trainfit/train-fit-management",
+    "build:a:pre:m": "npm run build:a:pre --workspace @trainfit/train-fit-management",
+    "build:i:pro:m": "npm run build:i:pro --workspace @trainfit/train-fit-management",
+    "build:a:pro:m": "npm run build:a:pro --workspace @trainfit/train-fit-management",
     "live:i": "npm run live:i --workspace @trainfit/train-fit-front",
     "live:a": "npm run live:a --workspace @trainfit/train-fit-front",
     "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
     "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management"
+  },
+  "dependencies": {
+    "@ngx-translate/core": "^15.0.0",
+    "@ngx-translate/http-loader": "^8.0.0"
   }
 }

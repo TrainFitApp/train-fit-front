@@ -1,8 +1,11 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { IonContent, IonModal, Platform, ToastOptions } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { Subscription, merge } from "rxjs";
 import { User } from "src/app/core/models/user";
+import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
+import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
@@ -79,8 +82,10 @@ export class EditorPage implements OnInit {
   constructor(
     private navigationService: NavigationService,
     private userService: UserService,
+    private nutritionalGoalService: NutritionalGoalService,
     private ionicUtilService: IonicUtilService,
     private platform: Platform,
+    private translate: TranslateService,
   ) {}
 
   public get activityType(): ACTIVITY_FACTOR_TYPE {
@@ -112,19 +117,19 @@ export class EditorPage implements OnInit {
       objetiveType: new FormControl(null, Validators.required),
       training: new FormControl(this.user.training, USER_VALIDATIONS.training),
       kcalTotal: new FormControl(
-        Math.round(this.user.kcalTotal),
+        Math.round((this.user as any).kcalTotal || 0),
         USER_VALIDATIONS.kcalTotal,
       ),
       proteinsGTotal: new FormControl(
-        Math.round(this.user.proteinsGTotal),
+        Math.round((this.user as any).proteinsGTotal || 0),
         USER_VALIDATIONS.proteinsGTotal,
       ),
       carbohydratesGTotal: new FormControl(
-        Math.round(this.user.carbohydratesGTotal),
+        Math.round((this.user as any).carbohydratesGTotal || 0),
         USER_VALIDATIONS.carbohydratesGTotal,
       ),
       fatGTotal: new FormControl(
-        Math.round(this.user.fatGTotal),
+        Math.round((this.user as any).fatGTotal || 0),
         USER_VALIDATIONS.fatGTotal,
       ),
     });
@@ -266,22 +271,22 @@ export class EditorPage implements OnInit {
         this.hasObjetiveChange()
       ) {
         const alertOptions = {
-          header: "Guardar antes de salir",
-          message: "Tienes cambios sin guardar. ¿Qué deseas hacer?",
+          header: this.translate.instant('EDITOR.SAVE_HEADER'),
+          message: this.translate.instant('EDITOR.SAVE_MSG'),
           cssClass: "alert-grid-buttons",
           buttons: [
             {
-              text: "CANCELAR",
+              text: this.translate.instant('EDITOR.CANCEL_BTN'),
               role: "cancel",
             },
             {
-              text: "GUARDAR",
+              text: this.translate.instant('EDITOR.SAVE_BTN'),
               handler: () => {
                 this.updateUser();
               },
             },
             {
-              text: "DESCARTAR",
+              text: this.translate.instant('EDITOR.DISCARD_BTN'),
               role: "destructive",
               handler: () => {
                 this.objetiveSelected = this.initialObjetiveType;
@@ -296,12 +301,11 @@ export class EditorPage implements OnInit {
       } else this.ionicUtilService.closeModal();
     } else {
       const alertOptions = {
-        header: "Faltan campos requeridos",
-        message:
-          "Por favor, completa todos los campos obligatorios antes de continuar.",
+        header: this.translate.instant('EDITOR.MISSING_FIELDS_HEADER'),
+        message: this.translate.instant('EDITOR.MISSING_FIELDS_CLOSE'),
         buttons: [
           {
-            text: "ENTENDIDO",
+            text: this.translate.instant('EDITOR.UNDERSTOOD'),
             role: "cancel",
           },
         ],
@@ -318,14 +322,36 @@ export class EditorPage implements OnInit {
         ...this.userForm.value,
         objetive: this.objetiveFinal,
       };
-      const user = this.userService.setUserMacrosAndKcal(userWithFormValues);
-      Object.assign(this.user, user);
+      const computedUser = this.userService.setUserMacrosAndKcal(userWithFormValues) as any;
+      Object.assign(this.user, computedUser);
       this.calculate();
-      // para que entre en el valueChanges
+
+      const kcalTotal = Math.round(computedUser.kcalTotal || 0);
+      const proteinsGTotal = parseFloat((computedUser.proteinsGTotal || 0).toFixed(2));
+      const carbohydratesGTotal = parseFloat((computedUser.carbohydratesGTotal || 0).toFixed(2));
+      const fatGTotal = parseFloat((computedUser.fatGTotal || 0).toFixed(2));
+
+      this.syncActiveGoal(kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal);
+
       this.userForm.controls.kcalTotal.setValue(
         this.userForm.controls.kcalTotal.value,
       );
     });
+  }
+
+  private syncActiveGoal(kcalTotal: number, proteins: number, carbs: number, fat: number): void {
+    if (this.user.goalInUse) {
+      this.nutritionalGoalService.update(this.user.goalInUse, {
+        kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,
+      }).subscribe();
+    } else {
+      this.nutritionalGoalService.create({
+        name: 'Default', kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,
+      }).subscribe((goal) => {
+        this.user.goalInUse = goal._id;
+        this.nutritionalGoalService.setActive(goal._id);
+      });
+    }
   }
 
   public setStepsDescription(): void {
@@ -341,22 +367,22 @@ export class EditorPage implements OnInit {
   }
 
   public calculate(): void {
-    this.userForm.controls.kcalTotal.setValue(Math.round(this.user.kcalTotal), {
+    this.userForm.controls.kcalTotal.setValue(Math.round((this.user as any).kcalTotal || 0), {
       emitEvent: false,
     });
     this.userForm.controls.proteinsGTotal.setValue(
-      Math.round(this.user.proteinsGTotal),
+      Math.round((this.user as any).proteinsGTotal || 0),
       {
         emitEvent: false,
       },
     );
     this.userForm.controls.carbohydratesGTotal.setValue(
-      Math.round(this.user.carbohydratesGTotal),
+      Math.round((this.user as any).carbohydratesGTotal || 0),
       {
         emitEvent: false,
       },
     );
-    this.userForm.controls.fatGTotal.setValue(Math.round(this.user.fatGTotal), {
+    this.userForm.controls.fatGTotal.setValue(Math.round((this.user as any).fatGTotal || 0), {
       emitEvent: false,
     });
   }
@@ -367,12 +393,11 @@ export class EditorPage implements OnInit {
 
     if (!this.userForm.valid) {
       const alertOptions = {
-        header: "Faltan campos requeridos",
-        message:
-          "Por favor, completa todos los campos obligatorios antes de guardar.",
+        header: this.translate.instant('EDITOR.MISSING_FIELDS_HEADER'),
+        message: this.translate.instant('EDITOR.MISSING_FIELDS_SAVE'),
         buttons: [
           {
-            text: "ENTENDIDO",
+            text: this.translate.instant('EDITOR.UNDERSTOOD'),
             role: "cancel",
           },
         ],
@@ -383,14 +408,13 @@ export class EditorPage implements OnInit {
 
     this.loading = true;
 
-    // Crear objeto con solo los campos que han cambiado
     const userToUpdate: Partial<User> = {};
     const formValue = this.userForm.value;
+    const skipFields = ["objetiveType", "kcalTotal", "proteinsGTotal", "carbohydratesGTotal", "fatGTotal"];
 
-    // Comparar cada campo con el valor inicial y solo incluir los que han cambiado
     Object.keys(formValue).forEach((key) => {
       if (
-        key !== "objetiveType" &&
+        !skipFields.includes(key) &&
         formValue[key] !== this.initialFormUser.value[key]
       ) {
         userToUpdate[key] = formValue[key];
@@ -405,7 +429,7 @@ export class EditorPage implements OnInit {
     // Solo actualizar si hay cambios
     if (Object.keys(userToUpdate).length === 0) {
       this.ionicUtilService.showToast({
-        message: "No hay cambios para guardar",
+        message: this.translate.instant('EDITOR.NO_CHANGES_MSG'),
         color: "warning",
         duration: 2000,
       } as ToastOptions);
@@ -426,13 +450,16 @@ export class EditorPage implements OnInit {
     if (this.user.dietInUse !== undefined) {
       userToUpdate.dietInUse = this.user.dietInUse;
     }
+    if (this.user.goalInUse !== undefined) {
+      userToUpdate.goalInUse = this.user.goalInUse;
+    }
 
     this.userService.updateUser(userToUpdate as User).subscribe({
       next: (user: User) => {
         this.user = user;
         this.userService.setLocalUser = user; // Actualizar el usuario local
         this.ionicUtilService.showToast({
-          message: "Usuario actualizado correctamente",
+          message: this.translate.instant('EDITOR.UPDATE_SUCCESS'),
           color: "success",
           duration: 2000,
         } as ToastOptions);
@@ -441,7 +468,7 @@ export class EditorPage implements OnInit {
       },
       error: (error) => {
         this.ionicUtilService.showToast({
-          message: "Error al actualizar el usuario",
+          message: this.translate.instant('EDITOR.UPDATE_ERROR'),
           color: "danger",
           duration: 2000,
         } as ToastOptions);
@@ -615,7 +642,7 @@ export class EditorPage implements OnInit {
     ) {
       const buttons: any[] = [
         {
-          text: "RELLENAR",
+          text: this.translate.instant('EDITOR.FILL_BTN'),
           handler: () => {
             this.scrollToActivityAndHighlight();
           },
@@ -624,7 +651,7 @@ export class EditorPage implements OnInit {
 
       if (isClosing) {
         buttons.push({
-          text: "DESCARTAR",
+          text: this.translate.instant('EDITOR.DISCARD_BTN2'),
           role: "destructive",
           handler: () => {
             this.objetiveSelected = this.initialObjetiveType;
@@ -636,9 +663,8 @@ export class EditorPage implements OnInit {
       }
 
       const alertOptions = {
-        header: "Nivel de actividad obligatorio",
-        message:
-          "Has seleccionado que no cuentas tus pasos, por lo que es obligatorio rellenar el nivel de actividad.",
+        header: this.translate.instant('EDITOR.ACTIVITY_REQUIRED_HEADER'),
+        message: this.translate.instant('EDITOR.ACTIVITY_REQUIRED_MSG'),
         buttons: buttons,
       };
       this.ionicUtilService.showAlert(alertOptions);

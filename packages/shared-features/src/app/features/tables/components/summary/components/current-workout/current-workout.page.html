@@ -7,11 +7,15 @@
         <div class="workout-row">
           <div class="workout-info">
             <div class="workout-title">
-              <h2>ENTRENAMIENTO</h2>
+              <h2>{{ 'TABLES.WORKOUT_HEADER' | translate }}</h2>
               <div class="workout-name">
                 <span class="workout-name-text"
-                  >{{ currentWorkout?.name }}</span
+                  >{{ currentWorkout?.name | translateDb }}</span
                 >
+              </div>
+              <div class="workout-chrono" *ngIf="currentWorkout?.startedAt">
+                <ion-icon name="stopwatch-outline"></ion-icon>
+                <span>{{ elapsedLabel }}</span>
               </div>
             </div>
           </div>
@@ -48,10 +52,10 @@
 
             <ion-button
               fill="clear"
-              class="action-btn note-btn"
-              (click)="manageNote()"
+              class="action-btn options-btn"
+              (click)="openWorkoutOptions($event)"
             >
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
           </div>
         </div>
@@ -63,7 +67,7 @@
           (click)="endWorkout()"
         >
           <ion-icon name="stopwatch-outline" class="finish-icon"></ion-icon>
-          <span class="finish-text">Finalizar entrenamiento</span>
+          <span class="finish-text">{{ 'TABLES.FINISH_WORKOUT' | translate }}</span>
         </div>
       </div>
     </div>
@@ -74,12 +78,12 @@
 
 <ion-content>
   <ion-item *ngIf="currentWorkout?.exercises.length === 0">
-    <ion-label color="medium">No hay ejercicios asignados</ion-label>
+    <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>
 
   <div *ngIf="previousWorkout?.notes" class="previous-workout-notes-container">
     <div class="previous-session-title">
-      <span class="previous-title-text">Sesión anterior</span>
+      <span class="previous-title-text">{{ 'TABLES.PREVIOUS_SESSION' | translate }}</span>
     </div>
     <app-notes
       [object]="previousWorkout"
@@ -129,7 +133,7 @@
                   class="exercise-name-text"
                   [class.completed]="isCustomExerciseCompleted(exercise)"
                 >
-                  {{ exercise.exercise.name }}
+                  {{ exercise.exercise.name | translateDb }}
                 </span>
               </div>
 
@@ -142,13 +146,13 @@
                   *ngIf="!isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0"
                   class="progress-status in-progress"
                 >
-                  EN PROGRESO
+                  {{ 'TABLES.IN_PROGRESS_BADGE' | translate }}
                 </span>
                 <span
                   *ngIf="isCustomExerciseCompleted(exercise)"
                   class="progress-status completed"
                 >
-                  COMPLETADO
+                  {{ 'TABLES.COMPLETED_BADGE' | translate }}
                 </span>
               </div>
             </div>

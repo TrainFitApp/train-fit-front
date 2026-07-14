@@ -43,6 +43,10 @@ export class ProductComponent implements OnInit, OnChanges {
   public ingredientMode: boolean = false;
   @Input()
   public isIngredientSelected: boolean = false;
+  @Input()
+  public recentCustomProduct?: CustomProduct | null;
+  @Input()
+  public showRecentIcon: boolean = false;
 
   @Output()
   public delete = new EventEmitter<string>();
@@ -62,6 +66,7 @@ export class ProductComponent implements OnInit, OnChanges {
   public brand: string;
 
   public loading = { value: false };
+  public actionLoading = false;
   public isChecked: boolean;
   public customProduct: CustomProduct;
 
@@ -92,11 +97,30 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes.meal || changes.isIngredientSelected || changes.product) {
+    if (
+      changes.meal ||
+      changes.isIngredientSelected ||
+      changes.product ||
+      changes.recentCustomProduct
+    ) {
       this.existCustomProduct();
       this.isProductChecked();
       this.setBrand();
     }
+  }
+
+  public get isBusy(): boolean {
+    return this.loading.value || this.actionLoading;
+  }
+
+  public get displayCustomProduct(): CustomProduct | null {
+    return this.customProduct || this.recentCustomProduct || null;
+  }
+
+  public onCardClick(): void {
+    if (this.isBusy) return;
+
+    this.ingredientMode ? this.onRowClickIngredientMode() : this.openAddProduct();
   }
 
   // Handler for row click in ingredient mode - navigate to add-product
@@ -134,16 +158,18 @@ export class ProductComponent implements OnInit, OnChanges {
       productName: this.product.name,
       productId: this.product._id,
       isChecked: this.isChecked,
-      quantity: this.productQuantity || 100,
+      quantity: this.getEffectiveQuantity(),
     });
     this.ingredientToggle.emit({
       product: this.product,
-      quantity: this.productQuantity || 100,
+      quantity: this.getEffectiveQuantity(),
       checked: this.isChecked,
     });
   }
 
   public toggleProduct(event: Event): void {
+    if (this.isBusy) return;
+
     const checked = this.utilService.getEventCheck(event);
 
     // In ingredient mode, just emit the product without API calls
@@ -151,17 +177,13 @@ export class ProductComponent implements OnInit, OnChanges {
       this.isChecked = checked;
       this.ingredientToggle.emit({
         product: this.product,
-        quantity: this.productQuantity || 100,
+        quantity: this.getEffectiveQuantity(),
         checked: checked,
       });
       return;
     }
 
-    const newCustomProduct = this.customProductService.composeCustomProduct(
-      this.product,
-      this.productQuantity,
-      0
-    );
+    const newCustomProduct = this.buildCustomProductForAdd();
 
     if (checked) {
       if (
@@ -179,6 +201,7 @@ export class ProductComponent implements OnInit, OnChanges {
         (this.product.servingQuantity ||
           MEASURE_FILTER[MEASURE_FILTER_TYPES.racion].id !== this.measureFilter)
       ) {
+        this.actionLoading = true;
         const idDietInUse = this.userService.getLocalUser.dietInUse;
         this.dietDayService
           .createCustomProduct(
@@ -188,14 +211,23 @@ export class ProductComponent implements OnInit, OnChanges {
             this.meal,
             idDietInUse
           )
-          .subscribe(() => {
-            this.isChecked = true;
+          .subscribe({
+            next: () => {
+              this.isChecked = true;
+              this.actionLoading = false;
+            },
+            error: () => {
+              this.isChecked = false;
+              this.actionLoading = false;
+              this.loading.value = false;
+            },
           });
       } else {
         this.isChecked = false;
         this.openAddProduct();
       }
     } else {
+      this.actionLoading = true;
       this.loading.value = true;
       const customProductToDelete = this.meal.customProducts.find(
         (resCustomProduct) =>
@@ -210,28 +242,36 @@ export class ProductComponent implements OnInit, OnChanges {
         );
         this.isChecked = false;
         this.loading.value = false;
+        this.actionLoading = false;
         return;
       }
 
       this.customProductService
         .deleteCustomProduct(customProductToDelete._id)
         .pipe(take(1))
-        .subscribe(() => {
-          this.isChecked = false;
-          const indexCustomProduct = this.meal.customProducts.findIndex(
-            (customProductTemp) =>
-              customProductTemp._id === customProductToDelete._id
-          );
-          this.meal.customProducts.splice(indexCustomProduct, 1);
-          this.dietDayService.setCurrentDietDay = this.dietDay;
-          this.customProduct = undefined;
-          this.loading.value = false;
+        .subscribe({
+          next: () => {
+            this.isChecked = false;
+            const indexCustomProduct = this.meal.customProducts.findIndex(
+              (customProductTemp) =>
+                customProductTemp._id === customProductToDelete._id
+            );
+            this.meal.customProducts.splice(indexCustomProduct, 1);
+            this.dietDayService.setCurrentDietDay = this.dietDay;
+            this.customProduct = undefined;
+            this.loading.value = false;
+            this.actionLoading = false;
+          },
+          error: () => {
+            this.loading.value = false;
+            this.actionLoading = false;
+          },
         });
     }
   }
 
   public checkIfInfoExist(): boolean {
-    if (typeof this.customProduct?.quantity === 'number' && this.customProduct.quantity > 0) {
+    if (typeof this.displayCustomProduct?.quantity === 'number' && this.displayCustomProduct.quantity > 0) {
       return false;
     }
 
@@ -334,7 +374,7 @@ export class ProductComponent implements OnInit, OnChanges {
       dietDay: JSON.stringify(this.dietDay),
       meal: JSON.stringify(this.meal),
       product: JSON.stringify(this.product),
-      productQuantity: this.productQuantity,
+      productQuantity: this.getEffectiveQuantity(),
     };
     this.navigationService.goToAddProduct({
       replaceUrl: false,
@@ -343,7 +383,7 @@ export class ProductComponent implements OnInit, OnChanges {
         dietDay: this.dietDay,
         meal: this.meal,
         product: this.product,
-        productQuantity: this.productQuantity,
+        productQuantity: this.getEffectiveQuantity(),
         ingredientMode: this.ingredientMode,
         customProduct: this.customProduct, // Pass existing customProduct for editing
         returnUrl: '/search-foods',
@@ -352,8 +392,43 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   private setBrand(): void {
-    this.brand = this.customProduct
-      ? this.customProduct.product?.brand
+    this.brand = this.displayCustomProduct
+      ? this.displayCustomProduct.product?.brand
       : this.product.brand;
+  }
+
+  private getEffectiveQuantity(): number {
+    return (
+      this.customProduct?.quantity ??
+      this.recentCustomProduct?.quantity ??
+      this.productQuantity ??
+      100
+    );
+  }
+
+  private buildCustomProductForAdd(): CustomProduct {
+    if (this.recentCustomProduct && !this.customProduct) {
+      const recentPayload = { ...this.recentCustomProduct } as CustomProduct & {
+        lastUsedAt?: string;
+      };
+      delete recentPayload._id;
+      delete recentPayload.mealId;
+      delete recentPayload.customRecipeId;
+      delete recentPayload.baseCustomProductId;
+      delete recentPayload.lastUsedAt;
+
+      return {
+        ...recentPayload,
+        quantity: this.getEffectiveQuantity(),
+        order: 0,
+        product: this.product,
+      };
+    }
+
+    return this.customProductService.composeCustomProduct(
+      this.product,
+      this.getEffectiveQuantity(),
+      0
+    );
   }
 }

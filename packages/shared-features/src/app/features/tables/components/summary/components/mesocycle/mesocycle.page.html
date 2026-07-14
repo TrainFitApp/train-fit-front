@@ -10,12 +10,44 @@
         </div>
         <div class="title-section">
           <h1 class="page-title" (click)="editTableName()">
-            {{ tableInUse?.name }}
+            {{ tableInUse?.name | translateDb }}
           </h1>
         </div>
         <div class="actions-section" *ngIf="!pasteMode">
-          <button class="action-button ripple-effect" (click)="unlinkTable()">
-            <ion-icon name="close" color="primary"></ion-icon>
+          <button
+            *ngIf="stateSelected !== STATES.move"
+            class="action-button ripple-effect"
+            [disabled]="loadingSplit || !currentSplit?.workouts?.length"
+            (click)="enterWorkoutMoveMode()"
+          >
+            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+          </button>
+
+          <button
+            *ngIf="stateSelected === STATES.move"
+            class="action-button ripple-effect"
+            [disabled]="savingWorkoutOrder"
+            (click)="cancelWorkoutMoveMode()"
+          >
+            <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+          </button>
+
+          <button
+            *ngIf="stateSelected === STATES.move"
+            class="action-button action-button--confirm ripple-effect"
+            [disabled]="savingWorkoutOrder"
+            (click)="confirmWorkoutOrder()"
+          >
+            <ion-spinner
+              *ngIf="savingWorkoutOrder"
+              name="crescent"
+              color="success"
+            ></ion-spinner>
+            <ion-icon
+              *ngIf="!savingWorkoutOrder"
+              name="checkmark-outline"
+              color="success"
+            ></ion-icon>
           </button>
         </div>
       </div>
@@ -33,58 +65,66 @@
       *ngIf="tableInUseAux?.splits.length > 0 && currentSplit; else emptySplits;"
     >
       <ng-container *ngIf="currentSplit.workouts?.length > 0 && !loadingSplit">
-        <ng-container
-          *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
+        <ion-reorder-group
+          class="workout-reorder-group"
+          [disabled]="stateSelected !== STATES.move || savingWorkoutOrder"
+          (ionItemReorder)="handleWorkoutReorder($event)"
         >
           <div
-            class="info-explainer"
-            *ngIf="pasteMode && workoutIndexPaste === ind"
+            class="workout-reorder-row"
+            *ngFor="let workout of currentSplit?.workouts; let ind = index; trackBy: trackByWorkout"
           >
-            <div class="info-card">
-              <ion-icon
-                name="information-circle-outline"
-                class="info-icon"
-              ></ion-icon>
-              <div class="info-text">
-                <span class="info-title">Modo copia activado</span>
-                <p>
-                  Ahora puedes navegar entre micro-ciclos y pegar este
-                  entrenamiento para otro día
-                  <ion-label color="tertiary"
-                    ><strong>{{ workout.name }}</strong></ion-label
-                  >.
-                </p>
+            <div
+              class="info-explainer"
+              *ngIf="pasteMode && workoutIndexPaste === ind"
+            >
+              <div class="info-card">
+                <ion-icon
+                  name="information-circle-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title">{{ 'TABLES.COPY_MODE' | translate }}</span>
+                  <p>
+                    {{ 'TABLES.COPY_MODE_DESC' | translate }}
+                    <ion-label color="tertiary"
+                      ><strong>{{ workout.name | translateDb }}</strong></ion-label
+                    >.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <ion-accordion-group
-            [id]="'workout-' + ind"
-            [multiple]="true"
-            [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
-            (ionChange)="toggleAccordion($event, ind)"
-            [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
-            [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
-          >
-            <app-workout
-              [user]="user"
-              [split]="currentSplit"
-              [splitIndex]="currentSplitIndex"
-              [tableInUse]="tableInUse"
-              [workout]="workout"
-              [workoutColor]="user?.workoutInUse === workout._id ? 'var(--ion-color-secondary)' : 'var(--ion-color-medium)'"
-              [workoutIndex]="ind"
-              [stateSelected]="stateSelected"
-              [pasteMode]="pasteMode"
-              (pasteEvent)="paste($event)"
-              (exerciseAddedEvent)="onExerciseAdded($event)"
-              (setAddedEvent)="onSetAdded($event)"
-              (setUpdatedEvent)="onSetUpdated($event)"
-              (setDeletedEvent)="onSetDeleted($event)"
-              (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
-            ></app-workout>
-          </ion-accordion-group>
-        </ng-container>
+            <ion-accordion-group
+              [id]="'workout-' + ind"
+              [multiple]="true"
+              [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
+              (ionChange)="toggleAccordion($event, ind)"
+              [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
+              [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
+            >
+              <app-workout
+                [user]="user"
+                [split]="currentSplit"
+                [splitIndex]="currentSplitIndex"
+                [tableInUse]="tableInUse"
+                [workout]="workout"
+                [workoutColor]="user?.workoutInUse === workout._id ? 'var(--ion-color-secondary)' : 'var(--ion-color-medium)'"
+                [workoutIndex]="ind"
+                [stateSelected]="stateSelected"
+                [savingWorkoutOrder]="savingWorkoutOrder"
+                [pasteMode]="pasteMode"
+                (pasteEvent)="paste($event)"
+                (exerciseAddedEvent)="onExerciseAdded($event)"
+                (setAddedEvent)="onSetAdded($event)"
+                (setUpdatedEvent)="onSetUpdated($event)"
+                (setDeletedEvent)="onSetDeleted($event)"
+                (workoutNameUpdatedEvent)="onWorkoutNameUpdated($event)"
+                (workoutDuplicatedEvent)="onWorkoutDuplicated($event)"
+              ></app-workout>
+            </ion-accordion-group>
+          </div>
+        </ion-reorder-group>
       </ng-container>
 
       <!-- Skeleton Loader con acordeones detallados -->
@@ -104,11 +144,9 @@
             <ion-grid slot="header" class="skeleton-workout-header">
               <ion-row>
                 <ion-col class="ion-no-padding" size="9.6">
-                  <!-- Primera fila: Botón menú + Texto "Hoy" + Nombre workout + Chevron -->
                   <ion-row>
                     <ion-col class="skeleton-meal-name">
                       <div class="skeleton-header-row">
-                        <!-- Nombre del workout - font-size: x-large equivale a ~24px -->
                         <ion-skeleton-text
                           animated
                           style="
@@ -122,11 +160,9 @@
                     </ion-col>
                   </ion-row>
 
-                  <!-- Segunda fila: Información de ejercicios y series -->
                   <ion-row>
                     <ion-col>
                       <div class="skeleton-exercise-info">
-                        <!-- Texto cantidad de ejercicios - font-size: default (~16px) -->
                         <ion-skeleton-text
                           animated
                           style="
@@ -136,7 +172,6 @@
                             margin-right: 12px;
                           "
                         ></ion-skeleton-text>
-                        <!-- Texto series totales - font-size: small (~14px) -->
                         <ion-skeleton-text
                           animated
                           style="width: 70px; height: 14px; border-radius: 4px"
@@ -145,7 +180,6 @@
                     </ion-col>
                   </ion-row>
 
-                  <!-- Tercera fila: Fecha del workout - font-size: x-small (~10px) -->
                   <ion-row>
                     <ion-col>
                       <ion-skeleton-text
@@ -161,15 +195,12 @@
                   </ion-row>
                 </ion-col>
 
-                <!-- Columna de botones de acción -->
                 <ion-col class="ion-no-padding" size="2.4">
                   <div class="skeleton-action-buttons">
-                    <!-- Botón play/stop - font-size: xx-large equivale a ~32px -->
                     <ion-skeleton-text
                       animated
                       style="width: 52px; height: 52px; border-radius: 14px"
                     ></ion-skeleton-text>
-                    <!-- Botón clipboard - font-size: xx-large equivale a ~32px -->
                     <ion-skeleton-text
                       animated
                       style="width: 52px; height: 52px; border-radius: 14px"
@@ -179,28 +210,22 @@
               </ion-row>
             </ion-grid>
 
-            <!-- Contenido del acordeón: ejercicios detallados -->
             <div slot="content" class="skeleton-workout-content">
               <div class="skeleton-exercise" *ngFor="let exercise of [1,2,3]">
-                <!-- Header del ejercicio -->
                 <div class="skeleton-exercise-header">
                   <div class="skeleton-exercise-title">
-                    <!-- Nombre del ejercicio - Tamaño más realista -->
                     <ion-skeleton-text
                       animated
                       style="width: 45%; height: 18px; border-radius: 14px"
                     ></ion-skeleton-text>
                   </div>
-                  <!-- Botón de menú del ejercicio - Tamaño real del ion-button -->
                   <ion-skeleton-text
                     animated
                     style="width: 32px; height: 32px; border-radius: 16px"
                   ></ion-skeleton-text>
                 </div>
 
-                <!-- Información del ejercicio -->
                 <div class="skeleton-exercise-info-detail">
-                  <!-- Músculos trabajados - Tamaño más realista -->
                   <ion-skeleton-text
                     animated
                     style="
@@ -210,7 +235,6 @@
                       margin-top: 14px;
                     "
                   ></ion-skeleton-text>
-                  <!-- Tipo de ejercicio - Tamaño más realista -->
                   <ion-skeleton-text
                     animated
                     style="
@@ -222,31 +246,25 @@
                   ></ion-skeleton-text>
                 </div>
 
-                <!-- Series del ejercicio -->
                 <div class="skeleton-sets-container">
                   <div class="skeleton-set" *ngFor="let set of [1,2,3]">
                     <div class="skeleton-set-row">
-                      <!-- Número de serie - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 24px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Peso - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 45px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Repeticiones - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 35px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- RIR - font-size: 11px (td) -->
                       <ion-skeleton-text
                         animated
                         style="width: 30px; height: 11px; border-radius: 4px"
                       ></ion-skeleton-text>
-                      <!-- Botón check - Tamaño real del ion-button -->
                       <ion-skeleton-text
                         animated
                         style="width: 24px; height: 24px; border-radius: 12px"
@@ -261,13 +279,74 @@
       </ng-container>
 
       <ion-button
-        *ngIf="!loadingSplit && !pasteMode"
+        *ngIf="!loadingSplit && !pasteMode && stateSelected === STATES.static"
         expand="block"
         shape="round"
         class="ion-margin t-add-workout"
         (click)="addWorkout()"
-        ><strong>CREAR ENTRENAMIENTO</strong>
+        ><strong>{{ 'TABLES.CREATE_WORKOUT' | translate }}</strong>
       </ion-button>
+
+      <section
+        class="workout-template-panel"
+        *ngIf="stateSelected === STATES.static && shouldShowWorkoutTemplates"
+      >
+        <ion-accordion-group class="workout-template-dropdown">
+          <ion-accordion value="templates">
+            <div slot="header" class="workout-template-trigger">
+              <div class="workout-template-trigger__text">
+                <h2>{{ 'TABLES.QUICK_TEMPLATES' | translate }}</h2>
+                <p>{{ 'TABLES.QUICK_TEMPLATES_DESC' | translate }}</p>
+              </div>
+              <ion-icon
+                class="workout-template-trigger__icon"
+                name="chevron-down-outline"
+              ></ion-icon>
+            </div>
+
+            <div slot="content" class="workout-template-content">
+              <ion-progress-bar
+                *ngIf="workoutTemplateLoadingId"
+                type="indeterminate"
+                color="primary"
+              ></ion-progress-bar>
+
+              <div class="workout-template-grid">
+                <button
+                  type="button"
+                  class="workout-template-option"
+                  *ngFor="let template of workoutTemplates"
+                  [disabled]="!!workoutTemplateLoadingId"
+                  (click)="confirmWorkoutTemplate(template)"
+                >
+                  <div class="workout-template-option__body">
+                    <div class="workout-template-option__top">
+                      <span class="workout-template-option__name">
+                        {{ template.name | translateDb }}
+                      </span>
+                      <span class="workout-template-option__days">
+                        {{ template.description | translateDb }}
+                      </span>
+                    </div>
+                    <div class="workout-template-option__preview">
+                      <span
+                        class="workout-template-option__chip"
+                        *ngFor="let workoutName of template.workouts"
+                      >
+                        {{ workoutName | translateDb }}
+                      </span>
+                    </div>
+                  </div>
+                  <ion-icon
+                    class="workout-template-option__arrow"
+                    name="chevron-forward-outline"
+                  ></ion-icon>
+                </button>
+              </div>
+            </div>
+          </ion-accordion>
+        </ion-accordion-group>
+      </section>
     </ng-container>
 
     <div
@@ -279,10 +358,9 @@
         <div class="microcycle-lock-icon">
           <ion-icon name="lock-closed-outline"></ion-icon>
         </div>
-        <h2>Micro-ciclo bloqueado</h2>
+        <h2>{{ 'TABLES.MICROCYCLE_LOCKED' | translate }}</h2>
         <p>
-          Has superado los {{ microcyclesPerRoutineLimit }} micro-ciclos
-          incluidos en el modo Free. Activa Pro para seguir esta rutina.
+          {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit: microcyclesPerRoutineLimit } }}
         </p>
         <ion-button
           expand="block"
@@ -290,7 +368,7 @@
           class="microcycle-lock-cta"
           (click)="openPremiumFromLockedSplit($event)"
         >
-          Hazte Pro
+          {{ 'TABLES.GO_PRO' | translate }}
         </ion-button>
       </div>
     </div>
@@ -315,9 +393,16 @@
     expand="block"
     shape="round"
     class="ion-margin t-add-micro"
+    [disabled]="loadingFab"
     (click)="addFirstSplitToTable()"
-    ><strong>AÑADIR MICRO-CICLO</strong></ion-button
+    ><strong>{{ 'TABLES.ADD_MICROCYCLE' | translate }}</strong></ion-button
   >
+  <ion-progress-bar
+    *ngIf="loadingFab"
+    class="t-add-micro-progress"
+    type="indeterminate"
+    color="primary"
+  ></ion-progress-bar>
 </ng-template>
 
 <ion-footer *ngIf="tableInUse?.splits.length > 0">
@@ -341,28 +426,31 @@
                 interface="action-sheet"
                 [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
                 mode="ios"
-                cancelText="Cancelar"
-                placeholder="MICRO-CICLO"
+                cancelText="{{ 'COMMON.CANCEL' | translate }}"
+                placeholder="{{ 'TABLES.MICROCYCLE_SELECTOR' | translate }}"
               >
                 <ion-select-option
                   *ngFor="let splitItem of reversedSplitsWithIndex"
                   [value]="splitItem.originalIndex"
                   [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
                 >
-                  MICRO-CICLO {{ splitItem.originalIndex + 1 }}
-                  {{ isSplitLocked(splitItem.originalIndex) ? '- PRO' : '' }}
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{ splitItem.originalIndex + 1 }}
+                  {{ isSplitLocked(splitItem.originalIndex) ? ('TABLES.PRO_BADGE' | translate) : '' }}
                   <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
                 </ion-select-option>
               </ion-select>
               <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
             </div>
             <div class="cycle-subtitle">
-              de {{ tableInUse?.splits?.length || 0 }} en total
+              {{ 'TABLES.OF_TOTAL' | translate:{ total: tableInUse?.splits?.length || 0 } }}
             </div>
           </div>
         </div>
 
-        <div *ngIf="!pasteMode" class="micro-cycle-actions">
+        <div
+          *ngIf="!pasteMode && stateSelected === STATES.static"
+          class="micro-cycle-actions"
+        >
           <ion-button
             fill="clear"
             class="action-btn menu-btn ripple-effect"
@@ -381,7 +469,7 @@
           class="nav-arrow nav-arrow-left ripple-effect"
           [class.animating]="animatingLeft"
           mode="md"
-          [disabled]="currentSplitIndex === 0 || loadingSplit"
+          [disabled]="currentSplitIndex === 0 || loadingSplit || stateSelected === STATES.move"
           (click)="navigateToPreviousSplit()"
         >
           <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
@@ -394,7 +482,7 @@
           class="nav-arrow nav-arrow-right ripple-effect"
           [class.animating]="animatingRight"
           mode="md"
-          [disabled]="currentSplitIndex === tableInUseAux?.splits.length - 1 || loadingSplit"
+          [disabled]="currentSplitIndex === tableInUseAux?.splits.length - 1 || loadingSplit || stateSelected === STATES.move"
           (click)="navigateToNextSplit()"
         >
           <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>

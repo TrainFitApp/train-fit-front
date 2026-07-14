@@ -9,6 +9,11 @@ export enum ACTION_TYPES {
   moveExercises = 7,
   note = 8,
   duplicate = 9,
+  rmCalculator = 10,
+  moveSets = 11,
+  viewSummary = 12,
+  skipWorkout = 13,
+  unskipWorkout = 14,
 }
 
 export type ACTION_TYPE = {
@@ -29,19 +34,19 @@ export const ACTIONS: {
   // },
   [ACTION_TYPES.edit]: {
     id: ACTION_TYPES.edit,
-    value: 'Editar',
+    value: 'ACTIONS.EDIT',
     icon: 'pencil-outline',
     color: 'alternative',
   },
   [ACTION_TYPES.copy]: {
     id: ACTION_TYPES.copy,
-    value: 'Copiar',
+    value: 'ACTIONS.COPY',
     icon: 'copy-outline',
     color: 'primary',
   },
   [ACTION_TYPES.note]: {
     id: ACTION_TYPES.note,
-    value: 'Nota',
+    value: 'ACTIONS.NOTE',
     icon: 'create-outline',
     color: 'secondary',
   },
@@ -53,19 +58,19 @@ export const ACTIONS: {
   // },
   [ACTION_TYPES.delete]: {
     id: ACTION_TYPES.delete,
-    value: 'Eliminar',
+    value: 'ACTIONS.DELETE',
     icon: 'trash-outline',
     color: 'danger',
   },
   [ACTION_TYPES.moveExercises]: {
     id: ACTION_TYPES.moveExercises,
-    value: 'Mover ejercicios',
+    value: 'ACTIONS.MOVE_EXERCISES',
     icon: 'repeat-outline',
     color: 'medium',
   },
   [ACTION_TYPES.deselect]: {
     id: ACTION_TYPES.deselect,
-    value: 'Deseleccionar todo',
+    value: 'ACTIONS.DESELECT_ALL',
     icon: 'remove-circle-outline',
     color: 'danger',
   },
@@ -77,9 +82,39 @@ export const ACTIONS: {
   // },
   [ACTION_TYPES.duplicate]: {
     id: ACTION_TYPES.duplicate,
-    value: 'Duplicar',
+    value: 'ACTIONS.DUPLICATE',
     icon: 'duplicate-outline',
     color: 'secondary',
+  },
+  [ACTION_TYPES.rmCalculator]: {
+    id: ACTION_TYPES.rmCalculator,
+    value: 'ACTIONS.RM_CALCULATOR',
+    icon: 'calculator-outline',
+    color: 'primary',
+  },
+  [ACTION_TYPES.moveSets]: {
+    id: ACTION_TYPES.moveSets,
+    value: 'ACTIONS.MOVE_SETS',
+    icon: 'swap-vertical',
+    color: 'medium',
+  },
+  [ACTION_TYPES.viewSummary]: {
+    id: ACTION_TYPES.viewSummary,
+    value: 'ACTIONS.VIEW_SUMMARY',
+    icon: 'stats-chart-outline',
+    color: 'primary',
+  },
+  [ACTION_TYPES.skipWorkout]: {
+    id: ACTION_TYPES.skipWorkout,
+    value: 'ACTIONS.SKIP_WORKOUT',
+    icon: 'play-skip-forward-outline',
+    color: 'alternative',
+  },
+  [ACTION_TYPES.unskipWorkout]: {
+    id: ACTION_TYPES.unskipWorkout,
+    value: 'ACTIONS.UNSKIP_WORKOUT',
+    icon: 'arrow-undo-outline',
+    color: 'medium',
   },
 };
 

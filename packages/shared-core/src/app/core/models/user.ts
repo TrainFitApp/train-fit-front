@@ -24,12 +24,12 @@ export class User {
   tableInUse: any;
   workoutInUse: any;
   diets: Diet[];
-  tables: Table[];
   dayWeights: DayWeight[];
-  ownTables: string[];
+  tables: string[];
   access_token?: string;
   hash?: string;
   theme?: ColorMode;
+  lang?: 'es' | 'en';
   provider?: 'google' | 'apple';
   personalAds?: boolean;
   premium?: {
@@ -40,15 +40,7 @@ export class User {
     lastSyncAt?: string | Date;
   };
 
-  kcalCurrent?: number;
-  proteinsGCurrent?: number;
-  carbohydratesGCurrent?: number;
-  fatGCurrent?: number;
-
-  kcalTotal: number;
-  proteinsGTotal: number;
-  carbohydratesGTotal: number;
-  fatGTotal: number;
+  goalInUse?: string;
 
   archivedProducts?: string[];
   archivedRecipes?: string[];

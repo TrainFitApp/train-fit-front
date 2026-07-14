@@ -1,0 +1,310 @@
+.goal-list-content {
+  padding: 20px;
+}
+
+.tf-page-header__action-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.create-goal-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #373737;
+    z-index: 10;
+  }
+}
+
+.create-goal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goal-name-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #373737;
+  padding: 8px 0;
+  font-size: 16px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-bottom-color: var(--ion-color-primary);
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.confirm-name-btn,
+.cancel-name-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.confirm-name-btn {
+  color: var(--ion-color-primary);
+
+  &:hover {
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+  }
+
+  &:active {
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
+    transform: scale(0.95);
+  }
+}
+
+.cancel-name-btn {
+  color: #9ca3af;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(0.95);
+  }
+}
+
+.goal-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.goal-card {
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #373737;
+    z-index: 10;
+  }
+
+  &:hover {
+    border-color: #373737;
+  }
+}
+
+.goal-card.active {
+  border-color: rgba(var(--ion-color-success-rgb), 0.3);
+
+  &::after {
+    background: var(--ion-color-success, #2dd36f);
+    box-shadow: 0 1px 10px rgba(var(--ion-color-success-rgb), 0.3);
+  }
+}
+
+.goal-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.goal-card__name {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.goal-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.in-use-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ion-color-success, #2dd36f);
+  background: rgba(var(--ion-color-success-rgb), 0.12);
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.delete-goal-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(var(--ion-color-danger-rgb), 0.15);
+  }
+
+  &:active {
+    background: rgba(var(--ion-color-danger-rgb), 0.25);
+    transform: scale(0.95);
+  }
+}
+
+.goal-card__macros {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #252525;
+  margin-top: 12px;
+}
+
+.macro-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.macro-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.macro-label.protein {
+  color: #3880ff;
+}
+
+.macro-label.carbs {
+  color: #2dd36f;
+}
+
+.macro-label.fat {
+  color: #ffc409;
+}
+
+.macro-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.empty-state ion-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+  color: #373737;
+}
+
+.empty-state p {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 240px;
+}

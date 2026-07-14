@@ -276,6 +276,92 @@
     }
   }
 
+  .description-steps-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .description-step.editable {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) 44px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .description-step-index {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--ion-color-primary-rgb), 0.14);
+      color: var(--ion-color-primary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .description-step-input {
+      --background: rgba(var(--ion-color-light-rgb), 0.72);
+      --color: var(--ion-color-dark);
+      --placeholder-color: rgba(var(--ion-color-medium-rgb), 0.82);
+      --placeholder-opacity: 1;
+      --border-radius: 8px;
+      --padding-start: 10px;
+      --padding-end: 10px;
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      width: 100%;
+
+      &::part(native) {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+
+    .remove-step-btn {
+      width: 44px;
+      height: 44px;
+      margin: 0;
+      --padding-start: 0;
+      --padding-end: 0;
+      --color: var(--ion-color-medium);
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+
+    .add-step-btn {
+      align-self: flex-start;
+      --padding-start: 12px;
+      --padding-end: 14px;
+      --color: var(--ion-color-primary);
+      font-weight: 600;
+      font-size: 0.88rem;
+      min-height: 44px;
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+
+      &[disabled] {
+        opacity: 0.45;
+      }
+    }
+
+    .steps-limit-hint {
+      font-size: 0.76rem;
+      color: var(--ion-color-medium);
+      margin-top: -4px;
+    }
+  }
+
   .add-sets-section {
     width: 100%;
     padding-top: 8px;
@@ -810,6 +896,111 @@
   }
 }
 
+// Pinned Exercise Note
+.pinned-note-container {
+  margin: 12px 8px 8px 8px;
+
+  .pinned-note-wrapper {
+    cursor: pointer;
+
+    .pinned-note-card {
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: linear-gradient(
+        135deg,
+        rgba(56, 128, 255, 0.10) 0%,
+        rgba(56, 128, 255, 0.04) 100%
+      );
+      border: 1px solid rgba(56, 128, 255, 0.20);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease;
+      position: relative;
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        width: 100%;
+
+        .left-section {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          flex: 1;
+          min-width: 0;
+
+          .icon-wrapper {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            height: 1.2rem;
+
+            ion-icon {
+              font-size: 1.1rem;
+              color: #3880ff;
+            }
+          }
+
+          .header-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+
+            .title {
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: #3880ff;
+              letter-spacing: 0.1px;
+              line-height: 1.2rem;
+              text-transform: lowercase;
+              display: inline-block;
+
+              &::first-letter {
+                text-transform: uppercase;
+              }
+            }
+          }
+        }
+
+        .action-wrapper {
+          margin-left: 8px;
+          margin-right: -8px;
+          margin-top: -4px;
+
+          .close-button {
+            --color: var(--ion-color-medium);
+            --padding-start: 4px;
+            --padding-end: 4px;
+            height: 24px;
+            width: 24px;
+
+            ion-icon {
+              font-size: 1.1rem;
+            }
+          }
+        }
+      }
+
+      .text {
+        margin: 0;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: #a0a0a0;
+        font-weight: 400;
+        width: 100%;
+        white-space: pre-wrap;
+      }
+    }
+  }
+}
+
 // Video Card
 .video-card {
   .video-header {
@@ -968,11 +1159,41 @@
   }
 
   .exercise-description {
-    .description-text {
+    .description-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .description-step {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .description-step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+      color: var(--ion-color-primary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .description-step-text {
       color: var(--ion-color-medium);
       font-size: 0.9rem;
       line-height: 1.5;
-      margin: 0;
+      margin: 2px 0 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
   }
 }

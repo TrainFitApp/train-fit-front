@@ -11,42 +11,37 @@ export interface UserFormGroupControls {
 }
 
 export const USER_FORM_CONTROL_FIELDS = {
-  name: 'Nombre',
-  lastname: 'Apellido',
-  birth: 'Fecha de naciemiento',
-  weight: 'Peso',
-  height: 'Altura',
-  sex: 'Sexo',
-  steps: 'Pasos',
-  activity: 'Actividad diaria',
-  training: 'Frecuencia de entrenamiento',
-  objetive: 'objetive',
-  email: 'Email',
-  password: 'Contraseña',
-  passwordRep: 'Contraseña',
-  termsAndConditions: 'Términos y condiciones',
-  policyAndPrivacy: 'Política y privacidad',
+  name: 'USER_FORM.NAME',
+  lastname: 'USER_FORM.LASTNAME',
+  birth: 'USER_FORM.BIRTH',
+  weight: 'USER_FORM.WEIGHT',
+  height: 'USER_FORM.HEIGHT',
+  sex: 'USER_FORM.SEX',
+  steps: 'USER_FORM.STEPS',
+  activity: 'USER_FORM.ACTIVITY',
+  training: 'USER_FORM.TRAINING',
+  objetive: 'USER_FORM.OBJECTIVE',
+  email: 'USER_FORM.EMAIL',
+  password: 'USER_FORM.PASSWORD',
+  passwordRep: 'USER_FORM.PASSWORD',
+  termsAndConditions: 'USER_FORM.TERMS',
+  policyAndPrivacy: 'USER_FORM.PRIVACY',
 } as const;
 
 export const USER_ERROR_MESSAGES = {
-  required: (fieldName: string) => `${fieldName} es requerido`,
-  pattern: (fieldName: string) => `Formato incorrecto para ${fieldName}`,
-  email: (fieldName: string) => `Formato de email incorrecto en ${fieldName}`,
-  minlength: (fieldName: string, requiredLength: number) =>
-    `${fieldName} mínima requerida: ${requiredLength}`,
-  maxlength: (fieldName: string, requiredLength: number) =>
-    `${fieldName} máxima permitida: ${requiredLength}`,
-  areEqual: (fieldName: string) => `Los campos ${fieldName} deben ser iguales`,
-  notSame: (fieldName: string) => `${fieldName}: No son iguales`,
-  manHood: (fieldName: string) => `${fieldName}: Debe ser mayor de 16 años`,
-  emailExist: (fieldName: string) =>
-    `${fieldName}: Este email no está registrado`,
-  length: (fieldName: string) =>
-    `${fieldName} debe tener entre 6 y 15 caracteres`,
-  default: (fieldName: string, errorName: string, errorValue: any) =>
-    `${fieldName}: ${errorName}: ${errorValue}`,
-  uppercase: (fieldName: string) =>
-    `${fieldName} debe incluir al menos una letra mayúscula`,
-  lowercase: (fieldName: string) =>
-    `${fieldName} debe incluir al menos una letra minúscula`,
+  required: (_fieldName: string) => 'USER_ERRORS.REQUIRED',
+  pattern: (_fieldName: string) => 'USER_ERRORS.PATTERN',
+  email: (_fieldName: string) => 'USER_ERRORS.EMAIL',
+  minlength: (_fieldName: string, requiredLength: number) =>
+    requiredLength ? `USER_ERRORS.MINLENGTH:${requiredLength}` : 'USER_ERRORS.MINLENGTH',
+  maxlength: (_fieldName: string, requiredLength: number) =>
+    requiredLength ? `USER_ERRORS.MAXLENGTH:${requiredLength}` : 'USER_ERRORS.MAXLENGTH',
+  areEqual: (_fieldName: string) => 'USER_ERRORS.ARE_EQUAL',
+  notSame: (_fieldName: string) => 'USER_ERRORS.NOT_SAME',
+  manHood: (_fieldName: string) => 'USER_ERRORS.MIN_AGE',
+  emailExist: (_fieldName: string) => 'USER_ERRORS.EMAIL_EXIST',
+  length: (_fieldName: string) => 'USER_ERRORS.LENGTH',
+  default: (_fieldName: string, _errorName: string, _errorValue: any) => 'USER_ERRORS.DEFAULT',
+  uppercase: (_fieldName: string) => 'USER_ERRORS.UPPERCASE',
+  lowercase: (_fieldName: string) => 'USER_ERRORS.LOWERCASE',
 };

@@ -30,12 +30,14 @@ import { IProduct } from "src/app/core/models/product";
 import { Recipe } from "src/app/core/models/recipe";
 import { User } from "src/app/core/models/user";
 import { DietDayService } from "src/app/core/services/diet-day/diet-day.service";
+import { DietService } from "src/app/core/services/diet/diet.service";
 import { MealService } from "src/app/core/services/meal/meal.service";
 import { ProductService } from "src/app/core/services/product/product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { RecipeApiService } from "src/app/core/services/recipe/recipe-api.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { BarCodeScannerService } from "src/app/core/services/util/bar-code-scanner.service";
+import { TranslateService } from "@ngx-translate/core";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { UtilService } from "src/app/core/services/util/util.service";
@@ -69,6 +71,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     [],
   );
   public recipes: Recipe[] = [];
+  public recentCustomProducts: CustomProduct[] = [];
+  public recentCustomRecipes: any[] = [];
+  public hasStartedFoodSearch: boolean = false;
+  public loadingRecipeIds = new Set<string>();
   public idUser: string;
 
   public load: boolean;
@@ -149,7 +155,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private returnUrl?: string;
   private hasInitialized = false;
+  private readonly recentProductsLimit = 15;
+  private readonly recentRecipesLimit = 15;
   private productByCodeSub?: Subscription;
+  private recentProductsSub?: Subscription;
+  private recentRecipesSub?: Subscription;
   private searchProductsSub?: Subscription;
   private searchRecipesSub?: Subscription;
   private productsRequestVersion = 0;
@@ -164,6 +174,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   constructor(
     private dietDayService: DietDayService,
+    private dietService: DietService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private mealService: MealService,
@@ -178,6 +189,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private routerOutlet: IonRouterOutlet,
     private cdr: ChangeDetectorRef,
     private billingService: BillingService,
+    private translate: TranslateService,
   ) {
     this.utilService.setMeasureFilter = MEASURE_FILTER_TYPES.auto;
   }
@@ -260,6 +272,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
         if (savedState.ingredientMode !== undefined) {
           this.ingredientMode = savedState.ingredientMode;
+        }
+        if (savedState.hasStartedFoodSearch !== undefined) {
+          this.hasStartedFoodSearch = !!savedState.hasStartedFoodSearch;
         }
 
         // Get UPDATED meal and dietDay from service (they may have been updated in config-recipe)
@@ -426,13 +441,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
       this.calculateIngredientMacros();
 
-      // Force initial search when entering ingredient mode
-      // BUT: Skip search if we're returning from add-product with a new ingredient
-      if (!returningFromConfigRecipe && !hasNewIngredient) {
-        console.log("[DEBUG] Ingredient mode: performing initial search");
-        this.hasInitialized = true; // Mark as initialized to prevent double search
-        this.search();
-      } else if (hasNewIngredient) {
+      if (hasNewIngredient) {
         console.log(
           "[DEBUG] Skipping search - processing newIngredient instead",
         );
@@ -525,36 +534,37 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     } else if (result?.createdViaAddProduct) {
       // Switch to products segment when creating a product
       this.currentMode = "products";
+      // Mostrar "Todos los productos": no dejar arrastrado un filtro own/fav/shield previo
+      this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.favFilter = false;
+      this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
+      this.markFoodSearchStarted();
       shouldSearch = true;
     } else if (result?.createdViaCreateProduct) {
       // Switch to products segment when creating a custom product
       this.currentMode = "products";
+      // Mostrar "Todos los productos": no dejar arrastrado un filtro own/fav/shield previo
+      this.searchFilterGroup.ownFilter = false;
+      this.searchFilterGroup.favFilter = false;
+      this.searchFilterGroup.shieldFilter = false;
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
+      this.markFoodSearchStarted();
       shouldSearch = true;
     } else if (result?.refresh) {
       // Force refresh requested
       this.syncMealAndDietDayFromService();
+      this.markFoodSearchStarted();
       shouldSearch = true;
-      if (result?.switchSegmentToOwn) {
-        this.currentMode = "products";
-        if (this.searchFilterGroup) {
-          this.searchFilterGroup.ownFilter = true;
-          this.searchFilterGroup.shieldFilter = false;
-          this.searchFilterGroup.favFilter = false;
-        }
-      }
     } else if (!returningFromConfigRecipe) {
-      // Only do initial search on first entry
       if (!this.hasInitialized) {
         console.log(
-          "[DEBUG - INIT] About to call search(), currentMode:",
+          "[DEBUG - INIT] Loading recent products only, currentMode:",
           this.currentMode,
         );
         this.hasInitialized = true;
-        shouldSearch = true;
       }
     } else {
       console.log(
@@ -567,13 +577,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           ? !this.recipes || this.recipes.length === 0
           : !this.products || this.products.length === 0;
 
-      // If active segment list is empty, execute search
       if (activeListIsEmpty) {
         console.log(
-          "[DEBUG] Active segment list is empty, executing search anyway",
+          "[DEBUG] Active segment list is empty",
           this.currentMode,
         );
-        shouldSearch = true;
+        shouldSearch = this.hasStartedFoodSearch;
       } else {
         // Ensure load is true to hide skeletons
         this.load = true;
@@ -583,6 +592,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     // Execute search only once if needed
     if (shouldSearch) {
       this.search();
+    } else if (!this.hasStartedFoodSearch) {
+      if (this.currentMode === "products") {
+        this.loadRecentProductsForMeal();
+      } else if (this.currentMode === "recipes") {
+        this.loadRecentRecipesForMeal();
+      } else {
+        this.load = true;
+      }
     }
 
     // 🍎 iOS: Inhabilitar gesto de ir hacia atrás si estamos en modo ingrediente
@@ -619,6 +636,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public ngOnDestroy(): void {
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
     if (this.backButton$) {
@@ -671,6 +690,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       );
     }
     this.cancelProductLookup();
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
     this.searchProductsSub?.unsubscribe();
     this.searchRecipesSub?.unsubscribe();
 
@@ -783,12 +804,27 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       event,
       new Error().stack,
     );
+    if (event !== undefined) {
+      this.markFoodSearchStarted();
+    }
+
+    if (!this.hasStartedFoodSearch) {
+      if (this.currentMode === "products") {
+        this.loadRecentProductsForMeal();
+      } else if (this.currentMode === "recipes") {
+        this.loadRecentRecipesForMeal();
+      }
+      return;
+    }
+
     this.searchFilterGroup.page = 0;
-    if (event)
+    if (event !== undefined) {
       this.searchFilterGroup.search =
         typeof event === "string"
           ? event
           : this.utilService.getEventString(event);
+      this.searchBarValue = this.searchFilterGroup.search;
+    }
 
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       this.load = true;
@@ -806,6 +842,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public setFilterIconsValueBySelection(event: SearchFilterGroup): void {
+    this.markFoodSearchStarted();
     Object.assign(this.searchFilterGroup, event);
     this.searchFilterGroup.page = 0;
 
@@ -845,13 +882,24 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.shieldFilter = false;
       this.searchFilterGroup.page = 0;
 
+      this.products = [];
+      this.recipes = [];
+
+      // If no search has been performed yet, load recent items first
+      // This ensures recent recipes/products appear before any API search
+      if (!this.hasStartedFoodSearch) {
+        if (mode === "products") {
+          this.loadRecentProductsForMeal();
+        } else {
+          this.loadRecentRecipesForMeal();
+        }
+        return;
+      }
+
       if (mode === "products" && this.shouldSkipProductsSearch()) {
         this.load = true;
         return;
       }
-
-      this.products = [];
-      this.recipes = [];
 
       if (mode === "products") {
         this.searchProducts();
@@ -873,6 +921,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public loadData(event: InfiniteScrollCustomEvent): void {
+    if (!this.hasStartedFoodSearch) {
+      event.target.complete();
+      return;
+    }
+
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       event.target.complete();
       return;
@@ -910,7 +963,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (!scannedCode) return;
 
     await this.ionicUtilService.showLoading({
-      message: "Buscando producto...",
+      message: this.translate.instant('SEARCH_FOODS.SEARCHING_PRODUCT'),
       spinner: "crescent",
       cssClass: "loading-orange",
     });
@@ -964,12 +1017,12 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         },
         error: (_) => {
           this.ionicUtilService.hideLoading();
-          const alertOptions = {
-            header: "Error",
-            message: "No se pudo buscar el producto",
-            buttons: ["OK"],
-          };
-          this.ionicUtilService.showAlert(alertOptions);
+          const t = this.translate.instant.bind(this.translate);
+          this.ionicUtilService.showAlert({
+            header: t('COMMON.ERROR'),
+            message: t('SEARCH_FOODS.PRODUCT_NOT_FOUND'),
+            buttons: [t('COMMON.OK')],
+          });
         },
         complete: () => {
           this.productByCodeSub = undefined;
@@ -989,18 +1042,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async openCreateActionSheet(): Promise<void> {
+    const t = this.translate.instant.bind(this.translate);
     const actionSheetOptions: ActionSheetOptions = {
       cssClass: "create-action-sheet",
       mode: "ios",
       buttons: [
         {
-          text: "Nuevo Producto",
+          text: t('ACTIONS_FAB.NEW_PRODUCT'),
           icon: "nutrition-outline",
           data: ACTIONS_FAB_TYPES.createProduct,
           cssClass: "action-sheet-product",
         },
         {
-          text: "Nueva Receta",
+          text: t('ACTIONS_FAB.NEW_RECIPE'),
           icon: "restaurant-outline",
           data: ACTIONS_FAB_TYPES.createRecipe,
           cssClass: "action-sheet-recipe",
@@ -1022,30 +1076,30 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
    */
   public deleteProduct(productId: string): void {
     const product = this.products?.find((p) => p._id === productId);
-    const productName = product ? product.name : "este producto";
+    const productName = product ? product.name : this.translate.instant('COMMON.THIS') + " producto";
+    const t = this.translate.instant.bind(this.translate);
 
     const alertOptions: AlertOptions = {
-      header: "Eliminar producto",
-      message: `¿Estás seguro de que quieres eliminar ${productName}? Este producto se eliminará permanentemente de todas tus comidas y recetas.`,
+      header: t('SEARCH_FOODS.DELETE_PRODUCT_HEADER'),
+      message: t('SEARCH_FOODS.DELETE_PRODUCT_CONFIRM', { name: productName }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: t('COMMON.DELETE').toUpperCase(),
           role: "destructive",
           handler: () => {
             this.productService.deleteProduct(productId).subscribe({
               next: () => {
                 this.handleProductDeletedLocally(productId);
-                // Refrescar la lista de productos
                 this.search();
               },
               error: (err) => {
                 console.error("[deleteProduct] Error:", err);
                 this.ionicUtilService.showToast({
-                  message: "Error al eliminar el producto",
+                  message: t('SEARCH_FOODS.DELETE_PRODUCT_ERROR'),
                   duration: 2000,
                   color: "danger",
                 });
@@ -1461,9 +1515,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   private getIngredientProductId(ingredient: CustomProduct): string | null {
     const product = ingredient?.product as any;
+    return this.getProductId(product);
+  }
+
+  private getCustomProductProductId(
+    customProduct: CustomProduct | null | undefined,
+  ): string | null {
+    return this.getProductId(customProduct?.product);
+  }
+
+  private getProductId(product: any): string | null {
     if (!product) return null;
     if (typeof product === "string") return product;
-    return product?._id?.toString?.() || null;
+    return product?._id?.toString?.() || product?.toString?.() || null;
   }
 
   private cloneIngredient(ingredient: CustomProduct): CustomProduct {
@@ -1476,6 +1540,22 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           ? { ...ingredient.product }
           : ingredient?.product,
     };
+  }
+
+  private cloneRecentCustomProduct(customProduct: any, keepBaseCustomProductId?: boolean): any {
+    if (!customProduct) return customProduct;
+
+    const cloned = { ...customProduct };
+    delete cloned._id;
+    delete cloned.customRecipeId;
+    delete cloned.mealId;
+    delete cloned.lastUsedAt;
+
+    if (!keepBaseCustomProductId) {
+      delete cloned.baseCustomProductId;
+    }
+
+    return cloned;
   }
 
   private cloneSelectedIngredients(): CustomProduct[] {
@@ -1495,6 +1575,45 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     // Uncomment for debugging
     // console.log('[DEBUG] isIngredientSelected for', product.name, ':', isSelected);
     return isSelected;
+  }
+
+  public getRecentCustomProduct(product: IProduct): CustomProduct | null {
+    const productId = this.getProductId(product);
+    if (!productId) {
+      return null;
+    }
+
+    return (
+      this.recentCustomProducts.find(
+        (customProduct) =>
+          this.getCustomProductProductId(customProduct) === productId,
+      ) || null
+    );
+  }
+
+  public isRecentProduct(product: IProduct): boolean {
+    return !!this.getRecentCustomProduct(product);
+  }
+
+  public getRecentCustomRecipe(recipe: Recipe): any | null {
+    const recipeId = recipe?._id;
+    if (!recipeId) {
+      return null;
+    }
+
+    return (
+      this.recentCustomRecipes.find((customRecipe) => {
+        const recipeRef =
+          typeof customRecipe?.recipe === "object"
+            ? customRecipe.recipe
+            : null;
+        return recipeRef?._id === recipeId;
+      }) || null
+    );
+  }
+
+  public isRecentRecipe(recipe: Recipe): boolean {
+    return !!this.getRecentCustomRecipe(recipe);
   }
 
   // Create a virtual meal for ingredient mode to show quantities in product cards
@@ -1531,55 +1650,49 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private handleDeselectAll(): void {
-    // In ingredient mode, just clear the selected ingredients array
     if (this.ingredientMode) {
       this.selectedIngredients = [];
       this.ingredientMacros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
       this.ionicUtilService.showToast({
-        message: "Ingredientes deseleccionados",
+        message: this.translate.instant('SEARCH_FOODS.INGREDIENTS_DESELECTED'),
         duration: 1500,
         position: "bottom",
       });
       return;
     }
 
-    // Verify meal exists
     if (!this.meal || !this.meal._id) {
       console.error("No meal selected");
       return;
     }
 
-    // Determine what to delete based on current mode (segment)
     const isRecipeMode = this.currentMode === "recipes";
-    const itemType = isRecipeMode ? "recetas" : "productos";
-    const itemTypePlural = isRecipeMode ? "Recetas" : "Productos";
+    const itemTypeKey = isRecipeMode ? 'SEARCH_FOODS.ITEM_TYPE_RECIPES' : 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS';
+    const itemTypePluralKey = isRecipeMode ? 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' : 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP';
+    const t = this.translate.instant.bind(this.translate);
+    const itemType = t(itemTypeKey);
+    const itemTypePlural = t(itemTypePluralKey);
 
     const alertOptions = {
-      header: `Eliminar ${itemType}`,
-      message:
-        `¿Estás seguro de eliminar todas las ${itemType} de ` +
-        this.meal.name +
-        "?",
+      header: t('SEARCH_FOODS.DELETE_ITEMS_HEADER', { itemType }),
+      message: t('SEARCH_FOODS.DELETE_ITEMS_CONFIRM', { itemType, mealName: this.meal.name }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: t('COMMON.CANCEL').toUpperCase(),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: t('COMMON.DELETE').toUpperCase(),
           cssClass: "danger",
           handler: () => {
-            // Call the appropriate service method based on current segment
             const observable = isRecipeMode
               ? this.mealService.deleteMealRecipes(this.meal._id)
               : this.mealService.deleteMealCustomProducts(this.meal._id);
 
             observable.subscribe({
               next: (updatedMeal) => {
-                // Update local meal with the response from backend
                 this.meal = updatedMeal;
 
-                // Update the meal in the dietDay
                 if (this.dietDay) {
                   const mealIndex = this.dietDay.meals.findIndex(
                     (m) => m._id === this.meal._id,
@@ -1587,21 +1700,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                   if (mealIndex !== -1) {
                     this.dietDay.meals[mealIndex] = updatedMeal;
                   }
-
-                  // Update dietDay in service to recalculate macros
                   this.dietDayService.setCurrentDietDay = this.dietDay;
                 }
 
                 this.utilService.setUnselected = true;
                 this.ionicUtilService.showToast({
-                  message: `${itemTypePlural} eliminadas de ${this.meal.name}`,
+                  message: t('SEARCH_FOODS.ITEMS_DELETED', { itemType: itemTypePlural, mealName: this.meal.name }),
                   duration: 1000,
                 });
               },
               error: (err) => {
-                console.error(`Error deleting ${itemType}:`, err);
+                console.error(`Error deleting:`, err);
                 this.ionicUtilService.showToast({
-                  message: `Error al eliminar ${itemType}`,
+                  message: t('SEARCH_FOODS.ITEMS_DELETE_ERROR', { itemType }),
                   duration: 2000,
                   color: "danger",
                 });
@@ -1690,6 +1801,162 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return dietDay.meals[mealIndex];
   }
 
+  private markFoodSearchStarted(): void {
+    this.hasStartedFoodSearch = true;
+    this.recentProductsSub?.unsubscribe();
+    this.recentRecipesSub?.unsubscribe();
+  }
+
+  private loadRecentProductsForMeal(): void {
+    if (this.hasStartedFoodSearch || this.currentMode !== "products") {
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (!dietId || mealIndex === -1) {
+      this.recentCustomProducts = [];
+      this.products = [];
+      this.load = true;
+      return;
+    }
+
+    this.load = false;
+    this.recentProductsSub?.unsubscribe();
+    this.recentProductsSub = this.dietService
+      .getRecentMealProducts(dietId, mealIndex, {
+        limit: this.recentProductsLimit,
+      })
+      .subscribe({
+        next: (customProducts) => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomProducts = customProducts || [];
+          this.products = this.getProductsFromCustomProducts(
+            this.recentCustomProducts,
+          );
+
+          if (this.ingredientMode) {
+            this.setSelectedIngredientsFirst();
+          } else if (this.meal) {
+            this.setCustomProductsFirst();
+          }
+
+          this.load = true;
+        },
+        error: () => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomProducts = [];
+          this.products = [];
+          this.load = true;
+        },
+      });
+  }
+
+  private loadRecentRecipesForMeal(): void {
+    if (this.hasStartedFoodSearch || this.currentMode !== "recipes") {
+      return;
+    }
+
+    const dietId =
+      this.user?.dietInUse || this.userService.getLocalUser?.dietInUse;
+    const mealIndex = this.findMealIndexInDietDay(this.dietDay, this.meal);
+
+    if (!dietId || mealIndex === -1) {
+      this.recentCustomRecipes = [];
+      this.recipes = [];
+      this.load = true;
+      return;
+    }
+
+    this.load = false;
+    this.recentRecipesSub?.unsubscribe();
+    this.recentRecipesSub = this.dietService
+      .getRecentMealRecipes(dietId, mealIndex, {
+        limit: this.recentRecipesLimit,
+      })
+      .subscribe({
+        next: (customRecipes) => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomRecipes = customRecipes || [];
+          this.recipes = this.getRecipesFromCustomRecipes(
+            this.recentCustomRecipes,
+          );
+
+          if (this.meal) {
+            this.setCustomRecipesFirst();
+          }
+
+          this.load = true;
+        },
+        error: () => {
+          if (this.hasStartedFoodSearch) {
+            return;
+          }
+
+          this.recentCustomRecipes = [];
+          this.recipes = [];
+          this.load = true;
+        },
+      });
+  }
+
+  private getRecipesFromCustomRecipes(customRecipes: any[]): Recipe[] {
+    const recipes: Recipe[] = [];
+    const recipeIds = new Set<string>();
+
+    for (const customRecipe of customRecipes || []) {
+      const recipe =
+        typeof customRecipe?.recipe === "object"
+          ? customRecipe.recipe
+          : null;
+      const recipeId = recipe?._id?.toString();
+
+      if (!recipe || !recipeId || recipeIds.has(recipeId)) {
+        continue;
+      }
+
+      recipeIds.add(recipeId);
+      recipes.push(recipe);
+    }
+
+    return recipes;
+  }
+
+  private getProductsFromCustomProducts(
+    customProducts: CustomProduct[],
+  ): IProduct[] {
+    const products: IProduct[] = [];
+    const productIds = new Set<string>();
+
+    for (const customProduct of customProducts || []) {
+      const product =
+        typeof customProduct?.product === "object"
+          ? customProduct.product
+          : null;
+      const productId = this.getProductId(product);
+
+      if (!product || !productId || productIds.has(productId)) {
+        continue;
+      }
+
+      productIds.add(productId);
+      products.push(product);
+    }
+
+    return products;
+  }
+
   private searchProducts(): void {
     if (this.shouldSkipProductsSearch()) {
       this.load = true;
@@ -1766,6 +2033,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
   public isSearchTooShortForProducts(): boolean {
     return this.shouldSkipProductsSearch();
+  }
+
+  public shouldShowProductsEmptyState(): boolean {
+    return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
   }
 
   public createProductFromEmptyState(): void {
@@ -1911,12 +2182,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       // If already in meal, edit it
       this.editRecipeFromMeal(recipe, existingInstance);
     } else {
-      // If not in meal, add it
-      this.addRecipeToMeal(recipe);
+      // If not in meal, add it with recent data if available
+      const recentCustomRecipe = this.getRecentCustomRecipe(recipe);
+      this.addRecipeToMeal(recipe, recentCustomRecipe);
     }
   }
 
   public onRecipeQuickAdd(recipe: Recipe): void {
+    if (this.isRecipeLoading(recipe)) return;
+
     const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
     if (existingInstance) {
@@ -1924,7 +2198,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.quickAddRecipeToMeal(recipe);
+    const recentCustomRecipe = this.getRecentCustomRecipe(recipe);
+    this.quickAddRecipeToMeal(recipe, recentCustomRecipe);
   }
 
   public onRecipeRemove(recipe: Recipe): void {
@@ -1935,21 +2210,43 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
   }
 
-  private quickAddRecipeToMeal(recipe: Recipe): void {
+  private quickAddRecipeToMeal(recipe: Recipe, recentCustomRecipe?: any): void {
     if (!this.meal || !recipe?._id) {
       return;
     }
 
-    const quantity = 100;
+    this.setRecipeLoading(recipe, true);
+
+    let quantity = 100;
+    let quantityCooked = null;
+    let addedCustomProducts: any[] = [];
+    let modifiedBaseCustomProducts: any[] = [];
+    let removedBaseCustomProductIds: any[] = [];
+
+    if (recentCustomRecipe) {
+      quantity = recentCustomRecipe.quantity ?? 100;
+      quantityCooked = recentCustomRecipe.quantityCooked ?? null;
+
+      addedCustomProducts = (recentCustomRecipe.addedCustomProducts || []).map(
+        (cp: any) => this.cloneRecentCustomProduct(cp),
+      );
+
+      modifiedBaseCustomProducts = (
+        recentCustomRecipe.modifiedBaseCustomProducts || []
+      ).map((cp: any) => this.cloneRecentCustomProduct(cp, true));
+
+      removedBaseCustomProductIds =
+        recentCustomRecipe.removedBaseCustomProductIds || [];
+    }
 
     const composePayload: any = {
       recipeId: recipe._id,
       customRecipe: {
         quantity,
-        quantityCooked: null,
-        modifiedBaseCustomProducts: [],
-        removedBaseCustomProductIds: [],
-        addedCustomProducts: [],
+        quantityCooked,
+        modifiedBaseCustomProducts,
+        removedBaseCustomProductIds,
+        addedCustomProducts,
       },
       context: this.buildRecipeComposeContext(),
     };
@@ -1978,45 +2275,62 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
 
         this.ionicUtilService.showToast({
-          message: "Receta añadida a la comida",
+          message: this.translate.instant('SEARCH_FOODS.RECIPE_ADDED'),
           duration: 1500,
           color: "success",
         });
       },
       error: (error) => {
+        this.setRecipeLoading(recipe, false);
         console.error("[quickAddRecipeToMeal] Error:", error);
         this.ionicUtilService.showToast({
-          message: "No se pudo añadir la receta",
+          message: this.translate.instant('SEARCH_FOODS.RECIPE_ADD_ERROR'),
           duration: 2000,
           color: "danger",
         });
       },
+      complete: () => {
+        this.setRecipeLoading(recipe, false);
+      },
     });
+  }
+
+  public isRecipeLoading(recipe: Recipe): boolean {
+    return !!recipe?._id && this.loadingRecipeIds.has(recipe._id);
+  }
+
+  private setRecipeLoading(recipe: Recipe, loading: boolean): void {
+    if (!recipe?._id) return;
+
+    const nextLoadingRecipeIds = new Set(this.loadingRecipeIds);
+    if (loading) {
+      nextLoadingRecipeIds.add(recipe._id);
+    } else {
+      nextLoadingRecipeIds.delete(recipe._id);
+    }
+    this.loadingRecipeIds = nextLoadingRecipeIds;
   }
 
   private removeRecipeFromMeal(instance: any): void {
     if (!this.meal?._id || !instance._id) return;
 
-    // Show confirmation
+    const t = this.translate.instant.bind(this.translate);
     this.ionicUtilService.showAlert({
-      header: "¿Eliminar receta?",
-      message:
-        "¿Estás seguro de que quieres eliminar esta receta de la comida?",
+      header: t('SEARCH_FOODS.DELETE_RECIPE_CONFIRM_HEADER'),
+      message: t('SEARCH_FOODS.DELETE_RECIPE_CONFIRM_MESSAGE'),
       buttons: [
         {
-          text: "Cancelar",
+          text: t('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "Eliminar",
+          text: t('COMMON.DELETE'),
           role: "confirm",
           handler: () => {
-            // Delete the CustomRecipe
             this.mealService
               .deleteMealCustomRecipe(this.meal!._id!, instance._id)
               .subscribe({
                 next: (updatedMeal) => {
-                  // Update local state
                   this.meal = updatedMeal;
                   if (this.dietDay) {
                     const mealIndex = this.dietDay.meals.findIndex(
@@ -2028,7 +2342,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                     }
                   }
                   this.ionicUtilService.showToast({
-                    message: "Receta eliminada de la comida",
+                    message: t('SEARCH_FOODS.RECIPE_DELETED_FROM_MEAL'),
                     duration: 2000,
                     color: "success",
                   });
@@ -2036,7 +2350,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
                 error: (err) => {
                   console.error("Error deleting recipe instance:", err);
                   this.ionicUtilService.showToast({
-                    message: "Error al eliminar la receta",
+                    message: t('SEARCH_FOODS.RECIPE_DELETE_ERROR'),
                     duration: 2000,
                     color: "danger",
                   });
@@ -2048,7 +2362,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     });
   }
 
-  private addRecipeToMeal(recipe: Recipe): void {
+  private addRecipeToMeal(recipe: Recipe, recentCustomRecipe?: any): void {
     // Save current search state to restore when returning
     this.navigationService.setTempData("searchFoodsState", {
       searchFilterGroup: { ...this.searchFilterGroup },
@@ -2058,18 +2372,26 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
+
+    const navState: any = {
+      mode: "add",
+      recipe: recipe,
+      meal: this.meal,
+      dietDay: this.dietDay,
+      returnUrl: "/search-foods",
+      selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
+    };
+
+    // Pass recent custom recipe data so config-recipe pre-fills quantity and modifications
+    if (recentCustomRecipe) {
+      navState.customRecipe = recentCustomRecipe;
+    }
 
     // Navigate to add recipe flow
     this.navigationService.goToConfigRecipe({
-      state: {
-        mode: "add",
-        recipe: recipe,
-        meal: this.meal,
-        dietDay: this.dietDay,
-        returnUrl: "/search-foods",
-        selectedDate: window.history.state?.selectedDate || this.dietDay?.date,
-      },
+      state: navState,
     });
   }
 
@@ -2125,6 +2447,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
 
     this.navigationService.goToConfigRecipe({
@@ -2151,9 +2474,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public onRecipeFavoriteToggle(recipe: Recipe): void {
+    const t = this.translate.instant.bind(this.translate);
     this.recipeApiService.toggleArchived(recipe._id).subscribe({
       next: (res) => {
-        // Update local user favorites
         if (res.isArchived) {
           if (!this.user.archivedRecipes) this.user.archivedRecipes = [];
           this.user.archivedRecipes.push(recipe._id);
@@ -2163,20 +2486,18 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         }
         this.userService.setLocalUser = this.user;
 
-        const toastOptions: ToastOptions = {
+        this.ionicUtilService.showToast({
           message: res.isArchived
-            ? "Receta añadida a favoritos"
-            : "Receta eliminada de favoritos",
+            ? t('SEARCH_FOODS.RECIPE_ADDED_FAV')
+            : t('SEARCH_FOODS.RECIPE_REMOVED_FAV'),
           duration: 1500,
-        };
-        this.ionicUtilService.showToast(toastOptions);
+        });
       },
       error: () => {
-        const toastOptions: ToastOptions = {
-          message: "Error al actualizar favoritos",
+        this.ionicUtilService.showToast({
+          message: t('SEARCH_FOODS.FAV_UPDATE_ERROR'),
           duration: 1500,
-        };
-        this.ionicUtilService.showToast(toastOptions);
+        });
       },
     });
   }
@@ -2326,8 +2647,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private async createRecipe(): Promise<void> {
     if (await this.billingService.isFreshLimitReached("recipes")) {
       await this.ionicUtilService.showPremiumLimitAlert({
-        message:
-          "Has alcanzado el limite de recetas propias. Activa Pro para crear mas.",
+        message: this.translate.instant('SEARCH_FOODS.PREMIUM_LIMIT_RECIPES'),
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
@@ -2342,6 +2662,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       meal: this.meal,
       dietDay: this.dietDay,
       ingredientMode: this.ingredientMode,
+      hasStartedFoodSearch: this.hasStartedFoodSearch,
     });
 
     this.navigationService.goToConfigRecipe({
@@ -2482,12 +2803,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
    */
   public createRecipeFromIngredients(): void {
     if (this.selectedIngredients.length < 2) {
-      const toastOptions = {
-        message: "Necesitas al menos 2 ingredientes para crear una receta",
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('SEARCH_FOODS.MIN_INGREDIENTS'),
         duration: 2000,
         color: "warning",
-      };
-      this.ionicUtilService.showToast(toastOptions);
+      });
       return;
     }
 

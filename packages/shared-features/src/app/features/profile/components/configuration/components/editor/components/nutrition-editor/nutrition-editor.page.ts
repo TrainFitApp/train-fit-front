@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  Input,
   ViewEncapsulation,
   ViewChild,
   ElementRef,
@@ -10,15 +11,16 @@ import {
 import {
   ModalController,
   ToastOptions,
-  AlertController,
   Platform,
   IonContent,
 } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { UserService } from "src/app/core/services/user/user.service";
 import { User } from "src/app/core/models/user";
+import { NutritionalGoal } from "src/app/core/models/nutritional-goal";
+import { NutritionalGoalService } from "src/app/core/services/nutritional-goal/nutritional-goal.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
-import { Subscription } from "rxjs";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 
@@ -31,8 +33,12 @@ import { BillingService } from "src/app/core/services/billing/billing.service";
 export class NutritionEditorPage implements OnInit {
   @ViewChild(IonContent, { static: false }) content: IonContent;
 
+  @Input() goalId: string;
+
+  public goal: NutritionalGoal;
   public user: User;
-  public Math = Math; // Hacer Math disponible en el template
+  public Math = Math;
+  public isSaving: boolean = false;
 
   // Estado principal
   public state = {
@@ -61,12 +67,15 @@ export class NutritionEditorPage implements OnInit {
   constructor(
     private navigationService: NavigationService,
     private userService: UserService,
+    private nutritionalGoalService: NutritionalGoalService,
     private ionicUtilService: IonicUtilService,
     private platform: Platform,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private adMobService: AdMobService,
     private billingService: BillingService,
+    private translate: TranslateService,
+    private modalController: ModalController,
   ) {}
 
   ngOnInit() {
@@ -104,59 +113,54 @@ export class NutritionEditorPage implements OnInit {
 
   // ---------- Inicialización ----------
   private init(): void {
-    // Obtener usuario actual
     this.user = this.userService.getLocalUser;
 
-    // Pre-llenar con datos actuales del usuario si existen
-    if (this.user) {
-      if (this.user.kcalTotal) {
-        this.state.targetKcal = Math.round(this.user.kcalTotal);
-      }
-      if (this.user.proteinsGTotal) {
-        this.state.grams.p = Math.round(this.user.proteinsGTotal);
-      }
-      if (this.user.carbohydratesGTotal) {
-        this.state.grams.c = Math.round(this.user.carbohydratesGTotal);
-      }
-      if (this.user.fatGTotal) {
-        this.state.grams.f = Math.round(this.user.fatGTotal);
-      }
-
-      // Calcular porcentajes basados en los gramos actuales
-      if (this.state.targetKcal > 0) {
-        this.state.pct.p = this.pctFromGrams(
-          this.state.grams.p,
-          this.state.kcalPerG.p,
-        );
-        this.state.pct.c = this.pctFromGrams(
-          this.state.grams.c,
-          this.state.kcalPerG.c,
-        );
-        this.state.pct.f = this.pctFromGrams(
-          this.state.grams.f,
-          this.state.kcalPerG.f,
-        );
+    if (this.goalId) {
+      const existingGoal = this.nutritionalGoalService.getGoalById(this.goalId);
+      if (existingGoal) {
+        this.goal = existingGoal;
+      } else {
+        this.nutritionalGoalService.refreshFromServer().subscribe((goals) => {
+          this.goal = goals.find((g) => g._id === this.goalId);
+          if (this.goal) this.applyGoalToState();
+        });
+        return;
       }
     }
 
-    // Configurar valores iniciales en los inputs
-    const targetKcalInput = document.getElementById(
-      "targetKcal",
-    ) as HTMLInputElement;
+    if (this.goal) {
+      this.applyGoalToState();
+    } else {
+      this.saveOriginalState();
+    }
+  }
+
+  private applyGoalToState(): void {
+    if (!this.goal) return;
+
+    this.state.targetKcal = Math.round(this.goal.kcalTotal || 0);
+    this.state.grams.p = Math.round(this.goal.proteinsGTotal || 0);
+    this.state.grams.c = Math.round(this.goal.carbohydratesGTotal || 0);
+    this.state.grams.f = Math.round(this.goal.fatGTotal || 0);
+
+    if (this.state.targetKcal > 0) {
+      this.state.pct.p = this.pctFromGrams(this.state.grams.p, this.state.kcalPerG.p);
+      this.state.pct.c = this.pctFromGrams(this.state.grams.c, this.state.kcalPerG.c);
+      this.state.pct.f = this.pctFromGrams(this.state.grams.f, this.state.kcalPerG.f);
+    }
+
+    const targetKcalInput = document.getElementById("targetKcal") as HTMLInputElement;
     const pInput = document.getElementById("pInput") as HTMLInputElement;
     const cInput = document.getElementById("cInput") as HTMLInputElement;
     const fInput = document.getElementById("fInput") as HTMLInputElement;
 
-    if (targetKcalInput)
-      targetKcalInput.value = this.state.targetKcal.toString();
+    if (targetKcalInput) targetKcalInput.value = this.state.targetKcal.toString();
     if (pInput) pInput.value = this.state.grams.p.toString();
     if (cInput) cInput.value = this.state.grams.c.toString();
     if (fInput) fInput.value = this.state.grams.f.toString();
 
     this.updateKcalConstants();
     this.render();
-
-    // Guardar estado original después de la inicialización
     this.saveOriginalState();
   }
 
@@ -685,10 +689,6 @@ export class NutritionEditorPage implements OnInit {
     if (handle2) handle2.style.left = p + c + "%";
   }
 
-  // Obsolete event, replaced by unified slider
-  public onSliderInput(key: "p" | "c" | "f", event: any): void {
-    // No-op
-  }
 
   // ---------- Presets ----------
   public applyPreset(p: number, c: number, f: number): void {
@@ -825,7 +825,6 @@ export class NutritionEditorPage implements OnInit {
     const g = this.state.grams[k] || 0;
     const pct = this.state.pct[k] || 0;
     const kcal = this.round1(g * this.state.kcalPerG[k]);
-    const nameMap = { p: "Proteínas", c: "Carbohidratos", f: "Grasas" };
     return `<b>${g || 0} g</b> • <b>${kcal} kcal</b> • <b>${pct || 0}%</b>`;
   }
 
@@ -845,8 +844,7 @@ export class NutritionEditorPage implements OnInit {
 
       // Mostrar toast informativo
       const toast: ToastOptions = {
-        message:
-          "Por favor, ajusta los macronutrientes para que coincidan con el objetivo calórico",
+        message: this.translate.instant('NUTRITION_EDITOR.INVALID_CONFIG_MSG'),
         duration: 3000,
         color: "warning",
       };
@@ -871,16 +869,15 @@ export class NutritionEditorPage implements OnInit {
 
     // Estrategia de Monetización: Rewarded Ad para guardar cambios maestros
     const alertOptions = {
-      header: "Guardar Configuración",
-      message:
-        "Visualiza un breve anuncio para aplicar y guardar tus nuevos objetivos nutricionales.",
+      header: this.translate.instant('NUTRITION_EDITOR.SAVE_HEADER'),
+      message: this.translate.instant('NUTRITION_EDITOR.SAVE_MSG'),
       buttons: [
         {
-          text: "Cancelar",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "Ver Anuncio",
+          text: this.translate.instant('PROFILE.WATCH_AD'),
           cssClass: "alert-button-success",
           handler: () => {
             this.adMobService
@@ -910,66 +907,54 @@ export class NutritionEditorPage implements OnInit {
   }
 
   private executeSave(): void {
-    // Actualizar el usuario actual con los nuevos valores
-    if (this.user) {
-      this.user.kcalTotal = Math.round(this.state.targetKcal);
-      this.user.proteinsGTotal = Math.round(this.state.grams.p);
-      this.user.carbohydratesGTotal = Math.round(this.state.grams.c);
-      this.user.fatGTotal = Math.round(this.state.grams.f);
-
-      // Persistir los cambios en el servidor
-      this.userService.updateUser(this.user).subscribe({
-        next: (updatedUser) => {
-          console.log("Configuración nutricional guardada en servidor:", {
-            kcalTotal: updatedUser.kcalTotal,
-            proteinsGTotal: updatedUser.proteinsGTotal,
-            carbohydratesGTotal: updatedUser.carbohydratesGTotal,
-            fatGTotal: updatedUser.fatGTotal,
-          });
-
-          // IMPORTANTE: Actualizar el usuario local con el usuario del servidor
-          // Esto propagará los cambios a todos los componentes que usan signals
-          this.userService.setLocalUser = updatedUser;
-          this.user = updatedUser;
-
-          // Mostrar toast de confirmación
-          const toast: ToastOptions = {
-            message: "Objetivos nutricionales guardados",
-            duration: 2000,
-          };
-          this.ionicUtilService.showToast(toast);
-
-          // Actualizar estado original después de guardar exitosamente
-          this.saveOriginalState();
-
-          // Cerrar el modal después de guardar exitosamente
-          setTimeout(() => {
-            this.ionicUtilService.closeModal();
-          }, 100);
-        },
-        error: (error) => {
-          console.error("Error al guardar configuración nutricional:", error);
-
-          // Mostrar toast de error
-          const errorToast: ToastOptions = {
-            message: "Error al guardar. Cambios guardados localmente.",
-            duration: 3000,
-          };
-          this.ionicUtilService.showToast(errorToast);
-
-          // Aún así actualizar localmente como fallback
-          this.userService.setLocalUser = this.user;
-
-          // Actualizar estado original después de guardar localmente
-          this.saveOriginalState();
-
-          // Cerrar el modal incluso si hay error (los cambios se guardaron localmente)
-          setTimeout(() => {
-            this.ionicUtilService.closeModal();
-          }, 100);
-        },
-      });
+    if (this.isSaving || !this.goal) {
+      return;
     }
+    this.isSaving = true;
+
+    const goalData: Partial<NutritionalGoal> = {
+      kcalTotal: Math.round(this.state.targetKcal),
+      proteinsGTotal: Math.round(this.state.grams.p),
+      carbohydratesGTotal: Math.round(this.state.grams.c),
+      fatGTotal: Math.round(this.state.grams.f),
+    };
+
+    this.nutritionalGoalService.update(this.goal._id, goalData).subscribe({
+      next: (updatedGoal) => {
+        this.goal = updatedGoal;
+
+        if (this.user?.goalInUse === this.goal._id || !this.user?.goalInUse) {
+          this.nutritionalGoalService.setActive(this.goal._id);
+        }
+
+        const toast: ToastOptions = {
+          message: this.translate.instant('NUTRITION_EDITOR.SAVE_SUCCESS'),
+          duration: 2000,
+        };
+        this.ionicUtilService.showToast(toast);
+
+        this.saveOriginalState();
+
+        setTimeout(() => {
+          this.modalController.dismiss({ saved: true });
+        }, 100);
+      },
+      error: (error) => {
+        console.error("Error al guardar configuración nutricional:", error);
+
+        const errorToast: ToastOptions = {
+          message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+          duration: 3000,
+        };
+        this.ionicUtilService.showToast(errorToast);
+
+        this.isSaving = false;
+
+        setTimeout(() => {
+          this.modalController.dismiss({ saved: false });
+        }, 100);
+      },
+    });
   }
 
   public isValidConfiguration(): boolean {
@@ -1007,8 +992,12 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public getMacroName(key: string): string {
-    const names = { p: "Proteínas", c: "CBH", f: "Grasas" };
     const macroKey = key as "p" | "c" | "f";
+    const names = {
+      p: this.translate.instant('NUTRITION_EDITOR.PROTEINS'),
+      c: this.translate.instant('NUTRITION_EDITOR.CBH'),
+      f: this.translate.instant('NUTRITION_EDITOR.FATS'),
+    };
     return names[macroKey];
   }
 
@@ -1143,7 +1132,6 @@ export class NutritionEditorPage implements OnInit {
   public autoCalculate(): void {
     this.setFinalObjetive();
     setTimeout(() => {
-      // Crear un objeto con los datos del usuario actualizados
       const userForm = {
         ...this.user,
         objetive: this.objetiveFinal,
@@ -1153,11 +1141,16 @@ export class NutritionEditorPage implements OnInit {
         fatGTotal: this.state.grams.f,
       };
 
-      // Recalcular macros y calorías usando el servicio
       const updatedUser = this.userService.setUserMacrosAndKcal(userForm);
       Object.assign(this.user, updatedUser);
 
-      // Actualizar el estado local con los nuevos valores calculados
+      if (this.goal) {
+        this.goal.kcalTotal = (updatedUser as any).kcalTotal || 0;
+        this.goal.proteinsGTotal = (updatedUser as any).proteinsGTotal || 0;
+        this.goal.carbohydratesGTotal = (updatedUser as any).carbohydratesGTotal || 0;
+        this.goal.fatGTotal = (updatedUser as any).fatGTotal || 0;
+      }
+
       this.calculate();
     });
   }
@@ -1185,11 +1178,11 @@ export class NutritionEditorPage implements OnInit {
   }
 
   public calculate(): void {
-    // Actualizar el estado con los valores recalculados del usuario
-    this.state.targetKcal = Math.round(this.user.kcalTotal);
-    this.state.grams.p = Math.round(this.user.proteinsGTotal);
-    this.state.grams.c = Math.round(this.user.carbohydratesGTotal);
-    this.state.grams.f = Math.round(this.user.fatGTotal);
+    if (!this.goal) return;
+    this.state.targetKcal = Math.round(this.goal.kcalTotal || 0);
+    this.state.grams.p = Math.round(this.goal.proteinsGTotal || 0);
+    this.state.grams.c = Math.round(this.goal.carbohydratesGTotal || 0);
+    this.state.grams.f = Math.round(this.goal.fatGTotal || 0);
 
     // Recalcular porcentajes
     if (this.state.targetKcal > 0) {
@@ -1216,43 +1209,120 @@ export class NutritionEditorPage implements OnInit {
   public objetiveFinal: number = 0;
 
   async closeModal() {
-    console.log("closeModal() called");
-
     if (this.hasUnsavedChanges()) {
-      console.log("Has unsaved changes, showing confirmation modal");
       const alertOptions = {
-        header: "Cambios sin guardar",
-        message: "¿Estás seguro de que quieres salir sin guardar los cambios?",
+        header: this.translate.instant('NUTRITION_EDITOR.UNSAVED_HEADER'),
+        message: this.translate.instant('NUTRITION_EDITOR.UNSAVED_MSG'),
         cssClass: "alert-grid-buttons",
         buttons: [
           {
-            text: "Cancelar",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
             cssClass: "secondary",
           },
           {
-            text: "Guardar",
+            text: this.translate.instant('COMMON.SAVE'),
             handler: async () => {
-              // Llamar a save() y esperar a que complete
               await this.save();
-              // Solo cerrar si la validación pasó
-              // Si save() retorna early por validación, no se cerrará
             },
           },
           {
-            text: "DESCARTAR",
+            text: this.translate.instant('EDITOR.DISCARD_BTN'),
             role: "destructive",
             handler: () => {
               this.restoreOriginalState();
-              this.ionicUtilService.closeModal();
+              this.modalController.dismiss();
             },
           },
         ],
       };
       await this.ionicUtilService.showAlert(alertOptions);
     } else {
-      console.log("No unsaved changes, closing modal directly");
-      this.ionicUtilService.closeModal();
+      this.modalController.dismiss();
     }
+  }
+
+  async deleteGoal() {
+    if (!this.goal) return;
+    const alertOptions = {
+      header: this.translate.instant('NUTRITION_EDITOR.DELETE_HEADER'),
+      message: this.translate.instant('NUTRITION_EDITOR.DELETE_MSG', { name: this.goal.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('COMMON.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.nutritionalGoalService.delete(this.goal._id).subscribe({
+              next: () => {
+                const user = this.userService.getLocalUser;
+                if (user?.goalInUse === this.goal._id) {
+                  user.goalInUse = undefined;
+                  this.userService.setLocalUser = user;
+                }
+                this.modalController.dismiss({ deleted: true });
+              },
+              error: () => {
+                const toast: ToastOptions = {
+                  message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                  duration: 3000,
+                };
+                this.ionicUtilService.showToast(toast);
+              },
+            });
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  async useGoal() {
+    if (!this.goal) return;
+    const alertOptions = {
+      header: this.translate.instant('NUTRITION_EDITOR.USE_HEADER'),
+      message: this.translate.instant('NUTRITION_EDITOR.USE_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('NUTRITION_EDITOR.USAR'),
+          handler: () => {
+            const goalData: Partial<NutritionalGoal> = {
+              kcalTotal: Math.round(this.state.targetKcal),
+              proteinsGTotal: Math.round(this.state.grams.p),
+              carbohydratesGTotal: Math.round(this.state.grams.c),
+              fatGTotal: Math.round(this.state.grams.f),
+            };
+
+            this.nutritionalGoalService.update(this.goal._id, goalData).subscribe({
+              next: (updatedGoal) => {
+                this.goal = updatedGoal;
+                this.nutritionalGoalService.setActive(this.goal._id);
+                const user = this.userService.getLocalUser;
+                if (user) {
+                  user.goalInUse = this.goal._id;
+                  this.userService.setLocalUser = user;
+                }
+                this.modalController.dismiss({ saved: true });
+              },
+              error: () => {
+                const toast: ToastOptions = {
+                  message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                  duration: 3000,
+                };
+                this.ionicUtilService.showToast(toast);
+              },
+            });
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
   }
 }

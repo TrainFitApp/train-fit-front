@@ -1,6 +1,7 @@
 import { Component, ViewChild, effect, inject } from "@angular/core";
 import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
 import { ModalController } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { CustomExercise } from "src/app/core/models/customExercise";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
@@ -54,6 +55,7 @@ export class SummaryPage {
   private readonly billingService = inject(BillingService);
   private readonly aiImportService = inject(AiImportService);
   private readonly modalController = inject(ModalController);
+  private readonly translate = inject(TranslateService);
 
   constructor(
     public platform: Platform,
@@ -98,29 +100,29 @@ export class SummaryPage {
     }
 
     const alertOptions: AlertOptions = {
-      header: "Crear rutina",
-      message: "Introduce el nombre para tu nueva rutina de entrenamiento",
+      header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG'),
       inputs: [
         {
           name: "routineName",
           type: "text",
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           value: "",
         },
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
         },
         {
-          text: "CREAR",
+          text: this.translate.instant('TABLES.CREATE_BTN'),
           cssClass: "alert-button-success",
           handler: (data) => {
             if (!data.routineName || data.routineName.trim() === "") {
               const toastOptions: ToastOptions = {
-                message: "El campo no puede estar vacio",
+                message: this.translate.instant('COMMON.FIELD_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -141,7 +143,8 @@ export class SummaryPage {
               this.tableInUse = resTable;
               this.user.tableInUse = this.tableInUse._id;
               this.user.workoutInUse = undefined;
-              this.user.ownTables.push(this.tableInUse._id);
+              if (!this.user.tables) this.user.tables = [];
+              this.user.tables.push(this.tableInUse._id);
               this.userService.setLocalUser = this.user;
               this.tableService.setCurrentTable = this.tableInUse;
               void this.billingService.refreshBackendEntitlements();
@@ -151,7 +154,7 @@ export class SummaryPage {
                 this.adMobService.interstitial("create_routine");
               }
               const toastOptions: ToastOptions = {
-                message: "Rutina creada con exito",
+                message: this.translate.instant('TABLES.ROUTINE_CREATED_SUCCESS'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -163,7 +166,7 @@ export class SummaryPage {
 
               this.ionicUtilService.showErrorToast(
                 error,
-                "No se pudo crear la rutina",
+                this.translate.instant('TABLES.ROUTINE_CREATE_ERROR'),
               );
             },
           });
@@ -181,12 +184,12 @@ export class SummaryPage {
       if (!file) return;
 
       if (file.size > 10 * 1024 * 1024) {
-        this.ionicUtilService.showErrorToast(null, 'El archivo excede el límite de 10MB');
+        this.ionicUtilService.showErrorToast(null, this.translate.instant('TABLES.FILE_TOO_LARGE'));
         return;
       }
 
       try {
-        this.showAiLoading('IA analizando la rutina...');
+        this.showAiLoading(this.translate.instant('TABLES.AI_ANALYZING'));
 
         const { sheets, fileName } = await this.aiImportService.parseExcel(file);
 
@@ -196,7 +199,7 @@ export class SummaryPage {
         await this.showImportPreview(preview);
       } catch (error: any) {
         this.hideAiLoading();
-        this.ionicUtilService.showErrorToast(error, 'Error al importar el archivo');
+        this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.IMPORT_ERROR'));
       }
     };
 
@@ -226,7 +229,7 @@ export class SummaryPage {
     }
 
     try {
-      this.showAiLoading('Creando rutina en TrainFit...');
+      this.showAiLoading(this.translate.instant('TABLES.CREATING_ROUTINE'));
 
       const table = await this.aiImportService.createTable(preview);
 
@@ -235,15 +238,15 @@ export class SummaryPage {
       this.tableService.setCurrentTable = table;
       this.user.tableInUse = table._id;
       this.user.workoutInUse = undefined;
-      const tableIdStr = table._id;
-      if (!this.user.ownTables.find((id: any) => String(id) === String(tableIdStr))) {
-        this.user.ownTables.push(table._id);
+      if (!this.user.tables) this.user.tables = [];
+      if (!this.user.tables.find((id: any) => String(id) === String(table._id))) {
+        this.user.tables.push(table._id);
       }
       this.userService.setLocalUser = this.user;
       void this.billingService.refreshBackendEntitlements();
 
       const toastOptions: ToastOptions = {
-        message: 'Rutina importada correctamente',
+        message: this.translate.instant('TABLES.ROUTINE_IMPORTED_SUCCESS'),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -255,7 +258,7 @@ export class SummaryPage {
         await this.showRoutineLimitAlert();
         return;
       }
-      this.ionicUtilService.showErrorToast(error, 'Error al crear la rutina importada');
+      this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.ROUTINE_IMPORT_ERROR'));
     }
   }
 
@@ -274,7 +277,7 @@ export class SummaryPage {
 
   private async showRoutineLimitAlert(): Promise<void> {
     await this.ionicUtilService.showPremiumLimitAlert({
-      message: "Has alcanzado el limite de rutinas. Activa Pro para crear mas.",
+      message: this.translate.instant('TABLES.ROUTINE_LIMIT_REACHED'),
       onUpgrade: () => this.navigationService.goToPremium(),
     });
   }
@@ -312,11 +315,9 @@ export class SummaryPage {
   public countDoneSplits(): number {
     return (
       this.tableInUse.splits.reduce((totalDoneSplits, split) => {
-        // Verificar si todos los workouts en el split tienen todos los sets hechos
-        const allWorkoutsDone = split.workouts.every((workout) => workout.date);
-
-        // Si todos los sets de todos los ejercicios en todos los workouts están hechos, sumar el split
-        return allWorkoutsDone ? totalDoneSplits + 1 : totalDoneSplits;
+        return this.utilService.isSplitDoned(split)
+          ? totalDoneSplits + 1
+          : totalDoneSplits;
       }, 0) - 1
     );
   }
@@ -348,8 +349,36 @@ export class SummaryPage {
     else this.openSearchTables();
   }
 
-  public openSearchTables(isOwn?: boolean): void {
-    this.navigationService.goToSearchTables(isOwn);
+  public openSearchTables(): void {
+    this.navigationService.goToSearchTables();
+  }
+
+  public unlinkTable(): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
+      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: "cancel",
+        },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          cssClass: "alert-button-primary",
+          handler: () => {
+            this.tableInUse = undefined;
+            this.user.tableInUse = undefined;
+            this.user.workoutInUse = undefined;
+            this.workout = undefined;
+            this.workoutService.setCurrentWorkout = undefined;
+            this.tableService.setCurrentTable = undefined;
+            this.userService.updateUser(this.user).subscribe();
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   public async goToStatistics(): Promise<void> {
@@ -359,17 +388,17 @@ export class SummaryPage {
     }
 
     const alertOptions: AlertOptions = {
-      header: "Estadísticas Premium",
+      header: this.translate.instant('TABLES.PREMIUM_STATISTICS'),
       message:
-        "Mira un breve anuncio para desbloquear el acceso a tus estadísticas detalladas.",
+        this.translate.instant('TABLES.PREMIUM_STATISTICS_MSG'),
       buttons: [
         {
-          text: "Cancelar",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
         },
         {
-          text: "Ver Anuncio",
+          text: this.translate.instant('TABLES.WATCH_AD'),
           cssClass: "alert-button-success",
           handler: () => {
             this.adMobService
@@ -468,7 +497,7 @@ export class SummaryPage {
     const alertOptions: AlertOptions = {
       header: exercise.exercise.name,
       message: exercise.notes,
-      buttons: ["CONFIRMAR"],
+      buttons: [this.translate.instant('COMMON.CONFIRM')],
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }

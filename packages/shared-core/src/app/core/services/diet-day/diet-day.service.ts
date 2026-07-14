@@ -1,6 +1,6 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, take, tap, of } from 'rxjs';
+import { Observable, take, tap, map, of } from 'rxjs';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { IProduct } from 'src/app/core/models/product';
 import { User } from 'src/app/core/models/user';
@@ -14,6 +14,7 @@ import { CustomRecipe } from '../../models/customRecipe';
 import { RecipeService } from '../recipe/recipe.service';
 import { DietDayAPIService } from './diet-day-api.service';
 import { Recipe } from '../../models/recipe';
+import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 @Injectable()
 export class DietDayService {
@@ -53,9 +54,17 @@ export class DietDayService {
 
   public getDietDayByIdDietAndDate(
     id: string,
-    date: Date
+    date: string
   ): Observable<DietDay> {
-    return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date);
+    return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date).pipe(
+      map((response: { dietDay: DietDay; anthropometry: any }) => {
+        // If anthropometry has weight, set it on the dietDay for backwards compatibility
+        if (response?.dietDay && response?.anthropometry?.weight !== undefined) {
+          response.dietDay.weight = response.anthropometry.weight;
+        }
+        return response.dietDay;
+      })
+    );
   }
 
   public getDietDaysBetweenDatesByIdDiet(
@@ -82,11 +91,19 @@ export class DietDayService {
   public createDayWeightOnNewDietDay(
     dayWeight: number,
     dietInUseId: string,
-    currentDate: Date
+    currentDate: string
   ) {
     return this.dietDayAPIService
       .createDayWeightOnNewDietDay(dayWeight, dietInUseId, currentDate)
-      .pipe(take(1));
+      .pipe(
+        take(1),
+        map((response: { dietDay: DietDay; anthropometry: Anthropometry | null }) => {
+          if (response?.anthropometry?.weight !== undefined) {
+            response.dietDay.weight = response.anthropometry.weight;
+          }
+          return response.dietDay;
+        })
+      );
   }
 
   public createCustomProduct(
@@ -190,7 +207,7 @@ export class DietDayService {
     customProduct: CustomProduct,
     indexMeal: number,
     dietInUseId: string,
-    currentDate: Date,
+    currentDate: string,
     idUser?: string
   ) {
     return this.dietDayAPIService.createCustomProductOnNewDietDay(
@@ -224,11 +241,8 @@ export class DietDayService {
     return this.dietDayAPIService.deleteDietDay(idDiet, idDietDay).pipe(
       take(1),
       tap(() => {
-        // Vaciar el currentDietDay local para evitar refresh y llamadas extra a la API
-        // Garantizar que la fecha sea un objeto Date
-        const dateRaw: any = this.currentDietDay?.date;
-        const date: Date = dateRaw ? new Date(dateRaw) : new Date();
-        const clearedDietDay = this.getStandardDietDay(date);
+        const dateStr: string = this.currentDietDay?.date || this.utilService.formatDateToYYYYMMDD(new Date());
+        const clearedDietDay = this.getStandardDietDay(dateStr);
         this.setCurrentDietDay = clearedDietDay;
         this.utilService.setUnselected = true;
       })
@@ -462,7 +476,7 @@ export class DietDayService {
     return fat;
   }
 
-  public getStandardDietDay(date: Date) {
+  public getStandardDietDay(date: string) {
     let dietDay = new DietDay();
     dietDay.date = date;
 
@@ -486,9 +500,10 @@ export class DietDayService {
       const date = new Date(
         new Date(firstWeekDay).setDate(new Date(firstWeekDay).getDate() + i)
       );
+      const dateStr = this.utilService.formatDateToYYYYMMDD(date);
 
       const dietDay = dietDays.find(
-        (dietDay) => new Date(dietDay.date).getDate() === date.getDate()
+        (dietDay) => dietDay.date === dateStr
       );
 
       if (dietDay?._id) {
@@ -496,7 +511,7 @@ export class DietDayService {
         week.push(dietDay);
       } else {
         const newDietDay = new DietDay();
-        newDietDay.date = date;
+        newDietDay.date = dateStr;
         newDietDay.weight = undefined;
         week.push(newDietDay);
       }

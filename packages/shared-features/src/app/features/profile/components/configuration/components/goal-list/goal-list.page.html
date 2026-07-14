@@ -1,0 +1,87 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="dismiss()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'NUTRITION_GOALS.TITLE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button class="tf-page-header__action-button" (click)="startCreateGoal()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content>
+  <div class="goal-list-content">
+    <div *ngIf="isCreating" class="create-goal-card">
+      <div class="create-goal-input-row">
+        <input
+          #goalNameInput
+          class="goal-name-input"
+          type="text"
+          [(ngModel)]="newGoalName"
+          [placeholder]="'NUTRITION_GOALS.NAME_PLACEHOLDER' | translate"
+          (keyup.enter)="confirmCreateGoal()"
+        />
+        <button class="confirm-name-btn" (click)="confirmCreateGoal()">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </button>
+        <button class="cancel-name-btn" (click)="cancelCreateGoal()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="goal-cards">
+      <div
+        *ngFor="let goal of goals"
+        class="goal-card"
+        [class.active]="goal._id === activeGoalId"
+        (click)="openEditor(goal)"
+      >
+        <div class="goal-card__header">
+          <h3 class="goal-card__name">{{ goal.name }}</h3>
+          <div class="goal-card__actions">
+            <span *ngIf="goal._id === activeGoalId" class="in-use-badge">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              {{ 'NUTRITION_GOALS.IN_USE' | translate }}
+            </span>
+            <button class="delete-goal-btn" (click)="deleteGoal(goal, $event)">
+              <ion-icon name="trash-outline" color="danger"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="goal-card__macros">
+          <div class="macro-item">
+            <span class="macro-label">{{ 'NUTRITION_GOALS.KCAL' | translate }}</span>
+            <span class="macro-value">{{ goal.kcalTotal }}</span>
+          </div>
+          <div class="macro-item">
+            <span class="macro-label protein">{{ 'NUTRITION_GOALS.PROTEIN' | translate }}</span>
+            <span class="macro-value">{{ goal.proteinsGTotal }}g</span>
+          </div>
+          <div class="macro-item">
+            <span class="macro-label carbs">{{ 'NUTRITION_GOALS.CARBS' | translate }}</span>
+            <span class="macro-value">{{ goal.carbohydratesGTotal }}g</span>
+          </div>
+          <div class="macro-item">
+            <span class="macro-label fat">{{ 'NUTRITION_GOALS.FAT' | translate }}</span>
+            <span class="macro-value">{{ goal.fatGTotal }}g</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="goals.length === 0 && !isCreating" class="empty-state">
+        <ion-icon name="nutrition-outline"></ion-icon>
+        <p>{{ 'NUTRITION_GOALS.EMPTY' | translate }}</p>
+      </div>
+    </div>
+  </div>
+</ion-content>

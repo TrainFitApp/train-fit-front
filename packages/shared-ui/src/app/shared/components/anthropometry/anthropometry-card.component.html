@@ -1,0 +1,82 @@
+<div class="anthropometry-card" *ngIf="hasData">
+  <div class="card-header">
+    <ion-icon name="body-outline"></ion-icon>
+    <h3>{{ 'ANTHROPOMETRY.TITLE' | translate }}</h3>
+    <span class="date">{{ displayDate }}</span>
+  </div>
+
+  <div class="measurements-grid">
+    <div class="measurement-item" *ngIf="anthropometry?.weight !== undefined && anthropometry?.weight !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.WEIGHT' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.weight }} kg</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.neck !== undefined && anthropometry?.neck !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.NECK' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.neck }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.chest !== undefined && anthropometry?.chest !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.CHEST' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.chest }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.bicepsRelaxed !== undefined && anthropometry?.bicepsRelaxed !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.BICEPS_RELAXED' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.bicepsRelaxed }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.bicepsContracted !== undefined && anthropometry?.bicepsContracted !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.BICEPS_CONTRACTED' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.bicepsContracted }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.waist !== undefined && anthropometry?.waist !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.WAIST' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.waist }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.abdomen !== undefined && anthropometry?.abdomen !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.ABDOMEN' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.abdomen }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.hip !== undefined && anthropometry?.hip !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.HIP' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.hip }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.thighContracted !== undefined && anthropometry?.thighContracted !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.THIGH_CONTRACTED' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.thighContracted }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.thighRelaxed !== undefined && anthropometry?.thighRelaxed !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.THIGH_RELAXED' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.thighRelaxed }} cm</div>
+    </div>
+
+    <div class="measurement-item" *ngIf="anthropometry?.calf !== undefined && anthropometry?.calf !== null">
+      <div class="measurement-label">{{ 'ANTHROPOMETRY.CALF' | translate }}</div>
+      <div class="measurement-value">{{ anthropometry?.calf }} cm</div>
+    </div>
+  </div>
+
+  <div class="card-footer" *ngIf="showAddButton">
+    <ion-button expand="block" fill="outline" color="primary" (click)="onAddClick()">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      {{ 'ANTHROPOMETRY.ADD_MEASUREMENT' | translate }}
+    </ion-button>
+  </div>
+</div>
+
+<div class="anthropometry-card empty" *ngIf="!hasData && showAddButton">
+  <div class="empty-state">
+    <ion-icon name="body-outline"></ion-icon>
+    <p>{{ 'ANTHROPOMETRY.NO_DATA' | translate }}</p>
+    <ion-button fill="outline" color="primary" (click)="onAddClick()">
+      <ion-icon name="add-outline" slot="start"></ion-icon>
+      {{ 'ANTHROPOMETRY.ADD_MEASUREMENT' | translate }}
+    </ion-button>
+  </div>
+</div>

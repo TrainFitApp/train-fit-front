@@ -7,6 +7,7 @@ import { AppUpdateService } from 'src/app/core/services/app-update/app-update.se
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { NotificationService } from 'src/app/core/services/util/notification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 
 register();
@@ -26,7 +27,8 @@ export class AppComponent implements OnDestroy {
     private authService: AuthService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private notificationService: NotificationService
   ) {
     void this.initializeApp();
   }
@@ -39,6 +41,7 @@ export class AppComponent implements OnDestroy {
     
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
+    void this.notificationService.initialize();
     this.initSessionTracking();
     this.routeOnStartup();
     this.restoreSessionOnStartup();
@@ -68,7 +71,7 @@ export class AppComponent implements OnDestroy {
     console.info('[AUTH] auth_bootstrap_refresh_attempt');
     this.authService.restoreSessionSilently().subscribe({
       next: (restored) => {
-        if (restored && this.isPublicAuthRoute(this.router.url)) {
+        if (restored && !this.router.url.includes('/user-loader')) {
           void this.router.navigate(['/user-loader'], { replaceUrl: true });
         }
       },

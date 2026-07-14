@@ -12,6 +12,11 @@ export interface FinishWorkoutResponse {
   userUpdated: boolean;
 }
 
+export interface SkipWorkoutResponse {
+  workout: Workout;
+  userUpdated: boolean;
+}
+
 @Injectable()
 export class WorkoutAPIService {
   private static readonly WORKOUT_ENDPOINT = 'workouts';
@@ -32,6 +37,27 @@ export class WorkoutAPIService {
     return this.http.post<Split[]>(
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/multiple/${idTable}`,
       workout
+    );
+  }
+
+  public duplicateWorkoutRow(
+    idTable: string,
+    idWorkout: string,
+    nameSuffix: string
+  ): Observable<Split[]> {
+    return this.http.post<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/duplicate-row/${idTable}/${idWorkout}`,
+      { nameSuffix }
+    );
+  }
+
+  public reorderWorkoutRows(
+    idTable: string,
+    workoutIdsOrder: string[]
+  ): Observable<Split[]> {
+    return this.http.put<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/rows/order/${idTable}`,
+      { workoutIdsOrder }
     );
   }
 
@@ -73,6 +99,16 @@ export class WorkoutAPIService {
     return this.http.put<FinishWorkoutResponse>(`workouts/finish`, {
       workoutId,
       date,
+    });
+  }
+
+  public skipWorkout(
+    workoutId: string,
+    rest: boolean
+  ): Observable<SkipWorkoutResponse> {
+    return this.http.put<SkipWorkoutResponse>(`workouts/skip`, {
+      workoutId,
+      rest,
     });
   }
 

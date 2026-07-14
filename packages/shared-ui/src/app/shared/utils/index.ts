@@ -37,3 +37,12 @@ export function cleanObject(data: any, excludeFields: string[] = []): any {
 export function preparePayload(data: any): any {
   return cleanObject(data);
 }
+
+export function splitTextIntoSteps(text?: string | null): string[] {
+  if (!text) return [];
+
+  return String(text)
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .filter((step) => step.trim().length > 0);
+}

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { firstValueFrom } from 'rxjs';
@@ -43,10 +44,19 @@ export class BillingService {
   private initializePromise: Promise<void> | null = null;
   private configured = false;
   private cachedEntitlements: BillingEntitlements | null = null;
+  private _translate: TranslateService | null = null;
+
+  private get translate(): TranslateService {
+    if (!this._translate) {
+      this._translate = this.injector.get(TranslateService);
+    }
+    return this._translate;
+  }
 
   constructor(
+    private readonly injector: Injector,
     private readonly billingApiService: BillingApiService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ) {}
 
   public get isBillingEnabled(): boolean {
@@ -159,7 +169,7 @@ export class BillingService {
         error: {
           userCancelled: false,
           code: 'NOT_CONFIGURED_OR_INVALID_PACKAGE',
-          message: 'Billing no configurado o paquete no valido',
+          message: this.translate.instant('BILLING.INVALID_PACKAGE'),
         },
         usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
         usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -200,7 +210,7 @@ export class BillingService {
         error: {
           userCancelled: false,
           code: 'NOT_CONFIGURED_OR_INVALID_SUBSCRIPTION_OPTION',
-          message: 'Billing no configurado o opcion de suscripcion no valida',
+          message: this.translate.instant('BILLING.INVALID_SUBSCRIPTION'),
         },
         usedGoogleProductChangeInfo: Boolean(googleProductChangeInfo),
         usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -278,7 +288,7 @@ export class BillingService {
         error: {
           userCancelled: false,
           code: 'NO_OFFERING',
-          message: 'No hay offering activo en RevenueCat',
+          message: this.translate.instant('BILLING.NO_OFFERING'),
         },
         usedGoogleProductChangeInfo: false,
         usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -294,7 +304,7 @@ export class BillingService {
         error: {
           userCancelled: false,
           code: 'PACKAGE_NOT_AVAILABLE',
-          message: `Paquete ${plan} no disponible en el offering`,
+          message: this.translate.instant('BILLING.PACKAGE_NOT_AVAILABLE', { plan }),
         },
         usedGoogleProductChangeInfo: false,
         usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -342,7 +352,7 @@ export class BillingService {
         error: {
           userCancelled: false,
           code: 'CHANGE_PLAN_NO_ACTIVE_SUBSCRIPTION',
-          message: 'No se encontró una suscripción activa para cambiar de plan',
+          message: this.translate.instant('BILLING.NO_ACTIVE_SUBSCRIPTION'),
         },
         usedGoogleProductChangeInfo: false,
         usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -358,8 +368,7 @@ export class BillingService {
           error: {
             userCancelled: false,
             code: 'DOWNGRADE_MANAGED_IN_STORE',
-            message:
-              'El cambio de anual a mensual se gestiona desde Google Play o App Store',
+            message: this.translate.instant('BILLING.DOWNGRADE_MANAGED_IN_STORE'),
           },
           usedGoogleProductChangeInfo: false,
           usedFallbackWithoutGoogleProductChangeInfo: false,
@@ -694,7 +703,7 @@ export class BillingService {
     );
     const code = String(error?.code || error?.rcCode || 'PURCHASE_ERROR');
     const message = String(
-      error?.message || error?.readableErrorCode || 'Error de compra'
+      error?.message || error?.readableErrorCode || this.translate.instant('BILLING.PURCHASE_ERROR')
     );
 
     return { userCancelled, code, message };

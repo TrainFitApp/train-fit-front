@@ -1,10 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
+import { AlertButton, AlertInput, AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
+import { TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -32,11 +34,17 @@ export class ToolbarCalendarComponent {
   @Input()
   public dietDay!: DietDay;
 
+  @Input()
+  public dietId!: string;
+
   @Output()
   public selectCalendarDayEmit = new EventEmitter<string>();
 
   @Output()
   public pasteDietDayMode = new EventEmitter<void>();
+
+  @Output()
+  public pinnedNoteChange = new EventEmitter<string>();
 
   public calendarISODate!: string;
 
@@ -59,11 +67,13 @@ export class ToolbarCalendarComponent {
   constructor(
     private utilService: UtilService,
     private dietDayService: DietDayService,
+    private dietService: DietService,
     private tableService: TableService,
     private mealService: MealService,
     private workoutService: WorkoutService,
     private userService: UserService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private translate: TranslateService
   ) {
     this.setFullDate();
   }
@@ -74,7 +84,7 @@ export class ToolbarCalendarComponent {
   }
 
   public selectToday(): void {
-    this.selectCalendarDayEmit.emit(new Date().toISOString());
+    this.selectCalendarDayEmit.emit(this.utilService.formatDateToYYYYMMDD(new Date()));
   }
 
   public onDateSelected(dateISO: string): void {
@@ -96,16 +106,6 @@ export class ToolbarCalendarComponent {
       this.ionicUtilService.showPopover(popover).then((res) => {
         this.handleAction(res.data);
       });
-    } else {
-      const message = 'No hay acciones disponibles';
-      const duration = 500;
-
-      const toastOptions: ToastOptions = {
-        message: message,
-        duration: duration,
-      };
-
-      this.ionicUtilService.showToast(toastOptions);
     }
   }
 
@@ -117,7 +117,10 @@ export class ToolbarCalendarComponent {
           actionTemp.id !== this.ACTION_TYPES.deselect &&
           actionTemp.id !== this.ACTION_TYPES.moveExercises &&
           actionTemp.id !== this.ACTION_TYPES.edit &&
-          actionTemp.id !== this.ACTION_TYPES.duplicate
+          actionTemp.id !== this.ACTION_TYPES.duplicate &&
+          actionTemp.id !== this.ACTION_TYPES.viewSummary &&
+          actionTemp.id !== this.ACTION_TYPES.skipWorkout &&
+          actionTemp.id !== this.ACTION_TYPES.unskipWorkout
       );
 
       // Sort to put delete at the end
@@ -126,6 +129,11 @@ export class ToolbarCalendarComponent {
         if (b.id === ACTIONS[this.ACTION_TYPES.delete].id) return -1;
         return 0;
       });
+    } else {
+      // Only show Note option when diet-day doesn't exist yet
+      this.actionsPopover = this.ACTION_VALUES.filter(
+        (actionTemp) => actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
+      );
     }
   }
 
@@ -162,10 +170,11 @@ export class ToolbarCalendarComponent {
   private handleCopy(): void {
     (this._service as DietDayService).setDietDayClipboard = this.dietDay;
     this.pasteDietDayMode.emit();
-    const message = `${this.formatDateDDMMYYYY(
-      this.dietDay.date
-    )} copiado al portapapeles`;
-    this.showToast(message);
+    this.showToast(
+      this.translate.instant('TOOLBAR_CALENDAR.DATE_COPIED', {
+        date: this.formatDateDDMMYYYY(this.dietDay.date),
+      })
+    );
   }
 
   private formatDateDDMMYYYY(date: Date | string): string {
@@ -177,54 +186,115 @@ export class ToolbarCalendarComponent {
   }
 
   private manageNote(): void {
-    const alertOptions: AlertOptions = {
-      header: 'Nota',
-      inputs: [
-        {
-          name: 'notes',
-          type: 'textarea',
-          placeholder: 'Escribe tu nota aquí...',
-          value: this.dietDay.notes || '',
+    const t = this.translate.instant.bind(this.translate);
+    const showPinOption = !!this.dietId;
+
+    let shouldPin = false;
+
+    const confirmButtons: AlertButton[] = [
+      {
+        text: t('COMMON.SAVE'),
+        handler: (data) => {
+          shouldPin = false;
+          return true;
         },
-      ],
+      },
+    ];
+
+    if (showPinOption) {
+      confirmButtons.push({
+        text: t('NOTES.PIN_TO_POSITION'),
+        cssClass: 'alert-button-pin',
+        handler: (data) => {
+          shouldPin = true;
+          return true;
+        },
+      });
+    }
+
+    const alertInputs: AlertInput[] = [
+      {
+        name: 'notes',
+        type: 'textarea',
+        placeholder: t('TOOLBAR_CALENDAR.NOTE_PLACEHOLDER'),
+        value: this.dietDay.notes || '',
+      },
+    ];
+
+    const alertOptions: AlertOptions = {
+      header: t('TOOLBAR_CALENDAR.NOTE_HEADER'),
+      inputs: alertInputs,
       buttons: [
         {
-          text: 'Cancelar',
+          text: t('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
-        {
-          text: 'Guardar',
-          handler: (data) => {
-            this.dietDay.notes = data.notes;
-            (this._service as DietDayService)
-              .updateDietDay(this.dietDay)
-              .subscribe(() => {
-                const message = 'Nota actualizada';
-                this.showToast(message);
-              });
-          },
-        },
+        ...confirmButtons,
       ],
     };
 
-    this.ionicUtilService.showAlert(alertOptions);
+    this.ionicUtilService.showAlert(alertOptions).then(async (result) => {
+      if (result.role === 'cancel') return;
+
+      const notesValue = (result.data?.values?.notes || '').trim();
+      if (!notesValue) {
+        const errorAlert: AlertOptions = {
+          header: t('COMMON.ERROR'),
+          message: t('COMMON.FIELD_REQUIRED'),
+          buttons: [t('COMMON.OK')],
+        };
+        this.ionicUtilService.showAlert(errorAlert);
+        return;
+      }
+
+      if (shouldPin && this.dietId) {
+        this.dietService.updatePinnedNote(this.dietId, notesValue).subscribe({
+          next: (diet) => {
+            this.pinnedNoteChange.emit(diet.pinnedNote);
+            this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
+          },
+          error: (err) => console.error('[ToolbarCalendar] Failed to update pinned note', err),
+        });
+        return;
+      }
+
+      if (!this.dietDay._id) {
+        const newDietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
+        const createdDietDay = await this.dietDayService.createDietDay(newDietDay).toPromise();
+        await this.dietService.addDietDietDay(this.dietId, createdDietDay._id).toPromise();
+        createdDietDay.notes = notesValue;
+        (this._service as DietDayService).updateDietDay(createdDietDay).subscribe(() => {
+          this.selectCalendarDayEmit.emit(createdDietDay.date);
+          this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
+        });
+      } else {
+        this.dietDay.notes = notesValue;
+        (this._service as DietDayService)
+          .updateDietDay(this.dietDay)
+          .subscribe(() => {
+            this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
+          });
+      }
+    });
   }
 
   private handleDelete(): void {
+    const t = this.translate.instant.bind(this.translate);
+    const dateFormatted = this.utilService.toStringDateDateFormat(
+      this.utilService.parseYYYYMMDD(this.dietDay.date)
+    );
     const alertOptions: AlertOptions = {
-      header: '¿Estás seguro?',
-      message: `Se eliminará el día ${this.utilService.toStringDateDateFormat(
-        new Date(this.dietDay.date)
-      )}`,
+      header: t('TOOLBAR_CALENDAR.DELETE_CONFIRM_HEADER'),
+      message: t('TOOLBAR_CALENDAR.DELETE_MESSAGE', { date: dateFormatted }),
       buttons: [
         {
-          text: 'Cancelar',
+          text: t('COMMON.CANCEL'),
           role: 'cancel',
           cssClass: 'secondary',
         },
         {
-          text: 'Eliminar',
+          text: t('COMMON.DELETE'),
           cssClass: 'danger',
           handler: () => {
             (this._service as DietDayService)
@@ -233,13 +303,9 @@ export class ToolbarCalendarComponent {
                 this.dietDay._id
               )
               .subscribe(() => {
-                const date = this.utilService.toStringDateDateFormat(
-                  new Date(this.dietDay.date)
+                this.showToast(
+                  t('TOOLBAR_CALENDAR.DELETE_SUCCESS', { date: dateFormatted })
                 );
-                const message = `${date} eliminado`;
-                this.showToast(message);
-                // No emitir refresh para evitar llamada adicional a la API.
-                // El servicio ya vacía el currentDietDay local.
               });
           },
         },
@@ -251,8 +317,9 @@ export class ToolbarCalendarComponent {
 
   private setFullDate(): void {
     this.utilService.getCurrentDate.subscribe((resDate) => {
-      this.month = MONTHS[resDate.getMonth()];
-      this.year = resDate.getFullYear();
+      const d = this.utilService.parseYYYYMMDD(resDate);
+      this.month = MONTHS[d.getMonth()];
+      this.year = d.getFullYear();
     });
   }
 }

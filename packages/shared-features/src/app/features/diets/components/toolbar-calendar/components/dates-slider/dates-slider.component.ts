@@ -52,7 +52,7 @@ export class DatesSliderComponent implements AfterViewInit {
 
   public ngAfterViewInit(): void {
     this._utilService.getCurrentDate.subscribe((resCurrentDate) => {
-      this.currentDate = new Date(resCurrentDate);
+      this.currentDate = this._utilService.parseYYYYMMDD(resCurrentDate);
       setTimeout(() => {
         this.swiperReady();
         this.initSlides();
@@ -144,7 +144,7 @@ export class DatesSliderComponent implements AfterViewInit {
   }
 
   public sendSelectedDate(date: Date): void {
-    this.selectedDateEvent.emit(date.toISOString());
+    this.selectedDateEvent.emit(this._utilService.formatDateToYYYYMMDD(date));
   }
 
   /**

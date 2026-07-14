@@ -680,6 +680,156 @@ ion-accordion-group {
   }
 }
 
+.workout-template-panel {
+  margin: 0 16px 18px;
+  padding: 0;
+  border: 1px solid #252525;
+  border-radius: 8px;
+  background: #141414;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.workout-template-dropdown {
+  margin: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workout-template-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  background: #141414;
+
+  h2 {
+    margin: 0;
+    color: var(--ion-text-color);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--ion-color-medium);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+.workout-template-trigger__text {
+  min-width: 0;
+}
+
+.workout-template-trigger__icon {
+  flex-shrink: 0;
+  color: var(--ion-color-primary);
+  font-size: 18px;
+}
+
+.workout-template-content {
+  padding: 0 14px 14px;
+
+  ion-progress-bar {
+    height: 3px;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    --background: rgba(var(--ion-color-primary-rgb), 0.18);
+    --progress-background: var(--ion-color-primary);
+  }
+}
+
+.workout-template-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.workout-template-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 76px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: #0e0e0e;
+  color: var(--ion-text-color);
+  text-align: left;
+
+  &:disabled {
+    opacity: 0.55;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.99);
+    border-color: rgba(var(--ion-color-primary-rgb), 0.36);
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+}
+
+.workout-template-option__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-template-option__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.workout-template-option__name {
+  color: var(--ion-text-color);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.workout-template-option__days {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  color: var(--ion-color-primary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.workout-template-option__preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.workout-template-option__chip {
+  max-width: 100%;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ion-color-medium);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.workout-template-option__arrow {
+  color: var(--ion-color-medium);
+  font-size: 16px;
+  margin-top: 11px;
+}
+
 .t-add-micro {
   --background: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary-shade);
@@ -697,6 +847,14 @@ ion-accordion-group {
     font-size: 1.2rem;
     margin-right: 8px;
   }
+}
+
+.t-add-micro-progress {
+  width: calc(100% - 32px);
+  height: 3px;
+  margin: -8px 16px 16px;
+  --background: rgba(var(--ion-color-primary-rgb), 0.18);
+  --progress-background: var(--ion-color-primary);
 }
 
 .search-header {
@@ -775,6 +933,10 @@ ion-accordion-group {
         color: rgba(255, 255, 255, 0.7);
         transition: all 0.2s ease;
 
+        &[disabled] {
+          opacity: 0.45;
+        }
+
         &:active {
           transform: scale(0.95);
           background: rgba(255, 255, 255, 0.1);
@@ -783,9 +945,26 @@ ion-accordion-group {
         ion-icon {
           font-size: 20px;
         }
+
+        ion-spinner {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .action-button--confirm {
+        background: rgba(var(--ion-color-success-rgb), 0.1);
       }
     }
   }
+}
+
+.workout-reorder-group {
+  display: block;
+}
+
+.workout-reorder-row {
+  display: block;
 }
 
 // Responsividad móvil

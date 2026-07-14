@@ -21,6 +21,7 @@ import { UserService } from "src/app/core/services/user/user.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { TranslateService } from "@ngx-translate/core";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import {
@@ -38,6 +39,52 @@ interface PreserveFinishedWorkoutSplitState {
   splitIndex: number;
   workoutId: string;
 }
+
+interface WorkoutTemplate {
+  id: string;
+  name: string;
+  description: string;
+  workouts: string[];
+}
+
+const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
+  {
+    id: "upper-lower",
+    name: "Torso / Pierna",
+    description: "4 dias",
+    workouts: ["Torso A", "Pierna A", "Torso B", "Pierna B"],
+  },
+  {
+    id: "push-pull-legs",
+    name: "Push / Pull / Legs",
+    description: "6 dias",
+    workouts: ["Empuje (Push) A", "Tirón (Pull) A", "Pierna (Legs) A", "Empuje (Push) B", "Tirón (Pull) B", "Pierna (Legs) B"],
+  },
+  {
+    id: "full-body",
+    name: "Full Body",
+    description: "3 dias",
+    workouts: ["Cuerpo Completo A", "Cuerpo Completo B", "Cuerpo Completo C"],
+  },
+  {
+    id: "arnold-split",
+    name: "Arnold Split",
+    description: "3 dias",
+    workouts: ["Pecho y Espalda", "Hombros y Brazos", "Piernas y Abdomen"],
+  },
+  {
+    id: "weider",
+    name: "Rutina Weider",
+    description: "5 dias",
+    workouts: ["Pecho", "Espalda", "Hombros", "Piernas", "Brazos"],
+  },
+  {
+    id: "push-pull",
+    name: "Empuje / Tirón",
+    description: "4 dias",
+    workouts: ["Empuje A", "Tirón A", "Empuje B", "Tirón B"],
+  },
+];
 
 @Component({
   selector: "app-mesocycle",
@@ -77,14 +124,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public tableMode: string;
   public openWorkoutIndex: number;
   public microcyclesPerRoutineLimit: number | null = null;
+  public workoutTemplateLoadingId: string | null = null;
+  public savingWorkoutOrder = false;
 
   public TABLE_MODE_TYPES = TABLE_MODE_TYPES;
+  public STATES = STATES;
+  public readonly workoutTemplates = WORKOUT_TEMPLATES;
 
   // Control de animaciones de navegación
   public animatingLeft: boolean = false;
   public animatingRight: boolean = false;
   private readonly preserveFinishedWorkoutSplitKey =
     "preserveFinishedWorkoutSplit";
+  private workoutOrderSnapshot: Workout[][] | null = null;
 
   // Getter para obtener splits ordenados por índice descendente
   private _reversedSplitsWithIndex: Array<{
@@ -125,6 +177,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     private billingService: BillingService,
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
+    private translate: TranslateService,
     private cdr: ChangeDetectorRef,
   ) {
     this.initVariables();
@@ -300,6 +353,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public ionViewWillLeave(): void {
     this.validateAndSyncTableNotes();
+    this.cancelWorkoutMoveMode();
     this.cancelCopyMode();
   }
 
@@ -544,27 +598,27 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public editTableName(): void {
     const alertOptions = {
-      header: "Editar nombre de rutina",
+      header: this.translate.instant('TABLES.EDIT_ROUTINE_NAME'),
       inputs: [
         {
           name: "tableName",
           type: "textarea" as "textarea",
           value: this.tableInUse?.name,
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: "alert-button-primary",
           handler: (data) => {
             if (data.tableName.trim() === "") {
               this.ionicUtilService.showToast({
-                message: "El campo no puede estar vacío",
+                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
                 duration: 2000,
                 color: "danger",
               });
@@ -573,7 +627,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             this.tableInUse.name = data.tableName;
             this.tableService.updateTableName(this.tableInUse).subscribe(() => {
               this.tableService.setCurrentTable = this.tableInUse;
-              const message = "Nombre de rutina actualizado";
+              const message = this.translate.instant('TABLES.ROUTINE_NAME_UPDATED');
               const duration = 1000;
               const toastOptions: ToastOptions = {
                 message: message,
@@ -591,15 +645,15 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public unlinkTable(): void {
     const alertOptions = {
-      header: "Salir de " + this.tableInUse.name,
-      message: "Podrás volver a encontrar esta rutina en Mis rutinas",
+      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
+      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: "alert-button-primary",
           handler: () => {
             this.tableInUse = undefined;
@@ -624,13 +678,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
 
     const alertOptions = {
-      header: "Añadir entrenamiento",
-      message: "Introduce el nombre del entrenamiento",
+      header: this.translate.instant('TABLES.ADD_WORKOUT_ALERT'),
+      message: this.translate.instant('TABLES.ADD_WORKOUT_MSG'),
       inputs: [
         {
           name: "workoutName",
           type: "text" as "text",
-          placeholder: "Ej: Empujes",
+          placeholder: this.translate.instant('TABLES.WORKOUT_EXAMPLE'),
           attributes: {
             required: true,
           },
@@ -638,11 +692,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "AÑADIR",
+          text: this.translate.instant('TABLES.ADD_BTN'),
           cssClass: "alert-button-confirm",
           handler: (data: any) => {
             if (!data.workoutName || data.workoutName.trim() === "") {
@@ -658,11 +712,9 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 this.tableInUse.splits = resSplits;
                 this.tableService.setCurrentTable = this.tableInUse;
 
-                const message = "Entrenamiento " + workout.name + " añadido";
-                const duration = 500;
                 const toastOptions: ToastOptions = {
-                  message: message,
-                  duration: duration,
+                  message: this.translate.instant('TABLES.WORKOUT_ADDED', { name: workout.name }),
+                  duration: 500,
                 };
                 this.ionicUtilService.showToast(toastOptions);
               });
@@ -675,9 +727,99 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
+  public get shouldShowWorkoutTemplates(): boolean {
+    const workoutCount =
+      this.tableInUse?.splits?.reduce(
+        (total, split) => total + (split.workouts?.length ?? 0),
+        0
+      ) ?? 0;
+
+    return (
+      !this.loadingSplit &&
+      !this.pasteMode &&
+      (workoutCount === 0 || this.workoutTemplateLoadingId !== null)
+    );
+  }
+
+  public confirmWorkoutTemplate(template: WorkoutTemplate): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
+    if (this.workoutTemplateLoadingId) return;
+
+    const workoutList = template.workouts
+      .map((workoutName) => `- ${workoutName}`)
+      .join("\n");
+    const alertOptions: AlertOptions = {
+      header: template.name,
+      message: this.translate.instant('TABLES.TEMPLATE_CREATE_CONFIRM', { workoutList }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: "cancel",
+        },
+        {
+          text: this.translate.instant('TABLES.CREATE_TEMPLATE_BTN'),
+          cssClass: "alert-button-confirm",
+          handler: () => {
+            this.createWorkoutTemplate(template);
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private createWorkoutTemplate(template: WorkoutTemplate): void {
+    this.workoutTemplateLoadingId = template.id;
+    this.createTemplateWorkoutAtIndex(template, 0);
+  }
+
+  private createTemplateWorkoutAtIndex(
+    template: WorkoutTemplate,
+    workoutIndex: number
+  ): void {
+    const workoutName = template.workouts[workoutIndex];
+    if (!workoutName) {
+      this.workoutTemplateLoadingId = null;
+      this.updateCurrentSplit();
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: template.name }),
+        duration: 1200,
+        color: "success",
+      } as ToastOptions);
+      return;
+    }
+
+    const workout = new Workout();
+    workout.name = workoutName;
+
+    this.workoutService
+      .addWorkoutsToSplits(this.user.tableInUse, workout)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.createTemplateWorkoutAtIndex(template, workoutIndex + 1);
+        },
+        error: (error) => {
+          this.workoutTemplateLoadingId = null;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('TABLES.TEMPLATE_CREATE_ERROR')
+          );
+        },
+      });
+  }
+
   public workoutIndexPaste: number;
 
   public paste(event): void {
+    if (this.stateSelected === STATES.move) return;
+
     this.pasteMode = event?.paste ?? undefined;
     this.workoutIdPaste = event?.workoutId ?? undefined;
     this.workoutIndexPaste = event?.workoutIndex ?? undefined;
@@ -811,6 +953,98 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
   }
 
+  public onWorkoutDuplicated(event: { workoutIndex: number }): void {
+    this.openWorkoutIndex = event.workoutIndex;
+    this.updateCurrentSplit();
+    this.scrollToOpenWorkout();
+  }
+
+  public enterWorkoutMoveMode(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+
+    if (!this.currentSplit?.workouts?.length || this.savingWorkoutOrder) return;
+
+    this.cancelCopyMode();
+    this.workoutOrderSnapshot = this.tableInUse.splits.map((split) => [
+      ...(split.workouts || []),
+    ]);
+    this.stateSelected = STATES.move;
+    this.openWorkoutIndex = undefined;
+  }
+
+  public cancelWorkoutMoveMode(): void {
+    if (this.stateSelected !== STATES.move) return;
+
+    if (this.workoutOrderSnapshot) {
+      this.tableInUse.splits.forEach((split, splitIndex) => {
+        split.workouts = [...(this.workoutOrderSnapshot?.[splitIndex] || [])];
+      });
+      this.updateCurrentSplit();
+    }
+
+    this.workoutOrderSnapshot = null;
+    this.stateSelected = STATES.static;
+    this.savingWorkoutOrder = false;
+  }
+
+  public handleWorkoutReorder(event: CustomEvent): void {
+    if (this.stateSelected !== STATES.move) {
+      event.detail.complete();
+      return;
+    }
+
+    const fromIndex = event.detail.from;
+    const toIndex = event.detail.to;
+
+    this.tableInUse.splits.forEach((splitTemp) => {
+      const [movedWorkout] = splitTemp.workouts.splice(fromIndex, 1);
+      splitTemp.workouts.splice(toIndex, 0, movedWorkout);
+    });
+
+    event.detail.complete();
+    this.updateCurrentSplit();
+  }
+
+  public confirmWorkoutOrder(): void {
+    if (this.stateSelected !== STATES.move || this.savingWorkoutOrder) return;
+
+    const workoutIdsOrder =
+      this.tableInUse.splits[this.currentSplitIndex]?.workouts?.map(
+        (workout) => workout._id,
+      ) || [];
+
+    if (!workoutIdsOrder.length) return;
+
+    this.savingWorkoutOrder = true;
+    this.workoutService
+      .reorderWorkoutRows(this.tableInUse._id, workoutIdsOrder)
+      .subscribe({
+        next: (resSplits) => {
+          this.tableInUse.splits = resSplits;
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.updateCurrentSplit();
+          this.workoutOrderSnapshot = null;
+          this.stateSelected = STATES.static;
+          this.savingWorkoutOrder = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('TABLES.WORKOUT_ORDER_UPDATED'),
+            duration: 1000,
+            color: "success",
+          } as ToastOptions);
+        },
+        error: (error) => {
+          this.savingWorkoutOrder = false;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant('TABLES.WORKOUT_ORDER_UPDATE_ERROR'),
+          );
+        },
+      });
+  }
+
   /**
    * Hace scroll a un ejercicio con reintentos para esperar que el DOM se actualice
    */
@@ -849,13 +1083,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.loadTable = false;
 
     const alertOptions = {
-      header: "Crear rutina",
-      message: "Introduce el nombre de la rutina",
+      header: this.translate.instant('TABLES.CREATE_ROUTINE_ALERT'),
+      message: this.translate.instant('TABLES.CREATE_ROUTINE_MSG_MESO'),
       inputs: [
         {
           name: "tableName",
           type: "text" as "text",
-          placeholder: "Nombre de la rutina",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           attributes: {
             required: true,
           },
@@ -863,7 +1097,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           cssClass: "alert-button-primary",
           handler: () => {
@@ -871,7 +1105,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           },
         },
         {
-          text: "CREAR",
+          text: this.translate.instant('TABLES.CREATE_BTN'),
           cssClass: "alert-button-success",
           handler: (data: any) => {
             if (!data.tableName || data.tableName.trim() === "") {
@@ -883,7 +1117,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
               .subscribe((resTable) => {
                 this.tableInUse = resTable;
                 this.user.tableInUse = this.tableInUse._id;
-                this.user.ownTables.push(this.tableInUse._id);
+                if (!this.user.tables) this.user.tables = [];
+                this.user.tables.push(this.tableInUse._id);
                 this.userService.setLocalUser = this.user;
                 this.tableService.setCurrentTable = this.tableInUse;
                 this.loadTable = true;
@@ -904,11 +1139,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (this.tableInUse.splits.length > 20) {
       alertOptions = {
-        header: "Error",
-        message: "Número máximo de micro-ciclos alcanzados",
+        header: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR'),
+        message: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR_MSG'),
         buttons: [
           {
-            text: "CONFIRMAR",
+            text: this.translate.instant('COMMON.CONFIRM'),
             role: "cancel",
           },
         ],
@@ -922,23 +1157,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       const isLast =
         this._currentSplitIndex === this.tableInUse.splits.length - 1;
       const message = isLast
-        ? "Se creará uno nuevo copiando los datos del actual incluyendo notas"
-        : "Se creará uno nuevo entre el micro-ciclo " +
-          (this._currentSplitIndex + 1) +
-          " y " +
-          (this._currentSplitIndex + 2) +
-          ", copiando los datos del actual incluyendo notas";
+        ? this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_LAST')
+        : this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_BETWEEN', { current: this._currentSplitIndex + 1, next: this._currentSplitIndex + 2 });
       alertOptions = {
         header: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
         cssClass: "alert-grid-buttons",
         message: message,
         buttons: [
           {
-            text: "CANCELAR",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
           },
           {
-            text: "SIN SERIES",
+            text: this.translate.instant('TABLES.WITHOUT_SERIES'),
             handler: () => {
               this.loadingSplit = true;
               const idSplit =
@@ -956,7 +1187,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -969,7 +1200,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             },
           },
           {
-            text: "COMPLETO",
+            text: this.translate.instant('TABLES.COMPLETE_COPY'),
             cssClass: "alert-button-success",
             handler: () => {
               this.loadingSplit = true;
@@ -988,7 +1219,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -1006,11 +1237,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         message: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
         buttons: [
           {
-            text: "CANCELAR",
+            text: this.translate.instant('COMMON.CANCEL'),
             role: "cancel",
           },
           {
-            text: "CONFIRMAR",
+            text: this.translate.instant('COMMON.CONFIRM'),
             cssClass: "alert-button-primary",
             handler: () => {
               const idSplit =
@@ -1028,7 +1259,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     this.splitService._addOrDeleteSplitSlide$.next(true);
 
                     const toastOptions: ToastOptions = {
-                      message: "Micro-ciclo añadido",
+                      message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
                       duration: 500,
                     };
                     this.ionicUtilService.showToast(toastOptions);
@@ -1046,6 +1277,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addFirstSplitToTable(): void {
+    if (this.loadingFab) return;
+
     this.loadingFab = true;
 
     const idSplit = this.tableInUse.splits[this._currentSplitIndex]?._id;
@@ -1056,7 +1289,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         this.splitService._addOrDeleteSplitSlide$.next(true);
 
         const toastOptions: ToastOptions = {
-          message: "Micro-ciclo añadido",
+          message: this.translate.instant('TABLES.MICROCYCLE_ADDED'),
           duration: 500,
         };
         this.ionicUtilService.showToast(toastOptions);
@@ -1072,15 +1305,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (error?.error?.code === "PREMIUM_LIMIT_MICROCYCLES") {
       this.ionicUtilService.showPremiumLimitAlert({
-        message:
-          "Has alcanzado el limite de micro-ciclos para esta rutina. Activa Pro para seguir anadiendo.",
+        message: this.translate.instant('TABLES.PREMIUM_LIMIT_MICROCYCLES'),
         onUpgrade: () => this.navigationService.goToPremium(),
       });
       return;
     }
 
     this.ionicUtilService.showToast({
-      message: error?.error?.message || "No se pudo anadir el micro-ciclo",
+      message: error?.error?.message || this.translate.instant('TABLES.ADD_MICROCYCLE_ERROR'),
       duration: 2000,
       color: "danger",
     });
@@ -1123,8 +1355,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         workoutInUse: this.user?.workoutInUse,
       },
       cssClass: "delete-splits-modal",
-      initialBreakpoint: 1,
-      breakpoints: [0, 0.5, 0.85, 1],
     });
 
     const splitIds = modalResult.data?.splitIds as string[] | undefined;
@@ -1135,15 +1365,15 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       header: ACTIONS_FAB[ACTIONS_FAB_TYPES.deleteMicrocycle].value,
       message:
         splitCount === 1
-          ? "Se eliminará el micro-ciclo seleccionado y todos sus datos."
-          : `Se eliminarán ${splitCount} micro-ciclos y todos sus datos.`,
+          ? this.translate.instant('TABLES.DELETE_MICROCYCLES_CONFIRM_SINGLE')
+          : this.translate.instant('TABLES.DELETE_MICROCYCLES_CONFIRM_MULTIPLE', { count: splitCount }),
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
         },
         {
-          text: "ELIMINAR",
+          text: this.translate.instant('TABLES.DELETE_BTN'),
           role: "destructive",
           handler: () => {
             this.deleteSelectedSplits(splitIds);
@@ -1183,8 +1413,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           const toastOptions: ToastOptions = {
             message:
               deletedCount === 1
-                ? "Micro-ciclo eliminado"
-                : `${deletedCount} micro-ciclos eliminados`,
+                ? this.translate.instant('TABLES.MICROCYCLE_DELETED')
+                : this.translate.instant('TABLES.MICROCYCLES_DELETED_MULTIPLE', { count: deletedCount }),
             duration: 800,
           };
           this.ionicUtilService.showToast(toastOptions);
@@ -1195,11 +1425,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           this.loadingFab = false;
           this.loadingSplit = false;
           void this.ionicUtilService.showAlert({
-            header: "Error",
+            header: this.translate.instant('COMMON.ERROR'),
             message:
               error?.error?.message ||
-              "No se pudieron eliminar los micro-ciclos",
-            buttons: ["OK"],
+              this.translate.instant('TABLES.DELETE_MICROCYCLES_ERROR'),
+            buttons: [this.translate.instant('COMMON.OK')],
           });
         },
       });
@@ -1296,19 +1526,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         {
           name: "workoutName",
           type: "text",
-          placeholder: "Nombre",
+          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
         },
       ],
       buttons: [
         {
-          text: "CANCELAR",
+          text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
           handler: () => {
             this.loadingFab = false;
           },
         },
         {
-          text: "CONFIRMAR",
+          text: this.translate.instant('COMMON.CONFIRM'),
           handler: (data) => {
             if (data.workoutName && data.workoutName.trim() !== "") {
               const workout = this.workoutService.getStandarWorkout();
@@ -1319,7 +1549,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                   this.tableInUse.splits = resSplits;
                   this.tableService.setCurrentTable = this.tableInUse;
                   const toastOptions: ToastOptions = {
-                    message: data.workoutName + " añadido",
+                    message: this.translate.instant('TABLES.WORKOUT_ADDED_SIMPLE', { name: data.workoutName }),
                     duration: 500,
                   };
                   this.ionicUtilService.showToast(toastOptions);
@@ -1327,9 +1557,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 });
               return true;
             } else {
-              // Show error if name is empty
               const errorToast: ToastOptions = {
-                message: "El nombre no puede estar vacío",
+                message: this.translate.instant('TABLES.WORKOUT_NAME_EMPTY'),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(errorToast);

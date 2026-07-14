@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
-import { take, tap } from 'rxjs/operators';
+import { Observable, forkJoin } from 'rxjs';
+import { take, tap, switchMap, map } from 'rxjs/operators';
 import {
   ACTIVITY_FACTOR_TYPE,
   ACTIVITY_FACTOR_VALUES,
@@ -10,6 +10,8 @@ import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
 import { User } from '../../models/user';
+import { NutritionalGoal } from '../../models/nutritional-goal';
+import { NutritionalGoalApiService } from '../nutritional-goal/nutritional-goal-api.service';
 import { UserAPIService } from './user-api.service';
 
 @Injectable()
@@ -37,7 +39,10 @@ export class UserService {
     this._localUser.set(user);
   }
 
-  constructor(private userAPIService: UserAPIService) {}
+  constructor(
+    private userAPIService: UserAPIService,
+    private nutritionalGoalApiService: NutritionalGoalApiService,
+  ) {}
 
   public getUserByEmail(email: string): Observable<User> {
     return this.userAPIService.getUserByEmail(email).pipe(take(1));
@@ -88,8 +93,31 @@ export class UserService {
   }
 
   public createUser(user: User, date: Date): Observable<User> {
-    const userToCreate = this.setUserMacrosAndKcal(user);
-    return this.userAPIService.createUser(userToCreate, date).pipe(take(1));
+    const userWithMacros = this.setUserMacrosAndKcal(user);
+    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToCreate } = userWithMacros as any;
+
+    return this.userAPIService.createUser(userToCreate, date).pipe(
+      take(1),
+      switchMap((createdUser) => {
+        const goalData = {
+          userId: createdUser._id,
+          name: 'Default',
+          kcalTotal: kcalTotal || 0,
+          proteinsGTotal: proteinsGTotal || 0,
+          carbohydratesGTotal: carbohydratesGTotal || 0,
+          fatGTotal: fatGTotal || 0,
+        };
+        return this.nutritionalGoalApiService.create(goalData).pipe(
+          switchMap((goal) => {
+            createdUser.goalInUse = goal._id;
+            return this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
+              map(() => createdUser),
+            );
+          }),
+        );
+      }),
+      tap((createdUser) => (this.setLocalUser = createdUser)),
+    );
   }
 
   public createGoogleUser(
@@ -101,14 +129,16 @@ export class UserService {
   }
 
   public updateUser(user: User): Observable<User> {
-    return this.userAPIService.updateUser(user).pipe(
+    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...cleanUser } = user as any;
+    return this.userAPIService.updateUser({ ...cleanUser, _id: user._id } as User).pipe(
       take(1),
       tap((updatedUser) => (this.setLocalUser = updatedUser))
     );
   }
 
   public updateGoogleUser(user: User): Observable<any> {
-    const userToUpdate = this.setUserMacrosAndKcal(user);
+    const userWithMacros = this.setUserMacrosAndKcal(user);
+    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToUpdate } = userWithMacros as any;
     return this.userAPIService.updateGoogleUser(userToUpdate).pipe(
       take(1),
       tap((updatedUser) => (this.setLocalUser = updatedUser.user))
@@ -126,7 +156,8 @@ export class UserService {
   }
 
   public updateAppleUser(user: User): Observable<any> {
-    const userToUpdate = this.setUserMacrosAndKcal(user);
+    const userWithMacros = this.setUserMacrosAndKcal(user);
+    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToUpdate } = userWithMacros as any;
     return this.userAPIService.updateAppleUser(userToUpdate).pipe(
       take(1),
       tap((updatedUser) => (this.setLocalUser = updatedUser.user))
@@ -174,6 +205,10 @@ export class UserService {
     return this.userAPIService.deleteById(id);
   }
 
+  public verifyPassword(password: string) {
+    return this.userAPIService.verifyPassword(password).pipe(take(1));
+  }
+
   public restorePassword(email: string, newPassword: string) {
     return this.userAPIService
       .restorePassword(email, newPassword)
@@ -196,6 +231,7 @@ export class UserService {
 
   public setUserMacrosAndKcal(user: User): User {
     const finalWeight: number = this.getFinalWeight(user);
+    const u = user as any;
 
     const energyExp: number = this.energyExpenditure(
       this.mifflinStJeorBMR(
@@ -217,10 +253,10 @@ export class UserService {
 
     const fatGT: number = this.fatGTotal(user.objetive, finalWeight, user.sex);
 
-    user.kcalTotal = this.calculateKcal(user);
-    user.proteinsGTotal = parseFloat(proteinGT.toFixed(2));
-    user.fatGTotal = parseFloat(fatGT.toFixed(2));
-    user.carbohydratesGTotal = parseFloat(
+    u.kcalTotal = this.calculateKcal(user);
+    u.proteinsGTotal = parseFloat(proteinGT.toFixed(2));
+    u.fatGTotal = parseFloat(fatGT.toFixed(2));
+    u.carbohydratesGTotal = parseFloat(
       this.carbohydratesGTotal(
         energyExp,
         user.objetive,
