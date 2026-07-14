@@ -47,6 +47,7 @@ export class SearchExercisesPage implements OnInit {
   @Input() tableInUse: Table;
   @Input() isChangeMode: boolean;
   @Input() sourceIsCardio: boolean;
+  @Input() sourceIsIsometric: boolean;
 
   public exercises: Exercise[];
   public exercisesCount: number;
@@ -104,6 +105,9 @@ export class SearchExercisesPage implements OnInit {
       if (this.sourceIsCardio) {
         this.searchFilterGroupExercises.isCardio = true;
         this.cardioMode = 'cardio';
+      } else if (this.sourceIsIsometric) {
+        this.searchFilterGroupExercises.isIsometric = true;
+        this.cardioMode = 'all';
       } else {
         this.searchFilterGroupExercises.isCardio = undefined;
         this.cardioMode = 'all';
@@ -150,8 +154,10 @@ export class SearchExercisesPage implements OnInit {
       .searchExercise(this.searchFilterGroupExercises)
       .subscribe((resExercises) => {
         const filteredExercises =
-          this.isChangeMode && !this.sourceIsCardio
-            ? (resExercises || []).filter((exercise) => !exercise?.isCardio)
+          this.isChangeMode && !this.sourceIsCardio && !this.sourceIsIsometric
+            ? (resExercises || []).filter(
+                (exercise) => !exercise?.isCardio && !exercise?.isIsometric
+              )
             : resExercises;
 
         if (!this.isChangeMode && this.workout?.exercises) {
@@ -180,8 +186,10 @@ export class SearchExercisesPage implements OnInit {
         .searchExercise(this.searchFilterGroupExercises)
         .subscribe((resExercises) => {
           const nextExercises =
-            this.isChangeMode && !this.sourceIsCardio
-              ? (resExercises || []).filter((exercise) => !exercise?.isCardio)
+            this.isChangeMode && !this.sourceIsCardio && !this.sourceIsIsometric
+              ? (resExercises || []).filter(
+                  (exercise) => !exercise?.isCardio && !exercise?.isIsometric
+                )
               : resExercises;
 
           this.exercises = this.exercises.concat(nextExercises);

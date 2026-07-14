@@ -48,7 +48,7 @@
   </ng-template>
 
   <!-- Historical Stats Section -->
-  <div class="elegant-card historical-stats-card" *ngIf="exercise && !exercise.isCardio">
+  <div class="elegant-card historical-stats-card" *ngIf="exercise">
     <div class="card-content">
       <div class="historical-stats-header">
         <div class="historical-stats-info">
@@ -63,24 +63,46 @@
         <ion-spinner name="dots"></ion-spinner>
       </div>
 
-      <div *ngIf="!historicalStatsLoading && historicalStats?.bestSet as best" class="historical-stats-row">
-        <div class="historical-stat-chip">
-          <span class="label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</span>
-          <span class="value">{{ best.weight }}kg × {{ best.reps }}</span>
+      <ng-container *ngIf="!historicalStatsLoading">
+        <div *ngIf="exercise.isCardio" class="historical-stats-row">
+          <div
+            *ngIf="historicalStats?.bestVelocityEver !== null && historicalStats?.bestVelocityEver !== undefined; else noHistoricalStats"
+            class="historical-stat-chip"
+          >
+            <span class="label">{{ 'TABLES.STATS_ALL_TIME_BEST_PACE' | translate }}</span>
+            <span class="value">{{ historicalStats.bestVelocityEver }}km/h</span>
+          </div>
         </div>
-        <div class="historical-stat-chip">
-          <span class="label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</span>
-          <span class="value">{{ historicalStats.maxWeightEver }}kg</span>
-        </div>
-      </div>
 
-      <ion-text
-        *ngIf="!historicalStatsLoading && !historicalStats?.bestSet"
-        color="medium"
-        class="historical-stats-empty"
-      >
-        {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}
-      </ion-text>
+        <div *ngIf="exercise.isIsometric" class="historical-stats-row">
+          <div
+            *ngIf="historicalStats && historicalStats.bestTimeSecondsEver > 0; else noHistoricalStats"
+            class="historical-stat-chip"
+          >
+            <span class="label">{{ 'TABLES.STATS_ALL_TIME_LONGEST_HOLD' | translate }}</span>
+            <span class="value">{{ historicalStats.bestTimeEver }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="!exercise.isCardio && !exercise.isIsometric" class="historical-stats-row">
+          <ng-container *ngIf="historicalStats?.bestSet as best; else noHistoricalStats">
+            <div class="historical-stat-chip">
+              <span class="label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</span>
+              <span class="value">{{ best.weight }}kg × {{ best.reps }}</span>
+            </div>
+            <div class="historical-stat-chip">
+              <span class="label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</span>
+              <span class="value">{{ historicalStats.maxWeightEver }}kg</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <ng-template #noHistoricalStats>
+          <ion-text color="medium" class="historical-stats-empty">
+            {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}
+          </ion-text>
+        </ng-template>
+      </ng-container>
     </div>
   </div>
 

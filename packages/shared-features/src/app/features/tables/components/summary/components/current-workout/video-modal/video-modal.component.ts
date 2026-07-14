@@ -7,6 +7,7 @@ import {
   ExerciseHistoryService,
   ExerciseHistoryStats,
 } from 'src/app/core/services/exercise-history/exercise-history.service';
+import { formatSecondsAsTime } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-video-modal',
@@ -33,7 +34,7 @@ export class VideoModalComponent implements OnInit {
   }
 
   private loadHistoricalStats(): void {
-    if (!this.exercise || this.exercise.isCardio) return;
+    if (!this.exercise) return;
 
     this.historicalStatsLoading = true;
     this.exerciseHistoryService
@@ -82,5 +83,9 @@ export class VideoModalComponent implements OnInit {
   public getValidMuscleGroups(): string[] {
     if (!this.exercise || !this.exercise.muscleGroups1) return [];
     return this.exercise.muscleGroups1.filter((g) => g && g.trim().length > 0);
+  }
+
+  public formatSeconds(seconds: number): string {
+    return formatSecondsAsTime(seconds || 0);
   }
 }

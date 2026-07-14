@@ -18,5 +18,6 @@ export class SearchFilterGroupExercises {
   public category: string[] = [];
   public equipment: string[] = [];
   public isCardio?: boolean;
+  public isIsometric?: boolean;
   public userId?: string;
 }

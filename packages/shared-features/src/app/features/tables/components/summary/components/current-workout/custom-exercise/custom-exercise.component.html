@@ -52,17 +52,22 @@
     <thead>
       <tr>
         <th style="width: 60px; min-width: 60px">Serie</th>
-        <ng-container
-          *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders"
-        >
-          <th>Velocidad</th>
-          <th>Minutos</th>
-          <th>Segundos</th>
+        <ng-container *ngIf="this.customExercise.exercise.isIsometric; else nonIsometricHeaders">
+          <th>Tiempo</th>
         </ng-container>
-        <ng-template #nonCardioHeaders>
-          <th>Peso</th>
-          <th>Reps</th>
-          <th>Intensidad</th>
+        <ng-template #nonIsometricHeaders>
+          <ng-container
+            *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders"
+          >
+            <th>Velocidad</th>
+            <th>Tiempo</th>
+            <th>KM</th>
+          </ng-container>
+          <ng-template #nonCardioHeaders>
+            <th>Peso</th>
+            <th>Reps</th>
+            <th>Intensidad</th>
+          </ng-template>
         </ng-template>
         <th style="width: 32px; min-width: 32px"></th>
       </tr>
@@ -81,13 +86,18 @@
       >
         <td class="series-number">{{ i + 1 }}</td>
 
+        <ng-container *ngIf="this.customExercise.exercise.isIsometric; else nonIsometric">
+          <td>{{ set.time ? set.time : "—" }}</td>
+        </ng-container>
+        <ng-template #nonIsometric>
         <ng-container
           *ngIf="this.customExercise.exercise.isCardio; else nonCardio"
         >
           <td>{{ set.velocity ? set.velocity : "—" }}</td>
-          <td>{{ set.timeMin ? set.timeMin + " Min" : "—" }}</td>
-          <td>{{ set.timeSec ? set.timeSec + " Seg" : "—" }}</td>
+          <td>{{ set.time ? set.time : "—" }}</td>
+          <td>{{ set.distance ? set.distance + " KM" : "—" }}</td>
         </ng-container>
+        </ng-template>
         <ng-template #nonCardio>
           <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
           <td>

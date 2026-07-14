@@ -287,6 +287,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       component: ManageSetComponent,
       componentProps: {
         isCardio: this.customExercise.exercise.isCardio,
+        isIsometric: this.customExercise.exercise.isIsometric,
       },
     };
 
@@ -296,8 +297,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         delete res.data.rangeREPStart;
         delete res.data.rangeRIREnd;
         delete res.data.rangeRIRStart;
-        delete res.data.expectedMin;
-        delete res.data.expectedSec;
 
         const maxOrderSet = this.customExercise.sets.reduce(
           (maxSeries, currentSeries) => {
@@ -440,6 +439,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       componentProps: {
         set: set,
         isCardio: this.customExercise.exercise.isCardio,
+        isIsometric: this.customExercise.exercise.isIsometric,
       },
     };
 

@@ -102,14 +102,14 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public videoEmbedSrcSafe: any;
 
   public isCreateMode: boolean;
-  public exerciseMode: "fuerza" | "cardio" = "fuerza";
+  public exerciseMode: "fuerza" | "cardio" | "isometrico" = "fuerza";
   public isEditingOwnExercise: boolean = false;
 
   public showFilters: boolean = true;
   public isOwnExercise: boolean = false;
 
   private originalNotes: string;
-  private originalExerciseMode: "fuerza" | "cardio" = "fuerza";
+  private originalExerciseMode: "fuerza" | "cardio" | "isometrico" = "fuerza";
   private originalDetails: {
     category: string[];
     muscleGroups1: string[];
@@ -123,6 +123,16 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public get exerciseIndex(): number {
     if (!this.workout?.exercises || !this.customExercise?._id) return -1;
     return this.workout.exercises.findIndex((e) => e._id === this.customExercise._id);
+  }
+
+  public get isCurrentExerciseCardio(): boolean {
+    const ex = this.customExercise?.exercise || this.exercise;
+    return !!ex?.isCardio;
+  }
+
+  public get isCurrentExerciseIsometric(): boolean {
+    const ex = this.customExercise?.exercise || this.exercise;
+    return !!ex?.isIsometric;
   }
 
   public filterCategories = [
@@ -279,7 +289,11 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     // Initialize details from current exercise
     const baseExercise = this.exercise || this.customExercise?.exercise;
     if (baseExercise) {
-      this.exerciseMode = baseExercise.isCardio ? "cardio" : "fuerza";
+      this.exerciseMode = baseExercise.isIsometric
+        ? "isometrico"
+        : baseExercise.isCardio
+        ? "cardio"
+        : "fuerza";
       this.originalExerciseMode = this.exerciseMode;
       this.syncDetailsFromExercise(baseExercise);
 
@@ -475,6 +489,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         equipment: [],
         gifUrl: "",
         isCardio: false,
+        isIsometric: false,
         userId: this.user?._id,
       } as Exercise;
       this.exercise = exerciseConfig.exercise;
@@ -514,18 +529,25 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     const baseExercise = this.customExercise?.exercise || this.exercise;
     const currentIsCardio =
       this.exerciseMode === "cardio" || !!baseExercise?.isCardio;
+    const currentIsIsometric =
+      this.exerciseMode === "isometrico" || !!baseExercise?.isIsometric;
 
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
       componentProps: {
         isChangeMode: true,
         sourceIsCardio: currentIsCardio,
+        sourceIsIsometric: currentIsIsometric,
       },
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
       if (res.data) {
-        if (currentIsCardio !== !!res.data.isCardio) {
+        const sameType =
+          currentIsCardio === !!res.data.isCardio &&
+          currentIsIsometric === !!res.data.isIsometric;
+
+        if (!sameType) {
           const alertOptions: AlertOptions = {
             header: this.translate.instant("EXERCISE_CONFIG.WARNING"),
             message: this.translate.instant("EXERCISE_CONFIG.CANT_SWAP_CARDIO_STRENGTH"),
@@ -675,9 +697,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       userId: currentExercise.userId || this.user?._id,
     };
 
-    if (this.exerciseMode === "cardio") {
-      payload.isCardio = true;
-    }
+    payload.isCardio = this.exerciseMode === "cardio";
+    payload.isIsometric = this.exerciseMode === "isometrico";
 
     try {
       const updatedExercise = await lastValueFrom(
@@ -689,12 +710,6 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         ...(payload as Exercise),
         ...(updatedExercise || {}),
       };
-
-      if (this.exerciseMode !== "cardio") {
-        delete (mergedExercise as any).isCardio;
-      } else {
-        mergedExercise.isCardio = true;
-      }
 
       if (this.customExercise?.exercise) {
         this.customExercise.exercise = {
@@ -775,8 +790,12 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     // Sincronizar detalles (músculos, categorías, equipamiento)
     this.syncDetailsFromExercise(exercise);
 
-    // Sincronizar el modo (fuerza/cardio)
-    this.exerciseMode = exercise.isCardio ? "cardio" : "fuerza";
+    // Sincronizar el modo (fuerza/cardio/isometrico)
+    this.exerciseMode = exercise.isIsometric
+      ? "isometrico"
+      : exercise.isCardio
+      ? "cardio"
+      : "fuerza";
 
     // Recalcular propiedad y modo edición
     this.isOwnExercise = exercise?.userId === this.user?._id;
@@ -800,9 +819,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       component: ManageSetComponent,
       componentProps: {
         set: set,
-        isCardio: this.customExercise
-          ? this.customExercise.exercise.isCardio
-          : this.exercise.isCardio,
+        isCardio: this.isCurrentExerciseCardio,
+        isIsometric: this.isCurrentExerciseIsometric,
       },
     };
 
@@ -918,6 +936,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
         if (this.exerciseMode === "cardio") {
           (exerciseData as any).isCardio = true;
+        } else if (this.exerciseMode === "isometrico") {
+          (exerciseData as any).isIsometric = true;
         }
 
         // Prepare dataExercise with embedded exercise
@@ -1252,7 +1272,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   }
 
   public async setExerciseMode(mode: any): Promise<void> {
-    if (mode !== "fuerza" && mode !== "cardio") {
+    if (mode !== "fuerza" && mode !== "cardio" && mode !== "isometrico") {
       return;
     }
 
@@ -1288,16 +1308,19 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     this.applyExerciseMode(mode);
   }
 
-  private applyExerciseMode(mode: "fuerza" | "cardio"): void {
+  private applyExerciseMode(mode: "fuerza" | "cardio" | "isometrico"): void {
     this.exerciseMode = mode;
     const isCardio = mode === "cardio";
+    const isIsometric = mode === "isometrico";
 
     if (this.exercise) {
       this.exercise.isCardio = isCardio;
+      this.exercise.isIsometric = isIsometric;
     }
 
     if (this.customExercise?.exercise) {
       this.customExercise.exercise.isCardio = isCardio;
+      this.customExercise.exercise.isIsometric = isIsometric;
     }
   }
 

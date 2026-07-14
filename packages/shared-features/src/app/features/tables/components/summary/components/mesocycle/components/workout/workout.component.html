@@ -319,17 +319,22 @@
             <thead>
               <tr>
                 <th style="width: 60px; min-width: 60px">{{ 'TABLES.SERIES' | translate }}</th>
-                <ng-container
-                  *ngIf="exercise.exercise.isCardio; else nonCardioHeaders"
-                >
-                  <th>{{ 'TABLES.VELOCITY' | translate }}</th>
-                  <th>{{ 'TABLES.MIN' | translate }}</th>
-                  <th>{{ 'TABLES.SEG' | translate }}</th>
+                <ng-container *ngIf="exercise.exercise.isIsometric; else nonIsometricHeaders">
+                  <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
                 </ng-container>
-                <ng-template #nonCardioHeaders>
-                  <th>{{ 'TABLES.KG' | translate }}</th>
-                  <th>{{ 'TABLES.REP_RANGE' | translate }}</th>
-                  <th>{{ 'TABLES.RIR_RANGE' | translate }}</th>
+                <ng-template #nonIsometricHeaders>
+                  <ng-container
+                    *ngIf="exercise.exercise.isCardio; else nonCardioHeaders"
+                  >
+                    <th>{{ 'TABLES.VELOCITY' | translate }}</th>
+                    <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
+                    <th>{{ 'TABLES.DISTANCE_LABEL' | translate }}</th>
+                  </ng-container>
+                  <ng-template #nonCardioHeaders>
+                    <th>{{ 'TABLES.KG' | translate }}</th>
+                    <th>{{ 'TABLES.REP_RANGE' | translate }}</th>
+                    <th>{{ 'TABLES.RIR_RANGE' | translate }}</th>
+                  </ng-template>
                 </ng-template>
               </tr>
             </thead>
@@ -347,23 +352,22 @@
               >
                 <td>{{ j + 1 }}</td>
 
+                <ng-container *ngIf="exercise.exercise.isIsometric; else nonIsometric">
+                  <td>
+                    {{ (set.doned ? set.time : set.expectedTime) || "—" }}
+                  </td>
+                </ng-container>
+                <ng-template #nonIsometric>
                 <ng-container
                   *ngIf="exercise.exercise.isCardio; else nonCardio"
                 >
                   <td>{{ set.velocity ? set.velocity : "—" }}</td>
-                  <ng-container *ngIf="set.doned; else expectedCardioTime">
-                    <td>{{ set.timeMin ? set.timeMin + " Min" : "—" }}</td>
-                    <td>{{ set.timeSec ? set.timeSec + " Seg" : "—" }}</td>
-                  </ng-container>
-                  <ng-template #expectedCardioTime>
-                    <td>
-                      {{ set.expectedMin ? set.expectedMin + " Min" : "—" }}
-                    </td>
-                    <td>
-                      {{ set.expectedSec ? set.expectedSec + " Seg" : "—" }}
-                    </td>
-                  </ng-template>
+                  <td>{{ (set.doned ? set.time : set.expectedTime) || "—" }}</td>
+                  <td>
+                    {{ (set.doned ? set.distance : set.expectedDistance) ? (set.doned ? set.distance : set.expectedDistance) + " KM" : "—" }}
+                  </td>
                 </ng-container>
+                </ng-template>
                 <ng-template #nonCardio>
                   <!-- Mostrar datos esperados si no está doned, datos reales si está doned -->
                   <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>

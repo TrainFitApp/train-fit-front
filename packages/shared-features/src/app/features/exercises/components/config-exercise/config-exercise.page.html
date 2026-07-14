@@ -158,6 +158,9 @@
               <ion-segment-button value="cardio">
                 <ion-label>{{ 'EXERCISE_CONFIG.CARDIO' | translate }}</ion-label>
               </ion-segment-button>
+              <ion-segment-button value="isometrico">
+                <ion-label>{{ 'EXERCISE_CONFIG.ISOMETRIC' | translate }}</ion-label>
+              </ion-segment-button>
             </ion-segment>
           </div>
         </div>
@@ -283,21 +286,27 @@
                   (click)="configSets(set); $event.stopPropagation()"
                 >
                   <div class="set-values">
+                    <ng-container *ngIf="isCurrentExerciseIsometric; else notIsometricSetValues">
+                      <span class="set-value"
+                        >{{ set.expectedTime ? set.expectedTime : '-' }}
+                      </span>
+                    </ng-container>
+
+                    <ng-template #notIsometricSetValues>
                     <ng-container
-                      *ngIf="this.customExercise
-                    ? this.customExercise.exercise.isCardio
-                    : this.exercise.isCardio; else noCardio"
+                      *ngIf="isCurrentExerciseCardio; else noCardio"
                     >
                       <span class="set-value"
                         >{{ set.velocity ? set.velocity : '-' }}
                       </span>
                       <span class="set-value"
-                        >{{ set.expectedMin ? set.expectedMin+' Min' : '-' }}
+                        >{{ set.expectedTime ? set.expectedTime : '-' }}
                       </span>
                       <span class="set-value"
-                        >{{ set.expectedSec ? set.expectedSec+' Seg' : '-' }}
+                        >{{ set.expectedDistance ? set.expectedDistance+' KM' : '-' }}
                       </span>
                     </ng-container>
+                    </ng-template>
 
                     <ng-template #noCardio>
                       <span class="set-value"

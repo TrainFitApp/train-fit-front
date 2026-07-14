@@ -131,6 +131,10 @@ export class ManageSetComponent implements OnInit {
     }
   }
 
+  public get expectedTimeControl(): FormControl {
+    return this.setForm.get('expectedTime') as FormControl;
+  }
+
   public get isRestPauseChecked(): boolean {
     return this.setForm?.get('restPauseEnabled')?.value || false;
   }
