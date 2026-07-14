@@ -34,6 +34,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
   public isProcessing = false;
   public objetiveMessage: string;
   public registerSocialPending: boolean;
+  public displayKcal: number = 0;
   public codeSended = false;
   public resendDisabled = false;
   public resendCountdown = 0;
@@ -56,15 +57,13 @@ export class DataSheetPage implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    // Obtener datos del servicio de estado
     this.signUpStateService.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user) => {
         if (user) {
           this.user = user;
           this.user.lang = this.i18nService.current as 'es' | 'en';
-          // Calcular kcal totales para mostrar en la ficha
-          this.user.kcalTotal = this.userService.calculateKcal(this.user);
+          this.displayKcal = this.userService.calculateKcal(this.user);
         }
       });
 
@@ -105,7 +104,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
   public register(): void {
     this.isProcessing = true;
-    this.user.kcalTotal = this.userService.calculateKcal(this.user);
+    this.displayKcal = this.userService.calculateKcal(this.user);
 
     if (this.registerSocialPending) {
       // Registro tradicional (email/password)

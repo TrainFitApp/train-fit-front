@@ -4,6 +4,11 @@ import { Split } from '../../models/split';
 import { Table } from '../../models/table';
 import { HttpService } from '../http/http.service';
 
+export interface DeleteSplitsResponse {
+  deletedSplitIds: string[];
+  clearedWorkoutInUse: boolean;
+}
+
 @Injectable()
 export class SplitAPIService {
   private static readonly SPLIT_ENDPOINT = 'splits';
@@ -52,6 +57,16 @@ export class SplitAPIService {
   public deleteSplit(idTable: string, idSplit: string): Observable<any> {
     return this.http.delete<any>(
       `${SplitAPIService.SPLIT_ENDPOINT}/${idTable}/${idSplit}`
+    );
+  }
+
+  public deleteSplits(
+    idTable: string,
+    splitIds: string[]
+  ): Observable<DeleteSplitsResponse> {
+    return this.http.delete<DeleteSplitsResponse>(
+      `${SplitAPIService.SPLIT_ENDPOINT}/${idTable}`,
+      { body: { splitIds } }
     );
   }
 }

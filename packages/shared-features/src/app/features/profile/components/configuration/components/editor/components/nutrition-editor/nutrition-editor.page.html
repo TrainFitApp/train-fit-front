@@ -6,10 +6,14 @@
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ 'NUTRITION_EDITOR.TITLE' | translate }}</h1>
+      <div class="tf-page-header__title-section" (click)="renameGoal()" style="cursor: pointer;">
+        <h1 class="tf-page-header__title">{{ goal?.name || ('NUTRITION_EDITOR.TITLE' | translate) }}</h1>
       </div>
-      <div class="tf-page-header__actions"></div>
+      <div class="tf-page-header__actions">
+        <button class="tf-page-header__action-button" (click)="deleteGoal()" *ngIf="goal">
+          <ion-icon name="trash-outline" color="danger"></ion-icon>
+        </button>
+      </div>
     </div>
   </div>
 </ion-header>
@@ -47,6 +51,16 @@
             [class.fa-lock]="state.lock.calories"
             [class.fa-unlock]="!state.lock.calories"
           ></i>
+        </button>
+      </div>
+      <div class="calories-actions">
+        <button class="auto-calc-btn" (click)="autoCalculate()">
+          <ion-icon name="calculator-outline"></ion-icon>
+          <span>{{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}</span>
+        </button>
+        <button class="auto-calc-btn auto-calc-btn--primary" (click)="useGoal()" *ngIf="goal && goal._id !== user?.goalInUse">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'NUTRITION_EDITOR.USAR' | translate }}</span>
         </button>
       </div>
     </div>
@@ -378,10 +392,6 @@
           [disabled]="!isValidConfiguration() || isSaving"
         >
           {{ 'NUTRITION_EDITOR.GUARDAR' | translate }}
-        </button>
-
-        <button class="recalculate-button" (click)="autoCalculate()">
-          {{ 'NUTRITION_EDITOR.RECALCULAR' | translate }}
         </button>
       </div>
     </div>

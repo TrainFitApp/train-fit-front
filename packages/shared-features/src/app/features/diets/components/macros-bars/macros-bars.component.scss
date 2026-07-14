@@ -11,54 +11,61 @@ ion-progress-bar {
 }
 
 .macros-container {
-  // Aplicar efecto glassmorphism coherente con el header
   background: #141414;
-  padding: 4px 6px !important; // Aumentado padding para mejor espaciado
+  padding: 4px 6px !important;
   margin: 0 !important;
-  border-radius: 0 !important; // Mantener consistencia con el header
+  border-radius: 0 !important;
+  position: relative;
 
-  // Animación de entrada suave eliminada
-  // animation: fadeInUp 0.5s ease-out;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
 
-  // @keyframes fadeInUp {
-  //   from {
-  //     opacity: 0;
-  //     transform: translateY(10px);
-  //   }
-  //   to {
-  //     opacity: 1;
-  //     transform: translateY(0);
-  //   }
-  // }
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #252525;
+    z-index: 10;
+  }
 
-  // Estilos base para valores de macros - Mejorada tipografía
   .macro-value {
-    color: #ffffff !important; // --text-primary
+    color: #ffffff !important;
     font-weight: 700 !important;
     font-variant-numeric: tabular-nums;
-    font-size: 12px; // Aumentado para mejor legibilidad
+    font-size: 12px;
     line-height: 1.1;
-    letter-spacing: -0.02em; // Espaciado de letras optimizado
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); // Sombra sutil para contraste
-    // transition: all 0.3s ease;
-
-    // Efecto de brillo sutil
-
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     -webkit-background-clip: text;
     background-clip: text;
   }
 
-  // Estilos para texto secundario (objetivos) - Mejorada jerarquía
   .macro-goal {
-    color: #9ca3af !important; // --text-secondary
-    font-weight: 500 !important; // Aumentado peso para mejor legibilidad
-    font-size: 10px; // Ligeramente aumentado
+    color: #9ca3af !important;
+    font-weight: 500 !important;
+    font-size: 10px;
     line-height: 1.2;
     letter-spacing: 0.01em;
     opacity: 0.9;
-    // transition: all 0.3s ease;
 
-    // Mejor contraste en pantallas pequeñas
     @media (max-width: 480px) {
       font-weight: 600;
       opacity: 1;
@@ -67,24 +74,20 @@ ion-progress-bar {
 
   // Iconos de macros con colores específicos - Optimizados
   .macro-icon {
-    width: 22px; // Ligeramente aumentado para mejor visibilidad
+    width: 22px;
     height: 22px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    // Animaciones suaves para iconos eliminadas
-    // transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform: scale(1);
     position: relative;
 
-    // Sombra base para mejor contraste
     box-shadow:
       0 2px 4px rgba(0, 0, 0, 0.2),
       0 1px 2px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
-    // Efecto de brillo interno
     &::before {
       content: '';
       position: absolute;
@@ -99,9 +102,8 @@ ion-progress-bar {
     span,
     ion-icon {
       color: white;
-      font-size: 11px; // Ligeramente aumentado
+      font-size: 11px;
       font-weight: bold;
-      // transition: all 0.3s ease;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       z-index: 1;
       position: relative;
@@ -113,33 +115,28 @@ ion-progress-bar {
     }
 
     &.protein-icon {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: linear-gradient(135deg, #3880ff 0%, #2563eb 100%) !important;
+      border: 1px solid rgba(56, 128, 255, 0.3);
     }
 
     &.carbs-icon {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: linear-gradient(135deg, #2dd36f 0%, #059669 100%) !important;
+      border: 1px solid rgba(45, 211, 111, 0.3);
     }
 
     &.fat-icon {
-      background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
-      border: 1px solid rgba(234, 179, 8, 0.3);
+      background: linear-gradient(135deg, #ffc409 0%, #ca8a04 100%) !important;
+      border: 1px solid rgba(255, 196, 9, 0.3);
     }
-
-
-
   }
 
-  // Barras de progreso con colores específicos - Mejoradas
   ion-progress-bar {
-    background: #2a2a2a !important; // --border-primary
+    background: #252525 !important;
     width: 100%;
-    border-radius: 3px !important; // Bordes más redondeados
+    border-radius: 3px !important;
     overflow: hidden;
     position: relative;
 
-    // Efecto de brillo sutil en el fondo
     &::before {
       content: '';
       position: absolute;
@@ -156,21 +153,20 @@ ion-progress-bar {
     }
 
     &.protein-bar {
-      --progress-background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important;
-      box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.3);
+      --progress-background: linear-gradient(90deg, #3880ff 0%, #2563eb 100%) !important;
+      box-shadow: inset 0 1px 2px rgba(56, 128, 255, 0.3);
     }
 
     &.carbs-bar {
-      --progress-background: linear-gradient(90deg, #10b981 0%, #059669 100%) !important;
-      box-shadow: inset 0 1px 2px rgba(16, 185, 129, 0.3);
+      --progress-background: linear-gradient(90deg, #2dd36f 0%, #059669 100%) !important;
+      box-shadow: inset 0 1px 2px rgba(45, 211, 111, 0.3);
     }
 
     &.fat-bar {
-      --progress-background: linear-gradient(90deg, #eab308 0%, #ca8a04 100%) !important;
-      box-shadow: inset 0 1px 2px rgba(234, 179, 8, 0.3);
+      --progress-background: linear-gradient(90deg, #ffc409 0%, #ca8a04 100%) !important;
+      box-shadow: inset 0 1px 2px rgba(255, 196, 9, 0.3);
     }
 
-    // Efecto de brillo en la barra de progreso
     &::part(progress) {
       position: relative;
 
@@ -187,10 +183,7 @@ ion-progress-bar {
     }
   }
 
-  // Tema claro (override para mantener consistencia)
   &:not(.dark-theme) {
-
-
     .macro-value {
       color: #ffffff !important;
     }
@@ -200,10 +193,7 @@ ion-progress-bar {
     }
   }
 
-  // Tema oscuro (mantener consistencia)
   &.dark-theme {
-
-
     .macro-value {
       color: #ffffff !important;
     }
@@ -213,20 +203,18 @@ ion-progress-bar {
     }
   }
 
-  // Estilos para progress bar completo (100% o más)
   ion-progress-bar.progress-complete {
-    --progress-background: #ef4444 !important; // Color rojo para indicar exceso
+    --progress-background: #ef4444 !important;
   }
 
   // Contenedor flex para macros - Mejorado para responsividad
   .macros-flex-container {
     display: flex;
-    align-items: stretch; // Cambio para altura uniforme
-    justify-content: space-between; // Mejor distribución
+    align-items: stretch;
+    justify-content: space-between;
     width: 100%;
-    gap: 12px; // Aumentado gap para mejor separación
+    gap: 12px;
 
-    // Responsividad para pantallas pequeñas
     @media (max-width: 480px) {
       gap: 8px;
     }
@@ -236,20 +224,17 @@ ion-progress-bar {
     }
   }
 
-  // Macro individual - Mejorado layout
   .macro-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
     position: relative;
-    padding: 8px 4px; // Padding interno mejorado
-    min-width: 0; // Permite que flex funcione correctamente
-    border-radius: 8px; // Bordes redondeados sutiles
-    // transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer; // Indica interactividad
+    padding: 8px 4px;
+    min-width: 0;
+    border-radius: 8px;
+    cursor: pointer;
 
-    // Efecto sutil de separación visual
     &:not(:last-child)::after {
       content: '';
       position: absolute;
@@ -259,24 +244,19 @@ ion-progress-bar {
       width: 1px;
       height: 60%;
       background: rgba(255, 255, 255, 0.1);
-      // transition: all 0.3s ease;
 
       @media (max-width: 480px) {
         right: -4px;
         height: 50%;
       }
     }
-
-
-
   }
 
-  // Header del macro (icono + valores) - Mejorado espaciado
   .macro-header {
     display: flex;
     align-items: center;
-    gap: 8px; // Aumentado gap
-    margin-bottom: 10px; // Aumentado margen inferior
+    gap: 8px;
+    margin-bottom: 10px;
     width: 100%;
     justify-content: center;
 
@@ -286,18 +266,15 @@ ion-progress-bar {
     }
   }
 
-  // Contenedor de valores - Mejorado
   .macro-values {
     text-align: center;
-    min-width: 0; // Permite truncamiento si es necesario
+    min-width: 0;
     flex: 1;
-
-    // Asegurar que los números no se rompan en líneas múltiples
     white-space: nowrap;
     overflow: hidden;
 
     @media (max-width: 360px) {
-      font-size: 0.9em; // Reducir ligeramente en pantallas muy pequeñas
+      font-size: 0.9em;
     }
   }
 }

@@ -16,8 +16,10 @@ import { Diet } from 'src/app/core/models/diet';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
+import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { Workout } from 'src/app/core/models/workout';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
@@ -145,11 +147,19 @@ export class ProfilePage implements OnInit {
   private readonly billingService = inject(BillingService);
   private readonly authService = inject(AuthService);
 
+  public activeGoal: NutritionalGoal | null = null;
+
+  private get _kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
+  private get _proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
+  private get _carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
+  private get _fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
+
   constructor(
     public utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private themeService: ThemeService,
     private dietDayService: DietDayService,
+    private nutritionalGoalService: NutritionalGoalService,
     private navigationService: NavigationService,
     public platform: Platform,
     private adMobService: AdMobService,
@@ -160,6 +170,7 @@ export class ProfilePage implements OnInit {
       const resUser = this.userService.localUser();
       if (resUser) {
         this.user = resUser;
+        this.loadActiveGoal();
         this.initTrainingValues();
         this.setObjetiveMessage();
         this.setWeekRanges();
@@ -193,6 +204,21 @@ export class ProfilePage implements OnInit {
         this.isWorkoutInUseEnded = false;
       }
     });
+  }
+
+  private loadActiveGoal(): void {
+    if (this.user?.goalInUse) {
+      const goal = this.nutritionalGoalService.getGoalById(this.user.goalInUse);
+      if (goal) {
+        this.activeGoal = goal;
+      } else {
+        this.nutritionalGoalService.refreshFromServer().subscribe((goals) => {
+          this.activeGoal = goals.find((g) => g._id === this.user.goalInUse) || null;
+        });
+      }
+    } else {
+      this.activeGoal = null;
+    }
   }
 
   public ngOnInit(): void {
@@ -495,7 +521,7 @@ export class ProfilePage implements OnInit {
 
   private getMacrosPercentages(): void {
     this.kcalCirclePercentage = Math.floor(
-      this.calculatePercentage(this.macrosData.kcal, this.user.kcalTotal)
+      this.calculatePercentage(this.macrosData.kcal, this._kcalTotal)
     );
   }
 
@@ -807,7 +833,7 @@ export class ProfilePage implements OnInit {
 
   public getNutritionValue(): string {
     if (this.showRemainingNutrition) {
-      const remaining = this.user.kcalTotal - this.macrosData.kcal;
+      const remaining = this._kcalTotal - this.macrosData.kcal;
       return Math.round(remaining).toLocaleString();
     } else {
       return Math.round(this.macrosData.kcal).toLocaleString();
@@ -818,72 +844,72 @@ export class ProfilePage implements OnInit {
     if (this.showRemainingNutrition) {
       return this.translate.instant('PROFILE.REMAINING');
     } else {
-      return this.translate.instant('PROFILE.OF_KCAL', { kcal: Math.round(this.user.kcalTotal).toLocaleString() });
+      return this.translate.instant('PROFILE.OF_KCAL', { kcal: Math.round(this._kcalTotal).toLocaleString() });
     }
   }
 
   public getProteinValues(): string {
     if (this.showRemainingNutrition) {
-      const remaining = this.user.proteinsGTotal - this.macrosData.protein;
+      const remaining = this._proteinsGTotal - this.macrosData.protein;
       return `<strong>${Math.round(remaining)}g</strong>`;
     } else {
       return `<strong>${Math.round(
         this.macrosData.protein
-      )}g</strong>/${Math.round(this.user.proteinsGTotal)}g`;
+      )}g</strong>/${Math.round(this._proteinsGTotal)}g`;
     }
   }
 
   public getCarbValues(): string {
     if (this.showRemainingNutrition) {
       const remaining =
-        this.user.carbohydratesGTotal - this.macrosData.carbohydrate;
+        this._carbohydratesGTotal - this.macrosData.carbohydrate;
       return `<strong>${Math.round(remaining)}g</strong>`;
     } else {
       return `<strong>${Math.round(
         this.macrosData.carbohydrate
-      )}g</strong>/${Math.round(this.user.carbohydratesGTotal)}g`;
+      )}g</strong>/${Math.round(this._carbohydratesGTotal)}g`;
     }
   }
 
   public getFatValues(): string {
     if (this.showRemainingNutrition) {
-      const remaining = this.user.fatGTotal - this.macrosData.fat;
+      const remaining = this._fatGTotal - this.macrosData.fat;
       return `<strong>${Math.round(remaining)}g</strong>`;
     } else {
       return `<strong>${Math.round(this.macrosData.fat)}g</strong>/${Math.round(
-        this.user.fatGTotal
+this._fatGTotal
       )}g`;
     }
   }
 
   // Getter properties for percentages
   public get proteinPercentage(): number {
-    return (this.macrosData.protein * 100) / this.user.proteinsGTotal;
+    return (this.macrosData.protein * 100) / this._proteinsGTotal;
   }
 
   public get carbohydratesPercentage(): number {
-    return (this.macrosData.carbohydrate * 100) / this.user.carbohydratesGTotal;
+    return (this.macrosData.carbohydrate * 100) / this._carbohydratesGTotal;
   }
 
   public get fatPercentage(): number {
-    return (this.macrosData.fat * 100) / this.user.fatGTotal;
+    return (this.macrosData.fat * 100) / this._fatGTotal;
   }
 
   // Methods to check if values exceed limits
   public isKcalExceeded(): boolean {
-    return this.macrosData.kcal > this.user.kcalTotal;
+    return this.macrosData.kcal > this._kcalTotal;
   }
 
   public isProteinExceeded(): boolean {
-    return this.macrosData.protein > this.user.proteinsGTotal;
+    return this.macrosData.protein > this._proteinsGTotal;
   }
 
   public isCarbExceeded(): boolean {
-    return this.macrosData.carbohydrate > this.user.carbohydratesGTotal;
+    return this.macrosData.carbohydrate > this._carbohydratesGTotal;
   }
 
   public isFatExceeded(): boolean {
-    return this.macrosData.fat > this.user.fatGTotal;
+    return this.macrosData.fat > this._fatGTotal;
   }
 
   // Methods to get CSS classes for exceeded values

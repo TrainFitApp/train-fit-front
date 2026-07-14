@@ -40,15 +40,7 @@ export class User {
     lastSyncAt?: string | Date;
   };
 
-  kcalCurrent?: number;
-  proteinsGCurrent?: number;
-  carbohydratesGCurrent?: number;
-  fatGCurrent?: number;
-
-  kcalTotal: number;
-  proteinsGTotal: number;
-  carbohydratesGTotal: number;
-  fatGTotal: number;
+  goalInUse?: string;
 
   archivedProducts?: string[];
   archivedRecipes?: string[];

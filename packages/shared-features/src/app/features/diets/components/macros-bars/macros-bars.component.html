@@ -12,16 +12,16 @@
             {{ macrosData.kcal | number : "1.0-0" }}
           </div>
           <div class="macro-goal">
-            / {{ user.kcalTotal | number : "1.0-0" }}
+            / {{ _kcalTotal | number : "1.0-0" }}
           </div>
         </div>
       </div>
       <ion-progress-bar class="calories-bar" [value]="
-          this.macrosData.kcal > this.user.kcalTotal
+          this.macrosData.kcal > _kcalTotal
             ? 1
-            : this.macrosData.kcal / this.user.kcalTotal
+            : this.macrosData.kcal / _kcalTotal
         " [ngClass]="{
-          'progress-complete': this.macrosData.kcal >= this.user.kcalTotal
+          'progress-complete': this.macrosData.kcal >= _kcalTotal
         }"></ion-progress-bar>
     </div>
 
@@ -36,17 +36,17 @@
             {{ macrosData.protein | number : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ user.proteinsGTotal | number : "1.0-0" }} g
+            / {{ _proteinsGTotal | number : "1.0-0" }} g
           </div>
         </div>
       </div>
       <ion-progress-bar class="protein-bar" [value]="
-          this.macrosData.protein > this.user.proteinsGTotal
+          this.macrosData.protein > _proteinsGTotal
             ? 1
-            : this.macrosData.protein / this.user.proteinsGTotal
+            : this.macrosData.protein / _proteinsGTotal
         " [ngClass]="{
           'progress-complete':
-            this.macrosData.protein >= this.user.proteinsGTotal
+            this.macrosData.protein >= _proteinsGTotal
         }"></ion-progress-bar>
     </div>
 
@@ -61,17 +61,17 @@
             {{ macrosData.carbohydrate | number : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ user.carbohydratesGTotal | number : "1.0-0" }} g
+            / {{ _carbohydratesGTotal | number : "1.0-0" }} g
           </div>
         </div>
       </div>
       <ion-progress-bar class="carbs-bar" [value]="
-          this.macrosData.carbohydrate > this.user.carbohydratesGTotal
+          this.macrosData.carbohydrate > _carbohydratesGTotal
             ? 1
-            : this.macrosData.carbohydrate / this.user.carbohydratesGTotal
+            : this.macrosData.carbohydrate / _carbohydratesGTotal
         " [ngClass]="{
           'progress-complete':
-            this.macrosData.carbohydrate >= this.user.carbohydratesGTotal
+            this.macrosData.carbohydrate >= _carbohydratesGTotal
         }"></ion-progress-bar>
     </div>
 
@@ -86,16 +86,16 @@
             {{ macrosData.fat | number : "1.1-1" }}
           </div>
           <div class="macro-goal">
-            / {{ user.fatGTotal | number : "1.0-0" }} g
+            / {{ _fatGTotal | number : "1.0-0" }} g
           </div>
         </div>
       </div>
       <ion-progress-bar class="fat-bar" [value]="
-          this.macrosData.fat > this.user.fatGTotal
+          this.macrosData.fat > _fatGTotal
             ? 1
-            : this.macrosData.fat / this.user.fatGTotal
+            : this.macrosData.fat / _fatGTotal
         " [ngClass]="{
-          'progress-complete': this.macrosData.fat >= this.user.fatGTotal
+          'progress-complete': this.macrosData.fat >= _fatGTotal
         }"></ion-progress-bar>
     </div>
   </div>

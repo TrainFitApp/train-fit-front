@@ -1,4 +1,27 @@
 // Variables de colores - Idénticas a nutrition_goals_v2.html
+.tf-page-header__action-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
 :root {
   --bg-primary: #0a0a0b;
   --bg-secondary: #111111;
@@ -93,6 +116,16 @@
     color: var(--text-secondary);
     font-size: 1.1rem;
     font-weight: 500;
+  }
+}
+
+.calories-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+
+  .auto-calc-btn {
+    flex: 1;
   }
 }
 
@@ -464,8 +497,7 @@
 }
 
 // Estilos base unificados para ambos botones
-.save-button,
-.recalculate-button {
+.save-button {
   height: 48px;
   border-radius: 12px;
   padding: 12px 24px;
@@ -496,9 +528,47 @@
   }
 }
 
-.recalculate-button {
-  background: rgba(var(--ion-color-success-rgb), 0.2);
-  color: var(--ion-color-success);
+// Botón de recalcular automático (debajo del header)
+.auto-calc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  padding: 12px 20px;
+  border: none;
+  background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  color: var(--ion-color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1.2rem;
+    color: var(--ion-color-secondary);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    background: rgba(var(--ion-color-secondary-rgb), 0.25);
+  }
+
+  &--primary {
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+    color: var(--ion-color-primary);
+
+    ion-icon {
+      color: var(--ion-color-primary);
+    }
+
+    &:active {
+      background: rgba(var(--ion-color-primary-rgb), 0.25);
+    }
+  }
 }
 
 // Responsive Design - Mobile First

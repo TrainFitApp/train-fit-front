@@ -9,11 +9,12 @@ import { PopoverController } from '@ionic/angular';
 export class SplitMenuPopoverComponent {
   @Input() onDuplicate: () => void;
   @Input() onDelete: () => void;
+  @Input() duplicateDisabled: boolean = false;
 
   constructor(private popoverController: PopoverController) {}
 
   async duplicateSplit() {
-    if (this.onDuplicate) {
+    if (!this.duplicateDisabled && this.onDuplicate) {
       this.onDuplicate();
     }
     await this.popoverController.dismiss();

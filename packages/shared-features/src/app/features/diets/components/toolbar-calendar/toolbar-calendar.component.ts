@@ -37,6 +37,9 @@ export class ToolbarCalendarComponent {
   @Input()
   public dietId!: string;
 
+  @Input()
+  public pinnedNote!: string;
+
   @Output()
   public selectCalendarDayEmit = new EventEmitter<string>();
 
@@ -277,6 +280,58 @@ export class ToolbarCalendarComponent {
           });
       }
     });
+  }
+
+  public managePinnedNote(): void {
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('NOTES.TITLE'),
+      cssClass: 'alert-grid-buttons',
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          value: this.pinnedNote || '',
+          placeholder: t('NOTES.PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        {
+          text: t('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: t('COMMON.SAVE'),
+          handler: (data) => {
+            const newNotes = (data.notes || '').trim();
+            this.dietService.updatePinnedNote(this.dietId, newNotes).subscribe({
+              next: (diet) => {
+                this.pinnedNoteChange.emit(diet.pinnedNote);
+                this.showToast(t('TOOLBAR_CALENDAR.NOTE_UPDATED'));
+              },
+              error: (err) => console.error('[ToolbarCalendar] Failed to update pinned note', err),
+            });
+            return true;
+          },
+        },
+        {
+          text: t('NOTES.DELETE'),
+          role: 'destructive',
+          handler: () => {
+            this.dietService.updatePinnedNote(this.dietId, '').subscribe({
+              next: () => {
+                this.pinnedNoteChange.emit(null);
+                this.showToast(t('NOTES.DELETE_PINNED_TITLE'));
+              },
+              error: (err) => console.error('[ToolbarCalendar] Failed to delete pinned note', err),
+            });
+            return true;
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   private handleDelete(): void {

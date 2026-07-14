@@ -4,7 +4,9 @@ import { CustomProduct } from 'src/app/core/models/customProduct';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { User } from 'src/app/core/models/user';
+import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
+import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { MacrosBars, MacrosData } from 'src/app/shared/models/macros-data';
 import { Theme } from 'src/app/shared/models/theme';
@@ -29,6 +31,12 @@ export class MacrosBarsComponent implements OnDestroy {
   public clickable: boolean = true;
 
   public user: User;
+  public activeGoal: NutritionalGoal | null = null;
+
+  public get _kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
+  public get _proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
+  public get _carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
+  public get _fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
 
   public macrosData: MacrosData = new MacrosData();
 
@@ -38,6 +46,7 @@ export class MacrosBarsComponent implements OnDestroy {
 
   // Inyección de servicios con signals
   private readonly userService = inject(UserService);
+  private readonly nutritionalGoalService = inject(NutritionalGoalService);
   private readonly dietDayService = inject(DietDayService);
   private readonly navCtrl = inject(NavController);
 
@@ -47,7 +56,7 @@ export class MacrosBarsComponent implements OnDestroy {
       const updatedUser = this.userService.localUser();
       if (updatedUser) {
         this.user = updatedUser;
-        // Recalcular macros cuando cambia el usuario
+        this.loadActiveGoal();
         if (this.dietDay) {
           this.getDietInfo();
         }
@@ -65,6 +74,21 @@ export class MacrosBarsComponent implements OnDestroy {
         }
       }
     );
+  }
+
+  private loadActiveGoal(): void {
+    if (this.user?.goalInUse) {
+      const goal = this.nutritionalGoalService.getGoalById(this.user.goalInUse);
+      if (goal) {
+        this.activeGoal = goal;
+      } else {
+        this.nutritionalGoalService.refreshFromServer().subscribe((goals) => {
+          this.activeGoal = goals.find((g) => g._id === this.user.goalInUse) || null;
+        });
+      }
+    } else {
+      this.activeGoal = null;
+    }
   }
 
   public ngOnDestroy(): void {
