@@ -1,0 +1,82 @@
+// Time Picker Button - mirrors rir-picker's visual language
+.time-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1a1a1a, #0d0d0d);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 48px;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(145deg, #1f1f1f, #111111);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  &.completed {
+    border-color: var(--ion-color-success);
+    box-shadow: 0 0 0 1px
+      color-mix(in srgb, var(--ion-color-success) 45%, transparent);
+
+    .time-value {
+      color: var(--ion-color-success);
+    }
+  }
+
+  .time-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .time-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    font-feature-settings: 'tnum';
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Picker Controller Overlay Styling
+::ng-deep .time-picker-modal {
+  --background: #1a1a1a;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  ion-picker {
+    --highlight-background: rgba(255, 255, 255, 0.06);
+    --highlight-border-radius: 8px;
+    --fade-background-rgb: 26, 26, 26;
+    --background: transparent;
+
+    ion-picker-column {
+      ion-picker-column-option {
+        color: #fff;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+
+    .picker-highlight {
+      background: rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .picker-button-secondary {
+    color: white !important;
+  }
+}

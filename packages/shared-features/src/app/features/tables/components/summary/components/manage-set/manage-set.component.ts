@@ -14,6 +14,7 @@ export class ManageSetComponent implements OnInit {
   public setForm: FormGroup;
   public set: Set;
   public isCardio: boolean;
+  public isIsometric: boolean;
 
   private backButtonSubscription: any;
 
@@ -78,10 +79,14 @@ export class ManageSetComponent implements OnInit {
   }
 
   public initSetForm(): void {
-    if (this.isCardio) {
+    if (this.isIsometric) {
       this.setForm = new FormGroup({
-        expectedSec: new FormControl(this.set?.expectedSec),
-        expectedMin: new FormControl(this.set?.expectedMin),
+        expectedTime: new FormControl(this.set?.expectedTime ?? null),
+      });
+    } else if (this.isCardio) {
+      this.setForm = new FormGroup({
+        expectedTime: new FormControl(this.set?.expectedTime ?? null),
+        expectedDistance: new FormControl(this.set?.expectedDistance),
         velocity: new FormControl(this.set?.velocity),
       });
     } else {
@@ -268,18 +273,20 @@ export class ManageSetComponent implements OnInit {
 
     let set: Set = { ...this.set };
 
-    if (this.isCardio) {
-      if (
-        this.setForm.controls.expectedSec.value !== null &&
-        this.setForm.controls.expectedSec.value !== undefined
-      )
-        set.expectedSec = this.setForm.controls.expectedSec.value;
+    if (this.isIsometric) {
+      if (this.setForm.controls.expectedTime.value) {
+        set.expectedTime = this.setForm.controls.expectedTime.value;
+      }
+    } else if (this.isCardio) {
+      if (this.setForm.controls.expectedTime.value) {
+        set.expectedTime = this.setForm.controls.expectedTime.value;
+      }
 
       if (
-        this.setForm.controls.expectedMin.value !== null &&
-        this.setForm.controls.expectedMin.value !== undefined
+        this.setForm.controls.expectedDistance.value !== null &&
+        this.setForm.controls.expectedDistance.value !== undefined
       )
-        set.expectedMin = this.setForm.controls.expectedMin.value;
+        set.expectedDistance = this.setForm.controls.expectedDistance.value;
 
       if (
         this.setForm.controls.velocity.value !== null &&

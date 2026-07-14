@@ -84,12 +84,22 @@ export class SetComponent implements OnInit, OnChanges {
           weight: this.set?.weight,
           rir: this.set?.rir ?? null,
           velocity: this.set?.velocity,
-          timeMin: this.set?.timeMin,
-          timeSec: this.set?.timeSec,
+          time: this.set?.time ?? null,
+          distance: this.set?.distance,
         },
         { emitEvent: false }
       );
     }
+  }
+
+  public get isCardio(): boolean {
+    return !!this.currentWorkout?.exercises?.[this.indexCustomExercise]
+      ?.exercise?.isCardio;
+  }
+
+  public get isIsometric(): boolean {
+    return !!this.currentWorkout?.exercises?.[this.indexCustomExercise]
+      ?.exercise?.isIsometric;
   }
 
   public get rirFormControl(): FormControl {
@@ -107,8 +117,8 @@ export class SetComponent implements OnInit, OnChanges {
       weight: new FormControl(this.set?.weight),
       rir: new FormControl(this.set?.rir ?? null),
       velocity: new FormControl(this.set?.velocity),
-      timeMin: new FormControl(this.set?.timeMin),
-      timeSec: new FormControl(this.set?.timeSec),
+      time: new FormControl(this.set?.time ?? null),
+      distance: new FormControl(this.set?.distance),
     });
 
     this.setForm.valueChanges
@@ -121,8 +131,8 @@ export class SetComponent implements OnInit, OnChanges {
       .subscribe((resSetForm) => {
         // Actualizar solo los valores ejecutados, NO los objetivos
         this.set.velocity = resSetForm.velocity;
-        this.set.timeMin = resSetForm.timeMin;
-        this.set.timeSec = resSetForm.timeSec;
+        this.set.time = resSetForm.time;
+        this.set.distance = resSetForm.distance;
         this.set.doned = resSetForm.doned;
         this.set.reps = resSetForm.reps;
         this.set.weight = resSetForm.weight;
@@ -229,9 +239,8 @@ export class SetComponent implements OnInit, OnChanges {
       component: ManageSetComponent,
       componentProps: {
         set: this.set,
-        isCardio:
-          this.currentWorkout.exercises[this.indexCustomExercise].exercise
-            .isCardio,
+        isCardio: this.isCardio,
+        isIsometric: this.isIsometric,
       },
     };
 
@@ -267,9 +276,8 @@ export class SetComponent implements OnInit, OnChanges {
           component: ManageSetComponent,
           componentProps: {
             set: this.set,
-            isCardio:
-              this.currentWorkout.exercises[this.indexCustomExercise].exercise
-                .isCardio,
+            isCardio: this.isCardio,
+            isIsometric: this.isIsometric,
           },
         };
 

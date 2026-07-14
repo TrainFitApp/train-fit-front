@@ -14,22 +14,27 @@
             >{{ index + 1 }}º</span
           >
           <span class="objective-text">Objetivo:</span>
+          <ng-container *ngIf="isIsometric; else notIsometricExpected">
+            <div class="cardio-expected">
+              <span *ngIf="set.expectedTime" class="time-value">{{
+                set.expectedTime
+              }}</span>
+            </div>
+          </ng-container>
+          <ng-template #notIsometricExpected>
           <ng-container
-            *ngIf="
-              this.currentWorkout.exercises[this.indexCustomExercise].exercise
-                .isCardio;
-              else nottCardio
-            "
+            *ngIf="isCardio; else nottCardio"
           >
             <div class="cardio-expected">
-              <span *ngIf="set.expectedMin" class="time-value"
-                >{{ set.expectedMin }} MIN</span
-              >
-              <span *ngIf="set.expectedSec" class="time-value"
-                >{{ set.expectedSec }} SEG</span
+              <span *ngIf="set.expectedTime" class="time-value">{{
+                set.expectedTime
+              }}</span>
+              <span *ngIf="set.expectedDistance" class="time-value"
+                >{{ set.expectedDistance }} KM</span
               >
             </div>
           </ng-container>
+          </ng-template>
           <ng-template #nottCardio>
             <div class="weight-expected">
               <span class="reps-value">{{
@@ -125,24 +130,38 @@
       <ion-grid>
         <ion-row
           [ngClass]="{
-            'cardio-inputs':
-              this.currentWorkout.exercises[this.indexCustomExercise].exercise
-                .isCardio,
-            'weight-inputs':
-              !this.currentWorkout.exercises[this.indexCustomExercise].exercise
-                .isCardio
+            'cardio-inputs': isCardio,
+            'isometric-inputs': isIsometric,
+            'weight-inputs': !isCardio && !isIsometric
           }"
         >
           <!-- Serie Number Column -->
           <!-- Eliminado: columna de número de serie -->
 
-          <ng-container
-            *ngIf="
-              this.currentWorkout.exercises[this.indexCustomExercise].exercise
-                .isCardio;
-              else nCardio
-            "
-          >
+          <ng-container *ngIf="isIsometric; else nIsometric">
+            <!-- Isometric Inputs -->
+            <ion-col size="10" class="time-col">
+              <app-time-picker
+                [timeControl]="getFormControl('time')"
+                label="Tiempo"
+                [isDone]="set.doned"
+                (timeChange)="onFormValueChange('time', $event)"
+              ></app-time-picker>
+            </ion-col>
+            <ion-col size="2" class="complete-col">
+              <ion-checkbox
+                [ngClass]="{
+                  completed: set.doned
+                }"
+                formControlName="doned"
+                mode="ios"
+                color="success"
+              ></ion-checkbox>
+            </ion-col>
+          </ng-container>
+
+          <ng-template #nIsometric>
+          <ng-container *ngIf="isCardio; else nCardio">
             <!-- Cardio Inputs -->
             <ion-col size="3.33" class="velocity-col">
               <app-numeric-input
@@ -153,22 +172,21 @@
                 (valueChange)="onFormValueChange('velocity', $event)"
               ></app-numeric-input>
             </ion-col>
-            <ion-col size="3.33" class="minutes-col">
-              <app-numeric-input
-                [inputControl]="getFormControl('timeMin')"
-                label="Min"
-                placeholder="0"
+            <ion-col size="3.33" class="time-col">
+              <app-time-picker
+                [timeControl]="getFormControl('time')"
+                label="Tiempo"
                 [isDone]="set.doned"
-                (valueChange)="onFormValueChange('timeMin', $event)"
-              ></app-numeric-input>
+                (timeChange)="onFormValueChange('time', $event)"
+              ></app-time-picker>
             </ion-col>
-            <ion-col size="3.33" class="seconds-col">
+            <ion-col size="3.33" class="distance-col">
               <app-numeric-input
-                [inputControl]="getFormControl('timeSec')"
-                label="Seg"
-                placeholder="0"
+                [inputControl]="getFormControl('distance')"
+                label="KM"
+                placeholder="0.0"
                 [isDone]="set.doned"
-                (valueChange)="onFormValueChange('timeSec', $event)"
+                (valueChange)="onFormValueChange('distance', $event)"
               ></app-numeric-input>
             </ion-col>
             <ion-col size="2" class="complete-col">
@@ -182,6 +200,7 @@
               ></ion-checkbox>
             </ion-col>
           </ng-container>
+          </ng-template>
 
           <ng-template #nCardio>
             <!-- Weight Training Inputs -->

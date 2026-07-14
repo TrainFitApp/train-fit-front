@@ -149,11 +149,12 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? ('TABLES.STATS_BEST_SPEED' | translate) : ('TABLES.STATS_PERSONAL_RECORD' | translate) }}
+                {{ isCardio ? ('TABLES.STATS_BEST_SPEED' | translate) : isIsometric ? ('TABLES.STATS_LONGEST_HOLD' | translate) : ('TABLES.STATS_PERSONAL_RECORD' | translate) }}
               </div>
               <div class="stat-value">
-                {{ personalRecord | number:'1.0-1' }}<small
-                  >{{ isCardio ? 'km/h' : 'kg' }}</small
+                <ng-container *ngIf="isIsometric; else notIsometricPr">{{ formatSeconds(personalRecord) }}</ng-container>
+                <ng-template #notIsometricPr
+                  >{{ personalRecord | number:'1.0-1' }}<small>{{ isCardio ? 'km/h' : 'kg' }}</small></ng-template
                 >
               </div>
             </ion-card-content>
@@ -163,12 +164,12 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? ('TABLES.STATS_TOTAL_TIME' | translate) : ('TABLES.STATS_ESTIMATED_1RM' | translate) }}
+                {{ (isCardio || isIsometric) ? ('TABLES.STATS_TOTAL_TIME' | translate) : ('TABLES.STATS_ESTIMATED_1RM' | translate) }}
               </div>
               <div class="stat-value">
-                {{ isCardio ? (metrics.max1RM | number:'1.0-0') :
+                {{ (isCardio || isIsometric) ? (metrics.max1RM | number:'1.0-0') :
                 (metrics.max1RM | number:'1.0-1') }}
-                <small>{{ isCardio ? 'min' : 'kg' }}</small>
+                <small>{{ (isCardio || isIsometric) ? 'min' : 'kg' }}</small>
               </div>
             </ion-card-content>
           </ion-card>
@@ -177,15 +178,15 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
+                {{ (isCardio || isIsometric) ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
               </div>
               <div class="stat-value">
                 {{ metrics.totalVolume | number:'1.0-0' }}
-                <small *ngIf="!isCardio">kg</small>
+                <small *ngIf="isStrength">kg</small>
               </div>
               <div class="stat-change">
                 <ion-text color="medium"
-                  >{{ isCardio ? ('TABLES.STATS_THIS_MONTH' | translate) : ('TABLES.STATS_ACCUMULATED' | translate) }}</ion-text
+                  >{{ (isCardio || isIsometric) ? ('TABLES.STATS_THIS_MONTH' | translate) : ('TABLES.STATS_ACCUMULATED' | translate) }}</ion-text
                 >
               </div>
             </ion-card-content>
@@ -195,7 +196,7 @@
           <ion-card class="stat-card">
             <ion-card-content>
               <div class="stat-label">
-                {{ isCardio ? ('TABLES.STATS_TOTAL_SESSIONS' | translate) : ('TABLES.STATS_COMPLETED_TIMES' | translate) }}
+                {{ (isCardio || isIsometric) ? ('TABLES.STATS_TOTAL_SESSIONS' | translate) : ('TABLES.STATS_COMPLETED_TIMES' | translate) }}
               </div>
               <div class="stat-value">{{ workoutCompletionCount }}</div>
               <div class="stat-change">
@@ -210,7 +211,7 @@
     <!-- All-Time Historical Stats -->
     <ion-card
       class="historical-stats-card"
-      *ngIf="selectedExerciseId && !isCardio"
+      *ngIf="selectedExerciseId"
     >
       <ion-card-header>
         <ion-card-title>
@@ -223,28 +224,58 @@
           <ion-spinner name="dots"></ion-spinner>
         </div>
         <ng-container *ngIf="!historicalStatsLoading">
-          <ion-row *ngIf="historicalStats?.bestSet as best; else noHistoricalData">
-            <ion-col size="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</div>
-                  <div class="stat-value">
-                    {{ best.weight | number:'1.0-1' }}<small>kg</small> × {{ best.reps }}
-                  </div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-            <ion-col size="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</div>
-                  <div class="stat-value">
-                    {{ historicalStats.maxWeightEver | number:'1.0-1' }}<small>kg</small>
-                  </div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-          </ion-row>
+          <ng-container *ngIf="isCardio; else notCardioHistorical">
+            <ion-row *ngIf="historicalStats?.bestVelocityEver !== null && historicalStats?.bestVelocityEver !== undefined; else noHistoricalData">
+              <ion-col size="12">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_PACE' | translate }}</div>
+                    <div class="stat-value">
+                      {{ historicalStats.bestVelocityEver | number:'1.0-1' }}<small>km/h</small>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ng-container>
+          <ng-template #notCardioHistorical>
+            <ng-container *ngIf="isIsometric; else notIsometricHistorical">
+              <ion-row *ngIf="historicalStats && historicalStats.bestTimeSecondsEver > 0; else noHistoricalData">
+                <ion-col size="12">
+                  <ion-card class="stat-card">
+                    <ion-card-content>
+                      <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_LONGEST_HOLD' | translate }}</div>
+                      <div class="stat-value">{{ historicalStats.bestTimeEver }}</div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+          </ng-template>
+          <ng-template #notIsometricHistorical>
+            <ion-row *ngIf="historicalStats?.bestSet as best; else noHistoricalData">
+              <ion-col size="6">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</div>
+                    <div class="stat-value">
+                      {{ best.weight | number:'1.0-1' }}<small>kg</small> × {{ best.reps }}
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</div>
+                    <div class="stat-value">
+                      {{ historicalStats.maxWeightEver | number:'1.0-1' }}<small>kg</small>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ng-template>
           <ng-template #noHistoricalData>
             <ion-text color="medium" class="historical-stats-empty">
               {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}

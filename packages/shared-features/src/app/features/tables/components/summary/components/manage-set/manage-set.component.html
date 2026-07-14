@@ -16,54 +16,73 @@
 <ion-content *ngIf="setForm" class="manage-set-content">
   <form [formGroup]="setForm">
     <div class="form-container">
-      <ng-container *ngIf="isCardio; else notCardio">
+      <ng-container *ngIf="isIsometric; else notIsometric">
         <div class="field-section">
           <div class="field-label">
             <span class="label-text">{{ 'TABLES.EXPECTED_TIME_LABEL' | translate }}</span>
           </div>
           <div class="input-row">
-            <div class="input-field">
-              <ion-input
-                formControlName="expectedMin"
-                type="number"
-                inputmode="decimal"
-                fill="outline"
-                placeholder="{{ 'TABLES.MIN' | translate }}"
-                appCursorEnd
-              ></ion-input>
-            </div>
-            <div class="input-field">
-              <ion-input
-                formControlName="expectedSec"
-                type="number"
-                inputmode="decimal"
-                fill="outline"
-                placeholder="{{ 'TABLES.SEG' | translate }}"
-                appCursorEnd
-              ></ion-input>
-            </div>
-          </div>
-        </div>
-
-        <div class="field-section">
-          <div class="field-label">
-            <span class="label-text">{{ 'TABLES.VELOCITY' | translate }}</span>
-          </div>
-          <div class="input-row">
-            <div class="input-field">
-              <ion-input
-                formControlName="velocity"
-                type="text"
-                inputmode="decimal"
-                fill="outline"
-                placeholder="{{ 'TABLES.VELOCITY_PLACEHOLDER' | translate }}"
-                appCursorEnd
-                appDecimalInput
-              ></ion-input>
-            </div>
+            <app-time-picker
+              [timeControl]="setForm.get('expectedTime')"
+              [label]="'TABLES.EXPECTED_TIME_LABEL' | translate"
+            ></app-time-picker>
           </div>
         </div>
       </ng-container>
+
+      <ng-template #notIsometric>
+        <ng-container *ngIf="isCardio; else notCardio">
+          <div class="field-section">
+            <div class="field-label">
+              <span class="label-text">{{ 'TABLES.EXPECTED_TIME_LABEL' | translate }}</span>
+            </div>
+            <div class="input-row">
+              <app-time-picker
+                [timeControl]="setForm.get('expectedTime')"
+                [label]="'TABLES.EXPECTED_TIME_LABEL' | translate"
+              ></app-time-picker>
+            </div>
+          </div>
+
+          <div class="field-section">
+            <div class="field-label">
+              <span class="label-text">{{ 'TABLES.EXPECTED_DISTANCE_LABEL' | translate }}</span>
+            </div>
+            <div class="input-row">
+              <div class="input-field">
+                <ion-input
+                  formControlName="expectedDistance"
+                  type="text"
+                  inputmode="decimal"
+                  fill="outline"
+                  placeholder="{{ 'TABLES.DISTANCE_PLACEHOLDER' | translate }}"
+                  appCursorEnd
+                  appDecimalInput
+                ></ion-input>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-section">
+            <div class="field-label">
+              <span class="label-text">{{ 'TABLES.VELOCITY' | translate }}</span>
+            </div>
+            <div class="input-row">
+              <div class="input-field">
+                <ion-input
+                  formControlName="velocity"
+                  type="text"
+                  inputmode="decimal"
+                  fill="outline"
+                  placeholder="{{ 'TABLES.VELOCITY_PLACEHOLDER' | translate }}"
+                  appCursorEnd
+                  appDecimalInput
+                ></ion-input>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </ng-template>
 
       <ng-template #notCardio>
         <div class="field-section">

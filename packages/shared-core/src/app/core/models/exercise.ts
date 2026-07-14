@@ -9,5 +9,6 @@ export class Exercise {
   equipment: string[];
   gifUrl: string;
   isCardio?: boolean;
+  isIsometric?: boolean;
   userId?: string;
 }

@@ -25,6 +25,7 @@ import {
   ExerciseHistoryStats,
 } from 'src/app/core/services/exercise-history/exercise-history.service';
 import { take } from 'rxjs/operators';
+import { formatSecondsAsTime, parseTimeToSeconds } from 'src/app/shared/utils';
 
 Chart.register(...registerables);
 
@@ -40,8 +41,9 @@ interface SessionSet {
   rir?: string;
   rirNumeric?: number;
   velocity?: number;
-  timeMin?: number;
-  timeSec?: number;
+  time?: string;
+  timeSeconds?: number;
+  distance?: number;
   isDropSet: boolean;
   isRestPause: boolean;
   isFail: boolean;
@@ -59,9 +61,10 @@ interface SessionData {
   maxWeight: number;
   maxReps: number;
   maxVelocity: number;
-  totalTimeMin: number;
-  totalTimeSec: number;
+  totalTimeSeconds: number;
+  maxHoldSeconds: number;
   isCardio: boolean;
+  isIsometric: boolean;
   notes: string;
   avgRir: number;
   minRir: number;
@@ -106,6 +109,12 @@ interface ComparisonData {
   currTotalTime?: number;
   timeDiff?: number;
   timePct?: number;
+
+  // Isometric specific
+  prevMaxHold?: number;
+  currMaxHold?: number;
+  maxHoldDiff?: number;
+  maxHoldPct?: number;
 }
 
 interface CalendarDay {
@@ -163,6 +172,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public personalRecord = 0;
   public workoutCompletionCount = 0;
   public isCardio: boolean = false;
+  public isIsometric: boolean = false;
+
+  public get isStrength(): boolean {
+    return !this.isCardio && !this.isIsometric;
+  }
 
   // Calendar State
   public calendarCurrentDate: Date = new Date();
@@ -504,6 +518,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     if (!targetExDefId) return;
 
     this.isCardio = !!targetExDef?.exercise?.isCardio;
+    this.isIsometric = !!targetExDef?.exercise?.isIsometric;
 
     this.table.splits.forEach((split, index) => {
       const workout = split.workouts.find(
@@ -519,7 +534,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
               s.doned ||
               (s.weight > 0 && s.reps > 0) ||
               (s.velocity && s.velocity > 0) ||
-              (s.timeMin && s.timeMin > 0)
+              (s.time && parseTimeToSeconds(s.time) > 0)
           );
 
           // Build SessionSet array with sub-series
@@ -536,8 +551,9 @@ export class StatisticsPage implements OnInit, OnDestroy {
               rir: formatRirValue(normalizedRir),
               rirNumeric,
               velocity: s.velocity || 0,
-              timeMin: s.timeMin || 0,
-              timeSec: s.timeSec || 0,
+              time: s.time,
+              timeSeconds: parseTimeToSeconds(s.time),
+              distance: s.distance || 0,
               isDropSet: s.drop === true,
               isRestPause: !!(s.restPause && s.restPause > 0),
               isFail: isRirFail(s.rir),
@@ -551,12 +567,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
           const volumeReal = this.calculateVolumeWithSubSeries(filteredSets);
 
           const bestSet = this.getBestSet(targetEx.sets);
-          const totalTimeMin = sessionSets.reduce(
-            (acc, s) => acc + (s.timeMin || 0),
+          const totalTimeSeconds = sessionSets.reduce(
+            (acc, s) => acc + (s.timeSeconds || 0),
             0
           );
-          const totalTimeSec = sessionSets.reduce(
-            (acc, s) => acc + (s.timeSec || 0),
+          const maxHoldSeconds = Math.max(
+            ...sessionSets.map((s) => s.timeSeconds || 0),
             0
           );
           const maxV = Math.max(...sessionSets.map((s) => s.velocity || 0), 0);
@@ -573,7 +589,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
           // Calculate Effective Volume
           let effectiveVolume = 0;
-          if (!this.isCardio) {
+          if (!this.isCardio && !this.isIsometric) {
             sessionSets.forEach((s) => {
               const weight = s.weight || 0;
               const reps = s.reps || 0;
@@ -592,7 +608,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             (s) => s.isRestPause
           ).length;
           let sessionMax1RM = 0;
-          if (!this.isCardio) {
+          if (!this.isCardio && !this.isIsometric) {
             sessionSets.forEach((s) => {
               if (s.weight && s.reps) {
                 const oneRM = this.calculate1RM(s.weight, s.reps);
@@ -610,9 +626,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
             maxWeight: bestSet ? bestSet.weight : 0,
             maxReps: bestSet ? bestSet.reps : 0,
             maxVelocity: maxV,
-            totalTimeMin,
-            totalTimeSec,
+            totalTimeSeconds,
+            maxHoldSeconds,
             isCardio: this.isCardio,
+            isIsometric: this.isIsometric,
             notes: targetEx.notes || '',
             avgRir,
             minRir:
@@ -676,10 +693,15 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const velocityPct =
       prev.maxVelocity > 0 ? (velocityDiff / prev.maxVelocity) * 100 : 0;
 
-    const prevTimeTotal = prev.totalTimeMin + prev.totalTimeSec / 60;
-    const currTimeTotal = curr.totalTimeMin + curr.totalTimeSec / 60;
+    const prevTimeTotal = prev.totalTimeSeconds / 60;
+    const currTimeTotal = curr.totalTimeSeconds / 60;
     const timeDiff = currTimeTotal - prevTimeTotal;
     const timePct = prevTimeTotal > 0 ? (timeDiff / prevTimeTotal) * 100 : 0;
+
+    // Isometric specific diffs
+    const maxHoldDiff = curr.maxHoldSeconds - prev.maxHoldSeconds;
+    const maxHoldPct =
+      prev.maxHoldSeconds > 0 ? (maxHoldDiff / prev.maxHoldSeconds) * 100 : 0;
 
     this.comparisonData = {
       prevSplit: prev.splitIndex,
@@ -715,6 +737,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
       currTotalTime: currTimeTotal,
       timeDiff,
       timePct,
+      // Isometric fields
+      prevMaxHold: prev.maxHoldSeconds,
+      currMaxHold: curr.maxHoldSeconds,
+      maxHoldDiff,
+      maxHoldPct,
     };
   }
 
@@ -731,7 +758,18 @@ export class StatisticsPage implements OnInit, OnDestroy {
         ...this.historyData.map((h) => h.maxVelocity)
       );
       this.metrics.max1RM = this.historyData.reduce(
-        (acc, h) => acc + h.totalTimeMin + h.totalTimeSec / 60,
+        (acc, h) => acc + h.totalTimeSeconds / 60,
+        0
+      );
+      this.metrics.totalVolume = this.historyData.length;
+    } else if (this.isIsometric) {
+      // personalRecord reciclado como "aguante más largo" (segundos), a
+      // propósito, mismo patrón que ya usa cardio con maxVelocity.
+      this.personalRecord = Math.max(
+        ...this.historyData.map((h) => h.maxHoldSeconds)
+      );
+      this.metrics.max1RM = this.historyData.reduce(
+        (acc, h) => acc + h.totalTimeSeconds / 60,
         0
       );
       this.metrics.totalVolume = this.historyData.length;
@@ -786,7 +824,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const labels = data.map((h) => `M${h.splitIndex}`);
 
     if (this.isCardio) {
-      const timeData = data.map((h) => h.totalTimeMin + h.totalTimeSec / 60);
+      const timeData = data.map((h) => h.totalTimeSeconds / 60);
       const velocityData = data.map((h) => h.maxVelocity);
 
       this.chart = new Chart(ctx, {
@@ -857,6 +895,59 @@ export class StatisticsPage implements OnInit, OnDestroy {
               },
               grid: { drawOnChartArea: false },
               ticks: { color: 'rgba(254, 144, 0, 0.8)' },
+            },
+          },
+        },
+      });
+    } else if (this.isIsometric) {
+      // Solo una serie (tiempo total aguantado), sin segundo eje — a
+      // diferencia de cardio, isométrico no tiene una segunda métrica de ritmo.
+      const timeData = data.map((h) => h.totalTimeSeconds / 60);
+
+      this.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: this.translate.instant('TABLES.STATS_TOTAL_TIME') + ' (min)',
+              data: timeData,
+              backgroundColor: 'rgba(56, 128, 255, 0.4)',
+              borderColor: '#3880ff',
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${this.translate.instant('TABLES.STATS_TIME')}: ${ctx.raw} min`,
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
+            },
+            y: {
+              position: 'left',
+              title: {
+                display: true,
+                text: 'min',
+                color: 'rgba(255,255,255,0.3)',
+              },
+              ticks: { color: 'rgba(255,255,255,0.5)' },
             },
           },
         },
@@ -955,56 +1046,74 @@ export class StatisticsPage implements OnInit, OnDestroy {
     weightData = data.map((h) => {
       const s = h.sets[this.selectedSetIndex];
       if (!s) return null;
-      return this.isCardio ? s.velocity || 0 : s.weight || 0;
+      if (this.isCardio) return s.velocity || 0;
+      if (this.isIsometric) return s.timeSeconds ? s.timeSeconds / 60 : 0;
+      return s.weight || 0;
     });
     repsData = data.map((h) => {
       const s = h.sets[this.selectedSetIndex];
       if (!s) return null;
-      return this.isCardio ? s.timeMin || 0 : s.reps || 0;
+      return this.isCardio
+        ? s.timeSeconds
+          ? s.timeSeconds / 60
+          : 0
+        : s.reps || 0;
     });
 
-    const yUnit = this.isCardio ? 'km/h' : 'kg';
+    const yUnit = this.isCardio ? 'km/h' : this.isIsometric ? 'min' : 'kg';
     const repsUnit = this.isCardio ? 'min' : 'reps';
+
+    const primaryLabel = this.isCardio
+      ? this.translate.instant('TABLES.STATS_SPEED')
+      : this.isIsometric
+      ? this.translate.instant('TABLES.STATS_TIME')
+      : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)';
+
+    const datasets: any[] = [
+      {
+        label: primaryLabel,
+        data: weightData as any,
+        borderColor: '#fe9000',
+        backgroundColor: 'rgba(254, 144, 0, 0.12)',
+        borderWidth: 3,
+        tension: 0.3,
+        fill: true,
+        pointBackgroundColor: '#fe9000',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        spanGaps: true,
+        yAxisID: 'y',
+      },
+    ];
+
+    // Isométrico: una sola serie (tiempo), sin segunda métrica.
+    if (!this.isIsometric) {
+      datasets.push({
+        label: this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS'),
+        data: repsData as any,
+        borderColor: '#3880ff',
+        backgroundColor: 'rgba(56, 128, 255, 0.05)',
+        borderWidth: 2,
+        borderDash: [5, 4],
+        tension: 0.3,
+        fill: false,
+        pointBackgroundColor: '#3880ff',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        spanGaps: true,
+        yAxisID: 'y1',
+      });
+    }
 
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels,
-        datasets: [
-          {
-            label: this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)',
-            data: weightData as any,
-            borderColor: '#fe9000',
-            backgroundColor: 'rgba(254, 144, 0, 0.12)',
-            borderWidth: 3,
-            tension: 0.3,
-            fill: true,
-            pointBackgroundColor: '#fe9000',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7,
-            spanGaps: true,
-            yAxisID: 'y',
-          },
-          {
-            label: this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS'),
-            data: repsData as any,
-            borderColor: '#3880ff',
-            backgroundColor: 'rgba(56, 128, 255, 0.05)',
-            borderWidth: 2,
-            borderDash: [5, 4],
-            tension: 0.3,
-            fill: false,
-            pointBackgroundColor: '#3880ff',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 1,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            spanGaps: true,
-            yAxisID: 'y1',
-          },
-        ],
+        datasets,
       },
       options: {
         responsive: true,
@@ -1079,6 +1188,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
     return formatRirValue(rir);
   }
 
+  public formatSeconds(seconds: number): string {
+    return formatSecondsAsTime(seconds || 0);
+  }
+
   private formatDate(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1094,7 +1207,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
           s.doned ||
           (s.weight > 0 && s.reps > 0) ||
           (s.velocity && s.velocity > 0) ||
-          (s.timeMin && s.timeMin > 0)
+          (s.distance && s.distance > 0) ||
+          parseTimeToSeconds(s.time) > 0
       )
     );
   }
@@ -1106,6 +1220,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
         const prevV = prev ? prev.velocity || 0 : 0;
         const currV = curr ? curr.velocity || 0 : 0;
         return currV >= prevV ? curr : prev;
+      } else if (this.isIsometric) {
+        const prevT = prev ? parseTimeToSeconds(prev.time) : 0;
+        const currT = curr ? parseTimeToSeconds(curr.time) : 0;
+        return currT >= prevT ? curr : prev;
       } else {
         const prevW = prev ? prev.weight || 0 : 0;
         const currW = curr ? curr.weight || 0 : 0;

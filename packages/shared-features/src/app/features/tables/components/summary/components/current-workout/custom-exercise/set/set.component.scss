@@ -369,8 +369,24 @@ form.doned
           align-items: center;
 
           .velocity-col,
-          .minutes-col,
-          .seconds-col,
+          .time-col,
+          .distance-col,
+          .complete-col {
+            padding: 0 2px;
+          }
+
+          .complete-col {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+          }
+        }
+
+        &.isometric-inputs {
+          align-items: center;
+
+          .time-col,
           .complete-col {
             padding: 0 2px;
           }

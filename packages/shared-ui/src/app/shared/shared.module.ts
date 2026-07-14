@@ -22,6 +22,7 @@ import { NumericInputComponent } from './components/numeric-input/numeric-input.
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
+import { TimePickerComponent } from './components/time-picker/time-picker.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
 import { AiLoadingOverlayComponent } from './components/ai-loading-overlay/ai-loading-overlay.component';
 import { CategoryPipe } from './pipes/category.pipe';
@@ -45,6 +46,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     ActionsFabComponent,
     MeasurePipe,
     RirPickerComponent,
+    TimePickerComponent,
     SkeletonLoaderComponent,
     SafePipe,
     ExpectedPipe,
@@ -79,6 +81,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     SearchExercisesPage,
     ActionsFabComponent,
     RirPickerComponent,
+    TimePickerComponent,
     MeasurePipe,
     SkeletonLoaderComponent,
     SafePipe,

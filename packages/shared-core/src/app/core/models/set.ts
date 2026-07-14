@@ -11,10 +11,13 @@ export class Set {
   doned?: boolean;
   order: number;
   displayOrder?: number;
-  expectedSec?: number;
-  expectedMin?: number;
-  timeSec?: number;
-  timeMin?: number;
+  // Compartidos por cardio + isométrico. Formato "M:SS" (ver
+  // formatSecondsAsTime/parseTimeToSeconds en shared-ui/utils).
+  expectedTime?: string;
+  time?: string;
+  // Solo cardio.
+  expectedDistance?: number;
+  distance?: number;
   velocity?: number;
   restPauseSeries?: SubSerie[];
   dropSetSeries?: SubSerie[];

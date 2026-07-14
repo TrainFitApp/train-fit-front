@@ -1,0 +1,8 @@
+<div
+  class="time-input-wrapper"
+  [ngClass]="{ completed: isDone }"
+  (click)="onTimeClick()"
+>
+  <span class="time-label">{{ label }}</span>
+  <span class="time-value">{{ displayValue }}</span>
+</div>

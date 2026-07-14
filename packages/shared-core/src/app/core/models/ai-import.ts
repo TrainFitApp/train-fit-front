@@ -10,6 +10,7 @@ export interface AiExerciseData {
   category: string[];
   equipment: string[];
   isCardio?: boolean;
+  isIsometric?: boolean;
 }
 
 export interface AiSetPreview {
@@ -18,8 +19,8 @@ export interface AiSetPreview {
   weight?: number;
   drop?: boolean;
   restPause?: number;
-  expectedMin?: number;
-  expectedSec?: number;
+  expectedTime?: string;
+  expectedDistance?: number;
 }
 
 export interface AiExercisePreview {
