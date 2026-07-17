@@ -212,6 +212,11 @@ ion-grid {
         align-items: center;
         gap: 8px;
 
+        .pinned-icon-indicator {
+          font-size: 16px;
+          color: var(--ion-color-primary);
+        }
+
         .action-btn {
           --padding-start: 8px;
           --padding-end: 8px;

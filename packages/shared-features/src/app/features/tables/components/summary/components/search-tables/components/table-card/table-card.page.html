@@ -1,15 +1,13 @@
 <ion-card
   class="professional-table-card"
   [class.selected]="user?.tableInUse === tableCard._id"
-  [class.has-image]="tableCard.urlImage"
-  [style.background-image]="
-    tableCard.urlImage ? 'url(' + tableCard.urlImage + ')' : 'none'
-  "
+  [class.has-image]="hasBackgroundImage"
+  [style.background-image]="backgroundImage"
   (click)="setSelectedTableCard()"
 >
   <div
     class="card-overlay"
-    [class.selected-overlay]="tableCard.urlImage && user?.tableInUse === tableCard._id"
+    [class.selected-overlay]="hasBackgroundImage && user?.tableInUse === tableCard._id"
   >
     <!-- Header Section -->
     <div class="card-header-section">

@@ -35,6 +35,7 @@
     "CANCEL": "Cancelar",
     "CONFIRM": "CONFIRMAR",
     "SAVE": "Guardar",
+    "SAVING": "Guardando...",
     "CERRAR": "CERRAR",
     "EXIT": "Salir",
     "PROCESSING": "Procesando...",
@@ -69,7 +70,8 @@
     "THU": "J",
     "FRI": "V",
     "SAT": "S",
-    "SUN": "D"
+    "SUN": "D",
+    "DISCARD": "Descartar"
   },
   "USER_FORM": {
     "NAME": "Nombre",

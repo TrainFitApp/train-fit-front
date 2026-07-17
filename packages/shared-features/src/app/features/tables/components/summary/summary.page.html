@@ -199,7 +199,7 @@
               <div class="exercises-list" slot="content">
                 <div
                   class="exercise-item"
-                  *ngFor="let exercise of workout.exercises"
+                  *ngFor="let exercise of workout.exercises; let i = index"
                 >
                   <div class="exercise-info">
                     <div
@@ -209,6 +209,13 @@
                       {{ exercise.exercise.name | translateDb }}
                     </div>
                     <div class="exercise-icons">
+                      <ion-icon
+                        *ngIf="getExercisePinnedNote(i)"
+                        name="pin"
+                        color="alternative"
+                        class="pinned-icon-indicator"
+                        (click)="showPinnedNoteAlert(i); $event.stopPropagation()"
+                      ></ion-icon>
                       <ion-icon
                         *ngIf="exercise.notes"
                         name="create-outline"

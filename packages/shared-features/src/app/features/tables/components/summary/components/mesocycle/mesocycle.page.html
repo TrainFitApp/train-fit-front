@@ -349,28 +349,30 @@
       </section>
     </ng-container>
 
-    <div
-      *ngIf="isCurrentSplitLocked()"
-      class="microcycle-lock-overlay"
-      (click)="openPremiumFromLockedSplit($event)"
-    >
-      <div class="microcycle-lock-panel" (click)="$event.stopPropagation()">
-        <div class="microcycle-lock-icon">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-        </div>
-        <h2>{{ 'TABLES.MICROCYCLE_LOCKED' | translate }}</h2>
-        <p>
-          {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit: microcyclesPerRoutineLimit } }}
-        </p>
-        <ion-button
-          expand="block"
-          shape="round"
-          class="microcycle-lock-cta"
-          (click)="openPremiumFromLockedSplit($event)"
-        >
-          {{ 'TABLES.GO_PRO' | translate }}
-        </ion-button>
+  </div>
+
+  <div
+    slot="fixed"
+    *ngIf="isCurrentSplitLocked()"
+    class="microcycle-lock-overlay"
+    (click)="openPremiumFromLockedSplit($event)"
+  >
+    <div class="microcycle-lock-panel" (click)="$event.stopPropagation()">
+      <div class="microcycle-lock-icon">
+        <ion-icon name="lock-closed-outline"></ion-icon>
       </div>
+      <h2>{{ 'TABLES.MICROCYCLE_LOCKED' | translate }}</h2>
+      <p>
+        {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit: microcyclesPerRoutineLimit } }}
+      </p>
+      <ion-button
+        expand="block"
+        shape="round"
+        class="microcycle-lock-cta"
+        (click)="openPremiumFromLockedSplit($event)"
+      >
+        {{ 'TABLES.GO_PRO' | translate }}
+      </ion-button>
     </div>
   </div>
 </ion-content>

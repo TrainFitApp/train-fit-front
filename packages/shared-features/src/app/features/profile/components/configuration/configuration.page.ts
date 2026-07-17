@@ -57,11 +57,11 @@ export class ConfigurationPage {
     this.user = this.userService.getLocalUser;
     this.isPremium = !!this.user?.premium?.entitled;
     this.currentLang = this.i18nService.current;
-    this.loadNotificationSettings();
+    void this.loadNotificationSettings();
   }
 
-  private loadNotificationSettings(): void {
-    const settings = this.notificationService.getSettings();
+  private async loadNotificationSettings(): Promise<void> {
+    const settings = await this.notificationService.getSettings();
     this.notifEnabled = settings.enabled;
     this.notifFrequency = settings.frequency;
     this.notifWeekday = settings.weekday ?? 1;

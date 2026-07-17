@@ -35,7 +35,7 @@ ion-accordion-group.current-workout-group {
 }
 
 .split-content-container--locked {
-  min-height: calc(100vh - 190px);
+  min-height: 100%;
 }
 
 .microcycle-lock-overlay {
@@ -47,13 +47,18 @@ ion-accordion-group.current-workout-group {
   align-items: center;
   justify-content: center;
   padding: 24px 18px;
+  pointer-events: auto;
   background: rgba(10, 10, 10, 0.68);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .microcycle-lock-panel {
   width: min(100%, 360px);
+  max-height: 100%;
+  overflow: auto;
   padding: 24px 20px 20px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 14px;
@@ -61,6 +66,7 @@ ion-accordion-group.current-workout-group {
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42);
   text-align: center;
   color: #ffffff;
+  touch-action: auto;
 
   h2 {
     margin: 14px 0 8px;

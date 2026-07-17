@@ -266,6 +266,20 @@ export class WorkoutComponent implements OnDestroy {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
+  public showPinnedNoteAlert(workoutIndex: number, exerciseIndex: number): void {
+    const note = this.pinnedNotes.find(
+      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+    );
+    if (!note) return;
+    const exercise = this.workout?.exercises?.[exerciseIndex];
+    const alertOptions: AlertOptions = {
+      header: exercise?.exercise?.name,
+      message: note.notes,
+      buttons: [this.translate.instant('COMMON.CONFIRM')],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
   public workoutActions(
     event,
     workoutIndex?: number,

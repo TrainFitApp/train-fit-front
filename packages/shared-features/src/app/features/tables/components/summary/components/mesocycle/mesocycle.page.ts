@@ -528,6 +528,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     return this.isSplitLocked(this.currentSplitIndex);
   }
 
+  private isMicrocycleCreationLimitReached(): boolean {
+    if (this.user?.premium?.entitled) return false;
+    if (typeof this.microcyclesPerRoutineLimit !== "number") return false;
+    return (this.tableInUse?.splits?.length || 0) >= this.microcyclesPerRoutineLimit;
+  }
+
+  private showMicrocycleLimitAlert(): void {
+    void this.ionicUtilService.showPremiumLimitAlert({
+      message: this.translate.instant('TABLES.PREMIUM_LIMIT_MICROCYCLES'),
+      onUpgrade: () => this.navigationService.goToPremium(),
+    });
+  }
+
   public openPremiumFromLockedSplit(event?: Event): void {
     event?.stopPropagation();
     this.navigationService.goToPremium();
@@ -1133,6 +1146,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public addSplitToTable(): void {
+    if (this.isMicrocycleCreationLimitReached()) {
+      this.showMicrocycleLimitAlert();
+      return;
+    }
+
     this.loadingFab = true;
 
     let alertOptions: AlertOptions;
@@ -1303,11 +1321,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.loadingFab = false;
     this.loadingSplit = false;
 
-    if (error?.error?.code === "PREMIUM_LIMIT_MICROCYCLES") {
-      this.ionicUtilService.showPremiumLimitAlert({
-        message: this.translate.instant('TABLES.PREMIUM_LIMIT_MICROCYCLES'),
-        onUpgrade: () => this.navigationService.goToPremium(),
-      });
+    if (
+      error?.code === "PREMIUM_LIMIT_MICROCYCLES" ||
+      error?.error?.code === "PREMIUM_LIMIT_MICROCYCLES"
+    ) {
+      this.showMicrocycleLimitAlert();
       return;
     }
 
