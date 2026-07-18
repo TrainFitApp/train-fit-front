@@ -90,7 +90,7 @@
     "PRIVACY": "Privacy policy"
   },
   "USER_ERRORS": {
-    "REQUIRED": "is required",
+    "REQUIRED": "This field is required",
     "PATTERN": "Invalid format",
     "EMAIL": "Invalid email format",
     "MINLENGTH": "minimum required",
@@ -102,7 +102,9 @@
     "LENGTH": "must be between 6 and 15 characters",
     "DEFAULT": "Validation error",
     "UPPERCASE": "Must include at least one uppercase letter",
-    "LOWERCASE": "Must include at least one lowercase letter"
+    "LOWERCASE": "Must include at least one lowercase letter",
+    "PASSWORD_REQUIRED": "Please enter and confirm your new password",
+    "PASSWORDS_NOT_MATCH": "Passwords do not match"
   },
   "EXERCISE_CONFIG": {
     "ADD_EXERCISE": "Add exercise",
@@ -321,14 +323,11 @@
     "RESEND": "Resend code",
     "RESEND_IN": "Resend in {{seconds}}s",
     "EMAIL_PLACEHOLDER": "Email",
-    "EMAIL_REQUIRED": "Email is required",
     "EMAIL_INVALID": "Enter a valid email",
     "EMAIL_NOT_REGISTERED": "This email is not registered",
     "NEW_PASSWORD": "New password",
-    "PASSWORD_REQUIRED": "Password is required",
     "PASSWORD_MIN_LENGTH": "Password must be at least 6 characters",
     "REPEAT_PASSWORD": "Repeat password",
-    "REPEAT_PASSWORD_REQUIRED": "You must repeat the password",
     "RESTORE_BUTTON": "RESTORE PASSWORD",
     "TOAST_USER_EMAIL_NOT_FOUND": "User email not found. Log in and try again.",
     "TOAST_CODE_SENT": "Code sent, check your spam!",

@@ -1,9 +1,7 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastOptions } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -17,17 +15,18 @@ import { PasswordComplexity } from 'src/app/core/validators/password-complexity'
   styleUrls: ['./restore-password.page.scss'],
 })
 export class RestorePasswordPage implements OnInit, OnDestroy {
-  @ViewChild('codeInput') public codeInput: ElementRef<HTMLInputElement>;
   public restorePassForm: FormGroup;
+  public code: string;
   public showPass: boolean;
   public loading: boolean;
-  public error: string;
   public codeSended: boolean;
   public codeAccepted: boolean;
-  public showFormErrors: boolean;
   public needsEmailInput: boolean;
   public resendDisabled = false;
   public resendCountdown = 0;
+  public showEmailRequiredError = false;
+  public showPassRequiredError = false;
+  public showPassRepRequiredError = false;
   private resendInterval: any;
   private localEmail: string | null;
 
@@ -59,7 +58,6 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
   private initVariables(): void {
     this.showPass = false;
     this.loading = false;
-    this.showFormErrors = false;
     this.localEmail = this.userService.getLocalUser?.email ?? null;
     this.needsEmailInput = !this.localEmail;
   }
@@ -94,17 +92,26 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
     });
 
     this.restorePassForm.valueChanges.subscribe(
-      () => (this.error = this.utilService.handleErrors(this.restorePassForm))
+      () => {
+        this.showEmailRequiredError = false;
+        this.showPassRequiredError = false;
+        this.showPassRepRequiredError = false;
+      }
     );
   }
 
   public sendMailCode(): void {
-    this.showFormErrors = true;
+    this.showEmailRequiredError = !this.restorePassForm.get('email')?.value;
 
-    if (this.restorePassForm.valid) {
-      const email = this.needsEmailInput
-        ? this.restorePassForm.get('email')?.value
-        : this.userService.getLocalUser?.email;
+    const email = this.needsEmailInput
+      ? this.restorePassForm.get('email')?.value
+      : this.userService.getLocalUser?.email;
+
+    const emailValid = this.needsEmailInput
+      ? this.restorePassForm.get('email')?.valid
+      : !!email;
+
+    if (emailValid) {
       if (!email) {
         this.ionicUtilService.showErrorToast(
           this.translate.instant('RESTORE_PASSWORD.TOAST_USER_EMAIL_NOT_FOUND'),
@@ -119,7 +126,6 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
         next: () => {
           this.loading = false;
           this.codeSended = true;
-          this.showFormErrors = false;
           this.startResendCooldown();
           this.ionicUtilService.showSuccessToast(
             this.translate.instant('RESTORE_PASSWORD.TOAST_CODE_SENT'),
@@ -151,12 +157,29 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
       return;
     }
 
+    const password = this.restorePassForm.controls.password.value;
+    const passwordRep = this.restorePassForm.controls.passwordRep.value;
+    this.showPassRequiredError = !password;
+    this.showPassRepRequiredError = !passwordRep;
+    if (!password || !passwordRep) {
+      this.ionicUtilService.showErrorToast(
+        this.translate.instant('USER_ERRORS.PASSWORD_REQUIRED')
+      );
+      return;
+    }
+    if (this.restorePassForm.errors?.['notSame']) {
+      this.ionicUtilService.showErrorToast(
+        this.translate.instant('USER_ERRORS.PASSWORDS_NOT_MATCH')
+      );
+      return;
+    }
+
     this.loading = true;
     this.userService
       .checkRestoreCode(
         email,
-        this.restorePassForm.controls.password.value,
-        this.codeInput.nativeElement.value.toString().toLowerCase()
+        password,
+        (this.code || '').toLowerCase()
       )
       .subscribe({
         next: () => {
@@ -176,46 +199,6 @@ export class RestorePasswordPage implements OnInit, OnDestroy {
           this.ionicUtilService.showErrorToast(
             err,
             this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_INVALID_CODE'),
-            3000
-          );
-        },
-      });
-  }
-
-  public submit(): void {
-    const email = this.needsEmailInput
-      ? this.restorePassForm.get('email')?.value
-      : this.userService.getLocalUser?.email;
-    if (!email) {
-      this.ionicUtilService.showErrorToast(
-        this.translate.instant('RESTORE_PASSWORD.TOAST_USER_EMAIL_NOT_FOUND'),
-        this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_DEFAULT'),
-        3000
-      );
-      return;
-    }
-
-    this.loading = true;
-    this.userService
-      .restorePassword(email, this.restorePassForm.controls.password.value)
-      .subscribe({
-        next: () => {
-          this.loading = false;
-          this.ionicUtilService.showSuccessToast(
-            this.translate.instant('RESTORE_PASSWORD.TOAST_CHECK_EMAIL'),
-            3000
-          );
-          if (this.userService.getLocalUser) {
-            this.navigationService.goBack();
-          } else {
-            this.navigationService.goToLoginPage();
-          }
-        },
-        error: (err: any) => {
-          this.loading = false;
-          this.ionicUtilService.showErrorToast(
-            err,
-            this.translate.instant('RESTORE_PASSWORD.TOAST_ERROR_CHANGE_PASSWORD'),
             3000
           );
         },
