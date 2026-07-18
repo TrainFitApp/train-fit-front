@@ -254,111 +254,193 @@
     margin-top: 12px;
   }
 
-  .exercise-description-input {
-    --background: rgba(var(--ion-color-light-rgb), 0.72);
-    --color: var(--ion-color-dark);
-    --placeholder-color: rgba(var(--ion-color-medium-rgb), 0.82);
-    --placeholder-opacity: 1;
-    --border-radius: 8px;
-    --padding-start: 10px;
-    --padding-end: 10px;
-    --padding-top: 8px;
-    --padding-bottom: 8px;
-    font-weight: 500;
-    font-size: 0.94rem;
-    line-height: 1.4;
-    width: 100%;
-    min-height: 88px;
-
-    &::part(native) {
+  .description-editor-wrapper {
+    .description-trigger {
       width: 100%;
-      min-width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(var(--ion-color-light-rgb), 0.45);
+      color: var(--ion-color-dark);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:active {
+        background: rgba(var(--ion-color-light-rgb), 0.6);
+      }
+
+      .trigger-title {
+        flex: 1;
+        text-align: left;
+        color: var(--ion-color-dark);
+      }
+
+      .trigger-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .step-counter {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--ion-color-medium);
+      }
+
+      .trigger-chevron {
+        font-size: 16px;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    .description-card {
+      padding: 10px 0 0;
+      animation: slideDown 0.15s ease forwards;
     }
   }
 
   .description-steps-editor {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 
     .description-step.editable {
-      display: grid;
-      grid-template-columns: 24px minmax(0, 1fr) 44px;
+      display: flex;
+      align-items: stretch;
       gap: 8px;
-      align-items: center;
     }
 
     .description-step-index {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
+      min-width: 24px;
+      height: auto;
+      border-radius: 6px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: rgba(var(--ion-color-primary-rgb), 0.14);
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
       color: var(--ion-color-primary);
       font-size: 0.7rem;
       font-weight: 700;
       line-height: 1;
       flex-shrink: 0;
+      padding: 0 4px;
     }
 
-    .description-step-input {
-      --background: rgba(var(--ion-color-light-rgb), 0.72);
-      --color: var(--ion-color-dark);
-      --placeholder-color: rgba(var(--ion-color-medium-rgb), 0.82);
-      --placeholder-opacity: 1;
-      --border-radius: 8px;
-      --padding-start: 10px;
-      --padding-end: 10px;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
-      font-weight: 500;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      width: 100%;
+    .step-input-wrapper {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      display: flex;
+      align-items: flex-start;
 
-      &::part(native) {
+      .description-step-input {
+        --background: rgba(var(--ion-color-light-rgb), 0.72);
+        --color: var(--ion-color-dark);
+        --placeholder-color: rgba(var(--ion-color-medium-rgb), 0.7);
+        --placeholder-opacity: 1;
+        --border-radius: 8px 8px 0 0;
+        --padding-start: 10px;
+        --padding-end: 36px;
+        --padding-top: 7px;
+        --padding-bottom: 7px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px 8px 0 0;
+        font-size: 0.88rem;
+        line-height: 1.4;
         width: 100%;
-        min-width: 100%;
+        transition: border-color 0.15s ease;
+
+        &::part(native) {
+          width: 100%;
+          min-width: 100%;
+        }
+
+        &:focus-within {
+          border-color: var(--ion-color-primary);
+        }
+      }
+
+      .remove-step-btn-inline {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: var(--ion-color-danger);
+          pointer-events: none;
+        }
+
+        &:hover {
+          background: rgba(var(--ion-color-danger-rgb), 0.15);
+        }
       }
     }
 
-    .remove-step-btn {
-      width: 44px;
-      height: 44px;
-      margin: 0;
-      --padding-start: 0;
-      --padding-end: 0;
-      --color: var(--ion-color-medium);
-
-      ion-icon {
-        font-size: 1.15rem;
-      }
-    }
-
-    .add-step-btn {
-      align-self: flex-start;
-      --padding-start: 12px;
-      --padding-end: 14px;
-      --color: var(--ion-color-primary);
+    .add-step-btn-full {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.3);
+      background: rgba(var(--ion-color-primary-rgb), 0.05);
+      border-radius: 8px;
+      color: var(--ion-color-primary);
+      font-size: 0.84rem;
       font-weight: 600;
-      font-size: 0.88rem;
-      min-height: 44px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-top: 2px;
 
       ion-icon {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
+      }
+
+      &:active {
+        background: rgba(var(--ion-color-primary-rgb), 0.12);
       }
 
       &[disabled] {
-        opacity: 0.45;
+        opacity: 0.35;
+        pointer-events: none;
       }
     }
 
     .steps-limit-hint {
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       color: var(--ion-color-medium);
-      margin-top: -4px;
+      text-align: center;
+      margin-top: -2px;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
