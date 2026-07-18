@@ -112,8 +112,10 @@ export class SearchTablesPage implements OnInit {
   }
 
   public onFilterModeChange(filterGroup: SearchFilterGroup): void {
-    this.searchFilterGroup = filterGroup;
+    Object.assign(this.searchFilterGroup, filterGroup);
+    this._currentFilterMode = filterGroup.ownFilter ? 'mine' : 'all';
     this.searchFilterGroup.page = 0;
+    this.searchFilterGroup.defaultOnly = !filterGroup.ownFilter;
     this.tableList = [];
     this.searchTables();
   }
