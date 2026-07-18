@@ -8,16 +8,19 @@ export interface BillingEntitlements {
     microcyclesPerRoutine: number | null;
     customExercises: number | null;
     recipes: number | null;
+    nutritionalGoals: number | null;
   };
   usage: {
     routines: number;
     customExercises: number;
     recipes: number;
+    nutritionalGoals: number;
   };
   remaining: {
     routines: number | null;
     customExercises: number | null;
     recipes: number | null;
+    nutritionalGoals: number | null;
   };
   adsEnabled: boolean;
 }

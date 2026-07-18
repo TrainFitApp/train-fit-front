@@ -1007,6 +1007,8 @@
     "IN_USE": "En uso",
     "DELETE_HEADER": "Eliminar objetivo",
     "DELETE_MSG": "¿Eliminar \"{{name}}\"?",
-    "REQUIRED_FIELDS": "Faltan campos por completar"
+    "REQUIRED_FIELDS": "Faltan campos por completar",
+    "LIMIT_REACHED_FREE": "En el modo Free puedes tener 1 objetivo nutricional. Activa Pro para crear hasta 10.",
+    "LIMIT_REACHED_PRO": "Has alcanzado el maximo de 10 objetivos nutricionales."
   }
 }

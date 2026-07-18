@@ -348,8 +348,11 @@ export class EditorPage implements OnInit {
       this.nutritionalGoalService.create({
         name: 'Default', kcalTotal, proteinsGTotal: proteins, carbohydratesGTotal: carbs, fatGTotal: fat,
       }).subscribe((goal) => {
-        this.user.goalInUse = goal._id;
-        this.nutritionalGoalService.setActive(goal._id);
+        this.nutritionalGoalService.setActive(goal._id).subscribe({
+          next: () => {
+            this.user.goalInUse = goal._id;
+          },
+        });
       });
     }
   }

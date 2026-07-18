@@ -4,6 +4,15 @@ import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { NutritionalGoal } from '../../models/nutritional-goal';
 
+export interface NutritionalGoalActivationResponse {
+  goalInUse: string;
+  goal: NutritionalGoal;
+}
+
+export interface NutritionalGoalDeleteResponse {
+  goalInUse: string | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -28,7 +37,13 @@ export class NutritionalGoalApiService {
     return this.http.put<NutritionalGoal>(`${this.endpoint}/${id}`, data).pipe(take(1));
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.endpoint}/${id}`).pipe(take(1));
+  activate(id: string): Observable<NutritionalGoalActivationResponse> {
+    return this.http
+      .put<NutritionalGoalActivationResponse>(`${this.endpoint}/${id}/activate`, {})
+      .pipe(take(1));
+  }
+
+  delete(id: string): Observable<NutritionalGoalDeleteResponse> {
+    return this.http.delete<NutritionalGoalDeleteResponse>(`${this.endpoint}/${id}`).pipe(take(1));
   }
 }
