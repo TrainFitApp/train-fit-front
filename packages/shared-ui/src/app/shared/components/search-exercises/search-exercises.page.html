@@ -226,9 +226,19 @@
         <ion-icon name="pulse-outline"></ion-icon>
         <span>{{ 'SEARCH_EXERCISES.CARDIO' | translate }}</span>
       </button>
+      <button
+        type="button"
+        class="mode-btn"
+        [class.is-active]="cardioMode === 'isometric'"
+        (click)="setCardioMode('isometric')"
+      >
+        <ion-icon name="timer-outline"></ion-icon>
+        <span>{{ 'SEARCH_EXERCISES.ISOMETRIC' | translate }}</span>
+      </button>
       <div
         class="mode-indicator"
         [class.cardio-active]="cardioMode === 'cardio'"
+        [class.isometric-active]="cardioMode === 'isometric'"
       ></div>
     </div>
     <button class="add-btn" (click)="createExercise()">
