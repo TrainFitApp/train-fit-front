@@ -806,11 +806,11 @@ export class WorkoutComponent implements OnDestroy {
       actions = actions.filter(
         (actionTemp) =>
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id
       );
 
       // "Ver resumen" solo se ofrece si el entreno ya está terminado.
