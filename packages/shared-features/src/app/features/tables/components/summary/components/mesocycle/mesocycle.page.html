@@ -84,11 +84,15 @@
                   class="info-icon"
                 ></ion-icon>
                 <div class="info-text">
-                  <span class="info-title">{{ 'TABLES.COPY_MODE' | translate }}</span>
+                  <span class="info-title"
+                    >{{ 'TABLES.COPY_MODE' | translate }}</span
+                  >
                   <p>
                     {{ 'TABLES.COPY_MODE_DESC' | translate }}
                     <ion-label color="tertiary"
-                      ><strong>{{ workout.name | translateDb }}</strong></ion-label
+                      ><strong
+                        >{{ workout.name | translateDb }}</strong
+                      ></ion-label
                     >.
                   </p>
                 </div>
@@ -348,7 +352,6 @@
         </ion-accordion-group>
       </section>
     </ng-container>
-
   </div>
 
   <div
@@ -363,7 +366,8 @@
       </div>
       <h2>{{ 'TABLES.MICROCYCLE_LOCKED' | translate }}</h2>
       <p>
-        {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit: microcyclesPerRoutineLimit } }}
+        {{ 'TABLES.MICROCYCLE_LOCKED_DESC' | translate:{ limit:
+        microcyclesPerRoutineLimit } }}
       </p>
       <ion-button
         expand="block"
@@ -430,11 +434,18 @@
                 [class.in-use]="isCurrentSplitInUse()"
               >
                 <span class="trigger-title">
-                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{ currentSplitIndex + 1 }}
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{
+                  currentSplitIndex + 1 }}
                 </span>
                 <div class="trigger-right">
-                  <span class="step-counter">{{ completedSplitsCount }}/{{ tableInUse?.splits?.length || 0 }}</span>
-                  <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+                  <span class="step-counter"
+                    >{{ completedSplitsCount }}/{{ tableInUse?.splits?.length ||
+                    0 }}</span
+                  >
+                  <ion-icon
+                    name="chevron-down"
+                    class="trigger-chevron"
+                  ></ion-icon>
                 </div>
               </button>
               <ion-select
@@ -451,11 +462,22 @@
                   [value]="splitItem.originalIndex"
                   [class]="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex]) ? 'completed-split' : 'not-completed-split'"
                 >
-                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{ splitItem.originalIndex + 1 }}
-                  {{ isSplitLocked(splitItem.originalIndex) ? ('TABLES.PRO_BADGE' | translate) : '' }}
-                  <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{
+                  splitItem.originalIndex + 1 }} {{
+                  isSplitLocked(splitItem.originalIndex) ? ('TABLES.PRO_BADGE' |
+                  translate) : '' }}
+                  <span
+                    *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])"
+                    >✓</span
+                  >
                 </ion-select-option>
               </ion-select>
+
+              <app-glossary-info
+                term="MICROCYCLE"
+                size="sm"
+                class="microcycle-glossary"
+              ></app-glossary-info>
             </div>
           </div>
         </div>
@@ -470,7 +492,10 @@
             [disabled]="loadingSplit"
             (click)="showSplitMenu($event)"
           >
-            <ion-icon name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
+            <ion-icon
+              name="ellipsis-vertical-outline"
+              slot="icon-only"
+            ></ion-icon>
           </ion-button>
         </div>
       </div>

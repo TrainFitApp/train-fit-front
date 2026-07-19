@@ -1110,6 +1110,12 @@
     "DISTANCE_LABEL": "DISTANCE (KM)",
     "SET_OBJECTIVE_CARD_TITLE": "Expected target set",
     "SET_OBJECTIVE_CARD_DESC": "Define the mark you expect to reach in the set here. During training you can record what was done and set it as completed.",
+    "FAIL_CARD_TITLE": "Set to failure",
+    "FAIL_CARD_DESC": "Check this when the set is taken to muscle failure — meaning you can't complete another rep with good form.",
+    "DROP_SET_CARD_TITLE": "Drop Set",
+    "DROP_SET_CARD_DESC": "Right after finishing the set, you immediately lower the weight (no rest) and keep doing reps until failure. It's used to increase the set's intensity.",
+    "REST_PAUSE_CARD_TITLE": "Rest Pause",
+    "REST_PAUSE_CARD_DESC": "You split the set into several short blocks of reps, resting a few seconds between each block, so you can do more total reps with that weight.",
     "STATS_PAGE_TITLE": "Routine Statistics",
     "STATS_CALENDAR_TITLE": "Routine Calendar",
     "STATS_TRAINING_TYPES": "Training Types:",
@@ -1730,5 +1736,19 @@
     "WEIGHT_AXIS": "Weight (kg)",
     "BODY_AXIS": "Body measurements (cm)",
     "BODY_MEASUREMENTS": "Body measurements"
+  },
+  "GLOSSARY": {
+    "RIR": {
+      "TITLE": "RIR (Reps in Reserve)",
+      "DESCRIPTION": "Shows how many more reps you could do before reaching muscle failure. For example, finishing a set at RIR 2 means you could have done 2 more reps before failing."
+    },
+    "MICROCYCLE": {
+      "TITLE": "Microcycle",
+      "DESCRIPTION": "A block of consecutive days (training and rest) that you define yourself — it doesn't have to be a week, it lasts as long as you decide. Once it ends, the next microcycle begins (microcycle 1, microcycle 2...)."
+    },
+    "ONE_RM": {
+      "TITLE": "1RM (One-Rep Max)",
+      "DESCRIPTION": "The heaviest weight you could lift for a single rep with good form. It's used as a reference to calculate the weight for your training sets."
+    }
   }
 }

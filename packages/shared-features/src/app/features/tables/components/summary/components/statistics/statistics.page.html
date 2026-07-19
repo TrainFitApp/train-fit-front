@@ -165,6 +165,7 @@
             <ion-card-content>
               <div class="stat-label">
                 {{ (isCardio || isIsometric) ? ('TABLES.STATS_TOTAL_TIME' | translate) : ('TABLES.STATS_ESTIMATED_1RM' | translate) }}
+                <app-glossary-info *ngIf="isStrength" term="ONE_RM" size="sm"></app-glossary-info>
               </div>
               <div class="stat-value">
                 {{ (isCardio || isIsometric) ? (metrics.max1RM | number:'1.0-0') :
@@ -492,6 +493,7 @@
             <div class="comparison-item-label">
               <ion-icon name="speedometer-outline"></ion-icon>
               {{ 'TABLES.STATS_AVG_RIR' | translate }}
+              <app-glossary-info term="RIR" size="sm"></app-glossary-info>
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"

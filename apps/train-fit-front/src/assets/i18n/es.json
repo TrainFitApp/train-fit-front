@@ -1116,6 +1116,12 @@
     "DISTANCE_LABEL": "DISTANCIA (KM)",
     "SET_OBJECTIVE_CARD_TITLE": "Serie objetivo esperada",
     "SET_OBJECTIVE_CARD_DESC": "Define aquí la marca que esperas alcanzar en la serie. Durante el entrenamiento podrás registrar lo realizado y establecerla como completada.",
+    "FAIL_CARD_TITLE": "Serie al fallo",
+    "FAIL_CARD_DESC": "Márcalo cuando la serie se haga hasta el fallo muscular, es decir, hasta que no puedas completar ninguna repetición más con buena técnica.",
+    "DROP_SET_CARD_TITLE": "Drop Set",
+    "DROP_SET_CARD_DESC": "Al terminar la serie, bajas el peso de inmediato (sin descanso) y sigues haciendo repeticiones hasta el fallo. Sirve para aumentar la intensidad de la serie.",
+    "REST_PAUSE_CARD_TITLE": "Rest Pause",
+    "REST_PAUSE_CARD_DESC": "Divides la serie en varios bloques cortos de repeticiones, descansando unos segundos entre cada bloque, para poder hacer más repeticiones totales con ese peso.",
     "STATS_PAGE_TITLE": "Estadísticas de Rutina",
     "STATS_CALENDAR_TITLE": "Calendario de Rutina",
     "STATS_TRAINING_TYPES": "Tipos de Entrenamiento:",
@@ -1736,5 +1742,19 @@
     "WEIGHT_AXIS": "Peso (kg)",
     "BODY_AXIS": "Medidas corporales (cm)",
     "BODY_MEASUREMENTS": "Medidas corporales"
+  },
+  "GLOSSARY": {
+    "RIR": {
+      "TITLE": "RIR (Repeticiones en Reserva)",
+      "DESCRIPTION": "Indica cuántas repeticiones más podrías hacer antes de llegar al fallo muscular. Por ejemplo, terminar una serie con RIR 2 significa que podrías haber hecho 2 repeticiones más antes de no poder completar ninguna otra."
+    },
+    "MICROCYCLE": {
+      "TITLE": "Microciclo",
+      "DESCRIPTION": "Es un bloque de días consecutivos (entrenamientos y descansos) que tú mismo defines: no tiene por qué durar una semana, dura lo que tú decidas. Cuando termina, empieza el siguiente microciclo (microciclo 1, microciclo 2...)."
+    },
+    "ONE_RM": {
+      "TITLE": "1RM (Repetición Máxima)",
+      "DESCRIPTION": "Es el peso máximo que podrías levantar en un único intento y con buena técnica. Se usa como referencia para calcular el peso de tus series de entrenamiento."
+    }
   }
 }
