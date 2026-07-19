@@ -44,11 +44,16 @@
         *ngFor="let goal of goals"
         class="goal-card"
         [class.active]="goal._id === activeGoalId"
+        [class.locked]="isGoalLocked(goal)"
         (click)="openEditor(goal)"
       >
         <div class="goal-card__header">
           <h3 class="goal-card__name">{{ goal.name }}</h3>
           <div class="goal-card__actions">
+            <span *ngIf="isGoalLocked(goal)" class="locked-badge">
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              {{ 'NUTRITION_GOALS.LOCKED' | translate }}
+            </span>
             <span *ngIf="goal._id === activeGoalId" class="in-use-badge">
               <ion-icon name="checkmark-circle"></ion-icon>
               {{ 'NUTRITION_GOALS.IN_USE' | translate }}

@@ -1,6 +1,10 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { NutritionalGoal } from '../../models/nutritional-goal';
-import { NutritionalGoalApiService } from './nutritional-goal-api.service';
+import {
+  NutritionalGoalActivationResponse,
+  NutritionalGoalApiService,
+  NutritionalGoalDeleteResponse,
+} from './nutritional-goal-api.service';
 import { UserService } from '../user/user.service';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -35,7 +39,13 @@ export class NutritionalGoalService {
 
   create(data: Partial<NutritionalGoal>): Observable<NutritionalGoal> {
     return this.api.create(data).pipe(
-      tap((goal) => this._goals.update((list) => [goal, ...list])),
+      tap((goal) => {
+        this._goals.update((list) => [goal, ...list]);
+        const user = this.userService.getLocalUser;
+        if (user && !user.goalInUse) {
+          this.userService.setLocalUser = { ...user, goalInUse: goal._id };
+        }
+      }),
     );
   }
 
@@ -49,19 +59,32 @@ export class NutritionalGoalService {
     );
   }
 
-  delete(id: string): Observable<void> {
+  delete(id: string): Observable<NutritionalGoalDeleteResponse> {
     return this.api.delete(id).pipe(
-      tap(() =>
-        this._goals.update((list) => list.filter((g) => g._id !== id)),
-      ),
+      tap((response) => {
+        this._goals.update((list) => list.filter((g) => g._id !== id));
+        const user = this.userService.getLocalUser;
+        if (user) {
+          this.userService.setLocalUser = {
+            ...user,
+            goalInUse: response?.goalInUse || undefined,
+          };
+        }
+      }),
     );
   }
 
-  setActive(goalId: string): void {
-    const user = this.userService.getLocalUser;
-    if (!user) return;
-    user.goalInUse = goalId;
-    this.userService.setLocalUser = user;
+  setActive(goalId: string): Observable<NutritionalGoalActivationResponse> {
+    return this.api.activate(goalId).pipe(
+      tap((response) => {
+        const user = this.userService.getLocalUser;
+        if (!user) return;
+        this.userService.setLocalUser = {
+          ...user,
+          goalInUse: response.goalInUse,
+        };
+      }),
+    );
   }
 
   refreshFromServer(): Observable<NutritionalGoal[]> {

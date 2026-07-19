@@ -934,7 +934,33 @@ export class NutritionEditorPage implements OnInit {
         this.goal = updatedGoal;
 
         if (this.user?.goalInUse === this.goal._id || !this.user?.goalInUse) {
-          this.nutritionalGoalService.setActive(this.goal._id);
+          this.nutritionalGoalService.setActive(this.goal._id).subscribe({
+            next: () => {
+              const toast: ToastOptions = {
+                message: this.translate.instant('NUTRITION_EDITOR.SAVE_SUCCESS'),
+                duration: 2000,
+              };
+              this.ionicUtilService.showToast(toast);
+
+              this.saveOriginalState();
+
+              setTimeout(() => {
+                this.modalController.dismiss({ saved: true });
+              }, 100);
+            },
+            error: (error) => {
+              console.error("Error al activar objetivo nutricional:", error);
+
+              const errorToast: ToastOptions = {
+                message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                duration: 3000,
+              };
+              this.ionicUtilService.showToast(errorToast);
+
+              this.isSaving = false;
+            },
+          });
+          return;
         }
 
         const toast: ToastOptions = {
@@ -1311,11 +1337,6 @@ export class NutritionEditorPage implements OnInit {
           handler: () => {
             this.nutritionalGoalService.delete(this.goal._id).subscribe({
               next: () => {
-                const user = this.userService.getLocalUser;
-                if (user?.goalInUse === this.goal._id) {
-                  user.goalInUse = undefined;
-                  this.userService.setLocalUser = user;
-                }
                 this.modalController.dismiss({ deleted: true });
               },
               error: () => {
@@ -1356,13 +1377,18 @@ export class NutritionEditorPage implements OnInit {
             this.nutritionalGoalService.update(this.goal._id, goalData).subscribe({
               next: (updatedGoal) => {
                 this.goal = updatedGoal;
-                this.nutritionalGoalService.setActive(this.goal._id);
-                const user = this.userService.getLocalUser;
-                if (user) {
-                  user.goalInUse = this.goal._id;
-                  this.userService.setLocalUser = user;
-                }
-                this.modalController.dismiss({ saved: true });
+                this.nutritionalGoalService.setActive(this.goal._id).subscribe({
+                  next: () => {
+                    this.modalController.dismiss({ saved: true });
+                  },
+                  error: () => {
+                    const toast: ToastOptions = {
+                      message: this.translate.instant('NUTRITION_EDITOR.SAVE_ERROR'),
+                      duration: 3000,
+                    };
+                    this.ionicUtilService.showToast(toast);
+                  },
+                });
               },
               error: () => {
                 const toast: ToastOptions = {
