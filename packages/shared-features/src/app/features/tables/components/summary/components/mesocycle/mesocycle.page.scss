@@ -499,7 +499,6 @@ ion-skeleton-text {
     .micro-cycle-info {
       display: flex;
       align-items: center;
-      gap: 16px;
     }
 
     .micro-cycle-actions {
@@ -653,17 +652,29 @@ ion-skeleton-text {
 
   .micro-cycle-actions {
     .action-btn {
-      --padding-start: 14px;
-      --padding-end: 14px;
-      --padding-top: 14px;
-      --padding-bottom: 14px;
-      --border-radius: 14px;
-      width: 52px;
-      height: 52px;
+      background: rgba(255, 255, 255, 0.05);
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.2s ease;
       margin: 0;
 
+      &[disabled] {
+        opacity: 0.45;
+      }
+
+      &:active {
+        transform: scale(0.95);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
       ion-icon {
-        font-size: 1.3rem;
+        font-size: 20px;
       }
     }
 
@@ -674,12 +685,10 @@ ion-skeleton-text {
     }
 
     .menu-btn {
-      --color: #ffffff;
-      --background: rgba(var(--ion-color-medium-rgb), 0.15);
-      --background-activated: rgba(var(--ion-color-medium-rgb), 0.25);
+      color: rgba(255, 255, 255, 0.7);
 
       ion-icon {
-        color: #ffffff !important;
+        color: rgba(255, 255, 255, 0.7) !important;
       }
     }
 

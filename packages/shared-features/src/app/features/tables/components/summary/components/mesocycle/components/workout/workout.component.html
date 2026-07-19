@@ -9,7 +9,6 @@
           <ion-col class="meal-name">
             <ion-buttons class="workout-actions-buttons">
               <ion-button
-                [style.visibility]="stateSelected === STATES.static ? 'visible' : 'hidden'"
                 fill="clear"
                 class="action-btn menu-btn ripple-effect"
                 [ngClass]="{
@@ -19,7 +18,7 @@
                 (click)="
                   workoutActions($event, workoutIndex); $event.stopPropagation()
                 "
-                [disabled]="!load || pasteMode"
+                [disabled]="!load || pasteMode || stateSelected !== STATES.static"
               >
                 <ion-icon
                   color="primary"

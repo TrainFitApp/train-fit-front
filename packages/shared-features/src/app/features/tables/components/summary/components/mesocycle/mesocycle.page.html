@@ -13,41 +13,51 @@
             {{ tableInUse?.name | translateDb }}
           </h1>
         </div>
-        <div class="actions-section" *ngIf="!pasteMode">
-          <button
-            *ngIf="stateSelected !== STATES.move"
-            class="action-button ripple-effect"
-            [disabled]="loadingSplit || !currentSplit?.workouts?.length"
-            (click)="enterWorkoutMoveMode()"
-          >
-            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
-          </button>
+        <div class="actions-section">
+          <ng-container *ngIf="!pasteMode">
+            <button
+              *ngIf="stateSelected !== STATES.move"
+              class="action-button ripple-effect"
+              [disabled]="loadingSplit || !currentSplit?.workouts?.length"
+              (click)="enterWorkoutMoveMode()"
+            >
+              <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+            </button>
+
+            <button
+              *ngIf="stateSelected === STATES.move"
+              class="action-button ripple-effect"
+              [disabled]="savingWorkoutOrder"
+              (click)="cancelWorkoutMoveMode()"
+            >
+              <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+            </button>
+
+            <button
+              *ngIf="stateSelected === STATES.move"
+              class="action-button action-button--confirm ripple-effect"
+              [disabled]="savingWorkoutOrder"
+              (click)="confirmWorkoutOrder()"
+            >
+              <ion-spinner
+                *ngIf="savingWorkoutOrder"
+                name="crescent"
+                color="success"
+              ></ion-spinner>
+              <ion-icon
+                *ngIf="!savingWorkoutOrder"
+                name="checkmark-outline"
+                color="success"
+              ></ion-icon>
+            </button>
+          </ng-container>
 
           <button
-            *ngIf="stateSelected === STATES.move"
+            *ngIf="pasteMode"
             class="action-button ripple-effect"
-            [disabled]="savingWorkoutOrder"
-            (click)="cancelWorkoutMoveMode()"
+            (click)="cancelCopyMode()"
           >
             <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
-          </button>
-
-          <button
-            *ngIf="stateSelected === STATES.move"
-            class="action-button action-button--confirm ripple-effect"
-            [disabled]="savingWorkoutOrder"
-            (click)="confirmWorkoutOrder()"
-          >
-            <ion-spinner
-              *ngIf="savingWorkoutOrder"
-              name="crescent"
-              color="success"
-            ></ion-spinner>
-            <ion-icon
-              *ngIf="!savingWorkoutOrder"
-              name="checkmark-outline"
-              color="success"
-            ></ion-icon>
           </button>
         </div>
       </div>
@@ -385,15 +395,6 @@
   <ion-spinner name="crescent"></ion-spinner>
 </ng-template>
 
-<app-actions-fab
-  class="fixed"
-  *ngIf="tableMode === TABLE_MODE_TYPES.mesocycle && pasteMode && !isCurrentSplitLocked()"
-  [currentWorkoutMode]="!!user.workoutInUse"
-  [tableInUse]="tableInUse"
-  [loading]="loadingFab"
-  (onClose)="onCloseFab($event)"
-></app-actions-fab>
-
 <ng-template #emptySplits>
   <ion-button
     expand="block"
@@ -485,17 +486,15 @@
           *ngIf="!pasteMode && stateSelected === STATES.static"
           class="micro-cycle-actions"
         >
-          <ion-button
-            fill="clear"
+          <button
             class="action-btn menu-btn ripple-effect"
             [disabled]="loadingSplit"
             (click)="showSplitMenu($event)"
           >
             <ion-icon
               name="ellipsis-vertical-outline"
-              slot="icon-only"
             ></ion-icon>
-          </ion-button>
+          </button>
         </div>
       </div>
 
