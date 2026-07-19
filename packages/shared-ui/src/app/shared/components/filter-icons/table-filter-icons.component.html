@@ -6,7 +6,7 @@
         class="modern-pill"
         [class.is-active]="isAllSelected()"
         [disabled]="disabled"
-        (click)="addFilter('all')"
+        (click)="selectAllFilter()"
       >
         <ion-icon name="library-outline"></ion-icon>
         <span class="label">{{ 'TABLES.FILTER_DEFAULT' | translate }}</span>

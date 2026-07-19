@@ -126,13 +126,6 @@ export class UserAPIService {
     );
   }
 
-  public restorePassword(email: string, password: string): Observable<string> {
-    return this.http.put<string>(`${UserAPIService.USERS_ENDPOINT}/restore`, {
-      email,
-      password,
-    });
-  }
-
   public sendMailCode(email: string): Observable<string> {
     return this.http.get<string>(
       `${UserAPIService.USERS_ENDPOINT}/${UserAPIService.USERS_SEND_MAIL_CODE_ENDPOINT}/${email}`

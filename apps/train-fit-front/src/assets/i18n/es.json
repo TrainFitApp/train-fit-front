@@ -90,7 +90,7 @@
     "PRIVACY": "Política y privacidad"
   },
   "USER_ERRORS": {
-    "REQUIRED": "es requerido",
+    "REQUIRED": "Este campo es obligatorio",
     "PATTERN": "Formato incorrecto",
     "EMAIL": "Formato de email incorrecto",
     "MINLENGTH": "mínima requerida",
@@ -102,7 +102,9 @@
     "LENGTH": "debe tener entre 6 y 15 caracteres",
     "DEFAULT": "Error de validación",
     "UPPERCASE": "Debe incluir al menos una letra mayúscula",
-    "LOWERCASE": "Debe incluir al menos una letra minúscula"
+    "LOWERCASE": "Debe incluir al menos una letra minúscula",
+    "PASSWORD_REQUIRED": "Por favor introduce y confirma tu nueva contraseña",
+    "PASSWORDS_NOT_MATCH": "Las contraseñas no coinciden"
   },
   "EXERCISE_CONFIG": {
     "ADD_EXERCISE": "Añadir ejercicio",
@@ -321,14 +323,11 @@
     "RESEND": "Reenviar código",
     "RESEND_IN": "Reenviar en {{seconds}}s",
     "EMAIL_PLACEHOLDER": "Correo electrónico",
-    "EMAIL_REQUIRED": "El email es obligatorio",
     "EMAIL_INVALID": "Ingresa un email válido",
     "EMAIL_NOT_REGISTERED": "Este email no está registrado",
     "NEW_PASSWORD": "Nueva contraseña",
-    "PASSWORD_REQUIRED": "La contraseña es obligatoria",
     "PASSWORD_MIN_LENGTH": "La contraseña debe tener al menos 6 caracteres",
     "REPEAT_PASSWORD": "Repite contraseña",
-    "REPEAT_PASSWORD_REQUIRED": "Debes repetir la contraseña",
     "RESTORE_BUTTON": "RESTAURAR CONTRASEÑA",
     "TOAST_USER_EMAIL_NOT_FOUND": "No se encontró el correo del usuario. Inicia sesión y vuelve a intentarlo.",
     "TOAST_CODE_SENT": "¡Código enviado, revisa spam!",

@@ -209,12 +209,6 @@ export class UserService {
     return this.userAPIService.verifyPassword(password).pipe(take(1));
   }
 
-  public restorePassword(email: string, newPassword: string) {
-    return this.userAPIService
-      .restorePassword(email, newPassword)
-      .pipe(take(1));
-  }
-
   public sendMailCode(email: string): Observable<any> {
     return this.userAPIService.sendMailCode(email).pipe(take(1));
   }

@@ -154,6 +154,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public descriptionSteps: string[] = [];
   public readonly maxDescriptionSteps = 20;
   public readonly maxStepLength = 300;
+  public showDescriptionDetails = false;
 
   @ViewChildren("stepTextarea") private stepTextareaRefs: QueryList<any>;
 
