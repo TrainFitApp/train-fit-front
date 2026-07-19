@@ -123,7 +123,9 @@ export class ToolbarCalendarComponent {
           actionTemp.id !== this.ACTION_TYPES.duplicate &&
           actionTemp.id !== this.ACTION_TYPES.viewSummary &&
           actionTemp.id !== this.ACTION_TYPES.skipWorkout &&
-          actionTemp.id !== this.ACTION_TYPES.unskipWorkout
+          actionTemp.id !== this.ACTION_TYPES.unskipWorkout &&
+          actionTemp.id !== this.ACTION_TYPES.moveSets &&
+          actionTemp.id !== this.ACTION_TYPES.rmCalculator
       );
 
       // Sort to put delete at the end
