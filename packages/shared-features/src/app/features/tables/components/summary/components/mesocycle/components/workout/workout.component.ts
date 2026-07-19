@@ -7,7 +7,7 @@ import {
   ViewChild,
   OnInit,
 } from '@angular/core';
-import { Subscription, tap } from 'rxjs';
+import { Subscription, forkJoin, tap } from 'rxjs';
 import {
   ActionSheetOptions,
   AlertOptions,
@@ -1147,12 +1147,10 @@ export class WorkoutComponent implements OnDestroy {
 
   public playWorkout(): void {
     if (this.workout._id !== this.user.workoutInUse) {
-      const previousWorkout = this.getPreviousWorkout();
-      const previousPending =
-        previousWorkout && !previousWorkout.date && !previousWorkout.rest;
+      const pendingPreviousWorkouts = this.getPendingPreviousWorkouts();
 
-      if (previousPending) {
-        this.confirmSkipPreviousWorkout(previousWorkout);
+      if (pendingPreviousWorkouts.length > 0) {
+        this.confirmSkipPreviousWorkouts(pendingPreviousWorkouts);
         return;
       }
 
@@ -1164,9 +1162,10 @@ export class WorkoutComponent implements OnDestroy {
     this.navigationService.goToCurrentWorkout();
   }
 
-  // Entrenamiento inmediatamente anterior en la rutina completa, cruzando
-  // micro-ciclos (orden = Table.splits[].workouts[] tal cual se muestran).
-  private getPreviousWorkout(): Workout | null {
+  // Todos los entrenamientos anteriores a este en la rutina completa, cruzando
+  // micro-ciclos (orden = Table.splits[].workouts[] tal cual se muestran), que
+  // no estén ni terminados ni ya saltados.
+  private getPendingPreviousWorkouts(): Workout[] {
     const flatWorkouts =
       this.tableInUse?.splits?.flatMap((splitTemp) => splitTemp.workouts) ??
       [];
@@ -1174,14 +1173,18 @@ export class WorkoutComponent implements OnDestroy {
       (workoutTemp) => workoutTemp._id === this.workout._id
     );
 
-    if (currentIndex <= 0) return null;
-    return flatWorkouts[currentIndex - 1];
+    if (currentIndex <= 0) return [];
+    return flatWorkouts
+      .slice(0, currentIndex)
+      .filter((workoutTemp) => !workoutTemp.date && !workoutTemp.rest);
   }
 
-  private confirmSkipPreviousWorkout(previousWorkout: Workout): void {
+  private confirmSkipPreviousWorkouts(pendingWorkouts: Workout[]): void {
+    const names = pendingWorkouts.map((workoutTemp) => workoutTemp.name).join(', ');
     const alertOptions: AlertOptions = {
       header: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING'),
-      message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG', { name: previousWorkout.name }),
+      message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG', { names }),
+      cssClass: 'alert-grid-buttons',
       buttons: [
         {
           text: this.translate.instant('COMMON.CANCEL'),
@@ -1191,7 +1194,11 @@ export class WorkoutComponent implements OnDestroy {
         {
           text: this.translate.instant('TABLES.SKIP_AND_CONTINUE_BTN'),
           handler: () => {
-            this.applyWorkoutSkip(previousWorkout, true).subscribe(() => {
+            forkJoin(
+              pendingWorkouts.map((workoutTemp) =>
+                this.applyWorkoutSkip(workoutTemp, true)
+              )
+            ).subscribe(() => {
               this.showStartWorkoutAlert();
             });
           },
