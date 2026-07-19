@@ -417,13 +417,28 @@
             class="cycle-number"
             [class.completed]="isCurrentSplitCompleted(currentSplit)"
             [class.locked]="isCurrentSplitLocked()"
+            [class.bounce]="animatingLeft || animatingRight"
           >
             {{ currentSplitIndex + 1 }}
           </div>
           <div class="cycle-title">
             <div class="select-wrapper">
+              <button
+                type="button"
+                class="microcycle-trigger"
+                [class.completed]="isCurrentSplitCompleted(currentSplit) && !isCurrentSplitInUse()"
+                [class.in-use]="isCurrentSplitInUse()"
+              >
+                <span class="trigger-title">
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{ currentSplitIndex + 1 }}
+                </span>
+                <div class="trigger-right">
+                  <span class="step-counter">{{ completedSplitsCount }}/{{ tableInUse?.splits?.length || 0 }}</span>
+                  <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+                </div>
+              </button>
               <ion-select
-                class="micro-cycle-selector"
+                class="micro-cycle-selector-hidden"
                 [(ngModel)]="currentSplitIndex"
                 interface="action-sheet"
                 [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
@@ -441,10 +456,6 @@
                   <span *ngIf="utilService.isSplitDoned(tableInUse.splits[splitItem.originalIndex])">✓</span>
                 </ion-select-option>
               </ion-select>
-              <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
-            </div>
-            <div class="cycle-subtitle">
-              {{ 'TABLES.OF_TOTAL' | translate:{ total: tableInUse?.splits?.length || 0 } }}
             </div>
           </div>
         </div>

@@ -151,6 +151,11 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     return this._reversedSplitsWithIndex;
   }
 
+  public get completedSplitsCount(): number {
+    if (!this.tableInUseAux?.splits) return 0;
+    return this.tableInUseAux.splits.filter((s) => this.utilService.isSplitDoned(s)).length;
+  }
+
   private updateReversedSplitsWithIndex(): void {
     if (!this.tableInUseAux?.splits) {
       this._reversedSplitsWithIndex = [];
@@ -607,6 +612,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       return false;
     }
     return this.utilService.isSplitDoned(currentSplit);
+  }
+
+  public isCurrentSplitInUse(): boolean {
+    if (!this.currentSplit || !this.user?.workoutInUse) return false;
+    return this.currentSplit.workouts.some(
+      (w) => w._id === this.user?.workoutInUse
+    );
   }
 
   public editTableName(): void {
