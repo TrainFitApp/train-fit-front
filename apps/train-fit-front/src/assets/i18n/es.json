@@ -1187,6 +1187,8 @@
     "REPS_LABEL": "Repeticiones realizadas",
     "REPS_UNIT": "reps",
     "CALCULATE_BTN": "Calcular",
+    "MULTIARTICULAR_WARNING_TITLE": "Solo ejercicios multiarticulares",
+    "MULTIARTICULAR_WARNING_DESC": "Esta calculadora solo es efectiva para estimar el 1RM en ejercicios multiarticulares (compuestos). En ejercicios analíticos los resultados pueden ser imprecisos.",
     "RANGE_WARNING": "Fuera de 1-15 repeticiones las fórmulas pierden precisión.",
     "ESTIMATES_TITLE": "Estimaciones de tu 1RM",
     "RECOMMENDED_BADGE": "Recomendada",
