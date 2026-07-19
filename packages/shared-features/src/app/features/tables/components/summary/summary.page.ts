@@ -1,6 +1,5 @@
 import { Component, ViewChild, effect, inject } from "@angular/core";
 import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
-import { ModalController } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
 import { CustomExercise } from "src/app/core/models/customExercise";
 import { Table } from "src/app/core/models/table";
@@ -19,9 +18,6 @@ import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
 import { Theme } from "src/app/shared/models/theme";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
-import { AiImportService } from "src/app/core/services/ai-import/ai-import.service";
-import { AiTablePreview } from "src/app/core/models/ai-import";
-import { ExcelImportComponent } from "./components/excel-import/excel-import.component";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
 import { Subscription } from "rxjs";
@@ -47,9 +43,6 @@ export class SummaryPage {
 
   public workout: Workout;
 
-  public aiLoading = false;
-  public aiLoadingMessage = '';
-
   public pinnedNotes: PinnedExerciseNote[] = [];
   private pinnedNoteCacheSub: Subscription | null = null;
 
@@ -59,8 +52,6 @@ export class SummaryPage {
   private readonly workoutService = inject(WorkoutService);
   private readonly adMobService = inject(AdMobService);
   private readonly billingService = inject(BillingService);
-  private readonly aiImportService = inject(AiImportService);
-  private readonly modalController = inject(ModalController);
   private readonly translate = inject(TranslateService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
 
@@ -211,107 +202,6 @@ export class SummaryPage {
           });
       }
     });
-  }
-
-  public async importExcels(): Promise<void> {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.xlsx,.xls,.csv';
-
-    fileInput.onchange = async (event: any) => {
-      const file = event.target?.files?.[0];
-      if (!file) return;
-
-      if (file.size > 10 * 1024 * 1024) {
-        this.ionicUtilService.showErrorToast(null, this.translate.instant('TABLES.FILE_TOO_LARGE'));
-        return;
-      }
-
-      try {
-        this.showAiLoading(this.translate.instant('TABLES.AI_ANALYZING'));
-
-        const { sheets, fileName } = await this.aiImportService.parseExcel(file);
-
-        const preview = await this.aiImportService.interpretExcel(sheets, fileName);
-
-        this.hideAiLoading();
-        await this.showImportPreview(preview);
-      } catch (error: any) {
-        this.hideAiLoading();
-        this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.IMPORT_ERROR'));
-      }
-    };
-
-    fileInput.click();
-  }
-
-  private async showImportPreview(preview: AiTablePreview): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ExcelImportComponent,
-      componentProps: { preview },
-      cssClass: 'fullscreen-modal',
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-
-    if (data?.confirmed) {
-      await this.confirmImport(preview);
-    }
-  }
-
-  private async confirmImport(preview: AiTablePreview): Promise<void> {
-    if (await this.billingService.isFreshLimitReached("routines")) {
-      await this.showRoutineLimitAlert();
-      return;
-    }
-
-    try {
-      this.showAiLoading(this.translate.instant('TABLES.CREATING_ROUTINE'));
-
-      const table = await this.aiImportService.createTable(preview);
-
-      this.hideAiLoading();
-
-      this.tableService.setCurrentTable = table;
-      this.user.tableInUse = table._id;
-      this.user.workoutInUse = undefined;
-      if (!this.user.tables) this.user.tables = [];
-      if (!this.user.tables.find((id: any) => String(id) === String(table._id))) {
-        this.user.tables.push(table._id);
-      }
-      this.userService.setLocalUser = this.user;
-      void this.billingService.refreshBackendEntitlements();
-
-      const toastOptions: ToastOptions = {
-        message: this.translate.instant('TABLES.ROUTINE_IMPORTED_SUCCESS'),
-        duration: 2000,
-      };
-      this.ionicUtilService.showToast(toastOptions);
-
-      this.navigationService.goToMesocycle();
-    } catch (error: any) {
-      await this.ionicUtilService.hideLoading();
-      if (error?.code === 'PREMIUM_LIMIT_ROUTINES') {
-        await this.showRoutineLimitAlert();
-        return;
-      }
-      this.ionicUtilService.showErrorToast(error, this.translate.instant('TABLES.ROUTINE_IMPORT_ERROR'));
-    }
-  }
-
-  private showAiLoading(message: string): void {
-    this.aiLoadingMessage = message;
-    this.aiLoading = true;
-    const tabBar = document.querySelector('ion-tab-bar');
-    if (tabBar) tabBar.style.display = 'none';
-  }
-
-  private hideAiLoading(): void {
-    this.aiLoading = false;
-    const tabBar = document.querySelector('ion-tab-bar');
-    if (tabBar) tabBar.style.display = '';
   }
 
   private async showRoutineLimitAlert(): Promise<void> {
