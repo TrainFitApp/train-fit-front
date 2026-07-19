@@ -17,6 +17,8 @@ import { FilterIconsComponent } from './components/filter-icons/filter-icons.com
 import { ExerciseFilterIconsComponent } from './components/exercise-filter-icons/exercise-filter-icons.component';
 import { TableFilterIconsComponent } from './components/filter-icons/table-filter-icons.component';
 import { FilterInputPage } from './components/filter-input/filter-input.page';
+import { GlossaryInfoComponent } from './components/glossary-info/glossary-info.component';
+import { GlossaryPopoverComponent } from './components/glossary-popover/glossary-popover.component';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
@@ -60,6 +62,8 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,
+    GlossaryInfoComponent,
+    GlossaryPopoverComponent,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
@@ -93,6 +97,8 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,
+    GlossaryInfoComponent,
+    GlossaryPopoverComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

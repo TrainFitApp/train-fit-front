@@ -1,0 +1,9 @@
+<button
+  type="button"
+  class="glossary-info-trigger"
+  [class.glossary-info-trigger--sm]="size === 'sm'"
+  (click)="showInfo($event)"
+  [attr.aria-label]="'GLOSSARY.' + term + '.TITLE' | translate"
+>
+  <ion-icon name="information-circle-outline"></ion-icon>
+</button>
