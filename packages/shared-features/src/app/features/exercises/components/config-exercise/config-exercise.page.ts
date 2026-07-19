@@ -79,6 +79,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public customExercise: CustomExercise;
   public currentSplit: Split;
+  public pendingPinNoteText: string | null = null;
   public splitIndex: number;
 
   public setForm: FormGroup;
@@ -315,6 +316,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.pinnedNoteCacheSub?.unsubscribe();
+    this.pendingPinNoteText = null;
   }
 
   private syncDetailsFromExercise(exercise: Exercise): void {
@@ -337,6 +339,42 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           this.pinnedNote = note;
         });
     }
+  }
+
+  public cancelPendingPin(): void {
+    this.pendingPinNoteText = null;
+  }
+
+  public editPendingPin(): void {
+    const alertInputs: AlertInput[] = [
+      {
+        name: "notes",
+        type: "textarea",
+        value: this.pendingPinNoteText,
+        placeholder: this.translate.instant("EXERCISE_CONFIG.YOUR_NOTES"),
+      },
+    ];
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant("NOTES.TITLE"),
+      inputs: alertInputs,
+      buttons: [
+        {
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+        },
+        {
+          text: this.translate.instant("COMMON.CONFIRM"),
+          handler: (res) => {
+            const notesText = (res.notes || '').trim();
+            this.pendingPinNoteText = notesText || null;
+            return true;
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   public deletePinnedNote(): void {
@@ -982,6 +1020,19 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         const otherWorkouts =
           otherPromises.length > 0 ? await Promise.all(otherPromises) : [];
 
+        if (this.pendingPinNoteText && this.tableInUse?._id && this.workoutIndex !== undefined) {
+          const exerciseIdx = updatedWorkout.exercises.length - 1;
+          if (exerciseIdx >= 0) {
+            this.pinnedExerciseNoteService.upsert({
+              tableId: this.tableInUse._id,
+              workoutIndex: this.workoutIndex,
+              exerciseIndex: exerciseIdx,
+              notes: this.pendingPinNoteText,
+            }).subscribe();
+          }
+          this.pendingPinNoteText = null;
+        }
+
         void this.billingService.refreshBackendEntitlements();
         this.adMobService.interstitial("create_exercise"); // Estrategia AdMob
         this.modalController.dismiss([updatedWorkout, ...otherWorkouts]);
@@ -1217,6 +1268,22 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
 
       if (promises.length > 0) {
         return Promise.all(promises).then((resWorkoutsUpdates: Workout[]) => {
+          if (this.pendingPinNoteText && this.tableInUse?._id && this.workoutIndex !== undefined) {
+            const updatedWorkout = resWorkoutsUpdates.find(w => w._id === this.workout._id);
+            if (updatedWorkout?.exercises) {
+              const exerciseIdx = updatedWorkout.exercises.length - 1;
+              if (exerciseIdx >= 0) {
+                this.pinnedExerciseNoteService.upsert({
+                  tableId: this.tableInUse._id,
+                  workoutIndex: this.workoutIndex,
+                  exerciseIndex: exerciseIdx,
+                  notes: this.pendingPinNoteText,
+                }).subscribe();
+              }
+            }
+            this.pendingPinNoteText = null;
+          }
+
           return this.tableService
             .getTableById(this.user.tableInUse)
             .toPromise()
@@ -1524,8 +1591,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   }
 
   public manageNote(): void {
-    const isCustomExercise = this.customExercise?.sets !== undefined;
-    const showPinOption = isCustomExercise && this.tableInUse?._id && this.workoutIndex !== undefined;
+    const hasContext = !!(this.tableInUse?._id && this.workoutIndex !== undefined);
 
     let shouldPin = false;
 
@@ -1539,10 +1605,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           return true;
         },
       },
-    ];
-
-    if (showPinOption) {
-      confirmButtons.push({
+      {
         text: this.translate.instant('NOTES.PIN_TO_POSITION'),
         cssClass: 'alert-button-pin',
         handler: (res) => {
@@ -1550,8 +1613,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           this.noteToCreate = !!res.notes;
           return true;
         },
-      });
-    }
+      },
+    ];
 
     const alertInputs: AlertInput[] = [
       {
@@ -1575,14 +1638,22 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     };
 
     this.ionicUtilService.showAlert(alertOptions).then((res) => {
-      if (shouldPin && this.tableInUse?._id && this.workoutIndex !== undefined) {
+      if (shouldPin && hasContext) {
+        const notesText = res.data?.values?.notes || '';
+
+        if (this.isCreateMode || !this.customExercise) {
+          this.pendingPinNoteText = notesText;
+          this.notes = '';
+          return;
+        }
+
         const exerciseIdx = this.exerciseIndex;
         if (exerciseIdx >= 0) {
           const dto: PinnedExerciseNoteUpsertDto = {
             tableId: this.tableInUse._id,
             workoutIndex: this.workoutIndex,
             exerciseIndex: exerciseIdx,
-            notes: res.data?.values?.notes || '',
+            notes: notesText,
           };
           this.pinnedExerciseNoteService.upsert(dto).subscribe({
             next: (note) => {

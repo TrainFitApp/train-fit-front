@@ -213,6 +213,26 @@
             </ion-buttons> -->
 
     <!-- Notes Section -->
+    <div class="pinned-note-container" *ngIf="pendingPinNoteText && !pinnedNote">
+      <div class="pinned-note-card pending-pin" (click)="editPendingPin()">
+        <div class="card-header">
+          <div class="left-section">
+            <div class="icon-wrapper">
+              <ion-icon name="pin"></ion-icon>
+            </div>
+            <div class="header-row">
+              <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+            </div>
+          </div>
+          <div class="action-wrapper">
+            <ion-button fill="clear" size="small" class="close-button" (click)="cancelPendingPin(); $event.stopPropagation()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <p class="text">{{ pendingPinNoteText }}</p>
+      </div>
+    </div>
     <div class="pinned-note-container" *ngIf="pinnedNote">
       <div class="pinned-note-wrapper" (click)="editPinnedNote(); $event.stopPropagation()">
         <div class="pinned-note-card">

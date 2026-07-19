@@ -70,7 +70,7 @@
 
 // Info Explainer Card
 .info-explainer {
-    margin: 0 1rem 1rem 1rem;
+    margin: 0 1rem 0.5rem 1rem;
 
     .info-card {
         display: flex;
@@ -247,8 +247,8 @@
 // Checkbox Section
 .checkbox-section {
     margin-bottom: 1.5rem;
-    margin-top: 1.5rem;
-    padding: 1rem 0;
+    margin-top: 0.75rem;
+    padding: 0.75rem 0;
 }
 
 .checkbox-item {
@@ -260,7 +260,7 @@
     border-radius: 12px;
     border: 1px solid #252525;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     user-select: none;
 
     &:active {

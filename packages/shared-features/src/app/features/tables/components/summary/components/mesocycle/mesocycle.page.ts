@@ -152,8 +152,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public get completedSplitsCount(): number {
-    if (!this.tableInUseAux?.splits) return 0;
-    return this.tableInUseAux.splits.filter((s) => this.utilService.isSplitDoned(s)).length;
+    if (!this.tableInUse?.splits) return 0;
+    return this.tableInUse.splits.filter((s) => this.utilService.isSplitDoned(s)).length;
   }
 
   private updateReversedSplitsWithIndex(): void {
