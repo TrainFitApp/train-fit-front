@@ -127,6 +127,11 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   async openEditor(goal: NutritionalGoal) {
+    if (this.isGoalLocked(goal)) {
+      await this.showLockedGoalAlert();
+      return;
+    }
+
     const modal = await this.ionicUtilService.showModal({
       component: NutritionEditorPage,
       componentProps: { goalId: goal._id },
@@ -195,6 +200,18 @@ export class GoalListPage implements OnInit, OnDestroy {
     return this.goals.length >= this.goalLimit;
   }
 
+  public isGoalLocked(goal: NutritionalGoal): boolean {
+    if (this.userService.getLocalUser?.premium?.entitled) return false;
+    if (this.goals.length <= this.goalLimit) return false;
+    return goal._id !== this.getUnlockedFreeGoalId();
+  }
+
+  private getUnlockedFreeGoalId(): string | null {
+    const activeGoalId = this.userService.getLocalUser?.goalInUse || this.activeGoalId;
+    const activeGoal = this.goals.find((goal) => goal._id === activeGoalId);
+    return activeGoal?._id || this.goals[0]?._id || null;
+  }
+
   private isNutritionalGoalLimitError(error: any): boolean {
     return (
       error?.code === 'NUTRITIONAL_GOALS_LIMIT_REACHED' ||
@@ -221,6 +238,13 @@ export class GoalListPage implements OnInit, OnDestroy {
           role: 'cancel',
         },
       ],
+    });
+  }
+
+  private async showLockedGoalAlert(): Promise<void> {
+    await this.ionicUtilService.showPremiumLimitAlert({
+      message: this.translate.instant('NUTRITION_GOALS.LOCKED_FREE'),
+      onUpgrade: () => this.navigationService.goToPremium(),
     });
   }
 }

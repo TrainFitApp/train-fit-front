@@ -196,6 +196,18 @@
   }
 }
 
+.goal-card.locked {
+  border-color: rgba(255, 255, 255, 0.08);
+
+  &::after {
+    background: #6b7280;
+  }
+
+  .goal-card__macros {
+    opacity: 0.45;
+  }
+}
+
 .goal-card__header {
   display: flex;
   justify-content: space-between;
@@ -225,6 +237,24 @@
   font-weight: 600;
   color: var(--ion-color-success, #2dd36f);
   background: rgba(var(--ion-color-success-rgb), 0.12);
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.locked-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e5e7eb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 4px 10px;
   border-radius: 20px;
   white-space: nowrap;
