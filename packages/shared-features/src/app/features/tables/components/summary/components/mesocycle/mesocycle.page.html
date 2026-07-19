@@ -114,6 +114,7 @@
               [multiple]="true"
               [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
               (ionChange)="toggleAccordion($event, ind)"
+              [disabled]="stateSelected === STATES.move"
               [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
               [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
             >

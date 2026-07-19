@@ -1,4 +1,4 @@
-<ion-accordion value="open" (click)="arrowRotate = !arrowRotate">
+<ion-accordion value="open" (click)="stateSelected !== STATES.move ? arrowRotate = !arrowRotate : null">
   <ion-grid
     slot="header"
     [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }"
