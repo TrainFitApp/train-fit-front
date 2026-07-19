@@ -256,32 +256,31 @@ ion-grid {
 
 .no-sets-message {
   display: flex;
-  justify-content: center;
-  text-align: center;
   padding: 16px;
 }
 
 .add-sets-button {
-  display: inline-flex;
+  display: flex;
+  width: 100%;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 8px 14px;
-  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.32);
-  border-radius: 999px;
-  background: rgba(var(--ion-color-primary-rgb), 0.12);
+  height: 48px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
   color: var(--ion-color-primary);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 
   ion-icon {
-    font-size: 18px;
+    font-size: 1.1rem;
   }
 
   &:active {
-    transform: scale(0.98);
-    background: rgba(var(--ion-color-primary-rgb), 0.18);
+    background: rgba(var(--ion-color-primary-rgb), 0.25);
   }
 }
 

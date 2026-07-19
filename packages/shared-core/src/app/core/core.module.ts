@@ -21,8 +21,6 @@ import { DietAPIService } from './services/diet/diet-api.service';
 import { DietService } from './services/diet/diet.service';
 import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
-import { AiImportApiService } from './services/ai-import/ai-import-api.service';
-import { AiImportService } from './services/ai-import/ai-import.service';
 import { RmCalculatorService } from './services/rm-calculator/rm-calculator.service';
 import { ExerciseHistoryService } from './services/exercise-history/exercise-history.service';
 import { HttpService } from './services/http/http.service';
@@ -107,8 +105,6 @@ import { MatchPasswords } from './validators/matchPasswords';
     SetAPIService,
     ExerciseService,
     ExerciseAPIService,
-    AiImportService,
-    AiImportApiService,
     RmCalculatorService,
     ExerciseHistoryService,
     // Interceptors

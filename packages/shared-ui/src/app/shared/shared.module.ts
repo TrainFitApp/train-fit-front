@@ -24,7 +24,6 @@ import { SearchExercisesPage } from './components/search-exercises/search-exerci
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
 import { TimePickerComponent } from './components/time-picker/time-picker.component';
 import { SkeletonLoaderComponent } from './components/skeleton-loader/skeleton-loader.component';
-import { AiLoadingOverlayComponent } from './components/ai-loading-overlay/ai-loading-overlay.component';
 import { CategoryPipe } from './pipes/category.pipe';
 import { ExpectedPipe } from './pipes/expected-reps.pipe';
 import { MeasurePipe } from './pipes/measure.pipe';
@@ -34,7 +33,6 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 
 @NgModule({
   declarations: [
-    AiLoadingOverlayComponent,
     PopoverActionsComponent,
     FilterInputPage,
     NotesComponent,
@@ -65,7 +63,6 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
-    AiLoadingOverlayComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
