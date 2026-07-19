@@ -15,6 +15,43 @@
 
 <ion-content class="filter-content">
   <div class="filter-container">
+    <!-- Tipo de ejercicio -->
+    <div class="filter-section" *ngIf="showExerciseTypeFilter">
+      <div class="section-header">
+        <ion-icon name="options" class="section-icon"></ion-icon>
+        <h3 class="section-title">{{ 'FILTER_INPUT.EXERCISE_TYPE' | translate }}</h3>
+      </div>
+      <div class="chips-container">
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          [class.is-active]="selectedExerciseType === 'all'"
+          (click)="selectExerciseType('all')"
+        >
+          <span class="label">{{ 'SEARCH_EXERCISES.ALL' | translate }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          [class.is-active]="selectedExerciseType === 'cardio'"
+          (click)="selectExerciseType('cardio')"
+        >
+          <span class="label">{{ 'SEARCH_EXERCISES.CARDIO' | translate }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+        <button
+          type="button"
+          class="modern-pill filter-chip"
+          [class.is-active]="selectedExerciseType === 'isometric'"
+          (click)="selectExerciseType('isometric')"
+        >
+          <span class="label">{{ 'SEARCH_EXERCISES.ISOMETRIC' | translate }}</span>
+          <ion-ripple-effect></ion-ripple-effect>
+        </button>
+      </div>
+    </div>
+
     <!-- Categorías Generales -->
     <div class="filter-section">
       <div class="section-header">

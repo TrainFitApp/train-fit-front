@@ -22,6 +22,13 @@
         <button class="action-button ripple-effect" (click)="openFilterModal()">
           <ion-icon name="filter-outline" color="primary"></ion-icon>
         </button>
+        <button
+          class="action-button ripple-effect"
+          *ngIf="!isChangeMode"
+          (click)="createExercise()"
+        >
+          <ion-icon name="add-outline" color="primary"></ion-icon>
+        </button>
       </div>
     </div>
 
@@ -201,51 +208,6 @@
     </ion-infinite-scroll-content>
   </ion-infinite-scroll>
 </ion-content>
-
-<ion-footer
-  class="search-exercises-footer"
-  *ngIf="!isChangeMode && !isFooterHidden"
->
-  <div class="footer-controls">
-    <div class="mode-toggle">
-      <button
-        type="button"
-        class="mode-btn"
-        [class.is-active]="cardioMode === 'all'"
-        (click)="setCardioMode('all')"
-      >
-        <ion-icon name="barbell-outline"></ion-icon>
-        <span>{{ 'SEARCH_EXERCISES.ALL' | translate }}</span>
-      </button>
-      <button
-        type="button"
-        class="mode-btn"
-        [class.is-active]="cardioMode === 'cardio'"
-        (click)="setCardioMode('cardio')"
-      >
-        <ion-icon name="pulse-outline"></ion-icon>
-        <span>{{ 'SEARCH_EXERCISES.CARDIO' | translate }}</span>
-      </button>
-      <button
-        type="button"
-        class="mode-btn"
-        [class.is-active]="cardioMode === 'isometric'"
-        (click)="setCardioMode('isometric')"
-      >
-        <ion-icon name="timer-outline"></ion-icon>
-        <span>{{ 'SEARCH_EXERCISES.ISOMETRIC' | translate }}</span>
-      </button>
-      <div
-        class="mode-indicator"
-        [class.cardio-active]="cardioMode === 'cardio'"
-        [class.isometric-active]="cardioMode === 'isometric'"
-      ></div>
-    </div>
-    <button class="add-btn" (click)="createExercise()">
-      <ion-icon name="add-outline"></ion-icon>
-    </button>
-  </div>
-</ion-footer>
 
 <ion-footer *ngIf="isChangeMode" class="change-mode-footer">
   <div class="footer-container">

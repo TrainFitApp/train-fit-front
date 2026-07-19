@@ -1293,6 +1293,7 @@
   },
   "FILTER_INPUT": {
     "TITLE": "Filtros",
+    "EXERCISE_TYPE": "Tipo de ejercicio",
     "CATEGORIES": "Categorías Generales",
     "MAIN_MUSCLES": "Músculos Principales",
     "SECONDARY_MUSCLES": "Músculos Secundarios",

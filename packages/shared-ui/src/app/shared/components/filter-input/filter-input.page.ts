@@ -15,6 +15,7 @@ export class FilterInputPage implements OnInit {
   public searchFilterGroupExercises: SearchFilterGroupExercises;
   public exercises: Exercise[];
   public isCreateMode: boolean = false;
+  public showExerciseTypeFilter: boolean = false;
 
   public categories = [
     "Cardio",
@@ -73,6 +74,20 @@ export class FilterInputPage implements OnInit {
   ) {}
 
   public ngOnInit(): void {}
+
+  public get selectedExerciseType(): "all" | "cardio" | "isometric" {
+    if (this.searchFilterGroupExercises.isCardio) return "cardio";
+    if (this.searchFilterGroupExercises.isIsometric) return "isometric";
+    return "all";
+  }
+
+  public selectExerciseType(type: "all" | "cardio" | "isometric"): void {
+    if (this.selectedExerciseType === type) return;
+
+    this.searchFilterGroupExercises.isCardio = type === "cardio" ? true : undefined;
+    this.searchFilterGroupExercises.isIsometric = type === "isometric" ? true : undefined;
+    this.searchExercises();
+  }
 
   public selectCategory(category: string): void {
     if (this.searchFilterGroupExercises.category.includes(category)) {

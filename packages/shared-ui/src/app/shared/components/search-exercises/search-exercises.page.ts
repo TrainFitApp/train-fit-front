@@ -59,7 +59,6 @@ export class SearchExercisesPage implements OnInit {
   public isFooterHidden: boolean = false;
 
   public searchFilterGroupExercises: SearchFilterGroupExercises;
-  public cardioMode: 'all' | 'cardio' | 'isometric' = 'all';
 
   protected readonly GIF_LOCAL_ROUTE_LIGHT =
     '../../../../../assets/img/logo/login_light.svg';
@@ -104,13 +103,10 @@ export class SearchExercisesPage implements OnInit {
     if (this.isChangeMode) {
       if (this.sourceIsCardio) {
         this.searchFilterGroupExercises.isCardio = true;
-        this.cardioMode = 'cardio';
       } else if (this.sourceIsIsometric) {
         this.searchFilterGroupExercises.isIsometric = true;
-        this.cardioMode = 'isometric';
       } else {
         this.searchFilterGroupExercises.isCardio = undefined;
-        this.cardioMode = 'all';
       }
     }
 
@@ -364,6 +360,7 @@ export class SearchExercisesPage implements OnInit {
       cssClass: 'mini-modal',
       componentProps: {
         searchFilterGroupExercises: this.searchFilterGroupExercises,
+        showExerciseTypeFilter: !this.isChangeMode,
       },
       animated: true,
     };
@@ -440,17 +437,6 @@ export class SearchExercisesPage implements OnInit {
         this.modalController.dismiss(res.data);
       }
     });
-  }
-
-  public setCardioMode(mode: 'all' | 'cardio' | 'isometric'): void {
-    if (this.cardioMode === mode) {
-      return;
-    }
-
-    this.cardioMode = mode;
-    this.searchFilterGroupExercises.isCardio = mode === 'cardio' ? true : undefined;
-    this.searchFilterGroupExercises.isIsometric = mode === 'isometric' ? true : undefined;
-    this.searchByFilter();
   }
 
   private async initializeKeyboardListeners(): Promise<void> {
