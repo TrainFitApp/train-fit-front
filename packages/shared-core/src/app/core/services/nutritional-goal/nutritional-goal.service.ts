@@ -87,6 +87,10 @@ export class NutritionalGoalService {
     );
   }
 
+  canDelete(goalId: string): boolean {
+    return this._goals().length > 1;
+  }
+
   refreshFromServer(): Observable<NutritionalGoal[]> {
     return this.api.getAll().pipe(
       tap((goals) => this._goals.set(goals)),

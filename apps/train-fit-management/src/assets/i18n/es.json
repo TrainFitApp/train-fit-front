@@ -1005,6 +1005,7 @@
     "LIMIT_REACHED_FREE": "En el modo Free puedes tener 1 objetivo nutricional. Activa Pro para crear hasta 10.",
     "LIMIT_REACHED_PRO": "Has alcanzado el maximo de 10 objetivos nutricionales.",
     "LOCKED": "Pro",
-    "LOCKED_FREE": "Este objetivo esta bloqueado en el modo Free. Activa Pro para usar y modificar hasta 10 objetivos nutricionales."
+    "LOCKED_FREE": "Este objetivo esta bloqueado en el modo Free. Activa Pro para usar y modificar hasta 10 objetivos nutricionales.",
+    "MINIMUM_ONE_MSG": "Debes tener al menos un objetivo nutricional. Crea otro antes de eliminar este."
   }
 }

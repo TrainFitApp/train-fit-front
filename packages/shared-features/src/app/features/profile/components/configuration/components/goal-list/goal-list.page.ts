@@ -145,6 +145,18 @@ export class GoalListPage implements OnInit, OnDestroy {
 
   async deleteGoal(goal: NutritionalGoal, event: Event) {
     event.stopPropagation();
+
+    if (this.goals.length <= 1) {
+      const alert = await this.alertController.create({
+        header: this.translate.instant('NUTRITION_GOALS.DELETE_HEADER'),
+        message: this.translate.instant('NUTRITION_GOALS.MINIMUM_ONE_MSG'),
+        cssClass: 'custom-alert',
+        buttons: [{ text: this.translate.instant('COMMON.OK'), role: 'cancel' }],
+      });
+      await alert.present();
+      return;
+    }
+
     const alert = await this.alertController.create({
       header: this.translate.instant('NUTRITION_GOALS.DELETE_HEADER'),
       message: this.translate.instant('NUTRITION_GOALS.DELETE_MSG', { name: goal.name }),
@@ -166,6 +178,7 @@ export class GoalListPage implements OnInit, OnDestroy {
                   this.loadGoals();
                 },
                 error: () => {
+                  this.loadGoals();
                   this.ionicUtilService.showToast({
                     message: this.translate.instant('COMMON.ERROR'),
                     duration: 2000,

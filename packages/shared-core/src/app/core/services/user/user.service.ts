@@ -125,7 +125,25 @@ export class UserService {
     date: Date,
     tokenGoogle: string
   ): Observable<any> {
-    return this.userAPIService.createGoogleUser(user, date, tokenGoogle).pipe(take(1));
+    return this.userAPIService.createGoogleUser(user, date, tokenGoogle).pipe(
+      take(1),
+      switchMap((response: any) => {
+        const createdUser = response.user;
+        return this.nutritionalGoalApiService.create({
+          userId: createdUser._id,
+          name: 'Default',
+        }).pipe(
+          switchMap((goal) =>
+            this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
+              map(() => {
+                response.user.goalInUse = goal._id;
+                return response;
+              }),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   public updateUser(user: User): Observable<User> {
@@ -150,9 +168,25 @@ export class UserService {
     date: Date,
     tokenApple: string
   ): Observable<any> {
-    return this.userAPIService
-      .createAppleUser(user, date, tokenApple)
-      .pipe(take(1));
+    return this.userAPIService.createAppleUser(user, date, tokenApple).pipe(
+      take(1),
+      switchMap((response: any) => {
+        const createdUser = response.user;
+        return this.nutritionalGoalApiService.create({
+          userId: createdUser._id,
+          name: 'Default',
+        }).pipe(
+          switchMap((goal) =>
+            this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
+              map(() => {
+                response.user.goalInUse = goal._id;
+                return response;
+              }),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   public updateAppleUser(user: User): Observable<any> {

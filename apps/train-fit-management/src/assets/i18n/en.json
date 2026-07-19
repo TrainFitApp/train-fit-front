@@ -1263,6 +1263,7 @@
     "LIMIT_REACHED_FREE": "Free users can have 1 nutritional goal. Activate Pro to create up to 10.",
     "LIMIT_REACHED_PRO": "You have reached the maximum of 10 nutritional goals.",
     "LOCKED": "Pro",
-    "LOCKED_FREE": "This goal is locked in Free mode. Activate Pro to use and edit up to 10 nutritional goals."
+    "LOCKED_FREE": "This goal is locked in Free mode. Activate Pro to use and edit up to 10 nutritional goals.",
+    "MINIMUM_ONE_MSG": "You must have at least one nutritional goal. Create another before deleting this one."
   }
 }

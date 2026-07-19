@@ -1322,6 +1322,17 @@ export class NutritionEditorPage implements OnInit {
 
   async deleteGoal() {
     if (!this.goal) return;
+
+    if (!this.nutritionalGoalService.canDelete(this.goal._id)) {
+      const toast: ToastOptions = {
+        message: this.translate.instant('NUTRITION_GOALS.MINIMUM_ONE_MSG'),
+        duration: 3000,
+        color: "warning",
+      };
+      await this.ionicUtilService.showToast(toast);
+      return;
+    }
+
     const alertOptions = {
       header: this.translate.instant('NUTRITION_EDITOR.DELETE_HEADER'),
       message: this.translate.instant('NUTRITION_EDITOR.DELETE_MSG', { name: this.goal.name }),
