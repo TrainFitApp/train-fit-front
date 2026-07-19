@@ -18,6 +18,16 @@
   <div class="content">
     <ion-card class="input-card">
       <ion-card-content>
+        <div class="info-explainer">
+          <div class="info-card">
+            <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+            <div class="info-text">
+              <span class="info-title">{{ 'RM_CALCULATOR.MULTIARTICULAR_WARNING_TITLE' | translate }}</span>
+              <p>{{ 'RM_CALCULATOR.MULTIARTICULAR_WARNING_DESC' | translate }}</p>
+            </div>
+          </div>
+        </div>
+
         <div class="field">
           <ion-label class="field-label">{{ 'RM_CALCULATOR.WEIGHT_LABEL' | translate }}</ion-label>
           <div class="field-input-wrapper">
@@ -25,7 +35,7 @@
               type="number"
               inputmode="decimal"
               [(ngModel)]="weight"
-              placeholder="0"
+              placeholder="80"
               class="field-input"
             ></ion-input>
             <span class="field-unit">kg</span>
@@ -39,17 +49,17 @@
               type="number"
               inputmode="numeric"
               [(ngModel)]="reps"
-              placeholder="0"
+              placeholder="8"
               class="field-input"
             ></ion-input>
             <span class="field-unit">{{ 'RM_CALCULATOR.REPS_UNIT' | translate }}</span>
           </div>
         </div>
 
-        <ion-button expand="block" class="calculate-btn" [disabled]="!canCalculate" (click)="calculate()">
-          <ion-icon name="calculator-outline" slot="start"></ion-icon>
-          {{ 'RM_CALCULATOR.CALCULATE_BTN' | translate }}
-        </ion-button>
+        <button class="calculate-btn" [disabled]="!canCalculate" (click)="calculate()">
+          <ion-icon name="calculator-outline" class="calculate-btn__icon"></ion-icon>
+          <span class="calculate-btn__text">{{ 'RM_CALCULATOR.CALCULATE_BTN' | translate }}</span>
+        </button>
 
         <div class="range-warning" *ngIf="showRangeWarning">
           <ion-icon name="information-circle-outline"></ion-icon>

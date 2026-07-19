@@ -9,6 +9,50 @@
   gap: 16px;
 }
 
+.info-explainer {
+  margin-bottom: 14px;
+
+  .info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--ion-color-primary-rgb), 0.08) 0%,
+      rgba(var(--ion-color-primary-rgb), 0.04) 100%
+    );
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .info-icon {
+      font-size: 1.25rem;
+      color: var(--ion-color-warning);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .info-text {
+      .info-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--ion-color-warning);
+        letter-spacing: 0.2px;
+        margin-bottom: 6px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}
+
 ion-card {
   background: #141414;
   border: 1px solid #252525;
@@ -67,15 +111,42 @@ ion-card-subtitle {
 }
 
 .calculate-btn {
+  --card-color: var(--ion-color-primary);
+  --card-color-rgb: var(--ion-color-primary-rgb);
+  background: rgba(var(--card-color-rgb), 0.08);
+  border: 1px solid rgba(var(--card-color-rgb), 0.18);
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
   margin-top: 6px;
-  --border-radius: 12px;
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  font-weight: 700;
-  transition: transform 160ms var(--ease-out);
 
-  &:active {
-    transform: scale(0.97);
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+    background: rgba(var(--card-color-rgb), 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &__icon {
+    font-size: 1.5rem;
+    color: var(--card-color);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--card-color);
+    letter-spacing: 0.2px;
   }
 }
 

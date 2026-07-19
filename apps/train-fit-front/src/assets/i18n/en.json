@@ -1181,6 +1181,8 @@
     "REPS_LABEL": "Reps performed",
     "REPS_UNIT": "reps",
     "CALCULATE_BTN": "Calculate",
+    "MULTIARTICULAR_WARNING_TITLE": "Multi-joint exercises only",
+    "MULTIARTICULAR_WARNING_DESC": "This calculator is only effective for estimating 1RM in multi-joint (compound) exercises. For isolation exercises the results may be inaccurate.",
     "RANGE_WARNING": "Outside 1-15 reps the formulas lose precision.",
     "ESTIMATES_TITLE": "Your 1RM estimates",
     "RECOMMENDED_BADGE": "Recommended",
