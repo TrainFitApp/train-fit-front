@@ -63,36 +63,14 @@
       <!-- Rutina en Uso -->
       <div class="section current-routine">
         <div *ngIf="tableInUse; else notTableInUse">
-          <div class="routine-buttons-row">
-            <div
-              class="info-card info-card--primary info-card--full"
-              (click)="openMesocycle(); $event.stopPropagation()"
-            >
-              <ion-icon name="calendar-outline" class="info-icon"></ion-icon>
-              <div class="info-text">
-                <span class="info-title">{{ 'TABLES.ROUTINE_IN_USE' | translate }}</span>
-              </div>
-              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
+          <div class="bottom-cards-row">
+            <div class="bottom-card" (click)="openMesocycle(); $event.stopPropagation()">
+              <ion-icon name="calendar-outline" class="bottom-card__icon"></ion-icon>
+              <span class="bottom-card__label">{{ 'TABLES.ROUTINE_IN_USE' | translate }}</span>
             </div>
-            <div
-              class="info-card info-card--orange info-card--full"
-              (click)="goToStatistics(); $event.stopPropagation()"
-            >
-              <ion-icon name="bar-chart-outline" class="info-icon"></ion-icon>
-              <div class="info-text">
-                <span class="info-title">{{ 'TABLES.STATISTICS' | translate }}</span>
-              </div>
-              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
-            </div>
-            <div
-              class="info-card info-card--danger info-card--full"
-              (click)="unlinkTable(); $event.stopPropagation()"
-            >
-              <ion-icon name="close" class="info-icon"></ion-icon>
-              <div class="info-text">
-                <span class="info-title">{{ 'COMMON.EXIT' | translate }}</span>
-              </div>
-              <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
+            <div class="bottom-card bottom-card--orange" (click)="goToStatistics(); $event.stopPropagation()">
+              <ion-icon name="bar-chart-outline" class="bottom-card__icon"></ion-icon>
+              <span class="bottom-card__label">{{ 'TABLES.STATISTICS' | translate }}</span>
             </div>
           </div>
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
@@ -108,6 +86,10 @@
               [ngClass]="getSplitClass(split)"
             ></div>
           </div>
+          <button class="exit-btn" (click)="unlinkTable(); $event.stopPropagation()">
+            <ion-icon name="log-out-outline" class="exit-btn__icon"></ion-icon>
+            {{ 'COMMON.EXIT' | translate }}
+          </button>
         </div>
         <ng-template #notTableInUse>
           <div class="routine-name" (click)="openSearchTables()">
