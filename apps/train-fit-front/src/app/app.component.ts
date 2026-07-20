@@ -3,7 +3,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { register } from 'swiper/element/bundle';
-import { AppUpdateService } from 'src/app/core/services/app-update/app-update.service';
+import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { PendingEmailVerificationService } from 'src/app/core/services/auth/pending-email-verification.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
@@ -23,7 +23,7 @@ export class AppComponent implements OnDestroy {
 
   constructor(
     private router: Router,
-    private appUpdateService: AppUpdateService,
+    private remoteConfigGate: RemoteConfigGateService,
     private authService: AuthService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
@@ -35,10 +35,10 @@ export class AppComponent implements OnDestroy {
 
   private async initializeApp(): Promise<void> {
     void this.billingService.initialize();
-    
-    // Check version BEFORE any routing (Inicio Total)
-    await this.appUpdateService.checkForRequiredUpdate();
-    
+
+    // Mantenimiento/actualización obligatoria BEFORE any routing (Inicio Total)
+    await this.remoteConfigGate.checkAndPresent();
+
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     void this.notificationService.initialize();
@@ -93,7 +93,7 @@ export class AppComponent implements OnDestroy {
         return;
       }
 
-      void this.appUpdateService.checkForRequiredUpdate();
+      void this.remoteConfigGate.checkAndPresent();
 
       if (this.shouldDeferAuthWorkForCurrentRoute()) {
         return;

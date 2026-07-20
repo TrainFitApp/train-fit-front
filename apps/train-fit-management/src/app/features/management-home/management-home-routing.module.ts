@@ -28,6 +28,13 @@ const routes: Routes = [
         (m) => m.DbConfigPageModule
       ),
   },
+  {
+    path: 'maintenance-config',
+    loadChildren: () =>
+      import('./components/maintenance-config/maintenance-config.module').then(
+        (m) => m.MaintenanceConfigPageModule
+      ),
+  },
 ];
 
 @NgModule({

@@ -166,6 +166,14 @@
     "REQUIRED_VERSION": "Required version: {{version}}",
     "UPDATE_NOW": "Update now"
   },
+  "MAINTENANCE": {
+    "MODAL": {
+      "EYEBROW": "Maintenance",
+      "TITLE": "Back soon",
+      "DEFAULT_MESSAGE": "We're performing maintenance. The app will be available again shortly.",
+      "CHECKING": "Checking again..."
+    }
+  },
   "USER_LOADER": {
     "LOGGING_IN": "Logging in...",
     "LOADING_PROFILE": "Loading profile...",

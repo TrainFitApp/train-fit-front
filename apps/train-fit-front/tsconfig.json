@@ -23,6 +23,9 @@
       "src/app/features/app-update/*": [
         "../../packages/shared-features/src/app/features/app-update/*"
       ],
+      "src/app/features/maintenance/*": [
+        "../../packages/shared-features/src/app/features/maintenance/*"
+      ],
       "src/app/features/profile/profile.page": [
         "../../packages/shared-features/src/app/features/profile/profile.page"
       ],

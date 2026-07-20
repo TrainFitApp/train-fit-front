@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Network } from '@capacitor/network';
 import { ModalController, NavController } from '@ionic/angular';
 import { filter, map, Observable, Subject } from 'rxjs';
-import { AppUpdateService } from '../app-update/app-update.service';
+import { RemoteConfigGateService } from '../remote-config/remote-config-gate.service';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
 import { User } from '../../models/user';
@@ -43,7 +43,7 @@ export class NavigationService {
   constructor(
     private navController: NavController,
     private router: Router,
-    private appUpdateService: AppUpdateService,
+    private remoteConfigGate: RemoteConfigGateService,
     private modalController: ModalController
   ) {
     this.initNetworkListener();
@@ -292,9 +292,9 @@ export class NavigationService {
     Network.addListener('networkStatusChange', async (status) => {
       if (status.connected) {
         if (this.router.url === `/${this.NO_CONECTION_ROUTE}`) {
-          // Antes de volver a la app, verificamos si hay una actualización obligatoria
+          // Antes de volver a la app, verificamos mantenimiento/actualización obligatoria
           // que no pudimos comprobar cuando no había conexión
-          await this.appUpdateService.checkForRequiredUpdate();
+          await this.remoteConfigGate.checkAndPresent();
           this.goToUserLoader();
         }
       } else this.goToInfo();

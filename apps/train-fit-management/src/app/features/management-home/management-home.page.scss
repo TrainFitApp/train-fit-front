@@ -72,6 +72,13 @@
                 color: var(--ion-color-danger);
               }
             }
+
+            &.maintenance-icon {
+              background: rgba(var(--ion-color-warning-rgb), 0.1);
+              ion-icon {
+                color: var(--ion-color-warning-shade);
+              }
+            }
           }
 
           ion-label {

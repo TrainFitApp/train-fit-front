@@ -1,0 +1,45 @@
+.maintenance-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 8px 12px;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-warning-rgb, 255, 196, 9), 0.12);
+  border: 1px solid rgba(var(--ion-color-warning-rgb, 255, 196, 9), 0.3);
+
+  &__icon {
+    font-size: 20px;
+    color: var(--ion-color-warning, #ffc409);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+
+    ion-icon {
+      font-size: 18px;
+    }
+
+    &:active {
+      transform: scale(0.92);
+    }
+  }
+}

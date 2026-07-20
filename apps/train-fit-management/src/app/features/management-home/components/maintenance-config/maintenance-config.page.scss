@@ -1,0 +1,122 @@
+.maintenance-content {
+  --background: var(--ion-color-light);
+
+  .maintenance-sections {
+    padding: 0 16px 24px;
+
+    .section-group {
+      margin-bottom: 24px;
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        margin: 20px 0 12px;
+        padding: 0 4px;
+
+        ion-icon {
+          font-size: 20px;
+          color: var(--ion-color-primary);
+          margin-right: 8px;
+        }
+
+        span {
+          font-size: 16px;
+          font-weight: 600;
+          color: #8b8b8b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+      }
+    }
+  }
+}
+
+.maintenance-card {
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding: 4px 16px;
+
+  .maintenance-item {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.12);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    ion-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ion-color-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .dt-input {
+      width: 100%;
+      margin-top: 6px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(var(--ion-color-medium-rgb), 0.3);
+      font-size: 15px;
+      background: var(--ion-color-light);
+      color: var(--ion-text-color);
+    }
+  }
+}
+
+.preview-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  &--normal {
+    background: rgba(var(--ion-color-success-rgb), 0.08);
+    border: 1px solid rgba(var(--ion-color-success-rgb), 0.3);
+    color: var(--ion-color-success);
+  }
+
+  &--warning {
+    background: rgba(var(--ion-color-warning-rgb), 0.1);
+    border: 1px solid rgba(var(--ion-color-warning-rgb), 0.35);
+    color: var(--ion-color-warning-shade);
+  }
+
+  &--active {
+    background: rgba(var(--ion-color-danger-rgb), 0.08);
+    border: 1px solid rgba(var(--ion-color-danger-rgb), 0.3);
+    color: var(--ion-color-danger);
+  }
+}
+
+.updated-meta {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  text-align: center;
+}
+
+.loading-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 0;
+}

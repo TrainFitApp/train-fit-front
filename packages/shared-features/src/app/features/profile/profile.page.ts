@@ -57,6 +57,7 @@ import { THEMES, Theme } from 'src/app/shared/models/theme';
 import { GROUPS_VALUES } from './models/groups';
 import { TABLE_GROUPS, TABLE_GROUPS_VALUES } from './models/tableGroups';
 import { EditorPage } from './components/configuration/components/editor/editor.page';
+import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 
 @Component({
   selector: 'app-profile',
@@ -146,6 +147,7 @@ export class ProfilePage implements OnInit {
   private readonly workoutService = inject(WorkoutService);
   private readonly billingService = inject(BillingService);
   private readonly authService = inject(AuthService);
+  private readonly remoteConfigGate = inject(RemoteConfigGateService);
 
   public activeGoal: NutritionalGoal | null = null;
 
@@ -638,6 +640,14 @@ export class ProfilePage implements OnInit {
 
   public goToPremium(): void {
     this.navigationService.goToPremium();
+  }
+
+  public get maintenanceWarning$() {
+    return this.remoteConfigGate.warningBanner$;
+  }
+
+  public dismissMaintenanceWarning(): void {
+    this.remoteConfigGate.dismissWarningBanner();
   }
 
   public goToWeightInfo(): void {

@@ -33,6 +33,10 @@ export class ManagementHomePage {
     void this.navController.navigateForward(['/management-home', 'db-config']);
   }
 
+  public goToMaintenance(): void {
+    void this.navController.navigateForward(['/management-home', 'maintenance-config']);
+  }
+
   public goBack(): void {
     this.navigationService.goBack();
   }

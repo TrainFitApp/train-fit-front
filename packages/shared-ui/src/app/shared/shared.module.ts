@@ -19,6 +19,7 @@ import { TableFilterIconsComponent } from './components/filter-icons/table-filte
 import { FilterInputPage } from './components/filter-input/filter-input.page';
 import { GlossaryInfoComponent } from './components/glossary-info/glossary-info.component';
 import { GlossaryPopoverComponent } from './components/glossary-popover/glossary-popover.component';
+import { MaintenanceWarningBannerComponent } from './components/maintenance-warning-banner/maintenance-warning-banner.component';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
@@ -64,6 +65,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     AnthropometryChartComponent,
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
+    MaintenanceWarningBannerComponent,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
@@ -99,6 +101,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     AnthropometryChartComponent,
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
+    MaintenanceWarningBannerComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

@@ -8,6 +8,7 @@ import { Component, Input } from '@angular/core';
 export class AppUpdateModalComponent {
   @Input() public currentVersion = '';
   @Input() public requiredVersion = '';
+  @Input() public customMessage?: string;
   @Input() public updateHandler: (() => Promise<void>) | null = null;
 
   public isOpeningStore = false;

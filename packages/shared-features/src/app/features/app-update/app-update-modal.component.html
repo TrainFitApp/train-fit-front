@@ -8,7 +8,7 @@
     <h1>{{ 'APP_UPDATE.NEW_VERSION' | translate }}</h1>
 
     <p class="update-card__message">
-      {{ 'APP_UPDATE.DESCRIPTION' | translate }}
+      {{ customMessage || ('APP_UPDATE.DESCRIPTION' | translate) }}
     </p>
 
     <div class="update-card__versions">

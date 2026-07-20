@@ -2,56 +2,36 @@ import { Injectable } from "@angular/core";
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { ModalController } from "@ionic/angular";
-import { firstValueFrom } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AppUpdateModalComponent } from "src/app/features/app-update/app-update-modal.component";
-import { AppVersionResponse } from "../../models/app-version-response";
-import { HttpService } from "../http/http.service";
+import { RemoteConfigForceUpdateStatus } from "../../models/remote-config-status";
 
 @Injectable()
 export class AppUpdateService {
-  private readonly isRequiredUpdateScreenDisabled = true;
-  private isChecking = false;
   private isModalOpen = false;
 
-  constructor(
-    private httpService: HttpService,
-    private modalController: ModalController,
-  ) {}
+  constructor(private modalController: ModalController) {}
 
-  public async checkForRequiredUpdate(): Promise<void> {
-    if (
-      this.isRequiredUpdateScreenDisabled ||
-      this.isChecking ||
-      this.isModalOpen
-    ) {
+  // `forceUpdate` viene ya calculado por RemoteConfigService/RemoteConfigGateService
+  // (comparación semver de versión mínima por plataforma, hecha en el backend).
+  public async presentRequiredUpdate(
+    forceUpdate: RemoteConfigForceUpdateStatus,
+  ): Promise<void> {
+    if (!forceUpdate?.required || this.isModalOpen) {
       return;
     }
 
-    this.isChecking = true;
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get<AppVersionResponse>("app/version"),
-      );
-      const backendVersion = String(response?.version || "").trim();
-      const appVersion = String(environment.APP_VERSION || "").trim();
-
-      if (!backendVersion || !appVersion || backendVersion === appVersion) {
-        return;
-      }
-
-      await this.showRequiredUpdateModal(appVersion, backendVersion);
-    } catch (error) {
-      // Fail-safe: if version check cannot complete, users can keep using the app.
-      console.warn("App version check failed", error);
-    } finally {
-      this.isChecking = false;
-    }
+    await this.showRequiredUpdateModal(
+      environment.APP_VERSION,
+      forceUpdate.minVersion || "",
+      forceUpdate.message || "",
+    );
   }
 
   private async showRequiredUpdateModal(
     currentVersion: string,
     requiredVersion: string,
+    customMessage: string,
   ): Promise<void> {
     if (this.isModalOpen) {
       return;
@@ -63,11 +43,16 @@ export class AppUpdateService {
       componentProps: {
         currentVersion,
         requiredVersion,
+        customMessage,
         updateHandler: () => this.openStore(),
       },
       cssClass: "app-update-required-modal",
       backdropDismiss: false,
       canDismiss: false,
+    });
+
+    modal.onDidDismiss().then(() => {
+      this.isModalOpen = false;
     });
 
     await modal.present();

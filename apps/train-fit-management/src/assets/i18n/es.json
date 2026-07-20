@@ -659,7 +659,9 @@
       "REPOSITORY": "Repositorio",
       "REPOSITORY_DESC": "Token GitHub y git pull",
       "RESTART_SERVER": "Reiniciar Servidor",
-      "RESTART_SERVER_DESC": "Reiniciar nginx + recargar PM2"
+      "RESTART_SERVER_DESC": "Reiniciar nginx + recargar PM2",
+      "MAINTENANCE": "Mantenimiento y versiones",
+      "MAINTENANCE_DESC": "Modo mantenimiento y actualización obligatoria"
     },
     "CONFIRM_RESTART": {
       "HEADER": "Reiniciar Servidor",
@@ -669,6 +671,41 @@
     "RESTART": {
       "SUCCESS": "Comando de reinicio ejecutado",
       "ERROR": "Error al ejecutar reinicio"
+    },
+    "MAINTENANCE": {
+      "TITLE": "Mantenimiento y versiones",
+      "SECTION_MAINTENANCE": "Modo mantenimiento",
+      "SECTION_FORCE_UPDATE": "Actualización obligatoria",
+      "ENABLED_LABEL": "Mantenimiento activado",
+      "WARNING_FROM_LABEL": "Aviso previo desde",
+      "START_AT_LABEL": "Inicio",
+      "END_AT_LABEL": "Fin",
+      "MESSAGE_LABEL": "Mensaje de mantenimiento",
+      "MESSAGE_PLACEHOLDER": "Estamos realizando tareas de mantenimiento...",
+      "WARNING_MESSAGE_LABEL": "Mensaje de aviso previo",
+      "WARNING_MESSAGE_PLACEHOLDER": "Habrá mantenimiento programado próximamente...",
+      "MIN_VERSION_IOS_LABEL": "Versión mínima iOS",
+      "MIN_VERSION_ANDROID_LABEL": "Versión mínima Android",
+      "FORCE_UPDATE_MESSAGE_LABEL": "Mensaje de actualización obligatoria",
+      "FORCE_UPDATE_MESSAGE_PLACEHOLDER": "Debes actualizar la app para continuar",
+      "PREVIEW_NORMAL": "Ahora mismo: normal, no se muestra nada",
+      "PREVIEW_WARNING": "Ahora mismo: aviso previo (banner descartable)",
+      "PREVIEW_ACTIVE": "Ahora mismo: mantenimiento activo (pantalla completa)",
+      "SAVE_BTN": "GUARDAR",
+      "SAVING": "GUARDANDO...",
+      "SAVED_SUCCESS": "Configuración guardada",
+      "SAVE_ERROR": "Error al guardar la configuración",
+      "LOAD_ERROR": "Error al cargar la configuración",
+      "LAST_UPDATED": "Última actualización: {{by}} · {{at}}",
+      "CONFIRM_HEADER": "Esto afecta a producción",
+      "CONFIRM_MESSAGE": "Vas a activar el mantenimiento o subir la versión mínima requerida. Esto afecta a todos los usuarios en producción. ¿Continuar?",
+      "CONFIRM_SAVE": "Guardar",
+      "ERROR_WARNING_NEEDS_START": "El aviso previo requiere una fecha de inicio",
+      "ERROR_END_NEEDS_START": "La fecha de fin requiere una fecha de inicio",
+      "ERROR_START_BEFORE_END": "La fecha de inicio debe ser anterior a la de fin",
+      "ERROR_WARNING_BEFORE_START": "El aviso previo debe ser anterior a la fecha de inicio",
+      "ERROR_INVALID_VERSION_IOS": "La versión mínima de iOS no tiene un formato válido (X.Y.Z)",
+      "ERROR_INVALID_VERSION_ANDROID": "La versión mínima de Android no tiene un formato válido (X.Y.Z)"
     },
     "DB": {
       "TITLE": "Base de Datos",

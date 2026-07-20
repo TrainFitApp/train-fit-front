@@ -24,6 +24,9 @@
       "src/app/features/app-update/*": [
         "../../packages/shared-features/src/app/features/app-update/*"
       ],
+      "src/app/features/maintenance/*": [
+        "../../packages/shared-features/src/app/features/maintenance/*"
+      ],
       "src/app/features/premium/*": [
         "../../packages/shared-features/src/app/features/premium/*"
       ],

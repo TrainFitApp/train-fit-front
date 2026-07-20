@@ -13,6 +13,13 @@
 </ion-header>
 
 <ion-content #ionContent class="t-init-diets">
+  <!-- Aviso previo de mantenimiento -->
+  <app-maintenance-warning-banner
+    *ngIf="maintenanceWarning$ | async as maintenanceBanner"
+    [message]="maintenanceBanner.message"
+    (dismissed)="dismissMaintenanceWarning()"
+  ></app-maintenance-warning-banner>
+
   <!-- Premium upgrade banner (solo free) -->
   <button
     class="premium-banner"

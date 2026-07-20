@@ -33,6 +33,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
+import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
 
 @Component({
@@ -75,6 +76,7 @@ export class DietsPage implements OnInit {
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
   private readonly userService = inject(UserService);
+  private readonly remoteConfigGate = inject(RemoteConfigGateService);
 
   constructor(
     private dietDayService: DietDayService,
@@ -451,5 +453,13 @@ export class DietsPage implements OnInit {
 
   public goToPremium(): void {
     this.navigationService.goToPremium();
+  }
+
+  public get maintenanceWarning$() {
+    return this.remoteConfigGate.warningBanner$;
+  }
+
+  public dismissMaintenanceWarning(): void {
+    this.remoteConfigGate.dismissWarningBanner();
   }
 }

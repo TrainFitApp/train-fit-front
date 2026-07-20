@@ -1,0 +1,109 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'MANAGEMENT.MAINTENANCE.TITLE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="maintenance-content">
+  <div class="maintenance-sections" *ngIf="!loading; else loadingBlock">
+
+    <!-- Mantenimiento -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="construct-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.MAINTENANCE.SECTION_MAINTENANCE' | translate }}</span>
+      </div>
+
+      <ion-card class="maintenance-card">
+        <div class="maintenance-item toggle-row">
+          <ion-label>{{ 'MANAGEMENT.MAINTENANCE.ENABLED_LABEL' | translate }}</ion-label>
+          <ion-toggle [(ngModel)]="maintenanceEnabled"></ion-toggle>
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.WARNING_FROM_LABEL' | translate }}</ion-label>
+          <input type="datetime-local" [(ngModel)]="warningFrom" class="dt-input" />
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.START_AT_LABEL' | translate }}</ion-label>
+          <input type="datetime-local" [(ngModel)]="startAt" class="dt-input" />
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.END_AT_LABEL' | translate }}</ion-label>
+          <input type="datetime-local" [(ngModel)]="endAt" class="dt-input" />
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.MESSAGE_LABEL' | translate }}</ion-label>
+          <ion-textarea [(ngModel)]="message" [autoGrow]="true" [placeholder]="'MANAGEMENT.MAINTENANCE.MESSAGE_PLACEHOLDER' | translate"></ion-textarea>
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.WARNING_MESSAGE_LABEL' | translate }}</ion-label>
+          <ion-textarea [(ngModel)]="warningMessage" [autoGrow]="true" [placeholder]="'MANAGEMENT.MAINTENANCE.WARNING_MESSAGE_PLACEHOLDER' | translate"></ion-textarea>
+        </div>
+      </ion-card>
+
+      <!-- Preview del estado calculado -->
+      <div class="preview-banner" [ngClass]="'preview-banner--' + previewState">
+        <ion-icon [name]="previewState === 'active' ? 'alert-circle-outline' : previewState === 'warning' ? 'time-outline' : 'checkmark-circle-outline'"></ion-icon>
+        <span>{{ 'MANAGEMENT.MAINTENANCE.PREVIEW_' + previewState.toUpperCase() | translate }}</span>
+      </div>
+    </div>
+
+    <!-- Actualización forzada -->
+    <div class="section-group">
+      <div class="section-header">
+        <ion-icon name="cloud-download-outline"></ion-icon>
+        <span>{{ 'MANAGEMENT.MAINTENANCE.SECTION_FORCE_UPDATE' | translate }}</span>
+      </div>
+
+      <ion-card class="maintenance-card">
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.MIN_VERSION_IOS_LABEL' | translate }}</ion-label>
+          <ion-input [(ngModel)]="minVersionIos" placeholder="1.2.3"></ion-input>
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.MIN_VERSION_ANDROID_LABEL' | translate }}</ion-label>
+          <ion-input [(ngModel)]="minVersionAndroid" placeholder="1.2.3"></ion-input>
+        </div>
+
+        <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.FORCE_UPDATE_MESSAGE_LABEL' | translate }}</ion-label>
+          <ion-textarea [(ngModel)]="forceUpdateMessage" [autoGrow]="true" [placeholder]="'MANAGEMENT.MAINTENANCE.FORCE_UPDATE_MESSAGE_PLACEHOLDER' | translate"></ion-textarea>
+        </div>
+      </ion-card>
+    </div>
+
+    <!-- Guardar -->
+    <div class="section-group">
+      <ion-button expand="block" [disabled]="saving" (click)="save()">
+        <ion-spinner *ngIf="saving" name="crescent" slot="start"></ion-spinner>
+        {{ (saving ? 'MANAGEMENT.MAINTENANCE.SAVING' : 'MANAGEMENT.MAINTENANCE.SAVE_BTN') | translate }}
+      </ion-button>
+
+      <div class="updated-meta" *ngIf="updatedBy">
+        {{ 'MANAGEMENT.MAINTENANCE.LAST_UPDATED' | translate: { by: updatedBy, at: (updatedAt | date:'short') } }}
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingBlock>
+    <div class="loading-block">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>

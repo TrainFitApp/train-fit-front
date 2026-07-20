@@ -1,0 +1,12 @@
+<div class="maintenance-warning-banner">
+  <ion-icon name="time-outline" class="maintenance-warning-banner__icon"></ion-icon>
+  <span class="maintenance-warning-banner__text">{{ message }}</span>
+  <button
+    type="button"
+    class="maintenance-warning-banner__close"
+    (click)="dismiss()"
+    [attr.aria-label]="'COMMON.CERRAR' | translate"
+  >
+    <ion-icon name="close"></ion-icon>
+  </button>
+</div>

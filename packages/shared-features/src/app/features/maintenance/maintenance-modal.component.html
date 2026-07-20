@@ -1,0 +1,19 @@
+<ion-content class="maintenance-screen" [fullscreen]="true">
+  <section class="maintenance-card">
+    <div class="maintenance-card__icon">
+      <ion-icon name="construct-outline"></ion-icon>
+    </div>
+
+    <p class="maintenance-card__eyebrow">{{ 'MAINTENANCE.MODAL.EYEBROW' | translate }}</p>
+    <h1>{{ 'MAINTENANCE.MODAL.TITLE' | translate }}</h1>
+
+    <p class="maintenance-card__message">
+      {{ message || ('MAINTENANCE.MODAL.DEFAULT_MESSAGE' | translate) }}
+    </p>
+
+    <div class="maintenance-card__status">
+      <ion-spinner name="dots"></ion-spinner>
+      <span>{{ 'MAINTENANCE.MODAL.CHECKING' | translate }}</span>
+    </div>
+  </section>
+</ion-content>

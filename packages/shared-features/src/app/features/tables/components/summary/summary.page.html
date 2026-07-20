@@ -21,6 +21,13 @@
   [ngClass]="backgroundClass"
   id="background-content"
 >
+  <!-- Aviso previo de mantenimiento -->
+  <app-maintenance-warning-banner
+    *ngIf="maintenanceWarning$ | async as maintenanceBanner"
+    [message]="maintenanceBanner.message"
+    (dismissed)="dismissMaintenanceWarning()"
+  ></app-maintenance-warning-banner>
+
   <!-- Premium upgrade banner (solo free) -->
   <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>

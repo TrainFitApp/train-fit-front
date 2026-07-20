@@ -69,6 +69,19 @@
         </div>
       </ion-card>
 
+      <ion-card class="management-card" (click)="goToMaintenance()" tappable>
+        <div class="management-item">
+          <div class="item-icon-container maintenance-icon">
+            <ion-icon name="construct-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'MANAGEMENT.HOME.MAINTENANCE' | translate }}</h3>
+            <p>{{ 'MANAGEMENT.HOME.MAINTENANCE_DESC' | translate }}</p>
+          </ion-label>
+          <ion-icon name="chevron-forward-outline" class="chevron-icon"></ion-icon>
+        </div>
+      </ion-card>
+
       <ion-card class="management-card" (click)="confirmRestart()" tappable>
         <div class="management-item">
           <div class="item-icon-container restart-icon">

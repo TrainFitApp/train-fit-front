@@ -20,6 +20,7 @@ import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
 import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
+import { RemoteConfigGateService } from "src/app/core/services/remote-config/remote-config-gate.service";
 import { Subscription } from "rxjs";
 
 @Component({
@@ -54,6 +55,7 @@ export class SummaryPage {
   private readonly billingService = inject(BillingService);
   private readonly translate = inject(TranslateService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
+  private readonly remoteConfigGate = inject(RemoteConfigGateService);
 
   constructor(
     public platform: Platform,
@@ -452,5 +454,13 @@ export class SummaryPage {
 
   public goToPremium(): void {
     this.navigationService.goToPremium();
+  }
+
+  public get maintenanceWarning$() {
+    return this.remoteConfigGate.warningBanner$;
+  }
+
+  public dismissMaintenanceWarning(): void {
+    this.remoteConfigGate.dismissWarningBanner();
   }
 }
