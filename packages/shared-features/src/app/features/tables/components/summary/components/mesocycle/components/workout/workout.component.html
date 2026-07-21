@@ -283,13 +283,6 @@
               {{ exercise.exercise.name | translateDb }}
             </div>
             <div class="exercise-icons">
-              <ion-icon
-                *ngIf="getPinnedNote(workoutIndex, i)"
-                name="pin"
-                color="alternative"
-                class="pinned-icon-indicator"
-                (click)="showPinnedNoteAlert(workoutIndex, i); $event.stopPropagation()"
-              ></ion-icon>
               <ion-button
                 fill="clear"
                 size="small"
