@@ -74,7 +74,7 @@
       <ng-container *ngIf="load">
         <div
           class="no-results-card"
-          *ngIf="shouldShowProductsEmptyState(); else keepLoadedProductsState"
+          *ngIf="shouldShowProductsEmptyState(); else encourageSearch"
         >
           <div class="no-results-icon">
             <ion-icon name="search-outline"></ion-icon>
@@ -90,7 +90,15 @@
             {{ 'SEARCH_FOODS.CREATE_PRODUCT' | translate }}
           </button>
         </div>
-        <ng-template #keepLoadedProductsState></ng-template>
+        <ng-template #encourageSearch>
+          <div class="no-results-card">
+            <div class="no-results-icon">
+              <ion-icon name="search-outline"></ion-icon>
+            </div>
+            <h3>{{ 'SEARCH_FOODS.START_SEARCHING' | translate }}</h3>
+            <p>{{ 'SEARCH_FOODS.START_SEARCHING_MSG' | translate }}</p>
+          </div>
+        </ng-template>
       </ng-container>
     </ng-template>
   </ng-container>

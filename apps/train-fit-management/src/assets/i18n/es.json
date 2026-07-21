@@ -496,7 +496,9 @@
     "ITEM_TYPE_PRODUCTS": "productos",
     "ITEM_TYPE_RECIPES": "recetas",
     "ITEM_TYPE_PRODUCTS_CAP": "Productos",
-    "ITEM_TYPE_RECIPES_CAP": "Recetas"
+    "ITEM_TYPE_RECIPES_CAP": "Recetas",
+    "START_SEARCHING": "Empieza a buscar",
+    "START_SEARCHING_MSG": "Encuentra más de 1.000.000 de productos y recetas"
   },
   "CONFIG_RECIPE": {
     "EDIT_ORIGINAL": "Editar receta original",

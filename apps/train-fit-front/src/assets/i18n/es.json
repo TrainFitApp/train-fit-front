@@ -563,6 +563,8 @@
     "ITEM_TYPE_RECIPES": "recetas",
     "ITEM_TYPE_PRODUCTS_CAP": "Productos",
     "ITEM_TYPE_RECIPES_CAP": "Recetas",
+    "START_SEARCHING": "Empieza a buscar",
+    "START_SEARCHING_MSG": "Encuentra más de 1.000.000 de productos y recetas",
     "NO_MATCHES": "No hay coincidencias",
     "NO_MATCHES_MSG": "Prueba con otro término o crea un producto nuevo",
     "CREATE_PRODUCT": "Crear producto",

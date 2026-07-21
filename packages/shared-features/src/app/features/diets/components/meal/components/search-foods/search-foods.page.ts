@@ -2026,9 +2026,19 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return merged;
   }
 
+  private hasActiveFilters(): boolean {
+    return !!this.searchFilterGroup?.ownFilter
+      || !!this.searchFilterGroup?.favFilter
+      || !!this.searchFilterGroup?.shieldFilter
+      || !!this.searchFilterGroup?.defaultOnly;
+  }
+
   private shouldSkipProductsSearch(): boolean {
+    if (this.hasActiveFilters()) {
+      return false;
+    }
     const search = (this.searchFilterGroup?.search || "").trim();
-    return search.length === 1;
+    return search.length <= 1;
   }
 
   public isSearchTooShortForProducts(): boolean {
@@ -2036,7 +2046,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public shouldShowProductsEmptyState(): boolean {
-    return (this.hasStartedFoodSearch && !this.isSearchTooShortForProducts()) || (this.load && !this.hasStartedFoodSearch);
+    return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
   }
 
   public createProductFromEmptyState(): void {

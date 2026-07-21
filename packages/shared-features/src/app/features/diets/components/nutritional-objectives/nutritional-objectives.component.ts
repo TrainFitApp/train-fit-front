@@ -379,6 +379,8 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
     this.personalizeReferences();
     this.buildNutrientArrays();
     this.updateCalorieText();
-    this.nutritionalGoalService.setActive(goalId).subscribe();
+    this.nutritionalGoalService.setActive(goalId).subscribe(() => {
+      this.user = this.userService.getLocalUser!;
+    });
   }
 }

@@ -557,6 +557,8 @@
     "ITEM_TYPE_RECIPES": "recipes",
     "ITEM_TYPE_PRODUCTS_CAP": "Products",
     "ITEM_TYPE_RECIPES_CAP": "Recipes",
+    "START_SEARCHING": "Start searching",
+    "START_SEARCHING_MSG": "Find over 1,000,000 products and recipes",
     "NO_MATCHES": "No matches found",
     "NO_MATCHES_MSG": "Try another term or create a new product",
     "CREATE_PRODUCT": "Create product",
