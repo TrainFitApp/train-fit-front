@@ -442,10 +442,6 @@ export class DietsPage implements OnInit {
       });
   }
 
-  public scrollBottom(): void {
-    this.ionContent.scrollToBottom(300);
-  }
-
   public get isPremiumActive(): boolean {
     return Boolean(this.user?.premium?.entitled);
   }

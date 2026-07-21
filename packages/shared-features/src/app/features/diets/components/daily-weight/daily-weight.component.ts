@@ -43,8 +43,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   @Output()
   public createdDietDay = new EventEmitter();
   @Output()
-  public scrollToBottom = new EventEmitter<void>();
-  @Output()
   public anthropometrySaved = new EventEmitter<Anthropometry>();
 
   public dietDay: DietDay;
@@ -125,13 +123,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
   public toggleChart(): void {
     this.showChart = !this.showChart;
-
-    // Si se muestra el gráfico, emitir evento para hacer scroll hacia abajo
-    if (this.showChart) {
-      setTimeout(() => {
-        this.scrollToBottom.emit();
-      }, 100);
-    }
   }
 
   private initForm(): void {

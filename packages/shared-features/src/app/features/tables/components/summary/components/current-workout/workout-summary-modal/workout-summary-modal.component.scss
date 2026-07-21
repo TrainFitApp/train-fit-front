@@ -84,20 +84,24 @@
 
 .summary-workout-meta {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;
+  flex-wrap: nowrap;
 }
 
 .summary-workout-name {
   min-width: 0;
+  max-width: calc(100% - 60px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 1.22rem;
   line-height: 1.18;
   font-weight: 800;
   color: var(--summary-ink);
   margin: 0;
-  text-wrap: balance;
 }
 
 .summary-date-chip {
@@ -320,13 +324,12 @@
 
 .summary-continue-btn {
   display: block;
-  width: min(220px, 100%);
+  width: 100%;
   margin: 0;
-  margin-inline: auto;
   height: 40px;
   --border-radius: 12px;
   --background: var(--summary-accent);
-  --color: #181004;
+  --color: #ffffff;
   font-size: 0.9rem;
   font-weight: 800;
   transition: transform 140ms var(--ease-out);

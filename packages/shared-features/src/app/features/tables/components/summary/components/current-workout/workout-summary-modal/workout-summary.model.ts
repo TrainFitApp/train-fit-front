@@ -44,7 +44,7 @@ function formatRir(rir: number | number[] | undefined): string {
 }
 
 function getSetOrder(set: Set, fallbackIndex: number): number {
-  return set.displayOrder ?? set.order ?? fallbackIndex + 1;
+  return (set.displayOrder ?? set.order ?? fallbackIndex) + 1;
 }
 
 function buildSetSummary(
