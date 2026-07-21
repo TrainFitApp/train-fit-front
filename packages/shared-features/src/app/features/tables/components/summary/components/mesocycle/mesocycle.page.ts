@@ -1384,7 +1384,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async deleteSplit(): Promise<void> {
-    if (!this.tableInUse?.splits?.length) return;
+    if (this.loadingSplit || !this.tableInUse?.splits?.length) return;
 
     const modalResult = await this.ionicUtilService.showModal({
       component: DeleteSplitsModalComponent,
@@ -1425,6 +1425,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   private deleteSelectedSplits(splitIds: string[]): void {
+    if (this.loadingSplit) return;
+
     this.loadingFab = true;
     this.loadingSplit = true;
 
@@ -1619,13 +1621,15 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async showSplitMenu(event: Event): Promise<void> {
+    if (this.loadingSplit) return;
+
     const popoverOptions = {
       component: SplitMenuPopoverComponent,
       event: event,
       componentProps: {
         onDuplicate: () => this.addSplitToTable(),
         onDelete: () => this.deleteSplit(),
-        duplicateDisabled: this.isCurrentSplitLocked(),
+        duplicateDisabled: this.loadingSplit || this.isCurrentSplitLocked(),
       },
     };
 

@@ -374,6 +374,7 @@ ion-skeleton-text {
     }
 
     .micro-cycle-navigation {
+      position: relative;
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
@@ -386,6 +387,17 @@ ion-skeleton-text {
         background-color: grey;
         opacity: 0.5;
       }
+    }
+
+    .micro-cycle-loading-bar {
+      position: absolute;
+      top: -6px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 999px;
+      overflow: hidden;
+      z-index: 2;
     }
 
     .nav-arrow {
@@ -652,6 +664,21 @@ ion-skeleton-text {
         min-height: 0;
         z-index: 1;
       }
+    }
+  }
+
+  &.is-loading {
+    .microcycle-trigger,
+    .micro-cycle-selector-hidden,
+    .micro-cycle-actions .action-btn,
+    .nav-arrow {
+      pointer-events: none;
+    }
+
+    .microcycle-trigger,
+    .cycle-number,
+    .micro-cycle-actions .action-btn {
+      opacity: 0.55;
     }
   }
 
