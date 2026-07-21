@@ -680,6 +680,7 @@
       "WARNING_MESSAGE_PLACEHOLDER": "Scheduled maintenance is coming soon...",
       "MIN_VERSION_IOS_LABEL": "Minimum iOS version",
       "MIN_VERSION_ANDROID_LABEL": "Minimum Android version",
+      "MIN_VERSION_WEB_LABEL": "Minimum Web version",
       "FORCE_UPDATE_MESSAGE_LABEL": "Forced update message",
       "FORCE_UPDATE_MESSAGE_PLACEHOLDER": "You must update the app to continue",
       "PREVIEW_NORMAL": "Right now: normal, nothing shown",
@@ -699,7 +700,8 @@
       "ERROR_START_BEFORE_END": "The start date must be before the end date",
       "ERROR_WARNING_BEFORE_START": "The pre-warning must be before the start date",
       "ERROR_INVALID_VERSION_IOS": "The minimum iOS version isn't a valid format (X.Y.Z)",
-      "ERROR_INVALID_VERSION_ANDROID": "The minimum Android version isn't a valid format (X.Y.Z)"
+      "ERROR_INVALID_VERSION_ANDROID": "The minimum Android version isn't a valid format (X.Y.Z)",
+      "ERROR_INVALID_VERSION_WEB": "The minimum Web version isn't a valid format (X.Y.Z)"
     },
     "DB": {
       "TITLE": "Database",

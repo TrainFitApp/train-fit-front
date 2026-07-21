@@ -60,6 +60,14 @@ export class AppUpdateService {
 
   private async openStore(): Promise<void> {
     const platform = Capacitor.getPlatform();
+
+    // Web no tiene tienda de apps: la "actualización" es simplemente recargar,
+    // el usuario ya recibe el build más reciente al hacerlo.
+    if (platform === "web") {
+      window.location.reload();
+      return;
+    }
+
     const url =
       platform === "ios"
         ? environment.APP_STORE_URL

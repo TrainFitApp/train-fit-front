@@ -686,6 +686,7 @@
       "WARNING_MESSAGE_PLACEHOLDER": "Habrá mantenimiento programado próximamente...",
       "MIN_VERSION_IOS_LABEL": "Versión mínima iOS",
       "MIN_VERSION_ANDROID_LABEL": "Versión mínima Android",
+      "MIN_VERSION_WEB_LABEL": "Versión mínima Web",
       "FORCE_UPDATE_MESSAGE_LABEL": "Mensaje de actualización obligatoria",
       "FORCE_UPDATE_MESSAGE_PLACEHOLDER": "Debes actualizar la app para continuar",
       "PREVIEW_NORMAL": "Ahora mismo: normal, no se muestra nada",
@@ -705,7 +706,8 @@
       "ERROR_START_BEFORE_END": "La fecha de inicio debe ser anterior a la de fin",
       "ERROR_WARNING_BEFORE_START": "El aviso previo debe ser anterior a la fecha de inicio",
       "ERROR_INVALID_VERSION_IOS": "La versión mínima de iOS no tiene un formato válido (X.Y.Z)",
-      "ERROR_INVALID_VERSION_ANDROID": "La versión mínima de Android no tiene un formato válido (X.Y.Z)"
+      "ERROR_INVALID_VERSION_ANDROID": "La versión mínima de Android no tiene un formato válido (X.Y.Z)",
+      "ERROR_INVALID_VERSION_WEB": "La versión mínima de Web no tiene un formato válido (X.Y.Z)"
     },
     "DB": {
       "TITLE": "Base de Datos",

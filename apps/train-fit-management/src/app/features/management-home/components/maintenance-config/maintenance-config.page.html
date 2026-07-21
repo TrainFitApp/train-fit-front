@@ -82,6 +82,11 @@
         </div>
 
         <div class="maintenance-item">
+          <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.MIN_VERSION_WEB_LABEL' | translate }}</ion-label>
+          <ion-input [(ngModel)]="minVersionWeb" placeholder="1.2.3"></ion-input>
+        </div>
+
+        <div class="maintenance-item">
           <ion-label position="stacked">{{ 'MANAGEMENT.MAINTENANCE.FORCE_UPDATE_MESSAGE_LABEL' | translate }}</ion-label>
           <ion-textarea [(ngModel)]="forceUpdateMessage" [autoGrow]="true" [placeholder]="'MANAGEMENT.MAINTENANCE.FORCE_UPDATE_MESSAGE_PLACEHOLDER' | translate"></ion-textarea>
         </div>

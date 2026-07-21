@@ -14,6 +14,7 @@ export interface RemoteConfigMaintenance {
 export interface RemoteConfigForceUpdate {
   minVersionIos: string;
   minVersionAndroid: string;
+  minVersionWeb: string;
   message: string;
 }
 

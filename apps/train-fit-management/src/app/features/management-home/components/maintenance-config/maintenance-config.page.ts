@@ -29,6 +29,7 @@ export class MaintenanceConfigPage implements OnInit {
   private lastSavedEnabled = false;
   private lastSavedMinVersionIos = '';
   private lastSavedMinVersionAndroid = '';
+  private lastSavedMinVersionWeb = '';
 
   public maintenanceEnabled = false;
   public startAt = '';
@@ -39,6 +40,7 @@ export class MaintenanceConfigPage implements OnInit {
 
   public minVersionIos = '';
   public minVersionAndroid = '';
+  public minVersionWeb = '';
   public forceUpdateMessage = '';
 
   public updatedBy = '';
@@ -79,6 +81,7 @@ export class MaintenanceConfigPage implements OnInit {
 
     this.minVersionIos = forceUpdate.minVersionIos || '';
     this.minVersionAndroid = forceUpdate.minVersionAndroid || '';
+    this.minVersionWeb = forceUpdate.minVersionWeb || '';
     this.forceUpdateMessage = forceUpdate.message || '';
 
     this.updatedBy = config?.updatedBy || '';
@@ -87,6 +90,7 @@ export class MaintenanceConfigPage implements OnInit {
     this.lastSavedEnabled = this.maintenanceEnabled;
     this.lastSavedMinVersionIos = this.minVersionIos;
     this.lastSavedMinVersionAndroid = this.minVersionAndroid;
+    this.lastSavedMinVersionWeb = this.minVersionWeb;
   }
 
   // Mismo algoritmo que remote-config-service.js#calculateMaintenanceStatus,
@@ -134,6 +138,9 @@ export class MaintenanceConfigPage implements OnInit {
     if (this.minVersionAndroid && !SEMVER_REGEX.test(this.minVersionAndroid)) {
       errors.push(this.translate.instant('MANAGEMENT.MAINTENANCE.ERROR_INVALID_VERSION_ANDROID'));
     }
+    if (this.minVersionWeb && !SEMVER_REGEX.test(this.minVersionWeb)) {
+      errors.push(this.translate.instant('MANAGEMENT.MAINTENANCE.ERROR_INVALID_VERSION_WEB'));
+    }
 
     return errors;
   }
@@ -148,7 +155,8 @@ export class MaintenanceConfigPage implements OnInit {
     const isEscalation =
       (this.maintenanceEnabled && !this.lastSavedEnabled) ||
       (!!this.minVersionIos && this.minVersionIos !== this.lastSavedMinVersionIos) ||
-      (!!this.minVersionAndroid && this.minVersionAndroid !== this.lastSavedMinVersionAndroid);
+      (!!this.minVersionAndroid && this.minVersionAndroid !== this.lastSavedMinVersionAndroid) ||
+      (!!this.minVersionWeb && this.minVersionWeb !== this.lastSavedMinVersionWeb);
 
     if (isEscalation) {
       this.ionicUtil
@@ -189,6 +197,7 @@ export class MaintenanceConfigPage implements OnInit {
       forceUpdate: {
         minVersionIos: this.minVersionIos,
         minVersionAndroid: this.minVersionAndroid,
+        minVersionWeb: this.minVersionWeb,
         message: this.forceUpdateMessage,
       },
     };
