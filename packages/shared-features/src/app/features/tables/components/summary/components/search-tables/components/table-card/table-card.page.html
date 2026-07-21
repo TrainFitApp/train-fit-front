@@ -1,7 +1,8 @@
 <ion-card
   class="table-card"
   [class.selected]="user?.tableInUse === tableCard._id"
-  (click)="useTable(); $event.stopPropagation()"
+  [class.loading]="!loadAction || (anyLoading && loadAction)"
+  (click)="loadAction && !anyLoading && useTable(); $event.stopPropagation()"
 >
   <div class="card-body">
     <div class="card-top">
@@ -41,6 +42,7 @@
         <div class="footer-actions">
           <button
             class="preview-btn"
+            [disabled]="!loadAction || anyLoading"
             (click)="previewTable(); $event.stopPropagation()"
           >
             <ion-icon name="eye-outline"></ion-icon>
@@ -50,6 +52,7 @@
           <button
             *ngIf="ownFilter && !own"
             class="icon-btn"
+            [disabled]="!loadAction || anyLoading"
             (click)="openMenu($event)"
           >
             <ion-icon name="ellipsis-vertical-outline"></ion-icon>
@@ -58,6 +61,7 @@
           <button
             *ngIf="!ownFilter"
             class="free-btn"
+            [disabled]="!loadAction || anyLoading"
             (click)="useTable(); $event.stopPropagation()"
           >
             <ion-icon name="cart-outline"></ion-icon>
@@ -67,7 +71,9 @@
       </ng-container>
 
       <ng-template #noLoad>
-        <ion-spinner name="dots" color="medium"></ion-spinner>
+        <div class="spinner-center">
+          <ion-spinner name="crescent" color="medium"></ion-spinner>
+        </div>
       </ng-template>
     </div>
   </div>

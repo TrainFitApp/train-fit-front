@@ -1,9 +1,9 @@
 <ion-header class="preview-header" mode="ios">
   <div class="preview-toolbar">
+    <span class="preview-title">{{ 'TABLES.PREVIEW' | translate }}</span>
     <button class="close-btn ripple-effect" (click)="dismiss()">
       <ion-icon name="close"></ion-icon>
     </button>
-    <span class="preview-title">{{ 'TABLES.PREVIEW' | translate }}</span>
   </div>
 </ion-header>
 
@@ -35,15 +35,10 @@
     </div>
 
     <div class="splits-section">
-      <h3 class="section-title">
-        <ion-icon name="layers-outline" class="section-title-icon"></ion-icon>
-        {{ 'TABLES.MICROCYCLES' | translate }}
-      </h3>
-
       <div *ngIf="table?.splits?.[0] as split" class="split-card">
         <div class="split-header">
           <div class="split-name">
-            <ion-icon name="folder-outline"></ion-icon>
+            <ion-icon name="layers-outline"></ion-icon>
             <span>{{ 'TABLES.MICROCYCLE_PREVIEW' | translate }}</span>
           </div>
           <span class="split-count">{{ split.workouts?.length || 0 }} {{ 'TABLES.WORKOUTS_STAT' | translate }}</span>

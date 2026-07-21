@@ -1101,10 +1101,10 @@
     "NO_WORKOUTS": "Sin entrenamientos",
     "NO_MICROCYCLES": "Sin microciclos",
     "MICROCYCLE_N": "Microciclo {{n}}",
-    "MICROCYCLE_PREVIEW": "Vista previa del microciclo",
+    "MICROCYCLE_PREVIEW": "Vista previa de microciclos",
     "SAME_MICROCYCLES": "Mismos entrenamientos en los {{n}} microciclos",
     "WORKOUT_N": "Entreno {{n}}",
-    "MICROCYCLES": "Microciclos",
+
     "NAME_OPTION": "NOMBRE",
     "ROUTINE_IN_USE": "Rutina",
     "ROUTINE_IN_USE_MSG": "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",

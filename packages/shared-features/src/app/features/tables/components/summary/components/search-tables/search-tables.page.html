@@ -41,6 +41,8 @@
       [ownFilter]="searchFilterGroup.ownFilter"
       [own]="tableCard._id === user.tableInUse"
       [tableCard]="tableCard"
+      [anyLoading]="anyLoading"
+      (loadingChange)="anyLoading = $event"
       (duplicateTableEv)="duplicateTable($event)"
       (deletedTable)="deleteTable($event)"
     ></app-table-card>

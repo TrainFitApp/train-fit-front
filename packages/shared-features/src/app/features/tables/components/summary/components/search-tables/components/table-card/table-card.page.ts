@@ -42,6 +42,8 @@ export class TableCardPage {
   public duplicateTableEv = new EventEmitter<Table>();
   @Output()
   public deletedTable = new EventEmitter<string>();
+  @Output()
+  public loadingChange = new EventEmitter<boolean>();
 
   @ViewChild('bar', { static: false })
   public barChartRef: ElementRef;
@@ -50,6 +52,9 @@ export class TableCardPage {
   public progress: number = 0;
   public context: CanvasRenderingContext2D;
   public bar: Chart;
+
+  @Input()
+  public anyLoading: boolean = false;
 
   public MUSCLE_GROUPS = MUSCLE_GROUPS_ES;
   public isMenuOpen = false;
@@ -105,9 +110,11 @@ export class TableCardPage {
     if (!this.tableCard?._id) return;
 
     this.loadAction = false;
+    this.loadingChange.emit(true);
     this.tableService.getTableById(this.tableCard._id).subscribe({
       next: async (fullTable) => {
         this.loadAction = true;
+        this.loadingChange.emit(false);
         const modal = await this.modalController.create({
           component: TablePreviewModalComponent,
           componentProps: { table: fullTable, own: this.own },
@@ -121,6 +128,7 @@ export class TableCardPage {
       },
       error: () => {
         this.loadAction = true;
+        this.loadingChange.emit(false);
       },
     });
   }

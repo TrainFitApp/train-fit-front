@@ -16,6 +16,15 @@
     background: rgba(var(--ion-color-primary-rgb), 0.04);
   }
 
+  &.loading {
+    opacity: 0.7;
+    pointer-events: none;
+
+    .card-arrow {
+      display: none;
+    }
+  }
+
   &:active {
     transform: scale(0.985);
   }
@@ -152,6 +161,14 @@
   min-height: 32px;
 }
 
+.spinner-center {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 0;
+}
+
 .footer-spacer {
   flex: 1;
 }
@@ -210,6 +227,11 @@
     outline: none !important;
     box-shadow: none !important;
   }
+
+  &[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 }
 
 // Icon Button (menu)
@@ -237,6 +259,11 @@
   &:focus {
     outline: none !important;
     box-shadow: none !important;
+  }
+
+  &[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
   }
 }
 
@@ -266,6 +293,11 @@
   &:focus {
     outline: none !important;
     box-shadow: none !important;
+  }
+
+  &[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
   }
 }
 

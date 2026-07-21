@@ -1095,10 +1095,10 @@
     "NO_WORKOUTS": "No workouts",
     "NO_MICROCYCLES": "No microcycles",
     "MICROCYCLE_N": "Microcycle {{n}}",
-    "MICROCYCLE_PREVIEW": "Microcycle preview",
+    "MICROCYCLE_PREVIEW": "Microcycles preview",
     "SAME_MICROCYCLES": "Same workouts across all {{n}} microcycles",
     "WORKOUT_N": "Workout {{n}}",
-    "MICROCYCLES": "Microcycles",
+
     "NAME_OPTION": "NAME",
     "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",

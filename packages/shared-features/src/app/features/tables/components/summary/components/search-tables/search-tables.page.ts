@@ -25,6 +25,7 @@ export class SearchTablesPage implements OnInit {
 
   public searchFilterGroup: SearchFilterGroup;
   public load: boolean;
+  public anyLoading: boolean = false;
 
   private _currentFilterMode: TablesFilterMode = 'all';
   public get currentFilterMode(): TablesFilterMode {
