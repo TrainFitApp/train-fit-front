@@ -38,8 +38,11 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: space-between;
+  gap: 18px;
   width: 100%;
-  padding: 20px;
+  min-height: clamp(340px, 48dvh, 520px);
+  padding: clamp(20px, 3.8dvh, 28px) 20px;
   border-radius: 14px;
   background: var(--summary-surface);
   border: 1px solid var(--summary-border);
@@ -51,13 +54,13 @@
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
 }
 
 .summary-badge {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -66,7 +69,7 @@
   border: 1px solid rgba(45, 211, 111, 0.3);
 
   ion-icon {
-    font-size: 19px;
+    font-size: 21px;
     color: var(--ion-color-success);
   }
 }
@@ -87,7 +90,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 0;
   flex-wrap: nowrap;
 }
 
@@ -97,7 +100,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 1.22rem;
+  font-size: clamp(1.26rem, 3.7dvh, 1.55rem);
   line-height: 1.18;
   font-weight: 800;
   color: var(--summary-ink);
@@ -122,9 +125,9 @@
 
 .summary-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
-  gap: 8px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
 }
 
 .summary-stat {
@@ -133,7 +136,9 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 12px 10px;
+  justify-content: center;
+  min-height: clamp(72px, 10dvh, 96px);
+  padding: 14px 10px;
   border-radius: 12px;
   background: var(--summary-surface-2);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -142,7 +147,7 @@
 
 .summary-stat-value {
   max-width: 100%;
-  font-size: 1rem;
+  font-size: clamp(1.05rem, 2.4dvh, 1.2rem);
   line-height: 1.15;
   font-weight: 800;
   color: var(--summary-ink);
@@ -161,7 +166,7 @@
 
 .summary-card-brand {
   align-self: center;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .exercise-summary {
@@ -349,11 +354,16 @@
     padding: 14px;
   }
 
+  .summary-card {
+    min-height: clamp(320px, 48dvh, 460px);
+  }
+
   .summary-stats {
     gap: 6px;
   }
 
   .summary-stat {
+    min-height: 68px;
     padding: 10px 7px;
   }
 
