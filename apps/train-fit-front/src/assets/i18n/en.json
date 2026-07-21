@@ -486,7 +486,7 @@
     "DAILY_WEIGHT": "Daily weight",
     "DAILY_SHORT": "Daily",
     "WEEKLY_AVERAGE": "Weekly average ({{value}} Kg)",
-    "WEIGHT_IN_KG": "Weight in kg"
+    "WEIGHT_IN_KG": "Weight"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Delete recipe",
@@ -1556,7 +1556,8 @@
     "ALCOHOL": "Alcohol",
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
-    "OMEGA_9": "Omega-9"
+    "OMEGA_9": "Omega-9",
+    "GOAL": "Nutrition Goal"
   },
   "SUGGESTIONS": {
     "TITLE": "Reports & Suggestions",

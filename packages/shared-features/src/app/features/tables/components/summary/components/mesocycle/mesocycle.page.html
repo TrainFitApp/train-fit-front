@@ -453,7 +453,7 @@
                 class="micro-cycle-selector-hidden"
                 [(ngModel)]="currentSplitIndex"
                 interface="action-sheet"
-                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet', header: getSplitInfoHeader() }"
                 mode="ios"
                 cancelText="{{ 'COMMON.CANCEL' | translate }}"
                 placeholder="{{ 'TABLES.MICROCYCLE_SELECTOR' | translate }}"
@@ -473,12 +473,6 @@
                   >
                 </ion-select-option>
               </ion-select>
-
-              <app-glossary-info
-                term="MICROCYCLE"
-                size="sm"
-                class="microcycle-glossary"
-              ></app-glossary-info>
             </div>
           </div>
         </div>

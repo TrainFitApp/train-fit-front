@@ -151,6 +151,14 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     return this._reversedSplitsWithIndex;
   }
 
+  public getSplitInfoHeader(): string {
+    const split = this.currentSplit;
+    if (!split) return '';
+    const title = this.translate.instant('GLOSSARY.MICROCYCLE.TITLE');
+    const description = this.translate.instant('GLOSSARY.MICROCYCLE.DESCRIPTION');
+    return '\u200B' + title + ': ' + description;
+  }
+
   public get completedSplitsCount(): number {
     if (!this.tableInUse?.splits) return 0;
     return this.tableInUse.splits.filter((s) => this.utilService.isSplitDoned(s)).length;

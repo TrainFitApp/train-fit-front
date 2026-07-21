@@ -486,7 +486,7 @@
     "DAILY_WEIGHT": "Peso diario",
     "DAILY_SHORT": "Diario",
     "WEEKLY_AVERAGE": "Media semanal ({{value}} Kg)",
-    "WEIGHT_IN_KG": "Peso en kg"
+    "WEIGHT_IN_KG": "Peso"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Eliminar receta",
@@ -1562,7 +1562,8 @@
     "ALCOHOL": "Alcohol",
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
-    "OMEGA_9": "Omega-9"
+    "OMEGA_9": "Omega-9",
+    "GOAL": "Objetivo Nutricional"
   },
   "SUGGESTIONS": {
     "TITLE": "Reportes y sugerencias",

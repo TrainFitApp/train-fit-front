@@ -30,6 +30,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
 
   public nutritionalData: NutritionalData = new NutritionalData();
   public activeGoal: NutritionalGoal | null = null;
+  public goals: NutritionalGoal[] = [];
 
   public get kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
   public get proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
@@ -98,18 +99,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       this.user = localUser;
     }
 
-    if (this.user?.goalInUse) {
-      const goal = this.nutritionalGoalService.getGoalById(this.user.goalInUse);
-      if (goal) {
-        this.activeGoal = goal;
-      } else {
-        this.nutritionalGoalService.refreshFromServer().subscribe((goals) => {
-          this.activeGoal = goals.find((g) => g._id === this.user.goalInUse) || null;
-          this.personalizeReferences();
-          this.updateCalorieText();
-        });
-      }
-    }
+    this.loadGoals();
 
     this.dietDaySub = this.dietDayService.getCurrentDietDay.subscribe((day) => {
       if (!this.dietDay && day) {
@@ -359,5 +349,36 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
     } else {
       return percentage >= 100 ? 'success' : 'primary';
     }
+  }
+
+  private loadGoals(): void {
+    this.goals = this.nutritionalGoalService.goals();
+    if (this.goals.length) {
+      const match = this.user?.goalInUse
+        ? this.goals.find((g) => g._id === this.user.goalInUse)
+        : null;
+      this.activeGoal = match || this.goals[0];
+    } else {
+      this.nutritionalGoalService.loadGoals().subscribe((goals) => {
+        this.goals = goals;
+        const match = this.user?.goalInUse
+          ? goals.find((g) => g._id === this.user.goalInUse)
+          : null;
+        this.activeGoal = match || goals[0] || null;
+        this.personalizeReferences();
+        this.updateCalorieText();
+      });
+    }
+  }
+
+  public onGoalChange(event: any): void {
+    const goalId = event.detail.value;
+    const goal = this.goals.find((g) => g._id === goalId);
+    if (!goal) return;
+    this.activeGoal = goal;
+    this.personalizeReferences();
+    this.buildNutrientArrays();
+    this.updateCalorieText();
+    this.nutritionalGoalService.setActive(goalId).subscribe();
   }
 }
