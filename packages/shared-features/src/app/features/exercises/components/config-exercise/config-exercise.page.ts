@@ -166,18 +166,20 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public addDescriptionStep(): void {
     if (this.descriptionSteps.length >= this.maxDescriptionSteps) return;
 
-    this.descriptionSteps.push("");
+    this.descriptionSteps = [...this.descriptionSteps, ""];
     this.syncDescriptionFormFromSteps();
     setTimeout(() => this.stepTextareaRefs?.last?.setFocus(), 0);
   }
 
   public removeDescriptionStep(index: number): void {
-    this.descriptionSteps.splice(index, 1);
+    this.descriptionSteps = this.descriptionSteps.filter((_, i) => i !== index);
     this.syncDescriptionFormFromSteps();
   }
 
   public onDescriptionStepChange(index: number, value: string): void {
-    this.descriptionSteps[index] = (value ?? "").slice(0, this.maxStepLength);
+    this.descriptionSteps = this.descriptionSteps.map((step, i) =>
+      i === index ? (value ?? "").slice(0, this.maxStepLength) : step
+    );
     this.syncDescriptionFormFromSteps();
   }
 
