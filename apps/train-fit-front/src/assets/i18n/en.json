@@ -1125,6 +1125,8 @@
     "REP_RANGE": "REP RANGE",
     "RANGE_ERROR": "The final value must be greater than the initial",
     "RIR_RANGE": "RIR RANGE",
+    "REPS": "REPS",
+    "RIR": "RIR",
     "FAIL": "FAILURE",
     "DROP_SET": "DROP SET",
     "REST_PAUSE": "REST PAUSE",
