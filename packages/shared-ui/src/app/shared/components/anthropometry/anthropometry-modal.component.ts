@@ -14,9 +14,11 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 export class AnthropometryModalComponent implements OnInit {
   @Input() existingData: Anthropometry | null = null;
   @Input() selectedDate: string = '';
+  @Input() allAnthropometryData: Anthropometry[] = [];
 
   form: FormGroup;
   isLoading = false;
+  maxDate = new Date().toISOString();
   measurementFields = [
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', unit: 'kg', step: 0.1 },
     { key: 'neck', label: 'ANTHROPOMETRY.NECK', unit: 'cm', step: 0.1 },
@@ -30,6 +32,42 @@ export class AnthropometryModalComponent implements OnInit {
     { key: 'thighRelaxed', label: 'ANTHROPOMETRY.THIGH_RELAXED', unit: 'cm', step: 0.1 },
     { key: 'calf', label: 'ANTHROPOMETRY.CALF', unit: 'cm', step: 0.1 },
   ];
+
+  async openDatePicker(): Promise<void> {
+    if (this.form.dirty) {
+      const result = await this.ionicUtilService.showAlert({
+        header: this.translate.instant('COMMON.UNSAVED_CHANGES'),
+        message: this.translate.instant('COMMON.UNSAVED_CHANGES_DISCARD'),
+        buttons: [
+          { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+          { text: this.translate.instant('COMMON.DISCARD'), role: 'discard' },
+        ],
+      });
+      if (result.role !== 'discard') return;
+    }
+    const btn = document.getElementById('anthropometry-date-btn');
+    if (btn) btn.click();
+  }
+
+  onDateChange(event: any): void {
+    if (event.detail.value) {
+      this.selectedDate = (event.detail.value as string).split('T')[0];
+      const existing = this.allAnthropometryData.find(
+        (a) => a.date === this.selectedDate
+      );
+      if (existing) {
+        this.measurementFields.forEach((field) => {
+          const value = existing[field.key as keyof Anthropometry];
+          this.form.get(field.key)?.setValue(value ?? null);
+        });
+      } else {
+        this.measurementFields.forEach((field) => {
+          this.form.get(field.key)?.setValue(null);
+        });
+      }
+      this.form.markAsPristine();
+    }
+  }
 
   constructor(
     private modalController: ModalController,
@@ -53,6 +91,7 @@ export class AnthropometryModalComponent implements OnInit {
         }
       });
     }
+    this.form.markAsPristine();
   }
 
   async onSave(): Promise<void> {
@@ -94,6 +133,11 @@ export class AnthropometryModalComponent implements OnInit {
   }
 
   async onCancel(): Promise<void> {
+    if (!this.form.dirty) {
+      this.modalController.dismiss(null, 'cancel');
+      return;
+    }
+
     const t = this.translate.instant.bind(this.translate);
     const alertResult = await this.ionicUtilService.showAlert({
       cssClass: 'unsaved-exit-alert',

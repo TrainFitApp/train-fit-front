@@ -156,6 +156,7 @@ export class WeightInfoPage {
       componentProps: {
         selectedDate: this.selectedDate,
         existingData: this.currentAnthropometry,
+        allAnthropometryData: this.allAnthropometryData,
       },
       cssClass: 'fullscreen-modal',
     });

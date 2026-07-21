@@ -18,7 +18,7 @@
           fill="solid"
         >
           <ion-icon *ngIf="isLoading" name="refresh-outline" class="spin" slot="start"></ion-icon>
-          {{ isLoading ? ('COMMON.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
+          {{ isLoading ? ('ANTHROPOMETRY.SAVING' | translate) : ('COMMON.SAVE' | translate) }}
         </ion-button>
       </div>
     </div>
@@ -29,9 +29,38 @@
   <form [formGroup]="form" (ngSubmit)="onSave()">
     <div class="date-section">
       <span class="section-label">{{ 'ANTHROPOMETRY.DATE_LABEL' | translate }}</span>
-      <div class="date-display">
-        <ion-icon name="calendar-outline"></ion-icon>
-        <span>{{ selectedDate | date:'fullDate' }}</span>
+      <div class="datetime-enhanced-wrapper" (click)="openDatePicker()">
+        <div class="datetime-display">
+          <span class="date-text">{{ selectedDate | date:'fullDate' }}</span>
+        </div>
+        <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
+        <ion-datetime-button id="anthropometry-date-btn" datetime="anthropometry-date" class="hidden-datetime-button"></ion-datetime-button>
+        <ion-modal
+          [keepContentsMounted]="true"
+          class="datetime-modal anthropometry-datetime-modal"
+          trigger="anthropometry-date-btn"
+        >
+          <ng-template>
+            <ion-datetime
+              id="anthropometry-date"
+              mode="ios"
+              presentation="date"
+              [preferWheel]="true"
+              [max]="maxDate"
+              [showDefaultButtons]="true"
+              locale="es-ES"
+              [doneText]="('COMMON.CONFIRM' | translate)"
+              [cancelText]="('COMMON.CANCEL' | translate)"
+              (ionChange)="onDateChange($event)"
+              [value]="selectedDate"
+            >
+              <div slot="title" class="datetime-title">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ 'ANTHROPOMETRY.DATE_LABEL' | translate }}</span>
+              </div>
+            </ion-datetime>
+          </ng-template>
+        </ion-modal>
       </div>
     </div>
 
@@ -64,9 +93,5 @@
       </div>
     </div>
 
-    <div class="helper-text">
-      <ion-icon name="information-circle-outline"></ion-icon>
-      <span>{{ 'ANTHROPOMETRY.HELPER_TEXT' | translate }}</span>
-    </div>
   </form>
 </ion-content>
