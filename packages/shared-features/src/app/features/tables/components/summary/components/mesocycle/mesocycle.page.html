@@ -489,11 +489,22 @@
         >
           <button
             class="action-btn menu-btn ripple-effect"
-            [disabled]="loadingSplit"
-            (click)="showSplitMenu($event)"
+            [disabled]="loadingSplit || isCurrentSplitLocked()"
+            (click)="addSplitToTable()"
           >
             <ion-icon
-              name="ellipsis-vertical-outline"
+              color="secondary"
+              name="duplicate-outline"
+            ></ion-icon>
+          </button>
+          <button
+            class="action-btn menu-btn ripple-effect"
+            [disabled]="loadingSplit"
+            (click)="deleteSplit()"
+          >
+            <ion-icon
+              color="danger"
+              name="trash-bin-outline"
             ></ion-icon>
           </button>
         </div>
