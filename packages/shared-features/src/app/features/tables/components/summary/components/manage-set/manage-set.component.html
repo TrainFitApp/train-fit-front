@@ -299,97 +299,97 @@
         </div>
 
         <div class="checkbox-section">
-          <div class="checkbox-item" (click)="toggleCheckbox('isFail')">
-            <ion-checkbox
-              formControlName="isFail"
-              mode="ios"
-              class="modern-checkbox"
-              (click)="$event.stopPropagation()"
-            ></ion-checkbox>
-            <span class="checkbox-label">{{ 'TABLES.FAIL' | translate }}</span>
-            <ion-icon
-              name="skull-outline"
-              class="checkbox-icon"
-              color="primary"
-            ></ion-icon>
-          </div>
-
-          <div class="checkbox-item" (click)="toggleCheckbox('drop')">
-            <ion-checkbox
-              formControlName="drop"
-              mode="ios"
-              class="modern-checkbox"
-              (click)="$event.stopPropagation()"
-            ></ion-checkbox>
-            <span class="checkbox-label">{{ 'TABLES.DROP_SET' | translate }}</span>
-            <ion-icon
-              name="analytics-outline"
-              class="checkbox-icon"
-              color="primary"
-            ></ion-icon>
-          </div>
-
-          <div class="checkbox-item" (click)="toggleRestPause()">
-            <ion-checkbox
-              #restPauseCheckbox
-              formControlName="restPauseEnabled"
-              mode="ios"
-              class="modern-checkbox"
-              (click)="$event.stopPropagation()"
-            ></ion-checkbox>
-            <span class="checkbox-label">{{ 'TABLES.REST_PAUSE' | translate }}</span>
-            <ion-icon
-              name="hourglass-outline"
-              class="checkbox-icon"
-              color="primary"
-            ></ion-icon>
-          </div>
-        </div>
-
-        <!-- Card explicativo: Fallo -->
-        <div class="info-explainer" *ngIf="setForm.controls.isFail.value">
-          <div class="info-card">
-            <ion-icon
-              name="skull-outline"
-              class="info-icon"
-            ></ion-icon>
-            <div class="info-text">
-              <span class="info-title">{{ 'TABLES.FAIL_CARD_TITLE' | translate }}</span>
-              <p>
-                {{ 'TABLES.FAIL_CARD_DESC' | translate }}
-              </p>
+          <div class="checkbox-wrapper">
+            <div class="checkbox-item" (click)="toggleCheckbox('isFail')">
+              <ion-checkbox
+                formControlName="isFail"
+                mode="ios"
+                class="modern-checkbox"
+                (click)="$event.stopPropagation()"
+              ></ion-checkbox>
+              <span class="checkbox-label">{{ 'TABLES.FAIL' | translate }}</span>
+              <ion-icon
+                name="skull-outline"
+                class="checkbox-icon"
+                color="primary"
+              ></ion-icon>
+            </div>
+            <div class="info-explainer" *ngIf="setForm.controls.isFail.value">
+              <div class="info-card">
+                <ion-icon
+                  name="skull-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title">{{ 'TABLES.FAIL_CARD_TITLE' | translate }}</span>
+                  <p>
+                    {{ 'TABLES.FAIL_CARD_DESC' | translate }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Card explicativo: Drop Set -->
-        <div class="info-explainer" *ngIf="setForm.controls.drop.value">
-          <div class="info-card">
-            <ion-icon
-              name="analytics-outline"
-              class="info-icon"
-            ></ion-icon>
-            <div class="info-text">
-              <span class="info-title">{{ 'TABLES.DROP_SET_CARD_TITLE' | translate }}</span>
-              <p>
-                {{ 'TABLES.DROP_SET_CARD_DESC' | translate }}
-              </p>
+          <div class="checkbox-wrapper">
+            <div class="checkbox-item" (click)="toggleCheckbox('drop')">
+              <ion-checkbox
+                formControlName="drop"
+                mode="ios"
+                class="modern-checkbox"
+                (click)="$event.stopPropagation()"
+              ></ion-checkbox>
+              <span class="checkbox-label">{{ 'TABLES.DROP_SET' | translate }}</span>
+              <ion-icon
+                name="analytics-outline"
+                class="checkbox-icon"
+                color="primary"
+              ></ion-icon>
+            </div>
+            <div class="info-explainer" *ngIf="setForm.controls.drop.value">
+              <div class="info-card">
+                <ion-icon
+                  name="analytics-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title">{{ 'TABLES.DROP_SET_CARD_TITLE' | translate }}</span>
+                  <p>
+                    {{ 'TABLES.DROP_SET_CARD_DESC' | translate }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Card explicativo: Rest Pause -->
-        <div class="info-explainer" *ngIf="setForm.controls.restPauseEnabled.value">
-          <div class="info-card">
-            <ion-icon
-              name="hourglass-outline"
-              class="info-icon"
-            ></ion-icon>
-            <div class="info-text">
-              <span class="info-title">{{ 'TABLES.REST_PAUSE_CARD_TITLE' | translate }}</span>
-              <p>
-                {{ 'TABLES.REST_PAUSE_CARD_DESC' | translate }}
-              </p>
+          <div class="checkbox-wrapper">
+            <div class="checkbox-item" (click)="toggleRestPause()">
+              <ion-checkbox
+                #restPauseCheckbox
+                formControlName="restPauseEnabled"
+                mode="ios"
+                class="modern-checkbox"
+                (click)="$event.stopPropagation()"
+              ></ion-checkbox>
+              <span class="checkbox-label">{{ 'TABLES.REST_PAUSE' | translate }}</span>
+              <ion-icon
+                name="hourglass-outline"
+                class="checkbox-icon"
+                color="primary"
+              ></ion-icon>
+            </div>
+            <div class="info-explainer" *ngIf="setForm.controls.restPauseEnabled.value">
+              <div class="info-card">
+                <ion-icon
+                  name="hourglass-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title">{{ 'TABLES.REST_PAUSE_CARD_TITLE' | translate }}</span>
+                  <p>
+                    {{ 'TABLES.REST_PAUSE_CARD_DESC' | translate }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
