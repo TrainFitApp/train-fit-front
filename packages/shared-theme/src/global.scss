@@ -1500,6 +1500,10 @@ ion-fab-button ion-icon {
   color: white !important;
 }
 
+.white-text-action-sheet .active-goal-option .action-sheet-button-inner {
+  color: var(--ion-color-secondary) !important;
+}
+
 /* Create Action Sheet - Elegant Design */
 .create-action-sheet {
   --background: #1a1a1a;

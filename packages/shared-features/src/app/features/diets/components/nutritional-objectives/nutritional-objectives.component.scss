@@ -626,15 +626,3 @@ ion-content {
     min-height: 0;
     z-index: 1;
 }
-
-.active-goal-option ::ng-deep .action-sheet-button-inner {
-    color: var(--ion-color-secondary) !important;
-}
-
-::ng-deep .active-goal-option .action-sheet-button-inner {
-    color: var(--ion-color-secondary) !important;
-}
-
-::ng-deep ion-action-sheet .active-goal-option .action-sheet-button-inner {
-    color: var(--ion-color-secondary) !important;
-}
