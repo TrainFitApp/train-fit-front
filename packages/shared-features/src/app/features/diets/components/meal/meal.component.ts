@@ -444,6 +444,7 @@ export class MealComponent implements OnInit, OnChanges {
           type: 'textarea',
           placeholder: t('COMMON.WRITE_NOTES_HERE'),
           value: this.meal.notes || '',
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -578,7 +579,9 @@ export class MealComponent implements OnInit, OnChanges {
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id
       );
     }
 

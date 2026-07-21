@@ -168,6 +168,7 @@
                 [inputControl]="getFormControl('velocity')"
                 label="Vel"
                 placeholder="0.0"
+                [maxLength]="4"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('velocity', $event)"
               ></app-numeric-input>
@@ -185,6 +186,7 @@
                 [inputControl]="getFormControl('distance')"
                 label="KM"
                 placeholder="0.0"
+                [maxLength]="6"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('distance', $event)"
               ></app-numeric-input>
@@ -209,6 +211,7 @@
                 [inputControl]="getFormControl('weight')"
                 label="Peso"
                 placeholder="0.0"
+                [maxLength]="6"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('weight', $event)"
               ></app-numeric-input>
@@ -218,6 +221,7 @@
                 [inputControl]="getFormControl('reps')"
                 label="Reps"
                 placeholder="0"
+                [maxLength]="3"
                 [isDone]="set.doned"
                 (valueChange)="onFormValueChange('reps', $event)"
               ></app-numeric-input>

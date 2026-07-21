@@ -291,6 +291,7 @@ export class DietsPage implements OnInit {
           type: 'textarea',
           value: this.pinnedNote,
           placeholder: t('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -441,10 +442,6 @@ export class DietsPage implements OnInit {
         };
         this.ionicUtilService.showToast(toastOptions);
       });
-  }
-
-  public scrollBottom(): void {
-    this.ionContent.scrollToBottom(300);
   }
 
   public get isPremiumActive(): boolean {

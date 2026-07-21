@@ -151,9 +151,17 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     return this._reversedSplitsWithIndex;
   }
 
+  public getSplitInfoHeader(): string {
+    const split = this.currentSplit;
+    if (!split) return '';
+    const title = this.translate.instant('GLOSSARY.MICROCYCLE.TITLE');
+    const description = this.translate.instant('GLOSSARY.MICROCYCLE.DESCRIPTION');
+    return '\u200B' + title + ': ' + description;
+  }
+
   public get completedSplitsCount(): number {
-    if (!this.tableInUseAux?.splits) return 0;
-    return this.tableInUseAux.splits.filter((s) => this.utilService.isSplitDoned(s)).length;
+    if (!this.tableInUse?.splits) return 0;
+    return this.tableInUse.splits.filter((s) => this.utilService.isSplitDoned(s)).length;
   }
 
   private updateReversedSplitsWithIndex(): void {
@@ -630,6 +638,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           type: "textarea" as "textarea",
           value: this.tableInUse?.name,
           placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
+          attributes: { maxlength: 100 },
         },
       ],
       buttons: [
@@ -1190,7 +1199,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         ? this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_LAST')
         : this.translate.instant('TABLES.DUPLICATE_MICROCYCLE_MSG_BETWEEN', { current: this._currentSplitIndex + 1, next: this._currentSplitIndex + 2 });
       alertOptions = {
-        header: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
+        header: this.translate.instant(ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value),
         cssClass: "alert-grid-buttons",
         message: message,
         buttons: [
@@ -1264,7 +1273,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       };
     } else {
       alertOptions = {
-        message: ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value,
+        message: this.translate.instant(ACTIONS_FAB[ACTIONS_FAB_TYPES.duplicateMicrocycle].value),
         buttons: [
           {
             text: this.translate.instant('COMMON.CANCEL'),
@@ -1392,7 +1401,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     const splitCount = splitIds.length;
     const alertOptions: AlertOptions = {
-      header: ACTIONS_FAB[ACTIONS_FAB_TYPES.deleteMicrocycle].value,
+      header: this.translate.instant(ACTIONS_FAB[ACTIONS_FAB_TYPES.deleteMicrocycle].value),
       message:
         splitCount === 1
           ? this.translate.instant('TABLES.DELETE_MICROCYCLES_CONFIRM_SINGLE')
@@ -1551,7 +1560,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     this.loadingFab = true;
     const alertOptions: AlertOptions = {
-      header: ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value,
+      header: this.translate.instant(ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value),
       inputs: [
         {
           name: "workoutName",

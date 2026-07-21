@@ -123,7 +123,9 @@ export class ToolbarCalendarComponent {
           actionTemp.id !== this.ACTION_TYPES.duplicate &&
           actionTemp.id !== this.ACTION_TYPES.viewSummary &&
           actionTemp.id !== this.ACTION_TYPES.skipWorkout &&
-          actionTemp.id !== this.ACTION_TYPES.unskipWorkout
+          actionTemp.id !== this.ACTION_TYPES.unskipWorkout &&
+          actionTemp.id !== this.ACTION_TYPES.moveSets &&
+          actionTemp.id !== this.ACTION_TYPES.rmCalculator
       );
 
       // Sort to put delete at the end
@@ -221,6 +223,7 @@ export class ToolbarCalendarComponent {
         type: 'textarea',
         placeholder: t('TOOLBAR_CALENDAR.NOTE_PLACEHOLDER'),
         value: this.dietDay.notes || '',
+        attributes: { maxlength: 500 },
       },
     ];
 
@@ -293,6 +296,7 @@ export class ToolbarCalendarComponent {
           type: 'textarea',
           value: this.pinnedNote || '',
           placeholder: t('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

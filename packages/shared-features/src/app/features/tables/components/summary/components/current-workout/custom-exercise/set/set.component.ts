@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ModalOptions, PopoverOptions } from '@ionic/angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { Set } from 'src/app/core/models/set';
@@ -113,12 +113,12 @@ export class SetComponent implements OnInit, OnChanges {
   private initForm(): void {
     this.setForm = new FormGroup({
       doned: new FormControl(this.set?.doned),
-      reps: new FormControl(this.set?.reps),
-      weight: new FormControl(this.set?.weight),
+      reps: new FormControl(this.set?.reps, [Validators.min(0), Validators.max(999)]),
+      weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
       rir: new FormControl(this.set?.rir ?? null),
-      velocity: new FormControl(this.set?.velocity),
+      velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
       time: new FormControl(this.set?.time ?? null),
-      distance: new FormControl(this.set?.distance),
+      distance: new FormControl(this.set?.distance, [Validators.min(0), Validators.max(100000)]),
     });
 
     this.setForm.valueChanges

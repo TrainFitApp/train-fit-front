@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ModalController, Platform, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Set } from 'src/app/core/models/set';
@@ -86,30 +86,30 @@ export class ManageSetComponent implements OnInit {
     } else if (this.isCardio) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
-        expectedDistance: new FormControl(this.set?.expectedDistance),
-        velocity: new FormControl(this.set?.velocity),
+        expectedDistance: new FormControl(this.set?.expectedDistance, [Validators.min(0), Validators.max(100000)]),
+        velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
       });
     } else {
       // Detectar si el set tiene fallo (expectedRir es [-1])
       const hasFail = this.set?.expectedRir?.[0] === -1;
 
       this.setForm = new FormGroup({
-        weight: new FormControl(this.set?.weight),
+        weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
         drop: new FormControl(this.set?.drop),
-        restPause: new FormControl(this.set?.restPause),
+        restPause: new FormControl(this.set?.restPause, [Validators.min(0), Validators.max(600)]),
         restPauseEnabled: new FormControl(this.set?.restPause ? true : false),
         rir: new FormControl(this.set?.rir),
         isFail: new FormControl(hasFail),
-        rangeREPStart: new FormControl(this.set?.expectedReps?.[0]),
-        rangeREPEnd: new FormControl(this.set?.expectedReps?.[1]),
+        rangeREPStart: new FormControl(this.set?.expectedReps?.[0], [Validators.min(0), Validators.max(999)]),
+        rangeREPEnd: new FormControl(this.set?.expectedReps?.[1], [Validators.min(0), Validators.max(999)]),
         // No mostrar -1 en los campos de RIR, dejar vacío si hay fallo
         rangeRIRStart: new FormControl(
-          hasFail ? null : this.set?.expectedRir?.[0]
+          hasFail ? null : this.set?.expectedRir?.[0], [Validators.min(0), Validators.max(20)]
         ),
         rangeRIREnd: new FormControl(
-          hasFail ? null : this.set?.expectedRir?.[1]
+          hasFail ? null : this.set?.expectedRir?.[1], [Validators.min(0), Validators.max(20)]
         ),
-        velocity: new FormControl(this.set?.velocity),
+        velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {

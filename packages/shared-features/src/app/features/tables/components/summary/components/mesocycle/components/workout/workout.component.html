@@ -1,4 +1,4 @@
-<ion-accordion value="open" (click)="arrowRotate = !arrowRotate">
+<ion-accordion value="open" (click)="stateSelected !== STATES.move ? arrowRotate = !arrowRotate : null">
   <ion-grid
     slot="header"
     [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }"
@@ -9,7 +9,6 @@
           <ion-col class="meal-name">
             <ion-buttons class="workout-actions-buttons">
               <ion-button
-                *ngIf="stateSelected === STATES.static"
                 fill="clear"
                 class="action-btn menu-btn ripple-effect"
                 [ngClass]="{
@@ -19,7 +18,7 @@
                 (click)="
                   workoutActions($event, workoutIndex); $event.stopPropagation()
                 "
-                [disabled]="!load || pasteMode"
+                [disabled]="!load || pasteMode || stateSelected !== STATES.static"
               >
                 <ion-icon
                   color="primary"
@@ -50,8 +49,8 @@
         </ion-row>
 
         <ion-row>
-          <ion-col>
-            <ion-label class="ion-margin" color="medium"
+          <ion-col class="ion-no-padding header-detail">
+            <ion-label color="medium"
               ><strong>{{
                 workout.exercises.length === 0
                   ? ('TABLES.NO_EXERCISES' | translate)
@@ -63,7 +62,6 @@
             <ion-label
               *ngIf="workout.exercises.length > 0"
               style="font-size: small"
-              class="ion-margin"
               color="tertiary"
               ><strong>{{ getWorkoutSets() }} {{ 'TABLES.SERIES' | translate }}</strong></ion-label
             >
@@ -71,10 +69,9 @@
         </ion-row>
 
         <ion-row *ngIf="workout.date">
-          <ion-col
+          <ion-col class="ion-no-padding header-detail"
             ><ion-label
               style="font-size: x-small"
-              class="ion-margin"
               [id]="generatePopoverId(workout.date)"
               [color]="workout.date ? 'success' : 'primary'"
               (click)="stopPropagation(workout, $event)"
@@ -86,10 +83,9 @@
         </ion-row>
 
         <ion-row *ngIf="!workout.date && workout.rest">
-          <ion-col
+          <ion-col class="ion-no-padding header-detail"
             ><ion-label
               style="font-size: x-small"
-              class="ion-margin"
               color="alternative"
               >{{ 'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label
             ></ion-col
@@ -127,7 +123,7 @@
         </ion-popover>
 
         <ion-row *ngIf="workout.exercises.length > 0">
-          <ion-col>
+          <ion-col class="ion-no-padding header-detail">
             <ion-chip
               color="primary"
               (click)="
@@ -140,7 +136,7 @@
         </ion-row>
 
         <ion-row *ngIf="visibleMuscleGroups"
-          ><ion-col>
+          ><ion-col class="ion-no-padding header-detail">
             <ion-chip
               color="secondary"
               *ngFor="let group of getWorkoutMuscleGroups()"
@@ -222,7 +218,7 @@
 
           <ion-button
             *ngIf="stateSelected === STATES.move"
-            style="height: 100%; margin-left: -5%; font-size: xx-large"
+            style="margin-left: -5%; font-size: xx-large"
           >
             <ion-spinner
               *ngIf="savingWorkoutOrder"
@@ -232,8 +228,7 @@
             ></ion-spinner>
             <ion-reorder *ngIf="!savingWorkoutOrder" slot="start">
               <ion-icon
-                color="primary"
-                name="chevron-expand-outline"
+                name="reorder-three-outline"
               ></ion-icon>
             </ion-reorder>
           </ion-button>

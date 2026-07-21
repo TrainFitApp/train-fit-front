@@ -1,51 +1,73 @@
-<ion-header class="minimal-header">
-  <div class="summary-toolbar">
-    <strong class="summary-brand">
-      <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
-    </strong>
-    <button class="summary-close-button" (click)="close()">
-      <ion-icon name="close-outline"></ion-icon>
-    </button>
-  </div>
-</ion-header>
-
 <ion-content class="summary-content" [fullscreen]="true">
-  <div class="summary-card">
-    <div class="summary-badge">
-      <ion-icon name="checkmark-outline"></ion-icon>
-    </div>
-
-    <h1 class="summary-title">{{ 'TABLES.SUMMARY_CONGRATS' | translate }}</h1>
-    <p class="summary-workout-name">{{ summary?.workoutName }}</p>
-
-    <div class="summary-time">
-      <ion-icon name="stopwatch-outline"></ion-icon>
-      <span>{{ elapsedLabel }}</span>
-    </div>
-
-    <div class="summary-stats">
-      <div class="summary-stat">
-        <span class="summary-stat-value">{{ summary?.exercisesCount || 0 }} / {{ summary?.exercisesTotal || 0 }}</span>
-        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_EXERCISES' | translate }}</span>
+  <div class="share-sheet">
+    <section class="summary-card">
+      <div class="summary-topline">
+        <div class="summary-badge">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </div>
+        <h1 class="summary-title">{{ 'TABLES.SUMMARY_CONGRATS' | translate }}</h1>
       </div>
-      <div class="summary-stat">
-        <span class="summary-stat-value">{{ summary?.setsCount || 0 }}</span>
-        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_SETS' | translate }}</span>
-      </div>
-      <div class="summary-stat">
-        <span class="summary-stat-value">{{ volumeLabel }}</span>
-        <span class="summary-stat-label">{{ 'TABLES.SUMMARY_VOLUME' | translate }}</span>
-      </div>
-    </div>
 
-    <p class="summary-finished-at">{{ finishedAtLabel }}</p>
+      <div class="summary-workout-meta">
+        <p class="summary-workout-name">{{ summary?.workoutName }}</p>
+        <span class="summary-date-chip">{{ finishedAtLabel }}</span>
+      </div>
+
+      <div class="summary-stats">
+        <div class="summary-stat">
+          <span class="summary-stat-value">{{ elapsedLabel }}</span>
+          <span class="summary-stat-label">{{ 'TABLES.SUMMARY_TIME' | translate }}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-stat-value">{{ summary?.exercisesCount || 0 }} / {{ summary?.exercisesTotal || 0 }}</span>
+          <span class="summary-stat-label">{{ 'TABLES.SUMMARY_EXERCISES' | translate }}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-stat-value">{{ summary?.setsCount || 0 }}</span>
+          <span class="summary-stat-label">{{ 'TABLES.SUMMARY_SETS' | translate }}</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-stat-value">{{ volumeLabel }}</span>
+          <span class="summary-stat-label">{{ 'TABLES.SUMMARY_VOLUME' | translate }}</span>
+        </div>
+      </div>
+
+      <strong class="summary-card-brand">
+        <span class="train-text">TRAIN</span><span class="fit-text">FIT</span>
+      </strong>
+    </section>
+
+    <section class="exercise-summary" *ngIf="summary?.exercises?.length">
+      <div class="exercise-summary-header">
+        <h2>{{ 'TABLES.SUMMARY_COMPLETED_EXERCISES' | translate }}</h2>
+        <span>{{ summary?.setsCount || 0 }} {{ 'TABLES.SUMMARY_SETS' | translate }}</span>
+      </div>
+
+      <article class="exercise-block" *ngFor="let exercise of summary?.exercises || []">
+        <div class="exercise-block-header">
+          <h3>{{ exercise.name }}</h3>
+          <span>{{ exercise.sets.length }} {{ 'TABLES.SUMMARY_SETS' | translate }}</span>
+        </div>
+
+        <div class="set-list">
+          <div class="set-row" *ngFor="let set of exercise.sets">
+            <span class="set-index">{{ set.index }}</span>
+            <div class="set-main">
+              <span class="set-primary">{{ set.primary }}</span>
+              <span class="set-secondary" *ngIf="set.secondary">{{ set.secondary }}</span>
+            </div>
+            <div class="set-badges" *ngIf="set.badges.length">
+              <span *ngFor="let badge of set.badges">{{ badge }}</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
   </div>
 </ion-content>
 
 <ion-footer class="summary-footer">
   <ion-button
-    expand="block"
-    size="large"
     class="summary-continue-btn"
     (click)="close()"
   >

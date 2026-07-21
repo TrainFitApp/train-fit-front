@@ -55,6 +55,7 @@
                   type="text"
                   inputmode="decimal"
                   fill="outline"
+                  maxlength="6"
                   placeholder="{{ 'TABLES.DISTANCE_PLACEHOLDER' | translate }}"
                   appCursorEnd
                   appDecimalInput
@@ -74,6 +75,7 @@
                   type="text"
                   inputmode="decimal"
                   fill="outline"
+                  maxlength="4"
                   placeholder="{{ 'TABLES.VELOCITY_PLACEHOLDER' | translate }}"
                   appCursorEnd
                   appDecimalInput
@@ -93,6 +95,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
+                maxlength="6"
                 placeholder="{{ 'TABLES.WEIGHT_PLACEHOLDER' | translate }}"
                 appCursorEnd
                 appDecimalInput
@@ -127,6 +130,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
+                maxlength="3"
                 class="counter-input"
                 appCursorEnd
                 appDecimalInput
@@ -162,6 +166,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
+                maxlength="3"
                 class="counter-input"
                 appCursorEnd
                 appDecimalInput
@@ -221,6 +226,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
+                maxlength="2"
                 class="counter-input"
                 [disabled]="setForm.controls.isFail.value"
                 appCursorEnd
@@ -259,6 +265,7 @@
                 type="text"
                 inputmode="decimal"
                 fill="outline"
+                maxlength="2"
                 class="counter-input"
                 [disabled]="setForm.controls.isFail.value"
                 appCursorEnd
@@ -400,6 +407,7 @@
                 formControlName="restPause"
                 type="text"
                 inputmode="decimal"
+                maxlength="3"
                 fill="outline"
                 placeholder="{{ 'TABLES.REST_PLACEHOLDER' | translate }}"
                 appCursorEnd

@@ -16,6 +16,31 @@
 
 
 <ion-content>
+    <!-- Goal Selector -->
+    <div class="goal-selector" *ngIf="goals.length >= 1">
+        <div class="select-wrapper">
+            <button type="button" class="goal-trigger">
+                <span class="trigger-title">{{ 'NUTRITIONAL_OBJECTIVES.GOAL' | translate }}</span>
+                <div class="trigger-right">
+                    <span class="trigger-value">{{ activeGoal?.name || '' }}</span>
+                    <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+                </div>
+            </button>
+            <ion-select
+                class="goal-select-hidden"
+                [value]="activeGoal?._id"
+                (ionChange)="onGoalChange($event)"
+                interface="action-sheet"
+                mode="ios"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+            >
+                <ion-select-option *ngFor="let g of goals" [value]="g._id" [class]="g._id === user?.goalInUse ? 'active-goal-option' : ''">
+                    {{ g.name }}<span *ngIf="g._id === user?.goalInUse"> ✓</span>
+                </ion-select-option>
+            </ion-select>
+        </div>
+    </div>
+
     <!-- Calorías Hero -->
     <div class="calories-hero" [ngClass]="getProgressClass(nutritionalData.energyKcal, kcalTotal, 'limit')">
         <div class="calories-hero-content">

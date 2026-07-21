@@ -2,6 +2,7 @@ import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { TableCardPage } from './components/table-card/table-card.page';
+import { TablePreviewModalComponent } from './components/table-preview-modal/table-preview-modal.component';
 import { SearchTablesPage } from './search-tables.page';
 
 const routes: Routes = [
@@ -13,7 +14,7 @@ const routes: Routes = [
 
 @NgModule({
   imports: [SharedModule, RouterModule.forChild(routes)],
-  declarations: [SearchTablesPage, TableCardPage],
+  declarations: [SearchTablesPage, TableCardPage, TablePreviewModalComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SearchTablesPageModule {}

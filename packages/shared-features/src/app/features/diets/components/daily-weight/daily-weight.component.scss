@@ -1,278 +1,194 @@
-// Contenedor principal
 .daily-weight-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   width: 100%;
+  margin-top: 6px;
+  margin-bottom: -12px;
 }
 
-// Tarjeta principal del peso
 .weight-card {
   background: #141414;
   border: 1px solid #252525;
   border-radius: 12px;
-  margin: 0px 7px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s ease;
+  margin: 0 7px;
+  padding: 12px 14px;
 }
 
-// Encabezado de la tarjeta
-.card-header {
-  margin-bottom: 20px;
+.weight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  .header-content {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
+.weight-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
-    .info-section {
-      flex: 1;
+.weight-form {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  align-items: center;
+}
 
-      .card-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #ffffff;
-        margin: 0 0 4px 0;
-        letter-spacing: 0.3px;
-      }
+.input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 38px;
+  transition: border-color 0.2s;
 
-      .card-date {
-        font-size: 14px;
-        color: #9ca3af;
-        margin: 0 0 4px 0;
-      }
+  &:focus-within {
+    border-color: #fe9000;
+  }
 
-      .card-average {
-        font-size: 12px;
-        color: #6b7280;
-        margin: 0;
-        font-weight: 500;
-      }
+  .weight-input {
+    --background: transparent;
+    --color: #ffffff;
+    --placeholder-color: #6b7280;
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1;
+
+    &::part(native) {
+      border: none;
+      outline: none;
     }
+  }
 
-    .actions-section {
-      .action-button {
-        background: rgba(255, 255, 255, 0.05);
-      
-        border-radius: 8px;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: rgba(255, 255, 255, 0.7);
-
-        ion-icon {
-          font-size: 20px;
-        }
-      }
-    }
+  .input-unit {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-left: 4px;
   }
 }
 
-// Contenido principal
-.card-content {
-  .weight-input-section {
-    .input-group {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 16px;
+.save-button {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 8px;
+  border: none;
+  background: #fe9000;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 
-      .input-wrapper {
-        flex: 1;
-        position: relative;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 0 16px;
-        display: flex;
-        align-items: center;
-        transition: all 0.2s ease;
+  ion-icon { font-size: 18px; }
 
-        &:focus-within {
-          border-color: #fe9000;
-          box-shadow: 0 0 0 3px rgba(254, 144, 0, 0.1);
-        }
+  &:active { transform: scale(0.92); }
 
-        .weight-input {
-          --background: transparent;
-          --color: #ffffff;
-          --placeholder-color: #6b7280;
-          --padding-start: 0;
-          --padding-end: 0;
-          font-size: 16px;
-          font-weight: 500;
-          flex: 1;
+  &.disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #6b7280;
+    cursor: not-allowed;
+  }
 
-          &::part(native) {
-            border: none;
-            outline: none;
-          }
-        }
+  &.saving { animation: pulse 1.5s infinite; }
 
-        .input-unit {
-          font-size: 14px;
-          color: #9ca3af;
-          font-weight: 500;
-          margin-left: 8px;
-        }
-      }
-
-      .save-button {
-        background: #fe9000;
-        border: none;
-        border-radius: 12px;
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: #ffffff;
-
-        &:active {
-          transform: scale(0.95);
-        }
-
-        &.disabled {
-          background: rgba(255, 255, 255, 0.1);
-          color: #6b7280;
-          cursor: not-allowed;
-        }
-
-        &.saving {
-          animation: pulse 1.5s infinite;
-        }
-
-        &.success {
-          background: #10b981;
-          animation: successBounce 0.6s ease-out;
-        }
-
-        ion-icon {
-          font-size: 20px;
-        }
-      }
-    }
-
-    .progress-section {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-
-      .trend-indicator {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .trend-icon-wrapper {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          background: rgba(255, 255, 255, 0.05);
-
-          .trend-icon {
-            font-size: 16px;
-
-            &.up {
-              color: #ef4444;
-            }
-
-            &.down {
-              color: #10b981;
-            }
-
-            &.stable {
-              color: #f59e0b;
-            }
-          }
-        }
-
-        .trend-text {
-          font-size: 14px;
-          color: #d1d5db;
-          font-weight: 500;
-        }
-      }
-
-      .chart-toggle-button {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 8px 12px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: #9ca3af;
-        font-size: 12px;
-
-        &:active {
-          transform: scale(0.95);
-        }
-
-        &.active {
-          background: rgba(254, 144, 0, 0.1);
-          border-color: rgba(254, 144, 0, 0.3);
-          color: #fe9000;
-        }
-
-        ion-icon {
-          font-size: 16px;
-        }
-
-        span {
-          font-weight: 500;
-        }
-      }
-    }
+  &.success {
+    background: #10b981;
+    animation: successBounce 0.6s ease-out;
   }
 }
 
-// Tarjeta del gráfico
+.calendar-button {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 18px; }
+
+  &:active { transform: scale(0.92); }
+}
+
+.progress-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.trend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .trend-icon {
+    font-size: 14px;
+    &.up { color: #ef4444; }
+    &.down { color: #10b981; }
+    &.stable { color: #f59e0b; }
+  }
+
+  .trend-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+  }
+}
+
+.chart-toggle-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 16px; }
+
+  &.active { color: #fe9000; }
+}
+
 .chart-card {
   background: #141414;
   border: 1px solid #252525;
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  padding: 14px;
+  margin: 0 7px;
+  transition: opacity 0.2s, transform 0.2s;
 
   &.hidden {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-6px);
     pointer-events: none;
-  }
-
-  .chart-header {
-    margin-bottom: 16px;
-
-    .chart-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #ffffff;
-      margin: 0;
-      letter-spacing: 0.3px;
-    }
+    height: 0;
+    padding: 0;
+    border: none;
+    margin: 0;
   }
 
   .chart-content {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 180px;
 
     canvas {
       width: 100% !important;
@@ -281,92 +197,41 @@
   }
 }
 
-// Animaciones
 @keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @keyframes successBounce {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
-// Responsividad
 @media (max-width: 480px) {
   .weight-card {
-    padding: 16px;
-
-    .card-header .header-content {
-      gap: 12px;
-
-      .info-section {
-        .card-title {
-          font-size: 16px;
-        }
-
-        .card-date {
-          font-size: 13px;
-        }
-
-        .card-average {
-          font-size: 11px;
-        }
-      }
-
-      .actions-section .action-button {
-        width: 36px;
-        height: 36px;
-
-        ion-icon {
-          font-size: 18px;
-        }
-      }
-    }
+    padding: 10px 12px;
   }
 
-  .card-content .weight-input-section {
-    .input-group {
-      gap: 8px;
-
-      .save-button {
-        width: 44px;
-        height: 44px;
-
-        ion-icon {
-          font-size: 18px;
-        }
-      }
-    }
-
-    .progress-section {
-      flex-direction: column;
-      gap: 12px;
-      align-items: stretch;
-
-      .chart-toggle-button {
-        justify-content: center;
-      }
-    }
+  .weight-label {
+    font-size: 12px;
   }
 
-  .chart-card {
-    padding: 16px;
+  .input-wrapper {
+    height: 34px;
+    padding: 0 8px;
 
-    .chart-content {
-      height: 180px;
-    }
+    .weight-input { font-size: 13px; }
+    .input-unit { font-size: 11px; }
+  }
+
+  .save-button, .calendar-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .chart-card .chart-content {
+    height: 150px;
   }
 }

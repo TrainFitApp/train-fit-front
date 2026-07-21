@@ -169,6 +169,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
           type: 'textarea',
           value: this.pinnedNote.notes,
           placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -353,6 +354,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         type: 'textarea',
         value: this.customExercise.notes || '',
         placeholder: this.translate.instant('COMMON.WRITE_NOTES_HERE'),
+        attributes: { maxlength: 500 },
       },
     ];
 

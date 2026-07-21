@@ -336,16 +336,16 @@ ion-grid {
 .workout-actions-buttons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 
   ion-button {
-    --padding-start: 14px;
-    --padding-end: 14px;
-    --padding-top: 14px;
-    --padding-bottom: 14px;
-    --border-radius: 14px;
-    width: 52px;
-    height: 52px;
+    --padding-start: 10px;
+    --padding-end: 10px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    --border-radius: 12px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     margin: 0;
 
@@ -388,21 +388,35 @@ ion-grid {
       --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
     }
 
-    // Reorder button (primary style)
-    &:has(ion-icon[name="chevron-expand-outline"]) {
-      --color: var(--ion-color-primary);
-      --background: rgba(var(--ion-color-primary-rgb), 0.15);
-      --background-activated: rgba(var(--ion-color-primary-rgb), 0.25);
+    // Reorder button (no color)
+    &:has(ion-icon[name="reorder-three-outline"]) {
+      --color: rgba(255, 255, 255, 0.7);
+      --background: rgba(255, 255, 255, 0.05);
+      --background-activated: rgba(255, 255, 255, 0.1);
     }
   }
 }
 
 // Refined Workout Header
 .meal-name {
-  margin-left: -6%;
+  margin-left: 0;
   font-weight: 600;
   display: flex;
   align-items: center;
+  padding: 0 0 2px 0;
+
+  .workout-actions-buttons {
+    gap: 2px;
+
+    ion-button {
+      --padding-start: 4px;
+      --padding-end: 4px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      width: 34px;
+      height: 34px;
+    }
+  }
 
   ion-label {
     font-weight: 700;
@@ -426,11 +440,16 @@ ion-grid {
 }
 
 // Refined Info Labels
+.header-detail {
+  padding-left: var(--ion-grid-column-padding, 16px);
+}
+
 ion-label[color="medium"] {
   font-size: 0.85rem !important;
   font-weight: 500;
   color: var(--ion-color-medium-tint) !important;
   opacity: 0.8;
+  margin-right: 6px;
 }
 
 ion-label[color="tertiary"] {
@@ -458,6 +477,11 @@ ion-label[color="success"] {
   color: var(--ion-color-success-tint) !important;
 }
 
+ion-label[color="alternative"] {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+}
+
 // Subtle Muscle Group Chips
 ion-chip {
   --background: rgba(var(--ion-color-secondary-rgb), 0.12);
@@ -468,6 +492,7 @@ ion-chip {
   letter-spacing: 0.01em;
   border-radius: 10px;
   transition: all 0.2s ease;
+  margin-left: 0;
 }
 
 // Special Set Type Styles (DROP, REST PAUSE)

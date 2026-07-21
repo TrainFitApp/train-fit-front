@@ -19,8 +19,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    min-height: 60px;
+    padding: 4px 20px 0;
+    min-height: 40px;
     gap: 12px;
 
     .back-section {
@@ -61,6 +61,8 @@
         --placeholder-color: rgba(255, 255, 255, 0.5);
         --icon-color: rgba(255, 255, 255, 0.7);
         --clear-button-color: rgba(255, 255, 255, 0.7);
+        --padding-top: 0;
+        --padding-bottom: 0;
         margin: 0;
         padding: 0;
 
@@ -153,8 +155,8 @@
 @media (max-width: 768px) {
   .search-header {
     .header-content {
-      padding: 12px 16px;
-      min-height: 56px;
+      padding: 4px 16px 0;
+      min-height: 40px;
 
       .back-section .back-button,
       .actions-section .action-button {
@@ -171,7 +173,7 @@
 
 // Filters Section
 .filters-section {
-  padding: 12px 16px 8px;
+  padding: 4px 16px 8px;
 
   .filter-group {
     .filter-header {

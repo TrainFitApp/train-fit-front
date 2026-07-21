@@ -13,41 +13,51 @@
             {{ tableInUse?.name | translateDb }}
           </h1>
         </div>
-        <div class="actions-section" *ngIf="!pasteMode">
-          <button
-            *ngIf="stateSelected !== STATES.move"
-            class="action-button ripple-effect"
-            [disabled]="loadingSplit || !currentSplit?.workouts?.length"
-            (click)="enterWorkoutMoveMode()"
-          >
-            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
-          </button>
+        <div class="actions-section">
+          <ng-container *ngIf="!pasteMode">
+            <button
+              *ngIf="stateSelected !== STATES.move"
+              class="action-button ripple-effect"
+              [disabled]="loadingSplit || !currentSplit?.workouts?.length"
+              (click)="enterWorkoutMoveMode()"
+            >
+              <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+            </button>
+
+            <button
+              *ngIf="stateSelected === STATES.move"
+              class="action-button ripple-effect"
+              [disabled]="savingWorkoutOrder"
+              (click)="cancelWorkoutMoveMode()"
+            >
+              <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+            </button>
+
+            <button
+              *ngIf="stateSelected === STATES.move"
+              class="action-button action-button--confirm ripple-effect"
+              [disabled]="savingWorkoutOrder"
+              (click)="confirmWorkoutOrder()"
+            >
+              <ion-spinner
+                *ngIf="savingWorkoutOrder"
+                name="crescent"
+                color="success"
+              ></ion-spinner>
+              <ion-icon
+                *ngIf="!savingWorkoutOrder"
+                name="checkmark-outline"
+                color="success"
+              ></ion-icon>
+            </button>
+          </ng-container>
 
           <button
-            *ngIf="stateSelected === STATES.move"
+            *ngIf="pasteMode"
             class="action-button ripple-effect"
-            [disabled]="savingWorkoutOrder"
-            (click)="cancelWorkoutMoveMode()"
+            (click)="cancelCopyMode()"
           >
             <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
-          </button>
-
-          <button
-            *ngIf="stateSelected === STATES.move"
-            class="action-button action-button--confirm ripple-effect"
-            [disabled]="savingWorkoutOrder"
-            (click)="confirmWorkoutOrder()"
-          >
-            <ion-spinner
-              *ngIf="savingWorkoutOrder"
-              name="crescent"
-              color="success"
-            ></ion-spinner>
-            <ion-icon
-              *ngIf="!savingWorkoutOrder"
-              name="checkmark-outline"
-              color="success"
-            ></ion-icon>
           </button>
         </div>
       </div>
@@ -104,6 +114,7 @@
               [multiple]="true"
               [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
               (ionChange)="toggleAccordion($event, ind)"
+              [disabled]="stateSelected === STATES.move"
               [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
               [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
             >
@@ -385,15 +396,6 @@
   <ion-spinner name="crescent"></ion-spinner>
 </ng-template>
 
-<app-actions-fab
-  class="fixed"
-  *ngIf="tableMode === TABLE_MODE_TYPES.mesocycle && pasteMode && !isCurrentSplitLocked()"
-  [currentWorkoutMode]="!!user.workoutInUse"
-  [tableInUse]="tableInUse"
-  [loading]="loadingFab"
-  (onClose)="onCloseFab($event)"
-></app-actions-fab>
-
 <ng-template #emptySplits>
   <ion-button
     expand="block"
@@ -434,8 +436,7 @@
                 [class.in-use]="isCurrentSplitInUse()"
               >
                 <span class="trigger-title">
-                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }} {{
-                  currentSplitIndex + 1 }}
+                  {{ 'TABLES.MICROCYCLE_SELECTOR' | translate }}
                 </span>
                 <div class="trigger-right">
                   <span class="step-counter"
@@ -452,7 +453,7 @@
                 class="micro-cycle-selector-hidden"
                 [(ngModel)]="currentSplitIndex"
                 interface="action-sheet"
-                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet', header: getSplitInfoHeader() }"
                 mode="ios"
                 cancelText="{{ 'COMMON.CANCEL' | translate }}"
                 placeholder="{{ 'TABLES.MICROCYCLE_SELECTOR' | translate }}"
@@ -472,12 +473,6 @@
                   >
                 </ion-select-option>
               </ion-select>
-
-              <app-glossary-info
-                term="MICROCYCLE"
-                size="sm"
-                class="microcycle-glossary"
-              ></app-glossary-info>
             </div>
           </div>
         </div>
@@ -486,17 +481,26 @@
           *ngIf="!pasteMode && stateSelected === STATES.static"
           class="micro-cycle-actions"
         >
-          <ion-button
-            fill="clear"
+          <button
             class="action-btn menu-btn ripple-effect"
-            [disabled]="loadingSplit"
-            (click)="showSplitMenu($event)"
+            [disabled]="loadingSplit || isCurrentSplitLocked()"
+            (click)="addSplitToTable()"
           >
             <ion-icon
-              name="ellipsis-vertical-outline"
-              slot="icon-only"
+              color="secondary"
+              name="duplicate-outline"
             ></ion-icon>
-          </ion-button>
+          </button>
+          <button
+            class="action-btn menu-btn ripple-effect"
+            [disabled]="loadingSplit"
+            (click)="deleteSplit()"
+          >
+            <ion-icon
+              color="danger"
+              name="trash-bin-outline"
+            ></ion-icon>
+          </button>
         </div>
       </div>
 

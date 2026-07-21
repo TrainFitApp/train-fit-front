@@ -75,6 +75,7 @@
                      type="text" inputmode="decimal"
                     formControlName="weight"
                     class="modern-input"
+                    maxlength="6"
                     placeholder="{{ 'EDITOR.WEIGHT_PLACEHOLDER' | translate }}"
                     appCursorEnd
                     appDecimalInput
@@ -89,12 +90,15 @@
                 <label class="input-label">{{ 'EDITOR.HEIGHT' | translate }}</label>
                 <div class="input-wrapper">
                   <input
-                    type="number"
+                    type="text"
                     inputmode="numeric"
                     formControlName="height"
                     class="modern-input"
+                    maxlength="3"
                     placeholder="{{ 'EDITOR.HEIGHT_PLACEHOLDER' | translate }}"
                     appCursorEnd
+                    appDecimalInput
+                    [maxDecimals]="0"
                   />
                   <ion-icon name="resize-outline" class="input-icon"></ion-icon>
                 </div>

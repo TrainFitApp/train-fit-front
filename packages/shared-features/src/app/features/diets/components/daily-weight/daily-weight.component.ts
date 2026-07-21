@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -43,14 +43,11 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   @Output()
   public createdDietDay = new EventEmitter();
   @Output()
-  public scrollToBottom = new EventEmitter<void>();
-  @Output()
   public anthropometrySaved = new EventEmitter<Anthropometry>();
 
   public dietDay: DietDay;
   public firstWeekDay: Date;
   public lastWeekDay: Date;
-  public weeklyAverage: number;
   public week: DietDay[] = [];
   public weightForm: FormGroup;
   public chart: Chart;
@@ -126,13 +123,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
   public toggleChart(): void {
     this.showChart = !this.showChart;
-
-    // Si se muestra el gráfico, emitir evento para hacer scroll hacia abajo
-    if (this.showChart) {
-      setTimeout(() => {
-        this.scrollToBottom.emit();
-      }, 100);
-    }
   }
 
   private initForm(): void {
@@ -141,7 +131,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       (this.dietDay?.date === this.selectedDate ? this.dietDay?.weight : null);
 
     this.weightForm = new FormGroup({
-      weight: new FormControl(weight ?? null),
+      weight: new FormControl(weight ?? null, [Validators.min(0), Validators.max(300)]),
     });
   }
 
@@ -312,9 +302,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       )
       .subscribe((resDietsDay) => {
         this.week = this.dietDayService.getWeek(this.firstWeekDay, resDietsDay);
-        this.weeklyAverage =
-          this.dietDayService.getWeekWeightAverage(resDietsDay);
-
         // TODO: refactor ya que se llama dos veces a esta función
         if (!this.chart) this.initChart();
         else this.updateChart(this.week.map((resWeek) => resWeek.weight));

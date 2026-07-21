@@ -7,6 +7,7 @@ import {
 } from '@angular/animations';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { sanitizeDecimalString } from 'src/app/core/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-numeric-input',
@@ -48,6 +49,7 @@ export class NumericInputComponent implements OnInit {
   @Input() label: string = 'Valor';
   @Input() isDone: boolean = false;
   @Input() placeholder: string = '';
+  @Input() maxLength = 6;
   @Output() valueChange = new EventEmitter<number | null>();
 
   public shimmerAnimationState = 'idle';
@@ -103,15 +105,7 @@ export class NumericInputComponent implements OnInit {
       return;
     }
 
-    const normalizedValue = String(rawValue)
-      .replace(/,/g, '.')
-      .replace(/[^0-9.]/g, '');
-
-    const parts = normalizedValue.split('.');
-    const sanitizedValue =
-      parts.length > 2
-        ? `${parts[0]}.${parts.slice(1).join('')}`
-        : normalizedValue;
+    const sanitizedValue = sanitizeDecimalString(String(rawValue));
 
     if (event?.target) {
       event.target.value = sanitizedValue;
