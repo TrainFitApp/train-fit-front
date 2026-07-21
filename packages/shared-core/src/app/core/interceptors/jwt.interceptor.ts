@@ -13,6 +13,8 @@ import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { AuthApiService } from '../services/auth/auth-api.service';
 import { AuthService } from '../services/auth/auth.service';
+import { MaintenanceModalService } from '../services/maintenance/maintenance-modal.service';
+import { RemoteConfigMaintenanceStatus } from '../models/remote-config-status';
 
 /**
  * Context token that marks a request as already having been retried after
@@ -60,7 +62,10 @@ export class JWTInterceptor implements HttpInterceptor {
    */
   private refreshToken$ = new BehaviorSubject<string | null>(null);
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private maintenanceModal: MaintenanceModalService,
+  ) {}
 
   // ─── Intercept ────────────────────────────────────────────────────────────
 
@@ -90,18 +95,31 @@ export class JWTInterceptor implements HttpInterceptor {
 
     return next.handle(authRequest).pipe(
       catchError((error: HttpErrorResponse) =>
-        this.handle401(error, baseRequest, next),
+        this.handleError(error, baseRequest, next),
       ),
     );
   }
 
-  // ─── 401 Handler ─────────────────────────────────────────────────────────
+  // ─── Error Handler ────────────────────────────────────────────────────────
 
-  private handle401(
+  private handleError(
     error: HttpErrorResponse,
     originalRequest: HttpRequest<unknown>,
     next: HttpHandler,
   ): Observable<HttpEvent<unknown>> {
+    // 503 with MAINTENANCE_ACTIVE → show maintenance screen.
+    if (
+      error.status === 503 &&
+      error.error?.code === 'MAINTENANCE_ACTIVE'
+    ) {
+      const maintenance: RemoteConfigMaintenanceStatus = {
+        state: 'active',
+        message: error.error?.message || '',
+      };
+      void this.maintenanceModal.presentIfActive(maintenance);
+      return throwError(() => error);
+    }
+
     // Pass through non-401 errors unchanged.
     if (error.status !== 401) {
       return throwError(() => error);
