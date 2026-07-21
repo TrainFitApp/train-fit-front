@@ -80,6 +80,11 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     if (changes.anthropometry && !changes.anthropometry.firstChange) {
       this.initForm();
     }
+    if (changes.user && !changes.user.firstChange) {
+      this.initForm();
+      this.loadedWeekKey = null;
+      this.refreshWeekDataIfNeeded();
+    }
     if (
       changes.selectedDate &&
       !changes.selectedDate.firstChange &&
@@ -130,9 +135,13 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       this.anthropometry?.weight ??
       (this.dietDay?.date === this.selectedDate ? this.dietDay?.weight : null);
 
-    this.weightForm = new FormGroup({
-      weight: new FormControl(weight ?? null, [Validators.min(0), Validators.max(300)]),
-    });
+    if (this.weightForm) {
+      this.weightForm.patchValue({ weight: weight ?? null }, { emitEvent: false });
+    } else {
+      this.weightForm = new FormGroup({
+        weight: new FormControl(weight ?? null, [Validators.min(0), Validators.max(300)]),
+      });
+    }
   }
 
   private initChart(): void {

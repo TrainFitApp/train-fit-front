@@ -22,7 +22,7 @@
           class="save-button"
           [class.saving]="!isLoad"
           [class.success]="showSuccess"
-          [class.disabled]="!weightForm.get('weight')?.value || !isLoad"
+          [class.disabled]="!weightForm?.get('weight')?.value || !isLoad"
           (click)="saveWeight()"
           type="button"
           aria-label="Guardar peso"
