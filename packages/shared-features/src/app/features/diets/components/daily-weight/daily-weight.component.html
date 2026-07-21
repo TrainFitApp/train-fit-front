@@ -1,108 +1,59 @@
 <div class="daily-weight-container">
-  <!-- Tarjeta principal del peso diario -->
   <div class="weight-card">
-    <!-- Encabezado de la tarjeta -->
-    <div class="card-header">
-      <div class="header-content">
-        <div class="info-section">
-          <h3 class="card-title">{{ 'DIETS.DAILY_WEIGHT' | translate }}</h3>
-          <p class="card-date">{{ selectedDate | date : "dd/MM/yyyy" }}</p>
-          <p class="card-average">
-            {{ 'DIETS.WEEKLY_AVERAGE' | translate:{ value: weeklyAverage ? weeklyAverage.toFixed(2) : 0 } }}
-          </p>
+    <div class="weight-row">
+      <span class="weight-label">{{ 'DIETS.DAILY_SHORT' | translate }}</span>
+      <form [formGroup]="weightForm" class="weight-form">
+        <div class="input-wrapper">
+          <ion-input
+            #inputWeight
+            formControlName="weight"
+            type="text" inputmode="decimal"
+            [placeholder]="'DIETS.WEIGHT_IN_KG' | translate"
+            class="weight-input"
+            step="0.1"
+            min="0"
+            max="300"
+            maxlength="6"
+            appDecimalInput
+          ></ion-input>
+          <span class="input-unit">Kg</span>
         </div>
-        <div class="actions-section">
-          <button
-            class="action-button calendar-button ripple-effect"
-            [@shake]="shakeState"
-            (click)="openWeightInfo(); $event.stopPropagation()"
-            aria-label="Ver calendario de pesos"
-          >
-            <ion-icon name="calendar-outline"></ion-icon>
-          </button>
-        </div>
-      </div>
+        <button
+          class="save-button"
+          [class.saving]="!isLoad"
+          [class.success]="showSuccess"
+          [class.disabled]="!weightForm.get('weight')?.value || !isLoad"
+          (click)="saveWeight()"
+          type="button"
+          aria-label="Guardar peso"
+        >
+          <ion-icon [name]="getCheckIconName()"></ion-icon>
+        </button>
+      </form>
+      <button
+        class="calendar-button"
+        [@shake]="shakeState"
+        (click)="openWeightInfo(); $event.stopPropagation()"
+        aria-label="Ver calendario de pesos"
+      >
+        <ion-icon name="stats-chart-outline"></ion-icon>
+      </button>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="card-content">
-      <div class="weight-input-section">
-        <form [formGroup]="weightForm">
-          <div class="input-group">
-            <div class="input-wrapper">
-              <ion-input
-                #inputWeight
-                formControlName="weight"
-                type="text" inputmode="decimal"
-                [placeholder]="'DIETS.WEIGHT_IN_KG' | translate"
-                class="weight-input"
-                step="0.1"
-                min="0"
-                max="300"
-                maxlength="6"
-                appDecimalInput
-              >
-              </ion-input>
-              <span class="input-unit">Kg</span>
-            </div>
-            <button
-              class="save-button"
-              [class.saving]="!isLoad"
-              [class.success]="showSuccess"
-              [class.disabled]="!weightForm.get('weight')?.value || !isLoad"
-              (click)="saveWeight()"
-              type="button"
-              aria-label="Guardar peso"
-            >
-              <ion-icon [name]="getCheckIconName()"></ion-icon>
-            </button>
-          </div>
-        </form>
-
-        <!-- Indicadores de progreso -->
-        <div class="progress-section" *ngIf="weightForm.get('weight')?.value">
-          <div class="trend-indicator">
-            <div class="trend-icon-wrapper">
-              <ion-icon
-                name="trending-up-outline"
-                class="trend-icon up"
-                *ngIf="getTrend() === 'up'"
-              ></ion-icon>
-              <ion-icon
-                name="trending-down-outline"
-                class="trend-icon down"
-                *ngIf="getTrend() === 'down'"
-              ></ion-icon>
-              <ion-icon
-                name="remove-outline"
-                class="trend-icon stable"
-                *ngIf="getTrend() === 'stable'"
-              ></ion-icon>
-            </div>
-            <span class="trend-text">{{ getTrendText() }}</span>
-          </div>
-
-          <button
-            class="chart-toggle-button"
-            (click)="toggleChart()"
-            [class.active]="showChart"
-            aria-label="Alternar vista de gráficos"
-          >
-            <ion-icon
-              [name]="showChart ? 'eye-off-outline' : 'eye-outline'"
-            ></ion-icon>
-            <span>{{ showChart ? "Ocultar gráficos" : "Ver gráficos" }}</span>
-          </button>
-        </div>
+    <div class="progress-section" *ngIf="weightForm.get('weight')?.value">
+      <div class="trend-indicator">
+        <ion-icon name="trending-up-outline" class="trend-icon up" *ngIf="getTrend() === 'up'"></ion-icon>
+        <ion-icon name="trending-down-outline" class="trend-icon down" *ngIf="getTrend() === 'down'"></ion-icon>
+        <ion-icon name="remove-outline" class="trend-icon stable" *ngIf="getTrend() === 'stable'"></ion-icon>
+        <span class="trend-text">{{ getTrendText() }}</span>
       </div>
+      <button class="chart-toggle-button" (click)="toggleChart()" [class.active]="showChart">
+        <ion-icon [name]="showChart ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      </button>
     </div>
   </div>
 
-  <!-- Tarjeta del gráfico -->
   <div class="chart-card" [class.hidden]="!showChart">
-    <div class="chart-header">
-      <h4 class="chart-title">Evolución del peso</h4>
-    </div>
     <div class="chart-content">
       <canvas id="dailyWeight"></canvas>
     </div>
