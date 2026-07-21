@@ -484,6 +484,7 @@
     "DELETE_NOTE_CONFIRM": "BORRAR",
     "DAY_PASTED_SUCCESS": "Día pegado con éxito",
     "DAILY_WEIGHT": "Peso diario",
+    "DAILY_SHORT": "Diario",
     "WEEKLY_AVERAGE": "Media semanal ({{value}} Kg)",
     "WEIGHT_IN_KG": "Peso en kg"
   },
@@ -1084,6 +1085,8 @@
     "NO_WORKOUTS": "Sin entrenamientos",
     "NO_MICROCYCLES": "Sin microciclos",
     "MICROCYCLE_N": "Microciclo {{n}}",
+    "MICROCYCLE_PREVIEW": "Vista previa del microciclo",
+    "SAME_MICROCYCLES": "Mismos entrenamientos en los {{n}} microciclos",
     "WORKOUT_N": "Entreno {{n}}",
     "MICROCYCLES": "Microciclos",
     "NAME_OPTION": "NOMBRE",

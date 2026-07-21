@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Table } from 'src/app/core/models/table';
-import { Split } from 'src/app/core/models/split';
 import { Workout } from 'src/app/core/models/workout';
 
 @Component({
@@ -35,10 +34,6 @@ export class TablePreviewModalComponent {
 
   public use(): void {
     this.modalController.dismiss({ action: 'use' }, 'confirm');
-  }
-
-  public trackBySplit(index: number, split: Split): string {
-    return split._id || String(index);
   }
 
   public trackByWorkout(index: number, workout: Workout): string {

@@ -50,7 +50,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   public dietDay: DietDay;
   public firstWeekDay: Date;
   public lastWeekDay: Date;
-  public weeklyAverage: number;
   public week: DietDay[] = [];
   public weightForm: FormGroup;
   public chart: Chart;
@@ -312,9 +311,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       )
       .subscribe((resDietsDay) => {
         this.week = this.dietDayService.getWeek(this.firstWeekDay, resDietsDay);
-        this.weeklyAverage =
-          this.dietDayService.getWeekWeightAverage(resDietsDay);
-
         // TODO: refactor ya que se llama dos veces a esta función
         if (!this.chart) this.initChart();
         else this.updateChart(this.week.map((resWeek) => resWeek.weight));

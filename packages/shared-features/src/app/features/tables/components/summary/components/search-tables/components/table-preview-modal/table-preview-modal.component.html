@@ -40,14 +40,11 @@
         {{ 'TABLES.MICROCYCLES' | translate }}
       </h3>
 
-      <div
-        *ngFor="let split of table?.splits; let si = index; trackBy: trackBySplit"
-        class="split-card"
-      >
+      <div *ngIf="table?.splits?.[0] as split" class="split-card">
         <div class="split-header">
           <div class="split-name">
             <ion-icon name="folder-outline"></ion-icon>
-            <span>{{ split.name || ('TABLES.MICROCYCLE_N' | translate : { n: si + 1 }) }}</span>
+            <span>{{ 'TABLES.MICROCYCLE_PREVIEW' | translate }}</span>
           </div>
           <span class="split-count">{{ split.workouts?.length || 0 }} {{ 'TABLES.WORKOUTS_STAT' | translate }}</span>
         </div>
@@ -66,6 +63,11 @@
             <span>{{ 'TABLES.NO_WORKOUTS' | translate }}</span>
           </div>
         </div>
+      </div>
+
+      <div class="same-content-hint" *ngIf="table?.splits?.length > 1">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>{{ 'TABLES.SAME_MICROCYCLES' | translate : { n: table?.splits?.length } }}</span>
       </div>
 
       <div class="empty-splits" *ngIf="!table?.splits?.length">

@@ -183,6 +183,35 @@
   background: rgba(var(--ion-color-success-rgb), 0.12);
 }
 
+// Preview Button
+.preview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  border: none;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
 // Icon Button (menu)
 .icon-btn {
   width: 32px;

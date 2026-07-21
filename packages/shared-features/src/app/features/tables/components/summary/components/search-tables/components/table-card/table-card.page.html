@@ -1,7 +1,7 @@
 <ion-card
   class="table-card"
   [class.selected]="user?.tableInUse === tableCard._id"
-  (click)="setSelectedTableCard()"
+  (click)="useTable(); $event.stopPropagation()"
 >
   <div class="card-body">
     <div class="card-top">
@@ -27,13 +27,6 @@
           <span class="stat-label">{{ 'TABLES.WORKOUTS_STAT' | translate }}</span>
         </div>
       </div>
-      <div class="stat">
-        <ion-icon name="resize-outline" class="stat-icon stat-tertiary"></ion-icon>
-        <div class="stat-data">
-          <span class="stat-value">{{ totalExercises }}</span>
-          <span class="stat-label">{{ 'TABLES.EXERCISES_STAT' | translate }}</span>
-        </div>
-      </div>
     </div>
 
     <div class="card-footer">
@@ -47,10 +40,11 @@
 
         <div class="footer-actions">
           <button
-            class="icon-btn"
+            class="preview-btn"
             (click)="previewTable(); $event.stopPropagation()"
           >
             <ion-icon name="eye-outline"></ion-icon>
+            <span>{{ 'TABLES.PREVIEW' | translate }}</span>
           </button>
 
           <button

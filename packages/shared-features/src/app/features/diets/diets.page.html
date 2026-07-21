@@ -47,6 +47,15 @@
     ><strong>PEGAR DÍA</strong>
   </ion-button>
 
+  <app-daily-weight
+    [user]="user"
+    [selectedDate]="selectedDate"
+    [anthropometry]="currentAnthropometry"
+    (anthropometrySaved)="onAnthropometrySaved($event)"
+    (createdDietDay)="scrollBottom()"
+    (scrollToBottom)="scrollBottom()"
+  ></app-daily-weight>
+
   <ion-grid class="t-diets-meals">
     <ion-accordion-group multiple="true">
       <app-meal
@@ -64,15 +73,6 @@
       ></app-meal>
     </ion-accordion-group>
   </ion-grid>
-
-  <app-daily-weight
-    [user]="user"
-    [selectedDate]="selectedDate"
-    [anthropometry]="currentAnthropometry"
-    (anthropometrySaved)="onAnthropometrySaved($event)"
-    (createdDietDay)="scrollBottom()"
-    (scrollToBottom)="scrollBottom()"
-  ></app-daily-weight>
 
   <!-- Floating Clipboard Bar -->
   <div

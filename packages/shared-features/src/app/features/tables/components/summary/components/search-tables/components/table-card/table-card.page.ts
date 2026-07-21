@@ -69,14 +69,6 @@ export class TableCardPage {
     return this.tableCard?.splits?.[0]?.workouts?.length || 0;
   }
 
-  public get totalExercises(): number {
-    return this.tableCard?.splits?.reduce(
-      (acc, split) =>
-        acc + split.workouts.reduce((wAcc, workout) => wAcc + (workout.exercises?.length || 0), 0),
-      0
-    ) || 0;
-  }
-
   public get hasBackgroundImage(): boolean {
     return this.getUsableBackgroundImageUrl() !== '';
   }
@@ -107,12 +99,6 @@ export class TableCardPage {
     if (normalizedImageUrl.startsWith('assets/img/tablas/')) return '';
 
     return imageUrl;
-  }
-
-  public setSelectedTableCard(): void {
-    if (!this.own) {
-      if (this.ownFilter) this.useTable();
-    }
   }
 
   public async previewTable(): Promise<void> {
