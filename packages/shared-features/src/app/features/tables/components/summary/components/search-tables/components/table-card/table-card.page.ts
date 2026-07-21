@@ -7,7 +7,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { PopoverController, ToastOptions } from '@ionic/angular';
+import { PopoverController, ModalController, ToastOptions } from '@ionic/angular';
 import Chart from 'chart.js/auto';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
@@ -21,6 +21,7 @@ import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 import { MUSCLE_GROUPS_ES } from 'src/app/shared/constants/muscle-groups';
+import { TablePreviewModalComponent } from '../table-preview-modal/table-preview-modal.component';
 
 @Component({
   selector: 'app-table-card',
@@ -68,6 +69,14 @@ export class TableCardPage {
     return this.tableCard?.splits?.[0]?.workouts?.length || 0;
   }
 
+  public get totalExercises(): number {
+    return this.tableCard?.splits?.reduce(
+      (acc, split) =>
+        acc + split.workouts.reduce((wAcc, workout) => wAcc + (workout.exercises?.length || 0), 0),
+      0
+    ) || 0;
+  }
+
   public get hasBackgroundImage(): boolean {
     return this.getUsableBackgroundImageUrl() !== '';
   }
@@ -84,6 +93,7 @@ export class TableCardPage {
     private ionicUtilService: IonicUtilService,
     private navigationService: NavigationService,
     private popoverController: PopoverController,
+    private modalController: ModalController,
     private translate: TranslateService,
     private adMobService: AdMobService,
     private billingService: BillingService
@@ -103,6 +113,30 @@ export class TableCardPage {
     if (!this.own) {
       if (this.ownFilter) this.useTable();
     }
+  }
+
+  public async previewTable(): Promise<void> {
+    if (!this.tableCard?._id) return;
+
+    this.loadAction = false;
+    this.tableService.getTableById(this.tableCard._id).subscribe({
+      next: async (fullTable) => {
+        this.loadAction = true;
+        const modal = await this.modalController.create({
+          component: TablePreviewModalComponent,
+          componentProps: { table: fullTable, own: this.own },
+          cssClass: 'table-preview-modal',
+        });
+        await modal.present();
+        const { data, role } = await modal.onDidDismiss();
+        if (role === 'confirm' && data?.action === 'use') {
+          this.useTable();
+        }
+      },
+      error: () => {
+        this.loadAction = true;
+      },
+    });
   }
 
   public openMenu(event: Event): void {

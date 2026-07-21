@@ -1,0 +1,84 @@
+<ion-header class="preview-header" mode="ios">
+  <div class="preview-toolbar">
+    <button class="close-btn ripple-effect" (click)="dismiss()">
+      <ion-icon name="close"></ion-icon>
+    </button>
+    <span class="preview-title">{{ 'TABLES.PREVIEW' | translate }}</span>
+  </div>
+</ion-header>
+
+<ion-content class="preview-content">
+  <div class="preview-body">
+    <div class="hero-section">
+      <h2 class="hero-title">{{ table?.name | translateDb }}</h2>
+      <p class="hero-desc" *ngIf="table?.description">{{ table?.description | translateDb }}</p>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-block">
+        <ion-icon name="layers-outline" class="stat-icon stat-primary"></ion-icon>
+        <span class="stat-value">{{ table?.splits?.length || 0 }}</span>
+        <span class="stat-label">{{ 'TABLES.MICROCYCLES_STAT' | translate }}</span>
+      </div>
+      <div class="stat-divider-v"></div>
+      <div class="stat-block">
+        <ion-icon name="barbell-outline" class="stat-icon stat-secondary"></ion-icon>
+        <span class="stat-value">{{ totalWorkouts }}</span>
+        <span class="stat-label">{{ 'TABLES.WORKOUTS_STAT' | translate }}</span>
+      </div>
+      <div class="stat-divider-v"></div>
+      <div class="stat-block">
+        <ion-icon name="resize-outline" class="stat-icon stat-tertiary"></ion-icon>
+        <span class="stat-value">{{ totalExercises }}</span>
+        <span class="stat-label">{{ 'TABLES.EXERCISES_STAT' | translate }}</span>
+      </div>
+    </div>
+
+    <div class="splits-section">
+      <h3 class="section-title">
+        <ion-icon name="layers-outline" class="section-title-icon"></ion-icon>
+        {{ 'TABLES.MICROCYCLES' | translate }}
+      </h3>
+
+      <div
+        *ngFor="let split of table?.splits; let si = index; trackBy: trackBySplit"
+        class="split-card"
+      >
+        <div class="split-header">
+          <div class="split-name">
+            <ion-icon name="folder-outline"></ion-icon>
+            <span>{{ split.name || ('TABLES.MICROCYCLE_N' | translate : { n: si + 1 }) }}</span>
+          </div>
+          <span class="split-count">{{ split.workouts?.length || 0 }} {{ 'TABLES.WORKOUTS_STAT' | translate }}</span>
+        </div>
+
+        <div class="workout-list">
+          <div
+            *ngFor="let workout of split.workouts; let wi = index; trackBy: trackByWorkout"
+            class="workout-row"
+          >
+            <ion-icon name="fitness-outline" class="workout-icon"></ion-icon>
+            <span class="workout-name">{{ workout.name || ('TABLES.WORKOUT_N' | translate : { n: wi + 1 }) }}</span>
+            <span class="workout-exercises">{{ workout.exercises?.length || 0 }}</span>
+          </div>
+
+          <div class="empty-workouts" *ngIf="!split.workouts?.length">
+            <span>{{ 'TABLES.NO_WORKOUTS' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-splits" *ngIf="!table?.splits?.length">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ 'TABLES.NO_MICROCYCLES' | translate }}</span>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="preview-footer">
+  <button class="action-button" (click)="use()">
+    <ion-icon [name]="own ? 'checkmark-circle-outline' : 'cart-outline'"></ion-icon>
+    <span>{{ (own ? 'TABLES.USE_ROUTINE_SHORT' : 'TABLES.ACQUIRE') | translate }}</span>
+  </button>
+</ion-footer>
