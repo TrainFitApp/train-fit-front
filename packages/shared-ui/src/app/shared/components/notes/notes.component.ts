@@ -118,6 +118,7 @@ export class NotesComponent implements OnInit, OnChanges {
           type: 'textarea',
           placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
           value: currentNotes || '',
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

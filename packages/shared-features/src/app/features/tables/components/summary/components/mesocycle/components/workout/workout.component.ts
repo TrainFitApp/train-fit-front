@@ -232,6 +232,7 @@ export class WorkoutComponent implements OnDestroy {
           type: 'textarea',
           value: note.notes,
           placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -879,6 +880,7 @@ export class WorkoutComponent implements OnDestroy {
           type: 'textarea',
           value: this.workout.notes,
           placeholder: this.translate.instant('TABLES.WORKOUT_NOTES_PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -1202,6 +1204,14 @@ export class WorkoutComponent implements OnDestroy {
             ).subscribe(() => {
               this.showStartWorkoutAlert();
             });
+          },
+        },
+        {
+          text: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
+          cssClass: 'alert-tertiary-btn',
+          handler: () => {
+            // No se marcan como saltados: solo se continúa sin tocar los pendientes.
+            this.showStartWorkoutAlert();
           },
         },
       ],

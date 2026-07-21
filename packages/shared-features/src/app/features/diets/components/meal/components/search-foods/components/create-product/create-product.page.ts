@@ -379,74 +379,74 @@ export class CreateProductPage implements OnInit {
     this.productForm = new FormGroup({
       code: new FormControl(
         this.codeBar ? this.codeBar : null,
-        Validators.nullValidator
+        Validators.compose([Validators.nullValidator, Validators.maxLength(100)])
       ),
-      brand: new FormControl(null),
-      name: new FormControl(null, Validators.required),
+      brand: new FormControl(null, Validators.maxLength(200)),
+      name: new FormControl(null, Validators.compose([Validators.required, Validators.maxLength(200)])),
 
       // Basic macronutrients (required)
-      carbohydrates100g: new FormControl(null, Validators.required),
-      energyKcal100g: new FormControl(null, Validators.required),
-      fat100g: new FormControl(null, Validators.required),
-      protein100g: new FormControl(null, Validators.required),
+      carbohydrates100g: new FormControl(null, Validators.compose([Validators.required, Validators.min(0), Validators.max(100000)])),
+      energyKcal100g: new FormControl(null, Validators.compose([Validators.required, Validators.min(0), Validators.max(100000)])),
+      fat100g: new FormControl(null, Validators.compose([Validators.required, Validators.min(0), Validators.max(100000)])),
+      protein100g: new FormControl(null, Validators.compose([Validators.required, Validators.min(0), Validators.max(100000)])),
 
       // Basic macronutrients (optional)
-      fiber100g: new FormControl(null),
-      sugars100g: new FormControl(null),
-      salt100g: new FormControl(null),
-      saturatedFat100g: new FormControl(null),
-      sodium100g: new FormControl(null),
-      cholesterol100g: new FormControl(null),
-      transFat100g: new FormControl(null),
+      fiber100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      sugars100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      salt100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      saturatedFat100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      sodium100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      cholesterol100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      transFat100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Vitamins (existing)
-      vitaminA100g: new FormControl(null),
-      vitaminC100g: new FormControl(null),
+      vitaminA100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminC100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Additional minerals
-      calcium100g: new FormControl(null),
-      iron100g: new FormControl(null),
-      magnesium100g: new FormControl(null),
-      phosphorus100g: new FormControl(null),
-      potassium100g: new FormControl(null),
-      zinc100g: new FormControl(null),
-      copper100g: new FormControl(null),
-      manganese100g: new FormControl(null),
-      selenium100g: new FormControl(null),
-      iodine100g: new FormControl(null),
+      calcium100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      iron100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      magnesium100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      phosphorus100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      potassium100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      zinc100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      copper100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      manganese100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      selenium100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      iodine100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Additional vitamins
-      vitaminB1100g: new FormControl(null),
-      vitaminB2100g: new FormControl(null),
-      vitaminB3100g: new FormControl(null),
-      vitaminB5100g: new FormControl(null),
-      vitaminB6100g: new FormControl(null),
-      vitaminB9100g: new FormControl(null),
-      vitaminB12100g: new FormControl(null),
-      vitaminD100g: new FormControl(null),
-      vitaminE100g: new FormControl(null),
-      vitaminK100g: new FormControl(null),
-      biotin100g: new FormControl(null),
+      vitaminB1100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB2100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB3100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB5100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB6100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB9100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminB12100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminD100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminE100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      vitaminK100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      biotin100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Fatty acids
-      omega3100g: new FormControl(null),
-      omega6100g: new FormControl(null),
-      omega9100g: new FormControl(null),
+      omega3100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      omega6100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      omega9100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Other nutrients
-      caffeine100g: new FormControl(null),
-      taurine100g: new FormControl(null),
-      alcohol100g: new FormControl(null),
+      caffeine100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      taurine100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      alcohol100g: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
 
       // Product information
-      productQuantity: new FormControl(null),
-      servingQuantity: new FormControl(null),
+      productQuantity: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
+      servingQuantity: new FormControl(null, [Validators.min(0), Validators.max(100000)]),
       servingUnit: new FormControl(null),
-      ingredients: new FormControl(null), // Will be split into array
+      ingredients: new FormControl(null, Validators.maxLength(2000)), // Will be split into array
 
       // Allergens and dietary
-      allergens: new FormControl(null), // Will be split into array
-      traces: new FormControl(null), // Will be split into array
+      allergens: new FormControl(null, Validators.maxLength(1000)), // Will be split into array
+      traces: new FormControl(null, Validators.maxLength(1000)), // Will be split into array
       vegan: new FormControl(false),
       vegetarian: new FormControl(false),
       lactoseFree: new FormControl(false),

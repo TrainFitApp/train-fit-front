@@ -1341,6 +1341,8 @@
                   class="custom-info-textarea"
                   formControlName="ingredients"
                   [placeholder]="'ADD_PRODUCT.INGREDIENTS_PLACEHOLDER' | translate"
+                  [maxlength]="2000"
+                  [counter]="true"
                 ></ion-textarea>
               </div>
 
@@ -1353,6 +1355,8 @@
                   class="custom-info-textarea"
                   formControlName="allergens"
                   [placeholder]="'ADD_PRODUCT.ALLERGENS_PLACEHOLDER' | translate"
+                  [maxlength]="1000"
+                  [counter]="true"
                 ></ion-textarea>
               </div>
 
@@ -1365,6 +1369,8 @@
                   class="custom-info-textarea"
                   formControlName="traces"
                   [placeholder]="'ADD_PRODUCT.TRACES_PLACEHOLDER' | translate"
+                  [maxlength]="1000"
+                  [counter]="true"
                 ></ion-textarea>
               </div>
             </div>

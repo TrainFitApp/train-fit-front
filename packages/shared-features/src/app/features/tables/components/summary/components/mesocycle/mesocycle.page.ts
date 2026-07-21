@@ -630,6 +630,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           type: "textarea" as "textarea",
           value: this.tableInUse?.name,
           placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
+          attributes: { maxlength: 100 },
         },
       ],
       buttons: [

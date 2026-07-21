@@ -289,6 +289,7 @@ export class DietsPage implements OnInit {
           type: 'textarea',
           value: this.pinnedNote,
           placeholder: t('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

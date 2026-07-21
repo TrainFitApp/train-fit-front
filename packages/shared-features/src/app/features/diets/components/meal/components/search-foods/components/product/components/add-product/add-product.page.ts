@@ -1614,116 +1614,124 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     // Minerales
     this.addCustomProductForm = new FormGroup({
-      name: new FormControl(this.product.name, Validators.required),
-      brand: new FormControl(this.product.brand),
+      name: new FormControl(this.product.name, [Validators.required, Validators.maxLength(200)]),
+      brand: new FormControl(this.product.brand, Validators.maxLength(200)),
       quantity: new FormControl(
         quantity,
-        this.meal || this.ingredientMode ? Validators.required : null,
+        [
+          this.meal || this.ingredientMode ? Validators.required : Validators.nullValidator,
+          Validators.min(0),
+          Validators.max(100000),
+        ],
       ),
-      portions: new FormControl(1),
-      energyKcal100g: new FormControl(roundedEnergyKcal, Validators.required),
+      portions: new FormControl(1, [Validators.min(1), Validators.max(1000)]),
+      energyKcal100g: new FormControl(roundedEnergyKcal, [Validators.required, Validators.min(0), Validators.max(100000)]),
       protein100g: new FormControl(roundedProtein, [
         Validators.required,
         Validators.min(0),
+        Validators.max(100000),
       ]),
       carbohydrates100g: new FormControl(roundedCarbohydrates, [
         Validators.required,
         Validators.min(0),
+        Validators.max(100000),
       ]),
       fat100g: new FormControl(roundedFat, [
         Validators.required,
         Validators.min(0),
+        Validators.max(100000),
       ]),
       saturatedFat100g: new FormControl(roundedSaturatedFat, [
         Validators.min(0),
+        Validators.max(100000),
       ]),
-      sugars100g: new FormControl(roundedSugars, [Validators.min(0)]),
-      fiber100g: new FormControl(roundedFiber, [Validators.min(0)]),
+      sugars100g: new FormControl(roundedSugars, [Validators.min(0), Validators.max(100000)]),
+      fiber100g: new FormControl(roundedFiber, [Validators.min(0), Validators.max(100000)]),
 
       // Minerales (Cargar convirtiendo a unidades de visualización)
       // NOTA: cpOrP prioriza los valores del customProduct (entrada en meal) sobre el producto base
       calcium100g: new FormControl(
-        this.toDisplayNutritionValue("calcium100g", cpOrP("calcium100g")),
+        this.toDisplayNutritionValue("calcium100g", cpOrP("calcium100g")), [Validators.min(0), Validators.max(100000)],
       ),
       iron100g: new FormControl(
-        this.toDisplayNutritionValue("iron100g", cpOrP("iron100g")),
+        this.toDisplayNutritionValue("iron100g", cpOrP("iron100g")), [Validators.min(0), Validators.max(100000)],
       ),
       magnesium100g: new FormControl(
-        this.toDisplayNutritionValue("magnesium100g", cpOrP("magnesium100g")),
+        this.toDisplayNutritionValue("magnesium100g", cpOrP("magnesium100g")), [Validators.min(0), Validators.max(100000)],
       ),
       phosphorus100g: new FormControl(
         this.toDisplayNutritionValue(
           "phosphorus100g",
           cpOrP("phosphorus100g"),
-        ),
+        ), [Validators.min(0), Validators.max(100000)],
       ),
       potassium100g: new FormControl(
-        this.toDisplayNutritionValue("potassium100g", cpOrP("potassium100g")),
+        this.toDisplayNutritionValue("potassium100g", cpOrP("potassium100g")), [Validators.min(0), Validators.max(100000)],
       ),
       zinc100g: new FormControl(
-        this.toDisplayNutritionValue("zinc100g", cpOrP("zinc100g")),
+        this.toDisplayNutritionValue("zinc100g", cpOrP("zinc100g")), [Validators.min(0), Validators.max(100000)],
       ),
       copper100g: new FormControl(
-        this.toDisplayNutritionValue("copper100g", cpOrP("copper100g")),
+        this.toDisplayNutritionValue("copper100g", cpOrP("copper100g")), [Validators.min(0), Validators.max(100000)],
       ),
       manganese100g: new FormControl(
-        this.toDisplayNutritionValue("manganese100g", cpOrP("manganese100g")),
+        this.toDisplayNutritionValue("manganese100g", cpOrP("manganese100g")), [Validators.min(0), Validators.max(100000)],
       ),
       selenium100g: new FormControl(
-        this.toDisplayNutritionValue("selenium100g", cpOrP("selenium100g")),
+        this.toDisplayNutritionValue("selenium100g", cpOrP("selenium100g")), [Validators.min(0), Validators.max(100000)],
       ),
       iodine100g: new FormControl(
-        this.toDisplayNutritionValue("iodine100g", cpOrP("iodine100g")),
+        this.toDisplayNutritionValue("iodine100g", cpOrP("iodine100g")), [Validators.min(0), Validators.max(100000)],
       ),
       sodium100g: new FormControl(
-        this.toDisplayNutritionValue("sodium100g", cpOrP("sodium100g")),
+        this.toDisplayNutritionValue("sodium100g", cpOrP("sodium100g")), [Validators.min(0), Validators.max(100000)],
       ),
       salt100g: new FormControl(
-        this.toDisplayNutritionValue("salt100g", cpOrP("salt100g")),
+        this.toDisplayNutritionValue("salt100g", cpOrP("salt100g")), [Validators.min(0), Validators.max(100000)],
       ),
 
       // Vitaminas
       vitaminA100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminA100g", cpOrP("vitaminA100g")),
+        this.toDisplayNutritionValue("vitaminA100g", cpOrP("vitaminA100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminD100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminD100g", cpOrP("vitaminD100g")),
+        this.toDisplayNutritionValue("vitaminD100g", cpOrP("vitaminD100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminE100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminE100g", cpOrP("vitaminE100g")),
+        this.toDisplayNutritionValue("vitaminE100g", cpOrP("vitaminE100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminK100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminK100g", cpOrP("vitaminK100g")),
+        this.toDisplayNutritionValue("vitaminK100g", cpOrP("vitaminK100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminC100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminC100g", cpOrP("vitaminC100g")),
+        this.toDisplayNutritionValue("vitaminC100g", cpOrP("vitaminC100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB1100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB1100g", cpOrP("vitaminB1100g")),
+        this.toDisplayNutritionValue("vitaminB1100g", cpOrP("vitaminB1100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB2100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB2100g", cpOrP("vitaminB2100g")),
+        this.toDisplayNutritionValue("vitaminB2100g", cpOrP("vitaminB2100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB3100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB3100g", cpOrP("vitaminB3100g")),
+        this.toDisplayNutritionValue("vitaminB3100g", cpOrP("vitaminB3100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB5100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB5100g", cpOrP("vitaminB5100g")),
+        this.toDisplayNutritionValue("vitaminB5100g", cpOrP("vitaminB5100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB6100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB6100g", cpOrP("vitaminB6100g")),
+        this.toDisplayNutritionValue("vitaminB6100g", cpOrP("vitaminB6100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB9100g: new FormControl(
-        this.toDisplayNutritionValue("vitaminB9100g", cpOrP("vitaminB9100g")),
+        this.toDisplayNutritionValue("vitaminB9100g", cpOrP("vitaminB9100g")), [Validators.min(0), Validators.max(100000)],
       ),
       vitaminB12100g: new FormControl(
         this.toDisplayNutritionValue(
           "vitaminB12100g",
           cpOrP("vitaminB12100g"),
-        ),
+        ), [Validators.min(0), Validators.max(100000)],
       ),
       biotin100g: new FormControl(
-        this.toDisplayNutritionValue("biotin100g", cpOrP("biotin100g")),
+        this.toDisplayNutritionValue("biotin100g", cpOrP("biotin100g")), [Validators.min(0), Validators.max(100000)],
       ),
 
       // Otros
@@ -1731,45 +1739,45 @@ export class AddProductPage implements OnInit, OnDestroy {
         this.toDisplayNutritionValue(
           "cholesterol100g",
           cpOrP("cholesterol100g"),
-        ),
+        ), [Validators.min(0), Validators.max(100000)],
       ),
       transFat100g: new FormControl(
-        this.toDisplayNutritionValue("transFat100g", cpOrP("transFat100g")),
+        this.toDisplayNutritionValue("transFat100g", cpOrP("transFat100g")), [Validators.min(0), Validators.max(100000)],
       ),
       omega3100g: new FormControl(
-        this.toDisplayNutritionValue("omega3100g", cpOrP("omega3100g")),
+        this.toDisplayNutritionValue("omega3100g", cpOrP("omega3100g")), [Validators.min(0), Validators.max(100000)],
       ),
       omega6100g: new FormControl(
-        this.toDisplayNutritionValue("omega6100g", cpOrP("omega6100g")),
+        this.toDisplayNutritionValue("omega6100g", cpOrP("omega6100g")), [Validators.min(0), Validators.max(100000)],
       ),
       omega9100g: new FormControl(
-        this.toDisplayNutritionValue("omega9100g", cpOrP("omega9100g")),
+        this.toDisplayNutritionValue("omega9100g", cpOrP("omega9100g")), [Validators.min(0), Validators.max(100000)],
       ),
       caffeine100g: new FormControl(
-        this.toDisplayNutritionValue("caffeine100g", cpOrP("caffeine100g")),
+        this.toDisplayNutritionValue("caffeine100g", cpOrP("caffeine100g")), [Validators.min(0), Validators.max(100000)],
       ),
       taurine100g: new FormControl(
-        this.toDisplayNutritionValue("taurine100g", cpOrP("taurine100g")),
+        this.toDisplayNutritionValue("taurine100g", cpOrP("taurine100g")), [Validators.min(0), Validators.max(100000)],
       ),
       alcohol100g: new FormControl(
-        this.toDisplayNutritionValue("alcohol100g", cpOrP("alcohol100g")),
+        this.toDisplayNutritionValue("alcohol100g", cpOrP("alcohol100g")), [Validators.min(0), Validators.max(100000)],
       ),
 
       // Textos (C-06 FIX: Usar cpOrP para priorizar overrides de CustomProduct)
       ingredients: new FormControl(
         Array.isArray(cpOrP("ingredients"))
           ? (cpOrP("ingredients") as string[]).join(", ")
-          : cpOrP("ingredients"),
+          : cpOrP("ingredients"), Validators.maxLength(2000),
       ),
       allergens: new FormControl(
         Array.isArray(cpOrP("allergens"))
           ? (cpOrP("allergens") as string[]).join(", ")
-          : cpOrP("allergens"),
+          : cpOrP("allergens"), Validators.maxLength(1000),
       ),
       traces: new FormControl(
         Array.isArray(cpOrP("traces"))
           ? (cpOrP("traces") as string[]).join(", ")
-          : cpOrP("traces"),
+          : cpOrP("traces"), Validators.maxLength(1000),
       ),
     });
 

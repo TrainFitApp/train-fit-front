@@ -308,6 +308,7 @@ export class TableCardPage {
           type: 'textarea' as 'textarea',
           value: this.tableCard.name,
           placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
+          attributes: { maxlength: 100 },
         },
       ],
       buttons: [

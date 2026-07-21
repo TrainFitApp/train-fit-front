@@ -352,6 +352,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         type: "textarea",
         value: this.pendingPinNoteText,
         placeholder: this.translate.instant("EXERCISE_CONFIG.YOUR_NOTES"),
+        attributes: { maxlength: 500 },
       },
     ];
 
@@ -417,6 +418,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
           type: 'textarea',
           value: this.pinnedNote.notes,
           placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -536,7 +538,10 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     }
 
     this.form = new FormGroup({
-      name: new FormControl(exerciseConfig.exercise.name, Validators.required),
+      name: new FormControl(
+        exerciseConfig.exercise.name,
+        Validators.compose([Validators.required, Validators.maxLength(100)])
+      ),
       description: new FormControl(exerciseConfig.exercise.description || ""),
     });
 
@@ -1622,6 +1627,7 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
         type: "textarea",
         value: this.notes,
         placeholder: this.translate.instant("EXERCISE_CONFIG.YOUR_NOTES"),
+        attributes: { maxlength: 500 },
       },
     ];
 
