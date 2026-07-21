@@ -704,28 +704,30 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   private async initializeKeyboardListeners(): Promise<void> {
     await this.removeKeyboardListeners();
 
-    const handleShow = () => this.setFooterHidden(true);
-    const handleHide = () => this.setFooterHidden(false);
+    if (this.platform.is('capacitor')) {
+      const handleShow = () => this.setFooterHidden(true);
+      const handleHide = () => this.setFooterHidden(false);
 
-    try {
-      this.keyboardWillShowHandle = await Keyboard.addListener(
-        "keyboardWillShow",
-        handleShow,
-      );
-      this.keyboardWillHideHandle = await Keyboard.addListener(
-        "keyboardWillHide",
-        handleHide,
-      );
-      this.keyboardDidShowHandle = await Keyboard.addListener(
-        "keyboardDidShow",
-        handleShow,
-      );
-      this.keyboardDidHideHandle = await Keyboard.addListener(
-        "keyboardDidHide",
-        handleHide,
-      );
-    } catch (error) {
-      console.error("[Keyboard] Failed to register listeners", error);
+      try {
+        this.keyboardWillShowHandle = await Keyboard.addListener(
+          "keyboardWillShow",
+          handleShow,
+        );
+        this.keyboardWillHideHandle = await Keyboard.addListener(
+          "keyboardWillHide",
+          handleHide,
+        );
+        this.keyboardDidShowHandle = await Keyboard.addListener(
+          "keyboardDidShow",
+          handleShow,
+        );
+        this.keyboardDidHideHandle = await Keyboard.addListener(
+          "keyboardDidHide",
+          handleHide,
+        );
+      } catch (error) {
+        console.error("[Keyboard] Failed to register listeners", error);
+      }
     }
 
     if (this.platform.is("ios") && window.visualViewport) {
@@ -761,13 +763,15 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private async removeKeyboardListeners(): Promise<void> {
-    try {
-      await this.keyboardWillShowHandle?.remove();
-      await this.keyboardWillHideHandle?.remove();
-      await this.keyboardDidShowHandle?.remove();
-      await this.keyboardDidHideHandle?.remove();
-    } catch (error) {
-      console.error("[Keyboard] Failed to remove listeners", error);
+    if (this.platform.is('capacitor')) {
+      try {
+        await this.keyboardWillShowHandle?.remove();
+        await this.keyboardWillHideHandle?.remove();
+        await this.keyboardDidShowHandle?.remove();
+        await this.keyboardDidHideHandle?.remove();
+      } catch (error) {
+        console.error("[Keyboard] Failed to remove listeners", error);
+      }
     }
 
     this.keyboardWillShowHandle = undefined;
