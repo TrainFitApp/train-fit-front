@@ -670,10 +670,25 @@ ion-header {
         position: relative !important;
         overflow: hidden !important;
         flex: 1 !important;
-        max-width: 140px !important;
+        min-width: 0 !important;
+        text-align: center !important;
         text-transform: uppercase !important;
-        white-space: nowrap !important;
-        text-overflow: ellipsis !important;
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        // El span interno de Ionic también debe centrarse verticalmente
+        // (hereda el flex del botón, pero por si acaso viene con su propio bloque)
+        span {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          text-align: center !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
 
         // Botón primario (GUARDAR, ACEPTAR, etc.)
         &:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
@@ -1603,7 +1618,7 @@ ion-modal.app-update-required-modal::part(content) {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 8px !important;
-    justify-content: flex-start !important;
+    justify-content: center !important;
     align-items: stretch !important;
   }
 
@@ -1619,19 +1634,20 @@ ion-modal.app-update-required-modal::part(content) {
   }
 
   /* Arriba derecha: Guardar / Confirmar */
-  .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive):not(.unsaved-discard-btn),
+  .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive):not(.unsaved-discard-btn):not(.alert-tertiary-btn),
   .alert-button.unsaved-save-btn {
     order: 2 !important;
     flex: 1 1 calc(50% - 4px) !important;
   }
 
-  /* Debajo centrado: Salir sin guardar / Descartar */
+  /* Debajo centrado: Salir sin guardar / Descartar / tercera opción neutra */
   .alert-button.alert-button-role-destructive,
-  .alert-button.unsaved-discard-btn {
+  .alert-button.unsaved-discard-btn,
+  .alert-button.alert-tertiary-btn {
     order: 3 !important;
     flex: 0 0 100% !important;
     width: 100% !important;
-    max-width: 220px !important;
+    max-width: 280px !important;
     margin: 0 auto !important;
     justify-content: center !important;
   }
@@ -1639,6 +1655,7 @@ ion-modal.app-update-required-modal::part(content) {
   /* Neutro para acciones no destructivas visualmente */
   .alert-button.unsaved-neutral-btn,
   .alert-button.unsaved-discard-btn,
+  .alert-button.alert-tertiary-btn,
   .alert-button.alert-button-role-destructive {
     background: rgba(255, 255, 255, 0.1) !important;
     color: rgba(255, 255, 255, 0.85) !important;

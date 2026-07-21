@@ -1206,6 +1206,14 @@ export class WorkoutComponent implements OnDestroy {
             });
           },
         },
+        {
+          text: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
+          cssClass: 'alert-tertiary-btn',
+          handler: () => {
+            // No se marcan como saltados: solo se continúa sin tocar los pendientes.
+            this.showStartWorkoutAlert();
+          },
+        },
       ],
     };
     this.ionicUtilService.showAlert(alertOptions);
