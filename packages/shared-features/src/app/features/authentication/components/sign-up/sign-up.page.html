@@ -145,6 +145,7 @@
                     formControlName="weight"
                     class="input-field"
                     step="0.1"
+                    maxlength="6"
                     [placeholder]="'SIGN_UP.WEIGHT_PLACEHOLDER' | translate"
                     required
                     appDecimalInput
@@ -178,13 +179,16 @@
                 <div class="input-wrapper">
                   <ion-icon name="resize-outline" class="input-icon"></ion-icon>
                   <input
-                    type="number"
+                    type="text"
                     inputmode="numeric"
                     id="height"
                     formControlName="height"
                     class="input-field"
+                    maxlength="3"
                     [placeholder]="'SIGN_UP.HEIGHT_PLACEHOLDER' | translate"
                     required
+                    appDecimalInput
+                    [maxDecimals]="0"
                   />
                 </div>
                 <div

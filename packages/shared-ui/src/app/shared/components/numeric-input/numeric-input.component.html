@@ -9,6 +9,7 @@
     type="text"
     inputmode="decimal"
     class="numeric-value-input"
+    [attr.maxlength]="maxLength"
     [value]="displayValue"
     (focus)="onInputFocus($event)"
     (input)="onInputChange($event)"

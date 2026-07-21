@@ -444,6 +444,7 @@ export class MealComponent implements OnInit, OnChanges {
           type: 'textarea',
           placeholder: t('COMMON.WRITE_NOTES_HERE'),
           value: this.meal.notes || '',
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

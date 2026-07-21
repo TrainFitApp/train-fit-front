@@ -223,6 +223,7 @@ export class ToolbarCalendarComponent {
         type: 'textarea',
         placeholder: t('TOOLBAR_CALENDAR.NOTE_PLACEHOLDER'),
         value: this.dietDay.notes || '',
+        attributes: { maxlength: 500 },
       },
     ];
 
@@ -295,6 +296,7 @@ export class ToolbarCalendarComponent {
           type: 'textarea',
           value: this.pinnedNote || '',
           placeholder: t('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

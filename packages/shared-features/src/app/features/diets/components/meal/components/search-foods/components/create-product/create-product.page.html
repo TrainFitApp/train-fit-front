@@ -982,6 +982,8 @@
                       class="custom-info-textarea"
                       formControlName="ingredients"
                       placeholder="Ej: Trigo, azúcar, sal..."
+                      [maxlength]="2000"
+                      [counter]="true"
                     ></ion-textarea>
                   </div>
 
@@ -994,6 +996,8 @@
                       class="custom-info-textarea"
                       formControlName="allergens"
                       placeholder="Ej: Gluten, leche, soja..."
+                      [maxlength]="1000"
+                      [counter]="true"
                     ></ion-textarea>
                   </div>
 
@@ -1006,6 +1010,8 @@
                       class="custom-info-textarea"
                       formControlName="traces"
                       placeholder="Ej: Frutos de cáscara..."
+                      [maxlength]="1000"
+                      [counter]="true"
                     ></ion-textarea>
                   </div>
                 </div>

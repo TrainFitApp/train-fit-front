@@ -232,6 +232,7 @@ export class WorkoutComponent implements OnDestroy {
           type: 'textarea',
           value: note.notes,
           placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [
@@ -879,6 +880,7 @@ export class WorkoutComponent implements OnDestroy {
           type: 'textarea',
           value: this.workout.notes,
           placeholder: this.translate.instant('TABLES.WORKOUT_NOTES_PLACEHOLDER'),
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

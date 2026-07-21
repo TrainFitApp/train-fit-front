@@ -435,6 +435,7 @@ export class UtilService {
           type: 'textarea' as 'textarea',
           placeholder: this.translate.instant('COMMON.WRITE_NOTES_HERE'),
           value: object['notes'] || '',
+          attributes: { maxlength: 500 },
         },
       ],
       buttons: [

@@ -7,7 +7,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastOptions } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -141,7 +141,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       (this.dietDay?.date === this.selectedDate ? this.dietDay?.weight : null);
 
     this.weightForm = new FormGroup({
-      weight: new FormControl(weight ?? null),
+      weight: new FormControl(weight ?? null, [Validators.min(0), Validators.max(300)]),
     });
   }
 
