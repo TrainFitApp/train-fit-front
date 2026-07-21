@@ -64,7 +64,7 @@
         [mealIndex]="j"
         [user]="user"
         [load]="load"
-        [pasteMode]="pasteMode && copyMealIndex !== j && mealIndexPaste !== j"
+        [pasteMode]="pasteMode && copyMealIndex !== j && mealIdPaste !== meal?._id"
         [activeCopyMealIndex]="copyMealIndex"
         [clipboardClearCounter]="clipboardClearCounter"
         (pasteEvent)="paste($event)"
