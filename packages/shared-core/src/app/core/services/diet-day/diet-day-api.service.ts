@@ -34,16 +34,6 @@ export class DietDayAPIService {
     );
   }
 
-  public getDietDaysWeightsBetweenDatesByIdDiet(
-    id: string,
-    dateRage: DateRange
-  ): Observable<number[]> {
-    return this.http.post<DietDay[]>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/weights/between/${id}`,
-      dateRage
-    );
-  }
-
   public createDietDay(dietDay: DietDay): Observable<DietDay> {
     return this.http.post<DietDay>(
       `${DietDayAPIService.DIET_DAYS_ENDPOINT}`,

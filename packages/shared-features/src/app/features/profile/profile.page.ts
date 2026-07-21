@@ -10,7 +10,7 @@ import {
   ToastOptions,
 } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
-import { Observable, Subscription, forkJoin } from 'rxjs';
+import { Subscription, forkJoin } from 'rxjs';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Diet } from 'src/app/core/models/diet';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -18,6 +18,7 @@ import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { Workout } from 'src/app/core/models/workout';
+import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
@@ -160,6 +161,7 @@ export class ProfilePage implements OnInit {
     public utilService: UtilService,
     private ionicUtilService: IonicUtilService,
     private themeService: ThemeService,
+    private anthropometryService: AnthropometryService,
     private dietDayService: DietDayService,
     private nutritionalGoalService: NutritionalGoalService,
     private navigationService: NavigationService,
@@ -232,6 +234,7 @@ export class ProfilePage implements OnInit {
 
   public ionViewWillEnter(): void {
     void this.refreshPremiumState();
+    this.lastDietWeightsFetchKey = undefined;
     this.setWeekRanges();
     this.setDietDaysWeights();
   }
@@ -751,42 +754,37 @@ export class ProfilePage implements OnInit {
   }
 
   private setDietDaysWeights(): void {
-    if (this.user?.dietInUse) {
-      if (!this.prevWeekDateRange || !this.currWeekDateRange) {
-        return;
-      }
-
-      const currentFetchKey = [
-        this.user.dietInUse,
-        this.prevWeekDateRange?.minDate,
-        this.prevWeekDateRange?.maxDate,
-        this.currWeekDateRange?.minDate,
-        this.currWeekDateRange?.maxDate,
-      ].join('|');
-
-      if (this.lastDietWeightsFetchKey === currentFetchKey) {
-        return;
-      }
-
-      this.lastDietWeightsFetchKey = currentFetchKey;
-
-      const obs: Observable<number[]>[] = [
-        this.dietDayService.getDietDaysWeightsBetweenDatesByIdDiet(
-          this.user.dietInUse,
-          this.prevWeekDateRange
-        ),
-        this.dietDayService.getDietDaysWeightsBetweenDatesByIdDiet(
-          this.user.dietInUse,
-          this.currWeekDateRange
-        ),
-      ];
-
-      forkJoin(obs).subscribe(([resPrevWeights, resCurrWeights]) => {
-        this.prevDietDayWeights = resPrevWeights;
-        this.currDietDayWeights = resCurrWeights;
-        this.setDietDayWeightsAverages();
-      });
+    if (!this.prevWeekDateRange || !this.currWeekDateRange) {
+      return;
     }
+
+    const currentFetchKey = [
+      this.prevWeekDateRange?.minDate,
+      this.prevWeekDateRange?.maxDate,
+      this.currWeekDateRange?.minDate,
+      this.currWeekDateRange?.maxDate,
+    ].join('|');
+
+    if (this.lastDietWeightsFetchKey === currentFetchKey) {
+      return;
+    }
+
+    this.lastDietWeightsFetchKey = currentFetchKey;
+
+    forkJoin([
+      this.anthropometryService.getAnthropometriesBetweenDates(
+        this.prevWeekDateRange.minDate,
+        this.prevWeekDateRange.maxDate
+      ),
+      this.anthropometryService.getAnthropometriesBetweenDates(
+        this.currWeekDateRange.minDate,
+        this.currWeekDateRange.maxDate
+      ),
+    ]).subscribe(([resPrev, resCurr]) => {
+      this.prevDietDayWeights = resPrev.map((a) => a.weight).filter((w): w is number => w != null);
+      this.currDietDayWeights = resCurr.map((a) => a.weight).filter((w): w is number => w != null);
+      this.setDietDayWeightsAverages();
+    });
   }
 
   private initChartMacros() {

@@ -74,16 +74,6 @@ export class DietDayService {
     return this.dietDayAPIService.getDietDaysBetweenDatesByIdDiet(id, dateRage);
   }
 
-  public getDietDaysWeightsBetweenDatesByIdDiet(
-    id: string,
-    dateRage: DateRange
-  ): Observable<number[]> {
-    return this.dietDayAPIService.getDietDaysWeightsBetweenDatesByIdDiet(
-      id,
-      dateRage
-    );
-  }
-
   public createDietDay(dietDay: DietDay): Observable<DietDay> {
     return this.dietDayAPIService.createDietDay(dietDay);
   }

@@ -233,7 +233,8 @@ export class UtilService {
   }
 
   public parseYYYYMMDD(dateStr: string): Date {
-    const [y, m, d] = dateStr.split('-').map(Number);
+    const datePart = dateStr.split('T')[0];
+    const [y, m, d] = datePart.split('-').map(Number);
     return new Date(y, m - 1, d);
   }
 
