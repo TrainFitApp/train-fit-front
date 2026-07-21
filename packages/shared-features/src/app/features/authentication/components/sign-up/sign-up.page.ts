@@ -152,6 +152,17 @@ export class SignUpPage implements OnInit, OnDestroy {
   private _maxDate: string | null = null;
   private _minDate: string | null = null;
 
+  // Unit-stepper de peso/altura: solo de presentación, el FormControl sigue en kg/cm
+  private static readonly KG_TO_LB = 2.20462;
+  private static readonly CM_TO_IN = 0.393701;
+  private static readonly WEIGHT_MIN_KG = 30;
+  private static readonly WEIGHT_MAX_KG = 300;
+  private static readonly HEIGHT_MIN_CM = 70;
+  private static readonly HEIGHT_MAX_CM = 300;
+
+  public weightUnit: 'kg' | 'lb' = 'kg';
+  public heightUnit: 'cm' | 'in' = 'cm';
+
   constructor(
     private userService: UserService,
     private matchPasswords: MatchPasswords,
@@ -221,6 +232,12 @@ export class SignUpPage implements OnInit, OnDestroy {
     );
   }
 
+  // Barra de progreso segmentada: un segmento por slide presente
+  public get progressSegments(): number[] {
+    const count = this.getPresentSlidesControls().length;
+    return Array.from({ length: count }, (_, i) => i);
+  }
+
   public ngOnInit(): void {
     this.initVariables();
     this.initForm();
@@ -280,7 +297,7 @@ export class SignUpPage implements OnInit, OnDestroy {
         name: new FormControl(null, Validators.required),
         lastname: new FormControl(null, Validators.required),
         weight: new FormControl(
-          null,
+          70,
           Validators.compose([
             Validators.required,
             Validators.min(30),
@@ -288,7 +305,7 @@ export class SignUpPage implements OnInit, OnDestroy {
           ])
         ),
         height: new FormControl(
-          null,
+          170,
           Validators.compose([
             Validators.required,
             Validators.min(70),
@@ -399,6 +416,84 @@ export class SignUpPage implements OnInit, OnDestroy {
     control.setValue(!current);
     control.markAsTouched();
     control.updateValueAndValidity({ onlySelf: true });
+  }
+
+  // --- Unit-stepper de peso/altura (display-only, el FormControl sigue en kg/cm) ---
+
+  public get weightDisplayValue(): number {
+    const kg = Number(this.signUpForm.get('weight')?.value) || 0;
+    return this.weightUnit === 'kg'
+      ? this.round1(kg)
+      : this.round1(kg * SignUpPage.KG_TO_LB);
+  }
+
+  public get heightDisplayValue(): number {
+    const cm = Number(this.signUpForm.get('height')?.value) || 0;
+    return this.heightUnit === 'cm'
+      ? Math.round(cm)
+      : Math.round(cm * SignUpPage.CM_TO_IN);
+  }
+
+  public setWeightUnit(unit: 'kg' | 'lb'): void {
+    this.weightUnit = unit;
+  }
+
+  public setHeightUnit(unit: 'cm' | 'in'): void {
+    this.heightUnit = unit;
+  }
+
+  public stepWeight(delta: number): void {
+    const control = this.signUpForm.get('weight');
+    if (!control) return;
+    const currentKg = Number(control.value) || SignUpPage.WEIGHT_MIN_KG;
+    const deltaKg =
+      this.weightUnit === 'kg' ? delta : delta / SignUpPage.KG_TO_LB;
+    const nextKg = Math.max(
+      SignUpPage.WEIGHT_MIN_KG,
+      Math.min(SignUpPage.WEIGHT_MAX_KG, currentKg + deltaKg)
+    );
+    control.setValue(this.round1(nextKg));
+    control.markAsTouched();
+  }
+
+  public stepHeight(delta: number): void {
+    const control = this.signUpForm.get('height');
+    if (!control) return;
+    const currentCm = Number(control.value) || SignUpPage.HEIGHT_MIN_CM;
+    const deltaCm =
+      this.heightUnit === 'cm' ? delta : delta / SignUpPage.CM_TO_IN;
+    const nextCm = Math.max(
+      SignUpPage.HEIGHT_MIN_CM,
+      Math.min(SignUpPage.HEIGHT_MAX_CM, currentCm + deltaCm)
+    );
+    control.setValue(Math.round(nextCm));
+    control.markAsTouched();
+  }
+
+  private round1(value: number): number {
+    return Math.round(value * 10) / 10;
+  }
+
+  // --- Checklist visual de fuerza de contraseña (no bloquea el envío, ver PasswordComplexity) ---
+
+  public get passwordChecklist(): {
+    length: boolean;
+    uppercase: boolean;
+    number: boolean;
+    symbol: boolean;
+  } {
+    const value: string = this.signUpForm.get('password')?.value || '';
+    return {
+      length: value.length >= 8,
+      uppercase: /[A-Z]/.test(value),
+      number: /[0-9]/.test(value),
+      symbol: /[^A-Za-z0-9]/.test(value),
+    };
+  }
+
+  public get passwordStrengthScore(): number {
+    const c = this.passwordChecklist;
+    return [c.length, c.uppercase, c.number, c.symbol].filter(Boolean).length;
   }
 
   private updateTrainingOptions(selectedStep?: number): void {

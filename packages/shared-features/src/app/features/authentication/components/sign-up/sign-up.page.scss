@@ -1,12 +1,13 @@
-// Variables de colores inspiradas en la imagen de referencia
+// Tokens visuales alineados al mockup "TrainFit Onboarding" (dark-only, ver DESIGN.md)
 :host {
-  --bg-primary: #0a0a0b;
-  --bg-secondary: #111111;
-  --bg-tertiary: #1c1c1e;
-  --border-primary: #2a2a2a;
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #0f0f0f;
+  --bg-tertiary: #1a1a1a;
+  --border-primary: #242424;
   --text-primary: #ffffff;
-  --text-secondary: #9ca3af;
+  --text-secondary: #8a8a8a;
   --accent-primary: #fe9000;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
 }
 
 // Auth Content Container
@@ -55,14 +56,14 @@
     display: flex;
     align-items: center;
     background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
+    border: 1.5px solid var(--border-primary);
     border-radius: 12px;
-    transition: all 0.3s ease;
+    transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
     min-height: 56px;
 
     &:focus-within {
       border-color: var(--accent-primary);
-      box-shadow: 0 0 0 2px rgba(254, 144, 0, 0.1);
+      box-shadow: 0 0 0 3px rgba(254, 144, 0, 0.08);
     }
 
     &:has(.input-field.ng-invalid.ng-touched) {
@@ -190,10 +191,10 @@
   }
 }
 
-// Gender Options
+// Gender Options — cards del mockup (icono SVG + label, borde+tinte naranja al seleccionar)
 .gender-options {
   display: flex;
-  gap: 15px;
+  gap: 12px;
 }
 
 .gender-option {
@@ -209,52 +210,42 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px 10px;
+    gap: 14px;
+    padding: 28px 16px;
     background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: 12px;
+    border: 1.5px solid var(--border-primary);
+    border-radius: 16px;
     text-align: center;
     height: 100%;
+    cursor: pointer;
+    transition: border-color 200ms ease-out, background-color 200ms ease-out,
+      box-shadow 200ms ease-out;
 
-    ion-icon {
-      font-size: 24px;
-      margin-bottom: 10px;
-      color: var(--text-secondary);
+    svg {
+      display: block;
+    }
+
+    svg path,
+    svg circle {
+      stroke: var(--text-secondary);
+      transition: stroke 200ms ease-out;
     }
 
     span {
-      font-weight: 600;
-    }
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    height: 100%;
-
-    ion-icon {
-      font-size: 24px;
-      margin-bottom: 10px;
-      color: var(--text-secondary);
-    }
-
-    span {
-      font-weight: 600;
-    }
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &.selected {
-      background-color: #2c2111;
-      border-color: var(--accent-primary);
+      font-weight: 700;
+      font-size: 16px;
     }
   }
 
   input:checked + label {
-    background-color: #2c2111;
+    background-color: rgba(254, 144, 0, 0.07);
     border-color: var(--accent-primary);
     color: var(--accent-primary);
+    box-shadow: 0 0 0 1px rgba(254, 144, 0, 0.12), 0 8px 32px rgba(254, 144, 0, 0.1);
 
-    ion-icon {
-      color: var(--accent-primary);
+    svg path,
+    svg circle {
+      stroke: var(--accent-primary);
     }
   }
 }
@@ -271,13 +262,17 @@
 
   .selection-option {
     background-color: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 12px 16px;
+    border: 1.5px solid var(--border-primary);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 200ms ease-out, background-color 200ms ease-out,
+      box-shadow 200ms ease-out;
 
     &.selected {
-      background-color: #2c2111;
+      background-color: rgba(254, 144, 0, 0.07);
       border-color: var(--accent-primary);
+      box-shadow: 0 0 0 1px rgba(254, 144, 0, 0.1), 0 4px 20px rgba(254, 144, 0, 0.07);
     }
   }
 
@@ -405,40 +400,35 @@
   }
 }
 
-// Swiper personalizado
-.signup-swiper {
-  height: auto;
+swiper-container {
+  width: 100%;
+  flex: 1;
+}
 
-  .swiper-slide {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 20px 0;
-  }
+// Barra de progreso segmentada (un segmento por slide), reemplaza la progressbar continua de Swiper
+.signup-progress {
+  display: flex;
+  gap: 3px;
+  padding: 0 5px 14px;
+  flex-shrink: 0;
 
-  .swiper-pagination {
-    position: relative;
-    margin-top: 30px;
+  &__seg {
+    height: 3px;
+    flex: 1;
+    background: var(--border-primary);
+    border-radius: 2px;
+    transition: background 200ms ease-out;
 
-    .swiper-pagination-bullet {
-      background: var(--border-primary);
-      opacity: 1;
-      width: 8px;
-      height: 8px;
-      margin: 0 4px;
-
-      &.swiper-pagination-bullet-active {
-        background: var(--accent-primary);
-      }
+    &--on {
+      background: var(--accent-primary);
     }
   }
 }
 
-swiper-container {
-  width: 100%;
-  flex: 1;
-  --swiper-pagination-color: var(--accent-primary);
-  --swiper-pagination-progressbar-bg-color: var(--border-primary);
+@media (prefers-reduced-motion: reduce) {
+  .signup-progress__seg {
+    transition: none;
+  }
 }
 
 swiper-slide {
@@ -623,11 +613,14 @@ ion-input {
 
 .section-title {
   color: #ffffff;
-  font-size: 20px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin-bottom: 8px;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
 .section-subtitle {
@@ -635,7 +628,7 @@ ion-input {
   color: var(--text-secondary);
   margin-bottom: 20px;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 // Auth Links
@@ -757,57 +750,55 @@ ion-input {
   }
 }
 
-// Checkbox Section
+// Términos y políticas — filas tipo toggle (visual del mockup), mismos formControlNames
 .checkbox-section {
   margin: 25px 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
-.checkbox-item {
+.terms-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  transition: transform 0.08s ease, border-color 0.2s ease;
-  cursor: pointer;
-
-  &:active {
-    transform: scale(0.98);
-  }
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: box-shadow 200ms ease-out;
 
   &.has-error {
-    border-color: #ff4444;
+    box-shadow: 0 0 0 1.5px #ff4444;
   }
 
-  .modern-checkbox {
-    margin-right: 12px;
-    --size: 22px;
-    --checkbox-background-checked: var(--accent-primary);
-    --border-color-checked: var(--accent-primary);
-    --checkmark-color: white;
+  .terms-row__info {
+    flex: 1;
+    min-width: 0;
   }
 
-  .checkbox-label {
+  .terms-row__label {
     font-size: 14px;
+    font-weight: 600;
     color: var(--text-primary);
-    line-height: 1.4;
+    line-height: 1.3;
   }
 
   .checkbox-link {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
     color: var(--accent-primary);
     text-decoration: none;
     font-weight: 500;
   }
 
-  .checkbox-icon {
-    margin-left: auto;
-    font-size: 20px;
-    color: var(--text-secondary);
+  ion-toggle {
+    flex-shrink: 0;
+    --track-background: var(--border-primary);
+    --track-background-checked: var(--accent-primary);
+    --handle-background: #ffffff;
+    --handle-background-checked: #ffffff;
   }
 }
 
@@ -841,15 +832,19 @@ ion-input {
 
 .submit-button {
   --background: var(--accent-primary);
-
-  --color: white;
-  --border-radius: 12px;
+  --color: #000000;
+  --border-radius: 100px;
   --box-shadow: 0 4px 15px rgba(254, 144, 0, 0.2);
   --padding-top: 16px;
   --padding-bottom: 16px;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 16px;
-  transition: all 0.3s ease;
+  transition: transform 160ms ease-out;
+
+  &:active {
+    transform: scale(0.98);
+  }
 
   &:disabled {
     --background: var(--bg-tertiary);
@@ -919,12 +914,14 @@ ion-input {
 
 .nav-button {
   flex: 1;
-  --padding-top: 14px;
-  --padding-bottom: 14px;
-  --border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  --border-radius: 100px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  transition: transform 160ms ease-out;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -939,8 +936,12 @@ ion-input {
 
   &.next {
     --background: var(--accent-primary);
-    --color: white;
+    --color: #000000;
     --box-shadow: 0 4px 15px rgba(254, 144, 0, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.97);
   }
 
   &:disabled {
@@ -1312,6 +1313,231 @@ ion-input {
 
   .signup-link {
     font-size: 12px;
+  }
+}
+
+// ------ Unit-stepper de peso/altura ------
+
+.unit-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+
+  &__track {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 100px;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  &__btn {
+    padding: 8px 22px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 200ms ease-out, color 200ms ease-out;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    font-family: inherit;
+
+    &--active {
+      background: var(--accent-primary);
+      color: #000000;
+    }
+  }
+}
+
+.weight-height-display {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0 4px;
+
+  &__value {
+    font-family: var(--font-display);
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  &__unit {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding-bottom: 10px;
+  }
+}
+
+.stepper-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0 4px;
+
+  button {
+    width: 52px;
+    height: 52px;
+    background: var(--bg-tertiary);
+    border: none;
+    border-radius: 50%;
+    color: var(--text-primary);
+    font-size: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 160ms ease-out, background-color 200ms ease-out;
+
+    &:active {
+      transform: scale(0.94);
+      background: var(--border-primary);
+    }
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stepper-buttons button:hover {
+    background: var(--border-primary);
+  }
+}
+
+// ------ Checklist de fuerza de contraseña (visual-only, ver decisión de plan) ------
+
+.password-strength-bar {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0 12px;
+
+  &__seg {
+    height: 3px;
+    flex: 1;
+    background: var(--border-primary);
+    border-radius: 2px;
+    transition: background-color 200ms ease-out;
+
+    &--on {
+      background: var(--accent-primary);
+    }
+  }
+}
+
+.password-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    transition: color 200ms ease-out;
+
+    &--met {
+      color: #d0d0d0;
+    }
+  }
+
+  &__dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: transparent;
+    transition: background-color 200ms ease-out, border-color 200ms ease-out,
+      color 200ms ease-out;
+
+    .password-checklist__item--met & {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #000000;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .password-strength-bar__seg,
+  .password-checklist__item,
+  .password-checklist__dot {
+    transition: none;
+  }
+}
+
+// ------ Anillo circular de kcal (slide de resumen) ------
+
+.kcal-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 4px;
+
+  &__wrap {
+    position: relative;
+    width: 148px;
+    height: 148px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__svg {
+    position: absolute;
+    inset: 0;
+  }
+
+  &__track {
+    stroke: var(--border-primary);
+  }
+
+  &__value {
+    stroke: var(--accent-primary);
+    filter: drop-shadow(0 0 8px rgba(254, 144, 0, 0.55));
+  }
+
+  &__center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  &__number {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 10px;
+    color: var(--accent-primary);
+    margin-top: 4px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  &__caption {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    text-align: center;
   }
 }
 

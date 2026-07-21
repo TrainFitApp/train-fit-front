@@ -1,13 +1,16 @@
 <ion-header />
 <ion-content class="auth-content" fullscreen scroll-y="false">
   <div class="auth-container">
+    <div class="signup-progress" *ngIf="!verifyEmailOnly">
+      <div
+        class="signup-progress__seg"
+        *ngFor="let seg of progressSegments"
+        [class.signup-progress__seg--on]="seg <= currentSlide"
+      ></div>
+    </div>
+
     <form class="signup-form" [formGroup]="signUpForm" (ngSubmit)="showSheet()">
-      <swiper-container
-        pagination="true"
-        pagination-type="progressbar"
-        init="false"
-        #swiperSignUp
-      >
+      <swiper-container init="false" #swiperSignUp>
         <ng-container *ngIf="!verifyEmailOnly">
           <swiper-slide>
             <div class="form-section">
@@ -132,38 +135,51 @@
             <div class="form-section">
               <h2 class="section-title">{{ 'SIGN_UP.YOUR_WEIGHT' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.WEIGHT_SUBTITLE' | translate }}</p>
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon
-                    name="fitness-outline"
-                    class="input-icon"
-                  ></ion-icon>
-                  <input
-                    type="text"
-                    inputmode="decimal"
-                    id="weight"
-                    formControlName="weight"
-                    class="input-field"
-                    step="0.1"
-                    [placeholder]="'SIGN_UP.WEIGHT_PLACEHOLDER' | translate"
-                    required
-                    appDecimalInput
-                  />
+
+              <div class="unit-toggle">
+                <div class="unit-toggle__track">
+                  <button
+                    type="button"
+                    class="unit-toggle__btn"
+                    [class.unit-toggle__btn--active]="weightUnit === 'kg'"
+                    (click)="setWeightUnit('kg')"
+                  >
+                    kg
+                  </button>
+                  <button
+                    type="button"
+                    class="unit-toggle__btn"
+                    [class.unit-toggle__btn--active]="weightUnit === 'lb'"
+                    (click)="setWeightUnit('lb')"
+                  >
+                    lb
+                  </button>
                 </div>
-                <div
-                  *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
-                  class="validation-error"
+              </div>
+
+              <div class="weight-height-display">
+                <span class="weight-height-display__value">{{ weightDisplayValue }}</span>
+                <span class="weight-height-display__unit">{{ weightUnit }}</span>
+              </div>
+
+              <div class="stepper-buttons">
+                <button type="button" (click)="stepWeight(-1)">−</button>
+                <button type="button" (click)="stepWeight(1)">+</button>
+              </div>
+
+              <div
+                *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
+                class="validation-error"
+              >
+                <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
+                  >{{ 'SIGN_UP.WEIGHT_REQUIRED' | translate }}</span
                 >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
-                    >{{ 'SIGN_UP.WEIGHT_REQUIRED' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
-                    >{{ 'SIGN_UP.WEIGHT_MIN' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
-                    >{{ 'SIGN_UP.WEIGHT_MAX' | translate }}</span
-                  >
-                </div>
+                <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
+                  >{{ 'SIGN_UP.WEIGHT_MIN' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
+                  >{{ 'SIGN_UP.WEIGHT_MAX' | translate }}</span
+                >
               </div>
             </div>
           </swiper-slide>
@@ -174,33 +190,51 @@
               <p class="section-subtitle">
                 {{ 'SIGN_UP.HEIGHT_SUBTITLE' | translate }}
               </p>
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon name="resize-outline" class="input-icon"></ion-icon>
-                  <input
-                    type="number"
-                    inputmode="numeric"
-                    id="height"
-                    formControlName="height"
-                    class="input-field"
-                    [placeholder]="'SIGN_UP.HEIGHT_PLACEHOLDER' | translate"
-                    required
-                  />
+
+              <div class="unit-toggle">
+                <div class="unit-toggle__track">
+                  <button
+                    type="button"
+                    class="unit-toggle__btn"
+                    [class.unit-toggle__btn--active]="heightUnit === 'cm'"
+                    (click)="setHeightUnit('cm')"
+                  >
+                    cm
+                  </button>
+                  <button
+                    type="button"
+                    class="unit-toggle__btn"
+                    [class.unit-toggle__btn--active]="heightUnit === 'in'"
+                    (click)="setHeightUnit('in')"
+                  >
+                    in
+                  </button>
                 </div>
-                <div
-                  *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
-                  class="validation-error"
+              </div>
+
+              <div class="weight-height-display">
+                <span class="weight-height-display__value">{{ heightDisplayValue }}</span>
+                <span class="weight-height-display__unit">{{ heightUnit }}</span>
+              </div>
+
+              <div class="stepper-buttons">
+                <button type="button" (click)="stepHeight(-1)">−</button>
+                <button type="button" (click)="stepHeight(1)">+</button>
+              </div>
+
+              <div
+                *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
+                class="validation-error"
+              >
+                <span *ngIf="signUpForm.get('height')?.errors?.['required']"
+                  >{{ 'SIGN_UP.HEIGHT_REQUIRED' | translate }}</span
                 >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['required']"
-                    >{{ 'SIGN_UP.HEIGHT_REQUIRED' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['min']"
-                    >{{ 'SIGN_UP.HEIGHT_MIN' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['max']"
-                    >{{ 'SIGN_UP.HEIGHT_MAX' | translate }}</span
-                  >
-                </div>
+                <span *ngIf="signUpForm.get('height')?.errors?.['min']"
+                  >{{ 'SIGN_UP.HEIGHT_MIN' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('height')?.errors?.['max']"
+                  >{{ 'SIGN_UP.HEIGHT_MAX' | translate }}</span
+                >
               </div>
             </div>
           </swiper-slide>
@@ -225,7 +259,13 @@
                       [value]="SEX_TYPES.male"
                       formControlName="sex"
                     />
-                    <label for="male"><span>{{ 'SIGN_UP.MALE' | translate }}</span></label>
+                    <label for="male">
+                      <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+                        <circle cx="18" cy="26" r="12" stroke="#8A8A8A" stroke-width="2.5"></circle>
+                        <path d="M27 17L37 7M37 7H30M37 7V14" stroke="#8A8A8A" stroke-width="2.5" stroke-linecap="round"></path>
+                      </svg>
+                      <span>{{ 'SIGN_UP.MALE' | translate }}</span>
+                    </label>
                   </div>
                   <div class="gender-option">
                     <input
@@ -234,7 +274,13 @@
                       [value]="SEX_TYPES.female"
                       formControlName="sex"
                     />
-                    <label for="female"><span>{{ 'SIGN_UP.FEMALE' | translate }}</span></label>
+                    <label for="female">
+                      <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
+                        <circle cx="22" cy="16" r="12" stroke="#8A8A8A" stroke-width="2.5"></circle>
+                        <path d="M22 28V40M16 34H28" stroke="#8A8A8A" stroke-width="2.5" stroke-linecap="round"></path>
+                      </svg>
+                      <span>{{ 'SIGN_UP.FEMALE' | translate }}</span>
+                    </label>
                   </div>
                 </div>
                 <div
@@ -268,6 +314,9 @@
                   (click)="selectSteps(stepValue.value)"
                 >
                   <h3 class="selection-title">{{ stepValue.name | translate }}</h3>
+                  <p class="selection-desc" *ngIf="stepValue.description">
+                    {{ stepValue.description | translate }}
+                  </p>
                 </div>
               </div>
               <div
@@ -527,6 +576,32 @@
                 </div>
               </div>
 
+              <div class="password-strength-bar">
+                <div
+                  class="password-strength-bar__seg"
+                  *ngFor="let n of [1, 2, 3, 4]"
+                  [class.password-strength-bar__seg--on]="passwordStrengthScore >= n"
+                ></div>
+              </div>
+              <div class="password-checklist">
+                <div class="password-checklist__item" [class.password-checklist__item--met]="passwordChecklist.length">
+                  <span class="password-checklist__dot">✓</span>
+                  <span>{{ 'SIGN_UP.PASSWORD_REQ_LENGTH' | translate }}</span>
+                </div>
+                <div class="password-checklist__item" [class.password-checklist__item--met]="passwordChecklist.uppercase">
+                  <span class="password-checklist__dot">✓</span>
+                  <span>{{ 'SIGN_UP.PASSWORD_REQ_UPPERCASE' | translate }}</span>
+                </div>
+                <div class="password-checklist__item" [class.password-checklist__item--met]="passwordChecklist.number">
+                  <span class="password-checklist__dot">✓</span>
+                  <span>{{ 'SIGN_UP.PASSWORD_REQ_NUMBER' | translate }}</span>
+                </div>
+                <div class="password-checklist__item" [class.password-checklist__item--met]="passwordChecklist.symbol">
+                  <span class="password-checklist__dot">✓</span>
+                  <span>{{ 'SIGN_UP.PASSWORD_REQ_SYMBOL' | translate }}</span>
+                </div>
+              </div>
+
               <div class="input-group">
                 <div class="input-wrapper">
                   <ion-icon
@@ -683,32 +758,29 @@
               <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
               <div class="checkbox-section">
                 <div
-                  class="checkbox-item"
+                  class="terms-row"
                   (click)="toggleControl('termsAndConditions')"
                   [ngClass]="{
                   'has-error': signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched
                 }"
                 >
-                  <ion-checkbox
-                    formControlName="termsAndConditions"
-                    mode="ios"
-                    class="modern-checkbox"
-                    (click)="$event.stopPropagation()"
-                  ></ion-checkbox>
-                  <span class="checkbox-label">
-                    {{ 'SIGN_UP.I_ACCEPT' | translate }}
+                  <div class="terms-row__info">
+                    <span class="terms-row__label">
+                      {{ 'SIGN_UP.I_ACCEPT' | translate }}
+                      {{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}
+                    </span>
                     <a
                       [href]="LINKS.termsAndConditions"
                       class="checkbox-link"
                       (click)="$event.stopPropagation()"
-                      >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a
+                      >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }} →</a
                     >
-                  </span>
-                  <ion-icon
-                    name="document-text-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
+                  </div>
+                  <ion-toggle
+                    formControlName="termsAndConditions"
+                    mode="ios"
+                    (click)="$event.stopPropagation()"
+                  ></ion-toggle>
                 </div>
                 <div
                   *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
@@ -718,32 +790,26 @@
                 </div>
 
                 <div
-                  class="checkbox-item"
+                  class="terms-row"
                   (click)="toggleControl('policyAndPrivacy')"
                   [ngClass]="{
                   'has-error': signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched
                 }"
                 >
-                  <ion-checkbox
-                    formControlName="policyAndPrivacy"
-                    mode="ios"
-                    class="modern-checkbox"
-                    (click)="$event.stopPropagation()"
-                  ></ion-checkbox>
-                  <span class="checkbox-label">
-                    {{ 'SIGN_UP.I_HAVE_READ' | translate }}
+                  <div class="terms-row__info">
+                    <span class="terms-row__label">{{ 'SIGN_UP.I_HAVE_READ' | translate }} {{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</span>
                     <a
                       [href]="LINKS.privacyAndPolicy"
                       class="checkbox-link"
                       (click)="$event.stopPropagation()"
-                      >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a
+                      >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }} →</a
                     >
-                  </span>
-                  <ion-icon
-                    name="shield-checkmark-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
+                  </div>
+                  <ion-toggle
+                    formControlName="policyAndPrivacy"
+                    mode="ios"
+                    (click)="$event.stopPropagation()"
+                  ></ion-toggle>
                 </div>
                 <div
                   *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
@@ -773,6 +839,30 @@
           <swiper-slide>
             <div class="form-section compact-section">
               <h2 class="section-title">{{ 'SIGN_UP.WELCOME_SHEET' | translate }}</h2>
+
+              <div class="kcal-ring">
+                <div class="kcal-ring__wrap">
+                  <svg class="kcal-ring__svg" width="148" height="148" viewBox="0 0 148 148">
+                    <circle class="kcal-ring__track" cx="74" cy="74" r="64" fill="none" stroke-width="9"></circle>
+                    <circle
+                      class="kcal-ring__value"
+                      cx="74"
+                      cy="74"
+                      r="64"
+                      fill="none"
+                      stroke-width="9"
+                      stroke-dasharray="303 100"
+                      stroke-linecap="round"
+                      transform="rotate(-90 74 74)"
+                    ></circle>
+                  </svg>
+                  <div class="kcal-ring__center">
+                    <div class="kcal-ring__number">{{ kcalTotal }}</div>
+                    <div class="kcal-ring__label">{{ 'SIGN_UP.KCAL_PER_DAY' | translate }}</div>
+                  </div>
+                </div>
+                <div class="kcal-ring__caption">{{ 'SIGN_UP.DAILY_GOAL' | translate }}</div>
+              </div>
 
               <div class="stats-card-modern">
                 <div class="card-header-modern">
