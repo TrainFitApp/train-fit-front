@@ -65,6 +65,11 @@
   </div>
 </ion-header>
 <ion-content>
+  <ion-progress-bar
+    *ngIf="loadingFab || loadingSplit"
+    type="indeterminate"
+    color="primary"
+  ></ion-progress-bar>
   <!-- Split Content -->
   <div
     class="split-content-container"
@@ -405,12 +410,6 @@
     (click)="addFirstSplitToTable()"
     ><strong>{{ 'TABLES.ADD_MICROCYCLE' | translate }}</strong></ion-button
   >
-  <ion-progress-bar
-    *ngIf="loadingFab"
-    class="t-add-micro-progress"
-    type="indeterminate"
-    color="primary"
-  ></ion-progress-bar>
 </ng-template>
 
 <ion-footer *ngIf="tableInUse?.splits.length > 0">
@@ -508,12 +507,6 @@
 
       <!-- Bottom Row: Navigation Arrows -->
       <div class="micro-cycle-navigation">
-        <ion-progress-bar
-          *ngIf="loadingSplit"
-          class="micro-cycle-loading-bar"
-          type="indeterminate"
-          color="primary"
-        ></ion-progress-bar>
         <ion-button
           fill="clear"
           class="nav-arrow nav-arrow-left ripple-effect"

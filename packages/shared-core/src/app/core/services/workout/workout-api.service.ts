@@ -32,11 +32,12 @@ export class WorkoutAPIService {
 
   public addWorkoutsToSplits(
     idTable: string,
-    workout: Workout
+    workouts: Workout | Workout[]
   ): Observable<Split[]> {
+    const body = Array.isArray(workouts) ? workouts : [workouts];
     return this.http.post<Split[]>(
       `${WorkoutAPIService.WORKOUT_ENDPOINT}/multiple/${idTable}`,
-      workout
+      body
     );
   }
 

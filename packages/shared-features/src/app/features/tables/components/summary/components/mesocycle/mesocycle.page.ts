@@ -809,35 +809,26 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   private createWorkoutTemplate(template: WorkoutTemplate): void {
     this.workoutTemplateLoadingId = template.id;
-    this.createTemplateWorkoutAtIndex(template, 0);
-  }
 
-  private createTemplateWorkoutAtIndex(
-    template: WorkoutTemplate,
-    workoutIndex: number
-  ): void {
-    const workoutName = template.workouts[workoutIndex];
-    if (!workoutName) {
-      this.workoutTemplateLoadingId = null;
-      this.updateCurrentSplit();
-      this.ionicUtilService.showToast({
-        message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: template.name }),
-        duration: 1200,
-        color: "success",
-      } as ToastOptions);
-      return;
-    }
-
-    const workout = new Workout();
-    workout.name = workoutName;
+    const workouts = template.workouts.map((name) => {
+      const workout = new Workout();
+      workout.name = name;
+      return workout;
+    });
 
     this.workoutService
-      .addWorkoutsToSplits(this.user.tableInUse, workout)
+      .addWorkoutsToSplits(this.user.tableInUse, workouts)
       .subscribe({
         next: (resSplits) => {
           this.tableInUse.splits = resSplits;
           this.tableService.setCurrentTable = this.tableInUse;
-          this.createTemplateWorkoutAtIndex(template, workoutIndex + 1);
+          this.workoutTemplateLoadingId = null;
+          this.updateCurrentSplit();
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: template.name }),
+            duration: 1200,
+            color: "success",
+          } as ToastOptions);
         },
         error: (error) => {
           this.workoutTemplateLoadingId = null;
@@ -1172,8 +1163,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       return;
     }
 
-    this.loadingFab = true;
-
     let alertOptions: AlertOptions;
 
     if (this.tableInUse.splits.length > 20) {
@@ -1210,6 +1199,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           {
             text: this.translate.instant('TABLES.WITHOUT_SERIES'),
             handler: () => {
+              this.loadingFab = true;
               this.loadingSplit = true;
               const idSplit =
                 this.tableInUse.splits[this._currentSplitIndex]?._id;
@@ -1242,6 +1232,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             text: this.translate.instant('TABLES.COMPLETE_COPY'),
             cssClass: "alert-button-success",
             handler: () => {
+              this.loadingFab = true;
               this.loadingSplit = true;
               const idSplit =
                 this.tableInUse.splits[this._currentSplitIndex]?._id;
@@ -1283,6 +1274,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             text: this.translate.instant('COMMON.CONFIRM'),
             cssClass: "alert-button-primary",
             handler: () => {
+              this.loadingFab = true;
               const idSplit =
                 this.tableInUse.splits[this._currentSplitIndex]?._id;
               this.splitService

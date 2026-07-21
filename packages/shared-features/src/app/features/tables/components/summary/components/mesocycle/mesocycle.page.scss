@@ -389,17 +389,6 @@ ion-skeleton-text {
       }
     }
 
-    .micro-cycle-loading-bar {
-      position: absolute;
-      top: -6px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      border-radius: 999px;
-      overflow: hidden;
-      z-index: 2;
-    }
-
     .nav-arrow {
       --color: var(--ion-color-primary);
       --background: rgba(var(--ion-color-primary-rgb), 0.08);
@@ -978,13 +967,6 @@ ion-accordion-group {
   }
 }
 
-.t-add-micro-progress {
-  width: calc(100% - 32px);
-  height: 3px;
-  margin: -8px 16px 16px;
-  --background: rgba(var(--ion-color-primary-rgb), 0.18);
-  --progress-background: var(--ion-color-primary);
-}
 
 .search-header {
   background: #141414;
