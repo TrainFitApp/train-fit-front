@@ -6,7 +6,7 @@ import {
   HttpInterceptor,
   HttpRequest,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
@@ -62,9 +62,11 @@ export class JWTInterceptor implements HttpInterceptor {
    */
   private refreshToken$ = new BehaviorSubject<string | null>(null);
 
+  private maintenanceModal: MaintenanceModalService | null = null;
+
   constructor(
     private authService: AuthService,
-    private maintenanceModal: MaintenanceModalService,
+    private injector: Injector,
   ) {}
 
   // ─── Intercept ────────────────────────────────────────────────────────────
@@ -112,6 +114,9 @@ export class JWTInterceptor implements HttpInterceptor {
       error.status === 503 &&
       error.error?.code === 'MAINTENANCE_ACTIVE'
     ) {
+      if (!this.maintenanceModal) {
+        this.maintenanceModal = this.injector.get(MaintenanceModalService);
+      }
       const maintenance: RemoteConfigMaintenanceStatus = {
         state: 'active',
         message: error.error?.message || '',

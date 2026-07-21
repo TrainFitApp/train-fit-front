@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { Injectable, NgZone } from '@angular/core';
+import { ModalController, NavController } from '@ionic/angular';
 import { MaintenanceModalComponent } from 'src/app/features/maintenance/maintenance-modal.component';
 import { RemoteConfigMaintenanceStatus } from '../../models/remote-config-status';
 import { RemoteConfigService } from '../remote-config/remote-config.service';
 
-const POLL_INTERVAL_MS = 30 * 1000;
+const POLL_INTERVAL_MS = 5_000;
 
 @Injectable({ providedIn: 'root' })
 export class MaintenanceModalService {
@@ -15,7 +15,17 @@ export class MaintenanceModalService {
   constructor(
     private modalController: ModalController,
     private remoteConfigService: RemoteConfigService,
-  ) {}
+    private navController: NavController,
+    private ngZone: NgZone,
+  ) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.stopPolling();
+      } else if (this.isModalOpen) {
+        this.startPolling();
+      }
+    });
+  }
 
   public async presentIfActive(
     maintenance: RemoteConfigMaintenanceStatus,
@@ -34,7 +44,6 @@ export class MaintenanceModalService {
       componentProps: { message },
       cssClass: 'maintenance-modal',
       backdropDismiss: false,
-      canDismiss: false,
     });
 
     this.activeModal = modal;
@@ -42,15 +51,17 @@ export class MaintenanceModalService {
       this.isModalOpen = false;
       this.activeModal = null;
       this.stopPolling();
+      this.ngZone.run(() => {
+        void this.navController.navigateForward(['user-loader'], {
+          replaceUrl: true,
+        });
+      });
     });
 
     await modal.present();
     this.startPolling();
   }
 
-  // Mientras el modal esté abierto, reintenta cada 30s y se autocierra en
-  // cuanto el estado deje de ser 'active' (mantenimiento puede terminar con
-  // la app en foreground, a diferencia del flujo de update forzada).
   private startPolling(): void {
     this.stopPolling();
     this.pollHandle = setInterval(async () => {
