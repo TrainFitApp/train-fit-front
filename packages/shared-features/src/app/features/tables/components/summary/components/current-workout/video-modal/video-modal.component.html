@@ -25,26 +25,20 @@
         <div class="video-icon">
           <ion-icon name="play-circle-outline"></ion-icon>
         </div>
-        <h3 class="video-title">Video demostrativo</h3>
+        <h3 class="video-title">{{ 'TABLES.VIDEO_DEMO' | translate }}</h3>
       </div>
     </div>
     <div class="video-container">
-      <iframe
-        class="video-frame"
-        [src]="videoEmbedSrcSafe"
-        title="YouTube video player"
-        frameborder="0"
-        referrerpolicy="origin"
-        loading="lazy"
+      <iframe class="video-frame" [src]="videoEmbedSrcSafe" title="YouTube video player" frameborder="0"
+        referrerpolicy="origin" loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-        playsinline>
+        allowfullscreen playsinline>
       </iframe>
     </div>
   </div>
 
   <ng-template #noVideo>
-    <div class="no-video">Video no disponible</div>
+    <div class="no-video">{{ 'TABLES.VIDEO_NOT_AVAILABLE' | translate }}</div>
   </ng-template>
 
   <!-- Historical Stats Section -->
@@ -67,18 +61,15 @@
         <div *ngIf="exercise.isCardio" class="historical-stats-row">
           <div
             *ngIf="historicalStats?.bestVelocityEver !== null && historicalStats?.bestVelocityEver !== undefined; else noHistoricalStats"
-            class="historical-stat-chip"
-          >
+            class="historical-stat-chip">
             <span class="label">{{ 'TABLES.STATS_ALL_TIME_BEST_PACE' | translate }}</span>
             <span class="value">{{ historicalStats.bestVelocityEver }}km/h</span>
           </div>
         </div>
 
         <div *ngIf="exercise.isIsometric" class="historical-stats-row">
-          <div
-            *ngIf="historicalStats && historicalStats.bestTimeSecondsEver > 0; else noHistoricalStats"
-            class="historical-stat-chip"
-          >
+          <div *ngIf="historicalStats && historicalStats.bestTimeSecondsEver > 0; else noHistoricalStats"
+            class="historical-stat-chip">
             <span class="label">{{ 'TABLES.STATS_ALL_TIME_LONGEST_HOLD' | translate }}</span>
             <span class="value">{{ historicalStats.bestTimeEver }}</span>
           </div>
@@ -115,7 +106,7 @@
           <div class="muscle-groups-icon">
             <ion-icon name="body-outline"></ion-icon>
           </div>
-          <h3 class="muscle-groups-title">Grupos musculares</h3>
+          <h3 class="muscle-groups-title">{{ 'TABLES.MUSCLE_GROUPS' | translate }}</h3>
         </div>
       </div>
 

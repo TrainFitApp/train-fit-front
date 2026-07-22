@@ -1231,7 +1231,10 @@
     "STATS_SELECT_ROUTINE_EXERCISE": "Select Routine and Exercise",
     "STATS_SELECT_HINT": "To see detailed statistics of your progress.",
     "STATS_NO_DATA": "No Data",
-    "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet."
+    "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet.",
+    "VIDEO_DEMO": "Demo video",
+    "VIDEO_NOT_AVAILABLE": "Video not available",
+    "MUSCLE_GROUPS": "Muscle groups"
   },
   "RM_CALCULATOR": {
     "TITLE": "1RM Calculator",

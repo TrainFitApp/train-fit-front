@@ -1237,7 +1237,10 @@
     "STATS_SELECT_ROUTINE_EXERCISE": "Selecciona Rutina y Ejercicio",
     "STATS_SELECT_HINT": "Para ver estadísticas detalladas de tu progreso.",
     "STATS_NO_DATA": "Sin Datos",
-    "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún."
+    "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún.",
+    "VIDEO_DEMO": "Video demostrativo",
+    "VIDEO_NOT_AVAILABLE": "Video no disponible",
+    "MUSCLE_GROUPS": "Grupos musculares"
   },
   "RM_CALCULATOR": {
     "TITLE": "Calculadora de RM",
