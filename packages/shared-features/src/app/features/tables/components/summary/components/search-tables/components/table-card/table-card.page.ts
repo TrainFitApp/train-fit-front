@@ -21,7 +21,14 @@ import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 
 import { MUSCLE_GROUPS_ES } from 'src/app/shared/constants/muscle-groups';
+import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
+import { EXERCISE_NAMES_ES_EN } from 'src/app/shared/constants/db-translations/exercise-names-es-en.map';
 import { TablePreviewModalComponent } from '../table-preview-modal/table-preview-modal.component';
+
+const TRANSLATE_DB_MAP: Record<string, string> = {
+  ...DB_ES_EN_MAP,
+  ...EXERCISE_NAMES_ES_EN,
+};
 
 @Component({
   selector: 'app-table-card',
@@ -228,7 +235,7 @@ export class TableCardPage {
       : this.translate.instant('TABLES.ROUTINE_WILL_BE_ADDED');
 
     const alertOptions = {
-      header: this.translate.instant('TABLES.USE_ROUTINE', { name: this.tableCard.name }),
+      header: this.translate.instant('TABLES.USE_ROUTINE', { name: this.translateDbValue(this.tableCard.name) }),
       message: html,
       buttons: [
         {
@@ -359,7 +366,7 @@ export class TableCardPage {
     this.popoverController.dismiss();
     event.stopPropagation();
     const alertOptions = {
-      header: this.translate.instant('TABLES.DUPLICATE_ROUTINE', { name: this.tableCard.name }),
+      header: this.translate.instant('TABLES.DUPLICATE_ROUTINE', { name: this.translateDbValue(this.tableCard.name) }),
       message: this.translate.instant('TABLES.DUPLICATE_ROUTINE_MSG'),
       buttons: [
         {
@@ -378,7 +385,7 @@ export class TableCardPage {
                   this.duplicateTableEv.emit(resTable);
                   void this.billingService.refreshBackendEntitlements();
                   const toastOptions: ToastOptions = {
-                    message: this.translate.instant('TABLES.ROUTINE_COPIED', { name: this.tableCard.name }),
+                    message: this.translate.instant('TABLES.ROUTINE_COPIED', { name: this.translateDbValue(this.tableCard.name) }),
                     duration: 1000,
                   };
                   this.ionicUtilService.showToast(toastOptions);
@@ -422,7 +429,7 @@ export class TableCardPage {
       : this.translate.instant('TABLES.DELETE_ROUTINE_MSG');
 
     const alertOptions = {
-      header: this.translate.instant('TABLES.DELETE_ROUTINE', { name: this.tableCard.name }),
+      header: this.translate.instant('TABLES.DELETE_ROUTINE', { name: this.translateDbValue(this.tableCard.name) }),
       message,
       buttons: [
         {
@@ -441,7 +448,7 @@ export class TableCardPage {
                 this.deletedTable.emit(idTable);
                 void this.billingService.refreshBackendEntitlements();
                 const toastOptions: ToastOptions = {
-                  message: this.translate.instant('TABLES.ROUTINE_DELETED', { name: this.tableCard.name }),
+                  message: this.translate.instant('TABLES.ROUTINE_DELETED', { name: this.translateDbValue(this.tableCard.name) }),
                   duration: 1000,
                 };
                 this.ionicUtilService.showToast(toastOptions);
@@ -453,5 +460,16 @@ export class TableCardPage {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private translateDbValue(value: string): string {
+    const currentLang = this.translate.currentLang || 'es';
+    if (currentLang === 'en') {
+      const translated = TRANSLATE_DB_MAP[value.trim()];
+      if (translated) {
+        return translated;
+      }
+    }
+    return value;
   }
 }

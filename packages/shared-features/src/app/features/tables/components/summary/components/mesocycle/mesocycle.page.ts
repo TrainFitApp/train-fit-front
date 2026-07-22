@@ -32,6 +32,8 @@ import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
 import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
 import { DeleteSplitsModalComponent } from "./components/delete-splits-modal/delete-splits-modal.component";
+import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
+import { EXERCISE_NAMES_ES_EN } from "src/app/shared/constants/db-translations/exercise-names-es-en.map";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -46,6 +48,11 @@ interface WorkoutTemplate {
   description: string;
   workouts: string[];
 }
+
+const TRANSLATE_DB_MAP: Record<string, string> = {
+  ...DB_ES_EN_MAP,
+  ...EXERCISE_NAMES_ES_EN,
+};
 
 const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
   {
@@ -775,6 +782,17 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     );
   }
 
+  private translateDbValue(value: string): string {
+    const currentLang = this.translate.currentLang || 'es';
+    if (currentLang === 'en') {
+      const translated = TRANSLATE_DB_MAP[value.trim()];
+      if (translated) {
+        return translated;
+      }
+    }
+    return value;
+  }
+
   public confirmWorkoutTemplate(template: WorkoutTemplate): void {
     if (this.isCurrentSplitLocked()) {
       this.openPremiumFromLockedSplit();
@@ -784,10 +802,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     if (this.workoutTemplateLoadingId) return;
 
     const workoutList = template.workouts
-      .map((workoutName) => `- ${workoutName}`)
+      .map((workoutName) => `- ${this.translateDbValue(workoutName)}`)
       .join("\n");
     const alertOptions: AlertOptions = {
-      header: template.name,
+      header: this.translateDbValue(template.name),
       message: this.translate.instant('TABLES.TEMPLATE_CREATE_CONFIRM', { workoutList }),
       buttons: [
         {
@@ -812,7 +830,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     const workouts = template.workouts.map((name) => {
       const workout = new Workout();
-      workout.name = name;
+      workout.name = this.translateDbValue(name);
       return workout;
     });
 
@@ -825,7 +843,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           this.workoutTemplateLoadingId = null;
           this.updateCurrentSplit();
           this.ionicUtilService.showToast({
-            message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: template.name }),
+            message: this.translate.instant('TABLES.TEMPLATE_CREATED', { name: this.translateDbValue(template.name) }),
             duration: 1200,
             color: "success",
           } as ToastOptions);

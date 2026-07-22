@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastOptions } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
@@ -65,7 +66,8 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     private utilService: UtilService,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService,
-    private _utilService: UtilService
+    private _utilService: UtilService,
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -273,13 +275,18 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   }
 
   public getTrend(): string {
-    if (this.week.length < 2) return 'stable';
+    const weights = this.week
+      .map((d) => d.weight)
+      .filter((w): w is number => w != null);
 
-    const currentWeight = this.week[this.week.length - 1]?.weight || 0;
-    const previousWeight = this.week[this.week.length - 2]?.weight || 0;
+    if (weights.length < 2) return 'stable';
 
-    if (currentWeight > previousWeight) return 'up';
-    if (currentWeight < previousWeight) return 'down';
+    const last = weights[weights.length - 1];
+    const prevAvg =
+      weights.slice(0, -1).reduce((a, b) => a + b, 0) / (weights.length - 1);
+
+    if (last > prevAvg + 0.1) return 'up';
+    if (last < prevAvg - 0.1) return 'down';
     return 'stable';
   }
 
@@ -287,12 +294,12 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     const trend = this.getTrend();
     switch (trend) {
       case 'up':
-        return 'Tendencia al alza';
+        return this.translate.instant('WEIGHT_INFO.TREND_UP');
       case 'down':
-        return 'Tendencia a la baja';
+        return this.translate.instant('WEIGHT_INFO.TREND_DOWN');
       case 'stable':
       default:
-        return 'Peso estable';
+        return this.translate.instant('WEIGHT_INFO.TREND_STABLE');
     }
   }
 
