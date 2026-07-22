@@ -113,6 +113,13 @@ export class TableCardPage {
     return imageUrl;
   }
 
+  private getTableInUseId(): string | null {
+    const tableInUse = this.user?.tableInUse;
+    if (!tableInUse) return null;
+    if (typeof tableInUse === 'string') return tableInUse;
+    return (tableInUse as any)?._id?.toString?.() || tableInUse?.toString?.() || null;
+  }
+
   public async previewTable(): Promise<void> {
     if (!this.tableCard?._id) return;
 
@@ -124,7 +131,11 @@ export class TableCardPage {
         this.loadingChange.emit(false);
         const modal = await this.modalController.create({
           component: TablePreviewModalComponent,
-          componentProps: { table: fullTable, own: this.own },
+          componentProps: {
+            table: fullTable,
+            own: this.own,
+            isActive: fullTable?._id === this.getTableInUseId(),
+          },
           cssClass: 'table-preview-modal',
         });
         await modal.present();

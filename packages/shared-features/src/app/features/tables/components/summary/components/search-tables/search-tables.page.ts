@@ -61,6 +61,39 @@ export class SearchTablesPage implements OnInit {
     this.applyFilterMode();
     this.tableList = [];
     this.searchTables();
+    this.prefetchActiveTable();
+  }
+
+  // La rutina activa puede vivir en cualquier página de la paginación por scroll
+  // infinito; sin esto, `prioritizeActiveTable` no tiene nada que priorizar hasta
+  // que el scroll llega a cargar esa página en concreto. Se guarda en una
+  // propiedad (no solo en `tableList`) porque `searchTables()` reemplaza
+  // `tableList` por completo al resolver — si el prefetch llega antes, su
+  // resultado se perdería si `searchTables()` no supiera de él.
+  private activeTableForPrepend: Table | null = null;
+
+  private prefetchActiveTable(): void {
+    const activeId = this.getTableInUseId();
+    if (!activeId) return;
+
+    const cached = this.tableService.tableInUse;
+    if (cached?._id === activeId) {
+      this.activeTableForPrepend = cached;
+      this.tableList = this.prioritizeActiveTable([
+        cached,
+        ...(this.tableList || []),
+      ]);
+      return;
+    }
+
+    this.tableService.getTableById(activeId).subscribe((activeTable) => {
+      if (!activeTable) return;
+      this.activeTableForPrepend = activeTable;
+      this.tableList = this.prioritizeActiveTable([
+        activeTable,
+        ...(this.tableList || []),
+      ]);
+    });
   }
 
   private applyFilterMode(): void {
@@ -107,7 +140,10 @@ export class SearchTablesPage implements OnInit {
     this.tableService
       .getSearchTables(this.searchFilterGroup, this.user._id)
       .subscribe((resTables) => {
-        this.tableList = this.prioritizeActiveTable(resTables || []);
+        const merged = this.activeTableForPrepend
+          ? [this.activeTableForPrepend, ...(resTables || [])]
+          : resTables || [];
+        this.tableList = this.prioritizeActiveTable(merged);
         this.load = true;
       });
   }

@@ -15,6 +15,9 @@ export class TablePreviewModalComponent {
   @Input()
   public own: boolean;
 
+  @Input()
+  public isActive: boolean = false;
+
   constructor(private modalController: ModalController) {}
 
   get totalWorkouts(): number {

@@ -107,6 +107,13 @@
     "PASSWORD_REQUIRED": "Please enter and confirm your new password",
     "PASSWORDS_NOT_MATCH": "Passwords do not match"
   },
+  "RECIPE_CONFIG": {
+    "DESCRIPTION": "Description",
+    "DESCRIPTION_ORIGINAL": "Original description",
+    "STEP_PLACEHOLDER": "Step {{n}}",
+    "ADD_STEP": "Add step",
+    "STEPS_LIMIT_REACHED": "Maximum {{max}} steps"
+  },
   "EXERCISE_CONFIG": {
     "ADD_EXERCISE": "Add exercise",
     "EXERCISE_LABEL": "EXERCISE",
@@ -1093,6 +1100,7 @@
     "EXERCISES_STAT": "Exercises",
     "PREVIEW": "Preview",
     "USE_ROUTINE_SHORT": "Use",
+    "ALREADY_IN_USE": "Already in use",
     "NO_WORKOUTS": "No workouts",
     "NO_MICROCYCLES": "No microcycles",
     "MICROCYCLE_N": "Microcycle {{n}}",
