@@ -33,6 +33,10 @@ export class ConfigurationPage {
 
   public currentLang: string = 'es';
 
+  get locale(): string {
+    return this.currentLang === 'en' ? 'en-US' : 'es-ES';
+  }
+
   public notifEnabled: boolean = false;
   public notifFrequency: NotificationFrequency = 'daily';
   public notifWeekday: number = 1;

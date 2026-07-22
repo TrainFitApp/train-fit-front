@@ -3,6 +3,8 @@ import { ViewChild } from '@angular/core';
 import { PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { ModalController, ModalOptions, AlertOptions, Platform } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 // No importar IonSearchbar directamente para evitar errores en NgModules
 import { CUSTOM_PRODUCT_VALUES } from 'src/app/core/models/customProduct';
 import { Exercise } from 'src/app/core/models/exercise';
@@ -75,9 +77,18 @@ export class SearchExercisesPage implements OnInit {
   private visualViewportResizeHandler?: () => void;
   private baseViewportHeight?: number;
 
+  getWorkoutNameTranslated(workout: Workout | null): string {
+    const name = workout?.name || '';
+    if (this.translate.currentLang === 'en') {
+      return DB_ES_EN_MAP[name] || name;
+    }
+    return name;
+  }
+
   constructor(
     public modalController: ModalController,
     private exerciseService: ExerciseService,
+    private translate: TranslateService,
     private themeService: ThemeService,
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,

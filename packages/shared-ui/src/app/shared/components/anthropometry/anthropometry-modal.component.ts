@@ -169,6 +169,10 @@ export class AnthropometryModalComponent implements OnInit {
     }
   }
 
+  get locale(): string {
+    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+  }
+
   getFieldLabel(key: string): string {
     const field = this.measurementFields.find((f) => f.key === key);
     return field ? this.translate.instant(field.label) : key;

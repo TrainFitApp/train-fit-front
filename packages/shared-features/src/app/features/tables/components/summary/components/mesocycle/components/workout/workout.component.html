@@ -99,6 +99,7 @@
           <ng-template>
             <ion-datetime
               [value]="getISODate(workout.date)"
+              [locale]="locale"
               first-day-of-week="1"
               #datetime
               doneText="{{ 'COMMON.CONFIRM' | translate }}"

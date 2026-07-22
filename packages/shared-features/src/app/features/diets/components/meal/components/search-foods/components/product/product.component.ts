@@ -21,6 +21,8 @@ import { MealService } from 'src/app/core/services/meal/meal.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import { THEMES } from 'src/app/shared/models/theme';
 import {
   MEASURE_FILTER,
@@ -77,8 +79,17 @@ export class ProductComponent implements OnInit, OnChanges {
   public MEASURE_FILTER = MEASURE_FILTER;
   public THEMES = THEMES;
 
+  get mealNameTranslated(): string {
+    const name = this.meal?.name || '';
+    if (this.translate.currentLang === 'en') {
+      return DB_ES_EN_MAP[name] || name;
+    }
+    return name;
+  }
+
   constructor(
     private customProductService: CustomProductService,
+    private translate: TranslateService,
     private utilService: UtilService,
     private dietDayService: DietDayService,
     private userService: UserService,

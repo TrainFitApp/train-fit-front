@@ -145,6 +145,10 @@ export class WorkoutComponent implements OnDestroy {
   public pinnedNotes: PinnedExerciseNote[] = [];
   private pinnedNoteCacheSub: Subscription | null = null;
 
+  get locale(): string {
+    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+  }
+
   constructor(
     private userService: UserService,
     private modalController: ModalController,

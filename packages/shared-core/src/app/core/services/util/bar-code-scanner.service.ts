@@ -40,7 +40,7 @@ export class BarCodeScannerService {
 
       const result = await CapacitorBarcodeScanner.scanBarcode({
         hint: CapacitorBarcodeScannerTypeHint.ALL,
-        scanInstructions: 'Código de barras',
+        scanInstructions: this.translate.instant('BARCODE.SCAN_INSTRUCTIONS'),
         scanButton: false,
         scanText: ' ',
         cameraDirection: CapacitorBarcodeScannerCameraDirection.BACK,

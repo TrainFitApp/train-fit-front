@@ -167,6 +167,7 @@
                 mode="ios"
                 presentation="time"
                 [preferWheel]="true"
+                [locale]="locale"
                 [showDefaultButtons]="true"
                 [doneText]="'COMMON.OK' | translate"
                 [cancelText]="'COMMON.CANCEL' | translate"
@@ -222,7 +223,7 @@
       </div>
 
       <ion-card class="config-card">
-        <ion-item button class="config-item" (click)="switchLang('es')">
+        <ion-item button class="config-item" (click)="switchLang('es')" [disabled]="currentLang === 'es'">
           <div slot="start" class="item-icon-container profile-icon">
             <ion-icon name="checkbox-outline" [color]="currentLang === 'es' ? 'primary' : 'medium'"></ion-icon>
           </div>
@@ -233,7 +234,7 @@
 
         <div class="divider"></div>
 
-        <ion-item button class="config-item" (click)="switchLang('en')">
+        <ion-item button class="config-item" (click)="switchLang('en')" [disabled]="currentLang === 'en'">
           <div slot="start" class="item-icon-container profile-icon">
             <ion-icon name="checkbox-outline" [color]="currentLang === 'en' ? 'primary' : 'medium'"></ion-icon>
           </div>

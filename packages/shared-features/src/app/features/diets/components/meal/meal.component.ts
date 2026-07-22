@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
+import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import {
   CUSTOM_PRODUCT_KEYS,
   CustomProduct,
@@ -795,12 +796,20 @@ export class MealComponent implements OnInit, OnChanges {
     return this.selectedProductIds.size + this.selectedRecipeIds.size;
   }
 
+  private get mealName(): string {
+    if (this.translate.currentLang === 'en') {
+      return DB_ES_EN_MAP[this.meal?.name] || this.meal?.name || '';
+    }
+    return this.meal?.name || '';
+  }
+
   private emptyMeal(): void {
     if (this.meal) {
       const t = this.translate.instant.bind(this.translate);
+      const name = this.mealName;
       const alertOptions: AlertOptions = {
         header: t('MEAL.EMPTY_MEAL_HEADER'),
-        message: t('MEAL.EMPTY_MEAL_CONFIRM', { name: this.meal.name }),
+        message: t('MEAL.EMPTY_MEAL_CONFIRM', { name }),
         buttons: [
           {
             text: t('COMMON.CANCEL').toUpperCase(),
@@ -822,7 +831,7 @@ export class MealComponent implements OnInit, OnChanges {
                 this.utilService.setUnselected = true;
 
                 this.ionicUtilService.showToast({
-                  message: t('MEAL.EMPTY_MEAL_SUCCESS', { name: this.meal.name }),
+                  message: t('MEAL.EMPTY_MEAL_SUCCESS', { name }),
                   duration: 1000,
                 });
               });

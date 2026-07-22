@@ -260,7 +260,8 @@
     "CAMERA_ERROR": "Acceso a cámara no permitido o error de escaneo",
     "FLASH_UNAVAILABLE": "Control de flash no disponible con este escáner",
     "GALLERY_UNAVAILABLE": "Función de galería no disponible",
-    "GALLERY_ERROR": "Error al acceder a la galería"
+    "GALLERY_ERROR": "Error al acceder a la galería",
+    "SCAN_INSTRUCTIONS": "Coloca el código de barras en el recuadro"
   },
   "AUTH_ERRORS": {
     "INVALID_CREDENTIALS": "Correo o contraseña incorrectos",

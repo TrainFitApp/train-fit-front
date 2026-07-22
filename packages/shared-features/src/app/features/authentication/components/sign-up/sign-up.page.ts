@@ -152,6 +152,10 @@ export class SignUpPage implements OnInit, OnDestroy {
   private _maxDate: string | null = null;
   private _minDate: string | null = null;
 
+  get locale(): string {
+    return this.i18nService.current === 'en' ? 'en-US' : 'es-ES';
+  }
+
   constructor(
     private userService: UserService,
     private matchPasswords: MatchPasswords,

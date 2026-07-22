@@ -78,6 +78,10 @@ export class DietsPage implements OnInit {
   private readonly userService = inject(UserService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
 
+  get locale(): string {
+    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+  }
+
   constructor(
     private dietDayService: DietDayService,
     private dietService: DietService,

@@ -7,6 +7,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { UtilService } from 'src/app/core/services/util/util.service';
 // Removed direct Swiper type import; use `any` for type flexibility
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
@@ -47,7 +48,8 @@ export class DatesSliderComponent implements AfterViewInit {
 
   constructor(
     private _utilService: UtilService,
-    private _cdRef: ChangeDetectorRef
+    private _cdRef: ChangeDetectorRef,
+    private _translate: TranslateService
   ) {}
 
   public ngAfterViewInit(): void {
@@ -134,13 +136,13 @@ export class DatesSliderComponent implements AfterViewInit {
     return this._utilService.datesAreOnSameDay(first, second);
   }
 
-  /**
-   * Obtiene la abreviación del día en español
-   */
-  public getSpanishDayAbbreviation(date: Date): string {
+  public getDayAbbreviation(date: Date): string {
     const dayIndex = date.getDay();
-    const spanishDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-    return spanishDays[dayIndex];
+    const lang = this._translate.currentLang || 'es';
+    const days = lang === 'en'
+      ? ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+      : ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+    return days[dayIndex];
   }
 
   public sendSelectedDate(date: Date): void {

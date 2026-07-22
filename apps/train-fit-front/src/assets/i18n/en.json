@@ -275,7 +275,8 @@
     "CAMERA_ERROR": "Camera access not allowed or scan error",
     "FLASH_UNAVAILABLE": "Flash control not available with this scanner",
     "GALLERY_UNAVAILABLE": "Gallery function not available",
-    "GALLERY_ERROR": "Error accessing gallery"
+    "GALLERY_ERROR": "Error accessing gallery",
+    "SCAN_INSTRUCTIONS": "Point the camera at the barcode"
   },
   "AUTH_ERRORS": {
     "INVALID_CREDENTIALS": "Incorrect email or password",

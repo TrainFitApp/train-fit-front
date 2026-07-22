@@ -13,6 +13,8 @@ import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { Recipe } from 'src/app/core/models/recipe';
 import { User } from 'src/app/core/models/user';
+import { TranslateService } from '@ngx-translate/core';
+import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
@@ -45,8 +47,17 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   private foundInstance: any | null = null;
   private measureFilterSub?: Subscription;
 
+  get mealNameTranslated(): string {
+    const name = this.meal?.name || '';
+    if (this.translate.currentLang === 'en') {
+      return DB_ES_EN_MAP[name] || name;
+    }
+    return name;
+  }
+
   constructor(
     private recipeService: RecipeService,
+    private translate: TranslateService,
     private utilService: UtilService
   ) {}
 

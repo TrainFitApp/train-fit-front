@@ -50,7 +50,7 @@
             class="workout-row"
           >
             <ion-icon name="fitness-outline" class="workout-icon"></ion-icon>
-            <span class="workout-name">{{ workout.name || ('TABLES.WORKOUT_N' | translate : { n: wi + 1 }) }}</span>
+            <span class="workout-name">{{ (workout.name | translateDb) || ('TABLES.WORKOUT_N' | translate : { n: wi + 1 }) }}</span>
             <span class="workout-exercises">{{ workout.exercises?.length || 0 }}</span>
           </div>
 

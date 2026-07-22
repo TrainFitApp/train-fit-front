@@ -79,6 +79,10 @@ export class EditorPage implements OnInit {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public Math = Math;
 
+  get locale(): string {
+    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+  }
+
   constructor(
     private navigationService: NavigationService,
     private userService: UserService,
@@ -578,7 +582,7 @@ export class EditorPage implements OnInit {
       year: "numeric",
     };
 
-    return date.toLocaleDateString("es-ES", options);
+    return date.toLocaleDateString(this.locale, options);
   }
 
   public calculateAge(): number {
