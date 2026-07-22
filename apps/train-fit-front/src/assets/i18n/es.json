@@ -505,7 +505,8 @@
     "DAILY_WEIGHT": "Peso diario",
     "DAILY_SHORT": "Diario",
     "WEEKLY_AVERAGE": "Media semanal ({{value}} Kg)",
-    "WEIGHT_IN_KG": "Peso"
+    "WEIGHT_IN_KG": "Peso",
+    "PASTE_DAY": "PEGAR DÍA"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Eliminar receta",

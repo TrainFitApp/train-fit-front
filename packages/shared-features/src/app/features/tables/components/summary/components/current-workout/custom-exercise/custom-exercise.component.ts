@@ -27,11 +27,11 @@ import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/mo
 import { TranslateService } from '@ngx-translate/core';
 
 interface CurrentSetRow {
-  type: 'set' | 'pending';
+  type: 'set';
   key: string;
   index: number;
   originalIndex?: number;
-  set?: Set;
+  set: Set;
 }
 
 @Component({
@@ -61,8 +61,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   private pendingCopyKey: number = 0;
 
   public reorderMode: boolean = false;
-  public draggedSetIndex: number | null = null;
-  public dragOverSetIndex: number | null = null;
   public hasReorderChanges: boolean = false;
   private originalSetsOrder: Set[] = [];
   private originalPositions: Map<string, number> = new Map();
@@ -78,7 +76,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     private workoutService: WorkoutService,
     private pinnedExerciseNoteService: PinnedExerciseNoteService,
     private translate: TranslateService
-  ) {}
+  ) { }
 
   public ngOnInit(): void {
     this.setPreviousCustomExerciseWorkout();
@@ -240,7 +238,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
 
     const historicalWorkout =
       this.tableInUse.splits[this.historicalSplitIndex].workouts[
-        this.currentWorkoutIndex
+      this.currentWorkoutIndex
       ];
 
     this.previousWorkoutDate = historicalWorkout.date;
@@ -430,8 +428,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   public enterReorderMode(): void {
     this.reorderMode = true;
     this.hasReorderChanges = false;
-    this.draggedSetIndex = null;
-    this.dragOverSetIndex = null;
     this.originalSetsOrder = this.customExercise.sets.map(s => ({ ...s }));
     this.originalPositions = new Map(
       this.customExercise.sets.map((s, i) => [s._id || `set-${i}`, i])
@@ -476,43 +472,11 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.reorderMode = false;
     this.hasReorderChanges = false;
-    this.draggedSetIndex = null;
-    this.dragOverSetIndex = null;
   }
 
-  public onDragStart(event: DragEvent, index: number): void {
-    this.draggedSetIndex = index;
-    event.dataTransfer.effectAllowed = 'move';
-  }
-
-  public onDragOver(event: DragEvent, index: number): void {
-    event.preventDefault();
-    this.dragOverSetIndex = index;
-  }
-
-  public onDragLeave(event: DragEvent): void {
-    this.dragOverSetIndex = null;
-  }
-
-  public onDrop(event: DragEvent, dropIndex: number): void {
-    event.preventDefault();
-    const dragIndex = this.draggedSetIndex;
-    this.dragOverSetIndex = null;
-    this.draggedSetIndex = null;
-
-    if (dragIndex === null || dragIndex === dropIndex) return;
-
-    const sets = [...this.customExercise.sets];
-    const [movedSet] = sets.splice(dragIndex, 1);
-    sets.splice(dropIndex, 0, movedSet);
-    this.customExercise.sets = sets;
-
+  public doReorder(event: any): void {
+    this.customExercise.sets = event.detail.complete(this.customExercise.sets);
     this.hasReorderChanges = true;
-  }
-
-  public onDragEnd(event: DragEvent): void {
-    this.draggedSetIndex = null;
-    this.dragOverSetIndex = null;
   }
 
   public configSet(set: Set): void {
@@ -617,25 +581,15 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     const rows: CurrentSetRow[] = [];
     const sets = this.customExercise?.sets || [];
 
-    for (let setIndex = 0; setIndex <= sets.length; setIndex++) {
-      if (this.pendingCopyInsertIndex === setIndex) {
-        rows.push({
-          type: 'pending',
-          key: `pending-copy-${this.pendingCopyKey}`,
-          index: rows.length,
-        });
-      }
-
-      if (setIndex < sets.length) {
-        const setId = sets[setIndex]._id || `set-${setIndex}`;
-        rows.push({
-          type: 'set',
-          key: setId,
-          index: rows.length,
-          originalIndex: this.reorderMode ? (this.originalPositions.get(setId) ?? rows.length) : undefined,
-          set: sets[setIndex],
-        });
-      }
+    for (let setIndex = 0; setIndex < sets.length; setIndex++) {
+      const setId = sets[setIndex]._id || `set-${setIndex}`;
+      rows.push({
+        type: 'set',
+        key: setId,
+        index: rows.length,
+        originalIndex: this.reorderMode ? (this.originalPositions.get(setId) ?? rows.length) : undefined,
+        set: sets[setIndex],
+      });
     }
 
     return rows;

@@ -1,14 +1,8 @@
 <div *ngIf="currentSplitIndex > 0" class="table-container">
   <div class="previous-session-title">
-    <ion-button
-      fill="clear"
-      mode="md"
-      class="nav-arrow-btn nav-arrow-left ripple-effect"
-      [class.animating]="animatingLeft"
-      [disabled]="!canGoBack()"
-      [style.visibility]="!canGoBack() ? 'hidden' : 'visible'"
-      (click)="goBack()"
-    >
+    <ion-button fill="clear" mode="md" class="nav-arrow-btn nav-arrow-left ripple-effect"
+      [class.animating]="animatingLeft" [disabled]="!canGoBack()"
+      [style.visibility]="!canGoBack() ? 'hidden' : 'visible'" (click)="goBack()">
       <ion-icon name="play-back-outline" slot="icon-only"></ion-icon>
     </ion-button>
 
@@ -18,25 +12,19 @@
         <span class="previous-subtitle-text">Sesión </span>
         <span class="previous-subtitle-date">
           {{
-            previousWorkoutDate
-              ? (previousWorkoutDate | date : "dd/MM/yyyy")
-              : previousWorkoutCustomExercise
-              ? "(No finalizada)"
-              : "(Sin datos)"
+          previousWorkoutDate
+          ? (previousWorkoutDate | date : "dd/MM/yyyy")
+          : previousWorkoutCustomExercise
+          ? "(No finalizada)"
+          : "(Sin datos)"
           }}
         </span>
       </div>
     </div>
 
-    <ion-button
-      fill="clear"
-      mode="md"
-      class="nav-arrow-btn nav-arrow-right ripple-effect"
-      [class.animating]="animatingRight"
-      [disabled]="!canGoForward()"
-      [style.visibility]="!canGoForward() ? 'hidden' : 'visible'"
-      (click)="goForward()"
-    >
+    <ion-button fill="clear" mode="md" class="nav-arrow-btn nav-arrow-right ripple-effect"
+      [class.animating]="animatingRight" [disabled]="!canGoForward()"
+      [style.visibility]="!canGoForward() ? 'hidden' : 'visible'" (click)="goForward()">
       <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>
     </ion-button>
   </div>
@@ -45,10 +33,7 @@
     Sin datos para este microciclo
   </div>
 
-  <table
-    *ngIf="previousWorkoutCustomExercise?.sets?.length > 0"
-    class="table previous-session-table"
-  >
+  <table *ngIf="previousWorkoutCustomExercise?.sets?.length > 0" class="table previous-session-table">
     <thead>
       <tr>
         <th style="width: 60px; min-width: 60px">Serie</th>
@@ -56,9 +41,7 @@
           <th>Tiempo</th>
         </ng-container>
         <ng-template #nonIsometricHeaders>
-          <ng-container
-            *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders"
-          >
+          <ng-container *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders">
             <th>Velocidad</th>
             <th>Tiempo</th>
             <th>KM</th>
@@ -73,92 +56,66 @@
       </tr>
     </thead>
     <tbody>
-      <tr
-        class="series-row previous-set"
-        [ngClass]="{
+      <tr class="series-row previous-set" [ngClass]="{
           'drop-set-series': set.drop,
           'rest-pause-series': set.restPause
-        }"
-        *ngFor="
+        }" *ngFor="
           let set of sortSets(previousWorkoutCustomExercise?.sets);
           let i = index
-        "
-      >
+        ">
         <td class="series-number">{{ i + 1 }}</td>
 
         <ng-container *ngIf="this.customExercise.exercise.isIsometric; else nonIsometric">
           <td>{{ set.time ? set.time : "—" }}</td>
         </ng-container>
         <ng-template #nonIsometric>
-        <ng-container
-          *ngIf="this.customExercise.exercise.isCardio; else nonCardio"
-        >
-          <td>{{ set.velocity ? set.velocity : "—" }}</td>
-          <td>{{ set.time ? set.time : "—" }}</td>
-          <td>{{ set.distance ? set.distance + " KM" : "—" }}</td>
-        </ng-container>
+          <ng-container *ngIf="this.customExercise.exercise.isCardio; else nonCardio">
+            <td>{{ set.velocity ? set.velocity : "—" }}</td>
+            <td>{{ set.time ? set.time : "—" }}</td>
+            <td>{{ set.distance ? set.distance + " KM" : "—" }}</td>
+          </ng-container>
         </ng-template>
         <ng-template #nonCardio>
           <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
           <td>
             {{
-              set.doned ? set.reps || "—" : formatExpectedReps(set.expectedReps)
+            set.doned ? set.reps || "—" : formatExpectedReps(set.expectedReps)
             }}
           </td>
           <td>
             <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
-            <span
-              *ngIf="
+            <span *ngIf="
                 !isFail(set) &&
                 ((set.doned && set.rir !== null && set.rir !== undefined) ||
                   (!set.doned && hasValidExpectedRir(set.expectedRir)))
-              "
-              class="intensity-rir-after"
-            >
+              " class="intensity-rir-after">
               {{
-                set.doned
-                  ? formatPerformedRir(set.rir)
-                  : formatExpectedRir(set.expectedRir)
-              }}</span
-            ><span *ngIf="set.drop">&nbsp;</span
-            ><span *ngIf="set.drop" class="intensity-drop">DS</span
-            ><span *ngIf="set.restPause">&nbsp;</span
-            ><span *ngIf="set.restPause" class="intensity-rp"
-              >RP {{ set.restPause }} Seg</span
-            >
-            <span
-              *ngIf="
+              set.doned
+              ? formatPerformedRir(set.rir)
+              : formatExpectedRir(set.expectedRir)
+              }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">DS</span><span
+              *ngIf="set.restPause">&nbsp;</span><span *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }}
+              Seg</span>
+            <span *ngIf="
                 !isFail(set) &&
                 ((set.doned && (set.rir === null || set.rir === undefined)) ||
                   (!set.doned && !hasValidExpectedRir(set.expectedRir))) &&
                 !set.drop &&
                 !set.restPause
-              "
-              >—</span
-            >
+              ">—</span>
           </td>
         </ng-template>
         <td class="series-done-col">
-          <ion-icon
-            *ngIf="set.doned"
-            name="checkmark-outline"
-            class="set-done-icon"
-          ></ion-icon>
+          <ion-icon *ngIf="set.doned" name="checkmark-outline" class="set-done-icon"></ion-icon>
         </td>
       </tr>
     </tbody>
   </table>
 
   <!-- Notas de sesión anterior debajo de la tabla -->
-  <app-notes
-    *ngIf="previousWorkoutCustomExercise?.notes"
-    [object]="previousWorkoutCustomExercise"
-    [notes]="previousWorkoutCustomExercise.notes"
-    [detail]="true"
-    [isPrevious]="true"
-    [canDelete]="false"
-    [canModify]="false"
-  ></app-notes>
+  <app-notes *ngIf="previousWorkoutCustomExercise?.notes" [object]="previousWorkoutCustomExercise"
+    [notes]="previousWorkoutCustomExercise.notes" [detail]="true" [isPrevious]="true" [canDelete]="false"
+    [canModify]="false"></app-notes>
 </div>
 
 <!-- Premium Current Sets Section -->
@@ -177,7 +134,8 @@
             </div>
           </div>
           <div class="action-wrapper">
-            <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(); $event.stopPropagation()">
+            <ion-button fill="clear" size="small" class="close-button"
+              (click)="deletePinnedNote(); $event.stopPropagation()">
               <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
           </div>
@@ -194,59 +152,28 @@
     </div>
   </div>
 
+  <!-- Progress Bar for Pending Copy -->
+  <div *ngIf="pendingCopyInsertIndex !== null" class="current-set-container set-copy-progress">
+    <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
+  </div>
+
   <!-- Premium Exercise Notes -->
   <div class="premium-exercise-notes" *ngIf="customExercise?.notes">
-    <app-notes
-      [object]="customExercise"
-      [notes]="customExercise.notes"
-      [tableId]="tableInUse?._id"
-      [workoutIndex]="currentWorkoutIndex"
-      [exerciseIndex]="indexCustomExercise"
-      [detail]="true"
-    ></app-notes>
+    <app-notes [object]="customExercise" [notes]="customExercise.notes" [tableId]="tableInUse?._id"
+      [workoutIndex]="currentWorkoutIndex" [exerciseIndex]="indexCustomExercise" [detail]="true"></app-notes>
   </div>
 
   <!-- Current Sets -->
-  <ng-container *ngFor="let row of getCurrentSetRows(); trackBy: trackBySetRow">
-    <div
-      *ngIf="row.type === 'set'; else pendingSetGhost"
-      [attr.draggable]="reorderMode ? true : null"
-      [class.dragging]="reorderMode && draggedSetIndex === row.index"
-      [class.drag-over]="reorderMode && dragOverSetIndex === row.index"
-      (dragstart)="onDragStart($event, row.index)"
-      (dragover)="onDragOver($event, row.index)"
-      (dragleave)="onDragLeave($event)"
-      (drop)="onDrop($event, row.index)"
-      (dragend)="onDragEnd($event)"
-      [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
-      class="current-set-container"
-    >
-      <app-set
-        [set]="row.set"
-        [index]="row.index"
-        [originalIndex]="row.originalIndex"
-        [indexCustomExercise]="indexCustomExercise"
-        [currentWorkout]="currentWorkout"
-        [reorderMode]="reorderMode"
-        (deleteSet)="deleteSet(row.set)"
-        (copySet)="copySet(row.set, row.index)"
-        (confSet)="configSet(row.set)"
-        (reorderSets)="enterReorderMode()"
-      ></app-set>
-    </div>
-
-    <ng-template #pendingSetGhost>
-      <div
-        class="current-set-container set-copy-progress"
-        [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
-      >
-        <ion-progress-bar
-          type="indeterminate"
-          color="primary"
-        ></ion-progress-bar>
-      </div>
-    </ng-template>
-  </ng-container>
+  <ion-reorder-group (ionItemReorder)="doReorder($event)" [disabled]="!reorderMode">
+    <ng-container *ngFor="let row of getCurrentSetRows(); trackBy: trackBySetRow">
+      <ion-reorder class="current-set-container">
+        <app-set [set]="row.set" [index]="row.index" [originalIndex]="row.originalIndex"
+          [indexCustomExercise]="indexCustomExercise" [currentWorkout]="currentWorkout" [reorderMode]="reorderMode"
+          (deleteSet)="deleteSet(row.set)" (copySet)="copySet(row.set, row.index)" (confSet)="configSet(row.set)"
+          (reorderSets)="enterReorderMode()"></app-set>
+      </ion-reorder>
+    </ng-container>
+  </ion-reorder-group>
 </div>
 
 <!-- Reorder Actions / Exercise Actions Header -->
@@ -254,19 +181,11 @@
   <div class="exercise-actions-content">
     <ng-container *ngIf="reorderMode; else normalActions">
       <div class="reorder-actions">
-        <ion-button
-          fill="clear"
-          class="action-btn cancel-reorder-btn"
-          (click)="cancelReorder()"
-        >
+        <ion-button fill="clear" class="action-btn cancel-reorder-btn" (click)="cancelReorder()">
           <ion-icon name="close-outline" slot="start"></ion-icon>
           <span class="btn-text">{{ 'COMMON.CANCEL' | translate }}</span>
         </ion-button>
-        <ion-button
-          fill="clear"
-          class="action-btn confirm-reorder-btn"
-          (click)="confirmReorder()"
-        >
+        <ion-button fill="clear" class="action-btn confirm-reorder-btn" (click)="confirmReorder()">
           <ion-icon name="checkmark-outline" slot="start"></ion-icon>
           <span class="btn-text">{{ 'COMMON.CONFIRM' | translate }}</span>
         </ion-button>
@@ -274,20 +193,12 @@
     </ng-container>
     <ng-template #normalActions>
       <div class="exercise-actions">
-        <ion-button
-          fill="clear"
-          class="action-btn note-btn"
-          (click)="manageNote()"
-        >
+        <ion-button fill="clear" class="action-btn note-btn" (click)="manageNote()">
           <ion-icon name="create-outline" slot="start"></ion-icon>
           <span class="btn-text">NOTA</span>
         </ion-button>
 
-        <ion-button
-          (click)="openSetManager()"
-          fill="clear"
-          class="action-btn set-btn"
-        >
+        <ion-button (click)="openSetManager()" fill="clear" class="action-btn set-btn">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           <span class="btn-text">SERIE</span>
         </ion-button>

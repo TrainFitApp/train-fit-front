@@ -39,6 +39,13 @@
     ></ion-icon>
   </button>
 
+  <!-- Progress Bar for Pasting Day -->
+  <ion-progress-bar
+    *ngIf="isPasting"
+    type="indeterminate"
+    color="primary"
+  ></ion-progress-bar>
+
   <app-notes
     *ngIf="dietDay?.notes"
     [object]="dietDay"
@@ -51,7 +58,7 @@
     expand="block"
     class="paste-day-button ripple-effect"
     (click)="pasteDietDay()"
-    ><strong>PEGAR DÍA</strong>
+    ><strong>{{ 'DIETS.PASTE_DAY' | translate }}</strong>
   </ion-button>
 
   <app-daily-weight

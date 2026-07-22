@@ -220,16 +220,7 @@ ion-app.dark {
   }
 }
 
-// Drag & drop
-.current-set-container {
-  &.dragging {
-    opacity: 0.4;
-  }
 
-  &.drag-over {
-    border-top: 2px solid var(--ion-color-primary) !important;
-  }
-}
 
 // Premium Previous Header (Consistent with Set Component Design)
 .premium-previous-header {
