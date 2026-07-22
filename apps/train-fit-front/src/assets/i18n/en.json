@@ -1111,6 +1111,7 @@
     "NAME_OPTION": "Name",
     "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
+    "ROUTINE_ALREADY_IN_USE_TOAST": "This routine is already in use",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",
     "USE_ROUTINE": "Use {{name}}",

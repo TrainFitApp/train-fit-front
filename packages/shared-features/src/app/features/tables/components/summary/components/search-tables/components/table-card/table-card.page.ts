@@ -211,6 +211,14 @@ export class TableCardPage {
   }
 
   public useTable(): void {
+    const activeId = this.tableService.getTableInUseId(this.user?.tableInUse);
+    if (this.tableCard._id === activeId) {
+      this.ionicUtilService.showWarningToast(
+        this.translate.instant('TABLES.ROUTINE_ALREADY_IN_USE_TOAST')
+      );
+      return;
+    }
+
     if (this.user.tableInUse) {
       const alOptions = {
         header: this.translate.instant('TABLES.ROUTINE_IN_USE'),
