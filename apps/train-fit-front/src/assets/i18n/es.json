@@ -1106,7 +1106,7 @@
     "SAME_MICROCYCLES": "Mismos entrenamientos en los {{n}} microciclos",
     "WORKOUT_N": "Entreno {{n}}",
 
-    "NAME_OPTION": "NOMBRE",
+    "NAME_OPTION": "Nombre",
     "ROUTINE_IN_USE": "Rutina",
     "ROUTINE_IN_USE_MSG": "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",
     "ROUTINE_CAN_PAUSE": "Siempre puedes pausar y elegir otra",
@@ -1785,7 +1785,7 @@
     },
     "MICROCYCLE": {
       "TITLE": "Microciclo",
-      "DESCRIPTION": "Es un bloque de días consecutivos (entrenamientos y descansos) que tú mismo defines: no tiene por qué durar una semana, dura lo que tú decidas. Cuando termina, empieza el siguiente microciclo (microciclo 1, microciclo 2...)."
+      "DESCRIPTION": "Es un bloque de días consecutivos (entrenamientos y descansos) que tú mismo defines: no tiene por qué durar una semana, dura lo que tú decidas. Cuando terminas un microciclo, empieza el siguiente y así sucesivamente de manera cíclica."
     },
     "ONE_RM": {
       "TITLE": "1RM (Repetición Máxima)",

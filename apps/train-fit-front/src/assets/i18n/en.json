@@ -1100,7 +1100,7 @@
     "SAME_MICROCYCLES": "Same workouts across all {{n}} microcycles",
     "WORKOUT_N": "Workout {{n}}",
 
-    "NAME_OPTION": "NAME",
+    "NAME_OPTION": "Name",
     "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
@@ -1779,7 +1779,7 @@
     },
     "MICROCYCLE": {
       "TITLE": "Microcycle",
-      "DESCRIPTION": "A block of consecutive days (training and rest) that you define yourself — it doesn't have to be a week, it lasts as long as you decide. Once it ends, the next microcycle begins (microcycle 1, microcycle 2...)."
+      "DESCRIPTION": "A block of consecutive days (training and rest) that you define yourself — it doesn't have to be a week, it lasts as long as you decide. When you finish a microcycle, the next one begins and so on in a cyclic manner."
     },
     "ONE_RM": {
       "TITLE": "1RM (One-Rep Max)",
