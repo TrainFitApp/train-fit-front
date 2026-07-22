@@ -1038,14 +1038,13 @@
       class="create-button"
     >
       <div class="button-content">
-        <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
+        <ng-container *ngIf="!saveInProgress; else savingProduct">
+          <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
+        </ng-container>
+        <ng-template #savingProduct>
+          <span>{{ 'COMMON.SAVING' | translate }}</span>
+        </ng-template>
       </div>
     </ion-button>
-    <ion-progress-bar
-      *ngIf="saveInProgress"
-      class="save-progress"
-      type="indeterminate"
-      color="primary"
-    ></ion-progress-bar>
   </div>
 </ion-footer>

@@ -426,19 +426,16 @@
       [disabled]="!canSave || loading"
       (click)="save()"
     >
-      <ng-container>
+      <ng-container *ngIf="!loading; else savingText">
         <span>
           {{
             isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
           }}
         </span>
       </ng-container>
+      <ng-template #savingText>
+        <span>{{ 'COMMON.SAVING' | translate }}</span>
+      </ng-template>
     </ion-button>
-    <ion-progress-bar
-      *ngIf="loading"
-      class="save-progress"
-      type="indeterminate"
-      color="primary"
-    ></ion-progress-bar>
   </div>
 </ion-footer>
