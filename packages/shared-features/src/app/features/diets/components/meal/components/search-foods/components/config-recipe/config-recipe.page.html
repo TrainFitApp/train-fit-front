@@ -35,6 +35,12 @@
     </div>
   </div>
 </ion-header>
+<ion-progress-bar
+  *ngIf="loading"
+  class="save-progress"
+  type="indeterminate"
+  color="primary"
+></ion-progress-bar>
 
 <ion-content
   class="config-recipe-content"
