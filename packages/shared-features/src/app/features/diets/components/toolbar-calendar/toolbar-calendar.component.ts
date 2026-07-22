@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { AlertButton, AlertInput, AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
@@ -6,7 +6,7 @@ import { DietService } from 'src/app/core/services/diet/diet.service';
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
-import { TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -18,7 +18,6 @@ import {
   ACTION_TYPES,
   ACTION_VALUES,
 } from 'src/app/shared/constants/actions';
-import { MONTHS } from 'src/app/shared/constants/months';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 
 @Component({
@@ -27,7 +26,7 @@ import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
   styleUrls: ['./toolbar-calendar.component.scss'],
   animations: [fadeIn, fadeOut],
 })
-export class ToolbarCalendarComponent {
+export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   @Input()
   public load!: boolean;
 
@@ -54,6 +53,9 @@ export class ToolbarCalendarComponent {
   public month!: string;
   public year!: number;
 
+  private currentDietDate!: Date;
+  private langChangeSubscription: any;
+
   private _service:
     | WorkoutService
     | TableService
@@ -79,6 +81,16 @@ export class ToolbarCalendarComponent {
     private translate: TranslateService
   ) {
     this.setFullDate();
+  }
+
+  public ngOnInit(): void {
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(
+      (_event: LangChangeEvent) => this.updateMonthLabel()
+    );
+  }
+
+  public ngOnDestroy(): void {
+    this.langChangeSubscription?.unsubscribe();
   }
 
   public selectCalendarDay(dateISO: string): void {
@@ -376,10 +388,20 @@ export class ToolbarCalendarComponent {
 
   private setFullDate(): void {
     this.utilService.getCurrentDate.subscribe((resDate) => {
-      const d = this.utilService.parseYYYYMMDD(resDate);
-      this.month = MONTHS[d.getMonth()];
-      this.year = d.getFullYear();
+      this.currentDietDate = this.utilService.parseYYYYMMDD(resDate);
+      this.year = this.currentDietDate.getFullYear();
+      this.updateMonthLabel();
     });
+  }
+
+  // Reutiliza WEIGHT_INFO.MONTHS (misma lista ya traducida que usa el
+  // calendario de diet-days) en vez de mantener un array de meses aparte.
+  private updateMonthLabel(): void {
+    if (!this.currentDietDate) return;
+    const monthNames = this.translate.instant('WEIGHT_INFO.MONTHS');
+    this.month = Array.isArray(monthNames)
+      ? monthNames[this.currentDietDate.getMonth()]
+      : '';
   }
 }
 
