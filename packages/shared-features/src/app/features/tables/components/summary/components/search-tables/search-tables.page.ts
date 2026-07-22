@@ -73,16 +73,21 @@ export class SearchTablesPage implements OnInit {
   private activeTableForPrepend: Table | null = null;
 
   private prefetchActiveTable(): void {
-    const activeId = this.getTableInUseId();
+    // Solo aplica en "Mis rutinas" — las predeterminadas son plantillas que se
+    // copian, no rutinas "en uso" propias, así que no tiene sentido priorizar
+    // ninguna ahí.
+    if (!this.searchFilterGroup.ownFilter) return;
+
+    const activeId = this.tableService.getTableInUseId(this.user?.tableInUse);
     if (!activeId) return;
 
     const cached = this.tableService.tableInUse;
     if (cached?._id === activeId) {
+      // Se ejecuta síncronamente justo después de invocar searchTables(), que
+      // es async — no puede haber resuelto todavía, así que su propio merge
+      // ya incluirá esta tabla. No hace falta tocar tableList aquí, solo
+      // dejar constancia para cuando searchTables() resuelva.
       this.activeTableForPrepend = cached;
-      this.tableList = this.prioritizeActiveTable([
-        cached,
-        ...(this.tableList || []),
-      ]);
       return;
     }
 
@@ -154,7 +159,11 @@ export class SearchTablesPage implements OnInit {
     this.searchFilterGroup.page = 0;
     this.searchFilterGroup.defaultOnly = !filterGroup.ownFilter;
     this.tableList = [];
+    // Evita que una rutina prefetcheada en "Mis rutinas" se cuele al cambiar
+    // a predeterminadas (o viceversa, quede desactualizada al volver a "Mis rutinas").
+    this.activeTableForPrepend = null;
     this.searchTables();
+    this.prefetchActiveTable();
   }
 
   public selectAllFilter(): void {
@@ -205,7 +214,7 @@ export class SearchTablesPage implements OnInit {
 
     this.userService.setLocalUser = this.user;
 
-    if (idTable === this.getTableInUseId()) {
+    if (idTable === this.tableService.getTableInUseId(this.user?.tableInUse)) {
       this.workoutService.setCurrentWorkout = undefined;
       this.tableService.setCurrentTable = undefined;
 
@@ -222,13 +231,6 @@ export class SearchTablesPage implements OnInit {
     void this.billingService.refreshBackendEntitlements();
   }
 
-  private getTableInUseId(): string | null {
-    const tableInUse = this.user?.tableInUse;
-    if (!tableInUse) return null;
-    if (typeof tableInUse === 'string') return tableInUse;
-    return tableInUse?._id?.toString?.() || tableInUse?.toString?.() || null;
-  }
-
   public close(): void {
     this.navigationService.goBack();
   }
@@ -238,7 +240,7 @@ export class SearchTablesPage implements OnInit {
       return [];
     }
 
-    const activeId = this.user?.tableInUse;
+    const activeId = this.tableService.getTableInUseId(this.user?.tableInUse);
     if (!activeId) {
       return tables;
     }

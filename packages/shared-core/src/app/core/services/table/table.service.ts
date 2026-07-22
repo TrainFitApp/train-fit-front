@@ -35,6 +35,15 @@ export class TableService {
 
   constructor(private tableAPIService: TableAPIService) {}
 
+  // `User.tableInUse` llega unas veces como string (id) y otras como el Table
+  // ya populado, según la ruta que lo devuelva — se normaliza aquí una vez
+  // para que ningún consumidor tenga que reimplementar esta comparación.
+  public getTableInUseId(tableInUse: any): string | null {
+    if (!tableInUse) return null;
+    if (typeof tableInUse === 'string') return tableInUse;
+    return tableInUse?._id?.toString?.() || tableInUse?.toString?.() || null;
+  }
+
   public getTableById(id: string): Observable<Table> {
     return this.tableAPIService.getTableById(id).pipe(take(1));
   }

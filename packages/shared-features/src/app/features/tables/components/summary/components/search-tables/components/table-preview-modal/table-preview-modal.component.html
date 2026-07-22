@@ -73,16 +73,15 @@
   </div>
 </ion-content>
 
-<ion-footer class="preview-footer" *ngIf="!isActive">
-  <button class="action-button" (click)="use()">
-    <ion-icon [name]="own ? 'checkmark-circle-outline' : 'cart-outline'"></ion-icon>
-    <span>{{ (own ? 'TABLES.USE_ROUTINE_SHORT' : 'TABLES.ACQUIRE') | translate }}</span>
-  </button>
-</ion-footer>
-
-<ion-footer class="preview-footer" *ngIf="isActive">
-  <div class="already-in-use-badge">
+<ion-footer class="preview-footer">
+  <div class="already-in-use-badge" *ngIf="isActive; else useAction">
     <ion-icon name="checkmark-circle"></ion-icon>
     <span>{{ 'TABLES.ALREADY_IN_USE' | translate }}</span>
   </div>
+  <ng-template #useAction>
+    <button class="action-button" (click)="use()">
+      <ion-icon [name]="own ? 'checkmark-circle-outline' : 'cart-outline'"></ion-icon>
+      <span>{{ (own ? 'TABLES.USE_ROUTINE_SHORT' : 'TABLES.ACQUIRE') | translate }}</span>
+    </button>
+  </ng-template>
 </ion-footer>
