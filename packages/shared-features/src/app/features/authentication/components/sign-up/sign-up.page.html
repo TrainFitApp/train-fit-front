@@ -770,7 +770,7 @@
               </div>
               <div *ngIf="signUpForm.invalid && error" class="error-message">
                 <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
-                <span class="error-text">{{ error }}</span>
+                <span class="error-text">{{ error | translate }}</span>
               </div>
             </div>
           </swiper-slide>

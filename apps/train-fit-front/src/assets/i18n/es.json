@@ -1137,6 +1137,7 @@
     "SEG": "SEG",
     "VELOCITY": "VELOCIDAD",
     "VELOCITY_PLACEHOLDER": "Velocidad",
+    "WEIGHT_LABEL": "Peso",
     "WEIGHT_PLACEHOLDER": "Peso",
     "KG": "PESO",
     "REP_RANGE": "RANGO DE REPS",

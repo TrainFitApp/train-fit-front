@@ -597,6 +597,7 @@ export class SignUpPage implements OnInit, OnDestroy {
   }
 
   public register(): void {
+    if (this.signUpForm.invalid) return;
     this.isProcessing = true;
     this.kcalTotal = this.userService.calculateKcal(this.user);
 
@@ -947,6 +948,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.signUpForm.invalid) return;
     if (!this.objetiveSelected) return;
 
     const activity: number = this.signUpForm.controls.activity.value

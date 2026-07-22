@@ -20,6 +20,7 @@ import { ProductService } from "src/app/core/services/product/product.service";
 import { RecipeDraftService } from "src/app/core/services/recipe/recipe-draft.service";
 import { UserService } from "src/app/core/services/user/user.service";
 import { TranslateService } from "@ngx-translate/core";
+import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 
@@ -372,12 +373,20 @@ export class AddProductPage implements OnInit, OnDestroy {
     this.checkVerified();
   }
 
+  public get mealNameTranslated(): string {
+    const name = this.meal?.name || '';
+    if (this.translate.currentLang === 'en') {
+      return DB_ES_EN_MAP[name] || name;
+    }
+    return name;
+  }
+
   public get headerTitle(): string {
     if (this.ingredientMode && this.recipeName) {
       return this.recipeName;
     }
 
-    return this.meal ? this.meal.name : this.translate.instant('ADD_PRODUCT.YOUR_PRODUCTS');
+    return this.meal ? this.mealNameTranslated : this.translate.instant('ADD_PRODUCT.YOUR_PRODUCTS');
   }
 
   public ionViewWillEnter(): void {
@@ -1064,7 +1073,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
     if (closeAll) {
       this.ionicUtilService.showToast({
-        message: this.translate.instant('ADD_PRODUCT.PRODUCT_ADDED_TO_MEAL', { mealName: this.meal?.name || this.translate.instant('COMMON.THE_MEAL') }),
+        message: this.translate.instant('ADD_PRODUCT.PRODUCT_ADDED_TO_MEAL', { mealName: this.meal ? this.mealNameTranslated : this.translate.instant('COMMON.THE_MEAL') }),
         duration: 1000,
       });
     }

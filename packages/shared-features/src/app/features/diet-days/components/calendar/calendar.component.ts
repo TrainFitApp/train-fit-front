@@ -10,6 +10,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -49,8 +50,16 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   public dietDays: DietDay[] = [];
 
+  get weekdayInitials(): string[] {
+    const lang = this.translate.currentLang || 'es';
+    return lang === 'en'
+      ? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+      : ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  }
+
   constructor(
     public modalController: ModalController,
+    private translate: TranslateService,
     private dietDayService: DietDayService,
     private userService: UserService,
     private utilService: UtilService,
@@ -119,23 +128,10 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   }
 
   private updateCurrentMonthYear(): void {
-    const monthNames = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
-    ];
-    const month = monthNames[this.currentDate.getMonth()];
+    const monthNames = this.translate.instant('WEIGHT_INFO.MONTHS');
+    const month = Array.isArray(monthNames) ? monthNames[this.currentDate.getMonth()] : '';
     const year = this.currentDate.getFullYear();
-    this.currentMonthYear = `${month} ${year}`; // Mes + Año
+    this.currentMonthYear = `${month} ${year}`;
   }
 
   private swiperReady(): void {

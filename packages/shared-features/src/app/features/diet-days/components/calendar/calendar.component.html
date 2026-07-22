@@ -1,13 +1,7 @@
 <div class="calendar-container">
   <!-- Encabezado del calendario -->
   <div class="calendar-header">
-    <div class="weekday-header">L</div>
-    <div class="weekday-header">M</div>
-    <div class="weekday-header">X</div>
-    <div class="weekday-header">J</div>
-    <div class="weekday-header">V</div>
-    <div class="weekday-header">S</div>
-    <div class="weekday-header">D</div>
+    <div class="weekday-header" *ngFor="let init of weekdayInitials">{{ init }}</div>
     <div class="weekday-header average-header">{{ 'WEIGHT_INFO.AVERAGE' | translate }}</div>
   </div>
 
