@@ -1234,7 +1234,15 @@
     "STATS_NO_DATA_HINT": "No activity has been recorded for this exercise yet.",
     "VIDEO_DEMO": "Demo video",
     "VIDEO_NOT_AVAILABLE": "Video not available",
-    "MUSCLE_GROUPS": "Muscle groups"
+    "MUSCLE_GROUPS": "Muscle groups",
+    "OBJECTIVE_LABEL": "Objective:",
+    "SESSION": "Session",
+    "NOT_FINISHED": "(Not finished)",
+    "NO_DATA_SHORT": "(No data)",
+    "NO_DATA_MICROCYCLE": "No data for this microcycle",
+    "CURRENT_SESSION": "Current session",
+    "NOTE": "NOTE",
+    "REPS_SHORT": "reps"
   },
   "RM_CALCULATOR": {
     "TITLE": "1RM Calculator",

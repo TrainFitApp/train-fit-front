@@ -1240,7 +1240,15 @@
     "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún.",
     "VIDEO_DEMO": "Video demostrativo",
     "VIDEO_NOT_AVAILABLE": "Video no disponible",
-    "MUSCLE_GROUPS": "Grupos musculares"
+    "MUSCLE_GROUPS": "Grupos musculares",
+    "OBJECTIVE_LABEL": "Objetivo:",
+    "SESSION": "Sesión",
+    "NOT_FINISHED": "(No finalizada)",
+    "NO_DATA_SHORT": "(Sin datos)",
+    "NO_DATA_MICROCYCLE": "Sin datos para este microciclo",
+    "CURRENT_SESSION": "Sesión actual",
+    "NOTE": "NOTA",
+    "REPS_SHORT": "reps"
   },
   "RM_CALCULATOR": {
     "TITLE": "Calculadora de RM",

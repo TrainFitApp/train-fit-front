@@ -9,7 +9,7 @@
               'serie-completed': set.doned,
               'serie-pending': !set.doned
             }">{{ reorderMode && originalIndex !== undefined ? originalIndex + 1 : index + 1 }}º</span>
-          <span class="objective-text">Objetivo:</span>
+          <span class="objective-text">{{ 'TABLES.OBJECTIVE_LABEL' | translate }}</span>
           <ng-container *ngIf="isIsometric; else notIsometricExpected">
             <div class="cardio-expected">
               <span *ngIf="set.expectedTime" class="time-value">{{
@@ -34,13 +34,14 @@
                 }}</span>
 
               <!-- FAIL label (always show if expectedRir contains -1) -->
-              <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
+              <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
 
               <!-- DROP SET label (always show if drop is true) -->
-              <span *ngIf="set.drop" class="drop-label">DS</span>
+              <span *ngIf="set.drop" class="drop-label">{{ 'TABLES.DROP_SET' | translate }}</span>
 
               <!-- REST PAUSE label (always show if restPause is set) -->
-              <span *ngIf="set.restPause" class="rest-pause-label">RP ({{ set.restPause }}s)</span>
+              <span *ngIf="set.restPause" class="rest-pause-label">{{ 'TABLES.REST_PAUSE' | translate }} ({{
+                set.restPause }}{{ 'TABLES.SEG' | translate }})</span>
 
               <!-- RIR value (only if no fail, no drop, no restPause) -->
               <span *ngIf="
@@ -109,8 +110,8 @@
           <ng-container *ngIf="isIsometric; else nIsometric">
             <!-- Isometric Inputs -->
             <ion-col size="10" class="time-col">
-              <app-time-picker [timeControl]="getFormControl('time')" label="Tiempo" [isDone]="set.doned"
-                (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
+              <app-time-picker [timeControl]="getFormControl('time')" [label]="'TABLES.TIME_LABEL' | translate"
+                [isDone]="set.doned" (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
             </ion-col>
             <ion-col size="2" class="complete-col">
               <ion-reorder slot="start" *ngIf="reorderMode"></ion-reorder>
@@ -124,17 +125,17 @@
             <ng-container *ngIf="isCardio; else nCardio">
               <!-- Cardio Inputs -->
               <ion-col size="3.33" class="velocity-col">
-                <app-numeric-input [inputControl]="getFormControl('velocity')" label="Vel" placeholder="0.0"
-                  [maxLength]="4" [isDone]="set.doned"
+                <app-numeric-input [inputControl]="getFormControl('velocity')" [label]="'TABLES.VELOCITY' | translate"
+                  placeholder="0.0" [maxLength]="4" [isDone]="set.doned"
                   (valueChange)="onFormValueChange('velocity', $event)"></app-numeric-input>
               </ion-col>
               <ion-col size="3.33" class="time-col">
-                <app-time-picker [timeControl]="getFormControl('time')" label="Tiempo" [isDone]="set.doned"
-                  (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
+                <app-time-picker [timeControl]="getFormControl('time')" [label]="'TABLES.TIME_LABEL' | translate"
+                  [isDone]="set.doned" (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
               </ion-col>
               <ion-col size="3.33" class="distance-col">
-                <app-numeric-input [inputControl]="getFormControl('distance')" label="KM" placeholder="0.0"
-                  [maxLength]="6" [isDone]="set.doned"
+                <app-numeric-input [inputControl]="getFormControl('distance')"
+                  [label]="'TABLES.DISTANCE_LABEL' | translate" placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
                   (valueChange)="onFormValueChange('distance', $event)"></app-numeric-input>
               </ion-col>
               <ion-col size="2" class="complete-col">
@@ -149,8 +150,8 @@
           <ng-template #nCardio>
             <!-- Weight Training Inputs -->
             <ion-col size="3.33" class="weight-col">
-              <app-numeric-input [inputControl]="getFormControl('weight')" label="Peso" placeholder="0.0"
-                [maxLength]="6" [isDone]="set.doned"
+              <app-numeric-input [inputControl]="getFormControl('weight')" [label]="'TABLES.WEIGHT_LABEL' | translate"
+                placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
                 (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
             </ion-col>
             <ion-col size="3.33" class="reps-col">

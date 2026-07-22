@@ -9,14 +9,14 @@
     <div class="previous-title-center">
       <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
       <div class="previous-subtitle-row">
-        <span class="previous-subtitle-text">Sesión </span>
+        <span class="previous-subtitle-text">{{ 'TABLES.SESSION' | translate }} </span>
         <span class="previous-subtitle-date">
           {{
           previousWorkoutDate
           ? (previousWorkoutDate | date : "dd/MM/yyyy")
           : previousWorkoutCustomExercise
-          ? "(No finalizada)"
-          : "(Sin datos)"
+          ? ('TABLES.NOT_FINISHED' | translate)
+          : ('TABLES.NO_DATA_SHORT' | translate)
           }}
         </span>
       </div>
@@ -30,7 +30,7 @@
   </div>
 
   <div *ngIf="!previousWorkoutCustomExercise?.sets?.length" class="no-data-msg">
-    Sin datos para este microciclo
+    {{ 'TABLES.NO_DATA_MICROCYCLE' | translate }}
   </div>
 
   <table *ngIf="previousWorkoutCustomExercise?.sets?.length > 0" class="table previous-session-table">
@@ -149,7 +149,7 @@
   <!-- Current Sets Headers -->
   <div class="current-sets-headers">
     <div class="current-session-title">
-      <span class="current-title-text">Sesión actual</span>
+      <span class="current-title-text">{{ 'TABLES.CURRENT_SESSION' | translate }}</span>
     </div>
   </div>
 
@@ -196,12 +196,12 @@
       <div class="exercise-actions">
         <ion-button fill="clear" class="action-btn note-btn" (click)="manageNote()">
           <ion-icon name="create-outline" slot="start"></ion-icon>
-          <span class="btn-text">NOTA</span>
+          <span class="btn-text">{{ 'TABLES.NOTE' | translate }}</span>
         </ion-button>
 
         <ion-button (click)="openSetManager()" fill="clear" class="action-btn set-btn">
           <ion-icon name="add-outline" slot="start"></ion-icon>
-          <span class="btn-text">SERIE</span>
+          <span class="btn-text">{{ 'TABLES.SERIES' | translate }}</span>
         </ion-button>
       </div>
     </ng-template>
