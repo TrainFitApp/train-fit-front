@@ -1251,7 +1251,13 @@
     "ESTIMATES_TITLE": "Estimaciones de tu 1RM",
     "RECOMMENDED_BADGE": "Recomendada",
     "PERCENTAGE_TABLE_TITLE": "Tabla de porcentajes",
-    "WEIGHT_COL": "Peso"
+    "WEIGHT_COL": "Peso",
+    "FORMULA_EPLEY": "Epley",
+    "FORMULA_BRZYCKI": "Brzycki",
+    "FORMULA_LOMBARDI": "Lombardi",
+    "FORMULA_EPLEY_DESC": "Más precisa entre 2 y 6 repeticiones.",
+    "FORMULA_BRZYCKI_DESC": "Más precisa entre 3 y 10 repeticiones.",
+    "FORMULA_LOMBARDI_DESC": "Más precisa a partir de 6 repeticiones."
   },
   "CONFIGURATION": {
     "TITLE": "Configuración",

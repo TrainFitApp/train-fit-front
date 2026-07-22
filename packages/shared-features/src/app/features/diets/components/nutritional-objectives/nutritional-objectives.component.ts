@@ -91,6 +91,7 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   };
 
   public animateBars = false;
+  public isLoading = false;
   private readonly hideTabsClass = 'hide-tabs';
 
   ngOnInit() {
@@ -404,15 +405,22 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   public onGoalChange(event: any): void {
+    this.isLoading = true;
     const goalId = event.detail.value;
     const goal = this.goals.find((g) => g._id === goalId);
-    if (!goal) return;
+    if (!goal) {
+      this.isLoading = false;
+      return;
+    }
     this.activeGoal = goal;
     this.personalizeReferences();
     this.buildNutrientArrays();
     this.updateCalorieText();
     this.nutritionalGoalService.setActive(goalId).subscribe(() => {
       this.user = this.userService.getLocalUser!;
+      this.isLoading = false;
+    }, () => {
+      this.isLoading = false;
     });
   }
 }

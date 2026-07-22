@@ -36,20 +36,20 @@
   <table *ngIf="previousWorkoutCustomExercise?.sets?.length > 0" class="table previous-session-table">
     <thead>
       <tr>
-        <th style="width: 60px; min-width: 60px">Serie</th>
+        <th style="width: 60px; min-width: 60px">{{ 'TABLES.SERIES' | translate }}</th>
         <ng-container *ngIf="this.customExercise.exercise.isIsometric; else nonIsometricHeaders">
-          <th>Tiempo</th>
+          <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
         </ng-container>
         <ng-template #nonIsometricHeaders>
           <ng-container *ngIf="this.customExercise.exercise.isCardio; else nonCardioHeaders">
-            <th>Velocidad</th>
-            <th>Tiempo</th>
-            <th>KM</th>
+            <th>{{ 'TABLES.VELOCITY' | translate }}</th>
+            <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
+            <th>{{ 'TABLES.DISTANCE_LABEL' | translate }}</th>
           </ng-container>
           <ng-template #nonCardioHeaders>
-            <th>Peso</th>
-            <th>Reps</th>
-            <th>Intensidad</th>
+            <th>{{ 'TABLES.WEIGHT_LABEL' | translate }}</th>
+            <th>{{ 'TABLES.REPS' | translate }}</th>
+            <th>{{ 'TABLES.RIR' | translate }}<app-glossary-info term="RIR" size="sm"></app-glossary-info></th>
           </ng-template>
         </ng-template>
         <th style="width: 32px; min-width: 32px"></th>
@@ -83,7 +83,7 @@
             }}
           </td>
           <td>
-            <span *ngIf="isFail(set)" class="fail-label">FALLO</span>
+            <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
             <span *ngIf="
                 !isFail(set) &&
                 ((set.doned && set.rir !== null && set.rir !== undefined) ||
@@ -93,9 +93,10 @@
               set.doned
               ? formatPerformedRir(set.rir)
               : formatExpectedRir(set.expectedRir)
-              }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">DS</span><span
-              *ngIf="set.restPause">&nbsp;</span><span *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }}
-              Seg</span>
+              }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">{{
+              'TABLES.DROP_SET' | translate }}</span><span *ngIf="set.restPause">&nbsp;</span><span
+              *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }}
+              {{ 'TABLES.SEG' | translate }}</span>
             <span *ngIf="
                 !isFail(set) &&
                 ((set.doned && (set.rir === null || set.rir === undefined)) ||

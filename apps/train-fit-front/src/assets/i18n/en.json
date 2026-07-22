@@ -1245,7 +1245,13 @@
     "ESTIMATES_TITLE": "Your 1RM estimates",
     "RECOMMENDED_BADGE": "Recommended",
     "PERCENTAGE_TABLE_TITLE": "Percentage table",
-    "WEIGHT_COL": "Weight"
+    "WEIGHT_COL": "Weight",
+    "FORMULA_EPLEY": "Epley",
+    "FORMULA_BRZYCKI": "Brzycki",
+    "FORMULA_LOMBARDI": "Lombardi",
+    "FORMULA_EPLEY_DESC": "Most accurate between 2 and 6 reps.",
+    "FORMULA_BRZYCKI_DESC": "Most accurate between 3 and 10 reps.",
+    "FORMULA_LOMBARDI_DESC": "Most accurate from 6 reps onwards."
   },
   "CONFIGURATION": {
     "TITLE": "Settings",

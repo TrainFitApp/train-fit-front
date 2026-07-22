@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 import {
   RmCalculatorService,
   RmFormula,
@@ -9,12 +10,6 @@ import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 
 // Descendente: la fila del 1RM (100%) aparece primero.
 const PERCENTAGES_DESC = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50];
-
-const FORMULA_DESCRIPTIONS: Record<RmFormula, string> = {
-  epley: 'Más precisa entre 2 y 6 repeticiones.',
-  brzycki: 'Más precisa entre 3 y 10 repeticiones.',
-  lombardi: 'Más precisa a partir de 6 repeticiones.',
-};
 
 @Component({
   selector: 'app-rm-calculator',
@@ -37,8 +32,9 @@ export class RmCalculatorPage {
   constructor(
     private rmCalculatorService: RmCalculatorService,
     private navCtrl: NavController,
-    private adMobService: AdMobService
-  ) {}
+    private adMobService: AdMobService,
+    private translateService: TranslateService
+  ) { }
 
   public goBack(): void {
     this.navCtrl.back();
@@ -80,16 +76,23 @@ export class RmCalculatorPage {
   public formulaLabel(formula: RmFormula): string {
     switch (formula) {
       case 'epley':
-        return 'Epley';
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_EPLEY');
       case 'brzycki':
-        return 'Brzycki';
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_BRZYCKI');
       case 'lombardi':
-        return 'Lombardi';
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_LOMBARDI');
     }
   }
 
   public formulaDescription(formula: RmFormula): string {
-    return FORMULA_DESCRIPTIONS[formula];
+    switch (formula) {
+      case 'epley':
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_EPLEY_DESC');
+      case 'brzycki':
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_BRZYCKI_DESC');
+      case 'lombardi':
+        return this.translateService.instant('RM_CALCULATOR.FORMULA_LOMBARDI_DESC');
+    }
   }
 
   public round1(value: number): number {

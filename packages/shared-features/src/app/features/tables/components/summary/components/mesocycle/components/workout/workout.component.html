@@ -1,236 +1,134 @@
 <ion-accordion value="open" (click)="stateSelected !== STATES.move ? arrowRotate = !arrowRotate : null">
-  <ion-grid
-    slot="header"
-    [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }"
-  >
+  <ion-grid slot="header" [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }">
     <ion-row>
       <ion-col class="ion-no-padding" size="9.6">
         <ion-row>
           <ion-col class="meal-name">
             <ion-buttons class="workout-actions-buttons">
-              <ion-button
-                fill="clear"
-                class="action-btn menu-btn ripple-effect"
-                [ngClass]="{
+              <ion-button fill="clear" class="action-btn menu-btn ripple-effect" [ngClass]="{
                   'workout-actions-button':
                     workoutIndex === 0 && splitIndex === 0
-                }"
-                (click)="
+                }" (click)="
                   workoutActions($event, workoutIndex); $event.stopPropagation()
-                "
-                [disabled]="!load || pasteMode || stateSelected !== STATES.static"
-              >
-                <ion-icon
-                  color="primary"
-                  name="ellipsis-vertical-outline"
-                  slot="icon-only"
-                ></ion-icon>
+                " [disabled]="!load || pasteMode || stateSelected !== STATES.static">
+                <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
               </ion-button>
             </ion-buttons>
 
-            <div
-              class="workout-title"
-              [style.color]="getWorkoutStatusColor()"
-            >
-              <strong [style.color]="workoutColor"
-                >{{ (workoutColor === 'var(--ion-color-medium)' ? 'TABLES.DAY' : 'TABLES.TODAY') | translate }}&nbsp;</strong
-              >
-              <span [style.color]="getWorkoutStatusColor('var(--ion-text-color)')"
-                >{{ workout.name | translateDb }}</span
-              >
+            <div class="workout-title" [style.color]="getWorkoutStatusColor()">
+              <strong [style.color]="workoutColor">{{ (workoutColor === 'var(--ion-color-medium)' ? 'TABLES.DAY' :
+                'TABLES.TODAY') | translate }}&nbsp;</strong>
+              <span [style.color]="getWorkoutStatusColor('var(--ion-text-color)')">{{ workout.name | translateDb
+                }}</span>
             </div>
             &nbsp;
-            <ion-icon
-              *ngIf="workout.exercises.length !== 0"
-              name="chevron-down-outline"
-              [ngClass]="arrowRotate ? 'rotate' : 'start'"
-            ></ion-icon>
+            <ion-icon *ngIf="workout.exercises.length !== 0" name="chevron-down-outline"
+              [ngClass]="arrowRotate ? 'rotate' : 'start'"></ion-icon>
           </ion-col>
         </ion-row>
 
         <ion-row>
           <ion-col class="ion-no-padding header-detail">
-            <ion-label color="medium"
-              ><strong>{{
+            <ion-label color="medium"><strong>{{
                 workout.exercises.length === 0
-                  ? ('TABLES.NO_EXERCISES' | translate)
-                  : workout.exercises.length === 1
-                  ? workout.exercises.length + ' ' + ('TABLES.EXERCISE_SINGULAR' | translate)
-                  : workout.exercises.length + ' ' + ('TABLES.EXERCISE_PLURAL' | translate)
-              }}</strong></ion-label
-            >
-            <ion-label
-              *ngIf="workout.exercises.length > 0"
-              style="font-size: small"
-              color="tertiary"
-              ><strong>{{ getWorkoutSets() }} {{ 'TABLES.SERIES' | translate }}</strong></ion-label
-            >
+                ? ('TABLES.NO_EXERCISES' | translate)
+                : workout.exercises.length === 1
+                ? workout.exercises.length + ' ' + ('TABLES.EXERCISE_SINGULAR' | translate)
+                : workout.exercises.length + ' ' + ('TABLES.EXERCISE_PLURAL' | translate)
+                }}</strong></ion-label>
+            <ion-label *ngIf="workout.exercises.length > 0" style="font-size: small" color="tertiary"><strong>{{
+                getWorkoutSets() }} {{ 'TABLES.SERIES' | translate }}</strong></ion-label>
           </ion-col>
         </ion-row>
 
         <ion-row *ngIf="workout.date">
-          <ion-col class="ion-no-padding header-detail"
-            ><ion-label
-              style="font-size: x-small"
-              [id]="generatePopoverId(workout.date)"
-              [color]="workout.date ? 'success' : 'primary'"
-              (click)="stopPropagation(workout, $event)"
-              >{{
-                workout.date ? (workout.date | date : "dd/MM/yyyy") : ""
-              }}</ion-label
-            ></ion-col
-          >
+          <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small"
+              [id]="generatePopoverId(workout.date)" [color]="workout.date ? 'success' : 'primary'"
+              (click)="stopPropagation(workout, $event)">{{
+              workout.date ? (workout.date | date : "dd/MM/yyyy") : ""
+              }}</ion-label></ion-col>
         </ion-row>
 
         <ion-row *ngIf="!workout.date && workout.rest">
-          <ion-col class="ion-no-padding header-detail"
-            ><ion-label
-              style="font-size: x-small"
-              color="alternative"
-              >{{ 'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label
-            ></ion-col
-          >
+          <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small" color="alternative">{{
+              'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label></ion-col>
         </ion-row>
 
-        <ion-popover
-          [trigger]="generatePopoverId(workout.date)"
-          *ngIf="workout.date"
-        >
+        <ion-popover [trigger]="generatePopoverId(workout.date)" *ngIf="workout.date">
           <ng-template>
-            <ion-datetime
-              [value]="getISODate(workout.date)"
-              [locale]="locale"
-              first-day-of-week="1"
-              #datetime
-              doneText="{{ 'COMMON.CONFIRM' | translate }}"
-              cancelText="{{ 'COMMON.CANCEL' | translate }}"
-              presentation="date"
-              display-seconds="true"
-              (ionChange)="
+            <ion-datetime [value]="getISODate(workout.date)" [locale]="locale" first-day-of-week="1" #datetime
+              doneText="{{ 'COMMON.CONFIRM' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}"
+              presentation="date" display-seconds="true" (ionChange)="
                 changeWorkoutDate(workout, datetime.value.toString())
-              "
-            >
+              ">
               <ion-buttons slot="buttons">
-                <ion-button color="primary" (click)="datetime.cancel(true)"
-                  >{{ 'COMMON.CANCEL' | translate }}</ion-button
-                >
+                <ion-button color="primary" (click)="datetime.cancel(true)">{{ 'COMMON.CANCEL' | translate
+                  }}</ion-button>
 
-                <ion-button color="primary" (click)="datetime.confirm(true)"
-                  >{{ 'COMMON.OK' | translate }}</ion-button
-                >
-              </ion-buttons></ion-datetime
-            >
+                <ion-button color="primary" (click)="datetime.confirm(true)">{{ 'COMMON.OK' | translate }}</ion-button>
+              </ion-buttons></ion-datetime>
           </ng-template>
         </ion-popover>
 
         <ion-row *ngIf="workout.exercises.length > 0">
           <ion-col class="ion-no-padding header-detail">
-            <ion-chip
-              color="primary"
-              (click)="
+            <ion-chip color="primary" (click)="
                 visibleMuscleGroups = !visibleMuscleGroups;
                 $event.stopPropagation()
-              "
-              >{{ 'TABLES.MAIN_MUSCLES' | translate }}</ion-chip
-            >
+              ">{{ 'TABLES.MAIN_MUSCLES' | translate }}</ion-chip>
           </ion-col>
         </ion-row>
 
-        <ion-row *ngIf="visibleMuscleGroups"
-          ><ion-col class="ion-no-padding header-detail">
-            <ion-chip
-              color="secondary"
-              *ngFor="let group of getWorkoutMuscleGroups()"
-              >{{ group | translateDb }}</ion-chip
-            >
-          </ion-col></ion-row
-        >
+        <ion-row *ngIf="visibleMuscleGroups"><ion-col class="ion-no-padding header-detail">
+            <ion-chip color="secondary" *ngFor="let group of getWorkoutMuscleGroups()">{{ group | translateDb
+              }}</ion-chip>
+          </ion-col></ion-row>
       </ion-col>
-      <ion-col
-        class="ion-no-padding"
-        style="display: flex; justify-content: center; align-items: center"
-        size="2.4"
-      >
-        <ion-buttons
-          class="workout-actions-buttons"
-          style="
+      <ion-col class="ion-no-padding" style="display: flex; justify-content: center; align-items: center" size="2.4">
+        <ion-buttons class="workout-actions-buttons" style="
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-          "
-        >
-          <ion-button
-            *ngIf="load && pasteMode && canPaste()"
-            style="margin-left: -5%; font-size: xx-large"
-            (click)="createWorkoutFromClipboard(); $event.stopPropagation()"
-            ><ion-icon color="tertiary" name="clipboard-outline"></ion-icon
-          ></ion-button>
+          ">
+          <ion-button *ngIf="load && pasteMode && canPaste()" style="margin-left: -5%; font-size: xx-large"
+            (click)="createWorkoutFromClipboard(); $event.stopPropagation()"><ion-icon color="tertiary"
+              name="clipboard-outline"></ion-icon></ion-button>
 
           <ng-container *ngIf="load && pasteMode && alreadyCopied()">
-            <span class="workout-copied" (click)="showNavigationToast($event)"
-              >{{ 'TABLES.COPIED' | translate }}</span
-            >
+            <span class="workout-copied" (click)="showNavigationToast($event)">{{ 'TABLES.COPIED' | translate }}</span>
           </ng-container>
 
-          <ion-button
-            *ngIf="
+          <ion-button *ngIf="
               load &&
               !pasteMode &&
               stateSelected === STATES.static &&
               user?.workoutInUse === workout._id
-            "
-            style="margin-left: -5%; font-size: xx-large"
-            (click)="playWorkout(); $event.stopPropagation()"
-          >
-            <ion-icon
-              slot="icon-only"
-              name="chevron-forward-circle-outline"
-            ></ion-icon>
+            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
+            <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
           </ion-button>
 
-          <ion-button
-            *ngIf="
+          <ion-button *ngIf="
               load &&
               !pasteMode &&
               stateSelected === STATES.static &&
               user?.workoutInUse !== workout._id
-            "
-            style="margin-left: -5%; font-size: xx-large"
-            (click)="playWorkout(); $event.stopPropagation()"
-          >
+            " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
             <ion-icon color="success" name="play-circle-outline"></ion-icon>
           </ion-button>
 
-          <ion-button
-            *ngIf="load && !pasteMode && stateSelected === STATES.static"
-            style="margin-left: -5%; font-size: xx-large"
-            class="t-workout-add-exercises"
-            (click)="searchExercises(workout, split); $event.stopPropagation()"
-            ><ion-icon color="primary" name="add-circle-outline"></ion-icon
-          ></ion-button>
+          <ion-button *ngIf="load && !pasteMode && stateSelected === STATES.static"
+            style="margin-left: -5%; font-size: xx-large" class="t-workout-add-exercises"
+            (click)="searchExercises(workout, split); $event.stopPropagation()"><ion-icon color="primary"
+              name="add-circle-outline"></ion-icon></ion-button>
 
-          <ion-spinner
-            *ngIf="!load"
-            style="transform: scale(1.2)"
-            name="crescent"
-            color="primary"
-          ></ion-spinner>
+          <ion-spinner *ngIf="!load" style="transform: scale(1.2)" name="crescent" color="primary"></ion-spinner>
 
-          <ion-button
-            *ngIf="stateSelected === STATES.move"
-            style="margin-left: -5%; font-size: xx-large"
-          >
-            <ion-spinner
-              *ngIf="savingWorkoutOrder"
-              style="transform: scale(0.8)"
-              name="crescent"
-              color="primary"
-            ></ion-spinner>
+          <ion-button *ngIf="stateSelected === STATES.move" style="margin-left: -5%; font-size: xx-large">
+            <ion-spinner *ngIf="savingWorkoutOrder" style="transform: scale(0.8)" name="crescent"
+              color="primary"></ion-spinner>
             <ion-reorder *ngIf="!savingWorkoutOrder" slot="start">
-              <ion-icon
-                name="reorder-three-outline"
-              ></ion-icon>
+              <ion-icon name="reorder-three-outline"></ion-icon>
             </ion-reorder>
           </ion-button>
         </ion-buttons>
@@ -239,22 +137,14 @@
   </ion-grid>
 
   <div slot="content" *ngIf="workout?.exercises.length !== 0">
-    <app-notes
-      *ngIf="workout?.notes"
-      [notes]="workout.notes"
-      [object]="workout"
-      [detail]="true"
-      (update)="updateWorkoutNote($event)"
-    ></app-notes>
+    <app-notes *ngIf="workout?.notes" [notes]="workout.notes" [object]="workout" [detail]="true"
+      (update)="updateWorkoutNote($event)"></app-notes>
     <ng-container *ngIf="workout?.exercises.length !== 0; else emptyWorkout">
-      <div
-        class="exercise-card"
-        [id]="'exercise-' + workoutIndex + '-' + i"
-        *ngFor="let exercise of workout?.exercises; let i = index"
-        (click)="addExerciseModal(exercise)"
-      >
+      <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + i"
+        *ngFor="let exercise of workout?.exercises; let i = index" (click)="addExerciseModal(exercise)">
         <div class="exercise-item">
-          <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, i) as pinnedNote" (click)="$event.stopPropagation()">
+          <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, i) as pinnedNote"
+            (click)="$event.stopPropagation()">
             <div class="pinned-note-wrapper" (click)="editPinnedNote(workoutIndex, i); $event.stopPropagation()">
               <div class="pinned-note-card">
                 <div class="card-header">
@@ -267,7 +157,8 @@
                     </div>
                   </div>
                   <div class="action-wrapper">
-                    <ion-button fill="clear" size="small" class="close-button" (click)="deletePinnedNote(workoutIndex, i); $event.stopPropagation()">
+                    <ion-button fill="clear" size="small" class="close-button"
+                      (click)="deletePinnedNote(workoutIndex, i); $event.stopPropagation()">
                       <ion-icon name="close" slot="icon-only"></ion-icon>
                     </ion-button>
                   </div>
@@ -277,22 +168,14 @@
             </div>
           </div>
           <div class="exercise-info">
-            <div
-              class="exercise-name"
-              [class.completed]="isCustomExerciseCompleted(exercise)"
-            >
+            <div class="exercise-name" [class.completed]="isCustomExerciseCompleted(exercise)">
               {{ exercise.exercise.name | translateDb }}
             </div>
             <div class="exercise-icons">
-              <ion-button
-                fill="clear"
-                size="small"
-                class="delete-exercise-btn"
-                (click)="
+              <ion-button fill="clear" size="small" class="delete-exercise-btn" (click)="
                   deleteExercisesAlert(exercise.exercise.name, workoutIndex, i);
                   $event.stopPropagation()
-                "
-              >
+                ">
                 <ion-icon slot="icon-only" name="close-outline"></ion-icon>
               </ion-button>
             </div>
@@ -300,11 +183,7 @@
         </div>
 
         <div class="no-sets-message" *ngIf="exercise?.sets.length === 0">
-          <button
-            type="button"
-            class="add-sets-button"
-            (click)="addExerciseModal(exercise); $event.stopPropagation()"
-          >
+          <button type="button" class="add-sets-button" (click)="addExerciseModal(exercise); $event.stopPropagation()">
             <ion-icon name="add-circle-outline"></ion-icon>
             <span>{{ 'TABLES.ADD_SERIES' | translate }}</span>
           </button>
@@ -319,15 +198,13 @@
                   <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
                 </ng-container>
                 <ng-template #nonIsometricHeaders>
-                  <ng-container
-                    *ngIf="exercise.exercise.isCardio; else nonCardioHeaders"
-                  >
+                  <ng-container *ngIf="exercise.exercise.isCardio; else nonCardioHeaders">
                     <th>{{ 'TABLES.VELOCITY' | translate }}</th>
                     <th>{{ 'TABLES.TIME_LABEL' | translate }}</th>
                     <th>{{ 'TABLES.DISTANCE_LABEL' | translate }}</th>
                   </ng-container>
                   <ng-template #nonCardioHeaders>
-                    <th>{{ 'TABLES.KG' | translate }}</th>
+                    <th>{{ 'TABLES.WEIGHT_LABEL' | translate }}</th>
                     <th>{{ 'TABLES.REPS' | translate }}</th>
                     <th>{{ 'TABLES.RIR' | translate }}<app-glossary-info term="RIR" size="sm"></app-glossary-info></th>
                   </ng-template>
@@ -335,17 +212,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                class="series-row"
-                [id]="'set-' + workoutIndex + '-' + i + '-' + j"
-                [ngClass]="{
+              <tr class="series-row" [id]="'set-' + workoutIndex + '-' + i + '-' + j" [ngClass]="{
                   'previous-set': set.doned,
                   'pending-set': !set.doned,
                   'drop-set-series': set.drop,
                   'rest-pause-series': set.restPause
-                }"
-                *ngFor="let set of sortSets(exercise?.sets); let j = index"
-              >
+                }" *ngFor="let set of sortSets(exercise?.sets); let j = index">
                 <td>{{ j + 1 }}</td>
 
                 <ng-container *ngIf="exercise.exercise.isIsometric; else nonIsometric">
@@ -354,52 +226,44 @@
                   </td>
                 </ng-container>
                 <ng-template #nonIsometric>
-                <ng-container
-                  *ngIf="exercise.exercise.isCardio; else nonCardio"
-                >
-                  <td>{{ set.velocity ? set.velocity : "—" }}</td>
-                  <td>{{ (set.doned ? set.time : set.expectedTime) || "—" }}</td>
-                  <td>
-                    {{ (set.doned ? set.distance : set.expectedDistance) ? (set.doned ? set.distance : set.expectedDistance) + " KM" : "—" }}
-                  </td>
-                </ng-container>
+                  <ng-container *ngIf="exercise.exercise.isCardio; else nonCardio">
+                    <td>{{ set.velocity ? set.velocity : "—" }}</td>
+                    <td>{{ (set.doned ? set.time : set.expectedTime) || "—" }}</td>
+                    <td>
+                      {{ (set.doned ? set.distance : set.expectedDistance) ? (set.doned ? set.distance :
+                      set.expectedDistance) + " KM" : "—" }}
+                    </td>
+                  </ng-container>
                 </ng-template>
                 <ng-template #nonCardio>
                   <!-- Mostrar datos esperados si no está doned, datos reales si está doned -->
                   <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
                   <td>
                     {{
-                      set.doned
-                        ? set.reps || "—"
-                        : formatExpectedReps(set.expectedReps)
+                    set.doned
+                    ? set.reps || "—"
+                    : formatExpectedReps(set.expectedReps)
                     }}
                   </td>
                   <td>
                     <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
                     <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
-                    <span
-                      *ngIf="
+                    <span *ngIf="
                         !isFail(set) &&
                         ((set.doned &&
                           set.rir !== null &&
                           set.rir !== undefined) ||
                           (!set.doned && hasValidExpectedRir(set.expectedRir)))
-                      "
-                      class="intensity-rir-after"
-                    >
+                      " class="intensity-rir-after">
                       {{
-                        set.doned
-                          ? formatPerformedRir(set.rir)
-                          : formatExpectedRir(set.expectedRir)
-                      }}</span
-                    ><span *ngIf="set.drop">&nbsp;</span
-                    ><span *ngIf="set.drop" class="intensity-drop">{{ 'TABLES.DROP_SET' | translate }}</span
-                    ><span *ngIf="set.restPause">&nbsp;</span
-                    ><span *ngIf="set.restPause" class="intensity-rp"
-                      >RP {{ set.restPause }} {{ 'TABLES.SEG' | translate }}</span
-                    >
-                    <span
-                      *ngIf="
+                      set.doned
+                      ? formatPerformedRir(set.rir)
+                      : formatExpectedRir(set.expectedRir)
+                      }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">{{
+                      'TABLES.DROP_SET' | translate }}</span><span *ngIf="set.restPause">&nbsp;</span><span
+                      *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ 'TABLES.SEG' | translate
+                      }}</span>
+                    <span *ngIf="
                         !isFail(set) &&
                         ((set.doned &&
                           (set.rir === null || set.rir === undefined)) ||
@@ -407,9 +271,7 @@
                             !hasValidExpectedRir(set.expectedRir))) &&
                         !set.drop &&
                         !set.restPause
-                      "
-                      >—</span
-                    >
+                      ">—</span>
                   </td>
                 </ng-template>
               </tr>
@@ -418,14 +280,9 @@
         </div>
 
         <div *ngIf="exercise?.notes" class="notes-container">
-          <app-notes
-            [object]="exercise"
-            [notes]="exercise.notes"
-            [tableId]="tableInUse._id"
-            [workoutIndex]="workoutIndex"
-            [exerciseIndex]="i"
-            (update)="updateExerciseNote($event, exercise)"
-          ></app-notes>
+          <app-notes [object]="exercise" [notes]="exercise.notes" [tableId]="tableInUse._id"
+            [workoutIndex]="workoutIndex" [exerciseIndex]="i"
+            (update)="updateExerciseNote($event, exercise)"></app-notes>
         </div>
       </div>
     </ng-container>
