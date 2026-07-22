@@ -22,6 +22,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   public activeGoalId: string | null = null;
   public isCreating: boolean = false;
   public newGoalName: string = '';
+  public isLoading: boolean = true;
 
   private destroy$ = new Subject<void>();
 
@@ -47,6 +48,7 @@ export class GoalListPage implements OnInit, OnDestroy {
   }
 
   private loadGoals() {
+    this.isLoading = true;
     this.nutritionalGoalService.refreshFromServer()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -57,8 +59,10 @@ export class GoalListPage implements OnInit, OnDestroy {
             if (b._id === this.activeGoalId) return 1;
             return 0;
           });
+          this.isLoading = false;
         },
         error: () => {
+          this.isLoading = false;
           this.ionicUtilService.showToast({
             message: this.translate.instant('COMMON.ERROR'),
             duration: 2000,

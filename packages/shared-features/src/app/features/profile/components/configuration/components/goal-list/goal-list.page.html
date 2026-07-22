@@ -15,6 +15,9 @@
         </button>
       </div>
     </div>
+    <div class="tf-page-header__progress" [style.visibility]="isLoading ? 'visible' : 'hidden'">
+      <div class="tf-page-header__progress-indicator"></div>
+    </div>
   </div>
 </ion-header>
 
@@ -93,7 +96,7 @@
         </div>
       </div>
 
-      <div *ngIf="goals.length === 0 && !isCreating" class="empty-state">
+      <div *ngIf="!isLoading && goals.length === 0 && !isCreating" class="empty-state">
         <ion-icon name="nutrition-outline"></ion-icon>
         <p>{{ 'NUTRITION_GOALS.EMPTY' | translate }}</p>
       </div>
