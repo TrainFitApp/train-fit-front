@@ -132,14 +132,17 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       this.setActiveGoal(goals);
       this.afterGoalReady();
     } else {
+      this.isLoading = true;
       this.nutritionalGoalService.loadGoals().subscribe({
         next: (loaded) => {
           this.goals = loaded;
           this.setActiveGoal(loaded);
           this.afterGoalReady();
+          this.isLoading = false;
         },
         error: (err) => {
           console.error('[NUTRITIONAL_OBJECTIVES] Failed to load goals:', err);
+          this.isLoading = false;
         },
       });
     }

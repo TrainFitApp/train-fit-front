@@ -161,7 +161,7 @@ export class WorkoutComponent implements OnDestroy {
     private adMobService: AdMobService,
     private translate: TranslateService,
     private pinnedExerciseNoteService: PinnedExerciseNoteService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadPinnedNotes();
@@ -663,8 +663,8 @@ export class WorkoutComponent implements OnDestroy {
     const workouts = Array.isArray(workoutsPayload)
       ? workoutsPayload
       : Array.isArray(workoutsPayload?.workouts)
-      ? workoutsPayload.workouts
-      : [];
+        ? workoutsPayload.workouts
+        : [];
 
     if (!workouts.length) {
       if (workoutsPayload?.setChangeInfo) {
@@ -715,9 +715,9 @@ export class WorkoutComponent implements OnDestroy {
       const incomingId = incomingExercise?._id?.toString();
       const existingIndex = incomingId
         ? mergedExercises.findIndex(
-            (currentExercise) =>
-              currentExercise?._id?.toString() === incomingId
-          )
+          (currentExercise) =>
+            currentExercise?._id?.toString() === incomingId
+        )
         : -1;
 
       if (existingIndex >= 0) {
@@ -1260,7 +1260,37 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   private startWorkoutAndNavigate(): void {
+    // If the workout was completed, reset everything
+    const wasCompleted = !!this.workout.date;
     this.workout.date = null;
+
+    // Reset startedAt if the workout was completed before
+    if (!this.workout.startedAt || wasCompleted) {
+      this.workout.startedAt = new Date();
+    }
+
+    // If the workout was completed, reset all sets to not done
+    if (wasCompleted) {
+      this.workout.exercises = this.workout.exercises?.map(exercise => ({
+        ...exercise,
+        sets: exercise.sets?.map(set => ({
+          ...set,
+          doned: false
+        }))
+      }));
+    }
+
+    // Update the workout in tableInUse as well, so it's in sync
+    if (this.tableInUse) {
+      this.tableInUse.splits.forEach(split => {
+        const workoutIndex = split.workouts.findIndex(w => w._id === this.workout._id);
+        if (workoutIndex !== -1) {
+          split.workouts[workoutIndex] = { ...this.workout };
+        }
+      });
+      this.tableService.setCurrentTable = this.tableInUse;
+    }
+
     this.workoutService.modifyWorkout(this.workout).subscribe(() => {
       this.user.workoutInUse = this.workout._id;
 

@@ -207,12 +207,47 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   }
 
   private startWorkoutFlow(): void {
-    this.currentWorkout.date = null;
-    // Solo la primera vez: si ya existe (retomando tras "detener"), se conserva
-    // para que el tiempo transcurrido siga contando desde el inicio real.
-    if (!this.currentWorkout.startedAt) {
-      this.currentWorkout.startedAt = new Date();
+    // If the workout was completed (has a date), reset everything
+    const wasCompleted = !!this.currentWorkout.date;
+
+    // Create a new workout object to ensure signal updates
+    const updatedWorkout = { ...this.currentWorkout };
+    updatedWorkout.date = null;
+
+    // Reset startedAt if it's a new start or if the workout was completed before
+    if (!updatedWorkout.startedAt || wasCompleted) {
+      updatedWorkout.startedAt = new Date();
     }
+
+    // If the workout was completed, reset all sets to not done
+    if (wasCompleted) {
+      updatedWorkout.exercises = updatedWorkout.exercises?.map(exercise => ({
+        ...exercise,
+        sets: exercise.sets?.map(set => ({
+          ...set,
+          doned: false
+        }))
+      }));
+    }
+
+    // Update the current workout with the new object
+    this.currentWorkout = updatedWorkout;
+
+    // Immediately update the elapsed label and restart the ticker
+    this.updateElapsedLabel();
+    this.syncElapsedTimer();
+
+    // Update the workout in tableInUse as well, so it's in sync
+    if (this.tableInUse) {
+      this.tableInUse.splits.forEach(split => {
+        const workoutIndex = split.workouts.findIndex(w => w._id === this.currentWorkout._id);
+        if (workoutIndex !== -1) {
+          split.workouts[workoutIndex] = { ...this.currentWorkout };
+        }
+      });
+      this.tableService.setCurrentTable = this.tableInUse;
+    }
+
     this.workoutService.modifyWorkout(this.currentWorkout).subscribe(() => {
       this.user.workoutInUse = this.currentWorkout._id;
       this.userService.updateUser(this.user).subscribe(() => {
