@@ -8,15 +8,8 @@
       </div>
 
       <div class="search-section">
-        <ion-searchbar
-          #searchbar
-          (ionInput)="searchTables($event)"
-          debounce="250"
-          placeholder="{{ 'COMMON.SEARCH' | translate }}"
-          mode="ios"
-          animated
-          class="custom-searchbar"
-        ></ion-searchbar>
+        <ion-searchbar #searchbar (ionInput)="searchTables($event)" debounce="250"
+          placeholder="{{ 'COMMON.SEARCH' | translate }}" mode="ios" animated class="custom-searchbar"></ion-searchbar>
       </div>
 
       <div class="actions-section">
@@ -24,10 +17,7 @@
     </div>
 
     <!-- Table filter icons for Todas / Mis Rutinas (copia exacta de search-exercises) -->
-    <app-table-filter-icons
-      *ngIf="user && user._id"
-      (filterSelection)="onFilterModeChange($event)"
-    >
+    <app-table-filter-icons *ngIf="user && user._id" (filterSelection)="onFilterModeChange($event)">
     </app-table-filter-icons>
   </div>
 
@@ -35,17 +25,11 @@
 
 <ion-content class="exercises-content">
   <div class="exercises-list" *ngIf="tableList.length > 0; else emptyTables">
-    <app-table-card
-      *ngFor="let tableCard of tableList; let i = index"
-      [user]="user"
+    <app-table-card *ngFor="let tableCard of tableList; let i = index" [user]="user"
       [ownFilter]="searchFilterGroup.ownFilter"
-      [own]="tableCard._id === user.tableInUse"
-      [tableCard]="tableCard"
-      [anyLoading]="anyLoading"
-      (loadingChange)="anyLoading = $event"
-      (duplicateTableEv)="duplicateTable($event)"
-      (deletedTable)="deleteTable($event)"
-    ></app-table-card>
+      [own]="user.tables?.includes(tableCard._id) || tableCard.userId === user._id" [tableCard]="tableCard"
+      [anyLoading]="anyLoading" (loadingChange)="anyLoading = $event" (duplicateTableEv)="duplicateTable($event)"
+      (deletedTable)="deleteTable($event)"></app-table-card>
   </div>
 
   <ng-template #emptyTables>
@@ -63,10 +47,7 @@
   </ng-template>
 
   <div class="skeleton-container" *ngIf="!load">
-    <app-skeleton-loader
-      [rows]="2"
-      [detailColumns]="4"
-    ></app-skeleton-loader>
+    <app-skeleton-loader [rows]="2" [detailColumns]="4"></app-skeleton-loader>
   </div>
 
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)">

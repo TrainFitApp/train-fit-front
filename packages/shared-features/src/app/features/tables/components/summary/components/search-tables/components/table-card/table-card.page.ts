@@ -122,11 +122,12 @@ export class TableCardPage {
       next: async (fullTable) => {
         this.loadAction = true;
         this.loadingChange.emit(false);
+        const isOwned = this.user.tables?.includes(fullTable._id) || fullTable.userId === this.user._id;
         const modal = await this.modalController.create({
           component: TablePreviewModalComponent,
           componentProps: {
             table: fullTable,
-            own: this.own,
+            own: isOwned,
             isActive: fullTable?._id === this.tableService.getTableInUseId(this.user?.tableInUse),
           },
           cssClass: 'table-preview-modal',
@@ -247,18 +248,18 @@ export class TableCardPage {
       : this.translate.instant('TABLES.ROUTINE_WILL_BE_ADDED');
 
     const alertOptions = {
-      header: this.translate.instant('TABLES.USE_ROUTINE', { name: this.translateDbValue(this.tableCard.name) }),
-      message: html,
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'alert-button-primary',
-        },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          cssClass: 'alert-button-success',
-          handler: () => {
+       header: this.translate.instant('TABLES.USE_ROUTINE', { name: this.translateDbValue(this.tableCard.name) }),
+       message: html,
+       buttons: [
+         {
+           text: this.translate.instant('COMMON.CANCEL'),
+           role: 'cancel',
+           cssClass: 'alert-button-primary',
+         },
+         {
+           text: this.translate.instant(this.ownFilter ? 'TABLES.START_ROUTINE' : 'TABLES.ACQUIRE_ROUTINE'),
+           cssClass: 'alert-button-success',
+           handler: () => {
             if (!this.user?.premium?.entitled) {
               this.adMobService
                 .interstitial('acquire_routine')

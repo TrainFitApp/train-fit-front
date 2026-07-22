@@ -1107,6 +1107,8 @@
     "EXERCISES_STAT": "Ejercicios",
     "PREVIEW": "Vista previa",
     "USE_ROUTINE_SHORT": "Usar",
+    "START_ROUTINE": "Iniciar {{name}}",
+    "ACQUIRE_ROUTINE": "Adquirir {{name}}",
     "ALREADY_IN_USE": "Ya en uso",
     "NO_WORKOUTS": "Sin entrenamientos",
     "NO_MICROCYCLES": "Sin microciclos",
