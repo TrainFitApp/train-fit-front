@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   SimpleChanges,
@@ -52,6 +53,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   public week: DietDay[] = [];
   public weightForm: FormGroup;
   public chart: Chart;
+  private langChangeSubscription: any;
 
   public shakeState = STATE_INACTIVE;
   public showSuccess: boolean = false;
@@ -68,7 +70,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     private ionicUtilService: IonicUtilService,
     private _utilService: UtilService,
     private translate: TranslateService
-  ) {}
+  ) { }
 
   public ngOnInit(): void {
     this.dietDayService.getCurrentDietDay.subscribe((resDietDay) => {
@@ -76,6 +78,22 @@ export class DailyWeightComponent implements OnInit, OnChanges {
       this.initForm();
       this.refreshWeekDataIfNeeded();
     });
+
+    // Listen for language changes to update chart
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
+      if (this.chart) {
+        this.initChart();
+      }
+    });
+  }
+
+  public ngOnDestroy(): void {
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
+    }
+    if (this.chart) {
+      this.chart.destroy();
+    }
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -153,13 +171,13 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
     const minWeight = Math.floor(this.utilService.getMinNumber(weights) - 5);
 
-    const labels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    const labels = this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
     const data: ChartData = {
       labels: labels,
       datasets: [
         {
           type: 'bar',
-          label: 'Peso semanal (Kg)',
+          label: this.translate.instant('WEIGHT_INFO.WEEKLY_WEIGHT_CHART'),
           data: weights,
           backgroundColor: [
             'rgba(255, 99, 132, 0.2)',
@@ -217,7 +235,7 @@ export class DailyWeightComponent implements OnInit, OnChanges {
     this.showSuccess = false;
     const parsedWeight = Number(weight);
 
-    const message = 'Peso guardado';
+    const message = this.translate.instant('WEIGHT_INFO.WEIGHT_SAVED');
     const duration = 500;
     const toastOptions: ToastOptions = { message, duration };
 

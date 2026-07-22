@@ -546,7 +546,7 @@
     "DELETE_MESSAGE": "Se eliminará el día {{date}}",
     "DELETE_SUCCESS": "{{date}} eliminado"
   },
-"SEARCH_FOODS": {
+  "SEARCH_FOODS": {
     "SEARCHING_PRODUCT": "Buscando producto...",
     "PRODUCT_NOT_FOUND": "No se pudo buscar el producto",
     "DELETE_PRODUCT_HEADER": "Eliminar producto",
@@ -734,6 +734,20 @@
       "Sábado",
       "Domingo"
     ],
+    "DAYS_INITIALS": [
+      "L",
+      "M",
+      "X",
+      "J",
+      "V",
+      "S",
+      "D"
+    ],
+    "WEIGHT_SAVED": "Peso guardado",
+    "WEEKLY_WEIGHT_CHART": "Peso semanal (kg)",
+    "TREND_UP": "Ganando",
+    "TREND_DOWN": "Perdiendo",
+    "TREND_STABLE": "Estable",
     "MONTHS": [
       "Enero",
       "Febrero",
@@ -1116,7 +1130,6 @@
     "MICROCYCLE_PREVIEW": "Vista previa de microciclos",
     "SAME_MICROCYCLES": "Mismos entrenamientos en los {{n}} microciclos",
     "WORKOUT_N": "Entreno {{n}}",
-
     "NAME_OPTION": "Nombre",
     "ROUTINE_IN_USE": "Rutina",
     "ROUTINE_IN_USE_MSG": "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",

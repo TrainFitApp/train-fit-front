@@ -6,11 +6,12 @@ import {
   EventEmitter,
   Input,
   OnInit,
+  OnDestroy,
   Output,
   ViewChild,
 } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -23,7 +24,7 @@ import { DateRange } from 'src/app/shared/models/dateRange';
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })
-export class CalendarComponent implements OnInit, AfterViewInit {
+export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   public fetchOnInit: boolean = true;
 
@@ -50,11 +51,10 @@ export class CalendarComponent implements OnInit, AfterViewInit {
 
   public dietDays: DietDay[] = [];
 
+  private langChangeSubscription: any;
+
   get weekdayInitials(): string[] {
-    const lang = this.translate.currentLang || 'es';
-    return lang === 'en'
-      ? ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-      : ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+    return this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
   }
 
   constructor(
@@ -73,6 +73,19 @@ export class CalendarComponent implements OnInit, AfterViewInit {
   public ngOnInit(): void {
     if (this.fetchOnInit) {
       this.fetchDietDaysForMonth(); // Traer los DietDays para el mes actual
+    }
+
+    // Listen for language changes to update calendar
+    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      this.updateCalendar();
+      this.updateCurrentMonthYear();
+      this.cdRef.detectChanges();
+    });
+  }
+
+  public ngOnDestroy(): void {
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
     }
   }
 

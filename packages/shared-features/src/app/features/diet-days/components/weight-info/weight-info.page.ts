@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject, OnDestroy } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { CHART_RANGES } from './constants/chartRanges';
@@ -18,7 +18,7 @@ import { CalendarComponent } from '../calendar/calendar.component';
   styleUrls: ['./weight-info.page.scss'],
   animations: [fadeIn, fadeOut],
 })
-export class WeightInfoPage {
+export class WeightInfoPage implements OnDestroy {
   @ViewChild('weightCalendar')
   private weightCalendar?: CalendarComponent;
 
@@ -30,6 +30,8 @@ export class WeightInfoPage {
   public get months(): string[] {
     return this.translate.instant('WEIGHT_INFO.MONTHS');
   }
+
+  private langChangeSubscription: any;
 
   public load = true;
 
@@ -44,13 +46,25 @@ export class WeightInfoPage {
   private translate = inject(TranslateService);
 
   constructor(
-    private utilService: UtilService,
+    public utilService: UtilService,
     private anthropometryService: AnthropometryService,
     private cdref: ChangeDetectorRef,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService
   ) {
     this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
+
+    // Listen for language changes to update monthYear
+    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      const d = this.utilService.parseYYYYMMDD(this.selectedDate);
+      this.monthYear = `${this.months[d.getMonth()]} ${d.getFullYear()}`;
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
+    }
   }
 
   public ionViewWillEnter(): void {

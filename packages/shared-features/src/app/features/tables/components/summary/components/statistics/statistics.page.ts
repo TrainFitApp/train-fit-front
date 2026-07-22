@@ -188,6 +188,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // Data structures for efficient lookup
   private workoutMap: Map<string, string[]> = new Map();
   private workoutColors: Map<string, string> = new Map();
+  private langChangeSubscription: any;
 
   private readonly SET_COLORS = [
     '#fe9000',
@@ -225,7 +226,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
     public translate: TranslateService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.weekDaysHeader = [
@@ -243,9 +244,28 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.preProcessWorkoutData();
       this.updateCalendarDisplay();
     }
+
+    this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
+      this.weekDaysHeader = [
+        this.translate.instant('COMMON.MON'),
+        this.translate.instant('COMMON.TUE'),
+        this.translate.instant('COMMON.WED'),
+        this.translate.instant('COMMON.THU'),
+        this.translate.instant('COMMON.FRI'),
+        this.translate.instant('COMMON.SAT'),
+        this.translate.instant('COMMON.SUN'),
+      ];
+      this.updateCalendarDisplay();
+      if (this.chart) {
+        this.updateChart();
+      }
+    });
   }
 
   ngOnDestroy() {
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
+    }
     if (this.chart) {
       this.chart.destroy();
     }
@@ -584,7 +604,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
           const avgRir =
             rirSets.length > 0
               ? rirSets.reduce((acc, s) => acc + (s.rirNumeric ?? 0), 0) /
-                rirSets.length
+              rirSets.length
               : -1;
 
           // Calculate Effective Volume
@@ -1066,8 +1086,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const primaryLabel = this.isCardio
       ? this.translate.instant('TABLES.STATS_SPEED')
       : this.isIsometric
-      ? this.translate.instant('TABLES.STATS_TIME')
-      : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)';
+        ? this.translate.instant('TABLES.STATS_TIME')
+        : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)';
 
     const datasets: any[] = [
       {
@@ -1130,12 +1150,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
                 const v = ctx.raw as number;
                 if (v == null) return '';
                 if (ctx.datasetIndex === 0)
-                  return ` ${
-                    this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT')
-                  }: ${v} ${yUnit}`;
-                return ` ${
-                  this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS')
-                }: ${v} ${repsUnit}`;
+                  return ` ${this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT')
+                    }: ${v} ${yUnit}`;
+                return ` ${this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS')
+                  }: ${v} ${repsUnit}`;
               },
             },
           },

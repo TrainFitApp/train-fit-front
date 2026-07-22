@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 @Component({
@@ -15,6 +15,7 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
   chart: Chart | null = null;
   availableMetrics: string[] = [];
   selectedMetrics: Set<string> = new Set();
+  private langChangeSubscription: any;
 
   metricConfig = [
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', color: '#d4af37', unit: 'kg', yAxisID: 'yWeight' },
@@ -32,12 +33,19 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
 
   constructor(
     private translate: TranslateService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.updateAvailableMetrics();
     this.selectDefaultMetrics();
     this.initChart();
+
+    // Listen for language changes to update chart
+    this.langChangeSubscription = this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+      if (this.chart) {
+        this.updateChart();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -50,6 +58,9 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
 
   ngOnDestroy(): void {
     this.chart?.destroy();
+    if (this.langChangeSubscription) {
+      this.langChangeSubscription.unsubscribe();
+    }
   }
 
   private updateAvailableMetrics(): void {

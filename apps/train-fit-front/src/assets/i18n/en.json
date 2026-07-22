@@ -540,7 +540,7 @@
     "DELETE_MESSAGE": "Day {{date}} will be deleted",
     "DELETE_SUCCESS": "{{date}} deleted"
   },
-"SEARCH_FOODS": {
+  "SEARCH_FOODS": {
     "SEARCHING_PRODUCT": "Searching product...",
     "PRODUCT_NOT_FOUND": "Could not find the product",
     "DELETE_PRODUCT_HEADER": "Delete product",
@@ -728,6 +728,20 @@
       "Saturday",
       "Sunday"
     ],
+    "DAYS_INITIALS": [
+      "M",
+      "T",
+      "W",
+      "T",
+      "F",
+      "S",
+      "S"
+    ],
+    "WEIGHT_SAVED": "Weight saved",
+    "WEEKLY_WEIGHT_CHART": "Weekly weight (kg)",
+    "TREND_UP": "Gaining",
+    "TREND_DOWN": "Losing",
+    "TREND_STABLE": "Stable",
     "MONTHS": [
       "January",
       "February",
@@ -1110,7 +1124,6 @@
     "MICROCYCLE_PREVIEW": "Microcycles preview",
     "SAME_MICROCYCLES": "Same workouts across all {{n}} microcycles",
     "WORKOUT_N": "Workout {{n}}",
-
     "NAME_OPTION": "Name",
     "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
