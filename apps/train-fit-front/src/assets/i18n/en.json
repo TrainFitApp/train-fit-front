@@ -1434,7 +1434,10 @@
     "WEIGHT_GOAL_DEFICIT": "Caloric deficit goal of {{kcal}} kcal",
     "NOT_CONFIGURED": "Not configured",
     "REMAINING": "remaining",
-    "OF_KCAL": "of {{kcal}} kcal"
+    "OF_KCAL": "of {{kcal}} kcal",
+    "TODAY_WEIGHT_INFO": "Today's weight",
+    "PREV_WEEK_AVG_INFO": "Previous week average",
+    "CURR_WEEK_AVG_INFO": "Current week average"
   },
   "EDITOR": {
     "TITLE": "Edit",

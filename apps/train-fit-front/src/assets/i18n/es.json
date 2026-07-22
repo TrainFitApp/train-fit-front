@@ -1440,7 +1440,10 @@
     "WEIGHT_GOAL_DEFICIT": "Objetivo de déficit calórico de {{kcal}} kcal",
     "NOT_CONFIGURED": "No configurado",
     "REMAINING": "restantes",
-    "OF_KCAL": "de {{kcal}} kcal"
+    "OF_KCAL": "de {{kcal}} kcal",
+    "TODAY_WEIGHT_INFO": "Peso de hoy",
+    "PREV_WEEK_AVG_INFO": "Media semanal anterior",
+    "CURR_WEEK_AVG_INFO": "Media semanal actual"
   },
   "EDITOR": {
     "TITLE": "Editar",

@@ -263,7 +263,7 @@ export class ProfilePage implements OnInit {
 
   public showInfo(info: string): void {
     const toastOptions: ToastOptions = {
-      message: info,
+      message: this.translate.instant(info),
       duration: 1000,
     };
     this.ionicUtilService.showToast(toastOptions);
