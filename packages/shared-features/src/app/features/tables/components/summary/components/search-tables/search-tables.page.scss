@@ -2,12 +2,10 @@
 .minimal-header {
   --background: rgba(255, 255, 255, 0.98);
   --border-color: rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid var(--border-color);
 }
 
 .search-header {
   background: #141414;
-  border-bottom: 1px solid #252525;
 
   .header-content {
     display: flex;
@@ -148,6 +146,18 @@
 // Exercises Content (copia exacta)
 .exercises-content {
   --padding-bottom: 92px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #252525;
+    z-index: 10;
+  }
 
   .exercises-list {
     padding: 16px;
@@ -257,6 +267,10 @@
 
   .exercises-content {
     background: var(--bg-primary);
+
+    &::before {
+      background: rgba(255, 255, 255, 0.1);
+    }
   }
 
   .translucent-card {
