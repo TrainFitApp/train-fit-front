@@ -58,6 +58,8 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   public animatingLeft: boolean = false;
   public animatingRight: boolean = false;
   public pendingCopyInsertIndex: number | null = null;
+  public loadingHistorical: boolean = false;
+  public historicalWorkout: Workout | null = null;
   private pendingCopyKey: number = 0;
 
   public reorderMode: boolean = false;
@@ -236,15 +238,15 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   public updateHistoricalExercise(): void {
     if (this.historicalSplitIndex < 0 || this.currentWorkoutIndex < 0) return;
 
-    const historicalWorkout =
+    this.historicalWorkout =
       this.tableInUse.splits[this.historicalSplitIndex].workouts[
       this.currentWorkoutIndex
       ];
 
-    this.previousWorkoutDate = historicalWorkout.date;
+    this.previousWorkoutDate = this.historicalWorkout.date;
 
-    if (historicalWorkout.exercises) {
-      this.previousWorkoutCustomExercise = historicalWorkout.exercises.find(
+    if (this.historicalWorkout.exercises) {
+      this.previousWorkoutCustomExercise = this.historicalWorkout.exercises.find(
         (exerciseTemp) =>
           exerciseTemp.exercise._id === this.customExercise.exercise._id
       );
@@ -262,20 +264,28 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public goBack(): void {
-    if (this.canGoBack()) {
+    if (this.canGoBack() && !this.loadingHistorical && !this.animatingLeft && !this.animatingRight) {
       this.animatingLeft = true;
-      setTimeout(() => (this.animatingLeft = false), 300);
-      this.historicalSplitIndex--;
-      this.updateHistoricalExercise();
+      this.loadingHistorical = true;
+      setTimeout(() => {
+        this.animatingLeft = false;
+        this.historicalSplitIndex = Math.max(0, this.historicalSplitIndex - 1);
+        this.updateHistoricalExercise();
+        this.loadingHistorical = false;
+      }, 300);
     }
   }
 
   public goForward(): void {
-    if (this.canGoForward()) {
+    if (this.canGoForward() && !this.loadingHistorical && !this.animatingLeft && !this.animatingRight) {
       this.animatingRight = true;
-      setTimeout(() => (this.animatingRight = false), 300);
-      this.historicalSplitIndex++;
-      this.updateHistoricalExercise();
+      this.loadingHistorical = true;
+      setTimeout(() => {
+        this.animatingRight = false;
+        this.historicalSplitIndex = Math.min(this.currentSplitIndex - 1, this.historicalSplitIndex + 1);
+        this.updateHistoricalExercise();
+        this.loadingHistorical = false;
+      }, 300);
     }
   }
 

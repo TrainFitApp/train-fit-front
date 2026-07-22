@@ -10,9 +10,12 @@
       <span class="previous-title-text">{{ getMicrocycleLabel() }}</span>
       <div class="previous-subtitle-row">
         <span class="previous-subtitle-text">{{ 'TABLES.SESSION' | translate }} </span>
-        <span class="previous-subtitle-date">
+        <span class="previous-subtitle-date"
+          [style.color]="historicalWorkout?.rest ? 'var(--ion-color-alternative)' : ''">
           {{
-          previousWorkoutDate
+          historicalWorkout?.rest
+          ? ('TABLES.SKIPPED_DAY_LABEL' | translate)
+          : previousWorkoutDate
           ? (previousWorkoutDate | date : "dd/MM/yyyy")
           : previousWorkoutCustomExercise
           ? ('TABLES.NOT_FINISHED' | translate)
@@ -28,6 +31,8 @@
       <ion-icon name="play-forward-outline" slot="icon-only"></ion-icon>
     </ion-button>
   </div>
+
+  <ion-progress-bar *ngIf="loadingHistorical" type="indeterminate"></ion-progress-bar>
 
   <div *ngIf="!previousWorkoutCustomExercise?.sets?.length" class="no-data-msg">
     {{ 'TABLES.NO_DATA_MICROCYCLE' | translate }}
