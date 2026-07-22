@@ -22,7 +22,6 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
-import { OrderSetsPage } from './order-sets/order-sets.page';
 import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
 import { TranslateService } from '@ngx-translate/core';
@@ -31,6 +30,7 @@ interface CurrentSetRow {
   type: 'set' | 'pending';
   key: string;
   index: number;
+  originalIndex?: number;
   set?: Set;
 }
 
@@ -59,6 +59,13 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   public animatingRight: boolean = false;
   public pendingCopyInsertIndex: number | null = null;
   private pendingCopyKey: number = 0;
+
+  public reorderMode: boolean = false;
+  public draggedSetIndex: number | null = null;
+  public dragOverSetIndex: number | null = null;
+  public hasReorderChanges: boolean = false;
+  private originalSetsOrder: Set[] = [];
+  private originalPositions: Map<string, number> = new Map();
 
   public pinnedNote: PinnedExerciseNote | null = null;
   private pinnedNoteCacheSub: Subscription | null = null;
@@ -420,19 +427,92 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public openOrderSetsModal(): void {
-    const modalOptions: ModalOptions = {
-      component: OrderSetsPage,
-      componentProps: {
-        customExercise: this.customExercise,
-      },
-    };
+  public enterReorderMode(): void {
+    this.reorderMode = true;
+    this.hasReorderChanges = false;
+    this.draggedSetIndex = null;
+    this.dragOverSetIndex = null;
+    this.originalSetsOrder = this.customExercise.sets.map(s => ({ ...s }));
+    this.originalPositions = new Map(
+      this.customExercise.sets.map((s, i) => [s._id || `set-${i}`, i])
+    );
+  }
 
-    this.ionicUtilService.showModal(modalOptions).then((res) => {
-      if (res.data) {
-        this.replaceCurrentSets(res.data.sets);
-      }
-    });
+  public confirmReorder(): void {
+    if (!this.hasReorderChanges) {
+      this.reorderMode = false;
+      return;
+    }
+
+    const setsToUpdate = this.customExercise.sets.filter(
+      (setTemp) => setTemp._id && !isNaN(Number(setTemp._id)) === false
+    );
+
+    const reorderedSets = this.customExercise.sets.map((s, i) => ({ ...s, order: i }));
+
+    this.customExerciseService
+      .updateCustomExercise(
+        { ...this.customExercise, sets: reorderedSets },
+        [],
+        setsToUpdate,
+        []
+      )
+      .subscribe({
+        next: (resCustomExercise) => {
+          this.replaceCurrentSets(resCustomExercise.sets);
+          this.reorderMode = false;
+          this.hasReorderChanges = false;
+        },
+        error: () => {
+          this.reorderMode = false;
+        },
+      });
+  }
+
+  public cancelReorder(): void {
+    if (this.hasReorderChanges) {
+      this.customExercise.sets = this.originalSetsOrder.map(s => ({ ...s }));
+      this.replaceCurrentSets(this.customExercise.sets);
+    }
+    this.reorderMode = false;
+    this.hasReorderChanges = false;
+    this.draggedSetIndex = null;
+    this.dragOverSetIndex = null;
+  }
+
+  public onDragStart(event: DragEvent, index: number): void {
+    this.draggedSetIndex = index;
+    event.dataTransfer.effectAllowed = 'move';
+  }
+
+  public onDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    this.dragOverSetIndex = index;
+  }
+
+  public onDragLeave(event: DragEvent): void {
+    this.dragOverSetIndex = null;
+  }
+
+  public onDrop(event: DragEvent, dropIndex: number): void {
+    event.preventDefault();
+    const dragIndex = this.draggedSetIndex;
+    this.dragOverSetIndex = null;
+    this.draggedSetIndex = null;
+
+    if (dragIndex === null || dragIndex === dropIndex) return;
+
+    const sets = [...this.customExercise.sets];
+    const [movedSet] = sets.splice(dragIndex, 1);
+    sets.splice(dropIndex, 0, movedSet);
+    this.customExercise.sets = sets;
+
+    this.hasReorderChanges = true;
+  }
+
+  public onDragEnd(event: DragEvent): void {
+    this.draggedSetIndex = null;
+    this.dragOverSetIndex = null;
   }
 
   public configSet(set: Set): void {
@@ -547,10 +627,12 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       }
 
       if (setIndex < sets.length) {
+        const setId = sets[setIndex]._id || `set-${setIndex}`;
         rows.push({
           type: 'set',
-          key: sets[setIndex]._id || `set-${setIndex}`,
+          key: setId,
           index: rows.length,
+          originalIndex: this.reorderMode ? (this.originalPositions.get(setId) ?? rows.length) : undefined,
           set: sets[setIndex],
         });
       }

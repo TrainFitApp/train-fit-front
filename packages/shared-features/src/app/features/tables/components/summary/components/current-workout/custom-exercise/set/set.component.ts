@@ -42,8 +42,10 @@ export class SetComponent implements OnInit, OnChanges {
   public indexCustomExercise: number;
   @Input()
   public currentWorkout: Workout;
-  // @Input()
-  // public disabled: boolean;
+  @Input()
+  public reorderMode: boolean = false;
+  @Input()
+  public originalIndex: number | undefined;
 
   @Output()
   public deleteSet = new EventEmitter();

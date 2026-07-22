@@ -16,6 +16,35 @@ form {
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
+
+  &.reorder-mode {
+    pointer-events: none;
+
+    .reorder-handle {
+      pointer-events: auto;
+      cursor: grab;
+    }
+  }
+}
+
+.reorder-handle {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+
+  ion-icon {
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 // Premium Set Header

@@ -162,7 +162,7 @@
 </div>
 
 <!-- Premium Current Sets Section -->
-<div class="premium-current-sets">
+<div class="premium-current-sets" [class.reorder-active]="reorderMode">
   <!-- Pinned Exercise Note (visible in all splits at this position) -->
   <div class="pinned-note-container" *ngIf="pinnedNote">
     <div class="pinned-note-wrapper" (click)="editPinnedNote(); $event.stopPropagation()">
@@ -208,19 +208,32 @@
 
   <!-- Current Sets -->
   <ng-container *ngFor="let row of getCurrentSetRows(); trackBy: trackBySetRow">
-    <app-set
+    <div
       *ngIf="row.type === 'set'; else pendingSetGhost"
-      [set]="row.set"
-      [index]="row.index"
-      [indexCustomExercise]="indexCustomExercise"
-      [currentWorkout]="currentWorkout"
-      (deleteSet)="deleteSet(row.set)"
-      (copySet)="copySet(row.set, row.index)"
-      (confSet)="configSet(row.set)"
-      (reorderSets)="openOrderSetsModal()"
+      [attr.draggable]="reorderMode ? true : null"
+      [class.dragging]="reorderMode && draggedSetIndex === row.index"
+      [class.drag-over]="reorderMode && dragOverSetIndex === row.index"
+      (dragstart)="onDragStart($event, row.index)"
+      (dragover)="onDragOver($event, row.index)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event, row.index)"
+      (dragend)="onDragEnd($event)"
       [attr.id]="'set-' + indexCustomExercise + '-' + row.index"
       class="current-set-container"
-    ></app-set>
+    >
+      <app-set
+        [set]="row.set"
+        [index]="row.index"
+        [originalIndex]="row.originalIndex"
+        [indexCustomExercise]="indexCustomExercise"
+        [currentWorkout]="currentWorkout"
+        [reorderMode]="reorderMode"
+        (deleteSet)="deleteSet(row.set)"
+        (copySet)="copySet(row.set, row.index)"
+        (confSet)="configSet(row.set)"
+        (reorderSets)="enterReorderMode()"
+      ></app-set>
+    </div>
 
     <ng-template #pendingSetGhost>
       <div
@@ -236,27 +249,49 @@
   </ng-container>
 </div>
 
-<!-- Exercise Actions Header -->
-<div class="exercise-actions-header">
+<!-- Reorder Actions / Exercise Actions Header -->
+<div class="exercise-actions-header" [class.reorder-active]="reorderMode">
   <div class="exercise-actions-content">
-    <div class="exercise-actions">
-      <ion-button
-        fill="clear"
-        class="action-btn note-btn"
-        (click)="manageNote()"
-      >
-        <ion-icon name="create-outline" slot="start"></ion-icon>
-        <span class="btn-text">NOTA</span>
-      </ion-button>
+    <ng-container *ngIf="reorderMode; else normalActions">
+      <div class="reorder-actions">
+        <ion-button
+          fill="clear"
+          class="action-btn cancel-reorder-btn"
+          (click)="cancelReorder()"
+        >
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          <span class="btn-text">{{ 'COMMON.CANCEL' | translate }}</span>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          class="action-btn confirm-reorder-btn"
+          (click)="confirmReorder()"
+        >
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          <span class="btn-text">{{ 'COMMON.CONFIRM' | translate }}</span>
+        </ion-button>
+      </div>
+    </ng-container>
+    <ng-template #normalActions>
+      <div class="exercise-actions">
+        <ion-button
+          fill="clear"
+          class="action-btn note-btn"
+          (click)="manageNote()"
+        >
+          <ion-icon name="create-outline" slot="start"></ion-icon>
+          <span class="btn-text">NOTA</span>
+        </ion-button>
 
-      <ion-button
-        (click)="openSetManager()"
-        fill="clear"
-        class="action-btn set-btn"
-      >
-        <ion-icon name="add-outline" slot="start"></ion-icon>
-        <span class="btn-text">SERIE</span>
-      </ion-button>
-    </div>
+        <ion-button
+          (click)="openSetManager()"
+          fill="clear"
+          class="action-btn set-btn"
+        >
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          <span class="btn-text">SERIE</span>
+        </ion-button>
+      </div>
+    </ng-template>
   </div>
 </div>

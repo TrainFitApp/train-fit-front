@@ -1,4 +1,4 @@
-<form [formGroup]="setForm" [class.doned]="set.doned">
+<form [formGroup]="setForm" [class.doned]="set.doned" [class.reorder-mode]="reorderMode">
   <!-- Set Header with Expected Values and Actions -->
   <div class="premium-set-header" [class.doned]="set.doned">
     <div class="set-header-row">
@@ -11,7 +11,7 @@
               'serie-completed': set.doned,
               'serie-pending': !set.doned
             }"
-            >{{ index + 1 }}º</span
+            >{{ reorderMode && originalIndex !== undefined ? originalIndex + 1 : index + 1 }}º</span
           >
           <span class="objective-text">Objetivo:</span>
           <ng-container *ngIf="isIsometric; else notIsometricExpected">
@@ -116,6 +116,7 @@
           fill="clear"
           size="small"
           class="options-btn"
+          [style.visibility]="reorderMode ? 'hidden' : 'visible'"
           (click)="showPopoverOptions($event, set)"
         >
           <ion-icon name="ellipsis-vertical"></ion-icon>
@@ -149,7 +150,14 @@
               ></app-time-picker>
             </ion-col>
             <ion-col size="2" class="complete-col">
+              <div
+                *ngIf="reorderMode"
+                class="reorder-handle"
+              >
+                <ion-icon name="reorder-three-outline"></ion-icon>
+              </div>
               <ion-checkbox
+                *ngIf="!reorderMode"
                 [ngClass]="{
                   completed: set.doned
                 }"
@@ -192,7 +200,14 @@
               ></app-numeric-input>
             </ion-col>
             <ion-col size="2" class="complete-col">
+              <div
+                *ngIf="reorderMode"
+                class="reorder-handle"
+              >
+                <ion-icon name="reorder-three-outline"></ion-icon>
+              </div>
               <ion-checkbox
+                *ngIf="!reorderMode"
                 [ngClass]="{
                   completed: set.doned
                 }"
@@ -234,7 +249,14 @@
               ></app-rir-picker>
             </ion-col>
             <ion-col size="2" class="complete-col">
+              <div
+                *ngIf="reorderMode"
+                class="reorder-handle"
+              >
+                <ion-icon name="reorder-three-outline"></ion-icon>
+              </div>
               <ion-checkbox
+                *ngIf="!reorderMode"
                 [ngClass]="{
                   completed: set.doned
                 }"
