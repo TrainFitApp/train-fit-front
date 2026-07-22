@@ -2,12 +2,12 @@
   <div class="tf-page-header">
     <div class="tf-page-header__content">
       <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ isEditMode ? 'Editar producto' : 'Crear producto' }}</h1>
+        <h1 class="tf-page-header__title">{{ isEditMode ? ('CREATE_PRODUCT.HEADER_TITLE_EDIT' | translate) : ('CREATE_PRODUCT.HEADER_TITLE_CREATE' | translate) }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -33,7 +33,7 @@
         <ion-card class="product-header-card">
           <ion-card-header>
             <ion-card-title class="card-title">
-              Información general
+              {{ 'CREATE_PRODUCT.GENERAL_INFO_TITLE' | translate }}
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
@@ -41,7 +41,7 @@
               <!-- Código de barras -->
               <div class="custom-input-container barcode-input">
                 <ion-label class="custom-label barcode-label">
-                  Código de barras
+                  {{ 'CREATE_PRODUCT.BARCODE_LABEL' | translate }}
                 </ion-label>
                 <div
                   class="input-wrapper barcode-wrapper"
@@ -54,7 +54,7 @@
                     class="custom-input"
                     #barcodeInput
                     (ionInput)="onCodeInputChange()"
-                    placeholder="Escanea manualmente"
+                    [placeholder]="'CREATE_PRODUCT.BARCODE_PLACEHOLDER' | translate"
                   ></ion-input>
                   <ion-button
                     (click)="openScanner()"
@@ -71,27 +71,27 @@
               <!-- Nombre del producto -->
               <div class="custom-input-container">
                 <ion-label class="custom-label"
-                  >Nombre del producto *</ion-label
+                  >{{ 'CREATE_PRODUCT.NAME_LABEL' | translate }}</ion-label
                 >
                 <div class="input-wrapper">
                   <ion-input
                     type="text"
                     formControlName="name"
                     class="custom-input"
-                    placeholder="Ej: Pechuga de pollo"
+                    [placeholder]="'CREATE_PRODUCT.NAME_PLACEHOLDER' | translate"
                   ></ion-input>
                 </div>
               </div>
 
               <!-- Marca -->
               <div class="custom-input-container">
-                <ion-label class="custom-label">Marca</ion-label>
+                <ion-label class="custom-label">{{ 'CREATE_PRODUCT.BRAND_LABEL' | translate }}</ion-label>
                 <div class="input-wrapper">
                   <ion-input
                     type="text"
                     formControlName="brand"
                     class="custom-input"
-                    placeholder="Ej: Carrefour"
+                    [placeholder]="'CREATE_PRODUCT.BRAND_PLACEHOLDER' | translate"
                   ></ion-input>
                 </div>
               </div>
@@ -103,8 +103,8 @@
         <ion-card class="nutrition-card">
           <ion-card-header>
             <ion-card-title class="nutrition-title">
-              Información nutricional
-              <ion-note>(por cada 100g)</ion-note>
+              {{ 'CREATE_PRODUCT.NUTRITION_INFO_TITLE' | translate }}
+              <ion-note>{{ 'CREATE_PRODUCT.PER_100G_NOTE' | translate }}</ion-note>
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
@@ -113,7 +113,7 @@
               <div class="custom-input-container calories-input">
                 <ion-label class="custom-label calories-label">
                   <ion-icon name="flame-outline"></ion-icon>
-                  Calorías *
+                  {{ 'CREATE_PRODUCT.CALORIES_LABEL' | translate }}
                 </ion-label>
                 <div class="input-wrapper calories-wrapper">
                   <ion-input
@@ -135,7 +135,7 @@
               <div class="macros-header">
                 <ion-text class="macros-title">
                   <ion-icon name="analytics-outline"></ion-icon>
-                  Macronutrientes
+                  {{ 'CREATE_PRODUCT.MACRONUTRIENTS_TITLE' | translate }}
                 </ion-text>
               </div>
 
@@ -145,7 +145,7 @@
                   <div class="custom-input-container fat-input">
                     <ion-label class="custom-label fat-label">
                       <div class="macro-dot fat-dot"></div>
-                      Grasas *
+                      {{ 'CREATE_PRODUCT.FAT_LABEL' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <ion-input
@@ -164,7 +164,7 @@
                   <div class="macro-item saturated-fat-macro">
                     <div class="custom-input-container saturated-fat-input">
                       <ion-label class="custom-label saturated-fat-label">
-                        Saturadas
+                        {{ 'CREATE_PRODUCT.SATURATED_LABEL' | translate }}
                       </ion-label>
                       <div class="input-wrapper">
                         <ion-input
@@ -187,7 +187,7 @@
                   <div class="custom-input-container carbs-input">
                     <ion-label class="custom-label carbs-label">
                       <div class="macro-dot carbs-dot"></div>
-                      Carbohidratos *
+                      {{ 'CREATE_PRODUCT.CARBS_LABEL' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <ion-input
@@ -207,7 +207,7 @@
                 <div class="macro-item sugars-macro">
                   <div class="custom-input-container sugars-input">
                     <ion-label class="custom-label sugars-label">
-                      de los cuales azúcares
+                      {{ 'CREATE_PRODUCT.SUGARS_LABEL' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <ion-input
@@ -229,7 +229,7 @@
                   <div class="custom-input-container fiber-input">
                     <ion-label class="custom-label fiber-label">
                       <div class="macro-dot fiber-dot"></div>
-                      Fibra
+                      {{ 'CREATE_PRODUCT.FIBER_LABEL' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <ion-input
@@ -251,7 +251,7 @@
                   <div class="custom-input-container protein-input">
                     <ion-label class="custom-label protein-label">
                       <div class="macro-dot protein-dot"></div>
-                      Proteínas *
+                      {{ 'CREATE_PRODUCT.PROTEIN_LABEL' | translate }}
                     </ion-label>
                     <div class="input-wrapper">
                       <ion-input
@@ -279,7 +279,7 @@
               <ion-item slot="header" lines="none">
                 <ion-label class="nutrition-title">
                   <ion-icon name="add-circle-outline"></ion-icon>
-                  Información completa
+                  {{ 'CREATE_PRODUCT.FULL_INFO_TITLE' | translate }}
                 </ion-label>
               </ion-item>
 
@@ -288,14 +288,14 @@
                 <div class="quantities-section">
                   <h4 class="section-subtitle">
                     <ion-icon name="cube-outline"></ion-icon>
-                    Cantidades del Producto
+                    {{ 'CREATE_PRODUCT.PRODUCT_QUANTITIES_TITLE' | translate }}
                   </h4>
                   <div class="quantities-grid">
                     <!-- Cantidad por porción -->
                     <div class="custom-input-container">
                       <ion-label class="custom-label">
                         <ion-icon name="restaurant-outline"></ion-icon>
-                        Cantidad por ración
+                        {{ 'CREATE_PRODUCT.SERVING_QTY_LABEL' | translate }}
                       </ion-label>
                       <div class="input-wrapper">
                         <ion-input
@@ -303,7 +303,7 @@
                           inputmode="decimal"
                           formControlName="servingQuantity"
                           class="custom-input"
-                          placeholder="Ej: 150"
+                          [placeholder]="'CREATE_PRODUCT.SERVING_QTY_PLACEHOLDER' | translate"
                           appDecimalInput
                           [maxDecimals]="2"
                         ></ion-input>
@@ -315,7 +315,7 @@
                     <div class="custom-input-container">
                       <ion-label class="custom-label">
                         <ion-icon name="cube-outline"></ion-icon>
-                        Cantidad total del producto
+                        {{ 'CREATE_PRODUCT.TOTAL_QTY_LABEL' | translate }}
                       </ion-label>
                       <div class="input-wrapper">
                         <ion-input
@@ -323,7 +323,7 @@
                           inputmode="decimal"
                           formControlName="productQuantity"
                           class="custom-input"
-                          placeholder="Ej: 500"
+                          [placeholder]="'CREATE_PRODUCT.TOTAL_QTY_PLACEHOLDER' | translate"
                           appDecimalInput
                           [maxDecimals]="2"
                         ></ion-input>
@@ -337,7 +337,7 @@
                 <div class="dietary-features-section">
                   <h4 class="section-subtitle">
                     <ion-icon name="leaf-outline"></ion-icon>
-                    Características Dietéticas
+                    {{ 'CREATE_PRODUCT.DIETARY_FEATURES_TITLE' | translate }}
                   </h4>
                   <div class="dietary-grid">
                     <div
@@ -348,7 +348,7 @@
                       <ion-icon
                         [name]="productForm.get('vegan')?.value ? 'checkmark-circle' : 'ellipse-outline'"
                       ></ion-icon>
-                      <ion-label>Vegano</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.VEGAN' | translate }}</ion-label>
                     </div>
                     <div
                       class="dietary-option"
@@ -358,7 +358,7 @@
                       <ion-icon
                         [name]="productForm.get('vegetarian')?.value ? 'checkmark-circle' : 'ellipse-outline'"
                       ></ion-icon>
-                      <ion-label>Vegetariano</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.VEGETARIAN' | translate }}</ion-label>
                     </div>
                     <div
                       class="dietary-option"
@@ -368,7 +368,7 @@
                       <ion-icon
                         [name]="productForm.get('lactoseFree')?.value ? 'checkmark-circle' : 'ellipse-outline'"
                       ></ion-icon>
-                      <ion-label>Sin Lactosa</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.LACTOSE_FREE' | translate }}</ion-label>
                     </div>
                     <div
                       class="dietary-option"
@@ -378,20 +378,20 @@
                       <ion-icon
                         [name]="productForm.get('glutenFree')?.value ? 'checkmark-circle' : 'ellipse-outline'"
                       ></ion-icon>
-                      <ion-label>Sin Gluten</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.GLUTEN_FREE' | translate }}</ion-label>
                     </div>
                   </div>
                 </div>
 
                 <!-- Minerales -->
                 <ion-list-header>
-                  <ion-label>Minerales</ion-label>
+                  <ion-label>{{ 'CREATE_PRODUCT.MINERALS_TITLE' | translate }}</ion-label>
                 </ion-list-header>
                 <div class="macros-grid">
                   <!-- Calcio -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Calcio</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.CALCIUM' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -408,7 +408,7 @@
                   <!-- Hierro -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Hierro</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.IRON' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -425,7 +425,7 @@
                   <!-- Magnesio -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Magnesio</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.MAGNESIUM' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -442,7 +442,7 @@
                   <!-- Fósforo -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Fósforo</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.PHOSPHORUS' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -459,7 +459,7 @@
                   <!-- Potasio -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Potasio</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.POTASSIUM' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -476,7 +476,7 @@
                   <!-- Zinc -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Zinc</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.ZINC' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -493,7 +493,7 @@
                   <!-- Cobre -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Cobre</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.COPPER' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -510,7 +510,7 @@
                   <!-- Manganeso -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Manganeso</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.MANGANESE' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -527,7 +527,7 @@
                   <!-- Selenio -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Selenio</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.SELENIUM' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -544,7 +544,7 @@
                   <!-- Yodo -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Yodo</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.IODINE' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -561,7 +561,7 @@
                   <!-- Sodio (mg) -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Sodio</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.SODIUM' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -578,7 +578,7 @@
                   <!-- Sal (g) -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Sal</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.SALT' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -597,13 +597,13 @@
 
                 <!-- Vitaminas -->
                 <ion-list-header>
-                  <ion-label>Vitaminas</ion-label>
+                  <ion-label>{{ 'CREATE_PRODUCT.VITAMINS_TITLE' | translate }}</ion-label>
                 </ion-list-header>
                 <div class="macros-grid">
                   <!-- Vitamina A -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. A</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_A' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -620,7 +620,7 @@
                   <!-- Vitamina D -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. D</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_D' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -637,7 +637,7 @@
                   <!-- Vitamina E -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. E</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_E' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -654,7 +654,7 @@
                   <!-- Vitamina K -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. K</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_K' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -671,7 +671,7 @@
                   <!-- Vitamina C -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. C</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_C' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -689,7 +689,7 @@
                   <div class="macro-item">
                     <div class="custom-input-container">
                       <ion-label class="custom-label"
-                        >Vit. B1 (Tiamina)</ion-label
+                        >{{ 'CREATE_PRODUCT.VIT_B1' | translate }}</ion-label
                       >
                       <div class="input-wrapper">
                         <ion-input
@@ -708,7 +708,7 @@
                   <div class="macro-item">
                     <div class="custom-input-container">
                       <ion-label class="custom-label"
-                        >Vit. B2 (Riboflavina)</ion-label
+                        >{{ 'CREATE_PRODUCT.VIT_B2' | translate }}</ion-label
                       >
                       <div class="input-wrapper">
                         <ion-input
@@ -727,7 +727,7 @@
                   <div class="macro-item">
                     <div class="custom-input-container">
                       <ion-label class="custom-label"
-                        >Vit. B3 (Niacina)</ion-label
+                        >{{ 'CREATE_PRODUCT.VIT_B3' | translate }}</ion-label
                       >
                       <div class="input-wrapper">
                         <ion-input
@@ -746,7 +746,7 @@
                   <div class="macro-item">
                     <div class="custom-input-container">
                       <ion-label class="custom-label"
-                        >Vit. B5 (Ác. Pantoténico)</ion-label
+                        >{{ 'CREATE_PRODUCT.VIT_B5' | translate }}</ion-label
                       >
                       <div class="input-wrapper">
                         <ion-input
@@ -764,7 +764,7 @@
                   <!-- Vitamina B6 -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. B6</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_B6' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -782,7 +782,7 @@
                   <div class="macro-item">
                     <div class="custom-input-container">
                       <ion-label class="custom-label"
-                        >Vit. B9 (Ác. Fólico)</ion-label
+                        >{{ 'CREATE_PRODUCT.VIT_B9' | translate }}</ion-label
                       >
                       <div class="input-wrapper">
                         <ion-input
@@ -800,7 +800,7 @@
                   <!-- Vitamina B12 -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Vit. B12</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.VIT_B12' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -817,7 +817,7 @@
                   <!-- Biotina -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Biotina</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.BIOTIN' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -835,13 +835,13 @@
 
                 <!-- Otros -->
                 <ion-list-header>
-                  <ion-label>Otros y Ácidos Grasos</ion-label>
+                  <ion-label>{{ 'CREATE_PRODUCT.OTHER_TITLE' | translate }}</ion-label>
                 </ion-list-header>
                 <div class="macros-grid">
                   <!-- Colesterol -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Colesterol</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.CHOLESTEROL' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -858,7 +858,7 @@
                   <!-- Grasas Trans -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Grasas Trans</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.TRANS_FAT' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -875,7 +875,7 @@
                   <!-- Omega 3 -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Omega 3</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.OMEGA3' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -892,7 +892,7 @@
                   <!-- Omega 6 -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Omega 6</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.OMEGA6' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -909,7 +909,7 @@
                   <!-- Omega 9 -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Omega 9</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.OMEGA9' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -926,7 +926,7 @@
                   <!-- Cafeína -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Cafeína</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.CAFFEINE' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -943,7 +943,7 @@
                   <!-- Taurina -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Taurina</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.TAURINE' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -960,7 +960,7 @@
                   <!-- Alcohol -->
                   <div class="macro-item">
                     <div class="custom-input-container">
-                      <ion-label class="custom-label">Alcohol</ion-label>
+                      <ion-label class="custom-label">{{ 'CREATE_PRODUCT.ALCOHOL' | translate }}</ion-label>
                       <div class="input-wrapper">
                         <ion-input
                           class="custom-input"
@@ -980,13 +980,13 @@
                 <div class="text-info-grid ion-margin-top">
                   <div class="text-info-card">
                     <div class="text-info-header">
-                      <ion-label>Ingredientes</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.INGREDIENTS_LABEL' | translate }}</ion-label>
                     </div>
                     <ion-textarea
                       rows="3"
                       class="custom-info-textarea"
                       formControlName="ingredients"
-                      placeholder="Ej: Trigo, azúcar, sal..."
+                      [placeholder]="'CREATE_PRODUCT.INGREDIENTS_PLACEHOLDER' | translate"
                       [maxlength]="2000"
                       [counter]="true"
                     ></ion-textarea>
@@ -994,13 +994,13 @@
 
                   <div class="text-info-card">
                     <div class="text-info-header">
-                      <ion-label>Alérgenos</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.ALLERGENS_LABEL' | translate }}</ion-label>
                     </div>
                     <ion-textarea
                       rows="2"
                       class="custom-info-textarea"
                       formControlName="allergens"
-                      placeholder="Ej: Gluten, leche, soja..."
+                      [placeholder]="'CREATE_PRODUCT.ALLERGENS_PLACEHOLDER' | translate"
                       [maxlength]="1000"
                       [counter]="true"
                     ></ion-textarea>
@@ -1008,13 +1008,13 @@
 
                   <div class="text-info-card">
                     <div class="text-info-header">
-                      <ion-label>Trazas</ion-label>
+                      <ion-label>{{ 'CREATE_PRODUCT.TRACES_LABEL' | translate }}</ion-label>
                     </div>
                     <ion-textarea
                       rows="2"
                       class="custom-info-textarea"
                       formControlName="traces"
-                      placeholder="Ej: Frutos de cáscara..."
+                      [placeholder]="'CREATE_PRODUCT.TRACES_PLACEHOLDER' | translate"
                       [maxlength]="1000"
                       [counter]="true"
                     ></ion-textarea>
@@ -1044,7 +1044,7 @@
     >
       <div class="button-content">
         <ng-container *ngIf="!saveInProgress; else savingProduct">
-          <span>{{ isEditMode ? 'GUARDAR CAMBIOS' : 'CREAR PRODUCTO' }}</span>
+          <span>{{ isEditMode ? ('CREATE_PRODUCT.SAVE_CHANGES_BTN' | translate) : ('CREATE_PRODUCT.CREATE_BTN' | translate) }}</span>
         </ng-container>
         <ng-template #savingProduct>
           <span>{{ 'COMMON.SAVING' | translate }}</span>

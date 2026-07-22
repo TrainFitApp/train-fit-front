@@ -45,7 +45,7 @@
     <div class="ingredient-add-inline" *ngIf="ingredientMode">
       <button class="ingredient-add-btn" (click)="createProductForIngredient()">
         <ion-icon name="add-circle"></ion-icon>
-        <span>INGREDIENTE</span>
+        <span>{{ 'SEARCH_FOODS.ADD_INGREDIENT_BTN' | translate }}</span>
       </button>
     </div>
   </div>
@@ -90,15 +90,6 @@
             {{ 'SEARCH_FOODS.CREATE_PRODUCT' | translate }}
           </button>
         </div>
-        <ng-template #encourageSearch>
-          <div class="no-results-card">
-            <div class="no-results-icon">
-              <ion-icon name="search-outline"></ion-icon>
-            </div>
-            <h3>{{ 'SEARCH_FOODS.START_SEARCHING' | translate }}</h3>
-            <p>{{ 'SEARCH_FOODS.START_SEARCHING_MSG' | translate }}</p>
-          </div>
-        </ng-template>
       </ng-container>
     </ng-template>
   </ng-container>
@@ -125,9 +116,12 @@
 
     <ng-template #noRecipes>
       <ng-container *ngIf="load">
-        <div class="no-results-card">
+        <div
+          class="no-results-card"
+          *ngIf="shouldShowProductsEmptyState(); else encourageSearch"
+        >
           <div class="no-results-icon">
-            <ion-icon name="restaurant-outline"></ion-icon>
+            <ion-icon name="search-outline"></ion-icon>
           </div>
           <h3>{{ 'SEARCH_FOODS.NO_MATCHES' | translate }}</h3>
           <p>{{ 'SEARCH_FOODS.NO_MATCHES_MSG' | translate }}</p>
@@ -143,6 +137,17 @@
       </ng-container>
     </ng-template>
   </ng-container>
+
+  <!-- Compartido por products/recipes: mismo criterio "aún no has buscado" en ambos modos -->
+  <ng-template #encourageSearch>
+    <div class="no-results-card">
+      <div class="no-results-icon">
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+      <h3>{{ 'SEARCH_FOODS.START_SEARCHING' | translate }}</h3>
+      <p>{{ 'SEARCH_FOODS.START_SEARCHING_MSG' | translate }}</p>
+    </div>
+  </ng-template>
 
   <ng-container *ngIf="!load">
     <!-- Skeleton products que replican la estructura de product.component -->

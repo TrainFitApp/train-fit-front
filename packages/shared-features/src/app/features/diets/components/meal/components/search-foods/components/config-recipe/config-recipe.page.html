@@ -2,7 +2,7 @@
   <div class="config-header">
     <div class="header-content">
       <div class="back-section">
-        <button class="back-button" (click)="goBack()" aria-label="Volver">
+        <button class="back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
@@ -18,7 +18,7 @@
           class="header-action-btn edit-btn ripple-effect"
           [disabled]="loading"
           (click)="startEditingOriginalRecipe()"
-          aria-label="Editar receta original"
+          [attr.aria-label]="'CONFIG_RECIPE.EDIT_ORIGINAL' | translate"
         >
           <ion-icon name="pencil-outline"></ion-icon>
         </button>
@@ -27,7 +27,7 @@
           class="header-action-btn delete-btn ripple-effect"
           [disabled]="loading"
           (click)="deleteOwnRecipe()"
-          aria-label="Eliminar receta"
+          [attr.aria-label]="'CONFIG_RECIPE.DELETE_RECIPE_HEADER' | translate"
         >
           <ion-icon name="trash-bin-outline"></ion-icon>
         </button>
@@ -59,7 +59,7 @@
           fill="clear"
           class="archive-button-card"
           (click)="toggleFavorite()"
-          aria-label="Archivar receta"
+          [attr.aria-label]="'CONFIG_RECIPE.ARCHIVE_RECIPE_ARIA' | translate"
         >
           <ion-icon
             slot="icon-only"
@@ -75,7 +75,7 @@
             class="card-action-btn cancel-btn"
             [disabled]="loading"
             (click)="cancelEditInfo()"
-            aria-label="Cancelar edición original"
+            [attr.aria-label]="'CONFIG_RECIPE.CANCEL_EDIT_ORIGINAL_ARIA' | translate"
           >
             <ion-icon name="arrow-undo-outline"></ion-icon>
           </button>
@@ -84,7 +84,7 @@
             class="card-action-btn confirm-btn"
             [disabled]="!canSave || loading"
             (click)="confirmEditInfo()"
-            aria-label="Guardar edición original"
+            [attr.aria-label]="'CONFIG_RECIPE.SAVE_EDIT_ORIGINAL_ARIA' | translate"
           >
             <ion-icon name="checkmark-outline"></ion-icon>
           </button>
@@ -92,18 +92,18 @@
 
         <div class="section-header">
           <ion-icon name="restaurant-outline" color="primary"></ion-icon>
-          <h3>{{ editingBaseRecipe ? 'Receta original' : 'Receta' }}</h3>
+          <h3>{{ editingBaseRecipe ? ('CONFIG_RECIPE.RECIPE_SECTION_TITLE_ORIGINAL' | translate) : ('CONFIG_RECIPE.RECIPE_SECTION_TITLE' | translate) }}</h3>
         </div>
 
         <div class="input-group">
           <label class="input-label">
-            {{ editingBaseRecipe ? 'Nombre original *' : 'Nombre *' }}
+            {{ editingBaseRecipe ? ('CONFIG_RECIPE.NAME_LABEL_ORIGINAL' | translate) : ('CONFIG_RECIPE.NAME_LABEL' | translate) }}
           </label>
           <div class="input-wrapper">
             <ion-input
               type="text"
               formControlName="name"
-              placeholder="Ej: Pollo salteado"
+              [placeholder]="'CONFIG_RECIPE.NAME_PLACEHOLDER' | translate"
               class="custom-input"
               #nameInput
             ></ion-input>
@@ -210,15 +210,15 @@
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label protein">Proteína</span>
+                  <span class="per100-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label carbs">CBH</span>
+                  <span class="per100-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label fat">Grasas</span>
+                  <span class="per100-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -229,12 +229,12 @@
       <div class="section-card" *ngIf="showPortionFields">
         <div class="section-header">
           <ion-icon name="scale-outline" color="primary"></ion-icon>
-          <h3>Cantidades</h3>
+          <h3>{{ 'CONFIG_RECIPE.QUANTITIES_TITLE' | translate }}</h3>
         </div>
 
         <div class="quantities-row">
           <div class="input-group" *ngIf="isAddMode || isEditMode || (isCreateMode && meal)">
-            <label class="input-label">Ración consumida</label>
+            <label class="input-label">{{ 'CONFIG_RECIPE.CONSUMED_PORTION_LABEL' | translate }}</label>
             <div class="input-wrapper with-unit">
               <ion-input
                 #quantityInput
@@ -250,7 +250,7 @@
           </div>
 
           <div class="input-group" [class.full-width]="!(isAddMode || isEditMode || (isCreateMode && meal))">
-            <label class="input-label">Peso total cocinado</label>
+            <label class="input-label">{{ 'CONFIG_RECIPE.TOTAL_COOKED_WEIGHT_LABEL' | translate }}</label>
             <div class="input-wrapper with-unit">
               <ion-input
                 type="number"
@@ -276,15 +276,15 @@
                 <div class="summary-divider"></div>
                 <div class="summary-item">
                   <span class="summary-value">{{ footerProtein | number:'1.0-1' }}<small>g</small></span>
-                  <span class="summary-label protein">Proteína</span>
+                  <span class="summary-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-value">{{ footerCarbs | number:'1.0-1' }}<small>g</small></span>
-                  <span class="summary-label carbs">CBH</span>
+                  <span class="summary-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-value">{{ footerFat | number:'1.0-1' }}<small>g</small></span>
-                  <span class="summary-label fat">Grasas</span>
+                  <span class="summary-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
             </ion-card-content>
@@ -296,7 +296,7 @@
               class="per100-toggle"
               (click)="weightExplainerExpanded = !weightExplainerExpanded"
               [attr.aria-expanded]="weightExplainerExpanded"
-              aria-label="Ver información nutricional por 100g"
+              [attr.aria-label]="'CONFIG_RECIPE.NUTRITION_PER_100_ARIA' | translate"
             >
               <span>{{ per100Title }}</span>
               <ion-icon
@@ -311,15 +311,15 @@
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Protein | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label protein">Proteína</span>
+                  <span class="per100-label protein">{{ 'CONFIG_RECIPE.MACRO_PROTEIN' | translate }}</span>
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Carbs | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label carbs">CBH</span>
+                  <span class="per100-label carbs">{{ 'CONFIG_RECIPE.MACRO_CARBS' | translate }}</span>
                 </div>
                 <div class="per100-item">
                   <span class="per100-value">{{ per100Fat | number:'1.0-1' }}<small>g</small></span>
-                  <span class="per100-label fat">Grasas</span>
+                  <span class="per100-label fat">{{ 'CONFIG_RECIPE.MACRO_FAT' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -330,13 +330,13 @@
       <div class="section-card ingredients-section">
         <div class="section-header">
           <ion-icon name="list-outline" color="primary"></ion-icon>
-          <h3>{{ editingBaseRecipe ? 'Ingredientes originales' : 'Ingredientes' }}</h3>
-          <span class="ingredient-count" [class.error]="ingredients.length < 2">2 mínimo</span>
+          <h3>{{ editingBaseRecipe ? ('CONFIG_RECIPE.INGREDIENTS_TITLE_ORIGINAL' | translate) : ('CONFIG_RECIPE.INGREDIENTS_TITLE' | translate) }}</h3>
+          <span class="ingredient-count" [class.error]="ingredients.length < 2">{{ 'CONFIG_RECIPE.MIN_INGREDIENTS_BADGE' | translate }}</span>
         </div>
 
         <button type="button" class="add-ingredients-btn" (click)="addIngredients()">
           <ion-icon name="add-circle"></ion-icon>
-          <span>INGREDIENTE</span>
+          <span>{{ 'CONFIG_RECIPE.ADD_INGREDIENT_BTN' | translate }}</span>
           <ion-ripple-effect></ion-ripple-effect>
         </button>
 
@@ -363,7 +363,7 @@
                     type="button"
                     class="remove-btn"
                     (click)="removeIngredient(i); $event.stopPropagation()"
-                    aria-label="Eliminar ingrediente"
+                    [attr.aria-label]="'CONFIG_RECIPE.REMOVE_INGREDIENT_ARIA' | translate"
                   >
                     <ion-icon name="close-outline" color="danger"></ion-icon>
                   </button>
@@ -383,7 +383,7 @@
                 class="ingredient-inline-undo"
                 (click)="revertIngredient(i); $event.stopPropagation()"
               >
-                <span>Deshacer</span>
+                <span>{{ 'CONFIG_RECIPE.UNDO_BTN' | translate }}</span>
                 <ion-icon name="arrow-undo-outline" color="secondary"></ion-icon>
               </button>
             </div>
@@ -396,7 +396,7 @@
             <div class="removed-heading-line" aria-hidden="true"></div>
             <div class="section-header">
               <ion-icon name="remove-circle-outline" color="danger"></ion-icon>
-              <h3>Eliminados de la receta original</h3>
+              <h3>{{ 'CONFIG_RECIPE.REMOVED_FROM_ORIGINAL_TITLE' | translate }}</h3>
             </div>
           </div>
           <div class="ingredients-list">
@@ -419,7 +419,7 @@
                     class="ingredient-inline-restore"
                     (click)="restoreRemovedBaseIngredient(ingredient); $event.stopPropagation()"
                   >
-                    <span>Volver a incluir</span>
+                    <span>{{ 'CONFIG_RECIPE.RESTORE_INGREDIENT_BTN' | translate }}</span>
                     <ion-icon name="arrow-undo-outline" color="secondary"></ion-icon>
                   </button>
                 </div>
@@ -446,7 +446,7 @@
       <ng-container *ngIf="!loading; else savingText">
         <span>
           {{
-            isAddMode ? 'Añadir a comida' : (isEditMode ? 'Guardar cambios' : 'Crear receta')
+            isAddMode ? ('CONFIG_RECIPE.ADD_TO_MEAL_BTN' | translate) : (isEditMode ? ('CONFIG_RECIPE.SAVE_CHANGES_BTN' | translate) : ('CONFIG_RECIPE.CREATE_RECIPE' | translate))
           }}
         </span>
       </ng-container>

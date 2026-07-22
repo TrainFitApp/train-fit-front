@@ -2049,6 +2049,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return this.shouldSkipProductsSearch();
   }
 
+  // No depende de nada específico de productos (solo del término de búsqueda
+  // compartido), así que también cubre el estado vacío de recetas.
   public shouldShowProductsEmptyState(): boolean {
     return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
   }
