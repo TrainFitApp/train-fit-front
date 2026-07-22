@@ -17,6 +17,9 @@
               class="recent-product-icon"
             ></ion-icon>
             {{ product.name }}
+            <span class="added-label" *ngIf="isChecked && meal">
+              ({{ 'ADD_PRODUCT.ADDED_TO_MEAL' | translate : { mealName: meal?.name } }})
+            </span>
           </span>
           <span
             class="product-qty"

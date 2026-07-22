@@ -42,19 +42,19 @@
     </div>
 
     <!-- Calorías Hero -->
-    <div class="calories-hero" [ngClass]="getProgressClass(nutritionalData.energyKcal, kcalTotal, 'limit')">
+    <div class="calories-hero" *ngIf="activeGoal" [ngClass]="getProgressClass(nutritionalData.energyKcal, kcalTotal, 'limit')">
         <div class="calories-hero-content">
             <div class="calories-label">{{ 'NUTRITIONAL_OBJECTIVES.DAILY_CALORIES' | translate }}</div>
             <div class="calories-display">
                 <span class="calories-number">{{ nutritionalData.energyKcal | number:'1.0-0' }}</span>
-                <span class="calories-goal">/ {{ kcalTotal | number:'1.0-0' }}</span>
+                <span class="calories-goal">/ {{ kcalTotal ?? '--' }}</span>
             </div>
             <div class="calories-bar">
                 <div class="calories-bar-fill"
                     [style.width.%]="animateBars ? getPercent(nutritionalData.energyKcal, kcalTotal) : 0">
                 </div>
             </div>
-            <div class="calories-remaining" *ngIf="kcalTotal - nutritionalData.energyKcal >= 0; else overGoal">
+            <div class="calories-remaining" *ngIf="kcalTotal != null && kcalTotal - nutritionalData.energyKcal >= 0; else overGoal">
                 {{ kcalRemainingPrefix }} <strong>{{ kcalRemainingValue }}</strong> {{ kcalRemainingSuffix }}
             </div>
             <ng-template #overGoal>
@@ -64,7 +64,7 @@
     </div>
 
     <!-- Macronutrientes Grid (6 cards) -->
-    <div class="section">
+    <div class="section" *ngIf="activeGoal">
         <div class="section-header">
             <h3 class="section-title">
                 <ion-icon name="nutrition-outline" color="primary"></ion-icon>
@@ -80,7 +80,7 @@
                 </div>
                 <div class="macro-values">
                     <span class="macro-current">{{ nutritionalData.protein | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ proteinsGTotal | number:'1.0-0' }} g</span>
+                    <span class="macro-goal-inline">/ {{ proteinsGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"
@@ -98,7 +98,7 @@
                 </div>
                 <div class="macro-values">
                     <span class="macro-current">{{ nutritionalData.carbohydrate | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ carbohydratesGTotal | number:'1.0-0' }} g</span>
+                    <span class="macro-goal-inline">/ {{ carbohydratesGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"
@@ -115,7 +115,7 @@
                 </div>
                 <div class="macro-values">
                     <span class="macro-current">{{ nutritionalData.fat | number:'1.0-0' }}</span>
-                    <span class="macro-goal-inline">/ {{ fatGTotal | number:'1.0-0' }} g</span>
+                    <span class="macro-goal-inline">/ {{ fatGTotal ?? '--' }} g</span>
                 </div>
                 <div class="macro-progress">
                     <div class="macro-progress-fill"

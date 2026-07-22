@@ -426,6 +426,12 @@
   }
 }
 
+.added-label {
+  font-size: 11px;
+  color: var(--ion-color-primary);
+  font-weight: 500;
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .minimal-toolbar {

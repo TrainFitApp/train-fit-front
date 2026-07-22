@@ -577,6 +577,7 @@
     "PRODUCT_ARCHIVED": "{{name}} archived",
     "PRODUCT_UNARCHIVED": "{{name}} unarchived",
     "PRODUCT_ADDED_TO_MEAL": "Product added to {{mealName}}",
+    "ADDED_TO_MEAL": "Added to {{mealName}}",
     "YOUR_PRODUCTS": "Your products",
     "NAME_PRODUCT": "Product name",
     "BRAND_PRODUCT": "Product brand",
@@ -1296,7 +1297,8 @@
     "CARDIO": "Cardio",
     "ISOMETRIC": "Isometric",
     "REPLACE_EXERCISE": "Replace exercise",
-    "TAP_TO_REPLACE": "Tap an exercise to replace it"
+    "TAP_TO_REPLACE": "Tap an exercise to replace it",
+    "ADDED_TO": "Added to {{workoutName}}"
   },
   "FILTER": {
     "PRODUCT": "product",
@@ -1822,5 +1824,8 @@
       "TITLE": "1RM (One-Rep Max)",
       "DESCRIPTION": "The heaviest weight you could lift for a single rep with good form. It's used as a reference to calculate the weight for your training sets."
     }
+  },
+  "RECIPE_CARD": {
+    "ADDED_TO_MEAL": "Added to {{mealName}}"
   }
 }

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { User } from 'src/app/core/models/user';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
+import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
@@ -32,16 +33,17 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   public activeGoal: NutritionalGoal | null = null;
   public goals: NutritionalGoal[] = [];
 
-  public get kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
-  public get proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
-  public get carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
-  public get fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
+  public get kcalTotal(): number | null { return this.activeGoal?.kcalTotal ?? null; }
+  public get proteinsGTotal(): number | null { return this.activeGoal?.proteinsGTotal ?? null; }
+  public get carbohydratesGTotal(): number | null { return this.activeGoal?.carbohydratesGTotal ?? null; }
+  public get fatGTotal(): number | null { return this.activeGoal?.fatGTotal ?? null; }
 
   private navCtrl = inject(NavController);
   private dietDayService = inject(DietDayService);
   private nutritionalGoalService = inject(NutritionalGoalService);
   private recipeService = inject(RecipeService);
   private userService = inject(UserService);
+  private authService = inject(AuthService);
   private translate = inject(TranslateService);
   private dietDaySub?: Subscription;
 
@@ -99,7 +101,12 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       this.user = localUser;
     }
 
-    this.loadGoals();
+    if (!this.user?._id) {
+      const authUser = this.authService.user;
+      if (authUser?._id) {
+        this.user = authUser as User;
+      }
+    }
 
     this.dietDaySub = this.dietDayService.getCurrentDietDay.subscribe((day) => {
       if (!this.dietDay && day) {
@@ -110,14 +117,50 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       this.updateCalorieText();
     });
 
-    this.personalizeReferences();
-    this.calculateNutritionalData();
-    this.buildNutrientArrays();
-    this.updateCalorieText();
+    this.initializeGoals();
 
     setTimeout(() => {
       this.animateBars = true;
     }, 300);
+  }
+
+  private initializeGoals(): void {
+    const goals = this.nutritionalGoalService.goals();
+    if (goals.length) {
+      this.goals = goals;
+      this.setActiveGoal(goals);
+      this.afterGoalReady();
+    } else {
+      this.nutritionalGoalService.loadGoals().subscribe({
+        next: (loaded) => {
+          this.goals = loaded;
+          this.setActiveGoal(loaded);
+          this.afterGoalReady();
+        },
+        error: (err) => {
+          console.error('[NUTRITIONAL_OBJECTIVES] Failed to load goals:', err);
+        },
+      });
+    }
+  }
+
+  private setActiveGoal(goals: NutritionalGoal[]): void {
+    const match = this.user?.goalInUse
+      ? goals.find((g) => g._id === this.user.goalInUse)
+      : null;
+    if (match) {
+      this.activeGoal = match;
+    } else {
+      const withMacros = goals.find((g) => (g.kcalTotal ?? 0) > 0);
+      this.activeGoal = withMacros || goals[0] || null;
+    }
+  }
+
+  private afterGoalReady(): void {
+    this.personalizeReferences();
+    this.calculateNutritionalData();
+    this.buildNutrientArrays();
+    this.updateCalorieText();
   }
 
   ngOnDestroy(): void {
@@ -170,6 +213,15 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
   }
 
   private updateCalorieText() {
+    if (this.kcalTotal == null) {
+      this.kcalRemainingPrefix = '';
+      this.kcalRemainingValue = '';
+      this.kcalRemainingSuffix = '';
+      this.kcalExceededPrefix = '';
+      this.kcalExceededValue = '';
+      this.kcalExceededSuffix = '';
+      return;
+    }
     const diff = this.kcalTotal - this.nutritionalData.energyKcal;
     const value = Math.abs(diff).toLocaleString(undefined, { maximumFractionDigits: 0 });
     if (diff >= 0) {
@@ -348,26 +400,6 @@ export class NutritionalObjectivesComponent implements OnInit, OnDestroy {
       return percentage > 100 ? 'danger' : 'primary';
     } else {
       return percentage >= 100 ? 'success' : 'primary';
-    }
-  }
-
-  private loadGoals(): void {
-    this.goals = this.nutritionalGoalService.goals();
-    if (this.goals.length) {
-      const match = this.user?.goalInUse
-        ? this.goals.find((g) => g._id === this.user.goalInUse)
-        : null;
-      this.activeGoal = match || this.goals[0];
-    } else {
-      this.nutritionalGoalService.loadGoals().subscribe((goals) => {
-        this.goals = goals;
-        const match = this.user?.goalInUse
-          ? goals.find((g) => g._id === this.user.goalInUse)
-          : null;
-        this.activeGoal = match || goals[0] || null;
-        this.personalizeReferences();
-        this.updateCalorieText();
-      });
     }
   }
 

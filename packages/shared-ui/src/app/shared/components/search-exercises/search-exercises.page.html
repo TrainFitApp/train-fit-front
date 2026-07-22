@@ -141,7 +141,12 @@
 
       <div class="exercise-info">
         <div class="exercise-header">
-          <h3 class="exercise-name">{{ exercise?.name | translateDb }}</h3>
+          <h3 class="exercise-name">
+            {{ exercise?.name | translateDb }}
+            <span class="added-label" *ngIf="!isChangeMode && isExerciseSelected(exercise)">
+              ({{ 'SEARCH_EXERCISES.ADDED_TO' | translate : { workoutName: workout?.name } }})
+            </span>
+          </h3>
           <span class="exercise-category">
             {{ exercise?.category | category }}
           </span>

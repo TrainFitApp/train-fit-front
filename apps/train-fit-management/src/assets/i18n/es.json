@@ -583,6 +583,7 @@
     "PRODUCT_ARCHIVED": "{{name}} archivado",
     "PRODUCT_UNARCHIVED": "{{name}} desarchivado",
     "PRODUCT_ADDED_TO_MEAL": "Producto añadido a {{mealName}}",
+    "ADDED_TO_MEAL": "Añadido a {{mealName}}",
     "YOUR_PRODUCTS": "Tus productos",
     "NAME_PRODUCT": "Nombre producto",
     "BRAND_PRODUCT": "Marca producto",
@@ -1435,7 +1436,8 @@
     "CARDIO": "Cardio",
     "ISOMETRIC": "Isométrico",
     "REPLACE_EXERCISE": "Sustituir ejercicio",
-    "TAP_TO_REPLACE": "Toca un ejercicio para reemplazarlo"
+    "TAP_TO_REPLACE": "Toca un ejercicio para reemplazarlo",
+    "ADDED_TO": "Añadido a {{workoutName}}"
   },
   "FILTER": {
     "PRODUCT": "producto",
@@ -1829,5 +1831,8 @@
       "TITLE": "1RM (Repetición Máxima)",
       "DESCRIPTION": "Es el peso máximo que podrías levantar en un único intento y con buena técnica. Se usa como referencia para calcular el peso de tus series de entrenamiento."
     }
+  },
+  "RECIPE_CARD": {
+    "ADDED_TO_MEAL": "Añadido a {{mealName}}"
   }
 }

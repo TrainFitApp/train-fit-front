@@ -172,6 +172,12 @@ ion-checkbox {
   }
 }
 
+.added-label {
+  font-size: 11px;
+  color: var(--ion-color-primary);
+  font-weight: 500;
+}
+
 // Animations when selected
 .product-selected {
   .macro-dot {
