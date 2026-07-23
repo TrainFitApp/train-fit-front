@@ -1260,6 +1260,65 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   private startWorkoutAndNavigate(): void {
+    const dangling = this.workoutService.getDanglingWorkout(
+      this.user.workoutInUse,
+      this.workout._id,
+      this.tableInUse
+    );
+
+    if (!dangling) {
+      this.proceedStartWorkoutAndNavigate();
+      return;
+    }
+
+    if (!this.workoutService.hasProgress(dangling)) {
+      this.stopDanglingWorkout(dangling, () => this.proceedStartWorkoutAndNavigate());
+      return;
+    }
+
+    this.showResolveDanglingWorkoutAlert(dangling, () =>
+      this.proceedStartWorkoutAndNavigate()
+    );
+  }
+
+  // Además de limpiar el startedAt en backend, hay que mutar el objeto local:
+  // `dangling` es la misma referencia que vive dentro de tableInUse, y si no
+  // se actualiza aquí, retomar ese workout en la misma sesión (sin recargar)
+  // seguiría viendo el startedAt viejo y no le asignaría uno nuevo al empezar.
+  private stopDanglingWorkout(dangling: Workout, onDone: () => void): void {
+    this.workoutService.clearStartedAt(dangling).subscribe(() => {
+      dangling.startedAt = null;
+      if (this.tableInUse) this.tableService.setCurrentTable = this.tableInUse;
+      onDone();
+    });
+  }
+
+  private showResolveDanglingWorkoutAlert(
+    dangling: Workout,
+    onResolved: () => void
+  ): void {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.RESOLVE_PREVIOUS_WORKOUT'),
+      message: this.translate.instant('TABLES.RESOLVE_PREVIOUS_WORKOUT_MSG', { name: dangling.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: this.translate.instant('TABLES.STOP_BTN'),
+          cssClass: 'danger',
+          handler: () => {
+            this.stopDanglingWorkout(dangling, onResolved);
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private proceedStartWorkoutAndNavigate(): void {
     // If the workout was completed, reset everything
     const wasCompleted = !!this.workout.date;
     this.workout.date = null;

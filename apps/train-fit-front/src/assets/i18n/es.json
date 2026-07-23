@@ -1193,6 +1193,8 @@
     "START_WORKOUT_ALT": "Comenzar entrenamiento",
     "STOP_WORKOUT": "Detener entrenamiento",
     "STOP_WORKOUT_CONFIRM": "¿Desea parar el entrenamiento {{name}}?",
+    "RESOLVE_PREVIOUS_WORKOUT": "Entrenamiento en curso",
+    "RESOLVE_PREVIOUS_WORKOUT_MSG": "Tienes \"{{name}}\" en curso. ¿Qué quieres hacer antes de empezar uno nuevo?",
     "STOP_BTN": "DETENER",
     "FINISH_ALERT": "Finalizar",
     "FINISH_WORKOUT_CONFIRM": "Terminar el entrenamiento {{name}} a fecha del {{date}}",

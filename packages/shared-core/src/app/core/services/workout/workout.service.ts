@@ -100,6 +100,37 @@ export class WorkoutService {
     return this.workoutAPIService.modifyWorkout(workout).pipe(take(1));
   }
 
+  // Limpia el startedAt de un workout que quedó "en curso" sin querer (Stop,
+  // o abandonado en silencio al empezar otro) para que el cronómetro no siga
+  // contando desde un timestamp viejo cuando se retome.
+  public clearStartedAt(workout: Workout): Observable<Workout> {
+    return this.modifyWorkout({ ...workout, startedAt: null });
+  }
+
+  // Workout previamente en curso (previousWorkoutId) que quedaría "colgado"
+  // (startedAt sin date) si se empieza uno distinto sin resolverlo antes.
+  public getDanglingWorkout(
+    previousWorkoutId: string | undefined,
+    newWorkoutId: string,
+    table: Table | undefined
+  ): Workout | undefined {
+    if (!previousWorkoutId || previousWorkoutId === newWorkoutId) return undefined;
+
+    const danglingWorkout = table?.splits
+      ?.flatMap((split) => split.workouts)
+      .find((workoutTemp) => workoutTemp._id === previousWorkoutId);
+
+    return danglingWorkout?.startedAt && !danglingWorkout.date
+      ? danglingWorkout
+      : undefined;
+  }
+
+  public hasProgress(workout: Workout): boolean {
+    return !!workout.exercises?.some((exercise) =>
+      exercise.sets?.some((set) => set.doned)
+    );
+  }
+
   public finishWorkout(
     workoutId: string,
     date: Date

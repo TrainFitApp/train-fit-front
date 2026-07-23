@@ -1187,6 +1187,8 @@
     "START_WORKOUT_ALT": "Start workout",
     "STOP_WORKOUT": "Stop workout",
     "STOP_WORKOUT_CONFIRM": "Do you want to stop the workout {{name}}?",
+    "RESOLVE_PREVIOUS_WORKOUT": "Workout in progress",
+    "RESOLVE_PREVIOUS_WORKOUT_MSG": "You have \"{{name}}\" in progress. What do you want to do before starting a new one?",
     "STOP_BTN": "STOP",
     "FINISH_ALERT": "Finish",
     "FINISH_WORKOUT_CONFIRM": "Finish workout {{name}} on {{date}}",
