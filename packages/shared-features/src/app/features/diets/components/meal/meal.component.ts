@@ -625,6 +625,8 @@ export class MealComponent implements OnInit, OnChanges {
       selectionMode: true,
       meal: this.meal,
     });
+
+    this.mealService.setPartialMealClipboard(this.meal, this.meal, [], []);
   }
 
   private openAccordion(): void {
@@ -736,7 +738,7 @@ export class MealComponent implements OnInit, OnChanges {
         recipeIds
       );
     } else {
-      this.mealService.clearMealClipboard();
+      this.mealService.setPartialMealClipboard(this.meal, this.meal, [], []);
     }
 
     this.copyEvent.emit({
