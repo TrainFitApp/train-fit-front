@@ -1,4 +1,4 @@
-<ion-header>
+<ion-header [class.copy-mode-locked]="copyModeLocked">
   <div class="fused-header-section">
     <app-toolbar-calendar
       [load]="load"
@@ -18,54 +18,56 @@
 </ion-header>
 
 <ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting">
-  <!-- Aviso previo de mantenimiento -->
-  <app-maintenance-warning-banner
-    *ngIf="maintenanceWarning$ | async as maintenanceBanner"
-    [message]="maintenanceBanner.message"
-    (dismissed)="dismissMaintenanceWarning()"
-  ></app-maintenance-warning-banner>
+  <div class="non-meal-content" [class.copy-mode-locked]="copyModeLocked">
+    <!-- Aviso previo de mantenimiento -->
+    <app-maintenance-warning-banner
+      *ngIf="maintenanceWarning$ | async as maintenanceBanner"
+      [message]="maintenanceBanner.message"
+      (dismissed)="dismissMaintenanceWarning()"
+    ></app-maintenance-warning-banner>
 
-  <!-- Premium upgrade banner (solo free) -->
-  <button
-    class="premium-banner"
-    *ngIf="!isPremiumActive"
-    (click)="goToPremium()"
-  >
-    <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-    <div class="premium-banner__text">
-      <span class="premium-banner__title">Hazte Pro</span>
-      <span class="premium-banner__sub"
-        >Recetas ilimitadas, sin anuncios y más</span
-      >
-    </div>
-    <ion-icon
-      name="chevron-forward-outline"
-      class="premium-banner__arrow"
-    ></ion-icon>
-  </button>
+    <!-- Premium upgrade banner (solo free) -->
+    <button
+      class="premium-banner"
+      *ngIf="!isPremiumActive"
+      (click)="goToPremium()"
+    >
+      <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
+      <div class="premium-banner__text">
+        <span class="premium-banner__title">Hazte Pro</span>
+        <span class="premium-banner__sub"
+          >Recetas ilimitadas, sin anuncios y más</span
+        >
+      </div>
+      <ion-icon
+        name="chevron-forward-outline"
+        class="premium-banner__arrow"
+      ></ion-icon>
+    </button>
 
-  <app-notes
-    *ngIf="dietDay?.notes"
-    [object]="dietDay"
-    [notes]="dietDay.notes"
-    [detail]="true"
-  ></app-notes>
+    <app-notes
+      *ngIf="dietDay?.notes"
+      [object]="dietDay"
+      [notes]="dietDay.notes"
+      [detail]="true"
+    ></app-notes>
 
-  <ion-button
-    *ngIf="pasteDietDayMode && !isPasting;"
-    expand="block"
-    class="paste-day-button ripple-effect"
-    (click)="pasteDietDay()"
-    ><strong>{{ 'DIETS.PASTE_DAY' | translate }}</strong>
-  </ion-button>
+    <ion-button
+      *ngIf="pasteDietDayMode && !isPasting;"
+      expand="block"
+      class="paste-day-button ripple-effect"
+      (click)="pasteDietDay()"
+      ><strong>{{ 'DIETS.PASTE_DAY' | translate }}</strong>
+    </ion-button>
 
-  <app-daily-weight
-    [user]="user"
-    [selectedDate]="selectedDate"
-    [anthropometry]="currentAnthropometry"
-    (anthropometrySaved)="onAnthropometrySaved($event)"
+    <app-daily-weight
+      [user]="user"
+      [selectedDate]="selectedDate"
+      [anthropometry]="currentAnthropometry"
+      (anthropometrySaved)="onAnthropometrySaved($event)"
 
-  ></app-daily-weight>
+    ></app-daily-weight>
+  </div>
 
   <ion-grid class="t-diets-meals">
     <ion-accordion-group multiple="true">
@@ -76,7 +78,7 @@
         [mealIndex]="j"
         [user]="user"
         [load]="load"
-        [pasteMode]="pasteMode && copyMealIndex !== j && mealIdPaste !== meal?._id"
+        [pasteMode]="pasteMode && mealIdPaste !== meal?._id"
         [activeCopyMealIndex]="copyMealIndex"
         [clipboardClearCounter]="clipboardClearCounter"
         (pasteEvent)="paste($event)"

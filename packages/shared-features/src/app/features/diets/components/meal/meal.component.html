@@ -195,7 +195,7 @@
             ></ion-button>
 
             <ion-button
-              *ngIf="!selectionMode && !pasteMode && !loadPaste"
+              *ngIf="!selectionMode && !pasteMode && !loadPaste && activeCopyMealIndex === undefined"
               style="height: 100%; margin-left: -5%; font-size: xx-large"
               (click)="openSearchFoods(); $event.stopPropagation()"
               ><ion-icon color="primary" name="add-circle-outline"></ion-icon
