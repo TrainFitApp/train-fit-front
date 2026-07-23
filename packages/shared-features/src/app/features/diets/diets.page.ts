@@ -174,8 +174,7 @@ export class DietsPage implements OnInit {
       (event.recipeIds?.length ?? 0) > 0;
 
     this.copyMealId = event.selectionMode && !hasSelection ? event.mealId : undefined;
-    this.copyMealIndex =
-      event.selectionMode && !hasSelection ? event.mealIndex : undefined;
+    this.copyMealIndex = event.selectionMode ? event.mealIndex : undefined;
     this.pasteMode = event.selectionMode && hasSelection;
     this.mealIdPaste = event.mealId;
     this.mealIndexPaste = event.mealIndex;
@@ -207,6 +206,10 @@ export class DietsPage implements OnInit {
 
   public get clipboardMealName(): string {
     return this.clipboard?.mealClipboard?.name || '';
+  }
+
+  public get copyModeLocked(): boolean {
+    return this.copyMealIndex !== undefined && !(this.clipboard?.hasSelection() ?? false);
   }
 
   public getSelectedProducts(): CustomProduct[] {
