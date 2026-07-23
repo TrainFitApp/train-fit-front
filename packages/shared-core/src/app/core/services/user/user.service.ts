@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, forkJoin } from 'rxjs';
-import { take, tap, switchMap, map } from 'rxjs/operators';
+import { take, tap } from 'rxjs/operators';
 import {
   ACTIVITY_FACTOR_TYPE,
   ACTIVITY_FACTOR_VALUES,
@@ -10,8 +10,6 @@ import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
 import { User } from '../../models/user';
-import { NutritionalGoal } from '../../models/nutritional-goal';
-import { NutritionalGoalApiService } from '../nutritional-goal/nutritional-goal-api.service';
 import { UserAPIService } from './user-api.service';
 
 @Injectable()
@@ -41,7 +39,6 @@ export class UserService {
 
   constructor(
     private userAPIService: UserAPIService,
-    private nutritionalGoalApiService: NutritionalGoalApiService,
   ) {}
 
   public getUserByEmail(email: string): Observable<User> {
@@ -94,28 +91,9 @@ export class UserService {
 
   public createUser(user: User, date: Date): Observable<User> {
     const userWithMacros = this.setUserMacrosAndKcal(user);
-    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToCreate } = userWithMacros as any;
 
-    return this.userAPIService.createUser(userToCreate, date).pipe(
+    return this.userAPIService.createUser(userWithMacros, date).pipe(
       take(1),
-      switchMap((createdUser) => {
-        const goalData = {
-          userId: createdUser._id,
-          name: 'Default',
-          kcalTotal: kcalTotal || 0,
-          proteinsGTotal: proteinsGTotal || 0,
-          carbohydratesGTotal: carbohydratesGTotal || 0,
-          fatGTotal: fatGTotal || 0,
-        };
-        return this.nutritionalGoalApiService.create(goalData).pipe(
-          switchMap((goal) => {
-            createdUser.goalInUse = goal._id;
-            return this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
-              map(() => createdUser),
-            );
-          }),
-        );
-      }),
       tap((createdUser) => (this.setLocalUser = createdUser)),
     );
   }
@@ -127,22 +105,6 @@ export class UserService {
   ): Observable<any> {
     return this.userAPIService.createGoogleUser(user, date, tokenGoogle).pipe(
       take(1),
-      switchMap((response: any) => {
-        const createdUser = response.user;
-        return this.nutritionalGoalApiService.create({
-          userId: createdUser._id,
-          name: 'Default',
-        }).pipe(
-          switchMap((goal) =>
-            this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
-              map(() => {
-                response.user.goalInUse = goal._id;
-                return response;
-              }),
-            ),
-          ),
-        );
-      }),
     );
   }
 
@@ -156,8 +118,7 @@ export class UserService {
 
   public updateGoogleUser(user: User): Observable<any> {
     const userWithMacros = this.setUserMacrosAndKcal(user);
-    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToUpdate } = userWithMacros as any;
-    return this.userAPIService.updateGoogleUser(userToUpdate).pipe(
+    return this.userAPIService.updateGoogleUser(userWithMacros).pipe(
       take(1),
       tap((updatedUser) => (this.setLocalUser = updatedUser.user))
     );
@@ -170,29 +131,12 @@ export class UserService {
   ): Observable<any> {
     return this.userAPIService.createAppleUser(user, date, tokenApple).pipe(
       take(1),
-      switchMap((response: any) => {
-        const createdUser = response.user;
-        return this.nutritionalGoalApiService.create({
-          userId: createdUser._id,
-          name: 'Default',
-        }).pipe(
-          switchMap((goal) =>
-            this.userAPIService.updateUser({ _id: createdUser._id, goalInUse: goal._id } as User).pipe(
-              map(() => {
-                response.user.goalInUse = goal._id;
-                return response;
-              }),
-            ),
-          ),
-        );
-      }),
     );
   }
 
   public updateAppleUser(user: User): Observable<any> {
     const userWithMacros = this.setUserMacrosAndKcal(user);
-    const { kcalTotal, proteinsGTotal, carbohydratesGTotal, fatGTotal, ...userToUpdate } = userWithMacros as any;
-    return this.userAPIService.updateAppleUser(userToUpdate).pipe(
+    return this.userAPIService.updateAppleUser(userWithMacros).pipe(
       take(1),
       tap((updatedUser) => (this.setLocalUser = updatedUser.user))
     );
