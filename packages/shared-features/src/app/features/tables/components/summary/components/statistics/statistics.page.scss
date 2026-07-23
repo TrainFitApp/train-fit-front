@@ -642,8 +642,9 @@ ion-grid {
 
 .comparison-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   width: 100%;
 
   ion-card-title {
@@ -651,48 +652,80 @@ ion-grid {
   }
 }
 
+.comparison-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .comparison-selectors {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .compare-select-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.compare-select {
-  --background: transparent;
-  --color: rgba(255, 255, 255, 0.85);
-  --padding-top: 4px;
-  --padding-bottom: 4px;
-  --padding-start: 10px;
-  --padding-end: 26px;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  font-family: "Outfit", sans-serif;
-  min-width: 58px;
-  max-width: 72px;
-}
-
-.compare-select-icon {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.75);
-  pointer-events: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .compare-arrow {
   font-size: 14px;
   color: var(--orange);
   flex-shrink: 0;
+}
+
+// Mismo patrón de trigger + ion-select oculto que el selector de
+// microciclos de mesocycle.page/nutritional-objectives, para consistencia
+// visual en toda la app.
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.microcycle-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.25);
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+  border-radius: 8px;
+  min-width: 0;
+
+  .trigger-value {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: "Outfit", sans-serif;
+    color: var(--orange);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .trigger-chevron {
+    font-size: 12px;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+}
+
+.micro-cycle-selector-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: auto;
+  --padding-start: 0;
+  --padding-end: 0;
+  --background: transparent;
+  --border-width: 0;
+  --border-color: transparent;
 }
 
 .comparison-grid {
@@ -1337,18 +1370,15 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   }
 }
 
-.set-selector {
-  --padding-start: 12px;
-  --padding-end: 8px;
-  --background: transparent;
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--orange);
-  min-height: 34px;
-  height: 34px;
+.set-select-wrapper {
+  width: auto;
   margin-left: auto;
+  flex-shrink: 0;
+
+  .microcycle-trigger {
+    width: auto;
+    padding: 6px 10px;
+  }
 }
 
 .chart-header-main {

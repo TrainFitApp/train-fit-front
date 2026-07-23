@@ -154,7 +154,7 @@
               <div class="stat-value">
                 <ng-container *ngIf="isIsometric; else notIsometricPr">{{ formatSeconds(personalRecord) }}</ng-container>
                 <ng-template #notIsometricPr
-                  >{{ personalRecord | number:'1.0-1' }}<small>{{ isCardio ? 'km/h' : 'kg' }}</small></ng-template
+                  >{{ personalRecord | esNumber:'1.0-1' }}<small>{{ isCardio ? 'km/h' : 'kg' }}</small></ng-template
                 >
               </div>
             </ion-card-content>
@@ -168,8 +168,8 @@
                 <app-glossary-info *ngIf="isStrength" term="ONE_RM" size="sm"></app-glossary-info>
               </div>
               <div class="stat-value">
-                {{ (isCardio || isIsometric) ? (metrics.max1RM | number:'1.0-0') :
-                (metrics.max1RM | number:'1.0-1') }}
+                {{ (isCardio || isIsometric) ? (metrics.max1RM | esNumber:'1.0-0') :
+                (metrics.max1RM | esNumber:'1.0-1') }}
                 <small>{{ (isCardio || isIsometric) ? 'min' : 'kg' }}</small>
               </div>
             </ion-card-content>
@@ -182,7 +182,7 @@
                 {{ (isCardio || isIsometric) ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
               </div>
               <div class="stat-value">
-                {{ metrics.totalVolume | number:'1.0-0' }}
+                {{ metrics.totalVolume | esNumber:'1.0-0' }}
                 <small *ngIf="isStrength">kg</small>
               </div>
               <div class="stat-change">
@@ -232,7 +232,7 @@
                   <ion-card-content>
                     <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_PACE' | translate }}</div>
                     <div class="stat-value">
-                      {{ historicalStats.bestVelocityEver | number:'1.0-1' }}<small>km/h</small>
+                      {{ historicalStats.bestVelocityEver | esNumber:'1.0-1' }}<small>km/h</small>
                     </div>
                   </ion-card-content>
                 </ion-card>
@@ -260,7 +260,7 @@
                   <ion-card-content>
                     <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</div>
                     <div class="stat-value">
-                      {{ best.weight | number:'1.0-1' }}<small>kg</small> × {{ best.reps }}
+                      {{ best.weight | esNumber:'1.0-1' }}<small>kg</small> × {{ best.reps }}
                     </div>
                   </ion-card-content>
                 </ion-card>
@@ -270,7 +270,7 @@
                   <ion-card-content>
                     <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</div>
                     <div class="stat-value">
-                      {{ historicalStats.maxWeightEver | number:'1.0-1' }}<small>kg</small>
+                      {{ historicalStats.maxWeightEver | esNumber:'1.0-1' }}<small>kg</small>
                     </div>
                   </ion-card-content>
                 </ion-card>
@@ -293,13 +293,20 @@
     >
       <ion-card-header>
         <div class="comparison-header">
-          <ion-card-title>{{ 'TABLES.STATS_COMPARISON' | translate }}</ion-card-title>
+          <div class="comparison-title-row">
+            <ion-card-title>{{ 'TABLES.STATS_COMPARISON' | translate }}</ion-card-title>
+          </div>
           <div class="comparison-selectors">
-            <div class="compare-select-wrapper">
+            <div class="select-wrapper compare-select-wrapper">
+              <button type="button" class="microcycle-trigger">
+                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexA} }}</span>
+                <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+              </button>
               <ion-select
+                class="micro-cycle-selector-hidden"
                 mode="ios"
                 interface="action-sheet"
-                class="compare-select"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
                 [(ngModel)]="compareIndexA"
                 (ionChange)="onCompareChange()"
               >
@@ -307,17 +314,21 @@
                   {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
                 </ion-select-option>
               </ion-select>
-              <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
             </div>
             <ion-icon
               name="arrow-forward-outline"
               class="compare-arrow"
             ></ion-icon>
-            <div class="compare-select-wrapper">
+            <div class="select-wrapper compare-select-wrapper">
+              <button type="button" class="microcycle-trigger">
+                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexB} }}</span>
+                <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+              </button>
               <ion-select
+                class="micro-cycle-selector-hidden"
                 mode="ios"
                 interface="action-sheet"
-                class="compare-select"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
                 [(ngModel)]="compareIndexB"
                 (ionChange)="onCompareChange()"
               >
@@ -325,7 +336,6 @@
                   {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
                 </ion-select-option>
               </ion-select>
-              <ion-icon name="chevron-down-outline" class="compare-select-icon"></ion-icon>
             </div>
           </div>
         </div>
@@ -356,7 +366,7 @@
             >
               <span *ngIf="comparisonData.velocityDiff !== 0">
                 {{ comparisonData.velocityDiff > 0 ? '+' : '' }}{{
-                comparisonData.velocityPct | number:'1.0-1' }}%
+                comparisonData.velocityPct | esNumber:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.velocityDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
@@ -384,7 +394,7 @@
             >
               <span *ngIf="comparisonData.maxHoldDiff !== 0">
                 {{ comparisonData.maxHoldDiff > 0 ? '+' : '' }}{{
-                comparisonData.maxHoldPct | number:'1.0-1' }}%
+                comparisonData.maxHoldPct | esNumber:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.maxHoldDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
@@ -400,14 +410,14 @@
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
-                >{{ comparisonData.prevTotalTime | number:'1.0-1' }} min</span
+                >{{ comparisonData.prevTotalTime | esNumber:'1.0-1' }} min</span
               >
               <ion-icon
                 [name]="getDiffIcon(comparisonData.timeDiff)"
                 [class]="getDiffClass(comparisonData.timeDiff)"
               ></ion-icon>
               <span class="curr-val"
-                >{{ comparisonData.currTotalTime | number:'1.0-1' }} min</span
+                >{{ comparisonData.currTotalTime | esNumber:'1.0-1' }} min</span
               >
             </div>
             <div
@@ -416,7 +426,7 @@
             >
               <span *ngIf="comparisonData.timeDiff !== 0">
                 {{ comparisonData.timeDiff > 0 ? '+' : '' }}{{
-                comparisonData.timePct | number:'1.0-1' }}%
+                comparisonData.timePct | esNumber:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.timeDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
@@ -429,6 +439,7 @@
             <div class="comparison-item-label">
               <ion-icon name="barbell-outline"></ion-icon>
               {{ 'TABLES.STATS_BEST_SET' | translate }}
+              <app-glossary-info term="BEST_SET" size="sm"></app-glossary-info>
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
@@ -448,7 +459,7 @@
             >
               <span *ngIf="comparisonData.weightDiff !== 0">
                 {{ comparisonData.weightDiff > 0 ? '+' : '' }}{{
-                comparisonData.weightPct | number:'1.0-1' }}%
+                comparisonData.weightPct | esNumber:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.weightDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
@@ -461,17 +472,18 @@
             <div class="comparison-item-label">
               <ion-icon name="trending-up-outline"></ion-icon>
               {{ 'TABLES.STATS_EFFECTIVE_VOLUME' | translate }}
+              <app-glossary-info term="EFFECTIVE_VOLUME" size="sm"></app-glossary-info>
             </div>
             <div class="comparison-item-values">
               <span class="prev-val"
-                >{{ comparisonData.prevEffectiveVolume | number:'1.0-0' }}</span
+                >{{ comparisonData.prevEffectiveVolume | esNumber:'1.0-0' }}</span
               >
               <ion-icon
                 [name]="getDiffIcon(comparisonData.effVolumeDiff)"
                 [class]="getDiffClass(comparisonData.effVolumeDiff)"
               ></ion-icon>
               <span class="curr-val"
-                >{{ comparisonData.currEffectiveVolume | number:'1.0-0' }}</span
+                >{{ comparisonData.currEffectiveVolume | esNumber:'1.0-0' }}</span
               >
             </div>
             <div
@@ -480,7 +492,7 @@
             >
               <span *ngIf="comparisonData.effVolumeDiff !== 0">
                 {{ comparisonData.effVolumeDiff > 0 ? '+' : '' }}{{
-                comparisonData.effVolumePct | number:'1.0-1' }}%
+                comparisonData.effVolumePct | esNumber:'1.0-1' }}%
               </span>
               <span *ngIf="comparisonData.effVolumeDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
@@ -498,7 +510,7 @@
             <div class="comparison-item-values">
               <span class="prev-val"
                 >{{ comparisonData.prevAvgRir >= 0 ? (comparisonData.prevAvgRir
-                | number:'1.1-1') : '—' }}</span
+                | esNumber:'1.1-1') : '—' }}</span
               >
               <ion-icon
                 [name]="getDiffIcon(comparisonData.rirDiff)"
@@ -506,7 +518,7 @@
               ></ion-icon>
               <span class="curr-val"
                 >{{ comparisonData.currAvgRir >= 0 ? (comparisonData.currAvgRir
-                | number:'1.1-1') : '—' }}</span
+                | esNumber:'1.1-1') : '—' }}</span
               >
             </div>
             <div
@@ -515,7 +527,7 @@
             >
               <span *ngIf="comparisonData.rirDiff !== 0">
                 {{ comparisonData.rirDiff > 0 ? '+' : '' }}{{
-                comparisonData.rirDiff | number:'1.1-1' }} RIR
+                comparisonData.rirDiff | esNumber:'1.1-1' }} RIR
               </span>
               <span *ngIf="comparisonData.rirDiff === 0" class="neutral"
                 >{{ 'TABLES.STATS_SAME' | translate }}</span
@@ -528,6 +540,7 @@
             <div class="comparison-item-label">
               <ion-icon name="list-outline"></ion-icon>
               {{ 'TABLES.STATS_SETS' | translate }}
+              <app-glossary-info term="SETS_COMPARISON" size="sm"></app-glossary-info>
             </div>
             <div class="comparison-item-values">
               <span class="prev-val">{{ comparisonData.prevSets }}</span>
@@ -613,20 +626,26 @@
         </div>
         <div class="chart-header-main" *ngIf="chartMode === 'evolution'">
           <ion-card-title>{{ 'TABLES.STATS_DIRECT_PROGRESSION' | translate }}</ion-card-title>
-          <ion-select
-            mode="ios"
-            interface="popover"
-            [value]="selectedSetIndex"
-            (ionChange)="onSetTypeChange($event)"
-            class="set-selector"
-          >
-            <ion-select-option
-              *ngFor="let idx of availableSetOptions"
-              [value]="idx"
+          <div class="select-wrapper set-select-wrapper">
+            <button type="button" class="microcycle-trigger">
+              <span class="trigger-value">{{ 'TABLES.STATS_SET' | translate: {n: selectedSetIndex + 1} }}</span>
+              <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+            </button>
+            <ion-select
+              class="micro-cycle-selector-hidden"
+              mode="ios"
+              interface="popover"
+              [value]="selectedSetIndex"
+              (ionChange)="onSetTypeChange($event)"
             >
-              {{ 'TABLES.STATS_SET' | translate: {n: idx + 1} }}
-            </ion-select-option>
-          </ion-select>
+              <ion-select-option
+                *ngFor="let idx of availableSetOptions"
+                [value]="idx"
+              >
+                {{ 'TABLES.STATS_SET' | translate: {n: idx + 1} }}
+              </ion-select-option>
+            </ion-select>
+          </div>
         </div>
         <div class="chart-header-main" *ngIf="chartMode === 'volume'">
           <ion-card-title>{{ 'TABLES.STATS_WORKLOAD' | translate }}</ion-card-title>

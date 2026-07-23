@@ -1936,6 +1936,18 @@
     "ONE_RM": {
       "TITLE": "1RM (One-Rep Max)",
       "DESCRIPTION": "The heaviest weight you could lift for a single rep with good form. It's used as a reference to calculate the weight for your training sets."
+    },
+    "BEST_SET": {
+      "TITLE": "Best set",
+      "DESCRIPTION": "The heaviest weight you lifted in a single set of this exercise, compared between the two selected microcycles. The arrow and color show whether it went up or down, and the percentage shows how much it changed."
+    },
+    "EFFECTIVE_VOLUME": {
+      "TITLE": "Effective volume",
+      "DESCRIPTION": "Weight times reps for each set, but giving more weight to sets done close to failure (low RIR) than to sets further from it. This reflects the real training stimulus better than total volume. Compared between the two selected microcycles: the arrow and color show whether it went up or down, and the percentage shows how much it changed."
+    },
+    "SETS_COMPARISON": {
+      "TITLE": "Sets",
+      "DESCRIPTION": "Number of completed sets of this exercise, compared between the two selected microcycles."
     }
   },
   "RECIPE_CARD": {

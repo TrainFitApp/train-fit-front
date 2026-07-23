@@ -164,6 +164,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public optionsForA: Array<{ idx: number; splitIndex: number }> = [];
   public optionsForB: Array<{ idx: number; splitIndex: number }> = [];
 
+  public get compareSplitIndexA(): number | undefined {
+    return this.optionsForA.find((o) => o.idx === this.compareIndexA)?.splitIndex;
+  }
+
+  public get compareSplitIndexB(): number | undefined {
+    return this.optionsForB.find((o) => o.idx === this.compareIndexB)?.splitIndex;
+  }
+
   // Metrics
   public metrics = {
     totalVolume: 0,

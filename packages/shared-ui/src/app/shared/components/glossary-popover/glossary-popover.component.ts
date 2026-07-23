@@ -1,6 +1,12 @@
 import { Component, Input } from '@angular/core';
 
-export type GlossaryTermKey = 'RIR' | 'MICROCYCLE' | 'ONE_RM';
+export type GlossaryTermKey =
+  | 'RIR'
+  | 'MICROCYCLE'
+  | 'ONE_RM'
+  | 'BEST_SET'
+  | 'EFFECTIVE_VOLUME'
+  | 'SETS_COMPARISON';
 
 @Component({
   selector: 'app-glossary-popover',

@@ -1942,6 +1942,18 @@
     "ONE_RM": {
       "TITLE": "1RM (Repetición Máxima)",
       "DESCRIPTION": "Es el peso máximo que podrías levantar en un único intento y con buena técnica. Se usa como referencia para calcular el peso de tus series de entrenamiento."
+    },
+    "BEST_SET": {
+      "TITLE": "Mejor serie",
+      "DESCRIPTION": "El peso más alto que levantaste en una sola serie de este ejercicio, comparado entre los dos microciclos seleccionados. La flecha y el color indican si subió o bajó, y el porcentaje indica cuánto cambió."
+    },
+    "EFFECTIVE_VOLUME": {
+      "TITLE": "Volumen efectivo",
+      "DESCRIPTION": "Suma de peso por repeticiones de cada serie, pero dando más peso a las series hechas cerca del fallo (RIR bajo) que a las más alejadas. Así refleja mejor el estímulo real de entrenamiento que el volumen total. Comparado entre los dos microciclos seleccionados: la flecha y el color indican si subió o bajó, y el porcentaje indica cuánto cambió."
+    },
+    "SETS_COMPARISON": {
+      "TITLE": "Series",
+      "DESCRIPTION": "Número de series completadas de este ejercicio, comparado entre los dos microciclos seleccionados."
     }
   },
   "RECIPE_CARD": {
