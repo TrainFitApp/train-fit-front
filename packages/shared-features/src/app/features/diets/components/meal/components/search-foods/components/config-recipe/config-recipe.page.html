@@ -353,7 +353,7 @@
                 <div class="ingredient-top-row">
                   <div class="ingredient-header">
                     <span class="ingredient-name">{{ getIngredientName(ingredient) }}</span>
-                    <span class="ingredient-qty-inline">({{ ingredient.quantity }}g)</span>
+                    <span class="ingredient-qty-inline">({{ ingredient.quantity | number:"1.0-1" }}g)</span>
                     <span class="ingredient-count" *ngIf="getIngredientStatus(ingredient)">
                       {{ getIngredientStatus(ingredient) }}
                     </span>
@@ -405,7 +405,7 @@
                 <div class="ingredient-main">
                   <div class="ingredient-header">
                     <span class="ingredient-name">{{ getIngredientName(ingredient) }}</span>
-                    <span class="ingredient-qty-inline">({{ ingredient.quantity }}g)</span>
+                    <span class="ingredient-qty-inline">({{ ingredient.quantity | number:"1.0-1" }}g)</span>
                   </div>
                   <div class="ingredient-macros">
                     <span class="macro kcal">{{ getIngredientMacros(ingredient).kcal | number:'1.0-0' }}</span>

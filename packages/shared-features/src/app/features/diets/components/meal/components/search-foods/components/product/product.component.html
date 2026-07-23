@@ -27,10 +27,10 @@
             [style.color]="isChecked ? 'var(--ion-color-secondary)' : '#888'"
           >
             {{
-              (displayCustomProduct?.quantity ?? productQuantity | number : "1.0-0")
+              (displayCustomProduct?.quantity ?? productQuantity | number : "1.0-1")
                 ? "(" +
                   (displayCustomProduct?.quantity ?? productQuantity
-                    | number : "1.0-0") +
+                    | number : "1.0-1") +
                   "g)"
                 : "-"
             }}
