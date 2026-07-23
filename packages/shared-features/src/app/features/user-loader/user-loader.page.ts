@@ -170,17 +170,12 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.updateLoadingStep(4);
           this.updateProgress(80);
 
-          if (resTable) {
-            this.tableService.setCurrentTable = resTable;
-          }
-
-          if (resDiet) {
-            this.dietService.setCurrentDiet = resDiet;
-          }
-
-          if (resWorkoutInUse) {
-            this.workoutService.setCurrentWorkout = resWorkoutInUse;
-          }
+          // Always sync (not just when truthy) so a leftover signal from a
+          // previous session/account never survives into one with no table,
+          // diet, or workout in use.
+          this.tableService.setCurrentTable = resTable ?? null;
+          this.dietService.setCurrentDiet = resDiet ?? null;
+          this.workoutService.setCurrentWorkout = resWorkoutInUse ?? null;
 
           setTimeout(() => {
             this.updateLoadingStep(5);
