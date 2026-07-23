@@ -28,18 +28,18 @@
     (dismissed)="dismissMaintenanceWarning()"
   ></app-maintenance-warning-banner>
 
-  <!-- Premium upgrade banner (solo free) -->
-  <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
-    <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
-    <div class="premium-banner__text">
-      <span class="premium-banner__title">{{ 'TABLES.GO_PRO' | translate }}</span>
-      <span class="premium-banner__sub">{{ 'TABLES.GO_PRO_SUBTITLE' | translate }}</span>
-    </div>
-    <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
-  </button>
-
   <div class="container">
     <div class="main-content">
+      <!-- Premium upgrade banner (solo free) -->
+      <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
+        <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
+        <div class="premium-banner__text">
+          <span class="premium-banner__title">{{ 'TABLES.GO_PRO' | translate }}</span>
+          <span class="premium-banner__sub">{{ 'TABLES.GO_PRO_SUBTITLE' | translate }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
+      </button>
+
       <!-- Botones de navegación principales -->
       <div class="nav-buttons">
         <button class="nav-btn nav-btn--search" (click)="openSearchTables()">
