@@ -48,6 +48,9 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   @Output()
   public pinnedNoteChange = new EventEmitter<string>();
 
+  @Output()
+  public loadingChange = new EventEmitter<boolean>();
+
   public calendarISODate!: string;
 
   public month!: string;
@@ -278,6 +281,7 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
       }
 
       if (!this.dietDay._id) {
+        this.loadingChange.emit(true);
         const newDietDay = this.dietDayService.getStandardDietDay(this.dietDay.date);
         const createdDietDay = await this.dietDayService.createDietDay(newDietDay).toPromise();
         await this.dietService.addDietDietDay(this.dietId, createdDietDay._id).toPromise();
@@ -368,12 +372,14 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
           text: t('COMMON.DELETE'),
           cssClass: 'danger',
           handler: () => {
+            this.loadingChange.emit(true);
             (this._service as DietDayService)
               .deleteDietDay(
                 this.userService.getLocalUser.dietInUse,
                 this.dietDay._id
               )
               .subscribe(() => {
+                this.selectCalendarDayEmit.emit(this.dietDay.date);
                 this.showToast(
                   t('TOOLBAR_CALENDAR.DELETE_SUCCESS', { date: dateFormatted })
                 );

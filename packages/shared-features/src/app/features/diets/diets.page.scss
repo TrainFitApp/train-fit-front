@@ -13,6 +13,12 @@ ion-content {
   --padding-end: 0;
 }
 
+ion-content.content-loading {
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
 // Estilos para el date-picker
 ion-popover {
   --backdrop-opacity: 0.4;

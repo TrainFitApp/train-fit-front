@@ -8,11 +8,16 @@
       (selectCalendarDayEmit)="selectCalendarDay($event)"
       (pasteDietDayMode)="pasteDietDayMode = true"
       (pinnedNoteChange)="onPinnedNoteChange($event)"
+      (loadingChange)="load = $event"
     ></app-toolbar-calendar>
   </div>
+  <ion-progress-bar
+    *ngIf="!load || isPasting"
+    type="indeterminate"
+  ></ion-progress-bar>
 </ion-header>
 
-<ion-content #ionContent class="t-init-diets">
+<ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting">
   <!-- Aviso previo de mantenimiento -->
   <app-maintenance-warning-banner
     *ngIf="maintenanceWarning$ | async as maintenanceBanner"
@@ -38,13 +43,6 @@
       class="premium-banner__arrow"
     ></ion-icon>
   </button>
-
-  <!-- Progress Bar for Pasting Day -->
-  <ion-progress-bar
-    *ngIf="isPasting"
-    type="indeterminate"
-    color="primary"
-  ></ion-progress-bar>
 
   <app-notes
     *ngIf="dietDay?.notes"
