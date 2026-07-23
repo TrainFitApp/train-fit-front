@@ -114,9 +114,11 @@
                 [isDone]="set.doned" (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
             </ion-col>
             <ion-col size="2" class="complete-col">
-              <ion-reorder *ngIf="reorderMode">
-                <ion-icon name="reorder-three-outline" class="reorder-icon"></ion-icon>
-              </ion-reorder>
+              <ion-button *ngIf="reorderMode" class="reorder-btn">
+                <ion-reorder>
+                  <ion-icon name="reorder-three-outline"></ion-icon>
+                </ion-reorder>
+              </ion-button>
               <ion-checkbox *ngIf="!reorderMode" [ngClass]="{
               completed: set.doned
             }" formControlName="doned" mode="ios" color="success"></ion-checkbox>
@@ -141,9 +143,11 @@
                   (valueChange)="onFormValueChange('distance', $event)"></app-numeric-input>
               </ion-col>
               <ion-col size="2" class="complete-col">
-                <ion-reorder *ngIf="reorderMode">
-                  <ion-icon name="reorder-three-outline" class="reorder-icon"></ion-icon>
-                </ion-reorder>
+                <ion-button *ngIf="reorderMode" class="reorder-btn">
+                  <ion-reorder>
+                    <ion-icon name="reorder-three-outline"></ion-icon>
+                  </ion-reorder>
+                </ion-button>
                 <ion-checkbox *ngIf="!reorderMode" [ngClass]="{
                 completed: set.doned
               }" formControlName="doned" mode="ios" color="success"></ion-checkbox>
@@ -167,9 +171,11 @@
                 (rirChange)="onRirValueChange($event)"></app-rir-picker>
             </ion-col>
             <ion-col size="2" class="complete-col">
-              <ion-reorder *ngIf="reorderMode">
-                <ion-icon name="reorder-three-outline" class="reorder-icon"></ion-icon>
-              </ion-reorder>
+              <ion-button *ngIf="reorderMode" class="reorder-btn">
+                <ion-reorder>
+                  <ion-icon name="reorder-three-outline"></ion-icon>
+                </ion-reorder>
+              </ion-button>
               <ion-checkbox *ngIf="!reorderMode" [ngClass]="{
               completed: set.doned
             }" formControlName="doned" mode="ios" color="success"></ion-checkbox>
