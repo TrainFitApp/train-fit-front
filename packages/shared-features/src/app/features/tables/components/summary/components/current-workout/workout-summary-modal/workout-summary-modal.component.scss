@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px 28px;
+  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px calc(88px + var(--ion-safe-area-bottom, 0px));
 }
 
 .summary-card {
