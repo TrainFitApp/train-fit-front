@@ -4,6 +4,11 @@ ion-checkbox {
   --checkbox-background-checked: var(--ion-color-success);
 }
 
+.reorder-icon {
+  font-size: 20px;
+  color: var(--ion-color-medium);
+}
+
 ion-input {
   font-size: small;
   --background: #0e0e0e !important;

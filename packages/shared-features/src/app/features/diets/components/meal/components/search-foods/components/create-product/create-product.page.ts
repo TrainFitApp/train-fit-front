@@ -639,6 +639,14 @@ export class CreateProductPage implements OnInit {
     }
   }
 
+  public ionViewWillEnter(): void {
+    // Ionic mantiene viva la instancia de la página en el stack; sin esto,
+    // un saveInProgress=true que quedó colgado de una creación anterior
+    // (nunca se resetea en el camino de éxito, solo en el de error) se
+    // arrastra a la siguiente vez que se entra en modo edición.
+    this.saveInProgress = false;
+  }
+
   public ionViewWillLeave(): void {
     this.cancelProductLookup();
   }

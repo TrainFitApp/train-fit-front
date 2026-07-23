@@ -1293,6 +1293,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             cssClass: "alert-button-primary",
             handler: () => {
               this.loadingFab = true;
+              this.loadingSplit = true;
               const idSplit =
                 this.tableInUse.splits[this._currentSplitIndex]?._id;
               this.splitService
@@ -1313,6 +1314,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                     };
                     this.ionicUtilService.showToast(toastOptions);
                     this.loadingFab = false;
+                    this.loadingSplit = false;
                   },
                   (error) => this.handleAddSplitError(error),
                 );

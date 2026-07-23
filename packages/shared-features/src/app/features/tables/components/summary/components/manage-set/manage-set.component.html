@@ -380,6 +380,29 @@
                 color="primary"
               ></ion-icon>
             </div>
+            <div
+              class="field-section"
+              *ngIf="setForm.get('restPauseEnabled')?.value"
+            >
+              <div class="field-label">
+                <span class="label-text">{{ 'TABLES.REST_TIME' | translate }}</span>
+              </div>
+              <div class="input-row">
+                <div class="input-field">
+                  <ion-input
+                    formControlName="restPause"
+                    type="text"
+                    inputmode="decimal"
+                    maxlength="3"
+                    fill="outline"
+                    placeholder="{{ 'TABLES.REST_PLACEHOLDER' | translate }}"
+                    appCursorEnd
+                    appDecimalInput
+                  >
+                  </ion-input>
+                </div>
+              </div>
+            </div>
             <div class="info-explainer" *ngIf="setForm.controls.restPauseEnabled.value">
               <div class="info-card">
                 <ion-icon
@@ -393,30 +416,6 @@
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="field-section"
-          *ngIf="setForm.get('restPauseEnabled')?.value"
-        >
-          <div class="field-label">
-            <span class="label-text">{{ 'TABLES.REST_TIME' | translate }}</span>
-          </div>
-          <div class="input-row">
-            <div class="input-field">
-              <ion-input
-                formControlName="restPause"
-                type="text"
-                inputmode="decimal"
-                maxlength="3"
-                fill="outline"
-                placeholder="{{ 'TABLES.REST_PLACEHOLDER' | translate }}"
-                appCursorEnd
-                appDecimalInput
-              >
-              </ion-input>
             </div>
           </div>
         </div>
