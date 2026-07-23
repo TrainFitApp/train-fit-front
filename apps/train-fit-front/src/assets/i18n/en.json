@@ -1401,6 +1401,7 @@
     "DELETE_CONFIRM_WORD": "delete",
     "DELETE_MSG_SOCIAL": "This action cannot be undone. Type \"{{word}}\" to confirm.",
     "DELETE_CONFIRM_WORD_MISMATCH": "Type \"{{word}}\" exactly to confirm. The account was not deleted.",
+    "DELETE_ERROR": "Couldn't delete the account. Please try again.",
     "AD_UPDATED": "Ad preferences updated",
     "AD_UPDATE_ERROR": "Could not save preferences",
     "TRAINER_MODE_HEADER": "Trainer Mode",

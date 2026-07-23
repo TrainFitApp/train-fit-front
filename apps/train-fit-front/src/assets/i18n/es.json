@@ -1407,6 +1407,7 @@
     "DELETE_CONFIRM_WORD": "eliminar",
     "DELETE_MSG_SOCIAL": "Esta acción no se puede deshacer. Escribe \"{{word}}\" para confirmar.",
     "DELETE_CONFIRM_WORD_MISMATCH": "Escribe \"{{word}}\" exactamente para confirmar. No se ha eliminado la cuenta.",
+    "DELETE_ERROR": "No se pudo eliminar la cuenta. Inténtalo de nuevo.",
     "AD_UPDATED": "Preferencias de anuncios actualizadas",
     "AD_UPDATE_ERROR": "No se pudieron guardar las preferencias",
     "TRAINER_MODE_HEADER": "Modo entrenadores",

@@ -350,8 +350,15 @@ export class ConfigurationPage {
   }
 
   private performAccountDeletion(): void {
-    this.userService.deleteById(this.user._id).subscribe(() => {
-      this.authService.logout();
+    this.userService.deleteById(this.user._id).subscribe({
+      next: () => this.authService.logout(),
+      error: (error) => {
+        console.error('[ConfigurationPage] Error deleting account:', error);
+        this.ionicUtilService.showErrorToast(
+          error,
+          this.translate.instant('CONFIGURATION.DELETE_ERROR')
+        );
+      },
     });
   }
 
