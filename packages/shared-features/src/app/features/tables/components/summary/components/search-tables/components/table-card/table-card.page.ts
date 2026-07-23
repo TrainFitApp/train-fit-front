@@ -340,7 +340,7 @@ export class TableCardPage {
         {
           name: 'tableName',
           type: 'textarea' as 'textarea',
-          value: this.tableCard.name,
+          value: this.translateDbValue(this.tableCard.name),
           placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
           attributes: { maxlength: 100 },
         },
