@@ -712,6 +712,7 @@ export class MealComponent implements OnInit, OnChanges {
 
   public toggleProductSelection(product: CustomProduct): void {
     if (!this.selectionMode) {
+      if (this.hasActiveClipboard) return;
       this.editCustomProduct(product);
       return;
     }
@@ -726,6 +727,7 @@ export class MealComponent implements OnInit, OnChanges {
 
   public toggleRecipeSelection(recipe: CustomRecipe): void {
     if (!this.selectionMode) {
+      if (this.hasActiveClipboard) return;
       this.editCustomRecipe(recipe);
       return;
     }
