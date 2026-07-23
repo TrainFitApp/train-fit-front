@@ -45,7 +45,7 @@
 
       <article class="exercise-block" *ngFor="let exercise of summary?.exercises || []">
         <div class="exercise-block-header">
-          <h3>{{ exercise.name }}</h3>
+          <h3>{{ exercise.name | translateDb }}</h3>
           <span>{{ exercise.sets.length }} {{ 'TABLES.SUMMARY_SETS' | translate }}</span>
         </div>
 

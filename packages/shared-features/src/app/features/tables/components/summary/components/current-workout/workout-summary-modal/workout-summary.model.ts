@@ -1,5 +1,6 @@
 import { Workout } from 'src/app/core/models/workout';
 import { Set } from 'src/app/core/models/set';
+import { formatRirValue } from 'src/app/core/models/rir';
 
 export interface WorkoutSummarySet {
   index: number;
@@ -33,14 +34,6 @@ function formatNumber(value: number, digits: string = '1.0-1'): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: maxDecimals,
   });
-}
-
-function formatRir(rir: number | number[] | undefined): string {
-  if (rir === undefined || rir === null) return '';
-  if (Array.isArray(rir)) {
-    return rir.filter((value) => value !== undefined && value !== null).join('/');
-  }
-  return String(rir);
 }
 
 function getSetOrder(set: Set, fallbackIndex: number): number {
@@ -79,12 +72,11 @@ function buildSetSummary(
 
   const weight = Number(set.weight) || 0;
   const reps = Number(set.reps) || 0;
-  const rir = formatRir(set.rir);
 
   return {
     index: getSetOrder(set, fallbackIndex),
     primary: `${formatNumber(weight)} kg x ${formatNumber(reps, '1.0-0')}`,
-    secondary: rir ? `${rir} RIR` : '',
+    secondary: formatRirValue(set.rir, { includeUnit: true, emptyLabel: '' }),
     badges,
   };
 }
