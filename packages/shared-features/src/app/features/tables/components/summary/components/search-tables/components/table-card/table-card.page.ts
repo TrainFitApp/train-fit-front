@@ -81,6 +81,12 @@ export class TableCardPage {
     return this.tableCard?.splits?.[0]?.workouts?.length || 0;
   }
 
+  // `own` es "¿la posees?" (propia/copiada), no "¿es la que está en uso?" —
+  // son cosas distintas y hay que distinguirlas explícitamente.
+  public get isActiveTable(): boolean {
+    return this.tableCard?._id === this.tableService.getTableInUseId(this.user?.tableInUse);
+  }
+
   public get hasBackgroundImage(): boolean {
     return this.getUsableBackgroundImageUrl() !== '';
   }

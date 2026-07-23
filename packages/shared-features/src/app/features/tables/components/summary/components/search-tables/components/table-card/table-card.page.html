@@ -1,6 +1,6 @@
 <ion-card
   class="table-card"
-  [class.selected]="user?.tableInUse === tableCard._id"
+  [class.selected]="isActiveTable"
   [class.loading]="!loadAction || (anyLoading && loadAction)"
   (click)="loadAction && !anyLoading && useTable(); $event.stopPropagation()"
 >
@@ -32,12 +32,12 @@
 
     <div class="card-footer">
       <ng-container *ngIf="loadAction; else noLoad">
-        <div *ngIf="own" class="status-badge active-badge">
+        <div *ngIf="isActiveTable" class="status-badge active-badge">
           <ion-icon name="checkmark-circle"></ion-icon>
           <span>{{ 'TABLES.ROUTINE_ACTIVE' | translate }}</span>
         </div>
 
-        <div class="footer-spacer" *ngIf="!own"></div>
+        <div class="footer-spacer" *ngIf="!isActiveTable"></div>
 
         <div class="footer-actions">
           <button
@@ -50,7 +50,7 @@
           </button>
 
           <button
-            *ngIf="ownFilter && !own"
+            *ngIf="ownFilter"
             class="icon-btn"
             [disabled]="!loadAction || anyLoading"
             (click)="openMenu($event)"
