@@ -400,6 +400,90 @@
       </ng-template>
     </div>
 
+    <!-- Video Section -->
+    <div *ngIf="videoEmbedSrcSafe" class="elegant-card video-card">
+      <div class="video-header">
+        <div class="video-info">
+          <div class="video-icon">
+            <ion-icon name="play-circle-outline"></ion-icon>
+          </div>
+          <h3 class="video-title">{{ 'EXERCISE_CONFIG.DEMO_VIDEO' | translate }}</h3>
+        </div>
+      </div>
+      <div class="video-container">
+        <iframe
+          class="video-frame"
+          [src]="videoEmbedSrcSafe"
+          title="YouTube video player"
+          frameborder="0"
+          referrerpolicy="origin"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          playsinline
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- Muscle Groups Section - Hidden in Create Mode -->
+    <div class="elegant-card muscle-groups-card" *ngIf="false">
+      <div class="card-content">
+        <!-- Title Row -->
+        <div class="muscle-groups-header">
+          <div class="muscle-groups-info">
+            <div class="muscle-groups-icon">
+              <ion-icon name="body-outline"></ion-icon>
+            </div>
+            <h3 class="muscle-groups-title">{{ 'EXERCISE_CONFIG.MUSCLE_GROUPS' | translate }}</h3>
+          </div>
+        </div>
+
+        <!-- Chips Row -->
+        <div class="muscle-groups-chips">
+          <button
+            type="button"
+            class="modern-pill modern-pill--sm"
+            *ngFor="let mg of getExerciseMuscleGroups()"
+          >
+            <ion-icon name="barbell-outline"></ion-icon>
+                  <span class="label">{{ mg | translateDb }}</span>
+            <ion-ripple-effect></ion-ripple-effect>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description Section -->
+    <div
+      class="elegant-card description-card"
+      *ngIf="!isEditingOwnExercise && (exercise?.description || customExercise?.exercise?.description)"
+    >
+      <div class="card-content">
+        <!-- Title Row -->
+        <div class="description-header">
+          <div class="description-info">
+            <div class="description-icon">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <h3 class="description-title">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</h3>
+          </div>
+        </div>
+
+        <!-- Description Content Row -->
+        <div class="exercise-description">
+          <div class="description-steps">
+            <div
+              class="description-step"
+              *ngFor="let step of getExerciseDescriptionSteps(); let i = index"
+            >
+              <span class="description-step-index">{{ i + 1 }}</span>
+              <p class="description-step-text">{{ step }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Detalles Section - Inline Filters -->
     <!-- Detalles Section (both Create and Edit modes) -->
     <div
@@ -606,90 +690,6 @@
               >
                 <span class="label">{{ equip | translateDb }}</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Video Section -->
-    <div *ngIf="videoEmbedSrcSafe" class="elegant-card video-card">
-      <div class="video-header">
-        <div class="video-info">
-          <div class="video-icon">
-            <ion-icon name="play-circle-outline"></ion-icon>
-          </div>
-          <h3 class="video-title">{{ 'EXERCISE_CONFIG.DEMO_VIDEO' | translate }}</h3>
-        </div>
-      </div>
-      <div class="video-container">
-        <iframe
-          class="video-frame"
-          [src]="videoEmbedSrcSafe"
-          title="YouTube video player"
-          frameborder="0"
-          referrerpolicy="origin"
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen
-          playsinline
-        ></iframe>
-      </div>
-    </div>
-
-    <!-- Muscle Groups Section - Hidden in Create Mode -->
-    <div class="elegant-card muscle-groups-card" *ngIf="false">
-      <div class="card-content">
-        <!-- Title Row -->
-        <div class="muscle-groups-header">
-          <div class="muscle-groups-info">
-            <div class="muscle-groups-icon">
-              <ion-icon name="body-outline"></ion-icon>
-            </div>
-            <h3 class="muscle-groups-title">{{ 'EXERCISE_CONFIG.MUSCLE_GROUPS' | translate }}</h3>
-          </div>
-        </div>
-
-        <!-- Chips Row -->
-        <div class="muscle-groups-chips">
-          <button
-            type="button"
-            class="modern-pill modern-pill--sm"
-            *ngFor="let mg of getExerciseMuscleGroups()"
-          >
-            <ion-icon name="barbell-outline"></ion-icon>
-                  <span class="label">{{ mg | translateDb }}</span>
-            <ion-ripple-effect></ion-ripple-effect>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Description Section -->
-    <div
-      class="elegant-card description-card"
-      *ngIf="!isEditingOwnExercise && (exercise?.description || customExercise?.exercise?.description)"
-    >
-      <div class="card-content">
-        <!-- Title Row -->
-        <div class="description-header">
-          <div class="description-info">
-            <div class="description-icon">
-              <ion-icon name="document-text-outline"></ion-icon>
-            </div>
-            <h3 class="description-title">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</h3>
-          </div>
-        </div>
-
-        <!-- Description Content Row -->
-        <div class="exercise-description">
-          <div class="description-steps">
-            <div
-              class="description-step"
-              *ngFor="let step of getExerciseDescriptionSteps(); let i = index"
-            >
-              <span class="description-step-index">{{ i + 1 }}</span>
-              <p class="description-step-text">{{ step }}</p>
             </div>
           </div>
         </div>
