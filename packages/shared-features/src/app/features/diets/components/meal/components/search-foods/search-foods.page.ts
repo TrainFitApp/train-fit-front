@@ -379,6 +379,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.ingredientMode = true;
       // Force mode to products when in ingredient mode
       this.currentMode = "products";
+      // Reset search state so loadRecentProductsForMeal runs (page may be reused)
+      this.hasStartedFoodSearch = false;
 
       // Store ingredient mode state in tempData for back button handler
       // This ensures the state persists even if ionViewWillEnter is called multiple times
