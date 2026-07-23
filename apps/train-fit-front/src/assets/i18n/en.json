@@ -1762,6 +1762,7 @@
     "ALERT_CANCEL": "Cancel",
     "ALERT_CONFIRM": "Confirm",
     "TOAST_RESET": "You have reset the set order",
+    "TOAST_ORDER_SAVED": "Sets ordered successfully",
     "SET_LABEL": "Set {{number}}",
     "OBJETIVO": "Target",
     "FALLO": "Fail",

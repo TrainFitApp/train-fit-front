@@ -468,6 +468,12 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
           this.replaceCurrentSets(resCustomExercise.sets);
           this.reorderMode = false;
           this.hasReorderChanges = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('ORDER_SETS.TOAST_ORDER_SAVED'),
+            duration: 2000,
+            position: 'bottom',
+            color: 'success',
+          } as ToastOptions);
         },
         error: () => {
           this.reorderMode = false;

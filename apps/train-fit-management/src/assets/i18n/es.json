@@ -1660,6 +1660,7 @@
     "ALERT_CANCEL": "Cancelar",
     "ALERT_CONFIRM": "Confirmar",
     "TOAST_RESET": "Has restablecido el orden de las series",
+    "TOAST_ORDER_SAVED": "Series ordenadas correctamente",
     "SET_LABEL": "Serie {{number}}",
     "OBJETIVO": "Objetivo",
     "FALLO": "Fallo",
