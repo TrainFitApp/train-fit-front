@@ -830,13 +830,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchBarValue = this.searchFilterGroup.search;
     }
 
+    this.products = [];
+    this.recipes = [];
+
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       this.load = true;
       return;
     }
-
-    this.products = [];
-    this.recipes = [];
 
     if (this.currentMode === "products") {
       this.searchProducts();
@@ -850,13 +850,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     Object.assign(this.searchFilterGroup, event);
     this.searchFilterGroup.page = 0;
 
+    this.products = [];
+    this.recipes = [];
+
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       this.load = true;
       return;
     }
-
-    this.products = [];
-    this.recipes = [];
 
     if (this.currentMode === "products") {
       this.searchProducts();
@@ -1811,8 +1811,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.recentRecipesSub?.unsubscribe();
   }
 
-  private loadRecentProductsForMeal(): void {
-    if (this.hasStartedFoodSearch || this.currentMode !== "products") {
+  private loadRecentProductsForMeal(force = false): void {
+    if ((this.hasStartedFoodSearch && !force) || this.currentMode !== "products") {
       return;
     }
 
@@ -1835,7 +1835,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (customProducts) => {
-          if (this.hasStartedFoodSearch) {
+          if (this.hasStartedFoodSearch && !force) {
             return;
           }
 
@@ -1853,7 +1853,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.load = true;
         },
         error: () => {
-          if (this.hasStartedFoodSearch) {
+          if (this.hasStartedFoodSearch && !force) {
             return;
           }
 
@@ -1864,8 +1864,8 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       });
   }
 
-  private loadRecentRecipesForMeal(): void {
-    if (this.hasStartedFoodSearch || this.currentMode !== "recipes") {
+  private loadRecentRecipesForMeal(force = false): void {
+    if ((this.hasStartedFoodSearch && !force) || this.currentMode !== "recipes") {
       return;
     }
 
@@ -1888,7 +1888,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (customRecipes) => {
-          if (this.hasStartedFoodSearch) {
+          if (this.hasStartedFoodSearch && !force) {
             return;
           }
 
@@ -1904,7 +1904,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.load = true;
         },
         error: () => {
-          if (this.hasStartedFoodSearch) {
+          if (this.hasStartedFoodSearch && !force) {
             return;
           }
 
@@ -1965,6 +1965,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (this.shouldSkipProductsSearch()) {
       this.load = true;
       this.products = [];
+      return;
+    }
+
+    const search = (this.searchFilterGroup?.search || "").trim();
+
+    // When search is empty, load recent products and put meal ones first
+    if (search.length <= 1 && !this.hasActiveFilters()) {
+      this.loadRecentProductsForMeal(true);
       return;
     }
 
@@ -2042,7 +2050,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return false;
     }
     const search = (this.searchFilterGroup?.search || "").trim();
-    return search.length <= 1;
+    if (search.length > 1) {
+      return false;
+    }
+    // Empty search: only skip if there are NO products in meal / selected ingredients
+    if (this.ingredientMode) {
+      return !(this.selectedIngredients?.length > 0);
+    }
+    return !(this.meal?.customProducts?.length > 0);
   }
 
   public isSearchTooShortForProducts(): boolean {
@@ -2126,6 +2141,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private searchRecipes(): void {
+    const search = (this.searchFilterGroup?.search || "").trim();
+
+    // When search is empty, load recent recipes and put meal ones first
+    if (search.length <= 1 && !this.hasActiveFilters()) {
+      this.loadRecentRecipesForMeal(true);
+      return;
+    }
+
     const page = this.searchFilterGroup.page || 0;
     if (page === 0) {
       this.recipesRequestVersion++;
@@ -2139,7 +2162,6 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       new Error().stack,
     );
     this.load = false;
-    const search = this.searchFilterGroup.search || "";
     const requestPage = this.searchFilterGroup.page || 0;
     const request$ = this.recipeApiService.searchRecipes(search, requestPage, 10, {
       own: !!this.searchFilterGroup.ownFilter,

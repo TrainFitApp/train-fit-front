@@ -80,6 +80,9 @@ export class ProductComponent implements OnInit, OnChanges {
   public THEMES = THEMES;
 
   get mealNameTranslated(): string {
+    if (this.ingredientMode) {
+      return this.translate.instant('FILTER.RECIPE');
+    }
     const name = this.meal?.name || '';
     if (this.translate.currentLang === 'en') {
       return DB_ES_EN_MAP[name] || name;
