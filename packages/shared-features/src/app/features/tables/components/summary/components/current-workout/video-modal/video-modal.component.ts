@@ -7,7 +7,7 @@ import {
   ExerciseHistoryService,
   ExerciseHistoryStats,
 } from 'src/app/core/services/exercise-history/exercise-history.service';
-import { formatSecondsAsTime } from 'src/app/shared/utils';
+import { formatSecondsAsTime, splitTextIntoSteps } from 'src/app/shared/utils';
 
 @Component({
   selector: 'app-video-modal',
@@ -87,5 +87,9 @@ export class VideoModalComponent implements OnInit {
 
   public formatSeconds(seconds: number): string {
     return formatSecondsAsTime(seconds || 0);
+  }
+
+  public getDescriptionSteps(descriptionText: string): string[] {
+    return splitTextIntoSteps(descriptionText);
   }
 }

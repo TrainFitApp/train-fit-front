@@ -135,10 +135,16 @@
       </div>
 
       <!-- Description Content Row -->
-      <div class="exercise-description">
-        <p class="description-text">
-          {{ exercise | translateDesc }}
-        </p>
+      <div class="exercise-description" *ngIf="(exercise | translateDesc) as descriptionText">
+        <div class="description-steps">
+          <div
+            class="description-step"
+            *ngFor="let step of getDescriptionSteps(descriptionText); let i = index"
+          >
+            <span class="description-step-index">{{ i + 1 }}</span>
+            <p class="description-step-text">{{ step }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
