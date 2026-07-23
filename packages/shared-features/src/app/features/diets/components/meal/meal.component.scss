@@ -413,12 +413,6 @@ ion-spinner {
       padding: 4px 8px;
     }
   }
-
-  &.copy-muted {
-    opacity: 0.45;
-    filter: grayscale(0.35);
-    pointer-events: none;
-  }
 }
 
 // Estilos para skeleton loader del meal component

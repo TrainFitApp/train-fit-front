@@ -100,6 +100,7 @@ export class MealComponent implements OnInit, OnChanges {
 
   public ngOnInit(): void {
     this.getMealInfo();
+    this.restoreSelectionFromClipboard();
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -125,6 +126,35 @@ export class MealComponent implements OnInit, OnChanges {
       this.selectionMode
     ) {
       this.exitSelectionMode();
+    }
+    // Este componente se reutiliza/reinicializa al cambiar de día; selectionMode
+    // es estado puramente local (sin @Input) y se pierde aunque el portapapeles
+    // (a nivel de servicio, persistente) siga apuntando a esta meal. Sin esto,
+    // volver al día original tras copiar deja los checkboxes desaparecidos.
+    if (changes.meal || changes.dietDay) {
+      this.restoreSelectionFromClipboard();
+    }
+  }
+
+  private restoreSelectionFromClipboard(): void {
+    const clipboard = this.mealService.getMealClipboard;
+    if (!clipboard?.mealClipboard || clipboard.mealClipboard._id !== this.meal?._id) {
+      return;
+    }
+
+    this.selectionMode = true;
+    this.arrowRotate = true;
+
+    if (clipboard.isFullMeal) {
+      this.selectedProductIds = new Set(
+        (this.meal.customProducts || []).map((cp) => cp._id)
+      );
+      this.selectedRecipeIds = new Set(
+        (this.meal.customRecipes || []).map((cr) => cr._id)
+      );
+    } else {
+      this.selectedProductIds = new Set(clipboard.selectedProducts);
+      this.selectedRecipeIds = new Set(clipboard.selectedRecipes);
     }
   }
 

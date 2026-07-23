@@ -17,7 +17,7 @@
   ></ion-progress-bar>
 </ion-header>
 
-<ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting">
+<ion-content #ionContent class="t-init-diets" [class.content-loading]="!load || isPasting" [class.has-clipboard-bar]="hasActiveClipboard">
   <div class="non-meal-content" [class.copy-mode-locked]="copyModeLocked">
     <!-- Aviso previo de mantenimiento -->
     <app-maintenance-warning-banner

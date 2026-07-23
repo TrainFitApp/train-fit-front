@@ -370,6 +370,12 @@ ion-popover {
 }
 
 // ─── Floating Clipboard Bar ────────────────────────────────────────────────────
+// Reserva espacio para que el contenido (p.ej. una meal desplegada) no quede
+// tapado por la barra fija de abajo.
+ion-content.has-clipboard-bar {
+  --padding-bottom: 110px;
+}
+
 .clipboard-floating-bar {
   position: fixed;
   bottom: calc(10px + env(safe-area-inset-bottom));

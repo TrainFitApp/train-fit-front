@@ -1,7 +1,6 @@
 <div
   class="meal-card"
   [class.selection-mode]="selectionMode"
-  [class.copy-muted]="activeCopyMealIndex !== undefined && activeCopyMealIndex !== mealIndex"
 >
   <ion-progress-bar *ngIf="loadPaste" type="indeterminate"></ion-progress-bar>
 
@@ -83,6 +82,7 @@
                 <ion-button
                   class="ripple-effect"
                   style="height: 100%; font-size: large"
+                  [disabled]="selectionMode || hasActiveClipboard"
                   (click)="openPopoverOptions($event); $event.stopPropagation()"
                 >
                   <ion-icon
