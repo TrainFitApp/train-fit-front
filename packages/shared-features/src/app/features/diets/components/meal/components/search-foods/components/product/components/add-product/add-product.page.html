@@ -30,6 +30,10 @@
         </button>
       </div>
     </div>
+    <ion-progress-bar
+      *ngIf="loading.value"
+      type="indeterminate"
+    ></ion-progress-bar>
   </div>
 </ion-header>
 
@@ -1397,11 +1401,5 @@
         </span>
       </div>
     </ion-button>
-    <ion-progress-bar
-      *ngIf="loading.value"
-      class="save-progress"
-      type="indeterminate"
-      color="primary"
-    ></ion-progress-bar>
   </div>
 </ion-footer>
