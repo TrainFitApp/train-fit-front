@@ -116,6 +116,10 @@ export class AddProductPage implements OnInit, OnDestroy {
   public dietDay: DietDay;
   public productQuantity: number;
   public isScanned: boolean;
+  // Solo true cuando este producto se acaba de crear desde create-product
+  // (no cuando ya existía y se abrió desde una búsqueda/favoritos): controla
+  // si al volver hay que resetear los filtros own/fav/shield en search-foods.
+  public justCreated: boolean;
   public isArchived: boolean;
   public isVerified: boolean;
   public selectedUnit: "g" | "portions" = "g";
@@ -1088,11 +1092,14 @@ export class AddProductPage implements OnInit, OnDestroy {
       });
     }
 
+    // closeAll se dispara tanto al crear un producto nuevo como al añadir uno
+    // ya existente (p.ej. desde favoritos) a la comida — solo el primer caso
+    // debe resetear los filtros own/fav/shield de search-foods al volver.
     const result = params?.deleteOwnProduct
       ? { deleteOwnProduct: params.deleteOwnProduct }
-      : closeAll
+      : closeAll && this.justCreated
       ? { createdViaAddProduct: true }
-      : refresh
+      : closeAll || refresh
       ? { refresh: true }
       : undefined;
 
@@ -2014,6 +2021,9 @@ export class AddProductPage implements OnInit, OnDestroy {
       if (params["isScanned"]) {
         this.isScanned = params["isScanned"] === "true";
       }
+      if (params["justCreated"]) {
+        this.justCreated = params["justCreated"] === "true";
+      }
       if (params["ingredientMode"]) {
         this.ingredientMode = params["ingredientMode"] === "true";
       }
@@ -2056,6 +2066,9 @@ export class AddProductPage implements OnInit, OnDestroy {
     }
     if (state.isScanned !== undefined && state.isScanned !== null) {
       this.isScanned = !!state.isScanned;
+    }
+    if (state.justCreated !== undefined && state.justCreated !== null) {
+      this.justCreated = !!state.justCreated;
     }
     if (state.returnUrl)
       this.returnUrl = this.normalizeReturnUrl(state.returnUrl);

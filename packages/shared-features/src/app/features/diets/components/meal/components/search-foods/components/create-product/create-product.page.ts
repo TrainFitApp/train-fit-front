@@ -241,7 +241,7 @@ export class CreateProductPage implements OnInit {
           color: 'success',
         });
         this.adMobService.interstitial('create_product');
-        this.openAddProduct(createdProduct, false);
+        this.openAddProduct(createdProduct, false, true);
       },
       error: (error) => {
         this.saveInProgress = false;
@@ -349,11 +349,13 @@ export class CreateProductPage implements OnInit {
   private openAddProduct(
     product: IProduct,
     isScanned: boolean,
+    justCreated: boolean = false,
   ): void {
     const returnUrl = this.returnUrl || '/search-foods';
     const queryParams: any = {
       product: JSON.stringify(product),
       isScanned: String(isScanned),
+      justCreated: String(justCreated),
       ingredientMode: String(this.ingredientMode),
       returnUrl,
     };
@@ -367,6 +369,7 @@ export class CreateProductPage implements OnInit {
       state: {
         product,
         isScanned,
+        justCreated,
         ingredientMode: this.ingredientMode,
         meal: this.meal,
         dietDay: this.dietDay,

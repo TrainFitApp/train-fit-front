@@ -34,6 +34,7 @@
       </div>
     </div>
     <app-filter-icons
+      #filterIconsRef
       *ngIf="meal"
       [disabled]="!load"
       [ingredientMode]="ingredientMode"

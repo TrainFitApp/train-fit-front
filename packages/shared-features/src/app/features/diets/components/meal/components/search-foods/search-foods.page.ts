@@ -45,7 +45,7 @@ import { BillingService } from "src/app/core/services/billing/billing.service";
 import { ACTIONS_FAB_TYPES } from "src/app/shared/constants/actions-fab";
 import { MEASURE_FILTER_TYPES } from "src/app/shared/constants/measureFilter";
 import { SearchFilterGroup } from "src/app/shared/models/filterGroup";
-import { FilterMode } from "src/app/shared/components/filter-icons/filter-icons.component";
+import { FilterIconsComponent, FilterMode } from "src/app/shared/components/filter-icons/filter-icons.component";
 import { Theme, THEMES } from "src/app/shared/models/theme";
 import { PopoverActionsComponent } from "src/app/shared/components/popover-actions/popover-actions.component";
 import {
@@ -60,6 +60,12 @@ import {
   styleUrls: ["./search-foods.page.scss"],
 })
 export class SearchFoodsPage implements OnInit, OnDestroy {
+  // app-filter-icons mantiene su propio estado visual (ownFilter/favFilter/
+  // shieldFilter), sin @Input desde aquí — si reseteamos searchFilterGroup
+  // por código hay que empujarlo también al hijo o se desincroniza (icono
+  // marcado pero búsqueda sin filtrar).
+  @ViewChild('filterIconsRef') private filterIconsRef?: FilterIconsComponent;
+
   public meal: Meal;
   public user: User;
 
@@ -540,6 +546,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.ownFilter = false;
       this.searchFilterGroup.favFilter = false;
       this.searchFilterGroup.shieldFilter = false;
+      // app-filter-icons no tiene @Input para esto: hay que resetear su
+      // estado visual explícitamente o el icono queda marcado sin filtrar.
+      this.filterIconsRef?.selectAllFilter();
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
       this.markFoodSearchStarted();
@@ -551,6 +560,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.searchFilterGroup.ownFilter = false;
       this.searchFilterGroup.favFilter = false;
       this.searchFilterGroup.shieldFilter = false;
+      this.filterIconsRef?.selectAllFilter();
       this.syncMealAndDietDayFromService();
       // Force search to refresh products list from API after creation
       this.markFoodSearchStarted();
