@@ -726,6 +726,7 @@
     "PRODUCT_UNARCHIVED": "{{name}} unarchived",
     "PRODUCT_ADDED_TO_MEAL": "Product added to {{mealName}}",
     "ADDED_TO_MEAL": "Added to {{mealName}}",
+    "INGREDIENT_ADDED_TO_RECIPE": "Ingredient added to recipe",
     "YOUR_PRODUCTS": "Your products",
     "NAME_PRODUCT": "Product name",
     "BRAND_PRODUCT": "Product brand",

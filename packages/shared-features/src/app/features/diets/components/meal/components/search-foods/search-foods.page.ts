@@ -1824,6 +1824,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.recentCustomProducts = [];
       this.products = [];
       this.load = true;
+
+      if (this.ingredientMode) {
+        this.setSelectedIngredientsFirst();
+      }
       return;
     }
 
@@ -1860,6 +1864,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
           this.recentCustomProducts = [];
           this.products = [];
           this.load = true;
+
+          if (this.ingredientMode) {
+            this.setSelectedIngredientsFirst();
+          }
         },
       });
   }

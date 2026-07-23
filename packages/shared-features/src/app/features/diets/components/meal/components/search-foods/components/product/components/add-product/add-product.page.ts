@@ -1041,6 +1041,7 @@ export class AddProductPage implements OnInit, OnDestroy {
   }): Promise<void> {
     let closeAll = !!params?.closeAll;
     let refresh = !!params?.refresh;
+    let showIngredientToast = false;
 
     if (params?.deleteOwnProduct) {
       this.allowRouteLeave = true;
@@ -1054,6 +1055,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
       if (persistResult === "meal-created") closeAll = true;
       if (persistResult === "profile-updated") refresh = true;
+      if (persistResult === "ingredient-updated") showIngredientToast = true;
 
       this.allowRouteLeave = true;
       this.lastPersistResult = "none";
@@ -1063,6 +1065,7 @@ export class AddProductPage implements OnInit, OnDestroy {
 
       if (this.lastPersistResult === "meal-created") closeAll = true;
       if (this.lastPersistResult === "profile-updated") refresh = true;
+      if (this.lastPersistResult === "ingredient-updated") showIngredientToast = true;
       this.lastPersistResult = "none";
     }
 
@@ -1074,6 +1077,13 @@ export class AddProductPage implements OnInit, OnDestroy {
     if (closeAll) {
       this.ionicUtilService.showToast({
         message: this.translate.instant('ADD_PRODUCT.PRODUCT_ADDED_TO_MEAL', { mealName: this.meal ? this.mealNameTranslated : this.translate.instant('COMMON.THE_MEAL') }),
+        duration: 1000,
+      });
+    }
+
+    if (showIngredientToast) {
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('ADD_PRODUCT.INGREDIENT_ADDED_TO_RECIPE'),
         duration: 1000,
       });
     }

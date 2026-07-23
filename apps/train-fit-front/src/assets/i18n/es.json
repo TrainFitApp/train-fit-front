@@ -732,6 +732,7 @@
     "PRODUCT_UNARCHIVED": "{{name}} desarchivado",
     "PRODUCT_ADDED_TO_MEAL": "Producto añadido a {{mealName}}",
     "ADDED_TO_MEAL": "Añadido a {{mealName}}",
+    "INGREDIENT_ADDED_TO_RECIPE": "Ingrediente añadido a la receta",
     "YOUR_PRODUCTS": "Tus productos",
     "NAME_PRODUCT": "Nombre producto",
     "BRAND_PRODUCT": "Marca producto",
