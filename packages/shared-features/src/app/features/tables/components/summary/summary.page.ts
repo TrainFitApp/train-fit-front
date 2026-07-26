@@ -22,6 +22,7 @@ import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise
 import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
 import { RemoteConfigGateService } from "src/app/core/services/remote-config/remote-config-gate.service";
 import { Subscription } from "rxjs";
+import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
 
 @Component({
   selector: "app-summary",
@@ -34,6 +35,10 @@ export class SummaryPage {
   public tableList: Table[];
   public user: User;
   public search: string = "";
+
+  public get isManagementAdmin(): boolean {
+    return APP_SHELL_CONFIG.managementEntryEnabled && this.user?.roles?.includes('admin');
+  }
 
   public searchFilterGroup: SearchFilterGroup;
   public shieldFilter: boolean;
@@ -168,41 +173,74 @@ export class SummaryPage {
 
     this.ionicUtilService.showAlert(alertOptions).then((result) => {
       if (result.role !== "cancel" && result.data?.values?.routineName) {
-        this.tableService
-          .createTableToUser(this.user._id, result.data.values.routineName)
-          .subscribe({
-            next: (resTable) => {
-              this.tableInUse = resTable;
-              this.user.tableInUse = this.tableInUse._id;
-              this.user.workoutInUse = undefined;
-              if (!this.user.tables) this.user.tables = [];
-              this.user.tables.push(this.tableInUse._id);
-              this.userService.setLocalUser = this.user;
-              this.tableService.setCurrentTable = this.tableInUse;
-              void this.billingService.refreshBackendEntitlements();
-              this.navigationService.goToMesocycle();
+        const routineName = result.data.values.routineName;
 
-              if (!this.user?.premium?.entitled) {
-                this.adMobService.interstitial("create_routine");
-              }
-              const toastOptions: ToastOptions = {
-                message: this.translate.instant('TABLES.ROUTINE_CREATED_SUCCESS'),
-                duration: 2000,
-              };
-              this.ionicUtilService.showToast(toastOptions);
-            },
-            error: (error) => {
-              if (this.handleRoutineLimitError(error)) {
-                return;
-              }
-
-              this.ionicUtilService.showErrorToast(
-                error,
-                this.translate.instant('TABLES.ROUTINE_CREATE_ERROR'),
-              );
-            },
-          });
+        if (this.isManagementAdmin) {
+          const defaultAlert: AlertOptions = {
+            header: this.translate.instant('TABLES.CREATE_AS_DEFAULT'),
+            message: `${this.translate.instant('TABLES.CREATE_AS_DEFAULT_MSG')} "${routineName}"`,
+            buttons: [
+              {
+                text: this.translate.instant('COMMON.CANCEL'),
+                role: "cancel",
+                cssClass: "alert-button-primary",
+              },
+              {
+                text: this.translate.instant('TABLES.CREATE_PRIVATE'),
+                cssClass: "alert-button-primary",
+                handler: () => { this.doCreateTable(routineName, false); },
+              },
+              {
+                text: this.translate.instant('TABLES.CREATE_AS_DEFAULT'),
+                cssClass: "alert-button-success",
+                handler: () => { this.doCreateTable(routineName, true); },
+              },
+            ],
+          };
+          this.ionicUtilService.showAlert(defaultAlert);
+        } else {
+          this.doCreateTable(routineName, false);
+        }
       }
+    });
+  }
+
+  private doCreateTable(routineName: string, isDefault: boolean): void {
+    const createObservable = isDefault
+      ? this.tableService.createDefaultTable(routineName)
+      : this.tableService.createTableToUser(this.user._id, routineName);
+
+    createObservable.subscribe({
+      next: (resTable) => {
+        this.tableInUse = resTable;
+        this.user.tableInUse = this.tableInUse._id;
+        this.user.workoutInUse = undefined;
+        if (!this.user.tables) this.user.tables = [];
+        this.user.tables.push(this.tableInUse._id);
+        this.userService.setLocalUser = this.user;
+        this.tableService.setCurrentTable = this.tableInUse;
+        void this.billingService.refreshBackendEntitlements();
+        this.navigationService.goToMesocycle();
+
+        if (!this.user?.premium?.entitled) {
+          this.adMobService.interstitial("create_routine");
+        }
+        const toastOptions: ToastOptions = {
+          message: this.translate.instant('TABLES.ROUTINE_CREATED_SUCCESS'),
+          duration: 2000,
+        };
+        this.ionicUtilService.showToast(toastOptions);
+      },
+      error: (error) => {
+        if (this.handleRoutineLimitError(error)) {
+          return;
+        }
+
+        this.ionicUtilService.showErrorToast(
+          error,
+          this.translate.instant('TABLES.ROUTINE_CREATE_ERROR'),
+        );
+      },
     });
   }
 

@@ -58,7 +58,7 @@ const routes: Routes = [
       ).then((m) => m.StatisticsPageModule),
   },
   {
-    path: 'search-tables/:own',
+    path: 'search-tables',
     canMatch: [authMatchGuard],
     loadChildren: () =>
       import(
@@ -102,6 +102,14 @@ const routes: Routes = [
       import(
         'src/app/features/diet-days/components/weight-info/weight-info.module'
       ).then((m) => m.WeightInfoPageModule),
+  },
+  {
+    path: 'rm-calculator',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/tables/components/summary/components/rm-calculator/rm-calculator.module'
+      ).then((m) => m.RmCalculatorPageModule),
   },
   {
     path: 'management-home',

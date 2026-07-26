@@ -54,7 +54,8 @@ export class CalendarComponent implements OnInit, AfterViewInit, OnDestroy {
   private langChangeSubscription: any;
 
   get weekdayInitials(): string[] {
-    return this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
+    const val = this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
+    return Array.isArray(val) ? val : (val as string).split(',');
   }
 
   constructor(

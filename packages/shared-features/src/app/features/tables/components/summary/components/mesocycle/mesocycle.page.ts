@@ -35,6 +35,7 @@ import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split
 import { DeleteSplitsModalComponent } from "./components/delete-splits-modal/delete-splits-modal.component";
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { EXERCISE_NAMES_ES_EN } from "src/app/shared/constants/db-translations/exercise-names-es-en.map";
+import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -135,6 +136,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public loadingFab: boolean;
   public loadingSplit: boolean = false;
   public stateSelected = STATES.static;
+
+  public get isManagementAdmin(): boolean {
+    return APP_SHELL_CONFIG.managementEntryEnabled && this.user?.roles?.includes('admin');
+  }
 
   public tableMode: string;
   public openWorkoutIndex: number;
@@ -1197,20 +1202,37 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           cssClass: "alert-button-success",
           handler: (data: any) => {
             if (!data.tableName || data.tableName.trim() === "") {
-              return false; // Prevent closing if empty
+              return false;
             }
+            const routineName = data.tableName.trim();
 
-            this.tableService
-              .createTableToUser(this.user._id, data.tableName.trim())
-              .subscribe((resTable) => {
-                this.tableInUse = resTable;
-                this.user.tableInUse = this.tableInUse._id;
-                if (!this.user.tables) this.user.tables = [];
-                this.user.tables.push(this.tableInUse._id);
-                this.userService.setLocalUser = this.user;
-                this.tableService.setCurrentTable = this.tableInUse;
-                this.loadTable = true;
-              });
+            if (this.isManagementAdmin) {
+              const defaultAlert: AlertOptions = {
+                header: this.translate.instant('TABLES.CREATE_AS_DEFAULT'),
+                message: `${this.translate.instant('TABLES.CREATE_AS_DEFAULT_MSG')} "${routineName}"`,
+                buttons: [
+                  {
+                    text: this.translate.instant('COMMON.CANCEL'),
+                    role: "cancel",
+                    cssClass: "alert-button-primary",
+                    handler: () => { this.loadTable = true; },
+                  },
+                  {
+                    text: this.translate.instant('TABLES.CREATE_PRIVATE'),
+                    cssClass: "alert-button-primary",
+                    handler: () => { this.doCreateTableMeso(routineName, false); },
+                  },
+                  {
+                    text: this.translate.instant('TABLES.CREATE_AS_DEFAULT'),
+                    cssClass: "alert-button-success",
+                    handler: () => { this.doCreateTableMeso(routineName, true); },
+                  },
+                ],
+              };
+              this.ionicUtilService.showAlert(defaultAlert);
+            } else {
+              this.doCreateTableMeso(routineName, false);
+            }
             return true;
           },
         },
@@ -1218,6 +1240,22 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private doCreateTableMeso(routineName: string, isDefault: boolean): void {
+    const createObservable = isDefault
+      ? this.tableService.createDefaultTable(routineName)
+      : this.tableService.createTableToUser(this.user._id, routineName);
+
+    createObservable.subscribe((resTable) => {
+      this.tableInUse = resTable;
+      this.user.tableInUse = this.tableInUse._id;
+      if (!this.user.tables) this.user.tables = [];
+      this.user.tables.push(this.tableInUse._id);
+      this.userService.setLocalUser = this.user;
+      this.tableService.setCurrentTable = this.tableInUse;
+      this.loadTable = true;
+    });
   }
 
   public addSplitToTable(): void {

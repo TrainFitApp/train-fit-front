@@ -198,10 +198,10 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
         },
         yWeight: {
           type: 'linear',
-          display: true,
+          display: this.hasWeightMetrics(),
           position: 'left',
           title: {
-            display: true,
+            display: this.hasWeightMetrics(),
             text: this.translate.instant('ANTHROPOMETRY.WEIGHT') + ' (kg)',
             color: '#d4af37',
             font: { size: 12, weight: 'bold' },
@@ -218,10 +218,10 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
         },
         yBody: {
           type: 'linear',
-          display: true,
+          display: this.hasBodyMetrics(),
           position: 'right',
           title: {
-            display: true,
+            display: this.hasBodyMetrics(),
             text: this.translate.instant('ANTHROPOMETRY.BODY_MEASUREMENTS') + ' (cm)',
             color: '#d4af37',
             font: { size: 12, weight: 'bold' },
@@ -269,6 +269,18 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
   getMetricColor(key: string): string {
     const metric = this.metricConfig.find((m) => m.key === key);
     return metric?.color || '#ffffff';
+  }
+
+  private hasWeightMetrics(): boolean {
+    return this.metricConfig.some(
+      (m) => m.yAxisID === 'yWeight' && this.selectedMetrics.has(m.key)
+    );
+  }
+
+  private hasBodyMetrics(): boolean {
+    return this.metricConfig.some(
+      (m) => m.yAxisID === 'yBody' && this.selectedMetrics.has(m.key)
+    );
   }
 
   private formatDate(dateStr: string): string {

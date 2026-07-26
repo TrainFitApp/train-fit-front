@@ -59,6 +59,10 @@ export class TableAPIService {
     return this.http.post<Table>(`tables/user/${idUser}`, { name });
   }
 
+  public createDefaultTable(name: string): Observable<Table> {
+    return this.http.post<Table>(`tables/default`, { name });
+  }
+
   public updateTableName(table: Table): Observable<string> {
     return this.http.put<Table>(`tables`, { _id: table._id, name: table.name });
   }

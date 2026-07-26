@@ -11,6 +11,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { TranslateService } from '@ngx-translate/core';
+import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
 
 export type TablesFilterMode = 'all' | 'mine';
 
@@ -26,6 +27,10 @@ export class SearchTablesPage implements OnInit {
   public searchFilterGroup: SearchFilterGroup;
   public load: boolean;
   public anyLoading: boolean = false;
+
+  public get isManagementAdmin(): boolean {
+    return APP_SHELL_CONFIG.managementEntryEnabled && this.user?.roles?.includes('admin');
+  }
 
   private _currentFilterMode: TablesFilterMode = 'all';
   public get currentFilterMode(): TablesFilterMode {

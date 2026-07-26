@@ -94,6 +94,10 @@ export class TableService {
     return this.tableAPIService.createTableToUser(idUser, name).pipe(take(1));
   }
 
+  public createDefaultTable(name: string): Observable<Table> {
+    return this.tableAPIService.createDefaultTable(name).pipe(take(1));
+  }
+
   public updateTableName(table: Table): Observable<string> {
     return this.tableAPIService.updateTableName(table).pipe(take(1));
   }

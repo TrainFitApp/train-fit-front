@@ -44,6 +44,8 @@ export class TableCardPage {
   public own: boolean;
   @Input()
   public ownFilter: boolean;
+  @Input()
+  public isManagementAdmin = false;
 
   @Output()
   public duplicateTableEv = new EventEmitter<Table>();
@@ -418,6 +420,28 @@ export class TableCardPage {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public modifyDefaultTable(): void {
+    this.popoverController.dismiss();
+    const activeId = this.tableService.getTableInUseId(this.user?.tableInUse);
+    if (this.tableCard._id === activeId) {
+      this.ionicUtilService.showWarningToast(
+        this.translate.instant('TABLES.ROUTINE_ALREADY_IN_USE_TOAST')
+      );
+      return;
+    }
+    this.user.tableInUse = this.tableCard._id;
+    this.userService.updateUser(this.user).subscribe(() => {
+      this.tableService.getTableById(this.tableCard._id).subscribe((resTable) => {
+        this.tableService.setCurrentTable = resTable;
+        this.workoutService.setCurrentWorkout = undefined;
+        delete this.user.workoutInUse;
+        this.userService.updateUser(this.user).subscribe(() => {
+          this.navigationService.goToMesocycle();
+        });
+      });
+    });
   }
 
   private handleRoutineLimitOrGenericError(error: any): void {

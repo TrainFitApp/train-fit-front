@@ -13,7 +13,8 @@
     "MOVE_SETS": "Mover series",
     "VIEW_SUMMARY": "Ver resumen",
     "SKIP_WORKOUT": "Saltar día",
-    "UNSKIP_WORKOUT": "Quitar saltado"
+    "UNSKIP_WORKOUT": "Quitar saltado",
+    "COPY_EXERCISES": "Copiar ejercicios"
   },
   "ACTIONS_FAB": {
     "ADD_WORKOUT": "Añadir entrenamiento",
@@ -459,7 +460,8 @@
     "DAILY_WEIGHT": "Peso diario",
     "DAILY_SHORT": "Diario",
     "WEEKLY_AVERAGE": "Media semanal ({{value}} Kg)",
-    "WEIGHT_IN_KG": "Peso"
+    "WEIGHT_IN_KG": "Peso",
+    "PASTE_DAY": "PEGAR DÍA"
   },
   "MEAL": {
     "DELETE_RECIPE_HEADER": "Eliminar receta",
@@ -531,7 +533,8 @@
     "NO_MATCHES": "No hay coincidencias",
     "NO_MATCHES_MSG": "Prueba con otro término o crea un producto nuevo",
     "CREATE_PRODUCT": "Crear producto",
-    "CREATE_RECIPE": "Crear receta"
+    "CREATE_RECIPE": "Crear receta",
+    "ADD_INGREDIENT_BTN": "INGREDIENTE"
   },
   "CONFIG_RECIPE": {
     "EDIT_ORIGINAL": "Editar receta original",
@@ -557,7 +560,32 @@
     "MODIFY_ORIGINAL_HEADER": "Modificar receta original",
     "MODIFY_ORIGINAL_MESSAGE": "Has modificado los valores originales de la receta. Si confirmas, el cambio se reflejará en todos los sitios donde se use.",
     "DISCARD": "Descartar",
-    "PREMIUM_LIMIT_RECIPES": "Has alcanzado el límite de recetas propias. Activa Pro para crear más."
+    "PREMIUM_LIMIT_RECIPES": "Has alcanzado el límite de recetas propias. Activa Pro para crear más.",
+    "RECIPE_SECTION_TITLE": "Receta",
+    "RECIPE_SECTION_TITLE_ORIGINAL": "Receta original",
+    "NAME_LABEL": "Nombre *",
+    "NAME_LABEL_ORIGINAL": "Nombre original *",
+    "NAME_PLACEHOLDER": "Ej: Pollo salteado",
+    "ARCHIVE_RECIPE_ARIA": "Archivar receta",
+    "CANCEL_EDIT_ORIGINAL_ARIA": "Cancelar edición original",
+    "SAVE_EDIT_ORIGINAL_ARIA": "Guardar edición original",
+    "QUANTITIES_TITLE": "Cantidades",
+    "CONSUMED_PORTION_LABEL": "Ración consumida",
+    "TOTAL_COOKED_WEIGHT_LABEL": "Peso total cocinado",
+    "NUTRITION_PER_100_ARIA": "Ver información nutricional por 100g",
+    "INGREDIENTS_TITLE": "Ingredientes",
+    "INGREDIENTS_TITLE_ORIGINAL": "Ingredientes originales",
+    "MIN_INGREDIENTS_BADGE": "2 mínimo",
+    "ADD_INGREDIENT_BTN": "INGREDIENTE",
+    "REMOVE_INGREDIENT_ARIA": "Eliminar ingrediente",
+    "UNDO_BTN": "Deshacer",
+    "REMOVED_FROM_ORIGINAL_TITLE": "Eliminados de la receta original",
+    "RESTORE_INGREDIENT_BTN": "Volver a incluir",
+    "ADD_TO_MEAL_BTN": "Añadir a comida",
+    "SAVE_CHANGES_BTN": "Guardar cambios",
+    "MACRO_PROTEIN": "Proteína",
+    "MACRO_CARBS": "CBH",
+    "MACRO_FAT": "Grasas"
   },
   "CREATE_PRODUCT": {
     "PRODUCT_FOUND_HEADER": "Producto encontrado",
@@ -568,7 +596,81 @@
     "UPDATE_SUCCESS": "¡{{name}} actualizado con éxito!",
     "UPDATE_ERROR": "Error al actualizar el producto. Inténtalo de nuevo.",
     "CREATE_SUCCESS": "{{name}} creado",
-    "CREATE_ERROR": "Error al crear el producto. Inténtalo de nuevo."
+    "CREATE_ERROR": "Error al crear el producto. Inténtalo de nuevo.",
+    "HEADER_TITLE_CREATE": "Crear producto",
+    "HEADER_TITLE_EDIT": "Editar producto",
+    "GENERAL_INFO_TITLE": "Información general",
+    "BARCODE_LABEL": "Código de barras",
+    "BARCODE_PLACEHOLDER": "Escanea manualmente",
+    "NAME_LABEL": "Nombre del producto *",
+    "NAME_PLACEHOLDER": "Ej: Pechuga de pollo",
+    "BRAND_LABEL": "Marca",
+    "BRAND_PLACEHOLDER": "Ej: Carrefour",
+    "NUTRITION_INFO_TITLE": "Información nutricional",
+    "PER_100G_NOTE": "(por cada 100g)",
+    "CALORIES_LABEL": "Calorías *",
+    "MACRONUTRIENTS_TITLE": "Macronutrientes",
+    "FAT_LABEL": "Grasas *",
+    "SATURATED_LABEL": "Saturadas",
+    "CARBS_LABEL": "Carbohidratos *",
+    "SUGARS_LABEL": "de los cuales azúcares",
+    "FIBER_LABEL": "Fibra",
+    "PROTEIN_LABEL": "Proteínas *",
+    "FULL_INFO_TITLE": "Información completa",
+    "PRODUCT_QUANTITIES_TITLE": "Cantidades del Producto",
+    "SERVING_QTY_LABEL": "Cantidad por ración",
+    "SERVING_QTY_PLACEHOLDER": "Ej: 150",
+    "TOTAL_QTY_LABEL": "Cantidad total del producto",
+    "TOTAL_QTY_PLACEHOLDER": "Ej: 500",
+    "DIETARY_FEATURES_TITLE": "Características Dietéticas",
+    "VEGAN": "Vegano",
+    "VEGETARIAN": "Vegetariano",
+    "LACTOSE_FREE": "Sin Lactosa",
+    "GLUTEN_FREE": "Sin Gluten",
+    "MINERALS_TITLE": "Minerales",
+    "CALCIUM": "Calcio",
+    "IRON": "Hierro",
+    "MAGNESIUM": "Magnesio",
+    "PHOSPHORUS": "Fósforo",
+    "POTASSIUM": "Potasio",
+    "ZINC": "Zinc",
+    "COPPER": "Cobre",
+    "MANGANESE": "Manganeso",
+    "SELENIUM": "Selenio",
+    "IODINE": "Yodo",
+    "SODIUM": "Sodio",
+    "SALT": "Sal",
+    "VITAMINS_TITLE": "Vitaminas",
+    "VIT_A": "Vit. A",
+    "VIT_D": "Vit. D",
+    "VIT_E": "Vit. E",
+    "VIT_K": "Vit. K",
+    "VIT_C": "Vit. C",
+    "VIT_B1": "Vit. B1 (Tiamina)",
+    "VIT_B2": "Vit. B2 (Riboflavina)",
+    "VIT_B3": "Vit. B3 (Niacina)",
+    "VIT_B5": "Vit. B5 (Ác. Pantoténico)",
+    "VIT_B6": "Vit. B6",
+    "VIT_B9": "Vit. B9 (Ác. Fólico)",
+    "VIT_B12": "Vit. B12",
+    "BIOTIN": "Biotina",
+    "OTHER_TITLE": "Otros y Ácidos Grasos",
+    "CHOLESTEROL": "Colesterol",
+    "TRANS_FAT": "Grasas Trans",
+    "OMEGA3": "Omega 3",
+    "OMEGA6": "Omega 6",
+    "OMEGA9": "Omega 9",
+    "CAFFEINE": "Cafeína",
+    "TAURINE": "Taurina",
+    "ALCOHOL": "Alcohol",
+    "INGREDIENTS_LABEL": "Ingredientes",
+    "INGREDIENTS_PLACEHOLDER": "Ej: Trigo, azúcar, sal...",
+    "ALLERGENS_LABEL": "Alérgenos",
+    "ALLERGENS_PLACEHOLDER": "Ej: Gluten, leche, soja...",
+    "TRACES_LABEL": "Trazas",
+    "TRACES_PLACEHOLDER": "Ej: Frutos de cáscara...",
+    "CREATE_BTN": "CREAR PRODUCTO",
+    "SAVE_CHANGES_BTN": "GUARDAR CAMBIOS"
   },
   "ADD_PRODUCT": {
     "PRODUCT_UPDATED_HEADER": "Producto actualizado",
@@ -719,7 +821,18 @@
     "AVERAGE": "Media",
     "TREND_UP": "Tendencia al alza",
     "TREND_DOWN": "Tendencia a la baja",
-    "TREND_STABLE": "Peso estable"
+    "TREND_STABLE": "Peso estable",
+    "DAYS_INITIALS": [
+      "L",
+      "M",
+      "X",
+      "J",
+      "V",
+      "S",
+      "D"
+    ],
+    "WEIGHT_SAVED": "Peso guardado",
+    "WEEKLY_WEIGHT_CHART": "Peso semanal (kg)"
   },
   "STEPS": {
     "NOT_COUNTED": "No los he contado",
@@ -959,6 +1072,9 @@
     "STATISTICS": "Estadísticas",
     "NO_ROUTINE_IN_USE": "No hay rutina en uso",
     "SELECT_ROUTINE_TO_START": "Selecciona una rutina para comenzar",
+    "CREATE_AS_DEFAULT": "Crear como tabla predeterminada",
+    "CREATE_AS_DEFAULT_MSG": "¿Quieres crear la rutina como predeterminada?",
+    "CREATE_PRIVATE": "Privada (solo yo)",
     "CREATE_ROUTINE_ALERT": "Crear rutina",
     "CREATE_ROUTINE_MSG": "Introduce el nombre para tu nueva rutina de entrenamiento",
     "ROUTINE_NAME_PLACEHOLDER": "Nombre de la rutina",
@@ -1088,6 +1204,7 @@
     "USE_ROUTINE": "Usar {{name}}",
     "ROUTINE_STARTED_SUCCESS": "Rutina iniciada con éxito",
     "ROUTINE_ACQUIRED_SUCCESS": "Rutina adquirida e iniciada con éxito",
+    "MODIFY_ROUTINE": "Modificar",
     "DUPLICATE_ROUTINE": "Duplicar {{name}}",
     "DUPLICATE_ROUTINE_MSG": "Se copiará todo el contenido de la rutina",
     "ROUTINE_COPIED": "{{name}} copiada",
@@ -1213,7 +1330,35 @@
     "STATS_SELECT_ROUTINE_EXERCISE": "Selecciona Rutina y Ejercicio",
     "STATS_SELECT_HINT": "Para ver estadísticas detalladas de tu progreso.",
     "STATS_NO_DATA": "Sin Datos",
-    "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún."
+    "STATS_NO_DATA_HINT": "No se ha registrado actividad para este ejercicio aún.",
+    "EXERCISE_CLIPBOARD_TITLE": "Ejercicios copiados",
+    "EXERCISE_PASTE_MODE": "Pegar ejercicios",
+    "EXERCISE_PASTE_WARNING": "Los ejercicios se añadirán a todos los micro-ciclos en esta misma posición",
+    "EXERCISES_PASTED": "Ejercicios pegados",
+    "MICROCYCLE": "Micro-ciclo",
+    "MICROCYCLE_SHORT": "MC",
+    "WORKOUT_NAME": "Entrenamiento",
+    "WILL_BE_SKIPPED": "Se saltará",
+    "STATUS": "Estado",
+    "SKIP_WARNING_TITLE": "Información",
+    "UNFINISHED_TITLE": "Sin terminar",
+    "RESOLVE_PREVIOUS_WORKOUT": "Entrenamiento en curso",
+    "RESOLVE_PREVIOUS_WORKOUT_MSG": "Tienes \"{{name}}\" en curso. ¿Qué quieres hacer antes de empezar uno nuevo?",
+    "START_ROUTINE": "Iniciar {{name}}",
+    "ACQUIRE_ROUTINE": "Adquirir {{name}}",
+    "ALREADY_IN_USE": "Ya en uso",
+    "ROUTINE_ALREADY_IN_USE_TOAST": "Esta rutina ya está en uso",
+    "VIDEO_DEMO": "Video demostrativo",
+    "VIDEO_NOT_AVAILABLE": "Video no disponible",
+    "MUSCLE_GROUPS": "Grupos musculares",
+    "OBJECTIVE_LABEL": "Objetivo:",
+    "SESSION": "Sesión",
+    "NOT_FINISHED": "(No finalizada)",
+    "NO_DATA_SHORT": "(Sin datos)",
+    "NO_DATA_MICROCYCLE": "Sin datos para este microciclo",
+    "CURRENT_SESSION": "Sesión actual",
+    "NOTE": "NOTA",
+    "REPS_SHORT": "reps"
   },
   "NUTRITION_EDITOR": {
     "TITLE": "Ajustar Objetivos",
@@ -1322,7 +1467,13 @@
     "ESTIMATES_TITLE": "Estimaciones de tu 1RM",
     "RECOMMENDED_BADGE": "Recomendada",
     "PERCENTAGE_TABLE_TITLE": "Tabla de porcentajes",
-    "WEIGHT_COL": "Peso"
+    "WEIGHT_COL": "Peso",
+    "FORMULA_EPLEY": "Epley",
+    "FORMULA_BRZYCKI": "Brzycki",
+    "FORMULA_LOMBARDI": "Lombardi",
+    "FORMULA_EPLEY_DESC": "Más precisa entre 2 y 6 repeticiones.",
+    "FORMULA_BRZYCKI_DESC": "Más precisa entre 3 y 10 repeticiones.",
+    "FORMULA_LOMBARDI_DESC": "Más precisa a partir de 6 repeticiones."
   },
   "CONFIGURATION": {
     "TITLE": "Configuración",
@@ -1362,7 +1513,8 @@
     "AD_UPDATE_ERROR": "No se pudieron guardar las preferencias",
     "TRAINER_MODE_HEADER": "Modo entrenadores",
     "TRAINER_MODE_MSG": "No disponible",
-    "LANGUAGE": "Idioma"
+    "LANGUAGE": "Idioma",
+    "DELETE_ERROR": "No se pudo eliminar la cuenta. Inténtalo de nuevo."
   },
   "NOTIFICATIONS": {
     "TITLE": "Recordatorios",
@@ -1525,7 +1677,10 @@
     "WEIGHT_GOAL_DEFICIT": "Objetivo de déficit calórico de {{kcal}} kcal",
     "NOT_CONFIGURED": "No configurado",
     "REMAINING": "restantes",
-    "OF_KCAL": "de {{kcal}} kcal"
+    "OF_KCAL": "de {{kcal}} kcal",
+    "TODAY_WEIGHT_INFO": "Peso de hoy",
+    "PREV_WEEK_AVG_INFO": "Media semanal anterior",
+    "CURR_WEEK_AVG_INFO": "Media semanal actual"
   },
   "EDITOR": {
     "TITLE": "Editar",
@@ -1834,9 +1989,28 @@
     "ONE_RM": {
       "TITLE": "1RM (Repetición Máxima)",
       "DESCRIPTION": "Es el peso máximo que podrías levantar en un único intento y con buena técnica. Se usa como referencia para calcular el peso de tus series de entrenamiento."
+    },
+    "BEST_SET": {
+      "TITLE": "Mejor serie",
+      "DESCRIPTION": "El peso más alto que levantaste en una sola serie de este ejercicio, comparado entre los dos microciclos seleccionados. La flecha y el color indican si subió o bajó, y el porcentaje indica cuánto cambió."
+    },
+    "EFFECTIVE_VOLUME": {
+      "TITLE": "Volumen efectivo",
+      "DESCRIPTION": "Suma de peso por repeticiones de cada serie, pero dando más peso a las series hechas cerca del fallo (RIR bajo) que a las más alejadas. Así refleja mejor el estímulo real de entrenamiento que el volumen total. Comparado entre los dos microciclos seleccionados: la flecha y el color indican si subió o bajó, y el porcentaje indica cuánto cambió."
+    },
+    "SETS_COMPARISON": {
+      "TITLE": "Series",
+      "DESCRIPTION": "Número de series completadas de este ejercicio, comparado entre los dos microciclos seleccionados."
     }
   },
   "RECIPE_CARD": {
     "ADDED_TO_MEAL": "Añadido a {{mealName}}"
+  },
+  "RECIPE_CONFIG": {
+    "DESCRIPTION": "Instrucciones",
+    "DESCRIPTION_ORIGINAL": "Instrucciones originales",
+    "STEP_PLACEHOLDER": "Paso {{n}}",
+    "ADD_STEP": "Añadir paso",
+    "STEPS_LIMIT_REACHED": "Máximo {{max}} pasos"
   }
 }

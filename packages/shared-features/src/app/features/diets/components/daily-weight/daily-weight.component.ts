@@ -159,7 +159,8 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
     const minWeight = Math.floor(this.utilService.getMinNumber(weights) - 5);
 
-    const labels = this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
+    const labelsRaw = this.translate.instant('WEIGHT_INFO.DAYS_INITIALS');
+    const labels = Array.isArray(labelsRaw) ? labelsRaw : (labelsRaw as string).split(',');
     const data: ChartData = {
       labels: labels,
       datasets: [

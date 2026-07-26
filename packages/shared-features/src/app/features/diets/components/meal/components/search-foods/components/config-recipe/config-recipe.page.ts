@@ -25,6 +25,7 @@ import { TranslateService } from "@ngx-translate/core";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { splitTextIntoSteps } from "src/app/shared/utils";
+import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
 
 export type ConfigRecipeMode = "create" | "add" | "edit";
 
@@ -137,6 +138,10 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
   private backButton$: any;
   private wrapperInitialSnapshot = "";
   private baseInitialSnapshot = "";
+
+  public get isManagementAdmin(): boolean {
+    return APP_SHELL_CONFIG.managementEntryEnabled && this.user?.roles?.includes('admin');
+  }
 
   public get ingredients(): CustomProduct[] {
     if (this.recipeDraftService.isActive()) {
@@ -940,6 +945,7 @@ export class ConfigRecipePage implements OnInit, OnDestroy {
         name: raw.name,
         description: raw.description || undefined,
         customProducts: this.normalizeCustomProducts(this.ingredients),
+        verified: this.isManagementAdmin ? true : undefined,
       },
     };
 

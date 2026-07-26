@@ -28,7 +28,8 @@
     <app-table-card *ngFor="let tableCard of tableList; let i = index" [user]="user"
       [ownFilter]="searchFilterGroup.ownFilter"
       [own]="user.tables?.includes(tableCard._id) || tableCard.userId === user._id" [tableCard]="tableCard"
-      [anyLoading]="anyLoading" (loadingChange)="anyLoading = $event" (duplicateTableEv)="duplicateTable($event)"
+      [isManagementAdmin]="isManagementAdmin" [anyLoading]="anyLoading"
+      (loadingChange)="anyLoading = $event" (duplicateTableEv)="duplicateTable($event)"
       (deletedTable)="deleteTable($event)"></app-table-card>
   </div>
 
