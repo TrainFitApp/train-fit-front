@@ -43,7 +43,7 @@ form {
 // Premium Set Header
 .premium-set-header {
   background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   margin-bottom: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 0 16px;
@@ -221,8 +221,7 @@ form {
   .table-row-inputs {
     padding: 0.25rem 0.75rem;
     background: #141414;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: none;
+    border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     ion-col {

@@ -1,5 +1,6 @@
-<ion-accordion value="open" (click)="stateSelected !== STATES.move ? arrowRotate = !arrowRotate : null">
-  <ion-grid slot="header" [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }">
+<ion-accordion value="open">
+  <ion-grid slot="header" [ngClass]="{ 'workout-general': workoutIndex === 0 && splitIndex === 0 }"
+    (click)="stateSelected !== STATES.move ? arrowRotate = !arrowRotate : null">
     <ion-row>
       <ion-col class="ion-no-padding" size="9.6">
         <ion-row>
@@ -10,7 +11,7 @@
                     workoutIndex === 0 && splitIndex === 0
                 }" (click)="
                   workoutActions($event, workoutIndex); $event.stopPropagation()
-                " [disabled]="!load || pasteMode || stateSelected !== STATES.static">
+                " [disabled]="!load || pasteMode || exercisePasteMode || exerciseCopyActive || stateSelected !== STATES.static">
                 <ion-icon color="primary" name="ellipsis-vertical-outline" slot="icon-only"></ion-icon>
               </ion-button>
             </ion-buttons>
@@ -95,6 +96,10 @@
             (click)="createWorkoutFromClipboard(); $event.stopPropagation()"><ion-icon color="tertiary"
               name="clipboard-outline"></ion-icon></ion-button>
 
+          <ion-button *ngIf="load && exercisePasteMode && canPasteExercises()" style="margin-left: -5%; font-size: xx-large"
+            (click)="pasteExercises(); $event.stopPropagation()"><ion-icon color="tertiary"
+              name="clipboard-outline"></ion-icon></ion-button>
+
           <ng-container *ngIf="load && pasteMode && alreadyCopied()">
             <span class="workout-copied" (click)="showNavigationToast($event)">{{ 'TABLES.COPIED' | translate }}</span>
           </ng-container>
@@ -102,6 +107,8 @@
           <ion-button *ngIf="
               load &&
               !pasteMode &&
+              !exercisePasteMode &&
+              !exerciseCopyActive &&
               stateSelected === STATES.static &&
               user?.workoutInUse === workout._id
             " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
@@ -111,13 +118,15 @@
           <ion-button *ngIf="
               load &&
               !pasteMode &&
+              !exercisePasteMode &&
+              !exerciseCopyActive &&
               stateSelected === STATES.static &&
               user?.workoutInUse !== workout._id
             " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
             <ion-icon color="success" name="play-circle-outline"></ion-icon>
           </ion-button>
 
-          <ion-button *ngIf="load && !pasteMode && stateSelected === STATES.static"
+          <ion-button *ngIf="load && !pasteMode && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static"
             style="margin-left: -5%; font-size: xx-large" class="t-workout-add-exercises"
             (click)="searchExercises(workout, split); $event.stopPropagation()"><ion-icon color="primary"
               name="add-circle-outline"></ion-icon></ion-button>
@@ -141,7 +150,9 @@
       (update)="updateWorkoutNote($event)"></app-notes>
     <ng-container *ngIf="workout?.exercises.length !== 0; else emptyWorkout">
       <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + i"
-        *ngFor="let exercise of workout?.exercises; let i = index" (click)="addExerciseModal(exercise)">
+        *ngFor="let exercise of workout?.exercises; let i = index" (click)="exerciseCardClick(exercise, $event)"
+        [class.exercise-selected]="isExerciseSelected(i)"
+        [class.exercise-copy-mode]="exerciseSelectionMode">
         <div class="exercise-item">
           <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, i) as pinnedNote"
             (click)="$event.stopPropagation()">
@@ -172,7 +183,15 @@
               {{ exercise.exercise.name | translateDb }}
             </div>
             <div class="exercise-icons">
-              <ion-button fill="clear" size="small" class="delete-exercise-btn" (click)="
+              <ion-checkbox
+                *ngIf="exerciseSelectionMode"
+                mode="ios"
+                [checked]="isExerciseSelected(i)"
+                (ionChange)="onExerciseCheckboxChange(i, $event)"
+                color="primary"
+              ></ion-checkbox>
+              <ion-button *ngIf="!exerciseSelectionMode" fill="clear" size="small" class="delete-exercise-btn"
+                [disabled]="exercisePasteMode || exerciseCopyActive" (click)="
                   deleteExercisesAlert(exercise.exercise.name, workoutIndex, i);
                   $event.stopPropagation()
                 ">
@@ -183,7 +202,8 @@
         </div>
 
         <div class="no-sets-message" *ngIf="exercise?.sets.length === 0">
-          <button type="button" class="add-sets-button" (click)="addExerciseModal(exercise); $event.stopPropagation()">
+          <button type="button" class="add-sets-button" [disabled]="exercisePasteMode || exerciseCopyActive"
+            (click)="addExerciseModal(exercise); $event.stopPropagation()">
             <ion-icon name="add-circle-outline"></ion-icon>
             <span>{{ 'TABLES.ADD_SERIES' | translate }}</span>
           </button>

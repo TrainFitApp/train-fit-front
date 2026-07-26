@@ -89,6 +89,20 @@ export class WorkoutAPIService {
     return this.http.put<Workout>(`workouts/paste`, workouts);
   }
 
+  public pasteExercises(
+    tableId: string,
+    sourceWorkoutId: string,
+    targetWorkoutId: string,
+    exercises: CustomExercise[]
+  ): Observable<any> {
+    return this.http.put<any>(`workouts/paste-exercises`, {
+      tableId,
+      sourceWorkoutId,
+      targetWorkoutId,
+      exercises,
+    });
+  }
+
   public modifyWorkout(workout: Workout): Observable<Workout> {
     return this.http.put<Workout>(`workouts/modify/one/simple/save`, workout);
   }

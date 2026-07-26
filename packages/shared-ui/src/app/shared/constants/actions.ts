@@ -14,6 +14,7 @@ export enum ACTION_TYPES {
   viewSummary = 12,
   skipWorkout = 13,
   unskipWorkout = 14,
+  copyExercises = 15,
 }
 
 export type ACTION_TYPE = {
@@ -115,6 +116,12 @@ export const ACTIONS: {
     value: 'ACTIONS.UNSKIP_WORKOUT',
     icon: 'arrow-undo-outline',
     color: 'medium',
+  },
+  [ACTION_TYPES.copyExercises]: {
+    id: ACTION_TYPES.copyExercises,
+    value: 'ACTIONS.COPY_EXERCISES',
+    icon: 'copy-outline',
+    color: 'primary',
   },
 };
 

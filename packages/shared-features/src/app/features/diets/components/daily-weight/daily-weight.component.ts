@@ -19,11 +19,6 @@ import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service'
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
-import {
-  shake,
-  STATE_ACTIVE,
-  STATE_INACTIVE,
-} from 'src/app/shared/animations/shake';
 import { WEEK_DAYS } from 'src/app/shared/constants/week-days';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { Anthropometry } from '../../../diet-days/components/weight-info/models/anthropometry';
@@ -32,7 +27,6 @@ import { Anthropometry } from '../../../diet-days/components/weight-info/models/
   selector: 'app-daily-weight',
   templateUrl: './daily-weight.component.html',
   styleUrls: ['./daily-weight.component.scss'],
-  animations: [shake],
 })
 export class DailyWeightComponent implements OnInit, OnChanges {
   @Input()
@@ -55,7 +49,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
   public chart: Chart;
   private langChangeSubscription: any;
 
-  public shakeState = STATE_INACTIVE;
   public showSuccess: boolean = false;
   public showChart: boolean = false;
 
@@ -139,11 +132,6 @@ export class DailyWeightComponent implements OnInit, OnChanges {
 
   public openWeightInfo(): void {
     this.navigationService.goToWeightInfo();
-  }
-
-  public startShakeAnimation(): void {
-    this.shakeState =
-      this.shakeState === STATE_INACTIVE ? STATE_ACTIVE : STATE_INACTIVE;
   }
 
   public toggleChart(): void {

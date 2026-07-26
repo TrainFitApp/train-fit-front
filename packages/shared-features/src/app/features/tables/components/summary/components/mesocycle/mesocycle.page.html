@@ -18,7 +18,7 @@
             <button
               *ngIf="stateSelected !== STATES.move"
               class="action-button ripple-effect"
-              [disabled]="loadingSplit || !currentSplit?.workouts?.length"
+              [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
               (click)="enterWorkoutMoveMode()"
             >
               <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
@@ -59,12 +59,20 @@
           >
             <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
           </button>
+
+          <button
+            *ngIf="exercisePasteMode || exerciseCopyActive"
+            class="action-button ripple-effect"
+            (click)="cancelCopyMode()"
+          >
+            <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+          </button>
         </div>
       </div>
     </div>
   </div>
 </ion-header>
-<ion-content>
+<ion-content [class.has-clipboard-bar]="!!exerciseClipboard">
   <ion-progress-bar
     *ngIf="loadingFab || loadingSplit"
     type="indeterminate"
@@ -114,6 +122,26 @@
               </div>
             </div>
 
+            <div
+              class="info-explainer"
+              *ngIf="exercisePasteMode && exerciseClipboard"
+            >
+              <div class="info-card">
+                <ion-icon
+                  name="information-circle-outline"
+                  class="info-icon"
+                ></ion-icon>
+                <div class="info-text">
+                  <span class="info-title"
+                    >{{ 'TABLES.EXERCISE_PASTE_MODE' | translate }}</span
+                  >
+                  <p>
+                    {{ 'TABLES.EXERCISE_PASTE_WARNING' | translate }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <ion-accordion-group
               [id]="'workout-' + ind"
               [multiple]="true"
@@ -134,7 +162,11 @@
                 [stateSelected]="stateSelected"
                 [savingWorkoutOrder]="savingWorkoutOrder"
                 [pasteMode]="pasteMode"
+                [exercisePasteMode]="exercisePasteMode"
+                [exerciseCopyActive]="exerciseCopyActive"
+                [exerciseOriginWorkoutId]="exerciseOriginWorkoutId"
                 (pasteEvent)="paste($event)"
+                (exerciseCopyEvent)="onExerciseCopyEvent($event)"
                 (exerciseAddedEvent)="onExerciseAdded($event)"
                 (setAddedEvent)="onSetAdded($event)"
                 (setUpdatedEvent)="onSetUpdated($event)"
@@ -299,7 +331,7 @@
       </ng-container>
 
       <ion-button
-        *ngIf="!loadingSplit && !pasteMode && stateSelected === STATES.static"
+        *ngIf="!loadingSplit && !pasteMode && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static"
         expand="block"
         shape="round"
         class="ion-margin t-add-workout"
@@ -412,7 +444,42 @@
   >
 </ng-template>
 
-<ion-footer *ngIf="tableInUse?.splits.length > 0">
+<ion-footer *ngIf="tableInUse?.splits.length > 0" [class.has-clipboard-bar]="!!exerciseClipboard">
+  <!-- Floating Clipboard Bar for Exercises -->
+  <div
+    *ngIf="exerciseClipboard"
+    class="clipboard-floating-bar"
+  >
+    <div
+      class="clipboard-inner"
+      [style.transform]="'scale(' + clipboardAnimateScale + ')'"
+    >
+      <div class="clipboard-bar-content">
+        <div class="clipboard-info">
+          <span class="clipboard-icon">
+            <ion-icon name="clipboard-outline"></ion-icon>
+          </span>
+          <div class="clipboard-text">
+            <span class="clipboard-title">
+              {{ 'TABLES.EXERCISE_CLIPBOARD_TITLE' | translate }}
+            </span>
+            <span class="clipboard-detail">
+              {{ exerciseClipboard.exerciseCount }} {{ exerciseClipboard.exerciseCount === 1 ? ('TABLES.EXERCISE_SINGULAR' | translate) : ('TABLES.EXERCISE_PLURAL' | translate) }}
+            </span>
+          </div>
+        </div>
+        <ion-button
+          fill="clear"
+          size="small"
+          color="danger"
+          class="cancel-btn"
+          (click)="cancelCopyMode()"
+        >
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
   <div class="micro-cycle-header" [class.is-loading]="loadingSplit">
     <div class="micro-cycle-content">
       <!-- Top Row: Info and Actions -->
@@ -484,7 +551,7 @@
         >
           <button
             class="action-btn menu-btn ripple-effect"
-            [disabled]="loadingSplit || isCurrentSplitLocked()"
+            [disabled]="loadingSplit || isCurrentSplitLocked() || exerciseCopyActive"
             (click)="addSplitToTable()"
           >
             <ion-icon
@@ -494,7 +561,7 @@
           </button>
           <button
             class="action-btn menu-btn ripple-effect"
-            [disabled]="loadingSplit"
+            [disabled]="loadingSplit || exerciseCopyActive"
             (click)="deleteSplit()"
           >
             <ion-icon

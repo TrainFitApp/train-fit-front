@@ -44,7 +44,7 @@ export class AnthropometryCardComponent implements OnInit {
   get displayDate(): string {
     if (!this.anthropometry?.date) return '';
     const date = new Date(this.anthropometry.date);
-    return date.toLocaleDateString(this.translate.currentLang || 'es', {
+    return date.toLocaleDateString(this.translate.currentLang, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

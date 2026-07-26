@@ -386,7 +386,7 @@ ion-content.has-clipboard-bar {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
-  animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   padding: 10px;
 
   @keyframes slideUp {
@@ -398,6 +398,10 @@ ion-content.has-clipboard-bar {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  .clipboard-inner {
+    transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   &.full-meal {

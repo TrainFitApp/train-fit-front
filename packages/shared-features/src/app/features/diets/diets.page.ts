@@ -61,6 +61,8 @@ export class DietsPage implements OnInit {
   public copyMealId: string;
   public copyMealIndex: number;
   public clipboardClearCounter = 0;
+  public clipboardAnimateScale = 1;
+  private clipboardPrevCount = 0;
 
   public pasteDietDayMode: boolean;
   public pasteMode: boolean;
@@ -112,7 +114,15 @@ export class DietsPage implements OnInit {
     });
 
     this.mealService.mealClipboard$.subscribe((clipboard: MealClipboard | null) => {
+      const prevCount = this.clipboardPrevCount;
       this.pasteMode = !!clipboard && !this.copyMealId;
+      if (clipboard && clipboard.getTotalItemsCount() > prevCount) {
+        this.clipboardAnimateScale = 1.04;
+        setTimeout(() => { this.clipboardAnimateScale = 0.97; }, 100);
+        setTimeout(() => { this.clipboardAnimateScale = 1; }, 200);
+      }
+      this.clipboardPrevCount = clipboard?.getTotalItemsCount() ?? 0;
+      this.cdr.markForCheck();
     });
   }
 

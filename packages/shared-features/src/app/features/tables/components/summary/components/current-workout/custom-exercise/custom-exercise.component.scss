@@ -51,18 +51,34 @@
 
 // Current Sets Headers Styles
 .current-sets-headers {
-  margin: 0 8px;
+  padding: 12px 8px 4px;
 
-  // Current Session Title Styles (simple text style)
   .current-session-title {
-    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
 
-    .current-title-text {
-      font-size: 0.85rem;
-      font-weight: 400; // Peso normal para texto secundario
-      color: var(--ion-color-dark); // Color grisáceo
-      text-transform: none; // Sin uppercase
-      letter-spacing: normal; // Sin letter-spacing extra
+    .session-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+
+      .current-title-text {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: var(--ion-color-medium);
+        text-transform: none;
+        letter-spacing: normal;
+        white-space: nowrap;
+      }
+
+      .divider-line {
+        flex: 1;
+        height: 1px;
+        background-color: var(--ion-color-medium);
+      }
     }
   }
 }
@@ -118,7 +134,7 @@ ion-app.dark {
 
 // Exercise Actions Header
 .exercise-actions-header {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 
   .exercise-actions-content {
     display: flex;
@@ -607,25 +623,36 @@ ion-app.dark {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding-bottom: 8px;
+
+  ion-reorder-group {
+    padding: 0;
+    margin: 0;
+  }
+
+  ion-reorder {
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
 
   &.reorder-active {
     .current-set-container {
-      margin: 4px 0;
+      margin: 0;
     }
   }
 
   // Current Set Container
   .current-set-container {
     background: rgba(10, 10, 11, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-top: none;
+    border: none;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 }
 
 .current-set-container {
   background: rgba(255, 255, 255, 0.98);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: none;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   position: relative;
@@ -939,7 +966,7 @@ ion-app.dark {
     rgba(30, 30, 30, 0.95) 0%,
     rgba(40, 40, 40, 0.95) 100%
   );
-  border-color: rgba(71, 85, 105, 0.3);
+  border: none;
 }
 
 .set-header {

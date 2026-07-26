@@ -170,7 +170,17 @@ export class AnthropometryModalComponent implements OnInit {
   }
 
   get locale(): string {
-    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+    return this.translate.currentLang;
+  }
+
+  get displayDate(): string {
+    if (!this.selectedDate) return '';
+    return new Date(this.selectedDate).toLocaleDateString(this.translate.currentLang, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   }
 
   getFieldLabel(key: string): string {

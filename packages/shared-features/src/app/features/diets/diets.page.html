@@ -94,6 +94,10 @@
     [class.full-meal]="clipboard?.isFullMeal"
     [class.partial-selection]="clipboard && !clipboard.isFullMeal"
   >
+    <div
+      class="clipboard-inner"
+      [style.transform]="'scale(' + clipboardAnimateScale + ')'"
+    >
     <div class="clipboard-bar-content">
       <div class="clipboard-info">
         <span class="clipboard-icon">
@@ -123,6 +127,7 @@
       >
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
+      </div>
     </div>
   </div>
 

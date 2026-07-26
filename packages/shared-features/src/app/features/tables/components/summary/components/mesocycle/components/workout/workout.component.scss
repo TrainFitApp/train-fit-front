@@ -249,6 +249,14 @@ ion-grid {
             font-size: 18px;
           }
         }
+
+        ion-checkbox {
+          --color-checked: var(--ion-color-primary);
+          --border-color: var(--ion-color-primary);
+          --background-checked: var(--ion-color-primary);
+          --size: 22px;
+          margin: 0 4px;
+        }
       }
     }
   }

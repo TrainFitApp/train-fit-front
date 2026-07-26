@@ -79,6 +79,15 @@
     margin-left: 4px;
     flex-shrink: 0;
   }
+
+  .input-prefix {
+    font-size: 12px;
+    color: var(--ion-color-secondary);
+    font-weight: 500;
+    margin-right: 6px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 
 .save-button {

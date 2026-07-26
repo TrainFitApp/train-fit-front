@@ -692,6 +692,9 @@ export class MealComponent implements OnInit, OnChanges {
 
   public onProductSelectionChange(product: CustomProduct, event: Event): void {
     const checked = (event as CustomEvent).detail?.checked ?? !(event as MouseEvent).ctrlKey;
+    if (checked && !this.selectionMode) {
+      this.enterSelectionMode();
+    }
     if (checked) {
       this.selectedProductIds.add(product._id);
     } else {
@@ -702,6 +705,9 @@ export class MealComponent implements OnInit, OnChanges {
 
   public onRecipeSelectionChange(recipe: CustomRecipe, event: Event): void {
     const checked = (event as CustomEvent).detail?.checked ?? !(event as MouseEvent).ctrlKey;
+    if (checked && !this.selectionMode) {
+      this.enterSelectionMode();
+    }
     if (checked) {
       this.selectedRecipeIds.add(recipe._id);
     } else {
@@ -712,9 +718,7 @@ export class MealComponent implements OnInit, OnChanges {
 
   public toggleProductSelection(product: CustomProduct): void {
     if (!this.selectionMode) {
-      if (this.hasActiveClipboard) return;
-      this.editCustomProduct(product);
-      return;
+      this.enterSelectionMode();
     }
 
     if (this.selectedProductIds.has(product._id)) {
@@ -727,9 +731,7 @@ export class MealComponent implements OnInit, OnChanges {
 
   public toggleRecipeSelection(recipe: CustomRecipe): void {
     if (!this.selectionMode) {
-      if (this.hasActiveClipboard) return;
-      this.editCustomRecipe(recipe);
-      return;
+      this.enterSelectionMode();
     }
 
     if (this.selectedRecipeIds.has(recipe._id)) {

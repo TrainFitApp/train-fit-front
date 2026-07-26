@@ -233,19 +233,9 @@
       <div
         *ngFor="let instance of getCustomRecipesOrdered(meal)"
         class="meal-item recipe-item"
-        [class.selected]="selectionMode && isRecipeSelected(instance)"
+        [class.selected]="isRecipeSelected(instance)"
         (click)="toggleRecipeSelection(instance)"
       >
-        <ion-checkbox
-          *ngIf="selectionMode"
-          class="item-select-checkbox"
-          mode="ios"
-          [checked]="isRecipeSelected(instance)"
-          (ionChange)="onRecipeSelectionChange(instance, $event)"
-          (click)="$event.stopPropagation()"
-          color="primary"
-        ></ion-checkbox>
-
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
@@ -281,15 +271,13 @@
         </div>
 
         <div class="item-actions">
-          <ion-button
-            *ngIf="!selectionMode"
-            fill="clear"
-            size="small"
-            class="delete-button"
-            (click)="deleteRecipe(meal, instance); $event.stopPropagation()"
-          >
-            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-          </ion-button>
+          <ion-checkbox
+            mode="ios"
+            [checked]="isRecipeSelected(instance)"
+            (ionChange)="onRecipeSelectionChange(instance, $event)"
+            (click)="$event.stopPropagation()"
+            color="primary"
+          ></ion-checkbox>
         </div>
       </div>
 
@@ -307,19 +295,9 @@
       <div
         *ngFor="let product of getProductsAndOwnProductsOrdered(meal)"
         class="meal-item product-item"
-        [class.selected]="selectionMode && isProductSelected(product)"
+        [class.selected]="isProductSelected(product)"
         (click)="toggleProductSelection(product)"
       >
-        <ion-checkbox
-          *ngIf="selectionMode"
-          class="item-select-checkbox"
-          mode="ios"
-          [checked]="isProductSelected(product)"
-          (ionChange)="onProductSelectionChange(product, $event)"
-          (click)="$event.stopPropagation()"
-          color="primary"
-        ></ion-checkbox>
-
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
@@ -353,15 +331,13 @@
         </div>
 
         <div class="item-actions">
-          <ion-button
-            *ngIf="!selectionMode"
-            fill="clear"
-            size="small"
-            class="delete-button"
-            (click)="deleteProduct(meal, product); $event.stopPropagation()"
-          >
-            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-          </ion-button>
+          <ion-checkbox
+            mode="ios"
+            [checked]="isProductSelected(product)"
+            (ionChange)="onProductSelectionChange(product, $event)"
+            (click)="$event.stopPropagation()"
+            color="primary"
+          ></ion-checkbox>
         </div>
       </div>
     </ion-list>

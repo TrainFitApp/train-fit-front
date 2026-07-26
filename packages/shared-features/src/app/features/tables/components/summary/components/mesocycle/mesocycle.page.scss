@@ -1154,3 +1154,123 @@ ion-accordion-group {
     }
   }
 }
+
+// ─── Floating Clipboard Bar ────────────────────────────────────────────────────
+
+.clipboard-floating-bar {
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  background: #151515;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
+  animation: slideUp 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  padding: 10px;
+  margin-bottom: 8px;
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .clipboard-inner {
+    transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .clipboard-bar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    max-width: 100%;
+  }
+
+  .clipboard-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+
+    .clipboard-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(var(--ion-color-primary-rgb), 0.14);
+      color: var(--ion-color-primary);
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+
+    .clipboard-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+
+      .clipboard-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #f4f4f5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .clipboard-detail {
+        font-size: 0.68rem;
+        color: #9ca3af;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .cancel-btn {
+    --color: var(--ion-color-danger);
+    --background-hover: rgba(var(--ion-color-danger-rgb), 0.12);
+    --background-activated: rgba(var(--ion-color-danger-rgb), 0.18);
+    --border-radius: 999px;
+    --padding-start: 0;
+    --padding-end: 0;
+    width: 30px;
+    height: 30px;
+    margin: 0;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.05rem;
+    }
+  }
+}
+
+// Exercise selection checkbox styles
+.exercise-checkbox {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.exercise-selected {
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+}
+
+.exercise-copy-mode {
+  cursor: pointer;
+}

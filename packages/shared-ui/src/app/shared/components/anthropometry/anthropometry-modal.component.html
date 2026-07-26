@@ -31,7 +31,7 @@
       <span class="section-label">{{ 'ANTHROPOMETRY.DATE_LABEL' | translate }}</span>
       <div class="datetime-enhanced-wrapper" (click)="openDatePicker()">
         <div class="datetime-display">
-          <span class="date-text">{{ selectedDate | date:'fullDate' }}</span>
+          <span class="date-text">{{ displayDate }}</span>
         </div>
         <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
         <ion-datetime-button id="anthropometry-date-btn" datetime="anthropometry-date" class="hidden-datetime-button"></ion-datetime-button>

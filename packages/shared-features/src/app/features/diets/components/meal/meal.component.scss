@@ -164,43 +164,11 @@
           }
         }
 
-        // Acciones (botón eliminar)
+        // Acciones (checkbox de selección)
         .item-actions {
           display: flex;
           align-items: center;
           margin-left: 8px;
-
-          .edit-button,
-          .delete-button {
-            --color: var(--ion-color-medium);
-            --background: transparent;
-            --border-radius: 50%;
-            --padding-start: 8px;
-            --padding-end: 8px;
-            --padding-top: 8px;
-            --padding-bottom: 8px;
-            min-height: 36px;
-            min-width: 36px;
-
-            ion-icon {
-              font-size: 18px;
-            }
-
-            // Efecto de presión para dispositivos táctiles
-            &:active {
-              transform: scale(0.95);
-            }
-          }
-
-          .delete-button:active {
-            --color: var(--ion-color-danger);
-            --background: rgba(var(--ion-color-danger-rgb), 0.15);
-          }
-
-          .edit-button:active {
-            --color: var(--ion-color-primary);
-            --background: rgba(var(--ion-color-primary-rgb), 0.15);
-          }
         }
 
         // Estilos específicos para productos
@@ -382,18 +350,11 @@ ion-spinner {
     }
   }
 
-  ion-checkbox {
+  .item-actions ion-checkbox {
     --color-checked: var(--ion-color-primary);
     --border-color: var(--ion-color-primary);
     --background-checked: var(--ion-color-primary);
     --size: 22px;
-  }
-
-  .item-select-checkbox {
-    margin-right: 10px;
-    flex: 0 0 auto;
-    min-width: 22px;
-    z-index: 1;
   }
 }
 

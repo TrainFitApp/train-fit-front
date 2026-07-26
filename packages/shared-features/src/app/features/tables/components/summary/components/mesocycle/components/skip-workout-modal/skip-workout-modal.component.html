@@ -1,0 +1,75 @@
+<ion-header class="skip-modal-header" mode="ios">
+  <div class="skip-modal-toolbar">
+    <div class="toolbar-title-group">
+      <ion-title>{{ 'TABLES.UNFINISHED_TITLE' | translate }}</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="skip-modal-content">
+  <div class="info-explainer" *ngIf="message">
+    <div class="info-card">
+      <ion-icon
+        name="information-circle-outline"
+        class="info-icon"
+      ></ion-icon>
+      <div class="info-text">
+        <span class="info-title">{{ 'TABLES.SKIP_WARNING_TITLE' | translate }}</span>
+        <p>{{ message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="workout-table-container">
+    <table class="workout-skip-table">
+      <thead>
+        <tr>
+          <th class="col-split">{{ 'TABLES.MICROCYCLE' | translate }}</th>
+          <th class="col-name">{{ 'TABLES.WORKOUT_NAME' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of workoutItems; let i = index" class="workout-row">
+          <td class="col-split">
+            <span class="micro-badge">{{ 'TABLES.MICROCYCLE_SHORT' | translate }} {{ item.splitIndex + 1 }}</span>
+          </td>
+          <td class="col-name">
+            <span class="workout-name">{{ item.workout.name | translateDb }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ion-content>
+
+<ion-footer class="skip-modal-footer">
+  <div class="footer-actions">
+    <ion-button
+      *ngIf="showSecondaryAction"
+      expand="block"
+      fill="clear"
+      color="secondary"
+      class="secondary-btn"
+      (click)="secondary()"
+    >
+      {{ secondaryText }}
+    </ion-button>
+    <ion-button
+      expand="block"
+      fill="solid"
+      color="primary"
+      class="confirm-btn"
+      (click)="confirm()"
+    >
+      <ion-icon name="play-skip-forward-outline" slot="start"></ion-icon>
+      {{ confirmText }}
+    </ion-button>
+  </div>
+</ion-footer>

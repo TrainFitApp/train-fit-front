@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Observable, take } from 'rxjs';
+import { BehaviorSubject, Observable, take } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Workout } from '../../models/workout';
@@ -8,10 +8,47 @@ import { WorkoutAPIService } from './workout-api.service';
 import { FinishWorkoutResponse, SkipWorkoutResponse } from './workout-api.service';
 import { Exercise } from '../../models/exercise';
 import { Table } from '../../models/table';
+import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
 
 @Injectable()
 export class WorkoutService {
   private workoutClipboard: Workout;
+
+  private exerciseClipboardSubject = new BehaviorSubject<ExerciseClipboard | null>(null);
+
+  public get getExerciseClipboard(): ExerciseClipboard | null {
+    return this.exerciseClipboardSubject.value;
+  }
+
+  public get exerciseClipboard$(): Observable<ExerciseClipboard | null> {
+    return this.exerciseClipboardSubject.asObservable();
+  }
+
+  public set setExerciseClipboard(clipboard: ExerciseClipboard | null) {
+    this.exerciseClipboardSubject.next(clipboard);
+  }
+
+  public clearExerciseClipboard(): void {
+    this.exerciseClipboardSubject.next(null);
+  }
+
+  public hasExerciseClipboard(): boolean {
+    return !!this.exerciseClipboardSubject.value;
+  }
+
+  public pasteExercises(
+    tableId: string,
+    sourceWorkoutId: string,
+    targetWorkoutId: string,
+    exercises: CustomExercise[]
+  ): Observable<any> {
+    return this.workoutAPIService.pasteExercises(
+      tableId,
+      sourceWorkoutId,
+      targetWorkoutId,
+      exercises
+    );
+  }
 
   // Signal para el workout actual
   private readonly _currentWorkout: WritableSignal<Workout | null> =

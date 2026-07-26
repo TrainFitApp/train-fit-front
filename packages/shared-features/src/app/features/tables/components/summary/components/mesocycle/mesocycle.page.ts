@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
 import { Split } from "src/app/core/models/split";
-import { Subject } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
@@ -24,6 +24,7 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { TranslateService } from "@ngx-translate/core";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { ExerciseClipboard } from "src/app/shared/models/exercise-clipboard";
 import {
   ACTIONS_FAB,
   ACTIONS_FAB_TYPES,
@@ -122,6 +123,13 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public tableInUseAux: Table;
   public currentWorkout: Workout;
   public pasteMode: boolean;
+  public exercisePasteMode = false;
+  public exerciseCopyActive = false;
+  public exerciseOriginWorkoutId: string;
+  public exerciseClipboard: ExerciseClipboard | null = null;
+  public clipboardAnimateScale = 1;
+  private clipboardPrevCount = 0;
+  private exerciseClipboardSub: Subscription;
   public workoutIdPaste: string;
   public loadTable: boolean;
   public loadingFab: boolean;
@@ -258,7 +266,22 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     });
   }
 
-  public ngOnInit(): void {}
+  public ngOnInit(): void {
+    this.exerciseClipboardSub = this.workoutService.exerciseClipboard$.subscribe(
+      (clipboard) => {
+        const prevCount = this.clipboardPrevCount;
+        this.exerciseClipboard = clipboard;
+        this.exercisePasteMode = !!clipboard;
+        if (clipboard && clipboard.exerciseCount > prevCount) {
+          this.clipboardAnimateScale = 1.04;
+          setTimeout(() => { this.clipboardAnimateScale = 0.97; }, 100);
+          setTimeout(() => { this.clipboardAnimateScale = 1; }, 200);
+        }
+        this.clipboardPrevCount = clipboard?.exerciseCount ?? 0;
+        this.cdr.markForCheck();
+      }
+    );
+  }
 
   public ngAfterViewInit(): void {
     setTimeout(() => {
@@ -873,8 +896,30 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
   }
 
+  public onExerciseCopyEvent(event: {
+    workoutId: string;
+    workoutIndex: number;
+    selectionMode: boolean;
+    selectedIndices: Set<number>;
+  }): void {
+    if (!event.selectionMode) {
+      this.exerciseCopyActive = false;
+      this.exerciseOriginWorkoutId = undefined;
+      return;
+    }
+
+    this.exerciseOriginWorkoutId = event.workoutId;
+    this.exerciseCopyActive = event.selectionMode;
+    this.openWorkoutIndex = event.workoutIndex;
+    this.exerciseClipboard = this.workoutService.getExerciseClipboard;
+    this.exercisePasteMode = !!this.exerciseClipboard;
+    this.cdr.markForCheck();
+    this.scrollToOpenWorkout();
+  }
+
   public toggleAccordion(event: any, index: number): void {
-    const value = event.detail.value;
+    const value = event?.detail?.value;
+    if (value === undefined) return;
     const isOpen = Array.isArray(value)
       ? value.includes("open")
       : value === "open";
@@ -1630,6 +1675,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.pasteMode = false;
     this.workoutIdPaste = undefined;
     this.workoutIndexPaste = undefined;
+    this.exercisePasteMode = false;
+    this.exerciseCopyActive = false;
+    this.exerciseOriginWorkoutId = undefined;
+    this.workoutService.clearExerciseClipboard();
   }
 
   public async showSplitMenu(event: Event): Promise<void> {

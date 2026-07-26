@@ -273,7 +273,7 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
 
   private formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString(this.translate.currentLang === 'en' ? 'en-US' : 'es-ES', {
+    return date.toLocaleDateString(this.translate.currentLang, {
       day: '2-digit',
       month: '2-digit',
     });

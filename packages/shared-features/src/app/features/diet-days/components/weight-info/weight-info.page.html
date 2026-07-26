@@ -1,20 +1,22 @@
-<ion-header class="weight-info-header">
-  <div class="header-content">
-    <div class="back-section">
-      <button class="back-button" (click)="goBack()">
-        <ion-icon name="chevron-back-outline"></ion-icon>
-      </button>
+<ion-header>
+  <div class="weight-info-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="goBack()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="title-section">
+        <h1 class="page-title">{{ monthYear }}</h1>
+      </div>
+
+      <div class="actions-section"></div>
     </div>
 
-    <div class="title-section">
-      <h1 class="page-title">{{ monthYear }}</h1>
+    <div class="progress-bar" [style.visibility]="load ? 'hidden' : 'visible'">
+      <div class="progress-indicator"></div>
     </div>
-
-    <div class="actions-section"></div>
-  </div>
-
-  <div class="progress-bar" [style.visibility]="load ? 'hidden' : 'visible'">
-    <div class="progress-indicator"></div>
   </div>
 </ion-header>
 

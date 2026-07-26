@@ -6,6 +6,8 @@ import {
   Output,
   ViewChild,
   OnInit,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { Subscription, forkJoin, tap } from 'rxjs';
 import {
@@ -34,6 +36,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
+import { SkipWorkoutModalComponent, WorkoutSkipItem } from '../skip-workout-modal/skip-workout-modal.component';
 import {
   ACTION_TYPE,
   ACTION_TYPES,
@@ -42,6 +45,7 @@ import {
 } from 'src/app/shared/constants/actions';
 import { STATES } from 'src/app/shared/constants/states';
 import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
+import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
 import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
 import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
@@ -85,10 +89,27 @@ export class WorkoutComponent implements OnDestroy {
   public pasteMode = false;
 
   @Input()
+  public exercisePasteMode = false;
+
+  @Input()
+  public exerciseCopyActive = false;
+
+  @Input()
+  public exerciseOriginWorkoutId: string;
+
+  @Input()
   public tableInUse: Table;
 
   @Output()
   public pasteEvent = new EventEmitter();
+
+  @Output()
+  public exerciseCopyEvent = new EventEmitter<{
+    workoutId: string;
+    workoutIndex: number;
+    selectionMode: boolean;
+    selectedIndices: Set<number>;
+  }>();
 
   @Output()
   public exerciseAddedEvent = new EventEmitter<{
@@ -126,6 +147,10 @@ export class WorkoutComponent implements OnDestroy {
   }>();
 
   public workoutClipboard: Workout;
+
+  public exerciseSelectionMode = false;
+  public selectedExerciseIndices: Set<number> = new Set();
+  public exerciseClipboardLoad = false;
 
   public note: string;
 
@@ -168,6 +193,13 @@ export class WorkoutComponent implements OnDestroy {
     this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
       this.loadPinnedNotes();
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['exerciseCopyActive'] && !changes['exerciseCopyActive'].currentValue) {
+      this.exerciseSelectionMode = false;
+      this.selectedExerciseIndices = new Set();
+    }
   }
 
   ngOnDestroy(): void {
@@ -312,6 +344,10 @@ export class WorkoutComponent implements OnDestroy {
             });
             this.workoutService.setWorkoutClipboard = this.workout;
             this.utilService.setCancelMode = true;
+            break;
+
+          case ACTIONS[this.ACTION_TYPES.copyExercises].id:
+            this.enterExerciseSelectionMode();
             break;
 
           case ACTIONS[this.ACTION_TYPES.duplicate].id:
@@ -484,32 +520,27 @@ export class WorkoutComponent implements OnDestroy {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  private skipWorkout(): void {
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.SKIP_WORKOUT'),
-      message: this.translate.instant('TABLES.SKIP_WORKOUT_CONFIRM', { name: this.workout.name }),
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
-        },
-        {
-          text: this.translate.instant('TABLES.SKIP_BTN'),
-          handler: () => {
-            this.applyWorkoutSkip(this.workout, true).subscribe(() => {
-              const toastOptions: ToastOptions = {
-                message: this.translate.instant('TABLES.WORKOUT_SKIPPED_SUCCESS', { name: this.workout.name }),
-                duration: 2000,
-              };
-              this.ionicUtilService.showToast(toastOptions);
-            });
-          },
-        },
-      ],
-    };
-
-    this.ionicUtilService.showAlert(alertOptions);
+  private async skipWorkout(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: SkipWorkoutModalComponent,
+      componentProps: {
+        workoutItems: [{ workout: this.workout, splitIndex: this.splitIndex }],
+        header: this.translate.instant('TABLES.SKIP_WORKOUT'),
+        message: this.translate.instant('TABLES.SKIP_WORKOUT_CONFIRM', { name: this.workout.name }),
+        confirmText: this.translate.instant('TABLES.SKIP_BTN'),
+      },
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'confirm') {
+      this.applyWorkoutSkip(this.workout, true).subscribe(() => {
+        const toastOptions: ToastOptions = {
+          message: this.translate.instant('TABLES.WORKOUT_SKIPPED_SUCCESS', { name: this.workout.name }),
+          duration: 2000,
+        };
+        this.ionicUtilService.showToast(toastOptions);
+      });
+    }
   }
 
   private unskipWorkout(): void {
@@ -659,6 +690,13 @@ export class WorkoutComponent implements OnDestroy {
     return modal.present();
   }
 
+  public exerciseCardClick(exercise: CustomExercise, event: Event): void {
+    event.stopPropagation();
+    if (!this.exercisePasteMode && !this.exerciseCopyActive) {
+      this.addExerciseModal(exercise);
+    }
+  }
+
   public getCurrentWorkout(workoutsPayload: Workout[] | any) {
     const workouts = Array.isArray(workoutsPayload)
       ? workoutsPayload
@@ -798,6 +836,123 @@ export class WorkoutComponent implements OnDestroy {
       });
   }
 
+  private enterExerciseSelectionMode(): void {
+    this.exerciseSelectionMode = true;
+    this.selectedExerciseIndices = new Set();
+    const clipboard = new ExerciseClipboard(this.workout._id, []);
+    this.workoutService.setExerciseClipboard = clipboard;
+    this.exerciseCopyEvent.emit({
+      workoutId: this.workout._id,
+      workoutIndex: this.workoutIndex,
+      selectionMode: true,
+      selectedIndices: this.selectedExerciseIndices,
+    });
+  }
+
+  public onExerciseCheckboxChange(index: number, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!this.exerciseSelectionMode) {
+      this.enterExerciseSelectionMode();
+    }
+    if (this.selectedExerciseIndices.has(index)) {
+      this.selectedExerciseIndices.delete(index);
+    } else {
+      this.selectedExerciseIndices.add(index);
+    }
+    const selected = Array.from(this.selectedExerciseIndices).map(
+      (i) => this.workout.exercises[i]
+    );
+    this.workoutService.setExerciseClipboard = new ExerciseClipboard(
+      this.workout._id,
+      selected
+    );
+    this.exerciseCopyEvent.emit({
+      workoutId: this.workout._id,
+      workoutIndex: this.workoutIndex,
+      selectionMode: true,
+      selectedIndices: this.selectedExerciseIndices,
+    });
+  }
+
+  public toggleExerciseSelection(index: number): void {
+    if (!this.exerciseSelectionMode) return;
+    if (this.selectedExerciseIndices.has(index)) {
+      this.selectedExerciseIndices.delete(index);
+    } else {
+      this.selectedExerciseIndices.add(index);
+    }
+    const selected = Array.from(this.selectedExerciseIndices).map(
+      (i) => this.workout.exercises[i]
+    );
+    this.workoutService.setExerciseClipboard = new ExerciseClipboard(
+      this.workout._id,
+      selected
+    );
+    this.exerciseCopyEvent.emit({
+      workoutId: this.workout._id,
+      workoutIndex: this.workoutIndex,
+      selectionMode: true,
+      selectedIndices: this.selectedExerciseIndices,
+    });
+  }
+
+  public isExerciseSelected(index: number): boolean {
+    return this.selectedExerciseIndices.has(index);
+  }
+
+  public canPasteExercises(): boolean {
+    if (!this.workoutService.hasExerciseClipboard()) return false;
+    const clipboard = this.workoutService.getExerciseClipboard;
+    return clipboard.sourceWorkoutId !== this.workout._id;
+  }
+
+  public pasteExercises(): void {
+    const clipboard = this.workoutService.getExerciseClipboard;
+    if (!clipboard || clipboard.selectedExercises.length === 0) return;
+
+    this.exerciseClipboardLoad = true;
+
+    this.workoutService
+      .pasteExercises(
+        this.tableInUse._id,
+        clipboard.sourceWorkoutId,
+        this.workout._id,
+        clipboard.selectedExercises
+      )
+      .subscribe((res) => {
+        if (res?.tableInUse) {
+          this.tableInUse = res.tableInUse;
+          this.tableService.setCurrentTable = res.tableInUse;
+        }
+        this.exerciseClipboardLoad = false;
+        const toast: ToastOptions = {
+          message: this.translate.instant('TABLES.EXERCISES_PASTED'),
+          duration: 2000,
+        };
+        this.ionicUtilService.showToast(toast);
+        this.workoutService.clearExerciseClipboard();
+        this.exerciseCopyEvent.emit({
+          workoutId: null,
+          workoutIndex: null,
+          selectionMode: false,
+          selectedIndices: new Set(),
+        });
+      });
+  }
+
+  public exitExerciseSelectionMode(): void {
+    this.exerciseSelectionMode = false;
+    this.selectedExerciseIndices = new Set();
+    this.workoutService.clearExerciseClipboard();
+    this.exerciseCopyEvent.emit({
+      workoutId: null,
+      workoutIndex: null,
+      selectionMode: false,
+      selectedIndices: new Set(),
+    });
+  }
+
   private getActionsPopover(): ACTION_TYPE[] {
     let actions = this.ACTION_VALUES;
     if (this.workout.exercises.length === 0) {
@@ -816,8 +971,13 @@ export class WorkoutComponent implements OnDestroy {
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id
       );
+
+      if (this.workout.exercises.length > 0) {
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.copyExercises]];
+      }
 
       // "Ver resumen" solo se ofrece si el entreno ya está terminado.
       if (this.workout.date) {
@@ -1186,41 +1346,37 @@ export class WorkoutComponent implements OnDestroy {
       .filter((workoutTemp) => !workoutTemp.date && !workoutTemp.rest);
   }
 
-  private confirmSkipPreviousWorkouts(pendingWorkouts: Workout[]): void {
-    const names = pendingWorkouts.map((workoutTemp) => workoutTemp.name).join(', ');
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING'),
-      message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG', { names }),
-      cssClass: 'alert-grid-buttons',
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
-        },
-        {
-          text: this.translate.instant('TABLES.SKIP_AND_CONTINUE_BTN'),
-          handler: () => {
-            forkJoin(
-              pendingWorkouts.map((workoutTemp) =>
-                this.applyWorkoutSkip(workoutTemp, true)
-              )
-            ).subscribe(() => {
-              this.showStartWorkoutAlert();
-            });
-          },
-        },
-        {
-          text: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
-          cssClass: 'alert-tertiary-btn',
-          handler: () => {
-            // No se marcan como saltados: solo se continúa sin tocar los pendientes.
-            this.showStartWorkoutAlert();
-          },
-        },
-      ],
-    };
-    this.ionicUtilService.showAlert(alertOptions);
+  private async confirmSkipPreviousWorkouts(pendingWorkouts: Workout[]): Promise<void> {
+    const workoutItems: WorkoutSkipItem[] = pendingWorkouts.map((w) => {
+      const si = this.tableInUse.splits.findIndex((s) =>
+        s.workouts.some((sw) => sw._id === w._id)
+      );
+      return { workout: w, splitIndex: si >= 0 ? si : 0 };
+    });
+    const modal = await this.modalController.create({
+      component: SkipWorkoutModalComponent,
+      componentProps: {
+        workoutItems,
+        header: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING'),
+        message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG'),
+        confirmText: this.translate.instant('TABLES.SKIP_AND_CONTINUE_BTN'),
+        showSecondaryAction: true,
+        secondaryText: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
+      },
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'confirm') {
+      forkJoin(
+        pendingWorkouts.map((workoutTemp) =>
+          this.applyWorkoutSkip(workoutTemp, true)
+        )
+      ).subscribe(() => {
+        this.showStartWorkoutAlert();
+      });
+    } else if (role === 'secondary') {
+      this.showStartWorkoutAlert();
+    }
   }
 
   private showStartWorkoutAlert(): void {
