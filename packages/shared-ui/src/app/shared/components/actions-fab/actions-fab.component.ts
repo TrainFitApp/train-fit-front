@@ -46,7 +46,6 @@ export class ActionsFabComponent implements OnInit {
   @Output()
   public onClose = new EventEmitter<ACTIONS_FAB_TYPES>();
 
-  public cancelMode!: boolean;
   public modalOpen: boolean = false;
 
   public tableMode!: TABLE_MODE_TYPES;
@@ -68,10 +67,6 @@ export class ActionsFabComponent implements OnInit {
   private initVariables(): void {
     this.utilService.getTableMode.subscribe((res) => (this.tableMode = res));
 
-    this.utilService.getCancelMode.subscribe(
-      (resCancelMode) => (this.cancelMode = resCancelMode)
-    );
-
     this.utilService.getModalOpen.subscribe(
       (isOpen) => (this.modalOpen = isOpen)
     );
@@ -82,9 +77,7 @@ export class ActionsFabComponent implements OnInit {
     if (this.tableMode && !this.disableTableMode) {
       switch (this.tableMode) {
         case TABLE_MODE_TYPES.mesocycle:
-          this.optionsFab = this.optionsFab.filter(
-            (optionTemp) => optionTemp.id === ACTIONS_FAB_TYPES.cancelCopy
-          );
+          this.optionsFab = [];
 
           break;
         case TABLE_MODE_TYPES.summaryGeneral:
@@ -193,8 +186,4 @@ export class ActionsFabComponent implements OnInit {
       .then((res) => this.onClose.emit(res.data));
   }
 
-  public cancelCancelMode(event: Event): void {
-    event.stopImmediatePropagation();
-    this.utilService.setCancelMode = false;
-  }
 }

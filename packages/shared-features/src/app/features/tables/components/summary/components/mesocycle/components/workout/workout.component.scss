@@ -3,26 +3,11 @@ app-notes {
   width: 100%;
 }
 
-// Intensity Copied Badge (based on intensity-rp style)
-.workout-copied {
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-right: 1.1em;
-  color: var(--ion-color-tertiary);
-  background: rgba(var(--ion-color-tertiary-rgb), 0.1);
-  padding: 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: fadeInSuccess 0.6s ease-out;
-}
-
 @keyframes fadeInSuccess {
   0% {
     opacity: 0;
     transform: scale(0.8);
   }
-
   50% {
     opacity: 1;
     transform: scale(1.1);

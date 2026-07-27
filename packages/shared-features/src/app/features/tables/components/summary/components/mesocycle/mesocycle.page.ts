@@ -15,6 +15,7 @@ import { Subject, Subscription } from "rxjs";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
+import { CustomExercise } from "src/app/core/models/customExercise";
 import { SplitService } from "src/app/core/services/split/split.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
@@ -33,6 +34,7 @@ import { STATES } from "src/app/shared/constants/states";
 import { TABLE_MODE_TYPES } from "src/app/shared/constants/table-mode";
 import { SplitMenuPopoverComponent } from "./components/split-menu-popover/split-menu-popover.component";
 import { DeleteSplitsModalComponent } from "./components/delete-splits-modal/delete-splits-modal.component";
+import { ClipboardExercisesModalComponent } from "./components/clipboard-exercises-modal/clipboard-exercises-modal.component";
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { EXERCISE_NAMES_ES_EN } from "src/app/shared/constants/db-translations/exercise-names-es-en.map";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
@@ -123,7 +125,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public tableInUse: Table;
   public tableInUseAux: Table;
   public currentWorkout: Workout;
-  public pasteMode: boolean;
   public exercisePasteMode = false;
   public exerciseCopyActive = false;
   public exerciseOriginWorkoutId: string;
@@ -131,7 +132,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public clipboardAnimateScale = 1;
   private clipboardPrevCount = 0;
   private exerciseClipboardSub: Subscription;
-  public workoutIdPaste: string;
   public loadTable: boolean;
   public loadingFab: boolean;
   public loadingSplit: boolean = false;
@@ -499,15 +499,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       });
     });
 
-    this.utilService.getCancelMode.subscribe((resCancelMode) => {
-      if (resCancelMode) {
-        // Lógica para modo cancelar si es necesaria
-      } else {
-        this.pasteMode = undefined;
-        this.workoutIdPaste = undefined;
-      }
-    });
-
     this.utilService.getScrollToExercise.subscribe((data) => {
       if (data) {
         this.openWorkoutIndex = data.workoutIndex;
@@ -533,10 +524,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       setTimeout(() => {
         this.currentSplitIndex = this.currentSplitIndex - 1;
         this.loadingSplit = false;
-        // No hacer scroll si estamos en modo paste
-        if (!this.pasteMode) {
-          this.scrollToOpenWorkout();
-        }
+        this.scrollToOpenWorkout();
       }, 200);
     }
   }
@@ -551,10 +539,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
       setTimeout(() => {
         this.currentSplitIndex = this.currentSplitIndex + 1;
         this.loadingSplit = false;
-        // No hacer scroll si estamos en modo paste
-        if (!this.pasteMode) {
-          this.scrollToOpenWorkout();
-        }
+        this.scrollToOpenWorkout();
       }, 200);
     }
   }
@@ -805,7 +790,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     return (
       !this.loadingSplit &&
-      !this.pasteMode &&
       (workoutCount === 0 || this.workoutTemplateLoadingId !== null)
     );
   }
@@ -884,21 +868,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
           );
         },
       });
-  }
-
-  public workoutIndexPaste: number;
-
-  public paste(event): void {
-    if (this.stateSelected === STATES.move) return;
-
-    this.pasteMode = event?.paste ?? undefined;
-    this.workoutIdPaste = event?.workoutId ?? undefined;
-    this.workoutIndexPaste = event?.workoutIndex ?? undefined;
-
-    if (event?.pasted) {
-      this.openWorkoutIndex = event.workoutIndex;
-      this.scrollToOpenWorkout();
-    }
   }
 
   public onExerciseCopyEvent(event: {
@@ -1455,7 +1424,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public onCloseFab(actionFab: ACTIONS_FAB_TYPES): void {
     if (
       this.isCurrentSplitLocked() &&
-      actionFab !== ACTIONS_FAB_TYPES.cancelCopy &&
       actionFab !== ACTIONS_FAB_TYPES.deleteMicrocycle
     ) {
       this.openPremiumFromLockedSplit();
@@ -1471,9 +1439,6 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         break;
       case ACTIONS_FAB_TYPES.deleteMicrocycle:
         this.deleteSplit();
-        break;
-      case ACTIONS_FAB_TYPES.cancelCopy:
-        this.cancelCopyMode();
         break;
     }
   }
@@ -1708,11 +1673,30 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
+  public async openClipboardModal(): Promise<void> {
+    if (!this.exerciseClipboard) return;
+
+    const modalResult = await this.ionicUtilService.showModal({
+      component: ClipboardExercisesModalComponent,
+      componentProps: {
+        exercises: this.exerciseClipboard.selectedExercises,
+        mode: 'view',
+      },
+      cssClass: 'clipboard-modal',
+    });
+
+    if (modalResult.role !== 'confirm') return;
+
+    const selectedExercises = modalResult.data
+      .selectedExercises as CustomExercise[];
+
+    this.workoutService.setExerciseClipboard = new ExerciseClipboard(
+      this.exerciseClipboard.sourceWorkoutId,
+      selectedExercises
+    );
+  }
+
   public cancelCopyMode(): void {
-    this.utilService.setCancelMode = false;
-    this.pasteMode = false;
-    this.workoutIdPaste = undefined;
-    this.workoutIndexPaste = undefined;
     this.exercisePasteMode = false;
     this.exerciseCopyActive = false;
     this.exerciseOriginWorkoutId = undefined;

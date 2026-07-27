@@ -85,10 +85,6 @@ export class WorkoutAPIService {
     );
   }
 
-  public pasteWorkout(workouts: any): Observable<Workout> {
-    return this.http.put<Workout>(`workouts/paste`, workouts);
-  }
-
   public pasteExercises(
     tableId: string,
     sourceWorkoutId: string,

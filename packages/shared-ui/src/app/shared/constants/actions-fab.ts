@@ -6,7 +6,6 @@ export enum ACTIONS_FAB_TYPES {
   createProduct = 5,
   addExercise = 6,
   duplicateMicrocycle = 7,
-  cancelCopy = 8,
   createExercise = 9,
   createRecipe = 10,
 }
@@ -75,12 +74,6 @@ export const ACTIONS_FAB: {
     value: 'ACTIONS_FAB.CREATE_EXERCISE',
     icon: 'add-circle-outline',
     color: 'primary',
-  },
-  [ACTIONS_FAB_TYPES.cancelCopy]: {
-    id: ACTIONS_FAB_TYPES.cancelCopy,
-    value: 'ACTIONS_FAB.CANCEL_COPY',
-    icon: 'close-outline',
-    color: 'medium',
   },
 };
 

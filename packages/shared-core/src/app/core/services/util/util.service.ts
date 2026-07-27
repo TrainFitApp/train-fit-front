@@ -34,7 +34,6 @@ export class UtilService {
   private _measureFilter$ = new BehaviorSubject<MEASURE_FILTER_TYPES>(
     MEASURE_FILTER_TYPES.racion
   );
-  private _cancelMode$ = new BehaviorSubject<boolean>(false);
   private _loading$ = new BehaviorSubject<boolean>(false);
   private _unselect$ = new BehaviorSubject<boolean>(false);
   private _tableMode$ = new BehaviorSubject<TABLE_MODE_TYPES>(
@@ -102,14 +101,6 @@ export class UtilService {
 
   public get getMeasureFilter() {
     return this._measureFilter$.asObservable();
-  }
-
-  public get getCancelMode() {
-    return this._cancelMode$.asObservable();
-  }
-
-  public set setCancelMode(cancelMode: boolean) {
-    this._cancelMode$.next(cancelMode);
   }
 
   public get getCurrentDate() {

@@ -12,8 +12,6 @@ import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
 
 @Injectable()
 export class WorkoutService {
-  private workoutClipboard: Workout;
-
   private exerciseClipboardSubject = new BehaviorSubject<ExerciseClipboard | null>(null);
 
   public get getExerciseClipboard(): ExerciseClipboard | null {
@@ -59,14 +57,6 @@ export class WorkoutService {
 
   // Observable para compatibilidad con código existente
   public readonly getCurrentWorkout = toObservable(this._currentWorkout);
-
-  public get getWorkoutClipboard() {
-    return this.workoutClipboard;
-  }
-
-  public set setWorkoutClipboard(workoutClipboard: Workout) {
-    this.workoutClipboard = workoutClipboard;
-  }
 
   // Getter sincrónico para acceso directo al valor
   public get currentWorkout(): Workout | null {
@@ -127,10 +117,6 @@ export class WorkoutService {
 
   public getWorkoutByIdAndDate(id: string, date: Date): Observable<Workout> {
     return this.workoutAPIService.getWorkoutByIdAndDate(id, date);
-  }
-
-  public pasteWorkout(workouts: any): Observable<Workout> {
-    return this.workoutAPIService.pasteWorkout(workouts);
   }
 
   public modifyWorkout(workout: Workout): Observable<Workout> {

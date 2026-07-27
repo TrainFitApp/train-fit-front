@@ -1,0 +1,66 @@
+<ion-header class="modal-header" mode="ios">
+  <div class="modal-toolbar">
+    <div class="toolbar-title-group">
+      <ion-title>{{ 'TABLES.EXERCISE_CLIPBOARD_TITLE' | translate }}</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="selection-summary">
+    <strong>{{ 'TABLES.CLIPBOARD_SELECT_EXERCISES' | translate }}</strong>
+    <span class="selection-chip" [class.has-selection]="selectedCount > 0">
+      {{ selectedCount }}
+      {{ selectedCount === 1 ? ('TABLES.EXERCISE_SINGULAR' | translate) : ('TABLES.EXERCISE_PLURAL' | translate) }}
+    </span>
+  </div>
+
+  <div class="exercise-list">
+    <div
+      *ngFor="let exercise of exercises; let i = index"
+      class="exercise-row"
+      [class.selected]="isSelected(i)"
+      tabindex="0"
+      (click)="toggleExercise(i)"
+      (keyup.enter)="toggleExercise(i)"
+      (keyup.space)="toggleExercise(i)"
+    >
+      <ion-checkbox
+        mode="ios"
+        class="exercise-checkbox"
+        [checked]="isSelected(i)"
+        (click)="$event.stopPropagation()"
+        (ionChange)="toggleExercise(i)"
+      ></ion-checkbox>
+
+      <div class="exercise-info">
+        <h2>{{ exercise.exercise.name | translateDb }}</h2>
+        <span class="exercise-sets-count">
+          {{ exercise.sets.length }} {{ 'TABLES.SERIES' | translate }}
+        </span>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="modal-footer">
+  <div class="footer-buttons">
+    <ion-button
+      expand="block"
+      mode="ios"
+      color="primary"
+      class="confirm-btn"
+      [disabled]="selectedCount === 0"
+      (click)="confirm()"
+    >
+      {{ (mode === 'view' ? 'TABLES.CLIPBOARD_SAVE' : 'TABLES.CLIPBOARD_PASTE') | translate }} ({{ selectedCount }})
+    </ion-button>
+  </div>
+</ion-footer>

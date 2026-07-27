@@ -14,50 +14,40 @@
           </h1>
         </div>
         <div class="actions-section">
-          <ng-container *ngIf="!pasteMode">
-            <button
-              *ngIf="stateSelected !== STATES.move"
-              class="action-button ripple-effect"
-              [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
-              (click)="enterWorkoutMoveMode()"
-            >
-              <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
-            </button>
-
-            <button
-              *ngIf="stateSelected === STATES.move"
-              class="action-button ripple-effect"
-              [disabled]="savingWorkoutOrder"
-              (click)="cancelWorkoutMoveMode()"
-            >
-              <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
-            </button>
-
-            <button
-              *ngIf="stateSelected === STATES.move"
-              class="action-button action-button--confirm ripple-effect"
-              [disabled]="savingWorkoutOrder"
-              (click)="confirmWorkoutOrder()"
-            >
-              <ion-spinner
-                *ngIf="savingWorkoutOrder"
-                name="crescent"
-                color="success"
-              ></ion-spinner>
-              <ion-icon
-                *ngIf="!savingWorkoutOrder"
-                name="checkmark-outline"
-                color="success"
-              ></ion-icon>
-            </button>
-          </ng-container>
+          <button
+            *ngIf="stateSelected !== STATES.move"
+            class="action-button ripple-effect"
+            [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
+            (click)="enterWorkoutMoveMode()"
+          >
+            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+          </button>
 
           <button
-            *ngIf="pasteMode"
+            *ngIf="stateSelected === STATES.move"
             class="action-button ripple-effect"
-            (click)="cancelCopyMode()"
+            [disabled]="savingWorkoutOrder"
+            (click)="cancelWorkoutMoveMode()"
           >
             <ion-icon name="arrow-undo-outline" color="primary"></ion-icon>
+          </button>
+
+          <button
+            *ngIf="stateSelected === STATES.move"
+            class="action-button action-button--confirm ripple-effect"
+            [disabled]="savingWorkoutOrder"
+            (click)="confirmWorkoutOrder()"
+          >
+            <ion-spinner
+              *ngIf="savingWorkoutOrder"
+              name="crescent"
+              color="success"
+            ></ion-spinner>
+            <ion-icon
+              *ngIf="!savingWorkoutOrder"
+              name="checkmark-outline"
+              color="success"
+            ></ion-icon>
           </button>
 
           <button
@@ -99,31 +89,6 @@
           >
             <div
               class="info-explainer"
-              *ngIf="pasteMode && workoutIndexPaste === ind"
-            >
-              <div class="info-card">
-                <ion-icon
-                  name="information-circle-outline"
-                  class="info-icon"
-                ></ion-icon>
-                <div class="info-text">
-                  <span class="info-title"
-                    >{{ 'TABLES.COPY_MODE' | translate }}</span
-                  >
-                  <p>
-                    {{ 'TABLES.COPY_MODE_DESC' | translate }}
-                    <ion-label color="tertiary"
-                      ><strong
-                        >{{ workout.name | translateDb }}</strong
-                      ></ion-label
-                    >.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="info-explainer"
               *ngIf="exercisePasteMode && exerciseClipboard"
             >
               <div class="info-card">
@@ -148,7 +113,6 @@
               [value]="openWorkoutIndex === ind ? 'open' : 'closed'"
               (ionChange)="toggleAccordion($event, ind)"
               [disabled]="stateSelected === STATES.move"
-              [style.display]="pasteMode && workoutIndexPaste !== ind ? 'none' : 'block'"
               [ngClass]="{ 'current-workout-group': user?.workoutInUse === workout._id }"
             >
               <app-workout
@@ -161,11 +125,9 @@
                 [workoutIndex]="ind"
                 [stateSelected]="stateSelected"
                 [savingWorkoutOrder]="savingWorkoutOrder"
-                [pasteMode]="pasteMode"
                 [exercisePasteMode]="exercisePasteMode"
                 [exerciseCopyActive]="exerciseCopyActive"
                 [exerciseOriginWorkoutId]="exerciseOriginWorkoutId"
-                (pasteEvent)="paste($event)"
                 (exerciseCopyEvent)="onExerciseCopyEvent($event)"
                 (exerciseAddedEvent)="onExerciseAdded($event)"
                 (setAddedEvent)="onSetAdded($event)"
@@ -331,7 +293,7 @@
       </ng-container>
 
       <ion-button
-        *ngIf="!loadingSplit && !pasteMode && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static"
+        *ngIf="!loadingSplit && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static"
         expand="block"
         shape="round"
         class="ion-margin t-add-workout"
@@ -455,7 +417,7 @@
       [style.transform]="'scale(' + clipboardAnimateScale + ')'"
     >
       <div class="clipboard-bar-content">
-        <div class="clipboard-info">
+        <div class="clipboard-info" (click)="openClipboardModal()">
           <span class="clipboard-icon">
             <ion-icon name="clipboard-outline"></ion-icon>
           </span>
@@ -546,7 +508,7 @@
         </div>
 
         <div
-          *ngIf="!pasteMode && stateSelected === STATES.static"
+          *ngIf="stateSelected === STATES.static"
           class="micro-cycle-actions"
         >
           <button

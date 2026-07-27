@@ -37,6 +37,7 @@ import { ConfigExercisePage } from 'src/app/features/exercises/components/config
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import { SkipWorkoutModalComponent, WorkoutSkipItem } from '../skip-workout-modal/skip-workout-modal.component';
+import { ClipboardExercisesModalComponent } from '../clipboard-exercises-modal/clipboard-exercises-modal.component';
 import {
   ACTION_TYPE,
   ACTION_TYPES,
@@ -44,7 +45,6 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { STATES } from 'src/app/shared/constants/states';
-import { WorkoutClipboard } from 'src/app/shared/models/workout-clipboard';
 import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
 import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
 import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
@@ -86,9 +86,6 @@ export class WorkoutComponent implements OnDestroy {
   public isPopoverOpen: boolean;
 
   @Input()
-  public pasteMode = false;
-
-  @Input()
   public exercisePasteMode = false;
 
   @Input()
@@ -99,9 +96,6 @@ export class WorkoutComponent implements OnDestroy {
 
   @Input()
   public tableInUse: Table;
-
-  @Output()
-  public pasteEvent = new EventEmitter();
 
   @Output()
   public exerciseCopyEvent = new EventEmitter<{
@@ -146,8 +140,6 @@ export class WorkoutComponent implements OnDestroy {
     workoutIndex: number;
   }>();
 
-  public workoutClipboard: Workout;
-
   public exerciseSelectionMode = false;
   public selectedExerciseIndices: Set<number> = new Set();
   public exerciseClipboardLoad = false;
@@ -169,6 +161,7 @@ export class WorkoutComponent implements OnDestroy {
 
   public pinnedNotes: PinnedExerciseNote[] = [];
   private pinnedNoteCacheSub: Subscription | null = null;
+  private clipboardSub: Subscription | null = null;
 
   get locale(): string {
     return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
@@ -193,6 +186,22 @@ export class WorkoutComponent implements OnDestroy {
     this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
       this.loadPinnedNotes();
     });
+    this.clipboardSub = this.workoutService.exerciseClipboard$.subscribe(
+      (clipboard) => {
+        if (!this.exerciseSelectionMode || !this.workout) return;
+        if (!clipboard || clipboard.sourceWorkoutId !== this.workout._id) {
+          this.selectedExerciseIndices = new Set();
+          return;
+        }
+        const newIndices = new Set<number>();
+        this.workout.exercises.forEach((ex, i) => {
+          if (clipboard.selectedExercises.some((ce) => ce._id === ex._id)) {
+            newIndices.add(i);
+          }
+        });
+        this.selectedExerciseIndices = newIndices;
+      }
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -204,6 +213,7 @@ export class WorkoutComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.pinnedNoteCacheSub?.unsubscribe();
+    this.clipboardSub?.unsubscribe();
   }
 
   private loadPinnedNotes(): void {
@@ -335,17 +345,6 @@ export class WorkoutComponent implements OnDestroy {
     this.ionicUtilService.showPopover(popoverOptions).then((res) => {
       if (res.data) {
         switch (res.data.id) {
-          case ACTIONS[this.ACTION_TYPES.copy].id:
-            this.pasteMode = true;
-            this.pasteEvent.emit({
-              workoutId: this.workout._id,
-              paste: this.pasteMode,
-              workoutIndex: this.workoutIndex,
-            });
-            this.workoutService.setWorkoutClipboard = this.workout;
-            this.utilService.setCancelMode = true;
-            break;
-
           case ACTIONS[this.ACTION_TYPES.copyExercises].id:
             this.enterExerciseSelectionMode();
             break;
@@ -769,7 +768,6 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public searchExercises(workout: Workout, currentSplit: Split) {
-    this.pasteEvent.emit();
     this.workout = workout;
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,
@@ -799,41 +797,6 @@ export class WorkoutComponent implements OnDestroy {
     //   this.tableInUse,
     //   currentSplit
     // );
-  }
-
-  public createWorkoutFromClipboard(): void {
-    this.load = false;
-
-    this.workoutClipboard = this.workoutService.getWorkoutClipboard;
-
-    this.workoutService
-      .pasteWorkout(new WorkoutClipboard(this.workoutClipboard, this.workout))
-      .subscribe((resWorkout) => {
-        this.workout = resWorkout;
-
-        // Actualizar el workout en la tabla local
-        this.tableInUse.splits[this.splitIndex].workouts[this.workoutIndex] =
-          resWorkout;
-
-        // Propagar el cambio a través del signal
-        this.tableService.setCurrentTable = this.tableInUse;
-
-        this.pasteEvent.emit({
-          paste: false,
-          workoutIndex: this.workoutIndex,
-          pasted: true,
-        });
-
-        const toast: ToastOptions = {
-          message: this.translate.instant('TABLES.WORKOUT_PASTED'),
-          duration: 2000,
-        };
-        this.ionicUtilService.showToast(toast);
-
-        this.utilService.setCancelMode = false;
-
-        this.load = true;
-      });
   }
 
   private enterExerciseSelectionMode(): void {
@@ -907,18 +870,34 @@ export class WorkoutComponent implements OnDestroy {
     return clipboard.sourceWorkoutId !== this.workout._id;
   }
 
-  public pasteExercises(): void {
+  public async pasteExercises(): Promise<void> {
     const clipboard = this.workoutService.getExerciseClipboard;
     if (!clipboard || clipboard.selectedExercises.length === 0) return;
 
+    const modalResult = await this.ionicUtilService.showModal({
+      component: ClipboardExercisesModalComponent,
+      componentProps: {
+        exercises: clipboard.selectedExercises,
+        mode: 'paste',
+      },
+      cssClass: 'clipboard-modal',
+    });
+
+    if (modalResult.role !== 'confirm') return;
+
+    const selected = modalResult.data.selectedExercises as CustomExercise[];
+    if (selected.length === 0) return;
+
     this.exerciseClipboardLoad = true;
+
+    const prevExerciseCount = this.workout.exercises.length;
 
     this.workoutService
       .pasteExercises(
         this.tableInUse._id,
         clipboard.sourceWorkoutId,
         this.workout._id,
-        clipboard.selectedExercises
+        selected
       )
       .subscribe((res) => {
         if (res?.tableInUse) {
@@ -926,6 +905,37 @@ export class WorkoutComponent implements OnDestroy {
           this.tableService.setCurrentTable = res.tableInUse;
         }
         this.exerciseClipboardLoad = false;
+
+        const firstPastedIndex = prevExerciseCount;
+        this.utilService.requestScrollToExercise({
+          workoutIndex: this.workoutIndex,
+          exerciseIndex: firstPastedIndex,
+          highlightClass: 'highlight-new-set',
+        });
+
+        const highlighted = new Set<number>();
+        const highlightAllPasted = (attempt = 0) => {
+          if (attempt > 30) return;
+          let allFound = true;
+          for (let i = 0; i < selected.length; i++) {
+            if (highlighted.has(i)) continue;
+            const idx = firstPastedIndex + i;
+            const el = document.getElementById(
+              `exercise-${this.workoutIndex}-${idx}`
+            );
+            if (el) {
+              highlighted.add(i);
+              el.classList.add('highlight-new-set');
+              setTimeout(() => el.classList.remove('highlight-new-set'), 2000);
+            } else {
+              allFound = false;
+            }
+          }
+          if (!allFound) {
+            setTimeout(() => highlightAllPasted(attempt + 1), 200);
+          }
+        };
+        setTimeout(() => highlightAllPasted(), 600);
         const toast: ToastOptions = {
           message: this.translate.instant('TABLES.EXERCISES_PASTED'),
           duration: 2000,
@@ -965,6 +975,7 @@ export class WorkoutComponent implements OnDestroy {
     } else {
       actions = actions.filter(
         (actionTemp) =>
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copy].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
@@ -1078,40 +1089,6 @@ export class WorkoutComponent implements OnDestroy {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
-  }
-
-  public canPaste(): boolean {
-    let indexCopiedWorkout: number;
-    let splitIndex: number;
-
-    this.tableInUse.splits.forEach((splitTemp, indexSplit) => {
-      splitTemp.workouts.forEach((workoutTemp, indexWorkout) => {
-        if (this.workoutService.getWorkoutClipboard?._id === workoutTemp._id) {
-          indexCopiedWorkout = indexWorkout;
-          splitIndex = indexSplit;
-        }
-      });
-    });
-    return (
-      indexCopiedWorkout === this.workoutIndex && this.splitIndex !== splitIndex
-    );
-  }
-
-  public alreadyCopied(): boolean {
-    let indexCopiedWorkout: number;
-    let splitIndex: number;
-
-    this.tableInUse.splits.forEach((splitTemp, indexSplit) => {
-      splitTemp.workouts.forEach((workoutTemp, indexWorkout) => {
-        if (this.workoutService.getWorkoutClipboard?._id === workoutTemp._id) {
-          indexCopiedWorkout = indexWorkout;
-          splitIndex = indexSplit;
-        }
-      });
-    });
-    return (
-      indexCopiedWorkout === this.workoutIndex && this.splitIndex === splitIndex
-    );
   }
 
   private updateWorkoutName(): void {
@@ -1593,14 +1570,5 @@ export class WorkoutComponent implements OnDestroy {
     );
   }
 
-  public showNavigationToast(event: Event): void {
-    event.stopPropagation();
 
-    const toastOptions: ToastOptions = {
-      message: this.translate.instant('TABLES.NAVIGATE_PASTE_MSG'),
-      duration: 2000,
-    };
-
-    this.ionicUtilService.showToast(toastOptions);
-  }
 }

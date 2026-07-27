@@ -7,6 +7,7 @@ import { SplitMenuPopoverComponent } from './components/split-menu-popover/split
 import { WorkoutComponent } from './components/workout/workout.component';
 import { DeleteSplitsModalComponent } from './components/delete-splits-modal/delete-splits-modal.component';
 import { SkipWorkoutModalComponent } from './components/skip-workout-modal/skip-workout-modal.component';
+import { ClipboardExercisesModalComponent } from './components/clipboard-exercises-modal/clipboard-exercises-modal.component';
 
 @NgModule({
   imports: [SharedModule, MesocyclePageRoutingModule, OrderExercisesPageModule],
@@ -16,6 +17,7 @@ import { SkipWorkoutModalComponent } from './components/skip-workout-modal/skip-
     SplitMenuPopoverComponent,
     DeleteSplitsModalComponent,
     SkipWorkoutModalComponent,
+    ClipboardExercisesModalComponent,
   ],
 })
 export class MesocyclePageModule {}
