@@ -99,7 +99,7 @@
       [style.transform]="'scale(' + clipboardAnimateScale + ')'"
     >
     <div class="clipboard-bar-content">
-      <div class="clipboard-info">
+      <div class="clipboard-info" (click)="openClipboardModal()">
         <span class="clipboard-icon">
           <ion-icon name="clipboard-outline"></ion-icon>
         </span>

@@ -233,23 +233,22 @@ ion-spinner {
   height: 3em;
 }
 
-.paste-meal-button {
-  --background: rgba(255, 255, 255, 0.05);
-  --background-activated: rgba(255, 255, 255, 0.15);
-  --background-hover: rgba(255, 255, 255, 0.1);
-  --border-radius: 12px;
-  --color: rgba(254, 144, 0, 0.9);
+.sc-ion-buttons-md-s ion-button:has(ion-icon[name="clipboard-outline"]),
+.sc-ion-buttons-ios-s ion-button:has(ion-icon[name="clipboard-outline"]) {
+  --color: var(--ion-color-tertiary);
+  --background: rgba(var(--ion-color-tertiary-rgb), 0.15);
+  --background-activated: rgba(var(--ion-color-tertiary-rgb), 0.25);
   --padding-start: 10px;
   --padding-end: 10px;
-  --padding-top: 6px;
-  --padding-bottom: 6px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --border-radius: 12px;
   width: 44px;
   height: 44px;
   margin: 0;
 
   ion-icon {
-    font-size: 20px;
-    transition: all 0.2s ease;
+    font-size: 1.3rem;
   }
 }
 

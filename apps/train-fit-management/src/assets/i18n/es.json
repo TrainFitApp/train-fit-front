@@ -487,6 +487,8 @@
     "TAP_TO_PASTE": "Toca una comida para pegar",
     "ITEM": "elemento",
     "ITEMS": "elementos",
+    "CLIPBOARD_TITLE": "Elementos copiados",
+    "CLIPBOARD_SELECT_ITEMS": "Selecciona los elementos",
     "CLIPBOARD_FULL_MEAL": "Comida completa en portapapeles",
     "CLIPBOARD_SELECTION": "Selección en portapapeles",
     "CLIPBOARD_TAP_TO_PASTE": "Toca una comida para pegar",

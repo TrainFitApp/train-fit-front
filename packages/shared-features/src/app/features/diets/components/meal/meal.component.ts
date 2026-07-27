@@ -9,7 +9,7 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { AlertOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
+import { AlertOptions, ModalController, ModalOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import {
@@ -38,6 +38,7 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
+import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
 
 @Component({
   selector: 'app-meal',
@@ -95,7 +96,8 @@ export class MealComponent implements OnInit, OnChanges {
     private customRecipeService: CustomRecipeApiService,
     private recipeService: RecipeService,
     private navigationService: NavigationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private modalController: ModalController
   ) {}
 
   public ngOnInit(): void {
@@ -300,11 +302,69 @@ export class MealComponent implements OnInit, OnChanges {
       return;
     }
 
+    const products = clipboard.mealClipboard?.customProducts || [];
+    const recipes = clipboard.mealClipboard?.customRecipes || [];
+    const selectedProductIds = clipboard.isFullMeal
+      ? products.map((p) => p._id)
+      : clipboard.selectedProducts;
+    const selectedRecipeIds = clipboard.isFullMeal
+      ? recipes.map((r) => r._id)
+      : clipboard.selectedRecipes;
+
+    const modalOptions: ModalOptions = {
+      component: ClipboardMealModalComponent,
+      componentProps: {
+        products,
+        recipes,
+        selectedProductIds,
+        selectedRecipeIds,
+        mode: 'paste',
+      },
+      cssClass: 'auto-height-modal',
+    };
+
+    const modal = await this.modalController.create(modalOptions);
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role !== 'confirm' || !data) {
+      this.pasteMode = false;
+      this.pasteEvent.emit({ paste: this.pasteMode });
+      this.loadPaste = false;
+      return;
+    }
+
+    const { selectedProductIds: newProductIds, selectedRecipeIds: newRecipeIds } = data;
+    const totalProducts = products.length;
+    const totalRecipes = recipes.length;
+
+    const isFullMeal =
+      newProductIds.length === totalProducts &&
+      newRecipeIds.length === totalRecipes &&
+      (totalProducts > 0 || totalRecipes > 0);
+
+    if (isFullMeal) {
+      this.mealService.setFullMealClipboard(clipboard.mealClipboard, this.meal);
+    } else {
+      this.mealService.setPartialMealClipboard(
+        clipboard.mealClipboard,
+        this.meal,
+        newProductIds,
+        newRecipeIds
+      );
+    }
+
+    const updatedClipboard = this.mealService.getMealClipboard;
+    if (!updatedClipboard) {
+      this.loadPaste = false;
+      return;
+    }
+
     const canMerge =
       this.meal.customProducts.length !== 0 ||
       (this.meal.customRecipes?.length ?? 0) !== 0;
 
-    if (clipboard.isFullMeal && canMerge) {
+    if (updatedClipboard.isFullMeal && canMerge) {
       const t = this.translate.instant.bind(this.translate);
       const alertOptions: AlertOptions = {
         cssClass: 'alert-grid-buttons',
@@ -612,7 +672,8 @@ export class MealComponent implements OnInit, OnChanges {
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id
       );
     }
 

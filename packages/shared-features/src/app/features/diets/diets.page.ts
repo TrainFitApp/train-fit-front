@@ -6,7 +6,7 @@ import {
   effect,
   inject,
 } from '@angular/core';
-import { AlertOptions, ToastOptions } from '@ionic/angular';
+import { AlertOptions, ModalController, ModalOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin, Subscription } from 'rxjs';
 import {
@@ -35,6 +35,7 @@ import { MONTHS } from 'src/app/shared/constants/months';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
+import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 
 @Component({
   selector: 'app-diets',
@@ -95,7 +96,8 @@ export class DietsPage implements OnInit {
     private recipeService: RecipeService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private modalController: ModalController
   ) {
     this.selectedDate = this.utilService.formatDateToYYYYMMDD(new Date());
 
@@ -188,6 +190,60 @@ export class DietsPage implements OnInit {
     this.pasteMode = event.selectionMode && hasSelection;
     this.mealIdPaste = event.mealId;
     this.mealIndexPaste = event.mealIndex;
+  }
+
+  public async openClipboardModal(): Promise<void> {
+    const clipboard = this.clipboard;
+    if (!clipboard) return;
+
+    const products = clipboard.mealClipboard?.customProducts || [];
+    const recipes = clipboard.mealClipboard?.customRecipes || [];
+    const selectedProductIds = clipboard.isFullMeal
+      ? products.map((p) => p._id)
+      : clipboard.selectedProducts;
+    const selectedRecipeIds = clipboard.isFullMeal
+      ? recipes.map((r) => r._id)
+      : clipboard.selectedRecipes;
+
+    const modalOptions: ModalOptions = {
+      component: ClipboardMealModalComponent,
+      componentProps: {
+        products,
+        recipes,
+        selectedProductIds,
+        selectedRecipeIds,
+        mode: 'view',
+      },
+      cssClass: 'auto-height-modal',
+    };
+
+    const modal = await this.modalController.create(modalOptions);
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role !== 'confirm' || !data) return;
+
+    const { selectedProductIds: newProductIds, selectedRecipeIds: newRecipeIds } = data;
+    const totalProducts = products.length;
+    const totalRecipes = recipes.length;
+
+    const isFullMeal =
+      newProductIds.length === totalProducts &&
+      newRecipeIds.length === totalRecipes &&
+      (totalProducts > 0 || totalRecipes > 0);
+
+    if (isFullMeal) {
+      this.mealService.setFullMealClipboard(clipboard.mealClipboard, clipboard.mealToPaste);
+    } else if (newProductIds.length > 0 || newRecipeIds.length > 0) {
+      this.mealService.setPartialMealClipboard(
+        clipboard.mealClipboard,
+        clipboard.mealToPaste,
+        newProductIds,
+        newRecipeIds
+      );
+    } else {
+      this.mealService.clearMealClipboard();
+    }
   }
 
   public clearClipboard(): void {

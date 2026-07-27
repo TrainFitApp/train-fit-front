@@ -481,6 +481,8 @@
     "EMPTY_MEAL_CONFIRM": "Are you sure you want to empty {{name}}?",
     "EMPTY_MEAL_SUCCESS": "{{name}} emptied",
     "DELETE_EMPTY": "EMPTY",
+    "CLIPBOARD_TITLE": "Copied items",
+    "CLIPBOARD_SELECT_ITEMS": "Select items",
     "CLIPBOARD_FULL_MEAL": "Full meal in clipboard",
     "CLIPBOARD_SELECTION": "Selection in clipboard",
     "CLIPBOARD_TAP_TO_PASTE": "Tap a meal to paste",

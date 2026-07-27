@@ -1,0 +1,97 @@
+<ion-header class="modal-header" mode="ios">
+  <div class="modal-toolbar">
+    <div class="toolbar-title-group">
+      <ion-title>{{ 'MEAL.CLIPBOARD_TITLE' | translate }}</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="selection-summary">
+    <strong>{{ 'MEAL.CLIPBOARD_SELECT_ITEMS' | translate }}</strong>
+    <span class="selection-chip" [class.has-selection]="selectedCount > 0">
+      {{ selectedCount }}
+      {{ selectedCount === 1 ? ('MEAL.ITEM_COUNT_SINGULAR' | translate) : ('MEAL.ITEM_COUNT_PLURAL' | translate) }}
+    </span>
+  </div>
+
+  <div class="item-list">
+    <!-- Recipes Section -->
+    <ng-container *ngIf="recipes.length > 0">
+      <div class="section-label">{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</div>
+      <div
+        *ngFor="let recipe of recipes"
+        class="item-row"
+        [class.selected]="isRecipeSelected(recipe._id)"
+        tabindex="0"
+        (click)="toggleRecipe(recipe._id)"
+        (keyup.enter)="toggleRecipe(recipe._id)"
+        (keyup.space)="toggleRecipe(recipe._id)"
+      >
+        <ion-checkbox
+          mode="ios"
+          class="item-checkbox"
+          [checked]="isRecipeSelected(recipe._id)"
+          (click)="$event.stopPropagation()"
+          (ionChange)="toggleRecipe(recipe._id)"
+        ></ion-checkbox>
+
+        <div class="item-info">
+          <span class="item-name">
+            {{ getRecipeName(recipe) || ('MEAL.RECIPE_NO_NAME' | translate) }}
+          </span>
+          <span class="item-quantity">{{ recipe.quantity | number:'1.0-1' }}g</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Products Section -->
+    <ng-container *ngIf="products.length > 0">
+      <div class="section-label" [class.has-recipes]="recipes.length > 0">{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</div>
+      <div
+        *ngFor="let product of products"
+        class="item-row"
+        [class.selected]="isProductSelected(product._id)"
+        tabindex="0"
+        (click)="toggleProduct(product._id)"
+        (keyup.enter)="toggleProduct(product._id)"
+        (keyup.space)="toggleProduct(product._id)"
+      >
+        <ion-checkbox
+          mode="ios"
+          class="item-checkbox"
+          [checked]="isProductSelected(product._id)"
+          (click)="$event.stopPropagation()"
+          (ionChange)="toggleProduct(product._id)"
+        ></ion-checkbox>
+
+        <div class="item-info">
+          <span class="item-name">{{ product.product?.name }}</span>
+          <span class="item-quantity">{{ product.quantity | number:'1.0-1' }}g</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>
+
+<ion-footer class="modal-footer">
+  <div class="footer-buttons">
+    <ion-button
+      expand="block"
+      mode="ios"
+      color="primary"
+      class="confirm-btn"
+      [disabled]="selectedCount === 0"
+      (click)="confirm()"
+    >
+      {{ (mode === 'view' ? 'TABLES.CLIPBOARD_SAVE' : 'TABLES.CLIPBOARD_PASTE') | translate }} ({{ selectedCount }})
+    </ion-button>
+  </div>
+</ion-footer>

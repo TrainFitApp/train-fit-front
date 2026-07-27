@@ -140,7 +140,8 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
           actionTemp.id !== this.ACTION_TYPES.skipWorkout &&
           actionTemp.id !== this.ACTION_TYPES.unskipWorkout &&
           actionTemp.id !== this.ACTION_TYPES.moveSets &&
-          actionTemp.id !== this.ACTION_TYPES.rmCalculator
+          actionTemp.id !== this.ACTION_TYPES.rmCalculator &&
+          actionTemp.id !== this.ACTION_TYPES.copyExercises
       );
 
       // Sort to put delete at the end
