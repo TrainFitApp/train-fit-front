@@ -30,17 +30,8 @@ export class ClipboardMealModalComponent implements OnInit {
   constructor(private modalController: ModalController) {}
 
   public ngOnInit(): void {
-    if (this.selectedProductIds.length > 0) {
-      this.selectedProductIds.forEach((id) => this.localSelectedProductIds.add(id));
-    } else {
-      this.products.forEach((p) => this.localSelectedProductIds.add(p._id));
-    }
-
-    if (this.selectedRecipeIds.length > 0) {
-      this.selectedRecipeIds.forEach((id) => this.localSelectedRecipeIds.add(id));
-    } else {
-      this.recipes.forEach((r) => this.localSelectedRecipeIds.add(r._id));
-    }
+    this.selectedProductIds.forEach((id) => this.localSelectedProductIds.add(id));
+    this.selectedRecipeIds.forEach((id) => this.localSelectedRecipeIds.add(id));
   }
 
   public getRecipeName(recipe: CustomRecipe): string {

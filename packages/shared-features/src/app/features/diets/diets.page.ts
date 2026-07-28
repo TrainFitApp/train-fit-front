@@ -205,11 +205,14 @@ export class DietsPage implements OnInit {
       ? recipes.map((r) => r._id)
       : clipboard.selectedRecipes;
 
+    const filteredProducts = products.filter((p) => selectedProductIds.includes(p._id));
+    const filteredRecipes = recipes.filter((r) => selectedRecipeIds.includes(r._id));
+
     const modalOptions: ModalOptions = {
       component: ClipboardMealModalComponent,
       componentProps: {
-        products,
-        recipes,
+        products: filteredProducts,
+        recipes: filteredRecipes,
         selectedProductIds,
         selectedRecipeIds,
         mode: 'view',

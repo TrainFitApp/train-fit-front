@@ -867,7 +867,7 @@ export class WorkoutComponent implements OnDestroy {
   public canPasteExercises(): boolean {
     if (!this.workoutService.hasExerciseClipboard()) return false;
     const clipboard = this.workoutService.getExerciseClipboard;
-    return clipboard.sourceWorkoutId !== this.workout._id;
+    return clipboard.sourceWorkoutId !== this.workout._id && clipboard.selectedExercises.length > 0;
   }
 
   public async pasteExercises(): Promise<void> {

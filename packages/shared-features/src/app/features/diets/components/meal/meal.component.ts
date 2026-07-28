@@ -3,6 +3,7 @@ import {
   EventEmitter,
   Input,
   OnInit,
+  OnDestroy,
   OnChanges,
   SimpleChanges,
   Output,
@@ -10,7 +11,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { AlertOptions, ModalController, ModalOptions, PopoverOptions, ToastOptions } from '@ionic/angular';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import {
   CUSTOM_PRODUCT_KEYS,
@@ -45,7 +46,7 @@ import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-m
   templateUrl: './meal.component.html',
   styleUrls: ['./meal.component.scss'],
 })
-export class MealComponent implements OnInit, OnChanges {
+export class MealComponent implements OnInit, OnDestroy, OnChanges {
   @Input()
   public meal!: Meal;
   @Input()
@@ -85,6 +86,7 @@ export class MealComponent implements OnInit, OnChanges {
   public selectionMode = false;
   public selectedProductIds = new Set<string>();
   public selectedRecipeIds = new Set<string>();
+  private clipboardSub = Subscription.EMPTY;
 
   constructor(
     private utilService: UtilService,
@@ -103,6 +105,23 @@ export class MealComponent implements OnInit, OnChanges {
   public ngOnInit(): void {
     this.getMealInfo();
     this.restoreSelectionFromClipboard();
+    this.clipboardSub = this.mealService.mealClipboard$.subscribe((clipboard) => {
+      if (!clipboard?.mealClipboard || clipboard.mealClipboard._id !== this.meal?._id) return;
+      this.selectionMode = true;
+      this.arrowRotate = true;
+      this.selectedProductIds = new Set(clipboard.isFullMeal
+        ? (this.meal.customProducts || []).map((cp) => cp._id)
+        : clipboard.selectedProducts
+      );
+      this.selectedRecipeIds = new Set(clipboard.isFullMeal
+        ? (this.meal.customRecipes || []).map((cr) => cr._id)
+        : clipboard.selectedRecipes
+      );
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.clipboardSub.unsubscribe();
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -311,11 +330,14 @@ export class MealComponent implements OnInit, OnChanges {
       ? recipes.map((r) => r._id)
       : clipboard.selectedRecipes;
 
+    const filteredProducts = products.filter((p) => selectedProductIds.includes(p._id));
+    const filteredRecipes = recipes.filter((r) => selectedRecipeIds.includes(r._id));
+
     const modalOptions: ModalOptions = {
       component: ClipboardMealModalComponent,
       componentProps: {
-        products,
-        recipes,
+        products: filteredProducts,
+        recipes: filteredRecipes,
         selectedProductIds,
         selectedRecipeIds,
         mode: 'paste',
@@ -353,6 +375,9 @@ export class MealComponent implements OnInit, OnChanges {
         newRecipeIds
       );
     }
+
+    this.selectedProductIds = new Set(newProductIds);
+    this.selectedRecipeIds = new Set(newRecipeIds);
 
     const updatedClipboard = this.mealService.getMealClipboard;
     if (!updatedClipboard) {
@@ -778,9 +803,7 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public toggleProductSelection(product: CustomProduct): void {
-    if (!this.selectionMode) {
-      this.enterSelectionMode();
-    }
+    if (!this.selectionMode) return;
 
     if (this.selectedProductIds.has(product._id)) {
       this.selectedProductIds.delete(product._id);
@@ -791,9 +814,7 @@ export class MealComponent implements OnInit, OnChanges {
   }
 
   public toggleRecipeSelection(recipe: CustomRecipe): void {
-    if (!this.selectionMode) {
-      this.enterSelectionMode();
-    }
+    if (!this.selectionMode) return;
 
     if (this.selectedRecipeIds.has(recipe._id)) {
       this.selectedRecipeIds.delete(recipe._id);

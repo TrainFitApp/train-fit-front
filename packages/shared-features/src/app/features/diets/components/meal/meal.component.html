@@ -238,9 +238,14 @@
             <h3 class="item-name">
               {{ getRecipeName(instance) }}
             </h3>
-            <span class="item-quantity">{{
-              getRecipeConsumedQuantity(instance) | number : "1.0-1"
-            }}g</span>
+            <span class="item-header-right">
+              <span class="item-quantity">{{
+                getRecipeConsumedQuantity(instance) | number : "1.0-1"
+              }}g</span>
+              <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteRecipe(meal, instance); $event.stopPropagation()">
+                <ion-icon name="close-outline" color="danger"></ion-icon>
+              </ion-button>
+            </span>
           </div>
 
           <div class="nutrition-info">
@@ -269,6 +274,7 @@
 
         <div class="item-actions">
           <ion-checkbox
+            *ngIf="selectionMode"
             mode="ios"
             [checked]="isRecipeSelected(instance)"
             (ionChange)="onRecipeSelectionChange(instance, $event)"
@@ -300,7 +306,12 @@
             <h3 class="item-name">
               {{ product.product?.name }}
             </h3>
-            <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
+            <span class="item-header-right">
+              <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
+              <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteProduct(meal, product); $event.stopPropagation()">
+                <ion-icon name="close-outline" color="danger"></ion-icon>
+              </ion-button>
+            </span>
           </div>
 
           <div class="nutrition-info">
@@ -329,6 +340,7 @@
 
         <div class="item-actions">
           <ion-checkbox
+            *ngIf="selectionMode"
             mode="ios"
             [checked]="isProductSelected(product)"
             (ionChange)="onProductSelectionChange(product, $event)"
