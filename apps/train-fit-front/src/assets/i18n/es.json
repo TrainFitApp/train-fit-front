@@ -1222,6 +1222,7 @@
     "SUMMARY_SETS": "Series",
     "SUMMARY_VOLUME": "totales levantados",
     "SUMMARY_COMPLETED_EXERCISES": "Ejercicios completados",
+    "SUMMARY_INCOMPLETE_WARNING": "Ejercicios sin completar",
     "SUMMARY_CONTINUE": "Continuar",
     "FINISH_ERROR": "No se pudo finalizar el entrenamiento. Inténtalo de nuevo.",
     "FINISH_ERROR_TITLE": "Error",

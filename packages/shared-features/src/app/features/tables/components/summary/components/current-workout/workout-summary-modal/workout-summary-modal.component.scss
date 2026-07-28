@@ -177,6 +177,31 @@
   border: 1px solid var(--summary-border);
 }
 
+.incomplete-warning {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+
+  .incomplete-warning-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #f5a623;
+  }
+
+  .incomplete-list {
+    margin: 8px 0 0 0;
+    padding: 0 0 0 20px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--summary-muted);
+  }
+}
+
 .exercise-summary-header,
 .exercise-block-header {
   display: flex;

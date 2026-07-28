@@ -1216,6 +1216,7 @@
     "SUMMARY_SETS": "Sets",
     "SUMMARY_VOLUME": "Total lifted",
     "SUMMARY_COMPLETED_EXERCISES": "Completed exercises",
+    "SUMMARY_INCOMPLETE_WARNING": "Incomplete exercises",
     "SUMMARY_CONTINUE": "Continue",
     "FINISH_ERROR": "Could not finish the workout. Please try again.",
     "FINISH_ERROR_TITLE": "Error",

@@ -1256,6 +1256,7 @@
     "SUMMARY_SETS": "Sets",
     "SUMMARY_VOLUME": "Total lifted",
     "SUMMARY_COMPLETED_EXERCISES": "Completed exercises",
+    "SUMMARY_INCOMPLETE_WARNING": "Incomplete exercises",
     "SUMMARY_CONTINUE": "Continue",
     "MICROCYCLE_PREVIEW": "Microcycle preview",
     "SAME_MICROCYCLES": "Same workouts across all {{n}} microcycles",

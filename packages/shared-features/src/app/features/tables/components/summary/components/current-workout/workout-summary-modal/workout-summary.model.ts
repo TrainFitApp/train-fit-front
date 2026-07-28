@@ -25,6 +25,7 @@ export interface WorkoutSummary {
   volumeKg: number;
   finishedAt: Date;
   exercises: WorkoutSummaryExercise[];
+  incompleteExerciseNames: string[];
 }
 
 function formatNumber(value: number, digits: string = '1.0-1'): string {
@@ -92,12 +93,18 @@ export function buildWorkoutSummary(
   let setsCount = 0;
   let volumeKg = 0;
   const exercises: WorkoutSummaryExercise[] = [];
+  const incompleteExerciseNames: string[] = [];
 
   (workout.exercises || []).forEach((customExercise) => {
     const doneSets = (customExercise.sets || [])
       .filter((set) => set.doned)
       .sort((a, b) => getSetOrder(a, 0) - getSetOrder(b, 0));
-    if (doneSets.length === 0) return;
+    if (doneSets.length === 0) {
+      incompleteExerciseNames.push(
+        customExercise.exercise?.name || 'Exercise'
+      );
+      return;
+    }
 
     exercisesCount += 1;
     setsCount += doneSets.length;
@@ -134,5 +141,6 @@ export function buildWorkoutSummary(
     volumeKg: Math.round(volumeKg),
     finishedAt,
     exercises,
+    incompleteExerciseNames,
   };
 }

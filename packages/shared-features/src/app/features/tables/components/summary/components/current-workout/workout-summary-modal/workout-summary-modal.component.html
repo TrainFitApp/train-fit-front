@@ -37,6 +37,16 @@
       </strong>
     </section>
 
+    <section class="incomplete-warning" *ngIf="summary?.incompleteExerciseNames?.length">
+      <div class="incomplete-warning-header">
+        <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+        <span>{{ 'TABLES.SUMMARY_INCOMPLETE_WARNING' | translate }}</span>
+      </div>
+      <ul class="incomplete-list">
+        <li *ngFor="let name of summary.incompleteExerciseNames">{{ name | translateDb }}</li>
+      </ul>
+    </section>
+
     <section class="exercise-summary" *ngIf="summary?.exercises?.length">
       <div class="exercise-summary-header">
         <h2>{{ 'TABLES.SUMMARY_COMPLETED_EXERCISES' | translate }}</h2>
