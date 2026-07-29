@@ -240,10 +240,10 @@
           <div class="item-header">
             <h3 class="item-name">
               {{ getRecipeName(instance) }}
+              <span class="item-quantity">{{
+                getRecipeConsumedQuantity(instance) | number : "1.0-1"
+              }}g</span>
             </h3>
-            <span class="item-quantity">{{
-              getRecipeConsumedQuantity(instance) | number : "1.0-1"
-            }}g</span>
           </div>
 
           <div class="nutrition-info">
@@ -306,8 +306,8 @@
           <div class="item-header">
             <h3 class="item-name">
               {{ product.product?.name }}
+              <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
             </h3>
-            <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
           </div>
 
           <div class="nutrition-info">
