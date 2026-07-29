@@ -231,21 +231,19 @@
         *ngFor="let instance of getCustomRecipesOrdered(meal)"
         class="meal-item recipe-item"
         [class.selected]="isRecipeSelected(instance)"
-        (click)="toggleRecipeSelection(instance)"
+        (click)="selectionMode ? toggleRecipeSelection(instance) : editCustomRecipe(instance)"
       >
+        <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteRecipe(meal, instance); $event.stopPropagation()">
+          <ion-icon name="close-outline" color="danger"></ion-icon>
+        </ion-button>
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
               {{ getRecipeName(instance) }}
             </h3>
-            <span class="item-header-right">
-              <span class="item-quantity">{{
-                getRecipeConsumedQuantity(instance) | number : "1.0-1"
-              }}g</span>
-              <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteRecipe(meal, instance); $event.stopPropagation()">
-                <ion-icon name="close-outline" color="danger"></ion-icon>
-              </ion-button>
-            </span>
+            <span class="item-quantity">{{
+              getRecipeConsumedQuantity(instance) | number : "1.0-1"
+            }}g</span>
           </div>
 
           <div class="nutrition-info">
@@ -299,19 +297,17 @@
         *ngFor="let product of getProductsAndOwnProductsOrdered(meal)"
         class="meal-item product-item"
         [class.selected]="isProductSelected(product)"
-        (click)="toggleProductSelection(product)"
+        (click)="selectionMode ? toggleProductSelection(product) : editCustomProduct(product)"
       >
+        <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteProduct(meal, product); $event.stopPropagation()">
+          <ion-icon name="close-outline" color="danger"></ion-icon>
+        </ion-button>
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
               {{ product.product?.name }}
             </h3>
-            <span class="item-header-right">
-              <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
-              <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteProduct(meal, product); $event.stopPropagation()">
-                <ion-icon name="close-outline" color="danger"></ion-icon>
-              </ion-button>
-            </span>
+            <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
           </div>
 
           <div class="nutrition-info">

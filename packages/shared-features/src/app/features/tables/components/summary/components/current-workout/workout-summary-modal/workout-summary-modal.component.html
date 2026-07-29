@@ -76,11 +76,15 @@
   </div>
 </ion-content>
 
-<ion-footer class="summary-footer">
-  <ion-button
-    class="summary-continue-btn"
-    (click)="close()"
-  >
-    {{ resolvedCloseButtonLabel }}
-  </ion-button>
+<ion-footer class="modal-footer">
+  <div class="footer-buttons">
+    <ion-button
+      expand="block"
+      mode="ios"
+      class="confirm-btn"
+      (click)="close()"
+    >
+      {{ resolvedCloseButtonLabel }}
+    </ion-button>
+  </div>
 </ion-footer>
