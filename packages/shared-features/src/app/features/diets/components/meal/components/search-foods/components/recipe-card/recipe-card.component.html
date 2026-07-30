@@ -1,7 +1,7 @@
 <div
   class="recipe-card"
   [class.is-checked]="isChecked"
-  [class.is-loading]="loading"
+  [class.is-loading]="isBusy"
   (click)="onCardClick()"
 >
   <div class="recipe-content">
@@ -40,10 +40,16 @@
           class="checkbox-container"
           (click)="onCheckboxClick($event)"
         >
+          <ion-spinner
+            *ngIf="loading"
+            name="crescent"
+            color="primary"
+          ></ion-spinner>
           <ion-checkbox
+            *ngIf="!loading"
             mode="ios"
             [checked]="isChecked"
-            [disabled]="loading"
+            [disabled]="isBusy"
             style="pointer-events: none"
           ></ion-checkbox>
         </div>
@@ -83,11 +89,5 @@
         Verificada
       </span>
     </div>
-    <ion-progress-bar
-      *ngIf="loading"
-      class="card-progress"
-      type="indeterminate"
-      color="primary"
-    ></ion-progress-bar>
   </div>
 </div>

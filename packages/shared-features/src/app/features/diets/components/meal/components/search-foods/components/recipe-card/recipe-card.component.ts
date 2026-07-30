@@ -31,6 +31,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: User;
   @Input() loading = false;
   @Input() recentCustomRecipe?: any | null = null;
+
+  public loadingObj = { value: false };
+  public get isBusy(): boolean {
+    return this.loadingObj.value || this.loading;
+  }
   @Input() showRecentIcon: boolean = false;
 
   @Output() toggle = new EventEmitter<Recipe>();
@@ -72,6 +77,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
         this.calculateMacros();
       }
     );
+    this.utilService.getLoading.subscribe((res) => (this.loadingObj.value = res));
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -146,7 +152,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public onCardClick(): void {
-    if (this.loading) return;
+    if (this.isBusy) return;
 
     // Click on card always goes to add/edit mode
     this.toggle.emit(this.recipe);
@@ -155,7 +161,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onCheckboxClick(event: Event): void {
     // Stop propagation so card click doesn't fire
     event.stopPropagation();
-    if (this.loading) return;
+    if (this.isBusy) return;
 
     // If checked, remove from meal
     if (this.isChecked) {

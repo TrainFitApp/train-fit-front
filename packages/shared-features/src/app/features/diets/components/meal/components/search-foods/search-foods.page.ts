@@ -2274,6 +2274,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     }
 
     this.setRecipeLoading(recipe, true);
+    this.utilService.setLoading = true;
 
     let quantity = 100;
     let quantityCooked = null;
@@ -2340,6 +2341,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.setRecipeLoading(recipe, false);
+        this.utilService.setLoading = false;
         console.error("[quickAddRecipeToMeal] Error:", error);
         this.ionicUtilService.showToast({
           message: this.translate.instant('SEARCH_FOODS.RECIPE_ADD_ERROR'),
@@ -2349,6 +2351,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       },
       complete: () => {
         this.setRecipeLoading(recipe, false);
+        this.utilService.setLoading = false;
       },
     });
   }
