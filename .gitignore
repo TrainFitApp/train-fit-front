@@ -18,8 +18,10 @@ log.txt
 npm-debug.log*
 
 /.angular
+**/.angular/
 /.idea
 /.ionic
+**/.ionic/
 /.sass-cache
 /.sourcemaps
 /.versions
@@ -27,9 +29,11 @@ npm-debug.log*
 /coverage
 /dist
 /node_modules
+**/node_modules/
 /platforms
 /plugins
 /www
+**/www/
 
 # Certificate files
 *.p12
