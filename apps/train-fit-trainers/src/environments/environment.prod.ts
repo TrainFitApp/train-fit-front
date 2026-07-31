@@ -1,0 +1,25 @@
+import pkg from '../../package.json';
+
+const API_URL_BASE = 'https://server.trainfit.net';
+
+export const environment = {
+  production: true,
+  APP_VERSION: pkg.version,
+  APP_STORE_URL: '',
+  GOOGLE_PLAY_URL: '',
+  API_URL_BASE,
+  API_URL_BASE_BACKEND: API_URL_BASE,
+  API_URL: `${API_URL_BASE}/api`,
+  lang: 'ES',
+  auth: {
+    clientFamily: 'trainfit-trainers',
+    google: { webClientId: '', iosClientId: '' },
+    apple: { clientId: 'com.trainfit.trainers' },
+  },
+  revenueCat: {
+    enabled: false,
+    androidApiKey: '',
+    iosApiKey: '',
+    entitlementId: 'trainer_pro',
+  },
+};

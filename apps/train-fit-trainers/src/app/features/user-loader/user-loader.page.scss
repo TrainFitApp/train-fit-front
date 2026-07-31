@@ -1,0 +1,7 @@
+.loader-page { --background: #101112; }
+main { min-height: 100%; display: grid; place-content: center; justify-items: center; gap: 18px; color: #b8babc; text-align: center; }
+img { width: 72px; height: 72px; object-fit: contain; }
+ion-spinner { color: #fe9000; }
+ion-icon { color: #fe9000; font-size: 2rem; }
+p { max-width: 280px; margin: 0; }
+button { min-height: 42px; padding: 0 22px; border: 1px solid #fe9000; border-radius: 7px; background: transparent; color: #fe9000; font-weight: 800; }

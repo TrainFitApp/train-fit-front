@@ -1,0 +1,14 @@
+<ion-content class="loader-page">
+  <main>
+    <img src="assets/Solo_Logo_dark.png" alt="TrainFit" />
+    <ng-container *ngIf="!failed">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>{{ 'TRAINERS.LOADER.PREPARING' | translate }}</p>
+    </ng-container>
+    <ng-container *ngIf="failed">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <p>{{ 'TRAINERS.LOADER.ERROR' | translate }}</p>
+      <button type="button" (click)="retry()">{{ 'TRAINERS.COMMON.RETRY' | translate }}</button>
+    </ng-container>
+  </main>
+</ion-content>

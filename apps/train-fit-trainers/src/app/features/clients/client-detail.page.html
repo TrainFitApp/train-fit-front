@@ -1,0 +1,126 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clients" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'TRAINERS.CLIENT_DETAIL.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+  <main *ngIf="!loading && client as currentClient">
+    <header class="client-header">
+      <div class="identity">
+        <div class="avatar">{{ (currentClient.user?.name || currentClient.user?.email || '?').charAt(0) }}</div>
+        <div>
+          <h1>{{ currentClient.user?.name }} {{ currentClient.user?.lastname }}</h1>
+          <p>{{ currentClient.user?.email }}</p>
+        </div>
+      </div>
+      <div class="weight" *ngIf="latestWeight as weight">
+        <span>{{ 'TRAINERS.CLIENT_DETAIL.LATEST_WEIGHT' | translate }}</span>
+        <strong>{{ weight.weight | number:'1.1-1' }} kg</strong>
+        <small>{{ weight.date | date:'dd/MM/yyyy' }}</small>
+      </div>
+    </header>
+
+    <nav class="scope-tabs" *ngIf="hasTraining && hasNutrition" aria-label="Sections">
+      <button type="button" [class.active]="selectedScope === 'training'" (click)="selectScope('training')">
+        <ion-icon name="barbell-outline"></ion-icon>
+        {{ 'TRAINERS.SCOPES.TRAINING' | translate }}
+      </button>
+      <button type="button" [class.active]="selectedScope === 'nutrition'" (click)="selectScope('nutrition')">
+        <ion-icon name="nutrition-outline"></ion-icon>
+        {{ 'TRAINERS.SCOPES.NUTRITION' | translate }}
+      </button>
+    </nav>
+
+    <section class="data-section" *ngIf="hasTraining && selectedScope === 'training'">
+      <div class="section-heading">
+        <div>
+          <p>{{ 'TRAINERS.CLIENT_DETAIL.CURRENT_PLAN' | translate }}</p>
+          <h2>{{ 'TRAINERS.CLIENT_DETAIL.ACTIVE_ROUTINE' | translate }}</h2>
+        </div>
+        <ion-icon name="barbell-outline"></ion-icon>
+      </div>
+
+      <article class="routine-summary" *ngIf="activeRoutine; else noRoutine">
+        <h3>{{ activeRoutine.name }}</h3>
+        <div class="metrics">
+          <div><strong>{{ routineStats.splits }}</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.MICROCYCLES' | translate }}</span></div>
+          <div><strong>{{ routineStats.workouts }}</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.WORKOUTS' | translate }}</span></div>
+          <div><strong>{{ routineStats.exercises }}</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.EXERCISES' | translate }}</span></div>
+        </div>
+      </article>
+      <ng-template #noRoutine>
+        <p class="empty-line">{{ 'TRAINERS.CLIENT_DETAIL.NO_ROUTINE' | translate }}</p>
+      </ng-template>
+
+      <div class="section-heading history-heading">
+        <div><p>{{ 'TRAINERS.CLIENT_DETAIL.RECENT_ACTIVITY' | translate }}</p><h2>{{ 'TRAINERS.CLIENT_DETAIL.WORKOUT_HISTORY' | translate }}</h2></div>
+      </div>
+      <div class="history-list" *ngIf="workoutHistory.length; else noHistory">
+        <article class="history-row" *ngFor="let workout of workoutHistory">
+          <time>{{ workout.date | date:'dd MMM' }}</time>
+          <div class="history-copy">
+            <h3>{{ workout.name }}</h3>
+            <p>{{ workout.table?.name }}<span *ngIf="workout.split?.name"> · {{ workout.split?.name }}</span></p>
+          </div>
+          <div class="history-metrics">
+            <strong>{{ completedSets(workout) }}</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.SETS' | translate }}</span>
+          </div>
+          <div class="history-metrics duration"><strong>{{ duration(workout) }}</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.DURATION' | translate }}</span></div>
+        </article>
+      </div>
+      <ng-template #noHistory><p class="empty-line">{{ 'TRAINERS.CLIENT_DETAIL.NO_HISTORY' | translate }}</p></ng-template>
+    </section>
+
+    <section class="data-section" *ngIf="hasNutrition && selectedScope === 'nutrition'">
+      <div class="section-heading">
+        <div><p>{{ 'TRAINERS.CLIENT_DETAIL.CURRENT_PLAN' | translate }}</p><h2>{{ 'TRAINERS.CLIENT_DETAIL.MACRO_GOAL' | translate }}</h2></div>
+        <ion-icon name="nutrition-outline"></ion-icon>
+      </div>
+      <article class="goal-summary" *ngIf="activeGoal; else noGoal">
+        <h3>{{ activeGoal.name }}</h3>
+        <div class="macro-grid">
+          <div><strong>{{ activeGoal.kcalTotal | number:'1.0-0' }}</strong><span>kcal</span></div>
+          <div><strong>{{ activeGoal.proteinsGTotal | number:'1.0-0' }} g</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.PROTEIN' | translate }}</span></div>
+          <div><strong>{{ activeGoal.carbohydratesGTotal | number:'1.0-0' }} g</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.CARBS' | translate }}</span></div>
+          <div><strong>{{ activeGoal.fatGTotal | number:'1.0-0' }} g</strong><span>{{ 'TRAINERS.CLIENT_DETAIL.FAT' | translate }}</span></div>
+        </div>
+      </article>
+      <ng-template #noGoal><p class="empty-line">{{ 'TRAINERS.CLIENT_DETAIL.NO_GOAL' | translate }}</p></ng-template>
+
+      <div class="diet-heading">
+        <div><p>{{ 'TRAINERS.CLIENT_DETAIL.DAILY_PLAN' | translate }}</p><h2>{{ 'TRAINERS.CLIENT_DETAIL.DIET' | translate }}</h2></div>
+        <div class="date-control">
+          <button type="button" (click)="shiftDate(-1)" aria-label="Previous day"><ion-icon name="chevron-back-outline"></ion-icon></button>
+          <input type="date" [value]="selectedDate" (change)="changeDate($any($event.target).value)" />
+          <button type="button" (click)="shiftDate(1)" aria-label="Next day"><ion-icon name="chevron-forward-outline"></ion-icon></button>
+        </div>
+      </div>
+
+      <ion-progress-bar *ngIf="dietLoading" type="indeterminate"></ion-progress-bar>
+      <div class="meal-list" *ngIf="!dietLoading && dietDay?.meals?.length; else noMeals">
+        <article class="meal-row" *ngFor="let meal of dietDay?.meals; let index = index">
+          <span class="meal-index">{{ index + 1 }}</span>
+          <div>
+            <h3>{{ meal.name }}</h3>
+            <p>{{ (meal.customProducts?.length || 0) + (meal.customRecipes?.length || 0) }} {{ 'TRAINERS.CLIENT_DETAIL.ITEMS' | translate }}</p>
+          </div>
+        </article>
+      </div>
+      <ng-template #noMeals><p class="empty-line" *ngIf="!dietLoading">{{ 'TRAINERS.CLIENT_DETAIL.NO_DIET_DAY' | translate }}</p></ng-template>
+    </section>
+  </main>
+
+  <section class="page-state" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>{{ 'TRAINERS.CLIENT_DETAIL.LOADING' | translate }}</p>
+  </section>
+  <section class="page-state" *ngIf="!loading && error">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>{{ 'TRAINERS.CLIENT_DETAIL.ERROR' | translate }}</h2>
+    <button type="button" (click)="retry()">{{ 'TRAINERS.COMMON.RETRY' | translate }}</button>
+  </section>
+</ion-content>

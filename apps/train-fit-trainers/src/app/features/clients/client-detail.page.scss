@@ -1,0 +1,58 @@
+ion-toolbar { --background: #101112; --color: #fff; --border-color: transparent; padding-top: env(safe-area-inset-top); }
+.detail-content { --background: #101112; }
+main { width: min(100%, 920px); margin: 0 auto; padding: 8px 16px 40px; }
+.client-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 0 24px; border-bottom: 1px solid #2b2d2f; }
+.identity { min-width: 0; display: flex; align-items: center; gap: 14px; }
+.avatar { width: 50px; height: 50px; flex: 0 0 50px; display: grid; place-items: center; border-radius: 50%; background: #26282a; color: #fe9000; font-size: 1.1rem; font-weight: 850; text-transform: uppercase; }
+.identity h1 { margin: 0 0 5px; color: #f7f7f5; font-size: 1.22rem; letter-spacing: 0; }
+.identity p { margin: 0; overflow: hidden; color: #85888a; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.weight { flex: 0 0 auto; display: grid; justify-items: end; }
+.weight span, .weight small { color: #777b7d; font-size: .64rem; text-transform: uppercase; }
+.weight strong { margin: 3px 0; color: #f7f7f5; font-size: 1rem; }
+.scope-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 18px 0 4px; border-bottom: 1px solid #2b2d2f; }
+.scope-tabs button { min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #7f8385; font-weight: 750; }
+.scope-tabs button.active { border-color: #fe9000; color: #fff; }
+.data-section { padding-top: 26px; }
+.section-heading, .diet-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.section-heading p, .diet-heading p { margin: 0 0 4px; color: #777b7d; font-size: .65rem; font-weight: 750; text-transform: uppercase; }
+.section-heading h2, .diet-heading h2 { margin: 0; color: #f5f5f3; font-size: 1rem; letter-spacing: 0; }
+.section-heading > ion-icon { color: #fe9000; font-size: 1.25rem; }
+.routine-summary, .goal-summary { padding: 18px; border: 1px solid #303235; border-radius: 7px; background: #18191a; }
+.routine-summary h3, .goal-summary h3 { margin: 0 0 18px; color: #fff; font-size: 1.05rem; letter-spacing: 0; }
+.metrics, .macro-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #303235; }
+.macro-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.metrics div, .macro-grid div { min-width: 0; display: grid; gap: 4px; padding: 10px 8px; background: #18191a; text-align: center; }
+.metrics strong, .macro-grid strong { color: #fff; font-size: 1rem; }
+.metrics span, .macro-grid span { overflow: hidden; color: #777b7d; font-size: .61rem; text-overflow: ellipsis; text-transform: uppercase; }
+.history-heading { margin-top: 30px; }
+.history-list, .meal-list { border-top: 1px solid #2b2d2f; }
+.history-row { min-height: 72px; display: grid; grid-template-columns: 48px minmax(0, 1fr) 50px 70px; align-items: center; gap: 10px; border-bottom: 1px solid #2b2d2f; }
+.history-row time { color: #8c9092; font-size: .7rem; font-weight: 750; text-transform: uppercase; }
+.history-copy { min-width: 0; }
+.history-copy h3, .meal-row h3 { margin: 0 0 4px; overflow: hidden; color: #f5f5f3; font-size: .86rem; letter-spacing: 0; text-overflow: ellipsis; white-space: nowrap; }
+.history-copy p, .meal-row p { margin: 0; overflow: hidden; color: #74787a; font-size: .68rem; text-overflow: ellipsis; white-space: nowrap; }
+.history-metrics { display: grid; justify-items: end; gap: 3px; }
+.history-metrics strong { color: #fff; font-size: .76rem; }
+.history-metrics span { color: #6f7375; font-size: .58rem; text-transform: uppercase; }
+.diet-heading { align-items: center; margin-top: 30px; }
+.date-control { display: flex; align-items: center; border: 1px solid #343638; border-radius: 6px; }
+.date-control button { width: 34px; height: 36px; display: grid; place-items: center; border: 0; background: transparent; color: #aaa; }
+.date-control input { width: 116px; height: 36px; border: 0; border-right: 1px solid #343638; border-left: 1px solid #343638; outline: 0; background: #171819; color: #f2f2f0; font-size: .68rem; text-align: center; color-scheme: dark; }
+ion-progress-bar { --background: #242628; --progress-background: #fe9000; height: 2px; }
+.meal-row { min-height: 66px; display: flex; align-items: center; gap: 13px; border-bottom: 1px solid #2b2d2f; }
+.meal-index { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #3a3d3f; border-radius: 50%; color: #fe9000; font-size: .7rem; font-weight: 800; }
+.empty-line { margin: 0; padding: 24px 0; border-top: 1px solid #2b2d2f; border-bottom: 1px solid #2b2d2f; color: #7d8183; font-size: .82rem; }
+.page-state { min-height: 70vh; display: grid; place-content: center; justify-items: center; padding: 24px; color: #888c8e; text-align: center; }
+.page-state ion-spinner, .page-state > ion-icon { color: #fe9000; font-size: 2rem; }
+.page-state h2 { color: #fff; font-size: 1rem; letter-spacing: 0; }
+.page-state button { min-height: 42px; padding: 0 18px; border: 1px solid #fe9000; border-radius: 6px; background: transparent; color: #fe9000; font-weight: 800; }
+@media (max-width: 520px) {
+  .client-header { align-items: flex-start; gap: 12px; }
+  .weight span, .weight small { display: none; }
+  .history-row { grid-template-columns: 42px minmax(0, 1fr) 42px; }
+  .history-metrics.duration { display: none; }
+  .macro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .diet-heading { align-items: flex-start; flex-direction: column; }
+  .date-control { align-self: stretch; justify-content: space-between; }
+  .date-control input { flex: 1; }
+}

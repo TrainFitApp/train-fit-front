@@ -1,0 +1,57 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ 'TRAINERS.CLIENTS.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="invite()" [attr.aria-label]="'TRAINERS.CLIENTS.INVITE' | translate">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadClients($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main>
+    <div class="summary-line" *ngIf="!loading && !error">
+      <strong>{{ clients.length }}</strong>
+      <span>{{ 'TRAINERS.CLIENTS.ACTIVE_COUNT' | translate }}</span>
+    </div>
+
+    <div class="skeleton-list" *ngIf="loading">
+      <div class="client-row skeleton" *ngFor="let item of [1, 2, 3]"></div>
+    </div>
+
+    <section class="feedback-state" *ngIf="!loading && error">
+      <ion-icon name="cloud-offline-outline"></ion-icon>
+      <h2>{{ 'TRAINERS.CLIENTS.ERROR_TITLE' | translate }}</h2>
+      <button type="button" (click)="loadClients()">{{ 'TRAINERS.COMMON.RETRY' | translate }}</button>
+    </section>
+
+    <section class="feedback-state" *ngIf="!loading && !error && clients.length === 0">
+      <ion-icon name="people-outline"></ion-icon>
+      <h2>{{ 'TRAINERS.CLIENTS.EMPTY_TITLE' | translate }}</h2>
+      <p>{{ 'TRAINERS.CLIENTS.EMPTY_COPY' | translate }}</p>
+      <button type="button" (click)="invite()">{{ 'TRAINERS.CLIENTS.INVITE_FIRST' | translate }}</button>
+    </section>
+
+    <section class="client-list" *ngIf="!loading && !error && clients.length > 0">
+      <button class="client-row" type="button" *ngFor="let client of clients" (click)="openClient(client)">
+        <div class="avatar">{{ initials(client) }}</div>
+        <div class="client-copy">
+          <h2>{{ client.user?.name }} {{ client.user?.lastname }}</h2>
+          <p>{{ client.user?.email }}</p>
+        </div>
+        <div class="scope-list">
+          <span *ngFor="let scope of client.scopes" [class.nutrition]="scope === 'nutrition'">
+            <ion-icon [name]="scope === 'training' ? 'barbell-outline' : 'nutrition-outline'"></ion-icon>
+            {{ ('TRAINERS.SCOPES.' + scope.toUpperCase()) | translate }}
+          </span>
+        </div>
+        <ion-icon class="row-chevron" name="chevron-forward-outline"></ion-icon>
+      </button>
+    </section>
+  </main>
+</ion-content>

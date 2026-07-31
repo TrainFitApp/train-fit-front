@@ -1,0 +1,41 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "src/app/core/*": ["../../packages/shared-core/src/app/core/*"],
+      "src/app/shared/*": ["../../packages/shared-ui/src/app/shared/*"],
+      "src/app/features/authentication/*": ["../../packages/shared-features/src/app/features/authentication/*"],
+      "src/app/features/app-update/*": ["../../packages/shared-features/src/app/features/app-update/*"],
+      "src/app/features/maintenance/*": ["../../packages/shared-features/src/app/features/maintenance/*"],
+      "src/app/features/profile/profile.page": ["../../packages/shared-features/src/app/features/profile/profile.page"],
+      "src/app/features/profile/components/*": ["../../packages/shared-features/src/app/features/profile/components/*"],
+      "src/app/features/profile/models/*": ["../../packages/shared-features/src/app/features/profile/models/*"],
+      "src/app/features/diet-days/*": ["../../packages/shared-features/src/app/features/diet-days/*"],
+      "src/app/features/diets/*": ["../../packages/shared-features/src/app/features/diets/*"],
+      "src/app/features/exercises/*": ["../../packages/shared-features/src/app/features/exercises/*"],
+      "src/app/features/premium/*": ["../../packages/shared-features/src/app/features/premium/*"],
+      "src/app/features/tables/*": ["../../packages/shared-features/src/app/features/tables/*"],
+      "src/app/features/user-loader/*": ["../../packages/shared-features/src/app/features/user-loader/*"]
+    },
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "allowSyntheticDefaultImports": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "exclude": ["node_modules", "www", "dist"]
+}

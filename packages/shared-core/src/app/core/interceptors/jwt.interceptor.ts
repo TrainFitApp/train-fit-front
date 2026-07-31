@@ -226,7 +226,8 @@ export class JWTInterceptor implements HttpInterceptor {
   /** Returns true for endpoints that never require an Authorization header. */
   private isPublicEndpoint(request: HttpRequest<unknown>): boolean {
     const isUsersCreate =
-      request.method === 'POST' && /\/users\/?$/.test(request.url);
+      request.method === 'POST' &&
+      /\/users(?:\/professional)?\/?$/.test(request.url);
     const isPublicHashCheck =
       request.method === 'GET' && request.url.includes('/users/hash/');
 

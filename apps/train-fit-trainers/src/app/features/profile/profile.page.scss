@@ -1,0 +1,13 @@
+ion-toolbar { --background: #101112; --color: #fff; padding-top: env(safe-area-inset-top); }
+.page-content { --background: #101112; }
+main { width: min(100%, 640px); margin: 0 auto; padding: 18px 16px 32px; color: #fff; }
+.identity { display: flex; align-items: center; gap: 16px; padding: 8px 0 28px; border-bottom: 1px solid #2a2c2e; }
+.avatar { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #242628; color: #fe9000; font-size: 1.5rem; }
+.identity h1 { margin: 0 0 6px; font-size: 1.2rem; letter-spacing: 0; }
+.identity p { margin: 0; color: #888b8d; font-size: .82rem; }
+.account-details { margin: 12px 0 34px; }
+.account-details div { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid #26282a; }
+.account-details span { color: #8d9092; font-size: .82rem; }
+.account-details strong { font-size: .85rem; }
+.logout-button { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid #ff665e; border-radius: 7px; background: transparent; color: #ff7770; font-weight: 800; }
+.logout-button ion-icon { font-size: 1.15rem; }

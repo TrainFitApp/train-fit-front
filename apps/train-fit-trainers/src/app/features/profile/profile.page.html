@@ -1,0 +1,31 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar><ion-title>{{ 'TRAINERS.PROFILE.TITLE' | translate }}</ion-title></ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content">
+  <main>
+    <section class="identity">
+      <div class="avatar"><ion-icon name="person-outline"></ion-icon></div>
+      <div>
+        <h1>{{ user?.name }} {{ user?.lastname }}</h1>
+        <p>{{ user?.email }}</p>
+      </div>
+    </section>
+
+    <section class="account-details">
+      <div>
+        <span>{{ 'TRAINERS.PROFILE.ACCOUNT_TYPE' | translate }}</span>
+        <strong>{{ 'TRAINERS.PROFILE.PROFESSIONAL' | translate }}</strong>
+      </div>
+      <div>
+        <span>{{ 'TRAINERS.PROFILE.VERSION' | translate }}</span>
+        <strong>{{ appVersion }}</strong>
+      </div>
+    </section>
+
+    <button class="logout-button" type="button" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      {{ 'TRAINERS.PROFILE.LOGOUT' | translate }}
+    </button>
+  </main>
+</ion-content>

@@ -1,0 +1,62 @@
+<ion-content class="trainer-auth">
+  <main class="auth-layout">
+    <section class="auth-panel">
+      <button class="back-action" type="button" routerLink="/sign-in" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+
+      <header class="auth-copy">
+        <p>TrainFit Trainers</p>
+        <h1>
+          {{ (verificationMode ? 'TRAINERS.AUTH.VERIFY_TITLE' : 'TRAINERS.AUTH.REGISTER_TITLE') | translate }}
+        </h1>
+        <span *ngIf="verificationMode">
+          {{ 'TRAINERS.AUTH.CODE_SENT_TO' | translate }} <strong>{{ verificationEmail }}</strong>
+        </span>
+      </header>
+
+      <form *ngIf="!verificationMode" [formGroup]="registrationForm" (ngSubmit)="register()" novalidate>
+        <div class="field-grid">
+          <div>
+            <label for="trainer-name">{{ 'TRAINERS.AUTH.NAME' | translate }}</label>
+            <div class="field"><input id="trainer-name" formControlName="name" autocomplete="given-name" /></div>
+          </div>
+          <div>
+            <label for="trainer-lastname">{{ 'TRAINERS.AUTH.LASTNAME' | translate }}</label>
+            <div class="field"><input id="trainer-lastname" formControlName="lastname" autocomplete="family-name" /></div>
+          </div>
+        </div>
+
+        <label for="registration-email">{{ 'TRAINERS.AUTH.EMAIL' | translate }}</label>
+        <div class="field"><ion-icon name="mail-outline"></ion-icon><input id="registration-email" type="email" formControlName="email" autocomplete="email" /></div>
+
+        <label for="registration-password">{{ 'TRAINERS.AUTH.PASSWORD' | translate }}</label>
+        <div class="field">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <input id="registration-password" [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password" />
+          <button type="button" class="icon-button" (click)="showPassword = !showPassword"><ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon></button>
+        </div>
+
+        <label for="registration-password-confirmation">{{ 'TRAINERS.AUTH.REPEAT_PASSWORD' | translate }}</label>
+        <div class="field"><ion-icon name="lock-closed-outline"></ion-icon><input id="registration-password-confirmation" [type]="showPassword ? 'text' : 'password'" formControlName="passwordConfirmation" autocomplete="new-password" /></div>
+
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+        <button class="primary-action" type="submit" [disabled]="loading">
+          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+          <span *ngIf="!loading">{{ 'TRAINERS.AUTH.CREATE_ACCOUNT' | translate }}</span>
+        </button>
+      </form>
+
+      <form *ngIf="verificationMode" [formGroup]="verificationForm" (ngSubmit)="verify()" novalidate>
+        <label for="verification-code">{{ 'TRAINERS.AUTH.VERIFICATION_CODE' | translate }}</label>
+        <div class="field code-field"><input id="verification-code" inputmode="numeric" maxlength="6" formControlName="code" autocomplete="one-time-code" /></div>
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+        <button class="primary-action" type="submit" [disabled]="loading">
+          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+          <span *ngIf="!loading">{{ 'TRAINERS.AUTH.VERIFY' | translate }}</span>
+        </button>
+        <button class="text-action" type="button" (click)="changeEmail()">{{ 'TRAINERS.AUTH.CHANGE_EMAIL' | translate }}</button>
+      </form>
+    </section>
+  </main>
+</ion-content>

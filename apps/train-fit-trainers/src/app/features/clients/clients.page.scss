@@ -1,0 +1,22 @@
+ion-toolbar { --background: #101112; --color: #fff; --border-color: transparent; padding-top: env(safe-area-inset-top); }
+.page-content { --background: #101112; }
+main { width: min(100%, 760px); margin: 0 auto; padding: 12px 16px 28px; }
+.summary-line { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 20px; color: #929597; }
+.summary-line strong { color: #fff; font-size: 1.6rem; }
+.summary-line span { font-size: 0.82rem; }
+.client-list, .skeleton-list { display: flex; flex-direction: column; border-top: 1px solid #292b2d; }
+.client-row { width: 100%; min-height: 82px; display: flex; align-items: center; gap: 13px; padding: 14px 2px; border: 0; border-bottom: 1px solid #292b2d; background: transparent; text-align: left; }
+.avatar { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border-radius: 50%; background: #252729; color: #fe9000; font-weight: 850; }
+.client-copy { min-width: 0; flex: 1; }
+.client-copy h2 { margin: 0 0 5px; color: #f8f8f6; font-size: 0.98rem; letter-spacing: 0; }
+.client-copy p { margin: 0; overflow: hidden; color: #85888a; font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
+.scope-list { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.scope-list span { display: flex; align-items: center; gap: 4px; color: #fe9000; font-size: 0.68rem; font-weight: 750; }
+.scope-list span.nutrition { color: #73d584; }
+.row-chevron { flex: 0 0 auto; color: #666a6c; font-size: 1rem; }
+.skeleton { height: 82px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.04), transparent); }
+.feedback-state { min-height: 58vh; display: grid; place-content: center; justify-items: center; text-align: center; }
+.feedback-state ion-icon { color: #fe9000; font-size: 2.3rem; }
+.feedback-state h2 { margin: 16px 0 8px; color: #fff; font-size: 1.15rem; letter-spacing: 0; }
+.feedback-state p { max-width: 290px; margin: 0 0 22px; color: #8d9092; line-height: 1.45; }
+.feedback-state button { min-height: 44px; padding: 0 20px; border: 1px solid #fe9000; border-radius: 7px; background: transparent; color: #fe9000; font-weight: 800; }

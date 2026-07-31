@@ -1,0 +1,53 @@
+<ion-content class="trainer-auth">
+  <main class="auth-layout">
+    <section class="auth-panel">
+      <header class="auth-brand">
+        <img src="assets/Solo_Logo_dark.png" alt="TrainFit" />
+        <div>
+          <p>TrainFit</p>
+          <h1>{{ 'TRAINERS.AUTH.PROFESSIONAL_ACCESS' | translate }}</h1>
+        </div>
+      </header>
+
+      <form [formGroup]="loginForm" (ngSubmit)="login()" novalidate>
+        <label for="trainer-email">{{ 'TRAINERS.AUTH.EMAIL' | translate }}</label>
+        <div class="field">
+          <ion-icon name="mail-outline"></ion-icon>
+          <input id="trainer-email" type="email" formControlName="email" autocomplete="email" />
+        </div>
+
+        <label for="trainer-password">{{ 'TRAINERS.AUTH.PASSWORD' | translate }}</label>
+        <div class="field">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          <input
+            id="trainer-password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button type="button" class="icon-button" (click)="showPassword = !showPassword">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+
+        <button class="primary-action" type="submit" [disabled]="loading">
+          <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+          <span *ngIf="!loading">{{ 'TRAINERS.AUTH.LOGIN' | translate }}</span>
+        </button>
+
+        <button class="text-action" type="button" routerLink="restore-password">
+          {{ 'TRAINERS.AUTH.FORGOT_PASSWORD' | translate }}
+        </button>
+      </form>
+
+      <footer>
+        <span>{{ 'TRAINERS.AUTH.NO_ACCOUNT' | translate }}</span>
+        <button type="button" routerLink="sign-up">
+          {{ 'TRAINERS.AUTH.CREATE_ACCOUNT' | translate }}
+        </button>
+      </footer>
+    </section>
+  </main>
+</ion-content>

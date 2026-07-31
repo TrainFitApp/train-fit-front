@@ -1,0 +1,11 @@
+{
+  "name": "TrainFit Trainers",
+  "short_name": "TF Trainers",
+  "theme_color": "#101112",
+  "background_color": "#101112",
+  "display": "standalone",
+  "icons": [
+    { "src": "assets/icons/icon-192.webp", "type": "image/webp", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "assets/icons/icon-512.webp", "type": "image/webp", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}

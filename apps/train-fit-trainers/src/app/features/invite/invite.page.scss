@@ -1,0 +1,31 @@
+ion-toolbar { --background: #101112; --color: #fff; padding-top: env(safe-area-inset-top); }
+.page-content { --background: #101112; }
+main { width: min(100%, 760px); margin: 0 auto; padding: 10px 16px 32px; color: #fff; }
+.invite-form-section { padding-bottom: 28px; border-bottom: 1px solid #2b2d2f; }
+header h1 { margin: 4px 0 7px; font-size: 1.2rem; letter-spacing: 0; }
+header p { margin: 0 0 24px; color: #8f9294; font-size: 0.85rem; line-height: 1.45; }
+form > label, legend { display: block; margin: 0 0 8px; color: #b4b6b8; font-size: 0.76rem; font-weight: 750; }
+.email-field { min-height: 50px; display: flex; align-items: center; gap: 10px; margin-bottom: 22px; padding: 0 14px; border: 1px solid #343638; border-radius: 7px; background: #191b1c; }
+.email-field:focus-within { border-color: #fe9000; }
+.email-field ion-icon { color: #898c8e; }
+.email-field input { width: 100%; border: 0; outline: 0; background: transparent; color: #fff; font: inherit; }
+fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 20px; padding: 0; border: 0; }
+legend { grid-column: 1 / -1; }
+.scope-option { min-height: 50px; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid #343638; border-radius: 7px; color: #fe9000; font-weight: 750; }
+.scope-option.nutrition { color: #73d584; }
+.scope-option ion-checkbox { --size: 18px; --checkbox-background-checked: currentColor; --border-color-checked: currentColor; }
+.send-button { width: 100%; min-height: 48px; display: grid; place-items: center; border: 0; border-radius: 7px; background: #fe9000; color: #111; font-weight: 850; }
+.send-button:disabled { opacity: .55; }
+.feedback { margin: 0 0 14px; font-size: .82rem; }
+.feedback.error { color: #ff7770; }
+.feedback.success { color: #73d584; }
+.invitations-section { padding-top: 24px; }
+.invitations-section > h2 { margin: 0 0 14px; font-size: .82rem; color: #96999b; text-transform: uppercase; letter-spacing: 0.05em; }
+.invitations-section > ion-spinner { display: block; margin: 24px auto; color: #fe9000; }
+.invitations-section article { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #292b2d; }
+.invitations-section article div { min-width: 0; }
+.invitations-section strong, .invitations-section span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.invitations-section strong { margin-bottom: 5px; font-size: .9rem; }
+.invitations-section span, .empty { color: #888b8d; font-size: .73rem; }
+.invitations-section article button { width: 38px; height: 38px; flex: 0 0 38px; border: 0; border-radius: 50%; background: #232527; color: #a8aaac; font-size: 1.2rem; }
+@media (max-width: 370px) { fieldset { grid-template-columns: 1fr; } }
