@@ -7,7 +7,13 @@
         <div class="workout-row">
           <div class="workout-info">
             <div class="workout-title">
-              <h2>{{ 'TABLES.WORKOUT_HEADER' | translate }}</h2>
+              <h2>
+                {{ 'TABLES.WORKOUT_HEADER' | translate }}
+                <span class="microcycle-separator">·</span>
+                <span class="microcycle-badge" *ngIf="currentSplitIndex !== undefined">
+                  {{ 'TABLES.MICROCYCLE' | translate }} {{ currentSplitIndex + 1 }}
+                </span>
+              </h2>
               <div class="workout-name">
                 <span class="workout-name-text"
                   >{{ currentWorkout?.name | translateDb }}</span

@@ -130,26 +130,10 @@ export class ToolbarCalendarComponent implements OnInit, OnDestroy {
   private getActionsPopover(): void {
     this.actionsPopover = [];
     if (this.dietDay?._id) {
-      this.actionsPopover = this.ACTION_VALUES.filter(
-        (actionTemp) =>
-          actionTemp.id !== this.ACTION_TYPES.deselect &&
-          actionTemp.id !== this.ACTION_TYPES.moveExercises &&
-          actionTemp.id !== this.ACTION_TYPES.edit &&
-          actionTemp.id !== this.ACTION_TYPES.duplicate &&
-          actionTemp.id !== this.ACTION_TYPES.viewSummary &&
-          actionTemp.id !== this.ACTION_TYPES.skipWorkout &&
-          actionTemp.id !== this.ACTION_TYPES.unskipWorkout &&
-          actionTemp.id !== this.ACTION_TYPES.moveSets &&
-          actionTemp.id !== this.ACTION_TYPES.rmCalculator &&
-          actionTemp.id !== this.ACTION_TYPES.copyExercises
-      );
-
-      // Sort to put delete at the end
-      this.actionsPopover.sort((a, b) => {
-        if (a.id === ACTIONS[this.ACTION_TYPES.delete].id) return 1;
-        if (b.id === ACTIONS[this.ACTION_TYPES.delete].id) return -1;
-        return 0;
-      });
+      // Orden visual coherente: acciones de contenido y finalmente la destructiva.
+      this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.note]);
+      this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.copy]);
+      this.actionsPopover.push(ACTIONS[this.ACTION_TYPES.delete]);
     } else {
       // Only show Note option when diet-day doesn't exist yet
       this.actionsPopover = this.ACTION_VALUES.filter(

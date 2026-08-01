@@ -678,35 +678,20 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private getActionsPopover(): ACTION_TYPE[] {
-    let actions = this.ACTION_VALUES;
+    const actions: ACTION_TYPE[] = [];
     if (
       (this.meal.customProducts?.length || 0) === 0 &&
       (this.meal.customRecipes?.length || 0) === 0
     ) {
-      actions = actions.filter(
-        (actionTemp) => actionTemp.id === ACTIONS[this.ACTION_TYPES.note].id
-      );
+      actions.push(ACTIONS[this.ACTION_TYPES.note]);
     } else {
-      actions = actions.filter(
-        (actionTemp) =>
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveExercises].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.edit].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id
-      );
+      // Orden visual coherente: acciones de contenido y finalmente la destructiva.
+      actions.push(ACTIONS[this.ACTION_TYPES.note]);
+      actions.push(ACTIONS[this.ACTION_TYPES.copy]);
+      actions.push(ACTIONS[this.ACTION_TYPES.delete]);
     }
 
-    return actions.sort((a, b) => {
-      if (a.id === ACTIONS[this.ACTION_TYPES.delete].id) return 1;
-      if (b.id === ACTIONS[this.ACTION_TYPES.delete].id) return -1;
-      return 0;
-    });
+    return actions;
   }
 
   private handleActions(action: ACTION_TYPE): void {

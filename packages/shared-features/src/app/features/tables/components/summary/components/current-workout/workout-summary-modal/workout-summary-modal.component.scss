@@ -339,6 +339,13 @@
   }
 }
 
+// Footer (basado en el estilo de "Añadir ejercicio" / search-exercises)
+ion-footer {
+  --background: transparent;
+  --border-width: 0;
+  padding: 8px 12px;
+}
+
 // Action Section
 .action-section {
   padding: 0 4px;

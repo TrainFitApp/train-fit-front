@@ -60,6 +60,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   public previousWorkout: Workout;
   public tableInUse: Table;
   public user: User;
+  public currentSplitIndex: number = 0;
 
   // TODO: ES NECESARIO ESTO AQUÍ?
   public previousWorkoutDate: Date;
@@ -542,6 +543,8 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     // Si no se encuentra el split, no continuar
     if (indexSplit === -1) return;
 
+    this.currentSplitIndex = indexSplit;
+
     const indexWorkout: number = this.tableInUse.splits[
       indexSplit
     ].workouts.findIndex((wTemp) => wTemp._id === this.currentWorkout._id);
@@ -612,8 +615,8 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   private getWorkoutOptions(): ACTION_TYPE[] {
     return [
-      ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.moveExercises],
+      ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.rmCalculator],
     ];
   }

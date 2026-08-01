@@ -107,10 +107,23 @@
 
   .workout-table-container {
     overflow-x: auto;
+    display: flex;
+    justify-content: center;
 
     .workout-skip-table {
       width: 100%;
+      max-width: 420px;
       border-collapse: collapse;
+
+      thead,
+      tbody {
+        tr {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+        }
+      }
 
       thead {
         tr {
@@ -124,8 +137,9 @@
             text-align: left;
             border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.15);
 
-            &.col-split {
-              width: 80px;
+            &.col-name {
+              flex: 1;
+              text-align: right;
             }
           }
         }
@@ -157,6 +171,9 @@
             }
 
             &.col-name {
+              flex: 1;
+              text-align: right;
+
               .workout-name {
                 font-size: 0.85rem;
                 font-weight: 600;

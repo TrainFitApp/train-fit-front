@@ -1242,7 +1242,7 @@
     "WORKOUT_SKIPPED_SUCCESS": "{{name}} marked as skipped",
     "WORKOUT_UNSKIPPED_SUCCESS": "Skip removed from {{name}}",
     "PREVIOUS_WORKOUT_PENDING": "Previous workouts not finished",
-    "PREVIOUS_WORKOUT_PENDING_MSG": "The following workouts aren't finished yet: {{names}}. You can mark them as skipped, or continue without changing them.",
+    "PREVIOUS_WORKOUT_PENDING_MSG": "These workouts are not finished. You can mark them as skipped to continue with the next one, or continue without changing them.",
     "SKIP_AND_CONTINUE_BTN": "SKIP AND CONTINUE",
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUE WITHOUT SKIPPING",
     "SKIPPED_DAY_LABEL": "Skipped",

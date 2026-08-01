@@ -964,45 +964,41 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   private getActionsPopover(): ACTION_TYPE[] {
-    let actions = this.ACTION_VALUES;
+    const actions: ACTION_TYPE[] = [];
+
     if (this.workout.exercises.length === 0) {
-      actions = actions.filter(
-        (actionTemp) =>
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id ||
-          actionTemp.id === ACTIONS[this.ACTION_TYPES.duplicate].id
-      );
-    } else {
-      actions = actions.filter(
-        (actionTemp) =>
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copy].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id
-      );
-
-      if (this.workout.exercises.length > 0) {
-        actions = [...actions, ACTIONS[this.ACTION_TYPES.copyExercises]];
-      }
-
-      // "Ver resumen" solo se ofrece si el entreno ya está terminado.
-      if (this.workout.date) {
-        actions = [...actions, ACTIONS[this.ACTION_TYPES.viewSummary]];
-      }
-
-      // "Saltar día" solo si aún no está terminado ni saltado;
-      // "Quitar descanso" solo si ya está marcado como saltado.
-      if (this.workout.rest) {
-        actions = [...actions, ACTIONS[this.ACTION_TYPES.unskipWorkout]];
-      } else if (!this.workout.date) {
-        actions = [...actions, ACTIONS[this.ACTION_TYPES.skipWorkout]];
-      }
+      // Sin ejercicios: solo acciones básicas del workout.
+      actions.push(ACTIONS[this.ACTION_TYPES.edit]);
+      actions.push(ACTIONS[this.ACTION_TYPES.duplicate]);
+      actions.push(ACTIONS[this.ACTION_TYPES.delete]);
+      return actions;
     }
+
+    // Orden visual coherente: acciones de contenido, luego de estado, y
+    // finalmente las destructivas.
+    actions.push(ACTIONS[this.ACTION_TYPES.edit]);
+
+    if (this.workout.exercises.length > 0) {
+      actions.push(ACTIONS[this.ACTION_TYPES.copyExercises]);
+      actions.push(ACTIONS[this.ACTION_TYPES.moveExercises]);
+    }
+
+    actions.push(ACTIONS[this.ACTION_TYPES.note]);
+
+    // "Ver resumen" solo se ofrece si el entreno ya está terminado.
+    if (this.workout.date) {
+      actions.push(ACTIONS[this.ACTION_TYPES.viewSummary]);
+    }
+
+    // "Saltar día" solo si aún no está terminado ni saltado;
+    // "Quitar descanso" solo si ya está marcado como saltado.
+    if (this.workout.rest) {
+      actions.push(ACTIONS[this.ACTION_TYPES.unskipWorkout]);
+    } else if (!this.workout.date) {
+      actions.push(ACTIONS[this.ACTION_TYPES.skipWorkout]);
+    }
+
+    actions.push(ACTIONS[this.ACTION_TYPES.delete]);
 
     return actions;
   }
