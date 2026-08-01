@@ -1,0 +1,247 @@
+:host {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+ion-header ion-toolbar {
+  --background: #0f0f0f;
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.invite-button {
+  --color: #fe9000;
+}
+
+.clients-content {
+  --background: #0f0f0f;
+}
+
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 16px 24px;
+}
+
+// --- Card (real, cargado) ---
+.client-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out),
+    background 160ms var(--ease-out);
+  animation: card-in 320ms var(--ease-out) backwards;
+
+  &:active {
+    transform: scale(0.98);
+    background: #1a1a1a;
+  }
+
+  &:not(.skeleton):hover {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 35}ms;
+    }
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-card {
+    animation: none;
+  }
+}
+
+.client-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.client-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.client-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-scopes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scope-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c7c7c7;
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.client-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #4a4a4a;
+}
+
+// --- Skeleton (cargando) ---
+.client-card.skeleton {
+  cursor: default;
+  pointer-events: none;
+  animation: card-in 320ms var(--ease-out) backwards;
+}
+
+.skeleton-block,
+.skeleton-line {
+  position: relative;
+  overflow: hidden;
+  background: #1e1e1e;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block::after,
+  .skeleton-line::after {
+    animation: none;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-block.client-avatar {
+  background: #1e1e1e;
+}
+
+.skeleton-line {
+  border-radius: 4px;
+  height: 12px;
+
+  &--name {
+    width: 55%;
+    height: 14px;
+  }
+
+  &--chip {
+    width: 35%;
+  }
+}
+
+// --- Estados (error / vacío) ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 96px 32px 0;
+  color: #8b8b8b;
+
+  ion-icon {
+    font-size: 40px;
+    color: #4a4a4a;
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
+  }
+}
+
+.retry-button,
+.invite-cta {
+  margin-top: 8px;
+  height: 42px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.retry-button {
+  background: #252525;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.invite-cta {
+  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
+  color: #0f0f0f;
+}

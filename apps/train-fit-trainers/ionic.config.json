@@ -1,0 +1,7 @@
+{
+  "name": "train-fit-trainers",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

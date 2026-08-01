@@ -33,7 +33,21 @@
     "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
     "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
-    "lint:m": "npm run lint --workspace @trainfit/train-fit-management"
+    "lint:m": "npm run lint --workspace @trainfit/train-fit-management",
+    "serve:t": "npm run start --workspace @trainfit/train-fit-trainers",
+    "serve:pre:t": "npm run start:pre --workspace @trainfit/train-fit-trainers",
+    "serve:pro:t": "npm run start:pro --workspace @trainfit/train-fit-trainers",
+    "build:pre:t": "npm run build:pre --workspace @trainfit/train-fit-trainers",
+    "build:pro:t": "npm run build:pro --workspace @trainfit/train-fit-trainers",
+    "build:i:t": "npm run build:i --workspace @trainfit/train-fit-trainers",
+    "build:a:t": "npm run build:a --workspace @trainfit/train-fit-trainers",
+    "build:i:pre:t": "npm run build:i:pre --workspace @trainfit/train-fit-trainers",
+    "build:a:pre:t": "npm run build:a:pre --workspace @trainfit/train-fit-trainers",
+    "build:i:pro:t": "npm run build:i:pro --workspace @trainfit/train-fit-trainers",
+    "build:a:pro:t": "npm run build:a:pro --workspace @trainfit/train-fit-trainers",
+    "live:i:t": "npm run live:i --workspace @trainfit/train-fit-trainers",
+    "live:a:t": "npm run live:a --workspace @trainfit/train-fit-trainers",
+    "lint:t": "npm run lint --workspace @trainfit/train-fit-trainers"
   },
   "dependencies": {
     "@ngx-translate/core": "^15.0.0",

@@ -1,0 +1,37 @@
+.detail-content {
+  --background: #0f0f0f;
+}
+
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 80px 32px 0;
+  color: #8b8b8b;
+
+  ion-icon {
+    font-size: 40px;
+    color: #4a4a4a;
+    margin-bottom: 4px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 32ch;
+    margin: 0;
+
+    strong {
+      color: #c7c7c7;
+    }
+  }
+}

@@ -1,0 +1,67 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Clientes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="goToInvite()" fill="clear" class="invite-button">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="clients-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div class="client-list" *ngIf="state === 'loading'">
+    <div class="client-card skeleton" *ngFor="let i of [1, 2, 3, 4]">
+      <div class="client-avatar skeleton-block"></div>
+      <div class="client-info">
+        <div class="skeleton-line skeleton-line--name"></div>
+        <div class="skeleton-line skeleton-line--chip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar tu lista de clientes</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <!-- Empty -->
+  <div class="state-message" *ngIf="state === 'empty'">
+    <ion-icon name="people-outline"></ion-icon>
+    <h2>Todavía no tienes clientes</h2>
+    <p>Invita a tu primer cliente por email para empezar a gestionar su entrenamiento o nutrición.</p>
+    <button class="invite-cta" (click)="goToInvite()">Invitar a tu primer cliente</button>
+  </div>
+
+  <!-- Loaded -->
+  <div class="client-list" *ngIf="state === 'loaded'">
+    <button
+      class="client-card"
+      *ngFor="let client of clients; trackBy: trackByClientId"
+      (click)="openClient(client)"
+    >
+      <div
+        class="client-avatar"
+        [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
+        [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+      >
+        {{ getInitials(client) }}
+      </div>
+      <div class="client-info">
+        <span class="client-name">{{ getFullName(client) }}</span>
+        <div class="client-scopes">
+          <span class="scope-chip" *ngFor="let scope of getScopeLabels(client)">{{ scope }}</span>
+        </div>
+      </div>
+      <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
+    </button>
+  </div>
+</ion-content>

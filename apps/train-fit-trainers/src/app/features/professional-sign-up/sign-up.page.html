@@ -1,0 +1,197 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goToLogin()" fill="clear">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="signup-content" fullscreen>
+  <div class="signup-container">
+    <div class="signup-step" *ngIf="!codeSended">
+      <h1 class="signup-title">Crea tu cuenta de profesional</h1>
+      <p class="signup-subtitle">
+        Gestiona a tus clientes de entrenamiento y nutrición desde TrainFit.
+      </p>
+
+      <form class="signup-form" [formGroup]="form" (ngSubmit)="register()">
+        <div class="input-row">
+          <div class="input-group">
+            <div class="input-wrapper">
+              <ion-icon name="person-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                formControlName="name"
+                class="input-field"
+                [placeholder]="'SIGN_UP.NAME_PLACEHOLDER' | translate"
+              />
+            </div>
+            <div
+              class="validation-error"
+              *ngIf="form.get('name')?.invalid && form.get('name')?.touched"
+            >
+              {{ 'SIGN_UP.NAME_REQUIRED' | translate }}
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="input-wrapper">
+              <ion-icon name="people-outline" class="input-icon"></ion-icon>
+              <input
+                type="text"
+                formControlName="lastname"
+                class="input-field"
+                [placeholder]="'SIGN_UP.LASTNAME_PLACEHOLDER' | translate"
+              />
+            </div>
+            <div
+              class="validation-error"
+              *ngIf="form.get('lastname')?.invalid && form.get('lastname')?.touched"
+            >
+              {{ 'SIGN_UP.LASTNAME_REQUIRED' | translate }}
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+            <input
+              type="email"
+              formControlName="email"
+              class="input-field"
+              [placeholder]="'SIGN_UP.EMAIL_PLACEHOLDER' | translate"
+            />
+          </div>
+          <div
+            class="validation-error"
+            *ngIf="form.get('email')?.invalid && form.get('email')?.touched"
+          >
+            <span *ngIf="form.get('email')?.errors?.['required']">{{ 'SIGN_UP.EMAIL_REQUIRED' | translate }}</span>
+            <span *ngIf="form.get('email')?.errors?.['email']">{{ 'SIGN_UP.EMAIL_INVALID' | translate }}</span>
+            <span *ngIf="form.get('email')?.errors?.['emailExist']">{{ 'SIGN_UP.EMAIL_EXISTS' | translate }}</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input
+              [type]="showPass ? 'text' : 'password'"
+              formControlName="password"
+              class="input-field"
+              [placeholder]="'SIGN_UP.PASSWORD_PLACEHOLDER' | translate"
+            />
+            <button type="button" class="password-toggle" (click)="showPass = !showPass">
+              <ion-icon [name]="showPass ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </button>
+          </div>
+          <div
+            class="validation-error"
+            *ngIf="form.get('password')?.invalid && form.get('password')?.touched"
+          >
+            {{ 'SIGN_UP.PASS_LENGTH' | translate }}
+          </div>
+        </div>
+
+        <div class="input-group">
+          <div class="input-wrapper">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input
+              [type]="showPassRep ? 'text' : 'password'"
+              formControlName="passwordRep"
+              class="input-field"
+              [placeholder]="'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate"
+            />
+            <button type="button" class="password-toggle" (click)="showPassRep = !showPassRep">
+              <ion-icon [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </button>
+          </div>
+          <div
+            class="validation-error"
+            *ngIf="(form.get('passwordRep')?.touched) && form.errors?.['notSame']"
+          >
+            {{ 'SIGN_UP.PASS_NOT_MATCH' | translate }}
+          </div>
+        </div>
+
+        <div class="checkbox-section">
+          <div class="checkbox-item" (click)="toggleControl('termsAndConditions')">
+            <ion-checkbox
+              formControlName="termsAndConditions"
+              mode="ios"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
+            <span class="checkbox-label">
+              {{ 'SIGN_UP.I_ACCEPT' | translate }}
+              <a [href]="LINKS.termsAndConditions" (click)="$event.stopPropagation()">{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a>
+            </span>
+          </div>
+          <div class="checkbox-item" (click)="toggleControl('policyAndPrivacy')">
+            <ion-checkbox
+              formControlName="policyAndPrivacy"
+              mode="ios"
+              (click)="$event.stopPropagation()"
+            ></ion-checkbox>
+            <span class="checkbox-label">
+              {{ 'SIGN_UP.I_HAVE_READ' | translate }}
+              <a [href]="LINKS.privacyAndPolicy" (click)="$event.stopPropagation()">{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a>
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="form.invalid || isProcessing"
+        >
+          <span *ngIf="!isProcessing">{{ 'SIGN_IN.CREATE_ACCOUNT' | translate }}</span>
+          <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
+        </button>
+      </form>
+    </div>
+
+    <div class="signup-step verification-step" *ngIf="codeSended">
+      <h1 class="signup-title">{{ 'SIGN_UP.VERIFY_ACCOUNT' | translate }}</h1>
+      <p class="signup-subtitle">
+        {{ 'SIGN_UP.VERIFY_MESSAGE' | translate }} <strong>{{ email }}</strong>
+      </p>
+
+      <div class="input-group">
+        <div class="input-wrapper">
+          <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="input-field"
+            [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"
+            #codeInput
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="submit-button"
+        [disabled]="isProcessing"
+        (click)="verifyCode()"
+      >
+        <span *ngIf="!isProcessing">{{ 'SIGN_UP.VERIFY_CODE_BUTTON' | translate }}</span>
+        <ion-spinner name="dots" *ngIf="isProcessing"></ion-spinner>
+      </button>
+
+      <div class="resend-row">
+        <span>{{ 'SIGN_UP.NO_CODE' | translate }}</span>
+        <button
+          type="button"
+          class="resend-button"
+          [disabled]="resendDisabled"
+          (click)="resendCode()"
+        >
+          {{ resendDisabled ? (('SIGN_UP.RESEND_IN' | translate) + ' ' + resendCountdown + 's') : ('SIGN_UP.RESEND_CODE' | translate) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>

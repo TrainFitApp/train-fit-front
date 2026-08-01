@@ -228,6 +228,12 @@ export class UserLoaderPage implements OnInit, OnDestroy {
   }
 
   private isUserRegistrationComplete(user: User): boolean {
+    // MVP-trainers F01: las cuentas profesionales (roles: ["trainer"]) nunca
+    // tienen datos biométricos por diseño — exigirlos aquí las mandaría en
+    // bucle a un sign-up de consumidor que no les corresponde.
+    if (user?.roles?.includes('trainer')) {
+      return !!(user?.name && user?.lastname);
+    }
     return !!(user?.name && user?.lastname && user?.weight && user?.height);
   }
 

@@ -98,6 +98,18 @@ export class UserService {
     );
   }
 
+  public createProfessionalUser(payload: {
+    name: string;
+    lastname: string;
+    email: string;
+    password: string;
+  }): Observable<User> {
+    return this.userAPIService.createProfessionalUser(payload).pipe(
+      take(1),
+      tap((createdUser) => (this.setLocalUser = createdUser)),
+    );
+  }
+
   public createGoogleUser(
     user: User,
     date: Date,

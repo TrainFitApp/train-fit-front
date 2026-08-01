@@ -30,6 +30,18 @@ export class UserAPIService {
     });
   }
 
+  public createProfessionalUser(payload: {
+    name: string;
+    lastname: string;
+    email: string;
+    password: string;
+  }): Observable<User> {
+    return this.http.post<User>(
+      `${UserAPIService.USERS_ENDPOINT}/professional`,
+      payload
+    );
+  }
+
   public createGoogleUser(
     user: User,
     date: Date,

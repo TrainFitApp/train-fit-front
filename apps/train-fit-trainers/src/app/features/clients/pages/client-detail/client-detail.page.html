@@ -1,0 +1,19 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/clients" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ name || 'Cliente' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="detail-content">
+  <div class="detail-empty">
+    <ion-icon name="construct-outline"></ion-icon>
+    <h2>Detalle en construcción</h2>
+    <p>
+      Aquí verás la rutina, la nutrición y las notas de
+      <strong>{{ name || 'este cliente' }}</strong> ({{ scopes }}) — F06.
+    </p>
+  </div>
+</ion-content>
