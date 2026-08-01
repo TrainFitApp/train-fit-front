@@ -1226,6 +1226,7 @@
     "SAVE_BTN": "SAVE",
     "OK_BTN": "OK",
     "ROUTINE_ACTIVE": "Active Routine",
+    "ASSIGNED_BY_TRAINER": "Assigned by your trainer",
     "SELECT_ROUTINE": "Select Routine",
     "ACQUIRE": "Acquire",
     "FREE": "Free",

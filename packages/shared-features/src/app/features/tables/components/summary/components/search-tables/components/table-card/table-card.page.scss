@@ -200,6 +200,11 @@
   background: rgba(var(--ion-color-success-rgb), 0.12);
 }
 
+.trainer-assigned-badge {
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.12);
+}
+
 // Preview Button
 .preview-btn {
   display: inline-flex;

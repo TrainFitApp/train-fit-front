@@ -3,17 +3,210 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/clients" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ name || 'Cliente' }}</ion-title>
+    <ion-title>{{ name }}</ion-title>
   </ion-toolbar>
+
+  <div class="scope-tabbar" *ngIf="scopes.length > 1">
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'training'"
+      (click)="selectTab('training')"
+    >
+      Entrenamiento
+    </button>
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'nutrition'"
+      (click)="selectTab('nutrition')"
+    >
+      Nutrición
+    </button>
+  </div>
 </ion-header>
 
 <ion-content class="detail-content">
-  <div class="detail-empty">
-    <ion-icon name="construct-outline"></ion-icon>
-    <h2>Detalle en construcción</h2>
-    <p>
-      Aquí verás la rutina, la nutrición y las notas de
-      <strong>{{ name || 'este cliente' }}</strong> ({{ scopes }}) — F06.
-    </p>
+  <!-- === ENTRENAMIENTO === -->
+  <div class="tab-panel" *ngIf="scopes.includes('training') && activeTab === 'training'">
+    <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
+      <div class="skeleton-block" style="height: 64px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="trainingState === 'error'">
+      <p>No se pudo cargar el entrenamiento de este cliente.</p>
+      <button class="retry-button" (click)="loadTraining()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="trainingState === 'loaded'">
+      <div class="stat-card" *ngIf="latestWeight?.weight as weight">
+        <ion-icon name="scale-outline"></ion-icon>
+        <div>
+          <span class="stat-value">{{ weight }} kg</span>
+          <span class="stat-label">Peso más reciente</span>
+        </div>
+      </div>
+
+      <div class="section-row">
+        <h2 class="section-heading">Rutinas</h2>
+        <button class="add-button" (click)="openRoutinePanel()">
+          <ion-icon name="add-outline"></ion-icon>
+          Asignar rutina
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
+
+      <div class="list-card" *ngFor="let table of tables; trackBy: trackByTableId">
+        <ion-icon name="barbell-outline"></ion-icon>
+        <span class="list-card-title">{{ table.name }}</span>
+        <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
+      </div>
+
+      <button class="danger-link" (click)="confirmRevoke('training')" [disabled]="isRevoking">
+        Finalizar relación de entrenamiento
+      </button>
+    </ng-container>
+
+    <!-- Panel: Asignar rutina -->
+    <div class="panel-backdrop" *ngIf="showRoutinePanel" (click)="closeRoutinePanel()"></div>
+    <div class="panel-sheet" *ngIf="showRoutinePanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Asignar rutina</h3>
+
+      <div class="mode-toggle">
+        <button class="mode-option" [class.selected]="routineMode === 'new'" (click)="setRoutineMode('new')">
+          Crear nueva
+        </button>
+        <button class="mode-option" [class.selected]="routineMode === 'template'" (click)="setRoutineMode('template')">
+          Desde plantilla
+        </button>
+      </div>
+
+      <form *ngIf="routineMode === 'new'" [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()">
+        <div class="input-wrapper">
+          <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            formControlName="name"
+            class="input-field"
+            placeholder="Nombre de la rutina"
+          />
+        </div>
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="!routineForm.value.name?.trim() || isAssigningRoutine"
+        >
+          <span *ngIf="!isAssigningRoutine">Crear y asignar</span>
+          <ion-spinner name="dots" *ngIf="isAssigningRoutine"></ion-spinner>
+        </button>
+      </form>
+
+      <div class="template-list" *ngIf="routineMode === 'template'">
+        <p class="empty-hint" *ngIf="templatesLoaded && !availableTemplates.length">
+          No tienes plantillas disponibles todavía.
+        </p>
+        <button
+          class="list-card list-card--button"
+          *ngFor="let template of availableTemplates; trackBy: trackByTableId"
+          (click)="assignTemplate(template)"
+          [disabled]="isAssigningRoutine"
+        >
+          <ion-icon name="copy-outline"></ion-icon>
+          <span class="list-card-title">{{ template.name }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === NUTRICIÓN === -->
+  <div class="tab-panel" *ngIf="scopes.includes('nutrition') && activeTab === 'nutrition'">
+    <div class="detail-skeleton" *ngIf="nutritionState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="nutritionState === 'error'">
+      <p>No se pudo cargar la nutrición de este cliente.</p>
+      <button class="retry-button" (click)="loadNutrition()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="nutritionState === 'loaded'">
+      <div class="section-row">
+        <h2 class="section-heading">Objetivos nutricionales</h2>
+        <button class="add-button" (click)="openGoalPanel()">
+          <ion-icon name="add-outline"></ion-icon>
+          Asignar objetivos
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!goals.length">Este cliente todavía no tiene objetivos configurados.</p>
+
+      <div class="goal-card" *ngFor="let goal of goals; trackBy: trackByGoalId">
+        <div class="goal-header">
+          <span class="list-card-title">{{ goal.name }}</span>
+          <span class="assigned-badge" *ngIf="goal.assignedByTrainerId">Asignado por ti</span>
+        </div>
+        <div class="goal-macros">
+          <span>{{ goal.kcalTotal }} kcal</span>
+          <span>P {{ goal.proteinsGTotal }}g</span>
+          <span>C {{ goal.carbohydratesGTotal }}g</span>
+          <span>G {{ goal.fatGTotal }}g</span>
+        </div>
+      </div>
+
+      <h2 class="section-heading section-heading--top">Dieta de hoy</h2>
+      <p class="empty-hint" *ngIf="!dietDay">Este cliente todavía no tiene dieta activa hoy.</p>
+
+      <div class="list-card list-card--meal" *ngFor="let meal of dietDay?.meals || []">
+        <div class="meal-info">
+          <span class="list-card-title">{{ meal.name }}</span>
+          <span class="meal-summary">{{ mealContentSummary(meal) }}</span>
+        </div>
+        <button class="prescribe-button" (click)="prescribeMeal()">Pautar</button>
+      </div>
+
+      <button class="danger-link" (click)="confirmRevoke('nutrition')" [disabled]="isRevoking">
+        Finalizar relación de nutrición
+      </button>
+    </ng-container>
+
+    <!-- Panel: Asignar objetivos -->
+    <div class="panel-backdrop" *ngIf="showGoalPanel" (click)="closeGoalPanel()"></div>
+    <div class="panel-sheet" *ngIf="showGoalPanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Asignar objetivos nutricionales</h3>
+
+      <form [formGroup]="goalForm" (ngSubmit)="submitGoal()">
+        <div class="input-wrapper">
+          <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+          <input type="text" formControlName="name" class="input-field" placeholder="Nombre del objetivo" />
+        </div>
+        <div class="macro-grid">
+          <div class="input-wrapper">
+            <ion-icon name="flame-outline" class="input-icon"></ion-icon>
+            <input type="number" formControlName="kcalTotal" class="input-field" placeholder="Kcal" />
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
+            <input type="number" formControlName="proteinsGTotal" class="input-field" placeholder="Proteína (g)" />
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
+            <input type="number" formControlName="carbohydratesGTotal" class="input-field" placeholder="Carbohidratos (g)" />
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="water-outline" class="input-icon"></ion-icon>
+            <input type="number" formControlName="fatGTotal" class="input-field" placeholder="Grasas (g)" />
+          </div>
+        </div>
+        <button type="submit" class="submit-button" [disabled]="goalForm.invalid || isAssigningGoal">
+          <span *ngIf="!isAssigningGoal">Guardar objetivos</span>
+          <ion-spinner name="dots" *ngIf="isAssigningGoal"></ion-spinner>
+        </button>
+      </form>
+    </div>
   </div>
 </ion-content>

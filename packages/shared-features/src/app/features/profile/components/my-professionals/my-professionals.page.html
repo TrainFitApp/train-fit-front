@@ -1,0 +1,102 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="close()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Mis profesionales</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="my-professionals-content">
+  <!-- Loading -->
+  <div class="mp-section" *ngIf="state === 'loading'">
+    <div class="mp-card skeleton" *ngFor="let i of [1, 2]">
+      <div class="mp-avatar skeleton-block"></div>
+      <div class="mp-info">
+        <div class="skeleton-line skeleton-line--name"></div>
+        <div class="skeleton-line skeleton-line--chip"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="mp-state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar tu información</h2>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <!-- Invitaciones pendientes -->
+    <div class="mp-section" *ngIf="pendingInvites.length">
+      <h2 class="section-heading">Invitaciones pendientes</h2>
+
+      <div
+        class="mp-card mp-card--invite"
+        *ngFor="let invite of pendingInvites; trackBy: trackByInviteId"
+      >
+        <div class="mp-avatar">{{ getInitials(getTrainerName(invite)) }}</div>
+        <div class="mp-info">
+          <span class="mp-name">{{ getTrainerName(invite) }}</span>
+          <span class="scope-chip">{{ scopeLabel(invite.scope) }}</span>
+        </div>
+        <div class="invite-actions">
+          <button
+            class="icon-button icon-button--decline"
+            (click)="confirmDecline(invite)"
+            [disabled]="respondingId === invite._id"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+          <button
+            class="icon-button icon-button--accept"
+            (click)="accept(invite)"
+            [disabled]="respondingId === invite._id"
+          >
+            <ion-spinner name="dots" *ngIf="respondingId === invite._id"></ion-spinner>
+            <ion-icon name="checkmark-outline" *ngIf="respondingId !== invite._id"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profesionales activos -->
+    <div class="mp-section">
+      <h2 class="section-heading">Tus profesionales</h2>
+
+      <p class="empty-hint" *ngIf="!activeProfessionals.length">
+        Todavía no tienes ningún profesional vinculado.
+      </p>
+
+      <div
+        class="mp-card"
+        *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId"
+      >
+        <div class="mp-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
+        <div class="mp-info">
+          <span class="mp-name">{{ getProfessionalName(professional) }}</span>
+          <div class="scope-chips">
+            <span class="scope-chip scope-chip--linkable" *ngFor="let scope of professional.scopes">
+              {{ scopeLabel(scope) }}
+              <button
+                class="unlink-button"
+                (click)="confirmUnlink(professional, scope)"
+                [disabled]="unlinkingScope === scope"
+              >
+                <ion-icon name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
+                <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>

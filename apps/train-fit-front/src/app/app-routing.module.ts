@@ -96,6 +96,18 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
+    // MVP-trainers F04 — "Mis profesionales": ver/aceptar/rechazar invitaciones
+    // de entrenadores y gestionar profesionales ya vinculados. Solo tiene
+    // sentido para clientes (esta app); no se registra en train-fit-management
+    // ni train-fit-trainers.
+    path: 'my-professionals',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/profile/components/my-professionals/my-professionals.module'
+      ).then((m) => m.MyProfessionalsPageModule),
+  },
+  {
     path: 'premium',
     canMatch: [authMatchGuard],
     loadChildren: () =>

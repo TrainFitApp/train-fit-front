@@ -11,6 +11,10 @@
         <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
       </div>
       <p class="card-desc" *ngIf="tableCard?.description">{{ tableCard?.description | translateDb }}</p>
+      <div class="status-badge trainer-assigned-badge" *ngIf="tableCard?.assignedByTrainerId">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>{{ 'TABLES.ASSIGNED_BY_TRAINER' | translate }}</span>
+      </div>
     </div>
 
     <div class="card-stats">

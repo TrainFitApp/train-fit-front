@@ -14,6 +14,7 @@ type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
 export class ClientsPage implements OnInit {
   public state: ViewState = 'loading';
   public clients: TrainerClientSummary[] = [];
+  private hasLoadedOnce = false;
 
   constructor(
     private trainerClientsApi: TrainerClientsApiService,
@@ -22,6 +23,15 @@ export class ClientsPage implements OnInit {
 
   public ngOnInit(): void {
     this.load();
+    this.hasLoadedOnce = true;
+  }
+
+  // Ionic reutiliza la instancia de esta página dentro del stack del tab —
+  // ngOnInit solo se dispara una vez. Sin esto, volver aquí tras revocar una
+  // relación (F08) o asignar algo en F06 mostraría datos obsoletos hasta un
+  // refresco manual.
+  public ionViewWillEnter(): void {
+    if (this.hasLoadedOnce) this.load();
   }
 
   public load(refresher?: IonRefresher): void {
@@ -55,7 +65,7 @@ export class ClientsPage implements OnInit {
     void this.router.navigate(['/tabs/clients', client.user._id], {
       queryParams: {
         name: this.getFullName(client),
-        scopes: this.getScopeLabels(client).join(' · '),
+        scopes: client.scopes.join(','),
       },
     });
   }

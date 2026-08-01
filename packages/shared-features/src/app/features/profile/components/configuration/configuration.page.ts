@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertButton, AlertOptions, ModalOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
@@ -45,6 +46,7 @@ export class ConfigurationPage {
   public isTimeModalOpen: boolean = false;
 
   constructor(
+    private readonly router: Router,
     private readonly userService: UserService,
     private readonly themeService: ThemeService,
     private readonly ionicUtilService: IonicUtilService,
@@ -181,6 +183,10 @@ export class ConfigurationPage {
 
   public goToRestorePassword(): void {
     this.navigationService.goToRestorePasswordPage();
+  }
+
+  public goToMyProfessionals(): void {
+    void this.router.navigate(['/my-professionals']);
   }
 
   public async goToAdConsent(): Promise<void> {
