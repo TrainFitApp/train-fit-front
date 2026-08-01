@@ -27,32 +27,11 @@
   --background: var(--summary-bg);
 }
 
-.summary-header {
-  --background: var(--summary-bg);
-  border-bottom: 1px solid var(--summary-border);
-
-  .summary-toolbar {
-    --background: var(--summary-bg);
-    --color: var(--summary-ink);
-    --border-width: 0;
-    padding-top: var(--ion-safe-area-top, 0px);
-
-    ion-title {
-      font-size: 1.05rem;
-      font-weight: 800;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-      color: var(--summary-ink);
-      padding-inline-start: 16px;
-    }
-  }
-}
-
 .share-sheet {
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px calc(88px + var(--ion-safe-area-bottom, 0px));
+  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px 16px;
 }
 
 .summary-card {
