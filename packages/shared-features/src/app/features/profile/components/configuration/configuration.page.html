@@ -19,7 +19,7 @@
   <!-- Configuration Sections -->
   <div class="config-sections">
     <!-- TrainFit Pro Section — top -->
-    <div class="section-group">
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
       <div class="section-header">
         <ion-icon name="diamond-outline"></ion-icon>
         <span>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</span>
@@ -32,6 +32,25 @@
           </div>
           <ion-label>
             <h3>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
+    <!-- MVP-trainers F02: suscripción de profesional, solo cuentas trainer -->
+    <div class="section-group" *ngIf="user?.roles?.includes('trainer')">
+      <div class="section-header">
+        <ion-icon name="diamond-outline"></ion-icon>
+        <span>Suscripción</span>
+      </div>
+
+      <ion-card class="config-card config-card--premium">
+        <ion-item button class="config-item" (click)="goToTrainerSubscription()">
+          <div slot="start" class="item-icon-container premium-icon">
+            <ion-icon name="diamond-outline" color="warning"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Gestionar suscripción</h3>
           </ion-label>
         </ion-item>
       </ion-card>

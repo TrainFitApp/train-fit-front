@@ -189,6 +189,10 @@ export class ConfigurationPage {
     void this.router.navigate(['/my-professionals']);
   }
 
+  public goToTrainerSubscription(): void {
+    void this.router.navigate(['/subscription']);
+  }
+
   public async goToAdConsent(): Promise<void> {
     const modal: ModalOptions = {
       component: AdPreferencesPage,

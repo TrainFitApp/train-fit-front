@@ -1,0 +1,68 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/profile" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Suscripción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="subscription-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 64px;"></div>
+    <div class="skeleton-block" style="height: 180px;"></div>
+    <div class="skeleton-block" style="height: 180px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo cargar tu suscripción.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' && entitlements">
+    <div class="usage-card">
+      <div class="usage-header">
+        <span class="usage-title">Clientes activos</span>
+        <span class="usage-count">
+          {{ entitlements.usage.clients }}<span *ngIf="entitlements.limits.clients"> / {{ entitlements.limits.clients }}</span>
+        </span>
+      </div>
+      <div class="usage-bar" *ngIf="entitlements.limits.clients">
+        <div class="usage-bar-fill" [style.width.%]="usagePercent"></div>
+      </div>
+      <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">Ilimitados</span>
+    </div>
+
+    <div class="plans-list">
+      <div
+        class="plan-card"
+        *ngFor="let plan of plans"
+        [class.current]="isCurrentPlan(plan.tier)"
+      >
+        <div class="plan-header">
+          <span class="plan-name">{{ plan.name }}</span>
+          <span class="current-tag" *ngIf="isCurrentPlan(plan.tier)">Tu plan actual</span>
+        </div>
+        <div class="plan-price">
+          <span class="price-value">{{ plan.price }}</span>
+          <span class="price-caption">{{ plan.priceCaption }}</span>
+        </div>
+        <span class="plan-clients">{{ plan.clientsLabel }}</span>
+        <ul class="plan-features">
+          <li *ngFor="let feature of plan.features">
+            <ion-icon name="checkmark-outline"></ion-icon>
+            {{ feature }}
+          </li>
+        </ul>
+        <button
+          class="plan-button"
+          *ngIf="plan.tier !== 'free'"
+          [disabled]="isCurrentPlan(plan.tier)"
+          (click)="subscribe(plan)"
+        >
+          {{ isCurrentPlan(plan.tier) ? 'Plan activo' : 'Suscribirse' }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>

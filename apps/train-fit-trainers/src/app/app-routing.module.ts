@@ -52,6 +52,15 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
+    // MVP-trainers F02 — paywall/suscripción del profesional.
+    path: 'subscription',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/subscription/subscription.module').then(
+        (m) => m.SubscriptionPageModule
+      ),
+  },
+  {
     path: 'disconnected',
     component: DisconnectedComponent,
   },
