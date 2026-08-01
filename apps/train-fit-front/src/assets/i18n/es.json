@@ -1216,6 +1216,7 @@
     "FINISH_WORKOUT_CONFIRM": "Terminar el entrenamiento {{name}} a fecha del {{date}}",
     "COMPLETED_TITLE": "Completado",
     "WORKOUT_FINISHED_SUCCESS": "¡{{name}} finalizado con éxito!",
+    "SUMMARY_TITLE": "Resumen",
     "SUMMARY_CONGRATS": "Entrenamiento completado",
     "SUMMARY_TIME": "Tiempo",
     "SUMMARY_EXERCISES": "Ejercicios",
@@ -1766,7 +1767,7 @@
     "FOOTER_TEXT": "Cada comentario nos ayuda a crear una mejor experiencia para ti"
   },
   "ORDER_EXERCISES": {
-    "TITLE": "Ordenar Ejercicios",
+    "TITLE": "Ordenar",
     "HINT": "Mantén pulsado y arrastra para cambiar el orden de los ejercicios",
     "SAVE": "Guardar Orden",
     "ALERT_HEADER": "¿Estás seguro?",

@@ -1250,6 +1250,7 @@
     "DELETE_MICROCYCLES_CONFIRM_SINGLE": "The selected micro-cycle and all its data will be deleted.",
     "DELETE_MICROCYCLES_CONFIRM_MULTIPLE": "{{count}} micro-cycles and all their data will be deleted.",
     "DELETE_MICROCYCLES_ERROR": "Couldn't delete the micro-cycles",
+    "SUMMARY_TITLE": "Summary",
     "SUMMARY_CONGRATS": "Workout complete",
     "SUMMARY_TIME": "Time",
     "SUMMARY_EXERCISES": "Exercises",
@@ -1900,7 +1901,7 @@
     "GOAL": "Nutrition Goal"
   },
   "ORDER_EXERCISES": {
-    "TITLE": "Sort Exercises",
+    "TITLE": "Sort",
     "HINT": "Press and hold, then drag to change the order of the exercises",
     "SAVE": "Save Order",
     "ALERT_HEADER": "Are you sure?",

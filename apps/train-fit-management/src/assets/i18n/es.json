@@ -1256,6 +1256,7 @@
     "DELETE_MICROCYCLES_CONFIRM_SINGLE": "Se eliminará el micro-ciclo seleccionado y todos sus datos.",
     "DELETE_MICROCYCLES_CONFIRM_MULTIPLE": "Se eliminarán {{count}} micro-ciclos y todos sus datos.",
     "DELETE_MICROCYCLES_ERROR": "No se pudieron eliminar los micro-ciclos",
+    "SUMMARY_TITLE": "Resumen",
     "SUMMARY_CONGRATS": "Entrenamiento completado",
     "SUMMARY_TIME": "Tiempo",
     "SUMMARY_EXERCISES": "Ejercicios",
@@ -1803,7 +1804,7 @@
     "FOOTER_TEXT": "Cada comentario nos ayuda a crear una mejor experiencia para ti"
   },
   "ORDER_EXERCISES": {
-    "TITLE": "Ordenar Ejercicios",
+    "TITLE": "Ordenar",
     "HINT": "Mantén pulsado y arrastra para cambiar el orden de los ejercicios",
     "SAVE": "Guardar Orden",
     "ALERT_HEADER": "¿Estás seguro?",
