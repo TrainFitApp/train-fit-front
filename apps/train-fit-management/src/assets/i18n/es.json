@@ -1338,6 +1338,9 @@
     "EXERCISE_PASTE_MODE": "Pegar ejercicios",
     "EXERCISE_PASTE_WARNING": "Los ejercicios se añadirán a todos los micro-ciclos en esta misma posición",
     "EXERCISES_PASTED": "Ejercicios pegados",
+    "CLIPBOARD_SELECT_EXERCISES": "Selecciona los ejercicios",
+    "CLIPBOARD_SAVE": "Guardar",
+    "CLIPBOARD_PASTE": "Pegar",
     "MICROCYCLE": "Micro-ciclo",
     "MICROCYCLE_SHORT": "MC",
     "WORKOUT_NAME": "Entrenamiento",
@@ -1801,7 +1804,7 @@
   },
   "ORDER_EXERCISES": {
     "TITLE": "Ordenar Ejercicios",
-    "HINT": "Cambiar orden",
+    "HINT": "Mantén pulsado y arrastra para cambiar el orden de los ejercicios",
     "SAVE": "Guardar Orden",
     "ALERT_HEADER": "¿Estás seguro?",
     "ALERT_MESSAGE": "¿Deseas guardar los cambios en el orden de los ejercicios?",

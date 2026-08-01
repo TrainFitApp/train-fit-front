@@ -1767,7 +1767,7 @@
   },
   "ORDER_EXERCISES": {
     "TITLE": "Ordenar Ejercicios",
-    "HINT": "Cambiar orden",
+    "HINT": "Mantén pulsado y arrastra para cambiar el orden de los ejercicios",
     "SAVE": "Guardar Orden",
     "ALERT_HEADER": "¿Estás seguro?",
     "ALERT_MESSAGE": "¿Deseas guardar los cambios en el orden de los ejercicios?",

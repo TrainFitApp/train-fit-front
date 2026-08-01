@@ -1332,6 +1332,9 @@
     "EXERCISE_PASTE_MODE": "Paste exercises",
     "EXERCISE_PASTE_WARNING": "Exercises will be added to all micro-cycles at the same position",
     "EXERCISES_PASTED": "Exercises pasted",
+    "CLIPBOARD_SELECT_EXERCISES": "Select exercises",
+    "CLIPBOARD_SAVE": "Save",
+    "CLIPBOARD_PASTE": "Paste",
     "MICROCYCLE": "Micro-cycle",
     "MICROCYCLE_SHORT": "MC",
     "WORKOUT_NAME": "Workout",
@@ -1898,7 +1901,7 @@
   },
   "ORDER_EXERCISES": {
     "TITLE": "Sort Exercises",
-    "HINT": "Change order",
+    "HINT": "Press and hold, then drag to change the order of the exercises",
     "SAVE": "Save Order",
     "ALERT_HEADER": "Are you sure?",
     "ALERT_MESSAGE": "Do you want to save the changes to the exercise order?",

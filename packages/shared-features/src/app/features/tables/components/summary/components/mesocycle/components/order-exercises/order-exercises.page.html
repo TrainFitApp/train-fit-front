@@ -2,9 +2,17 @@
   <div class="filter-toolbar">
     <div class="header-content">
       <div class="title-section">
-        <ion-title class="filter-title">{{ 'ORDER_EXERCISES.TITLE' | translate }}</ion-title>
+        <ion-title class="filter-title"
+          >{{ 'ORDER_EXERCISES.TITLE' | translate }}</ion-title
+        >
       </div>
       <ion-buttons slot="end">
+        <button
+          class="close-action-button ripple-effect"
+          (click)="refreshOrder()"
+        >
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
         <button
           class="close-action-button ripple-effect"
           (click)="dismissModal()"
@@ -19,21 +27,10 @@
 
 <ion-content class="content-modern">
   <div class="container-elegant">
-    <!-- Header Info with External Button -->
-    <div class="header-with-button">
-      <div class="info-section">
-        <div class="info-content">
-          <ion-icon name="swap-vertical" class="info-icon"></ion-icon>
-          <p class="info-text">{{ 'ORDER_EXERCISES.HINT' | translate }}</p>
-        </div>
-      </div>
-      <ion-button
-        fill="clear"
-        class="action-btn menu-btn ripple-effect external-refresh-btn"
-        (click)="refreshOrder()"
-      >
-        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
-      </ion-button>
+    <!-- Warning Message -->
+    <div class="warning-section">
+      <ion-icon name="swap-vertical" class="warning-icon"></ion-icon>
+      <p class="warning-text">{{ 'ORDER_EXERCISES.HINT' | translate }}</p>
     </div>
 
     <!-- Exercise List -->
