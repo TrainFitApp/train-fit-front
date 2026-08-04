@@ -1,0 +1,302 @@
+:host {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.my-checkins-content {
+  --background: #0f0f0f;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: #1e1e1e;
+  border-radius: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.section-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px 0;
+
+  p {
+    font-size: 0.88rem;
+    color: #8b8b8b;
+    margin: 0;
+  }
+}
+
+.retry-button {
+  height: 38px;
+  padding: 0 16px;
+  background: #252525;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-hint {
+  font-size: 0.88rem;
+  color: #8b8b8b;
+  margin: 0 0 4px;
+}
+
+.list-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.checkin-card {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.checkin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #8b8b8b;
+  }
+}
+
+.checkin-card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkin-card-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #8b8b8b;
+}
+
+.submitted-icon {
+  color: #2dd36f !important;
+  font-size: 14px !important;
+}
+
+.checkin-form {
+  padding: 0 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.checkin-field {
+  padding: 12px 0;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+.checkin-field-label {
+  display: block;
+  font-size: 0.84rem;
+  color: #c7c7c7;
+  margin-bottom: 8px;
+}
+
+.checkin-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 160ms var(--ease-out);
+
+  &:focus {
+    outline: none;
+    border-color: #fe9000;
+  }
+}
+
+.checkin-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 160ms var(--ease-out);
+
+  &:focus {
+    outline: none;
+    border-color: #fe9000;
+  }
+}
+
+.scale-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.scale-option {
+  flex: 1;
+  height: 40px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #c7c7c7;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out),
+    background 160ms var(--ease-out);
+
+  &.selected {
+    border-color: #fe9000;
+    color: #ffffff;
+    background: rgba(254, 144, 0, 0.14);
+  }
+}
+
+.submit-button {
+  width: 100%;
+  height: 48px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
+  color: #0f0f0f;
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+// --- coach-tab FASE2: "formularios completados" ---
+.mp-section {
+  margin-top: 20px;
+}
+
+.section-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b8b8b;
+  margin: 0;
+}
+
+.history-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0 0 10px;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 16px;
+    color: #8b8b8b;
+  }
+}
+
+.history-card {
+  padding: 12px 14px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.mp-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.history-date {
+  font-size: 0.76rem;
+  color: #6b6b6b;
+}
+
+.history-values {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.history-value {
+  font-size: 0.82rem;
+  color: #c7c7c7;
+
+  strong {
+    color: #8b8b8b;
+    font-weight: 600;
+  }
+}

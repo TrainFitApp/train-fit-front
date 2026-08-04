@@ -1,0 +1,140 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+
+.templates-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.page-hint {
+  font-size: 0.82rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--tf-text-muted);
+  font-size: 1.1rem;
+}
+
+.input-field {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 40px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  color: var(--tf-text);
+  font-size: 0.9rem;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 48px;
+  margin-bottom: 20px;
+  font-size: 0.92rem;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error p,
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
+.retry-button {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  color: var(--tf-text);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.template-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  cursor: pointer;
+
+  ion-icon:first-child {
+    color: var(--tf-accent);
+    font-size: 1.2rem;
+  }
+}
+
+.template-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 0.9rem;
+  color: var(--tf-text);
+  font-weight: 600;
+}
+
+.template-meta {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.delete-template-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}

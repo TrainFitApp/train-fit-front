@@ -27,7 +27,7 @@
       </div>
       <div class="user-info">
         <h1 class="user-name">{{ user?.name }} {{ user?.lastname }}</h1>
-        <div class="user-goal">
+        <div class="user-goal" *ngIf="!user?.roles?.includes('trainer')">
           <ion-icon
             [name]="iconArrowObjetive"
             [color]="colorObjetive"
@@ -64,8 +64,8 @@
     (dismissed)="dismissMaintenanceWarning()"
   ></app-maintenance-warning-banner>
 
-  <!-- Premium upgrade banner (solo free) -->
-  <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
+  <!-- Premium upgrade banner (solo free, solo consumidor — el profesional tiene su propio flujo en Suscripción, MVP-trainers F02) -->
+  <button class="premium-banner" *ngIf="!isPremiumActive && !user?.roles?.includes('trainer')" (click)="goToPremium()">
     <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
     <div class="premium-banner__text">
       <span class="premium-banner__title">{{ 'PROFILE.GO_PRO' | translate }}</span>
@@ -74,8 +74,8 @@
     <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
   </button>
 
-  <!-- Nutrition Section -->
-  <div class="nutrition-section">
+  <!-- Nutrition Section (solo consumidor — el profesional no tiene datos nutricionales propios) -->
+  <div class="nutrition-section" *ngIf="!user?.roles?.includes('trainer')">
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="restaurant-outline" color="primary"></ion-icon>
@@ -156,8 +156,8 @@
     </div>
   </div>
 
-  <!-- Weight Progress Section -->
-  <div class="weight-progress-section">
+  <!-- Weight Progress Section (solo consumidor) -->
+  <div class="weight-progress-section" *ngIf="!user?.roles?.includes('trainer')">
     <div class="section-header">
       <h3 class="section-title">
         <ion-icon name="scale-outline" color="primary"></ion-icon>
@@ -208,8 +208,8 @@
     <div class="weight-stats"></div>
   </div>
 
-  <!-- Routine Section -->
-  <div class="routine-section">
+  <!-- Routine Section (solo consumidor — el profesional gestiona rutinas de sus clientes, no una propia) -->
+  <div class="routine-section" *ngIf="!user?.roles?.includes('trainer')">
     <!-- Workout Card Structure -->
     <div
       class="card workout-card clickable-card"
@@ -290,7 +290,7 @@
 
   <!-- TODO -->
 
-  <ion-grid class="social-networks-section">
+  <ion-grid class="social-networks-section" *ngIf="!user?.roles?.includes('trainer')">
     <ion-row
       ><ion-col class="ion-text-center"
         ><ion-label color="medium">{{ 'PROFILE.SOCIAL_NETWORKS' | translate }}</ion-label></ion-col

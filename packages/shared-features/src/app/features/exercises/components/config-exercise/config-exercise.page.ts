@@ -1291,8 +1291,13 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
             this.pendingPinNoteText = null;
           }
 
+          // Refetch por this.tableInUse._id (la tabla que este componente ya
+          // tenía cargada), no this.user.tableInUse — ese campo es la tabla
+          // en uso del usuario LOGUEADO, que difiere de la tabla que se está
+          // editando cuando quien edita es un profesional sobre la tabla de
+          // su cliente (y era redundante incluso para el caso normal).
           return this.tableService
-            .getTableById(this.user.tableInUse)
+            .getTableById(this.tableInUse._id)
             .toPromise()
             .then((resTable) => {
               this.tableInUse = resTable;

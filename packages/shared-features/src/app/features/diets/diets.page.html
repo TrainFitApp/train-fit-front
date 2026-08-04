@@ -81,8 +81,10 @@
         [pasteMode]="pasteMode && mealIdPaste !== meal?._id"
         [activeCopyMealIndex]="copyMealIndex"
         [clipboardClearCounter]="clipboardClearCounter"
+        [proposals]="proposalsForMeal(meal.name)"
         (pasteEvent)="paste($event)"
         (copyEvent)="onCopySelection($event)"
+        (proposalChosen)="onProposalChosen($event)"
       ></app-meal>
     </ion-accordion-group>
   </ion-grid>

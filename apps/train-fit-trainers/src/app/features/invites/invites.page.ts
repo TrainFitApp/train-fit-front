@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
-import { TrainerInvite, TrainerInviteScope } from './models/trainer-invite.model';
+import { ClientIntake, TrainerInvite, TrainerInviteScope } from './models/trainer-invite.model';
 
 type ListState = 'loading' | 'error' | 'loaded';
 
@@ -17,12 +18,26 @@ export class InvitesPage implements OnInit {
 
   public listState: ListState = 'loading';
   public pendingInvites: TrainerInvite[] = [];
+  // TAREA 3 — relaciones con cuestionario enviado, esperando confirmación explícita.
+  public reviewInvites: TrainerInvite[] = [];
   public historyInvites: TrainerInvite[] = [];
   public cancellingId: string | null = null;
 
+  public reviewingClientId: string | null = null;
+  public reviewingIntake: ClientIntake | null = null;
+  public isLoadingIntake = false;
+  public isConfirming = false;
+  public readonly experienceLabels: Record<string, string> = {
+    none: 'Sin experiencia',
+    beginner: 'Principiante',
+    intermediate: 'Intermedio',
+    advanced: 'Avanzado',
+  };
+
   constructor(
     private trainerInvitesApi: TrainerInvitesApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private router: Router
   ) {}
 
   public ngOnInit(): void {
@@ -54,8 +69,13 @@ export class InvitesPage implements OnInit {
         const sorted = [...(invites || [])].sort(
           (a, b) => new Date(b.invitedAt).getTime() - new Date(a.invitedAt).getTime()
         );
-        this.pendingInvites = sorted.filter((invite) => invite.status === 'pending');
-        this.historyInvites = sorted.filter((invite) => invite.status !== 'pending');
+        this.pendingInvites = sorted.filter(
+          (invite) => invite.status === 'pending' || invite.status === 'cuestionario_pendiente'
+        );
+        this.reviewInvites = sorted.filter((invite) => invite.status === 'en_revision');
+        this.historyInvites = sorted.filter(
+          (invite) => !['pending', 'cuestionario_pendiente', 'en_revision'].includes(invite.status)
+        );
         this.listState = 'loaded';
       },
       error: () => {
@@ -85,6 +105,17 @@ export class InvitesPage implements OnInit {
         },
         error: (err) => {
           this.isSending = false;
+          // MVP-trainers F21 — límite de clientes del plan alcanzado: llevar
+          // al paywall (F02) en vez de un error genérico sin acción posible.
+          if (err?.error?.code === 'TRAINER_LIMIT_REACHED') {
+            this.ionicUtilService.showErrorToast(
+              err.error.message,
+              'Límite de tu plan alcanzado',
+              3500
+            );
+            void this.router.navigate(['/tabs/subscription']);
+            return;
+          }
           this.ionicUtilService.showErrorToast(
             err?.error?.message || 'No se pudo enviar la invitación',
             'Error',
@@ -163,6 +194,12 @@ export class InvitesPage implements OnInit {
 
   public statusLabel(status: TrainerInvite['status']): string {
     switch (status) {
+      case 'pending':
+        return 'Invitación enviada';
+      case 'cuestionario_pendiente':
+        return 'Esperando cuestionario';
+      case 'en_revision':
+        return 'Cuestionario recibido';
       case 'active':
         return 'Aceptada';
       case 'declined':
@@ -176,5 +213,53 @@ export class InvitesPage implements OnInit {
 
   public trackByInviteId(_index: number, invite: TrainerInvite): string {
     return invite._id;
+  }
+
+  // --- TAREA 3: revisar cuestionario + confirmar cliente ---
+  public openReview(invite: TrainerInvite): void {
+    if (!invite.clientId) return;
+    this.reviewingClientId = invite.clientId;
+    this.isLoadingIntake = true;
+    this.reviewingIntake = null;
+    this.trainerInvitesApi.getClientIntake(invite.clientId).subscribe({
+      next: (intake) => {
+        this.isLoadingIntake = false;
+        this.reviewingIntake = intake;
+      },
+      error: () => {
+        this.isLoadingIntake = false;
+        this.ionicUtilService.showErrorToast('No se pudo cargar el cuestionario', 'Error', 3000);
+      },
+    });
+  }
+
+  public closeReview(): void {
+    this.reviewingClientId = null;
+    this.reviewingIntake = null;
+  }
+
+  public experienceLabel(level: ClientIntake['experienceLevel']): string {
+    return level ? this.experienceLabels[level] || level : 'No indicado';
+  }
+
+  public confirmClient(): void {
+    if (!this.reviewingClientId || this.isConfirming) return;
+    this.isConfirming = true;
+    this.trainerInvitesApi.confirmClient(this.reviewingClientId).subscribe({
+      next: () => {
+        this.isConfirming = false;
+        this.ionicUtilService.showToast({ message: 'Cliente confirmado, coaching desbloqueado', duration: 3000 });
+        this.closeReview();
+        this.loadInvites();
+      },
+      error: (err) => {
+        this.isConfirming = false;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.message || 'No se pudo confirmar al cliente',
+          'Error',
+          3000
+        );
+      },
+    });
   }
 }

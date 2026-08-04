@@ -6,9 +6,10 @@
     <ion-title>{{ name }}</ion-title>
   </ion-toolbar>
 
-  <div class="scope-tabbar" *ngIf="scopes.length > 1">
+  <div class="scope-tabbar">
     <button
       class="scope-tab"
+      *ngIf="scopes.includes('training')"
       [class.active]="activeTab === 'training'"
       (click)="selectTab('training')"
     >
@@ -16,10 +17,47 @@
     </button>
     <button
       class="scope-tab"
+      *ngIf="scopes.includes('nutrition')"
       [class.active]="activeTab === 'nutrition'"
       (click)="selectTab('nutrition')"
     >
       Nutrición
+    </button>
+    <button
+      class="scope-tab"
+      *ngIf="scopes.includes('training')"
+      [class.active]="activeTab === 'history'"
+      (click)="selectTab('history')"
+    >
+      Historial
+    </button>
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'notes'"
+      (click)="selectTab('notes')"
+    >
+      Notas
+    </button>
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'checkins'"
+      (click)="selectTab('checkins')"
+    >
+      Check-ins
+    </button>
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'payments'"
+      (click)="selectTab('payments')"
+    >
+      Cobros
+    </button>
+    <button
+      class="scope-tab"
+      [class.active]="activeTab === 'tasks'"
+      (click)="selectTab('tasks')"
+    >
+      Tareas
     </button>
   </div>
 </ion-header>
@@ -57,10 +95,55 @@
 
       <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
 
-      <div class="list-card" *ngFor="let table of tables; trackBy: trackByTableId">
-        <ion-icon name="barbell-outline"></ion-icon>
-        <span class="list-card-title">{{ table.name }}</span>
-        <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
+      <div class="routine-block" *ngFor="let table of tables; trackBy: trackByTableId">
+        <div class="routine-header-row">
+          <button
+            class="list-card list-card--button"
+            (click)="toggleTableExpand(table)"
+          >
+            <ion-icon name="barbell-outline"></ion-icon>
+            <span class="list-card-title">{{ table.name }}</span>
+            <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
+            <ion-icon
+              class="expand-chevron"
+              [name]="expandedTableId === table._id ? 'chevron-up-outline' : 'chevron-down-outline'"
+            ></ion-icon>
+          </button>
+          <button
+            class="bulk-apply-btn"
+            title="Editar rutina (splits, ejercicios, series)"
+            (click)="openRoutineBuilder(table)"
+          >
+            <ion-icon name="construct-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
+        <div class="routine-detail" *ngIf="expandedTableId === table._id">
+          <p class="empty-hint" *ngIf="!table.splits?.length">Esta rutina todavía no tiene microciclos.</p>
+
+          <div class="split-block" *ngFor="let split of table.splits">
+            <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
+
+            <div class="workout-row" *ngFor="let workout of split.workouts">
+              <div class="workout-row-header">
+                <span class="workout-name">{{ workout.name }}</span>
+                <span class="workout-status" [class.workout-status--done]="workout.date">
+                  {{ workout.date ? (workout.date | date: 'd MMM y') : 'Pendiente' }}
+                </span>
+              </div>
+              <div class="exercise-row" *ngFor="let exercise of workout.exercises">
+                <span class="exercise-name">{{ exercise.exercise?.name || 'Ejercicio' }}</span>
+                <div class="exercise-sets-group">
+                  <span class="exercise-sets exercise-sets--expected">Prescrito: {{ expectedDescription(exercise) }}</span>
+                  <span class="exercise-sets" [class.exercise-sets--done]="hasAnyDoneSet(exercise)">
+                    Realizado: {{ setDescription(exercise) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <button class="danger-link" (click)="confirmRevoke('training')" [disabled]="isRevoking">
@@ -107,15 +190,24 @@
         <p class="empty-hint" *ngIf="templatesLoaded && !availableTemplates.length">
           No tienes plantillas disponibles todavía.
         </p>
-        <button
-          class="list-card list-card--button"
-          *ngFor="let template of availableTemplates; trackBy: trackByTableId"
-          (click)="assignTemplate(template)"
-          [disabled]="isAssigningRoutine"
-        >
-          <ion-icon name="copy-outline"></ion-icon>
-          <span class="list-card-title">{{ template.name }}</span>
-        </button>
+        <div class="template-row" *ngFor="let template of availableTemplates; trackBy: trackByTableId">
+          <button
+            class="list-card list-card--button"
+            (click)="assignTemplate(template)"
+            [disabled]="isAssigningRoutine"
+          >
+            <ion-icon name="copy-outline"></ion-icon>
+            <span class="list-card-title">{{ template.name }}</span>
+          </button>
+          <button
+            class="bulk-apply-btn"
+            title="Aplicar a varios clientes"
+            (click)="bulkApplyRoutine(template)"
+            [disabled]="isAssigningRoutine"
+          >
+            <ion-icon name="people-outline"></ion-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -134,6 +226,59 @@
     </div>
 
     <ng-container *ngIf="nutritionState === 'loaded'">
+      <!-- F20 -->
+      <div class="adherence-card" *ngIf="adherence?.status === 'ok'">
+        <div class="adherence-percentage">{{ adherence?.percentage }}%</div>
+        <div>
+          <span class="stat-label">Adherencia nutricional</span>
+          <span class="adherence-detail">últimos {{ adherence?.daysInRange }} días · {{ adherence?.daysCounted }} registrados</span>
+        </div>
+      </div>
+      <div class="adherence-card adherence-card--empty" *ngIf="adherence?.status === 'no_goal'">
+        <ion-icon name="pie-chart-outline"></ion-icon>
+        <span>Asigna objetivos nutricionales para ver la adherencia de este cliente.</span>
+      </div>
+
+      <!-- F29 -->
+      <div class="section-row">
+        <h2 class="section-heading">Preferencias nutricionales</h2>
+        <button
+          class="add-button"
+          *ngIf="!nutritionPreferencesPending"
+          (click)="requestNutritionPreferences()"
+          [disabled]="isRequestingPreferences"
+        >
+          <ion-icon name="paper-plane-outline"></ion-icon>
+          {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar cuestionario' }}
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="nutritionPreferencesPending">
+        Solicitado, pendiente de respuesta de {{ name }}.
+      </p>
+
+      <div class="preferences-card" *ngIf="nutritionPreferencesAnswered">
+        <div class="preferences-field preferences-field--critical">
+          <span class="preferences-label">
+            <ion-icon name="warning-outline"></ion-icon>
+            Alergias / intolerancias
+          </span>
+          <p class="preferences-value">{{ nutritionPreferences?.allergies || 'Ninguna indicada' }}</p>
+        </div>
+        <div class="preferences-field">
+          <span class="preferences-label">Favoritos</span>
+          <p class="preferences-value">{{ nutritionPreferences?.favoriteFoods || 'Sin especificar' }}</p>
+        </div>
+        <div class="preferences-field">
+          <span class="preferences-label">No le gustan</span>
+          <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
+        </div>
+        <div class="preferences-field">
+          <span class="preferences-label">¿Cocina en casa?</span>
+          <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
+        </div>
+      </div>
+
       <div class="section-row">
         <h2 class="section-heading">Objetivos nutricionales</h2>
         <button class="add-button" (click)="openGoalPanel()">
@@ -157,15 +302,41 @@
         </div>
       </div>
 
-      <h2 class="section-heading section-heading--top">Dieta de hoy</h2>
-      <p class="empty-hint" *ngIf="!dietDay">Este cliente todavía no tiene dieta activa hoy.</p>
+      <div class="section-row section-row--top">
+        <h2 class="section-heading">Dieta</h2>
+        <div class="date-nav">
+          <button class="date-nav-btn" (click)="changeNutritionDate(-1)">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+          <span class="date-nav-label">{{ nutritionDateLabel }}</span>
+          <button class="date-nav-btn" (click)="changeNutritionDate(1)">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Replanteamiento MVP (nutrición) — aplicar una plantilla ya
+           construida a este cliente, en vez de pautar comida a comida. -->
+      <div class="template-actions-row">
+        <button type="button" class="add-button" (click)="openApplyTemplateModal()">
+          <ion-icon name="download-outline"></ion-icon>
+          Aplicar plantilla
+        </button>
+        <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
+          Gestionar plantillas
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!dietDay">
+        Este cliente no tiene dieta activa {{ isNutritionDateToday ? 'hoy' : 'ese día' }}.
+      </p>
 
       <div class="list-card list-card--meal" *ngFor="let meal of dietDay?.meals || []">
         <div class="meal-info">
           <span class="list-card-title">{{ meal.name }}</span>
           <span class="meal-summary">{{ mealContentSummary(meal) }}</span>
         </div>
-        <button class="prescribe-button" (click)="prescribeMeal()">Pautar</button>
+        <button class="prescribe-button" (click)="openPrescribePanel(meal)">Pautar</button>
       </div>
 
       <button class="danger-link" (click)="confirmRevoke('nutrition')" [disabled]="isRevoking">
@@ -206,7 +377,396 @@
           <span *ngIf="!isAssigningGoal">Guardar objetivos</span>
           <ion-spinner name="dots" *ngIf="isAssigningGoal"></ion-spinner>
         </button>
+        <button
+          type="button"
+          class="bulk-link-button"
+          [disabled]="goalForm.invalid || isAssigningGoal"
+          (click)="bulkApplyGoal()"
+        >
+          <ion-icon name="people-outline"></ion-icon>
+          Aplicar también a otros clientes
+        </button>
       </form>
     </div>
+
+    <!-- Panel: Pautar comida (F12: 1 alternativa; F28: 2+ nombradas) -->
+    <div class="panel-backdrop" *ngIf="showPrescribePanel" (click)="closePrescribePanel()"></div>
+    <div class="panel-sheet" *ngIf="showPrescribePanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Pautar "{{ prescribeMealTarget?.name }}"</h3>
+      <p class="panel-hint">
+        Añade una composición para aplicarla directamente, o 2-3 alternativas nombradas para que
+        {{ name }} elija cuál registra ese día.
+      </p>
+
+      <div class="alternative-card" *ngFor="let alt of prescribeAlternatives; let i = index">
+        <div class="alternative-header" *ngIf="prescribeIsMultiple">
+          <span class="alternative-title">Opción {{ i + 1 }}</span>
+          <button
+            type="button"
+            class="remove-alternative-btn"
+            (click)="removeAlternative(i)"
+            [disabled]="prescribeAlternatives.length <= 1"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="input-wrapper" *ngIf="prescribeIsMultiple">
+          <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="input-field"
+            placeholder="Etiqueta (p. ej. Días de entreno)"
+            [(ngModel)]="alt.label"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+
+        <!-- Replanteamiento MVP (nutrición): varios alimentos por alternativa,
+             no uno solo — antes pautar 2 alimentos en la misma comida exigía
+             sobrescribir en 2 envíos sucesivos. -->
+        <div class="food-item-card" *ngFor="let item of alt.items; let j = index">
+          <div class="food-item-header" *ngIf="alt.items.length > 1">
+            <span class="food-item-title">Alimento {{ j + 1 }}</span>
+            <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i, j)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="product-pick-row" *ngIf="item.productId">
+            <ion-icon name="checkmark-circle-outline" class="input-icon"></ion-icon>
+            <span class="picked-product-name">{{ item.productName }} · {{ item.quantity }}g</span>
+            <button type="button" class="clear-product-btn" (click)="clearProduct(i, j)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="search-product-btn"
+            *ngIf="!item.productId"
+            (click)="openProductSearch(i, j)"
+          >
+            <ion-icon name="search-outline"></ion-icon>
+            Buscar alimento real
+          </button>
+
+          <p class="manual-macro-hint" *ngIf="!item.productId">o introduce las macros manualmente:</p>
+
+          <div class="macro-grid">
+            <div class="input-wrapper">
+              <ion-icon name="flame-outline" class="input-icon"></ion-icon>
+              <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="item.kcal" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
+            </div>
+            <div class="input-wrapper">
+              <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
+              <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="item.proteinG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
+            </div>
+            <div class="input-wrapper">
+              <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
+              <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="item.carbsG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
+            </div>
+            <div class="input-wrapper">
+              <ion-icon name="water-outline" class="input-icon"></ion-icon>
+              <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="item.fatG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="add-food-item-btn"
+          (click)="addFoodItem(i)"
+          [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          Añadir otro alimento a esta comida
+        </button>
+      </div>
+
+      <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="prescribeAlternatives.length >= maxAlternatives">
+        <ion-icon name="add-outline"></ion-icon>
+        Añadir alternativa
+      </button>
+
+      <button type="button" class="submit-button" [disabled]="!canSubmitPrescribe || isPrescribing" (click)="submitPrescribe()">
+        <span *ngIf="!isPrescribing">{{ prescribeIsMultiple ? 'Proponer alternativas' : 'Pautar comida' }}</span>
+        <ion-spinner name="dots" *ngIf="isPrescribing"></ion-spinner>
+      </button>
+      <button
+        type="button"
+        class="bulk-link-button"
+        *ngIf="!prescribeIsMultiple"
+        [disabled]="!canSubmitPrescribe || isPrescribing"
+        (click)="bulkApplyPrescribedMeal()"
+      >
+        <ion-icon name="people-outline"></ion-icon>
+        Aplicar también a otros clientes
+      </button>
+    </div>
+  </div>
+
+  <!-- === HISTORIAL (F09) === -->
+  <div class="tab-panel" *ngIf="scopes.includes('training') && activeTab === 'history'">
+    <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <ng-container *ngIf="trainingState === 'loaded'">
+      <p class="empty-hint" *ngIf="!completedWorkouts.length">
+        Este cliente todavía no ha completado ningún entrenamiento.
+      </p>
+
+      <div class="history-card" *ngFor="let workout of completedWorkouts; trackBy: trackByWorkoutId">
+        <div class="history-card-header">
+          <span class="list-card-title">{{ workout.name }}</span>
+          <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
+        </div>
+        <p class="history-subtitle">{{ workout.tableName }} · {{ workout.splitName }}</p>
+        <div class="history-meta">
+          <span *ngIf="workoutDuration(workout) as duration">
+            <ion-icon name="time-outline"></ion-icon> {{ duration }}
+          </span>
+          <span><ion-icon name="barbell-outline"></ion-icon> {{ workout.exercises?.length || 0 }} ejercicios</span>
+          <!-- F18 -->
+          <span class="pulse-badge" *ngIf="workout.readinessPre">Readiness {{ workout.readinessPre }}/5</span>
+          <span class="pulse-badge" *ngIf="workout.perceivedEffortPost">Esfuerzo {{ workout.perceivedEffortPost }}/5</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- === COBROS (F26) === -->
+  <div class="tab-panel" *ngIf="activeTab === 'payments'">
+    <div class="detail-skeleton" *ngIf="paymentsState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="paymentsState === 'error'">
+      <p>No se pudieron cargar los cobros de este cliente.</p>
+      <button class="retry-button" (click)="loadPayments()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="paymentsState === 'loaded'">
+      <div class="section-row">
+        <h2 class="section-heading">Cobros</h2>
+        <button class="add-button" (click)="openPaymentPanel()">
+          <ion-icon name="add-outline"></ion-icon>
+          Añadir cobro
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!payments.length">Todavía no has anotado ningún cobro para este cliente.</p>
+
+      <div class="payment-card" *ngFor="let payment of payments; trackBy: trackByPaymentId">
+        <div class="payment-card-main">
+          <span class="payment-amount">{{ payment.amount }}{{ payment.currency === 'EUR' ? '€' : payment.currency }}</span>
+          <span class="payment-due">Vence {{ payment.dueDate | date: 'd MMM y' }}</span>
+          <span class="payment-note" *ngIf="payment.note">{{ payment.note }}</span>
+        </div>
+        <button
+          class="payment-status-btn"
+          [class.payment-status-btn--paid]="payment.paidAt"
+          (click)="togglePaymentPaid(payment)"
+        >
+          {{ payment.paidAt ? 'Pagado' : 'Marcar pagado' }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Panel: añadir cobro -->
+    <div class="panel-backdrop" *ngIf="showPaymentPanel" (click)="closePaymentPanel()"></div>
+    <div class="panel-sheet" *ngIf="showPaymentPanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Añadir cobro</h3>
+
+      <div class="input-wrapper">
+        <ion-icon name="cash-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Importe (€)" [(ngModel)]="paymentAmount" min="0.01" step="0.01" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+        <input type="date" class="input-field" [(ngModel)]="paymentDueDate" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="document-text-outline" class="input-icon"></ion-icon>
+        <input type="text" class="input-field" placeholder="Nota (opcional)" [(ngModel)]="paymentNote" />
+      </div>
+
+      <button
+        class="submit-button"
+        (click)="submitPayment()"
+        [disabled]="!paymentAmount || paymentAmount <= 0 || !paymentDueDate || isSavingPayment"
+      >
+        <span *ngIf="!isSavingPayment">Guardar cobro</span>
+        <ion-spinner name="dots" *ngIf="isSavingPayment"></ion-spinner>
+      </button>
+    </div>
+  </div>
+
+  <!-- === TAREAS/HÁBITOS (coach-tab FASE4) === -->
+  <div class="tab-panel" *ngIf="activeTab === 'tasks'">
+    <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="tasksState === 'error'">
+      <p>No se pudieron cargar las tareas de este cliente.</p>
+      <button class="retry-button" (click)="loadTasks()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="tasksState === 'loaded'">
+      <div class="section-row">
+        <h2 class="section-heading">Tareas diarias</h2>
+        <button class="add-button" (click)="openTaskPanel()">
+          <ion-icon name="add-outline"></ion-icon>
+          Añadir tarea
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!tasks.length">Todavía no has asignado ninguna tarea diaria a este cliente.</p>
+
+      <div class="payment-card" *ngFor="let task of tasks; trackBy: trackByTaskId">
+        <div class="payment-card-main">
+          <span class="payment-amount">{{ taskDisplayLabel(task) }}</span>
+          <span class="payment-due">Objetivo: {{ task.target }} {{ task.unit }} / día</span>
+        </div>
+        <button class="payment-status-btn" (click)="confirmDeactivateTask(task)">
+          Quitar
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Panel: añadir tarea -->
+    <div class="panel-backdrop" *ngIf="showTaskPanel" (click)="closeTaskPanel()"></div>
+    <div class="panel-sheet" *ngIf="showTaskPanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Añadir tarea diaria</h3>
+
+      <div class="cadence-options">
+        <button
+          class="cadence-option"
+          *ngFor="let option of taskTypeOptions"
+          [class.cadence-option--active]="taskType === option.value"
+          (click)="onTaskTypeChange(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+
+      <div class="input-wrapper" *ngIf="taskType === 'custom'">
+        <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+        <input type="text" class="input-field" placeholder="Nombre de la tarea" [(ngModel)]="taskLabel" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="flag-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Objetivo diario" [(ngModel)]="taskTarget" min="0" step="1" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="resize-outline" class="input-icon"></ion-icon>
+        <input type="text" class="input-field" placeholder="Unidad (pasos, L, horas...)" [(ngModel)]="taskUnit" />
+      </div>
+
+      <button
+        class="submit-button"
+        (click)="submitTask()"
+        [disabled]="!taskTarget || taskTarget <= 0 || !taskUnit.trim() || (taskType === 'custom' && !taskLabel.trim()) || isSavingTask"
+      >
+        <span *ngIf="!isSavingTask">Guardar tarea</span>
+        <ion-spinner name="dots" *ngIf="isSavingTask"></ion-spinner>
+      </button>
+    </div>
+  </div>
+
+  <!-- === NOTAS (F19) === -->
+  <div class="tab-panel" *ngIf="activeTab === 'notes'">
+    <div class="detail-skeleton" *ngIf="notesState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="notesState === 'error'">
+      <p>No se pudieron cargar las notas de este cliente.</p>
+      <button class="retry-button" (click)="loadNotes()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="notesState === 'loaded'">
+      <div class="note-composer">
+        <textarea
+          class="note-textarea"
+          [(ngModel)]="newNoteText"
+          maxlength="2000"
+          rows="3"
+          placeholder="Apunta aquí tus notas sobre este cliente. Solo tú las ves."
+        ></textarea>
+        <button
+          class="submit-button"
+          (click)="submitNote()"
+          [disabled]="!newNoteText.trim() || isSavingNote"
+        >
+          <span *ngIf="!isSavingNote">Guardar nota</span>
+          <ion-spinner name="dots" *ngIf="isSavingNote"></ion-spinner>
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!notes.length">Todavía no tienes notas sobre este cliente.</p>
+
+      <div
+        class="note-card"
+        [class.note-card--pinned]="note.pinned"
+        *ngFor="let note of notes; trackBy: trackByNoteId"
+      >
+        <div class="note-card-header">
+          <span class="note-date">{{ note.createdAt | date: 'd MMM y, HH:mm' }}</span>
+          <button class="pin-button" (click)="togglePin(note)" [attr.aria-label]="note.pinned ? 'Desfijar nota' : 'Fijar nota'">
+            <ion-icon [name]="note.pinned ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+          </button>
+        </div>
+        <p class="note-text">{{ note.text }}</p>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- === CHECK-INS (F17) === -->
+  <div class="tab-panel" *ngIf="activeTab === 'checkins'">
+    <div class="detail-skeleton" *ngIf="checkinsState === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div class="section-error" *ngIf="checkinsState === 'error'">
+      <p>No se pudieron cargar los check-ins de este cliente.</p>
+      <button class="retry-button" (click)="loadCheckins()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="checkinsState === 'loaded'">
+      <h2 class="section-heading">Configuración activa</h2>
+      <p class="empty-hint" *ngIf="!checkinConfig || !checkinConfig.enabledFields.length">
+        Este cliente no tiene ningún check-in activo. Aplícale una plantilla desde "Plantillas de check-in" en tu Configuración.
+      </p>
+      <div class="checkin-config-card" *ngIf="checkinConfig?.enabledFields?.length">
+        <span
+          class="scope-chip"
+          *ngFor="let key of checkinConfig?.enabledFields"
+        >{{ checkinFieldLabel(key) }}</span>
+      </div>
+
+      <h2 class="section-heading section-heading--top">Histórico de respuestas</h2>
+      <p class="empty-hint" *ngIf="!checkinResponses.length">Este cliente todavía no ha respondido ningún check-in.</p>
+
+      <div class="history-card" *ngFor="let response of checkinResponses; trackBy: trackByResponseId">
+        <div class="history-card-header">
+          <span class="list-card-title">{{ response.respondedAt | date: 'd MMM y' }}</span>
+        </div>
+        <div class="checkin-response-values">
+          <span *ngFor="let entry of checkinValueEntries(response)">
+            {{ checkinFieldLabel(entry.key) }}: <strong>{{ entry.value }}</strong>
+          </span>
+        </div>
+      </div>
+    </ng-container>
   </div>
 </ion-content>

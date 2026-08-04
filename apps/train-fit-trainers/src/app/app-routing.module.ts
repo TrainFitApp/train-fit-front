@@ -2,8 +2,23 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authMatchGuard } from 'src/app/core/guards/auth.guard';
 import { DisconnectedComponent } from 'src/app/shared/components/disconnected/disconnected.component';
+import { TableInContextResolver } from 'src/app/features/clients/resolvers/table-in-context.resolver';
 
 const routes: Routes = [
+  {
+    // Replanteamiento MVP (rutinas) — constructor completo (splits, workouts,
+    // ejercicios, series) reutilizado tal cual desde shared-features; el
+    // resolver siembra la tabla del CLIENTE (no la del profesional) antes de
+    // activar la ruta. Backend ya abierto a "trainer" con comprobación de
+    // relación activa (ver components/tables/table-access.js).
+    path: 'clients/:clientId/tables/:tableId/mesocycle',
+    canMatch: [authMatchGuard],
+    resolve: { table: TableInContextResolver },
+    loadChildren: () =>
+      import(
+        'src/app/features/tables/components/summary/components/mesocycle/mesocycle.module'
+      ).then((m) => m.MesocyclePageModule),
+  },
   {
     path: '',
     redirectTo: 'user-loader',
@@ -30,10 +45,40 @@ const routes: Routes = [
       ),
   },
   {
+    // Replanteamiento UI/UX — antes TabsPage (barra inferior de 3 destinos).
+    // Ahora ShellPage: ion-split-pane + ion-menu. configuration/subscription/
+    // checkin-templates/diet-templates viven aquí dentro como hijas — así el
+    // panel lateral persistente de escritorio NO desaparece al navegar a
+    // ninguna de ellas (ver shell-routing.module.ts).
     path: 'tabs',
     canMatch: [authMatchGuard],
     loadChildren: () =>
-      import('src/app/features/tabs/tabs.module').then((m) => m.TabsPageModule),
+      import('src/app/features/shell/shell.module').then((m) => m.ShellPageModule),
+  },
+  {
+    // Redirect, no ruta real: NavigationService.goToConfiguration()
+    // (shared-core, compartido por las 3 apps) navega con ruta absoluta
+    // hardcodeada 'configuration' — este redirect la reenvía a la ubicación
+    // real dentro del shell sin obligar a shared-core a saber que en esta
+    // app concreta la ruta vive anidada. pathMatch:'full' porque solo debe
+    // interceptar la ruta exacta, no cualquier cosa que empiece por ella.
+    path: 'configuration',
+    redirectTo: 'tabs/configuration',
+    pathMatch: 'full',
+  },
+  {
+    // MVP-trainers F02 — redirect: ConfigurationPage#goToTrainerSubscription()
+    // (shared-features) navega con ruta absoluta hardcodeada '/subscription'.
+    path: 'subscription',
+    redirectTo: 'tabs/subscription',
+    pathMatch: 'full',
+  },
+  {
+    // MVP-trainers F17 — redirect: ConfigurationPage#goToCheckinTemplates()
+    // (shared-features) navega con ruta absoluta hardcodeada '/checkin-templates'.
+    path: 'checkin-templates',
+    redirectTo: 'tabs/checkin-templates',
+    pathMatch: 'full',
   },
   {
     path: 'user-loader',
@@ -41,23 +86,6 @@ const routes: Routes = [
     loadChildren: () =>
       import('src/app/features/user-loader/user-loader.module').then(
         (m) => m.UserLoaderPageModule
-      ),
-  },
-  {
-    path: 'configuration',
-    canMatch: [authMatchGuard],
-    loadChildren: () =>
-      import(
-        'src/app/features/profile/components/configuration/configuration.module'
-      ).then((m) => m.ConfigurationPageModule),
-  },
-  {
-    // MVP-trainers F02 — paywall/suscripción del profesional.
-    path: 'subscription',
-    canMatch: [authMatchGuard],
-    loadChildren: () =>
-      import('src/app/features/subscription/subscription.module').then(
-        (m) => m.SubscriptionPageModule
       ),
   },
   {

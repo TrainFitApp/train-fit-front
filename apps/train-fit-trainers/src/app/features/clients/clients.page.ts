@@ -5,6 +5,14 @@ import { TrainerClientsApiService } from './services/trainer-clients-api.service
 import { TrainerClientSummary } from './models/trainer-client-summary.model';
 
 type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
+type ScopeFilter = 'all' | 'training' | 'nutrition';
+
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
 
 @Component({
   selector: 'app-clients',
@@ -15,6 +23,10 @@ export class ClientsPage implements OnInit {
   public state: ViewState = 'loading';
   public clients: TrainerClientSummary[] = [];
   private hasLoadedOnce = false;
+
+  // --- F23: búsqueda y filtro ---
+  public searchQuery = '';
+  public scopeFilter: ScopeFilter = 'all';
 
   constructor(
     private trainerClientsApi: TrainerClientsApiService,
@@ -86,6 +98,27 @@ export class ClientsPage implements OnInit {
     return client.scopes.map((scope) =>
       scope === 'training' ? 'Entrenamiento' : 'Nutrición'
     );
+  }
+
+  // --- F23: búsqueda (nombre/email) + filtro por scope, 100% client-side ---
+  public get filteredClients(): TrainerClientSummary[] {
+    const query = normalizeSearchText(this.searchQuery.trim());
+
+    return this.clients.filter((client) => {
+      if (this.scopeFilter !== 'all' && !client.scopes.includes(this.scopeFilter)) {
+        return false;
+      }
+      if (!query) return true;
+
+      const haystack = normalizeSearchText(
+        `${this.getFullName(client)} ${client.user?.email || ''}`
+      );
+      return haystack.includes(query);
+    });
+  }
+
+  public setScopeFilter(filter: ScopeFilter): void {
+    this.scopeFilter = filter;
   }
 
   public trackByClientId(_index: number, client: TrainerClientSummary): string {

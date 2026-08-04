@@ -1,9 +1,8 @@
-:host {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
+@import '../../../theme/buttons';
+@import '../../../theme/inputs';
 
 .signup-content {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 }
 
 .signup-container {
@@ -13,7 +12,7 @@
 }
 
 .signup-step {
-  animation: step-in 320ms var(--ease-out);
+  animation: step-in 320ms var(--tf-ease-out);
 }
 
 @keyframes step-in {
@@ -37,18 +36,18 @@
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: var(--tf-text);
   margin: 8px 0 4px;
 }
 
 .signup-subtitle {
   font-size: 0.95rem;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
   margin: 0 0 24px;
   line-height: 1.4;
 
   strong {
-    color: #ffffff;
+    color: var(--tf-text);
   }
 }
 
@@ -73,47 +72,24 @@
 }
 
 .input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
-  padding: 0 14px;
+  @include tf-input-wrapper;
   height: 52px;
-  transition: border-color 160ms var(--ease-out);
-
-  &:focus-within {
-    border-color: #fe9000;
-  }
 }
 
 .input-icon {
+  @include tf-input-icon;
   font-size: 20px;
-  color: #8b8b8b;
-  flex-shrink: 0;
 }
 
 .input-field {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
+  @include tf-input-field;
   font-size: 1rem;
-  font-family: inherit;
-  height: 100%;
-
-  &::placeholder {
-    color: #8b8b8b;
-  }
 }
 
 .password-toggle {
   background: none;
   border: none;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   font-size: 20px;
   padding: 4px;
   display: flex;
@@ -126,7 +102,7 @@
 }
 
 .validation-error {
-  color: #eb445a;
+  color: var(--tf-danger);
   font-size: 0.8rem;
   margin-top: 6px;
   padding-left: 2px;
@@ -149,18 +125,18 @@
     flex-shrink: 0;
     margin-top: 2px;
     --size: 20px;
-    --checkbox-background-checked: #fe9000;
-    --border-color-checked: #fe9000;
+    --checkbox-background-checked: var(--tf-accent);
+    --border-color-checked: var(--tf-accent);
   }
 }
 
 .checkbox-label {
   font-size: 0.85rem;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
   line-height: 1.4;
 
   a {
-    color: #fe9000;
+    color: var(--tf-accent);
     text-decoration: none;
 
     &:active {
@@ -170,33 +146,13 @@
 }
 
 .submit-button {
+  @include tf-gradient-button;
   height: 52px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
-  color: #0f0f0f;
-  font-weight: 700;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
   margin-top: 8px;
-
-  &:active {
-    transform: scale(0.97);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-  }
 }
 
 .verification-step {
@@ -212,19 +168,19 @@
   gap: 6px;
   margin-top: 20px;
   font-size: 0.85rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
 }
 
 .resend-button {
   background: none;
   border: none;
-  color: #fe9000;
+  color: var(--tf-accent);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
 
   &:disabled {
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     cursor: default;
   }
 

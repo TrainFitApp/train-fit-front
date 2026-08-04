@@ -214,18 +214,50 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     );
 
     if (!dangling) {
-      this.proceedStartWorkoutFlow();
+      this.promptReadinessThenStart();
       return;
     }
 
     if (!this.workoutService.hasProgress(dangling)) {
-      this.stopDanglingWorkout(dangling, () => this.proceedStartWorkoutFlow());
+      this.stopDanglingWorkout(dangling, () => this.promptReadinessThenStart());
       return;
     }
 
     this.showResolveDanglingWorkoutAlert(dangling, () =>
-      this.proceedStartWorkoutFlow()
+      this.promptReadinessThenStart()
     );
+  }
+
+  // MVP-trainers F18 — "¿Cómo llegas hoy?" antes de empezar. Opcional y
+  // saltable: no bloquea nunca el inicio del entrenamiento. El valor se
+  // persiste vía el mismo `modifyWorkout` que ya hace `proceedStartWorkoutFlow`,
+  // sin una llamada HTTP adicional.
+  private promptReadinessThenStart(): void {
+    const inputs: AlertOptions['inputs'] = [1, 2, 3, 4, 5].map((n) => ({
+      type: 'radio',
+      label: String(n),
+      value: n,
+    }));
+
+    this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.READINESS_TITLE'),
+      message: this.translate.instant('TABLES.READINESS_MESSAGE'),
+      inputs,
+      buttons: [
+        {
+          text: this.translate.instant('TABLES.SKIP'),
+          role: 'cancel',
+          handler: () => this.proceedStartWorkoutFlow(),
+        },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (value: number) => {
+            this.currentWorkout.readinessPre = value ?? null;
+            this.proceedStartWorkoutFlow();
+          },
+        },
+      ],
+    });
   }
 
   // Además de limpiar el startedAt en backend, hay que mutar el objeto local:
@@ -405,12 +437,59 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           text: this.translate.instant('COMMON.CONFIRM'),
           cssClass: 'success',
           handler: () => {
-            this.loading = true;
-            // Ensure date is properly set
-            const finishDate = new Date();
+            this.promptEffortThenFinish();
+          },
+        },
+      ],
+    };
+    await this.ionicUtilService.showAlert(alertOptions);
+    // Al cerrar el alert (cancel o confirm), permitir nuevos alerts
+    this.sweetAlertOpened = false;
+    this.autoEndTriggered = false;
+  }
+
+  // MVP-trainers F18 — "¿Cómo de duro ha sido?" al terminar. Opcional y
+  // saltable: no bloquea nunca el cierre del entrenamiento. El valor se
+  // persiste con un `modifyWorkout` explícito ANTES de `finishWorkout`, porque
+  // el DAO de `finishWorkout` solo hace `$set: { date }` + `$unset: { paused }`
+  // (no acepta campos arbitrarios como sí hace `modifyWorkout`).
+  private promptEffortThenFinish(): void {
+    const inputs: AlertOptions['inputs'] = [1, 2, 3, 4, 5].map((n) => ({
+      type: 'radio',
+      label: String(n),
+      value: n,
+    }));
+
+    this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.EFFORT_TITLE'),
+      message: this.translate.instant('TABLES.EFFORT_MESSAGE'),
+      inputs,
+      buttons: [
+        {
+          text: this.translate.instant('TABLES.SKIP'),
+          role: 'cancel',
+          handler: () => this.proceedFinishWorkout(),
+        },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (value: number) => {
+            this.currentWorkout.perceivedEffortPost = value ?? null;
             this.workoutService
-              .finishWorkout(this.currentWorkout._id, finishDate)
-              .subscribe({
+              .modifyWorkout(this.currentWorkout)
+              .subscribe(() => this.proceedFinishWorkout());
+          },
+        },
+      ],
+    });
+  }
+
+  private proceedFinishWorkout(): void {
+    this.loading = true;
+    // Ensure date is properly set
+    const finishDate = new Date();
+    this.workoutService
+      .finishWorkout(this.currentWorkout._id, finishDate)
+      .subscribe({
                 next: (result) => {
                   // Un PR recién hecho debe verse sin esperar a recargar la app.
                   this.exerciseHistoryService.invalidateCache();
@@ -497,14 +576,6 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   });
                 },
               });
-          },
-        },
-      ],
-    };
-    await this.ionicUtilService.showAlert(alertOptions);
-    // Al cerrar el alert (cancel o confirm), permitir nuevos alerts
-    this.sweetAlertOpened = false;
-    this.autoEndTriggered = false;
   }
 
   private preserveFinishedWorkoutSplitIfCompleted(workoutId: string): void {

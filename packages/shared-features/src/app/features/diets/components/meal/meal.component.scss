@@ -492,3 +492,35 @@ ion-skeleton-text {
 .sc-ion-buttons-ios-s ion-button:not(.button-round) {
   --border-radius: 46px;
 }
+
+// F28 — banner de alternativas nombradas pendientes de elegir
+.meal-proposal-banner {
+  padding: 10px 12px;
+  background: rgba(254, 144, 0, 0.08);
+  border-bottom: 1px solid rgba(254, 144, 0, 0.25);
+}
+
+.meal-proposal-item + .meal-proposal-item {
+  margin-top: 8px;
+}
+
+.meal-proposal-label {
+  display: block;
+  font-size: 0.78rem;
+  color: #e0b060;
+  margin-bottom: 6px;
+}
+
+.meal-proposal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  ion-chip {
+    --background: rgba(254, 144, 0, 0.18);
+    --color: #fe9000;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0;
+  }
+}

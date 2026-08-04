@@ -1,0 +1,39 @@
+// Fila de input con icono (wrapper + icono + campo) — repetida en 4 páginas
+// antes de esta extracción (ver TAREA4-ui-ux-rediseno.md > Fase 3). El fondo
+// del wrapper es el único valor que varía por página (superficie 1 o 2 según
+// contexto visual), de ahí el parámetro; tamaño de fuente/alto/margen se
+// dejan fuera del mixin porque cada página los fija según su propio layout.
+@mixin tf-input-wrapper($bg: var(--tf-surface-1)) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $bg;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+  padding: 0 14px;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &:focus-within {
+    border-color: var(--tf-accent);
+  }
+}
+
+@mixin tf-input-icon {
+  color: var(--tf-text-muted);
+  flex-shrink: 0;
+}
+
+@mixin tf-input-field {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--tf-text);
+  font-family: inherit;
+  height: 100%;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+}

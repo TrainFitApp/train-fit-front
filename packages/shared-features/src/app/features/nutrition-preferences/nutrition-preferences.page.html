@@ -1,0 +1,103 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis preferencias nutricionales</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="nutrition-preferences-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 64px;"></div>
+    <div class="skeleton-block" style="height: 64px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus preferencias.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <div class="requested-banner" *ngIf="wasRequested">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>Tu profesional te ha pedido que rellenes este cuestionario.</span>
+    </div>
+
+    <p class="form-hint">
+      Esta información ayuda a tu profesional a pautarte comidas realistas. No se valida
+      automáticamente: es solo referencia para que la tenga en cuenta.
+    </p>
+
+    <div class="pref-field">
+      <span class="pref-label pref-label--critical">
+        <ion-icon name="warning-outline"></ion-icon>
+        Alergias / intolerancias
+      </span>
+      <textarea
+        class="pref-textarea pref-textarea--critical"
+        rows="3"
+        placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
+        [(ngModel)]="allergies"
+        maxlength="1000"
+      ></textarea>
+    </div>
+
+    <div class="pref-field">
+      <span class="pref-label">Alimentos favoritos</span>
+      <textarea
+        class="pref-textarea"
+        rows="2"
+        placeholder="p. ej. Pollo, arroz, plátano..."
+        [(ngModel)]="favoriteFoods"
+        maxlength="1000"
+      ></textarea>
+    </div>
+
+    <div class="pref-field">
+      <span class="pref-label">Alimentos que no te gustan</span>
+      <textarea
+        class="pref-textarea"
+        rows="2"
+        placeholder="p. ej. Brócoli, pescado azul..."
+        [(ngModel)]="dislikedFoods"
+        maxlength="1000"
+      ></textarea>
+    </div>
+
+    <div class="pref-field">
+      <span class="pref-label">¿Cocinas en casa habitualmente?</span>
+      <div class="cooks-picker">
+        <button
+          type="button"
+          class="cooks-option"
+          [class.selected]="cooksAtHome === 'yes'"
+          (click)="setCooksAtHome('yes')"
+        >
+          Sí
+        </button>
+        <button
+          type="button"
+          class="cooks-option"
+          [class.selected]="cooksAtHome === 'sometimes'"
+          (click)="setCooksAtHome('sometimes')"
+        >
+          A veces
+        </button>
+        <button
+          type="button"
+          class="cooks-option"
+          [class.selected]="cooksAtHome === 'no'"
+          (click)="setCooksAtHome('no')"
+        >
+          No
+        </button>
+      </div>
+    </div>
+
+    <button class="submit-button" (click)="submit()" [disabled]="isSaving">
+      <span *ngIf="!isSaving">Guardar preferencias</span>
+      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+    </button>
+  </ng-container>
+</ion-content>

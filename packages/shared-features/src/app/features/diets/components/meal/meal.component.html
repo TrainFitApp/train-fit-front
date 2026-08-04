@@ -71,6 +71,22 @@
     </ion-accordion>
   </ng-container>
 
+  <!-- F28: alternativas nombradas propuestas por el profesional, pendientes de elegir -->
+  <div class="meal-proposal-banner" *ngIf="load && proposals?.length" (click)="$event.stopPropagation()">
+    <div class="meal-proposal-item" *ngFor="let proposal of proposals">
+      <span class="meal-proposal-label">Tu profesional propone {{ proposal.alternatives.length }} opciones. Elige una:</span>
+      <div class="meal-proposal-chips">
+        <ion-chip
+          *ngFor="let alt of proposal.alternatives; let i = index"
+          [disabled]="isChoosingProposal"
+          (click)="chooseAlternative(proposal, i)"
+        >
+          {{ alt.label }}
+        </ion-chip>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenido real -->
   <ion-accordion *ngIf="load" #mealAccordion [value]="'meal-' + mealIndex" (click)="arrowRotate = !arrowRotate">
     <ion-grid class="t-meal" slot="header">

@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
+import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { TABS } from 'src/app/shared/constants/tabs';
 import { TABLE_MODE_TYPES } from 'src/app/shared/constants/table-mode';
@@ -18,5 +20,9 @@ export class TabsPage {
     else this.utilService.setTableMode = undefined;
   }
 
-  constructor(private utilService: UtilService) {}
+  constructor(
+    private utilService: UtilService,
+    public coachService: CoachService,
+    public notificationsService: NotificationsService
+  ) {}
 }

@@ -1,0 +1,109 @@
+// Menú lateral — reemplaza la barra de tabs inferior (ver shell.page.ts).
+// ion-split-pane maneja el responsive de forma nativa: drawer superpuesto
+// en móvil, panel persistente desde el breakpoint "md" (768px) — sin media
+// queries propias, a diferencia del hack anterior (F16).
+
+.app-menu {
+  --width: 264px;
+  --background: var(--tf-surface-1);
+  --border-color: var(--tf-border);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 0 var(--tf-space-2);
+}
+
+.app-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-accent-gradient);
+  color: var(--tf-accent-contrast);
+  font-weight: 800;
+  font-size: var(--tf-font-size-sm);
+  flex-shrink: 0;
+}
+
+.app-brand-name {
+  font-weight: 700;
+  font-size: var(--tf-font-size-md);
+  color: var(--tf-text);
+}
+
+.app-menu-content {
+  --background: var(--tf-surface-1);
+  --padding-top: var(--tf-space-2);
+  --padding-bottom: var(--tf-space-6);
+}
+
+.app-menu-nav {
+  display: block;
+}
+
+.menu-group {
+  padding: 0 var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.menu-group-label {
+  margin: var(--tf-space-4) var(--tf-space-3) var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  margin-bottom: 2px;
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--tf-surface-3);
+    color: var(--tf-text);
+  }
+
+  // Foco visible por teclado — WCAG AA (PRODUCT.md > Accesibilidad).
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+
+    ion-icon {
+      color: var(--tf-accent);
+    }
+  }
+}
+
+// El panel principal hereda el fondo de la app — sin esto, el hueco entre
+// el menú persistente y el contenido se ve del blanco por defecto de Ionic.
+#tf-main-content {
+  background: var(--tf-bg);
+}

@@ -1,9 +1,9 @@
-:host {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+@import '../../../theme/inputs';
 
 ion-header ion-toolbar {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 
   ion-title {
     font-weight: 700;
@@ -12,11 +12,11 @@ ion-header ion-toolbar {
 }
 
 .invite-button {
-  --color: #fe9000;
+  --color: var(--tf-accent);
 }
 
 .clients-content {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 }
 
 .client-list {
@@ -33,24 +33,24 @@ ion-header ion-toolbar {
   gap: 14px;
   width: 100%;
   padding: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 14px;
   color: inherit;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out),
-    background 160ms var(--ease-out);
-  animation: card-in 320ms var(--ease-out) backwards;
+  transition: transform 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out),
+    background 160ms var(--tf-ease-out);
+  animation: card-in 320ms var(--tf-ease-out) backwards;
 
   &:active {
     transform: scale(0.98);
-    background: #1a1a1a;
+    background: var(--tf-surface-2);
   }
 
   &:not(.skeleton):hover {
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--tf-border-strongest);
   }
 
   @for $i from 1 through 12 {
@@ -100,7 +100,7 @@ ion-header ion-toolbar {
 .client-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--tf-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -115,9 +115,9 @@ ion-header ion-toolbar {
 .scope-chip {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #c7c7c7;
-  background: #252525;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-5);
+  border: 1px solid var(--tf-border);
   border-radius: 6px;
   padding: 2px 8px;
 }
@@ -125,52 +125,19 @@ ion-header ion-toolbar {
 .client-chevron {
   flex-shrink: 0;
   font-size: 18px;
-  color: #4a4a4a;
+  color: var(--tf-text-faint);
 }
 
 // --- Skeleton (cargando) ---
 .client-card.skeleton {
   cursor: default;
   pointer-events: none;
-  animation: card-in 320ms var(--ease-out) backwards;
+  animation: card-in 320ms var(--tf-ease-out) backwards;
 }
 
 .skeleton-block,
 .skeleton-line {
-  position: relative;
-  overflow: hidden;
-  background: #1e1e1e;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    animation: shimmer 1.4s infinite;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-block::after,
-  .skeleton-line::after {
-    animation: none;
-  }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-.skeleton-block.client-avatar {
-  background: #1e1e1e;
+  @include tf-skeleton-shimmer;
 }
 
 .skeleton-line {
@@ -187,6 +154,74 @@ ion-header ion-toolbar {
   }
 }
 
+// --- F23: búsqueda + filtro ---
+.search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 16px 12px;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  padding: 0 14px;
+  height: 44px;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &:focus-within {
+    border-color: var(--tf-accent);
+  }
+}
+
+.search-icon {
+  @include tf-input-icon;
+  font-size: 18px;
+}
+
+.search-input {
+  @include tf-input-field;
+  font-size: 0.9rem;
+}
+
+.scope-filter {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.scope-filter-chip {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 999px;
+  color: var(--tf-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
+    background 160ms var(--tf-ease-out);
+
+  &.active {
+    border-color: var(--tf-accent);
+    color: var(--tf-text);
+    background: var(--tf-accent-soft);
+  }
+}
+
+.state-message--inline {
+  padding: 48px 32px 0;
+
+  ion-icon {
+    font-size: 30px;
+  }
+}
+
 // --- Estados (error / vacío) ---
 .state-message {
   display: flex;
@@ -195,18 +230,18 @@ ion-header ion-toolbar {
   text-align: center;
   gap: 10px;
   padding: 96px 32px 0;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
 
   ion-icon {
     font-size: 40px;
-    color: #4a4a4a;
+    color: var(--tf-text-faint);
     margin-bottom: 6px;
   }
 
   h2 {
     font-size: 1.05rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--tf-text);
     margin: 0;
   }
 
@@ -223,25 +258,22 @@ ion-header ion-toolbar {
   margin-top: 8px;
   height: 42px;
   padding: 0 20px;
-  border: none;
-  border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 160ms var(--ease-out);
+}
+
+.retry-button {
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  transition: transform 160ms var(--tf-ease-out);
 
   &:active {
     transform: scale(0.96);
   }
 }
 
-.retry-button {
-  background: #252525;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
 .invite-cta {
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
-  color: #0f0f0f;
+  @include tf-gradient-button(10px);
 }

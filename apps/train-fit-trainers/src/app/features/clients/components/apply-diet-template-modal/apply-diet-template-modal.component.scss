@@ -1,0 +1,103 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+.apply-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error p,
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
+.template-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  ion-icon:first-child {
+    color: var(--tf-accent);
+    font-size: 1.2rem;
+  }
+
+  &--selected {
+    border-color: var(--tf-accent);
+  }
+}
+
+.template-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 0.9rem;
+  color: var(--tf-text);
+  font-weight: 600;
+}
+
+.template-meta {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.selected-check {
+  color: var(--tf-accent);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.input-wrapper {
+  // Antes sin transition/:focus-within — el mixin los incluye siempre, cierra
+  // un hueco de consistencia de interacción que tenía esta página (único
+  // input de la app sin feedback visual de foco).
+  @include tf-input-wrapper(var(--tf-surface-2));
+  position: relative;
+  height: 50px;
+  margin-top: 12px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 1.1rem;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.9rem;
+}
+
+.confirm-button {
+  @include tf-gradient-button;
+  height: 48px;
+  margin: 0 16px 12px;
+  width: calc(100% - 32px);
+  font-size: 0.92rem;
+}

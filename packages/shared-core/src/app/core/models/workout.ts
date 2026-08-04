@@ -15,4 +15,8 @@ export class Workout {
   // exclusive with `date`: a skipped workout is never marked as finished.
   rest?: boolean;
   exercises: CustomExercise[];
+  // MVP-trainers F18 — pulso opcional de readiness/esfuerzo por sesión (1-5),
+  // visible para el profesional junto al historial de entrenamientos (F09).
+  readinessPre?: number | null;
+  perceivedEffortPost?: number | null;
 }

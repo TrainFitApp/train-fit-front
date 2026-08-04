@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="select-clients-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 52px;"></div>
+    <div class="skeleton-block" style="height: 52px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo cargar la lista de clientes.</p>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="empty-hint" *ngIf="!clients.length">
+      No tienes más clientes activos con este tipo de relación.
+    </p>
+
+    <div
+      class="client-row"
+      *ngFor="let client of clients; trackBy: trackByClientId"
+      (click)="toggle(client.user!._id)"
+    >
+      <ion-checkbox
+        mode="ios"
+        [checked]="isSelected(client.user!._id)"
+        (click)="$event.stopPropagation()"
+        (ionChange)="toggle(client.user!._id)"
+      ></ion-checkbox>
+      <span class="client-name">{{ fullName(client) }}</span>
+    </div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state === 'loaded' && clients.length">
+  <ion-toolbar>
+    <button class="confirm-button" [disabled]="!selectedIds.size" (click)="confirm()">
+      Aplicar a {{ selectedIds.size }} cliente{{ selectedIds.size === 1 ? '' : 's' }}
+    </button>
+  </ion-toolbar>
+</ion-footer>

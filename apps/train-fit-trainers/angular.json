@@ -32,7 +32,8 @@
             ],
             "styles": [
               "../../packages/shared-theme/src/theme/variables.scss",
-              "../../packages/shared-theme/src/global.scss"
+              "../../packages/shared-theme/src/global.scss",
+              "src/theme/tokens.scss"
             ],
             "scripts": [],
             "vendorChunk": true,

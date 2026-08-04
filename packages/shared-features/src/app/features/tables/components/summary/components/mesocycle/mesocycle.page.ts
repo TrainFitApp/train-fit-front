@@ -760,8 +760,12 @@ export class MesocyclePage implements OnInit, AfterViewInit {
             let workout = new Workout();
             workout.name = data.workoutName.trim();
 
+            // Replanteamiento MVP (rutinas): this.user.tableInUse es la tabla
+            // en uso del usuario LOGUEADO, undefined para un profesional que
+            // no tiene rutina propia — usa this.tableInUse._id (la tabla que
+            // este componente ya tiene cargada, cliente incluido).
             this.workoutService
-              .addWorkoutsToSplits(this.user.tableInUse, workout)
+              .addWorkoutsToSplits(this.tableInUse._id, workout)
               .subscribe((resSplits) => {
                 this.tableInUse.splits = resSplits;
                 this.tableService.setCurrentTable = this.tableInUse;
@@ -847,7 +851,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     });
 
     this.workoutService
-      .addWorkoutsToSplits(this.user.tableInUse, workouts)
+      .addWorkoutsToSplits(this.tableInUse._id, workouts)
       .subscribe({
         next: (resSplits) => {
           this.tableInUse.splits = resSplits;
@@ -1645,7 +1649,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
               const workout = this.workoutService.getStandarWorkout();
               workout.name = data.workoutName;
               this.workoutService
-                .addWorkoutsToSplits(this.user.tableInUse, workout)
+                .addWorkoutsToSplits(this.tableInUse._id, workout)
                 .subscribe((resSplits) => {
                   this.tableInUse.splits = resSplits;
                   this.tableService.setCurrentTable = this.tableInUse;

@@ -1,0 +1,270 @@
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+@import '../../../theme/panel-sheet';
+@import '../../../theme/inputs';
+
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  ion-button {
+    --color: var(--tf-accent);
+  }
+}
+
+.checkin-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px 0;
+
+  p {
+    font-size: 0.88rem;
+    color: var(--tf-text-muted);
+    margin: 0;
+  }
+}
+
+.retry-button {
+  height: 38px;
+  padding: 0 16px;
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px;
+}
+
+.list-card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.template-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.template-meta {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.template-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.template-action-btn {
+  height: 34px;
+  padding: 0 14px;
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &--danger {
+    padding: 0 10px;
+    color: var(--tf-danger);
+    border-color: rgba(235, 68, 90, 0.3);
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+// --- Panel (bottom sheet) ---
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+
+  &--tall {
+    max-height: 88vh;
+  }
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin: 0 0 4px;
+}
+
+.panel-subtitle {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 14px;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 50px;
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 18px;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.95rem;
+}
+
+.field-group {
+  margin-bottom: 16px;
+
+  &:last-of-type {
+    margin-bottom: 20px;
+  }
+}
+
+.field-group-heading {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px;
+}
+
+.field-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  color: var(--tf-text-secondary);
+  font-size: 0.86rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--tf-text-faint);
+    flex-shrink: 0;
+  }
+}
+
+.field-unit {
+  color: var(--tf-text-muted);
+  font-size: 0.78rem;
+}
+
+.cadence-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.cadence-option {
+  flex: 1;
+  padding: 10px 8px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &--active {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
+.field-toggle-icon--active {
+  color: var(--tf-accent) !important;
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

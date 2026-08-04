@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authMatchGuard } from 'src/app/core/guards/auth.guard';
+import { onboardingMatchGuard } from 'src/app/core/guards/onboarding.guard';
+import { biometricDataGuard } from 'src/app/guards/biometric-data.guard';
 import { DisconnectedComponent } from 'src/app/shared/components/disconnected/disconnected.component';
 
 const routes: Routes = [
@@ -18,8 +20,11 @@ const routes: Routes = [
       ).then((m) => m.SearchFoodsPageModule),
   },
   {
+    // MVP-trainers F27 — gate de datos biométricos diferido: esta pantalla
+    // depende de calculateKcal (peso/altura/sexo/actividad/objetivo/nacimiento).
     path: 'nutritional-objectives',
     canMatch: [authMatchGuard],
+    canActivate: [biometricDataGuard],
     loadChildren: () =>
       import(
         'src/app/features/diets/components/nutritional-objectives/nutritional-objectives.module'
@@ -75,9 +80,20 @@ const routes: Routes = [
   },
   {
     path: 'tabs',
-    canMatch: [authMatchGuard],
+    canMatch: [authMatchGuard, onboardingMatchGuard],
     loadChildren: () =>
       import('src/app/features/tabs/tabs.module').then((m) => m.TabsPageModule),
+  },
+  {
+    // TAREA 3 — cuestionario inicial / pantalla de espera mientras el
+    // cliente no tiene ninguna relación activa todavía. Sin onboardingMatchGuard
+    // (sería una redirección circular) — solo requiere sesión iniciada.
+    path: 'onboarding-status',
+    canMatch: [authMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/onboarding-status/onboarding-status.module').then(
+        (m) => m.OnboardingStatusPageModule
+      ),
   },
   {
     path: 'user-loader',
@@ -96,16 +112,40 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
-    // MVP-trainers F04 — "Mis profesionales": ver/aceptar/rechazar invitaciones
-    // de entrenadores y gestionar profesionales ya vinculados. Solo tiene
-    // sentido para clientes (esta app); no se registra en train-fit-management
-    // ni train-fit-trainers.
+    // Tab Coach, Fase 1 — hub único de todo lo relacionado con los
+    // profesionales del cliente (entrenador/nutricionista): invitaciones,
+    // profesionales activos, historial, y el dashboard de check-ins/comidas/
+    // preferencias/cobros pendientes y plan actual asignado. Absorbe lo que
+    // antes era "Mis profesionales" (MVP-trainers F04) — se mantiene la ruta
+    // `my-professionals` (enlazada desde Configuración) para los clientes sin
+    // el tab visible (relación aún pendiente, no activa), y se añade `coach`
+    // para el tab. Ambas cargan el mismo módulo. Solo tiene sentido para
+    // clientes (esta app); no se registra en train-fit-management ni
+    // train-fit-trainers.
     path: 'my-professionals',
-    canMatch: [authMatchGuard],
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/coach/coach.module').then((m) => m.CoachPageModule),
+  },
+  {
+    // MVP-trainers F17 — check-ins periódicos pedidos por profesionales activos.
+    path: 'my-checkins',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
     loadChildren: () =>
       import(
-        'src/app/features/profile/components/my-professionals/my-professionals.module'
-      ).then((m) => m.MyProfessionalsPageModule),
+        'src/app/features/checkins/my-checkins/my-checkins.module'
+      ).then((m) => m.MyCheckinsPageModule),
+  },
+  {
+    // MVP-trainers F29 — preferencias nutricionales del cliente (alergias,
+    // favoritos, no le gusta, si cocina en casa), solicitadas por su
+    // nutricionista y rellenadas/editadas por el propio cliente.
+    path: 'nutrition-preferences',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/nutrition-preferences/nutrition-preferences.module'
+      ).then((m) => m.NutritionPreferencesPageModule),
   },
   {
     path: 'premium',

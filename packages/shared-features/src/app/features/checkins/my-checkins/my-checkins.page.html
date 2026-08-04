@@ -1,0 +1,105 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis check-ins</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="my-checkins-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 64px;"></div>
+    <div class="skeleton-block" style="height: 64px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus check-ins.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="empty-hint" *ngIf="!configs.length">
+      Ninguno de tus profesionales te ha pedido un check-in todavía.
+    </p>
+
+    <div class="checkin-card" *ngFor="let config of configs; trackBy: trackByTrainerId">
+      <button class="checkin-card-header" (click)="toggleExpand(config)">
+        <div class="checkin-card-title-group">
+          <span class="list-card-title">{{ trainerName(config) }}</span>
+          <span class="checkin-card-subtitle">
+            {{ cadenceLabel(config) }} · {{ fieldsFor(config).length }} campos
+            <ion-icon name="checkmark-circle" class="submitted-icon" *ngIf="submittedTrainerIds.has(config.trainerId)"></ion-icon>
+          </span>
+        </div>
+        <ion-icon
+          [name]="expandedTrainerId === config.trainerId ? 'chevron-up-outline' : 'chevron-down-outline'"
+        ></ion-icon>
+      </button>
+
+      <div class="checkin-form" *ngIf="expandedTrainerId === config.trainerId">
+        <div class="checkin-field" *ngFor="let field of fieldsFor(config); trackBy: trackByFieldKey">
+          <span class="checkin-field-label">{{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span></span>
+
+          <input
+            *ngIf="field.type === 'number'"
+            type="number"
+            class="checkin-input"
+            [(ngModel)]="formValues[field.key]"
+          />
+
+          <div class="scale-picker" *ngIf="field.type === 'scale_1_5'">
+            <button
+              *ngFor="let n of [1, 2, 3, 4, 5]"
+              class="scale-option"
+              [class.selected]="formValues[field.key] === n"
+              (click)="setScaleValue(field.key, n)"
+            >
+              {{ n }}
+            </button>
+          </div>
+
+          <textarea
+            *ngIf="field.type === 'text'"
+            class="checkin-textarea"
+            rows="3"
+            maxlength="1000"
+            [ngModel]="formValues[field.key]"
+            (ngModelChange)="setTextValue(field.key, $event)"
+          ></textarea>
+        </div>
+
+        <button
+          class="submit-button"
+          (click)="submitResponse(config)"
+          [disabled]="!hasAnyValue() || isSubmitting"
+        >
+          <span *ngIf="!isSubmitting">Enviar check-in</span>
+          <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
+        </button>
+      </div>
+    </div>
+
+    <!-- coach-tab FASE2 — "formularios completados" -->
+    <div class="mp-section" *ngIf="history.length">
+      <button class="history-toggle" (click)="toggleHistory()">
+        <h2 class="section-heading">Formularios completados</h2>
+        <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+
+      <ng-container *ngIf="showHistory">
+        <div class="history-card" *ngFor="let entry of history; trackBy: trackByHistoryId">
+          <div class="history-card-header">
+            <span class="mp-name">{{ historyTrainerName(entry) }}</span>
+            <span class="history-date">{{ entry.respondedAt | date: 'd MMM y' }}</span>
+          </div>
+          <div class="history-values">
+            <span class="history-value" *ngFor="let item of historyEntries(entry)">
+              <strong>{{ item.label }}:</strong> {{ item.value }}
+            </span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</ion-content>

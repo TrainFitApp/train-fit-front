@@ -1,9 +1,9 @@
-:host {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+@import '../../../theme/inputs';
 
 ion-header ion-toolbar {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 
   ion-title {
     font-weight: 700;
@@ -12,7 +12,7 @@ ion-header ion-toolbar {
 }
 
 .invites-content {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 }
 
 .invite-form {
@@ -23,13 +23,13 @@ ion-header ion-toolbar {
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #ffffff;
+  color: var(--tf-text);
   margin: 4px 0 4px;
 }
 
 .form-subtitle {
   font-size: 0.88rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   line-height: 1.45;
   margin: 0 0 20px;
   max-width: 42ch;
@@ -40,45 +40,22 @@ ion-header ion-toolbar {
 }
 
 .input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
-  padding: 0 14px;
+  @include tf-input-wrapper;
   height: 52px;
-  transition: border-color 160ms var(--ease-out);
-
-  &:focus-within {
-    border-color: #fe9000;
-  }
 }
 
 .input-icon {
+  @include tf-input-icon;
   font-size: 20px;
-  color: #8b8b8b;
-  flex-shrink: 0;
 }
 
 .input-field {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
+  @include tf-input-field;
   font-size: 1rem;
-  font-family: inherit;
-  height: 100%;
-
-  &::placeholder {
-    color: #8b8b8b;
-  }
 }
 
 .validation-error {
-  color: #eb445a;
+  color: var(--tf-danger);
   font-size: 0.8rem;
   margin-top: 6px;
   padding-left: 2px;
@@ -96,20 +73,20 @@ ion-header ion-toolbar {
   align-items: center;
   gap: 8px;
   padding: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 12px;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out),
-    transform 160ms var(--ease-out);
+  transition: border-color 160ms var(--tf-ease-out), background 160ms var(--tf-ease-out),
+    transform 160ms var(--tf-ease-out);
 
   ion-icon:first-child {
     font-size: 18px;
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     flex-shrink: 0;
   }
 
@@ -120,7 +97,7 @@ ion-header ion-toolbar {
 
   .scope-check {
     font-size: 18px;
-    color: #4a4a4a;
+    color: var(--tf-text-faint);
     flex-shrink: 0;
   }
 
@@ -129,44 +106,29 @@ ion-header ion-toolbar {
   }
 
   &.selected {
-    border-color: #fe9000;
+    border-color: var(--tf-accent);
     background: rgba(254, 144, 0, 0.08);
-    color: #ffffff;
+    color: var(--tf-text);
 
     ion-icon:first-child {
-      color: #fe9000;
+      color: var(--tf-accent);
     }
 
     .scope-check {
-      color: #fe9000;
+      color: var(--tf-accent);
     }
   }
 }
 
 .submit-button {
+  @include tf-gradient-button;
   width: 100%;
   height: 52px;
   margin-top: 20px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
-  color: #0f0f0f;
-  font-weight: 700;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
 }
 
 // --- Lista de invitaciones ---
@@ -179,7 +141,7 @@ ion-header ion-toolbar {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   margin: 0 0 10px;
 
   &--secondary {
@@ -189,7 +151,7 @@ ion-header ion-toolbar {
 
 .empty-hint {
   font-size: 0.88rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   margin: 0 0 4px;
 }
 
@@ -201,7 +163,7 @@ ion-header ion-toolbar {
 
   p {
     font-size: 0.88rem;
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     margin: 0;
   }
 }
@@ -209,9 +171,9 @@ ion-header ion-toolbar {
 .retry-button {
   height: 38px;
   padding: 0 16px;
-  background: #252525;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -230,10 +192,10 @@ ion-header ion-toolbar {
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
-  animation: row-in 280ms var(--ease-out) backwards;
+  animation: row-in 280ms var(--tf-ease-out) backwards;
 
   @for $i from 1 through 12 {
     &:nth-child(#{$i}) {
@@ -273,7 +235,7 @@ ion-header ion-toolbar {
 .invite-email {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--tf-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -283,9 +245,9 @@ ion-header ion-toolbar {
   align-self: flex-start;
   font-size: 0.72rem;
   font-weight: 600;
-  color: #c7c7c7;
-  background: #252525;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-5);
+  border: 1px solid var(--tf-border);
   border-radius: 6px;
   padding: 2px 8px;
 }
@@ -295,15 +257,15 @@ ion-header ion-toolbar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #1a1a1a;
-  color: #c7c7c7;
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out),
-    color 160ms var(--ease-out);
+  transition: transform 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out),
+    color 160ms var(--tf-ease-out);
 
   ion-icon {
     font-size: 16px;
@@ -314,8 +276,8 @@ ion-header ion-toolbar {
   }
 
   &:hover {
-    border-color: #eb445a;
-    color: #eb445a;
+    border-color: var(--tf-danger);
+    color: var(--tf-danger);
   }
 
   &:disabled {
@@ -330,16 +292,16 @@ ion-header ion-toolbar {
   font-weight: 600;
   padding: 3px 9px;
   border-radius: 6px;
-  color: #8b8b8b;
-  background: #1a1a1a;
+  color: var(--tf-text-muted);
+  background: var(--tf-surface-2);
 
   &[data-status='active'] {
-    color: #2dd36f;
+    color: var(--tf-success);
   }
 
   &[data-status='declined'],
   &[data-status='revoked'] {
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
   }
 }
 
@@ -349,20 +311,9 @@ ion-header ion-toolbar {
 }
 
 .skeleton-line {
-  position: relative;
-  overflow: hidden;
-  background: #1e1e1e;
+  @include tf-skeleton-shimmer;
   border-radius: 4px;
   height: 12px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    animation: shimmer 1.4s infinite;
-  }
 
   &--email {
     width: 45%;
@@ -374,14 +325,73 @@ ion-header ion-toolbar {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-line::after {
-    animation: none;
-  }
+// --- TAREA 3: revisar cuestionario + confirmar cliente ---
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+.skeleton-block {
+  // Antes sin @media (prefers-reduced-motion: reduce) — el mixin lo incluye
+  // siempre, cierra un hueco de accesibilidad real que tenía esta página.
+  @include tf-skeleton-shimmer;
+  border-radius: 10px;
+}
+
+.intake-review {
+  padding: 12px 14px;
+  margin: -4px 0 8px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+
+.intake-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.intake-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-muted);
+}
+
+.intake-field-value {
+  font-size: 0.86rem;
+  color: var(--tf-text-secondary);
+}
+
+.intake-review-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cancel-review-button {
+  flex: 1;
+  height: 38px;
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-button {
+  @include tf-gradient-button(10px);
+  flex: 2;
+  height: 38px;
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

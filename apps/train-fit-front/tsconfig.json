@@ -8,6 +8,12 @@
       "src/app/features/authentication/*": [
         "../../packages/shared-features/src/app/features/authentication/*"
       ],
+      "src/app/features/checkins/*": [
+        "../../packages/shared-features/src/app/features/checkins/*"
+      ],
+      "src/app/features/coach/*": [
+        "../../packages/shared-features/src/app/features/coach/*"
+      ],
       "src/app/features/diet-days/*": [
         "../../packages/shared-features/src/app/features/diet-days/*"
       ],
@@ -16,6 +22,12 @@
       ],
       "src/app/features/exercises/*": [
         "../../packages/shared-features/src/app/features/exercises/*"
+      ],
+      "src/app/features/nutrition-preferences/*": [
+        "../../packages/shared-features/src/app/features/nutrition-preferences/*"
+      ],
+      "src/app/features/onboarding-status/*": [
+        "../../packages/shared-features/src/app/features/onboarding-status/*"
       ],
       "src/app/features/premium/*": [
         "../../packages/shared-features/src/app/features/premium/*"

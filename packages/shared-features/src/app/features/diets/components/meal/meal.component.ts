@@ -40,6 +40,8 @@ import {
 } from 'src/app/shared/constants/actions';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
+import { MealProposal } from '../../models/meal-proposal.model';
+import { MealProposalApiService } from '../../services/meal-proposal-api.service';
 
 @Component({
   selector: 'app-meal',
@@ -63,12 +65,17 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public clipboardClearCounter = 0;
   @Input()
   public mealIndex!: number;
+  // F28 — alternativas nombradas pendientes de elegir para este hueco de comida en esta fecha.
+  @Input()
+  public proposals: MealProposal[] = [];
   @Output()
   public updateMacros = new EventEmitter();
   @Output()
   public pasteEvent = new EventEmitter();
   @Output()
   public copyEvent = new EventEmitter();
+  @Output()
+  public proposalChosen = new EventEmitter<string>();
 
   @ViewChild('mealAccordion', { read: ElementRef })
   public mealAccordion!: ElementRef<HTMLIonAccordionElement>;
@@ -88,6 +95,9 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public selectedRecipeIds = new Set<string>();
   private clipboardSub = Subscription.EMPTY;
 
+  // F28 — eligiendo una alternativa propuesta.
+  public isChoosingProposal = false;
+
   constructor(
     private utilService: UtilService,
     private ionicUtilService: IonicUtilService,
@@ -97,6 +107,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     private customProductService: CustomProductService,
     private customRecipeService: CustomRecipeApiService,
     private recipeService: RecipeService,
+    private mealProposalApiService: MealProposalApiService,
     private navigationService: NavigationService,
     private translate: TranslateService,
     private modalController: ModalController
@@ -960,5 +971,37 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
       this.ionicUtilService.showAlert(alertOptions);
     }
+  }
+
+  // F28 — el cliente elige una de las alternativas propuestas por su
+  // profesional; se aplica de verdad sobre esta comida (mismo resultado
+  // final que pautar con F12, solo que diferido hasta esta elección).
+  public chooseAlternative(proposal: MealProposal, index: number): void {
+    if (this.isChoosingProposal) return;
+    this.isChoosingProposal = true;
+
+    this.mealProposalApiService.choose(this.dietDay.date, proposal._id, index).subscribe({
+      next: (updatedMeal) => {
+        this.isChoosingProposal = false;
+        this.meal = updatedMeal;
+        const indexMeal = this.dietDay.meals.findIndex((m) => m._id === updatedMeal._id);
+        if (indexMeal !== -1) this.dietDay.meals[indexMeal] = updatedMeal;
+        this.dietDayService.setCurrentDietDay = this.dietDay;
+        this.getMealInfo();
+        this.proposalChosen.emit(proposal._id);
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
+          duration: 2000,
+        });
+      },
+      error: (err) => {
+        this.isChoosingProposal = false;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.message || 'No se pudo aplicar la alternativa elegida',
+          'Error',
+          3000
+        );
+      },
+    });
   }
 }

@@ -1,0 +1,61 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Aplicar plantilla</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="apply-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 52px;"></div>
+    <div class="skeleton-block" style="height: 52px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus plantillas.</p>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' || state === 'applying'">
+    <p class="empty-hint" *ngIf="!templates.length">
+      Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
+    </p>
+
+    <div
+      class="template-row"
+      *ngFor="let template of templates; trackBy: trackByTemplateId"
+      [class.template-row--selected]="selectedTemplateId === template._id"
+      (click)="select(template)"
+    >
+      <ion-icon name="restaurant-outline"></ion-icon>
+      <div class="template-info">
+        <span class="template-name">{{ template.name }}</span>
+        <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+      </div>
+      <ion-icon
+        class="selected-check"
+        *ngIf="selectedTemplateId === template._id"
+        name="checkmark-circle"
+      ></ion-icon>
+    </div>
+
+    <div class="input-wrapper" *ngIf="selectedTemplateId">
+      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+      <input type="date" class="input-field" [(ngModel)]="startDate" />
+    </div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state === 'loaded' || state === 'applying'">
+  <ion-toolbar>
+    <button
+      class="confirm-button"
+      [disabled]="!selectedTemplateId || !startDate || state === 'applying'"
+      (click)="confirm()"
+    >
+      <span *ngIf="state !== 'applying'">Aplicar a {{ clientName }}</span>
+      <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
+    </button>
+  </ion-toolbar>
+</ion-footer>

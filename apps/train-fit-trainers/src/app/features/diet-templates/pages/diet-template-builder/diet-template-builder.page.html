@@ -1,0 +1,130 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Editar plantilla</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="builder-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 60px;"></div>
+    <div class="skeleton-block" style="height: 60px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo cargar la plantilla.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <div class="input-wrapper">
+      <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
+      <input type="text" class="input-field" placeholder="Nombre de la plantilla" [(ngModel)]="name" />
+    </div>
+
+    <p class="empty-hint" *ngIf="!days.length">Añade el primer día para empezar a construir la plantilla.</p>
+
+    <div class="day-card" *ngFor="let day of days; let d = index; trackBy: trackByIndex">
+      <button type="button" class="day-header" (click)="toggleDay(d)">
+        <ion-icon name="chevron-forward-outline" class="day-chevron" [class.day-chevron--open]="expandedDayIndex === d"></ion-icon>
+        <input
+          type="text"
+          class="day-label-input"
+          [(ngModel)]="day.dayLabel"
+          (click)="$event.stopPropagation()"
+        />
+        <button type="button" class="remove-alternative-btn" (click)="removeDay(d); $event.stopPropagation()">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </button>
+
+      <div class="day-meals" *ngIf="expandedDayIndex === d">
+        <div class="meal-block" *ngFor="let meal of day.meals; let m = index; trackBy: trackByIndex">
+          <button type="button" class="meal-header" (click)="toggleMeal(d, m)">
+            <span class="meal-slot-name">{{ meal.slot }}</span>
+            <span class="meal-summary">{{ mealSummary(meal) }}</span>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="day-chevron"
+              [class.day-chevron--open]="isMealExpanded(d, m)"
+            ></ion-icon>
+          </button>
+
+          <div class="meal-items" *ngIf="isMealExpanded(d, m)">
+            <div class="food-item-card" *ngFor="let item of meal.items; let i = index; trackBy: trackByIndex">
+              <div class="food-item-header">
+                <span class="food-item-title">Alimento {{ i + 1 }}</span>
+                <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(d, m, i)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+
+              <div class="product-pick-row" *ngIf="item.productId">
+                <ion-icon name="checkmark-circle-outline" class="input-icon"></ion-icon>
+                <span class="picked-product-name">{{ item.productName }} · {{ item.quantity }}g</span>
+                <button type="button" class="clear-product-btn" (click)="clearProduct(d, m, i)">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="search-product-btn"
+                *ngIf="!item.productId"
+                (click)="openProductSearch(d, m, i)"
+              >
+                <ion-icon name="search-outline"></ion-icon>
+                Buscar alimento real
+              </button>
+
+              <p class="manual-macro-hint" *ngIf="!item.productId">o introduce las macros manualmente:</p>
+
+              <div class="macro-grid">
+                <div class="input-wrapper">
+                  <ion-icon name="flame-outline" class="input-icon"></ion-icon>
+                  <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="item.kcal" [disabled]="!!item.productId" />
+                </div>
+                <div class="input-wrapper">
+                  <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
+                  <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="item.proteinG" [disabled]="!!item.productId" />
+                </div>
+                <div class="input-wrapper">
+                  <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
+                  <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="item.carbsG" [disabled]="!!item.productId" />
+                </div>
+                <div class="input-wrapper">
+                  <ion-icon name="water-outline" class="input-icon"></ion-icon>
+                  <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="item.fatG" [disabled]="!!item.productId" />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="add-food-item-btn"
+              (click)="addFoodItem(d, m)"
+              [disabled]="meal.items.length >= maxFoodItemsPerMeal"
+            >
+              <ion-icon name="add-outline"></ion-icon>
+              Añadir alimento a {{ meal.slot }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="add-alternative-btn" (click)="addDay()" [disabled]="days.length >= maxDays">
+      <ion-icon name="add-outline"></ion-icon>
+      Añadir día
+    </button>
+
+    <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
+      <span *ngIf="!isSaving">Guardar plantilla</span>
+      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+    </button>
+  </ng-container>
+</ion-content>

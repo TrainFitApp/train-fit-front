@@ -1,0 +1,510 @@
+:host {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.coach-content {
+  --background: #0f0f0f;
+}
+
+.mp-section {
+  padding: 12px 16px 8px;
+}
+
+.section-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b8b8b;
+  margin: 8px 0 10px;
+}
+
+.empty-hint {
+  font-size: 0.88rem;
+  color: #8b8b8b;
+  margin: 0 0 4px;
+}
+
+// --- Dashboard: "Pendiente de ti" / "Tu plan actual" ---
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+
+.skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: #1e1e1e;
+  border-radius: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+.section-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px 16px;
+
+  p {
+    font-size: 0.88rem;
+    color: #8b8b8b;
+    margin: 0;
+  }
+}
+
+.action-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  background: rgba(254, 144, 0, 0.08);
+  border: 1px solid rgba(254, 144, 0, 0.25);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &--static {
+    cursor: default;
+    background: #141414;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.action-icon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #fe9b1a;
+}
+
+.action-card--static .action-icon {
+  color: #8b8b8b;
+}
+
+.action-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.action-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.action-subtitle {
+  font-size: 0.76rem;
+  color: #8b8b8b;
+}
+
+.action-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #8b8b8b;
+}
+
+// --- coach-tab FASE3: notificaciones ---
+.notification-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &--unread {
+    background: rgba(254, 144, 0, 0.06);
+    border-color: rgba(254, 144, 0, 0.2);
+
+    .action-title {
+      font-weight: 700;
+    }
+  }
+}
+
+.notification-dot {
+  position: absolute;
+  top: 12px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fe9000;
+}
+
+// --- coach-tab FASE4: tareas de hoy ---
+.task-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  &--done {
+    .action-title {
+      color: #8b8b8b;
+      text-decoration: line-through;
+    }
+  }
+}
+
+.task-check {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #4a4a4a;
+}
+
+.task-row--done .task-check {
+  color: #2dd36f;
+}
+
+.plan-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+}
+
+.plan-icon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #fe9b1a;
+}
+
+// --- Profesionales / invitaciones ---
+.mp-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  animation: card-in 300ms var(--ease-out) backwards;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-card {
+    animation: none;
+  }
+}
+
+.mp-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: rgba(254, 144, 0, 0.14);
+  color: #fe9b1a;
+}
+
+.mp-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mp-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scope-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scope-chip {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #c7c7c7;
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.unlink-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: none;
+  background: none;
+  color: #8b8b8b;
+  cursor: pointer;
+  padding: 0;
+
+  ion-icon {
+    font-size: 12px;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:hover {
+    color: #eb445a;
+  }
+}
+
+.invite-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out);
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.icon-button--decline {
+  color: #8b8b8b;
+
+  &:hover {
+    border-color: #eb445a;
+    color: #eb445a;
+  }
+}
+
+.icon-button--accept {
+  color: #2dd36f;
+
+  &:hover {
+    border-color: #2dd36f;
+  }
+}
+
+.mp-state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 96px 32px 0;
+  color: #8b8b8b;
+
+  ion-icon {
+    font-size: 40px;
+    color: #4a4a4a;
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+  }
+}
+
+.retry-button {
+  margin-top: 4px;
+  height: 42px;
+  padding: 0 20px;
+  background: #252525;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+// --- Skeleton (tarjetas de profesional) ---
+.mp-card.skeleton {
+  pointer-events: none;
+}
+
+.skeleton-block.mp-avatar {
+  background: #1e1e1e;
+}
+
+.skeleton-line {
+  position: relative;
+  overflow: hidden;
+  background: #1e1e1e;
+  border-radius: 4px;
+  height: 12px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+
+  &--name {
+    width: 50%;
+    height: 14px;
+  }
+
+  &--chip {
+    width: 30%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line::after {
+    animation: none;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// --- Historial de relaciones pasadas ---
+.history-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  .section-heading {
+    margin: 8px 0;
+  }
+
+  ion-icon {
+    font-size: 16px;
+    color: #8b8b8b;
+  }
+}
+
+.mp-card--history {
+  opacity: 0.85;
+}
+
+.mp-avatar--past {
+  background: rgba(255, 255, 255, 0.06);
+  color: #8b8b8b;
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scope-chip--past {
+  color: #8b8b8b;
+}
+
+.history-ended-label {
+  font-size: 0.76rem;
+  color: #6b6b6b;
+}

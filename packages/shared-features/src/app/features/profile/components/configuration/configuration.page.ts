@@ -189,8 +189,20 @@ export class ConfigurationPage {
     void this.router.navigate(['/my-professionals']);
   }
 
+  public goToMyCheckins(): void {
+    void this.router.navigate(['/my-checkins']);
+  }
+
+  public goToNutritionPreferences(): void {
+    void this.router.navigate(['/nutrition-preferences']);
+  }
+
   public goToTrainerSubscription(): void {
     void this.router.navigate(['/subscription']);
+  }
+
+  public goToCheckinTemplates(): void {
+    void this.router.navigate(['/checkin-templates']);
   }
 
   public async goToAdConsent(): Promise<void> {

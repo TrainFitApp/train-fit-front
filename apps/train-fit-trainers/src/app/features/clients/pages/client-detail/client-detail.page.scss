@@ -1,9 +1,10 @@
-:host {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/panel-sheet';
+@import '../../../../../theme/inputs';
 
 ion-header ion-toolbar {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 
   ion-title {
     font-weight: 700;
@@ -15,7 +16,7 @@ ion-header ion-toolbar {
   display: flex;
   gap: 4px;
   padding: 0 16px 10px;
-  background: #0f0f0f;
+  background: var(--tf-bg);
 }
 
 .scope-tab {
@@ -23,27 +24,27 @@ ion-header ion-toolbar {
   padding: 10px 0;
   background: none;
   border: none;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-  color: #8b8b8b;
+  border-bottom: 2px solid var(--tf-border);
+  color: var(--tf-text-muted);
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  transition: color 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
 
   &.active {
-    color: #ffffff;
-    border-color: #fe9000;
+    color: var(--tf-text);
+    border-color: var(--tf-accent);
   }
 }
 
 .detail-content {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
   position: relative;
 }
 
 .tab-panel {
   padding: 12px 16px 32px;
-  animation: fade-in 220ms var(--ease-out);
+  animation: fade-in 220ms var(--tf-ease-out);
 }
 
 @keyframes fade-in {
@@ -68,31 +69,8 @@ ion-header ion-toolbar {
 }
 
 .skeleton-block {
-  position: relative;
-  overflow: hidden;
-  background: #1e1e1e;
+  @include tf-skeleton-shimmer;
   border-radius: 12px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    animation: shimmer 1.4s infinite;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-block::after {
-    animation: none;
-  }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
 }
 
 .section-error {
@@ -104,7 +82,7 @@ ion-header ion-toolbar {
 
   p {
     font-size: 0.88rem;
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     margin: 0;
   }
 }
@@ -112,13 +90,18 @@ ion-header ion-toolbar {
 .retry-button {
   height: 38px;
   padding: 0 16px;
-  background: #252525;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
 }
 
 .stat-card {
@@ -126,14 +109,14 @@ ion-header ion-toolbar {
   align-items: center;
   gap: 14px;
   padding: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 14px;
   margin-bottom: 20px;
 
   ion-icon {
     font-size: 22px;
-    color: #fe9b1a;
+    color: var(--tf-accent-text);
   }
 
   div {
@@ -145,12 +128,12 @@ ion-header ion-toolbar {
 .stat-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tf-text);
 }
 
 .stat-label {
   font-size: 0.78rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
 }
 
 .section-row {
@@ -158,6 +141,52 @@ ion-header ion-toolbar {
   align-items: center;
   justify-content: space-between;
   margin: 20px 0 10px;
+
+  &--top {
+    margin-top: 28px;
+  }
+}
+
+// --- F10: navegación de fecha en la dieta del cliente ---
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-nav-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  color: var(--tf-text-secondary);
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
+.date-nav-label {
+  min-width: 88px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tf-text-secondary);
 }
 
 .section-heading {
@@ -165,7 +194,7 @@ ion-header ion-toolbar {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   margin: 0;
 
   &--top {
@@ -179,7 +208,7 @@ ion-header ion-toolbar {
   gap: 4px;
   background: none;
   border: none;
-  color: #fe9000;
+  color: var(--tf-accent);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -195,8 +224,30 @@ ion-header ion-toolbar {
 
 .empty-hint {
   font-size: 0.86rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   margin: 0 0 8px;
+}
+
+// Replanteamiento MVP (nutrición) — acciones de plantilla en la sección Dieta.
+.template-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.manage-templates-link {
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 160ms var(--tf-ease-out);
+
+  &:active {
+    color: var(--tf-text-secondary);
+  }
 }
 
 .list-card {
@@ -205,8 +256,8 @@ ion-header ion-toolbar {
   gap: 12px;
   width: 100%;
   padding: 12px 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   margin-bottom: 8px;
   color: inherit;
@@ -215,18 +266,18 @@ ion-header ion-toolbar {
 
   ion-icon {
     font-size: 18px;
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     flex-shrink: 0;
   }
 
   &--button {
     cursor: pointer;
     border: none;
-    transition: transform 160ms var(--ease-out), background 160ms var(--ease-out);
+    transition: transform 160ms var(--tf-ease-out), background 160ms var(--tf-ease-out);
 
     &:active {
       transform: scale(0.98);
-      background: #1a1a1a;
+      background: var(--tf-surface-2);
     }
 
     &:disabled {
@@ -243,15 +294,15 @@ ion-header ion-toolbar {
   flex: 1;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--tf-text);
 }
 
 .assigned-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
   font-weight: 700;
-  color: #fe9b1a;
-  background: rgba(254, 144, 0, 0.12);
+  color: var(--tf-accent-text);
+  background: var(--tf-accent-soft);
   border-radius: 6px;
   padding: 2px 8px;
 }
@@ -264,16 +315,16 @@ ion-header ion-toolbar {
 
 .meal-summary {
   font-size: 0.78rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
 }
 
 .prescribe-button {
   flex-shrink: 0;
   height: 32px;
   padding: 0 14px;
-  background: #252525;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 8px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -286,8 +337,8 @@ ion-header ion-toolbar {
 
 .goal-card {
   padding: 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 12px;
   margin-bottom: 8px;
 }
@@ -304,72 +355,26 @@ ion-header ion-toolbar {
   gap: 12px;
   flex-wrap: wrap;
   font-size: 0.82rem;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
 }
 
 // --- Panel (bottom sheet) ---
 .panel-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 500;
-  animation: backdrop-in 200ms var(--ease-out);
-}
-
-@keyframes backdrop-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  @include tf-panel-backdrop;
 }
 
 .panel-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 501;
-  background: #141414;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 20px 20px 0 0;
-  padding: 10px 16px 24px;
-  max-height: 80vh;
-  overflow-y: auto;
-  animation: sheet-in 260ms var(--ease-out);
-}
-
-@keyframes sheet-in {
-  from {
-    transform: translateY(16px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel-backdrop,
-  .panel-sheet {
-    animation: none;
-  }
+  @include tf-panel-sheet;
 }
 
 .panel-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 0 auto 14px;
+  @include tf-panel-handle;
 }
 
 .panel-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tf-text);
   margin: 0 0 16px;
 }
 
@@ -382,58 +387,40 @@ ion-header ion-toolbar {
 .mode-option {
   flex: 1;
   padding: 10px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 10px;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
+    transform 160ms var(--tf-ease-out);
 
   &.selected {
-    border-color: #fe9000;
-    color: #ffffff;
+    border-color: var(--tf-accent);
+    color: var(--tf-text);
+  }
+
+  &:active {
+    transform: scale(0.97);
   }
 }
 
 .input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
-  padding: 0 14px;
+  @include tf-input-wrapper(var(--tf-surface-2));
   height: 50px;
   margin-bottom: 12px;
-  transition: border-color 160ms var(--ease-out);
-
-  &:focus-within {
-    border-color: #fe9000;
-  }
 }
 
 .input-icon {
+  @include tf-input-icon;
   font-size: 18px;
-  color: #8b8b8b;
-  flex-shrink: 0;
 }
 
 .input-field {
-  flex: 1;
-  min-width: 0;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
+  @include tf-input-field;
   font-size: 0.95rem;
-  font-family: inherit;
-  height: 100%;
-
-  &::placeholder {
-    color: #8b8b8b;
-  }
 }
 
 .macro-grid {
@@ -443,34 +430,505 @@ ion-header ion-toolbar {
 }
 
 .submit-button {
+  @include tf-gradient-button;
   width: 100%;
   height: 50px;
   margin-top: 4px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
-  color: #0f0f0f;
-  font-weight: 700;
   font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: default;
-  }
 }
 
 .template-list {
   display: flex;
   flex-direction: column;
+}
+
+// --- F30: aplicar en bloque ---
+.template-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .list-card--button {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.bulk-apply-btn {
+  flex-shrink: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.bulk-link-button {
+  width: 100%;
+  height: 40px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:not(:disabled):hover {
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.note-composer {
+  margin-bottom: 20px;
+}
+
+.note-textarea {
+  width: 100%;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--tf-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 10px;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.note-card {
+  padding: 12px 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &--pinned {
+    border-color: rgba(254, 144, 0, 0.5);
+    background: var(--tf-accent-tint);
+  }
+}
+
+.note-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.note-date {
+  font-size: 0.72rem;
+  color: var(--tf-text-muted);
+}
+
+.pin-button {
+  background: none;
+  border: none;
+  padding: 2px;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: color 160ms var(--tf-ease-out), transform 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  .note-card--pinned & {
+    color: var(--tf-accent-text);
+  }
+}
+
+.note-text {
+  font-size: 0.88rem;
+  color: var(--tf-text-secondary);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// --- F09: detalle de rutina expandible ---
+.routine-block {
+  margin-bottom: 8px;
+
+  .list-card {
+    margin-bottom: 0;
+  }
+}
+
+.routine-header-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+
+  .list-card--button {
+    flex: 1;
+  }
+}
+
+.expand-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  margin-left: auto;
+}
+
+.routine-detail {
+  padding: 10px 4px 4px 14px;
+  border-left: 2px solid var(--tf-border-subtle);
+  margin: 4px 0 12px 14px;
+}
+
+.split-block {
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.split-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 8px;
+}
+
+.workout-row {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.workout-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.workout-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.workout-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+
+  &--done {
+    color: var(--tf-success);
+  }
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  color: var(--tf-text-secondary);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--tf-shimmer);
+  }
+}
+
+.exercise-name {
+  flex-shrink: 0;
+  color: var(--tf-text-secondary);
+}
+
+.exercise-sets-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.exercise-sets {
+  text-align: right;
+  color: var(--tf-text-muted);
+  font-size: 0.76rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+
+  // TAREA 2 (coach-tab) — "prescrito vs. realizado".
+  &--expected {
+    color: var(--tf-text-muted);
+    font-style: italic;
+  }
+
+  &--done {
+    color: var(--tf-success);
+  }
+}
+
+// --- F09: historial de entrenamientos ---
+.history-card {
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.history-date {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.history-subtitle {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px;
+}
+
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.76rem;
+  color: var(--tf-text-secondary);
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+// --- F26: cobros ---
+.payment-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.payment-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.payment-amount {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.payment-due {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+.payment-note {
+  font-size: 0.8rem;
+  color: var(--tf-text-secondary);
+}
+
+.payment-status-btn {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 14px;
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &--paid {
+    background: var(--tf-success-soft);
+    border-color: var(--tf-success-border);
+    color: var(--tf-success);
+  }
+}
+
+// --- coach-tab FASE4: tareas/hábitos (reutiliza .payment-card para el listado) ---
+.cadence-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.cadence-option {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 8px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &--active {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
+// --- F20: adherencia nutricional ---
+.adherence-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  margin-bottom: 20px;
+
+  &--empty {
+    color: var(--tf-text-muted);
+    font-size: 0.86rem;
+
+    ion-icon {
+      font-size: 22px;
+      color: var(--tf-text-faint);
+      flex-shrink: 0;
+    }
+  }
+}
+
+.adherence-percentage {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--tf-accent-text);
+  flex-shrink: 0;
+}
+
+.adherence-detail {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  margin-top: 2px;
+}
+
+// --- F17: check-ins ---
+.checkin-config-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.checkin-response-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.8rem;
+  color: var(--tf-text-secondary);
+
+  strong {
+    color: var(--tf-text);
+  }
+}
+
+.pulse-badge {
+  color: var(--tf-accent-text) !important;
+  background: var(--tf-accent-soft);
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 
 .danger-link {
@@ -480,21 +938,271 @@ ion-header ion-toolbar {
   padding: 12px 0;
   background: none;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  color: #8b8b8b;
+  border-top: 1px solid var(--tf-border-subtle);
+  color: var(--tf-text-muted);
   font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
   cursor: pointer;
-  transition: color 160ms var(--ease-out);
+  transition: color 160ms var(--tf-ease-out);
 
   &:hover,
   &:active {
-    color: #eb445a;
+    color: var(--tf-danger);
   }
 
   &:disabled {
     opacity: 0.5;
     cursor: default;
   }
+}
+
+// --- F29: preferencias nutricionales del cliente (solo lectura) ---
+.preferences-card {
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.preferences-field {
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &--critical {
+    padding: 10px;
+    background: var(--tf-danger-soft);
+    border: 1px solid var(--tf-danger-border);
+    border-radius: 10px;
+
+    .preferences-label {
+      color: var(--tf-danger);
+    }
+  }
+}
+
+.preferences-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.preferences-value {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--tf-text);
+  white-space: pre-wrap;
+}
+
+// --- F12/F28: pautar comida (1 alternativa o varias nombradas) ---
+.panel-hint {
+  font-size: 0.82rem;
+  color: var(--tf-text-muted);
+  margin: -8px 0 16px;
+}
+
+.alternative-card {
+  padding: 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.alternative-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.alternative-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+// Replanteamiento MVP (nutrición) — varios alimentos por alternativa,
+// anidados dentro de .alternative-card con un tono más claro para marcar
+// jerarquía visual.
+.food-item-card {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+
+  &:last-of-type {
+    margin-bottom: 12px;
+  }
+}
+
+.food-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.food-item-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.add-food-item-btn {
+  width: 100%;
+  height: 38px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.remove-alternative-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: color 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:not(:disabled):hover {
+    color: var(--tf-danger);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.add-alternative-btn {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strongest);
+  border-radius: 12px;
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+// TAREA1 — búsqueda de alimento real (ProductSearchModalComponent) dentro de
+// cada tarjeta de alternativa, sustituyendo la entrada manual de macros.
+.search-product-btn {
+  width: 100%;
+  height: 42px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: 10px;
+  color: var(--tf-accent);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.manual-macro-hint {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px 2px;
+}
+
+.product-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--tf-success-soft);
+  border: 1px solid var(--tf-success-border);
+  border-radius: 10px;
+
+  .input-icon {
+    position: static;
+    color: var(--tf-success);
+  }
+}
+
+.picked-product-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--tf-text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear-product-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  padding: 4px;
 }

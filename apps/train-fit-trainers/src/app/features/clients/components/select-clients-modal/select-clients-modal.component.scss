@@ -1,0 +1,52 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+
+.select-clients-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error p,
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+}
+
+.client-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 6px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.client-name {
+  font-size: 0.9rem;
+  color: var(--tf-text);
+  font-weight: 600;
+}
+
+.confirm-button {
+  @include tf-gradient-button;
+  height: 48px;
+  margin: 0 16px 12px;
+  width: calc(100% - 32px);
+  font-size: 0.92rem;
+}

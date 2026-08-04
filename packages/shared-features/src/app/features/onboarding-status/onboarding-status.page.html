@@ -1,0 +1,100 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Antes de empezar</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" fill="clear">Salir</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="onboarding-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 80px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo comprobar el estado de tu cuenta.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="intro-text">
+      Antes de acceder a tu dieta y rutina, tu profesional necesita conocerte un poco mejor.
+    </p>
+
+    <div class="trainer-group" *ngFor="let group of groups; trackBy: trackByTrainerId">
+      <div class="trainer-group-header">
+        <span class="trainer-group-name">{{ group.trainerName }}</span>
+        <span class="trainer-group-scopes">{{ group.scopes.join(' · ') }}</span>
+      </div>
+
+      <button
+        class="action-button"
+        *ngIf="group.needsIntake && fillingTrainerId !== group.trainerId"
+        (click)="openIntakeForm(group)"
+      >
+        Completar cuestionario
+      </button>
+
+      <p class="waiting-hint" *ngIf="!group.needsIntake">
+        Cuestionario enviado. Esperando confirmación de {{ group.trainerName }}.
+      </p>
+
+      <!-- Formulario del cuestionario inicial -->
+      <div class="intake-form" *ngIf="fillingTrainerId === group.trainerId">
+        <label class="form-label">Objetivos</label>
+        <textarea class="form-textarea" rows="2" [(ngModel)]="goals" placeholder="¿Qué quieres conseguir?"></textarea>
+
+        <label class="form-label">Salud y lesiones</label>
+        <textarea class="form-textarea" rows="2" [(ngModel)]="healthConditions" placeholder="Lesiones, condiciones médicas..."></textarea>
+
+        <label class="form-label">Experiencia</label>
+        <div class="option-row">
+          <button
+            class="option-chip"
+            *ngFor="let option of experienceOptions"
+            [class.option-chip--active]="experienceLevel === option.value"
+            (click)="experienceLevel = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <label class="form-label">Disponibilidad</label>
+        <input type="text" class="form-input" [(ngModel)]="availability" placeholder="Ej. 3 días/semana, tardes" />
+
+        <label class="form-label">Equipamiento disponible</label>
+        <input type="text" class="form-input" [(ngModel)]="equipment" placeholder="Ej. Gimnasio completo, mancuernas en casa..." />
+
+        <label class="form-label">Alergias</label>
+        <textarea class="form-textarea" rows="2" [(ngModel)]="allergies"></textarea>
+
+        <label class="form-label">Alimentos favoritos</label>
+        <textarea class="form-textarea" rows="2" [(ngModel)]="favoriteFoods"></textarea>
+
+        <label class="form-label">Alimentos que no te gustan</label>
+        <textarea class="form-textarea" rows="2" [(ngModel)]="dislikedFoods"></textarea>
+
+        <label class="form-label">¿Cocinas en casa?</label>
+        <div class="option-row">
+          <button
+            class="option-chip"
+            *ngFor="let option of cooksOptions"
+            [class.option-chip--active]="cooksAtHome === option.value"
+            (click)="cooksAtHome = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <div class="form-actions">
+          <button class="secondary-button" (click)="closeIntakeForm()">Cancelar</button>
+          <button class="submit-button" (click)="submitIntake()" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Enviar cuestionario</span>
+            <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>

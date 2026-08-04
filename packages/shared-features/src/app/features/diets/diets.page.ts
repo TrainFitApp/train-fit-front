@@ -36,6 +36,8 @@ import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
+import { MealProposal } from './models/meal-proposal.model';
+import { MealProposalApiService } from './services/meal-proposal-api.service';
 
 @Component({
   selector: 'app-diets',
@@ -74,6 +76,7 @@ export class DietsPage implements OnInit {
   public load = false;
   public pinnedNote: string | null = null;
   public currentAnthropometry: Anthropometry | null = null;
+  public mealProposals: MealProposal[] = [];
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -94,6 +97,7 @@ export class DietsPage implements OnInit {
     private anthropometryService: AnthropometryService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
+    private mealProposalApiService: MealProposalApiService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
@@ -460,6 +464,24 @@ export class DietsPage implements OnInit {
         this.load = true;
         this.cdr.detectChanges();
       });
+
+    // F28 — alternativas nombradas pendientes de elegir ese día, cargadas
+    // aparte para no bloquear el resto de la pantalla si falla.
+    this.mealProposalApiService.listForDate(dateStr).subscribe({
+      next: (proposals) => (this.mealProposals = proposals || []),
+      error: () => (this.mealProposals = []),
+    });
+  }
+
+  // F28 — alternativas activas (sin elegir todavía) para un hueco de comida concreto.
+  public proposalsForMeal(mealName: string): MealProposal[] {
+    return this.mealProposals.filter(
+      (p) => p.mealSlot === mealName && (p.chosenIndex === null || p.chosenIndex === undefined)
+    );
+  }
+
+  public onProposalChosen(proposalId: string): void {
+    this.mealProposals = this.mealProposals.filter((p) => p._id !== proposalId);
   }
 
   public onAnthropometrySaved(anthropometry: Anthropometry): void {

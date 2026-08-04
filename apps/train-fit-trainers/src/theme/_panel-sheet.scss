@@ -1,0 +1,64 @@
+// Bottom sheet (backdrop + panel deslizante desde abajo) — duplicado byte a
+// byte en 2 páginas antes de esta extracción (ver TAREA4-ui-ux-rediseno.md >
+// Fase 3). También aparece fuera de esta app en packages/shared-features
+// (onboarding, my-checkins, etc.) — fuera de alcance aquí porque esa capa no
+// tiene los tokens --tf-*; si esas páginas migran a --tf-* algún día, este
+// mismo partial es el destino natural.
+@mixin tf-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--tf-overlay);
+  z-index: var(--tf-z-modal-backdrop);
+  animation: tf-backdrop-in 200ms var(--tf-ease-out);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@mixin tf-panel-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--tf-z-modal);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-strong);
+  border-radius: 20px 20px 0 0;
+  padding: 10px 16px 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: tf-sheet-in 260ms var(--tf-ease-out);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@mixin tf-panel-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--tf-border-strongest);
+  margin: 0 auto 14px;
+}
+
+@keyframes tf-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tf-sheet-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

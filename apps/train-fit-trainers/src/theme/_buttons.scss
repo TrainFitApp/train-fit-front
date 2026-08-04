@@ -1,0 +1,32 @@
+// Botón CTA con gradiente de acento — mismo bloque repetido en ~11 sitios de
+// ~10 páginas antes de esta extracción (ver TAREA4-ui-ux-rediseno.md > Fase 3).
+// Cada página aplica el mixin sobre su propio selector y añade encima solo lo
+// que varía por layout (width, height, font-size, margin).
+//
+// La mitad de los sitios originales no tenían transición/feedback de pulsación
+// ni :focus-visible — el mixin los añade siempre, cierra ese hueco de
+// consistencia de interacción (PRODUCT.md: "un solo patrón por tipo de
+// componente") en vez de perpetuar la variación accidental.
+@mixin tf-gradient-button($radius: 12px) {
+  border: none;
+  border-radius: $radius;
+  background: var(--tf-accent-gradient);
+  color: var(--tf-accent-contrast);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), opacity 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-text);
+    outline-offset: 2px;
+  }
+}

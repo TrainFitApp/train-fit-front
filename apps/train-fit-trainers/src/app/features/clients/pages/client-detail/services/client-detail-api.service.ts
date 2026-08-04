@@ -2,11 +2,20 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
+  AdherenceSummary,
   AnthropometryEntry,
+  BulkApplyResult,
+  CheckinConfig,
+  CheckinResponseEntry,
+  ClientNutritionPreferences,
   ClientScope,
   ClientTable,
   DietDaySummary,
   NutritionalGoal,
+  TrainerNote,
+  TrainerPayment,
+  TrainerTask,
+  TrainerTaskType,
 } from '../models/client-detail.model';
 
 function todayIsoDate(): string {
@@ -73,6 +82,136 @@ export class ClientDetailApiService {
     return this.http.post<NutritionalGoal>(
       `${this.base(clientId)}/nutritional-goals`,
       goal
+    );
+  }
+
+  public getNotes(clientId: string): Observable<TrainerNote[]> {
+    return this.http.get<TrainerNote[]>(`${this.base(clientId)}/notes`);
+  }
+
+  public createNote(clientId: string, text: string): Observable<TrainerNote> {
+    return this.http.post<TrainerNote>(`${this.base(clientId)}/notes`, { text });
+  }
+
+  public setNotePinned(clientId: string, noteId: string, pinned: boolean): Observable<TrainerNote> {
+    return this.http.patch<TrainerNote>(`${this.base(clientId)}/notes/${noteId}`, { pinned });
+  }
+
+  public getCheckinConfig(clientId: string): Observable<CheckinConfig | null> {
+    return this.http.get<CheckinConfig | null>(`${this.base(clientId)}/checkin-config`);
+  }
+
+  public getCheckinResponses(clientId: string): Observable<CheckinResponseEntry[]> {
+    return this.http.get<CheckinResponseEntry[]>(`${this.base(clientId)}/checkin-responses`);
+  }
+
+  public getAdherence(clientId: string): Observable<AdherenceSummary> {
+    return this.http.get<AdherenceSummary>(`${this.base(clientId)}/adherence`);
+  }
+
+  public getPayments(clientId: string): Observable<TrainerPayment[]> {
+    return this.http.get<TrainerPayment[]>(`${this.base(clientId)}/payments`);
+  }
+
+  public createPayment(
+    clientId: string,
+    payment: { amount: number; dueDate: string; note?: string }
+  ): Observable<TrainerPayment> {
+    return this.http.post<TrainerPayment>(`${this.base(clientId)}/payments`, payment);
+  }
+
+  public setPaymentPaid(clientId: string, paymentId: string, paid: boolean): Observable<TrainerPayment> {
+    return this.http.patch<TrainerPayment>(`${this.base(clientId)}/payments/${paymentId}`, { paid });
+  }
+
+  // coach-tab FASE4 — tareas/hábitos.
+  public getTasks(clientId: string): Observable<TrainerTask[]> {
+    return this.http.get<TrainerTask[]>(`${this.base(clientId)}/tasks`);
+  }
+
+  public createTask(
+    clientId: string,
+    task: { type: TrainerTaskType; label?: string; target: number; unit: string }
+  ): Observable<TrainerTask> {
+    return this.http.post<TrainerTask>(`${this.base(clientId)}/tasks`, task);
+  }
+
+  public deactivateTask(clientId: string, taskId: string): Observable<unknown> {
+    return this.http.delete(`${this.base(clientId)}/tasks/${taskId}`);
+  }
+
+  // F12 — pautar una única composición, aplicación inmediata sobre el hueco de comida.
+  public prescribeMeal(
+    clientId: string,
+    date: string,
+    mealId: string,
+    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean }
+  ): Observable<unknown> {
+    return this.http.post(
+      `${this.base(clientId)}/diet-days/${date}/meals/${mealId}/prescribe`,
+      body
+    );
+  }
+
+  // F28 — 2+ alternativas nombradas, aplicación diferida hasta que el cliente elija.
+  public proposeMealAlternatives(
+    clientId: string,
+    date: string,
+    mealSlot: string,
+    alternatives: { label: string; customProducts: unknown[] }[]
+  ): Observable<unknown> {
+    return this.http.post(
+      `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/propose`,
+      { alternatives }
+    );
+  }
+
+  // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
+  public getNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences | null> {
+    return this.http.get<ClientNutritionPreferences | null>(
+      `${this.base(clientId)}/nutrition-preferences`
+    );
+  }
+
+  public requestNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences> {
+    return this.http.post<ClientNutritionPreferences>(
+      `${this.base(clientId)}/nutrition-preferences/request`,
+      {}
+    );
+  }
+
+  // --- F30: aplicar en bloque (reutiliza F11/F12/F13, una vez por cliente destino) ---
+  public applyRoutineToClients(
+    sourceTableId: string,
+    targetClientIds: string[]
+  ): Observable<BulkApplyResult[]> {
+    return this.http.post<BulkApplyResult[]>(
+      `trainer/routines/${sourceTableId}/apply-to-clients`,
+      { targetClientIds }
+    );
+  }
+
+  public applyMealToClients(
+    sourceClientId: string,
+    date: string,
+    mealSlot: string,
+    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean },
+    targetClientIds: string[]
+  ): Observable<BulkApplyResult[]> {
+    return this.http.post<BulkApplyResult[]>(
+      `${this.base(sourceClientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/apply-to-clients`,
+      { ...body, targetClientIds }
+    );
+  }
+
+  public applyGoalToClients(
+    sourceClientId: string,
+    goal: { name: string; kcalTotal: number; proteinsGTotal: number; carbohydratesGTotal: number; fatGTotal: number },
+    targetClientIds: string[]
+  ): Observable<BulkApplyResult[]> {
+    return this.http.post<BulkApplyResult[]>(
+      `${this.base(sourceClientId)}/nutrition-goals/apply-to-clients`,
+      { ...goal, targetClientIds }
     );
   }
 }

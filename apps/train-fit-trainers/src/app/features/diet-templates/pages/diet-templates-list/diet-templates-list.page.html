@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Plantillas de dieta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="templates-content">
+  <p class="page-hint">
+    Construye una plantilla una vez (días con sus comidas) y aplícala a cualquier cliente eligiendo
+    solo la fecha de inicio, en vez de teclear cada comida de cada día a mano.
+  </p>
+
+  <div class="input-wrapper">
+    <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
+    <input
+      type="text"
+      class="input-field"
+      placeholder="Nombre de la nueva plantilla"
+      [(ngModel)]="newName"
+      (keyup.enter)="createAndEdit()"
+    />
+  </div>
+  <button
+    type="button"
+    class="submit-button"
+    [disabled]="!newName.trim() || isCreating"
+    (click)="createAndEdit()"
+  >
+    <span *ngIf="!isCreating">Crear plantilla</span>
+    <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+  </button>
+
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 60px;"></div>
+    <div class="skeleton-block" style="height: 60px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus plantillas.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="empty-hint" *ngIf="!templates.length">Todavía no has creado ninguna plantilla.</p>
+
+    <div
+      class="template-row"
+      *ngFor="let template of templates; trackBy: trackByTemplateId"
+      (click)="openTemplate(template)"
+    >
+      <ion-icon name="restaurant-outline"></ion-icon>
+      <div class="template-info">
+        <span class="template-name">{{ template.name }}</span>
+        <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+      </div>
+      <button type="button" class="delete-template-btn" (click)="confirmDelete(template, $event)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
+  </ng-container>
+</ion-content>

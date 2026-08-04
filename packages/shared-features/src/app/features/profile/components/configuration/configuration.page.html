@@ -56,6 +56,25 @@
       </ion-card>
     </div>
 
+    <!-- MVP-trainers F17 -->
+    <div class="section-group" *ngIf="user?.roles?.includes('trainer')">
+      <div class="section-header">
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <span>Check-ins</span>
+      </div>
+
+      <ion-card class="config-card">
+        <ion-item button class="config-item" (click)="goToCheckinTemplates()">
+          <div slot="start" class="item-icon-container">
+            <ion-icon name="clipboard-outline"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Plantillas de check-in</h3>
+          </ion-label>
+        </ion-item>
+      </ion-card>
+    </div>
+
     <!-- Profile Options Section -->
     <div class="section-group">
       <div class="section-header">
@@ -92,6 +111,26 @@
             </div>
             <ion-label>
               <h3>Mis profesionales</h3>
+            </ion-label>
+          </ion-item>
+
+          <div class="divider"></div>
+          <ion-item button class="config-item" (click)="goToMyCheckins()">
+            <div slot="start" class="item-icon-container profile-icon">
+              <ion-icon name="clipboard-outline" color="secondary"></ion-icon>
+            </div>
+            <ion-label>
+              <h3>Mis check-ins</h3>
+            </ion-label>
+          </ion-item>
+
+          <div class="divider"></div>
+          <ion-item button class="config-item" (click)="goToNutritionPreferences()">
+            <div slot="start" class="item-icon-container profile-icon">
+              <ion-icon name="nutrition-outline" color="secondary"></ion-icon>
+            </div>
+            <ion-label>
+              <h3>Mis preferencias nutricionales</h3>
             </ion-label>
           </ion-item>
         </ng-container>

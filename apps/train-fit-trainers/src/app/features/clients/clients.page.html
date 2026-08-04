@@ -1,8 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
     <ion-title>Clientes</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="goToInvite()" fill="clear" class="invite-button">
+      <ion-button (click)="goToInvite()" fill="clear" class="invite-button" aria-label="Invitar cliente">
         <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -42,26 +45,68 @@
   </div>
 
   <!-- Loaded -->
-  <div class="client-list" *ngIf="state === 'loaded'">
-    <button
-      class="client-card"
-      *ngFor="let client of clients; trackBy: trackByClientId"
-      (click)="openClient(client)"
-    >
-      <div
-        class="client-avatar"
-        [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
-        [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+  <ng-container *ngIf="state === 'loaded'">
+    <div class="search-bar">
+      <div class="search-input-wrapper">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar por nombre o email"
+          [(ngModel)]="searchQuery"
+        />
+      </div>
+      <div class="scope-filter">
+        <button
+          class="scope-filter-chip"
+          [class.active]="scopeFilter === 'all'"
+          (click)="setScopeFilter('all')"
+        >
+          Todos
+        </button>
+        <button
+          class="scope-filter-chip"
+          [class.active]="scopeFilter === 'training'"
+          (click)="setScopeFilter('training')"
+        >
+          Entrenamiento
+        </button>
+        <button
+          class="scope-filter-chip"
+          [class.active]="scopeFilter === 'nutrition'"
+          (click)="setScopeFilter('nutrition')"
+        >
+          Nutrición
+        </button>
+      </div>
+    </div>
+
+    <div class="client-list">
+      <button
+        class="client-card"
+        *ngFor="let client of filteredClients; trackBy: trackByClientId"
+        (click)="openClient(client)"
       >
-        {{ getInitials(client) }}
-      </div>
-      <div class="client-info">
-        <span class="client-name">{{ getFullName(client) }}</span>
-        <div class="client-scopes">
-          <span class="scope-chip" *ngFor="let scope of getScopeLabels(client)">{{ scope }}</span>
+        <div
+          class="client-avatar"
+          [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
+          [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+        >
+          {{ getInitials(client) }}
         </div>
+        <div class="client-info">
+          <span class="client-name">{{ getFullName(client) }}</span>
+          <div class="client-scopes">
+            <span class="scope-chip" *ngFor="let scope of getScopeLabels(client)">{{ scope }}</span>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
+      </button>
+
+      <div class="state-message state-message--inline" *ngIf="!filteredClients.length">
+        <ion-icon name="search-outline"></ion-icon>
+        <p>Ningún cliente coincide con la búsqueda/filtro.</p>
       </div>
-      <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
-    </button>
-  </div>
+    </div>
+  </ng-container>
 </ion-content>

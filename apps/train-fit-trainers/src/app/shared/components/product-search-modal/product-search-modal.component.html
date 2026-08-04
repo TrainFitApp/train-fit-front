@@ -1,0 +1,86 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Buscar alimento</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="product-search-content">
+  <ng-container *ngIf="!selectedProduct">
+    <div class="input-wrapper">
+      <ion-icon name="search-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Nombre del alimento (mín. 2 letras)"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+
+    <p class="empty-hint" *ngIf="state === 'idle'">Escribe para buscar en la biblioteca de alimentos.</p>
+    <p class="empty-hint" *ngIf="state === 'error'">No se pudo completar la búsqueda.</p>
+    <p class="empty-hint" *ngIf="state === 'loaded' && !results.length">Sin resultados para "{{ searchTerm }}".</p>
+
+    <div class="detail-skeleton" *ngIf="state === 'loading'">
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block" style="height: 52px;"></div>
+    </div>
+
+    <div
+      class="product-row"
+      *ngFor="let product of results; trackBy: trackByProductId"
+      (click)="selectProduct(product)"
+    >
+      <div class="product-info">
+        <span class="product-name">{{ product.name }}</span>
+        <span class="product-brand" *ngIf="product.brand">{{ product.brand }}</span>
+      </div>
+      <span class="product-kcal">{{ product.energyKcal100g }} kcal/100g</span>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="selectedProduct">
+    <div class="selected-card">
+      <div class="selected-header">
+        <span class="product-name">{{ selectedProduct.name }}</span>
+        <span class="product-brand" *ngIf="selectedProduct.brand">{{ selectedProduct.brand }}</span>
+      </div>
+
+      <div class="input-wrapper">
+        <ion-icon name="scale-outline" class="input-icon"></ion-icon>
+        <input
+          type="number"
+          class="input-field"
+          placeholder="Cantidad (g)"
+          [(ngModel)]="quantity"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <div class="macro-preview">
+        <span>{{ (selectedProduct.energyKcal100g * quantity / 100) | number: '1.0-0' }} kcal</span>
+        <span>P {{ ((selectedProduct.protein100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
+        <span>C {{ ((selectedProduct.carbohydrates100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
+        <span>G {{ ((selectedProduct.fat100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
+      </div>
+
+      <button type="button" class="back-link-button" (click)="backToResults()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Elegir otro alimento
+      </button>
+    </div>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="selectedProduct">
+  <ion-toolbar>
+    <button class="confirm-button" [disabled]="!quantity || quantity <= 0" (click)="confirm()">
+      Usar este alimento
+    </button>
+  </ion-toolbar>
+</ion-footer>

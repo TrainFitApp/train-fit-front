@@ -1,9 +1,8 @@
-:host {
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
 
 ion-header ion-toolbar {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 
   ion-title {
     font-weight: 700;
@@ -12,7 +11,7 @@ ion-header ion-toolbar {
 }
 
 .subscription-content {
-  --background: #0f0f0f;
+  --background: var(--tf-bg);
 }
 
 .detail-skeleton {
@@ -23,31 +22,8 @@ ion-header ion-toolbar {
 }
 
 .skeleton-block {
-  position: relative;
-  overflow: hidden;
-  background: #1e1e1e;
+  @include tf-skeleton-shimmer;
   border-radius: 14px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    animation: shimmer 1.4s infinite;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-block::after {
-    animation: none;
-  }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
 }
 
 .section-error {
@@ -59,7 +35,7 @@ ion-header ion-toolbar {
 
   p {
     font-size: 0.88rem;
-    color: #8b8b8b;
+    color: var(--tf-text-muted);
     margin: 0;
   }
 }
@@ -67,9 +43,9 @@ ion-header ion-toolbar {
 .retry-button {
   height: 38px;
   padding: 0 16px;
-  background: #252525;
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -79,8 +55,8 @@ ion-header ion-toolbar {
 .usage-card {
   margin: 16px;
   padding: 16px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 14px;
 }
 
@@ -93,34 +69,34 @@ ion-header ion-toolbar {
 
 .usage-title {
   font-size: 0.82rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
   font-weight: 600;
 }
 
 .usage-count {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tf-text);
 }
 
 .usage-bar {
   height: 6px;
   border-radius: 3px;
-  background: #252525;
+  background: var(--tf-surface-5);
   overflow: hidden;
 }
 
 .usage-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
+  background: linear-gradient(90deg, var(--tf-accent) 0%, var(--tf-accent-2) 100%);
   border-radius: 3px;
-  transition: width 300ms var(--ease-out);
+  transition: width 300ms var(--tf-ease-out);
 }
 
 .usage-unlimited {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #fe9b1a;
+  color: var(--tf-accent-text);
 }
 
 .plans-list {
@@ -132,14 +108,14 @@ ion-header ion-toolbar {
 
 .plan-card {
   padding: 18px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
   border-radius: 16px;
-  animation: card-in 300ms var(--ease-out) backwards;
+  animation: card-in 300ms var(--tf-ease-out) backwards;
 
   &.current {
-    border-color: #fe9000;
-    background: rgba(254, 144, 0, 0.06);
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-tint);
   }
 }
 
@@ -170,13 +146,13 @@ ion-header ion-toolbar {
 .plan-name {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--tf-text);
 }
 
 .current-tag {
   font-size: 0.68rem;
   font-weight: 700;
-  color: #fe9b1a;
+  color: var(--tf-accent-text);
   background: rgba(254, 144, 0, 0.14);
   border-radius: 6px;
   padding: 3px 8px;
@@ -192,20 +168,20 @@ ion-header ion-toolbar {
 .price-value {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--tf-text);
   letter-spacing: -0.02em;
 }
 
 .price-caption {
   font-size: 0.85rem;
-  color: #8b8b8b;
+  color: var(--tf-text-muted);
 }
 
 .plan-clients {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #c7c7c7;
+  color: var(--tf-text-secondary);
   margin-bottom: 14px;
 }
 
@@ -222,35 +198,27 @@ ion-header ion-toolbar {
     align-items: center;
     gap: 8px;
     font-size: 0.85rem;
-    color: #c7c7c7;
+    color: var(--tf-text-secondary);
 
     ion-icon {
       font-size: 16px;
-      color: #2dd36f;
+      color: var(--tf-success);
       flex-shrink: 0;
     }
   }
 }
 
 .plan-button {
+  @include tf-gradient-button;
   width: 100%;
   height: 46px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #fe9000 0%, #ff6b35 100%);
-  color: #0f0f0f;
-  font-weight: 700;
   font-size: 0.92rem;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
 
-  &:active {
-    transform: scale(0.98);
-  }
-
+  // Plan ya activo: informativo, no un error — sin la opacidad atenuada del
+  // :disabled genérico del mixin.
   &:disabled {
-    background: #252525;
-    color: #8b8b8b;
-    cursor: default;
+    opacity: 1;
+    background: var(--tf-surface-5);
+    color: var(--tf-text-muted);
   }
 }

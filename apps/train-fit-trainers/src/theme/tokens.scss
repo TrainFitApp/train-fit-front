@@ -1,0 +1,129 @@
+// Sistema de tokens de train-fit-trainers — ver PRODUCT.md.
+//
+// Scoped SOLO a esta app (no toca packages/shared-theme, que comparten
+// train-fit-front y train-fit-management). Los valores de color son los
+// MISMOS que ya estaban hardcodeados en decenas de archivos SCSS de esta
+// app — este archivo no reinventa la paleta, la nombra una sola vez para
+// que dejen de reinventarse por pantalla.
+//
+// Uso: var(--tf-surface-1), var(--tf-text), var(--tf-space-4), etc.
+// Nunca un hex suelto en un componente nuevo — si el valor no existe aquí,
+// se añade aquí, no se hardcodea in situ.
+
+:root {
+  // --- Superficies (de más profunda a más elevada) ---
+  --tf-bg: #0f0f0f;
+  --tf-surface-1: #141414;
+  --tf-surface-2: #1a1a1a;
+  --tf-surface-3: #1e1e1e;
+  --tf-surface-4: #222222;
+  // Fondo de botón/chip secundario (ligeramente más elevado que surface-4).
+  // Mismo valor que --ion-color-step-100 en shared-theme — referenciado, no repetido.
+  --tf-surface-5: var(--ion-color-step-100, #252525);
+
+  // --- Bordes ---
+  --tf-border-subtle: rgba(255, 255, 255, 0.08);
+  --tf-border: rgba(255, 255, 255, 0.1);
+  --tf-border-strong: rgba(255, 255, 255, 0.16);
+  // Handle de bottom-sheet, borde de hover en tarjetas — más visible que strong.
+  --tf-border-strongest: rgba(255, 255, 255, 0.2);
+  --tf-border-focus: var(--tf-accent);
+  // Scrim de fondo detrás de bottom sheets/modales.
+  --tf-overlay: rgba(0, 0, 0, 0.5);
+  // Barrido de shimmer en skeletons de carga.
+  --tf-shimmer: rgba(255, 255, 255, 0.05);
+
+  // --- Texto ---
+  --tf-text: #ffffff;
+  --tf-text-secondary: #c7c7c7;
+  --tf-text-muted: #8b8b8b;
+  // Solo 3.6:1 sobre --tf-bg — NO cumple AA para texto (mínimo 4.5:1).
+  // Reservado para iconos/elementos gráficos grandes (umbral AA 3:1), nunca
+  // para texto real (placeholders, hints, labels) — usar --tf-text-muted ahí.
+  --tf-text-faint: #6b6b6b;
+
+  // --- Acento (mismo naranja de marca que --ion-color-primary en shared-theme —
+  // referenciado, no repetido, para que un rebrand solo toque una fuente) ---
+  --tf-accent: var(--ion-color-primary, #fe9000);
+  --tf-accent-2: #ff6b35;
+  --tf-accent-gradient: linear-gradient(90deg, var(--tf-accent) 0%, var(--tf-accent-2) 100%);
+  --tf-accent-soft: rgba(254, 144, 0, 0.1);
+  --tf-accent-soft-border: rgba(254, 144, 0, 0.4);
+  // Tinte de acento aún más sutil que --tf-accent-soft (fijado/destacado pasivo).
+  --tf-accent-tint: rgba(254, 144, 0, 0.06);
+  // Variante de acento para TEXTO (badges, porcentajes, iconos) sobre fondos
+  // oscuros o sobre --tf-accent-soft — más clara que --tf-accent para que un
+  // texto pequeño no pierda legibilidad; --tf-accent en sí se reserva para
+  // superficies sólidas (botón primario, barra activa). Mismo valor que
+  // --ion-color-primary-tint en shared-theme — referenciado, no repetido.
+  --tf-accent-text: var(--ion-color-primary-tint, #fe9b1a);
+  // Texto sobre el gradiente de acento: negro, no blanco — mejor contraste
+  // sobre naranja (#fe9000 contra blanco ≈ 2:1, contra negro ≈ 8:1).
+  --tf-accent-contrast: #0f0f0f;
+
+  // --- Semánticos ---
+  // Verde intencionalmente distinto de --ion-color-success (#2dd36f) — más
+  // cercano al verde "success" de iOS, mejor contraste sobre fondo oscuro.
+  --tf-success: #34c759;
+  --tf-success-soft: rgba(52, 199, 89, 0.08);
+  --tf-success-border: rgba(52, 199, 89, 0.35);
+  // Mismo rojo que --ion-color-danger en shared-theme — referenciado, no repetido.
+  // Reservado para acciones destructivas (eliminar, revocar).
+  --tf-danger: var(--ion-color-danger, #eb445a);
+  --tf-danger-soft: rgba(235, 68, 90, 0.1);
+  --tf-danger-border: rgba(235, 68, 90, 0.35);
+
+  // --- Espaciado (escala de 4px) ---
+  --tf-space-1: 4px;
+  --tf-space-2: 8px;
+  --tf-space-3: 12px;
+  --tf-space-4: 16px;
+  --tf-space-5: 20px;
+  --tf-space-6: 24px;
+  --tf-space-8: 32px;
+  --tf-space-10: 40px;
+  --tf-space-12: 48px;
+
+  // --- Radio ---
+  --tf-radius-sm: 8px;
+  --tf-radius-md: 10px;
+  --tf-radius-lg: 12px;
+  --tf-radius-pill: 999px;
+
+  // --- Tamaño mínimo de target táctil (WCAG AA / Apple HIG) ---
+  --tf-touch-min: 44px;
+
+  // --- Tipografía ---
+  --tf-font-size-xs: 0.76rem;
+  --tf-font-size-sm: 0.82rem;
+  --tf-font-size-base: 0.9rem;
+  --tf-font-size-md: 1rem;
+  --tf-font-size-lg: 1.1rem;
+  --tf-line-height-base: 1.5;
+
+  // --- Movimiento (mismas curvas ya usadas en el panel de pautar/constructor) ---
+  --tf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --tf-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --tf-duration-fast: 120ms;
+  --tf-duration-base: 180ms;
+  --tf-duration-slow: 250ms;
+
+  // --- Escala de z-index (nunca un valor arbitrario tipo 999/9999) ---
+  --tf-z-dropdown: 10;
+  --tf-z-sticky: 20;
+  --tf-z-menu: 30;
+  --tf-z-modal-backdrop: 40;
+  --tf-z-modal: 50;
+  --tf-z-toast: 60;
+}
+
+// prefers-reduced-motion: las duraciones colapsan a casi-instantáneo en vez
+// de desactivar transiciones por completo (mantiene opacidad/color, quita
+// movimiento) — ver PRODUCT.md > Accesibilidad.
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --tf-duration-fast: 0.01ms;
+    --tf-duration-base: 0.01ms;
+    --tf-duration-slow: 0.01ms;
+  }
+}

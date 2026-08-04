@@ -15,7 +15,10 @@ import { Workout } from 'src/app/core/models/workout';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
+import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
+import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
@@ -93,6 +96,9 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly i18nService: I18nService,
     private readonly authService: AuthService,
     private readonly billingService: BillingService,
+    private readonly coachService: CoachService,
+    private readonly notificationsService: NotificationsService,
+    private readonly onboardingService: OnboardingService,
     private readonly translate: TranslateService
   ) {
     this.email = this.authService.user?.email;
@@ -155,17 +161,24 @@ export class UserLoaderPage implements OnInit, OnDestroy {
                   ? this.workoutService.getWorkoutById(resUser.workoutInUse)
                   : of(null);
 
+              // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — los tres
+              // servicios absorben cualquier error internamente (nunca
+              // propagan), así que nunca bloquean ni rompen el arranque si
+              // tardan o fallan.
               return forkJoin([
                 tableObservable,
                 dietObservable,
                 workoutInUseObservable,
+                this.coachService.refresh(),
+                this.notificationsService.refresh(),
+                this.onboardingService.refresh(),
               ]);
             })
           );
         })
       )
       .subscribe(
-        ([resTable, resDiet, resWorkoutInUse]) => {
+        ([resTable, resDiet, resWorkoutInUse]: [Table, Diet, Workout, boolean, number, unknown]) => {
           this.initialLoadRetryCount = 0;
           this.updateLoadingStep(4);
           this.updateProgress(80);

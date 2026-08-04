@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import {
+  ClientIntake,
   SendInviteResponse,
   TrainerInvite,
   TrainerInviteScope,
@@ -31,5 +32,14 @@ export class TrainerInvitesApiService {
     return this.http.delete<TrainerInvite>(
       `${TrainerInvitesApiService.ENDPOINT}/${id}`
     );
+  }
+
+  // TAREA 3 — cuestionario inicial del cliente.
+  public getClientIntake(clientId: string): Observable<ClientIntake | null> {
+    return this.http.get<ClientIntake | null>(`trainer/clients/${clientId}/intake`);
+  }
+
+  public confirmClient(clientId: string): Observable<TrainerInvite[]> {
+    return this.http.post<TrainerInvite[]>(`trainer/clients/${clientId}/confirm`, {});
   }
 }

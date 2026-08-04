@@ -1,0 +1,129 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Plantillas de check-in</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openCreatePanel()" fill="clear" aria-label="Nueva plantilla de check-in">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="checkin-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 64px;"></div>
+    <div class="skeleton-block" style="height: 64px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus plantillas.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="empty-hint" *ngIf="!templates.length">
+      Todavía no tienes plantillas de check-in. Crea una para empezar a pedir seguimiento periódico a tus clientes.
+    </p>
+
+    <div class="template-card" *ngFor="let template of templates; trackBy: trackByTemplateId">
+      <div class="template-card-main" (click)="openEditPanel(template)">
+        <span class="list-card-title">{{ template.name }}</span>
+        <span class="template-meta">{{ template.enabledFields.length }} campos · {{ cadenceLabel(template) }}</span>
+      </div>
+      <div class="template-actions">
+        <button class="template-action-btn" (click)="openApplyPanel(template)">Aplicar</button>
+        <button class="template-action-btn template-action-btn--danger" (click)="confirmDelete(template)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Panel: crear/editar plantilla -->
+  <div class="panel-backdrop" *ngIf="showEditPanel" (click)="closeEditPanel()"></div>
+  <div class="panel-sheet panel-sheet--tall" *ngIf="showEditPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">{{ editingId ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
+
+    <div class="input-wrapper">
+      <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Nombre (ej. Básico, Pro)"
+        [(ngModel)]="formName"
+      />
+    </div>
+
+    <h4 class="field-group-heading">Cadencia</h4>
+    <div class="cadence-options">
+      <button
+        class="cadence-option"
+        *ngFor="let option of CADENCE_OPTIONS"
+        [class.cadence-option--active]="formCadence === option.value"
+        (click)="formCadence = option.value"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+
+    <div class="field-group" *ngFor="let group of groups">
+      <h4 class="field-group-heading">{{ group.label }}</h4>
+      <button
+        class="field-toggle-row"
+        *ngFor="let field of group.fields; trackBy: trackByFieldKey"
+        (click)="toggleField(field.key)"
+      >
+        <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
+        <ion-icon
+          [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
+          [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
+        ></ion-icon>
+      </button>
+    </div>
+
+    <button
+      class="submit-button"
+      (click)="saveTemplate()"
+      [disabled]="!formName.trim() || isSaving"
+    >
+      <span *ngIf="!isSaving">{{ editingId ? 'Guardar cambios' : 'Crear plantilla' }}</span>
+      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+    </button>
+  </div>
+
+  <!-- Panel: aplicar a clientes -->
+  <div class="panel-backdrop" *ngIf="showApplyPanel" (click)="closeApplyPanel()"></div>
+  <div class="panel-sheet" *ngIf="showApplyPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">Aplicar "{{ applyingTemplate?.name }}"</h3>
+    <p class="panel-subtitle">Selecciona los clientes a los que quieres aplicar esta plantilla.</p>
+
+    <p class="empty-hint" *ngIf="!myClients.length">No tienes clientes todavía.</p>
+
+    <button
+      class="field-toggle-row"
+      *ngFor="let client of myClients; trackBy: trackByClientId"
+      (click)="toggleClientSelected(client)"
+      [disabled]="!client.user"
+    >
+      <span>{{ getFullName(client) }}</span>
+      <ion-icon
+        [name]="isClientSelected(client) ? 'checkbox' : 'square-outline'"
+        [class.field-toggle-icon--active]="isClientSelected(client)"
+      ></ion-icon>
+    </button>
+
+    <button
+      class="submit-button"
+      (click)="confirmApply()"
+      [disabled]="!selectedClientIds.size || isApplying"
+    >
+      <span *ngIf="!isApplying">Aplicar a {{ selectedClientIds.size }} cliente{{ selectedClientIds.size === 1 ? '' : 's' }}</span>
+      <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
+    </button>
+  </div>
+</ion-content>

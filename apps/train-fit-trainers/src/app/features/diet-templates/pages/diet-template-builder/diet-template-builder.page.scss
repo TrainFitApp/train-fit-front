@@ -1,0 +1,310 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+.builder-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  // Antes sin @media (prefers-reduced-motion: reduce) — el mixin lo incluye
+  // siempre, cierra un hueco de accesibilidad real que tenía esta página.
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error p,
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
+.retry-button {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  color: var(--tf-text);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  position: relative;
+  height: 50px;
+  margin-bottom: 12px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 1.1rem;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.9rem;
+}
+
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 10px;
+}
+
+.day-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.day-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.day-chevron {
+  color: var(--tf-text-muted);
+  font-size: 0.9rem;
+  transition: transform 160ms var(--tf-ease-out);
+  flex-shrink: 0;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+.day-label-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.day-meals {
+  padding: 0 12px 12px;
+}
+
+.meal-block {
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.meal-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.meal-slot-name {
+  font-size: 0.84rem;
+  color: var(--tf-text);
+  font-weight: 600;
+}
+
+.meal-summary {
+  flex: 1;
+  text-align: right;
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.meal-items {
+  padding: 0 10px 10px;
+}
+
+.food-item-card {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+
+  &:last-of-type {
+    margin-bottom: 10px;
+  }
+}
+
+.food-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.food-item-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.remove-alternative-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.product-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--tf-success-soft);
+  border: 1px solid var(--tf-success-border);
+  border-radius: 10px;
+
+  .input-icon {
+    color: var(--tf-success);
+  }
+}
+
+.picked-product-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--tf-text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear-product-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.search-product-btn {
+  width: 100%;
+  height: 42px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: 10px;
+  color: var(--tf-accent);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.manual-macro-hint {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px 2px;
+}
+
+.add-food-item-btn {
+  width: 100%;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.add-alternative-btn {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strongest);
+  border-radius: 12px;
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+}

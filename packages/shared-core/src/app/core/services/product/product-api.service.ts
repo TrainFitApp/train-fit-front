@@ -29,10 +29,13 @@ export class ProductAPIService {
     );
   }
 
+  // Body como objeto {search} — no un string crudo: express.json() usa
+  // "strict" por defecto en el backend y rechaza con 400 cualquier body cuyo
+  // valor raíz no sea un objeto/array (ver product-controller.js#searchProduct).
   public searchProduct(page: number, search: string): Observable<IProduct[]> {
     return this.http.post<IProduct[]>(
       `${ProductAPIService.PRODUCTS_ENDPOINT}/search?page=${page}&limit=10`,
-      search
+      { search }
     );
   }
 
