@@ -69,6 +69,23 @@
     ></app-daily-weight>
   </div>
 
+  <!-- Fase 9 — solo visible con un plan activo de "menús elegidos por el
+       cliente" y ningún tipo de día marcado todavía para esta fecha. -->
+  <div class="day-type-banner" *ngIf="dayTypeStatus?.needsChoice">
+    <span class="day-type-banner__title">¿Qué día es hoy?</span>
+    <div class="day-type-banner__options">
+      <button
+        type="button"
+        class="day-type-banner__option"
+        *ngFor="let option of dayTypeStatus.options"
+        [disabled]="isChoosingDayType"
+        (click)="chooseDayType(option)"
+      >
+        {{ option }}
+      </button>
+    </div>
+  </div>
+
   <ion-grid class="t-diets-meals">
     <ion-accordion-group multiple="true">
       <app-meal

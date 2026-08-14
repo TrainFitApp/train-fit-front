@@ -51,6 +51,28 @@ export class SearchExercisesPage implements OnInit {
   @Input() sourceIsCardio: boolean;
   @Input() sourceIsIsometric: boolean;
 
+  // Planificador visual (Fase C) — por defecto, toggleExerciseSelection()
+  // barre this.tableInUse.splits[*] para añadir/quitar el ejercicio en TODOS
+  // los splits que tengan un workout en la misma posición (workoutIndex),
+  // modelo viejo de "fila de workout compartida entre semanas". En
+  // singleWorkoutMode opera SOLO sobre this.workout._id — cada card del
+  // tablero es independiente. Comportamiento por defecto (false) sin
+  // cambios, retrocompatible.
+  @Input() singleWorkoutMode = false;
+
+  // Plantillas de entrenamiento — elegir un ejercicio para un estado local
+  // todavía sin guardar (el builder de plantillas no tiene un Workout/
+  // tableInUse real hasta pulsar "Guardar"). A diferencia de isChangeMode
+  // (pide confirmación de "sustitución", pensada para reemplazar un
+  // ejercicio ya en curso), aquí se selecciona y se cierra sin más: no hay
+  // nada que sustituir, solo añadir.
+  @Input() pickerMode = false;
+
+  // TASK-021 (MASTER_BACKLOG.md) — hilo pasante hacia ConfigExercisePage
+  // (ver showQuickSeriesGenerator ahí). Mismo criterio que singleWorkoutMode:
+  // false por defecto, solo train-fit-trainers lo pone a true.
+  @Input() showQuickSeriesGenerator = false;
+
   public exercises: Exercise[];
   public exercisesCount: number;
   public load: boolean;
@@ -244,7 +266,9 @@ export class SearchExercisesPage implements OnInit {
         workoutIndex: this.workoutIndex,
         splitIndex: this.getResolvedSplitIndex(),
         currentSplit: this.currentSplit,
+        showQuickSeriesGenerator: this.showQuickSeriesGenerator,
       },
+      cssClass: 'tf-panel-modal',
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
@@ -260,6 +284,11 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public onExerciseCardClick(exercise: Exercise): void {
+    if (this.pickerMode) {
+      this.modalController.dismiss(exercise);
+      return;
+    }
+
     if (this.isChangeMode) {
       this.addExerciseModal(exercise);
       return;
@@ -275,12 +304,22 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public toggleExerciseSelection(exercise: Exercise): void {
+    if (this.pickerMode) {
+      this.modalController.dismiss(exercise);
+      return;
+    }
+
     if (this.isChangeMode) {
       this.addExerciseModal(exercise);
       return;
     }
 
     if (!this.load) return;
+
+    if (this.singleWorkoutMode) {
+      this.toggleExerciseSelectionSingleWorkout(exercise);
+      return;
+    }
 
     const existingCustomExercise = this.getExistingCustomExercise(exercise);
 
@@ -365,10 +404,41 @@ export class SearchExercisesPage implements OnInit {
     }
   }
 
+  // Planificador visual (Fase C) — alta/baja instantánea scoped a UN solo
+  // workout (this.workout._id), sin barrer tableInUse.splits[*]. Reutiliza
+  // addExerciseToWorkouts con un array de un solo elemento — mismo endpoint
+  // que ya crea el CustomExercise real, sin necesidad de uno nuevo.
+  private toggleExerciseSelectionSingleWorkout(exercise: Exercise): void {
+    const existingCustomExercise = this.getExistingCustomExercise(exercise);
+    this.load = false;
+
+    if (existingCustomExercise) {
+      this.customExerciseService.deleteCustomExercise(existingCustomExercise._id).subscribe(() => {
+        this.workout.exercises = (this.workout.exercises || []).filter(
+          (ce) => ce._id !== existingCustomExercise._id
+        );
+        if (this.tableInUse) this.tableService.setCurrentTable = this.tableInUse;
+        this.load = true;
+      });
+      return;
+    }
+
+    this.workoutService.addExerciseToWorkouts([this.workout._id], exercise._id).subscribe((results) => {
+      const resItem = results?.[0];
+      if (resItem) {
+        if (!this.workout.exercises) this.workout.exercises = [];
+        const alreadyExists = this.workout.exercises.some((ce) => ce.exercise?._id === exercise._id);
+        if (!alreadyExists) this.workout.exercises.push(resItem.customExercise);
+      }
+      if (this.tableInUse) this.tableService.setCurrentTable = this.tableInUse;
+      this.load = true;
+    });
+  }
+
   public openFilterModal(): void {
     const modalOptions: ModalOptions = {
       component: FilterInputPage,
-      cssClass: 'mini-modal',
+      cssClass: ['mini-modal', 'tf-panel-modal'],
       componentProps: {
         searchFilterGroupExercises: this.searchFilterGroupExercises,
         showExerciseTypeFilter: !this.isChangeMode,
@@ -439,7 +509,9 @@ export class SearchExercisesPage implements OnInit {
         tableInUse: this.tableInUse,
         workoutIndex: this.workoutIndex,
         currentSplit: this.currentSplit,
+        showQuickSeriesGenerator: this.showQuickSeriesGenerator,
       },
+      cssClass: 'tf-panel-modal',
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {

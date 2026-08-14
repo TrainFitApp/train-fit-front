@@ -1,0 +1,182 @@
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--tf-text);
+  border-radius: var(--tf-radius-sm);
+  cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.planner-toolbar {
+  display: flex;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-4) var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border);
+  background: var(--tf-bg);
+  overflow-x: auto;
+
+  @media (max-width: 560px) {
+    padding: var(--tf-space-2) var(--tf-space-3) var(--tf-space-3);
+  }
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  padding: 8px 14px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  background: var(--tf-surface-4);
+  color: var(--tf-text);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 40px;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out),
+    opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  // TASK-014 — en pantallas estrechas se pierde el texto y se deja solo el
+  // icono (con aria-label ya presente en el botón para accesibilidad): 5
+  // botones con texto no caben en un móvil sin scroll horizontal molesto.
+  @media (max-width: 560px) {
+    padding: 8px 10px;
+
+    span {
+      display: none;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--primary {
+    background: var(--tf-accent);
+    color: var(--tf-accent-contrast);
+  }
+
+  &--danger {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger);
+    border: 1px solid var(--tf-danger-border);
+  }
+}
+
+.planner-content {
+  --background: var(--tf-bg);
+}
+
+.planner-board {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-4);
+  height: 100%;
+  padding: var(--tf-space-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  // TASK-014 (MASTER_BACKLOG.md) — por debajo de tablet, el tablero pasa a
+  // scroll-snap de una columna a la vez (patrón Kanban móvil habitual, p.
+  // ej. Trello): más legible que varias columnas de 320px cortadas a la
+  // mitad, y evita que el usuario pierda de vista en qué semana está.
+  @media (max-width: 900px) {
+    gap: var(--tf-space-3);
+    padding: var(--tf-space-3);
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.planner-board-column {
+  flex: 0 0 320px;
+  width: 320px;
+  height: 100%;
+
+  @media (max-width: 900px) {
+    flex-basis: min(85vw, 340px);
+    width: min(85vw, 340px);
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 420px) {
+    flex-basis: 92vw;
+    width: 92vw;
+  }
+}
+
+.planner-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-6);
+  color: var(--tf-text-muted);
+  text-align: center;
+
+  ion-icon {
+    font-size: 40px;
+    opacity: 0.6;
+  }
+
+  p {
+    margin: 0 0 var(--tf-space-2);
+  }
+}
+
+// Feedback de drag (Angular CDK) — columnas del tablero.
+.cdk-drag-preview {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-radius: var(--tf-radius-lg);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drop-list-dragging .planner-board-column:not(.cdk-drag-placeholder) {
+  transition: transform 200ms var(--tf-ease-out);
+}

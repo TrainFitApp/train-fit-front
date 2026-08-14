@@ -42,50 +42,68 @@
 
       <!-- Formulario del cuestionario inicial -->
       <div class="intake-form" *ngIf="fillingTrainerId === group.trainerId">
-        <label class="form-label">Objetivos</label>
-        <textarea class="form-textarea" rows="2" [(ngModel)]="goals" placeholder="¿Qué quieres conseguir?"></textarea>
+        <ng-container *ngIf="group.enabledFields.has('goals')">
+          <label class="form-label">Objetivos</label>
+          <textarea class="form-textarea" rows="2" [(ngModel)]="goals" placeholder="¿Qué quieres conseguir?"></textarea>
+        </ng-container>
 
-        <label class="form-label">Salud y lesiones</label>
-        <textarea class="form-textarea" rows="2" [(ngModel)]="healthConditions" placeholder="Lesiones, condiciones médicas..."></textarea>
+        <ng-container *ngIf="group.enabledFields.has('healthConditions')">
+          <label class="form-label">Salud y lesiones</label>
+          <textarea class="form-textarea" rows="2" [(ngModel)]="healthConditions" placeholder="Lesiones, condiciones médicas..."></textarea>
+        </ng-container>
 
-        <label class="form-label">Experiencia</label>
-        <div class="option-row">
-          <button
-            class="option-chip"
-            *ngFor="let option of experienceOptions"
-            [class.option-chip--active]="experienceLevel === option.value"
-            (click)="experienceLevel = option.value"
-          >
-            {{ option.label }}
-          </button>
-        </div>
+        <ng-container *ngIf="group.enabledFields.has('experienceLevel')">
+          <label class="form-label">Experiencia</label>
+          <div class="option-row">
+            <button
+              class="option-chip"
+              *ngFor="let option of experienceOptions"
+              [class.option-chip--active]="experienceLevel === option.value"
+              (click)="experienceLevel = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </ng-container>
 
-        <label class="form-label">Disponibilidad</label>
-        <input type="text" class="form-input" [(ngModel)]="availability" placeholder="Ej. 3 días/semana, tardes" />
+        <ng-container *ngIf="group.enabledFields.has('availability')">
+          <label class="form-label">Disponibilidad</label>
+          <input type="text" class="form-input" [(ngModel)]="availability" placeholder="Ej. 3 días/semana, tardes" />
+        </ng-container>
 
-        <label class="form-label">Equipamiento disponible</label>
-        <input type="text" class="form-input" [(ngModel)]="equipment" placeholder="Ej. Gimnasio completo, mancuernas en casa..." />
+        <ng-container *ngIf="group.enabledFields.has('equipment')">
+          <label class="form-label">Equipamiento disponible</label>
+          <input type="text" class="form-input" [(ngModel)]="equipment" placeholder="Ej. Gimnasio completo, mancuernas en casa..." />
+        </ng-container>
 
-        <label class="form-label">Alergias</label>
-        <textarea class="form-textarea" rows="2" [(ngModel)]="allergies"></textarea>
+        <ng-container *ngIf="group.enabledFields.has('allergies')">
+          <label class="form-label">Alergias</label>
+          <textarea class="form-textarea" rows="2" [(ngModel)]="allergies"></textarea>
+        </ng-container>
 
-        <label class="form-label">Alimentos favoritos</label>
-        <textarea class="form-textarea" rows="2" [(ngModel)]="favoriteFoods"></textarea>
+        <ng-container *ngIf="group.enabledFields.has('favoriteFoods')">
+          <label class="form-label">Alimentos favoritos</label>
+          <textarea class="form-textarea" rows="2" [(ngModel)]="favoriteFoods"></textarea>
+        </ng-container>
 
-        <label class="form-label">Alimentos que no te gustan</label>
-        <textarea class="form-textarea" rows="2" [(ngModel)]="dislikedFoods"></textarea>
+        <ng-container *ngIf="group.enabledFields.has('dislikedFoods')">
+          <label class="form-label">Alimentos que no te gustan</label>
+          <textarea class="form-textarea" rows="2" [(ngModel)]="dislikedFoods"></textarea>
+        </ng-container>
 
-        <label class="form-label">¿Cocinas en casa?</label>
-        <div class="option-row">
-          <button
-            class="option-chip"
-            *ngFor="let option of cooksOptions"
-            [class.option-chip--active]="cooksAtHome === option.value"
-            (click)="cooksAtHome = option.value"
-          >
-            {{ option.label }}
-          </button>
-        </div>
+        <ng-container *ngIf="group.enabledFields.has('cooksAtHome')">
+          <label class="form-label">¿Cocinas en casa?</label>
+          <div class="option-row">
+            <button
+              class="option-chip"
+              *ngFor="let option of cooksOptions"
+              [class.option-chip--active]="cooksAtHome === option.value"
+              (click)="cooksAtHome = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </ng-container>
 
         <div class="form-actions">
           <button class="secondary-button" (click)="closeIntakeForm()">Cancelar</button>

@@ -1,0 +1,34 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Mi cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="account-content">
+  <div class="account-card">
+    <div class="account-avatar">{{ initials }}</div>
+    <span class="account-name">{{ fullName }}</span>
+    <span class="account-email" *ngIf="user()?.email">{{ user()?.email }}</span>
+  </div>
+
+  <nav class="account-menu">
+    <button type="button" class="account-menu-item" (click)="goToConfiguration()">
+      <ion-icon name="settings-outline"></ion-icon>
+      <span>Configuración</span>
+      <ion-icon name="chevron-forward" class="account-menu-chevron"></ion-icon>
+    </button>
+    <button type="button" class="account-menu-item" (click)="goToSubscription()">
+      <ion-icon name="card-outline"></ion-icon>
+      <span>Suscripción</span>
+      <ion-icon name="chevron-forward" class="account-menu-chevron"></ion-icon>
+    </button>
+  </nav>
+
+  <button type="button" class="logout-button" (click)="confirmLogout()">
+    <ion-icon name="log-out-outline"></ion-icon>
+    Cerrar sesión
+  </button>
+</ion-content>

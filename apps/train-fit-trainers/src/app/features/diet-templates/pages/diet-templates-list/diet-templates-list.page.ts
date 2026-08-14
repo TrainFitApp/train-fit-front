@@ -30,6 +30,15 @@ export class DietTemplatesListPage implements OnInit {
     this.load();
   }
 
+  // ion-router-outlet cachea la página al volver del builder (push/pop) —
+  // sin esto, "Volver" desde diet-template-builder.page.ts mostraría la
+  // lista desactualizada (la plantilla recién creada/editada no aparecería
+  // hasta un refresco manual). ngOnInit solo se dispara una vez por
+  // instancia. Mismo fix ya aplicado en RoutinesPage (TASK-013).
+  public ionViewWillEnter(): void {
+    this.load();
+  }
+
   public load(): void {
     this.state = 'loading';
     this.dietTemplateApi.list().subscribe({

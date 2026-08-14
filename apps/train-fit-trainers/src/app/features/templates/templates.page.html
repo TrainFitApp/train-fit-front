@@ -1,0 +1,57 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Plantillas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="templates-content">
+  <p class="page-hint">Biblioteca central de rutinas, planes nutricionales y formularios reutilizables.</p>
+
+  <div class="category-grid">
+    <a class="category-card" *ngFor="let c of categories" [routerLink]="c.path">
+      <div class="category-icon" [style.background]="c.colorVar">
+        <ion-icon [name]="c.icon"></ion-icon>
+      </div>
+      <span class="category-name">{{ c.name }}</span>
+      <span class="category-desc">{{ c.description }}</span>
+      <span class="category-link">Ver todas <ion-icon name="chevron-forward"></ion-icon></span>
+    </a>
+  </div>
+
+  <div class="section-row">
+    <h2 class="section-heading">Plantillas de rutinas recientes</h2>
+    <a class="section-link" routerLink="/tabs/routines">Ver todas</a>
+  </div>
+
+  <p class="empty-hint" *ngIf="!loadingRoutineTemplates && !routineTemplates.length">
+    Todavía no has creado ninguna plantilla de rutina.
+    <a routerLink="/tabs/routines">Crear la primera</a>
+  </p>
+
+  <div class="routine-grid" *ngIf="routineTemplates.length">
+    <div
+      class="routine-card"
+      *ngFor="let rt of routineTemplates"
+      (click)="openTemplate(rt)"
+    >
+      <div class="routine-card-header">
+        <div>
+          <span class="routine-name">{{ rt.name }}</span>
+          <span class="routine-desc" *ngIf="rt.description">{{ rt.description }}</span>
+        </div>
+      </div>
+      <div class="routine-meta">
+        <span *ngIf="rt.level"><ion-icon name="trending-up-outline"></ion-icon> {{ levelLabels[rt.level] }}</span>
+        <span><ion-icon name="albums-outline"></ion-icon> {{ (rt.blocks || []).length }} bloques</span>
+        <span><ion-icon name="barbell-outline"></ion-icon> {{ exerciseCount(rt) }} ejercicios</span>
+      </div>
+      <div class="routine-tags" *ngIf="rt.tags?.length">
+        <span class="routine-tag" *ngFor="let tag of rt.tags">{{ tag }}</span>
+      </div>
+      <button type="button" class="assign-button" (click)="openTemplate(rt); $event.stopPropagation()">Abrir plantilla</button>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,169 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.planner-column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  overflow: hidden;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    box-shadow var(--tf-duration-fast) var(--tf-ease-out);
+
+  &--selected {
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 1px var(--tf-accent);
+  }
+}
+
+.planner-column-header {
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.planner-column-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.planner-column-name {
+  font-size: var(--tf-font-size-base);
+  font-weight: 700;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--tf-text-muted);
+  border-radius: var(--tf-radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    opacity: 1;
+  }
+}
+
+.planner-column-header:hover .rename-btn {
+  opacity: 1;
+}
+
+// TASK-014 — :hover nunca se activa en touch: sin esto, el botón de
+// renombrar sería invisible e inalcanzable en móvil/tablet.
+@media (hover: none) {
+  .rename-btn {
+    opacity: 1;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.planner-column-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.planner-column-body {
+  flex: 1;
+  min-height: 80px;
+  overflow-y: auto;
+  padding: var(--tf-space-3);
+}
+
+.planner-card-wrapper {
+  margin-bottom: var(--tf-space-3);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border);
+  overflow: hidden;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.planner-column-empty {
+  padding: var(--tf-space-4) var(--tf-space-2);
+  text-align: center;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+
+  p {
+    margin: 0;
+  }
+}
+
+.add-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+  color: var(--tf-accent-text);
+  padding: var(--tf-space-3);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--tf-surface-4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+// Feedback de drag (Angular CDK) — cards dentro de una columna.
+.cdk-drag-preview {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-radius: var(--tf-radius-lg);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drop-list-dragging .planner-card-wrapper:not(.cdk-drag-placeholder) {
+  transition: transform 200ms var(--tf-ease-out);
+}

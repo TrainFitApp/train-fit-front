@@ -1,6 +1,7 @@
 @import '../../../../../theme/skeleton';
 @import '../../../../../theme/buttons';
 @import '../../../../../theme/inputs';
+@import '../../../../../theme/panel-sheet';
 
 .builder-content {
   --background: var(--tf-bg);
@@ -243,12 +244,6 @@
   cursor: pointer;
 }
 
-.manual-macro-hint {
-  font-size: 0.76rem;
-  color: var(--tf-text-muted);
-  margin: 0 0 8px 2px;
-}
-
 .add-food-item-btn {
   width: 100%;
   height: 38px;
@@ -307,4 +302,307 @@
   width: 100%;
   height: 50px;
   font-size: 0.92rem;
+}
+
+// Auditoría de arquitectura (Fase 8/9) — selector de modo (secuencial /
+// recurrente por semana / elegido por el cliente), mismo look que el
+// selector de periodo del modal "Aplicar plantilla".
+.section-hint {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  margin: 4px 0 8px;
+}
+
+.mode-hint {
+  font-weight: 400;
+  color: var(--tf-text-muted);
+  margin-top: -4px;
+}
+
+.end-mode-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.end-mode-option {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+}
+
+.uncovered-hint {
+  color: var(--tf-warning, #b8860b);
+  margin-bottom: 8px;
+}
+
+.weekday-picker {
+  display: flex;
+  gap: 3px;
+}
+
+.weekday-chip {
+  flex: 1;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  border: 1px solid var(--tf-border-strong);
+  background: transparent;
+  color: var(--tf-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+
+  &.selected {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-contrast, #fff);
+    background: var(--tf-accent);
+  }
+}
+
+// === TAREA5 (auditoría UX, Fase C) — tablero semanal ===
+
+.board-scroll {
+  overflow-x: auto;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--tf-border);
+
+  // Sin esto, el scroll horizontal nativo aparece pero arrastrar una celda
+  // (drag&drop) no se distingue visualmente de un simple scroll — el
+  // -webkit-overflow-scrolling suave ayuda en trackpads/touch a que el
+  // primer gesto no se confunda con iniciar un drag.
+  -webkit-overflow-scrolling: touch;
+}
+
+.board-grid {
+  display: grid;
+  grid-auto-rows: minmax(56px, auto);
+  gap: 1px;
+  background: var(--tf-border);
+  width: max-content;
+  min-width: 100%;
+}
+
+.board-corner,
+.board-day-header,
+.board-slot-header,
+.board-cell {
+  background: var(--tf-surface-1);
+}
+
+.board-corner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.board-day-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+
+.board-day-header-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.board-day-header .day-label-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.board-day-remove {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.board-slot-header {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.board-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  &.has-items {
+    background: var(--tf-accent-soft);
+  }
+
+  &.drag-over {
+    outline: 2px dashed var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  &[draggable='true'] {
+    cursor: grab;
+  }
+}
+
+.board-cell-summary {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+
+  .has-items & {
+    color: var(--tf-accent);
+    font-weight: 600;
+  }
+}
+
+.board-cell-action {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &:hover {
+    color: var(--tf-accent);
+  }
+}
+
+// --- Panel editor de celda (día × comida) ---
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin: 0 0 16px;
+}
+
+// Fase 9 — tarjeta de alternativa dentro del editor de celda, mismo patrón
+// que client-detail.page.scss (panel "Pautar comida").
+.panel-hint {
+  font-size: 0.82rem;
+  color: var(--tf-text-muted);
+  margin: -8px 0 16px;
+}
+
+.alternative-card {
+  padding: 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.alternative-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.alternative-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.snippet-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  .add-alternative-btn {
+    margin-bottom: 0;
+  }
+}
+
+.snippet-save-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--tf-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  cursor: pointer;
 }

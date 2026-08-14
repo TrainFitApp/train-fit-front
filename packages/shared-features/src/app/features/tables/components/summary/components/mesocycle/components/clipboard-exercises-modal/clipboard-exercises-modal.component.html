@@ -41,7 +41,7 @@
       ></ion-checkbox>
 
       <div class="exercise-info">
-        <h2>{{ exercise.exercise.name | translateDb }}</h2>
+        <h2>{{ (exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}</h2>
         <span class="exercise-sets-count">
           {{ exercise.sets.length }} {{ 'TABLES.SERIES' | translate }}
         </span>

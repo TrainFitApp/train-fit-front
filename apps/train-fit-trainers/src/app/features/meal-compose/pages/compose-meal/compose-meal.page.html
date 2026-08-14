@@ -1,0 +1,91 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Componer para varios clientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="compose-content">
+  <p class="page-hint">
+    Compón una comida una sola vez y aplícala directamente a un grupo de clientes — sin repetir el
+    ciclo de búsqueda cliente a cliente.
+  </p>
+
+  <div class="field-row">
+    <div class="input-wrapper">
+      <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
+      <select class="input-field" [(ngModel)]="mealSlot">
+        <option *ngFor="let slot of mealSlots" [value]="slot">{{ slot }}</option>
+      </select>
+    </div>
+    <div class="input-wrapper">
+      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+      <input type="date" class="input-field" [(ngModel)]="date" />
+    </div>
+  </div>
+
+  <div class="food-item-card" *ngFor="let item of items; let i = index; trackBy: trackByIndex">
+    <div class="food-item-header">
+      <span class="food-item-title">Alimento {{ i + 1 }}</span>
+      <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="product-pick-row" *ngIf="item.productId || item.recipeId">
+      <ion-icon [name]="item.recipeId ? 'restaurant-outline' : 'checkmark-circle-outline'" class="input-icon"></ion-icon>
+      <span class="picked-product-name">
+        {{ item.recipeId ? item.recipeName : item.productName }}
+        <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
+      </span>
+      <button type="button" class="clear-product-btn" (click)="clearProduct(i)">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="search-product-btn"
+      *ngIf="!item.productId && !item.recipeId"
+      (click)="openProductSearch(i)"
+    >
+      <ion-icon name="search-outline"></ion-icon>
+      Buscar producto o receta real
+    </button>
+  </div>
+
+  <div class="snippet-actions-row">
+    <button type="button" class="add-alternative-btn" (click)="addFoodItem()" [disabled]="items.length >= maxItems">
+      <ion-icon name="add-outline"></ion-icon>
+      Añadir alimento
+    </button>
+    <button type="button" class="add-alternative-btn" (click)="openSnippetPicker()" [disabled]="items.length >= maxItems">
+      <ion-icon name="bookmark-outline"></ion-icon>
+      Insertar snippet
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="snippet-save-link"
+    *ngIf="canCompose"
+    (click)="saveAsSnippet()"
+  >
+    <ion-icon name="bookmark-outline"></ion-icon>
+    Guardar esta composición como snippet
+  </button>
+
+  <button
+    type="button"
+    class="submit-button"
+    [disabled]="!canCompose || isApplying"
+    (click)="chooseClientsAndApply()"
+  >
+    <span *ngIf="!isApplying">Elegir clientes y aplicar</span>
+    <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
+  </button>
+</ion-content>

@@ -37,8 +37,12 @@ export class SplitService {
     return this.splitAPIService.addSplitToTable(idTable, idSplit);
   }
 
-  public updateSplit(split: Split): Observable<any> {
-    return this.splitAPIService.updateSplit(split);
+  public addWorkoutToSplit(idSplit: string, idWorkout: string): Observable<Split> {
+    return this.splitAPIService.addWorkoutToSplit(idSplit, idWorkout);
+  }
+
+  public updateSplit(id: string, patch: Partial<Split>): Observable<any> {
+    return this.splitAPIService.updateSplit(id, patch);
   }
 
   public deleteSplit(idTable: string, idSplit: string): Observable<any> {
@@ -50,6 +54,14 @@ export class SplitService {
     splitIds: string[]
   ): Observable<DeleteSplitsResponse> {
     return this.splitAPIService.deleteSplits(idTable, splitIds);
+  }
+
+  public createBlankSplitAndAddToTable(idTable: string, name?: string): Observable<Split[]> {
+    return this.splitAPIService.createBlankSplitAndAddToTable(idTable, name);
+  }
+
+  public reorderSplits(idTable: string, splitIdsOrder: string[]): Observable<Split[]> {
+    return this.splitAPIService.reorderSplits(idTable, splitIdsOrder);
   }
 
   public getStandarSplit(): Split {

@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { skip } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
+import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
@@ -13,6 +16,16 @@ import {
   ProductSearchResult,
 } from '../../../../shared/components/product-search-modal/product-search-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
+import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { DietException, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
+import { forkJoin } from 'rxjs';
+import { UserService } from 'src/app/core/services/user/user.service';
+import { TableService } from 'src/app/core/services/table/table.service';
+import {
+  SearchFoodsPage,
+  SearchFoodsTrainerContext,
+  TrainerFoodSelection,
+} from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
 import {
   AdherenceSummary,
   AnthropometryEntry,
@@ -45,9 +58,15 @@ type RoutineAssignMode = 'new' | 'template';
 })
 export class ClientDetailPage implements OnInit {
   public clientId = '';
-  public name = '';
+  public name = 'Cliente';
   public scopes: ClientScope[] = [];
   public activeTab: ClientDetailTab = 'training';
+  // TASK-012 (MASTER_BACKLOG.md) — name/scopes normalmente llegan por
+  // queryParams (navegación desde ClientsPage), pero un deep link directo
+  // (notificación, returnUrl de TASK-010, F5 en esta misma pantalla) no los
+  // trae. headerState refleja si hubo que resolverlos con una llamada de
+  // respaldo a getMyClients().
+  public headerState: SectionState = 'loaded';
 
   // --- Notas (F19, transversal a los scopes) ---
   public notesState: SectionState = 'loading';
@@ -129,22 +148,123 @@ export class ClientDetailPage implements OnInit {
   public readonly maxAlternatives = 4;
   public readonly maxFoodItemsPerAlternative = 8;
 
+  // Auditoría de arquitectura (nutrición, Fase 8) — plan vigente del cliente,
+  // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
+  public activePlan: PlanAssignment | null = null;
+  public isCreatingException = false;
+
+  // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
+  // Perezoso (solo al expandir), mismo criterio que availableTemplates más
+  // abajo — no todos los trainers necesitan mirar esto cada vez que abren
+  // la ficha del cliente.
+  public showNutritionHistory = false;
+  public nutritionHistoryLoaded = false;
+  public nutritionHistoryState: 'loading' | 'error' | 'loaded' = 'loading';
+  public nutritionHistory: PlanAssignment[] = [];
+  public dietExceptions: DietException[] = [];
+
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private clientDetailApi: ClientDetailApiService,
     private ionicUtilService: IonicUtilService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private userService: UserService,
+    private tableService: TableService,
+    private planAssignmentApi: PlanAssignmentApiService,
+    private trainerClientsApi: TrainerClientsApiService
   ) {}
 
+  // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
+  // de route.snapshot en ngOnInit. Sin explotar hoy (no hay ningún enlace
+  // en la UI que navegue de la ficha de un cliente directamente a la de
+  // otro sin pasar por ClientsPage) pero, si el Router llegara a reutilizar
+  // esta instancia entre dos ':id' distintos de la misma ruta
+  // (comportamiento por defecto de Angular cuando solo cambia el
+  // parámetro), ngOnInit no volvería a dispararse y se seguiría mostrando
+  // la ficha del cliente anterior con el :id nuevo en la URL.
+  //
+  // La carga inicial conserva el camino rápido de siempre (síncrono, vía
+  // snapshot: nameParam/scopesParam si se llegó desde ClientsPage, si no
+  // fallback). skip(1) en la suscripción a paramMap cubre solo las
+  // emisiones POSTERIORES a esa (id realmente cambiado con la instancia
+  // reutilizada) — sin queryParams frescos del cliente nuevo disponibles en
+  // ese caso, se resuelve igual que un deep link. Evita tener que inferir
+  // "es la primera vez" a partir de un flag mutable derivado de clientId.
   public ngOnInit(): void {
     this.clientId = this.route.snapshot.paramMap.get('id') || '';
-    this.name = this.route.snapshot.queryParamMap.get('name') || 'Cliente';
-    const rawScopes = this.route.snapshot.queryParamMap.get('scopes') || '';
-    this.scopes = rawScopes
+    const nameParam = this.route.snapshot.queryParamMap.get('name');
+    const scopesParam = this.route.snapshot.queryParamMap.get('scopes');
+
+    if (nameParam && scopesParam) {
+      this.name = nameParam;
+      this.scopes = this.parseScopes(scopesParam);
+      this.initTabsAndLoadSections();
+    } else {
+      this.resolveClientIdentityFallback();
+    }
+
+    this.route.paramMap.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.clientId = params.get('id') || '';
+      this.resolveClientIdentityFallback();
+    });
+  }
+
+  // TASK-019 (MASTER_BACKLOG.md) — ion-router-outlet cachea la instancia de
+  // esta página entre visitas a la misma ruta, así que ngOnInit solo se
+  // dispara una vez. Sin esto, tras crear/borrar una Table desde el
+  // Planificador y volver, la lista seguía mostrando el estado previo a esa
+  // acción. Mismo patrón ya aplicado en RoutinesPage/DietTemplatesListPage/
+  // TemplatesPage — ver TASK-078 para la auditoría más amplia de este bug.
+  public ionViewWillEnter(): void {
+    if (!this.clientId) return;
+    this.initTabsAndLoadSections();
+  }
+
+  private parseScopes(rawScopes: string): ClientScope[] {
+    return rawScopes
       .split(',')
       .filter((s): s is ClientScope => s === 'training' || s === 'nutrition');
+  }
 
+  // TASK-012 — sin name/scopes en la URL (deep link directo), se resuelven
+  // contra getMyClients() (ya usado por ClientsPage) en vez de dejar la
+  // pantalla en blanco sin ninguna pestaña cargada.
+  private resolveClientIdentityFallback(): void {
+    this.headerState = 'loading';
+    this.trainerClientsApi.getMyClients().subscribe({
+      next: (clients) => {
+        const match = clients.find((c) => c.user?._id === this.clientId);
+        if (!match) {
+          this.headerState = 'error';
+          this.ionicUtilService.showToast({
+            message: 'No se encontró este cliente o no tienes acceso.',
+            duration: 3000,
+          });
+          return;
+        }
+        this.name = match.user ? `${match.user.name} ${match.user.lastname}`.trim() : 'Cliente';
+        this.scopes = match.scopes;
+        this.headerState = 'loaded';
+        this.initTabsAndLoadSections();
+      },
+      error: () => {
+        this.headerState = 'error';
+        this.ionicUtilService.showToast({
+          message: 'No se pudo cargar la información de este cliente.',
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  public goToClientsList(): void {
+    this.router.navigate(['/tabs/clients']);
+  }
+
+  private initTabsAndLoadSections(): void {
     this.activeTab = this.scopes[0] || 'training';
 
     if (this.scopes.includes('training')) this.loadTraining();
@@ -153,6 +273,30 @@ export class ClientDetailPage implements OnInit {
     this.loadCheckins();
     this.loadPayments();
     this.loadTasks();
+    this.loadPreviousRelationCutoff();
+  }
+
+  // TASK-062 (MASTER_BACKLOG.md) — antes, si este cliente había sido
+  // revocado y luego volvió a aceptar una invitación, sus notas/tareas de
+  // antes reaparecían mezcladas con las nuevas sin ninguna indicación de
+  // que eran "de antes". null en el 100% de los clientes normales (nunca
+  // revocados) — este fetch extra no cuesta nada visible en ese caso común.
+  public previousRelationCutoff: string | null = null;
+
+  private loadPreviousRelationCutoff(): void {
+    this.clientDetailApi.getPreviousRelationCutoff(this.clientId).subscribe({
+      next: ({ cutoffDate }) => {
+        this.previousRelationCutoff = cutoffDate;
+      },
+      error: () => {
+        this.previousRelationCutoff = null;
+      },
+    });
+  }
+
+  public isFromPreviousRelation(createdAt: string): boolean {
+    if (!this.previousRelationCutoff) return false;
+    return new Date(createdAt).getTime() < new Date(this.previousRelationCutoff).getTime();
   }
 
   public selectTab(tab: ClientDetailTab): void {
@@ -167,7 +311,14 @@ export class ClientDetailPage implements OnInit {
       this.clientDetailApi.getAnthropometry(this.clientId).toPromise(),
     ])
       .then(([tables, weights]) => {
-        this.tables = tables || [];
+        // El entrenador solo debe ver/editar rutinas que él mismo asignó —
+        // el cliente puede tener tablas propias (de usar la app como
+        // consumidor) que no son asunto del entrenador. Filtro en frontend
+        // (ver MVP-trainers/tareas-grandes/TAREA5): el backend
+        // (getClientTables) sigue devolviendo todas, esto no es una
+        // restricción de acceso real, solo de presentación.
+        const trainerId = this.userService.localUser()?._id;
+        this.tables = (tables || []).filter((t) => t.assignedByTrainerId === trainerId);
         this.latestWeight = (weights && weights[0]) || null;
         this.computeCompletedWorkouts();
         this.trainingState = 'loaded';
@@ -287,14 +438,65 @@ export class ClientDetailPage implements OnInit {
       next: (table) => {
         this.isAssigningRoutine = false;
         this.showRoutinePanel = false;
-        this.router.navigate(['clients', this.clientId, 'tables', table._id, 'mesocycle']);
+        void this.openPlanner(table);
       },
       error: (err) => this.onRoutineAssignError(err),
     });
   }
 
-  public openRoutineBuilder(table: ClientTable): void {
-    this.router.navigate(['clients', this.clientId, 'tables', table._id, 'mesocycle']);
+  // Planificador visual (Fase C) — sustituye al modal de mesocycle.page.ts
+  // (panel de 420px, insuficiente para un tablero Kanban de varias semanas a
+  // la vez) por la ruta completa /tabs/clients/:clientId/tables/:tableId/planner
+  // (full-width, ver TASK-026 — antes vivía fuera de 'tabs', sin sidebar).
+  // TableInContextResolver siembra la tabla del cliente antes de activar la
+  // ruta — no hace falta sembrarla aquí. Al volver (back), ionViewWillEnter
+  // (ver TASK-019) recarga la lista — la instancia de este componente queda
+  // cacheada por ion-router-outlet, no se recrea.
+  // TASK-018 (MASTER_BACKLOG.md) — renombrado de openRoutineBuilder() a
+  // openPlanner(): el nombre anterior era gemelo de RoutineBuilderPage
+  // (features/routines/pages/routine-builder), una pantalla completamente
+  // distinta (autoría de una WorkoutTemplate reutilizable) — este método
+  // abre el Planificador (Table ya asignada a este cliente), no eso.
+  public async openPlanner(table: ClientTable): Promise<void> {
+    await this.router.navigate(['/tabs', 'clients', this.clientId, 'tables', table._id, 'planner']);
+  }
+
+  // TASK-007 — mismo patrón que openPlanner: ruta completa +
+  // TableInContextResolver siembra la tabla del cliente antes de activar.
+  public async openStatistics(table: ClientTable): Promise<void> {
+    await this.router.navigate(['clients', this.clientId, 'tables', table._id, 'statistics']);
+  }
+
+  // TASK-019 (MASTER_BACKLOG.md) — antes no existía forma de eliminar una
+  // rutina completa ya asignada, solo vaciarla split a split a mano.
+  public async confirmDeleteTable(table: ClientTable, event: Event): Promise<void> {
+    event.stopPropagation();
+    await this.ionicUtilService.showAlert({
+      header: 'Borrar rutina',
+      message: `¿Seguro que quieres borrar por completo "${table.name}"? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Borrar',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.clientDetailApi.deleteTable(this.clientId, table._id).subscribe({
+              next: () => {
+                this.tables = this.tables.filter((t) => t._id !== table._id);
+                if (this.expandedTableId === table._id) this.expandedTableId = null;
+                this.ionicUtilService.showToast({ message: 'Rutina borrada', duration: 1500 });
+              },
+              error: () => {
+                this.ionicUtilService.showToast({
+                  message: 'No se pudo borrar la rutina',
+                  duration: 2500,
+                });
+              },
+            });
+          },
+        },
+      ],
+    });
   }
 
   public assignTemplate(template: ClientTable): void {
@@ -354,6 +556,82 @@ export class ClientDetailPage implements OnInit {
     this.clientDetailApi.getNutritionPreferences(this.clientId).subscribe({
       next: (preferences) => (this.nutritionPreferences = preferences),
       error: () => (this.nutritionPreferences = null),
+    });
+
+    void this.loadActivePlan();
+  }
+
+  // Auditoría de arquitectura (nutrición, Fase 8)
+  public loadActivePlan(): Promise<void> {
+    return this.planAssignmentApi
+      .getActive(this.clientId)
+      .toPromise()
+      .then((plan) => {
+        this.activePlan = plan || null;
+      })
+      .catch(() => {
+        this.activePlan = null;
+      });
+  }
+
+  // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
+  // (GET .../nutrition-plans/history, endpoint ya existía sin consumidor,
+  // mismo patrón que TASK-020) con las excepciones puntuales (nuevo GET
+  // .../diet-exceptions). No sustituye un log de contenido exacto día a día
+  // (eso exigiría versionar cada DietDay, fuera de alcance) — ver
+  // DECISIONS.md.
+  public toggleNutritionHistory(): void {
+    this.showNutritionHistory = !this.showNutritionHistory;
+    if (this.showNutritionHistory && !this.nutritionHistoryLoaded) {
+      this.loadNutritionHistory();
+    }
+  }
+
+  public loadNutritionHistory(): void {
+    this.nutritionHistoryState = 'loading';
+    forkJoin({
+      history: this.planAssignmentApi.getHistory(this.clientId),
+      exceptions: this.planAssignmentApi.getExceptions(this.clientId),
+    }).subscribe({
+      next: ({ history, exceptions }) => {
+        this.nutritionHistory = history || [];
+        this.dietExceptions = exceptions || [];
+        this.nutritionHistoryLoaded = true;
+        this.nutritionHistoryState = 'loaded';
+      },
+      error: () => {
+        this.nutritionHistoryState = 'error';
+      },
+    });
+  }
+
+  public async createExceptionForToday(): Promise<void> {
+    if (!this.activePlan || this.isCreatingException) return;
+    await this.ionicUtilService.showAlert({
+      header: `¿Marcar ${this.nutritionDateLabel} como excepción?`,
+      message: 'Ese día concreto queda vacío (sin comidas del plan), sin tocar el resto de la planificación.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Marcar excepción',
+          handler: () => {
+            this.isCreatingException = true;
+            this.planAssignmentApi
+              .createException(this.clientId, { date: this.nutritionDate, action: 'skip' })
+              .subscribe({
+                next: () => {
+                  this.isCreatingException = false;
+                  this.ionicUtilService.showToast({ message: 'Excepción guardada para ese día', duration: 2000 });
+                  this.loadNutrition();
+                },
+                error: () => {
+                  this.isCreatingException = false;
+                  this.ionicUtilService.showErrorToast('No se pudo guardar la excepción', 'Error', 3000);
+                },
+              });
+          },
+        },
+      ],
     });
   }
 
@@ -471,11 +749,12 @@ export class ClientDetailPage implements OnInit {
     const { data, role } = await modal.onDidDismiss();
     if (role !== 'confirm' || !data) return;
 
-    const days = data.appliedDays?.length || 0;
+    const until = data.endDate ? `hasta el ${data.endDate}` : 'indefinidamente';
     this.ionicUtilService.showToast({
-      message: `Plantilla aplicada: ${days} día${days === 1 ? '' : 's'} para ${this.name}`,
+      message: `Plan aplicado a ${this.name}, desde ${data.startDate} ${until}`,
       duration: 3000,
     });
+    void this.loadActivePlan();
     this.loadNutrition();
   }
 
@@ -496,8 +775,34 @@ export class ClientDetailPage implements OnInit {
     this.prescribeMealTarget = null;
   }
 
+  // TAREA5 (auditoría UX, Fase E) — atajo de escritorio: con el panel de
+  // "Pautar" abierto, Ctrl/Cmd+K abre el buscador directamente sobre el
+  // primer hueco sin producto/receta (o añade uno si no queda ninguno),
+  // sin tener que ir a buscar el botón con el ratón.
+  @HostListener('document:keydown', ['$event'])
+  public onGlobalKeydown(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return;
+    if (!this.showPrescribePanel || !this.prescribeAlternatives.length) return;
+    event.preventDefault();
+
+    for (let altIndex = 0; altIndex < this.prescribeAlternatives.length; altIndex++) {
+      const alt = this.prescribeAlternatives[altIndex];
+      const itemIndex = alt.items.findIndex((item) => !item.productId && !item.recipeId);
+      if (itemIndex !== -1) {
+        void this.openProductSearch(altIndex, itemIndex);
+        return;
+      }
+    }
+
+    const lastAltIndex = this.prescribeAlternatives.length - 1;
+    const alt = this.prescribeAlternatives[lastAltIndex];
+    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
+    alt.items.push(this.emptyFoodItem());
+    void this.openProductSearch(lastAltIndex, alt.items.length - 1);
+  }
+
   private emptyFoodItem(): MealFoodItemInput {
-    return { kcal: null, proteinG: null, carbsG: null, fatG: null };
+    return {};
   }
 
   private emptyAlternative(): MealAlternativeInput {
@@ -507,6 +812,20 @@ export class ClientDetailPage implements OnInit {
   public addAlternative(): void {
     if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
     this.prescribeAlternatives.push(this.emptyAlternative());
+  }
+
+  // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
+  // todos los alimentos (mismo carbohidrato/grasa, solo cambia la proteína).
+  // Duplicar copia la composición entera para editar solo lo que cambia, en
+  // vez de repetir el ciclo de búsqueda completo por cada opción.
+  public duplicateAlternative(index: number): void {
+    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
+    const source = this.prescribeAlternatives[index];
+    const copy: MealAlternativeInput = {
+      label: source.label ? `${source.label} (copia)` : '',
+      items: source.items.map((item) => ({ ...item })),
+    };
+    this.prescribeAlternatives.splice(index + 1, 0, copy);
   }
 
   public removeAlternative(index: number): void {
@@ -530,34 +849,120 @@ export class ClientDetailPage implements OnInit {
     alt.items.splice(itemIndex, 1);
   }
 
-  // TAREA1 — sustituye la introducción manual de macros por un alimento real
-  // de la biblioteca (mismo ProductAPIService.searchProduct que usa el resto
-  // de la app), sin acoplarse al DietDayService/MealService del cliente logueado.
+  // TAREA1/TAREA5 — buscador real de search-foods (misma pantalla/tarjetas
+  // que el consumidor, con productos+recetas+filtros) como panel lateral.
+  // Sus acciones de escritura (compose/deleteMealCustomRecipe/AddProductPage)
+  // llaman a endpoints con auth propia del consumidor logueado, sin
+  // clientId — no sirven para "la dieta de un cliente". Por eso
+  // SearchFoodsPage recibe un trainerContext con callbacks propios: al
+  // elegir un producto/receta, se abre un segundo panel pequeño
+  // (ProductSearchModalComponent, reutilizado aquí solo para el paso de
+  // cantidad/confirmar) que sí aplica el resultado con la lógica de esta
+  // página y cierra ambos paneles. Ver MVP-trainers/tareas-grandes/TAREA5.
   public async openProductSearch(altIndex: number, itemIndex: number): Promise<void> {
-    const modal = await this.modalController.create({ component: ProductSearchModalComponent });
+    const outerModal = await this.modalController.create({
+      component: SearchFoodsPage,
+      componentProps: {
+        trainerContext: this.buildSearchFoodsTrainerContext(altIndex, itemIndex, () =>
+          void outerModal.dismiss()
+        ),
+      },
+      cssClass: 'tf-panel-modal',
+    });
+    await outerModal.present();
+    await outerModal.onDidDismiss();
+  }
+
+  private buildSearchFoodsTrainerContext(
+    altIndex: number,
+    itemIndex: number,
+    closeOuter: () => void
+  ): SearchFoodsTrainerContext {
+    return {
+      clientUser: { _id: this.clientId, name: this.name, dietInUse: this.dietDay?.dietId } as any,
+      dietDay: (this.dietDay || {}) as any,
+      meal: (this.prescribeMealTarget || {}) as any,
+      confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
+      pickCreateProduct: () =>
+        void this.confirmPickedFood(altIndex, itemIndex, { kind: 'create' }, closeOuter),
+    };
+  }
+
+  // TAREA5 (auditoría UX) — selección múltiple: el primer alimento marcado
+  // rellena el hueco donde se pulsó "Buscar producto o receta real"; cada
+  // alimento adicional de la misma pasada de búsqueda se añade como un
+  // nuevo alimento de la alternativa, sin repetir el ciclo de búsqueda.
+  private applyTrainerSelection(
+    altIndex: number,
+    itemIndex: number,
+    items: TrainerFoodSelection[]
+  ): void {
+    const alt = this.prescribeAlternatives[altIndex];
+    if (!alt || !items.length) return;
+
+    items.forEach((selection, i) => {
+      let targetIndex = itemIndex;
+      if (i > 0) {
+        if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
+        alt.items.push(this.emptyFoodItem());
+        targetIndex = alt.items.length - 1;
+      }
+      const item = alt.items[targetIndex];
+      if (selection.kind === 'recipe' && selection.recipe) {
+        item.recipeId = selection.recipe._id;
+        item.recipeName = selection.recipe.name;
+        item.productId = undefined;
+        item.productName = undefined;
+        item.quantity = selection.quantity ?? undefined;
+      } else if (selection.kind === 'product' && selection.product) {
+        item.productId = selection.product._id;
+        item.productName = selection.product.name;
+        item.recipeId = undefined;
+        item.recipeName = undefined;
+        item.quantity = selection.quantity ?? undefined;
+      }
+    });
+  }
+
+  private async confirmPickedFood(
+    altIndex: number,
+    itemIndex: number,
+    _picked: { kind: 'create' },
+    closeOuter: () => void
+  ): Promise<void> {
+    const modal = await this.modalController.create({
+      component: ProductSearchModalComponent,
+      componentProps: { startInCreateProduct: true },
+      cssClass: 'tf-panel-modal',
+    });
     await modal.present();
     const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
     if (role !== 'confirm' || !data) return;
 
     const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    item.productId = data.product._id;
-    item.productName = data.product.name;
-    item.quantity = data.quantity;
-    item.kcal = data.product.energyKcal100g || 0;
-    item.proteinG = data.product.protein100g || 0;
-    item.carbsG = data.product.carbohydrates100g || 0;
-    item.fatG = data.product.fat100g || 0;
+    if (data.kind === 'recipe' && data.recipe) {
+      item.recipeId = data.recipe._id;
+      item.recipeName = data.recipe.name;
+      item.productId = undefined;
+      item.productName = undefined;
+      item.quantity = data.quantity ?? undefined;
+    } else if (data.product) {
+      item.productId = data.product._id;
+      item.productName = data.product.name;
+      item.recipeId = undefined;
+      item.recipeName = undefined;
+      item.quantity = data.quantity ?? undefined;
+    }
+    closeOuter();
   }
 
   public clearProduct(altIndex: number, itemIndex: number): void {
     const item = this.prescribeAlternatives[altIndex].items[itemIndex];
     item.productId = undefined;
     item.productName = undefined;
+    item.recipeId = undefined;
+    item.recipeName = undefined;
     item.quantity = undefined;
-    item.kcal = null;
-    item.proteinG = null;
-    item.carbsG = null;
-    item.fatG = null;
   }
 
   public get prescribeIsMultiple(): boolean {
@@ -569,7 +974,7 @@ export class ClientDetailPage implements OnInit {
     return this.prescribeAlternatives.every(
       (a) =>
         a.items.length > 0 &&
-        a.items.every((item) => item.kcal !== null && item.kcal >= 0) &&
+        a.items.every((item) => !!(item.productId || item.recipeId)) &&
         (!this.prescribeIsMultiple || a.label.trim())
     );
   }
@@ -584,9 +989,9 @@ export class ClientDetailPage implements OnInit {
     const date = this.dietDay.date;
 
     if (!this.prescribeIsMultiple) {
-      const customProducts = this.alternativeToCustomProducts(this.prescribeAlternatives[0]);
+      const { customProducts, customRecipes } = this.alternativeToCustomEntries(this.prescribeAlternatives[0]);
       this.clientDetailApi
-        .prescribeMeal(this.clientId, date, meal._id, { customProducts, customRecipes: [], merge: false })
+        .prescribeMeal(this.clientId, date, meal._id, { customProducts, customRecipes, merge: false })
         .subscribe({
           next: () => this.onPrescribeSuccess(`"${meal.name}" pautada para ${this.name}`),
           error: (err) => this.onPrescribeError(err),
@@ -596,7 +1001,7 @@ export class ClientDetailPage implements OnInit {
 
     const alternatives = this.prescribeAlternatives.map((a) => ({
       label: a.label.trim(),
-      customProducts: this.alternativeToCustomProducts(a),
+      ...this.alternativeToCustomEntries(a),
     }));
     this.clientDetailApi.proposeMealAlternatives(this.clientId, date, meal.name, alternatives).subscribe({
       next: () =>
@@ -605,23 +1010,25 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  private alternativeToCustomProducts(alt: MealAlternativeInput): Record<string, unknown>[] {
-    return alt.items.map((item) => {
-      const base = {
-        energyKcal100g: item.kcal || 0,
-        protein100g: item.proteinG || 0,
-        carbohydrates100g: item.carbsG || 0,
-        fat100g: item.fatG || 0,
-      };
-      // TAREA1: con un alimento real seleccionado, kcal/proteinG/etc ya son
-      // valores por 100g y quantity es la cantidad real elegida por el
-      // profesional; sin alimento real se mantiene el comportamiento previo
-      // (quantity fija a 100, macros introducidas a mano como si fueran totales).
-      if (item.productId) {
-        return { ...base, product: item.productId, quantity: item.quantity || 100 };
+  // TAREA5 — cada alimento de una alternativa es SIEMPRE un producto o una
+  // receta real (ver canSubmitPrescribe), nunca macros tecleadas a mano;
+  // aquí solo se reparte en los dos arrays que espera el backend
+  // (mealModel.pasteMeal trata ambos de forma uniforme).
+  private alternativeToCustomEntries(
+    alt: MealAlternativeInput
+  ): { customProducts: Record<string, unknown>[]; customRecipes: Record<string, unknown>[] } {
+    const customProducts: Record<string, unknown>[] = [];
+    const customRecipes: Record<string, unknown>[] = [];
+
+    for (const item of alt.items) {
+      if (item.recipeId) {
+        customRecipes.push({ recipe: item.recipeId, quantity: item.quantity || null });
+      } else if (item.productId) {
+        customProducts.push({ product: item.productId, quantity: item.quantity || 100 });
       }
-      return { ...base, quantity: 100 };
-    });
+    }
+
+    return { customProducts, customRecipes };
   }
 
   private onPrescribeSuccess(message: string): void {
@@ -1054,13 +1461,13 @@ export class ClientDetailPage implements OnInit {
     );
     if (!targetClientIds) return;
 
-    const customProducts = this.alternativeToCustomProducts(this.prescribeAlternatives[0]);
+    const { customProducts, customRecipes } = this.alternativeToCustomEntries(this.prescribeAlternatives[0]);
     this.clientDetailApi
       .applyMealToClients(
         this.clientId,
         date,
         meal.name,
-        { customProducts, customRecipes: [], merge: false },
+        { customProducts, customRecipes, merge: false },
         targetClientIds
       )
       .subscribe({

@@ -12,22 +12,186 @@ ion-header ion-toolbar {
   }
 }
 
-.scope-tabbar {
+// TASK-012 — banner de carga/error mientras se resuelve name/scopes vía
+// resolveClientIdentityFallback() (deep link sin queryParams).
+.header-state-banner {
   display: flex;
-  gap: 4px;
-  padding: 0 16px 10px;
-  background: var(--tf-bg);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-6) var(--tf-space-4);
+  color: var(--tf-text-muted);
+  text-align: center;
+
+  ion-icon {
+    font-size: 28px;
+  }
+
+  button {
+    margin-top: var(--tf-space-2);
+    background: var(--tf-surface-4);
+    color: var(--tf-accent-text);
+    border: none;
+    border-radius: var(--tf-radius-sm);
+    padding: 8px 16px;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &--error {
+    color: var(--tf-danger, #eb445a);
+
+    button {
+      color: var(--tf-text);
+    }
+  }
+}
+
+// Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
+// de resumen persistente a la izquierda + pestañas reales ya existentes a
+// la derecha. Solo envoltorio/CSS nuevo — ninguna lógica de las pestañas se
+// tocó (ver client-detail.page.html).
+.profile-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--tf-space-5);
+  align-items: start;
+  padding: var(--tf-space-4);
+
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+    padding: var(--tf-space-3);
+  }
+}
+
+.profile-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+  position: sticky;
+  top: var(--tf-space-4);
+
+  @media (max-width: 760px) {
+    position: static;
+  }
+}
+
+.profile-card,
+.profile-stats-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-5);
+}
+
+.profile-avatar-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--tf-surface-4);
+  color: var(--tf-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.profile-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.profile-scopes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+// Reutilizado también por `.checkin-config-card` más abajo — antes solo
+// tenía esta clase el HTML, sin regla en este archivo (view-encapsulation
+// de Angular no comparte estilos entre componentes), así que los campos de
+// check-in activos se veían como texto corrido sin separación.
+.scope-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-5);
+  border: 1px solid var(--tf-border);
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.profile-stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+}
+
+.profile-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--tf-space-3);
+  font-size: 0.85rem;
+}
+
+.profile-stat-label {
+  color: var(--tf-text-muted);
+}
+
+.profile-stat-value {
+  color: var(--tf-text);
+  font-weight: 600;
+
+  &--truncate {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.profile-stats-empty {
+  margin: 0;
+  color: var(--tf-text-muted);
+  font-size: 0.82rem;
+}
+
+.profile-main {
+  min-width: 0;
+}
+
+.detail-tabbar {
+  display: flex;
+  gap: var(--tf-space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--tf-border);
 }
 
 .scope-tab {
-  flex: 1;
-  padding: 10px 0;
+  flex: 0 0 auto;
+  padding: 10px 2px;
   background: none;
   border: none;
-  border-bottom: 2px solid var(--tf-border);
+  border-bottom: 2px solid transparent;
   color: var(--tf-text-muted);
   font-size: 0.88rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: color 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
 
@@ -147,6 +311,25 @@ ion-header ion-toolbar {
   }
 }
 
+// TASK-045 — cabecera clicable del historial de nutrición (colapsable).
+.nutrition-history-toggle {
+  cursor: pointer;
+
+  ion-icon {
+    color: var(--tf-text-muted);
+    font-size: 1.1rem;
+  }
+}
+
+.exceptions-heading {
+  margin-top: 12px !important;
+  text-align: left !important;
+  font-size: 0.76rem !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 // --- F10: navegación de fecha en la dieta del cliente ---
 .date-nav {
   display: flex;
@@ -247,6 +430,94 @@ ion-header ion-toolbar {
 
   &:active {
     color: var(--tf-text-secondary);
+  }
+}
+
+// Auditoría de arquitectura (Fase 8) — plan vigente en la cabecera de "Dieta"
+.active-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent);
+  border-radius: 12px;
+}
+
+.active-plan-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  ion-icon {
+    color: var(--tf-accent);
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+}
+
+.active-plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.active-plan-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.active-plan-range {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+// TASK-044 — aviso suave de días atascados en un plan "choice".
+.stuck-days-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tf-danger, #eb445a);
+
+  ion-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+.active-plan-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.active-plan-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--tf-accent);
+  background: var(--tf-surface-1);
+  color: var(--tf-accent);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }
 
@@ -480,6 +751,14 @@ ion-header ion-toolbar {
     color: var(--tf-accent);
   }
 
+  // TASK-019 — borrar rutina completa: hover en rojo, distinto del resto de
+  // acciones (editar/estadísticas), para no confundir una acción destructiva
+  // con las demás.
+  &--danger:not(:disabled):hover {
+    border-color: var(--tf-danger);
+    color: var(--tf-danger);
+  }
+
   &:disabled {
     opacity: 0.4;
     cursor: default;
@@ -567,6 +846,24 @@ ion-header ion-toolbar {
 .note-date {
   font-size: 0.72rem;
   color: var(--tf-text-muted);
+}
+
+// TASK-062 — nota/tarea creada antes de la última revocación de este
+// cliente. Tono neutro deliberado (ni --tf-danger ni --tf-accent): es
+// información de contexto, no un aviso ni un error.
+.previous-relation-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+  background: var(--tf-surface-4);
+  border-radius: var(--tf-radius-sm);
+  padding: 2px 7px;
+  white-space: nowrap;
 }
 
 .pin-button {
@@ -725,6 +1022,42 @@ ion-header ion-toolbar {
 
   &--done {
     color: var(--tf-success);
+  }
+}
+
+// TASK-040 — enlace del log plano de historial a la agregación real por
+// ejercicio (StatisticsPage, TASK-007/020).
+.history-stats-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 1.05rem;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 }
 
@@ -1162,12 +1495,6 @@ ion-header ion-toolbar {
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
-}
-
-.manual-macro-hint {
-  font-size: 0.76rem;
-  color: var(--tf-text-muted);
-  margin: 0 0 8px 2px;
 }
 
 .product-pick-row {

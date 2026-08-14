@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <button type="button" class="back-btn" (click)="close()" [attr.aria-label]="'COMMON.BACK' | translate">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>{{ table?.name }}</ion-title>
+  </ion-toolbar>
+
+  <div class="planner-toolbar">
+    <button type="button" class="toolbar-btn toolbar-btn--primary" [disabled]="busy" (click)="addWeek()" [attr.aria-label]="'PLANNER.ADD_WEEK' | translate">
+      <ion-icon name="add-outline"></ion-icon>
+      <span>{{ 'PLANNER.ADD_WEEK' | translate }}</span>
+    </button>
+    <button type="button" class="toolbar-btn" [disabled]="busy || !selectedSplit" (click)="duplicateSelectedWeek()" [attr.aria-label]="'PLANNER.DUPLICATE_WEEK' | translate">
+      <ion-icon name="duplicate-outline"></ion-icon>
+      <span>{{ 'PLANNER.DUPLICATE_WEEK' | translate }}</span>
+    </button>
+    <button type="button" class="toolbar-btn" [disabled]="!selectedSplit" (click)="copySelectedWeek()" [attr.aria-label]="'PLANNER.COPY_WEEK' | translate">
+      <ion-icon name="copy-outline"></ion-icon>
+      <span>{{ 'PLANNER.COPY_WEEK' | translate }}</span>
+    </button>
+    <button type="button" class="toolbar-btn" [disabled]="busy || !splitClipboard" (click)="pasteWeek()" [attr.aria-label]="'PLANNER.PASTE_WEEK' | translate">
+      <ion-icon name="clipboard-outline"></ion-icon>
+      <span>{{ 'PLANNER.PASTE_WEEK' | translate }}</span>
+    </button>
+    <button type="button" class="toolbar-btn toolbar-btn--danger" [disabled]="!selectedSplit" (click)="confirmDeleteSelectedWeek()" [attr.aria-label]="'PLANNER.DELETE_WEEK' | translate">
+      <ion-icon name="trash-outline"></ion-icon>
+      <span>{{ 'PLANNER.DELETE_WEEK' | translate }}</span>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="planner-content" scrollY="false">
+  <div
+    class="planner-board"
+    cdkDropList
+    cdkDropListOrientation="horizontal"
+    [cdkDropListData]="table?.splits"
+    (cdkDropListDropped)="onColumnsDropped($event)"
+  >
+    <app-planner-column
+      *ngFor="let split of table?.splits; trackBy: trackBySplitId"
+      cdkDrag
+      cdkDragLockAxis="x"
+      [cdkDragData]="split"
+      class="planner-board-column"
+      [split]="split"
+      [table]="table"
+      [selected]="split._id === selectedSplitId"
+      (columnSelected)="selectSplit(split._id)"
+      (columnRenamed)="renameSplit(split)"
+    ></app-planner-column>
+
+    <div class="planner-empty" *ngIf="table && table.splits.length === 0">
+      <ion-icon name="albums-outline"></ion-icon>
+      <p>{{ 'PLANNER.NO_WEEKS_YET' | translate }}</p>
+      <button type="button" class="toolbar-btn toolbar-btn--primary" (click)="addWeek()">
+        {{ 'PLANNER.ADD_WEEK' | translate }}
+      </button>
+    </div>
+  </div>
+</ion-content>

@@ -9,16 +9,35 @@ import {
 import { AuthService } from '../services/auth/auth.service';
 import { PendingEmailVerificationService } from '../services/auth/pending-email-verification.service';
 
+// TASK-010 (MASTER_BACKLOG.md) — sin capturar la URL solicitada, cualquier
+// deep link (notificación, email, enlace directo a un cliente/rutina) que
+// requiriera login siempre aterrizaba en el dashboard tras autenticarse. Se
+// añade como returnUrl para que sign-in/user-loader puedan restaurarlo (ver
+// sign-in.page.ts#handleLoginCorrect/handleSocialSuccess y
+// user-loader.page.ts). Nunca se captura '/sign-in' ni rutas vacías —
+// evitaría un bucle de redirección sin sentido.
+const buildReturnUrl = (router: Router): string | null => {
+  const attemptedUrl = router.getCurrentNavigation()?.extractedUrl?.toString();
+  if (!attemptedUrl || attemptedUrl === '/' || attemptedUrl.startsWith('/sign-in')) {
+    return null;
+  }
+  return attemptedUrl;
+};
+
 const createLoginRedirect = (
   router: Router,
   showConnectionIssue = false
 ): UrlTree => {
+  const returnUrl = buildReturnUrl(router);
   return router.createUrlTree(['/sign-in'], {
-    queryParams: showConnectionIssue
-      ? {
-          [AUTH_LOGIN_FEEDBACK_QUERY_PARAM]: AUTH_LOGIN_CONNECTION_QUERY_VALUE,
-        }
-      : undefined,
+    queryParams: {
+      ...(showConnectionIssue
+        ? {
+            [AUTH_LOGIN_FEEDBACK_QUERY_PARAM]: AUTH_LOGIN_CONNECTION_QUERY_VALUE,
+          }
+        : {}),
+      ...(returnUrl ? { returnUrl } : {}),
+    },
   });
 };
 

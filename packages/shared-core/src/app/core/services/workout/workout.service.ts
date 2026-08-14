@@ -3,7 +3,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, take } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
-import { Workout } from '../../models/workout';
+import { Workout, WorkoutBlock } from '../../models/workout';
 import { WorkoutAPIService } from './workout-api.service';
 import { FinishWorkoutResponse, SkipWorkoutResponse } from './workout-api.service';
 import { Exercise } from '../../models/exercise';
@@ -121,6 +121,21 @@ export class WorkoutService {
 
   public modifyWorkout(workout: Workout): Observable<Workout> {
     return this.workoutAPIService.modifyWorkout(workout).pipe(take(1));
+  }
+
+  public copyWorkoutToSplit(idWorkout: string, idSplit: string): Observable<Split[]> {
+    return this.workoutAPIService.copyWorkoutToSplit(idWorkout, idSplit).pipe(take(1));
+  }
+
+  public reorderWorkoutsInSplit(idSplit: string, workoutIdsOrder: string[]): Observable<Split[]> {
+    return this.workoutAPIService.reorderWorkoutsInSplit(idSplit, workoutIdsOrder).pipe(take(1));
+  }
+
+  public updateWorkoutBlocks(
+    workoutId: string,
+    blocks: Partial<WorkoutBlock>[]
+  ): Observable<Workout> {
+    return this.workoutAPIService.updateWorkoutBlocks(workoutId, blocks).pipe(take(1));
   }
 
   // Limpia el startedAt de un workout que quedó "en curso" sin querer (Stop,

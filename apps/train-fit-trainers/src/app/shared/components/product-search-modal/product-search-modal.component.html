@@ -1,29 +1,73 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Buscar alimento</ion-title>
+    <ion-title>{{ showCreateProduct ? 'Crear producto' : 'Buscar alimento' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
+      <ion-button *ngIf="showCreateProduct" (click)="closeCreateProduct()">Volver</ion-button>
+      <ion-button *ngIf="!showCreateProduct" (click)="dismiss()">Cerrar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="product-search-content">
-  <ng-container *ngIf="!selectedProduct">
+  <!-- === CREAR PRODUCTO === -->
+  <ng-container *ngIf="showCreateProduct">
+    <div class="input-wrapper">
+      <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+      <input type="text" class="input-field" placeholder="Nombre del producto" [(ngModel)]="newProduct.name" [ngModelOptions]="{ standalone: true }" />
+    </div>
+    <p class="section-hint">Valores por 100g:</p>
+    <div class="macro-grid">
+      <div class="input-wrapper">
+        <ion-icon name="flame-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="newProduct.energyKcal100g" [ngModelOptions]="{ standalone: true }" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="newProduct.protein100g" [ngModelOptions]="{ standalone: true }" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="newProduct.carbohydrates100g" [ngModelOptions]="{ standalone: true }" />
+      </div>
+      <div class="input-wrapper">
+        <ion-icon name="water-outline" class="input-icon"></ion-icon>
+        <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="newProduct.fat100g" [ngModelOptions]="{ standalone: true }" />
+      </div>
+    </div>
+    <button type="button" class="confirm-button" [disabled]="!canSaveNewProduct || isSavingProduct" (click)="saveNewProduct()">
+      <span *ngIf="!isSavingProduct">Crear y usar este producto</span>
+      <ion-spinner name="dots" *ngIf="isSavingProduct"></ion-spinner>
+    </button>
+  </ng-container>
+
+  <!-- === BÚSQUEDA === -->
+  <ng-container *ngIf="!showCreateProduct && !selectedProduct && !selectedRecipe">
+    <div class="mode-toggle">
+      <button type="button" class="mode-option" [class.selected]="mode === 'products'" (click)="setMode('products')">Productos</button>
+      <button type="button" class="mode-option" [class.selected]="mode === 'recipes'" (click)="setMode('recipes')">Recetas</button>
+    </div>
+
     <div class="input-wrapper">
       <ion-icon name="search-outline" class="input-icon"></ion-icon>
       <input
         type="text"
         class="input-field"
-        placeholder="Nombre del alimento (mín. 2 letras)"
+        [placeholder]="mode === 'products' ? 'Nombre del alimento (mín. 2 letras)' : 'Nombre de la receta (mín. 2 letras)'"
         [ngModel]="searchTerm"
         (ngModelChange)="onSearchChange($event)"
         [ngModelOptions]="{ standalone: true }"
       />
     </div>
 
-    <p class="empty-hint" *ngIf="state === 'idle'">Escribe para buscar en la biblioteca de alimentos.</p>
+    <button type="button" class="create-product-link" *ngIf="mode === 'products'" (click)="openCreateProduct()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      Crear producto nuevo
+    </button>
+
+    <p class="empty-hint" *ngIf="state === 'idle'">Escribe para buscar en la biblioteca de {{ mode === 'products' ? 'alimentos' : 'recetas' }}.</p>
     <p class="empty-hint" *ngIf="state === 'error'">No se pudo completar la búsqueda.</p>
-    <p class="empty-hint" *ngIf="state === 'loaded' && !results.length">Sin resultados para "{{ searchTerm }}".</p>
+    <p class="empty-hint" *ngIf="state === 'loaded' && mode === 'products' && !products.length">Sin resultados para "{{ searchTerm }}".</p>
+    <p class="empty-hint" *ngIf="state === 'loaded' && mode === 'recipes' && !recipes.length">Sin resultados para "{{ searchTerm }}".</p>
 
     <div class="detail-skeleton" *ngIf="state === 'loading'">
       <div class="skeleton-block" style="height: 52px;"></div>
@@ -31,19 +75,28 @@
       <div class="skeleton-block" style="height: 52px;"></div>
     </div>
 
-    <div
-      class="product-row"
-      *ngFor="let product of results; trackBy: trackByProductId"
-      (click)="selectProduct(product)"
-    >
-      <div class="product-info">
-        <span class="product-name">{{ product.name }}</span>
-        <span class="product-brand" *ngIf="product.brand">{{ product.brand }}</span>
+    <ng-container *ngIf="mode === 'products'">
+      <div class="product-row" *ngFor="let product of products; trackBy: trackByProductId" (click)="selectProduct(product)">
+        <div class="product-info">
+          <span class="product-name">{{ product.name }}</span>
+          <span class="product-brand" *ngIf="product.brand">{{ product.brand }}</span>
+        </div>
+        <span class="product-kcal">{{ product.energyKcal100g }} kcal/100g</span>
       </div>
-      <span class="product-kcal">{{ product.energyKcal100g }} kcal/100g</span>
-    </div>
+    </ng-container>
+
+    <ng-container *ngIf="mode === 'recipes'">
+      <div class="product-row" *ngFor="let recipe of recipes; trackBy: trackByRecipeId" (click)="selectRecipe(recipe)">
+        <div class="product-info">
+          <span class="product-name">{{ recipe.name }}</span>
+          <span class="product-brand" *ngIf="recipeIngredientsSummary(recipe)">{{ recipeIngredientsSummary(recipe) }}</span>
+        </div>
+        <span class="product-kcal">{{ recipeMacros(recipe).kcal | number: '1.0-0' }} kcal</span>
+      </div>
+    </ng-container>
   </ng-container>
 
+  <!-- === PRODUCTO SELECCIONADO === -->
   <ng-container *ngIf="selectedProduct">
     <div class="selected-card">
       <div class="selected-header">
@@ -63,10 +116,10 @@
       </div>
 
       <div class="macro-preview">
-        <span>{{ (selectedProduct.energyKcal100g * quantity / 100) | number: '1.0-0' }} kcal</span>
-        <span>P {{ ((selectedProduct.protein100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
-        <span>C {{ ((selectedProduct.carbohydrates100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
-        <span>G {{ ((selectedProduct.fat100g || 0) * quantity / 100) | number: '1.0-1' }} g</span>
+        <span>{{ (selectedProduct.energyKcal100g * (quantity || 0) / 100) | number: '1.0-0' }} kcal</span>
+        <span>P {{ ((selectedProduct.protein100g || 0) * (quantity || 0) / 100) | number: '1.0-1' }} g</span>
+        <span>C {{ ((selectedProduct.carbohydrates100g || 0) * (quantity || 0) / 100) | number: '1.0-1' }} g</span>
+        <span>G {{ ((selectedProduct.fat100g || 0) * (quantity || 0) / 100) | number: '1.0-1' }} g</span>
       </div>
 
       <button type="button" class="back-link-button" (click)="backToResults()">
@@ -75,12 +128,49 @@
       </button>
     </div>
   </ng-container>
+
+  <!-- === RECETA SELECCIONADA === -->
+  <ng-container *ngIf="selectedRecipe">
+    <div class="selected-card">
+      <div class="selected-header">
+        <span class="product-name">{{ selectedRecipe.name }}</span>
+        <span class="product-brand" *ngIf="recipeIngredientsSummary(selectedRecipe)">{{ recipeIngredientsSummary(selectedRecipe) }}</span>
+      </div>
+
+      <div class="input-wrapper">
+        <ion-icon name="scale-outline" class="input-icon"></ion-icon>
+        <input
+          type="number"
+          class="input-field"
+          placeholder="Cantidad (g) — opcional, vacío = receta completa"
+          [(ngModel)]="quantity"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <div class="macro-preview">
+        <span>{{ recipeMacros(selectedRecipe).kcal | number: '1.0-0' }} kcal (total receta)</span>
+        <span>P {{ recipeMacros(selectedRecipe).protein | number: '1.0-1' }} g</span>
+        <span>C {{ recipeMacros(selectedRecipe).carbs | number: '1.0-1' }} g</span>
+        <span>G {{ recipeMacros(selectedRecipe).fat | number: '1.0-1' }} g</span>
+      </div>
+
+      <button type="button" class="back-link-button" (click)="backToResults()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Elegir otra receta
+      </button>
+    </div>
+  </ng-container>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="selectedProduct">
+<ion-footer class="ion-no-border" *ngIf="selectedProduct || selectedRecipe">
   <ion-toolbar>
-    <button class="confirm-button" [disabled]="!quantity || quantity <= 0" (click)="confirm()">
-      Usar este alimento
+    <button
+      class="confirm-button"
+      [disabled]="selectedProduct ? (!quantity || quantity <= 0) : false"
+      (click)="confirm()"
+    >
+      {{ selectedProduct ? 'Usar este alimento' : 'Usar esta receta' }}
     </button>
   </ion-toolbar>
 </ion-footer>

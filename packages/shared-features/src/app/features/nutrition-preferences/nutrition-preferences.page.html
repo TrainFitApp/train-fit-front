@@ -95,6 +95,32 @@
       </div>
     </div>
 
+    <div class="pref-field">
+      <span class="pref-label">¿Cuántas comidas haces al día?</span>
+      <p class="form-hint form-hint--tight">
+        Desmarca las que no hagas (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.
+      </p>
+      <div class="meal-slot-row" *ngFor="let slot of mealSlots">
+        <button
+          type="button"
+          class="meal-slot-toggle"
+          [class.meal-slot-toggle--off]="disabledMealSlots[slot]"
+          (click)="toggleMealSlot(slot)"
+        >
+          <ion-icon [name]="disabledMealSlots[slot] ? 'square-outline' : 'checkbox'"></ion-icon>
+          {{ slot }}
+        </button>
+        <input
+          type="text"
+          class="meal-slot-label-input"
+          [placeholder]="slot"
+          maxlength="50"
+          [disabled]="disabledMealSlots[slot]"
+          [(ngModel)]="mealSlotLabels[slot]"
+        />
+      </div>
+    </div>
+
     <button class="submit-button" (click)="submit()" [disabled]="isSaving">
       <span *ngIf="!isSaving">Guardar preferencias</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>

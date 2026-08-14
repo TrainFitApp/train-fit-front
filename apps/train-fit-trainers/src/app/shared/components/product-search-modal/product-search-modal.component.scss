@@ -8,6 +8,64 @@
   --padding-top: 12px;
 }
 
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mode-option {
+  flex: 1;
+  padding: 10px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
+    transform 160ms var(--tf-ease-out);
+
+  &.selected {
+    border-color: var(--tf-accent);
+    color: var(--tf-text);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.create-product-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--tf-accent-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 0 12px;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 17px;
+  }
+}
+
+.section-hint {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 10px;
+}
+
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 10px;
+}
+
 .input-wrapper {
   position: relative;
   display: flex;

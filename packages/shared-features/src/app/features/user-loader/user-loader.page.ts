@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, forkJoin, from, of, switchMap } from 'rxjs';
 import {
@@ -99,9 +100,23 @@ export class UserLoaderPage implements OnInit, OnDestroy {
     private readonly coachService: CoachService,
     private readonly notificationsService: NotificationsService,
     private readonly onboardingService: OnboardingService,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
   ) {
     this.email = this.authService.user?.email;
+  }
+
+  // TASK-010 (MASTER_BACKLOG.md) — restaura el deep link original (guardado
+  // por auth.guard.ts como returnUrl) en vez de caer siempre al dashboard.
+  // Validación mínima: debe ser una ruta interna real ('/algo'), nunca una
+  // URL absoluta ni protocol-relative ('//host') colada en el query param.
+  private getSafeReturnUrl(): string | null {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+      return null;
+    }
+    return returnUrl;
   }
 
   ngOnInit(): void {
@@ -198,7 +213,12 @@ export class UserLoaderPage implements OnInit, OnDestroy {
             setTimeout(() => {
               this.startExitAnimation();
               setTimeout(() => {
-                this.navigationService.goToTabsPage();
+                const returnUrl = this.getSafeReturnUrl();
+                if (returnUrl) {
+                  void this.router.navigateByUrl(returnUrl, { replaceUrl: true });
+                } else {
+                  this.navigationService.goToTabsPage();
+                }
               }, this.LOADING_CONFIG.EXIT_ANIMATION_DELAY);
             }, this.LOADING_CONFIG.COMPLETION_DELAY);
           }, this.LOADING_CONFIG.STEP_DELAY);

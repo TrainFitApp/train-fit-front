@@ -1,0 +1,165 @@
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.exercise-library-content {
+  --background: var(--tf-bg);
+}
+
+.library-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--tf-space-5);
+}
+
+.library-hint {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.search-row {
+  display: flex;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-4);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--tf-text-muted);
+  font-size: 1.1rem;
+}
+
+.input-field {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px 0 40px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-size: 0.9rem;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.filter-button {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-size: 1.15rem;
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+  }
+}
+
+.library-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--tf-space-6) 0;
+}
+
+.library-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-6) var(--tf-space-4);
+  color: var(--tf-text-muted);
+  text-align: center;
+
+  ion-icon {
+    font-size: 40px;
+    opacity: 0.6;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.exercise-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--tf-space-3);
+}
+
+.exercise-card {
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  background: var(--tf-surface-2);
+  cursor: pointer;
+  transition: transform 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+  }
+}
+
+.exercise-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.exercise-name {
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.exercise-type {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tf-accent-text);
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: var(--tf-radius-sm);
+  padding: 2px 7px;
+}
+
+.exercise-muscle-preview {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}

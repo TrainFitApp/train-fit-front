@@ -32,11 +32,19 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() loading = false;
   @Input() recentCustomRecipe?: any | null = null;
   @Input() showRecentIcon: boolean = false;
+  // TAREA5 (train-fit-trainers) — mismo patrón que ProductComponent: marca/
+  // desmarca esta receta en la "cesta" del panel en vez de mutar
+  // meal.customRecipes (dieta del CONSUMIDOR logueado, no la del cliente).
+  @Input() trainerMultiSelect = false;
+  @Input() isTrainerSelected = false;
+  @Input() isTrainerFavorite = false;
 
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
   @Output() remove = new EventEmitter<Recipe>();
   @Output() quickAdd = new EventEmitter<Recipe>();
+  @Output() trainerToggle = new EventEmitter<{ recipe: Recipe; checked: boolean }>();
+  @Output() trainerFavoriteToggle = new EventEmitter<Recipe>();
 
   public macros: { kcal: number; protein: number; carbs: number; fat: number };
   public topIngredients: string;
@@ -75,7 +83,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes.meal || changes.recipe) {
+    if (changes.meal || changes.recipe || changes.isTrainerSelected) {
       console.log('[RECIPE-CARD] Meal changed, rechecking:', this.recipe.name);
       this.checkIsChecked();
       this.calculateMacros();
@@ -87,6 +95,12 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private checkIsChecked(): void {
+    if (this.trainerMultiSelect) {
+      this.isChecked = this.isTrainerSelected;
+      this.displayQuantity = this.getRecipeDisplayQuantity();
+      return;
+    }
+
     if (!this.meal?.customRecipes) {
       this.isChecked = false;
       this.foundInstance = null;
@@ -148,6 +162,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onCardClick(): void {
     if (this.loading) return;
 
+    if (this.trainerMultiSelect) {
+      this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });
+      return;
+    }
+
     // Click on card always goes to add/edit mode
     this.toggle.emit(this.recipe);
   }
@@ -156,6 +175,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     // Stop propagation so card click doesn't fire
     event.stopPropagation();
     if (this.loading) return;
+
+    if (this.trainerMultiSelect) {
+      this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });
+      return;
+    }
 
     // If checked, remove from meal
     if (this.isChecked) {
@@ -169,6 +193,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onEditClick(event: Event): void {
     event.stopPropagation();
     this.edit.emit(this.recipe);
+  }
+
+  public onTrainerFavoriteClick(event: Event): void {
+    event.stopPropagation();
+    this.trainerFavoriteToggle.emit(this.recipe);
   }
 
   private getRecipeDisplayQuantity(): number | null {

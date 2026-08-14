@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
 import { ClientIntake, TrainerInvite, TrainerInviteScope } from './models/trainer-invite.model';
 
@@ -33,6 +34,28 @@ export class InvitesPage implements OnInit {
     intermediate: 'Intermedio',
     advanced: 'Avanzado',
   };
+
+  // TASK-049 (MASTER_BACKLOG.md) — personalización del cuestionario inicial.
+  public readonly intakeFieldLabels: Record<IntakeFieldKey, string> = {
+    goals: 'Objetivos',
+    healthConditions: 'Salud y lesiones',
+    experienceLevel: 'Nivel de experiencia',
+    availability: 'Disponibilidad',
+    equipment: 'Equipamiento disponible',
+    allergies: 'Alergias',
+    favoriteFoods: 'Alimentos favoritos',
+    dislikedFoods: 'Alimentos que no le gustan',
+    cooksAtHome: 'Cocina en casa',
+  };
+  public showIntakeConfig = false;
+  public intakeConfigState: 'loading' | 'error' | 'loaded' = 'loading';
+  // El catálogo de campos es un conjunto cerrado ya conocido en compilación
+  // (intakeFieldLabels arriba) — no depende de lo que devuelva el backend en
+  // cada carga, así que no hace falta guardarlo como estado propio ni
+  // esperar la respuesta para saber qué checkboxes mostrar.
+  public readonly intakeConfigFields = Object.keys(this.intakeFieldLabels) as IntakeFieldKey[];
+  public selectedIntakeFields = new Set<IntakeFieldKey>();
+  public savingIntakeConfig = false;
 
   constructor(
     private trainerInvitesApi: TrainerInvitesApiService,
@@ -242,6 +265,30 @@ export class InvitesPage implements OnInit {
     return level ? this.experienceLabels[level] || level : 'No indicado';
   }
 
+  // TASK-035 (MASTER_BACKLOG.md) — antes no existía NINGUNA forma de
+  // rechazar un cliente en "en_revision" desde esta pantalla (solo
+  // "Confirmar" o "Cerrar", que no decide nada). Reutiliza el mismo
+  // cancelInvite() del backend ya corregido para revocar de verdad este
+  // estado (antes devolvía éxito falso — ver DECISIONS.md).
+  public async confirmReject(invite: TrainerInvite): Promise<void> {
+    const alert = await this.ionicUtilService.showAlert({
+      header: 'Rechazar cliente',
+      message: `¿Seguro que quieres rechazar a ${invite.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Volver', role: 'cancel' },
+        {
+          text: 'Rechazar',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.cancelInvite(invite);
+            this.closeReview();
+          },
+        },
+      ],
+    });
+    void alert;
+  }
+
   public confirmClient(): void {
     if (!this.reviewingClientId || this.isConfirming) return;
     this.isConfirming = true;
@@ -261,5 +308,56 @@ export class InvitesPage implements OnInit {
         );
       },
     });
+  }
+
+  // --- TASK-049: personalizar cuestionario inicial ---
+  public toggleIntakeConfigPanel(): void {
+    this.showIntakeConfig = !this.showIntakeConfig;
+    if (this.showIntakeConfig && this.intakeConfigState !== 'loaded') {
+      this.loadIntakeConfig();
+    }
+  }
+
+  public loadIntakeConfig(): void {
+    this.intakeConfigState = 'loading';
+    this.trainerInvitesApi.getIntakeConfig().subscribe({
+      next: (config) => {
+        this.selectedIntakeFields = new Set(config.enabledFields);
+        this.intakeConfigState = 'loaded';
+      },
+      error: () => {
+        this.intakeConfigState = 'error';
+      },
+    });
+  }
+
+  public toggleIntakeField(field: IntakeFieldKey): void {
+    if (this.selectedIntakeFields.has(field)) {
+      this.selectedIntakeFields.delete(field);
+    } else {
+      this.selectedIntakeFields.add(field);
+    }
+  }
+
+  public saveIntakeConfig(): void {
+    if (this.savingIntakeConfig) return;
+    this.savingIntakeConfig = true;
+    this.trainerInvitesApi
+      .updateIntakeConfig([...this.selectedIntakeFields])
+      .subscribe({
+        next: (config) => {
+          this.savingIntakeConfig = false;
+          this.selectedIntakeFields = new Set(config.enabledFields);
+          this.ionicUtilService.showToast({ message: 'Cuestionario actualizado', duration: 2500 });
+        },
+        error: (err) => {
+          this.savingIntakeConfig = false;
+          this.ionicUtilService.showErrorToast(
+            err?.error?.message || 'No se pudo guardar la configuración',
+            'Error',
+            3000
+          );
+        },
+      });
   }
 }

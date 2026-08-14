@@ -24,11 +24,11 @@
         <button
           class="action-button ripple-effect"
           (click)="openScanner()"
-          *ngIf="currentMode !== 'recipes'"
+          *ngIf="currentMode !== 'recipes' && !trainerContext"
         >
           <ion-icon name="barcode-outline"></ion-icon>
         </button>
-        <button class="action-button ripple-effect" (click)="deselectedAll()">
+        <button class="action-button ripple-effect" (click)="deselectedAll()" *ngIf="!trainerContext">
           <ion-icon name="ellipsis-vertical-outline" color="primary"></ion-icon>
         </button>
       </div>
@@ -65,8 +65,13 @@
           [isIngredientSelected]="isIngredientSelected(product)"
           [recentCustomProduct]="getRecentCustomProduct(product)"
           [showRecentIcon]="isRecentProduct(product)"
+          [trainerMultiSelect]="!!trainerContext"
+          [isTrainerSelected]="isProductInTrainerSelection(product)"
+          [isTrainerFavorite]="isTrainerFavoriteProduct(product)"
           (delete)="deleteProduct($event)"
           (ingredientToggle)="onIngredientToggle($event)"
+          (trainerToggle)="onTrainerProductToggle($event)"
+          (trainerFavoriteToggle)="onTrainerFavoriteProductToggle($event)"
         ></app-product>
       </ng-container>
     </ion-list>
@@ -107,10 +112,15 @@
           [loading]="isRecipeLoading(recipe)"
           [recentCustomRecipe]="getRecentCustomRecipe(recipe)"
           [showRecentIcon]="isRecentRecipe(recipe)"
+          [trainerMultiSelect]="!!trainerContext"
+          [isTrainerSelected]="isRecipeInTrainerSelection(recipe)"
+          [isTrainerFavorite]="isTrainerFavoriteRecipe(recipe)"
           (toggle)="onRecipeToggle($event)"
           (quickAdd)="onRecipeQuickAdd($event)"
           (edit)="onRecipeEdit($event)"
           (remove)="onRecipeRemove($event)"
+          (trainerToggle)="onTrainerRecipeToggle($event)"
+          (trainerFavoriteToggle)="onTrainerFavoriteRecipeToggle($event)"
         ></app-recipe-card>
       </ng-container>
     </ion-list>
@@ -296,9 +306,35 @@
     </ion-card>
   </div>
 
+    <!-- TAREA5 — cesta de selección múltiple del entrenador. Cantidad
+         editable en línea, sin abrir ningún panel adicional; "Añadir N"
+         confirma toda la cesta de una vez (SearchFoodsTrainerContext#confirmSelection). -->
+    <div class="trainer-basket footer-section--trainer" *ngIf="trainerContext && trainerSelection.length">
+      <div class="trainer-basket-list">
+        <div class="trainer-basket-row" *ngFor="let item of trainerSelection; trackBy: trackByTrainerSelection">
+          <ion-icon [name]="item.kind === 'recipe' ? 'restaurant-outline' : 'nutrition-outline'"></ion-icon>
+          <span class="trainer-basket-name">{{ item.kind === 'recipe' ? item.recipe?.name : item.product?.name }}</span>
+          <input
+            type="number"
+            class="trainer-basket-qty"
+            min="1"
+            [(ngModel)]="item.quantity"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="g"
+          />
+          <button type="button" class="trainer-basket-remove" (click)="removeTrainerSelectionItem(item)">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+      <button type="button" class="trainer-basket-confirm" (click)="confirmTrainerSelection()">
+        Añadir {{ trainerSelection.length }} a {{ meal?.name }}
+      </button>
+    </div>
+
     <app-macros-bars
       class="footer-section--macros"
-      [isFooterHidden]="isFooterHidden || ingredientMode"
+      [isFooterHidden]="isFooterHidden || ingredientMode || !!trainerContext"
       [clickable]="false"
       style="width: 100%"
     ></app-macros-bars>

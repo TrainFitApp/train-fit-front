@@ -303,7 +303,7 @@ export class SignInPage implements OnInit {
         if (this.isUserRegistrationComplete(response.user)) {
           const colorMode: ColorMode = response.user.theme || 'dark';
           this.themeService.toggleColorMode(colorMode);
-          this.navigationService.goToUserLoader();
+          this.navigationService.goToUserLoader(this.getReturnUrl());
         } else {
           this.navigationService.goToSignUp();
         }
@@ -532,7 +532,7 @@ export class SignInPage implements OnInit {
           this.userService.setLocalUser = resUser;
           const colorMode: ColorMode = resUser.theme;
           this.themeService.toggleColorMode(colorMode);
-          this.navigationService.goToUserLoader();
+          this.navigationService.goToUserLoader(this.getReturnUrl());
         },
         error: (error) => {
           const feedback = this.authErrorService.toLoginFeedback(error);
@@ -620,6 +620,13 @@ export class SignInPage implements OnInit {
         'loginErrorRetryable',
       ]);
     }
+  }
+
+  // TASK-010 — reenvía el returnUrl capturado por auth.guard.ts (si lo hay)
+  // hacia user-loader.page.ts, que es quien decide a dónde navegar una vez
+  // termina de precargar los datos del usuario.
+  private getReturnUrl(): string | null {
+    return this.route.snapshot.queryParamMap.get('returnUrl');
   }
 
   private applyQueryParamFeedback(): boolean {

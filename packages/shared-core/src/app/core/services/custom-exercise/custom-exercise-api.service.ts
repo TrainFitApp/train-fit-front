@@ -42,6 +42,18 @@ export class CustomExerciseAPIService {
     );
   }
 
+  // Rediseño de entrenamiento Fase B — asigna/quita el blockId de un
+  // CustomExercise (null para dejarlo suelto, sin agrupar).
+  public setCustomExerciseBlock(
+    id: string,
+    blockId: string | null
+  ): Observable<CustomExercise> {
+    return this.http.put<CustomExercise>(
+      `${CustomExerciseAPIService.CUSTOM_EXERCISE_ENDPOINT}/${id}/block`,
+      { blockId }
+    );
+  }
+
   public deleteCustomExercise(id: string): Observable<any> {
     return this.http.delete<CustomExercise>(
       `${CustomExerciseAPIService.CUSTOM_EXERCISE_ENDPOINT}/${id}`

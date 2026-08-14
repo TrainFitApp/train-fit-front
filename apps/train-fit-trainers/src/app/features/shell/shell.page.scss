@@ -1,29 +1,95 @@
-// Menú lateral — reemplaza la barra de tabs inferior (ver shell.page.ts).
-// ion-split-pane maneja el responsive de forma nativa: drawer superpuesto
-// en móvil, panel persistente desde el breakpoint "md" (768px) — sin media
-// queries propias, a diferencia del hack anterior (F16).
+// Sidebar plano (7 destinos), siempre visible en escritorio — ver mockup
+// "TrainFit Panel" importado de Claude Design. ion-split-pane maneja el
+// responsive de forma nativa: drawer superpuesto en móvil, panel persistente
+// desde el breakpoint "md" (768px).
 
 .app-menu {
-  --width: 264px;
+  --width: 232px;
   --background: var(--tf-surface-1);
   --border-color: var(--tf-border);
+  transition: width var(--tf-duration-base) var(--tf-ease-out);
+
+  // Contraíble en escritorio (pedido aparte del mockup) — icon-only, misma
+  // idea que la variante "Tablet — 834px" del mockup importado.
+  &--collapsed {
+    --width: 72px;
+  }
+}
+
+.app-menu-content {
+  --background: var(--tf-surface-1);
+  --padding-top: var(--tf-space-5);
+  --padding-bottom: var(--tf-space-4);
+  --padding-start: var(--tf-space-3);
+  --padding-end: var(--tf-space-3);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  padding: 0 var(--tf-space-2) var(--tf-space-6);
+
+  .app-menu--collapsed & {
+    flex-direction: column;
+    gap: var(--tf-space-3);
+  }
 }
 
 .app-brand {
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
-  padding: 0 var(--tf-space-2);
+  min-width: 0;
+}
+
+.collapse-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-secondary);
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-4);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  // El drawer superpuesto de móvil no necesita contraerse (ya se abre/cierra
+  // entero) — solo tiene sentido en el panel persistente de escritorio.
+  @media (max-width: 767px) {
+    display: none;
+  }
 }
 
 .app-brand-mark {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--tf-radius-md);
-  background: var(--tf-accent-gradient);
+  background: var(--tf-accent);
   color: var(--tf-accent-contrast);
   font-weight: 800;
   font-size: var(--tf-font-size-sm);
@@ -31,33 +97,15 @@
 }
 
 .app-brand-name {
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--tf-font-size-md);
   color: var(--tf-text);
 }
 
-.app-menu-content {
-  --background: var(--tf-surface-1);
-  --padding-top: var(--tf-space-2);
-  --padding-bottom: var(--tf-space-6);
-}
-
 .app-menu-nav {
-  display: block;
-}
-
-.menu-group {
-  padding: 0 var(--tf-space-3);
-  margin-bottom: var(--tf-space-4);
-}
-
-.menu-group-label {
-  margin: var(--tf-space-4) var(--tf-space-3) var(--tf-space-2);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--tf-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .menu-item {
@@ -66,18 +114,17 @@
   gap: var(--tf-space-3);
   min-height: var(--tf-touch-min);
   padding: 0 var(--tf-space-3);
-  margin-bottom: 2px;
   border-radius: var(--tf-radius-md);
   color: var(--tf-text-secondary);
   font-size: var(--tf-font-size-base);
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
   transition: background-color var(--tf-duration-fast) var(--tf-ease-out),
     color var(--tf-duration-fast) var(--tf-ease-out);
 
   ion-icon {
-    font-size: 20px;
+    font-size: 19px;
     flex-shrink: 0;
   }
 
@@ -95,11 +142,118 @@
   &--active {
     background: var(--tf-accent-soft);
     color: var(--tf-text);
+    font-weight: 600;
 
     ion-icon {
       color: var(--tf-accent);
     }
   }
+
+  &--disabled {
+    color: var(--tf-text-faint);
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+      color: var(--tf-text-faint);
+    }
+  }
+
+  .app-menu--collapsed & {
+    justify-content: center;
+    padding: 0;
+    position: relative;
+  }
+}
+
+// TASK-023 — aviso de clientes en onboarding esperando revisión.
+.menu-item-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-danger-contrast, #fff);
+  background: var(--tf-danger, #eb445a);
+  border-radius: var(--tf-radius-pill);
+  flex-shrink: 0;
+
+  .app-menu--collapsed & {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    margin-left: 0;
+  }
+}
+
+.menu-item-soon {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+  background: var(--tf-surface-4);
+  border-radius: var(--tf-radius-pill);
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+
+.app-menu-footer {
+  margin-top: auto;
+  padding-top: var(--tf-space-4);
+  border-top: 1px solid var(--tf-border);
+}
+
+.footer-user {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  text-decoration: none;
+  transition: background-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  .app-menu--collapsed & {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+.footer-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 17px;
+  }
+}
+
+.footer-user-label {
+  font-size: var(--tf-font-size-base);
+  font-weight: 500;
 }
 
 // El panel principal hereda el fondo de la app — sin esto, el hueco entre

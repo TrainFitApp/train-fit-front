@@ -27,11 +27,18 @@ export class ExerciseHistoryService {
 
   constructor(private http: HttpService) {}
 
+  // TASK-020 (MASTER_BACKLOG.md) — clientId opcional: cuando se llama desde
+  // el contexto trainer (StatisticsPage detecta :clientId en la ruta), pega
+  // al endpoint YA EXISTENTE y autorizado `GET /trainer/clients/:clientId/
+  // workouts/history` (mismo `tableModel.getExerciseHistoryStats` por debajo,
+  // mismo shape de respuesta) en vez del endpoint self-service — así se
+  // consulta el histórico del CLIENTE, no el del propio entrenador logueado.
   public getStatsForExercise$(
     exerciseId: string | null,
-    exerciseNameFallback: string
+    exerciseNameFallback: string,
+    clientId?: string | null
   ): Observable<ExerciseHistoryStats> {
-    const cacheKey = exerciseId ?? `name:${exerciseNameFallback}`;
+    const cacheKey = `${clientId || 'self'}:${exerciseId ?? `name:${exerciseNameFallback}`}`;
     const cached = this.statsCache.get(cacheKey);
     if (cached) return of(cached);
 
@@ -39,12 +46,14 @@ export class ExerciseHistoryService {
     if (exerciseId) params.set('exerciseId', exerciseId);
     else params.set('exerciseName', exerciseNameFallback);
 
-    return this.http
-      .get<ExerciseHistoryStats>(`tables/exercise-history/stats?${params}`)
-      .pipe(
-        tap((stats) => this.statsCache.set(cacheKey, stats)),
-        shareReplay(1)
-      );
+    const url = clientId
+      ? `trainer/clients/${clientId}/workouts/history?${params}`
+      : `tables/exercise-history/stats?${params}`;
+
+    return this.http.get<ExerciseHistoryStats>(url).pipe(
+      tap((stats) => this.statsCache.set(cacheKey, stats)),
+      shareReplay(1)
+    );
   }
 
   public invalidateCache(): void {

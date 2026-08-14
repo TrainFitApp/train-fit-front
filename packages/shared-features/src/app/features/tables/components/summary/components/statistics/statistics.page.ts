@@ -6,6 +6,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
+import { ActivatedRoute } from '@angular/router';
 import { AlertOptions, NavController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { Table } from 'src/app/core/models/table';
@@ -228,11 +229,20 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public historicalStats: ExerciseHistoryStats | null = null;
   public historicalStatsLoading = false;
 
+  // TASK-020 (MASTER_BACKLOG.md) — reemplaza el gate de TASK-007
+  // (hideHistoricalStats): ahora que el endpoint de histórico admite un
+  // cliente explícito, la tarjeta se muestra siempre — solo cambia a qué
+  // endpoint apunta la petición (ver loadHistoricalStats). null en la ruta
+  // de consumidor ('/statistics', sin :clientId): pide su propio histórico,
+  // exactamente como siempre.
+  public clientIdForHistory: string | null = null;
+
   constructor(
     private tableService: TableService,
     private navCtrl: NavController,
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
+    private route: ActivatedRoute,
     public translate: TranslateService
   ) { }
 
@@ -246,6 +256,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.translate.instant('COMMON.SAT'),
       this.translate.instant('COMMON.SUN'),
     ];
+    this.clientIdForHistory = this.route.snapshot.paramMap.get('clientId');
+
     this.table = this.tableService.currentTable();
     if (this.table && this.table.splits) {
       this.extractWorkouts();
@@ -472,7 +484,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     this.historicalStats = null;
     this.historicalStatsLoading = true;
     this.exerciseHistoryService
-      .getStatsForExercise$(exercise.exercise?._id ?? null, exercise.exercise?.name ?? '')
+      .getStatsForExercise$(exercise.exercise?._id ?? null, exercise.exercise?.name ?? '', this.clientIdForHistory)
       .pipe(take(1))
       .subscribe({
         next: (stats) => {

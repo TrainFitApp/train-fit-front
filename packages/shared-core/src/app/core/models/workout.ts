@@ -1,5 +1,28 @@
 import { CustomExercise } from './customExercise';
 
+// Rediseño de entrenamiento Fase B — bloques/superseries reintroducidos,
+// esta vez consumidos de verdad en current-workout.page.html (cliente real)
+// y workout.component.html (editor real del entrenador). Solo metadata de
+// agrupación — las exercises ya existen como CustomExercise independientes,
+// cada una apunta a un bloque vía CustomExercise.blockId.
+export type WorkoutBlockType =
+  | 'straight'
+  | 'superset'
+  | 'circuit'
+  | 'warmup'
+  | 'finisher';
+
+export class WorkoutBlock {
+  _id: string;
+  name?: string;
+  type: WorkoutBlockType;
+  order: number;
+  rounds?: number | null;
+  restBetweenExercises?: number | null;
+  restBetweenRounds?: number | null;
+  instructions?: string;
+}
+
 export class Workout {
   _id: string;
   name: string;
@@ -14,6 +37,7 @@ export class Workout {
   // True when the user explicitly skipped this training day. Mutually
   // exclusive with `date`: a skipped workout is never marked as finished.
   rest?: boolean;
+  blocks?: WorkoutBlock[];
   exercises: CustomExercise[];
   // MVP-trainers F18 — pulso opcional de readiness/esfuerzo por sesión (1-5),
   // visible para el profesional junto al historial de entrenamientos (F09).

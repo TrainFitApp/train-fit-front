@@ -1,0 +1,98 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/tabs/invites" fill="clear" class="invite-button" aria-label="Nuevo cliente">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dashboard-content">
+  <p class="page-hint">Clientes, plantillas y check-ins de un vistazo.</p>
+
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 84px;"></div>
+    <div class="skeleton-block" style="height: 84px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo cargar el dashboard.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-card-row">
+          <span class="stat-label">Clientes activos</span>
+          <ion-icon name="people" style="color: var(--tf-success)"></ion-icon>
+        </div>
+        <span class="stat-value">{{ activeClientsCount }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-row">
+          <span class="stat-label">Plantillas de rutina</span>
+          <ion-icon name="albums-outline" style="color: var(--tf-text-secondary)"></ion-icon>
+        </div>
+        <span class="stat-value">{{ routineTemplatesCount }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-row">
+          <span class="stat-label">Respuestas de check-in</span>
+          <ion-icon name="clipboard-outline" style="color: var(--tf-accent)"></ion-icon>
+        </div>
+        <span class="stat-value">{{ checkinResponsesCount }}</span>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-col">
+        <section class="panel-card evolution-card">
+          <h2 class="panel-card-title">Evolución de clientes (peso)</h2>
+          <div class="evolution-grid" *ngIf="evolution.length">
+            <div class="evolution-item" *ngFor="let ev of evolution">
+              <span class="evolution-name">{{ ev.name }}</span>
+              <div class="evolution-bars">
+                <div
+                  class="evolution-bar"
+                  *ngFor="let pct of ev.barsPct"
+                  [style.height.%]="pct"
+                  [style.background]="ev.colorVar"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <p class="empty-hint" *ngIf="!evolutionLoading && !evolution.length">
+            Todavía no hay suficiente peso registrado en tus clientes (hacen falta al menos 2 registros) para mostrar una tendencia.
+          </p>
+        </section>
+      </div>
+
+      <div class="dashboard-col dashboard-col--side">
+        <section class="panel-card">
+          <div class="panel-card-header">
+            <h2 class="panel-card-title">Agenda y revisiones</h2>
+            <span class="soon-tag">Próximamente</span>
+          </div>
+          <p class="empty-hint">
+            La agenda del entrenador y el flujo de "rutina enviada a revisión" todavía no existen como
+            funcionalidad — se construirán en una fase futura en vez de mostrarte datos inventados aquí.
+          </p>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-card-header">
+            <h2 class="panel-card-title">Mensajes</h2>
+            <span class="soon-tag">Próximamente</span>
+          </div>
+          <p class="empty-hint">La mensajería con clientes todavía no está disponible en esta versión.</p>
+        </section>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>

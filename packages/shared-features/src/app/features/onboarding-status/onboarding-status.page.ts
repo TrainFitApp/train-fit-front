@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { OnboardingRelation, OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
+import {
+  IntakeFieldKey,
+  OnboardingRelation,
+  OnboardingService,
+} from 'src/app/core/services/onboarding/onboarding.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { IntakeApiService, IntakeSubmission } from './services/intake-api.service';
@@ -12,6 +16,7 @@ interface TrainerGroup {
   trainerName: string;
   scopes: string[];
   needsIntake: boolean; // true si alguna relación sigue en cuestionario_pendiente
+  enabledFields: Set<IntakeFieldKey>; // TASK-049 — campos activos del cuestionario de este trainer
 }
 
 const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
@@ -95,6 +100,7 @@ export class OnboardingStatusPage {
             : 'Tu profesional',
           scopes: [],
           needsIntake: false,
+          enabledFields: new Set(relation.intakeEnabledFields),
         });
       }
       const group = byTrainer.get(relation.trainerId)!;

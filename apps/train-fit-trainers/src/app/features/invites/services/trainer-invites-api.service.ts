@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
+import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import {
   ClientIntake,
   SendInviteResponse,
   TrainerInvite,
   TrainerInviteScope,
+  TrainerIntakeConfig,
 } from '../models/trainer-invite.model';
 
 @Injectable({ providedIn: 'root' })
@@ -41,5 +43,14 @@ export class TrainerInvitesApiService {
 
   public confirmClient(clientId: string): Observable<TrainerInvite[]> {
     return this.http.post<TrainerInvite[]>(`trainer/clients/${clientId}/confirm`, {});
+  }
+
+  // TASK-049 — configuración de campos activos del cuestionario inicial.
+  public getIntakeConfig(): Observable<TrainerIntakeConfig> {
+    return this.http.get<TrainerIntakeConfig>('trainer/intake-config');
+  }
+
+  public updateIntakeConfig(enabledFields: IntakeFieldKey[]): Observable<TrainerIntakeConfig> {
+    return this.http.put<TrainerIntakeConfig>('trainer/intake-config', { enabledFields });
   }
 }

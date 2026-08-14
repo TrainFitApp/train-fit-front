@@ -49,6 +49,20 @@ export class ProductComponent implements OnInit, OnChanges {
   public recentCustomProduct?: CustomProduct | null;
   @Input()
   public showRecentIcon: boolean = false;
+  // TAREA5 (train-fit-trainers) — selección múltiple: cuando está activa, un
+  // click en la fila o en el checkbox marca/desmarca este producto en la
+  // "cesta" del panel (ver SearchFoodsPage#trainerSelection) en vez de
+  // escribir contra la dieta del CONSUMIDOR logueado (que es lo que hacen
+  // toggleProduct()/openAddProduct() más abajo — ninguno de los dos sirve
+  // para "la dieta de OTRO usuario"). Código nuevo, no reutiliza ni modifica
+  // la rama de ingredientMode.
+  @Input()
+  public trainerMultiSelect = false;
+  @Input()
+  public isTrainerSelected = false;
+  // TAREA5 (auditoría UX, Fase B) — favoritos personales del entrenador.
+  @Input()
+  public isTrainerFavorite = false;
 
   @Output()
   public delete = new EventEmitter<string>();
@@ -62,6 +76,15 @@ export class ProductComponent implements OnInit, OnChanges {
     quantity: number;
     checked: boolean;
   }>();
+
+  @Output()
+  public trainerToggle = new EventEmitter<{
+    product: IProduct;
+    checked: boolean;
+  }>();
+
+  @Output()
+  public trainerFavoriteToggle = new EventEmitter<IProduct>();
 
   public measureFilter: MEASURE_FILTER_TYPES;
 
@@ -114,6 +137,7 @@ export class ProductComponent implements OnInit, OnChanges {
     if (
       changes.meal ||
       changes.isIngredientSelected ||
+      changes.isTrainerSelected ||
       changes.product ||
       changes.recentCustomProduct
     ) {
@@ -134,7 +158,29 @@ export class ProductComponent implements OnInit, OnChanges {
   public onCardClick(): void {
     if (this.isBusy) return;
 
-    this.ingredientMode ? this.onRowClickIngredientMode() : this.openAddProduct();
+    if (this.trainerMultiSelect) {
+      this.trainerToggle.emit({ product: this.product, checked: !this.isTrainerSelected });
+      return;
+    }
+
+    if (this.ingredientMode) {
+      this.onRowClickIngredientMode();
+      return;
+    }
+
+    this.openAddProduct();
+  }
+
+  // Checkbox dedicado del modo entrenador — separado de
+  // onCheckboxChangeIngredientMode/toggleProduct para no arrastrar ninguna
+  // de sus llamadas a la API del consumidor.
+  public onTrainerCheckboxChange(event: any): void {
+    this.trainerToggle.emit({ product: this.product, checked: event.detail.checked });
+  }
+
+  public onTrainerFavoriteClick(event: Event): void {
+    event.stopPropagation();
+    this.trainerFavoriteToggle.emit(this.product);
   }
 
   // Handler for row click in ingredient mode - navigate to add-product
@@ -325,6 +371,11 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   private isProductChecked(): void {
+    if (this.trainerMultiSelect) {
+      this.isChecked = this.isTrainerSelected;
+      return;
+    }
+
     // In ingredient mode, use the input from parent
     if (this.ingredientMode) {
       this.isChecked = this.isIngredientSelected;

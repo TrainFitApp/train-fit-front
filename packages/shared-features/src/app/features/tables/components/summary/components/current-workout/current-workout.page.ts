@@ -13,7 +13,12 @@ import { takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
-import { Workout } from 'src/app/core/models/workout';
+import { Workout, WorkoutBlock } from 'src/app/core/models/workout';
+import {
+  groupExercisesByBlock,
+  hasRenderableBlocks,
+  WorkoutExerciseGroup,
+} from 'src/app/core/utils/workout-blocks.util';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -836,6 +841,43 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
   public trackByCustomExercise(index: number, item: CustomExercise): string {
     return item._id;
+  }
+
+  // Rediseño de entrenamiento Fase B — pantalla real del cliente: agrupa por
+  // bloque (nombre/tipo/rondas/descansos visibles antes de cada grupo) en
+  // vez del *ngFor plano de siempre. `globalExerciseIndex` conserva el
+  // índice GLOBAL sobre currentWorkout.exercises (no el índice dentro del
+  // grupo) porque isCustomExerciseCompleted/trackBy/"i === 0" dependen de la
+  // posición real en la lista completa.
+  public get exerciseGroups(): WorkoutExerciseGroup[] {
+    return groupExercisesByBlock(this.currentWorkout);
+  }
+
+  public get showsBlocks(): boolean {
+    return hasRenderableBlocks(this.currentWorkout);
+  }
+
+  public globalExerciseIndex(customExercise: CustomExercise): number {
+    return this.currentWorkout?.exercises?.indexOf(customExercise) ?? -1;
+  }
+
+  public trackByBlockGroup(index: number, group: WorkoutExerciseGroup): string {
+    return group.block?._id || 'ungrouped';
+  }
+
+  public blockTypeLabel(type: WorkoutBlock['type']): string {
+    switch (type) {
+      case 'superset':
+        return this.translate.instant('TABLES.BLOCK_TYPE_SUPERSET');
+      case 'circuit':
+        return this.translate.instant('TABLES.BLOCK_TYPE_CIRCUIT');
+      case 'warmup':
+        return this.translate.instant('TABLES.BLOCK_TYPE_WARMUP');
+      case 'finisher':
+        return this.translate.instant('TABLES.BLOCK_TYPE_FINISHER');
+      default:
+        return this.translate.instant('TABLES.BLOCK_TYPE_STRAIGHT');
+    }
   }
 
   // ---------- Cronómetro (basado en timestamps, no en un contador acumulado) ----------

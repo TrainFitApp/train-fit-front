@@ -74,21 +74,22 @@ export interface DietDaySummary {
   _id: string;
   date: string;
   meals: MealSummary[];
+  // TAREA5 — id de la Diet contenedora (User.dietInUse del cliente), no del
+  // propio DietDay. Necesario para pedir productos/recetas recientes de esta
+  // comida (GET /diets/:dietId/recent-products|recipes).
+  dietId?: string;
 }
 
-// TAREA1 (replanteamiento MVP nutrición) — un alimento dentro de una
-// alternativa de composición. productId/productName/quantity se rellenan al
-// elegir un alimento real de la biblioteca (ProductSearchModalComponent) en
-// vez de teclear macros a mano; cuando productId está presente,
-// kcal/proteinG/carbsG/fatG representan valores POR 100g (no totales) — ver
-// alternativeToCustomProducts.
+// TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una
+// alternativa de composición. Siempre un producto real O una receta real de
+// la biblioteca (ProductSearchModalComponent, panel lateral) — ya no existe
+// la opción de teclear macros a mano (no tenía sentido: un profesional pauta
+// comida real, no un número inventado).
 export interface MealFoodItemInput {
-  kcal: number | null;
-  proteinG: number | null;
-  carbsG: number | null;
-  fatG: number | null;
   productId?: string;
   productName?: string;
+  recipeId?: string;
+  recipeName?: string;
   quantity?: number;
 }
 
@@ -117,6 +118,8 @@ export interface ClientNutritionPreferences {
   favoriteFoods: string;
   dislikedFoods: string;
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
+  disabledMealSlots: string[];
+  mealSlotLabels: Record<string, string>;
   requestedAt: string | null;
   requestedBy: string | null;
   respondedAt: string | null;

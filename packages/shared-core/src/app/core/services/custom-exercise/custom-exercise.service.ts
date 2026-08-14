@@ -55,6 +55,13 @@ export class CustomExerciseService {
     );
   }
 
+  public setCustomExerciseBlock(
+    id: string,
+    blockId: string | null
+  ): Observable<CustomExercise> {
+    return this.customExerciseAPIService.setCustomExerciseBlock(id, blockId);
+  }
+
   public deleteCustomExercise(id: string): Observable<any> {
     return this.customExerciseAPIService.deleteCustomExercise(id).pipe(take(1));
   }

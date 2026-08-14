@@ -18,12 +18,14 @@
   </ion-refresher>
 
   <!-- Loading -->
-  <div class="client-list" *ngIf="state === 'loading'">
-    <div class="client-card skeleton" *ngFor="let i of [1, 2, 3, 4]">
-      <div class="client-avatar skeleton-block"></div>
-      <div class="client-info">
-        <div class="skeleton-line skeleton-line--name"></div>
-        <div class="skeleton-line skeleton-line--chip"></div>
+  <div class="client-table" *ngIf="state === 'loading'">
+    <div class="client-list">
+      <div class="client-card skeleton" *ngFor="let i of [1, 2, 3, 4]">
+        <div class="client-avatar skeleton-block"></div>
+        <div class="skeleton-name-block">
+          <div class="skeleton-line skeleton-line--name"></div>
+          <div class="skeleton-line skeleton-line--chip"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -53,7 +55,8 @@
           type="text"
           class="search-input"
           placeholder="Buscar por nombre o email"
-          [(ngModel)]="searchQuery"
+          [ngModel]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
         />
       </div>
       <div class="scope-filter">
@@ -81,32 +84,42 @@
       </div>
     </div>
 
-    <div class="client-list">
-      <button
-        class="client-card"
-        *ngFor="let client of filteredClients; trackBy: trackByClientId"
-        (click)="openClient(client)"
-      >
-        <div
-          class="client-avatar"
-          [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
-          [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+    <div class="client-table">
+      <div class="client-table-head">
+        <span></span><span>Cliente</span><span>Ámbito</span><span></span>
+      </div>
+
+      <div class="client-list">
+        <button
+          class="client-card"
+          *ngFor="let client of filteredClients; trackBy: trackByClientId"
+          (click)="openClient(client)"
         >
-          {{ getInitials(client) }}
-        </div>
-        <div class="client-info">
+          <div
+            class="client-avatar"
+            [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
+            [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+          >
+            {{ getInitials(client) }}
+          </div>
           <span class="client-name">{{ getFullName(client) }}</span>
           <div class="client-scopes">
             <span class="scope-chip" *ngFor="let scope of getScopeLabels(client)">{{ scope }}</span>
           </div>
-        </div>
-        <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
-      </button>
+          <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
+        </button>
 
-      <div class="state-message state-message--inline" *ngIf="!filteredClients.length">
-        <ion-icon name="search-outline"></ion-icon>
-        <p>Ningún cliente coincide con la búsqueda/filtro.</p>
+        <div class="state-message state-message--inline" *ngIf="!filteredClients.length">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Ningún cliente coincide con la búsqueda/filtro.</p>
+        </div>
       </div>
     </div>
+
+    <!-- TASK-022 (MASTER_BACKLOG.md) — antes se traían todos los clientes de
+         golpe; ahora pagina en servidor con scroll infinito. -->
+    <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="clients.length >= total">
+      <ion-infinite-scroll-content></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </ng-container>
 </ion-content>

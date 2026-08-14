@@ -101,3 +101,50 @@
   width: calc(100% - 32px);
   font-size: 0.92rem;
 }
+
+// Auditoría de arquitectura (Fase 8) — selector de periodo
+.section-hint {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  margin: 16px 0 8px;
+}
+
+.end-mode-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.end-mode-option {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+}
+
+.duration-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .input-wrapper {
+    margin-top: 12px;
+  }
+}
+
+.end-date-preview {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+  margin: 10px 2px 0;
+}

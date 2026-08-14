@@ -1,34 +1,61 @@
 <ion-split-pane contentId="tf-main-content" when="md" class="app-split-pane">
-  <ion-menu contentId="tf-main-content" type="overlay" class="app-menu" side="start">
-    <ion-header class="ion-no-border">
-      <ion-toolbar>
+  <ion-menu contentId="tf-main-content" type="overlay" class="app-menu" [class.app-menu--collapsed]="collapsed" side="start">
+    <ion-content class="app-menu-content">
+      <div class="app-brand-row">
         <div class="app-brand">
           <span class="app-brand-mark">TF</span>
-          <span class="app-brand-name">TrainFit</span>
+          <span class="app-brand-name" *ngIf="!collapsed">TrainFit Pro</span>
         </div>
-      </ion-toolbar>
-    </ion-header>
+        <button
+          type="button"
+          class="collapse-toggle"
+          (click)="toggleCollapsed()"
+          [attr.aria-label]="collapsed ? 'Expandir menú' : 'Contraer menú'"
+          [attr.aria-expanded]="!collapsed"
+        >
+          <ion-icon [name]="collapsed ? 'chevron-forward-outline' : 'chevron-back-outline'" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
 
-    <ion-content class="app-menu-content">
       <nav aria-label="Navegación principal" class="app-menu-nav">
-        <div class="menu-group" *ngFor="let group of menuGroups">
-          <h2 class="menu-group-label">{{ group.label }}</h2>
-
-          <ion-menu-toggle *ngFor="let item of group.items" auto-hide="false">
-            <a
-              class="menu-item"
-              [routerLink]="item.path"
-              routerLinkActive="menu-item--active"
-              #rla="routerLinkActive"
-              [routerLinkActiveOptions]="item.routerLinkActiveOptions"
-              [attr.aria-current]="rla.isActive ? 'page' : null"
-            >
-              <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
-              <span>{{ item.label }}</span>
-            </a>
-          </ion-menu-toggle>
-        </div>
+        <ion-menu-toggle *ngFor="let item of menuItems" auto-hide="false">
+          <a
+            *ngIf="!item.disabled"
+            class="menu-item"
+            [routerLink]="item.path"
+            routerLinkActive="menu-item--active"
+            #rla="routerLinkActive"
+            [routerLinkActiveOptions]="item.routerLinkActiveOptions"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            [title]="collapsed ? item.label : null"
+          >
+            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            <span *ngIf="!collapsed">{{ item.label }}</span>
+            <span
+              class="menu-item-badge"
+              *ngIf="item.badgeCount"
+              [title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
+            >{{ item.badgeCount }}</span>
+          </a>
+          <div
+            *ngIf="item.disabled"
+            class="menu-item menu-item--disabled"
+            aria-disabled="true"
+            [title]="collapsed ? item.label + ' — Pronto' : null"
+          >
+            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+            <span *ngIf="!collapsed">{{ item.label }}</span>
+            <span class="menu-item-soon" *ngIf="!collapsed">Pronto</span>
+          </div>
+        </ion-menu-toggle>
       </nav>
+
+      <div class="app-menu-footer">
+        <a class="footer-user" routerLink="/tabs/account" [title]="collapsed ? 'Mi cuenta' : null">
+          <span class="footer-user-avatar"><ion-icon name="person" aria-hidden="true"></ion-icon></span>
+          <span class="footer-user-label" *ngIf="!collapsed">Mi cuenta</span>
+        </a>
+      </div>
     </ion-content>
   </ion-menu>
 

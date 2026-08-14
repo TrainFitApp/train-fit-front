@@ -35,8 +35,17 @@
         <span class="recipe-ingredients">{{ topIngredients }}</span>
       </div>
       <div class="recipe-actions">
+        <button
+          type="button"
+          *ngIf="trainerMultiSelect"
+          class="trainer-favorite-btn"
+          [class.is-favorite]="isTrainerFavorite"
+          (click)="onTrainerFavoriteClick($event)"
+        >
+          <ion-icon [name]="isTrainerFavorite ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+        </button>
         <div
-          *ngIf="meal"
+          *ngIf="meal || trainerMultiSelect"
           class="checkbox-container"
           (click)="onCheckboxClick($event)"
         >

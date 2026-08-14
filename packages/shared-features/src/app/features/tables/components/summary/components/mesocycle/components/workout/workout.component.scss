@@ -147,6 +147,71 @@ ion-grid {
   animation: highlightUpdatedSet 2s ease-in-out !important;
 }
 
+// Rediseño de entrenamiento Fase B — cabecera de bloque real en el editor
+// (nombre, tipo, rondas, descansos), tocable para renombrar/borrar.
+.workout-block-header {
+  margin: 12px 0 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-secondary-rgb), 0.1);
+  border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.3);
+  cursor: pointer;
+
+  .block-header-main {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    ion-icon {
+      font-size: 14px;
+      color: var(--ion-color-secondary);
+    }
+
+    .block-name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .block-type-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--ion-color-secondary);
+      background: rgba(var(--ion-color-secondary-rgb), 0.15);
+      border-radius: 6px;
+      padding: 2px 8px;
+    }
+  }
+
+  .block-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--ion-color-medium);
+  }
+
+  &--ungrouped {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #252525;
+    padding: 4px 14px;
+    cursor: default;
+
+    .block-name {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
 .exercise-card {
   margin-bottom: 16px;
   background: rgba(var(--ion-color-light-rgb), 0.5);
@@ -225,6 +290,18 @@ ion-grid {
 
         .delete-exercise-btn {
           --color: var(--ion-color-danger);
+          --padding-start: 8px;
+          --padding-end: 8px;
+          --padding-top: 8px;
+          --padding-bottom: 8px;
+
+          ion-icon {
+            font-size: 18px;
+          }
+        }
+
+        .move-to-block-btn {
+          --color: var(--ion-color-secondary);
           --padding-start: 8px;
           --padding-end: 8px;
           --padding-top: 8px;

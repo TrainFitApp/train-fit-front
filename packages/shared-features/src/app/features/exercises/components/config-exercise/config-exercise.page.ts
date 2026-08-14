@@ -102,6 +102,14 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public exerciseChanged: boolean = false;
   public videoEmbedSrcSafe: any;
 
+  // TASK-021 (MASTER_BACKLOG.md) — sin @Input() decorator, mismo criterio que
+  // el resto de las propiedades de este componente: se asigna vía
+  // `componentProps` al abrir el modal, nunca por binding de template. Solo
+  // se pasa `true` desde puntos de entrada de train-fit-trainers (ver
+  // planner-column.component.html) — en Trainfit normal y train-fit-management
+  // se queda en `false` y el botón/generador ni se renderiza.
+  public showQuickSeriesGenerator = false;
+
   public isCreateMode: boolean;
   public exerciseMode: "fuerza" | "cardio" | "isometrico" = "fuerza";
   public isEditingOwnExercise: boolean = false;
@@ -928,6 +936,140 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       this.setsToCreate.push(setCopy);
       this.normalizeSetOrder();
     }
+  }
+
+  // TASK-021 (MASTER_BACKLOG.md) — prescribir varias series repitiendo el
+  // mismo esquema (reps/RIR, o tiempo para isométricos/cardio) exigía ~9
+  // acciones (abrir ManageSetComponent + "copiar" 4 veces). Este generador
+  // crea `count` series de golpe con el mismo esquema, reutilizando
+  // exactamente el mismo shape de `Set` que produce ManageSetComponent
+  // (`manage-set.component.ts#submit()`) y el mismo flujo de alta que
+  // `configSets()`/`copySet()` (id temporal negativo, `displayOrder`,
+  // `setsToCreate`, `normalizeSetOrder()`).
+  public openQuickSeriesGenerator(): void {
+    const isCardio = this.isCurrentExerciseCardio;
+    const isIsometric = this.isCurrentExerciseIsometric;
+
+    const inputs: AlertInput[] = [
+      {
+        name: "count",
+        type: "number",
+        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_COUNT"),
+        value: 3,
+        min: 1,
+        max: 20,
+      },
+    ];
+
+    if (isCardio) {
+      inputs.push(
+        {
+          name: "expectedTime",
+          type: "text",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
+        },
+        {
+          name: "expectedDistance",
+          type: "number",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_DISTANCE"),
+        },
+      );
+    } else if (isIsometric) {
+      inputs.push({
+        name: "expectedTime",
+        type: "text",
+        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
+      });
+    } else {
+      inputs.push(
+        {
+          name: "repsMin",
+          type: "number",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MIN"),
+          value: 8,
+        },
+        {
+          name: "repsMax",
+          type: "number",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MAX"),
+          value: 12,
+        },
+        {
+          name: "rirMin",
+          type: "number",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MIN"),
+          value: 1,
+        },
+        {
+          name: "rirMax",
+          type: "number",
+          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MAX"),
+          value: 2,
+        },
+      );
+    }
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_GENERATOR"),
+      inputs,
+      buttons: [
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
+        {
+          text: this.translate.instant("EXERCISE_CONFIG.GENERATE"),
+          handler: (res) => this.applyQuickSeries(res, isCardio, isIsometric),
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  private applyQuickSeries(
+    res: {
+      count?: string | number;
+      expectedTime?: string;
+      expectedDistance?: string | number;
+      repsMin?: string | number;
+      repsMax?: string | number;
+      rirMin?: string | number;
+      rirMax?: string | number;
+    },
+    isCardio: boolean,
+    isIsometric: boolean,
+  ): void {
+    const count = Math.max(1, Math.min(20, Math.round(Number(res?.count)) || 1));
+
+    for (let i = 0; i < count; i++) {
+      const newSet: ExerciseSet = {
+        _id: (--this.idCounter).toString(),
+        order: this.setList.length,
+        displayOrder: this.nextDisplayOrder++,
+        expectedReps: [],
+        expectedRir: [],
+      };
+
+      if (isCardio) {
+        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
+        const distance = Number(res?.expectedDistance);
+        if (Number.isFinite(distance) && res?.expectedDistance !== "") {
+          newSet.expectedDistance = distance;
+        }
+      } else if (isIsometric) {
+        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
+      } else {
+        const repsMin = Math.max(0, Math.round(Number(res?.repsMin)) || 0);
+        const repsMax = Math.max(repsMin, Math.round(Number(res?.repsMax)) || repsMin);
+        const rirMin = Math.max(0, Math.round(Number(res?.rirMin)) || 0);
+        const rirMax = Math.max(rirMin, Math.round(Number(res?.rirMax)) || rirMin);
+        newSet.expectedReps = [repsMin, repsMax];
+        newSet.expectedRir = [rirMin, rirMax];
+      }
+
+      this.setList.push(newSet);
+      this.setsToCreate.push(newSet);
+    }
+
+    this.normalizeSetOrder();
   }
 
   public async addCustomExercise(): Promise<void> {
@@ -2045,10 +2187,19 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
                     },
                   });
                 },
-                error: () => {
+                error: (err) => {
+                  // TASK-016 — backend ahora bloquea el borrado (409) cuando
+                  // el ejercicio está en uso en rutinas/plantillas reales;
+                  // se muestra su mensaje explicativo en vez del genérico.
+                  const backendMessage =
+                    err?.error?.code === "EXERCISE_IN_USE"
+                      ? err.error.message
+                      : null;
                   this.ionicUtilService.showToast({
-                    message: this.translate.instant("EXERCISE_CONFIG.DELETE_FAILED"),
-                    duration: 2500,
+                    message:
+                      backendMessage ||
+                      this.translate.instant("EXERCISE_CONFIG.DELETE_FAILED"),
+                    duration: 3000,
                   });
                 },
               });

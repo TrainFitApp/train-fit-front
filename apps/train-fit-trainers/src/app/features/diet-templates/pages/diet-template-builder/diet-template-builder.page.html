@@ -26,100 +26,101 @@
       <input type="text" class="input-field" placeholder="Nombre de la plantilla" [(ngModel)]="name" />
     </div>
 
-    <p class="empty-hint" *ngIf="!days.length">Añade el primer día para empezar a construir la plantilla.</p>
-
-    <div class="day-card" *ngFor="let day of days; let d = index; trackBy: trackByIndex">
-      <button type="button" class="day-header" (click)="toggleDay(d)">
-        <ion-icon name="chevron-forward-outline" class="day-chevron" [class.day-chevron--open]="expandedDayIndex === d"></ion-icon>
-        <input
-          type="text"
-          class="day-label-input"
-          [(ngModel)]="day.dayLabel"
-          (click)="$event.stopPropagation()"
-        />
-        <button type="button" class="remove-alternative-btn" (click)="removeDay(d); $event.stopPropagation()">
-          <ion-icon name="trash-outline"></ion-icon>
-        </button>
+    <!-- Auditoría de arquitectura (Fase 8/9) — mismo tablero, tres maneras de
+         indexar las columnas: días secuenciales (Día 1..N), patrones fijos
+         por día de la semana ("Entre semana"/"Fin de semana"), o menús que
+         el propio cliente elige cada día ("Entrenamiento"/"Descanso").
+         Cambiar de modo no borra los otros conjuntos de columnas. -->
+    <p class="section-hint">¿Cómo se repite esta plantilla?</p>
+    <div class="end-mode-options">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" (click)="setMode('sequential')">
+        Días (1, 2, 3...)
       </button>
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" (click)="setMode('recurring')">
+        Por día de la semana
+      </button>
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" (click)="setMode('choice')">
+        El cliente elige cada día
+      </button>
+    </div>
+    <p class="section-hint mode-hint" *ngIf="mode === 'choice'">
+      El cliente marcará cada día cuál de estos menús le toca (p. ej. "Entrenamiento" / "Descanso") —
+      no hace falta asignar días de la semana.
+    </p>
 
-      <div class="day-meals" *ngIf="expandedDayIndex === d">
-        <div class="meal-block" *ngFor="let meal of day.meals; let m = index; trackBy: trackByIndex">
-          <button type="button" class="meal-header" (click)="toggleMeal(d, m)">
-            <span class="meal-slot-name">{{ meal.slot }}</span>
-            <span class="meal-summary">{{ mealSummary(meal) }}</span>
-            <ion-icon
-              name="chevron-forward-outline"
-              class="day-chevron"
-              [class.day-chevron--open]="isMealExpanded(d, m)"
-            ></ion-icon>
-          </button>
+    <p class="empty-hint" *ngIf="!activeRows.length">
+      {{ mode === 'sequential' ? 'Añade el primer día para empezar a construir la plantilla.' : 'Añade el primer menú para empezar.' }}
+    </p>
 
-          <div class="meal-items" *ngIf="isMealExpanded(d, m)">
-            <div class="food-item-card" *ngFor="let item of meal.items; let i = index; trackBy: trackByIndex">
-              <div class="food-item-header">
-                <span class="food-item-title">Alimento {{ i + 1 }}</span>
-                <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(d, m, i)">
-                  <ion-icon name="trash-outline"></ion-icon>
-                </button>
-              </div>
+    <p class="empty-hint uncovered-hint" *ngIf="mode === 'recurring' && activeRows.length && uncoveredWeekdays">
+      Sin patrón asignado: {{ uncoveredWeekdays }}. Esos días no se tocará la dieta del cliente.
+    </p>
 
-              <div class="product-pick-row" *ngIf="item.productId">
-                <ion-icon name="checkmark-circle-outline" class="input-icon"></ion-icon>
-                <span class="picked-product-name">{{ item.productName }} · {{ item.quantity }}g</span>
-                <button type="button" class="clear-product-btn" (click)="clearProduct(d, m, i)">
-                  <ion-icon name="close-outline"></ion-icon>
-                </button>
-              </div>
-
-              <button
-                type="button"
-                class="search-product-btn"
-                *ngIf="!item.productId"
-                (click)="openProductSearch(d, m, i)"
-              >
-                <ion-icon name="search-outline"></ion-icon>
-                Buscar alimento real
-              </button>
-
-              <p class="manual-macro-hint" *ngIf="!item.productId">o introduce las macros manualmente:</p>
-
-              <div class="macro-grid">
-                <div class="input-wrapper">
-                  <ion-icon name="flame-outline" class="input-icon"></ion-icon>
-                  <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="item.kcal" [disabled]="!!item.productId" />
-                </div>
-                <div class="input-wrapper">
-                  <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
-                  <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="item.proteinG" [disabled]="!!item.productId" />
-                </div>
-                <div class="input-wrapper">
-                  <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
-                  <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="item.carbsG" [disabled]="!!item.productId" />
-                </div>
-                <div class="input-wrapper">
-                  <ion-icon name="water-outline" class="input-icon"></ion-icon>
-                  <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="item.fatG" [disabled]="!!item.productId" />
-                </div>
-              </div>
-            </div>
-
+    <!-- TAREA5 (auditoría UX, Fase C) — tablero semanal: columnas en días o
+         menús, comidas en filas. Cada celda se arrastra entera (con todas
+         sus alternativas) a otra celda para moverla; el icono de copiar la
+         duplica sin moverla del origen. Click en la celda abre el editor. -->
+    <div class="board-scroll" *ngIf="activeRows.length">
+      <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', 160px)'">
+        <div class="board-corner"></div>
+        <div class="board-day-header" *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex">
+          <div class="board-day-header-row">
+            <input
+              type="text"
+              class="day-label-input"
+              [ngModel]="rowLabel(row)"
+              (ngModelChange)="setRowLabel(row, $event)"
+            />
+            <button type="button" class="board-day-remove" (click)="removeRow(d)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="weekday-picker" *ngIf="mode === 'recurring'">
             <button
               type="button"
-              class="add-food-item-btn"
-              (click)="addFoodItem(d, m)"
-              [disabled]="meal.items.length >= maxFoodItemsPerMeal"
+              class="weekday-chip"
+              *ngFor="let w of weekdays"
+              [class.selected]="asPattern(row).appliesTo.includes(w.value)"
+              (click)="toggleWeekday(asPattern(row), w.value)"
             >
-              <ion-icon name="add-outline"></ion-icon>
-              Añadir alimento a {{ meal.slot }}
+              {{ w.short }}
             </button>
           </div>
         </div>
+
+        <ng-container *ngFor="let slot of mealSlots; let s = index; trackBy: trackByIndex">
+          <div class="board-slot-header">{{ slot }}</div>
+          <button
+            type="button"
+            class="board-cell"
+            *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex"
+            [class.has-items]="row.meals[s].alternatives.length > 0"
+            [class.drag-over]="dragOverCell?.dayIndex === d && dragOverCell?.mealIndex === s"
+            [attr.draggable]="row.meals[s].alternatives.length > 0"
+            (dragstart)="onCellDragStart(d, s, $event)"
+            (dragover)="onCellDragOver(d, s, $event)"
+            (dragleave)="onCellDragLeave()"
+            (drop)="onCellDrop(d, s, $event)"
+            (click)="openMealEditor(d, s)"
+          >
+            <span class="board-cell-summary">{{ mealSummary(row.meals[s]) }}</span>
+            <button
+              type="button"
+              class="board-cell-action"
+              *ngIf="row.meals[s].alternatives.length"
+              title="Copiar a otra columna"
+              (click)="duplicateMealTo(d, s, $event)"
+            >
+              <ion-icon name="copy-outline"></ion-icon>
+            </button>
+          </button>
+        </ng-container>
       </div>
     </div>
 
-    <button type="button" class="add-alternative-btn" (click)="addDay()" [disabled]="days.length >= maxDays">
+    <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
-      Añadir día
+      {{ mode === 'sequential' ? 'Añadir día' : 'Añadir menú' }}
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
@@ -127,4 +128,116 @@
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>
+
+  <!-- Editor de celda: día × comida (Fase 9 — 1+ alternativas por comida) -->
+  <div class="panel-backdrop" *ngIf="editingCell" (click)="closeMealEditor()"></div>
+  <div class="panel-sheet" *ngIf="editingCell && editingMeal as meal">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">{{ editingDayLabel }} · {{ meal.slot }}</h3>
+    <p class="panel-hint" *ngIf="mode === 'choice'">
+      Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
+      cuál come ese día.
+    </p>
+
+    <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
+      <div class="alternative-header" *ngIf="editingIsMultiple">
+        <span class="alternative-title">Opción {{ i + 1 }}</span>
+        <button
+          type="button"
+          class="remove-alternative-btn"
+          title="Duplicar opción (para cambiar solo un alimento)"
+          (click)="duplicateAlternative(i)"
+          [disabled]="meal.alternatives.length >= maxAlternatives"
+        >
+          <ion-icon name="copy-outline"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="remove-alternative-btn"
+          (click)="removeAlternative(i)"
+          [disabled]="meal.alternatives.length <= 1"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="input-wrapper" *ngIf="editingIsMultiple">
+        <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+        <input
+          type="text"
+          class="input-field"
+          placeholder="Etiqueta (p. ej. Desayuno A)"
+          [(ngModel)]="alt.label"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <div class="food-item-card" *ngFor="let item of alt.items; let j = index; trackBy: trackByIndex">
+        <div class="food-item-header" *ngIf="alt.items.length > 1">
+          <span class="food-item-title">Alimento {{ j + 1 }}</span>
+          <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i, j)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="product-pick-row" *ngIf="item.productId || item.recipeId">
+          <ion-icon [name]="item.recipeId ? 'restaurant-outline' : 'checkmark-circle-outline'" class="input-icon"></ion-icon>
+          <span class="picked-product-name">
+            {{ item.recipeId ? item.recipeName : item.productName }}
+            <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
+          </span>
+          <button type="button" class="clear-product-btn" (click)="clearProduct(i, j)">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="search-product-btn"
+          *ngIf="!item.productId && !item.recipeId"
+          (click)="openProductSearch(i, j)"
+        >
+          <ion-icon name="search-outline"></ion-icon>
+          Buscar producto o receta real
+        </button>
+      </div>
+
+      <div class="snippet-actions-row">
+        <button
+          type="button"
+          class="add-food-item-btn"
+          (click)="addFoodItem(i)"
+          [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          Añadir alimento
+        </button>
+        <button
+          type="button"
+          class="add-food-item-btn"
+          (click)="openSnippetPicker(i)"
+          [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
+        >
+          <ion-icon name="bookmark-outline"></ion-icon>
+          Insertar snippet
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="snippet-save-link"
+        *ngIf="alt.items.length"
+        (click)="saveAsSnippet(i, $event)"
+      >
+        <ion-icon name="bookmark-outline"></ion-icon>
+        Guardar como snippet
+      </button>
+    </div>
+
+    <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="meal.alternatives.length >= maxAlternatives">
+      <ion-icon name="add-outline"></ion-icon>
+      Añadir alternativa
+    </button>
+
+    <button type="button" class="submit-button" (click)="closeMealEditor()">Listo</button>
+  </div>
 </ion-content>

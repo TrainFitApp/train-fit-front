@@ -1,0 +1,221 @@
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.templates-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 4px;
+  --padding-bottom: 32px;
+}
+
+.page-hint {
+  margin: 0 0 var(--tf-space-5);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tf-space-4);
+  margin-bottom: var(--tf-space-6);
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-5);
+  text-decoration: none;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strongest);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-accent-contrast);
+  margin-bottom: var(--tf-space-3);
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.category-name {
+  font-weight: 600;
+  font-size: var(--tf-font-size-md);
+  color: var(--tf-text);
+}
+
+.category-desc {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  margin-bottom: var(--tf-space-4);
+}
+
+.category-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-accent-text);
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.section-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--tf-space-4);
+}
+
+.section-heading {
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.section-link {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-accent-text);
+  text-decoration: none;
+}
+
+.empty-hint {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  margin: 0 0 var(--tf-space-6);
+
+  a {
+    color: var(--tf-accent-text);
+    font-weight: 600;
+  }
+}
+
+.routine-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--tf-space-4);
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.routine-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strongest);
+  }
+}
+
+.routine-name {
+  display: block;
+  font-weight: 600;
+  font-size: var(--tf-font-size-md);
+  color: var(--tf-text);
+}
+
+.routine-desc {
+  display: block;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  margin-top: 2px;
+}
+
+.routine-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-4);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.routine-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.routine-tag {
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: var(--tf-radius-pill);
+}
+
+.assign-button {
+  width: 100%;
+  background: var(--tf-surface-4);
+  color: var(--tf-accent-text);
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  padding: 9px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

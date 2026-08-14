@@ -1,0 +1,301 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+.builder-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: 12px;
+}
+
+.section-error p,
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  text-align: center;
+}
+
+.retry-button {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  color: var(--tf-text);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.builder-section {
+  margin-bottom: 20px;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+  margin: 12px 0 6px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  position: relative;
+  height: 46px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 1.05rem;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.88rem;
+}
+
+.builder-textarea {
+  width: 100%;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  color: var(--tf-text);
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.level-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.level-option {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+}
+
+.section-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin-bottom: 10px;
+}
+
+.block-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  padding: 12px;
+}
+
+.block-header {
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.block-header-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon {
+    color: var(--tf-text-muted);
+  }
+}
+
+.block-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.block-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tf-accent-text);
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.block-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--tf-text-muted);
+}
+
+.exercise-row {
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.exercise-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.exercise-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.remove-exercise-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.scheme-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scheme-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 56px;
+
+  &--wide {
+    min-width: 100px;
+    flex: 1;
+  }
+
+  span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--tf-text-muted);
+  }
+
+  input {
+    width: 100%;
+    background: var(--tf-surface-4);
+    border: 1px solid var(--tf-border);
+    border-radius: 6px;
+    color: var(--tf-text);
+    padding: 5px 6px;
+    font-size: 13px;
+    font-weight: 600;
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.scheme-summary {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  color: var(--tf-text-muted);
+}
+
+.add-exercise-btn,
+.add-block-btn {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
+.add-block-btn {
+  height: 44px;
+  border-color: var(--tf-border-strongest);
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+}

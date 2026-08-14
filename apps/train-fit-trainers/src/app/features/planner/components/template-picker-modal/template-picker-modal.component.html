@@ -1,0 +1,50 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Elegir plantilla</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="template-picker-content">
+  <div class="input-wrapper">
+    <ion-icon name="search-outline" class="input-icon"></ion-icon>
+    <input
+      type="text"
+      class="input-field"
+      placeholder="Buscar por nombre o etiqueta"
+      [(ngModel)]="search"
+      (ngModelChange)="onSearchChange()"
+      autofocus
+    />
+  </div>
+
+  <div class="templates-empty" *ngIf="filteredTemplates.length === 0">
+    <ion-icon name="albums-outline"></ion-icon>
+    <p>Ninguna plantilla coincide con "{{ search }}".</p>
+  </div>
+
+  <div class="templates-list">
+    <button
+      type="button"
+      class="template-row"
+      *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId"
+      (click)="choose(template)"
+    >
+      <div class="template-row-header">
+        <span class="template-name">{{ template.name }}</span>
+        <span class="template-level">{{ levelLabels[template.level] }}</span>
+      </div>
+      <div class="template-tags" *ngIf="template.tags?.length">
+        <span class="template-tag" *ngFor="let tag of template.tags">{{ tag }}</span>
+      </div>
+      <div class="template-meta">
+        <span>{{ blockCount(template) }} bloques</span>
+        <span>{{ exerciseCount(template) }} ejercicios</span>
+      </div>
+    </button>
+  </div>
+</ion-content>

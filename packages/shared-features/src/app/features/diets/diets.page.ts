@@ -38,6 +38,8 @@ import { Anthropometry } from '../diet-days/components/weight-info/models/anthro
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 import { MealProposal } from './models/meal-proposal.model';
 import { MealProposalApiService } from './services/meal-proposal-api.service';
+import { DayTypeStatus } from './models/day-type.model';
+import { DayTypeApiService } from './services/day-type-api.service';
 
 @Component({
   selector: 'app-diets',
@@ -77,6 +79,11 @@ export class DietsPage implements OnInit {
   public pinnedNote: string | null = null;
   public currentAnthropometry: Anthropometry | null = null;
   public mealProposals: MealProposal[] = [];
+  // Fase 9 — solo no-null cuando el plan activo tiene 2+ menús que el
+  // cliente elige cada día; para el resto de usuarios se queda en null y no
+  // se muestra ningún aviso.
+  public dayTypeStatus: DayTypeStatus | null = null;
+  public isChoosingDayType = false;
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -98,6 +105,7 @@ export class DietsPage implements OnInit {
     private customProductService: CustomProductService,
     private recipeService: RecipeService,
     private mealProposalApiService: MealProposalApiService,
+    private dayTypeApiService: DayTypeApiService,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
@@ -470,6 +478,32 @@ export class DietsPage implements OnInit {
     this.mealProposalApiService.listForDate(dateStr).subscribe({
       next: (proposals) => (this.mealProposals = proposals || []),
       error: () => (this.mealProposals = []),
+    });
+
+    // Fase 9 — igual criterio: cargada aparte, nunca bloquea el resto de la
+    // pantalla. needsChoice:false para el 100% de los clientes sin un plan
+    // de menús elegidos por el cliente.
+    this.dayTypeApiService.getForDate(dateStr).subscribe({
+      next: (status) => (this.dayTypeStatus = status),
+      error: () => (this.dayTypeStatus = null),
+    });
+  }
+
+  // Fase 9 — el cliente marca qué menú le toca hoy (p. ej. "Entrenamiento" /
+  // "Descanso"); el backend resuelve el plan con esa elección y devuelve el
+  // día ya relleno (o con propuestas nuevas si alguna comida tiene 2+
+  // alternativas) — se recarga el día entero para reflejarlo.
+  public chooseDayType(patternName: string): void {
+    if (this.isChoosingDayType) return;
+    this.isChoosingDayType = true;
+    this.dayTypeApiService.choose(this.selectedDate, patternName).subscribe({
+      next: () => {
+        this.isChoosingDayType = false;
+        this.setDietDayByDate(this.selectedDate);
+      },
+      error: () => {
+        this.isChoosingDayType = false;
+      },
     });
   }
 

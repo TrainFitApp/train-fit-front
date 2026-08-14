@@ -1,3 +1,5 @@
+import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
+
 export type TrainerInviteScope = 'training' | 'nutrition';
 // TAREA 3 (coach-tab) — cuestionario_pendiente/en_revision son los estados
 // intermedios entre aceptar la invitación y quedar activo (ver
@@ -43,4 +45,15 @@ export interface ClientIntake {
   availability: string;
   equipment: string;
   submittedAt: string;
+}
+
+// TASK-049 (MASTER_BACKLOG.md) — IntakeFieldKey importado de shared-core en
+// vez de redeclarado aquí (ya vive en onboarding.service.ts, consumido por
+// onboarding-status.page.ts del lado cliente) — una sola fuente de verdad
+// del catálogo en el frontend en vez de dos uniones literales a mantener en
+// sincronía a mano.
+export interface TrainerIntakeConfig {
+  trainerId: string;
+  enabledFields: IntakeFieldKey[];
+  catalog?: IntakeFieldKey[];
 }

@@ -1,0 +1,53 @@
+<div class="planner-column" [class.planner-column--selected]="selected">
+  <div class="planner-column-header" (click)="selectColumn()">
+    <div class="planner-column-title">
+      <span class="planner-column-name">{{ split.name || ('PLANNER.WEEK_DEFAULT_PREFIX' | translate) }}</span>
+      <button type="button" class="rename-btn" (click)="requestRename($event)" [attr.aria-label]="'PLANNER.RENAME_WEEK' | translate">
+        <ion-icon name="pencil-outline"></ion-icon>
+      </button>
+    </div>
+    <span class="planner-column-meta">
+      {{ split.workouts.length }} {{ (split.workouts.length === 1 ? 'PLANNER.CARD_SINGULAR' : 'PLANNER.CARD_PLURAL') | translate }}
+      · {{ totalExercises }} {{ 'TABLES.EXERCISE_PLURAL' | translate }}
+    </span>
+  </div>
+
+  <div
+    class="planner-column-body"
+    cdkDropList
+    [cdkDropListData]="split.workouts"
+    (cdkDropListDropped)="onCardsDropped($event)"
+  >
+    <div class="planner-card-wrapper" *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId" cdkDrag [cdkDragData]="workout">
+      <ion-accordion-group
+        [multiple]="true"
+        [value]="isCardOpen(workout._id) ? 'open' : 'closed'"
+        (ionChange)="onCardAccordionChange($event, workout._id)"
+      >
+        <app-workout
+          [workout]="workout"
+          [split]="split"
+          [tableInUse]="table"
+          [splitIndex]="0"
+          [workoutColor]="'var(--ion-color-medium)'"
+          [workoutIndex]="i"
+          [plannerMode]="true"
+          [isModal]="true"
+          [stateSelected]="STATES.static"
+          [savingWorkoutOrder]="false"
+          [exercisePasteMode]="false"
+          [exerciseCopyActive]="false"
+        ></app-workout>
+      </ion-accordion-group>
+    </div>
+
+    <div class="planner-column-empty" *ngIf="split.workouts.length === 0">
+      <p>{{ 'PLANNER.NO_CARDS_YET' | translate }}</p>
+    </div>
+  </div>
+
+  <button type="button" class="add-card-btn" [disabled]="addingCard" (click)="addCardOptions()">
+    <ion-icon name="add-outline"></ion-icon>
+    {{ 'PLANNER.ADD_CARD' | translate }}
+  </button>
+</div>

@@ -14,6 +14,51 @@
       Introduce su email y elige qué vas a llevarle. Puedes marcar los dos ámbitos a la vez.
     </p>
 
+    <button type="button" class="intake-config-toggle" (click)="toggleIntakeConfigPanel()">
+      <ion-icon name="list-outline"></ion-icon>
+      <span>Personalizar cuestionario inicial</span>
+      <ion-icon [name]="showIntakeConfig ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </button>
+
+    <div class="intake-config-panel" *ngIf="showIntakeConfig">
+      <div class="detail-skeleton" *ngIf="intakeConfigState === 'loading'">
+        <div class="skeleton-block" style="height: 32px;"></div>
+        <div class="skeleton-block" style="height: 32px;"></div>
+      </div>
+
+      <div class="section-error" *ngIf="intakeConfigState === 'error'">
+        <p>No se pudo cargar la configuración del cuestionario.</p>
+        <button class="retry-button" (click)="loadIntakeConfig()">Reintentar</button>
+      </div>
+
+      <ng-container *ngIf="intakeConfigState === 'loaded'">
+        <p class="intake-config-hint">
+          Elige qué le preguntas a un cliente nuevo. Los campos que desactives no aparecerán en su cuestionario.
+        </p>
+        <button
+          type="button"
+          class="field-toggle-row"
+          *ngFor="let field of intakeConfigFields"
+          (click)="toggleIntakeField(field)"
+        >
+          <span>{{ intakeFieldLabels[field] }}</span>
+          <ion-icon
+            [name]="selectedIntakeFields.has(field) ? 'checkbox' : 'square-outline'"
+            [class.field-toggle-icon--active]="selectedIntakeFields.has(field)"
+          ></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="save-intake-config-button"
+          (click)="saveIntakeConfig()"
+          [disabled]="savingIntakeConfig"
+        >
+          <span *ngIf="!savingIntakeConfig">Guardar</span>
+          <ion-spinner name="dots" *ngIf="savingIntakeConfig"></ion-spinner>
+        </button>
+      </ng-container>
+    </div>
+
     <div class="input-group">
       <div class="input-wrapper">
         <ion-icon name="mail-outline" class="input-icon"></ion-icon>
@@ -156,6 +201,14 @@
 
               <div class="intake-review-actions">
                 <button class="cancel-review-button" (click)="closeReview()">Cerrar</button>
+                <button
+                  class="reject-button"
+                  (click)="confirmReject(invite)"
+                  [disabled]="cancellingId === invite._id"
+                >
+                  <span *ngIf="cancellingId !== invite._id">Rechazar</span>
+                  <ion-spinner name="dots" *ngIf="cancellingId === invite._id"></ion-spinner>
+                </button>
                 <button class="confirm-button" (click)="confirmClient()" [disabled]="isConfirming">
                   <span *ngIf="!isConfirming">Confirmar cliente</span>
                   <ion-spinner name="dots" *ngIf="isConfirming"></ion-spinner>

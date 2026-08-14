@@ -39,8 +39,18 @@
         <span *ngIf="brand" class="product-brand">[{{ brand }}]</span>
       </div>
 
+      <button
+        type="button"
+        *ngIf="trainerMultiSelect"
+        class="trainer-favorite-btn"
+        [class.is-favorite]="isTrainerFavorite"
+        (click)="onTrainerFavoriteClick($event)"
+      >
+        <ion-icon [name]="isTrainerFavorite ? 'bookmark' : 'bookmark-outline'"></ion-icon>
+      </button>
+
       <div
-        *ngIf="meal || ingredientMode"
+        *ngIf="meal || ingredientMode || trainerMultiSelect"
         class="checkbox-container"
         (click)="$event.stopPropagation()"
       >
@@ -49,7 +59,9 @@
           [checked]="isChecked"
           [disabled]="isBusy"
           (ionChange)="
-            ingredientMode
+            trainerMultiSelect
+              ? onTrainerCheckboxChange($event)
+              : ingredientMode
               ? onCheckboxChangeIngredientMode($event)
               : toggleProduct($event)
           "

@@ -128,6 +128,7 @@
                 [exercisePasteMode]="exercisePasteMode"
                 [exerciseCopyActive]="exerciseCopyActive"
                 [exerciseOriginWorkoutId]="exerciseOriginWorkoutId"
+                [isModal]="isModal"
                 (exerciseCopyEvent)="onExerciseCopyEvent($event)"
                 (exerciseAddedEvent)="onExerciseAdded($event)"
                 (setAddedEvent)="onSetAdded($event)"
@@ -529,6 +530,17 @@
             <ion-icon
               color="danger"
               name="trash-bin-outline"
+            ></ion-icon>
+          </button>
+          <button
+            *ngIf="isModal"
+            class="action-btn menu-btn ripple-effect"
+            [disabled]="loadingSplit || applyingTemplate || isCurrentSplitLocked() || exerciseCopyActive"
+            (click)="openApplyTemplateAlert()"
+          >
+            <ion-icon
+              color="tertiary"
+              name="albums-outline"
             ></ion-icon>
           </button>
         </div>

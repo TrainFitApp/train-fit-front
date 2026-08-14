@@ -37,10 +37,31 @@
   cursor: pointer;
 }
 
+.client-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .client-name {
   font-size: 0.9rem;
   color: var(--tf-text);
   font-weight: 600;
+}
+
+// TAREA5 (auditoría UX, Fase D)
+.client-allergy-warning {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: #e2734f;
+
+  ion-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+  }
 }
 
 .confirm-button {

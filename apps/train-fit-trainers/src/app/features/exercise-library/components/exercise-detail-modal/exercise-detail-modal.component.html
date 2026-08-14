@@ -1,0 +1,46 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ exercise?.name }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="exercise-detail-content">
+  <div class="type-badge">{{ exerciseTypeLabel }}</div>
+
+  <div class="video-wrapper" *ngIf="videoEmbedSrcSafe">
+    <iframe
+      [src]="videoEmbedSrcSafe"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+    ></iframe>
+  </div>
+
+  <p class="exercise-description" *ngIf="exercise?.description">{{ exercise.description }}</p>
+
+  <div class="taxonomy-section" *ngIf="muscleGroups.length">
+    <h3>Grupos musculares</h3>
+    <div class="chip-row">
+      <span class="chip" *ngFor="let m of muscleGroups">{{ m }}</span>
+    </div>
+  </div>
+
+  <div class="taxonomy-section" *ngIf="categories.length">
+    <h3>Categorías</h3>
+    <div class="chip-row">
+      <span class="chip" *ngFor="let c of categories">{{ c }}</span>
+    </div>
+  </div>
+
+  <div class="taxonomy-section" *ngIf="exercise?.equipment?.length">
+    <h3>Equipamiento</h3>
+    <div class="chip-row">
+      <span class="chip" *ngFor="let e of exercise.equipment">{{ e }}</span>
+    </div>
+  </div>
+</ion-content>

@@ -90,6 +90,30 @@
   padding-top: 2px;
 }
 
+// TAREA5 (auditoría UX, Fase B)
+.trainer-favorite-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+
+  ion-icon {
+    color: inherit;
+    font-size: 18px;
+  }
+
+  &.is-favorite {
+    color: var(--ion-color-primary);
+  }
+}
+
 ion-checkbox {
   --size: 24px;
   --checkbox-background-checked: var(--ion-color-primary);

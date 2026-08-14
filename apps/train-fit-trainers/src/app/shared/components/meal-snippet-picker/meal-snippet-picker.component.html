@@ -1,0 +1,61 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Insertar snippet</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="snippet-picker-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 52px;"></div>
+    <div class="skeleton-block" style="height: 52px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar tus snippets.</p>
+    <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="empty-hint" *ngIf="!snippets.length">
+      Todavía no has guardado ningún snippet. Compón una comida y usa "Guardar como snippet" para
+      reutilizarla en cualquier plantilla o cliente.
+    </p>
+
+    <div class="input-wrapper" *ngIf="snippets.length">
+      <ion-icon name="search-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Buscar snippet"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange()"
+      />
+    </div>
+
+    <p class="empty-hint" *ngIf="snippets.length && !filteredSnippets.length">
+      Ningún snippet coincide con "{{ search }}".
+    </p>
+
+    <button
+      type="button"
+      class="snippet-row"
+      *ngFor="let snippet of filteredSnippets; trackBy: trackBySnippetId"
+      (click)="pick(snippet)"
+    >
+      <ion-icon name="bookmark" class="snippet-icon"></ion-icon>
+      <div class="snippet-info">
+        <span class="snippet-name">{{ snippet.name }}</span>
+        <span class="snippet-count">{{ itemCount(snippet) }} alimento{{ itemCount(snippet) === 1 ? '' : 's' }}</span>
+      </div>
+      <button type="button" class="snippet-rename-btn" (click)="renameSnippet($event, snippet)">
+        <ion-icon name="pencil-outline"></ion-icon>
+      </button>
+      <button type="button" class="snippet-delete-btn" (click)="confirmDelete($event, snippet)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </button>
+  </ng-container>
+</ion-content>

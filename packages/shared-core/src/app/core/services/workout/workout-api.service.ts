@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Split } from '../../models/split';
 import { Table } from '../../models/table';
-import { Workout } from '../../models/workout';
+import { Workout, WorkoutBlock } from '../../models/workout';
 import { HttpService } from '../http/http.service';
 import { Exercise } from '../../models/exercise';
 
@@ -101,6 +101,35 @@ export class WorkoutAPIService {
 
   public modifyWorkout(workout: Workout): Observable<Workout> {
     return this.http.put<Workout>(`workouts/modify/one/simple/save`, workout);
+  }
+
+  // Planificador visual (Fase C) — copia un workout suelto a otra semana (o
+  // a la misma, como "duplicar en el sitio"). Devuelve table.splits completo,
+  // mismo contrato que el resto de altas de workout.
+  public copyWorkoutToSplit(idWorkout: string, idSplit: string): Observable<Split[]> {
+    return this.http.post<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/${idWorkout}/copy-to-split/${idSplit}`,
+      {}
+    );
+  }
+
+  // Reordena las cards DENTRO de una sola columna.
+  public reorderWorkoutsInSplit(idSplit: string, workoutIdsOrder: string[]): Observable<Split[]> {
+    return this.http.put<Split[]>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/split/${idSplit}/order`,
+      { workoutIdsOrder }
+    );
+  }
+
+  // Rediseño de entrenamiento Fase B — reemplaza Workout.blocks[] completo.
+  public updateWorkoutBlocks(
+    workoutId: string,
+    blocks: Partial<WorkoutBlock>[]
+  ): Observable<Workout> {
+    return this.http.put<Workout>(
+      `${WorkoutAPIService.WORKOUT_ENDPOINT}/${workoutId}/blocks`,
+      { blocks }
+    );
   }
 
   public finishWorkout(

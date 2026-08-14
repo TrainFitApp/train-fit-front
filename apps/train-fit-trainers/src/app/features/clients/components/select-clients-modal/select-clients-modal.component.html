@@ -33,7 +33,13 @@
         (click)="$event.stopPropagation()"
         (ionChange)="toggle(client.user!._id)"
       ></ion-checkbox>
-      <span class="client-name">{{ fullName(client) }}</span>
+      <div class="client-info">
+        <span class="client-name">{{ fullName(client) }}</span>
+        <span class="client-allergy-warning" *ngIf="allergiesFor(client.user!._id) as allergies">
+          <ion-icon name="warning-outline"></ion-icon>
+          {{ allergies }}
+        </span>
+      </div>
     </div>
   </ng-container>
 </ion-content>

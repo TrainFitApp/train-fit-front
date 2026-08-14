@@ -16,6 +16,8 @@ export class NutritionPreferencesApiService {
     favoriteFoods: string;
     dislikedFoods: string;
     cooksAtHome: CooksAtHome | null;
+    disabledMealSlots: string[];
+    mealSlotLabels: Record<string, string>;
   }): Observable<NutritionPreferences> {
     return this.http.put<NutritionPreferences>('nutrition-preferences', body);
   }

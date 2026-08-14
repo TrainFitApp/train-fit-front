@@ -44,6 +44,47 @@
       <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
       <input type="date" class="input-field" [(ngModel)]="startDate" />
     </div>
+
+    <!-- Auditoría de arquitectura (Fase 8) — hasta cuándo aplica, no solo desde cuándo -->
+    <ng-container *ngIf="selectedTemplateId">
+      <p class="section-hint">¿Hasta cuándo?</p>
+      <div class="end-mode-options">
+        <button type="button" class="end-mode-option" [class.selected]="endMode === 'fixedDate'" (click)="endMode = 'fixedDate'">
+          Fecha exacta
+        </button>
+        <button type="button" class="end-mode-option" [class.selected]="endMode === 'duration'" (click)="endMode = 'duration'">
+          Duración
+        </button>
+        <button type="button" class="end-mode-option" [class.selected]="endMode === 'indefinite'" (click)="endMode = 'indefinite'">
+          Indefinido
+        </button>
+      </div>
+
+      <div class="input-wrapper" *ngIf="endMode === 'fixedDate'">
+        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+        <input type="date" class="input-field" [(ngModel)]="fixedEndDate" />
+      </div>
+
+      <div class="duration-row" *ngIf="endMode === 'duration'">
+        <div class="input-wrapper duration-value">
+          <ion-icon name="time-outline" class="input-icon"></ion-icon>
+          <input type="number" min="1" class="input-field" [(ngModel)]="durationValue" />
+        </div>
+        <div class="input-wrapper duration-unit">
+          <select class="input-field" [(ngModel)]="durationUnit">
+            <option value="weeks">semanas</option>
+            <option value="days">días</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="end-date-preview" *ngIf="endMode !== 'indefinite' && computedEndDate">
+        Termina el {{ computedEndDate }}
+      </p>
+      <p class="end-date-preview" *ngIf="endMode === 'indefinite'">
+        Sigue vigente hasta que se sustituya por otro plan.
+      </p>
+    </ng-container>
   </ng-container>
 </ion-content>
 
@@ -51,7 +92,7 @@
   <ion-toolbar>
     <button
       class="confirm-button"
-      [disabled]="!selectedTemplateId || !startDate || state === 'applying'"
+      [disabled]="!canConfirm || state === 'applying'"
       (click)="confirm()"
     >
       <span *ngIf="state !== 'applying'">Aplicar a {{ clientName }}</span>

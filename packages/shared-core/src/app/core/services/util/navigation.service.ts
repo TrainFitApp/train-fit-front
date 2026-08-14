@@ -196,9 +196,13 @@ export class NavigationService {
     this.navController.navigateForward([this.REFERENCES_ROUTE]);
   }
 
-  public goToUserLoader(): void {
+  // TASK-010 — returnUrl opcional: permite que user-loader.page.ts navegue
+  // al deep link originalmente solicitado en vez de siempre caer al
+  // dashboard tras el login (ver auth.guard.ts#buildReturnUrl).
+  public goToUserLoader(returnUrl?: string | null): void {
     this.navController.navigateForward([this.USER_LOADER_ROUTE], {
       replaceUrl: true,
+      queryParams: returnUrl ? { returnUrl } : undefined,
     });
   }
 

@@ -6,18 +6,20 @@ import { TableInContextResolver } from 'src/app/features/clients/resolvers/table
 
 const routes: Routes = [
   {
-    // Replanteamiento MVP (rutinas) — constructor completo (splits, workouts,
-    // ejercicios, series) reutilizado tal cual desde shared-features; el
-    // resolver siembra la tabla del CLIENTE (no la del profesional) antes de
-    // activar la ruta. Backend ya abierto a "trainer" con comprobación de
-    // relación activa (ver components/tables/table-access.js).
-    path: 'clients/:clientId/tables/:tableId/mesocycle',
+    // TASK-007 (MASTER_BACKLOG.md) — StatisticsPage reutilizada tal cual de
+    // shared-features, mismo resolver que el Planner. Alcance reducido: solo
+    // el gráfico de progresión/comparación (ya correctamente scoped por
+    // TableService.currentTable) — StatisticsPage oculta por sí sola la
+    // tarjeta de histórico "all-time" al detectar :clientId en la ruta,
+    // porque ese widget usa un endpoint self-service (ver DECISIONS.md,
+    // 2026-08-11). TASK-020 queda pendiente para reactivarlo correctamente.
+    path: 'clients/:clientId/tables/:tableId/statistics',
     canMatch: [authMatchGuard],
     resolve: { table: TableInContextResolver },
     loadChildren: () =>
       import(
-        'src/app/features/tables/components/summary/components/mesocycle/mesocycle.module'
-      ).then((m) => m.MesocyclePageModule),
+        'src/app/features/tables/components/summary/components/statistics/statistics.module'
+      ).then((m) => m.StatisticsPageModule),
   },
   {
     path: '',

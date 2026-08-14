@@ -120,6 +120,109 @@ ion-header ion-toolbar {
   }
 }
 
+// --- TASK-049: personalizar cuestionario inicial ---
+.intake-config-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
+  margin-bottom: 16px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon:first-child {
+    font-size: 16px;
+    color: var(--tf-text-muted);
+  }
+
+  span {
+    flex: 1;
+    text-align: left;
+  }
+
+  ion-icon:last-child {
+    font-size: 16px;
+    color: var(--tf-text-faint);
+  }
+}
+
+.intake-config-panel {
+  padding: 12px 14px;
+  margin: -8px 0 20px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+}
+
+.intake-config-hint {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+  line-height: 1.4;
+  margin: 0 0 12px;
+}
+
+// Mismo patrón que .field-toggle-row en checkin-templates.page.html — misma
+// forma de problema (el trainer activa/desactiva cuáles de N campos fijos
+// usa), mismo componente visual, en vez de un <input type="checkbox"> nativo
+// sin estilo que habría roto la vocabulario visual ya establecido en esta
+// app para "alternar un campo de una lista" (ver también .scope-option más
+// arriba en este mismo archivo, mismo lenguaje de icono+estado).
+.field-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  color: var(--tf-text-secondary);
+  font-size: 0.86rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--tf-text-faint);
+    flex-shrink: 0;
+  }
+}
+
+.field-toggle-icon--active {
+  color: var(--tf-accent) !important;
+}
+
+.save-intake-config-button {
+  @include tf-gradient-button(10px);
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  margin-top: 12px;
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .submit-button {
   @include tf-gradient-button;
   width: 100%;
@@ -394,4 +497,26 @@ ion-header ion-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+// TASK-035 — antes no existía ninguna vía de rechazo tras revisar el
+// cuestionario, solo "Cerrar" (que no decide nada) o "Confirmar".
+.reject-button {
+  flex: 1;
+  height: 38px;
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
 }

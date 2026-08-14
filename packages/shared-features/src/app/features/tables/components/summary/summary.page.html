@@ -181,7 +181,7 @@
                       class="exercise-name"
                       [class.completed]="isCustomExerciseCompleted(exercise)"
                     >
-                      {{ exercise.exercise.name | translateDb }}
+                      {{ (exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
                     </div>
                     <div class="exercise-icons">
                       <ion-icon

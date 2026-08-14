@@ -1,0 +1,197 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+.compose-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+}
+
+.page-hint {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  position: relative;
+  height: 50px;
+  margin-bottom: 12px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 1.1rem;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.9rem;
+}
+
+select.input-field {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.food-item-card {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+}
+
+.food-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.food-item-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.remove-alternative-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.product-pick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: var(--tf-success-soft);
+  border: 1px solid var(--tf-success-border);
+  border-radius: 10px;
+
+  .input-icon {
+    color: var(--tf-success);
+  }
+}
+
+.picked-product-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--tf-text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clear-product-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.search-product-btn {
+  width: 100%;
+  height: 42px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: 10px;
+  color: var(--tf-accent);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.snippet-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  .add-alternative-btn {
+    margin-bottom: 0;
+  }
+}
+
+.add-alternative-btn {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strongest);
+  border-radius: 12px;
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.snippet-save-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--tf-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+}

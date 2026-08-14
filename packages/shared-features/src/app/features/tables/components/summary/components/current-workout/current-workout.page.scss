@@ -204,6 +204,72 @@ img {
   }
 }
 
+// Rediseño de entrenamiento Fase B — cabecera de bloque real (nombre, tipo,
+// rondas, descansos) visible al cliente antes de cada grupo de ejercicios.
+.workout-block-header {
+  margin: 1rem 0.75rem 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.25);
+
+  .block-header-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .block-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .block-type-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  .block-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .block-instructions {
+    margin: 0.35rem 0 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  &--ungrouped {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.4rem 1rem;
+    margin: 0.75rem 0.75rem 0.25rem;
+
+    .block-name {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
 // Premium Accordion Header Styles for Custom Exercises
 .premium-accordion-header {
   --background: rgba(30, 30, 30, 0.95);

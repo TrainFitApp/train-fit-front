@@ -1,0 +1,84 @@
+ion-header ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.exercise-detail-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-5);
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--tf-accent-text);
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: var(--tf-radius-sm);
+  padding: 3px 10px;
+  margin-bottom: var(--tf-space-3);
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: var(--tf-radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--tf-space-4);
+  background: var(--tf-surface-2);
+
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+}
+
+.exercise-description {
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-base);
+  line-height: 1.5;
+  white-space: pre-line;
+  margin: 0 0 var(--tf-space-4);
+}
+
+.taxonomy-section {
+  margin-bottom: var(--tf-space-4);
+
+  h3 {
+    margin: 0 0 var(--tf-space-2);
+    font-size: var(--tf-font-size-sm);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--tf-text-muted);
+  }
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 12px;
+  color: var(--tf-text);
+  background: var(--tf-surface-4);
+  border-radius: var(--tf-radius-sm);
+  padding: 4px 10px;
+}

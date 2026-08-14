@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { ActivatedRouteSnapshot, Router, Resolve } from '@angular/router';
+import { EMPTY, Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { Table } from 'src/app/core/models/table';
 import { TableService } from 'src/app/core/services/table/table.service';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
 // Replanteamiento MVP (rutinas) — el constructor de mesociclos
 // (mesocycle.page.ts, reutilizado tal cual desde shared-features) lee la
@@ -16,12 +17,31 @@ import { TableService } from 'src/app/core/services/table/table.service';
 // CLIENTE, no una tabla ajena o vacía.
 @Injectable({ providedIn: 'root' })
 export class TableInContextResolver implements Resolve<Table> {
-  constructor(private tableService: TableService) {}
+  constructor(
+    private tableService: TableService,
+    private ionicUtilService: IonicUtilService,
+    private router: Router
+  ) {}
 
+  // TASK-011 (MASTER_BACKLOG.md) — sin catchError, un 403/404 (tabla
+  // borrada o acceso revocado entre que el entrenador abrió la lista y
+  // hizo clic) cancelaba la navegación en silencio: NavigationError sin
+  // escuchar en ningún sitio, pantalla congelada/en blanco. Ahora se avisa
+  // con un toast y se redirige a la lista de clientes en vez de dejar al
+  // usuario varado. `EMPTY` aborta limpiamente la navegación pendiente sin
+  // que Angular Router propague un NavigationError sin manejar.
   public resolve(route: ActivatedRouteSnapshot): Observable<Table> {
     const tableId = route.paramMap.get('tableId') || '';
     return this.tableService.getTableById(tableId).pipe(
-      tap((table) => (this.tableService.setCurrentTable = table))
+      tap((table) => (this.tableService.setCurrentTable = table)),
+      catchError((error) => {
+        void this.ionicUtilService.showErrorToast(
+          error,
+          'No se pudo abrir esta rutina. Puede que ya no exista o que no tengas acceso.'
+        );
+        void this.router.navigate(['/tabs/clients']);
+        return EMPTY;
+      })
     );
   }
 }

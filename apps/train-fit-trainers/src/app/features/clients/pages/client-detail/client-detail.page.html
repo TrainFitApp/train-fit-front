@@ -5,64 +5,114 @@
     </ion-buttons>
     <ion-title>{{ name }}</ion-title>
   </ion-toolbar>
-
-  <div class="scope-tabbar">
-    <button
-      class="scope-tab"
-      *ngIf="scopes.includes('training')"
-      [class.active]="activeTab === 'training'"
-      (click)="selectTab('training')"
-    >
-      Entrenamiento
-    </button>
-    <button
-      class="scope-tab"
-      *ngIf="scopes.includes('nutrition')"
-      [class.active]="activeTab === 'nutrition'"
-      (click)="selectTab('nutrition')"
-    >
-      Nutrición
-    </button>
-    <button
-      class="scope-tab"
-      *ngIf="scopes.includes('training')"
-      [class.active]="activeTab === 'history'"
-      (click)="selectTab('history')"
-    >
-      Historial
-    </button>
-    <button
-      class="scope-tab"
-      [class.active]="activeTab === 'notes'"
-      (click)="selectTab('notes')"
-    >
-      Notas
-    </button>
-    <button
-      class="scope-tab"
-      [class.active]="activeTab === 'checkins'"
-      (click)="selectTab('checkins')"
-    >
-      Check-ins
-    </button>
-    <button
-      class="scope-tab"
-      [class.active]="activeTab === 'payments'"
-      (click)="selectTab('payments')"
-    >
-      Cobros
-    </button>
-    <button
-      class="scope-tab"
-      [class.active]="activeTab === 'tasks'"
-      (click)="selectTab('tasks')"
-    >
-      Tareas
-    </button>
-  </div>
 </ion-header>
 
+<!-- Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
+     de resumen persistente + pestañas reales ya existentes, sin tocar su
+     lógica ni sus datos — solo se reordena el envoltorio HTML. -->
 <ion-content class="detail-content">
+  <!-- TASK-012 (MASTER_BACKLOG.md) — sin name/scopes en la URL (deep link
+       directo), se resuelven vía resolveClientIdentityFallback(). Mientras
+       tanto (o si falla), se avisa en vez de dejar las pestañas en blanco
+       sin explicación. -->
+  <div class="header-state-banner" *ngIf="headerState === 'loading'">
+    <ion-spinner name="dots"></ion-spinner>
+    <span>Cargando cliente…</span>
+  </div>
+  <div class="header-state-banner header-state-banner--error" *ngIf="headerState === 'error'">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <span>No se pudo cargar este cliente. Puede que ya no exista o que no tengas acceso.</span>
+    <button type="button" (click)="goToClientsList()">Volver a clientes</button>
+  </div>
+
+  <div class="profile-layout" *ngIf="headerState === 'loaded'">
+    <aside class="profile-sidebar">
+      <div class="profile-card">
+        <div class="profile-avatar-lg">{{ name ? name.charAt(0).toUpperCase() : '?' }}</div>
+        <span class="profile-name">{{ name }}</span>
+        <div class="profile-scopes">
+          <span class="scope-chip" *ngIf="scopes.includes('training')">Entrenamiento</span>
+          <span class="scope-chip" *ngIf="scopes.includes('nutrition')">Nutrición</span>
+        </div>
+      </div>
+
+      <!-- Solo datos reales ya cargados por las pestañas — nada inventado.
+           Cada fila aparece en cuanto su sección terminó de cargar. -->
+      <div class="profile-stats-card">
+        <div class="profile-stat-row" *ngIf="scopes.includes('training') && trainingState === 'loaded' && latestWeight?.weight as weight">
+          <span class="profile-stat-label">Peso más reciente</span>
+          <span class="profile-stat-value">{{ weight }} kg</span>
+        </div>
+        <div class="profile-stat-row" *ngIf="scopes.includes('nutrition') && nutritionState === 'loaded' && adherence?.status === 'ok'">
+          <span class="profile-stat-label">Adherencia nutricional</span>
+          <span class="profile-stat-value">{{ adherence?.percentage }}%</span>
+        </div>
+        <div class="profile-stat-row" *ngIf="scopes.includes('nutrition') && nutritionState === 'loaded' && goals.length">
+          <span class="profile-stat-label">Objetivo activo</span>
+          <span class="profile-stat-value profile-stat-value--truncate">{{ goals[0].name }}</span>
+        </div>
+        <p class="profile-stats-empty" *ngIf="trainingState !== 'loaded' && nutritionState !== 'loaded'">
+          Cargando resumen…
+        </p>
+      </div>
+    </aside>
+
+    <div class="profile-main">
+      <nav class="detail-tabbar">
+        <button
+          class="scope-tab"
+          *ngIf="scopes.includes('training')"
+          [class.active]="activeTab === 'training'"
+          (click)="selectTab('training')"
+        >
+          Entrenamiento
+        </button>
+        <button
+          class="scope-tab"
+          *ngIf="scopes.includes('nutrition')"
+          [class.active]="activeTab === 'nutrition'"
+          (click)="selectTab('nutrition')"
+        >
+          Nutrición
+        </button>
+        <button
+          class="scope-tab"
+          *ngIf="scopes.includes('training')"
+          [class.active]="activeTab === 'history'"
+          (click)="selectTab('history')"
+        >
+          Historial
+        </button>
+        <button
+          class="scope-tab"
+          [class.active]="activeTab === 'notes'"
+          (click)="selectTab('notes')"
+        >
+          Notas
+        </button>
+        <button
+          class="scope-tab"
+          [class.active]="activeTab === 'checkins'"
+          (click)="selectTab('checkins')"
+        >
+          Check-ins
+        </button>
+        <button
+          class="scope-tab"
+          [class.active]="activeTab === 'payments'"
+          (click)="selectTab('payments')"
+        >
+          Cobros
+        </button>
+        <button
+          class="scope-tab"
+          [class.active]="activeTab === 'tasks'"
+          (click)="selectTab('tasks')"
+        >
+          Tareas
+        </button>
+      </nav>
+
   <!-- === ENTRENAMIENTO === -->
   <div class="tab-panel" *ngIf="scopes.includes('training') && activeTab === 'training'">
     <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
@@ -111,10 +161,24 @@
           </button>
           <button
             class="bulk-apply-btn"
+            title="Ver estadísticas"
+            (click)="openStatistics(table)"
+          >
+            <ion-icon name="stats-chart-outline"></ion-icon>
+          </button>
+          <button
+            class="bulk-apply-btn"
             title="Editar rutina (splits, ejercicios, series)"
-            (click)="openRoutineBuilder(table)"
+            (click)="openPlanner(table)"
           >
             <ion-icon name="construct-outline"></ion-icon>
+          </button>
+          <button
+            class="bulk-apply-btn bulk-apply-btn--danger"
+            title="Borrar rutina completa"
+            (click)="confirmDeleteTable(table, $event)"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
           </button>
         </div>
 
@@ -277,6 +341,13 @@
           <span class="preferences-label">¿Cocina en casa?</span>
           <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
         </div>
+        <!-- TASK-004 — solo lectura: lo configura el propio cliente en Mis
+             preferencias nutricionales. Nota: todavía no afecta a la dieta
+             real que ve el cliente (ver seguimiento en MASTER_BACKLOG.md). -->
+        <div class="preferences-field" *ngIf="nutritionPreferences?.disabledMealSlots?.length">
+          <span class="preferences-label">Comidas que no hace</span>
+          <p class="preferences-value">{{ nutritionPreferences.disabledMealSlots.join(', ') }}</p>
+        </div>
       </div>
 
       <div class="section-row">
@@ -327,6 +398,45 @@
         </button>
       </div>
 
+      <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
+           cuándo, sin tener que ir día por día para averiguarlo. -->
+      <div class="active-plan-card" *ngIf="activePlan">
+        <div class="active-plan-header">
+          <ion-icon name="calendar-number-outline"></ion-icon>
+          <div class="active-plan-info">
+            <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
+            <span class="active-plan-range">
+              desde {{ activePlan.startDate }}
+              · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
+            </span>
+          </div>
+        </div>
+        <!-- TASK-044 (MASTER_BACKLOG.md) — antes un plan "choice" nunca
+             avisaba de días atascados sin elegir menú (a diferencia del
+             aviso ya existente para "recurring" en el propio editor de
+             plantillas). Aviso suave, no bloqueante — mismo criterio que
+             el resto de esta tarjeta. -->
+        <p class="stuck-days-hint" *ngIf="activePlan.mode === 'choice' && activePlan.stuckDaysCount">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
+        </p>
+        <div class="active-plan-actions">
+          <button
+            type="button"
+            class="active-plan-action"
+            (click)="createExceptionForToday()"
+            [disabled]="isCreatingException"
+          >
+            <ion-icon name="close-circle-outline"></ion-icon>
+            Excepción solo hoy
+          </button>
+          <button type="button" class="active-plan-action" (click)="openApplyTemplateModal()">
+            <ion-icon name="arrow-forward-circle-outline"></ion-icon>
+            Programar siguiente fase
+          </button>
+        </div>
+      </div>
+
       <p class="empty-hint" *ngIf="!dietDay">
         Este cliente no tiene dieta activa {{ isNutritionDateToday ? 'hoy' : 'ese día' }}.
       </p>
@@ -338,6 +448,58 @@
         </div>
         <button class="prescribe-button" (click)="openPrescribePanel(meal)">Pautar</button>
       </div>
+
+      <!-- TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones
+           puntuales. No es un log de contenido exacto día a día (ver
+           DECISIONS.md) — muestra QUÉ plan/excepción rigió cuándo, no el
+           contenido literal de cada DietDay tras una edición manual. -->
+      <div class="section-row nutrition-history-toggle" (click)="toggleNutritionHistory()">
+        <h2 class="section-heading">Historial de nutrición</h2>
+        <ion-icon [name]="showNutritionHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </div>
+
+      <ng-container *ngIf="showNutritionHistory">
+        <div class="detail-skeleton" *ngIf="nutritionHistoryState === 'loading'">
+          <div class="skeleton-block" style="height: 44px;"></div>
+          <div class="skeleton-block" style="height: 44px;"></div>
+        </div>
+
+        <div class="section-error" *ngIf="nutritionHistoryState === 'error'">
+          <p>No se pudo cargar el historial de nutrición.</p>
+          <button class="retry-button" (click)="loadNutritionHistory()">Reintentar</button>
+        </div>
+
+        <ng-container *ngIf="nutritionHistoryState === 'loaded'">
+          <p class="empty-hint" *ngIf="!nutritionHistory.length">
+            Este cliente todavía no ha tenido ningún plan asignado.
+          </p>
+
+          <div class="history-card" *ngFor="let phase of nutritionHistory">
+            <div class="history-card-header">
+              <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
+              <span class="history-date">
+                {{ phase.startDate }} → {{ phase.endDate || 'indefinido' }}
+              </span>
+            </div>
+            <p class="history-subtitle">
+              {{ phase.status === 'active' ? 'Activo' : phase.status === 'superseded' ? 'Sustituido por otra fase' : 'Finalizado' }}
+            </p>
+          </div>
+
+          <ng-container *ngIf="dietExceptions.length">
+            <p class="empty-hint exceptions-heading">Excepciones puntuales</p>
+            <div class="history-card" *ngFor="let exception of dietExceptions">
+              <div class="history-card-header">
+                <span class="list-card-title">
+                  {{ exception.action === 'skip' ? 'Día saltado' : 'Comida sustituida' }}
+                </span>
+                <span class="history-date">{{ exception.date }}</span>
+              </div>
+              <p class="history-subtitle" *ngIf="exception.mealSlot">{{ exception.mealSlot }}</p>
+            </div>
+          </ng-container>
+        </ng-container>
+      </ng-container>
 
       <button class="danger-link" (click)="confirmRevoke('nutrition')" [disabled]="isRevoking">
         Finalizar relación de nutrición
@@ -405,6 +567,15 @@
           <button
             type="button"
             class="remove-alternative-btn"
+            title="Duplicar opción (para cambiar solo un alimento)"
+            (click)="duplicateAlternative(i)"
+            [disabled]="prescribeAlternatives.length >= maxAlternatives"
+          >
+            <ion-icon name="copy-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="remove-alternative-btn"
             (click)="removeAlternative(i)"
             [disabled]="prescribeAlternatives.length <= 1"
           >
@@ -433,9 +604,12 @@
             </button>
           </div>
 
-          <div class="product-pick-row" *ngIf="item.productId">
-            <ion-icon name="checkmark-circle-outline" class="input-icon"></ion-icon>
-            <span class="picked-product-name">{{ item.productName }} · {{ item.quantity }}g</span>
+          <div class="product-pick-row" *ngIf="item.productId || item.recipeId">
+            <ion-icon [name]="item.recipeId ? 'restaurant-outline' : 'checkmark-circle-outline'" class="input-icon"></ion-icon>
+            <span class="picked-product-name">
+              {{ item.recipeId ? item.recipeName : item.productName }}
+              <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
+            </span>
             <button type="button" class="clear-product-btn" (click)="clearProduct(i, j)">
               <ion-icon name="close-outline"></ion-icon>
             </button>
@@ -444,33 +618,12 @@
           <button
             type="button"
             class="search-product-btn"
-            *ngIf="!item.productId"
+            *ngIf="!item.productId && !item.recipeId"
             (click)="openProductSearch(i, j)"
           >
             <ion-icon name="search-outline"></ion-icon>
-            Buscar alimento real
+            Buscar producto o receta real
           </button>
-
-          <p class="manual-macro-hint" *ngIf="!item.productId">o introduce las macros manualmente:</p>
-
-          <div class="macro-grid">
-            <div class="input-wrapper">
-              <ion-icon name="flame-outline" class="input-icon"></ion-icon>
-              <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="item.kcal" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
-            </div>
-            <div class="input-wrapper">
-              <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
-              <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="item.proteinG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
-            </div>
-            <div class="input-wrapper">
-              <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
-              <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="item.carbsG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
-            </div>
-            <div class="input-wrapper">
-              <ion-icon name="water-outline" class="input-icon"></ion-icon>
-              <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="item.fatG" [ngModelOptions]="{ standalone: true }" [disabled]="!!item.productId" />
-            </div>
-          </div>
         </div>
 
         <button
@@ -514,6 +667,21 @@
     </div>
 
     <ng-container *ngIf="trainingState === 'loaded'">
+      <!-- TASK-040 (MASTER_BACKLOG.md) — este historial es un log plano
+           (un entrenamiento completado = una fila); la agregación por
+           ejercicio y la comparación semana a semana ya existen en
+           StatisticsPage (TASK-007/020), pero antes no había ningún enlace
+           entre ambas pantallas. -->
+      <button
+        type="button"
+        class="history-stats-link"
+        *ngIf="tables.length > 0"
+        (click)="openStatistics(tables[0])"
+      >
+        <ion-icon name="stats-chart-outline"></ion-icon>
+        Ver progresión por ejercicio
+      </button>
+
       <p class="empty-hint" *ngIf="!completedWorkouts.length">
         Este cliente todavía no ha completado ningún entrenamiento.
       </p>
@@ -631,7 +799,13 @@
 
       <div class="payment-card" *ngFor="let task of tasks; trackBy: trackByTaskId">
         <div class="payment-card-main">
-          <span class="payment-amount">{{ taskDisplayLabel(task) }}</span>
+          <span class="payment-amount">
+            {{ taskDisplayLabel(task) }}
+            <!-- TASK-062 (MASTER_BACKLOG.md) — ver misma nota en la sección de Notas. -->
+            <span class="previous-relation-badge" *ngIf="isFromPreviousRelation(task.createdAt)">
+              De una relación anterior
+            </span>
+          </span>
           <span class="payment-due">Objetivo: {{ task.target }} {{ task.unit }} / día</span>
         </div>
         <button class="payment-status-btn" (click)="confirmDeactivateTask(task)">
@@ -721,6 +895,12 @@
       >
         <div class="note-card-header">
           <span class="note-date">{{ note.createdAt | date: 'd MMM y, HH:mm' }}</span>
+          <!-- TASK-062 (MASTER_BACKLOG.md) — no se purga nada al revocar; en
+               vez de eso, se marca lo que quedó de antes de la última vez
+               que este cliente fue revocado (ver DECISIONS.md). -->
+          <span class="previous-relation-badge" *ngIf="isFromPreviousRelation(note.createdAt)">
+            De una relación anterior
+          </span>
           <button class="pin-button" (click)="togglePin(note)" [attr.aria-label]="note.pinned ? 'Desfijar nota' : 'Fijar nota'">
             <ion-icon [name]="note.pinned ? 'bookmark' : 'bookmark-outline'"></ion-icon>
           </button>
@@ -768,5 +948,7 @@
         </div>
       </div>
     </ng-container>
+  </div>
+    </div>
   </div>
 </ion-content>

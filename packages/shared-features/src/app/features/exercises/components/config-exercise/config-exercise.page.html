@@ -170,6 +170,23 @@
             </div>
           </div>
 
+          <!-- TASK-041 (MASTER_BACKLOG.md) — videoUrl ya viajaba en el payload
+               de creación/edición (this.videoUrl), pero no existía ningún
+               input para que el usuario lo escribiera: solo se leía de
+               ejercicios preexistentes. -->
+          <div class="exercise-video-section">
+            <ion-label class="video-url-label">{{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}</ion-label>
+            <ion-input
+              [(ngModel)]="videoUrl"
+              [ngModelOptions]="{ standalone: true }"
+              [placeholder]="'EXERCISE_CONFIG.VIDEO_URL_PLACEHOLDER' | translate"
+              fill="solid"
+              mode="ios"
+              type="url"
+              class="video-url-input"
+            ></ion-input>
+          </div>
+
           <div class="exercise-mode-section">
             <ion-segment
               mode="ios"
@@ -197,6 +214,18 @@
           >
             <ion-icon name="barbell-outline" slot="start"></ion-icon>
             <span class="add-sets-text">{{ 'EXERCISE_CONFIG.ADD_SETS' | translate }}</span>
+          </ion-button>
+          <!-- TASK-021 (MASTER_BACKLOG.md) — generador rápido de series por
+               esquema, gateado a trainers vía showQuickSeriesGenerator. -->
+          <ion-button
+            *ngIf="showQuickSeriesGenerator"
+            fill="clear"
+            color="secondary"
+            class="add-sets-btn t-add-exercise-quick-series"
+            (click)="openQuickSeriesGenerator()"
+          >
+            <ion-icon name="flash-outline" slot="start"></ion-icon>
+            <span class="add-sets-text">{{ 'EXERCISE_CONFIG.QUICK_SERIES_GENERATOR_ACTION' | translate }}</span>
           </ion-button>
         </div>
       </div>

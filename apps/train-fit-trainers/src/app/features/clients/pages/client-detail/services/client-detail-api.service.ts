@@ -61,6 +61,16 @@ export class ClientDetailApiService {
     return this.http.get<AnthropometryEntry[]>(`${this.base(clientId)}/anthropometry`);
   }
 
+  // TASK-019 (MASTER_BACKLOG.md) — antes solo se podía vaciar una Table
+  // semana a semana a mano; no existía forma de eliminar la Table completa
+  // ya asignada. Endpoint ya existía y ya autorizaba a "trainer" con
+  // relación activa (table-access.js#canAccessUserTable) — solo faltaba el
+  // consumidor. Nota: la ruta vive bajo /tables, no bajo trainer/clients/,
+  // por eso no usa this.base(clientId).
+  public deleteTable(clientId: string, tableId: string): Observable<unknown> {
+    return this.http.delete(`tables/${clientId}/${tableId}`);
+  }
+
   public getDiet(clientId: string, date: string = todayIsoDate()): Observable<DietDaySummary | null> {
     return this.http.get<DietDaySummary | null>(
       `${this.base(clientId)}/diet?date=${encodeURIComponent(date)}`
@@ -87,6 +97,16 @@ export class ClientDetailApiService {
 
   public getNotes(clientId: string): Observable<TrainerNote[]> {
     return this.http.get<TrainerNote[]>(`${this.base(clientId)}/notes`);
+  }
+
+  // TASK-062 (MASTER_BACKLOG.md) — fecha de la última vez que este cliente
+  // fue revocado por este trainer, si alguna. null si nunca lo fue (caso
+  // normal). Se usa para separar visualmente notas/tareas "de una relación
+  // anterior" sin necesidad de purgarlas.
+  public getPreviousRelationCutoff(clientId: string): Observable<{ cutoffDate: string | null }> {
+    return this.http.get<{ cutoffDate: string | null }>(
+      `${this.base(clientId)}/previous-relation-cutoff`
+    );
   }
 
   public createNote(clientId: string, text: string): Observable<TrainerNote> {
@@ -158,7 +178,7 @@ export class ClientDetailApiService {
     clientId: string,
     date: string,
     mealSlot: string,
-    alternatives: { label: string; customProducts: unknown[] }[]
+    alternatives: { label: string; customProducts: unknown[]; customRecipes: unknown[] }[]
   ): Observable<unknown> {
     return this.http.post(
       `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/propose`,

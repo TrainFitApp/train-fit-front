@@ -1,13 +1,45 @@
 import { Injectable, WritableSignal, computed, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { HttpService } from '../http/http.service';
+
+// TASK-049 — catálogo cerrado de campos del cuestionario inicial. Debe
+// coincidir con train-fit-back/components/trainerIntakeConfig/intake-field-catalog.js.
+export type IntakeFieldKey =
+  | 'goals'
+  | 'healthConditions'
+  | 'experienceLevel'
+  | 'availability'
+  | 'equipment'
+  | 'allergies'
+  | 'favoriteFoods'
+  | 'dislikedFoods'
+  | 'cooksAtHome';
+
+export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
+  'goals',
+  'healthConditions',
+  'experienceLevel',
+  'availability',
+  'equipment',
+  'allergies',
+  'favoriteFoods',
+  'dislikedFoods',
+  'cooksAtHome',
+];
 
 export interface OnboardingRelation {
   trainerId: string;
   scope: 'training' | 'nutrition';
   status: 'cuestionario_pendiente' | 'en_revision';
   trainer: { name: string; lastname: string; email: string } | null;
+  // TASK-049 — siempre poblado tras refresh(), nunca undefined: normalizado
+  // aquí (fallback al catálogo completo si el backend no lo manda) para que
+  // ningún consumidor de OnboardingRelation tenga que conocer esa regla de
+  // compatibilidad. Antes vivía en onboarding-status.page.ts (único
+  // consumidor hoy), pero es una propiedad del modelo compartido, no de esa
+  // pantalla.
+  intakeEnabledFields: IntakeFieldKey[];
 }
 
 export interface OnboardingStatus {
@@ -16,6 +48,17 @@ export interface OnboardingStatus {
 }
 
 const EMPTY_STATUS: OnboardingStatus = { blocked: false, relations: [] };
+
+function normalizeStatus(status: OnboardingStatus | null): OnboardingStatus {
+  if (!status) return EMPTY_STATUS;
+  return {
+    ...status,
+    relations: (status.relations || []).map((r) => ({
+      ...r,
+      intakeEnabledFields: r.intakeEnabledFields?.length ? r.intakeEnabledFields : ALL_INTAKE_FIELDS,
+    })),
+  };
+}
 
 // TAREA 3 (coach-tab) — ¿debe el cliente ver la pantalla de cuestionario/
 // espera en vez del resto de la app? Solo true si NO tiene ninguna relación
@@ -32,7 +75,8 @@ export class OnboardingService {
 
   public refresh(): Observable<OnboardingStatus> {
     return this.http.get<OnboardingStatus>('trainer/onboarding-status').pipe(
-      tap((status) => this._status.set(status || EMPTY_STATUS)),
+      map((status) => normalizeStatus(status)),
+      tap((status) => this._status.set(status)),
       catchError(() => {
         this._status.set(EMPTY_STATUS);
         return of(EMPTY_STATUS);

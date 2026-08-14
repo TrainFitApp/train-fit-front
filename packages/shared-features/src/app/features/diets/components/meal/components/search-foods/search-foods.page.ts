@@ -1,9 +1,12 @@
 import {
   ChangeDetectorRef,
   Component,
+  Input,
   OnDestroy,
   OnInit,
+  Optional,
   ViewChild,
+  inject,
   signal,
   WritableSignal,
 } from "@angular/core";
@@ -15,6 +18,7 @@ import {
   AlertOptions,
   InfiniteScrollCustomEvent,
   IonRouterOutlet,
+  ModalController,
   Platform,
   PopoverOptions,
   ToastOptions,
@@ -54,12 +58,48 @@ import {
   ACTIONS,
 } from "src/app/shared/constants/actions";
 
+// TAREA5 (train-fit-trainers) — permite presentar esta pantalla como panel
+// lateral para que un entrenador pauте productos/recetas a un CLIENTE, sin
+// tocar el comportamiento cuando se usa como ruta normal del consumidor
+// (trainerContext queda undefined y todo sigue exactamente igual). Ver
+// MVP-trainers/tareas-grandes/TAREA5.
+//
+// Por qué un @Input de callbacks y no @Input de datos + lógica interna
+// condicional: las acciones reales de "añadir a la comida" de este archivo
+// (compose/deleteMealCustomRecipe/goToAddProduct→AddProductPage) llaman a
+// endpoints de backend con auth propia del CONSUMIDOR (mi propia dieta), sin
+// clientId — no sirven para "la dieta de OTRO usuario". En vez de reescribir
+// esa lógica aquí, el entrenador aporta sus propios callbacks que sí llaman
+// a los endpoints trainer/clients/:clientId/... (ver ClientDetailApiService).
+export interface TrainerFoodSelection {
+  kind: "product" | "recipe";
+  product?: IProduct;
+  recipe?: Recipe;
+  quantity: number | null;
+}
+
+export interface SearchFoodsTrainerContext {
+  clientUser: User;
+  dietDay: DietDay;
+  meal: Meal;
+  // Selección múltiple (TAREA5 Fase A auditoría): el entrenador marca varios
+  // productos/recetas con checkbox y los confirma de una vez, en vez de un
+  // ciclo completo de buscar→elegir→confirmar por cada alimento.
+  confirmSelection: (items: TrainerFoodSelection[]) => void;
+  pickCreateProduct: () => void;
+}
+
 @Component({
   selector: "app-products",
   templateUrl: "./search-foods.page.html",
   styleUrls: ["./search-foods.page.scss"],
 })
 export class SearchFoodsPage implements OnInit, OnDestroy {
+  @Input()
+  public trainerContext?: SearchFoodsTrainerContext;
+
+  private readonly modalController = inject(ModalController);
+
   // app-filter-icons mantiene su propio estado visual (ownFilter/favFilter/
   // shieldFilter), sin @Input desde aquí — si reseteamos searchFilterGroup
   // por código hay que empujarlo también al hijo o se desincroniza (icono
@@ -79,6 +119,17 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   public recipes: Recipe[] = [];
   public recentCustomProducts: CustomProduct[] = [];
   public recentCustomRecipes: any[] = [];
+  // TAREA5 — "cesta" de selección múltiple, solo se usa cuando trainerContext
+  // está presente. Vive aquí (no en un componente aparte) porque necesita
+  // sobrevivir a cambios de modo (Productos ↔ Recetas) y a la paginación de
+  // resultados sin perder lo ya marcado.
+  public trainerSelection: TrainerFoodSelection[] = [];
+  // TAREA5 (auditoría UX, Fase B) — favoritos son la biblioteca PERSONAL del
+  // entrenador (lo que suele recomendar a cualquier cliente), no del cliente
+  // que esté viendo — por eso se leen/escriben contra el entrenador logueado
+  // (this.userService.getLocalUser), nunca contra trainerContext.clientUser.
+  public trainerFavoriteProductIds = new Set<string>();
+  public trainerFavoriteRecipeIds = new Set<string>();
   public hasStartedFoodSearch: boolean = false;
   public loadingRecipeIds = new Set<string>();
   public idUser: string;
@@ -192,7 +243,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
     private platform: Platform,
-    private routerOutlet: IonRouterOutlet,
+    @Optional() private routerOutlet: IonRouterOutlet | null,
     private cdr: ChangeDetectorRef,
     private billingService: BillingService,
     private translate: TranslateService,
@@ -206,6 +257,33 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async ionViewWillEnter(): Promise<void> {
+    // TAREA5 — modo entrenador: contexto ya viene completo por @Input, sin
+    // NavigationService.getState()/getTempData() (bus de estado del
+    // consumidor) ni DietDayService.currentDietDay (dieta EN VIVO del
+    // consumidor logueado, no la del cliente). Return temprano antes de
+    // tocar nada de eso.
+    if (this.trainerContext) {
+      this.user = this.trainerContext.clientUser;
+      this.dietDay = this.trainerContext.dietDay;
+      this.meal = this.trainerContext.meal;
+      this.searchFilterGroup = new SearchFilterGroup();
+      this.searchFilterGroup.userId = this.user?._id;
+      this.searchFilterGroup.ownFilter = false;
+      this.hasStartedFoodSearch = false;
+      this.trainerSelection = [];
+      const trainerUser = this.userService.getLocalUser;
+      this.trainerFavoriteProductIds = new Set(trainerUser?.archivedProducts || []);
+      this.trainerFavoriteRecipeIds = new Set(trainerUser?.archivedRecipes || []);
+      this.currentMode = "products";
+      // Mismo camino que un arranque en frío normal (ver search()/onModeChange
+      // más abajo): con hasStartedFoodSearch=false, carga los productos
+      // recientes de ESTA comida antes de que el entrenador escriba nada. Se
+      // queda vacío sin romper nada si el cliente no tiene dietId todavía
+      // (loadRecentProductsForMeal ya contempla ese caso).
+      this.loadRecentProductsForMeal();
+      return;
+    }
+
     this.initializeBackButtonHandler();
     void this.initializeKeyboardListeners();
     console.log(
@@ -616,7 +694,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     // 🍎 iOS: Inhabilitar gesto de ir hacia atrás si estamos en modo ingrediente
     // Esto evita que el swipe-back nos lleve a 'diets' en lugar de volver a 'config-recipe'
-    if (this.platform.is("ios") && this.ingredientMode) {
+    if (this.platform.is("ios") && this.ingredientMode && this.routerOutlet) {
       console.log("[iOS] Disabling swipe-back gesture in ingredient mode");
       this.routerOutlet.swipeGesture = false;
     }
@@ -708,7 +786,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     this.searchRecipesSub?.unsubscribe();
 
     // 🍎 Re-habilitar gesto de ir hacia atrás al salir
-    if (this.platform.is("ios")) {
+    if (this.platform.is("ios") && this.routerOutlet) {
       this.routerOutlet.swipeGesture = true;
     }
   }
@@ -1058,6 +1136,14 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async openCreateActionSheet(): Promise<void> {
+    // TAREA5 — modo entrenador: sin selector (producto vs receta con
+    // ingredientes) por ahora, va directo a crear producto. Ver TAREA5 para
+    // el alcance acordado de esta pasada.
+    if (this.trainerContext) {
+      this.trainerContext.pickCreateProduct();
+      return;
+    }
+
     const t = this.translate.instant.bind(this.translate);
     const actionSheetOptions: ActionSheetOptions = {
       cssClass: "create-action-sheet",
@@ -2232,7 +2318,10 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     });
   }
 
-  // Recipe event handlers
+  // Recipe event handlers — inalcanzable en modo entrenador: recipe-card
+  // intercepta el click/checkbox y emite (trainerToggle) en vez de
+  // (toggle)/(quickAdd) cuando trainerMultiSelect está activo (ver
+  // onTrainerRecipeToggle más abajo).
   public onRecipeToggle(recipe: Recipe): void {
     const existingInstance = this.findCustomRecipeForRecipe(recipe);
 
@@ -2565,7 +2654,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     const searchTerm = this.searchFilterGroup.search?.toLowerCase() || "";
     const hasActiveSearch = searchTerm.length > 0;
 
-    const productsOnMeal = this.meal.customProducts
+    // TAREA5 — trainerContext "sin comida real" (constructor de plantillas,
+    // composer multi-cliente) pasa meal:{} — sin este guard, .customProducts
+    // era undefined y rompía TODA búsqueda en modo entrenador cuando la
+    // API devolvía 0 resultados (this.load nunca llegaba a true).
+    const productsOnMeal = (this.meal.customProducts || [])
       .map((customProductTemp) => customProductTemp.product)
       .filter((productTemp) => {
         if (!productTemp) return false;
@@ -2598,7 +2691,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
 
     // Always remove products in meal from API results to avoid duplicates (use Set for O(1) lookup)
     const productsOnMealIds = new Set(
-      this.meal.customProducts
+      (this.meal.customProducts || [])
         .map((customProductTemp) => customProductTemp.product?._id)
         .filter((id) => !!id),
     );
@@ -2778,6 +2871,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async close(result?: any): Promise<void> {
+    if (this.trainerContext) {
+      void this.modalController.dismiss();
+      return;
+    }
+
     console.log("SearchFoods: close called", {
       returnUrl: this.returnUrl,
       meal: !!this.meal,
@@ -2854,6 +2952,126 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         this.navigationService.backNoAnim();
       }
     }
+  }
+
+  // === TAREA5 (train-fit-trainers) — selección múltiple ===
+  // Cesta de selección: el entrenador marca varios productos/recetas con
+  // checkbox (product.component.ts/recipe-card.component.ts, @Output
+  // trainerToggle) y los confirma de una sola vez, en vez de un ciclo
+  // completo de buscar→elegir→confirmar por cada alimento.
+
+  public isProductInTrainerSelection(product: IProduct): boolean {
+    return this.trainerSelection.some(
+      (item) => item.kind === "product" && item.product?._id === product._id,
+    );
+  }
+
+  public isRecipeInTrainerSelection(recipe: Recipe): boolean {
+    return this.trainerSelection.some(
+      (item) => item.kind === "recipe" && item.recipe?._id === recipe._id,
+    );
+  }
+
+  public onTrainerProductToggle(event: { product: IProduct; checked: boolean }): void {
+    if (event.checked) {
+      if (this.isProductInTrainerSelection(event.product)) return;
+      const recent = this.getRecentCustomProduct(event.product);
+      const defaultQuantity = recent?.quantity ?? event.product.servingQuantity ?? 100;
+      this.trainerSelection = [
+        ...this.trainerSelection,
+        {
+          kind: "product",
+          product: event.product,
+          quantity: Math.round(defaultQuantity * 10) / 10,
+        },
+      ];
+    } else {
+      this.trainerSelection = this.trainerSelection.filter(
+        (item) => !(item.kind === "product" && item.product?._id === event.product._id),
+      );
+    }
+  }
+
+  public onTrainerRecipeToggle(event: { recipe: Recipe; checked: boolean }): void {
+    if (event.checked) {
+      if (this.isRecipeInTrainerSelection(event.recipe)) return;
+      const recent = this.getRecentCustomRecipe(event.recipe);
+      this.trainerSelection = [
+        ...this.trainerSelection,
+        {
+          kind: "recipe",
+          recipe: event.recipe,
+          quantity: recent?.quantity ?? null,
+        },
+      ];
+    } else {
+      this.trainerSelection = this.trainerSelection.filter(
+        (item) => !(item.kind === "recipe" && item.recipe?._id === event.recipe._id),
+      );
+    }
+  }
+
+  public isTrainerFavoriteProduct(product: IProduct): boolean {
+    return this.trainerFavoriteProductIds.has(product._id);
+  }
+
+  public isTrainerFavoriteRecipe(recipe: Recipe): boolean {
+    return this.trainerFavoriteRecipeIds.has(recipe._id);
+  }
+
+  public onTrainerFavoriteProductToggle(product: IProduct): void {
+    const trainerUserId = this.userService.getLocalUser?._id;
+    if (!trainerUserId) return;
+    const wasFavorite = this.trainerFavoriteProductIds.has(product._id);
+    // Optimista: refleja el cambio ya mismo, sin esperar la respuesta — es
+    // una preferencia personal de baja fricción, no una escritura crítica.
+    if (wasFavorite) {
+      this.trainerFavoriteProductIds.delete(product._id);
+    } else {
+      this.trainerFavoriteProductIds.add(product._id);
+    }
+    this.productService.addFavoriteProduct(product._id, trainerUserId).subscribe({
+      error: () => {
+        if (wasFavorite) {
+          this.trainerFavoriteProductIds.add(product._id);
+        } else {
+          this.trainerFavoriteProductIds.delete(product._id);
+        }
+      },
+    });
+  }
+
+  public onTrainerFavoriteRecipeToggle(recipe: Recipe): void {
+    const wasFavorite = this.trainerFavoriteRecipeIds.has(recipe._id);
+    if (wasFavorite) {
+      this.trainerFavoriteRecipeIds.delete(recipe._id);
+    } else {
+      this.trainerFavoriteRecipeIds.add(recipe._id);
+    }
+    this.recipeApiService.toggleArchived(recipe._id).subscribe({
+      error: () => {
+        if (wasFavorite) {
+          this.trainerFavoriteRecipeIds.add(recipe._id);
+        } else {
+          this.trainerFavoriteRecipeIds.delete(recipe._id);
+        }
+      },
+    });
+  }
+
+  public removeTrainerSelectionItem(item: TrainerFoodSelection): void {
+    this.trainerSelection = this.trainerSelection.filter((i) => i !== item);
+  }
+
+  public trackByTrainerSelection(_index: number, item: TrainerFoodSelection): string {
+    return item.kind === "product" ? `p:${item.product?._id}` : `r:${item.recipe?._id}`;
+  }
+
+  public confirmTrainerSelection(): void {
+    if (!this.trainerContext || !this.trainerSelection.length) return;
+    this.trainerContext.confirmSelection([...this.trainerSelection]);
+    this.trainerSelection = [];
+    void this.modalController.dismiss();
   }
 
   /**

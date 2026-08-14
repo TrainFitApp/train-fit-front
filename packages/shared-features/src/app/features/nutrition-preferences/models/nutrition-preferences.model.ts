@@ -3,12 +3,28 @@
 // trainer-cliente.
 export type CooksAtHome = 'yes' | 'no' | 'sometimes';
 
+// TASK-004 (MASTER_BACKLOG.md) — fix mínimo: los 6 slots siguen siendo un
+// enum fijo en el resto del sistema; esto es solo una preferencia de
+// presentación por cliente (qué slots le aplican, cómo prefiere llamarlos).
+// Debe coincidir con diet-days-util.js#MEALS del backend.
+export const STANDARD_MEAL_SLOTS = [
+  'Desayuno',
+  'Almuerzo',
+  'Comida',
+  'Merienda',
+  'Cena',
+  'Recena',
+] as const;
+export type StandardMealSlot = (typeof STANDARD_MEAL_SLOTS)[number];
+
 export interface NutritionPreferences {
   clientId: string;
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
   cooksAtHome: CooksAtHome | null;
+  disabledMealSlots: string[];
+  mealSlotLabels: Record<string, string>;
   requestedAt: string | null;
   requestedBy: string | null;
   respondedAt: string | null;

@@ -23,7 +23,11 @@ import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
 import { Split } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
-import { Workout } from 'src/app/core/models/workout';
+import { Workout, WorkoutBlock, WorkoutBlockType } from 'src/app/core/models/workout';
+import {
+  groupExercisesByBlock,
+  hasRenderableBlocks,
+} from 'src/app/core/utils/workout-blocks.util';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { UserService } from 'src/app/core/services/user/user.service';
@@ -33,6 +37,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
@@ -96,6 +101,25 @@ export class WorkoutComponent implements OnDestroy {
 
   @Input()
   public tableInUse: Table;
+
+  // Rediseño de entrenamiento (Fase A) — mismo campo/semántica que
+  // mesocycle.page.ts#isModal (panel del entrenador desde train-fit-trainers).
+  // Gatea la acción "Guardar como plantilla": esa ruta del backend es
+  // trainer-only, así que nunca debe ofrecerse fuera del panel del
+  // entrenador (train-fit-front reutiliza este mismo componente para la
+  // rutina propia del cliente).
+  @Input()
+  public isModal = false;
+
+  // Planificador visual (Fase C) — <app-workout> reutilizado como card del
+  // tablero Kanban. Oculta chrome irrelevante para planificar (play/fecha/
+  // estado — "como mesocycle pero sin el botón de empezar entrenamiento",
+  // pedido explícito) y cambia "duplicar" para que copie solo dentro
+  // de/hacia una semana (copyToSplit) en vez de cruzar todos los splits de
+  // la tabla (duplicateWorkoutRow, el modelo viejo de "fila de workout
+  // compartida entre semanas" que el Planificador deja atrás).
+  @Input()
+  public plannerMode = false;
 
   @Output()
   public exerciseCopyEvent = new EventEmitter<{
@@ -178,7 +202,8 @@ export class WorkoutComponent implements OnDestroy {
     private navigationService: NavigationService,
     private adMobService: AdMobService,
     private translate: TranslateService,
-    private pinnedExerciseNoteService: PinnedExerciseNoteService
+    private pinnedExerciseNoteService: PinnedExerciseNoteService,
+    private workoutTemplateApi: WorkoutTemplateApiService
   ) { }
 
   ngOnInit(): void {
@@ -384,6 +409,18 @@ export class WorkoutComponent implements OnDestroy {
           case ACTIONS[this.ACTION_TYPES.unskipWorkout].id:
             this.unskipWorkout();
             break;
+
+          case ACTIONS[this.ACTION_TYPES.saveAsTemplate].id:
+            this.saveAsTemplateAlert();
+            break;
+
+          case ACTIONS[this.ACTION_TYPES.manageBlocks].id:
+            this.manageBlocksAlert();
+            break;
+
+          case ACTIONS[this.ACTION_TYPES.copyToWeek].id:
+            this.copyToAnotherWeekAlert();
+            break;
         }
       }
     });
@@ -404,7 +441,10 @@ export class WorkoutComponent implements OnDestroy {
         summary,
         closeButtonLabel: this.translate.instant('COMMON.CERRAR'),
       },
-      cssClass: 'workout-summary-modal',
+      // 'tf-panel-modal': ver TAREA5 en apps/train-fit-trainers — sin efecto
+      // en train-fit-front/train-fit-management (esa regla CSS no existe en
+      // el bundle de esas apps).
+      cssClass: ['workout-summary-modal', 'tf-panel-modal'],
     });
   }
 
@@ -416,6 +456,7 @@ export class WorkoutComponent implements OnDestroy {
         idWorkout: this.workout._id,
         idTable: this.tableInUse._id,
       },
+      cssClass: 'tf-panel-modal',
     };
 
     this.ionicUtilService.showModal(modalOptions);
@@ -528,6 +569,7 @@ export class WorkoutComponent implements OnDestroy {
         message: this.translate.instant('TABLES.SKIP_WORKOUT_CONFIRM', { name: this.workout.name }),
         confirmText: this.translate.instant('TABLES.SKIP_BTN'),
       },
+      cssClass: 'tf-panel-modal',
     });
     await modal.present();
     const { role } = await modal.onDidDismiss();
@@ -584,6 +626,11 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   private duplicateWorkoutRow(): void {
+    if (this.plannerMode) {
+      this.copyToSplit(this.split._id);
+      return;
+    }
+
     this.load = false;
 
     const nameSuffix = this.translate.instant('TABLES.WORKOUT_COPY_SUFFIX');
@@ -616,6 +663,392 @@ export class WorkoutComponent implements OnDestroy {
           );
         },
       });
+  }
+
+  // Planificador visual (Fase C) — copia ESTA card a otra semana (o a la
+  // misma, como "duplicar en el sitio"). Sustituye a duplicateWorkoutRow en
+  // plannerMode: ese método cruza TODOS los splits de la tabla, incompatible
+  // con columnas independientes.
+  private copyToSplit(targetSplitId: string): void {
+    this.load = false;
+
+    this.workoutService.copyWorkoutToSplit(this.workout._id, targetSplitId).subscribe({
+      next: (splits) => {
+        this.tableInUse.splits = splits;
+        this.tableService.setCurrentTable = this.tableInUse;
+
+        const toastOptions: ToastOptions = {
+          message: this.translate.instant('TABLES.WORKOUT_DUPLICATED'),
+          duration: 1000,
+          color: 'success',
+        };
+        this.ionicUtilService.showToast(toastOptions);
+        this.load = true;
+      },
+      error: (error) => {
+        this.load = true;
+        this.ionicUtilService.showErrorToast(
+          error,
+          this.translate.instant('TABLES.WORKOUT_DUPLICATE_ERROR')
+        );
+      },
+    });
+  }
+
+  // Acción nueva del menú "⋮" en plannerMode — copiar a OTRA semana elegida
+  // por el trainer (a diferencia de "Duplicar", que copia a la misma).
+  public async copyToAnotherWeekAlert(): Promise<void> {
+    const siblingSplits = (this.tableInUse?.splits || []).filter((s) => s._id !== this.split?._id);
+    if (siblingSplits.length === 0) {
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('PLANNER.NO_OTHER_WEEKS'),
+        duration: 2000,
+      });
+      return;
+    }
+
+    const buttons = siblingSplits.map((s) => ({
+      text: s.name || this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX'),
+      handler: () => {
+        this.copyToSplit(s._id);
+        return false;
+      },
+    }));
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('PLANNER.COPY_TO_WEEK'),
+      buttons: [...buttons, { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' }],
+    });
+  }
+
+  // Rediseño de entrenamiento (Fase A) — guarda ESTE workout ya construido
+  // (con exercises/sets reales) como WorkoutTemplate reutilizable. Inverso de
+  // mesocycle.page.ts#applyTemplateToCurrentSplit — cierra el círculo
+  // "constrúyelo una vez, reutilízalo" sin un editor de contenido aparte.
+  private async saveAsTemplateAlert(): Promise<void> {
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('ACTIONS.SAVE_AS_TEMPLATE'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: this.translate.instant('TABLES.WORKOUT_EXAMPLE'),
+          value: this.workout.name || '',
+          attributes: { required: true },
+        },
+        {
+          name: 'description',
+          type: 'textarea',
+          placeholder: 'Descripción (opcional)',
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (data: any) => {
+            const name = (data?.name || '').trim();
+            if (!name) return false;
+
+            this.workoutTemplateApi
+              .saveWorkoutAsTemplate(this.workout._id, {
+                name,
+                description: (data?.description || '').trim(),
+              })
+              .subscribe({
+                next: () => {
+                  this.ionicUtilService.showToast({
+                    message: 'Plantilla guardada',
+                    duration: 1500,
+                  });
+                },
+                error: () => {
+                  this.ionicUtilService.showToast({
+                    message: 'No se pudo guardar la plantilla',
+                    duration: 2500,
+                  });
+                },
+              });
+            return true;
+          },
+        },
+      ],
+    };
+
+    await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  // Rediseño de entrenamiento Fase B — agrupado por bloque, integrado de
+  // verdad en el editor real (no un panel aparte de client-detail.page.ts,
+  // la lección directa del error de la Fase 1 revertida). `entries` carga el
+  // índice GLOBAL de cada exercise dentro de workout.exercises, porque el
+  // resto de la plantilla (notas ancladas, borrar, seleccionar, ids del DOM)
+  // depende de ese índice plano, no del índice dentro del grupo.
+  public get exerciseGroupEntries(): {
+    block: WorkoutBlock | null;
+    entries: { exercise: CustomExercise; index: number }[];
+  }[] {
+    return groupExercisesByBlock(this.workout).map((group) => ({
+      block: group.block,
+      entries: group.exercises.map((exercise) => ({
+        exercise,
+        index: this.workout.exercises.indexOf(exercise),
+      })),
+    }));
+  }
+
+  public get showsBlocks(): boolean {
+    return hasRenderableBlocks(this.workout);
+  }
+
+  public trackByBlockGroup(index: number, group: { block: WorkoutBlock | null }): string {
+    return group.block?._id || 'ungrouped';
+  }
+
+  public trackByExerciseEntry(index: number, entry: { exercise: CustomExercise }): string {
+    return entry.exercise._id;
+  }
+
+  public blockTypeLabel(type: WorkoutBlockType): string {
+    switch (type) {
+      case 'superset':
+        return this.translate.instant('TABLES.BLOCK_TYPE_SUPERSET');
+      case 'circuit':
+        return this.translate.instant('TABLES.BLOCK_TYPE_CIRCUIT');
+      case 'warmup':
+        return this.translate.instant('TABLES.BLOCK_TYPE_WARMUP');
+      case 'finisher':
+        return this.translate.instant('TABLES.BLOCK_TYPE_FINISHER');
+      default:
+        return this.translate.instant('TABLES.BLOCK_TYPE_STRAIGHT');
+    }
+  }
+
+  private saveWorkoutBlocks(blocks: Partial<WorkoutBlock>[]): void {
+    this.workoutService.updateWorkoutBlocks(this.workout._id, blocks).subscribe({
+      next: (updatedWorkout) => {
+        this.workout.blocks = updatedWorkout.blocks;
+        this.workout.exercises = updatedWorkout.exercises;
+        this.tableService.setCurrentTable = this.tableInUse;
+      },
+      error: () => {
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('TABLES.BLOCK_UPDATE_ERROR'),
+          duration: 2500,
+        });
+      },
+    });
+  }
+
+  // Punto de entrada real de gestión de bloques — lista los bloques
+  // existentes (cada uno editable) + "Nuevo bloque", como botones de un
+  // único alert (no radios: cada fila dispara una acción distinta, no una
+  // selección).
+  public async manageBlocksAlert(): Promise<void> {
+    const existingBlockButtons = (this.workout.blocks || []).map((block) => ({
+      text: block.name || this.blockTypeLabel(block.type),
+      handler: () => {
+        this.editBlockAlert(block);
+        return false;
+      },
+    }));
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('ACTIONS.MANAGE_BLOCKS'),
+      buttons: [
+        ...existingBlockButtons,
+        {
+          text: `+ ${this.translate.instant('TABLES.NEW_BLOCK_BTN')}`,
+          handler: () => {
+            this.createBlockNameAlert();
+            return false;
+          },
+        },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+      ],
+    });
+  }
+
+  private async createBlockNameAlert(): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.CREATE_BLOCK'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: this.translate.instant('TABLES.BLOCK_NAME_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (data: any) => {
+            this.chooseBlockTypeAlert((data?.name || '').trim());
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  // Ionic AlertController no soporta mezclar inputs de texto con radio en el
+  // mismo alert — por eso el tipo de bloque se elige en un segundo paso
+  // encadenado, mismo patrón que promptReadinessThenStart/promptEffortThenFinish
+  // en current-workout.page.ts.
+  private async chooseBlockTypeAlert(name: string): Promise<void> {
+    const types: WorkoutBlockType[] = ['straight', 'superset', 'circuit', 'warmup', 'finisher'];
+    const inputs: AlertOptions['inputs'] = types.map((type, index) => ({
+      type: 'radio',
+      label: this.blockTypeLabel(type),
+      value: type,
+      checked: index === 0,
+    }));
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.BLOCK_TYPE_PICKER_TITLE'),
+      inputs,
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (type: WorkoutBlockType) => {
+            const newBlock: Partial<WorkoutBlock> = {
+              name,
+              type: type || 'straight',
+              order: (this.workout.blocks || []).length,
+            };
+            this.saveWorkoutBlocks([...(this.workout.blocks || []), newBlock]);
+          },
+        },
+      ],
+    });
+  }
+
+  public async editBlockAlert(block: WorkoutBlock): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: block.name || this.blockTypeLabel(block.type),
+      buttons: [
+        {
+          text: this.translate.instant('TABLES.RENAME_BLOCK'),
+          handler: () => {
+            this.renameBlockAlert(block);
+            return false;
+          },
+        },
+        {
+          text: this.translate.instant('TABLES.DELETE_BLOCK_BTN'),
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.confirmDeleteBlock(block);
+            return false;
+          },
+        },
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+      ],
+    });
+  }
+
+  private async renameBlockAlert(block: WorkoutBlock): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.RENAME_BLOCK'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          value: block.name || '',
+          placeholder: this.translate.instant('TABLES.BLOCK_NAME_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (data: any) => {
+            const name = (data?.name || '').trim();
+            const updatedBlocks = (this.workout.blocks || []).map((b) =>
+              b._id === block._id ? { ...b, name } : b
+            );
+            this.saveWorkoutBlocks(updatedBlocks);
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  // Borrar un bloque limpia el blockId de sus ejercicios en el backend
+  // (workout-dao.js#updateWorkoutBlocks) — nunca quedan huérfanos apuntando
+  // a un bloque que ya no existe.
+  private async confirmDeleteBlock(block: WorkoutBlock): Promise<void> {
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.DELETE_BLOCK_CONFIRM'),
+      message: this.translate.instant('TABLES.DELETE_BLOCK_CONFIRM_MSG'),
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('TABLES.DELETE_BTN'),
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            const remainingBlocks = (this.workout.blocks || []).filter((b) => b._id !== block._id);
+            this.saveWorkoutBlocks(remainingBlocks);
+          },
+        },
+      ],
+    });
+  }
+
+  // Botón por ejercicio — mover a un bloque existente o dejarlo suelto.
+  public async moveExerciseToBlockAlert(exercise: CustomExercise, event: Event): Promise<void> {
+    event.stopPropagation();
+    const blocks = this.workout.blocks || [];
+    if (blocks.length === 0) {
+      this.ionicUtilService.showToast({
+        message: this.translate.instant('TABLES.NO_BLOCKS_YET'),
+        duration: 2000,
+      });
+      return;
+    }
+
+    const inputs: AlertOptions['inputs'] = [
+      {
+        type: 'radio',
+        label: this.translate.instant('TABLES.BLOCK_UNGROUPED'),
+        value: '',
+        checked: !exercise.blockId,
+      },
+      ...blocks.map((block) => ({
+        type: 'radio' as const,
+        label: block.name || this.blockTypeLabel(block.type),
+        value: block._id,
+        checked: exercise.blockId === block._id,
+      })),
+    ];
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.MOVE_TO_BLOCK'),
+      inputs,
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (blockId: string) => {
+            this.customExerciseService.setCustomExerciseBlock(exercise._id, blockId || null).subscribe({
+              next: (updated) => {
+                exercise.blockId = updated.blockId;
+                this.tableService.setCurrentTable = this.tableInUse;
+              },
+              error: () => {
+                this.ionicUtilService.showToast({
+                  message: this.translate.instant('TABLES.MOVE_TO_BLOCK_ERROR'),
+                  duration: 2500,
+                });
+              },
+            });
+          },
+        },
+      ],
+    });
   }
 
   public async deleteExercises(indexWorkout: number, indexExercise: number) {
@@ -676,7 +1109,11 @@ export class WorkoutComponent implements OnDestroy {
         workoutIndex: this.workoutIndex,
         splitIndex: this.splitIndex,
         customExercise: customExercise,
+        // TASK-021 (MASTER_BACKLOG.md) — mismo gate que searchExercises(),
+        // ver ahí para el porqué de reutilizar plannerMode.
+        showQuickSeriesGenerator: this.plannerMode,
       },
+      cssClass: 'tf-panel-modal',
     });
     modal.onDidDismiss().then((res) => {
       if (res.data?.setChangeInfo) {
@@ -778,7 +1215,22 @@ export class WorkoutComponent implements OnDestroy {
         user: this.user,
         tableInUse: this.tableInUse,
         currentSplit: currentSplit,
+        // Planificador visual (Fase C) — en plannerMode, alta/baja instantánea
+        // scoped a ESTE workout._id, no al barrido cruzado entre splits
+        // (ver SearchExercisesPage#toggleExerciseSelection).
+        singleWorkoutMode: this.plannerMode,
+        // TASK-021 (MASTER_BACKLOG.md) — plannerMode ya distingue "abierto
+        // desde el Planner de train-fit-trainers"; se reutiliza como gate
+        // del generador rápido de series en vez de crear un @Input() nuevo.
+        showQuickSeriesGenerator: this.plannerMode,
       },
+      // Panel lateral en escritorio SOLO en train-fit-trainers: la regla CSS
+      // de esta clase vive en el stylesheet propio de esa app
+      // (apps/train-fit-trainers/src/theme/tokens.scss), no en
+      // shared-theme — en train-fit-front/train-fit-management este nombre
+      // de clase no coincide con ninguna regla y el modal se comporta igual
+      // que antes. Ver MVP-trainers/tareas-grandes/TAREA5.
+      cssClass: 'tf-panel-modal',
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
@@ -880,7 +1332,7 @@ export class WorkoutComponent implements OnDestroy {
         exercises: clipboard.selectedExercises,
         mode: 'paste',
       },
-      cssClass: 'clipboard-modal',
+      cssClass: ['clipboard-modal', 'tf-panel-modal'],
     });
 
     if (modalResult.role !== 'confirm') return;
@@ -977,17 +1429,35 @@ export class WorkoutComponent implements OnDestroy {
         (actionTemp) =>
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.copy].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.deselect].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.duplicate].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.viewSummary].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.skipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.unskipWorkout].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.rmCalculator].id &&
           actionTemp.id !== ACTIONS[this.ACTION_TYPES.moveSets].id &&
-          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyExercises].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.saveAsTemplate].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.manageBlocks].id &&
+          actionTemp.id !== ACTIONS[this.ACTION_TYPES.copyToWeek].id
       );
 
       if (this.workout.exercises.length > 0) {
         actions = [...actions, ACTIONS[this.ACTION_TYPES.copyExercises]];
+
+        // Bloques/superseries — disponible para cualquiera que edite un
+        // workout (consumidor con su propia rutina o entrenador), la ruta
+        // del backend no es trainer-only.
+        actions = [...actions, ACTIONS[this.ACTION_TYPES.manageBlocks]];
+
+        // Solo en el panel del entrenador — ver comentario del @Input isModal.
+        if (this.isModal) {
+          actions = [...actions, ACTIONS[this.ACTION_TYPES.saveAsTemplate]];
+        }
+
+        // Solo en el Planificador — "Copiar a otra semana" no tiene sentido
+        // fuera del tablero Kanban.
+        if (this.plannerMode) {
+          actions = [...actions, ACTIONS[this.ACTION_TYPES.copyToWeek]];
+        }
       }
 
       // "Ver resumen" solo se ofrece si el entreno ya está terminado.
@@ -1340,6 +1810,7 @@ export class WorkoutComponent implements OnDestroy {
         showSecondaryAction: true,
         secondaryText: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
       },
+      cssClass: 'tf-panel-modal',
     });
     await modal.present();
     const { role } = await modal.onDidDismiss();

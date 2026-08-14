@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  Input,
   OnInit,
   Output,
   effect,
@@ -9,7 +10,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from "@angular/core";
-import { AlertOptions, Platform, ToastOptions } from "@ionic/angular";
+import { AlertOptions, ModalController, Platform, ToastOptions } from "@ionic/angular";
 import { Split } from "src/app/core/models/split";
 import { Subject, Subscription } from "rxjs";
 import { Table } from "src/app/core/models/table";
@@ -25,6 +26,10 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 import { TranslateService } from "@ngx-translate/core";
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { WorkoutTemplateApiService } from "src/app/core/services/workout-template/workout-template-api.service";
+// Alias — evita colisión con la interfaz local WorkoutTemplate (mock legado
+// de WORKOUT_TEMPLATES, sin motor real, ver más abajo en este archivo).
+import { WorkoutTemplate as WorkoutTemplateDoc } from "src/app/core/models/workout-template";
 import { ExerciseClipboard } from "src/app/shared/models/exercise-clipboard";
 import {
   ACTIONS_FAB,
@@ -103,6 +108,16 @@ const WORKOUT_TEMPLATES: WorkoutTemplate[] = [
   styleUrls: ["./mesocycle.page.scss"],
 })
 export class MesocyclePage implements OnInit, AfterViewInit {
+  // TAREA5 — presentado como panel lateral (ModalController) desde
+  // train-fit-trainers en vez de como ruta de nivel superior; sin esto,
+  // close() navegaría a 'tabs/summary' (ruta del CONSUMIDOR que no existe en
+  // esa app) en vez de simplemente cerrar el panel. Por defecto false —
+  // train-fit-front sigue usándolo como ruta normal, sin cambios.
+  @Input()
+  public isModal = false;
+
+  private readonly modalController = inject(ModalController);
+
   @Output()
   public currentIndex = new EventEmitter<number>();
 
@@ -199,6 +214,8 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public readonly tableService = inject(TableService);
   private readonly userService = inject(UserService);
   private readonly workoutService = inject(WorkoutService);
+  private readonly workoutTemplateApi = inject(WorkoutTemplateApiService);
+  public applyingTemplate = false;
 
   // Subject para gestionar el ciclo de vida de suscripciones
   private destroy$ = new Subject<void>();
@@ -725,45 +742,71 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  public addWorkout(): void {
+  // Replanteamiento MVP (rutinas): this.user.tableInUse es la tabla en uso
+  // del usuario LOGUEADO, undefined para un profesional que no tiene rutina
+  // propia — usa this.tableInUse._id (la tabla que este componente ya tiene
+  // cargada, cliente incluido). Punto único usado tanto por el CTA principal
+  // (addWorkout) como por el FAB (addWorkoutToSplit) — antes eran dos
+  // implementaciones divergentes que hacían lo mismo.
+  private openAddWorkoutAlert(options: {
+    header: string;
+    message?: string;
+    placeholder: string;
+    confirmText: string;
+    toastMessageKey: string;
+    requiredInput: boolean;
+    showEmptyErrorToast: boolean;
+    isFab: boolean;
+  }): void {
     if (this.isCurrentSplitLocked()) {
       this.openPremiumFromLockedSplit();
       return;
     }
 
-    const alertOptions = {
-      header: this.translate.instant('TABLES.ADD_WORKOUT_ALERT'),
-      message: this.translate.instant('TABLES.ADD_WORKOUT_MSG'),
+    if (options.isFab) {
+      this.loadingFab = true;
+    }
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant(options.header),
+      ...(options.message
+        ? { message: this.translate.instant(options.message) }
+        : {}),
       inputs: [
         {
           name: "workoutName",
           type: "text" as "text",
-          placeholder: this.translate.instant('TABLES.WORKOUT_EXAMPLE'),
-          attributes: {
-            required: true,
-          },
+          placeholder: this.translate.instant(options.placeholder),
+          ...(options.requiredInput ? { attributes: { required: true } } : {}),
         },
       ],
       buttons: [
         {
           text: this.translate.instant('COMMON.CANCEL'),
           role: "cancel",
+          handler: () => {
+            if (options.isFab) this.loadingFab = false;
+          },
         },
         {
-          text: this.translate.instant('TABLES.ADD_BTN'),
-          cssClass: "alert-button-confirm",
+          text: this.translate.instant(options.confirmText),
+          cssClass: options.isFab ? undefined : "alert-button-confirm",
           handler: (data: any) => {
-            if (!data.workoutName || data.workoutName.trim() === "") {
+            const name = data?.workoutName?.trim();
+            if (!name) {
+              if (options.showEmptyErrorToast) {
+                const errorToast: ToastOptions = {
+                  message: this.translate.instant('TABLES.WORKOUT_NAME_EMPTY'),
+                  duration: 2000,
+                };
+                this.ionicUtilService.showToast(errorToast);
+              }
               return false; // Prevent closing if empty
             }
 
-            let workout = new Workout();
-            workout.name = data.workoutName.trim();
+            const workout = this.workoutService.getStandarWorkout();
+            workout.name = name;
 
-            // Replanteamiento MVP (rutinas): this.user.tableInUse es la tabla
-            // en uso del usuario LOGUEADO, undefined para un profesional que
-            // no tiene rutina propia — usa this.tableInUse._id (la tabla que
-            // este componente ya tiene cargada, cliente incluido).
             this.workoutService
               .addWorkoutsToSplits(this.tableInUse._id, workout)
               .subscribe((resSplits) => {
@@ -771,10 +814,12 @@ export class MesocyclePage implements OnInit, AfterViewInit {
                 this.tableService.setCurrentTable = this.tableInUse;
 
                 const toastOptions: ToastOptions = {
-                  message: this.translate.instant('TABLES.WORKOUT_ADDED', { name: workout.name }),
+                  message: this.translate.instant(options.toastMessageKey, { name }),
                   duration: 500,
                 };
                 this.ionicUtilService.showToast(toastOptions);
+
+                if (options.isFab) this.loadingFab = false;
               });
             return true;
           },
@@ -783,6 +828,19 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     };
 
     this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public addWorkout(): void {
+    this.openAddWorkoutAlert({
+      header: 'TABLES.ADD_WORKOUT_ALERT',
+      message: 'TABLES.ADD_WORKOUT_MSG',
+      placeholder: 'TABLES.WORKOUT_EXAMPLE',
+      confirmText: 'TABLES.ADD_BTN',
+      toastMessageKey: 'TABLES.WORKOUT_ADDED',
+      requiredInput: true,
+      showEmptyErrorToast: false,
+      isFab: false,
+    });
   }
 
   public get shouldShowWorkoutTemplates(): boolean {
@@ -1457,7 +1515,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         currentSplitIndex: this._currentSplitIndex,
         workoutInUse: this.user?.workoutInUse,
       },
-      cssClass: "delete-splits-modal",
+      cssClass: ["delete-splits-modal", "tf-panel-modal"],
     });
 
     const splitIds = modalResult.data?.splitIds as string[] | undefined;
@@ -1486,6 +1544,83 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     };
 
     await this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  // Rediseño de entrenamiento (Fase A) — aplica una WorkoutTemplate real
+  // (biblioteca del profesional) dentro del split actual, materializando
+  // exercises/sets ya prescritos. Solo visible en el panel del entrenador
+  // (isModal=true, ver comentario del campo) — nunca en train-fit-front,
+  // que reutiliza este mismo componente para la rutina propia del cliente y
+  // no tiene relación trainer-cliente que satisfaga la ruta del backend.
+  public async openApplyTemplateAlert(): Promise<void> {
+    if (this.applyingTemplate || !this.currentSplit || !this.tableInUse?.userId) return;
+
+    this.applyingTemplate = true;
+    this.workoutTemplateApi.list().subscribe({
+      next: (templates: WorkoutTemplateDoc[]) => {
+        this.applyingTemplate = false;
+        if (!templates.length) {
+          this.ionicUtilService.showToast({
+            message: 'Todavía no tienes plantillas de rutina. Créalas desde "Plantillas de rutinas".',
+            duration: 3000,
+          });
+          return;
+        }
+        this.showApplyTemplatePicker(templates);
+      },
+      error: () => {
+        this.applyingTemplate = false;
+        this.ionicUtilService.showToast({
+          message: 'No se pudieron cargar las plantillas',
+          duration: 2500,
+        });
+      },
+    });
+  }
+
+  private async showApplyTemplatePicker(templates: WorkoutTemplateDoc[]): Promise<void> {
+    const inputs: AlertOptions['inputs'] = templates.map((template, index) => ({
+      type: 'radio',
+      label: template.name,
+      value: template._id,
+      checked: index === 0,
+    }));
+
+    await this.ionicUtilService.showAlert({
+      header: 'Aplicar plantilla a este microciclo',
+      inputs,
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (templateId: string) => {
+            if (templateId) this.applyTemplateToCurrentSplit(templateId);
+          },
+        },
+      ],
+    });
+  }
+
+  private applyTemplateToCurrentSplit(templateId: string): void {
+    const clientId = this.tableInUse.userId;
+    const splitId = this.currentSplit._id;
+
+    this.applyingTemplate = true;
+    this.workoutTemplateApi.applyToSplit(clientId, splitId, templateId).subscribe({
+      next: (resSplits) => {
+        this.applyingTemplate = false;
+        this.tableInUse.splits = resSplits;
+        this.tableService.setCurrentTable = this.tableInUse;
+        this.ionicUtilService.showToast({ message: 'Plantilla aplicada', duration: 1500 });
+      },
+      error: () => {
+        this.applyingTemplate = false;
+        this.ionicUtilService.showToast({
+          message: 'No se pudo aplicar la plantilla',
+          duration: 2500,
+        });
+      },
+    });
   }
 
   private deleteSelectedSplits(splitIds: string[]): void {
@@ -1619,62 +1754,15 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   private addWorkoutToSplit(): void {
-    if (this.isCurrentSplitLocked()) {
-      this.openPremiumFromLockedSplit();
-      return;
-    }
-
-    this.loadingFab = true;
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant(ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value),
-      inputs: [
-        {
-          name: "workoutName",
-          type: "text",
-          placeholder: this.translate.instant('TABLES.ROUTINE_NAME_PLACEHOLDER'),
-        },
-      ],
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: "cancel",
-          handler: () => {
-            this.loadingFab = false;
-          },
-        },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          handler: (data) => {
-            if (data.workoutName && data.workoutName.trim() !== "") {
-              const workout = this.workoutService.getStandarWorkout();
-              workout.name = data.workoutName;
-              this.workoutService
-                .addWorkoutsToSplits(this.tableInUse._id, workout)
-                .subscribe((resSplits) => {
-                  this.tableInUse.splits = resSplits;
-                  this.tableService.setCurrentTable = this.tableInUse;
-                  const toastOptions: ToastOptions = {
-                    message: this.translate.instant('TABLES.WORKOUT_ADDED_SIMPLE', { name: data.workoutName }),
-                    duration: 500,
-                  };
-                  this.ionicUtilService.showToast(toastOptions);
-                  this.loadingFab = false;
-                });
-              return true;
-            } else {
-              const errorToast: ToastOptions = {
-                message: this.translate.instant('TABLES.WORKOUT_NAME_EMPTY'),
-                duration: 2000,
-              };
-              this.ionicUtilService.showToast(errorToast);
-              return false;
-            }
-          },
-        },
-      ],
-    };
-
-    this.ionicUtilService.showAlert(alertOptions);
+    this.openAddWorkoutAlert({
+      header: ACTIONS_FAB[ACTIONS_FAB_TYPES.addWorkout].value,
+      placeholder: 'TABLES.ROUTINE_NAME_PLACEHOLDER',
+      confirmText: 'COMMON.CONFIRM',
+      toastMessageKey: 'TABLES.WORKOUT_ADDED_SIMPLE',
+      requiredInput: false,
+      showEmptyErrorToast: true,
+      isFab: true,
+    });
   }
 
   public async openClipboardModal(): Promise<void> {
@@ -1686,7 +1774,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
         exercises: this.exerciseClipboard.selectedExercises,
         mode: 'view',
       },
-      cssClass: 'clipboard-modal',
+      cssClass: ['clipboard-modal', 'tf-panel-modal'],
     });
 
     if (modalResult.role !== 'confirm') return;
@@ -1724,6 +1812,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public close(): void {
+    if (this.isModal) {
+      void this.modalController.dismiss();
+      return;
+    }
     this.navigationService.goToTabsSummaryPage();
   }
 

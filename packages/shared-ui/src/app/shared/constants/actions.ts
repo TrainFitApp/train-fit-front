@@ -15,6 +15,9 @@ export enum ACTION_TYPES {
   skipWorkout = 13,
   unskipWorkout = 14,
   copyExercises = 15,
+  saveAsTemplate = 16,
+  manageBlocks = 17,
+  copyToWeek = 18,
 }
 
 export type ACTION_TYPE = {
@@ -122,6 +125,33 @@ export const ACTIONS: {
     value: 'ACTIONS.COPY_EXERCISES',
     icon: 'copy-outline',
     color: 'primary',
+  },
+  // Rediseño de entrenamiento (Fase A) — solo se añade al menú cuando el
+  // componente padre está en modo panel del entrenador (isModal=true, ver
+  // workout.component.ts#getActionsPopover), nunca en train-fit-front.
+  [ACTION_TYPES.saveAsTemplate]: {
+    id: ACTION_TYPES.saveAsTemplate,
+    value: 'ACTIONS.SAVE_AS_TEMPLATE',
+    icon: 'albums-outline',
+    color: 'tertiary',
+  },
+  // Rediseño de entrenamiento Fase B — abre la gestión real de bloques
+  // (crear/renombrar/borrar) para este workout, integrada en el editor
+  // (ver workout.component.ts#manageBlocksAlert), no en un panel aparte.
+  [ACTION_TYPES.manageBlocks]: {
+    id: ACTION_TYPES.manageBlocks,
+    value: 'ACTIONS.MANAGE_BLOCKS',
+    icon: 'layers-outline',
+    color: 'secondary',
+  },
+  // Planificador visual (Fase C) — solo se añade al menú en plannerMode (ver
+  // workout.component.ts#getActionsPopover); copia esta card a otra semana
+  // elegida por el trainer.
+  [ACTION_TYPES.copyToWeek]: {
+    id: ACTION_TYPES.copyToWeek,
+    value: 'PLANNER.COPY_TO_WEEK',
+    icon: 'arrow-redo-outline',
+    color: 'tertiary',
   },
 };
 

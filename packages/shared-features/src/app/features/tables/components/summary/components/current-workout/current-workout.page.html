@@ -103,72 +103,90 @@
   ></app-notes>
 
   <ng-container *ngIf="currentWorkout">
-    <ion-accordion-group
-      *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise"
-      expand="inset"
-    >
-      <ion-accordion [value]="'exercise-' + i">
-        <ion-item
-          slot="header"
-          class="premium-accordion-header"
-          [ngClass]="{ 
-            'current-workout-exercise' : i === 0, 
-            'completed-exercise': isCustomExerciseCompleted(exercise),
-            'in-progress-exercise': !isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0
-          }"
-          lines="none"
-        >
-          <div class="premium-accordion-content">
-            <div class="premium-exercise-thumbnail">
-              <img
-                class="premium-thumbnail-img"
-                [src]="(exercise?.exercise.gifUrl ? exercise?.exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
-                (click)="navigateYTVideo(exercise.exercise.videoUrl, exercise); $event.stopPropagation()"
-              />
-            </div>
+    <ng-container *ngFor="let group of exerciseGroups; trackBy: trackByBlockGroup">
+      <div class="workout-block-header" *ngIf="group.block">
+        <div class="block-header-main">
+          <span class="block-name">{{ group.block.name || blockTypeLabel(group.block.type) }}</span>
+          <span class="block-type-badge">{{ blockTypeLabel(group.block.type) }}</span>
+        </div>
+        <div class="block-header-meta" *ngIf="group.block.rounds || group.block.restBetweenExercises || group.block.restBetweenRounds">
+          <span *ngIf="group.block.rounds">{{ group.block.rounds }} {{ 'TABLES.BLOCK_ROUNDS' | translate }}</span>
+          <span *ngIf="group.block.restBetweenExercises">{{ 'TABLES.BLOCK_REST_BETWEEN_EXERCISES' | translate }}: {{ group.block.restBetweenExercises }}s</span>
+          <span *ngIf="group.block.restBetweenRounds">{{ 'TABLES.BLOCK_REST_BETWEEN_ROUNDS' | translate }}: {{ group.block.restBetweenRounds }}s</span>
+        </div>
+        <p class="block-instructions" *ngIf="group.block.instructions">{{ group.block.instructions }}</p>
+      </div>
+      <div class="workout-block-header workout-block-header--ungrouped" *ngIf="!group.block && showsBlocks">
+        <span class="block-name">{{ 'TABLES.BLOCK_UNGROUPED' | translate }}</span>
+      </div>
 
-            <div class="premium-exercise-info">
-              <div class="premium-exercise-name">
-                <span
-                  class="exercise-name-text"
-                  [class.completed]="isCustomExerciseCompleted(exercise)"
-                >
-                  {{ exercise.exercise.name | translateDb }}
-                </span>
+      <ion-accordion-group
+        *ngFor="let exercise of group.exercises; trackBy: trackByCustomExercise"
+        expand="inset"
+      >
+        <ion-accordion [value]="'exercise-' + globalExerciseIndex(exercise)">
+          <ion-item
+            slot="header"
+            class="premium-accordion-header"
+            [ngClass]="{
+              'current-workout-exercise' : globalExerciseIndex(exercise) === 0,
+              'completed-exercise': isCustomExerciseCompleted(exercise),
+              'in-progress-exercise': !isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0
+            }"
+            lines="none"
+          >
+            <div class="premium-accordion-content">
+              <div class="premium-exercise-thumbnail">
+                <img
+                  class="premium-thumbnail-img"
+                  [src]="(exercise?.exercise.gifUrl ? exercise?.exercise.gifUrl : theme === THEMES.dark.id ? GIF_LOCAL_ROUTE_DARK : GIF_LOCAL_ROUTE_LIGHT) | safe"
+                  (click)="navigateYTVideo(exercise.exercise.videoUrl, exercise); $event.stopPropagation()"
+                />
               </div>
 
-              <div class="premium-exercise-progress">
-                <span class="progress-badge">
-                  {{ getCustomExerciseSetsDoned(exercise) }} / {{
-                  exercise.sets.length }}
-                </span>
-                <span
-                  *ngIf="!isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0"
-                  class="progress-status in-progress"
-                >
-                  {{ 'TABLES.IN_PROGRESS_BADGE' | translate }}
-                </span>
-                <span
-                  *ngIf="isCustomExerciseCompleted(exercise)"
-                  class="progress-status completed"
-                >
-                  {{ 'TABLES.COMPLETED_BADGE' | translate }}
-                </span>
+              <div class="premium-exercise-info">
+                <div class="premium-exercise-name">
+                  <span
+                    class="exercise-name-text"
+                    [class.completed]="isCustomExerciseCompleted(exercise)"
+                  >
+                    {{ (exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
+                  </span>
+                </div>
+
+                <div class="premium-exercise-progress">
+                  <span class="progress-badge">
+                    {{ getCustomExerciseSetsDoned(exercise) }} / {{
+                    exercise.sets.length }}
+                  </span>
+                  <span
+                    *ngIf="!isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0"
+                    class="progress-status in-progress"
+                  >
+                    {{ 'TABLES.IN_PROGRESS_BADGE' | translate }}
+                  </span>
+                  <span
+                    *ngIf="isCustomExerciseCompleted(exercise)"
+                    class="progress-status completed"
+                  >
+                    {{ 'TABLES.COMPLETED_BADGE' | translate }}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </ion-item>
+          </ion-item>
 
-        <ion-list slot="content" class="ion-no-padding">
-          <app-custom-exercise
-            [tableInUse]="tableInUse"
-            [previousWorkoutDate]="previousWorkoutDate"
-            [customExercise]="exercise"
-            [indexCustomExercise]="i"
-            [currentWorkout]="currentWorkout"
-          ></app-custom-exercise>
-        </ion-list>
-      </ion-accordion>
-    </ion-accordion-group>
+          <ion-list slot="content" class="ion-no-padding">
+            <app-custom-exercise
+              [tableInUse]="tableInUse"
+              [previousWorkoutDate]="previousWorkoutDate"
+              [customExercise]="exercise"
+              [indexCustomExercise]="globalExerciseIndex(exercise)"
+              [currentWorkout]="currentWorkout"
+            ></app-custom-exercise>
+          </ion-list>
+        </ion-accordion>
+      </ion-accordion-group>
+    </ng-container>
   </ng-container>
 </ion-content>
