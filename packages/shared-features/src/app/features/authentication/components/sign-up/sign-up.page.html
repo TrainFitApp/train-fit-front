@@ -458,8 +458,12 @@
                   <ion-icon name="mail-outline" class="input-icon"></ion-icon>
                   <input
                     type="email"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    spellcheck="false"
                     [placeholder]="'SIGN_UP.EMAIL_PLACEHOLDER' | translate"
                     formControlName="email"
+                    appLowercaseEmailInput
                     class="input-field"
                   />
                 </div>

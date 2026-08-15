@@ -46,8 +46,12 @@
                 enterkeyhint="next"
                 inputmode="email"
                 autocomplete="email"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
                 [placeholder]="'SIGN_IN.EMAIL_PLACEHOLDER' | translate"
                 formControlName="email"
+                appLowercaseEmailInput
                 class="input-field"
                 (keydown.enter)="passwordInput.focus()"
               />

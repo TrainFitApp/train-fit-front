@@ -44,6 +44,7 @@ export class BillingService {
   private initializePromise: Promise<void> | null = null;
   private configured = false;
   private cachedEntitlements: BillingEntitlements | null = null;
+  private customerInfoListenerId: string | null = null;
   private _translate: TranslateService | null = null;
 
   private get translate(): TranslateService {
@@ -546,6 +547,7 @@ export class BillingService {
 
       await Purchases.configure({ apiKey });
       this.configured = true;
+      this.registerCustomerInfoUpdateListener();
 
       const localUserId = this.userService.getLocalUser?._id;
       if (localUserId) {
@@ -556,6 +558,27 @@ export class BillingService {
       this.configured = false;
       console.error('RevenueCat configure error', error);
     }
+  }
+
+  /**
+   * Escucha los cambios de entitlement que RevenueCat empuja al SDK (expiración,
+   * renovación, fallo de cobro, cancelación reflejada, etc.) sin depender de que
+   * el usuario visite una pantalla concreta o vuelva de background. Cada vez que
+   * llega un CustomerInfo nuevo, se manda al backend para forzar una
+   * reconciliación real (equivalente a lo que hoy solo dispara "Restaurar compras").
+   */
+  private registerCustomerInfoUpdateListener(): void {
+    if (this.customerInfoListenerId) return;
+
+    Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+      void this.syncEntitlementsWithBackend(customerInfo);
+    })
+      .then((listenerId) => {
+        this.customerInfoListenerId = listenerId;
+      })
+      .catch((error) => {
+        console.warn('RevenueCat addCustomerInfoUpdateListener error', error);
+      });
   }
 
   private async syncSubscriberAttributes(): Promise<void> {
