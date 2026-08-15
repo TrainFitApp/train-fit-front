@@ -1406,6 +1406,7 @@
     "HELP_RESOURCES": "Ayuda y Recursos",
     "DICTIONARY": "Diccionario",
     "SUGGESTIONS": "Reportes y sugerencias",
+    "TUTORIALS": "Tutoriales",
     "LEGAL_INFO": "Legal e Información",
     "PRIVACY_POLICY": "Política y privacidad",
     "ABOUT_US": "Nosotros",
@@ -1771,6 +1772,18 @@
     "ERROR_MSG": "No se pudo enviar la sugerencia. Por favor, inténtalo de nuevo más tarde.",
     "FOOTER_TITLE": "¡Gracias por tus comentarios!",
     "FOOTER_TEXT": "Cada comentario nos ayuda a crear una mejor experiencia para ti"
+  },
+  "TUTORIALS": {
+    "TITLE": "Tutoriales",
+    "NEXT": "Siguiente",
+    "GOT_IT": "Entendido",
+    "SKIP": "Saltar tutorial",
+    "PENDING": "Pendiente",
+    "COMPLETED": "Completado",
+    "REPLAY": "Volver a ver",
+    "WILL_SHOW_NEXT_VISIT": "Se mostrará la próxima vez que entres en esa pantalla",
+    "EMPTY_TITLE": "Sin tutoriales",
+    "EMPTY_TEXT": "Todavía no hay tutoriales disponibles."
   },
   "ORDER_EXERCISES": {
     "TITLE": "Ordenar",

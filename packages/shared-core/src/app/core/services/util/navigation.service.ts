@@ -23,6 +23,7 @@ export class NavigationService {
   private readonly MANAGEMENT_HOME_ROUTE = 'management-home';
   private readonly CONFIGURATION_ROUTE = 'configuration';
   private readonly CONCEPTS_ROUTE = 'configuration/concepts';
+  private readonly TUTORIALS_ROUTE = 'configuration/tutorials';
   private readonly SUGGESTIONS_ROUTE = 'configuration/suggestions';
   private readonly REFERENCES_ROUTE = 'configuration/references';
   private readonly CALCULATOR_LIST_ROUTE = 'tabs/profile/calculator-list';
@@ -186,6 +187,10 @@ export class NavigationService {
 
   public gotoConcepts(): void {
     this.navController.navigateForward([this.CONCEPTS_ROUTE]);
+  }
+
+  public goToTutorials(): void {
+    this.navController.navigateForward([this.TUTORIALS_ROUTE]);
   }
 
   public goToSuggestions(): void {

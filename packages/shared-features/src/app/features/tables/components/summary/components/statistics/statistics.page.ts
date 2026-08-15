@@ -26,6 +26,7 @@ import {
 } from 'src/app/core/services/exercise-history/exercise-history.service';
 import { take } from 'rxjs/operators';
 import { formatSecondsAsTime, parseTimeToSeconds } from 'src/app/shared/utils';
+import { TutorialService } from 'src/app/core/services/tutorial/tutorial.service';
 
 Chart.register(...registerables);
 
@@ -233,10 +234,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
     private navCtrl: NavController,
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
-    public translate: TranslateService
+    public translate: TranslateService,
+    private tutorialService: TutorialService
   ) { }
 
   ngOnInit() {
+    this.tutorialService.startForScreen('training.statistics');
     this.weekDaysHeader = [
       this.translate.instant('COMMON.MON'),
       this.translate.instant('COMMON.TUE'),

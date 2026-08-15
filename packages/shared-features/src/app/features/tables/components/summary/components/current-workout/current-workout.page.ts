@@ -35,6 +35,7 @@ import {
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ExerciseHistoryService } from 'src/app/core/services/exercise-history/exercise-history.service';
+import { TutorialService } from 'src/app/core/services/tutorial/tutorial.service';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTION_TYPE,
@@ -131,6 +132,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
+  private readonly tutorialService = inject(TutorialService);
 
   constructor(
     private navigationService: NavigationService,
@@ -191,6 +193,14 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
 
     // Suscripciones principales
     this.initVariables();
+
+    this.tutorialService.startForScreen('training.currentWorkout');
+  }
+
+  public onExerciseAccordionChange(event: CustomEvent): void {
+    if (event.detail?.value) {
+      this.tutorialService.notifyEvent('exerciseExpanded');
+    }
   }
 
   public ngOnDestroy(): void {

@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, effect } from '@angular/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
@@ -9,6 +9,9 @@ import { PendingEmailVerificationService } from 'src/app/core/services/auth/pend
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { NotificationService } from 'src/app/core/services/util/notification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
+import { TutorialCatalogService } from 'src/app/core/services/tutorial/tutorial-catalog.service';
+import { TutorialService } from 'src/app/core/services/tutorial/tutorial.service';
+import { TutorialOverlayService } from 'src/app/shared/services/tutorial-overlay.service';
 
 register();
 @Component({
@@ -28,13 +31,34 @@ export class AppComponent implements OnDestroy {
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
     private themeService: ThemeService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private tutorialCatalogService: TutorialCatalogService,
+    private tutorialService: TutorialService,
+    private tutorialOverlayService: TutorialOverlayService
   ) {
     void this.initializeApp();
+
+    // Puente entre el estado (TutorialService, shared-core) y su
+    // renderizado (TutorialOverlayService, shared-ui — CDK Overlay). Es el
+    // único punto de la app que conecta ambas capas.
+    effect(() => {
+      const step = this.tutorialService.activeStep();
+      if (!step) {
+        this.tutorialOverlayService.destroy();
+        return;
+      }
+
+      const anchorEl = this.tutorialService.getAnchorElement(step.anchorId);
+      this.tutorialOverlayService.show(step, anchorEl, {
+        onNext: () => this.tutorialService.next(),
+        onSkip: () => this.tutorialService.skip(),
+      });
+    });
   }
 
   private async initializeApp(): Promise<void> {
     void this.billingService.initialize();
+    void this.tutorialCatalogService.load();
 
     // Mantenimiento/actualización obligatoria BEFORE any routing (Inicio Total)
     await this.remoteConfigGate.checkAndPresent();

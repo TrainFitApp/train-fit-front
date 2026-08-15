@@ -1374,6 +1374,7 @@
     "HELP_RESOURCES": "Help & Resources",
     "DICTIONARY": "Dictionary",
     "SUGGESTIONS": "Reports & Suggestions",
+    "TUTORIALS": "Tutorials",
     "LEGAL_INFO": "Legal & Information",
     "PRIVACY_POLICY": "Privacy Policy",
     "ABOUT_US": "About Us",
@@ -1658,6 +1659,18 @@
     "ERROR_MSG": "Could not send your suggestion. Please try again later.",
     "FOOTER_TITLE": "Thanks for your feedback!",
     "FOOTER_TEXT": "Every comment helps us create a better experience for you"
+  },
+  "TUTORIALS": {
+    "TITLE": "Tutorials",
+    "NEXT": "Next",
+    "GOT_IT": "Got it",
+    "SKIP": "Skip tutorial",
+    "PENDING": "Pending",
+    "COMPLETED": "Completed",
+    "REPLAY": "Watch again",
+    "WILL_SHOW_NEXT_VISIT": "It will show the next time you visit that screen",
+    "EMPTY_TITLE": "No tutorials",
+    "EMPTY_TEXT": "There are no tutorials available yet."
   },
   "CONCEPTS": {
     "SEARCH_PLACEHOLDER": "Search concepts...",

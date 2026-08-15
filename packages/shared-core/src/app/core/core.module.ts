@@ -23,6 +23,9 @@ import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
 import { RmCalculatorService } from './services/rm-calculator/rm-calculator.service';
 import { ExerciseHistoryService } from './services/exercise-history/exercise-history.service';
+import { TutorialApiService } from './services/tutorial/tutorial-api.service';
+import { TutorialCatalogService } from './services/tutorial/tutorial-catalog.service';
+import { TutorialService } from './services/tutorial/tutorial.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
 import { MealService } from './services/meal/meal.service';
@@ -107,6 +110,9 @@ import { MatchPasswords } from './validators/matchPasswords';
     ExerciseAPIService,
     RmCalculatorService,
     ExerciseHistoryService,
+    TutorialApiService,
+    TutorialCatalogService,
+    TutorialService,
     // Interceptors
     {
       provide: HTTP_INTERCEPTORS,

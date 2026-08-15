@@ -32,6 +32,36 @@
   --fat-color: #eab308;
 }
 
+/* Sistema de tutoriales contextuales (TutorialTooltipComponent). No existía
+   ninguna escala de z-index global en el proyecto (el valor más alto visto
+   en componentes sueltos era 9999) — estos tokens quedan por encima a
+   propósito para convivir con cualquier overlay existente. */
+:root {
+  --tf-z-tutorial-halo: 10000;
+  --tf-z-tutorial-tooltip: 10010;
+}
+
+/* Angular CDK trae su propio contenedor de overlays (z-index 1000 por
+   defecto en overlay-prebuilt.css) — se sube por encima del z-index ad-hoc
+   más alto visto en la app (9999) para que la burbuja del tutorial (única
+   pieza que usa CDK Overlay en el proyecto) nunca quede tapada. */
+.cdk-overlay-container {
+  z-index: 10005;
+}
+
+/* Halo de resaltado del tutorial — se crea con DOM plano (document.body),
+   fuera del árbol de Angular, así que no puede vivir en el .scss con ámbito
+   de TutorialTooltipComponent; tiene que ser una clase global. */
+.tf-tutorial-halo {
+  position: fixed;
+  z-index: var(--tf-z-tutorial-halo);
+  border-radius: 10px;
+  border: 2px solid var(--ion-color-primary);
+  box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.25);
+  pointer-events: none;
+  transition: top 160ms ease-out, left 160ms ease-out, width 160ms ease-out, height 160ms ease-out;
+}
+
 body.hide-tabs ion-tab-bar {
   display: none;
 }

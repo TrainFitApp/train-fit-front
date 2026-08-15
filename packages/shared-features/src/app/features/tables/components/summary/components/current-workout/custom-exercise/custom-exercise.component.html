@@ -121,7 +121,7 @@
   <!-- Notas de sesión anterior debajo de la tabla -->
   <app-notes *ngIf="previousWorkoutCustomExercise?.notes" [object]="previousWorkoutCustomExercise"
     [notes]="previousWorkoutCustomExercise.notes" [detail]="true" [isPrevious]="true" [canDelete]="false"
-    [canModify]="false"></app-notes>
+    [canModify]="false" appTutorialAnchor="training.previousSession.previousSession"></app-notes>
 </div>
 
 <!-- Premium Current Sets Section -->
@@ -203,12 +203,12 @@
     </ng-container>
     <ng-template #normalActions>
       <div class="exercise-actions">
-        <ion-button fill="clear" class="action-btn note-btn" (click)="manageNote()">
+        <ion-button fill="clear" class="action-btn note-btn" appTutorialAnchor="training.notes.notes" (click)="manageNote()">
           <ion-icon name="create-outline" slot="start"></ion-icon>
           <span class="btn-text">{{ 'TABLES.NOTE' | translate }}</span>
         </ion-button>
 
-        <ion-button (click)="openSetManager()" fill="clear" class="action-btn set-btn">
+        <ion-button (click)="openSetManager()" fill="clear" class="action-btn set-btn" appTutorialAnchor="training.addSeries.addSeries">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           <span class="btn-text">{{ 'TABLES.SERIES' | translate }}</span>
         </ion-button>

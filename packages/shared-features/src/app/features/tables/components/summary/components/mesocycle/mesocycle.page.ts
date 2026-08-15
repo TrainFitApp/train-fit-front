@@ -38,6 +38,7 @@ import { ClipboardExercisesModalComponent } from "./components/clipboard-exercis
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { EXERCISE_NAMES_ES_EN } from "src/app/shared/constants/db-translations/exercise-names-es-en.map";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
+import { TutorialService } from "src/app/core/services/tutorial/tutorial.service";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -199,6 +200,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public readonly tableService = inject(TableService);
   private readonly userService = inject(UserService);
   private readonly workoutService = inject(WorkoutService);
+  private readonly tutorialService = inject(TutorialService);
 
   // Subject para gestionar el ciclo de vida de suscripciones
   private destroy$ = new Subject<void>();
@@ -289,6 +291,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public ngAfterViewInit(): void {
+    this.tutorialService.startForScreen('training.mesocycle');
     setTimeout(() => {
       this.initializeNavigation();
     });

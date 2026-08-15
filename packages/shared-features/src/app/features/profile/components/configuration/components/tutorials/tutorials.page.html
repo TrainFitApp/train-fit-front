@@ -1,0 +1,46 @@
+<ion-header>
+  <div class="search-header">
+    <div class="header-content">
+      <div class="back-section">
+        <button class="back-button" (click)="closeModal()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="title-section">
+        <h1 class="page-title">{{ 'TUTORIALS.TITLE' | translate }}</h1>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="tutorials-content">
+  <div class="tutorials-list" *ngIf="tutorials.length > 0; else noResults">
+    <ion-card *ngFor="let tutorial of tutorials" class="tutorial-item-card">
+      <ion-card-header class="tutorial-item-header">
+        <div class="tutorial-item-row">
+          <ion-card-title class="tutorial-item-title">{{ getTitle(tutorial) }}</ion-card-title>
+          <ion-chip class="tutorial-status-chip" [color]="isPending(tutorial.key) ? 'medium' : 'success'">
+            <ion-icon [name]="isPending(tutorial.key) ? 'ellipse-outline' : 'checkmark-circle'"></ion-icon>
+            <ion-label>{{ (isPending(tutorial.key) ? 'TUTORIALS.PENDING' : 'TUTORIALS.COMPLETED') | translate }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p class="tutorial-item-desc">{{ tutorial.steps[0]?.description }}</p>
+        <ion-button fill="clear" size="small" class="tutorial-replay-btn" (click)="replay(tutorial)">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          {{ 'TUTORIALS.REPLAY' | translate }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <ng-template #noResults>
+    <div class="no-results">
+      <ion-icon name="school-outline" class="no-results-icon"></ion-icon>
+      <h3>{{ 'TUTORIALS.EMPTY_TITLE' | translate }}</h3>
+      <p>{{ 'TUTORIALS.EMPTY_TEXT' | translate }}</p>
+    </div>
+  </ng-template>
+</ion-content>

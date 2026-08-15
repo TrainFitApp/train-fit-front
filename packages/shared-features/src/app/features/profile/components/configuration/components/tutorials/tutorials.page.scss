@@ -1,0 +1,148 @@
+.search-header {
+  background: #141414;
+  border-bottom: 1px solid #252525;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    min-height: 60px;
+
+    .back-section {
+      flex-shrink: 0;
+
+      .back-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.2s ease;
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .title-section {
+      flex: 1;
+      min-width: 0;
+
+      .page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .search-header .header-content {
+    padding: 12px 16px;
+    min-height: 56px;
+
+    .back-button {
+      width: 36px;
+      height: 36px;
+    }
+  }
+}
+
+.tutorials-content {
+  --background: #141414;
+  background: #141414;
+}
+
+.tutorials-content::part(background) {
+  background: #141414;
+}
+
+.tutorials-list {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tutorial-item-card {
+  margin: 0;
+  border-radius: 14px;
+  border-left: 4px solid var(--ion-color-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+  .tutorial-item-header {
+    padding-bottom: 4px;
+  }
+
+  .tutorial-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .tutorial-item-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .tutorial-status-chip {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    height: 24px;
+  }
+
+  .tutorial-item-desc {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--ion-color-medium);
+  }
+
+  .tutorial-replay-btn {
+    --padding-start: 4px;
+    margin: 0;
+  }
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--ion-color-medium);
+
+  .no-results-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  h3 {
+    margin: 0 0 6px;
+    color: #ffffff;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}

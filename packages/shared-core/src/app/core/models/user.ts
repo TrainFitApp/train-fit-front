@@ -42,6 +42,11 @@ export class User {
 
   goalInUse?: string;
 
+  onboarding?: {
+    pendingTutorials?: string[];
+    lastSyncAt?: string | Date;
+  };
+
   archivedProducts?: string[];
   archivedRecipes?: string[];
   archivedExercises?: string[];

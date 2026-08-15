@@ -28,6 +28,13 @@ const routes: Routes = [
         (m) => m.ReferencesPageModule
       ),
   },
+  {
+    path: 'tutorials',
+    loadChildren: () =>
+      import('./components/tutorials/tutorials.module').then(
+        (m) => m.TutorialsPageModule
+      ),
+  },
 ];
 
 @NgModule({

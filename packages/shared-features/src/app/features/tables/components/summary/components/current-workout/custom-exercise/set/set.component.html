@@ -88,6 +88,7 @@
       <!-- Action Buttons -->
       <div class="set-actions">
         <ion-button fill="clear" size="small" class="options-btn"
+          appTutorialAnchor="training.moveSets.moveSets"
           [style.visibility]="reorderMode ? 'hidden' : 'visible'" (click)="showPopoverOptions($event, set)">
           <ion-icon name="ellipsis-vertical"></ion-icon>
         </ion-button>
@@ -166,7 +167,7 @@
               <app-numeric-input [inputControl]="getFormControl('reps')" label="Reps" placeholder="0" [maxLength]="3"
                 [isDone]="set.doned" (valueChange)="onFormValueChange('reps', $event)"></app-numeric-input>
             </ion-col>
-            <ion-col size="3.33" class="intensity-col">
+            <ion-col size="3.33" class="intensity-col" appTutorialAnchor="training.rir.rir">
               <app-rir-picker [rirControl]="rirFormControl" [isDone]="set.doned"
                 (rirChange)="onRirValueChange($event)"></app-rir-picker>
             </ion-col>

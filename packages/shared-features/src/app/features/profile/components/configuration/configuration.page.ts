@@ -400,6 +400,10 @@ export class ConfigurationPage {
     this.navigationService.goToSuggestions();
   }
 
+  public openTutorials(): void {
+    this.navigationService.goToTutorials();
+  }
+
   public openReferences(): void {
     this.navigationService.goToReferences();
   }

@@ -59,6 +59,7 @@
             <ion-button
               fill="clear"
               class="action-btn options-btn"
+              appTutorialAnchor="training.moveExercise.moveExercise"
               (click)="openWorkoutOptions($event)"
             >
               <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
@@ -105,6 +106,7 @@
         <div
           *ngIf="user?.workoutInUse === currentWorkout._id"
           class="finish-workout-row"
+          appTutorialAnchor="training.finishWorkout.finish"
           (click)="endWorkout()"
         >
           <ion-icon name="stopwatch-outline" class="finish-icon"></ion-icon>
@@ -142,6 +144,7 @@
 
   <ng-container *ngIf="currentWorkout">
     <ion-reorder-group
+      appTutorialAnchor="training.currentWorkout.intro"
       [disabled]="!reorderExercisesMode"
       (ionItemReorder)="handleExerciseReorder($event)"
     >
@@ -149,6 +152,7 @@
       *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise"
       expand="inset"
       [hidden]="seriesReorderExerciseIndex !== null && seriesReorderExerciseIndex !== i"
+      (ionChange)="onExerciseAccordionChange($event)"
     >
       <ion-accordion
         [value]="'exercise-' + i"

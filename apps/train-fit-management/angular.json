@@ -32,6 +32,7 @@
             ],
             "styles": [
               "../../packages/shared-theme/src/theme/variables.scss",
+              "../../node_modules/@angular/cdk/overlay-prebuilt.css",
               "../../packages/shared-theme/src/global.scss"
             ],
             "scripts": [],

@@ -23,6 +23,7 @@ import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
 import { RemoteConfigGateService } from "src/app/core/services/remote-config/remote-config-gate.service";
 import { Subscription } from "rxjs";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
+import { TutorialService } from "src/app/core/services/tutorial/tutorial.service";
 
 @Component({
   selector: "app-summary",
@@ -61,6 +62,7 @@ export class SummaryPage {
   private readonly translate = inject(TranslateService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
+  public readonly tutorialService = inject(TutorialService);
 
   constructor(
     public platform: Platform,
@@ -90,6 +92,7 @@ export class SummaryPage {
     this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
       this.loadPinnedNotes();
     });
+    this.tutorialService.startForScreen('training.summary');
   }
 
   public ionViewWillLeave(): void {

@@ -25,6 +25,7 @@
           <button
             *ngIf="stateSelected !== STATES.move"
             class="action-button ripple-effect"
+            appTutorialAnchor="training.mesocycle.moveWorkouts"
             [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
             (click)="enterWorkoutMoveMode()"
           >
@@ -468,6 +469,7 @@
               <button
                 type="button"
                 class="microcycle-trigger"
+                appTutorialAnchor="training.mesocycle.microcycles"
                 [class.completed]="isCurrentSplitCompleted(currentSplit) && !isCurrentSplitInUse()"
                 [class.in-use]="isCurrentSplitInUse()"
                 [disabled]="loadingSplit"

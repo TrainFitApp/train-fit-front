@@ -27,6 +27,7 @@ import {
   ACTIONS,
 } from 'src/app/shared/constants/actions';
 import { SetService } from 'src/app/core/services/set/set.service';
+import { TutorialService } from 'src/app/core/services/tutorial/tutorial.service';
 
 @Component({
   selector: 'app-set',
@@ -69,7 +70,8 @@ export class SetComponent implements OnInit, OnChanges {
     private customExerciseService: CustomExerciseService,
     private modalController: ModalController,
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private tutorialService: TutorialService
   ) {}
 
   public ngOnInit(): void {
@@ -169,6 +171,8 @@ export class SetComponent implements OnInit, OnChanges {
   }
 
   public onRirValueChange(value: RirValue): void {
+    this.tutorialService.notifyEvent('setInteracted');
+
     // rir can be: null, [-1] (fail), [0-10], or [first, second] for ranges.
     if (this.rirFormControl?.value === value) {
       return;
@@ -182,6 +186,8 @@ export class SetComponent implements OnInit, OnChanges {
   }
 
   public onFormValueChange(controlName: string, value: any): void {
+    this.tutorialService.notifyEvent('setInteracted');
+
     const control = this.getFormControl(controlName);
     if (!control) {
       return;

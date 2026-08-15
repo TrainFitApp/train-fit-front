@@ -53,7 +53,7 @@
       </div>
 
       <!-- Rutina en Uso -->
-      <div class="section current-routine">
+      <div class="section current-routine" appTutorialAnchor="training.introduction.routineInUse">
         <div *ngIf="tableInUse; else notTableInUse">
           <div class="bottom-cards-row">
             <div class="bottom-card" (click)="openMesocycle(); $event.stopPropagation()">

@@ -1,0 +1,37 @@
+<div class="tutorial-card">
+  <div class="tutorial-card__header">
+    <ion-icon name="bulb-outline" class="tutorial-card__icon"></ion-icon>
+    <span class="tutorial-card__title">{{ activeStep.step.title }}</span>
+  </div>
+
+  <p class="tutorial-card__message">{{ activeStep.step.description }}</p>
+
+  <div class="tutorial-card__footer">
+    <div class="tutorial-card__progress" *ngIf="activeStep.totalSteps > 1" aria-hidden="true">
+      <span
+        class="tutorial-card__dot"
+        *ngFor="let dot of dotsArray; let i = index"
+        [class.tutorial-card__dot--active]="i === activeStep.stepIndex"
+      ></span>
+    </div>
+
+    <div class="tutorial-card__actions">
+      <button
+        type="button"
+        class="tutorial-card__skip"
+        [attr.aria-label]="'TUTORIALS.SKIP' | translate"
+        (click)="skip.emit()"
+      >
+        {{ 'TUTORIALS.SKIP' | translate }}
+      </button>
+
+      <button
+        type="button"
+        class="tutorial-card__next"
+        (click)="next.emit()"
+      >
+        {{ (isLastStep ? 'TUTORIALS.GOT_IT' : 'TUTORIALS.NEXT') | translate }}
+      </button>
+    </div>
+  </div>
+</div>

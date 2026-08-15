@@ -212,6 +212,17 @@
             <h3>{{ 'CONFIGURATION.SUGGESTIONS' | translate }}</h3>
           </ion-label>
         </ion-item>
+
+        <div class="divider"></div>
+
+        <ion-item button class="config-item" (click)="openTutorials()">
+          <div slot="start" class="item-icon-container help-icon">
+            <ion-icon name="school-outline" color="tertiary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>{{ 'CONFIGURATION.TUTORIALS' | translate }}</h3>
+          </ion-label>
+        </ion-item>
       </ion-card>
     </div>
 
