@@ -10,6 +10,16 @@
     opacity: 0.6;
   }
 
+  // Sin permiso de edición (p.ej. nota de sesión anterior): no debe parecer
+  // pulsable, ya showManageNotesAlert() no hace nada en ese caso.
+  &.readonly {
+    cursor: default;
+
+    .note-card:active {
+      transform: none;
+    }
+  }
+
   .note-card {
     flex-direction: column;
     gap: 8px;

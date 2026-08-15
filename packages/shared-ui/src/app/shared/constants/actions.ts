@@ -15,6 +15,7 @@ export enum ACTION_TYPES {
   skipWorkout = 13,
   unskipWorkout = 14,
   copyExercises = 15,
+  addSet = 16,
 }
 
 export type ACTION_TYPE = {
@@ -98,6 +99,12 @@ export const ACTIONS: {
     value: 'ACTIONS.MOVE_SETS',
     icon: 'swap-vertical',
     color: 'medium',
+  },
+  [ACTION_TYPES.addSet]: {
+    id: ACTION_TYPES.addSet,
+    value: 'ACTIONS.ADD_SET',
+    icon: 'add-outline',
+    color: 'primary',
   },
   [ACTION_TYPES.viewSummary]: {
     id: ACTION_TYPES.viewSummary,

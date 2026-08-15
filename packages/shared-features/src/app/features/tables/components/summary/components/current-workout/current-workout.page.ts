@@ -5,9 +5,17 @@ import {
   effect,
   inject,
   DestroyRef,
+  QueryList,
+  ViewChildren,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AlertOptions, ModalOptions, PopoverOptions } from '@ionic/angular';
+import {
+  AlertOptions,
+  IonAccordionGroup,
+  ItemReorderEventDetail,
+  PopoverOptions,
+  ToastOptions,
+} from '@ionic/angular';
 import { Subject, Subscription, interval } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
@@ -36,7 +44,7 @@ import {
 import { Theme, THEMES } from 'src/app/shared/models/theme';
 import { VideoModalComponent } from './video-modal/video-modal.component';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { OrderExercisesPage } from '../mesocycle/components/order-exercises/order-exercises.page';
+import { CustomExerciseComponent } from './custom-exercise/custom-exercise.component';
 import { WorkoutSummaryModalComponent } from './workout-summary-modal/workout-summary-modal.component';
 import {
   WorkoutSummary,
@@ -93,6 +101,28 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     '../../../../../assets/img/logo/login_dark.svg';
 
   public THEMES = THEMES;
+
+  // Modo "Mover ejercicios" inline (sustituye al modal OrderExercisesPage
+  // solo en esta pantalla, ver openWorkoutOptions). Sigue el mismo patrón de
+  // índices que OrderExercisesPage: nunca se reordena currentWorkout.exercises
+  // durante el drag (ion-reorder-group ya mueve el DOM por su cuenta), solo
+  // se rastrea a qué índice original corresponde cada posición, y el array
+  // real solo se remapea una vez al confirmar.
+  public reorderExercisesMode = false;
+  public savingExercisesOrder = false;
+  private exercisesReorderIndices: number[] = [];
+
+  // Modo "Mover series" (dentro de un ejercicio, ver custom-exercise.component).
+  // La página necesita saber qué ejercicio está reordenando sus series para
+  // forzar su accordion abierto, ocultar el resto y ofrecer un botón de
+  // cancelar global arriba, ya que el ejercicio puede entrar en este modo
+  // estando su accordion cerrado (se activa desde el popover de opciones).
+  public seriesReorderExerciseIndex: number | null = null;
+
+  @ViewChildren(IonAccordionGroup)
+  private accordionGroups: QueryList<IonAccordionGroup>;
+  @ViewChildren(CustomExerciseComponent)
+  private customExerciseComponents: QueryList<CustomExerciseComponent>;
 
   // Inyección de servicios con Signals
   private readonly userService = inject(UserService);
@@ -589,7 +619,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           this.manageNote();
           break;
         case ACTIONS[ACTION_TYPES.moveExercises].id:
-          this.openOrderExercisesModal();
+          this.enterReorderExercisesMode();
           break;
         case ACTIONS[ACTION_TYPES.rmCalculator].id:
           this.navigationService.goToRmCalculator();
@@ -598,27 +628,147 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
     });
   }
 
-  public openOrderExercisesModal(): void {
-    if (!this.currentWorkout || !this.tableInUse) return;
-
-    const modalOptions: ModalOptions = {
-      component: OrderExercisesPage,
-      componentProps: {
-        customExercises: this.currentWorkout.exercises || [],
-        idWorkout: this.currentWorkout._id,
-        idTable: this.tableInUse._id,
-      },
-    };
-
-    this.ionicUtilService.showModal(modalOptions);
-  }
-
   private getWorkoutOptions(): ACTION_TYPE[] {
     return [
       ACTIONS[ACTION_TYPES.moveExercises],
       ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.rmCalculator],
     ];
+  }
+
+  public openExerciseOptions(event: Event, index: number): void {
+    const popoverOptions: PopoverOptions = {
+      component: PopoverActionsComponent,
+      event,
+      showBackdrop: false,
+      componentProps: {
+        actionsPopover: this.getExerciseOptions(),
+      },
+    };
+
+    this.ionicUtilService.showPopover(popoverOptions).then((res) => {
+      if (!res?.data) return;
+      const customExerciseCmp = this.customExerciseComponents?.toArray()[index];
+      if (!customExerciseCmp) return;
+
+      switch (res.data.id) {
+        case ACTIONS[ACTION_TYPES.moveSets].id:
+          customExerciseCmp.enterReorderMode();
+          break;
+        case ACTIONS[ACTION_TYPES.addSet].id:
+          customExerciseCmp.openSetManager();
+          break;
+        case ACTIONS[ACTION_TYPES.note].id:
+          customExerciseCmp.manageNote();
+          break;
+      }
+    });
+  }
+
+  private getExerciseOptions(): ACTION_TYPE[] {
+    return [
+      ACTIONS[ACTION_TYPES.moveSets],
+      ACTIONS[ACTION_TYPES.addSet],
+      ACTIONS[ACTION_TYPES.note],
+    ];
+  }
+
+  public onExerciseReorderModeChange(index: number, active: boolean): void {
+    if (active) {
+      this.seriesReorderExerciseIndex = index;
+      // Forzar abierto el accordion del ejercicio que está reordenando y
+      // cerrar el resto (quedan ocultos por [hidden] en el template).
+      this.accordionGroups?.forEach((group, groupIndex) => {
+        group.value = groupIndex === index ? `exercise-${index}` : undefined;
+      });
+    } else if (this.seriesReorderExerciseIndex === index) {
+      this.seriesReorderExerciseIndex = null;
+    }
+  }
+
+  public cancelSeriesReorderMode(): void {
+    if (this.seriesReorderExerciseIndex === null) return;
+    const cmp = this.customExerciseComponents
+      ?.toArray()[this.seriesReorderExerciseIndex];
+    cmp?.cancelReorder();
+    this.seriesReorderExerciseIndex = null;
+  }
+
+  public enterReorderExercisesMode(): void {
+    if (
+      !this.currentWorkout?.exercises?.length ||
+      this.reorderExercisesMode ||
+      this.seriesReorderExerciseIndex !== null
+    ) return;
+
+    this.exercisesReorderIndices = this.currentWorkout.exercises.map((_, index) => index);
+    this.reorderExercisesMode = true;
+    // Cerrar cualquier accordion abierto: en modo mover no debe poder desplegarse.
+    this.accordionGroups?.forEach((group) => (group.value = undefined));
+  }
+
+  public cancelReorderExercisesMode(): void {
+    if (!this.reorderExercisesMode) return;
+    this.reorderExercisesMode = false;
+    this.savingExercisesOrder = false;
+    this.exercisesReorderIndices = [];
+  }
+
+  public handleExerciseReorder(event: CustomEvent<ItemReorderEventDetail>): void {
+    if (!this.reorderExercisesMode) {
+      event.detail.complete();
+      return;
+    }
+
+    const movedIndex = this.exercisesReorderIndices.splice(event.detail.from, 1)[0];
+    this.exercisesReorderIndices.splice(event.detail.to, 0, movedIndex);
+    // Sin argumento: ion-reorder-group ya reubicó los nodos del DOM por su
+    // cuenta, solo hace falta confirmar la animación (mismo patrón que
+    // OrderExercisesPage.handleReorder, que tampoco reordena su array fuente).
+    event.detail.complete();
+  }
+
+  public confirmReorderExercises(): void {
+    if (!this.reorderExercisesMode || this.savingExercisesOrder) return;
+    if (!this.currentWorkout?._id || !this.tableInUse?._id) return;
+
+    this.savingExercisesOrder = true;
+    this.workoutService
+      .updateWorkoutsOrder(
+        this.currentWorkout._id,
+        this.tableInUse._id,
+        this.exercisesReorderIndices
+      )
+      .subscribe({
+        next: () => {
+          const reorderedExercises = this.exercisesReorderIndices.map(
+            (index) => this.currentWorkout.exercises[index]
+          );
+          this.currentWorkout = { ...this.currentWorkout, exercises: reorderedExercises };
+          this.syncFullWorkoutWithTable();
+
+          this.reorderExercisesMode = false;
+          this.savingExercisesOrder = false;
+          this.exercisesReorderIndices = [];
+
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('TABLES.EXERCISE_ORDER_UPDATED'),
+            duration: 1500,
+            position: 'bottom',
+            color: 'success',
+          } as ToastOptions);
+        },
+        error: (error) => {
+          console.error('Error al actualizar el orden de ejercicios:', error);
+          this.savingExercisesOrder = false;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant('TABLES.EXERCISE_ORDER_UPDATE_ERROR'),
+            duration: 2000,
+            position: 'bottom',
+            color: 'danger',
+          } as ToastOptions);
+        },
+      });
   }
 
   public async navigateYTVideo(url: string, exercise?: any) {

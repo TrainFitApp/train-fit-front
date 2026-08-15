@@ -25,7 +25,7 @@
               </div>
             </div>
           </div>
-          <div class="workout-actions">
+          <div class="workout-actions" *ngIf="!reorderExercisesMode && seriesReorderExerciseIndex === null">
             <ion-button
               fill="clear"
               class="action-btn back-btn"
@@ -64,6 +64,41 @@
               <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
             </ion-button>
           </div>
+
+          <div class="workout-actions" *ngIf="reorderExercisesMode">
+            <ion-button
+              fill="clear"
+              class="action-btn back-btn"
+              [disabled]="savingExercisesOrder"
+              (click)="cancelReorderExercisesMode()"
+            >
+              <ion-icon slot="icon-only" name="arrow-undo-outline" color="primary"></ion-icon>
+            </ion-button>
+
+            <ion-button
+              fill="clear"
+              class="action-btn options-btn"
+              [disabled]="savingExercisesOrder"
+              (click)="confirmReorderExercises()"
+            >
+              <ion-spinner *ngIf="savingExercisesOrder" name="crescent" color="success"></ion-spinner>
+              <ion-icon *ngIf="!savingExercisesOrder" slot="icon-only" name="checkmark-outline" color="success"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="workout-actions" *ngIf="seriesReorderExerciseIndex !== null">
+            <ion-button
+              fill="clear"
+              class="action-btn back-btn"
+              (click)="cancelSeriesReorderMode()"
+            >
+              <ion-icon
+                name="arrow-back-outline"
+                slot="icon-only"
+                style="color: #ffffff"
+              ></ion-icon>
+            </ion-button>
+          </div>
         </div>
 
         <!-- Segunda fila: Terminar entrenamiento (fila independiente) -->
@@ -87,18 +122,15 @@
     <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>
 
-  <div *ngIf="previousWorkout?.notes" class="previous-workout-notes-container">
-    <div class="previous-session-title">
-      <span class="previous-title-text">{{ 'TABLES.PREVIOUS_SESSION' | translate }}</span>
-    </div>
-    <app-notes
-      [object]="previousWorkout"
-      [notes]="previousWorkout.notes"
-      [isPrevious]="true"
-      [canDelete]="false"
-      [canModify]="false"
-    ></app-notes>
-  </div>
+  <app-notes
+    *ngIf="previousWorkout?.notes"
+    [object]="previousWorkout"
+    [notes]="previousWorkout.notes"
+    [type]="'NOTES.PREVIOUS_SESSION_NOTE' | translate"
+    [isPrevious]="true"
+    [canDelete]="false"
+    [canModify]="false"
+  ></app-notes>
 
   <app-notes
     *ngIf="currentWorkout?.notes"
@@ -109,22 +141,40 @@
   ></app-notes>
 
   <ng-container *ngIf="currentWorkout">
+    <ion-reorder-group
+      [disabled]="!reorderExercisesMode"
+      (ionItemReorder)="handleExerciseReorder($event)"
+    >
     <ion-accordion-group
       *ngFor="let exercise of currentWorkout.exercises; let i = index; trackBy: trackByCustomExercise"
       expand="inset"
+      [hidden]="seriesReorderExerciseIndex !== null && seriesReorderExerciseIndex !== i"
     >
-      <ion-accordion [value]="'exercise-' + i">
+      <ion-accordion
+        [value]="'exercise-' + i"
+        [readonly]="reorderExercisesMode || seriesReorderExerciseIndex === i"
+      >
         <ion-item
           slot="header"
           class="premium-accordion-header"
-          [ngClass]="{ 
-            'current-workout-exercise' : i === 0, 
+          [ngClass]="{
+            'current-workout-exercise' : i === 0,
             'completed-exercise': isCustomExerciseCompleted(exercise),
             'in-progress-exercise': !isCustomExerciseCompleted(exercise) && getCustomExerciseSetsDoned(exercise) > 0
           }"
           lines="none"
         >
           <div class="premium-accordion-content">
+            <button
+              *ngIf="!reorderExercisesMode && seriesReorderExerciseIndex === null"
+              type="button"
+              class="exercise-options-trigger"
+              [attr.aria-label]="'TABLES.EXERCISE_OPTIONS' | translate"
+              (click)="openExerciseOptions($event, i); $event.stopPropagation()"
+            >
+              <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+            </button>
+
             <div class="premium-exercise-thumbnail">
               <img
                 class="premium-thumbnail-img"
@@ -163,6 +213,16 @@
               </div>
             </div>
           </div>
+
+          <ion-reorder *ngIf="reorderExercisesMode" slot="end" class="exercise-reorder-handle">
+            <ion-icon name="reorder-three-outline"></ion-icon>
+          </ion-reorder>
+          <ion-icon
+            *ngIf="!reorderExercisesMode"
+            slot="end"
+            name="chevron-down-outline"
+            class="ion-accordion-toggle-icon"
+          ></ion-icon>
         </ion-item>
 
         <ion-list slot="content" class="ion-no-padding">
@@ -172,9 +232,11 @@
             [customExercise]="exercise"
             [indexCustomExercise]="i"
             [currentWorkout]="currentWorkout"
+            (reorderModeChange)="onExerciseReorderModeChange(i, $event)"
           ></app-custom-exercise>
         </ion-list>
       </ion-accordion>
     </ion-accordion-group>
+    </ion-reorder-group>
   </ng-container>
 </ion-content>

@@ -1,7 +1,7 @@
 <div
   class="note-wrapper"
   #noteRef
-  [ngClass]="{ 'previous-session': isPrevious, disabled: isLoading }"
+  [ngClass]="{ 'previous-session': isPrevious, disabled: isLoading, readonly: !canModify }"
   (click)="showManageNotesAlert($event)"
 >
   <div class="note-card">

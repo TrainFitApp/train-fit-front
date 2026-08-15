@@ -1100,13 +1100,36 @@ ion-accordion-group {
 
 .title-section {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 
   .page-title {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     color: #ffffff;
     margin: 0;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+
+    &--mode {
+      color: #ffffff;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
   }
 }
 
