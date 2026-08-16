@@ -9,9 +9,17 @@
           </button>
         </div>
         <div class="title-section">
-          <h1 class="page-title" (click)="editTableName()">
-            {{ tableInUse?.name | translateDb }}
-          </h1>
+          <ng-container *ngIf="stateSelected !== STATES.move; else moveModeTitle">
+            <h1 class="page-title" (click)="editTableName()">
+              {{ tableInUse?.name | translateDb }}
+            </h1>
+            <span class="page-subtitle">{{ 'TABLES.WORKOUTS_STAT' | translate }}</span>
+          </ng-container>
+          <ng-template #moveModeTitle>
+            <h1 class="page-title page-title--mode">
+              {{ 'TABLES.MOVE_WORKOUTS_TITLE' | translate }}
+            </h1>
+          </ng-template>
         </div>
         <div class="actions-section">
           <button
@@ -20,7 +28,7 @@
             [disabled]="loadingSplit || !currentSplit?.workouts?.length || exerciseCopyActive"
             (click)="enterWorkoutMoveMode()"
           >
-            <ion-icon name="chevron-expand-outline" color="primary"></ion-icon>
+            <ion-icon name="swap-vertical" color="primary"></ion-icon>
           </button>
 
           <button

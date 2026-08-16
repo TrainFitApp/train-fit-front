@@ -31,6 +31,11 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() user: User;
   @Input() loading = false;
   @Input() recentCustomRecipe?: any | null = null;
+
+  public loadingObj = { value: false };
+  public get isBusy(): boolean {
+    return this.loadingObj.value || this.loading;
+  }
   @Input() showRecentIcon: boolean = false;
   // TAREA5 (train-fit-trainers) — mismo patrón que ProductComponent: marca/
   // desmarca esta receta en la "cesta" del panel en vez de mutar
@@ -80,6 +85,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
         this.calculateMacros();
       }
     );
+    this.utilService.getLoading.subscribe((res) => (this.loadingObj.value = res));
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
@@ -160,7 +166,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public onCardClick(): void {
-    if (this.loading) return;
+    if (this.isBusy) return;
 
     if (this.trainerMultiSelect) {
       this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });
@@ -174,7 +180,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onCheckboxClick(event: Event): void {
     // Stop propagation so card click doesn't fire
     event.stopPropagation();
-    if (this.loading) return;
+    if (this.isBusy) return;
 
     if (this.trainerMultiSelect) {
       this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });

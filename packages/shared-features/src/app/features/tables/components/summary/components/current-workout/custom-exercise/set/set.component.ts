@@ -254,15 +254,13 @@ export class SetComponent implements OnInit, OnChanges {
   }
 
   private getActionsPopover(): ACTION_TYPE[] {
-    let actions = this.ACTION_VALUES;
+    const actions: ACTION_TYPE[] = [];
 
-    actions = actions.filter(
-      (actionTemp) =>
-        actionTemp.id === ACTIONS[this.ACTION_TYPES.duplicate].id ||
-        actionTemp.id === ACTIONS[this.ACTION_TYPES.edit].id ||
-        actionTemp.id === ACTIONS[this.ACTION_TYPES.delete].id ||
-        actionTemp.id === ACTIONS[this.ACTION_TYPES.moveSets].id
-    );
+    // Orden visual coherente: acciones de contenido y finalmente la destructiva.
+    actions.push(ACTIONS[this.ACTION_TYPES.edit]);
+    actions.push(ACTIONS[this.ACTION_TYPES.moveSets]);
+    actions.push(ACTIONS[this.ACTION_TYPES.duplicate]);
+    actions.push(ACTIONS[this.ACTION_TYPES.delete]);
 
     return actions;
   }

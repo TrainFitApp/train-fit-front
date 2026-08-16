@@ -54,7 +54,13 @@
         class="checkbox-container"
         (click)="$event.stopPropagation()"
       >
+        <ion-spinner
+          *ngIf="actionLoading"
+          name="crescent"
+          color="primary"
+        ></ion-spinner>
         <ion-checkbox
+          *ngIf="!actionLoading"
           mode="ios"
           [checked]="isChecked"
           [disabled]="isBusy"
@@ -118,11 +124,5 @@
       {{ 'ADD_PRODUCT.NO_INFO' | translate }}
       {{ MEASURE_FILTER[MEASURE_FILTER[this.measureFilter].id].name | translate }}
     </div>
-    <ion-progress-bar
-      *ngIf="actionLoading"
-      class="card-progress"
-      type="indeterminate"
-      color="primary"
-    ></ion-progress-bar>
   </div>
 </div>

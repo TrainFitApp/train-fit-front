@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px calc(88px + var(--ion-safe-area-bottom, 0px));
+  padding: calc(18px + var(--ion-safe-area-top, 0px)) 16px 16px;
 }
 
 .summary-card {
@@ -339,13 +339,24 @@
   }
 }
 
+// Footer (basado en el estilo de "Añadir ejercicio" / search-exercises)
+ion-footer {
+  --background: var(--summary-surface);
+  --border-width: 0;
+  border-top: 1px solid var(--summary-border);
+  background: var(--summary-surface);
+  padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px));
+  box-shadow: 0 -12px 24px rgba(0, 0, 0, 0.35);
+}
+
 // Action Section
 .action-section {
   padding: 0 4px;
 
   .save-button-elegant {
-    --background: var(--summary-accent);
+    --background: var(--summary-accent, #fe9000);
     --background-activated: #e08000;
+    --background-hover: #e08000;
     --color: #0d0d0f;
     --border-radius: 12px;
     --padding-top: 16px;

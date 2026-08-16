@@ -51,6 +51,9 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   public indexCustomExercise: number;
 
+  @Output()
+  public reorderModeChange = new EventEmitter<boolean>();
+
   public previousWorkoutCustomExercise: CustomExercise;
   public currentSplitIndex: number = -1;
   public currentWorkoutIndex: number = -1;
@@ -442,11 +445,13 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     this.originalPositions = new Map(
       this.customExercise.sets.map((s, i) => [s._id || `set-${i}`, i])
     );
+    this.reorderModeChange.emit(true);
   }
 
   public confirmReorder(): void {
     if (!this.hasReorderChanges) {
       this.reorderMode = false;
+      this.reorderModeChange.emit(false);
       return;
     }
 
@@ -468,6 +473,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
           this.replaceCurrentSets(resCustomExercise.sets);
           this.reorderMode = false;
           this.hasReorderChanges = false;
+          this.reorderModeChange.emit(false);
           this.ionicUtilService.showToast({
             message: this.translate.instant('ORDER_SETS.TOAST_ORDER_SAVED'),
             duration: 2000,
@@ -477,6 +483,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         },
         error: () => {
           this.reorderMode = false;
+          this.reorderModeChange.emit(false);
         },
       });
   }
@@ -488,6 +495,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.reorderMode = false;
     this.hasReorderChanges = false;
+    this.reorderModeChange.emit(false);
   }
 
   public doReorder(event: any): void {

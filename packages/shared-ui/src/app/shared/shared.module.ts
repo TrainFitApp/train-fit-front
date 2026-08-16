@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CursorEndDirective } from 'src/app/core/directives/cursor-end.directive';
 import { DecimalInputDirective } from 'src/app/core/directives/decimal-input.directive';
 import { HideKeyboardOnScrollDirective } from 'src/app/core/directives/hide-keyboard-on-scroll.directive';
+import { LowercaseEmailInputDirective } from 'src/app/core/directives/lowercase-email-input.directive';
 import { VideoModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
 import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
@@ -60,6 +61,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
+    LowercaseEmailInputDirective,
     AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,
@@ -96,6 +98,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,
+    LowercaseEmailInputDirective,
     AnthropometryCardComponent,
     AnthropometryModalComponent,
     AnthropometryChartComponent,

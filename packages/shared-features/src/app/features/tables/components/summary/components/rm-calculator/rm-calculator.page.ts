@@ -61,6 +61,14 @@ export class RmCalculatorPage {
     this.hasCalculated = true;
     this.updatePercentageTable();
 
+    // Esperar a que las cards de resultados se rendericen antes de hacer scroll.
+    setTimeout(() => {
+      const element = document.getElementById("results-card");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 500);
+
     // AdMobService ya comprueba internamente si el usuario es premium/adsEnabled;
     // en usuarios pro esto no hace nada.
     void this.adMobService.interstitial('rm_calculator').catch((error) => {

@@ -15,9 +15,10 @@ export enum ACTION_TYPES {
   skipWorkout = 13,
   unskipWorkout = 14,
   copyExercises = 15,
-  saveAsTemplate = 16,
-  manageBlocks = 17,
-  copyToWeek = 18,
+  addSet = 16,
+  saveAsTemplate = 17,
+  manageBlocks = 18,
+  copyToWeek = 19,
 }
 
 export type ACTION_TYPE = {
@@ -101,6 +102,12 @@ export const ACTIONS: {
     value: 'ACTIONS.MOVE_SETS',
     icon: 'swap-vertical',
     color: 'medium',
+  },
+  [ACTION_TYPES.addSet]: {
+    id: ACTION_TYPES.addSet,
+    value: 'ACTIONS.ADD_SET',
+    icon: 'add-outline',
+    color: 'primary',
   },
   [ACTION_TYPES.viewSummary]: {
     id: ACTION_TYPES.viewSummary,

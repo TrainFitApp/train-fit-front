@@ -68,6 +68,16 @@ img {
         line-height: 1.3;
         text-transform: uppercase;
         opacity: 0.8;
+
+        .microcycle-separator {
+          margin: 0 6px;
+          opacity: 0.4;
+        }
+
+        .microcycle-badge {
+          font-weight: 400;
+          opacity: 0.6;
+        }
       }
 
       .workout-name {
@@ -275,7 +285,7 @@ img {
   --background: rgba(30, 30, 30, 0.95);
   --border-color: rgba(255, 255, 255, 0.1);
   --color: #ffffff;
-  --padding-start: 1rem;
+  --padding-start: 0.3rem;
   --padding-end: 1rem;
   --min-height: 4rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -293,10 +303,41 @@ img {
   .premium-accordion-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     flex: 1;
-    gap: 1rem;
+    gap: 0.625rem;
     width: 100%;
+
+    // Atajo a las opciones del ejercicio (mover series, añadir serie, nota).
+    // Pegado al hueco de la miniatura para que se lea como parte de "la foto
+    // del ejercicio", no como un botón suelto del entrenamiento. Sin fondo en
+    // reposo para no sumar peso visual a la cabecera; solo reacciona al tacto.
+    .exercise-options-trigger {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 48px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: rgba(255, 255, 255, 0.55);
+      transition: background-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out;
+
+      ion-icon {
+        font-size: 1.1rem;
+        pointer-events: none;
+      }
+
+      &:active {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.9);
+        transform: scale(0.94);
+      }
+    }
 
     .premium-exercise-thumbnail {
       flex-shrink: 0;
@@ -368,6 +409,39 @@ img {
           }
         }
       }
+    }
+  }
+
+  // Flecha por defecto del accordion. Debe llamarse igual que la clase que
+  // Ionic busca en ion-accordion.slotToggleIcon() (ion-accordion-toggle-icon);
+  // si no coincide, Ionic no la detecta como "ya existe" y añade su propio
+  // chevron duplicado la primera vez que el accordion se renderiza.
+  .ion-accordion-toggle-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.4);
+    transition: transform 200ms var(--ease-in-out, cubic-bezier(0.77, 0, 0.175, 1));
+  }
+
+  // Agarradera de arrastre en modo "Mover ejercicios" — mismo lenguaje visual
+  // que la agarradera de series (custom-exercise/set: .reorder-btn) y la de
+  // workouts en mesocycle (icono reorder-three-outline).
+  .exercise-reorder-handle {
+    --color: rgba(255, 255, 255, 0.7);
+    --background: rgba(255, 255, 255, 0.05);
+    --border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+
+    ion-icon {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.7);
     }
   }
 }
@@ -515,45 +589,5 @@ img {
     .finish-text {
       font-size: 12px;
     }
-  }
-}
-
-// Previous Workout Notes Container
-.previous-workout-notes-container {
-  margin: 8px 16px;
-  background: rgba(var(--ion-color-light-rgb), 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-
-  .previous-session-title {
-    padding: 8px 12px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    position: relative;
-    background: rgba(var(--ion-color-tertiary-rgb), 0.08);
-
-    &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 1px;
-      background: rgba(var(--ion-color-tertiary-rgb), 0.25);
-    }
-
-    .previous-title-text {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--ion-color-tertiary);
-      text-transform: none;
-      letter-spacing: normal;
-    }
-  }
-
-  app-notes {
-    display: block;
-    padding: 8px 12px;
   }
 }
