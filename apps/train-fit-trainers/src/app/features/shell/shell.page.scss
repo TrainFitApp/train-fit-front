@@ -167,16 +167,6 @@
     }
   }
 
-  &--disabled {
-    color: var(--tf-text-faint);
-    cursor: default;
-
-    &:hover {
-      background: transparent;
-      color: var(--tf-text-faint);
-    }
-  }
-
   .app-menu--collapsed & {
     justify-content: center;
     padding: 0;
@@ -206,19 +196,6 @@
     right: 4px;
     margin-left: 0;
   }
-}
-
-.menu-item-soon {
-  margin-left: auto;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--tf-text-muted);
-  background: var(--tf-surface-4);
-  border-radius: var(--tf-radius-pill);
-  padding: 3px 8px;
-  flex-shrink: 0;
 }
 
 .app-menu-footer {

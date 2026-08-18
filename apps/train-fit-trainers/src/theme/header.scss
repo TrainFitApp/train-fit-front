@@ -1,24 +1,67 @@
+// Header homogéneo — todas las pantallas pasan de <ion-toolbar> (título
+// alineado a la izquierda, look nativo de Ionic) al mismo patrón
+// `.tf-page-header` que ya usa Configuración (packages/shared-theme/src/
+// global.scss, compartido por las 3 apps): título centrado, botón
+// izquierdo envuelto en caja redondeada, acciones a la derecha. Antes había
+// además 3 patrones de "volver" distintos (ion-back-button nativo,
+// ion-button con tf-icon-button, <button class="back-btn">) y el menú
+// lateral usaba el ion-menu-button plano de Ionic — ahora un solo botón
+// (`.tf-page-header__back-button`), un solo icono por rol.
 @import 'buttons';
 
-// Header homogéneo — antes cada *.page.scss repetía el mismo bloque
-// (--background + peso/tracking del título) por separado, y solo 12 de las
-// 17 pantallas lo tenían — las otras 5 quedaban con el título por defecto
-// de Ionic, más fino. Una sola regla global para las 17.
-ion-header.ion-no-border ion-toolbar {
-  --background: var(--tf-bg);
+// El botón de volver/menú/acción es SIEMPRE esta misma clase, pero convive
+// sobre 2 elementos distintos: un <button> nativo (volver, acciones) y
+// <ion-menu-button> (abrir el sidenav — se mantiene porque ya sabe detectar
+// y togglear el <ion-menu> sin código adicional por página). El <button>
+// nativo hereda tal cual el .tf-page-header__back-button de global.scss
+// (background/color en CSS plano). ion-menu-button renderiza en shadow DOM
+// y solo puede restylearse desde fuera vía las custom properties que Ionic
+// expone — de ahí esta regla aparte con el mismo valor final.
+ion-menu-button.tf-page-header__back-button {
+  --background: rgba(255, 255, 255, 0.05);
+  --color: rgba(255, 255, 255, 0.7);
+  --border-radius: 8px;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  font-size: 20px;
 
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
   }
 }
 
-// Botón de volver homogéneo — antes 3 patrones distintos conviviendo:
-// ion-back-button nativo (client-detail), ion-button con tf-icon-button
-// aplicado por selector de elemento (diet-template-builder/compose-meal/
-// sign-up) y este mismo <button class="back-btn"> (planner/routine-builder),
-// además de 2 iconos distintos (arrow-back-outline vs chevron-back-outline).
-// Un único botón, un único icono, en todas las pantallas con header propio.
-.back-btn {
-  @include tf-icon-button;
+// El auto-ocultado nativo de ion-menu-button (visible solo si el <ion-menu>
+// está "activo", es decir NO fijo por el split-pane) depende de un evento
+// (ionSplitPaneVisible) que en la práctica seguía dejando el botón visible
+// en escritorio. En vez de fiarse de ese mecanismo, se oculta explícito aquí
+// con el MISMO breakpoint que usa el split-pane (when="md" → min-width:
+// 768px, shell.page.html) — el sidenav ya está fijo a partir de ahí, así
+// que el botón para abrirlo sobra.
+@media (min-width: 768px) {
+  ion-menu-button.tf-page-header__back-button {
+    display: none;
+  }
+}
+
+// ion-menu-button se autooculta (display:none) en escritorio, en cuanto el
+// split-pane (ver shell.page.html, when="md") muestra el sidenav fijo y deja
+// de hacer falta un botón para abrirlo — comportamiento nativo de Ionic, no
+// hay que tocar nada por página. Pero .tf-page-header__back-section (global,
+// shared-theme) no reserva ancho mínimo como sí hace .tf-page-header__actions
+// (min-width: 40px/36px) — sin este ancho a juego, el título deja de estar
+// centrado en cuanto el botón desaparece. Mismos valores que --actions en
+// ambos anchos de viewport para que la balanza no se rompa nunca.
+.tf-page-header__back-section {
+  min-width: 40px;
+
+  @media (max-width: 768px) {
+    min-width: 36px;
+  }
 }

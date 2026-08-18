@@ -1,10 +1,15 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
-    </ion-buttons>
-    <ion-title>Plantillas de rutinas</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Plantillas de entrenamientos</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="routines-content">
@@ -20,7 +25,7 @@
       <input
         type="text"
         class="input-field"
-        placeholder="Nombre de la nueva plantilla"
+        placeholder="Plantilla día de empuje"
         [(ngModel)]="newName"
         (keyup.enter)="createAndEdit()"
       />
@@ -41,7 +46,7 @@
 
     <div class="templates-empty" *ngIf="!loading && templates.length === 0">
       <ion-icon name="albums-outline"></ion-icon>
-      <p>Todavía no tienes plantillas de rutina.</p>
+      <p>Todavía no tienes plantillas de entrenamiento.</p>
     </div>
 
     <div class="templates-grid" *ngIf="!loading && templates.length > 0">

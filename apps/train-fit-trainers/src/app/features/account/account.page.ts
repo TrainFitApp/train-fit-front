@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 
@@ -23,6 +24,12 @@ export class AccountPage {
 
   public readonly user = this.userService.localUser;
 
+  public showEditPanel = false;
+  public isSavingProfile = false;
+  public formName = '';
+  public formLastname = '';
+  public formEmail = '';
+
   public get initials(): string {
     const user = this.user();
     if (!user?.name) return '?';
@@ -37,12 +44,56 @@ export class AccountPage {
     return `${user.name} ${user.lastname || ''}`.trim();
   }
 
-  public goToConfiguration(): void {
-    void this.router.navigate(['/tabs/configuration']);
-  }
-
   public goToSubscription(): void {
     void this.router.navigate(['/tabs/subscription']);
+  }
+
+  public openEditPanel(): void {
+    const user = this.user();
+    this.formName = user?.name || '';
+    this.formLastname = user?.lastname || '';
+    this.formEmail = user?.email || '';
+    this.showEditPanel = true;
+  }
+
+  public closeEditPanel(): void {
+    this.showEditPanel = false;
+  }
+
+  public saveProfile(): void {
+    const user = this.user();
+    if (!user || !this.formName.trim() || !this.formLastname.trim() || !this.formEmail.trim()) return;
+
+    const userToUpdate: Partial<User> = { _id: user._id };
+    if (this.formName.trim() !== user.name) userToUpdate.name = this.formName.trim();
+    if (this.formLastname.trim() !== user.lastname) userToUpdate.lastname = this.formLastname.trim();
+    if (this.formEmail.trim() !== user.email) userToUpdate.email = this.formEmail.trim();
+
+    if (Object.keys(userToUpdate).length === 1) {
+      this.showEditPanel = false;
+      return;
+    }
+
+    this.isSavingProfile = true;
+    this.userService.updateUser(userToUpdate as User).subscribe({
+      next: () => {
+        this.isSavingProfile = false;
+        this.showEditPanel = false;
+        void this.ionicUtilService.showToast({
+          message: 'Perfil actualizado',
+          color: 'success',
+          duration: 2000,
+        });
+      },
+      error: () => {
+        this.isSavingProfile = false;
+        void this.ionicUtilService.showToast({
+          message: 'No se pudo actualizar el perfil',
+          color: 'danger',
+          duration: 2000,
+        });
+      },
+    });
   }
 
   public async confirmLogout(): Promise<void> {

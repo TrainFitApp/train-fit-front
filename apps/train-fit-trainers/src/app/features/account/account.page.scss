@@ -1,3 +1,7 @@
+@import '../../../theme/panel-sheet';
+@import '../../../theme/inputs';
+@import '../../../theme/buttons';
+
 .account-content {
   --background: var(--tf-bg);
   --padding-start: 20px;
@@ -119,4 +123,51 @@
   ion-icon {
     font-size: 18px;
   }
+}
+
+// --- Panel: editar perfil (bottom sheet) ---
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin: 0 0 14px;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 50px;
+  margin-bottom: 14px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 18px;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.95rem;
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

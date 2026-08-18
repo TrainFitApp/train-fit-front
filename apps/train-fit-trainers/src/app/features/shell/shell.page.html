@@ -20,7 +20,6 @@
       <nav aria-label="Navegación principal" class="app-menu-nav">
         <ion-menu-toggle *ngFor="let item of menuItems" auto-hide="false">
           <a
-            *ngIf="!item.disabled"
             class="menu-item"
             [routerLink]="item.path"
             routerLinkActive="menu-item--active"
@@ -37,16 +36,6 @@
               [title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
             >{{ item.badgeCount }}</span>
           </a>
-          <div
-            *ngIf="item.disabled"
-            class="menu-item menu-item--disabled"
-            aria-disabled="true"
-            [title]="collapsed ? item.label + ' — Pronto' : null"
-          >
-            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
-            <span *ngIf="!collapsed">{{ item.label }}</span>
-            <span class="menu-item-soon" *ngIf="!collapsed">Pronto</span>
-          </div>
         </ion-menu-toggle>
       </nav>
 

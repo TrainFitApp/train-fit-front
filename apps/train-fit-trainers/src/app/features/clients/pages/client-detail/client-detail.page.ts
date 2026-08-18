@@ -472,7 +472,7 @@ export class ClientDetailPage implements OnInit {
   public async confirmDeleteTable(table: ClientTable, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Borrar rutina',
+      header: 'Borrar entrenamiento',
       message: `¿Seguro que quieres borrar por completo "${table.name}"? Esta acción no se puede deshacer.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -484,11 +484,11 @@ export class ClientDetailPage implements OnInit {
               next: () => {
                 this.tables = this.tables.filter((t) => t._id !== table._id);
                 if (this.expandedTableId === table._id) this.expandedTableId = null;
-                this.ionicUtilService.showToast({ message: 'Rutina borrada', duration: 1500 });
+                this.ionicUtilService.showToast({ message: 'Entrenamiento borrado', duration: 1500 });
               },
               error: () => {
                 this.ionicUtilService.showToast({
-                  message: 'No se pudo borrar la rutina',
+                  message: 'No se pudo borrar el entrenamiento',
                   duration: 2500,
                 });
               },
@@ -512,7 +512,7 @@ export class ClientDetailPage implements OnInit {
     this.isAssigningRoutine = false;
     this.showRoutinePanel = false;
     this.ionicUtilService.showToast({
-      message: `Rutina "${name}" asignada a ${this.name}`,
+      message: `Entrenamiento "${name}" asignado a ${this.name}`,
       duration: 3000,
     });
     this.loadTraining();
@@ -521,7 +521,7 @@ export class ClientDetailPage implements OnInit {
   private onRoutineAssignError(err: any): void {
     this.isAssigningRoutine = false;
     this.ionicUtilService.showErrorToast(
-      err?.error?.message || 'No se pudo asignar la rutina',
+      err?.error?.message || 'No se pudo asignar el entrenamiento',
       'Error',
       3500
     );
@@ -1426,7 +1426,7 @@ export class ClientDetailPage implements OnInit {
     this.clientDetailApi.applyRoutineToClients(template._id, targetClientIds).subscribe({
       next: (results) => this.showBulkResultToast(results),
       error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo aplicar la rutina en bloque', 'Error', 3000),
+        this.ionicUtilService.showErrorToast('No se pudo aplicar el entrenamiento en bloque', 'Error', 3000),
     });
   }
 

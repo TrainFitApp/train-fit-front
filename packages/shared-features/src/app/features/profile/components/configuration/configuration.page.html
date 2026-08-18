@@ -56,27 +56,8 @@
       </ion-card>
     </div>
 
-    <!-- MVP-trainers F17 -->
-    <div class="section-group" *ngIf="user?.roles?.includes('trainer')">
-      <div class="section-header">
-        <ion-icon name="clipboard-outline"></ion-icon>
-        <span>Check-ins</span>
-      </div>
-
-      <ion-card class="config-card">
-        <ion-item button class="config-item" (click)="goToCheckinTemplates()">
-          <div slot="start" class="item-icon-container">
-            <ion-icon name="clipboard-outline"></ion-icon>
-          </div>
-          <ion-label>
-            <h3>Plantillas de check-in</h3>
-          </ion-label>
-        </ion-item>
-      </ion-card>
-    </div>
-
-    <!-- Profile Options Section -->
-    <div class="section-group">
+    <!-- Profile Options Section — Editar perfil vive en Mi cuenta para trainers (el perfil de entrenador es distinto al del cliente) -->
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
       <div class="section-header">
         <ion-icon name="settings-outline"></ion-icon>
         <span>{{ 'CONFIGURATION.PROFILE_OPTIONS' | translate }}</span>
@@ -103,34 +84,32 @@
           </ion-label>
         </ion-item>
 
-        <ng-container *ngIf="!user?.roles?.includes('trainer')">
-          <div class="divider"></div>
-          <ion-item button class="config-item" (click)="goToMyCheckins()">
-            <div slot="start" class="item-icon-container profile-icon">
-              <ion-icon name="clipboard-outline" color="secondary"></ion-icon>
-            </div>
-            <ion-label>
-              <h3>Mis check-ins</h3>
-            </ion-label>
-          </ion-item>
+        <div class="divider"></div>
+        <ion-item button class="config-item" (click)="goToMyCheckins()">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="clipboard-outline" color="secondary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Mis check-ins</h3>
+          </ion-label>
+        </ion-item>
 
-          <div class="divider"></div>
-          <ion-item button class="config-item" (click)="goToNutritionPreferences()">
-            <div slot="start" class="item-icon-container profile-icon">
-              <ion-icon name="nutrition-outline" color="secondary"></ion-icon>
-            </div>
-            <ion-label>
-              <h3>Mis preferencias nutricionales</h3>
-            </ion-label>
-          </ion-item>
-        </ng-container>
+        <div class="divider"></div>
+        <ion-item button class="config-item" (click)="goToNutritionPreferences()">
+          <div slot="start" class="item-icon-container profile-icon">
+            <ion-icon name="nutrition-outline" color="secondary"></ion-icon>
+          </div>
+          <ion-label>
+            <h3>Mis preferencias nutricionales</h3>
+          </ion-label>
+        </ion-item>
 
         <div class="divider"></div>
       </ion-card>
     </div>
 
-    <!-- Privacy Section -->
-    <div class="section-group">
+    <!-- Privacy Section — anuncios: no aplica a cuentas trainer, no llevan publicidad. -->
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
       <div class="section-header">
         <ion-icon name="eye-outline"></ion-icon>
         <span>{{ 'CONFIGURATION.PRIVACY' | translate }}</span>
@@ -148,8 +127,8 @@
       </ion-card>
     </div>
 
-    <!-- Reminders Section -->
-    <div class="section-group">
+    <!-- Reminders Section — recordatorio de peso: concepto de cliente, no aplica a trainer. -->
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
       <div class="section-header">
         <ion-icon name="alarm-outline"></ion-icon>
         <span>{{ 'NOTIFICATIONS.TITLE' | translate }}</span>

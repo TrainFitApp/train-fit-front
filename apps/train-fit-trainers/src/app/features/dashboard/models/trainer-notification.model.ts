@@ -1,0 +1,26 @@
+// Dashboard trainer (2026-08-18) — mismo concepto que CoachNotification del
+// lado cliente (packages/shared-features/.../coach/models/coach-dashboard.model.ts),
+// sentido inverso: aquí el que dispara el evento es el CLIENTE, no el
+// trainer, así que trae `client` en vez de `trainer`.
+export type TrainerNotificationType =
+  | 'invite_accepted'
+  | 'intake_submitted_trainer'
+  | 'checkin_responded'
+  | 'nutrition_preferences_updated';
+
+export interface TrainerNotificationClient {
+  _id: string;
+  name: string;
+  lastname: string;
+  email: string;
+}
+
+export interface TrainerNotification {
+  _id: string;
+  type: TrainerNotificationType;
+  payload: Record<string, unknown>;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+  client: TrainerNotificationClient | null;
+}

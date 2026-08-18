@@ -3,10 +3,6 @@
 @import '../../../theme/panel-sheet';
 @import '../../../theme/inputs';
 
-ion-header ion-toolbar ion-button {
-  @include tf-icon-button;
-}
-
 .checkin-content {
   --background: var(--tf-bg);
   --padding-start: 16px;
@@ -247,6 +243,97 @@ ion-header ion-toolbar ion-button {
 
 .field-toggle-icon--active {
   color: var(--tf-accent) !important;
+}
+
+// --- Buscador de clientes (panel "Aplicar") ---
+.apply-client-list {
+  max-height: 42vh;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  // Aísla el scroll interno del propio bottom sheet — sin esto, arrastrar
+  // la lista larga movía el panel entero en vez de desplazar los clientes.
+  overscroll-behavior: contain;
+}
+
+.apply-client-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &--selected {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+  }
+}
+
+.apply-client-avatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.apply-client-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.apply-client-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apply-client-email {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apply-client-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--tf-text-faint);
+
+  .apply-client-row--selected & {
+    color: var(--tf-accent);
+  }
 }
 
 .submit-button {

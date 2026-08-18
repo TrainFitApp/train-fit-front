@@ -2,10 +2,6 @@
 @import '../../../theme/buttons';
 @import '../../../theme/inputs';
 
-.invite-button {
-  @include tf-icon-button;
-}
-
 .clients-content {
   --background: var(--tf-bg);
 }

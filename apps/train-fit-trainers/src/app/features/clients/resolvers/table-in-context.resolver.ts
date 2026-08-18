@@ -37,7 +37,7 @@ export class TableInContextResolver implements Resolve<Table> {
       catchError((error) => {
         void this.ionicUtilService.showErrorToast(
           error,
-          'No se pudo abrir esta rutina. Puede que ya no exista o que no tengas acceso.'
+          'No se pudo abrir este entrenamiento. Puede que ya no exista o que no tengas acceso.'
         );
         void this.router.navigate(['/tabs/clients']);
         return EMPTY;

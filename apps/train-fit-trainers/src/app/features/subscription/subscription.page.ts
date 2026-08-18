@@ -31,7 +31,7 @@ export class SubscriptionPage implements OnInit {
       price: '0€',
       priceCaption: 'para siempre',
       clientsLabel: 'Hasta 3 clientes',
-      features: ['Invitar clientes', 'Asignar rutinas y objetivos', 'Ver entrenamiento y nutrición'],
+      features: ['Invitar clientes', 'Asignar entrenamientos y objetivos', 'Ver entrenamiento y nutrición'],
     },
     {
       tier: 'trainer_pro',

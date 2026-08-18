@@ -62,6 +62,14 @@ export class CheckinTemplatesPage implements OnInit {
   public selectedClientIds = new Set<string>();
   public isApplying = false;
 
+  // Buscador por nombre/correo dentro del panel — antes era una lista plana
+  // sin forma de filtrar, incómoda en cuanto el trainer pasa de ~10 clientes.
+  // Calculado explícitamente (no un getter de plantilla) para no repetir el
+  // bug de colgado por *ngFor recalculando en cada ciclo de detección de
+  // cambios, ya visto y corregido varias veces esta sesión.
+  public applyClientSearchQuery = '';
+  public filteredApplyClients: TrainerClientSummary[] = [];
+
   constructor(
     private checkinTemplatesApi: CheckinTemplatesApiService,
     private trainerClientsApi: TrainerClientsApiService,
@@ -178,16 +186,36 @@ export class CheckinTemplatesPage implements OnInit {
   public openApplyPanel(template: CheckinTemplateDefinition): void {
     this.applyingTemplate = template;
     this.selectedClientIds = new Set();
+    this.applyClientSearchQuery = '';
     this.showApplyPanel = true;
-    if (!this.myClients.length) {
+    if (this.myClients.length) {
+      this.applyFilteredClients();
+    } else {
       this.trainerClientsApi.getMyClients().subscribe((clients) => {
         this.myClients = clients || [];
+        this.applyFilteredClients();
       });
     }
   }
 
   public closeApplyPanel(): void {
     this.showApplyPanel = false;
+  }
+
+  public onApplyClientSearchChange(value: string): void {
+    this.applyClientSearchQuery = value;
+    this.applyFilteredClients();
+  }
+
+  private applyFilteredClients(): void {
+    const query = this.applyClientSearchQuery.trim().toLowerCase();
+    this.filteredApplyClients = !query
+      ? this.myClients
+      : this.myClients.filter((c) => {
+          if (!c.user) return false;
+          const haystack = `${c.user.name} ${c.user.lastname} ${c.user.email}`.toLowerCase();
+          return haystack.includes(query);
+        });
   }
 
   public toggleClientSelected(client: TrainerClientSummary): void {
@@ -230,6 +258,25 @@ export class CheckinTemplatesPage implements OnInit {
   public getFullName(client: TrainerClientSummary): string {
     if (!client.user) return 'Cliente';
     return `${client.user.name} ${client.user.lastname}`.trim();
+  }
+
+  // Mismo patrón de avatar (iniciales + tono por hash del id) que
+  // clients.page.ts — un solo lenguaje visual de "cliente" en toda la app,
+  // no uno distinto por pantalla.
+  public getInitials(client: TrainerClientSummary): string {
+    if (!client.user) return '?';
+    const name = client.user.name?.charAt(0) || '';
+    const lastname = client.user.lastname?.charAt(0) || '';
+    return (name + lastname).toUpperCase() || '?';
+  }
+
+  private static readonly AVATAR_HUES = [18, 45, 200, 260, 320, 160];
+
+  public getAvatarHue(client: TrainerClientSummary): number {
+    const id = client.user?._id || '';
+    let sum = 0;
+    for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+    return CheckinTemplatesPage.AVATAR_HUES[sum % CheckinTemplatesPage.AVATAR_HUES.length];
   }
 
   public trackByTemplateId(_index: number, template: CheckinTemplateDefinition): string {

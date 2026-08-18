@@ -1,5 +1,4 @@
 @import '../../../theme/skeleton';
-@import '../../../theme/buttons';
 
 .detail-skeleton {
   display: flex;
@@ -38,10 +37,6 @@
   cursor: pointer;
 }
 
-.invite-button {
-  @include tf-icon-button;
-}
-
 .dashboard-content {
   --background: var(--tf-bg);
   --padding-start: 20px;
@@ -68,10 +63,30 @@
 }
 
 .stat-card {
+  display: block;
+  width: 100%;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   padding: var(--tf-space-4);
+  font-family: inherit;
+  text-align: left;
+}
+
+// Clientes activos / Respuestas de check-in navegan a su pantalla — el
+// resto (Plantillas de rutina) se queda como <div>, sin affordance de click.
+.stat-card--link {
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .stat-card-row {
@@ -279,16 +294,77 @@
   }
 }
 
-.soon-tag {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--tf-text-muted);
-  background: var(--tf-surface-4);
-  border-radius: var(--tf-radius-pill);
-  padding: 3px 8px;
+// --- Actividad reciente (notificaciones del trainer) ---
+.mark-all-read-button {
+  background: transparent;
+  border: none;
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
 }
+
+.notification-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+}
+
+.notification-dot {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-accent);
+}
+
+.notification-card--unread {
+  padding-left: calc(var(--tf-space-5) + 10px);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--tf-accent);
+}
+
+.notification-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notification-title {
+  font-size: var(--tf-font-size-base);
+  color: var(--tf-text-secondary);
+}
+
+.notification-subtitle {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
 
 .empty-hint {
   margin: 0;

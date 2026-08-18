@@ -197,10 +197,6 @@ export class ConfigurationPage {
     void this.router.navigate(['/subscription']);
   }
 
-  public goToCheckinTemplates(): void {
-    void this.router.navigate(['/checkin-templates']);
-  }
-
   public async goToAdConsent(): Promise<void> {
     const modal: ModalOptions = {
       component: AdPreferencesPage,

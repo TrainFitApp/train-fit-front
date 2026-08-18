@@ -1,12 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <button type="button" class="back-btn" (click)="goToClientsList()" aria-label="Volver">
-        <ion-icon name="chevron-back-outline"></ion-icon>
-      </button>
-    </ion-buttons>
-    <ion-title>{{ name }}</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="goToClientsList()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ name }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <!-- Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
@@ -138,14 +143,14 @@
       </div>
 
       <div class="section-row">
-        <h2 class="section-heading">Rutinas</h2>
+        <h2 class="section-heading">Entrenamientos</h2>
         <button class="add-button" (click)="openRoutinePanel()">
           <ion-icon name="add-outline"></ion-icon>
-          Asignar rutina
+          Asignar entrenamiento
         </button>
       </div>
 
-      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
+      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ningún entrenamiento.</p>
 
       <div class="routine-block" *ngFor="let table of tables; trackBy: trackByTableId">
         <div class="routine-header-row">
@@ -170,14 +175,14 @@
           </button>
           <button
             class="bulk-apply-btn"
-            title="Editar rutina (splits, ejercicios, series)"
+            title="Editar entrenamiento (splits, ejercicios, series)"
             (click)="openPlanner(table)"
           >
             <ion-icon name="construct-outline"></ion-icon>
           </button>
           <button
             class="bulk-apply-btn bulk-apply-btn--danger"
-            title="Borrar rutina completa"
+            title="Borrar entrenamiento completo"
             (click)="confirmDeleteTable(table, $event)"
           >
             <ion-icon name="trash-outline"></ion-icon>
@@ -186,7 +191,7 @@
 
         <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
         <div class="routine-detail" *ngIf="expandedTableId === table._id">
-          <p class="empty-hint" *ngIf="!table.splits?.length">Esta rutina todavía no tiene microciclos.</p>
+          <p class="empty-hint" *ngIf="!table.splits?.length">Este entrenamiento todavía no tiene microciclos.</p>
 
           <div class="split-block" *ngFor="let split of table.splits">
             <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
@@ -221,7 +226,7 @@
     <div class="panel-backdrop" *ngIf="showRoutinePanel" (click)="closeRoutinePanel()"></div>
     <div class="panel-sheet" *ngIf="showRoutinePanel">
       <div class="panel-handle"></div>
-      <h3 class="panel-title">Asignar rutina</h3>
+      <h3 class="panel-title">Asignar entrenamiento</h3>
 
       <div class="mode-toggle">
         <button class="mode-option" [class.selected]="routineMode === 'new'" (click)="setRoutineMode('new')">
@@ -239,7 +244,7 @@
             type="text"
             formControlName="name"
             class="input-field"
-            placeholder="Nombre de la rutina"
+            placeholder="Nombre del entrenamiento"
           />
         </div>
         <button

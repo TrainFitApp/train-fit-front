@@ -9,9 +9,6 @@ export interface ShellMenuItem {
   // Para resaltar el item activo aunque la ruta real tenga subrutas
   // (p. ej. clients/:id) — se compara con startsWith, no con igualdad exacta.
   matchPrefix?: boolean;
-  // Sin ruta real todavía (Mensajes/Automatizaciones) — se muestra en el nav
-  // para comunicar el roadmap (ver mockup "TrainFit Panel") pero no navega.
-  disabled?: boolean;
   // Precalculado una vez (no en la plantilla) para que routerLinkActiveOptions
   // reciba siempre la misma referencia de objeto entre ciclos de detección de
   // cambios, en vez de una nueva en cada uno.
@@ -56,8 +53,6 @@ export class ShellPage implements OnInit {
     { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
     { label: 'Plantillas', path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
     { label: 'Check-ins', path: '/tabs/checkins', icon: 'clipboard-outline', matchPrefix: true },
-    { label: 'Mensajes', path: null, icon: 'chatbubble-ellipses-outline', disabled: true },
-    { label: 'Automatizaciones', path: null, icon: 'flash-outline', disabled: true },
     { label: 'Configuración', path: '/tabs/configuration', icon: 'settings-outline' },
   ]);
 

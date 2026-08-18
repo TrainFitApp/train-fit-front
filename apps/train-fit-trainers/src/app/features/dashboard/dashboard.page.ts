@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
@@ -6,8 +7,17 @@ import { TrainerClientSummary } from '../clients/models/trainer-client-summary.m
 import { ClientDetailApiService } from '../clients/pages/client-detail/services/client-detail-api.service';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { CheckinReportsApiService } from '../checkins/services/checkin-reports-api.service';
+import { TrainerNotificationsApiService } from './services/trainer-notifications-api.service';
+import { TrainerNotification, TrainerNotificationType } from './models/trainer-notification.model';
 
 type ViewState = 'loading' | 'error' | 'loaded';
+
+const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
+  invite_accepted: 'person-add-outline',
+  intake_submitted_trainer: 'document-text-outline',
+  checkin_responded: 'clipboard-outline',
+  nutrition_preferences_updated: 'nutrition-outline',
+};
 
 interface EvolutionSeries {
   name: string;
@@ -44,19 +54,106 @@ export class DashboardPage implements OnInit {
   public evolution: EvolutionSeries[] = [];
   public evolutionLoading = false;
 
+  // --- Notificaciones (sustituye el hueco "Agenda y revisiones") ---
+  public notificationsState: ViewState = 'loading';
+  public notifications: TrainerNotification[] = [];
+
   constructor(
     private trainerClientsApi: TrainerClientsApiService,
     private workoutTemplateApi: WorkoutTemplateApiService,
     private checkinReportsApi: CheckinReportsApiService,
-    private clientDetailApi: ClientDetailApiService
+    private clientDetailApi: ClientDetailApiService,
+    private trainerNotificationsApi: TrainerNotificationsApiService,
+    private router: Router
   ) {}
 
   public ngOnInit(): void {
     this.load();
+    this.loadNotifications();
   }
 
   public ionViewWillEnter(): void {
     this.load();
+    this.loadNotifications();
+  }
+
+  // Carga aparte del resto del dashboard — un fallo aquí no debe ocultar
+  // los stat cards ni la gráfica de evolución, ni viceversa (mismo criterio
+  // que loadDashboard() en coach.page.ts, lado cliente).
+  public loadNotifications(): void {
+    this.notificationsState = 'loading';
+    this.trainerNotificationsApi.getMine().subscribe({
+      next: (notifications) => {
+        this.notifications = notifications.slice(0, 8);
+        this.notificationsState = 'loaded';
+      },
+      error: () => {
+        this.notificationsState = 'error';
+      },
+    });
+  }
+
+  public notificationIcon(notification: TrainerNotification): string {
+    return NOTIFICATION_ICONS[notification.type] || 'notifications-outline';
+  }
+
+  public notificationClientName(notification: TrainerNotification): string {
+    if (!notification.client) return 'Un cliente';
+    return `${notification.client.name} ${notification.client.lastname}`.trim();
+  }
+
+  public notificationTitle(notification: TrainerNotification): string {
+    const name = this.notificationClientName(notification);
+    switch (notification.type) {
+      case 'invite_accepted':
+        return `${name} aceptó tu invitación`;
+      case 'intake_submitted_trainer':
+        return `${name} completó su cuestionario inicial`;
+      case 'checkin_responded':
+        return `${name} respondió un check-in`;
+      case 'nutrition_preferences_updated':
+        return `${name} actualizó sus preferencias nutricionales`;
+      default:
+        return 'Nueva actividad';
+    }
+  }
+
+  public openNotification(notification: TrainerNotification): void {
+    if (!notification.read) {
+      notification.read = true;
+      this.trainerNotificationsApi.markRead(notification._id).subscribe();
+    }
+
+    switch (notification.type) {
+      case 'checkin_responded':
+        void this.router.navigate(['/tabs/checkins']);
+        break;
+      case 'nutrition_preferences_updated':
+      case 'intake_submitted_trainer':
+      case 'invite_accepted':
+        if (notification.client) {
+          void this.router.navigate(['/tabs/clients', notification.client._id]);
+        } else {
+          void this.router.navigate(['/tabs/clients']);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  public markAllNotificationsRead(): void {
+    this.trainerNotificationsApi.markAllRead().subscribe(() => {
+      this.notifications = this.notifications.map((n) => ({ ...n, read: true }));
+    });
+  }
+
+  public get hasUnreadNotifications(): boolean {
+    return this.notifications.some((n) => !n.read);
+  }
+
+  public trackByNotificationId(_index: number, notification: TrainerNotification): string {
+    return notification._id;
   }
 
   public load(): void {

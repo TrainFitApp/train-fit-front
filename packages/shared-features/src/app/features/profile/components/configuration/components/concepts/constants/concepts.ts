@@ -4,7 +4,7 @@ export enum CONCEPT_TYPES {
   training = 'Entrenamiento',
 }
 
-interface Concept {
+export interface Concept {
   key: string;
   name: string;
   description: string;

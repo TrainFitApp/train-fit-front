@@ -31,7 +31,7 @@ const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
 export class TemplatesPage implements OnInit {
   public readonly categories: TemplateCategory[] = [
     {
-      name: 'Plantillas de rutinas',
+      name: 'Plantillas de entrenamientos',
       description: 'Biblioteca de bloques de entrenamiento reutilizables',
       icon: 'barbell-outline',
       colorVar: 'var(--tf-accent)',
@@ -45,8 +45,11 @@ export class TemplatesPage implements OnInit {
       path: '/tabs/diet-templates',
     },
     {
-      name: 'Formularios de iniciación',
-      description: 'Catálogo de campos de check-in activables',
+      // Antes vivía también como acceso duplicado en Configuración
+      // ("Plantillas de check-in") — un solo punto de entrada aquí, mismo
+      // nombre que usaba ese acceso para no partir la terminología.
+      name: 'Plantillas de check-in',
+      description: 'Catálogo de campos de check-in activables por cliente',
       icon: 'document-text-outline',
       colorVar: 'var(--tf-success)',
       path: '/tabs/checkin-templates',
@@ -67,7 +70,7 @@ export class TemplatesPage implements OnInit {
     // flujo de trabajo principal.
     {
       name: 'Biblioteca de ejercicios',
-      description: 'Consulta el catálogo completo fuera de construir una rutina',
+      description: 'Consulta el catálogo completo fuera de construir un entrenamiento',
       icon: 'search-outline',
       colorVar: 'var(--tf-danger, #ff5c5c)',
       path: '/tabs/exercises',

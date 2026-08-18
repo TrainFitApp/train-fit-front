@@ -1,15 +1,19 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
-    </ion-buttons>
-    <ion-title>Dashboard</ion-title>
-    <ion-buttons slot="end">
-      <ion-button routerLink="/tabs/invites" fill="clear" class="invite-button" aria-label="Nuevo cliente">
-        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Dashboard</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button type="button" class="tf-page-header__back-button" routerLink="/tabs/invites" aria-label="Nuevo cliente">
+          <ion-icon name="person-add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="dashboard-content">
@@ -27,27 +31,27 @@
 
   <ng-container *ngIf="state === 'loaded'">
     <div class="stat-grid">
-      <div class="stat-card">
+      <button type="button" class="stat-card stat-card--link" routerLink="/tabs/clients">
         <div class="stat-card-row">
           <span class="stat-label">Clientes activos</span>
           <ion-icon name="people" style="color: var(--tf-success)"></ion-icon>
         </div>
         <span class="stat-value">{{ activeClientsCount }}</span>
-      </div>
+      </button>
       <div class="stat-card">
         <div class="stat-card-row">
-          <span class="stat-label">Plantillas de rutina</span>
+          <span class="stat-label">Plantillas de entrenamiento</span>
           <ion-icon name="albums-outline" style="color: var(--tf-text-secondary)"></ion-icon>
         </div>
         <span class="stat-value">{{ routineTemplatesCount }}</span>
       </div>
-      <div class="stat-card">
+      <button type="button" class="stat-card stat-card--link" routerLink="/tabs/checkins">
         <div class="stat-card-row">
           <span class="stat-label">Respuestas de check-in</span>
           <ion-icon name="clipboard-outline" style="color: var(--tf-accent)"></ion-icon>
         </div>
         <span class="stat-value">{{ checkinResponsesCount }}</span>
-      </div>
+      </button>
     </div>
 
     <div class="dashboard-grid">
@@ -76,21 +80,43 @@
       <div class="dashboard-col dashboard-col--side">
         <section class="panel-card">
           <div class="panel-card-header">
-            <h2 class="panel-card-title">Agenda y revisiones</h2>
-            <span class="soon-tag">Próximamente</span>
+            <h2 class="panel-card-title">Actividad reciente</h2>
+            <button
+              type="button"
+              class="mark-all-read-button"
+              *ngIf="hasUnreadNotifications"
+              (click)="markAllNotificationsRead()"
+            >
+              Marcar todas leídas
+            </button>
           </div>
-          <p class="empty-hint">
-            La agenda del entrenador y el flujo de "rutina enviada a revisión" todavía no existen como
-            funcionalidad — se construirán en una fase futura en vez de mostrarte datos inventados aquí.
-          </p>
-        </section>
 
-        <section class="panel-card">
-          <div class="panel-card-header">
-            <h2 class="panel-card-title">Mensajes</h2>
-            <span class="soon-tag">Próximamente</span>
+          <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
+            <div class="skeleton-block" style="height: 48px;"></div>
+            <div class="skeleton-block" style="height: 48px;"></div>
           </div>
-          <p class="empty-hint">La mensajería con clientes todavía no está disponible en esta versión.</p>
+
+          <p class="empty-hint" *ngIf="notificationsState === 'error'">
+            No se pudo cargar tu actividad reciente.
+          </p>
+
+          <p class="empty-hint" *ngIf="notificationsState === 'loaded' && !notifications.length">
+            Todavía no hay actividad de tus clientes que mostrar aquí.
+          </p>
+
+          <button
+            class="notification-card"
+            *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+            [class.notification-card--unread]="!notification.read"
+            (click)="openNotification(notification)"
+          >
+            <span class="notification-dot" *ngIf="!notification.read"></span>
+            <ion-icon [name]="notificationIcon(notification)" class="notification-icon"></ion-icon>
+            <div class="notification-info">
+              <span class="notification-title">{{ notificationTitle(notification) }}</span>
+              <span class="notification-subtitle">{{ notification.createdAt | date: 'd MMM, HH:mm' }}</span>
+            </div>
+          </button>
         </section>
       </div>
     </div>

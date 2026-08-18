@@ -1,65 +1,66 @@
-<ion-header>
-  <div class="search-header">
-    <div class="header-content">
-      <div class="back-section">
-        <button class="back-button" (click)="closeModal()">
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="closeModal()" aria-label="Volver">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
       </div>
 
-      <div class="search-section">
+      <div class="tf-page-header__title-section concepts-search-section">
         <ion-searchbar
           (ionInput)="searchConcepts($event)"
-          debounce="500"
+          debounce="400"
           placeholder="{{ 'CONCEPTS.SEARCH_PLACEHOLDER' | translate }}"
           mode="ios"
-          animated
-          class="custom-searchbar"
+          class="concepts-searchbar"
         ></ion-searchbar>
       </div>
+
+      <div class="tf-page-header__actions"></div>
     </div>
   </div>
 </ion-header>
 
 <ion-content class="concepts-content">
-  <div
-    class="concepts-container"
-    *ngIf="CONCEPT_VALUES.length > 0; else noResults"
-  >
-    <div class="concepts-grid">
-      <ion-card
-        *ngFor="let concept of CONCEPT_VALUES"
-        class="concept-card"
-        [class.nutrition-card]="concept.type === CONCEPT_TYPES.nutrition"
-        [class.training-card]="concept.type === CONCEPT_TYPES.training"
-      >
-        <ion-card-header class="concept-header">
-          <div class="concept-title-row">
-            <ion-card-title class="concept-title"
-              >{{ 'CONCEPTS.' + concept.key | translate }}</ion-card-title
-            >
-            <ion-chip
-              class="concept-type-chip"
-              [color]="concept.type === CONCEPT_TYPES.nutrition ? 'success' : 'primary'"
+  <div class="concepts-container" *ngIf="groups.length > 0; else noResults">
+    <ng-container *ngFor="let group of groups; trackBy: trackByLetter">
+      <div class="group-header">
+        <span class="group-letter">{{ group.letter }}</span>
+        <span class="group-rule"></span>
+      </div>
+
+      <div class="concepts-grid">
+        <ion-card
+          *ngFor="let concept of group.items; trackBy: trackByKey"
+          class="concept-card"
+        >
+          <div class="concept-header">
+            <div
+              class="concept-icon-badge"
+              [class.concept-icon-badge--nutrition]="concept.type === CONCEPT_TYPES.nutrition"
+              [class.concept-icon-badge--training]="concept.type === CONCEPT_TYPES.training"
             >
               <ion-icon
                 [name]="concept.type === CONCEPT_TYPES.nutrition ? 'nutrition-outline' : 'barbell-outline'"
               ></ion-icon>
-              <ion-label>{{ getTypeLabel(concept.type) }}</ion-label>
-            </ion-chip>
+            </div>
+            <h3 class="concept-title">{{ 'CONCEPTS.' + concept.key | translate }}</h3>
           </div>
-        </ion-card-header>
 
-        <ion-card-content class="concept-content">
           <p class="concept-description">{{ concept.description | translateDb }}</p>
-        </ion-card-content>
-      </ion-card>
-    </div>
+
+          <span class="concept-type-label">{{ getTypeLabel(concept.type) }}</span>
+        </ion-card>
+      </div>
+    </ng-container>
   </div>
 
   <ng-template #noResults>
     <div class="no-results">
-      <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
+      <div class="no-results-icon-wrap">
+        <ion-icon name="search-outline" class="no-results-icon"></ion-icon>
+      </div>
       <h3>{{ 'CONCEPTS.NO_RESULTS_TITLE' | translate }}</h3>
       <p>{{ 'CONCEPTS.NO_RESULTS_TEXT' | translate }}</p>
     </div>

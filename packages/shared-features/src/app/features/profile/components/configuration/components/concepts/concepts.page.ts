@@ -1,8 +1,17 @@
 import { Component } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilService } from 'src/app/core/services/util/util.service';
-import { CONCEPTS, CONCEPT_TYPES, CONCEPT_VALUES } from './constants/concepts';
+import { CONCEPTS, CONCEPT_TYPES, CONCEPT_VALUES, Concept } from './constants/concepts';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
+
+export interface ConceptGroup {
+  letter: string;
+  items: Concept[];
+}
+
+function removeAccents(str: string): string {
+  return str.normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
 
 @Component({
   selector: 'app-concepts',
@@ -13,13 +22,15 @@ export class ConceptsPage {
   public search: string;
   public CONCEPT_VALUES = [...CONCEPT_VALUES];
   public CONCEPT_TYPES = CONCEPT_TYPES;
+  public groups: ConceptGroup[] = [];
 
   constructor(
     public navigationService: NavigationService,
     private readonly utilService: UtilService,
     private readonly translate: TranslateService,
   ) {
-    this.getConceptsOrderedAlphabetically();
+    this.sortConceptsAlphabetically(this.CONCEPT_VALUES);
+    this.buildGroups();
   }
 
   public closeModal(): void {
@@ -32,31 +43,40 @@ export class ConceptsPage {
     return this.translate.instant('CONCEPTS.GENERAL');
   }
 
-  private getConceptsOrderedAlphabetically(): void {
-    this.CONCEPT_VALUES.sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    });
+  public trackByLetter(_index: number, group: ConceptGroup): string {
+    return group.letter;
+  }
+
+  public trackByKey(_index: number, concept: Concept): string {
+    return concept.key;
+  }
+
+  private sortConceptsAlphabetically(concepts: Concept[]): void {
+    concepts.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private buildGroups(): void {
+    const map = new Map<string, Concept[]>();
+    for (const concept of this.CONCEPT_VALUES) {
+      const letter = removeAccents(concept.name.charAt(0).toUpperCase());
+      if (!map.has(letter)) map.set(letter, []);
+      map.get(letter).push(concept);
+    }
+    this.groups = Array.from(map.entries()).map(([letter, items]) => ({ letter, items }));
   }
 
   public searchConcepts(event: Event): void {
     this.search = this.utilService.getEventString(event);
-
-    // Función para eliminar tildes de una cadena de texto
-    const removeAccents = (str) => {
-      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    };
+    const query = removeAccents(this.search.toLowerCase());
 
     this.CONCEPT_VALUES = CONCEPTS.filter((concept) => {
-      const nameMatch = removeAccents(concept.name.toLowerCase()).includes(
-        removeAccents(this.search.toLowerCase())
-      );
-      const descriptionMatch = removeAccents(
-        concept.description.toLowerCase()
-      ).includes(removeAccents(this.search.toLowerCase()));
+      const nameMatch = removeAccents(concept.name.toLowerCase()).includes(query);
+      const descriptionMatch = removeAccents(concept.description.toLowerCase()).includes(query);
 
       return nameMatch || descriptionMatch;
     });
+
+    this.sortConceptsAlphabetically(this.CONCEPT_VALUES);
+    this.buildGroups();
   }
 }

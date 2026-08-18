@@ -1,10 +1,15 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button aria-label="Abrir menú de navegación"></ion-menu-button>
-    </ion-buttons>
-    <ion-title>Mi cuenta</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Mi cuenta</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="account-content">
@@ -15,9 +20,9 @@
   </div>
 
   <nav class="account-menu">
-    <button type="button" class="account-menu-item" (click)="goToConfiguration()">
-      <ion-icon name="settings-outline"></ion-icon>
-      <span>Configuración</span>
+    <button type="button" class="account-menu-item" (click)="openEditPanel()">
+      <ion-icon name="person-outline"></ion-icon>
+      <span>Editar perfil</span>
       <ion-icon name="chevron-forward" class="account-menu-chevron"></ion-icon>
     </button>
     <button type="button" class="account-menu-item" (click)="goToSubscription()">
@@ -31,4 +36,34 @@
     <ion-icon name="log-out-outline"></ion-icon>
     Cerrar sesión
   </button>
+
+  <div class="panel-backdrop" *ngIf="showEditPanel" (click)="closeEditPanel()"></div>
+  <div class="panel-sheet" *ngIf="showEditPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">Editar perfil</h3>
+
+    <div class="input-wrapper">
+      <ion-icon name="person-outline" class="input-icon"></ion-icon>
+      <input type="text" class="input-field" placeholder="Nombre" [(ngModel)]="formName" />
+    </div>
+
+    <div class="input-wrapper">
+      <ion-icon name="person-outline" class="input-icon"></ion-icon>
+      <input type="text" class="input-field" placeholder="Apellidos" [(ngModel)]="formLastname" />
+    </div>
+
+    <div class="input-wrapper">
+      <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+      <input type="email" class="input-field" placeholder="Correo" [(ngModel)]="formEmail" />
+    </div>
+
+    <button
+      class="submit-button"
+      (click)="saveProfile()"
+      [disabled]="!formName.trim() || !formLastname.trim() || !formEmail.trim() || isSavingProfile"
+    >
+      <span *ngIf="!isSavingProfile">Guardar cambios</span>
+      <ion-spinner name="dots" *ngIf="isSavingProfile"></ion-spinner>
+    </button>
+  </div>
 </ion-content>
