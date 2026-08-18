@@ -33,6 +33,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { RestTimerService } from 'src/app/core/services/rest-timer/rest-timer.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
@@ -178,7 +179,8 @@ export class WorkoutComponent implements OnDestroy {
     private navigationService: NavigationService,
     private adMobService: AdMobService,
     private translate: TranslateService,
-    private pinnedExerciseNoteService: PinnedExerciseNoteService
+    private pinnedExerciseNoteService: PinnedExerciseNoteService,
+    private restTimerService: RestTimerService
   ) { }
 
   ngOnInit(): void {
@@ -384,9 +386,51 @@ export class WorkoutComponent implements OnDestroy {
           case ACTIONS[this.ACTION_TYPES.unskipWorkout].id:
             this.unskipWorkout();
             break;
+
+          case ACTIONS[this.ACTION_TYPES.stopWorkout].id:
+            this.stopWorkout();
+            break;
         }
       }
     });
+  }
+
+  // Misma lógica que current-workout.page.ts#stopWorkout, adaptada a este
+  // contexto (lista de días): no navega a ningún sitio al terminar, solo
+  // sincroniza el estado local — ya estamos en la pantalla de la rutina.
+  private stopWorkout(): void {
+    if (this.workout._id !== this.user?.workoutInUse) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant('TABLES.STOP_WORKOUT'),
+      message: this.translate.instant('TABLES.STOP_WORKOUT_CONFIRM', { name: this.workout.name }),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+        {
+          text: this.translate.instant('TABLES.STOP_BTN'),
+          cssClass: 'danger',
+          handler: () => {
+            this.workout.startedAt = null;
+            this.restTimerService.skip();
+
+            this.workoutService.clearStartedAt(this.workout).subscribe(() => {
+              this.tableService.setCurrentTable = this.tableInUse;
+
+              delete this.user.workoutInUse;
+              this.userService.updateUser(this.user).subscribe(() => {
+                this.workoutService.setCurrentWorkout = undefined;
+              });
+            });
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   private viewWorkoutSummary(): void {
@@ -996,6 +1040,11 @@ export class WorkoutComponent implements OnDestroy {
       actions.push(ACTIONS[this.ACTION_TYPES.unskipWorkout]);
     } else if (!this.workout.date) {
       actions.push(ACTIONS[this.ACTION_TYPES.skipWorkout]);
+    }
+
+    // "Detener entrenamiento" solo si este es el que está en curso ahora mismo.
+    if (this.workout._id === this.user?.workoutInUse) {
+      actions.push(ACTIONS[this.ACTION_TYPES.stopWorkout]);
     }
 
     actions.push(ACTIONS[this.ACTION_TYPES.delete]);

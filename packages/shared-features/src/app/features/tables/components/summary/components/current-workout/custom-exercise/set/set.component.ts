@@ -267,8 +267,9 @@ export class SetComponent implements OnInit, OnChanges {
     const actions: ACTION_TYPE[] = [];
 
     // Orden visual coherente: acciones de contenido y finalmente la destructiva.
+    // "Mover series" solo vive en el menú de opciones del ejercicio (arriba),
+    // no aquí — es la misma acción, no hace falta duplicarla por serie.
     actions.push(ACTIONS[this.ACTION_TYPES.edit]);
-    actions.push(ACTIONS[this.ACTION_TYPES.moveSets]);
     actions.push(ACTIONS[this.ACTION_TYPES.duplicate]);
     actions.push(ACTIONS[this.ACTION_TYPES.delete]);
 
@@ -300,10 +301,6 @@ export class SetComponent implements OnInit, OnChanges {
 
       case ACTIONS[this.ACTION_TYPES.delete].id:
         this.showDeleteSweetAlert();
-        break;
-
-      case ACTIONS[this.ACTION_TYPES.moveSets].id:
-        this.reorderSets.emit();
         break;
     }
   }

@@ -43,7 +43,7 @@ img {
     .workout-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-end;
       width: 100%;
     }
   }
@@ -60,75 +60,44 @@ img {
       gap: 8px;
 
       h2 {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--ion-color-medium);
+        font-size: 1rem;
+        font-weight: 700;
+        color: #ffffff;
         margin: 0;
         letter-spacing: 0.01em;
         line-height: 1.3;
-        text-transform: uppercase;
-        opacity: 0.8;
 
         .microcycle-separator {
           margin: 0 6px;
-          opacity: 0.4;
+          opacity: 0.35;
+          font-weight: 400;
         }
 
         .microcycle-badge {
-          font-weight: 400;
-          opacity: 0.6;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--ion-color-medium);
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
         }
       }
 
-      .workout-name {
-        display: flex;
-        align-items: center;
-
-        .workout-name-text {
-          font-size: 0.9rem;
-          font-weight: 700;
-          color: var(--ion-color-secondary);
-          letter-spacing: 0.3px;
-          line-height: 1.4;
-          position: relative;
-
-          &::after {
-            content: "";
-            position: absolute;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--ion-color-secondary), var(--ion-color-secondary-shade));
-            border-radius: 2px;
-            opacity: 0.9;
-          }
-        }
-      }
-
+      // Cronómetro: pieza central del header — es lo que se mira durante
+      // todo el entrenamiento, así que le corresponde el mayor peso visual.
+      // Bloque de stat (label arriba, valor grande abajo), sin pill ni icono.
       .workout-chrono {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        margin-top: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
         width: fit-content;
-        padding: 3px 9px;
-        border-radius: 10px;
-        background: rgba(254, 144, 0, 0.12);
-        border: 1px solid rgba(254, 144, 0, 0.22);
 
-        ion-icon {
-          font-size: 13px;
-          color: var(--ion-color-primary);
-        }
-
-        span {
-          font-size: 0.78rem;
-          font-weight: 600;
+        .chrono-value {
+          font-size: 1.5rem;
+          font-weight: 800;
           font-variant-numeric: tabular-nums;
-          color: #ffffff;
-          letter-spacing: 0.3px;
+          color: var(--ion-color-primary);
+          letter-spacing: 0.02em;
+          line-height: 1.05;
         }
       }
     }
@@ -168,12 +137,6 @@ img {
       --color: var(--ion-color-success);
       --background: rgba(var(--ion-color-success-rgb), 0.15);
       --background-activated: rgba(var(--ion-color-success-rgb), 0.25);
-    }
-
-    .stop-btn {
-      --color: var(--ion-color-danger);
-      --background: rgba(var(--ion-color-danger-rgb), 0.15);
-      --background-activated: rgba(var(--ion-color-danger-rgb), 0.25);
     }
 
     .finish-btn {
@@ -418,7 +381,7 @@ img {
         gap: 6px;
 
         h2 {
-          font-size: 0.6rem;
+          font-size: 0.85rem;
         }
       }
     }
@@ -489,7 +452,13 @@ img {
         gap: 4px;
 
         h2 {
-          font-size: 0.6rem;
+          font-size: 0.8rem;
+        }
+
+        .workout-chrono {
+          .chrono-value {
+            font-size: 1.25rem;
+          }
         }
       }
     }

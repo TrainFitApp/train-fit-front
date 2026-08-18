@@ -14,6 +14,7 @@
     "SKIP_WORKOUT": "Skip day",
     "UNSKIP_WORKOUT": "Remove skip",
     "COPY_EXERCISES": "Copy exercises",
+    "STOP_WORKOUT": "Stop workout",
     "DISCARD": "DISCARD",
     "ACCEPT": "ACCEPT"
   },
@@ -1188,6 +1189,8 @@
     "WITHOUT_SERIES": "WITHOUT SETS",
     "COMPLETE_COPY": "COMPLETE",
     "MICROCYCLE_ADDED": "Micro-cycle added",
+    "MICROCYCLE_COMPLETED_TITLE": "Micro-cycle completed!",
+    "MICROCYCLE_COMPLETED_MSG": "You've completed every workout in this micro-cycle. Want to add another one to keep progressing?",
     "MICROCYCLE_DELETED": "Micro-cycle deleted",
     "MICROCYCLES_DELETED_MULTIPLE": "{{count}} micro-cycles deleted",
     "DELETE_MICROCYCLE_CONFIRM": "Are you sure you want to delete this micro-cycle?",
@@ -1975,6 +1978,10 @@
     "SETS_COMPARISON": {
       "TITLE": "Sets",
       "DESCRIPTION": "Number of completed sets of this exercise, compared between the two selected microcycles."
+    },
+    "PINNED_NOTE": {
+      "TITLE": "Pinned note",
+      "DESCRIPTION": "Stays fixed to this exercise throughout all the routine's microcycles. Great for technique reminders or adjustments you always want visible here."
     }
   },
   "RECIPE_CARD": {

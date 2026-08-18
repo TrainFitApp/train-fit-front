@@ -6,7 +6,8 @@ export type GlossaryTermKey =
   | 'ONE_RM'
   | 'BEST_SET'
   | 'EFFECTIVE_VOLUME'
-  | 'SETS_COMPARISON';
+  | 'SETS_COMPARISON'
+  | 'PINNED_NOTE';
 
 @Component({
   selector: 'app-glossary-popover',

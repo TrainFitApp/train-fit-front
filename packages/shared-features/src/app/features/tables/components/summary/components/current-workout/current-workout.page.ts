@@ -635,16 +635,26 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         case ACTIONS[ACTION_TYPES.rmCalculator].id:
           this.navigationService.goToRmCalculator();
           break;
+        case ACTIONS[ACTION_TYPES.stopWorkout].id:
+          this.stopWorkout();
+          break;
       }
     });
   }
 
   private getWorkoutOptions(): ACTION_TYPE[] {
-    return [
+    const options = [
       ACTIONS[ACTION_TYPES.moveExercises],
       ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.rmCalculator],
     ];
+
+    // Solo tiene sentido detener un entrenamiento que está en curso.
+    if (this.user?.workoutInUse === this.currentWorkout?._id) {
+      options.push(ACTIONS[ACTION_TYPES.stopWorkout]);
+    }
+
+    return options;
   }
 
   public openExerciseOptions(event: Event, index: number): void {

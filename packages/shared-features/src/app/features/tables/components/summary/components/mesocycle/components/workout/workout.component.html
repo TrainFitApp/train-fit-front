@@ -101,7 +101,8 @@
               !exercisePasteMode &&
               !exerciseCopyActive &&
               stateSelected === STATES.static &&
-              user?.workoutInUse === workout._id
+              user?.workoutInUse === workout._id &&
+              workout.exercises?.length > 0
             " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
             <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
           </ion-button>
@@ -111,7 +112,8 @@
               !exercisePasteMode &&
               !exerciseCopyActive &&
               stateSelected === STATES.static &&
-              user?.workoutInUse !== workout._id
+              user?.workoutInUse !== workout._id &&
+              workout.exercises?.length > 0
             " style="margin-left: -5%; font-size: xx-large" (click)="playWorkout(); $event.stopPropagation()">
             <ion-icon color="success" name="play-circle-outline"></ion-icon>
           </ion-button>

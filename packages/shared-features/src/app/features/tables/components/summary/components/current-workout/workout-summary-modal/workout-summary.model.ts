@@ -1,12 +1,19 @@
 import { Workout } from 'src/app/core/models/workout';
 import { Set } from 'src/app/core/models/set';
-import { formatRirValue } from 'src/app/core/models/rir';
+import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
+
+// Mismo mapeo de color que el resto de la app: RP azul, DS rojo, FALLO
+// primary (ver set.component.scss / statistics.page.scss).
+export interface WorkoutSummaryBadge {
+  label: string;
+  type: 'drop' | 'restPause' | 'fail';
+}
 
 export interface WorkoutSummarySet {
   index: number;
   primary: string;
   secondary: string;
-  badges: string[];
+  badges: WorkoutSummaryBadge[];
 }
 
 export interface WorkoutSummaryExercise {
@@ -47,9 +54,12 @@ function buildSetSummary(
   isCardio: boolean,
   isIsometric: boolean
 ): WorkoutSummarySet {
-  const badges: string[] = [];
-  if (set.drop) badges.push('DS');
-  if (set.restPause) badges.push(`RP ${set.restPause}`);
+  const badges: WorkoutSummaryBadge[] = [];
+  if (set.drop) badges.push({ label: 'DS', type: 'drop' });
+  if (set.restPause) badges.push({ label: `RP ${set.restPause}`, type: 'restPause' });
+  if (!isCardio && !isIsometric && isRirFail(set.rir)) {
+    badges.push({ label: 'FALLO', type: 'fail' });
+  }
 
   if (isCardio) {
     const velocity = Number(set.velocity) || 0;

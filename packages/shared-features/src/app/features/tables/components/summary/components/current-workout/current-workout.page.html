@@ -8,20 +8,14 @@
           <div class="workout-info">
             <div class="workout-title">
               <h2>
-                {{ 'TABLES.WORKOUT_HEADER' | translate }}
-                <span class="microcycle-separator">·</span>
+                {{ currentWorkout?.name | translateDb }}
+                <span class="microcycle-separator">–</span>
                 <span class="microcycle-badge" *ngIf="currentSplitIndex !== undefined">
                   {{ 'TABLES.MICROCYCLE' | translate }} {{ currentSplitIndex + 1 }}
                 </span>
               </h2>
-              <div class="workout-name">
-                <span class="workout-name-text"
-                  >{{ currentWorkout?.name | translateDb }}</span
-                >
-              </div>
               <div class="workout-chrono" *ngIf="currentWorkout?.startedAt">
-                <ion-icon name="stopwatch-outline"></ion-icon>
-                <span>{{ elapsedLabel }}</span>
+                <span class="chrono-value">{{ elapsedLabel }}</span>
               </div>
             </div>
           </div>
@@ -39,21 +33,12 @@
             </ion-button>
 
             <ion-button
-              *ngIf="!user.workoutInUse"
+              *ngIf="!user.workoutInUse && currentWorkout?.exercises?.length > 0"
               fill="clear"
               class="action-btn play-btn"
               (click)="playWorkout()"
             >
               <ion-icon slot="icon-only" name="play-outline"></ion-icon>
-            </ion-button>
-
-            <ion-button
-              *ngIf="user?.workoutInUse === currentWorkout._id"
-              fill="clear"
-              class="action-btn stop-btn"
-              (click)="stopWorkout()"
-            >
-              <ion-icon slot="icon-only" name="stop-outline"></ion-icon>
             </ion-button>
 
             <ion-button

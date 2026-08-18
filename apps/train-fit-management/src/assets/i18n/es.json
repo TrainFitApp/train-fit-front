@@ -15,7 +15,8 @@
     "VIEW_SUMMARY": "Ver resumen",
     "SKIP_WORKOUT": "Saltar día",
     "UNSKIP_WORKOUT": "Quitar saltado",
-    "COPY_EXERCISES": "Copiar ejercicios"
+    "COPY_EXERCISES": "Copiar ejercicios",
+    "STOP_WORKOUT": "Detener entrenamiento"
   },
   "ACTIONS_FAB": {
     "ADD_WORKOUT": "Añadir entrenamiento",
@@ -1157,6 +1158,8 @@
     "WITHOUT_SERIES": "SIN SERIES",
     "COMPLETE_COPY": "COMPLETO",
     "MICROCYCLE_ADDED": "Micro-ciclo añadido",
+    "MICROCYCLE_COMPLETED_TITLE": "¡Micro-ciclo completado!",
+    "MICROCYCLE_COMPLETED_MSG": "Has completado todos los entrenamientos de este micro-ciclo. ¿Quieres añadir otro para seguir progresando?",
     "MICROCYCLE_DELETED": "Micro-ciclo eliminado",
     "DELETE_MICROCYCLE_CONFIRM": "¿Estás seguro de eliminar este micro-ciclo?",
     "DELETE_BTN": "ELIMINAR",
@@ -2015,6 +2018,10 @@
     "SETS_COMPARISON": {
       "TITLE": "Series",
       "DESCRIPTION": "Número de series completadas de este ejercicio, comparado entre los dos microciclos seleccionados."
+    },
+    "PINNED_NOTE": {
+      "TITLE": "Nota anclada",
+      "DESCRIPTION": "Se queda fija en este ejercicio y este día de la rutina, sin importar qué serie o microciclo estés consultando. Ideal para recordatorios de técnica o ajustes que quieres tener siempre a la vista aquí."
     }
   },
   "RECIPE_CARD": {
