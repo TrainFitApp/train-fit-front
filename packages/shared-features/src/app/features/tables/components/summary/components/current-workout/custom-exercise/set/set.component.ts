@@ -55,6 +55,10 @@ export class SetComponent implements OnInit, OnChanges {
   public confSet = new EventEmitter();
   @Output()
   public reorderSets = new EventEmitter<void>();
+  // Solo emite en la transición doned false->true (nunca al desmarcar ni al
+  // reguardar sin cambios) — dispara el arranque del RestTimerService.
+  @Output()
+  public setCompleted = new EventEmitter<Set>();
 
   public isDeleting: boolean;
   public setForm: FormGroup = new FormGroup({});
@@ -131,6 +135,8 @@ export class SetComponent implements OnInit, OnChanges {
         )
       )
       .subscribe((resSetForm) => {
+        const justCompleted = !this.set.doned && resSetForm.doned === true;
+
         // Actualizar solo los valores ejecutados, NO los objetivos
         this.set.velocity = resSetForm.velocity;
         this.set.time = resSetForm.time;
@@ -145,6 +151,10 @@ export class SetComponent implements OnInit, OnChanges {
         this.set.rir = resSetForm.rir ?? null;
 
         this.setService.updateSet(this.set).subscribe(() => {
+          if (justCompleted) {
+            this.setCompleted.emit(this.set);
+          }
+
           if (this.currentWorkout) {
             this.currentWorkout.exercises.forEach(
               (exerciseTemp, indexExercise) => {

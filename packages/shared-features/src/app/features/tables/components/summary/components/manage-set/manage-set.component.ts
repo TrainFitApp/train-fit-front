@@ -15,6 +15,7 @@ export class ManageSetComponent implements OnInit {
   public set: Set;
   public isCardio: boolean;
   public isIsometric: boolean;
+  public readonly REST_PRESETS = [60, 90, 120, 180];
 
   private backButtonSubscription: any;
 
@@ -82,12 +83,16 @@ export class ManageSetComponent implements OnInit {
     if (this.isIsometric) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
     } else if (this.isCardio) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
         expectedDistance: new FormControl(this.set?.expectedDistance, [Validators.min(0), Validators.max(100000)]),
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
     } else {
       // Detectar si el set tiene fallo (expectedRir es [-1])
@@ -110,6 +115,8 @@ export class ManageSetComponent implements OnInit {
           hasFail ? null : this.set?.expectedRir?.[1], [Validators.min(0), Validators.max(20)]
         ),
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {
@@ -169,6 +176,23 @@ export class ManageSetComponent implements OnInit {
       return false;
     }
     return Number(end) <= Number(start);
+  }
+
+  public setRestPreset(seconds: number): void {
+    this.setForm.get('restSeconds')?.setValue(seconds);
+  }
+
+  public toggleRestSeconds(): void {
+    const control = this.setForm.get('restSecondsEnabled');
+    if (control) {
+      const newValue = !control.value;
+      control.setValue(newValue);
+
+      // Si se desactiva, limpiar el valor del input
+      if (!newValue) {
+        this.setForm.get('restSeconds')?.setValue(null);
+      }
+    }
   }
 
   public toggleCheckbox(controlName: string): void {
@@ -281,6 +305,7 @@ export class ManageSetComponent implements OnInit {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
       }
+      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
     } else if (this.isCardio) {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
@@ -297,6 +322,8 @@ export class ManageSetComponent implements OnInit {
         this.setForm.controls.velocity.value !== undefined
       )
         set.velocity = this.setForm.controls.velocity.value;
+
+      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
     } else {
       if (
         !isNaN(this.setForm.controls.rangeREPStart.value) ||
@@ -390,6 +417,8 @@ export class ManageSetComponent implements OnInit {
         this.setForm.controls.velocity.value !== undefined
       )
         set.velocity = this.setForm.controls.velocity.value;
+
+      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
     }
 
     this.modalController.dismiss(set);

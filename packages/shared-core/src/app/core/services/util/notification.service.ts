@@ -18,6 +18,10 @@ export interface NotificationSettings {
 export class NotificationService {
   private readonly STORAGE_KEY = 'trainfit_notification_settings';
   private readonly CHANNEL_ID = 'trainfit-weight-reminder';
+  private readonly REST_TIMER_CHANNEL_ID = 'trainfit-rest-timer';
+  // Un único timer de descanso activo a la vez: ID fijo, siempre se cancela
+  // antes de reprogramar (ver RestTimerService).
+  private readonly REST_TIMER_NOTIFICATION_ID = 999999;
   private cachedSettings: NotificationSettings | null = null;
 
   constructor() {}
@@ -25,6 +29,7 @@ export class NotificationService {
   public async initialize(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     await this.createChannel();
+    await this.createRestTimerChannel();
     const settings = await this.getSettings();
     if (settings.enabled) {
       await this.cancelAll();
@@ -46,6 +51,54 @@ export class NotificationService {
       await LocalNotifications.createChannel(channel);
     } catch (e) {
       console.warn('[NotificationService] Error creating channel', e);
+    }
+  }
+
+  private async createRestTimerChannel(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const channel: Channel = {
+        id: this.REST_TIMER_CHANNEL_ID,
+        name: 'Descanso entre series',
+        description: 'Avisa cuando termina el descanso pautado de una serie',
+        importance: 4,
+        vibration: true,
+        lights: true,
+      };
+      await LocalNotifications.createChannel(channel);
+    } catch (e) {
+      console.warn('[NotificationService] Error creating rest timer channel', e);
+    }
+  }
+
+  public async scheduleRestEndNotification(seconds: number): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    await this.cancelRestEndNotification();
+    try {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: this.REST_TIMER_NOTIFICATION_ID,
+            title: 'TrainFit',
+            body: '¡Descanso terminado! Hora de la siguiente serie.',
+            schedule: { at: new Date(Date.now() + seconds * 1000), allowWhileIdle: true },
+            channelId: this.REST_TIMER_CHANNEL_ID,
+          },
+        ],
+      });
+    } catch (e) {
+      console.warn('[NotificationService] Error scheduling rest end notification', e);
+    }
+  }
+
+  public async cancelRestEndNotification(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      await LocalNotifications.cancel({
+        notifications: [{ id: this.REST_TIMER_NOTIFICATION_ID }],
+      });
+    } catch (e) {
+      console.warn('[NotificationService] Error canceling rest end notification', e);
     }
   }
 

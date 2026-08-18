@@ -142,6 +142,21 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Nota anclada del ejercicio (posición actual, no varía por microciclo) -->
+    <div class="pinned-note-container" *ngIf="pinnedNote">
+      <div class="pinned-note-card">
+        <div class="card-header">
+          <div class="left-section">
+            <div class="icon-wrapper">
+              <ion-icon name="pin"></ion-icon>
+            </div>
+            <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+          </div>
+        </div>
+        <p class="text">{{ pinnedNote.notes }}</p>
+      </div>
+    </div>
+
     <!-- Stats Grid -->
     <ion-grid *ngIf="selectedExerciseId && historyData.length > 0">
       <ion-row>
@@ -727,6 +742,11 @@
               >
                 <div class="col-session">
                   <span class="set-index">{{ 'TABLES.STATS_SET_LABEL' | translate: {n: i + 1} }}</span>
+                  <!-- Descanso pautado tras esta serie -->
+                  <span *ngIf="set.restSeconds" class="rest-seconds-badge">
+                    <ion-icon name="timer-outline"></ion-icon>
+                    {{ set.restSeconds }}s
+                  </span>
                 </div>
 
                 <!-- Strength Content -->

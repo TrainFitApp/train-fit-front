@@ -117,7 +117,7 @@
   </div>
 </ion-header>
 
-<ion-content>
+<ion-content [class.has-rest-timer]="restTimerService.active()">
   <ion-item *ngIf="currentWorkout?.exercises.length === 0">
     <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>
@@ -233,6 +233,7 @@
             [indexCustomExercise]="i"
             [currentWorkout]="currentWorkout"
             (reorderModeChange)="onExerciseReorderModeChange(i, $event)"
+            (setCompleted)="onSetCompleted($event)"
           ></app-custom-exercise>
         </ion-list>
       </ion-accordion>
@@ -240,3 +241,37 @@
     </ion-reorder-group>
   </ng-container>
 </ion-content>
+
+<!-- Barra de descanso: fija en el borde inferior, nunca modal — no debe
+     tapar la serie siguiente ni el resto del contenido. -->
+<div class="rest-timer-bar" *ngIf="restTimerService.active() as timer" [class.finished]="restTimerService.isFinished()">
+  <div class="rest-timer-info">
+    <ion-icon [name]="restTimerService.isFinished() ? 'checkmark-circle-outline' : 'timer-outline'"></ion-icon>
+    <div class="rest-timer-text">
+      <span class="rest-timer-label">{{ (restTimerService.isFinished() ? 'TABLES.REST_DONE' : 'TABLES.RESTING') | translate }}</span>
+      <div class="rest-timer-countdown-wrap">
+        <span class="rest-timer-countdown">{{ restTimerCountdownLabel }}</span>
+        <span
+          *ngFor="let delta of restDeltaBadges; trackBy: trackByDeltaId"
+          class="rest-delta-badge"
+          [class.negative]="delta.value < 0"
+          (animationend)="onDeltaBadgeDone(delta.id)"
+        >{{ delta.value > 0 ? '+' : '' }}{{ delta.value }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="rest-timer-controls">
+    <ion-button fill="clear" class="rest-timer-btn" (click)="adjustRestTimer(-10)">
+      <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+    </ion-button>
+    <ion-button fill="clear" class="rest-timer-btn" (click)="toggleRestTimerPause()">
+      <ion-icon slot="icon-only" [name]="restTimerService.paused() ? 'play-outline' : 'pause-outline'"></ion-icon>
+    </ion-button>
+    <ion-button fill="clear" class="rest-timer-btn" (click)="adjustRestTimer(10)">
+      <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+    </ion-button>
+    <ion-button fill="clear" class="rest-timer-btn rest-timer-skip" (click)="restTimerService.skip()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </div>
+</div>

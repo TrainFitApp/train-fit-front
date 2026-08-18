@@ -180,7 +180,7 @@
         <app-set [set]="row.set" [index]="row.index" [originalIndex]="row.originalIndex"
           [indexCustomExercise]="indexCustomExercise" [currentWorkout]="currentWorkout" [reorderMode]="reorderMode"
           (deleteSet)="deleteSet(row.set)" (copySet)="copySet(row.set, row.index)" (confSet)="configSet(row.set)"
-          (reorderSets)="enterReorderMode()"></app-set>
+          (reorderSets)="enterReorderMode()" (setCompleted)="setCompleted.emit($event)"></app-set>
       </ion-reorder>
     </ng-container>
   </ion-reorder-group>

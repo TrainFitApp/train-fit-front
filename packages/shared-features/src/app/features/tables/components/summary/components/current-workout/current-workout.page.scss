@@ -525,3 +525,144 @@ img {
     }
   }
 }
+
+ion-content.has-rest-timer {
+  --padding-bottom: 92px;
+}
+
+// Barra de descanso: fija, nunca modal — no debe tapar la serie siguiente.
+.rest-timer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // Mismo z-index que .clipboard-floating-bar (diets.page.scss) — precedente
+  // ya probado para barras flotantes fijas dentro de una ion-page.
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0));
+  background: #141414;
+  border-top: 1px solid #252525;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
+  animation: restBarSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.finished {
+    border-top-color: var(--ion-color-success);
+  }
+
+  .rest-timer-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+
+    ion-icon {
+      font-size: 1.5rem;
+      color: var(--ion-color-primary);
+      flex-shrink: 0;
+    }
+  }
+
+  &.finished .rest-timer-info ion-icon {
+    color: var(--ion-color-success);
+  }
+
+  .rest-timer-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .rest-timer-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .rest-timer-countdown-wrap {
+    position: relative;
+    display: inline-flex;
+    width: fit-content;
+  }
+
+  .rest-timer-countdown {
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #ffffff;
+    line-height: 1.15;
+  }
+
+  // Feedback "+10"/"-10" al ajustar el descanso: aparece al instante (es la
+  // respuesta a un toque, no debe tener delay), estático en el sitio, solo
+  // fade. pointer-events: none para no interferir nunca con los controles.
+  .rest-delta-badge {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ion-color-success);
+    pointer-events: none;
+    white-space: nowrap;
+    animation: restDeltaFade 550ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+
+    &.negative {
+      color: var(--ion-color-danger);
+    }
+  }
+
+  @keyframes restDeltaFade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .rest-timer-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .rest-timer-btn {
+    --color: rgba(255, 255, 255, 0.85);
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 40px;
+    transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+
+    &:active {
+      transform: scale(0.88);
+    }
+
+    ion-icon {
+      font-size: 1.3rem;
+    }
+  }
+
+  .rest-timer-skip {
+    --color: var(--ion-color-danger);
+    margin-left: 4px;
+  }
+}
+
+@keyframes restBarSlideIn {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

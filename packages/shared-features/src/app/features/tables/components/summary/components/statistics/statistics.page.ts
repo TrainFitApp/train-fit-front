@@ -26,6 +26,8 @@ import {
 } from 'src/app/core/services/exercise-history/exercise-history.service';
 import { take } from 'rxjs/operators';
 import { formatSecondsAsTime, parseTimeToSeconds } from 'src/app/shared/utils';
+import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
+import { PinnedExerciseNote } from 'src/app/core/models/pinned-exercise-note';
 
 Chart.register(...registerables);
 
@@ -48,6 +50,7 @@ interface SessionSet {
   isRestPause: boolean;
   isFail: boolean;
   restPause?: number;
+  restSeconds?: number;
   dropSeries?: SubSerie[];
   restPauseSeries?: SubSerie[];
 }
@@ -228,11 +231,17 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public historicalStats: ExerciseHistoryStats | null = null;
   public historicalStatsLoading = false;
 
+  // Nota anclada a la posición (día+ejercicio) de este ejercicio en el
+  // microciclo más reciente de la tabla — no varía al navegar el histórico,
+  // es la misma nota que se ve en "Añadir ejercicio" (config-exercise.page).
+  public pinnedNote: PinnedExerciseNote | null = null;
+
   constructor(
     private tableService: TableService,
     private navCtrl: NavController,
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
+    private pinnedExerciseNoteService: PinnedExerciseNoteService,
     public translate: TranslateService
   ) { }
 
@@ -441,6 +450,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.exercises = workout.exercises;
       this.selectedExerciseId = null;
       this.selectedExerciseName = null;
+      this.pinnedNote = null;
       this.historyData = [];
       this.filteredHistory = [];
       this.comparisonData = null;
@@ -462,7 +472,36 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.chartMode = 'evolution'; // Default mode
       this.generateHistoryData();
       this.loadHistoricalStats(exercise);
+      this.loadPinnedNote(exercise);
     }
+  }
+
+  // Nota anclada del ejercicio en el microciclo más reciente de la tabla —
+  // misma nota que ya se ve en "Añadir ejercicio" (config-exercise.page),
+  // no cambia al navegar el histórico de microciclos pasados.
+  private loadPinnedNote(exercise: CustomExercise): void {
+    this.pinnedNote = null;
+
+    const targetExDefId = exercise.exercise?._id;
+    const latestSplit = this.table?.splits?.[this.table.splits.length - 1];
+    if (!this.table?._id || !targetExDefId || !latestSplit) return;
+
+    const workoutIndex = latestSplit.workouts.findIndex(
+      (w) => w.name === this.selectedWorkoutName
+    );
+    if (workoutIndex === -1) return;
+
+    const exerciseIndex = latestSplit.workouts[workoutIndex].exercises.findIndex(
+      (e) => e.exercise?._id === targetExDefId
+    );
+    if (exerciseIndex === -1) return;
+
+    this.pinnedExerciseNoteService
+      .getByPosition(this.table._id, workoutIndex, exerciseIndex)
+      .pipe(take(1))
+      .subscribe((note) => {
+        this.pinnedNote = note;
+      });
   }
 
   // Histórico a través de TODAS las rutinas del usuario (no solo la actual)
@@ -585,6 +624,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
               isDropSet: s.drop === true,
               isRestPause: !!(s.restPause && s.restPause > 0),
               isFail: isRirFail(s.rir),
+              restSeconds: s.restSeconds,
               dropSeries: s.dropSetSeries || [],
               restPauseSeries: s.restPauseSeries || [],
             };

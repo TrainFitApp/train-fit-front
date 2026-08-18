@@ -203,6 +203,35 @@
     }
 }
 
+// Presets rápidos de descanso
+.rest-presets {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.rest-preset-chip {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out;
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    &.active {
+        background: rgba(var(--ion-color-primary-rgb), 0.18);
+        border-color: var(--ion-color-primary);
+        color: var(--ion-color-primary);
+    }
+}
+
 // Counter Fields
 .counter-field {
     flex: 1;

@@ -755,3 +755,30 @@ form.doned
     }
   }
 }
+
+// Descanso tras la serie — fila propia debajo de los inputs,
+// discreta (se repite por cada serie, no debe competir visualmente con ellos).
+.rest-objective-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.75rem;
+  background: #141414;
+  font-size: 0.72rem;
+
+  ion-icon {
+    font-size: 0.85rem;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+  }
+
+  .rest-objective-label {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .rest-objective-value {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}

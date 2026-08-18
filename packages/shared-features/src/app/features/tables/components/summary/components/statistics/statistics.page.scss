@@ -965,6 +965,13 @@ ion-grid {
     flex-shrink: 0;
   }
 
+  .col-session {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
   .header-col-weight,
   .col-weight {
     width: 25%;
@@ -1348,6 +1355,23 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   border-radius: 4px;
 }
 
+.rest-seconds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+}
+
 .chart-mode-container {
   margin-bottom: 16px;
   width: 100%;
@@ -1378,6 +1402,65 @@ ion-item:has(.type-dot.rest) ~ .subseries-container {
   .microcycle-trigger {
     width: auto;
     padding: 6px 10px;
+  }
+}
+
+// Nota anclada del ejercicio — misma identidad visual que en
+// config-exercise.page.scss, versión de solo lectura (sin acciones).
+.pinned-note-container {
+  margin: 12px 8px;
+
+  .pinned-note-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(56, 128, 255, 0.10) 0%,
+      rgba(56, 128, 255, 0.04) 100%
+    );
+    border: 1px solid rgba(56, 128, 255, 0.20);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .card-header {
+      display: flex;
+      align-items: center;
+
+      .left-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #3880ff;
+
+          ion-icon {
+            font-size: 1rem;
+          }
+        }
+
+        .title {
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #3880ff;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
+
+    .text {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+    }
   }
 }
 

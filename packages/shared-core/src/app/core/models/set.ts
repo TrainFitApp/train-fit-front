@@ -7,6 +7,11 @@ export class Set {
   expectedRir?: number[];
   drop?: boolean;
   restPause?: number;
+  // Descanso pautado tras completar esta serie (segundos). Distinto de
+  // restPause, la técnica "rest-pause" dentro de la misma serie.
+  restSeconds?: number;
+  // Solo lo fija el backend, nunca el cliente (ver set-dao.js#updateSet).
+  donedAt?: string | Date;
   cronometer?: number;
   doned?: boolean;
   order: number;
