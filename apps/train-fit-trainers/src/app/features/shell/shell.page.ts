@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TrainerInvitesApiService } from 'src/app/features/invites/services/trainer-invites-api.service';
+import { TrainerReviewStatusService } from 'src/app/features/invites/services/trainer-review-status.service';
 import { CheckinReportsApiService } from 'src/app/features/checkins/services/checkin-reports-api.service';
 
 export interface ShellMenuItem {
@@ -55,14 +55,14 @@ export class ShellPage implements OnInit {
     { label: 'Dashboard', path: '/tabs/dashboard', icon: 'speedometer-outline' },
     { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
     { label: 'Plantillas', path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
-    { label: 'Reportes', path: '/tabs/checkins', icon: 'clipboard-outline', matchPrefix: true },
+    { label: 'Check-ins', path: '/tabs/checkins', icon: 'clipboard-outline', matchPrefix: true },
     { label: 'Mensajes', path: null, icon: 'chatbubble-ellipses-outline', disabled: true },
     { label: 'Automatizaciones', path: null, icon: 'flash-outline', disabled: true },
     { label: 'Configuración', path: '/tabs/configuration', icon: 'settings-outline' },
   ]);
 
   constructor(
-    private trainerInvitesApi: TrainerInvitesApiService,
+    private trainerReviewStatus: TrainerReviewStatusService,
     private checkinReportsApi: CheckinReportsApiService
   ) {}
 
@@ -75,27 +75,21 @@ export class ShellPage implements OnInit {
   // alta). Solo cuenta "en_revision" — "cuestionario_pendiente" espera al
   // CLIENTE, no hay nada que el trainer deba hacer todavía.
   public ngOnInit(): void {
-    this.trainerInvitesApi.getMyInvites().subscribe({
-      next: (invites) => {
-        const reviewCount = (invites || []).filter((i) => i.status === 'en_revision').length;
-        const clientsItem = this.menuItems.find((item) => item.label === 'Clientes');
-        if (clientsItem) clientsItem.badgeCount = reviewCount;
-      },
-      error: () => {
-        // Silencioso: el badge es un aviso complementario, no crítico — no
-        // debe interrumpir la carga del shell si esta llamada falla.
-      },
+    this.trainerReviewStatus.reviewInvites.subscribe((invites) => {
+      const clientsItem = this.menuItems.find((item) => item.label === 'Clientes');
+      if (clientsItem) clientsItem.badgeCount = invites.length;
     });
+    this.trainerReviewStatus.refresh();
 
     // TASK-024 (MASTER_BACKLOG.md) — antes ninguna respuesta de check-in
-    // generaba aviso alguno al trainer; había que visitar "Reportes" a
+    // generaba aviso alguno al trainer; había que visitar "Check-ins" a
     // ciegas para enterarse de que había algo nuevo. CheckinsPage llama a
     // markSeen() al montar, así que este contador se limpia solo al
     // visitarla — no hace falta lógica de "marcar como leído" aquí.
     this.checkinReportsApi.getUnseenCount().subscribe({
       next: ({ count }) => {
-        const reportsItem = this.menuItems.find((item) => item.label === 'Reportes');
-        if (reportsItem) reportsItem.badgeCount = count;
+        const checkinsItem = this.menuItems.find((item) => item.label === 'Check-ins');
+        if (checkinsItem) checkinsItem.badgeCount = count;
       },
       error: () => {
         // Silencioso, mismo criterio que el badge de Clientes de arriba.

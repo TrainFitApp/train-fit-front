@@ -2,15 +2,6 @@
 @import '../../../theme/buttons';
 @import '../../../theme/inputs';
 
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-}
-
 .invites-content {
   --background: var(--tf-bg);
 }
@@ -63,12 +54,25 @@ ion-header ion-toolbar {
 
 .scope-options {
   display: flex;
+  align-items: flex-start;
   gap: 10px;
   margin-bottom: 6px;
 }
 
-.scope-option {
+.scope-option-wrapper {
   flex: 1;
+  min-width: 0;
+  // flex-start (no el stretch por defecto) — el botón ya fuerza su propio
+  // 100% de ancho, pero el aviso de abajo no debe estirarse con él: debe
+  // quedarse pegado a su texto, no ocupar la columna entera.
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scope-option {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -118,6 +122,57 @@ ion-header ion-toolbar {
       color: var(--tf-accent);
     }
   }
+
+  // Ya lo lleva en este ámbito (o hay algo en curso) — el email lo dijo,
+  // no tiene sentido dejar marcarlo para que el backend lo rechace igual.
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+// Aviso puntual bajo el botón bloqueado — por qué no se puede marcar este
+// ámbito ahora mismo, mismo criterio de color que .validation-error pero
+// informativo (no un fallo de validación del propio campo).
+.scope-blocked-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  width: fit-content;
+  margin: 0;
+  padding: 0 2px;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--tf-text-faint);
+  }
+}
+
+// "Elige un ámbito" — mismo hueco/tamaño que el aviso de arriba (nunca se
+// muestran los dos a la vez, ver *ngIf/else en el HTML), pero en rojo de
+// error en vez de gris informativo.
+.scope-blocked-hint--error {
+  color: var(--tf-danger);
+
+  ion-icon {
+    color: var(--tf-danger);
+  }
+}
+
+.email-check-spinner {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--tf-text-muted);
 }
 
 // --- TASK-049: personalizar cuestionario inicial ---
@@ -283,30 +338,6 @@ ion-header ion-toolbar {
   cursor: pointer;
 }
 
-.invite-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.invite-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: 12px;
-  animation: row-in 280ms var(--tf-ease-out) backwards;
-
-  @for $i from 1 through 12 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{($i - 1) * 30}ms;
-    }
-  }
-}
-
 @keyframes row-in {
   from {
     opacity: 0;
@@ -318,73 +349,110 @@ ion-header ion-toolbar {
   }
 }
 
+// --- Pendientes e Historial comparten la misma card (ver invites.page.html)
+// — la única diferencia es que Pendientes añade botones de cancelar. ---
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  animation: row-in 280ms var(--tf-ease-out) backwards;
+
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{($i - 1) * 30}ms;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .invite-row {
+  .history-card {
     animation: none;
   }
 }
 
-.invite-row--history {
-  opacity: 0.75;
-}
-
-.invite-info {
+// Nombre a la izquierda, email pegado al borde derecho — si no hay nombre
+// (cliente que nunca llegó a aceptar), el email hace de nombre y no se
+// repite a la derecha (ver clientDisplayName() en invites.page.ts).
+.history-card-header {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.invite-email {
-  font-size: 0.9rem;
-  font-weight: 600;
+.history-card-name {
+  min-width: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--tf-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-// Una fila por CLIENTE (antes una fila por invitación, repitiendo el email
-// cuando había training+nutrition a la vez) — este wrapper agrupa los chips
-// de scope de esa fila.
-.scope-chip-row {
+.history-card-email {
+  flex-shrink: 1;
+  min-width: 0;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Fila de detalle: ámbito(s) a la izquierda (1 o 2, según lo que tuviera
+// ese cliente) como chips, estado como pill pegada al borde derecho —
+// separada del header por un filete tenue en vez de una tarjeta anidada
+// (ver anti-referencia en PRODUCT.md: "no cards anidadas"). flex-wrap para
+// que en móvil, si dos chips + la pill de estado no caben en una línea, el
+// estado baje en vez de comprimirse o desbordar.
+.history-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tf-border);
+}
+
+.history-scopes {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
 }
 
-.scope-chip {
-  align-self: flex-start;
-  font-size: 0.72rem;
+// Chip con tinte propio (no el .scope-chip gris plano que usa el resto de
+// la app) — este historial ya no tiene el botón de cancelar como único
+// acento, así que el ámbito se lee como etiqueta real, no como texto suelto.
+.history-scope-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--tf-text-secondary);
-  background: var(--tf-surface-5);
+  background: var(--tf-surface-3);
   border: 1px solid var(--tf-border);
-  border-radius: 6px;
-  padding: 2px 8px;
-}
+  border-radius: 999px;
+  padding: 4px 10px 4px 8px;
 
-// Puede haber hasta 2 botones de cancelar (uno por scope) en la misma fila.
-.invite-row-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-// Historial: scope + status van pareados (pueden diferir entre sí, p. ej.
-// training declinada pero nutrition sigue activa) — nunca sueltos en 2 filas
-// separadas que no se sabría a cuál corresponde cada una.
-.history-scope-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.history-scope-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  ion-icon {
+    font-size: 14px;
+    color: var(--tf-accent);
+  }
 }
 
 .cancel-button {
@@ -421,28 +489,99 @@ ion-header ion-toolbar {
   }
 }
 
+// Agrupa el estado + los botones de cancelar (Pendientes) al borde derecho
+// de la fila — Historial solo pone un .status-label ahí, sin este wrapper.
+.history-card-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+// Pill con tinte propio por estado — se lee de un vistazo sin tener que
+// leer el texto, mismo criterio de color que el resto de la app
+// (success/danger) más una variante neutra para "revoked" (Finalizada).
 .status-label {
   flex-shrink: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
   color: var(--tf-text-muted);
-  background: var(--tf-surface-2);
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-border);
 
   &[data-status='active'] {
     color: var(--tf-success);
+    background: var(--tf-success-soft);
+    border-color: var(--tf-success-border);
   }
 
-  &[data-status='declined'],
+  &[data-status='declined'] {
+    color: var(--tf-danger);
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+  }
+
   &[data-status='revoked'] {
     color: var(--tf-text-muted);
+    background: var(--tf-surface-4);
+    border-color: var(--tf-border);
+  }
+}
+
+// --- Móvil: nombre y email ya no caben en la misma línea sin truncarse los
+// dos a la vez — se apilan, email más pequeño debajo. Umbral subido de
+// 380px a 420px porque con las nuevas chips/pills (más anchas que el texto
+// plano de antes) la línea se aprieta antes en pantallas reales de gama
+// media (~390-412px). ---
+@media (max-width: 420px) {
+  .history-card {
+    padding: 12px 14px;
+  }
+
+  .history-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .history-card-email {
+    font-size: 0.74rem;
+  }
+
+  .history-card-row {
+    gap: 8px;
+  }
+
+  .history-scope-tag {
+    font-size: 0.72rem;
+    padding: 3px 8px 3px 7px;
+  }
+
+  .status-label {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
+  .history-card-row-right {
+    gap: 6px;
+  }
+
+  .cancel-button {
+    width: 30px;
+    height: 30px;
+
+    ion-icon {
+      font-size: 14px;
+    }
   }
 }
 
 // --- Skeleton ---
-.invite-row.skeleton {
+.history-card.skeleton {
   pointer-events: none;
+  animation: none;
 }
 
 .skeleton-line {
@@ -474,81 +613,3 @@ ion-header ion-toolbar {
   border-radius: 10px;
 }
 
-.intake-review {
-  padding: 12px 14px;
-  margin: -4px 0 8px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
-}
-
-.intake-field {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 8px;
-}
-
-.intake-field-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--tf-text-muted);
-}
-
-.intake-field-value {
-  font-size: 0.86rem;
-  color: var(--tf-text-secondary);
-}
-
-.intake-review-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.cancel-review-button {
-  flex: 1;
-  height: 38px;
-  background: var(--tf-surface-2);
-  color: var(--tf-text-secondary);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.confirm-button {
-  @include tf-gradient-button(10px);
-  flex: 2;
-  height: 38px;
-  font-size: 0.84rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-// TASK-035 — antes no existía ninguna vía de rechazo tras revisar el
-// cuestionario, solo "Cerrar" (que no decide nada) o "Confirmar".
-.reject-button {
-  flex: 1;
-  height: 38px;
-  background: var(--tf-danger-soft);
-  color: var(--tf-danger);
-  border: 1px solid var(--tf-danger-border);
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-}

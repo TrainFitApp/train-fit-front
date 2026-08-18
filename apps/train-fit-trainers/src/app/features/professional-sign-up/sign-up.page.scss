@@ -5,10 +5,6 @@
   --background: var(--tf-bg);
 }
 
-ion-header ion-toolbar ion-button {
-  @include tf-icon-button;
-}
-
 .signup-container {
   max-width: 480px;
   margin: 0 auto;

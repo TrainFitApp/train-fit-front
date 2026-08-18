@@ -185,10 +185,6 @@ export class ConfigurationPage {
     this.navigationService.goToRestorePasswordPage();
   }
 
-  public goToMyProfessionals(): void {
-    void this.router.navigate(['/my-professionals']);
-  }
-
   public goToMyCheckins(): void {
     void this.router.navigate(['/my-checkins']);
   }

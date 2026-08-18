@@ -3,17 +3,8 @@
 @import '../../../theme/panel-sheet';
 @import '../../../theme/inputs';
 
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
-  ion-button {
-    @include tf-icon-button;
-  }
+ion-header ion-toolbar ion-button {
+  @include tf-icon-button;
 }
 
 .checkin-content {

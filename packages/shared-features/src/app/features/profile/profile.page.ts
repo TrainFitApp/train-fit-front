@@ -1,4 +1,5 @@
 import { Component, OnInit, effect, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { Browser } from '@capacitor/browser';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -31,6 +32,7 @@ import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
 import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
 import {
   CHART_RANGES,
@@ -149,6 +151,10 @@ export class ProfilePage implements OnInit {
   private readonly billingService = inject(BillingService);
   private readonly authService = inject(AuthService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
+  // Campana de notificaciones en el header — acceso directo a Coach sin
+  // pasar por Configuración > Mis profesionales (ver goToCoach() más abajo).
+  public readonly notificationsService = inject(NotificationsService);
+  private readonly router = inject(Router);
 
   public activeGoal: NutritionalGoal | null = null;
 
@@ -635,6 +641,10 @@ export class ProfilePage implements OnInit {
 
   public goToConfiguration(): void {
     this.navigationService.goToConfiguration();
+  }
+
+  public goToCoach(): void {
+    void this.router.navigate(['/tabs/coach']);
   }
 
   public goToUsers(): void {

@@ -3,10 +3,6 @@
 @import '../../../../../theme/inputs';
 @import '../../../../../theme/panel-sheet';
 
-ion-header ion-toolbar ion-button {
-  @include tf-icon-button;
-}
-
 .builder-content {
   --background: var(--tf-bg);
   --padding-start: 16px;

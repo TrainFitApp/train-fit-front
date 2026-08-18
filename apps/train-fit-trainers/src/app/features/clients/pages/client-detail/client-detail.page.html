@@ -1,7 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/clients" text=""></ion-back-button>
+      <button type="button" class="back-btn" (click)="goToClientsList()" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
     </ion-buttons>
     <ion-title>{{ name }}</ion-title>
   </ion-toolbar>

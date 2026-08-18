@@ -46,11 +46,26 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   meal_prescribed: 'restaurant-outline',
 };
 
+// Mismo conjunto de tipos que navegan a algo en openNotification() — de
+// aquí sale el chevron que indica que la tarjeta es tocable. Un tipo nuevo
+// se añade UNA vez aquí y en el switch de openNotification(), nunca solo
+// en uno de los dos (si no, el chevron mentiría sobre si hace algo o no).
+const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
+  'meal_proposal',
+  'nutrition_preferences_requested',
+  'checkin_requested',
+  'routine_assigned',
+  'goal_assigned',
+  'meal_prescribed',
+]);
+
 // Tab Coach, Fase 1 — hub único de todo lo relacionado con los profesionales
 // del cliente (entrenador/nutricionista): invitaciones, profesionales
-// activos, historial (absorbe lo que antes vivía en `my-professionals`) más
-// el dashboard nuevo (check-ins/comidas/preferencias/cobros pendientes,
-// plan actual asignado). Centraliza ENLAZANDO a pantallas ya construidas
+// activos, historial, más el dashboard (check-ins/comidas/preferencias/
+// cobros pendientes, plan actual asignado). Único punto de entrada — el
+// tab ya se muestra en cuanto hay una invitación (ver CoachService), así
+// que ya no hace falta el acceso alternativo "Mis profesionales" que vivía
+// en Configuración. Centraliza ENLAZANDO a pantallas ya construidas
 // (my-checkins, nutrition-preferences, diets), no las duplica.
 @Component({
   selector: 'app-coach',
@@ -156,6 +171,10 @@ export class CoachPage implements OnInit {
 
   public notificationIcon(notification: CoachNotification): string {
     return NOTIFICATION_ICONS[notification.type] || 'notifications-outline';
+  }
+
+  public isNotificationInteractive(notification: CoachNotification): boolean {
+    return NAVIGABLE_NOTIFICATION_TYPES.has(notification.type);
   }
 
   public notificationTrainerName(notification: CoachNotification): string {

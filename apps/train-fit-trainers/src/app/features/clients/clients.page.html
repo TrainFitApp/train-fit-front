@@ -17,6 +17,67 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Cuestionarios en_revision: el cliente ya aceptó y mandó el
+       cuestionario, así que se revisa y confirma aquí mismo, no en
+       "Invitar" (esa pantalla es para invitaciones que aún no se han
+       aceptado). Mismo aviso que el badge del sidenav (TASK-023). -->
+  <div class="review-banner" *ngIf="reviewSummaries.length">
+    <h2 class="section-heading">Cuestionarios por confirmar</h2>
+    <div class="review-list">
+      <ng-container *ngFor="let review of reviewSummaries; trackBy: trackByClientEmail">
+        <button class="review-row" (click)="openReview(review)">
+          <ion-icon name="document-text-outline" class="review-icon"></ion-icon>
+          <span class="review-email">{{ review.clientEmail }}</span>
+          <ion-icon
+            class="review-chevron"
+            [name]="reviewingClientId === review.clientId ? 'chevron-up-outline' : 'chevron-forward-outline'"
+          ></ion-icon>
+        </button>
+
+        <div class="intake-review" *ngIf="reviewingClientId === review.clientId">
+          <div class="detail-skeleton" *ngIf="isLoadingIntake">
+            <div class="skeleton-block" style="height: 40px;"></div>
+          </div>
+
+          <ng-container *ngIf="!isLoadingIntake && reviewingIntake as intake">
+            <div class="intake-field">
+              <span class="intake-field-label">Objetivos</span>
+              <span class="intake-field-value">{{ intake.goals || '—' }}</span>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Salud y lesiones</span>
+              <span class="intake-field-value">{{ intake.healthConditions || '—' }}</span>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Experiencia</span>
+              <span class="intake-field-value">{{ experienceLabel(intake.experienceLevel) }}</span>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Disponibilidad</span>
+              <span class="intake-field-value">{{ intake.availability || '—' }}</span>
+            </div>
+            <div class="intake-field">
+              <span class="intake-field-label">Equipamiento</span>
+              <span class="intake-field-value">{{ intake.equipment || '—' }}</span>
+            </div>
+          </ng-container>
+
+          <div class="intake-review-actions">
+            <button class="cancel-review-button" (click)="closeReview()">Cerrar</button>
+            <button class="reject-button" (click)="confirmRejectReviewedClient(review)" [disabled]="isRejecting">
+              <span *ngIf="!isRejecting">Rechazar</span>
+              <ion-spinner name="dots" *ngIf="isRejecting"></ion-spinner>
+            </button>
+            <button class="confirm-button" (click)="confirmReviewedClient()" [disabled]="isConfirming">
+              <span *ngIf="!isConfirming">Confirmar cliente</span>
+              <ion-spinner name="dots" *ngIf="isConfirming"></ion-spinner>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
   <!-- Loading -->
   <div class="client-table" *ngIf="state === 'loading'">
     <div class="client-list">

@@ -2,15 +2,6 @@
 @import '../../../theme/buttons';
 @import '../../../theme/inputs';
 
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-}
-
 .invite-button {
   @include tf-icon-button;
 }
@@ -178,6 +169,161 @@ ion-header ion-toolbar {
 
   &--chip {
     width: 35%;
+  }
+}
+
+// --- Cuestionarios en_revision (avisados por el badge del shell) ---
+.review-banner {
+  margin: 4px 16px 4px;
+}
+
+.review-banner .section-heading {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tf-accent-soft);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--tf-accent-soft);
+}
+
+.review-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out);
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+}
+
+.review-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--tf-accent);
+}
+
+.review-email {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--tf-text-faint);
+}
+
+// --- Revisar cuestionario + confirmar cliente, inline (ver clients.page.ts) ---
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.intake-review {
+  padding: 12px 14px;
+  margin: -4px 0 8px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+
+.intake-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.intake-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-muted);
+}
+
+.intake-field-value {
+  font-size: 0.86rem;
+  color: var(--tf-text-secondary);
+}
+
+.intake-review-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cancel-review-button {
+  flex: 1;
+  height: 38px;
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirm-button {
+  @include tf-gradient-button(10px);
+  flex: 2;
+  height: 38px;
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reject-button {
+  flex: 1;
+  height: 38px;
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 }
 

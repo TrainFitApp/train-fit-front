@@ -36,6 +36,15 @@
         </div>
       </div>
       <div class="profile-actions">
+        <button
+          *ngIf="!user?.roles?.includes('trainer') && notificationsService.unreadCount() > 0"
+          class="settings-btn notification-bell-btn"
+          (click)="goToCoach()"
+          aria-label="Ver notificaciones de tu profesional"
+        >
+          <ion-icon name="notifications-outline"></ion-icon>
+          <ion-badge color="danger" class="notification-bell-badge">{{ notificationsService.unreadCount() }}</ion-badge>
+        </button>
         <button class="settings-btn" (click)="goToConfiguration()">
           <ion-icon name="settings-outline"></ion-icon>
         </button>

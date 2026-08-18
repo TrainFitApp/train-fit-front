@@ -1,9 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
-        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
-      </ion-button>
+      <button type="button" class="back-btn" (click)="goBack()" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
     </ion-buttons>
     <ion-title>Componer para varios clientes</ion-title>
   </ion-toolbar>

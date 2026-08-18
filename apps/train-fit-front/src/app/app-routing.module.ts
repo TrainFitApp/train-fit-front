@@ -112,22 +112,6 @@ const routes: Routes = [
       ).then((m) => m.ConfigurationPageModule),
   },
   {
-    // Tab Coach, Fase 1 — hub único de todo lo relacionado con los
-    // profesionales del cliente (entrenador/nutricionista): invitaciones,
-    // profesionales activos, historial, y el dashboard de check-ins/comidas/
-    // preferencias/cobros pendientes y plan actual asignado. Absorbe lo que
-    // antes era "Mis profesionales" (MVP-trainers F04) — se mantiene la ruta
-    // `my-professionals` (enlazada desde Configuración) para los clientes sin
-    // el tab visible (relación aún pendiente, no activa), y se añade `coach`
-    // para el tab. Ambas cargan el mismo módulo. Solo tiene sentido para
-    // clientes (esta app); no se registra en train-fit-management ni
-    // train-fit-trainers.
-    path: 'my-professionals',
-    canMatch: [authMatchGuard, onboardingMatchGuard],
-    loadChildren: () =>
-      import('src/app/features/coach/coach.module').then((m) => m.CoachPageModule),
-  },
-  {
     // MVP-trainers F17 — check-ins periódicos pedidos por profesionales activos.
     path: 'my-checkins',
     canMatch: [authMatchGuard, onboardingMatchGuard],

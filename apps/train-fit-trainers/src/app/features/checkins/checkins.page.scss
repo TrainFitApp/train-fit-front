@@ -1,13 +1,5 @@
 @import '../../../theme/skeleton';
-
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-}
+@import '../../../theme/inputs';
 
 .checkins-content {
   --background: var(--tf-bg);
@@ -107,14 +99,62 @@ ion-header ion-toolbar {
   color: var(--tf-text);
 }
 
+.checkins-header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-4));
+  height: 38px;
+  width: 200px;
+}
+
+.search-icon {
+  @include tf-input-icon;
+  font-size: 16px;
+}
+
+.search-input {
+  @include tf-input-field;
+  font-size: var(--tf-font-size-sm);
+}
+
 .client-select {
-  background: var(--tf-surface-4);
+  // La flecha nativa del <select> se pega al borde y CSS no puede moverla
+  // (el padding no la afecta) — se sustituye por una propia en
+  // background-image, con hueco real hasta el borde derecho.
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--tf-surface-4);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8b8b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
   color: var(--tf-text);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-sm);
-  padding: 8px 12px;
+  padding: 8px 30px 8px 12px;
   font-size: var(--tf-font-size-sm);
   font-family: inherit;
+}
+
+// --- Móvil: la fila título + buscador + select ya no cabe en una línea ---
+@media (max-width: 560px) {
+  .checkins-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .checkins-header-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-wrapper {
+    width: auto;
+  }
 }
 
 .empty-hint {

@@ -1,0 +1,24 @@
+@import 'buttons';
+
+// Header homogéneo — antes cada *.page.scss repetía el mismo bloque
+// (--background + peso/tracking del título) por separado, y solo 12 de las
+// 17 pantallas lo tenían — las otras 5 quedaban con el título por defecto
+// de Ionic, más fino. Una sola regla global para las 17.
+ion-header.ion-no-border ion-toolbar {
+  --background: var(--tf-bg);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+// Botón de volver homogéneo — antes 3 patrones distintos conviviendo:
+// ion-back-button nativo (client-detail), ion-button con tf-icon-button
+// aplicado por selector de elemento (diet-template-builder/compose-meal/
+// sign-up) y este mismo <button class="back-btn"> (planner/routine-builder),
+// además de 2 iconos distintos (arrow-back-outline vs chevron-back-outline).
+// Un único botón, un único icono, en todas las pantallas con header propio.
+.back-btn {
+  @include tf-icon-button;
+}

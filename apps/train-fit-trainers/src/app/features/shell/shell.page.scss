@@ -7,7 +7,10 @@
   --width: 232px;
   --background: var(--tf-surface-1);
   --border-color: var(--tf-border);
-  transition: width var(--tf-duration-base) var(--tf-ease-out);
+  // --tf-duration-fast (120ms, la misma que ya usa .collapse-toggle al
+  // hacer hover) en vez de --tf-duration-base (180ms) — se pidió más
+  // rápido sin perder la animación, no quitarla.
+  transition: width var(--tf-duration-fast) var(--tf-ease-out);
 
   // Contraíble en escritorio (pedido aparte del mockup) — icon-only, misma
   // idea que la variante "Tablet — 834px" del mockup importado.

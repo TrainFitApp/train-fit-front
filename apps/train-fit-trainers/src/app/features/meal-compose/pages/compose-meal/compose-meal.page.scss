@@ -2,10 +2,6 @@
 @import '../../../../../theme/buttons';
 @import '../../../../../theme/inputs';
 
-ion-header ion-toolbar ion-button {
-  @include tf-icon-button;
-}
-
 .compose-content {
   --background: var(--tf-bg);
   --padding-start: 16px;

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CHECKIN_FIELDS_BY_KEY, CheckinField } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CheckinCadence, CheckinHistoryEntry, MyCheckinConfig } from './models/my-checkin.model';
@@ -32,11 +33,18 @@ export class MyCheckinsPage implements OnInit {
 
   constructor(
     private myCheckinsApi: MyCheckinsApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private router: Router
   ) {}
 
   public ngOnInit(): void {
     this.load();
+  }
+
+  // Mismo defaultHref que tenía el ion-back-button nativo que sustituye
+  // este botón (ver my-checkins.page.html).
+  public close(): void {
+    void this.router.navigate(['/tabs']);
   }
 
   public load(): void {

@@ -23,6 +23,10 @@ export interface TrainerInvite {
   respondedAt: string | null;
   revokedAt: string | null;
   revokedBy: 'trainer' | 'client' | null;
+  // Solo en la respuesta de GET /trainer/invites (findAllByTrainerWithClient
+  // en el backend) — null si el cliente nunca llegó a aceptar (declined sin
+  // clientId) o si el usuario fue borrado.
+  client?: { name: string | null; lastname: string | null } | null;
 }
 
 export interface SendInviteResult {
@@ -56,4 +60,17 @@ export interface TrainerIntakeConfig {
   trainerId: string;
   enabledFields: IntakeFieldKey[];
   catalog?: IntakeFieldKey[];
+}
+
+// GET /trainer/clients/check-email — mismos 4 estados que bloquean el
+// índice único del backend (trainerId+clientEmail+scope); declined/revoked
+// no vienen aquí porque no bloquean, se puede reinvitar.
+export interface ClientEmailScopeState {
+  blocked: boolean;
+  status: TrainerInviteStatus | null;
+}
+
+export interface ClientEmailScopeStatus {
+  training: ClientEmailScopeState;
+  nutrition: ClientEmailScopeState;
 }

@@ -10,7 +10,19 @@ interface ClientOption {
   name: string;
 }
 
-// TASK-002 (MASTER_BACKLOG.md) — "Reportes": antes mostraba 4 nombres de
+interface ValueEntry {
+  key: string;
+  value: number | string;
+}
+
+// values -> entradas {key, value} precalculadas una vez al cargar, no en
+// valueEntries() llamado desde el *ngFor (mismo motivo que el comentario de
+// clientOptions/filteredResponses más abajo).
+interface DisplayCheckinEntry extends CheckinReportEntry {
+  valueEntries: ValueEntry[];
+}
+
+// TASK-002 (MASTER_BACKLOG.md) — "Check-ins": antes mostraba 4 nombres de
 // cliente inventados y un historial de 5 filas hardcodeadas (peso/energía/
 // sueño/estrés/adherencia — columnas que ni siquiera existen en el catálogo
 // real de campos). Ahora consume GET /trainer/checkins/responses (real,
@@ -25,14 +37,24 @@ interface ClientOption {
 })
 export class CheckinsPage implements OnInit {
   public state: ViewState = 'loading';
-  public responses: CheckinReportEntry[] = [];
+  public responses: DisplayCheckinEntry[] = [];
   public selectedClientId: string | 'all' = 'all';
+  public searchQuery = '';
+
+  // Calculados en load()/applyFilters(), no en un getter de plantilla — un
+  // getter (o una llamada a método) usado directamente en *ngFor se
+  // reevalúa en cada ciclo de detección de cambios y devuelve un array
+  // nuevo cada vez, lo que deja la pantalla colgada con datos reales (mismo
+  // bug ya visto y corregido en clients.page.ts e invites.page.ts).
+  public clientOptions: ClientOption[] = [];
+  public filteredResponses: DisplayCheckinEntry[] = [];
+  public distinctClientCount = 0;
 
   constructor(private checkinReportsApi: CheckinReportsApiService) {}
 
   public ngOnInit(): void {
     this.load();
-    // TASK-024 (MASTER_BACKLOG.md) — visitar "Reportes" limpia el contador
+    // TASK-024 (MASTER_BACKLOG.md) — visitar "Check-ins" limpia el contador
     // de no-vistos que muestra el badge del sidebar (ShellPage). El badge en
     // sí no se refresca en caliente (se calculó una vez al montar el shell,
     // mismo criterio ya aceptado en TASK-023) — visualmente se actualizará
@@ -51,7 +73,13 @@ export class CheckinsPage implements OnInit {
     this.state = 'loading';
     this.checkinReportsApi.getMyResponses().subscribe({
       next: (responses) => {
-        this.responses = responses;
+        this.responses = responses.map((r) => ({
+          ...r,
+          valueEntries: Object.entries(r.values || {}).map(([key, value]) => ({ key, value })),
+        }));
+        this.clientOptions = this.buildClientOptions(this.responses);
+        this.distinctClientCount = this.clientOptions.length;
+        this.applyFilters();
         this.state = 'loaded';
       },
       error: () => {
@@ -60,9 +88,9 @@ export class CheckinsPage implements OnInit {
     });
   }
 
-  public get clientOptions(): ClientOption[] {
+  private buildClientOptions(responses: CheckinReportEntry[]): ClientOption[] {
     const seen = new Map<string, ClientOption>();
-    for (const r of this.responses) {
+    for (const r of responses) {
       if (!r.client) continue;
       if (!seen.has(r.client._id)) {
         seen.set(r.client._id, { id: r.client._id, name: `${r.client.name} ${r.client.lastname}`.trim() });
@@ -71,13 +99,28 @@ export class CheckinsPage implements OnInit {
     return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  public get filteredResponses(): CheckinReportEntry[] {
-    if (this.selectedClientId === 'all') return this.responses;
-    return this.responses.filter((r) => r.client?._id === this.selectedClientId);
+  // Búsqueda + select de cliente son 2 filtros independientes, aplicados a
+  // la vez sobre la lista ya cargada — no hay búsqueda en servidor aquí
+  // (a diferencia de Clientes), el volumen de respuestas de un trainer no lo
+  // justifica.
+  public applyFilters(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+    this.filteredResponses = this.responses.filter((r) => {
+      if (this.selectedClientId !== 'all' && r.client?._id !== this.selectedClientId) return false;
+      if (!query) return true;
+      if (!r.client) return false;
+      const haystack = `${r.client.name} ${r.client.lastname} ${r.client.email}`.toLowerCase();
+      return haystack.includes(query);
+    });
   }
 
-  public get distinctClientCount(): number {
-    return this.clientOptions.length;
+  public onSearchChange(value: string): void {
+    this.searchQuery = value;
+    this.applyFilters();
+  }
+
+  public onClientSelectChange(): void {
+    this.applyFilters();
   }
 
   public get latestResponseDate(): string | null {
@@ -94,10 +137,6 @@ export class CheckinsPage implements OnInit {
 
   public checkinFieldUnit(key: string): string {
     return CHECKIN_FIELDS_BY_KEY.get(key)?.unit || '';
-  }
-
-  public valueEntries(entry: CheckinReportEntry): { key: string; value: number | string }[] {
-    return Object.entries(entry.values || {}).map(([key, value]) => ({ key, value }));
   }
 
   public trackByResponseId(_index: number, entry: CheckinReportEntry): string {

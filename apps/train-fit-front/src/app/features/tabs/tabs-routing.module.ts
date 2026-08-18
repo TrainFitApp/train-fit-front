@@ -37,10 +37,10 @@ const routes: Routes = [
           import('src/app/features/profile/profile.module').then((m) => m.ProfilePageModule),
       },
       {
-        // Tab Coach, Fase 1 — visible solo si CoachService.hasActiveCoach()
+        // Tab Coach, Fase 1 — visible solo si CoachService.hasCoachRelation()
         // (ver tabs.page.html), pero la ruta en sí no necesita un guard: sin
-        // relación activa, GET /coach/dashboard simplemente devuelve listas
-        // vacías, no hay datos de terceros que proteger aquí.
+        // relación ni invitación, GET /coach/dashboard simplemente devuelve
+        // listas vacías, no hay datos de terceros que proteger aquí.
         path: 'coach',
         loadChildren: () =>
           import('src/app/features/coach/coach.module').then((m) => m.CoachPageModule),

@@ -1095,6 +1095,28 @@ body[color-theme="dark"] {
   }
 }
 
+// Campana de notificaciones — mismo botón .settings-btn de arriba, pero
+// necesita overflow visible para que el badge asome por la esquina en vez
+// de quedar recortado (el resto de .settings-btn usa overflow:hidden a
+// propósito, para el ripple de ::before).
+.notification-bell-btn {
+  overflow: visible;
+}
+
+.notification-bell-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  border-radius: 999px;
+  z-index: 2;
+}
+
 @keyframes dropEffect {
   0% {
     width: 0;

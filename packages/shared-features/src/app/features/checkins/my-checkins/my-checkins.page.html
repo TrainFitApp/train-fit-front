@@ -1,10 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>Mis check-ins</ion-title>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Mis check-ins</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="my-checkins-content">

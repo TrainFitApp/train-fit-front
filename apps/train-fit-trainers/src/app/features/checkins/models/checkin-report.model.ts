@@ -1,4 +1,4 @@
-// TASK-002 (MASTER_BACKLOG.md) — "Reportes": histórico de check-ins
+// TASK-002 (MASTER_BACKLOG.md) — "Check-ins": histórico de check-ins
 // agregado de TODOS los clientes del entrenador (GET /trainer/checkins/responses).
 // Mismo shape que CheckinResponseEntry (client-detail.model.ts) más el
 // cliente al que pertenece — ahí venía implícito (una sola pantalla por

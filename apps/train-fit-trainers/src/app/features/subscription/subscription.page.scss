@@ -1,15 +1,6 @@
 @import '../../../theme/skeleton';
 @import '../../../theme/buttons';
 
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-}
-
 .subscription-content {
   --background: var(--tf-bg);
 }

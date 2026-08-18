@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import {
+  ClientEmailScopeStatus,
   ClientIntake,
   SendInviteResponse,
   TrainerInvite,
@@ -52,5 +53,14 @@ export class TrainerInvitesApiService {
 
   public updateIntakeConfig(enabledFields: IntakeFieldKey[]): Observable<TrainerIntakeConfig> {
     return this.http.put<TrainerIntakeConfig>('trainer/intake-config', { enabledFields });
+  }
+
+  // Estado por scope (training/nutrition) de este email con ESTE trainer —
+  // para avisar en el form de invitar antes de enviar, no solo dejar que
+  // falle el submit contra el índice único del backend.
+  public checkClientEmailStatus(email: string): Observable<ClientEmailScopeStatus> {
+    return this.http.get<ClientEmailScopeStatus>(
+      `trainer/clients/check-email?email=${encodeURIComponent(email)}`
+    );
   }
 }

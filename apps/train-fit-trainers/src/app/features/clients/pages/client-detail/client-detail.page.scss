@@ -3,15 +3,6 @@
 @import '../../../../../theme/panel-sheet';
 @import '../../../../../theme/inputs';
 
-ion-header ion-toolbar {
-  --background: var(--tf-bg);
-
-  ion-title {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-}
-
 // TASK-012 — banner de carga/error mientras se resuelve name/scopes vía
 // resolveClientIdentityFallback() (deep link sin queryParams).
 .header-state-banner {

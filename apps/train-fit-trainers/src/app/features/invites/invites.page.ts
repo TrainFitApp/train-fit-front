@@ -4,7 +4,11 @@ import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
-import { ClientIntake, TrainerInvite, TrainerInviteScope } from './models/trainer-invite.model';
+import {
+  ClientEmailScopeStatus,
+  TrainerInvite,
+  TrainerInviteScope,
+} from './models/trainer-invite.model';
 
 type ListState = 'loading' | 'error' | 'loaded';
 
@@ -18,6 +22,24 @@ interface GroupedInvite {
   invites: TrainerInvite[];
 }
 
+// Historial: un cliente con 2 ámbitos puede tener estados distintos por
+// ámbito (p. ej. entrenamiento rechazado, nutrición finalizada más tarde) —
+// agrupar por estado en vez de asumir uno solo evita mentir emparejando un
+// estado con un ámbito al que no corresponde. En el caso normal (mismo
+// estado en ambos, o un solo ámbito) esto da un único grupo.
+interface HistoryStatusGroup {
+  status: TrainerInvite['status'];
+  scopes: TrainerInviteScope[];
+  // Las invitaciones de este grupo (no solo su scope) — hace falta el _id
+  // de cada una para poder cancelarlas individualmente en "Pendientes"
+  // (ver confirmCancel en el template), que reutiliza esta misma card.
+  invites: TrainerInvite[];
+}
+
+interface HistoryGroup extends GroupedInvite {
+  statusGroups: HistoryStatusGroup[];
+}
+
 @Component({
   selector: 'app-invites',
   templateUrl: 'invites.page.html',
@@ -29,25 +51,20 @@ export class InvitesPage implements OnInit {
 
   public listState: ListState = 'loading';
   public pendingInvites: TrainerInvite[] = [];
-  // TAREA 3 — relaciones con cuestionario enviado, esperando confirmación explícita.
-  public reviewInvites: TrainerInvite[] = [];
   public historyInvites: TrainerInvite[] = [];
   public cancellingId: string | null = null;
 
-  // Getters (no estado propio) — se recalculan solos cada vez que
-  // pending/review/historyInvites cambian (loadInvites), sin un punto extra
-  // que mantener sincronizado.
-  public get groupedPendingInvites(): GroupedInvite[] {
-    return this.groupByClient(this.pendingInvites);
-  }
-
-  public get groupedReviewInvites(): GroupedInvite[] {
-    return this.groupByClient(this.reviewInvites);
-  }
-
-  public get groupedHistoryInvites(): GroupedInvite[] {
-    return this.groupByClient(this.historyInvites);
-  }
+  // Calculados UNA VEZ en loadInvites(), no en un getter/método de plantilla
+  // — un getter (o una llamada a método) usado directamente en *ngFor se
+  // reevalúa en CADA ciclo de detección de cambios y devuelve arrays/objetos
+  // nuevos cada vez, lo que hace que *ngFor destruya y recree todas las
+  // filas sin parar y deja la pantalla colgada en cuanto hay invitaciones
+  // reales que listar (mismo bug ya visto y corregido en clients.page.ts).
+  // Pendientes va por INVITACIÓN, no por grupo de estado — cada fila tiene
+  // un único chip de ámbito y un único botón de cancelar, sin ambigüedad de
+  // cuál cancela cuál cuando el cliente tiene los dos ámbitos a la vez.
+  public groupedPendingInvites: GroupedInvite[] = [];
+  public groupedHistoryInvites: HistoryGroup[] = [];
 
   private groupByClient(invites: TrainerInvite[]): GroupedInvite[] {
     const groups = new Map<string, GroupedInvite>();
@@ -65,20 +82,39 @@ export class InvitesPage implements OnInit {
     return group.clientEmail;
   }
 
-  public isGroupCancelling(group: GroupedInvite): boolean {
-    return group.invites.some((invite) => invite._id === this.cancellingId);
+  public trackByStatus(_index: number, statusGroup: HistoryStatusGroup): string {
+    return statusGroup.status;
   }
 
-  public reviewingClientId: string | null = null;
-  public reviewingIntake: ClientIntake | null = null;
-  public isLoadingIntake = false;
-  public isConfirming = false;
-  public readonly experienceLabels: Record<string, string> = {
-    none: 'Sin experiencia',
-    beginner: 'Principiante',
-    intermediate: 'Intermedio',
-    advanced: 'Avanzado',
-  };
+  public trackByInviteId(_index: number, invite: TrainerInvite): string {
+    return invite._id;
+  }
+
+  public clientDisplayName(group: GroupedInvite): string | null {
+    const client = group.invites.find((invite) => invite.client)?.client;
+    if (!client?.name && !client?.lastname) return null;
+    return `${client.name || ''} ${client.lastname || ''}`.trim();
+  }
+
+  private groupByStatus(invites: TrainerInvite[]): HistoryStatusGroup[] {
+    const groups = new Map<string, HistoryStatusGroup>();
+    for (const invite of invites) {
+      if (!groups.has(invite.status)) {
+        groups.set(invite.status, { status: invite.status, scopes: [], invites: [] });
+      }
+      const group = groups.get(invite.status)!;
+      group.scopes.push(invite.scope);
+      group.invites.push(invite);
+    }
+    return [...groups.values()];
+  }
+
+  private groupByClientWithStatus(invites: TrainerInvite[]): HistoryGroup[] {
+    return this.groupByClient(invites).map((group) => ({
+      ...group,
+      statusGroups: this.groupByStatus(group.invites),
+    }));
+  }
 
   // TASK-049 (MASTER_BACKLOG.md) — personalización del cuestionario inicial.
   public readonly intakeFieldLabels: Record<IntakeFieldKey, string> = {
@@ -141,6 +177,13 @@ export class InvitesPage implements OnInit {
     private router: Router
   ) {}
 
+  // Estado del email frente a ESTE trainer, comprobado al perder el foco
+  // del campo — evita que el trainer marque un ámbito que el backend va a
+  // rechazar igual al enviar (índice único trainerId+clientEmail+scope).
+  public emailScopeStatus: ClientEmailScopeStatus | null = null;
+  public checkingEmail = false;
+  private lastCheckedEmail: string | null = null;
+
   public ngOnInit(): void {
     this.form = new FormGroup({
       clientEmail: new FormControl(null, [
@@ -151,12 +194,70 @@ export class InvitesPage implements OnInit {
       nutrition: new FormControl(false),
     });
 
+    // Cambiar el email invalida la comprobación anterior — nunca se deja un
+    // "ya lo llevas" de un email distinto pegado en pantalla.
+    this.form.get('clientEmail')?.valueChanges.subscribe(() => {
+      this.emailScopeStatus = null;
+      this.lastCheckedEmail = null;
+    });
+
     this.loadInvites();
   }
 
   public toggleScope(controlName: 'training' | 'nutrition'): void {
+    if (this.isScopeBlocked(controlName)) return;
     const control = this.form.get(controlName);
     control?.setValue(!control.value);
+  }
+
+  public isScopeBlocked(scope: TrainerInviteScope): boolean {
+    return !!this.emailScopeStatus?.[scope]?.blocked;
+  }
+
+  public emailScopeStatusMessage(scope: TrainerInviteScope): string | null {
+    const state = this.emailScopeStatus?.[scope];
+    if (!state?.blocked) return null;
+    switch (state.status) {
+      case 'active':
+        return 'Ya es tu cliente en este ámbito';
+      case 'pending':
+        return 'Ya tiene una invitación pendiente de respuesta';
+      case 'cuestionario_pendiente':
+        return 'Ya aceptó, esperando que complete el cuestionario';
+      case 'en_revision':
+        return 'Cuestionario recibido, pendiente de tu confirmación';
+      default:
+        return 'Ya existe una relación en curso con este ámbito';
+    }
+  }
+
+  public onEmailBlur(): void {
+    const control = this.form.get('clientEmail');
+    const email = (control?.value || '').trim().toLowerCase();
+    if (!email || control?.invalid || email === this.lastCheckedEmail) {
+      return;
+    }
+
+    this.checkingEmail = true;
+    this.trainerInvitesApi.checkClientEmailStatus(email).subscribe({
+      next: (status) => {
+        this.checkingEmail = false;
+        this.lastCheckedEmail = email;
+        this.emailScopeStatus = status;
+        // Un ámbito que ya estaba marcado pero ahora resulta bloqueado no
+        // se manda igual — se desmarca solo, junto con el aviso.
+        (['training', 'nutrition'] as TrainerInviteScope[]).forEach((scope) => {
+          if (status[scope].blocked) {
+            this.form.get(scope)?.setValue(false);
+          }
+        });
+      },
+      // Fallo silencioso — no bloquea al trainer, el backend igual protege
+      // al enviar (mismo índice único), esto es solo el aviso anticipado.
+      error: () => {
+        this.checkingEmail = false;
+      },
+    });
   }
 
   public get hasScopeSelected(): boolean {
@@ -173,10 +274,16 @@ export class InvitesPage implements OnInit {
         this.pendingInvites = sorted.filter(
           (invite) => invite.status === 'pending' || invite.status === 'cuestionario_pendiente'
         );
-        this.reviewInvites = sorted.filter((invite) => invite.status === 'en_revision');
+        // en_revision ya no se lista aquí — el cliente ya aceptó y mandó el
+        // cuestionario, así que se revisa/confirma en "Clientes"
+        // (clients.page.ts), no en esta pantalla de invitaciones.
         this.historyInvites = sorted.filter(
           (invite) => !['pending', 'cuestionario_pendiente', 'en_revision'].includes(invite.status)
         );
+
+        this.groupedPendingInvites = this.groupByClient(this.pendingInvites);
+        this.groupedHistoryInvites = this.groupByClientWithStatus(this.historyInvites);
+
         this.listState = 'loaded';
       },
       error: () => {
@@ -310,81 +417,6 @@ export class InvitesPage implements OnInit {
       default:
         return status;
     }
-  }
-
-  // --- TAREA 3: revisar cuestionario + confirmar cliente ---
-  public openReview(invite: TrainerInvite): void {
-    if (!invite.clientId) return;
-    this.reviewingClientId = invite.clientId;
-    this.isLoadingIntake = true;
-    this.reviewingIntake = null;
-    this.trainerInvitesApi.getClientIntake(invite.clientId).subscribe({
-      next: (intake) => {
-        this.isLoadingIntake = false;
-        this.reviewingIntake = intake;
-      },
-      error: () => {
-        this.isLoadingIntake = false;
-        this.ionicUtilService.showErrorToast('No se pudo cargar el cuestionario', 'Error', 3000);
-      },
-    });
-  }
-
-  public closeReview(): void {
-    this.reviewingClientId = null;
-    this.reviewingIntake = null;
-  }
-
-  public experienceLabel(level: ClientIntake['experienceLevel']): string {
-    return level ? this.experienceLabels[level] || level : 'No indicado';
-  }
-
-  // TASK-035 (MASTER_BACKLOG.md) — antes no existía NINGUNA forma de
-  // rechazar un cliente en "en_revision" desde esta pantalla (solo
-  // "Confirmar" o "Cerrar", que no decide nada). Reutiliza el mismo
-  // cancelInvite() del backend ya corregido para revocar de verdad este
-  // estado (antes devolvía éxito falso — ver DECISIONS.md).
-  // Recibe el GRUPO (no una invitación suelta) — con la fila unificada por
-  // cliente, rechazar debe cortar TODOS los scopes en revisión de ese par a
-  // la vez, no dejar uno rechazado y otro activo por accidente.
-  public async confirmReject(group: GroupedInvite): Promise<void> {
-    const alert = await this.ionicUtilService.showAlert({
-      header: 'Rechazar cliente',
-      message: `¿Seguro que quieres rechazar a ${group.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
-      buttons: [
-        { text: 'Volver', role: 'cancel' },
-        {
-          text: 'Rechazar',
-          cssClass: 'alert-button-danger',
-          handler: () => {
-            group.invites.forEach((invite) => this.cancelInvite(invite));
-            this.closeReview();
-          },
-        },
-      ],
-    });
-    void alert;
-  }
-
-  public confirmClient(): void {
-    if (!this.reviewingClientId || this.isConfirming) return;
-    this.isConfirming = true;
-    this.trainerInvitesApi.confirmClient(this.reviewingClientId).subscribe({
-      next: () => {
-        this.isConfirming = false;
-        this.ionicUtilService.showToast({ message: 'Cliente confirmado, coaching desbloqueado', duration: 3000 });
-        this.closeReview();
-        this.loadInvites();
-      },
-      error: (err) => {
-        this.isConfirming = false;
-        this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo confirmar al cliente',
-          'Error',
-          3000
-        );
-      },
-    });
   }
 
   // --- TASK-049: personalizar cuestionario inicial ---

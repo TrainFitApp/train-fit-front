@@ -8,8 +8,8 @@
       <ion-icon name="nutrition-outline"></ion-icon>
     </ion-tab-button>
 
-    <ion-tab-button [tab]="TABS.coach" *ngIf="coachService.hasActiveCoach()">
-      <ion-icon name="ribbon-outline"></ion-icon>
+    <ion-tab-button [tab]="TABS.coach" *ngIf="coachService.hasCoachRelation()">
+      <ion-icon name="glasses-outline"></ion-icon>
       <ion-badge *ngIf="notificationsService.unreadCount() > 0">{{ notificationsService.unreadCount() }}</ion-badge>
     </ion-tab-button>
 
