@@ -176,17 +176,22 @@ export class UserLoaderPage implements OnInit, OnDestroy {
                   ? this.workoutService.getWorkoutById(resUser.workoutInUse)
                   : of(null);
 
-              // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — los tres
-              // servicios absorben cualquier error internamente (nunca
-              // propagan), así que nunca bloquean ni rompen el arranque si
-              // tardan o fallan.
+              // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — endpoints del
+              // lado CLIENTE (auth(["user", ...]) en el backend). Una cuenta
+              // profesional pura (roles:["trainer"], sin "user" — ver
+              // POST /users/professional) nunca tiene acceso, así que ni se
+              // llaman: antes se llamaban igual y el 403 se tragaba en
+              // silencio (ruido de consola en cada login de trainer, cero
+              // impacto funcional, pero sin motivo para seguir así).
+              const isClientAccount = !!resUser.roles?.includes('user');
+
               return forkJoin([
                 tableObservable,
                 dietObservable,
                 workoutInUseObservable,
-                this.coachService.refresh(),
-                this.notificationsService.refresh(),
-                this.onboardingService.refresh(),
+                isClientAccount ? this.coachService.refresh() : of(false),
+                isClientAccount ? this.notificationsService.refresh() : of(0),
+                isClientAccount ? this.onboardingService.refresh() : of(null),
               ]);
             })
           );

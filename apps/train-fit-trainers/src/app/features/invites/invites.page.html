@@ -14,6 +14,38 @@
       Introduce su email y elige qué vas a llevarle. Puedes marcar los dos ámbitos a la vez.
     </p>
 
+    <div class="scope-options">
+      <button
+        type="button"
+        class="scope-option"
+        [class.selected]="form.value.training"
+        (click)="toggleScope('training')"
+      >
+        <ion-icon name="barbell-outline"></ion-icon>
+        <span>Entrenamiento</span>
+        <ion-icon
+          class="scope-check"
+          [name]="form.value.training ? 'checkmark-circle' : 'ellipse-outline'"
+        ></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="scope-option"
+        [class.selected]="form.value.nutrition"
+        (click)="toggleScope('nutrition')"
+      >
+        <ion-icon name="nutrition-outline"></ion-icon>
+        <span>Nutrición</span>
+        <ion-icon
+          class="scope-check"
+          [name]="form.value.nutrition ? 'checkmark-circle' : 'ellipse-outline'"
+        ></ion-icon>
+      </button>
+    </div>
+    <div class="validation-error" *ngIf="form.touched && !hasScopeSelected">
+      Elige al menos un ámbito
+    </div>
+
     <button type="button" class="intake-config-toggle" (click)="toggleIntakeConfigPanel()">
       <ion-icon name="list-outline"></ion-icon>
       <span>Personalizar cuestionario inicial</span>
@@ -38,7 +70,7 @@
         <button
           type="button"
           class="field-toggle-row"
-          *ngFor="let field of intakeConfigFields"
+          *ngFor="let field of visibleIntakeConfigFields"
           (click)="toggleIntakeField(field)"
         >
           <span>{{ intakeFieldLabels[field] }}</span>
@@ -78,38 +110,6 @@
       </div>
     </div>
 
-    <div class="scope-options">
-      <button
-        type="button"
-        class="scope-option"
-        [class.selected]="form.value.training"
-        (click)="toggleScope('training')"
-      >
-        <ion-icon name="barbell-outline"></ion-icon>
-        <span>Entrenamiento</span>
-        <ion-icon
-          class="scope-check"
-          [name]="form.value.training ? 'checkmark-circle' : 'ellipse-outline'"
-        ></ion-icon>
-      </button>
-      <button
-        type="button"
-        class="scope-option"
-        [class.selected]="form.value.nutrition"
-        (click)="toggleScope('nutrition')"
-      >
-        <ion-icon name="nutrition-outline"></ion-icon>
-        <span>Nutrición</span>
-        <ion-icon
-          class="scope-check"
-          [name]="form.value.nutrition ? 'checkmark-circle' : 'ellipse-outline'"
-        ></ion-icon>
-      </button>
-    </div>
-    <div class="validation-error" *ngIf="form.touched && !hasScopeSelected">
-      Elige al menos un ámbito
-    </div>
-
     <button
       type="submit"
       class="submit-button"
@@ -141,37 +141,45 @@
       </p>
 
       <div class="invite-list">
-        <div class="invite-row" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
+        <div class="invite-row" *ngFor="let group of groupedPendingInvites; trackBy: trackByClientEmail">
           <div class="invite-info">
-            <span class="invite-email">{{ invite.clientEmail }}</span>
-            <span class="scope-chip">{{ scopeLabel(invite.scope) }}</span>
+            <span class="invite-email">{{ group.clientEmail }}</span>
+            <div class="scope-chip-row">
+              <span class="scope-chip" *ngFor="let inv of group.invites">{{ scopeLabel(inv.scope) }}</span>
+            </div>
           </div>
-          <button
-            class="cancel-button"
-            (click)="confirmCancel(invite)"
-            [disabled]="cancellingId === invite._id"
-          >
-            <ion-spinner name="dots" *ngIf="cancellingId === invite._id"></ion-spinner>
-            <ion-icon name="close-outline" *ngIf="cancellingId !== invite._id"></ion-icon>
-          </button>
+          <div class="invite-row-actions">
+            <button
+              class="cancel-button"
+              *ngFor="let inv of group.invites"
+              (click)="confirmCancel(inv)"
+              [disabled]="cancellingId === inv._id"
+              [title]="'Cancelar invitación de ' + scopeLabel(inv.scope)"
+            >
+              <ion-spinner name="dots" *ngIf="cancellingId === inv._id"></ion-spinner>
+              <ion-icon name="close-outline" *ngIf="cancellingId !== inv._id"></ion-icon>
+            </button>
+          </div>
         </div>
       </div>
 
       <ng-container *ngIf="reviewInvites.length">
         <h2 class="section-heading section-heading--secondary">Cuestionarios por confirmar</h2>
         <div class="invite-list">
-          <ng-container *ngFor="let invite of reviewInvites; trackBy: trackByInviteId">
+          <ng-container *ngFor="let group of groupedReviewInvites; trackBy: trackByClientEmail">
             <div class="invite-row">
               <div class="invite-info">
-                <span class="invite-email">{{ invite.clientEmail }}</span>
-                <span class="scope-chip">{{ scopeLabel(invite.scope) }}</span>
+                <span class="invite-email">{{ group.clientEmail }}</span>
+                <div class="scope-chip-row">
+                  <span class="scope-chip" *ngFor="let inv of group.invites">{{ scopeLabel(inv.scope) }}</span>
+                </div>
               </div>
-              <button class="cancel-button" (click)="openReview(invite)" *ngIf="reviewingClientId !== invite.clientId">
+              <button class="cancel-button" (click)="openReview(group.invites[0])" *ngIf="reviewingClientId !== group.clientId">
                 <ion-icon name="document-text-outline"></ion-icon>
               </button>
             </div>
 
-            <div class="intake-review" *ngIf="reviewingClientId === invite.clientId">
+            <div class="intake-review" *ngIf="reviewingClientId === group.clientId">
               <div class="detail-skeleton" *ngIf="isLoadingIntake">
                 <div class="skeleton-block" style="height: 40px;"></div>
               </div>
@@ -203,11 +211,11 @@
                 <button class="cancel-review-button" (click)="closeReview()">Cerrar</button>
                 <button
                   class="reject-button"
-                  (click)="confirmReject(invite)"
-                  [disabled]="cancellingId === invite._id"
+                  (click)="confirmReject(group)"
+                  [disabled]="isGroupCancelling(group)"
                 >
-                  <span *ngIf="cancellingId !== invite._id">Rechazar</span>
-                  <ion-spinner name="dots" *ngIf="cancellingId === invite._id"></ion-spinner>
+                  <span *ngIf="!isGroupCancelling(group)">Rechazar</span>
+                  <ion-spinner name="dots" *ngIf="isGroupCancelling(group)"></ion-spinner>
                 </button>
                 <button class="confirm-button" (click)="confirmClient()" [disabled]="isConfirming">
                   <span *ngIf="!isConfirming">Confirmar cliente</span>
@@ -222,12 +230,16 @@
       <ng-container *ngIf="historyInvites.length">
         <h2 class="section-heading section-heading--secondary">Historial</h2>
         <div class="invite-list">
-          <div class="invite-row invite-row--history" *ngFor="let invite of historyInvites; trackBy: trackByInviteId">
+          <div class="invite-row invite-row--history" *ngFor="let group of groupedHistoryInvites; trackBy: trackByClientEmail">
             <div class="invite-info">
-              <span class="invite-email">{{ invite.clientEmail }}</span>
-              <span class="scope-chip">{{ scopeLabel(invite.scope) }}</span>
+              <span class="invite-email">{{ group.clientEmail }}</span>
+              <div class="history-scope-list">
+                <div class="history-scope-item" *ngFor="let inv of group.invites">
+                  <span class="scope-chip">{{ scopeLabel(inv.scope) }}</span>
+                  <span class="status-label" [attr.data-status]="inv.status">{{ statusLabel(inv.status) }}</span>
+                </div>
+              </div>
             </div>
-            <span class="status-label" [attr.data-status]="invite.status">{{ statusLabel(invite.status) }}</span>
           </div>
         </div>
       </ng-container>

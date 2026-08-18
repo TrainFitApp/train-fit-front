@@ -226,15 +226,16 @@
 }
 
 // --- Profesionales / invitaciones ---
-.mp-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
+// Tarjeta editorial: la identidad (avatar + nombre) vive en un encabezado
+// separado por una línea fina de las filas de detalle. Un único acento de
+// color reservado para la acción principal (Aceptar) — nada de chips-
+// pastilla ni iconos multicolor compitiendo entre sí por la atención.
+.pro-card {
+  padding: 16px;
   background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  margin-bottom: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  margin-bottom: 10px;
   animation: card-in 300ms var(--ease-out) backwards;
 }
 
@@ -250,111 +251,115 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mp-card {
+  .pro-card {
     animation: none;
   }
 }
 
-.mp-avatar {
+.pro-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+// Disco neutro, no naranja — el acento de marca se reserva para la acción
+// principal (Aceptar). Un avatar de identidad no es el lugar del acento.
+.pro-avatar {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  background: rgba(254, 144, 0, 0.14);
-  color: #fe9b1a;
+  letter-spacing: 0.01em;
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #c7c7c7;
 }
 
-.mp-info {
+.pro-name {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.mp-name {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.scope-chips {
+// Una fila plana por scope — texto + icono tenue, nunca una pastilla con
+// fondo. La separación entre filas (cuando hay 2) es tipográfica, no una
+// segunda tarjeta.
+.pro-row {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
 }
 
-.scope-chip {
-  align-self: flex-start;
+.pro-scope {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.86rem;
+  color: #d4d4d4;
+
+  ion-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    color: #8b8b8b;
+  }
+}
+
+// Único lugar donde el icono lleva color propio — reconocible de un
+// vistazo, mismo par que ya usa el selector de scope al invitar.
+.pro-scope-icon--training {
+  color: #90a9c2;
+}
+
+.pro-scope-icon--nutrition {
+  color: #ffab3d;
+}
+
+.pro-row-actions {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #c7c7c7;
-  background: #252525;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 2px 8px;
+  flex-shrink: 0;
 }
 
-.unlink-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border: none;
+// Rechazar: texto tenue, nunca compite con Aceptar.
+.pro-link-button {
+  height: 30px;
+  padding: 0 10px;
   background: none;
+  border: none;
+  border-radius: 8px;
   color: #8b8b8b;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0;
-
-  ion-icon {
-    font-size: 12px;
-  }
+  transition: color 160ms var(--ease-out);
 
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.96);
   }
 
   &:hover {
     color: #eb445a;
-  }
-}
-
-.invite-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.icon-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out);
-
-  ion-icon {
-    font-size: 18px;
-  }
-
-  &:active {
-    transform: scale(0.92);
   }
 
   &:disabled {
@@ -363,20 +368,70 @@
   }
 }
 
-.icon-button--decline {
-  color: #8b8b8b;
+// El único acento de color sólido de toda la tarjeta — la acción esperada
+// se ve como tal en reposo, sin depender de :hover (app táctil).
+.pro-accept-button {
+  height: 30px;
+  min-width: 78px;
+  padding: 0 14px;
+  background: #fe9000;
+  border: none;
+  border-radius: 8px;
+  color: #1a1100;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 160ms var(--ease-out), opacity 160ms var(--ease-out);
 
-  &:hover {
-    border-color: #eb445a;
-    color: #eb445a;
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    color: #1a1100;
   }
 }
 
-.icon-button--accept {
-  color: #2dd36f;
+.pro-unlink-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 6px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: #6b6b6b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
 
   &:hover {
-    border-color: #2dd36f;
+    color: #eb445a;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }
 
@@ -417,12 +472,18 @@
 }
 
 // --- Skeleton (tarjetas de profesional) ---
-.mp-card.skeleton {
+.pro-card--skeleton {
   pointer-events: none;
+
+  .pro-card-header {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }
 
-.skeleton-block.mp-avatar {
+.skeleton-block.pro-avatar {
   background: #1e1e1e;
+  border-color: transparent;
 }
 
 .skeleton-line {
@@ -447,7 +508,8 @@
   }
 
   &--chip {
-    width: 30%;
+    width: 40%;
+    margin-top: 12px;
   }
 }
 
@@ -484,27 +546,34 @@
   }
 }
 
-.mp-card--history {
-  opacity: 0.85;
+.pro-card--history {
+  background: #131313;
+  border-color: rgba(255, 255, 255, 0.06);
+  opacity: 0.8;
 }
 
-.mp-avatar--past {
-  background: rgba(255, 255, 255, 0.06);
+.pro-avatar--past {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #6b6b6b;
+}
+
+.pro-row--history {
+  padding: 8px 0;
+}
+
+// Historial: deliberadamente monocromo (nunca los colores de training/
+// nutrition) — el desenfoque de color es la señal de "esto ya pasó".
+.pro-scope--past {
   color: #8b8b8b;
+
+  ion-icon {
+    color: #6b6b6b;
+  }
 }
 
-.history-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.scope-chip--past {
-  color: #8b8b8b;
-}
-
-.history-ended-label {
+.pro-history-label {
   font-size: 0.76rem;
   color: #6b6b6b;
+  flex-shrink: 0;
 }

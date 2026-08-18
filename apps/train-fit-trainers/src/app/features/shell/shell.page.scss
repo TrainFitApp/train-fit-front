@@ -16,6 +16,21 @@
   }
 }
 
+// ion-split-pane envuelve ion-menu en el panel persistente de escritorio con
+// su propio --side-min-width (270px por defecto de Ionic) — sin pisarlo
+// aquí, ese mínimo gana sobre el --width:72px de arriba y el sidenav se
+// queda ancho aunque el texto ya se haya ocultado. Mismo ancho que
+// .app-menu en cada estado, min=max para que no flexione entre medias.
+.app-split-pane {
+  --side-min-width: 232px;
+  --side-max-width: 232px;
+
+  &--collapsed {
+    --side-min-width: 72px;
+    --side-max-width: 72px;
+  }
+}
+
 .app-menu-content {
   --background: var(--tf-surface-1);
   --padding-top: var(--tf-space-5);

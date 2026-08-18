@@ -344,6 +344,15 @@ ion-header ion-toolbar {
   white-space: nowrap;
 }
 
+// Una fila por CLIENTE (antes una fila por invitación, repitiendo el email
+// cuando había training+nutrition a la vez) — este wrapper agrupa los chips
+// de scope de esa fila.
+.scope-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .scope-chip {
   align-self: flex-start;
   font-size: 0.72rem;
@@ -353,6 +362,29 @@ ion-header ion-toolbar {
   border: 1px solid var(--tf-border);
   border-radius: 6px;
   padding: 2px 8px;
+}
+
+// Puede haber hasta 2 botones de cancelar (uno por scope) en la misma fila.
+.invite-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+// Historial: scope + status van pareados (pueden diferir entre sí, p. ej.
+// training declinada pero nutrition sigue activa) — nunca sueltos en 2 filas
+// separadas que no se sabría a cuál corresponde cada una.
+.history-scope-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-scope-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .cancel-button {

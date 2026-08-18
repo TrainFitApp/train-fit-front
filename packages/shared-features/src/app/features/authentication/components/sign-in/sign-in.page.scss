@@ -71,6 +71,36 @@
   margin: 0 auto;
 }
 
+// Lockup de sub-marca, no un kicker decorativo — la única señal de en qué
+// app está el usuario (sign-in es literalmente el mismo archivo compartido
+// entre las 3 apps, ver isTrainerApp en sign-in.page.ts). Tipografía
+// contenida, sin caja ni fondo: se lee como parte del wordmark, no como una
+// etiqueta pegada encima.
+.app-context {
+  margin: 10px 0 0;
+  text-align: center;
+}
+
+.app-context-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+
+  &::before,
+  &::after {
+    content: '';
+    width: 14px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+}
+
 .login-form {
   width: 100%;
 }

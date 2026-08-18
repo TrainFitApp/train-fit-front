@@ -139,12 +139,12 @@
 
   <!-- === Profesionales / invitaciones / historial === -->
   <div class="mp-section" *ngIf="state === 'loading'">
-    <div class="mp-card skeleton" *ngFor="let i of [1, 2]">
-      <div class="mp-avatar skeleton-block"></div>
-      <div class="mp-info">
+    <div class="pro-card pro-card--skeleton" *ngFor="let i of [1, 2]">
+      <header class="pro-card-header">
+        <div class="pro-avatar skeleton-block"></div>
         <div class="skeleton-line skeleton-line--name"></div>
-        <div class="skeleton-line skeleton-line--chip"></div>
-      </div>
+      </header>
+      <div class="skeleton-line skeleton-line--chip"></div>
     </div>
   </div>
 
@@ -158,22 +158,28 @@
     <div class="mp-section" *ngIf="pendingInvites.length">
       <h2 class="section-heading">Invitaciones pendientes</h2>
 
-      <div class="mp-card mp-card--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
-        <div class="mp-avatar">{{ getInitials(getTrainerName(invite)) }}</div>
-        <div class="mp-info">
-          <span class="mp-name">{{ getTrainerName(invite) }}</span>
-          <span class="scope-chip">{{ scopeLabel(invite.scope) }}</span>
+      <article class="pro-card pro-card--invite" *ngFor="let group of groupedPendingInvites; trackBy: trackByPendingGroup">
+        <header class="pro-card-header">
+          <div class="pro-avatar">{{ getInitials(getTrainerName(group.invites[0])) }}</div>
+          <span class="pro-name">{{ getTrainerName(group.invites[0]) }}</span>
+        </header>
+
+        <div class="pro-row" *ngFor="let invite of group.invites">
+          <span class="pro-scope">
+            <ion-icon [name]="scopeIcon(invite.scope)" [ngClass]="'pro-scope-icon--' + invite.scope"></ion-icon>
+            {{ scopeLabel(invite.scope) }}
+          </span>
+          <div class="pro-row-actions">
+            <button class="pro-link-button" (click)="confirmDecline(invite)" [disabled]="respondingId === invite._id">
+              Rechazar
+            </button>
+            <button class="pro-accept-button" (click)="accept(invite)" [disabled]="respondingId === invite._id">
+              <ion-spinner name="dots" *ngIf="respondingId === invite._id"></ion-spinner>
+              <span *ngIf="respondingId !== invite._id">Aceptar</span>
+            </button>
+          </div>
         </div>
-        <div class="invite-actions">
-          <button class="icon-button icon-button--decline" (click)="confirmDecline(invite)" [disabled]="respondingId === invite._id">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-          <button class="icon-button icon-button--accept" (click)="accept(invite)" [disabled]="respondingId === invite._id">
-            <ion-spinner name="dots" *ngIf="respondingId === invite._id"></ion-spinner>
-            <ion-icon name="checkmark-outline" *ngIf="respondingId !== invite._id"></ion-icon>
-          </button>
-        </div>
-      </div>
+      </article>
     </div>
 
     <div class="mp-section">
@@ -183,21 +189,24 @@
         Todavía no tienes ningún profesional vinculado.
       </p>
 
-      <div class="mp-card" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
-        <div class="mp-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
-        <div class="mp-info">
-          <span class="mp-name">{{ getProfessionalName(professional) }}</span>
-          <div class="scope-chips">
-            <span class="scope-chip scope-chip--linkable" *ngFor="let scope of professional.scopes">
-              {{ scopeLabel(scope) }}
-              <button class="unlink-button" (click)="confirmUnlink(professional, scope)" [disabled]="unlinkingScope === scope">
-                <ion-icon name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
-                <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
-              </button>
-            </span>
-          </div>
+      <article class="pro-card" *ngFor="let professional of activeProfessionals; trackBy: trackByProfessionalId">
+        <header class="pro-card-header">
+          <div class="pro-avatar">{{ getInitials(getProfessionalName(professional)) }}</div>
+          <span class="pro-name">{{ getProfessionalName(professional) }}</span>
+        </header>
+
+        <div class="pro-row" *ngFor="let scope of professional.scopes">
+          <span class="pro-scope">
+            <ion-icon [name]="scopeIcon(scope)" [ngClass]="'pro-scope-icon--' + scope"></ion-icon>
+            {{ scopeLabel(scope) }}
+          </span>
+          <button class="pro-unlink-button" (click)="confirmUnlink(professional, scope)" [disabled]="unlinkingScope === scope">
+            <ion-icon name="close" *ngIf="unlinkingScope !== scope"></ion-icon>
+            <ion-spinner name="dots" *ngIf="unlinkingScope === scope"></ion-spinner>
+            <span *ngIf="unlinkingScope !== scope">Desvincular</span>
+          </button>
         </div>
-      </div>
+      </article>
     </div>
 
     <div class="mp-section" *ngIf="history.length">
@@ -207,16 +216,20 @@
       </button>
 
       <ng-container *ngIf="showHistory">
-        <div class="mp-card mp-card--history" *ngFor="let entry of history; trackBy: trackByHistoryId">
-          <div class="mp-avatar mp-avatar--past">{{ getInitials(getHistoryTrainerName(entry)) }}</div>
-          <div class="mp-info">
-            <span class="mp-name">{{ getHistoryTrainerName(entry) }}</span>
-            <div class="history-meta">
-              <span class="scope-chip scope-chip--past">{{ scopeLabel(entry.scope) }}</span>
-              <span class="history-ended-label">{{ historyEndedByLabel(entry) }}</span>
-            </div>
+        <article class="pro-card pro-card--history" *ngFor="let group of groupedHistory; trackBy: trackByHistoryGroup">
+          <header class="pro-card-header">
+            <div class="pro-avatar pro-avatar--past">{{ getInitials(getHistoryTrainerName(group.entries[0])) }}</div>
+            <span class="pro-name">{{ getHistoryTrainerName(group.entries[0]) }}</span>
+          </header>
+
+          <div class="pro-row pro-row--history" *ngFor="let entry of group.entries">
+            <span class="pro-scope pro-scope--past">
+              <ion-icon [name]="scopeIcon(entry.scope)"></ion-icon>
+              {{ scopeLabel(entry.scope) }}
+            </span>
+            <span class="pro-history-label">{{ historyEndedByLabel(entry) }}</span>
           </div>
-        </div>
+        </article>
       </ng-container>
     </div>
   </ng-container>

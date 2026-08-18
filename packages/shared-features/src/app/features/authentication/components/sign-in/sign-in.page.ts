@@ -29,6 +29,7 @@ import {
   SOCIAL_NETWORK_VALUES,
 } from 'src/app/shared/constants/social-network';
 import { Theme } from 'src/app/shared/models/theme';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-sign-in',
@@ -46,6 +47,11 @@ export class SignInPage implements OnInit {
 
   public isApple: boolean;
   public isAndroid: boolean;
+
+  // Este sign-in es compartido literalmente (mismo archivo) entre las 3
+  // apps vía path alias — environment.auth.clientFamily es lo único que
+  // distingue en qué build se está compilando, ver environment.ts de cada app.
+  public readonly isTrainerApp = environment.auth?.clientFamily === 'trainfit-trainers';
 
   public error: string;
   public loginErrorKind: LoginErrorKind | null;
@@ -88,6 +94,8 @@ export class SignInPage implements OnInit {
       case 'network':
       case 'timeout':
         return 'cloud-offline-outline';
+      case 'wrong-app-for-role':
+        return 'swap-horizontal-outline';
       default:
         return 'alert-circle-outline';
     }

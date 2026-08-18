@@ -12,7 +12,7 @@ ion-header ion-toolbar {
 }
 
 .invite-button {
-  --color: var(--tf-accent);
+  @include tf-icon-button;
 }
 
 .clients-content {

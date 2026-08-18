@@ -7,6 +7,7 @@ export const AUTH_LOGIN_CONNECTION_QUERY_VALUE = 'connection';
 export type LoginErrorKind =
   | 'invalid-credentials'
   | 'account-not-verified'
+  | 'wrong-app-for-role'
   | 'storage'
   | 'network'
   | 'timeout'
@@ -44,6 +45,19 @@ export class AuthErrorService {
       return {
         kind: 'account-not-verified',
         message: this.translate.instant('AUTH_ERRORS.ACCOUNT_NOT_VERIFIED'),
+        retryable: false,
+        status,
+        code,
+      };
+    }
+
+    // El mensaje lo arma el backend a medida (qué app, qué rol le hace
+    // falta a la cuenta) — no hay una traducción estática única que lo
+    // cubra, se pasa el mensaje real del servidor tal cual.
+    if (this.isWrongAppForRole(status, code)) {
+      return {
+        kind: 'wrong-app-for-role',
+        message: this.getServerMessage(error) || this.translate.instant('AUTH_ERRORS.UNEXPECTED'),
         retryable: false,
         status,
         code,
@@ -123,6 +137,15 @@ export class AuthErrorService {
 
   private isAccountNotVerified(status?: number, code?: string): boolean {
     return status === 403 && code === 'ACCOUNT_NOT_VERIFIED';
+  }
+
+  private isWrongAppForRole(status?: number, code?: string): boolean {
+    return status === 403 && code === 'WRONG_APP_FOR_ROLE';
+  }
+
+  private getServerMessage(error: any): string | undefined {
+    const message = error?.error?.message;
+    return typeof message === 'string' && message.length > 0 ? message : undefined;
   }
 
   private isTimeout(status: number | undefined, error: any): boolean {

@@ -118,27 +118,43 @@
         </div>
 
         <div class="checkbox-section">
-          <div class="checkbox-item" (click)="toggleControl('termsAndConditions')">
+          <div
+            class="checkbox-item"
+            (click)="toggleControl('termsAndConditions')"
+            [ngClass]="{
+              'has-error': form.get('termsAndConditions')?.invalid && form.get('termsAndConditions')?.touched
+            }"
+          >
             <ion-checkbox
               formControlName="termsAndConditions"
               mode="ios"
+              class="modern-checkbox"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
             <span class="checkbox-label">
               {{ 'SIGN_UP.I_ACCEPT' | translate }}
-              <a [href]="LINKS.termsAndConditions" (click)="$event.stopPropagation()">{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a>
+              <a [href]="LINKS.termsAndConditions" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a>
             </span>
+            <ion-icon name="document-text-outline" class="checkbox-icon" color="primary"></ion-icon>
           </div>
-          <div class="checkbox-item" (click)="toggleControl('policyAndPrivacy')">
+          <div
+            class="checkbox-item"
+            (click)="toggleControl('policyAndPrivacy')"
+            [ngClass]="{
+              'has-error': form.get('policyAndPrivacy')?.invalid && form.get('policyAndPrivacy')?.touched
+            }"
+          >
             <ion-checkbox
               formControlName="policyAndPrivacy"
               mode="ios"
+              class="modern-checkbox"
               (click)="$event.stopPropagation()"
             ></ion-checkbox>
             <span class="checkbox-label">
               {{ 'SIGN_UP.I_HAVE_READ' | translate }}
-              <a [href]="LINKS.privacyAndPolicy" (click)="$event.stopPropagation()">{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a>
+              <a [href]="LINKS.privacyAndPolicy" class="checkbox-link" (click)="$event.stopPropagation()">{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a>
             </span>
+            <ion-icon name="shield-checkmark-outline" class="checkbox-icon" color="primary"></ion-icon>
           </div>
         </div>
 

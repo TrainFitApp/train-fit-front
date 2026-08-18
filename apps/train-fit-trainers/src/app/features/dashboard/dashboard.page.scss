@@ -1,4 +1,5 @@
 @import '../../../theme/skeleton';
+@import '../../../theme/buttons';
 
 ion-header ion-toolbar {
   --background: var(--tf-bg);
@@ -47,7 +48,7 @@ ion-header ion-toolbar {
 }
 
 .invite-button {
-  --color: var(--tf-accent);
+  @include tf-icon-button;
 }
 
 .dashboard-content {

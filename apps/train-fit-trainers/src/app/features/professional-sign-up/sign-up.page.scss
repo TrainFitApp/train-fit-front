@@ -5,10 +5,16 @@
   --background: var(--tf-bg);
 }
 
+ion-header ion-toolbar ion-button {
+  @include tf-icon-button;
+}
+
 .signup-container {
   max-width: 480px;
   margin: 0 auto;
   padding: 8px 24px 48px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .signup-step {
@@ -67,6 +73,80 @@
   }
 }
 
+// App móvil real (Capacitor) — cubre desde teléfonos pequeños (iPhone SE,
+// Android gama baja ~320-360px) hasta tablet/web, mismo criterio de
+// breakpoints que el sign-up del consumidor (authentication/components/
+// sign-up/sign-up.page.scss).
+@media (max-width: 480px) {
+  .signup-container {
+    padding: 8px 16px 32px;
+  }
+
+  .signup-title {
+    font-size: 1.4rem;
+  }
+
+  // Nombre/apellidos uno al lado del otro se queda sin espacio en pantallas
+  // pequeñas (icono + placeholder no caben en ~150px) — se apilan.
+  .input-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 374px) {
+  .signup-container {
+    padding: 8px 12px 24px;
+  }
+
+  .signup-title {
+    font-size: 1.25rem;
+  }
+
+  .signup-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .input-wrapper {
+    height: 48px;
+  }
+
+  .checkbox-label {
+    font-size: 13px;
+  }
+}
+
+// Pantalla baja (teclado abierto en un móvil pequeño, o landscape) — menos
+// aire vertical para que el formulario siga siendo usable sin depender solo
+// del scroll.
+@media (max-height: 700px) {
+  .signup-title {
+    margin: 4px 0 2px;
+  }
+
+  .signup-subtitle {
+    margin: 0 0 16px;
+  }
+
+  .input-group {
+    margin-bottom: 10px;
+  }
+
+  .checkbox-section {
+    margin: 16px 0;
+    gap: 10px;
+  }
+}
+
+@media (min-width: 768px) {
+  // Tablet/web (la misma app corre como PWA/web además de móvil) — el form
+  // no necesita crecer más allá de 480px (ancho cómodo de lectura), solo se
+  // evita que quede pegado a los bordes en el header/paddings generales.
+  .signup-container {
+    padding-top: 24px;
+  }
+}
+
 .input-group {
   margin-bottom: 16px;
 }
@@ -109,35 +189,60 @@
 }
 
 .checkbox-section {
+  margin: 25px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 12px 0 24px;
+  gap: 16px;
 }
 
+// Mismo estilo "tarjeta" que el sign-up del consumidor (packages/shared-features/
+// .../authentication/components/sign-up/sign-up.page.scss) — fondo + borde +
+// feedback al pulsar + checkbox reestilado con tokens, en vez del ion-checkbox
+// suelto de antes. Tokens remapeados al theme del trainer (--tf-*).
 .checkbox-item {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-strong);
+  transition: transform 0.08s ease, border-color 0.2s ease;
   cursor: pointer;
 
-  ion-checkbox {
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.has-error {
+    border-color: var(--tf-danger);
+  }
+
+  .modern-checkbox {
+    margin-right: 12px;
     flex-shrink: 0;
-    margin-top: 2px;
-    --size: 20px;
+    --size: 22px;
     --checkbox-background-checked: var(--tf-accent);
     --border-color-checked: var(--tf-accent);
+    --checkmark-color: white;
+  }
+
+  .checkbox-icon {
+    margin-left: auto;
+    font-size: 20px;
+    color: var(--tf-text-secondary);
   }
 }
 
 .checkbox-label {
-  font-size: 0.85rem;
-  color: var(--tf-text-secondary);
+  font-size: 14px;
+  color: var(--tf-text);
   line-height: 1.4;
 
   a {
     color: var(--tf-accent);
     text-decoration: none;
+    font-weight: 500;
 
     &:active {
       opacity: 0.7;

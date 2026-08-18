@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
+import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { CoachDashboard, CoachNotification, CoachNotificationType, CoachTask } from './models/coach-dashboard.model';
 import {
@@ -16,6 +17,21 @@ import { ProfessionalsApiService } from './services/professionals-api.service';
 import { TasksApiService } from './services/tasks-api.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
+
+// Un trainer puede invitar/tener histórico de training+nutrition a la vez
+// (2 relaciones, mismo par) — sin agrupar, la tarjeta del profesional se
+// repetía una vez por scope. Una fila por PERSONA, igual que ya hace
+// activeProfessionals (agrupado server-side) y que se aplicó en la pantalla
+// de invitaciones del trainer.
+interface GroupedPendingInvite {
+  trainerId: string;
+  invites: PendingInvite[];
+}
+
+interface GroupedHistoryEntry {
+  key: string;
+  entries: HistoryEntry[];
+}
 
 const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   meal_proposal: 'restaurant-outline',
@@ -71,6 +87,7 @@ export class CoachPage implements OnInit {
     private tasksApi: TasksApiService,
     private coachService: CoachService,
     private notificationsService: NotificationsService,
+    private onboardingService: OnboardingService,
     private ionicUtilService: IonicUtilService
   ) {}
 
@@ -251,6 +268,41 @@ export class CoachPage implements OnInit {
     this.showHistory = !this.showHistory;
   }
 
+  // Getters (sin estado propio) — se recalculan solos cada vez que
+  // pendingInvites/history cambian (load()).
+  public get groupedPendingInvites(): GroupedPendingInvite[] {
+    const groups = new Map<string, GroupedPendingInvite>();
+    for (const invite of this.pendingInvites) {
+      if (!groups.has(invite.trainerId)) {
+        groups.set(invite.trainerId, { trainerId: invite.trainerId, invites: [] });
+      }
+      groups.get(invite.trainerId)!.invites.push(invite);
+    }
+    return [...groups.values()];
+  }
+
+  // HistoryEntry no trae trainerId (solo el objeto trainer sin _id) — el
+  // email es el identificador estable disponible; sin trainer (null,
+  // cuenta borrada) cada entrada queda en su propio grupo por su propio id,
+  // nunca se fusionan "Un profesional" distintos entre sí por accidente.
+  public get groupedHistory(): GroupedHistoryEntry[] {
+    const groups = new Map<string, GroupedHistoryEntry>();
+    for (const entry of this.history) {
+      const key = entry.trainer?.email || entry._id;
+      if (!groups.has(key)) groups.set(key, { key, entries: [] });
+      groups.get(key)!.entries.push(entry);
+    }
+    return [...groups.values()];
+  }
+
+  public trackByPendingGroup(_index: number, group: GroupedPendingInvite): string {
+    return group.trainerId;
+  }
+
+  public trackByHistoryGroup(_index: number, group: GroupedHistoryEntry): string {
+    return group.key;
+  }
+
   public getHistoryTrainerName(entry: HistoryEntry): string {
     if (!entry.trainer) return 'Un profesional';
     return `${entry.trainer.name} ${entry.trainer.lastname}`.trim();
@@ -261,10 +313,6 @@ export class CoachPage implements OnInit {
     if (entry.revokedBy === 'client') return 'Finalizada por ti';
     if (entry.revokedBy === 'trainer') return 'Finalizada por el profesional';
     return 'Finalizada';
-  }
-
-  public trackByHistoryId(_index: number, entry: HistoryEntry): string {
-    return entry._id;
   }
 
   public getTrainerName(invite: PendingInvite): string {
@@ -279,6 +327,13 @@ export class CoachPage implements OnInit {
 
   public scopeLabel(scope: ProfessionalScope): string {
     return scope === 'training' ? 'Entrenamiento' : 'Nutrición';
+  }
+
+  // Mismo par de iconos que ya usa el resto de la app para estos 2 ámbitos
+  // (selector de scope al invitar, iconos de notificación) — un chip
+  // reconocible de un vistazo, no solo texto.
+  public scopeIcon(scope: ProfessionalScope): string {
+    return scope === 'training' ? 'barbell-outline' : 'nutrition-outline';
   }
 
   public getInitials(name: string): string {
@@ -304,6 +359,19 @@ export class CoachPage implements OnInit {
         this.load();
         this.loadDashboard();
         this.coachService.refresh().subscribe();
+
+        // Aceptar deja la relación en "cuestionario_pendiente" — el guard
+        // que salta a /onboarding-status lee OnboardingService.blocked()
+        // de forma síncrona (signal), pero ese signal solo se rellenaba en
+        // el arranque (user-loader.page.ts). Sin refrescarlo aquí, el
+        // cuestionario no aparecía hasta recargar la app entera. Se navega
+        // explícito en vez de esperar a que el usuario toque otra pestaña
+        // y dispare el guard por casualidad.
+        this.onboardingService.refresh().subscribe(() => {
+          if (this.onboardingService.blocked()) {
+            void this.router.navigate(['/onboarding-status']);
+          }
+        });
       },
       error: (err) => {
         this.respondingId = null;
@@ -374,10 +442,6 @@ export class CoachPage implements OnInit {
         this.ionicUtilService.showErrorToast('No se pudo desvincular', 'Error', 3000);
       },
     });
-  }
-
-  public trackByInviteId(_index: number, invite: PendingInvite): string {
-    return invite._id;
   }
 
   public trackByProfessionalId(_index: number, professional: ProfessionalSummary): string {

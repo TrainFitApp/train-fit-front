@@ -12,7 +12,7 @@ ion-header ion-toolbar {
   }
 
   ion-button {
-    --color: var(--tf-accent);
+    @include tf-icon-button;
   }
 }
 

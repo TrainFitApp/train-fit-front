@@ -8,6 +8,16 @@ import { ClientIntake, TrainerInvite, TrainerInviteScope } from './models/traine
 
 type ListState = 'loading' | 'error' | 'loaded';
 
+// Invitar entrenamiento+nutrición a la vez crea 2 TrainerClient por scope
+// (ver trainer-client-service.js#inviteClient) — sin agrupar, el listado
+// repetía el mismo email en 2 filas. Una fila por CLIENTE, con un chip por
+// scope, en vez de una fila por invitación.
+interface GroupedInvite {
+  clientEmail: string;
+  clientId: string | null;
+  invites: TrainerInvite[];
+}
+
 @Component({
   selector: 'app-invites',
   templateUrl: 'invites.page.html',
@@ -23,6 +33,41 @@ export class InvitesPage implements OnInit {
   public reviewInvites: TrainerInvite[] = [];
   public historyInvites: TrainerInvite[] = [];
   public cancellingId: string | null = null;
+
+  // Getters (no estado propio) — se recalculan solos cada vez que
+  // pending/review/historyInvites cambian (loadInvites), sin un punto extra
+  // que mantener sincronizado.
+  public get groupedPendingInvites(): GroupedInvite[] {
+    return this.groupByClient(this.pendingInvites);
+  }
+
+  public get groupedReviewInvites(): GroupedInvite[] {
+    return this.groupByClient(this.reviewInvites);
+  }
+
+  public get groupedHistoryInvites(): GroupedInvite[] {
+    return this.groupByClient(this.historyInvites);
+  }
+
+  private groupByClient(invites: TrainerInvite[]): GroupedInvite[] {
+    const groups = new Map<string, GroupedInvite>();
+    for (const invite of invites) {
+      const key = invite.clientEmail.toLowerCase();
+      if (!groups.has(key)) {
+        groups.set(key, { clientEmail: invite.clientEmail, clientId: invite.clientId, invites: [] });
+      }
+      groups.get(key)!.invites.push(invite);
+    }
+    return [...groups.values()];
+  }
+
+  public trackByClientEmail(_index: number, group: GroupedInvite): string {
+    return group.clientEmail;
+  }
+
+  public isGroupCancelling(group: GroupedInvite): boolean {
+    return group.invites.some((invite) => invite._id === this.cancellingId);
+  }
 
   public reviewingClientId: string | null = null;
   public reviewingIntake: ClientIntake | null = null;
@@ -56,6 +101,39 @@ export class InvitesPage implements OnInit {
   public readonly intakeConfigFields = Object.keys(this.intakeFieldLabels) as IntakeFieldKey[];
   public selectedIntakeFields = new Set<IntakeFieldKey>();
   public savingIntakeConfig = false;
+
+  // El panel de cuestionario es GLOBAL del trainer (no hay un enabledFields
+  // por scope en el backend, ver train-fit-back/components/trainerIntakeConfig)
+  // — este filtro es puramente de presentación: qué checkboxes se OFRECEN en
+  // esta pantalla según el scope marcado en el form de invitar de ARRIBA, no
+  // cambia qué se guarda (sigue siendo la misma config de 9 campos).
+  private readonly trainingIntakeFields: IntakeFieldKey[] = [
+    'goals',
+    'healthConditions',
+    'experienceLevel',
+    'availability',
+    'equipment',
+  ];
+  private readonly nutritionIntakeFields: IntakeFieldKey[] = [
+    'allergies',
+    'favoriteFoods',
+    'dislikedFoods',
+    'cooksAtHome',
+  ];
+
+  // Sin ningún scope marcado todavía (el trainer abrió el panel antes de
+  // elegir), se muestran los 9 — no tiene sentido un panel vacío.
+  public get visibleIntakeConfigFields(): IntakeFieldKey[] {
+    const wantsTraining = !!this.form?.value.training;
+    const wantsNutrition = !!this.form?.value.nutrition;
+    if (!wantsTraining && !wantsNutrition) return this.intakeConfigFields;
+
+    return this.intakeConfigFields.filter(
+      (field) =>
+        (wantsTraining && this.trainingIntakeFields.includes(field)) ||
+        (wantsNutrition && this.nutritionIntakeFields.includes(field))
+    );
+  }
 
   constructor(
     private trainerInvitesApi: TrainerInvitesApiService,
@@ -234,10 +312,6 @@ export class InvitesPage implements OnInit {
     }
   }
 
-  public trackByInviteId(_index: number, invite: TrainerInvite): string {
-    return invite._id;
-  }
-
   // --- TAREA 3: revisar cuestionario + confirmar cliente ---
   public openReview(invite: TrainerInvite): void {
     if (!invite.clientId) return;
@@ -270,17 +344,20 @@ export class InvitesPage implements OnInit {
   // "Confirmar" o "Cerrar", que no decide nada). Reutiliza el mismo
   // cancelInvite() del backend ya corregido para revocar de verdad este
   // estado (antes devolvía éxito falso — ver DECISIONS.md).
-  public async confirmReject(invite: TrainerInvite): Promise<void> {
+  // Recibe el GRUPO (no una invitación suelta) — con la fila unificada por
+  // cliente, rechazar debe cortar TODOS los scopes en revisión de ese par a
+  // la vez, no dejar uno rechazado y otro activo por accidente.
+  public async confirmReject(group: GroupedInvite): Promise<void> {
     const alert = await this.ionicUtilService.showAlert({
       header: 'Rechazar cliente',
-      message: `¿Seguro que quieres rechazar a ${invite.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
+      message: `¿Seguro que quieres rechazar a ${group.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
       buttons: [
         { text: 'Volver', role: 'cancel' },
         {
           text: 'Rechazar',
           cssClass: 'alert-button-danger',
           handler: () => {
-            this.cancelInvite(invite);
+            group.invites.forEach((invite) => this.cancelInvite(invite));
             this.closeReview();
           },
         },
