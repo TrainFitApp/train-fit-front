@@ -6,6 +6,7 @@ import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.serv
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
 import {
   ClientEmailScopeStatus,
+  CustomIntakeQuestion,
   TrainerInvite,
   TrainerInviteScope,
 } from './models/trainer-invite.model';
@@ -128,7 +129,6 @@ export class InvitesPage implements OnInit {
     dislikedFoods: 'Alimentos que no le gustan',
     cooksAtHome: 'Cocina en casa',
   };
-  public showIntakeConfig = false;
   public intakeConfigState: 'loading' | 'error' | 'loaded' = 'loading';
   // El catálogo de campos es un conjunto cerrado ya conocido en compilación
   // (intakeFieldLabels arriba) — no depende de lo que devuelva el backend en
@@ -137,6 +137,17 @@ export class InvitesPage implements OnInit {
   public readonly intakeConfigFields = Object.keys(this.intakeFieldLabels) as IntakeFieldKey[];
   public selectedIntakeFields = new Set<IntakeFieldKey>();
   public savingIntakeConfig = false;
+  // El panel ya no es un accordion manual — aparece solo en cuanto se marca
+  // Entrenamiento y/o Nutrición arriba (ver hasScopeSelected/template), y se
+  // pide la config la primera vez que eso ocurre.
+  private intakeConfigRequested = false;
+
+  // Preguntas de texto libre que el trainer añade además de los 9 campos
+  // predefinidos — mismo documento (TrainerIntakeConfig), mismo botón
+  // "Guardar". Un id temporal (client-side) hasta el primer guardado, para
+  // que trackBy/borrar funcionen antes de tener el id real del backend.
+  public customQuestions: CustomIntakeQuestion[] = [];
+  public newQuestionLabel = '';
 
   // El panel de cuestionario es GLOBAL del trainer (no hay un enabledFields
   // por scope en el backend, ver train-fit-back/components/trainerIntakeConfig)
@@ -156,20 +167,6 @@ export class InvitesPage implements OnInit {
     'dislikedFoods',
     'cooksAtHome',
   ];
-
-  // Sin ningún scope marcado todavía (el trainer abrió el panel antes de
-  // elegir), se muestran los 9 — no tiene sentido un panel vacío.
-  public get visibleIntakeConfigFields(): IntakeFieldKey[] {
-    const wantsTraining = !!this.form?.value.training;
-    const wantsNutrition = !!this.form?.value.nutrition;
-    if (!wantsTraining && !wantsNutrition) return this.intakeConfigFields;
-
-    return this.intakeConfigFields.filter(
-      (field) =>
-        (wantsTraining && this.trainingIntakeFields.includes(field)) ||
-        (wantsNutrition && this.nutritionIntakeFields.includes(field))
-    );
-  }
 
   constructor(
     private trainerInvitesApi: TrainerInvitesApiService,
@@ -202,12 +199,30 @@ export class InvitesPage implements OnInit {
     });
 
     this.loadInvites();
+    // Carga ya, no solo al marcar un ámbito — hace falta lastScopes para
+    // saber si hay que pre-marcar Entrenamiento/Nutrición nada más entrar.
+    this.loadIntakeConfig();
   }
 
   public toggleScope(controlName: 'training' | 'nutrition'): void {
     if (this.isScopeBlocked(controlName)) return;
     const control = this.form.get(controlName);
-    control?.setValue(!control.value);
+    const nextValue = !control?.value;
+    control?.setValue(nextValue);
+    this.syncIntakeFieldsForScope(controlName, nextValue);
+  }
+
+  // En lugar de ocultar los checkboxes que no encajan con el ámbito
+  // marcado, se dejan siempre los 9 visibles y se seleccionan/deseleccionan
+  // solos los que pertenecen a ese ámbito al marcar/desmarcar Entrenamiento
+  // o Nutrición — el trainer sigue pudiendo ajustar cualquiera a mano
+  // después.
+  private syncIntakeFieldsForScope(scope: 'training' | 'nutrition', enabled: boolean): void {
+    const fields = scope === 'training' ? this.trainingIntakeFields : this.nutritionIntakeFields;
+    fields.forEach((field) => {
+      if (enabled) this.selectedIntakeFields.add(field);
+      else this.selectedIntakeFields.delete(field);
+    });
   }
 
   public isScopeBlocked(scope: TrainerInviteScope): boolean {
@@ -247,8 +262,9 @@ export class InvitesPage implements OnInit {
         // Un ámbito que ya estaba marcado pero ahora resulta bloqueado no
         // se manda igual — se desmarca solo, junto con el aviso.
         (['training', 'nutrition'] as TrainerInviteScope[]).forEach((scope) => {
-          if (status[scope].blocked) {
+          if (status[scope].blocked && this.form.get(scope)?.value) {
             this.form.get(scope)?.setValue(false);
+            this.syncIntakeFieldsForScope(scope, false);
           }
         });
       },
@@ -296,6 +312,13 @@ export class InvitesPage implements OnInit {
     if (this.form.invalid || !this.hasScopeSelected || this.isSending) {
       this.form.markAllAsTouched();
       return;
+    }
+
+    // El cuestionario (checkboxes + preguntas custom) ya no se guarda en
+    // cada click — se manda junto con la invitación, solo si el trainer
+    // llegó a abrir el panel (si no, no hay nada que guardar).
+    if (this.intakeConfigRequested) {
+      this.saveIntakeConfig();
     }
 
     const scopes: TrainerInviteScope[] = [
@@ -420,18 +443,51 @@ export class InvitesPage implements OnInit {
   }
 
   // --- TASK-049: personalizar cuestionario inicial ---
-  public toggleIntakeConfigPanel(): void {
-    this.showIntakeConfig = !this.showIntakeConfig;
-    if (this.showIntakeConfig && this.intakeConfigState !== 'loaded') {
-      this.loadIntakeConfig();
-    }
+  // Sin config guardada todavía, el backend devuelve el catálogo COMPLETO
+  // (9 campos) como valor por defecto — si se cargara tal cual, la primera
+  // vez que un trainer marca un solo ámbito verían los 9 campos marcados en
+  // vez de solo los 5/4 que tienen sentido para ese ámbito. Se filtra lo
+  // cargado por el/los ámbito(s) ya marcados en el form de arriba: si el
+  // trainer sí había guardado antes una selección propia dentro de esa
+  // categoría (p. ej. sin "Equipamiento"), ese subconjunto se respeta igual
+  // porque el filtro solo QUITA lo que sobra, nunca añade nada nuevo.
+  private filterFieldsForActiveScopes(fields: Set<IntakeFieldKey>): Set<IntakeFieldKey> {
+    const wantsTraining = !!this.form?.value.training;
+    const wantsNutrition = !!this.form?.value.nutrition;
+    const result = new Set<IntakeFieldKey>();
+    fields.forEach((field) => {
+      const inTraining = this.trainingIntakeFields.includes(field);
+      const inNutrition = this.nutritionIntakeFields.includes(field);
+      if ((wantsTraining && inTraining) || (wantsNutrition && inNutrition)) {
+        result.add(field);
+      }
+    });
+    return result;
   }
 
   public loadIntakeConfig(): void {
+    this.intakeConfigRequested = true;
     this.intakeConfigState = 'loading';
     this.trainerInvitesApi.getIntakeConfig().subscribe({
       next: (config) => {
-        this.selectedIntakeFields = new Set(config.enabledFields);
+        // Se recuerdan los últimos checkboxes de ámbito marcados — antes de
+        // filtrar los campos por ámbito activo, si no se filtrarían contra
+        // el form todavía vacío (Entrenamiento/Nutrición sin marcar).
+        this.form.patchValue(
+          {
+            training: (config.lastScopes || []).includes('training'),
+            nutrition: (config.lastScopes || []).includes('nutrition'),
+          },
+          { emitEvent: false }
+        );
+        this.selectedIntakeFields = this.filterFieldsForActiveScopes(new Set(config.enabledFields));
+        // Al entrar normal a la pantalla, las preguntas custom ya guardadas
+        // aparecen SIN marcar — el trainer las vuelve a marcar a mano si
+        // quiere incluirlas en esta tanda. Solo aparecen marcadas de
+        // entrada las que se acaban de crear en esta misma sesión (ver
+        // addCustomQuestion, que se añade después de esta carga y por tanto
+        // no pasa por aquí).
+        this.customQuestions = (config.customQuestions || []).map((q) => ({ ...q, enabled: false }));
         this.intakeConfigState = 'loaded';
       },
       error: () => {
@@ -448,16 +504,54 @@ export class InvitesPage implements OnInit {
     }
   }
 
+  public get canAddCustomQuestion(): boolean {
+    return this.newQuestionLabel.trim().length > 0;
+  }
+
+  public addCustomQuestion(): void {
+    if (!this.canAddCustomQuestion) return;
+    this.customQuestions = [
+      ...this.customQuestions,
+      {
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        label: this.newQuestionLabel.trim(),
+        enabled: true,
+      },
+    ];
+    this.newQuestionLabel = '';
+  }
+
+  public removeCustomQuestion(id: string): void {
+    this.customQuestions = this.customQuestions.filter((q) => q.id !== id);
+  }
+
+  public toggleCustomQuestionEnabled(id: string): void {
+    this.customQuestions = this.customQuestions.map((q) =>
+      q.id === id ? { ...q, enabled: !q.enabled } : q
+    );
+  }
+
+  public trackByQuestionId(_index: number, question: CustomIntakeQuestion): string {
+    return question.id;
+  }
+
+  // Ya no se guarda en cada click de checkbox — se manda una sola vez junto
+  // con el envío de la invitación (ver submit()), así que aquí solo hace
+  // falta la guarda normal contra doble-disparo.
   public saveIntakeConfig(): void {
     if (this.savingIntakeConfig) return;
     this.savingIntakeConfig = true;
+    const lastScopes: TrainerInviteScope[] = [
+      ...(this.form.value.training ? (['training'] as const) : []),
+      ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
+    ];
     this.trainerInvitesApi
-      .updateIntakeConfig([...this.selectedIntakeFields])
+      .updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, lastScopes)
       .subscribe({
         next: (config) => {
           this.savingIntakeConfig = false;
           this.selectedIntakeFields = new Set(config.enabledFields);
-          this.ionicUtilService.showToast({ message: 'Cuestionario actualizado', duration: 2500 });
+          this.customQuestions = config.customQuestions || [];
         },
         error: (err) => {
           this.savingIntakeConfig = false;

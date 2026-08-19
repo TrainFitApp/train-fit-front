@@ -28,6 +28,11 @@ export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'cooksAtHome',
 ];
 
+export interface IntakeCustomQuestion {
+  id: string;
+  label: string;
+}
+
 export interface OnboardingRelation {
   trainerId: string;
   scope: 'training' | 'nutrition';
@@ -40,6 +45,10 @@ export interface OnboardingRelation {
   // consumidor hoy), pero es una propiedad del modelo compartido, no de esa
   // pantalla.
   intakeEnabledFields: IntakeFieldKey[];
+  // Preguntas de texto libre que el trainer añadió a su cuestionario, por
+  // trainer igual que intakeEnabledFields (no depende del scope de esta
+  // relación concreta).
+  intakeCustomQuestions: IntakeCustomQuestion[];
 }
 
 export interface OnboardingStatus {
@@ -56,6 +65,7 @@ function normalizeStatus(status: OnboardingStatus | null): OnboardingStatus {
     relations: (status.relations || []).map((r) => ({
       ...r,
       intakeEnabledFields: r.intakeEnabledFields?.length ? r.intakeEnabledFields : ALL_INTAKE_FIELDS,
+      intakeCustomQuestions: r.intakeCustomQuestions || [],
     })),
   };
 }

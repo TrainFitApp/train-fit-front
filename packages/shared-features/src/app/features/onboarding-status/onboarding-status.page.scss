@@ -69,6 +69,13 @@
   margin: 0 0 16px;
 }
 
+.progress-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ion-color-primary, #fe9000);
+  margin: -8px 0 16px;
+}
+
 .trainer-group {
   padding: 14px;
   margin-bottom: 12px;
@@ -99,6 +106,16 @@
   font-size: 0.86rem;
   color: #fe9000;
   margin: 0;
+}
+
+.trainer-group--invite {
+  border-color: rgba(254, 144, 0, 0.35);
+}
+
+.invite-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .action-button {

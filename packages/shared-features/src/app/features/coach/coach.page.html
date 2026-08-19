@@ -176,20 +176,21 @@
           <span class="pro-name">{{ getTrainerName(group.invites[0]) }}</span>
         </header>
 
-        <div class="pro-row" *ngFor="let invite of group.invites">
-          <span class="pro-scope">
+        <div class="pro-scopes-row">
+          <span class="pro-scope" *ngFor="let invite of group.invites">
             <ion-icon [name]="scopeIcon(invite.scope)" [ngClass]="'pro-scope-icon--' + invite.scope"></ion-icon>
             {{ scopeLabel(invite.scope) }}
           </span>
-          <div class="pro-row-actions">
-            <button class="pro-link-button" (click)="confirmDecline(invite)" [disabled]="respondingId === invite._id">
-              Rechazar
-            </button>
-            <button class="pro-accept-button" (click)="accept(invite)" [disabled]="respondingId === invite._id">
-              <ion-spinner name="dots" *ngIf="respondingId === invite._id"></ion-spinner>
-              <span *ngIf="respondingId !== invite._id">Aceptar</span>
-            </button>
-          </div>
+        </div>
+
+        <div class="pro-invite-actions">
+          <button class="pro-link-button" (click)="confirmDeclineGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
+            Rechazar
+          </button>
+          <button class="pro-accept-button" (click)="acceptGroup(group)" [disabled]="respondingTrainerId === group.trainerId">
+            <ion-spinner name="dots" *ngIf="respondingTrainerId === group.trainerId"></ion-spinner>
+            <span *ngIf="respondingTrainerId !== group.trainerId">Aceptar</span>
+          </button>
         </div>
       </article>
     </div>

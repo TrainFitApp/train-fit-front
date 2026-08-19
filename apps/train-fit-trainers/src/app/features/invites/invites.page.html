@@ -78,13 +78,7 @@
       </div>
     </div>
 
-    <button type="button" class="intake-config-toggle" (click)="toggleIntakeConfigPanel()">
-      <ion-icon name="list-outline"></ion-icon>
-      <span>Personalizar cuestionario inicial</span>
-      <ion-icon [name]="showIntakeConfig ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-    </button>
-
-    <div class="intake-config-panel" *ngIf="showIntakeConfig">
+    <div class="intake-config-panel" *ngIf="hasScopeSelected">
       <div class="detail-skeleton" *ngIf="intakeConfigState === 'loading'">
         <div class="skeleton-block" style="height: 32px;"></div>
         <div class="skeleton-block" style="height: 32px;"></div>
@@ -96,30 +90,70 @@
       </div>
 
       <ng-container *ngIf="intakeConfigState === 'loaded'">
-        <p class="intake-config-hint">
-          Elige qué le preguntas a un cliente nuevo. Los campos que desactives no aparecerán en su cuestionario.
-        </p>
-        <button
-          type="button"
-          class="field-toggle-row"
-          *ngFor="let field of visibleIntakeConfigFields"
-          (click)="toggleIntakeField(field)"
-        >
-          <span>{{ intakeFieldLabels[field] }}</span>
-          <ion-icon
-            [name]="selectedIntakeFields.has(field) ? 'checkbox' : 'square-outline'"
-            [class.field-toggle-icon--active]="selectedIntakeFields.has(field)"
-          ></ion-icon>
-        </button>
-        <button
-          type="button"
-          class="save-intake-config-button"
-          (click)="saveIntakeConfig()"
-          [disabled]="savingIntakeConfig"
-        >
-          <span *ngIf="!savingIntakeConfig">Guardar</span>
-          <ion-spinner name="dots" *ngIf="savingIntakeConfig"></ion-spinner>
-        </button>
+        <div class="intake-config-hint-row">
+          <p class="intake-config-hint">
+            Elige qué le preguntas a un cliente nuevo. Los campos que desactives no aparecerán en su cuestionario.
+          </p>
+          <span class="intake-config-save-status" *ngIf="savingIntakeConfig">
+            <ion-spinner name="dots"></ion-spinner>
+            Guardando
+          </span>
+        </div>
+        <div class="field-toggle-grid">
+          <button
+            type="button"
+            class="field-toggle-row"
+            *ngFor="let field of intakeConfigFields"
+            (click)="toggleIntakeField(field)"
+          >
+            <span>{{ intakeFieldLabels[field] }}</span>
+            <ion-icon
+              [name]="selectedIntakeFields.has(field) ? 'checkbox' : 'square-outline'"
+              [class.field-toggle-icon--active]="selectedIntakeFields.has(field)"
+            ></ion-icon>
+          </button>
+        </div>
+
+        <h4 class="intake-config-subheading">Preguntas personalizadas</h4>
+
+        <div class="custom-question-list" *ngIf="customQuestions.length">
+          <div class="custom-question-row" *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
+            <button type="button" class="custom-question-toggle" (click)="toggleCustomQuestionEnabled(question.id)">
+              <ion-icon
+                [name]="question.enabled ? 'checkbox' : 'square-outline'"
+                [class.field-toggle-icon--active]="question.enabled"
+              ></ion-icon>
+              <span class="custom-question-label">{{ question.label }}</span>
+            </button>
+            <button type="button" class="custom-question-remove" (click)="removeCustomQuestion(question.id)" aria-label="Borrar pregunta">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="add-question-row">
+          <div class="input-wrapper">
+            <ion-icon name="help-circle-outline" class="input-icon"></ion-icon>
+            <input
+              type="text"
+              class="input-field"
+              placeholder="Ej. ¿Alguna cirugía reciente?"
+              [(ngModel)]="newQuestionLabel"
+              [ngModelOptions]="{standalone: true}"
+              (keyup.enter)="addCustomQuestion()"
+            />
+            <button
+              type="button"
+              class="add-question-submit"
+              [disabled]="!canAddCustomQuestion"
+              (click)="addCustomQuestion()"
+              aria-label="Añadir pregunta"
+            >
+              <ion-icon name="return-down-back-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
       </ng-container>
     </div>
 

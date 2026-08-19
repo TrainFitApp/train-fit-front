@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { NotificationsService } from 'src/app/core/services/notifications/notifications.service';
 import { OnboardingService } from 'src/app/core/services/onboarding/onboarding.service';
@@ -76,7 +78,10 @@ export class CoachPage implements OnInit {
   public state: ViewState = 'loading';
   public pendingInvites: PendingInvite[] = [];
   public activeProfessionals: ProfessionalSummary[] = [];
-  public respondingId: string | null = null;
+  // Aceptar/rechazar actúa sobre TODAS las invitaciones del grupo (mismo
+  // trainer) a la vez, no por scope — de ahí que la clave sea trainerId, no
+  // el id de una invitación concreta.
+  public respondingTrainerId: string | null = null;
   public unlinkingScope: ProfessionalScope | null = null;
 
   public history: HistoryEntry[] = [];
@@ -366,69 +371,94 @@ export class CoachPage implements OnInit {
     );
   }
 
-  public accept(invite: PendingInvite): void {
-    this.respondingId = invite._id;
-    this.professionalsApi.acceptInvite(invite._id).subscribe({
-      next: () => {
-        this.respondingId = null;
+  // Aceptar/rechazar es UNA sola acción para todo el grupo (mismo trainer,
+  // sus scopes a la vez) en vez de una por invitación — antes, un trainer
+  // que invitaba a entrenamiento+nutrición a la vez mostraba 2 botones
+  // Aceptar y 2 Rechazar repitiendo su nombre/avatar. Cada invitación sigue
+  // siendo su propia petición al backend (no hay endpoint bulk), pero
+  // encadenadas en paralelo y reportadas como un solo resultado.
+  public acceptGroup(group: GroupedPendingInvite): void {
+    this.respondingTrainerId = group.trainerId;
+    const requests = group.invites.map((invite) =>
+      this.professionalsApi.acceptInvite(invite._id).pipe(
+        map(() => ({ invite, success: true, error: null as string | null })),
+        catchError((err) =>
+          of({ invite, success: false, error: err?.error?.message || 'No se pudo aceptar' })
+        )
+      )
+    );
+
+    forkJoin(requests).subscribe((results) => {
+      this.respondingTrainerId = null;
+
+      const succeeded = results.filter((r) => r.success);
+      if (succeeded.length) {
+        const scopes = succeeded.map((r) => this.scopeLabel(r.invite.scope).toLowerCase()).join(' y ');
         this.ionicUtilService.showToast({
-          message: `Ahora ${this.getTrainerName(invite)} lleva tu ${this.scopeLabel(invite.scope).toLowerCase()}`,
+          message: `Ahora ${this.getTrainerName(group.invites[0])} lleva tu ${scopes}`,
           duration: 3500,
         });
-        this.load();
-        this.loadDashboard();
-        this.coachService.refresh().subscribe();
-
-        // Aceptar deja la relación en "cuestionario_pendiente" — el guard
-        // que salta a /onboarding-status lee OnboardingService.blocked()
-        // de forma síncrona (signal), pero ese signal solo se rellenaba en
-        // el arranque (user-loader.page.ts). Sin refrescarlo aquí, el
-        // cuestionario no aparecía hasta recargar la app entera. Se navega
-        // explícito en vez de esperar a que el usuario toque otra pestaña
-        // y dispare el guard por casualidad.
-        this.onboardingService.refresh().subscribe(() => {
-          if (this.onboardingService.blocked()) {
-            void this.router.navigate(['/onboarding-status']);
-          }
+      }
+      results
+        .filter((r) => !r.success)
+        .forEach((r) => {
+          this.ionicUtilService.showErrorToast(
+            `${this.scopeLabel(r.invite.scope)}: ${r.error}`,
+            'No se pudo aceptar',
+            4000
+          );
         });
-      },
-      error: (err) => {
-        this.respondingId = null;
-        this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo aceptar la invitación',
-          'Error',
-          3500
-        );
-      },
+
+      this.load();
+      this.loadDashboard();
+      this.coachService.refresh().subscribe();
+
+      // Aceptar deja la relación en "cuestionario_pendiente" — el guard que
+      // salta a /onboarding-status lee OnboardingService.blocked() de forma
+      // síncrona (signal), pero ese signal solo se rellenaba en el arranque
+      // (user-loader.page.ts). Sin refrescarlo aquí, el cuestionario no
+      // aparecía hasta recargar la app entera. Se navega explícito en vez
+      // de esperar a que el usuario toque otra pestaña y dispare el guard
+      // por casualidad.
+      this.onboardingService.refresh().subscribe(() => {
+        if (this.onboardingService.blocked()) {
+          void this.router.navigate(['/onboarding-status']);
+        }
+      });
     });
   }
 
-  public async confirmDecline(invite: PendingInvite): Promise<void> {
+  public async confirmDeclineGroup(group: GroupedPendingInvite): Promise<void> {
+    const scopes = group.invites.map((i) => this.scopeLabel(i.scope)).join(' y ');
     await this.ionicUtilService.showAlert({
       header: 'Rechazar invitación',
-      message: `¿Seguro que quieres rechazar la invitación de ${this.getTrainerName(invite)} (${this.scopeLabel(invite.scope)})?`,
+      message: `¿Seguro que quieres rechazar la invitación de ${this.getTrainerName(group.invites[0])} (${scopes})?`,
       buttons: [
         { text: 'Volver', role: 'cancel' },
         {
           text: 'Rechazar',
           cssClass: 'alert-button-danger',
-          handler: () => this.decline(invite),
+          handler: () => this.declineGroup(group),
         },
       ],
     });
   }
 
-  private decline(invite: PendingInvite): void {
-    this.respondingId = invite._id;
-    this.professionalsApi.declineInvite(invite._id).subscribe({
-      next: () => {
-        this.respondingId = null;
-        this.load();
-      },
-      error: () => {
-        this.respondingId = null;
-        this.ionicUtilService.showErrorToast('No se pudo rechazar la invitación', 'Error', 3000);
-      },
+  private declineGroup(group: GroupedPendingInvite): void {
+    this.respondingTrainerId = group.trainerId;
+    const requests = group.invites.map((invite) =>
+      this.professionalsApi.declineInvite(invite._id).pipe(
+        map(() => true),
+        catchError(() => of(false))
+      )
+    );
+
+    forkJoin(requests).subscribe((results) => {
+      this.respondingTrainerId = null;
+      if (results.some((success) => !success)) {
+        this.ionicUtilService.showErrorToast('No se pudo rechazar alguna invitación', 'Error', 3000);
+      }
+      this.load();
     });
   }
 

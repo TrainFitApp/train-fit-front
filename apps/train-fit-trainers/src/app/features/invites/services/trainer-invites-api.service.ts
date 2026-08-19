@@ -5,6 +5,7 @@ import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.serv
 import {
   ClientEmailScopeStatus,
   ClientIntake,
+  CustomIntakeQuestion,
   SendInviteResponse,
   TrainerInvite,
   TrainerInviteScope,
@@ -51,8 +52,16 @@ export class TrainerInvitesApiService {
     return this.http.get<TrainerIntakeConfig>('trainer/intake-config');
   }
 
-  public updateIntakeConfig(enabledFields: IntakeFieldKey[]): Observable<TrainerIntakeConfig> {
-    return this.http.put<TrainerIntakeConfig>('trainer/intake-config', { enabledFields });
+  public updateIntakeConfig(
+    enabledFields: IntakeFieldKey[],
+    customQuestions: CustomIntakeQuestion[],
+    lastScopes: TrainerInviteScope[]
+  ): Observable<TrainerIntakeConfig> {
+    return this.http.put<TrainerIntakeConfig>('trainer/intake-config', {
+      enabledFields,
+      customQuestions,
+      lastScopes,
+    });
   }
 
   // Estado por scope (training/nutrition) de este email con ESTE trainer —

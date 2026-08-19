@@ -31,7 +31,10 @@
       <ng-container *ngFor="let review of reviewSummaries; trackBy: trackByClientEmail">
         <button class="review-row" (click)="openReview(review)">
           <ion-icon name="document-text-outline" class="review-icon"></ion-icon>
-          <span class="review-email">{{ review.clientEmail }}</span>
+          <div class="review-info">
+            <span class="review-name" *ngIf="review.clientName">{{ review.clientName }}</span>
+            <span class="review-email" [class.review-email--primary]="!review.clientName">{{ review.clientEmail }}</span>
+          </div>
           <ion-icon
             class="review-chevron"
             [name]="reviewingClientId === review.clientId ? 'chevron-up-outline' : 'chevron-forward-outline'"
@@ -63,6 +66,10 @@
             <div class="intake-field">
               <span class="intake-field-label">Equipamiento</span>
               <span class="intake-field-value">{{ intake.equipment || '—' }}</span>
+            </div>
+            <div class="intake-field" *ngFor="let answer of intake.customAnswers">
+              <span class="intake-field-label">{{ answer.label }}</span>
+              <span class="intake-field-value">{{ answer.value || '—' }}</span>
             </div>
           </ng-container>
 

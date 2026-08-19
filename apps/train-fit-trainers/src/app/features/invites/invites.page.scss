@@ -176,52 +176,65 @@
 }
 
 // --- TASK-049: personalizar cuestionario inicial ---
-.intake-config-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-height: var(--tf-touch-min);
-  padding: 0 12px;
-  margin-bottom: 16px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: 10px;
-  color: var(--tf-text-secondary);
-  font-family: inherit;
-  font-size: 0.84rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  ion-icon:first-child {
-    font-size: 16px;
-    color: var(--tf-text-muted);
-  }
-
-  span {
-    flex: 1;
-    text-align: left;
-  }
-
-  ion-icon:last-child {
-    font-size: 16px;
-    color: var(--tf-text-faint);
-  }
-}
-
+// Ya no es un accordion manual — aparece solo (sin botón que lo abra/cierre)
+// en cuanto se marca Entrenamiento y/o Nutrición arriba, ver hasScopeSelected.
 .intake-config-panel {
   padding: 12px 14px;
-  margin: -8px 0 20px;
+  margin: 4px 0 20px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
+}
+
+.intake-config-hint-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
 }
 
 .intake-config-hint {
   font-size: 0.8rem;
   color: var(--tf-text-muted);
   line-height: 1.4;
-  margin: 0 0 12px;
+  margin: 0;
+}
+
+// Sin botón "Guardar" — cada cambio se guarda solo (ver scheduleAutoSave en
+// invites.page.ts); esto es el único indicio visual de que hay un guardado
+// en curso, no una acción para el trainer.
+.intake-config-save-status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--tf-text-faint);
+  white-space: nowrap;
+
+  ion-spinner {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// 3 columnas fijas — antes era una lista apilada de 9 filas a todo lo ancho,
+// dejando muchísimo espacio vacío a la derecha de cada checkbox. En móvil
+// estrecho se reduce a 2 y luego a 1 en vez de forzar columnas ilegibles.
+.field-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+
+  @media (max-width: 560px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 // Mismo patrón que .field-toggle-row en checkin-templates.page.html — misma
@@ -234,13 +247,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   width: 100%;
   min-height: var(--tf-touch-min);
   padding: 10px 12px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border-subtle);
   border-radius: 10px;
-  margin-bottom: 6px;
   color: var(--tf-text-secondary);
   font-size: 0.86rem;
   font-family: inherit;
@@ -248,12 +261,14 @@
   cursor: pointer;
   transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
 
-  &:last-child {
-    margin-bottom: 0;
-  }
-
   &:active {
     transform: scale(0.99);
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   ion-icon {
@@ -267,15 +282,134 @@
   color: var(--tf-accent) !important;
 }
 
-.save-intake-config-button {
-  @include tf-gradient-button(10px);
-  width: 100%;
-  min-height: var(--tf-touch-min);
-  margin-top: 12px;
-  font-size: 0.84rem;
+.intake-config-subheading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-muted);
+  margin: 16px 0 8px;
+}
+
+// --- Preguntas personalizadas (además de los 9 campos predefinidos) ---
+.custom-question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.custom-question-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: 10px;
+}
+
+// Mismo checkbox+label que .field-toggle-row, para que activar/desactivar
+// una pregunta custom se sienta igual que un campo predefinido — pero sin
+// su propio fondo/borde (ya los pone .custom-question-row, que también
+// aloja el botón de borrar al lado).
+.custom-question-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: var(--tf-text-faint);
+  }
+}
+
+.custom-question-label {
+  min-width: 0;
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-question-remove {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-text-faint);
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 17px;
+  }
+
+  &:active {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger);
+  }
+}
+
+.add-question-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--tf-border-subtle);
+  margin-top: 4px;
+}
+
+.add-question-row .input-wrapper {
+  flex: 1;
+  height: 44px;
+  padding-right: 6px;
+}
+
+// Icono de "enter" dentro del propio input en vez de un botón "Añadir"
+// aparte — mismo gesto que enviar el campo con la tecla Enter
+// ((keyup.enter) en el input), solo que también clicable.
+.add-question-submit {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tf-surface-4);
+  border: none;
+  border-radius: 8px;
+  color: var(--tf-text-secondary);
+  cursor: pointer;
+  transition: opacity 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 17px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:not(:disabled):active {
+    color: var(--tf-accent);
+  }
 }
 
 .submit-button {

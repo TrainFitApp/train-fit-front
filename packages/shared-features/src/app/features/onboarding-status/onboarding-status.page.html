@@ -1,9 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>Antes de empezar</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()" fill="clear">Salir</ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -21,6 +18,39 @@
     <p class="intro-text">
       Antes de acceder a tu dieta y rutina, tu profesional necesita conocerte un poco mejor.
     </p>
+
+    <p class="progress-text" *ngIf="pendingCount > 0">
+      Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
+    </p>
+
+    <!-- Invitaciones sin aceptar todavía — el cliente puede tener otra
+    relación bloqueándole el resto de la app y necesita aceptar esta para
+    poder rellenar su cuestionario, sin depender del tab de Coach (también
+    bloqueado). -->
+    <div class="trainer-group trainer-group--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
+      <div class="trainer-group-header">
+        <span class="trainer-group-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</span>
+        <span class="trainer-group-scopes">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }}</span>
+      </div>
+      <p class="waiting-hint">Te ha invitado a formar parte de sus clientes.</p>
+      <div class="invite-actions">
+        <button
+          class="secondary-button"
+          [disabled]="respondingInviteId === invite._id"
+          (click)="respondToInvite(invite, 'decline')"
+        >
+          Rechazar
+        </button>
+        <button
+          class="submit-button"
+          [disabled]="respondingInviteId === invite._id"
+          (click)="respondToInvite(invite, 'accept')"
+        >
+          <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
+          <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
+        </button>
+      </div>
+    </div>
 
     <div class="trainer-group" *ngFor="let group of groups; trackBy: trackByTrainerId">
       <div class="trainer-group-header">
@@ -42,6 +72,12 @@
 
       <!-- Formulario del cuestionario inicial -->
       <div class="intake-form" *ngIf="fillingTrainerId === group.trainerId">
+        <div class="detail-skeleton" *ngIf="isLoadingIntake">
+          <div class="skeleton-block" style="height: 40px;"></div>
+          <div class="skeleton-block" style="height: 40px;"></div>
+        </div>
+
+        <ng-container *ngIf="!isLoadingIntake">
         <ng-container *ngIf="group.enabledFields.has('goals')">
           <label class="form-label">Objetivos</label>
           <textarea class="form-textarea" rows="2" [(ngModel)]="goals" placeholder="¿Qué quieres conseguir?"></textarea>
@@ -105,9 +141,20 @@
           </div>
         </ng-container>
 
+        <ng-container *ngFor="let question of group.customQuestions; trackBy: trackByQuestionId">
+          <label class="form-label">{{ question.label }}</label>
+          <textarea
+            class="form-textarea"
+            rows="2"
+            [ngModel]="customAnswers[question.id]"
+            (ngModelChange)="customAnswers[question.id] = $event"
+          ></textarea>
+        </ng-container>
+        </ng-container>
+
         <div class="form-actions">
           <button class="secondary-button" (click)="closeIntakeForm()">Cancelar</button>
-          <button class="submit-button" (click)="submitIntake()" [disabled]="isSubmitting">
+          <button class="submit-button" (click)="submitIntake()" [disabled]="isSubmitting || isLoadingIntake">
             <span *ngIf="!isSubmitting">Enviar cuestionario</span>
             <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
           </button>

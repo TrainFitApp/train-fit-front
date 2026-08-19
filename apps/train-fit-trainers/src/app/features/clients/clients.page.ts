@@ -22,6 +22,9 @@ const PAGE_SIZE = 20;
 interface ReviewSummary {
   clientEmail: string;
   clientId: string | null;
+  // Puede venir null (el cliente borró la cuenta u otro edge case) — la fila
+  // sigue mostrando el email como único dato fiable en ese caso.
+  clientName: string | null;
 }
 
 @Component({
@@ -90,7 +93,12 @@ export class ClientsPage implements OnInit {
     for (const invite of invites) {
       const key = invite.clientEmail.toLowerCase();
       if (!map.has(key)) {
-        map.set(key, { clientEmail: invite.clientEmail, clientId: invite.clientId });
+        const name = invite.client ? `${invite.client.name || ''} ${invite.client.lastname || ''}`.trim() : '';
+        map.set(key, {
+          clientEmail: invite.clientEmail,
+          clientId: invite.clientId,
+          clientName: name || null,
+        });
       }
     }
     return [...map.values()];
@@ -159,7 +167,7 @@ export class ClientsPage implements OnInit {
   public async confirmRejectReviewedClient(review: ReviewSummary): Promise<void> {
     const alert = await this.ionicUtilService.showAlert({
       header: 'Rechazar cliente',
-      message: `¿Seguro que quieres rechazar a ${review.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
+      message: `¿Seguro que quieres rechazar a ${review.clientName || review.clientEmail} tras revisar su cuestionario? Esta acción no se puede deshacer.`,
       buttons: [
         { text: 'Volver', role: 'cancel' },
         {

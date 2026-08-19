@@ -40,6 +40,12 @@ export interface SendInviteResponse {
   results: SendInviteResult[];
 }
 
+export interface ClientIntakeCustomAnswer {
+  questionId: string;
+  label: string;
+  value: string;
+}
+
 // TAREA 3 — cuestionario inicial enviado por el cliente, uno por par
 // (profesional, cliente) — no por scope.
 export interface ClientIntake {
@@ -48,6 +54,7 @@ export interface ClientIntake {
   experienceLevel: 'none' | 'beginner' | 'intermediate' | 'advanced' | null;
   availability: string;
   equipment: string;
+  customAnswers: ClientIntakeCustomAnswer[];
   submittedAt: string;
 }
 
@@ -56,9 +63,23 @@ export interface ClientIntake {
 // onboarding-status.page.ts del lado cliente) — una sola fuente de verdad
 // del catálogo en el frontend en vez de dos uniones literales a mantener en
 // sincronía a mano.
+// De libre selección, igual que los 9 campos predefinidos — sin ámbito
+// asociado, no depende de si el trainer marcó Entrenamiento o Nutrición.
+// `enabled` controla si se manda al cliente sin perder la pregunta al
+// desactivarla (mismo checkbox que los campos predefinidos).
+export interface CustomIntakeQuestion {
+  id: string;
+  label: string;
+  enabled: boolean;
+}
+
 export interface TrainerIntakeConfig {
   trainerId: string;
   enabledFields: IntakeFieldKey[];
+  customQuestions: CustomIntakeQuestion[];
+  // Últimos checkboxes de ámbito marcados en la pantalla de invitar — se
+  // recuerdan entre visitas, no es el scope de ninguna invitación concreta.
+  lastScopes: TrainerInviteScope[];
   catalog?: IntakeFieldKey[];
 }
 
