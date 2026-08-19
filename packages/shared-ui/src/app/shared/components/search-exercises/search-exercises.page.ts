@@ -78,6 +78,12 @@ export class SearchExercisesPage implements OnInit {
   public load: boolean;
   public theme: ColorMode;
 
+  // pickerMode — selección múltiple: antes cada tap (tarjeta o checkbox)
+  // cerraba el modal al instante con un solo ejercicio, así que marcar el
+  // checkbox no dejaba elegir más de uno. Ahora se acumulan aquí y el
+  // footer confirma con todos a la vez (ver confirmPickerSelection()).
+  public pickerSelectedExercises: Exercise[] = [];
+
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
 
   public isFooterHidden: boolean = false;
@@ -277,15 +283,32 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public isExerciseSelected(exercise: Exercise): boolean {
+    if (this.pickerMode) {
+      return this.pickerSelectedExercises.some((e) => e._id === exercise._id);
+    }
     if (this.isChangeMode || !this.workout?.exercises) return false;
     return !!this.workout.exercises.find(
       (ce) => ce.exercise?._id === exercise._id
     );
   }
 
+  private togglePickerSelection(exercise: Exercise): void {
+    const index = this.pickerSelectedExercises.findIndex((e) => e._id === exercise._id);
+    if (index >= 0) {
+      this.pickerSelectedExercises = this.pickerSelectedExercises.filter((_, i) => i !== index);
+    } else {
+      this.pickerSelectedExercises = [...this.pickerSelectedExercises, exercise];
+    }
+  }
+
+  public confirmPickerSelection(): void {
+    if (!this.pickerSelectedExercises.length) return;
+    this.modalController.dismiss(this.pickerSelectedExercises);
+  }
+
   public onExerciseCardClick(exercise: Exercise): void {
     if (this.pickerMode) {
-      this.modalController.dismiss(exercise);
+      this.togglePickerSelection(exercise);
       return;
     }
 
@@ -305,7 +328,7 @@ export class SearchExercisesPage implements OnInit {
 
   public toggleExerciseSelection(exercise: Exercise): void {
     if (this.pickerMode) {
-      this.modalController.dismiss(exercise);
+      this.togglePickerSelection(exercise);
       return;
     }
 

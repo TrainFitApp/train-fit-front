@@ -25,6 +25,13 @@ export class CoachService {
   private readonly _hasCoachRelation: WritableSignal<boolean> = signal(false);
   public readonly hasCoachRelation = computed(() => this._hasCoachRelation());
 
+  // Distinto de hasCoachRelation (que también cuenta invitaciones sin
+  // responder): esto es "asignado" de verdad — al menos un profesional con
+  // relación ACTIVA. Lo usa configuration.page.ts para ocultar la
+  // configuración de anuncios a un cliente que ya lleva un trainer.
+  private readonly _hasActiveTrainer: WritableSignal<boolean> = signal(false);
+  public readonly hasActiveTrainer = computed(() => this._hasActiveTrainer());
+
   constructor(private http: HttpService) {}
 
   // Nunca debe romper el flujo que la llama (arranque de la app, respuesta a
@@ -35,10 +42,14 @@ export class CoachService {
       active: this.http.get<ActiveProfessionalSummary[]>('trainer/info'),
       pending: this.http.get<PendingInviteSummary[]>('trainer/invites/mine'),
     }).pipe(
-      map(({ active, pending }) => (active || []).length > 0 || (pending || []).length > 0),
+      map(({ active, pending }) => {
+        this._hasActiveTrainer.set((active || []).length > 0);
+        return (active || []).length > 0 || (pending || []).length > 0;
+      }),
       tap((hasCoachRelation) => this._hasCoachRelation.set(hasCoachRelation)),
       catchError(() => {
         this._hasCoachRelation.set(false);
+        this._hasActiveTrainer.set(false);
         return of(false);
       })
     );

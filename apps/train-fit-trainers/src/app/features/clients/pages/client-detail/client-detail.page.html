@@ -143,14 +143,14 @@
       </div>
 
       <div class="section-row">
-        <h2 class="section-heading">Entrenamientos</h2>
+        <h2 class="section-heading">Rutinas</h2>
         <button class="add-button" (click)="openRoutinePanel()">
           <ion-icon name="add-outline"></ion-icon>
-          Asignar entrenamiento
+          Asignar rutina
         </button>
       </div>
 
-      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ningún entrenamiento.</p>
+      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
 
       <div class="routine-block" *ngFor="let table of tables; trackBy: trackByTableId">
         <div class="routine-header-row">
@@ -175,14 +175,14 @@
           </button>
           <button
             class="bulk-apply-btn"
-            title="Editar entrenamiento (splits, ejercicios, series)"
+            title="Editar rutina (splits, ejercicios, series)"
             (click)="openPlanner(table)"
           >
             <ion-icon name="construct-outline"></ion-icon>
           </button>
           <button
             class="bulk-apply-btn bulk-apply-btn--danger"
-            title="Borrar entrenamiento completo"
+            title="Borrar rutina completa"
             (click)="confirmDeleteTable(table, $event)"
           >
             <ion-icon name="trash-outline"></ion-icon>
@@ -191,7 +191,7 @@
 
         <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
         <div class="routine-detail" *ngIf="expandedTableId === table._id">
-          <p class="empty-hint" *ngIf="!table.splits?.length">Este entrenamiento todavía no tiene microciclos.</p>
+          <p class="empty-hint" *ngIf="!table.splits?.length">Esta rutina todavía no tiene microciclos.</p>
 
           <div class="split-block" *ngFor="let split of table.splits">
             <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
@@ -226,25 +226,16 @@
     <div class="panel-backdrop" *ngIf="showRoutinePanel" (click)="closeRoutinePanel()"></div>
     <div class="panel-sheet" *ngIf="showRoutinePanel">
       <div class="panel-handle"></div>
-      <h3 class="panel-title">Asignar entrenamiento</h3>
+      <h3 class="panel-title">Asignar rutina</h3>
 
-      <div class="mode-toggle">
-        <button class="mode-option" [class.selected]="routineMode === 'new'" (click)="setRoutineMode('new')">
-          Crear nueva
-        </button>
-        <button class="mode-option" [class.selected]="routineMode === 'template'" (click)="setRoutineMode('template')">
-          Desde plantilla
-        </button>
-      </div>
-
-      <form *ngIf="routineMode === 'new'" [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()">
+      <form [formGroup]="routineForm" (ngSubmit)="submitNewRoutine()">
         <div class="input-wrapper">
           <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
           <input
             type="text"
             formControlName="name"
             class="input-field"
-            placeholder="Nombre del entrenamiento"
+            placeholder="Nombre de rutina"
           />
         </div>
         <button
@@ -256,30 +247,6 @@
           <ion-spinner name="dots" *ngIf="isAssigningRoutine"></ion-spinner>
         </button>
       </form>
-
-      <div class="template-list" *ngIf="routineMode === 'template'">
-        <p class="empty-hint" *ngIf="templatesLoaded && !availableTemplates.length">
-          No tienes plantillas disponibles todavía.
-        </p>
-        <div class="template-row" *ngFor="let template of availableTemplates; trackBy: trackByTableId">
-          <button
-            class="list-card list-card--button"
-            (click)="assignTemplate(template)"
-            [disabled]="isAssigningRoutine"
-          >
-            <ion-icon name="copy-outline"></ion-icon>
-            <span class="list-card-title">{{ template.name }}</span>
-          </button>
-          <button
-            class="bulk-apply-btn"
-            title="Aplicar a varios clientes"
-            (click)="bulkApplyRoutine(template)"
-            [disabled]="isAssigningRoutine"
-          >
-            <ion-icon name="people-outline"></ion-icon>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 

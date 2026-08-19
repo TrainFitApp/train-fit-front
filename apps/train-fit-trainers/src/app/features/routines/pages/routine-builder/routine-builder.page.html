@@ -27,142 +27,154 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <!-- Metadata -->
-    <div class="builder-section">
-      <label class="field-label">Nombre</label>
-      <div class="input-wrapper">
-        <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-        <input type="text" class="input-field" placeholder="Ej: Empuje 4 series" [(ngModel)]="name" />
-      </div>
-
-      <label class="field-label">Descripción</label>
-      <textarea class="builder-textarea" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="description"></textarea>
-
-      <label class="field-label">Nivel</label>
-      <div class="level-picker">
-        <button
-          type="button"
-          class="level-option"
-          *ngFor="let lvl of levelKeys"
-          [class.selected]="level === lvl"
-          (click)="level = lvl"
-        >
-          {{ levels[lvl] }}
-        </button>
-      </div>
-
-      <label class="field-label">Etiquetas (separadas por comas)</label>
-      <div class="input-wrapper">
-        <ion-icon name="bookmarks-outline" class="input-icon"></ion-icon>
-        <input type="text" class="input-field" placeholder="fuerza, tren superior..." [(ngModel)]="tagsText" />
-      </div>
-
-      <label class="field-label">Equipo (separado por comas)</label>
-      <div class="input-wrapper">
-        <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
-        <input type="text" class="input-field" placeholder="mancuernas, banco..." [(ngModel)]="equipmentText" />
-      </div>
-    </div>
-
-    <!-- Bloques -->
-    <div class="builder-section">
-      <div class="section-heading">
-        <span>Contenido</span>
-      </div>
-
-      <p class="empty-hint" *ngIf="blocks.length === 0">
-        Todavía no has añadido ningún bloque. Un bloque agrupa uno o varios ejercicios (recta, superserie, circuito...).
-      </p>
-
-      <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
-        <div class="block-header" (click)="editBlockAlert(block)">
-          <div class="block-header-main">
-            <ion-icon name="layers-outline"></ion-icon>
-            <span class="block-name">{{ block.name || blockTypeLabels[block.type] }}</span>
-            <span class="block-type-badge">{{ blockTypeLabels[block.type] }}</span>
+    <div class="builder-layout">
+      <!-- Metadata — panel fijo en desktop (ver @media en el scss), no hace
+           falta bajar hasta el final para guardar mientras se editan bloques. -->
+      <div class="builder-sidebar">
+        <div class="builder-section">
+          <label class="field-label">Nombre</label>
+          <div class="input-wrapper">
+            <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+            <input type="text" class="input-field" placeholder="Ej: Empuje 4 series" [(ngModel)]="name" />
           </div>
-          <div class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
-            <span *ngIf="block.rounds">{{ block.rounds }} rondas</span>
-            <span *ngIf="block.restBetweenExercises">Descanso ejercicios: {{ block.restBetweenExercises }}s</span>
-            <span *ngIf="block.restBetweenRounds">Descanso rondas: {{ block.restBetweenRounds }}s</span>
-          </div>
-        </div>
 
-        <div class="exercise-row" *ngFor="let ex of block.exercises; trackBy: trackByIndex">
-          <div class="exercise-row-header">
-            <span class="exercise-name">{{ ex.exercise?.name || 'Ejercicio eliminado del catálogo' }}</span>
-            <button type="button" class="remove-exercise-btn" (click)="removeExercise(block, ex)">
-              <ion-icon name="close-outline"></ion-icon>
+          <label class="field-label">Descripción</label>
+          <textarea class="builder-textarea" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="description"></textarea>
+
+          <label class="field-label">Nivel</label>
+          <div class="level-picker">
+            <button
+              type="button"
+              class="level-option"
+              *ngFor="let lvl of levelKeys"
+              [class.selected]="level === lvl"
+              (click)="level = lvl"
+            >
+              {{ levels[lvl] }}
             </button>
           </div>
 
-          <div class="scheme-fields" *ngIf="isSchemeNormal(ex.scheme)">
-            <label class="scheme-field">
-              <span>Series</span>
-              <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-            </label>
-            <label class="scheme-field">
-              <span>Reps min</span>
-              <input type="number" min="0" [(ngModel)]="ex.scheme.repsMin" />
-            </label>
-            <label class="scheme-field">
-              <span>Reps max</span>
-              <input type="number" min="0" [(ngModel)]="ex.scheme.repsMax" />
-            </label>
-            <label class="scheme-field">
-              <span>RIR min</span>
-              <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMin" />
-            </label>
-            <label class="scheme-field">
-              <span>RIR max</span>
-              <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMax" />
-            </label>
+          <div class="field-pair">
+            <div class="field-pair-col">
+              <label class="field-label">Etiquetas</label>
+              <div class="input-wrapper">
+                <ion-icon name="bookmarks-outline" class="input-icon"></ion-icon>
+                <input type="text" class="input-field" placeholder="fuerza, tren superior..." [(ngModel)]="tagsText" />
+              </div>
+            </div>
+            <div class="field-pair-col">
+              <label class="field-label">Equipo</label>
+              <div class="input-wrapper">
+                <ion-icon name="barbell-outline" class="input-icon"></ion-icon>
+                <input type="text" class="input-field" placeholder="mancuernas, banco..." [(ngModel)]="equipmentText" />
+              </div>
+            </div>
           </div>
-
-          <div class="scheme-fields" *ngIf="isSchemeIsometric(ex.scheme)">
-            <label class="scheme-field">
-              <span>Series</span>
-              <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-            </label>
-            <label class="scheme-field scheme-field--wide">
-              <span>Tiempo</span>
-              <input type="text" placeholder="ej. 30s" [(ngModel)]="ex.scheme.expectedTime" />
-            </label>
-          </div>
-
-          <div class="scheme-fields" *ngIf="isSchemeCardio(ex.scheme)">
-            <label class="scheme-field">
-              <span>Series</span>
-              <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
-            </label>
-            <label class="scheme-field scheme-field--wide">
-              <span>Tiempo</span>
-              <input type="text" placeholder="ej. 10min" [(ngModel)]="ex.scheme.expectedTime" />
-            </label>
-            <label class="scheme-field">
-              <span>Distancia (km)</span>
-              <input type="number" min="0" [(ngModel)]="ex.scheme.expectedDistance" />
-            </label>
-          </div>
-
-          <p class="scheme-summary">{{ schemeSummary(ex.scheme) }}</p>
         </div>
 
-        <button type="button" class="add-exercise-btn" (click)="addExercise(block)">
-          <ion-icon name="add-outline"></ion-icon>
-          Añadir ejercicio
+        <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()">
+          <span *ngIf="!isSaving">Guardar</span>
+          <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
         </button>
       </div>
 
-      <button type="button" class="add-block-btn" (click)="addBlockAlert()">
-        <ion-icon name="add-circle-outline"></ion-icon>
-        Añadir bloque
-      </button>
-    </div>
+      <!-- Bloques -->
+      <div class="builder-main">
+        <div class="builder-section">
+          <div class="section-heading">
+            <span>Contenido</span>
+          </div>
 
-    <button type="button" class="submit-button" [disabled]="!canSave" (click)="save()">
-      <span *ngIf="!isSaving">Guardar</span>
-      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
-    </button>
+          <p class="empty-hint" *ngIf="blocks.length === 0">
+            Todavía no has añadido ningún bloque. Un bloque agrupa uno o varios ejercicios (recta, superserie, circuito...).
+          </p>
+
+          <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
+            <div class="block-header" (click)="editBlockAlert(block)">
+              <div class="block-header-main">
+                <ion-icon name="layers-outline"></ion-icon>
+                <span class="block-name">{{ block.name || blockTypeLabels[block.type] }}</span>
+                <span class="block-type-badge">{{ blockTypeLabels[block.type] }}</span>
+              </div>
+              <div class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
+                <span *ngIf="block.rounds">{{ block.rounds }} rondas</span>
+                <span *ngIf="block.restBetweenExercises">Descanso ejercicios: {{ block.restBetweenExercises }}s</span>
+                <span *ngIf="block.restBetweenRounds">Descanso rondas: {{ block.restBetweenRounds }}s</span>
+              </div>
+            </div>
+
+            <div class="exercise-row" *ngFor="let ex of block.exercises; trackBy: trackByIndex">
+              <div class="exercise-row-header">
+                <span class="exercise-name">{{ ex.exercise?.name || 'Ejercicio eliminado del catálogo' }}</span>
+                <button type="button" class="remove-exercise-btn" (click)="removeExercise(block, ex)">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+
+              <div class="scheme-fields" *ngIf="isSchemeNormal(ex.scheme)">
+                <label class="scheme-field">
+                  <span>Series</span>
+                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
+                </label>
+                <label class="scheme-field">
+                  <span>Reps min</span>
+                  <input type="number" min="0" [(ngModel)]="ex.scheme.repsMin" />
+                </label>
+                <label class="scheme-field">
+                  <span>Reps max</span>
+                  <input type="number" min="0" [(ngModel)]="ex.scheme.repsMax" />
+                </label>
+                <label class="scheme-field">
+                  <span>RIR min</span>
+                  <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMin" />
+                </label>
+                <label class="scheme-field">
+                  <span>RIR max</span>
+                  <input type="number" min="-1" [(ngModel)]="ex.scheme.rirMax" />
+                </label>
+              </div>
+
+              <div class="scheme-fields" *ngIf="isSchemeIsometric(ex.scheme)">
+                <label class="scheme-field">
+                  <span>Series</span>
+                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
+                </label>
+                <label class="scheme-field scheme-field--wide">
+                  <span>Tiempo</span>
+                  <input type="text" placeholder="ej. 30s" [(ngModel)]="ex.scheme.expectedTime" />
+                </label>
+              </div>
+
+              <div class="scheme-fields" *ngIf="isSchemeCardio(ex.scheme)">
+                <label class="scheme-field">
+                  <span>Series</span>
+                  <input type="number" min="1" max="20" [(ngModel)]="ex.scheme.count" />
+                </label>
+                <label class="scheme-field scheme-field--wide">
+                  <span>Tiempo</span>
+                  <input type="text" placeholder="ej. 10min" [(ngModel)]="ex.scheme.expectedTime" />
+                </label>
+                <label class="scheme-field">
+                  <span>Distancia (km)</span>
+                  <input type="number" min="0" [(ngModel)]="ex.scheme.expectedDistance" />
+                </label>
+              </div>
+
+              <p class="scheme-summary">{{ schemeSummary(ex.scheme) }}</p>
+            </div>
+
+            <button type="button" class="add-exercise-btn" (click)="addExercise(block)">
+              <ion-icon name="add-outline"></ion-icon>
+              Añadir ejercicio
+            </button>
+          </div>
+
+          <button type="button" class="add-block-btn" (click)="addBlockAlert()">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Añadir bloque
+          </button>
+        </div>
+      </div>
+    </div>
   </ng-container>
 </ion-content>

@@ -156,6 +156,54 @@
   }
 }
 
+// Footer para pickerMode (selección múltiple) — confirma con todos los
+// ejercicios marcados a la vez, en vez de cerrar el modal en el primer tap.
+.picker-mode-footer {
+  background: transparent;
+  border-top: none;
+  padding: 12px;
+}
+
+.picker-confirm-button {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 14px;
+  background: var(--ion-color-primary);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+  transition: opacity 160ms ease, transform 160ms ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.picker-confirm-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 // Responsividad móvil
 @media (max-width: 768px) {
   .search-header {

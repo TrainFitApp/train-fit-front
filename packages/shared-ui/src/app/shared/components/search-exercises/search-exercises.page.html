@@ -143,7 +143,7 @@
         <div class="exercise-header">
           <h3 class="exercise-name">
             {{ exercise?.name | translateDb }}
-            <span class="added-label" *ngIf="!isChangeMode && isExerciseSelected(exercise)">
+            <span class="added-label" *ngIf="!isChangeMode && !pickerMode && isExerciseSelected(exercise)">
               ({{ 'SEARCH_EXERCISES.ADDED_TO' | translate : { workoutName: getWorkoutNameTranslated(workout) } }})
             </span>
           </h3>
@@ -222,4 +222,16 @@
       <span>{{ 'SEARCH_EXERCISES.TAP_TO_REPLACE' | translate }}</span>
     </div>
   </div>
+</ion-footer>
+
+<ion-footer *ngIf="pickerMode" class="picker-mode-footer">
+  <button
+    type="button"
+    class="picker-confirm-button"
+    [disabled]="!pickerSelectedExercises.length"
+    (click)="confirmPickerSelection()"
+  >
+    {{ 'SEARCH_EXERCISES.ADD_SELECTED' | translate }}
+    <span class="picker-confirm-count" *ngIf="pickerSelectedExercises.length">{{ pickerSelectedExercises.length }}</span>
+  </button>
 </ion-footer>

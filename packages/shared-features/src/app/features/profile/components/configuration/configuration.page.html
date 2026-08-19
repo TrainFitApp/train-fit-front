@@ -18,8 +18,9 @@
 <ion-content class="configuration-content">
   <!-- Configuration Sections -->
   <div class="config-sections">
-    <!-- TrainFit Pro Section — top -->
-    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
+    <!-- TrainFit Pro Section — top. Un cliente ya premium la ve igual (para
+         gestionar su suscripción) aunque tenga trainer; el resto (upsell) no. -->
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer') && (isPremium || !coachService.hasActiveTrainer())">
       <div class="section-header">
         <ion-icon name="diamond-outline"></ion-icon>
         <span>{{ 'CONFIGURATION.TRAINFIT_PRO' | translate }}</span>
@@ -108,8 +109,9 @@
       </ion-card>
     </div>
 
-    <!-- Privacy Section — anuncios: no aplica a cuentas trainer, no llevan publicidad. -->
-    <div class="section-group" *ngIf="!user?.roles?.includes('trainer')">
+    <!-- Privacy Section — anuncios: no aplica a cuentas trainer (no llevan
+         publicidad) ni a un cliente ya asignado a un entrenador. -->
+    <div class="section-group" *ngIf="!user?.roles?.includes('trainer') && !coachService.hasActiveTrainer()">
       <div class="section-header">
         <ion-icon name="eye-outline"></ion-icon>
         <span>{{ 'CONFIGURATION.PRIVACY' | translate }}</span>

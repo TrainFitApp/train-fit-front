@@ -640,35 +640,6 @@
   margin: 0 0 16px;
 }
 
-.mode-toggle {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.mode-option {
-  flex: 1;
-  padding: 10px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 10px;
-  color: var(--tf-text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
-    transform 160ms var(--tf-ease-out);
-
-  &.selected {
-    border-color: var(--tf-accent);
-    color: var(--tf-text);
-  }
-
-  &:active {
-    transform: scale(0.97);
-  }
-}
-
 .input-wrapper {
   @include tf-input-wrapper(var(--tf-surface-2));
   height: 50px;
@@ -700,24 +671,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.template-list {
-  display: flex;
-  flex-direction: column;
-}
-
-// --- F30: aplicar en bloque ---
-.template-row {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  .list-card--button {
-    flex: 1;
-    margin-bottom: 0;
-  }
 }
 
 .bulk-apply-btn {

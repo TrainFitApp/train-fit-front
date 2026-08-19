@@ -39,8 +39,67 @@
   cursor: pointer;
 }
 
+.builder-layout {
+  display: flex;
+  flex-direction: column;
+}
+
 .builder-section {
   margin-bottom: 20px;
+}
+
+.field-pair {
+  display: flex;
+  gap: 12px;
+
+  .field-pair-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .field-label {
+    margin-top: 12px;
+  }
+}
+
+// Desktop/web — antes todo se apilaba en una sola columna a lo ancho de la
+// ventana (campos de metadata a 1200px+ de ancho para un input que solo
+// necesita ~300px). El nombre/descripción/nivel/etiquetas quedan en un
+// panel fijo a la izquierda — no se pierden de vista al bajar por los
+// bloques — y "Contenido" pasa a ser la columna ancha, que es donde de
+// verdad hace falta el espacio (las filas de series/reps/RIR ya no
+// necesitan envolver).
+@media (min-width: 900px) {
+  .builder-content {
+    --padding-start: 28px;
+    --padding-end: 28px;
+    --padding-top: 20px;
+  }
+
+  .builder-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    align-items: start;
+    gap: 24px;
+    max-width: 1220px;
+    margin: 0 auto;
+  }
+
+  .builder-sidebar {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .builder-sidebar .builder-section {
+    margin-bottom: 0;
+  }
+
+  .builder-main .builder-section {
+    margin-bottom: 0;
+  }
 }
 
 .field-label {

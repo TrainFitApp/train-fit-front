@@ -34,6 +34,7 @@ import { fadeIn, fadeOut } from 'src/app/shared/animations/fade';
 import { MONTHS } from 'src/app/shared/constants/months';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { Anthropometry } from '../diet-days/components/weight-info/models/anthropometry';
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 import { MealProposal } from './models/meal-proposal.model';
@@ -90,6 +91,7 @@ export class DietsPage implements OnInit {
 
   private readonly userService = inject(UserService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
+  public readonly coachService = inject(CoachService);
 
   get locale(): string {
     return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';

@@ -1638,7 +1638,8 @@
     "ISOMETRIC": "Isométrico",
     "REPLACE_EXERCISE": "Sustituir ejercicio",
     "TAP_TO_REPLACE": "Toca un ejercicio para reemplazarlo",
-    "ADDED_TO": "Añadido a {{workoutName}}"
+    "ADDED_TO": "Añadido a {{workoutName}}",
+    "ADD_SELECTED": "Añadir"
   },
   "FILTER": {
     "PRODUCT": "producto",

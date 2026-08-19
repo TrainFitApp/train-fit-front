@@ -4,6 +4,7 @@ import { AlertButton, AlertOptions, ModalOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { User } from 'src/app/core/models/user';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
+import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { DietService } from 'src/app/core/services/diet/diet.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { TableService } from 'src/app/core/services/table/table.service';
@@ -51,6 +52,7 @@ export class ConfigurationPage {
     private readonly themeService: ThemeService,
     private readonly ionicUtilService: IonicUtilService,
     private readonly authService: AuthService,
+    public readonly coachService: CoachService,
     private readonly tableService: TableService,
     private readonly dietService: DietService,
     private readonly workoutService: WorkoutService,

@@ -10,6 +10,7 @@ import { LowercaseEmailInputDirective } from 'src/app/core/directives/lowercase-
 import { VideoModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
 import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
+import { ActionsSheetComponent } from './components/actions-sheet/actions-sheet.component';
 import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
 import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
@@ -38,6 +39,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
 @NgModule({
   declarations: [
     PopoverActionsComponent,
+    ActionsSheetComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
@@ -77,6 +79,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     IonicModule,
     TranslateModule,
     PopoverActionsComponent,
+    ActionsSheetComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,

@@ -5,6 +5,7 @@ import { CustomExercise } from "src/app/core/models/customExercise";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
 import { Workout } from "src/app/core/models/workout";
+import { CoachService } from "src/app/core/services/coach/coach.service";
 import { CustomExerciseService } from "src/app/core/services/custom-exercise/custom-exercise.service";
 import { TableService } from "src/app/core/services/table/table.service";
 import { UserService } from "src/app/core/services/user/user.service";
@@ -61,6 +62,7 @@ export class SummaryPage {
   private readonly translate = inject(TranslateService);
   private readonly pinnedExerciseNoteService = inject(PinnedExerciseNoteService);
   private readonly remoteConfigGate = inject(RemoteConfigGateService);
+  public readonly coachService = inject(CoachService);
 
   constructor(
     public platform: Platform,

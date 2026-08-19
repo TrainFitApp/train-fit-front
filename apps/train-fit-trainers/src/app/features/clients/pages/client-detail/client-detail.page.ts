@@ -49,7 +49,6 @@ import {
 } from './models/client-detail.model';
 
 type SectionState = 'loading' | 'error' | 'loaded';
-type RoutineAssignMode = 'new' | 'template';
 
 @Component({
   selector: 'app-client-detail',
@@ -111,12 +110,9 @@ export class ClientDetailPage implements OnInit {
   public latestWeight: AnthropometryEntry | null = null;
   public expandedTableId: string | null = null;
   public showRoutinePanel = false;
-  public routineMode: RoutineAssignMode = 'new';
   public routineForm: FormGroup = new FormGroup({
     name: new FormControl(''),
   });
-  public availableTemplates: ClientTable[] = [];
-  public templatesLoaded = false;
   public isAssigningRoutine = false;
 
   // --- Nutrición ---
@@ -154,9 +150,8 @@ export class ClientDetailPage implements OnInit {
   public isCreatingException = false;
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
-  // Perezoso (solo al expandir), mismo criterio que availableTemplates más
-  // abajo — no todos los trainers necesitan mirar esto cada vez que abren
-  // la ficha del cliente.
+  // Perezoso (solo al expandir) — no todos los trainers necesitan mirar
+  // esto cada vez que abren la ficha del cliente.
   public showNutritionHistory = false;
   public nutritionHistoryLoaded = false;
   public nutritionHistoryState: 'loading' | 'error' | 'loaded' = 'loading';
@@ -408,22 +403,11 @@ export class ClientDetailPage implements OnInit {
 
   public openRoutinePanel(): void {
     this.showRoutinePanel = true;
-    this.routineMode = 'new';
     this.routineForm.reset({ name: '' });
-    if (!this.templatesLoaded) {
-      this.clientDetailApi.getAvailableTemplates(this.clientId).subscribe((templates) => {
-        this.availableTemplates = templates || [];
-        this.templatesLoaded = true;
-      });
-    }
   }
 
   public closeRoutinePanel(): void {
     this.showRoutinePanel = false;
-  }
-
-  public setRoutineMode(mode: RoutineAssignMode): void {
-    this.routineMode = mode;
   }
 
   // Replanteamiento MVP (rutinas) — "Crear nueva" ya no se queda en un
@@ -472,7 +456,7 @@ export class ClientDetailPage implements OnInit {
   public async confirmDeleteTable(table: ClientTable, event: Event): Promise<void> {
     event.stopPropagation();
     await this.ionicUtilService.showAlert({
-      header: 'Borrar entrenamiento',
+      header: 'Borrar rutina',
       message: `¿Seguro que quieres borrar por completo "${table.name}"? Esta acción no se puede deshacer.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -484,11 +468,11 @@ export class ClientDetailPage implements OnInit {
               next: () => {
                 this.tables = this.tables.filter((t) => t._id !== table._id);
                 if (this.expandedTableId === table._id) this.expandedTableId = null;
-                this.ionicUtilService.showToast({ message: 'Entrenamiento borrado', duration: 1500 });
+                this.ionicUtilService.showToast({ message: 'Rutina borrada', duration: 1500 });
               },
               error: () => {
                 this.ionicUtilService.showToast({
-                  message: 'No se pudo borrar el entrenamiento',
+                  message: 'No se pudo borrar la rutina',
                   duration: 2500,
                 });
               },
@@ -499,29 +483,10 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  public assignTemplate(template: ClientTable): void {
-    if (this.isAssigningRoutine) return;
-    this.isAssigningRoutine = true;
-    this.clientDetailApi.assignTemplateRoutine(this.clientId, template._id).subscribe({
-      next: () => this.onRoutineAssigned(template.name),
-      error: (err) => this.onRoutineAssignError(err),
-    });
-  }
-
-  private onRoutineAssigned(name: string): void {
-    this.isAssigningRoutine = false;
-    this.showRoutinePanel = false;
-    this.ionicUtilService.showToast({
-      message: `Entrenamiento "${name}" asignado a ${this.name}`,
-      duration: 3000,
-    });
-    this.loadTraining();
-  }
-
   private onRoutineAssignError(err: any): void {
     this.isAssigningRoutine = false;
     this.ionicUtilService.showErrorToast(
-      err?.error?.message || 'No se pudo asignar el entrenamiento',
+      err?.error?.message || 'No se pudo asignar la rutina',
       'Error',
       3500
     );
@@ -1413,20 +1378,6 @@ export class ClientDetailPage implements OnInit {
       message: `Aplicado a ${successCount} de ${total} clientes; ${failed.length} falló: ${failed[0].error}`,
       duration: 4500,
       color: 'warning',
-    });
-  }
-
-  public async bulkApplyRoutine(template: ClientTable): Promise<void> {
-    const targetClientIds = await this.selectTargetClients(
-      'training',
-      `Aplicar "${template.name}" a otros clientes`
-    );
-    if (!targetClientIds) return;
-
-    this.clientDetailApi.applyRoutineToClients(template._id, targetClientIds).subscribe({
-      next: (results) => this.showBulkResultToast(results),
-      error: () =>
-        this.ionicUtilService.showErrorToast('No se pudo aplicar el entrenamiento en bloque', 'Error', 3000),
     });
   }
 

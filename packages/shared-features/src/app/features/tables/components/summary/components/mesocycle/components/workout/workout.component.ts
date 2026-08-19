@@ -15,7 +15,6 @@ import {
   AlertOptions,
   ModalController,
   ModalOptions,
-  PopoverOptions,
   ToastOptions,
 } from '@ionic/angular';
 import { CustomExercise } from 'src/app/core/models/customExercise';
@@ -40,7 +39,7 @@ import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
-import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
+import { ActionsSheetComponent } from 'src/app/shared/components/actions-sheet/actions-sheet.component';
 import { SkipWorkoutModalComponent, WorkoutSkipItem } from '../skip-workout-modal/skip-workout-modal.component';
 import { ClipboardExercisesModalComponent } from '../clipboard-exercises-modal/clipboard-exercises-modal.component';
 import {
@@ -357,17 +356,21 @@ export class WorkoutComponent implements OnDestroy {
     workoutIndex?: number,
     customExercise?: CustomExercise
   ): void {
-    const popoverOptions: PopoverOptions = {
-      component: PopoverActionsComponent,
-      event: event,
-      showBackdrop: false,
+    // Modal-hoja (sale desde abajo, con tirador) en vez del popover anclado
+    // al punto de click — con listas de acciones largas (varias solo se
+    // ofrecen en el Planificador) queda más legible y elegante que un
+    // dropdown pegado al botón.
+    const modalOptions: ModalOptions = {
+      component: ActionsSheetComponent,
       componentProps: {
         table: this.tableInUse,
         workout: this.workout,
         actionsPopover: this.getActionsPopover(),
       },
+      breakpoints: [0, 0.5, 0.9],
+      initialBreakpoint: 0.5,
     };
-    this.ionicUtilService.showPopover(popoverOptions).then((res) => {
+    this.ionicUtilService.showModal(modalOptions).then((res) => {
       if (res.data) {
         switch (res.data.id) {
           case ACTIONS[this.ACTION_TYPES.copyExercises].id:

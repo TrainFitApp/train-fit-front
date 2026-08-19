@@ -1493,7 +1493,8 @@
     "ISOMETRIC": "Isometric",
     "REPLACE_EXERCISE": "Replace exercise",
     "TAP_TO_REPLACE": "Tap an exercise to replace it",
-    "ADDED_TO": "Added to {{workoutName}}"
+    "ADDED_TO": "Added to {{workoutName}}",
+    "ADD_SELECTED": "Add"
   },
   "FILTER": {
     "PRODUCT": "product",

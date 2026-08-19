@@ -1,3 +1,15 @@
+// Desktop/web — antes cada sección (header, textarea, botón, footer) se
+// estiraba a todo el ancho de la ventana, sin tope: un textarea o un botón
+// de 1800px se leen como una tira fina, no como un formulario. Se limita el
+// ancho de lectura y se centra, igual que el resto de pantallas de
+// contenido simple ya adaptadas (ver concepts.page.scss).
+.page-container {
+  @media (min-width: 640px) {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+}
+
 /* Header Section */
 .header-section {
   padding: 1.5rem 1rem 1rem 1rem;

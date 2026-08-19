@@ -1,0 +1,13 @@
+<div class="sheet-handle"></div>
+
+<ion-list lines="none" class="sheet-list">
+  <ion-item
+    *ngFor="let actionPopover of actionsPopover"
+    [button]="true"
+    [detail]="false"
+    (click)="selectAction(actionPopover)"
+  >
+    <ion-icon [name]="actionPopover.icon" [color]="actionPopover.color" slot="start"></ion-icon>
+    <ion-label>{{ actionPopover.value | translate }}</ion-label>
+  </ion-item>
+</ion-list>

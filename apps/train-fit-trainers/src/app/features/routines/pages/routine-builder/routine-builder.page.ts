@@ -331,14 +331,19 @@ export class RoutineBuilderPage implements OnInit {
       cssClass: 'tf-panel-modal',
     };
 
+    // pickerMode ahora es selección múltiple — confirma con todos los
+    // ejercicios marcados a la vez (ver confirmPickerSelection() en
+    // SearchExercisesPage), no con uno solo por apertura del picker.
     const res = await this.ionicUtilService.showModal(modalOptions);
-    const exercise = res?.data as Exercise | undefined;
-    if (!exercise) return;
+    const exercises = res?.data as Exercise[] | undefined;
+    if (!exercises?.length) return;
 
-    block.exercises.push({
-      exercise,
-      notes: '',
-      scheme: defaultSchemeFor(exercise),
+    exercises.forEach((exercise) => {
+      block.exercises.push({
+        exercise,
+        notes: '',
+        scheme: defaultSchemeFor(exercise),
+      });
     });
   }
 

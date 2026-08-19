@@ -16,71 +16,73 @@
 
 
 <ion-content>
-  <!-- Header Section -->
-  <div class="header-section">
-    <div class="header-content">
-      <div class="header-info">
-        <h3 class="page-subtitle">{{ 'SUGGESTIONS.SUBTITLE' | translate }}</h3>
-      </div>
-      <div class="header-icon">
-        <ion-icon name="chatbubbles-outline" class="main-icon"></ion-icon>
+  <div class="page-container">
+    <!-- Header Section -->
+    <div class="header-section">
+      <div class="header-content">
+        <div class="header-info">
+          <h3 class="page-subtitle">{{ 'SUGGESTIONS.SUBTITLE' | translate }}</h3>
+        </div>
+        <div class="header-icon">
+          <ion-icon name="chatbubbles-outline" class="main-icon"></ion-icon>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Section Divider -->
-  <div class="section-divider"></div>
+    <!-- Section Divider -->
+    <div class="section-divider"></div>
 
-  <!-- Feedback Section -->
-  <div class="feedback-section">
-    <div class="feedback-content"></div>
-    <ion-textarea
-      #ionTextArea
-      placeholder="{{ 'SUGGESTIONS.PLACEHOLDER' | translate }}"
-      rows="4"
-      class="feedback-textarea"
-    ></ion-textarea>
+    <!-- Feedback Section -->
+    <div class="feedback-section">
+      <div class="feedback-content"></div>
+      <ion-textarea
+        #ionTextArea
+        placeholder="{{ 'SUGGESTIONS.PLACEHOLDER' | translate }}"
+        rows="4"
+        class="feedback-textarea"
+      ></ion-textarea>
 
-    <div
-      class="textarea-helper"
-      *ngIf="(ionTextArea?.value?.trim()?.length || 0) < 20"
-    >
-      <ion-icon name="information-circle-outline" color="warning"></ion-icon>
-      <ion-text color="medium">{{ 'SUGGESTIONS.MIN_CHARS' | translate }}</ion-text>
+      <div
+        class="textarea-helper"
+        *ngIf="(ionTextArea?.value?.trim()?.length || 0) < 20"
+      >
+        <ion-icon name="information-circle-outline" color="warning"></ion-icon>
+        <ion-text color="medium">{{ 'SUGGESTIONS.MIN_CHARS' | translate }}</ion-text>
+      </div>
     </div>
-  </div>
 
-  <!-- Action Section -->
-  <div class="action-section" *ngIf="!isSending; else sendingTpl">
-    <ion-button
-      fill="solid"
-      color="primary"
-      expand="block"
-      [disabled]="isSending || ((ionTextArea?.value?.trim()?.length || 0) < 20)"
-      (click)="sendSuggestions()"
-      class="send-button"
-    >
-      <ion-icon name="send-outline" slot="start"></ion-icon>
-      <strong>{{ 'SUGGESTIONS.SEND' | translate }}</strong>
-    </ion-button>
-  </div>
-
-  <ng-template #sendingTpl>
-    <div class="action-section">
-      <ion-button expand="block" disabled>
-        <ion-spinner name="crescent" color="light"></ion-spinner>
-        <strong style="margin-left: 8px">{{ 'SUGGESTIONS.PROCESSING' | translate }}</strong>
+    <!-- Action Section -->
+    <div class="action-section" *ngIf="!isSending; else sendingTpl">
+      <ion-button
+        fill="solid"
+        color="primary"
+        expand="block"
+        [disabled]="isSending || ((ionTextArea?.value?.trim()?.length || 0) < 20)"
+        (click)="sendSuggestions()"
+        class="send-button"
+      >
+        <ion-icon name="send-outline" slot="start"></ion-icon>
+        <strong>{{ 'SUGGESTIONS.SEND' | translate }}</strong>
       </ion-button>
     </div>
-  </ng-template>
 
-  <!-- Footer Info -->
-  <div class="footer-info">
-    <div class="info-card">
-      <ion-icon name="heart-outline" class="info-icon"></ion-icon>
-      <div class="info-text">
-        <h3>{{ 'SUGGESTIONS.FOOTER_TITLE' | translate }}</h3>
-        <p>{{ 'SUGGESTIONS.FOOTER_TEXT' | translate }}</p>
+    <ng-template #sendingTpl>
+      <div class="action-section">
+        <ion-button expand="block" disabled>
+          <ion-spinner name="crescent" color="light"></ion-spinner>
+          <strong style="margin-left: 8px">{{ 'SUGGESTIONS.PROCESSING' | translate }}</strong>
+        </ion-button>
+      </div>
+    </ng-template>
+
+    <!-- Footer Info -->
+    <div class="footer-info">
+      <div class="info-card">
+        <ion-icon name="heart-outline" class="info-icon"></ion-icon>
+        <div class="info-text">
+          <h3>{{ 'SUGGESTIONS.FOOTER_TITLE' | translate }}</h3>
+          <p>{{ 'SUGGESTIONS.FOOTER_TEXT' | translate }}</p>
+        </div>
       </div>
     </div>
   </div>

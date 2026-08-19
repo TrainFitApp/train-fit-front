@@ -31,7 +31,7 @@
   <div class="container">
     <div class="main-content">
       <!-- Premium upgrade banner (solo free) -->
-      <button class="premium-banner" *ngIf="!isPremiumActive" (click)="goToPremium()">
+      <button class="premium-banner" *ngIf="!isPremiumActive && !coachService.hasActiveTrainer()" (click)="goToPremium()">
         <ion-icon name="diamond-outline" class="premium-banner__icon"></ion-icon>
         <div class="premium-banner__text">
           <span class="premium-banner__title">{{ 'TABLES.GO_PRO' | translate }}</span>
