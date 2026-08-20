@@ -4,7 +4,7 @@
 // desde el breakpoint "md" (768px).
 
 .app-menu {
-  --width: 232px;
+  --width: 268px;
   --background: var(--tf-surface-1);
   --border-color: var(--tf-border);
   // --tf-duration-fast (120ms, la misma que ya usa .collapse-toggle al
@@ -25,8 +25,8 @@
 // queda ancho aunque el texto ya se haya ocultado. Mismo ancho que
 // .app-menu en cada estado, min=max para que no flexione entre medias.
 .app-split-pane {
-  --side-min-width: 232px;
-  --side-max-width: 232px;
+  --side-min-width: 268px;
+  --side-max-width: 268px;
 
   &--collapsed {
     --side-min-width: 72px;
@@ -104,37 +104,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--tf-radius-md);
   background: var(--tf-accent);
   color: var(--tf-accent-contrast);
   font-weight: 800;
-  font-size: var(--tf-font-size-sm);
+  font-size: var(--tf-font-size-base);
   flex-shrink: 0;
 }
 
 .app-brand-name {
   font-weight: 600;
-  font-size: var(--tf-font-size-md);
+  font-size: var(--tf-font-size-lg);
   color: var(--tf-text);
 }
 
 .app-menu-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--tf-space-1);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
-  min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-3);
+  min-height: 48px;
+  padding: 0 var(--tf-space-4);
   border-radius: var(--tf-radius-md);
   color: var(--tf-text-secondary);
-  font-size: var(--tf-font-size-base);
+  font-size: var(--tf-font-size-md);
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -142,7 +142,7 @@
     color var(--tf-duration-fast) var(--tf-ease-out);
 
   ion-icon {
-    font-size: 19px;
+    font-size: 21px;
     flex-shrink: 0;
   }
 
@@ -208,8 +208,8 @@
   display: flex;
   align-items: center;
   gap: var(--tf-space-3);
-  min-height: var(--tf-touch-min);
-  padding: 0 var(--tf-space-3);
+  min-height: 48px;
+  padding: 0 var(--tf-space-4);
   border-radius: var(--tf-radius-md);
   color: var(--tf-text);
   text-decoration: none;
@@ -234,20 +234,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--tf-surface-4);
   color: var(--tf-text-secondary);
   flex-shrink: 0;
 
   ion-icon {
-    font-size: 17px;
+    font-size: 18px;
   }
 }
 
 .footer-user-label {
-  font-size: var(--tf-font-size-base);
+  font-size: var(--tf-font-size-md);
   font-weight: 500;
 }
 

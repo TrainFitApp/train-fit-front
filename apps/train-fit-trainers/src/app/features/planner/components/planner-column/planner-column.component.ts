@@ -1,7 +1,7 @@
 import { Component, DestroyRef, EventEmitter, Input, Output, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { ActionSheetOptions } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Split } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
@@ -40,6 +40,7 @@ export class PlannerColumnComponent {
   @Output() columnRenamed = new EventEmitter<void>();
 
   public addingCard = false;
+  public showAddCardPanel = false;
 
   private readonly tableService = inject(TableService);
   private readonly splitService = inject(SplitService);
@@ -52,7 +53,8 @@ export class PlannerColumnComponent {
 
   constructor(
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private router: Router
   ) {}
 
   public get totalExercises(): number {
@@ -99,26 +101,27 @@ export class PlannerColumnComponent {
 
   // Plantillas de entrenamiento — el botón "+ Añadir tarjeta" ofrece elegir
   // entre una card en blanco (flujo de siempre) o materializar una plantilla
-  // real (bloques/ejercicios/series ya prescritas) en este split.
-  public async addCardOptions(): Promise<void> {
+  // real (bloques/ejercicios/series ya prescritas) en este split. Panel
+  // propio de la app (mismo patrón bottom-sheet que "Asignar rutina" en
+  // client-detail) en vez del ActionSheet nativo de Ionic — se cierra
+  // tocando el fondo, sin botón "Cancelar" explícito.
+  public addCardOptions(): void {
     if (this.addingCard) return;
+    this.showAddCardPanel = true;
+  }
 
-    const actionSheetOptions: ActionSheetOptions = {
-      header: this.translate.instant('PLANNER.ADD_CARD'),
-      buttons: [
-        {
-          text: this.translate.instant('PLANNER.ADD_CARD_BLANK'),
-          handler: () => this.addCard(),
-        },
-        {
-          text: this.translate.instant('PLANNER.ADD_CARD_FROM_TEMPLATE'),
-          handler: () => this.applyTemplateAlert(),
-        },
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-      ],
-    };
+  public closeAddCardPanel(): void {
+    this.showAddCardPanel = false;
+  }
 
-    await this.ionicUtilService.showActionSheet(actionSheetOptions);
+  public chooseBlankCard(): void {
+    this.showAddCardPanel = false;
+    this.addCard();
+  }
+
+  public chooseCardFromTemplate(): void {
+    this.showAddCardPanel = false;
+    this.applyTemplateAlert();
   }
 
   // TASK-043 (MASTER_BACKLOG.md) — antes un AlertOptions de texto plano, un
@@ -133,6 +136,7 @@ export class PlannerColumnComponent {
             message: this.translate.instant('PLANNER.NO_TEMPLATES_YET'),
             duration: 2500,
           });
+          void this.router.navigateByUrl('/tabs/routines');
           return;
         }
 

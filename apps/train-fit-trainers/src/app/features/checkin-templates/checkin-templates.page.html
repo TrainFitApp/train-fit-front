@@ -22,20 +22,33 @@
 </ion-header>
 
 <ion-content class="checkin-content">
-  <div class="detail-skeleton" *ngIf="state === 'loading'">
-    <div class="skeleton-block" style="height: 64px;"></div>
-    <div class="skeleton-block" style="height: 64px;"></div>
+  <div class="templates-skeleton" *ngIf="state === 'loading'">
+    <div class="template-card template-card--skeleton" *ngFor="let i of [1, 2, 3]">
+      <div class="template-card-main">
+        <div class="skeleton-line skeleton-line--title"></div>
+        <div class="skeleton-line skeleton-line--meta"></div>
+      </div>
+      <div class="template-actions">
+        <div class="skeleton-block skeleton-action"></div>
+        <div class="skeleton-block skeleton-action skeleton-action--icon"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus plantillas.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudieron cargar tus plantillas</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="empty-hint" *ngIf="!templates.length">
-      Todavía no tienes plantillas de check-in. Crea una para empezar a pedir seguimiento periódico a tus clientes.
-    </p>
+    <div class="state-message" *ngIf="!templates.length">
+      <ion-icon name="clipboard-outline"></ion-icon>
+      <h2>Todavía no tienes plantillas</h2>
+      <p>Crea una plantilla de check-in para pedir seguimiento periódico a tus clientes.</p>
+      <button class="create-cta" (click)="openCreatePanel()">Crear plantilla</button>
+    </div>
 
     <div class="template-card" *ngFor="let template of templates; trackBy: trackByTemplateId">
       <div class="template-card-main" (click)="openEditPanel(template)">
@@ -44,7 +57,11 @@
       </div>
       <div class="template-actions">
         <button class="template-action-btn" (click)="openApplyPanel(template)">Aplicar</button>
-        <button class="template-action-btn template-action-btn--danger" (click)="confirmDelete(template)">
+        <button
+          class="template-action-btn template-action-btn--danger"
+          (click)="confirmDelete(template)"
+          [attr.aria-label]="'Borrar plantilla ' + template.name"
+        >
           <ion-icon name="trash-outline"></ion-icon>
         </button>
       </div>
@@ -81,17 +98,19 @@
 
     <div class="field-group" *ngFor="let group of groups">
       <h4 class="field-group-heading">{{ group.label }}</h4>
-      <button
-        class="field-toggle-row"
-        *ngFor="let field of group.fields; trackBy: trackByFieldKey"
-        (click)="toggleField(field.key)"
-      >
-        <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
-        <ion-icon
-          [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
-          [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
-        ></ion-icon>
-      </button>
+      <div class="field-toggle-grid">
+        <button
+          class="field-toggle-row"
+          *ngFor="let field of group.fields; trackBy: trackByFieldKey"
+          (click)="toggleField(field.key)"
+        >
+          <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
+          <ion-icon
+            [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
+            [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
+          ></ion-icon>
+        </button>
+      </div>
     </div>
 
     <button
@@ -106,7 +125,7 @@
 
   <!-- Panel: aplicar a clientes -->
   <div class="panel-backdrop" *ngIf="showApplyPanel" (click)="closeApplyPanel()"></div>
-  <div class="panel-sheet panel-sheet--tall" *ngIf="showApplyPanel">
+  <div class="panel-sheet panel-sheet--tall apply-panel" *ngIf="showApplyPanel">
     <div class="panel-handle"></div>
     <h3 class="panel-title">Aplicar "{{ applyingTemplate?.name }}"</h3>
     <p class="panel-subtitle">Selecciona los clientes a los que quieres aplicar esta plantilla.</p>

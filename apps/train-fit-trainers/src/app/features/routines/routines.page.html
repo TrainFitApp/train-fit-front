@@ -20,33 +20,41 @@
       desde cero.
     </p>
 
-    <div class="input-wrapper">
-      <ion-icon name="albums-outline" class="input-icon"></ion-icon>
-      <input
-        type="text"
-        class="input-field"
-        placeholder="Plantilla día de empuje"
-        [(ngModel)]="newName"
-        (keyup.enter)="createAndEdit()"
-      />
-    </div>
-    <button
-      type="button"
-      class="submit-button"
-      [disabled]="!newName.trim() || isCreating"
-      (click)="createAndEdit()"
-    >
-      <span *ngIf="!isCreating">Crear plantilla</span>
-      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
-    </button>
-
-    <div class="templates-loading" *ngIf="loading">
-      <ion-spinner name="crescent"></ion-spinner>
+    <div class="create-bar">
+      <div class="input-wrapper">
+        <ion-icon name="albums-outline" class="input-icon"></ion-icon>
+        <input
+          type="text"
+          class="input-field"
+          placeholder="Plantilla día de empuje"
+          [(ngModel)]="newName"
+          (keyup.enter)="createAndEdit()"
+        />
+      </div>
+      <button
+        type="button"
+        class="submit-button"
+        [disabled]="!newName.trim() || isCreating"
+        (click)="createAndEdit()"
+      >
+        <span *ngIf="!isCreating">Crear plantilla</span>
+        <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+      </button>
     </div>
 
-    <div class="templates-empty" *ngIf="!loading && templates.length === 0">
+    <!-- Carga: mismo esqueleto de la forma final (grid de cards), no un
+         spinner genérico — mismo criterio que dashboard.page.html -->
+    <div class="templates-skeleton" *ngIf="loading">
+      <div class="skeleton-block template-card-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+    </div>
+
+    <!-- Vacío de página completa: mismo patrón que clients/dashboard
+         (icono + título + texto). Sin CTA propio: el formulario de crear ya
+         está justo encima. -->
+    <div class="state-message" *ngIf="!loading && templates.length === 0">
       <ion-icon name="albums-outline"></ion-icon>
-      <p>Todavía no tienes plantillas de entrenamiento.</p>
+      <h2>Todavía no tienes plantillas</h2>
+      <p>Crea la primera con el formulario de arriba para reutilizarla con cualquier cliente.</p>
     </div>
 
     <div class="templates-grid" *ngIf="!loading && templates.length > 0">

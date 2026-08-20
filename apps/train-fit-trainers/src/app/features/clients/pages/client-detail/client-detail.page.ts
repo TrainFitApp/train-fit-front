@@ -115,6 +115,27 @@ export class ClientDetailPage implements OnInit {
   });
   public isAssigningRoutine = false;
 
+  // Deriva del mismo estado que ya pinta las filas de .profile-stats-card —
+  // sin ellas, la card se quedaba vacía sin explicación cuando no hay
+  // ningún dato real que mostrar (ver profile-stats-card.html).
+  public get profileStatsPending(): boolean {
+    const trainingPending = this.scopes.includes('training') && this.trainingState === 'loading';
+    const nutritionPending = this.scopes.includes('nutrition') && this.nutritionState === 'loading';
+    return trainingPending || nutritionPending;
+  }
+
+  public get hasProfileStats(): boolean {
+    const hasWeight =
+      this.scopes.includes('training') && this.trainingState === 'loaded' && !!this.latestWeight?.weight;
+    const hasAdherence =
+      this.scopes.includes('nutrition') &&
+      this.nutritionState === 'loaded' &&
+      this.adherence?.status === 'ok';
+    const hasGoal =
+      this.scopes.includes('nutrition') && this.nutritionState === 'loaded' && this.goals.length > 0;
+    return hasWeight || hasAdherence || hasGoal;
+  }
+
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
   public nutritionDate: string = new Date().toISOString().slice(0, 10);

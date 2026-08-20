@@ -4,16 +4,16 @@
 
 .compose-content {
   --background: var(--tf-bg);
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 12px;
-  --padding-bottom: 24px;
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-6);
 }
 
 .page-hint {
-  font-size: 0.85rem;
+  font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
-  margin: 0 0 16px;
+  margin: 0 0 var(--tf-space-4);
   line-height: 1.4;
 }
 
@@ -27,71 +27,92 @@
   @include tf-input-wrapper(var(--tf-surface-2));
   position: relative;
   height: 50px;
-  margin-bottom: 12px;
+  margin-bottom: var(--tf-space-3);
 }
 
 .input-icon {
   @include tf-input-icon;
-  font-size: 1.1rem;
+  font-size: var(--tf-font-size-lg);
 }
 
 .input-field {
   @include tf-input-field;
-  font-size: 0.9rem;
+  font-size: var(--tf-font-size-base);
 }
 
-select.input-field {
+// La flecha nativa del <select> desaparece con appearance:none — se
+// sustituye por una propia (mismo patrón que checkins.page.scss
+// .client-select) para no perder la señal de "esto se puede desplegar".
+.select-field {
   appearance: none;
   -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b8b8b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  padding-right: var(--tf-space-5);
 }
 
 .food-item-card {
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
 }
 
 .food-item-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--tf-space-2);
 }
 
 .food-item-title {
-  font-size: 0.78rem;
+  font-size: var(--tf-font-size-xs);
   font-weight: 600;
   color: var(--tf-text-secondary);
 }
 
+// Target táctil 44px (PRODUCT.md) aunque el icono siga siendo pequeño —
+// el botón vive en una fila compacta, así que solo la caja de toque crece.
 .remove-alternative-btn {
-  width: 30px;
-  height: 30px;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin: calc((var(--tf-touch-min) - 20px) / -2) calc((var(--tf-touch-min) - 20px) / -2) calc((var(--tf-touch-min) - 20px) / -2) 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-muted);
   cursor: pointer;
   flex-shrink: 0;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
 
   &:hover {
     color: var(--tf-danger);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 }
 
 .product-pick-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-3) 12px;
+  margin-bottom: var(--tf-space-3);
   background: var(--tf-success-soft);
   border: 1px solid var(--tf-success-border);
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
 
   .input-icon {
     color: var(--tf-success);
@@ -100,7 +121,8 @@ select.input-field {
 
 .picked-product-name {
   flex: 1;
-  font-size: 0.85rem;
+  min-width: 0;
+  font-size: var(--tf-font-size-base);
   color: var(--tf-text);
   font-weight: 600;
   white-space: nowrap;
@@ -112,35 +134,59 @@ select.input-field {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin: calc((var(--tf-touch-min) - 20px) / -2) calc((var(--tf-touch-min) - 20px) / -2) calc((var(--tf-touch-min) - 20px) / -2) 0;
   background: none;
   border: none;
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-muted);
   cursor: pointer;
-  padding: 4px;
+  flex-shrink: 0;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .search-product-btn {
   width: 100%;
-  height: 42px;
-  margin-bottom: 8px;
+  height: var(--tf-touch-min);
+  margin-bottom: var(--tf-space-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--tf-space-2);
   background: var(--tf-accent-soft);
   border: 1px solid var(--tf-accent-soft-border);
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
   color: var(--tf-accent);
-  font-size: 0.84rem;
+  font-size: var(--tf-font-size-sm);
   font-weight: 600;
   cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .snippet-actions-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: var(--tf-space-2);
 
   .add-alternative-btn {
     margin-bottom: 0;
@@ -149,23 +195,30 @@ select.input-field {
 
 .add-alternative-btn {
   width: 100%;
-  height: 44px;
-  margin-bottom: 16px;
+  height: var(--tf-touch-min);
+  margin-bottom: var(--tf-space-4);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--tf-space-2);
   background: transparent;
   border: 1px dashed var(--tf-border-strongest);
-  border-radius: 12px;
+  border-radius: var(--tf-radius-lg);
   color: var(--tf-text-secondary);
-  font-size: 0.85rem;
+  font-size: var(--tf-font-size-base);
   font-weight: 600;
   cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
 
   &:not(:disabled):hover {
     border-color: var(--tf-accent);
     color: var(--tf-accent);
+  }
+
+  &:not(:disabled):focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 
   &:disabled {
@@ -178,20 +231,27 @@ select.input-field {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--tf-space-2);
   width: 100%;
+  height: var(--tf-touch-min);
   background: none;
   border: none;
   color: var(--tf-accent);
-  font-size: 0.8rem;
+  font-size: var(--tf-font-size-sm);
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: var(--tf-space-4);
   cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
 }
 
 .submit-button {
   @include tf-gradient-button;
   width: 100%;
   height: 50px;
-  font-size: 0.92rem;
+  font-size: var(--tf-font-size-base);
 }

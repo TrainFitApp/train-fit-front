@@ -1,5 +1,6 @@
 @import '../../../theme/skeleton';
 @import '../../../theme/buttons';
+@import '../../../theme/animations';
 
 .subscription-content {
   --background: var(--tf-bg);
@@ -17,30 +18,54 @@
   border-radius: 14px;
 }
 
-.section-error {
+// --- Estado de error de página completa — mismo patrón que
+// dashboard.page.scss / clients.page.scss (icono + título + texto + CTA) ---
+.state-message {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   gap: 10px;
-  padding: 24px 16px;
+  padding: 96px 32px 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
 
   p {
-    font-size: 0.88rem;
-    color: var(--tf-text-muted);
-    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
   }
 }
 
 .retry-button {
-  height: 38px;
-  padding: 0 16px;
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
   background: var(--tf-surface-5);
   color: var(--tf-text);
   border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: var(--tf-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
 }
 
 .usage-card {
@@ -90,40 +115,59 @@
   color: var(--tf-accent-text);
 }
 
+// Fecha de renovación — solo visible con plan de pago activo y fecha
+// conocida (misma condición que ya usaba isPremium/expiresAt en el modelo,
+// no se añade ningún dato nuevo).
+.usage-renewal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--tf-border);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-success);
+  }
+}
+
 .plans-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 0 16px 32px;
+
+  // En pantallas anchas apilar 3 planes en columna deja muchísimo espacio
+  // vacío a los lados — se colocan en fila para aprovechar el ancho
+  // disponible (mismo breakpoint que client-table-head en clients.page.scss).
+  @media (min-width: 760px) {
+    flex-direction: row;
+    align-items: stretch;
+  }
 }
 
 .plan-card {
+  display: flex;
+  flex-direction: column;
   padding: 18px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 16px;
-  animation: card-in 300ms var(--tf-ease-out) backwards;
+  @include tf-card-in-animation;
+
+  @media (min-width: 760px) {
+    flex: 1;
+  }
 
   &.current {
     border-color: var(--tf-accent);
     background: var(--tf-accent-tint);
-  }
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .plan-card {
-    animation: none;
+    box-shadow: 0 0 0 1px var(--tf-accent) inset;
   }
 }
 
@@ -141,12 +185,19 @@
 }
 
 .current-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.68rem;
   font-weight: 700;
   color: var(--tf-accent-text);
-  background: rgba(254, 144, 0, 0.14);
-  border-radius: 6px;
+  background: var(--tf-accent-soft);
+  border-radius: var(--tf-radius-sm);
   padding: 3px 8px;
+
+  ion-icon {
+    font-size: 12px;
+  }
 }
 
 .plan-price {
@@ -183,6 +234,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  // flex:1 mantiene los botones alineados en la base cuando las cards están
+  // en fila (desktop) y una tarjeta tiene más features que otra.
+  flex: 1;
 
   li {
     display: flex;

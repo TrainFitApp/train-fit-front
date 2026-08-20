@@ -2,9 +2,10 @@
   <div class="search-header">
     <div class="header-content">
       <div class="back-section">
-        <button class="back-button" (click)="modalController.dismiss()">
+        <button class="back-button" *ngIf="mode !== 'library'" (click)="modalController.dismiss()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
+        <ion-menu-button class="back-button" *ngIf="mode === 'library'"></ion-menu-button>
       </div>
 
       <div class="search-section">
@@ -24,7 +25,7 @@
         </button>
         <button
           class="action-button ripple-effect"
-          *ngIf="!isChangeMode && !pickerMode"
+          *ngIf="!isChangeMode && !pickerMode && mode !== 'library'"
           (click)="createExercise()"
         >
           <ion-icon name="add-outline" color="primary"></ion-icon>
@@ -143,7 +144,7 @@
         <div class="exercise-header">
           <h3 class="exercise-name">
             {{ exercise?.name | translateDb }}
-            <span class="added-label" *ngIf="!isChangeMode && !pickerMode && isExerciseSelected(exercise)">
+            <span class="added-label" *ngIf="!isChangeMode && !pickerMode && mode !== 'library' && isExerciseSelected(exercise)">
               ({{ 'SEARCH_EXERCISES.ADDED_TO' | translate : { workoutName: getWorkoutNameTranslated(workout) } }})
             </span>
           </h3>
@@ -169,10 +170,10 @@
       </div>
 
       <div class="exercise-action">
-        <ion-icon name="chevron-forward-outline" class="action-icon" *ngIf="isChangeMode"></ion-icon>
+        <ion-icon name="chevron-forward-outline" class="action-icon" *ngIf="isChangeMode || mode === 'library'"></ion-icon>
         <div
           class="checkbox-container"
-          *ngIf="!isChangeMode"
+          *ngIf="!isChangeMode && mode !== 'library'"
           (click)="$event.stopPropagation()"
         >
           <ion-checkbox

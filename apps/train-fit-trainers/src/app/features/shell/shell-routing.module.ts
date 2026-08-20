@@ -43,6 +43,18 @@ const routes: Routes = [
           ),
       },
       {
+        // Rutinas ya asignadas a clientes (Table real, con microciclos/
+        // splits/workouts), distinto de /tabs/routines (biblioteca de
+        // WorkoutTemplate reutilizables). Antes la tarjeta "Rutina" del hub
+        // de /tabs/templates apuntaba por error al mismo /tabs/routines que
+        // "Entrenamientos" — ver templates.page.ts.
+        path: 'routines-overview',
+        loadChildren: () =>
+          import('src/app/features/routines-overview/routines-overview.module').then(
+            (m) => m.RoutinesOverviewPageModule
+          ),
+      },
+      {
         // TASK-042 (MASTER_BACKLOG.md) — catálogo de ejercicios como pantalla
         // propia, alcanzable desde la categoría "Biblioteca de ejercicios" en
         // /tabs/templates (no destino nuevo del sidebar, ver templates.page.ts).

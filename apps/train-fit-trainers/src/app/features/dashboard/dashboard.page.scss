@@ -11,44 +11,94 @@
   border-radius: 12px;
 }
 
-.section-error {
+// --- Carga de página completa: mismo esqueleto de la forma final (stat-grid
+// + panel), no dos bloques genéricos ---
+.dashboard-skeleton {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: var(--tf-space-5);
+}
+
+.stat-card-skeleton {
+  height: 84px;
+  border-radius: var(--tf-radius-lg);
+}
+
+.panel-card-skeleton {
+  height: 220px;
+  border-radius: var(--tf-radius-lg);
+}
+
+// --- Estados vacío/error de página completa — mismo patrón que
+// clients.page.scss (icono + título + texto + CTA), no un párrafo suelto ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 10px;
-  padding: 24px 0;
+  padding: 96px 32px 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
 
   p {
-    font-size: 0.88rem;
-    color: var(--tf-text-muted);
-    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
   }
 }
 
 .retry-button {
-  height: 38px;
-  padding: 0 16px;
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
   background: var(--tf-surface-5);
   color: var(--tf-text);
   border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border-radius: var(--tf-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+// Texto solo para lectores de pantalla (estado "no leída" de notificaciones,
+// hoy únicamente visual vía punto + indent).
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .dashboard-content {
   --background: var(--tf-bg);
   --padding-start: 20px;
   --padding-end: 20px;
-  --padding-top: 4px;
+  --padding-top: 12px;
   --padding-bottom: 32px;
-}
-
-.page-hint {
-  margin: 0 0 var(--tf-space-5);
-  color: var(--tf-text-muted);
-  font-size: var(--tf-font-size-sm);
 }
 
 .stat-grid {
@@ -63,6 +113,7 @@
 }
 
 .stat-card {
+  position: relative;
   display: block;
   width: 100%;
   background: var(--tf-surface-1);
@@ -75,8 +126,11 @@
 
 // Clientes activos / Respuestas de check-in navegan a su pantalla — el
 // resto (Plantillas de rutina) se queda como <div>, sin affordance de click.
+// El chevron (.stat-chevron) es la señal de que se puede pulsar, ya que en
+// móvil no existe :hover para distinguirlo a simple vista.
 .stat-card--link {
   cursor: pointer;
+  padding-right: var(--tf-space-8);
   transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
     transform var(--tf-duration-fast) var(--tf-ease-out);
 
@@ -89,6 +143,14 @@
   }
 }
 
+.stat-chevron {
+  position: absolute;
+  right: var(--tf-space-4);
+  bottom: var(--tf-space-4);
+  font-size: 16px;
+  color: var(--tf-text-faint);
+}
+
 .stat-card-row {
   display: flex;
   align-items: center;
@@ -96,6 +158,20 @@
 
   ion-icon {
     font-size: 16px;
+  }
+}
+
+.stat-icon {
+  &--success {
+    color: var(--tf-success);
+  }
+
+  &--accent {
+    color: var(--tf-accent);
+  }
+
+  &--muted {
+    color: var(--tf-text-secondary);
   }
 }
 
@@ -112,9 +188,12 @@
   color: var(--tf-text);
 }
 
+// Orden en el DOM: Actividad reciente primero, Evolución después —
+// prioriza lo accionable (una notificación lleva a un cliente) sobre lo
+// analítico, tanto apiladas en móvil como lado a lado en escritorio.
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1fr 1.4fr;
   gap: var(--tf-space-5);
   align-items: start;
 
@@ -156,88 +235,6 @@
   border-bottom: 1px solid var(--tf-border);
 }
 
-.panel-card-header + .review-row,
-.panel-card-header ~ .task-row:first-of-type {
-  border-top: none;
-}
-
-.count-badge {
-  background: var(--ion-color-warning, #ffc409);
-  color: #000;
-  font-size: 0.72rem;
-  font-weight: 700;
-  border-radius: var(--tf-radius-pill);
-  padding: 2px 9px;
-}
-
-.task-row,
-.review-row,
-.alert-row {
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  border-top: 1px solid var(--tf-border);
-}
-
-.panel-card-header ~ .task-row,
-.panel-card-header ~ .review-row {
-  border-top: 1px solid var(--tf-border);
-}
-
-.task-icon {
-  color: var(--tf-accent);
-  font-size: 17px;
-  flex-shrink: 0;
-}
-
-.task-label {
-  flex: 1;
-  font-size: var(--tf-font-size-base);
-  color: var(--tf-text-secondary);
-}
-
-.task-time {
-  font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-muted);
-}
-
-.review-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.review-routine {
-  font-size: var(--tf-font-size-base);
-  font-weight: 500;
-  color: var(--tf-text);
-}
-
-.review-meta {
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-}
-
-.review-button {
-  flex-shrink: 0;
-  background: var(--tf-surface-4);
-  color: var(--tf-accent);
-  border: none;
-  border-radius: var(--tf-radius-sm);
-  padding: 7px 13px;
-  font-size: var(--tf-font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:active {
-    transform: scale(0.96);
-  }
-}
-
 .evolution-card {
   padding: var(--tf-space-5);
 }
@@ -255,15 +252,42 @@
 
 .evolution-item {
   flex: 1;
-  min-width: 100px;
+  min-width: 130px;
+}
+
+.evolution-item-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-2);
 }
 
 .evolution-name {
-  display: block;
+  min-width: 0;
   font-size: var(--tf-font-size-sm);
   font-weight: 500;
   color: var(--tf-text);
-  margin-bottom: var(--tf-space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Delta cronológico del peso — sin color de éxito/alerta (no se conoce si
+// el objetivo del cliente es ganar o perder), solo dirección y magnitud.
+.evolution-delta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 12px;
+    color: var(--tf-text-secondary);
+  }
 }
 
 .evolution-bars {
@@ -277,21 +301,6 @@
   flex: 1;
   border-radius: 2px 2px 0 0;
   min-height: 4px;
-}
-
-.alert-row {
-  align-items: flex-start;
-
-  ion-icon {
-    font-size: 17px;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  span {
-    font-size: var(--tf-font-size-base);
-    color: var(--tf-text-secondary);
-  }
 }
 
 // --- Actividad reciente (notificaciones del trainer) ---
@@ -364,7 +373,6 @@
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
 }
-
 
 .empty-hint {
   margin: 0;

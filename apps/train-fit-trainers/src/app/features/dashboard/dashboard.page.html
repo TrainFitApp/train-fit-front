@@ -17,15 +17,19 @@
 </ion-header>
 
 <ion-content class="dashboard-content">
-  <p class="page-hint">Clientes, plantillas y check-ins de un vistazo.</p>
-
-  <div class="detail-skeleton" *ngIf="state === 'loading'">
-    <div class="skeleton-block" style="height: 84px;"></div>
-    <div class="skeleton-block" style="height: 84px;"></div>
+  <div class="dashboard-skeleton" *ngIf="state === 'loading'">
+    <div class="stat-grid">
+      <div class="skeleton-block stat-card-skeleton"></div>
+      <div class="skeleton-block stat-card-skeleton"></div>
+      <div class="skeleton-block stat-card-skeleton"></div>
+    </div>
+    <div class="skeleton-block panel-card-skeleton"></div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar el dashboard.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar el dashboard</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
@@ -34,49 +38,29 @@
       <button type="button" class="stat-card stat-card--link" routerLink="/tabs/clients">
         <div class="stat-card-row">
           <span class="stat-label">Clientes activos</span>
-          <ion-icon name="people" style="color: var(--tf-success)"></ion-icon>
+          <ion-icon name="people" class="stat-icon stat-icon--success"></ion-icon>
         </div>
         <span class="stat-value">{{ activeClientsCount }}</span>
+        <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
       <div class="stat-card">
         <div class="stat-card-row">
           <span class="stat-label">Plantillas de entrenamiento</span>
-          <ion-icon name="albums-outline" style="color: var(--tf-text-secondary)"></ion-icon>
+          <ion-icon name="albums-outline" class="stat-icon stat-icon--muted"></ion-icon>
         </div>
         <span class="stat-value">{{ routineTemplatesCount }}</span>
       </div>
       <button type="button" class="stat-card stat-card--link" routerLink="/tabs/checkins">
         <div class="stat-card-row">
           <span class="stat-label">Respuestas de check-in</span>
-          <ion-icon name="clipboard-outline" style="color: var(--tf-accent)"></ion-icon>
+          <ion-icon name="clipboard-outline" class="stat-icon stat-icon--accent"></ion-icon>
         </div>
         <span class="stat-value">{{ checkinResponsesCount }}</span>
+        <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
     </div>
 
     <div class="dashboard-grid">
-      <div class="dashboard-col">
-        <section class="panel-card evolution-card">
-          <h2 class="panel-card-title">Evolución de clientes (peso)</h2>
-          <div class="evolution-grid" *ngIf="evolution.length">
-            <div class="evolution-item" *ngFor="let ev of evolution">
-              <span class="evolution-name">{{ ev.name }}</span>
-              <div class="evolution-bars">
-                <div
-                  class="evolution-bar"
-                  *ngFor="let pct of ev.barsPct"
-                  [style.height.%]="pct"
-                  [style.background]="ev.colorVar"
-                ></div>
-              </div>
-            </div>
-          </div>
-          <p class="empty-hint" *ngIf="!evolutionLoading && !evolution.length">
-            Todavía no hay suficiente peso registrado en tus clientes (hacen falta al menos 2 registros) para mostrar una tendencia.
-          </p>
-        </section>
-      </div>
-
       <div class="dashboard-col dashboard-col--side">
         <section class="panel-card">
           <div class="panel-card-header">
@@ -110,13 +94,44 @@
             [class.notification-card--unread]="!notification.read"
             (click)="openNotification(notification)"
           >
-            <span class="notification-dot" *ngIf="!notification.read"></span>
+            <span class="notification-dot" *ngIf="!notification.read" aria-hidden="true"></span>
             <ion-icon [name]="notificationIcon(notification)" class="notification-icon"></ion-icon>
             <div class="notification-info">
-              <span class="notification-title">{{ notificationTitle(notification) }}</span>
+              <span class="notification-title">
+                {{ notificationTitle(notification) }}
+                <span class="sr-only" *ngIf="!notification.read">(no leída)</span>
+              </span>
               <span class="notification-subtitle">{{ notification.createdAt | date: 'd MMM, HH:mm' }}</span>
             </div>
           </button>
+        </section>
+      </div>
+
+      <div class="dashboard-col">
+        <section class="panel-card evolution-card">
+          <h2 class="panel-card-title">Evolución de clientes (peso)</h2>
+          <div class="evolution-grid" *ngIf="evolution.length">
+            <div class="evolution-item" *ngFor="let ev of evolution">
+              <div class="evolution-item-header">
+                <span class="evolution-name">{{ ev.name }}</span>
+                <span class="evolution-delta" *ngIf="ev.deltaKg !== 0">
+                  <ion-icon [name]="ev.deltaIcon"></ion-icon>
+                  {{ ev.deltaLabel }}
+                </span>
+              </div>
+              <div class="evolution-bars">
+                <div
+                  class="evolution-bar"
+                  *ngFor="let pct of ev.barsPct"
+                  [style.height.%]="pct"
+                  [style.background]="ev.colorVar"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <p class="empty-hint" *ngIf="!evolutionLoading && !evolution.length">
+            Todavía no hay suficiente peso registrado en tus clientes (hacen falta al menos 2 registros) para mostrar una tendencia.
+          </p>
         </section>
       </div>
     </div>

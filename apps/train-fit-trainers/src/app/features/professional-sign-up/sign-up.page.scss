@@ -8,9 +8,24 @@
 .signup-container {
   max-width: 480px;
   margin: 0 auto;
-  padding: 8px 24px 48px;
+  padding: var(--tf-space-2) var(--tf-space-6) var(--tf-space-12);
   width: 100%;
   box-sizing: border-box;
+}
+
+// Texto solo para lectores de pantalla (labels de los campos — el diseño
+// usa icono + placeholder como affordance visual, mismo criterio de
+// accesibilidad ya establecido en dashboard.page.scss/account.page.scss).
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .signup-step {
@@ -39,13 +54,13 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--tf-text);
-  margin: 8px 0 4px;
+  margin: var(--tf-space-2) 0 var(--tf-space-1);
 }
 
 .signup-subtitle {
   font-size: 0.95rem;
   color: var(--tf-text-secondary);
-  margin: 0 0 24px;
+  margin: 0 0 var(--tf-space-6);
   line-height: 1.4;
 
   strong {
@@ -56,12 +71,12 @@
 .signup-form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--tf-space-1);
 }
 
 .input-row {
   display: flex;
-  gap: 12px;
+  gap: var(--tf-space-3);
 
   .input-group {
     flex: 1;
@@ -75,7 +90,7 @@
 // sign-up/sign-up.page.scss).
 @media (max-width: 480px) {
   .signup-container {
-    padding: 8px 16px 32px;
+    padding: var(--tf-space-2) var(--tf-space-4) var(--tf-space-8);
   }
 
   .signup-title {
@@ -92,7 +107,7 @@
 
 @media (max-width: 374px) {
   .signup-container {
-    padding: 8px 12px 24px;
+    padding: var(--tf-space-2) var(--tf-space-3) var(--tf-space-6);
   }
 
   .signup-title {
@@ -117,11 +132,11 @@
 // del scroll.
 @media (max-height: 700px) {
   .signup-title {
-    margin: 4px 0 2px;
+    margin: var(--tf-space-1) 0 2px;
   }
 
   .signup-subtitle {
-    margin: 0 0 16px;
+    margin: 0 0 var(--tf-space-4);
   }
 
   .input-group {
@@ -129,22 +144,30 @@
   }
 
   .checkbox-section {
-    margin: 16px 0;
+    margin: var(--tf-space-4) 0;
     gap: 10px;
   }
 }
 
 @media (min-width: 768px) {
-  // Tablet/web (la misma app corre como PWA/web además de móvil) — el form
-  // no necesita crecer más allá de 480px (ancho cómodo de lectura), solo se
-  // evita que quede pegado a los bordes en el header/paddings generales.
+  // Tablet/web (la misma app corre como PWA/web además de móvil) — 480px
+  // dejaba márgenes enormes en pantallas anchas; se amplía por pasos
+  // manteniendo el form como una sola columna legible (nunca a ancho completo,
+  // los inputs con icono se verían absurdos estirados a 1400px).
   .signup-container {
+    max-width: 560px;
     padding-top: 24px;
   }
 }
 
+@media (min-width: 1200px) {
+  .signup-container {
+    max-width: 640px;
+  }
+}
+
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: var(--tf-space-4);
 }
 
 .input-wrapper {
@@ -159,7 +182,7 @@
 
 .input-field {
   @include tf-input-field;
-  font-size: 1rem;
+  font-size: var(--tf-font-size-md);
 }
 
 .password-toggle {
@@ -179,16 +202,16 @@
 
 .validation-error {
   color: var(--tf-danger);
-  font-size: 0.8rem;
+  font-size: var(--tf-font-size-sm);
   margin-top: 6px;
   padding-left: 2px;
 }
 
 .checkbox-section {
-  margin: 25px 0;
+  margin: var(--tf-space-6) 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--tf-space-4);
 }
 
 // Mismo estilo "tarjeta" que el sign-up del consumidor (packages/shared-features/
@@ -198,8 +221,8 @@
 .checkbox-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) 14px;
   border-radius: 12px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border-strong);
@@ -215,7 +238,7 @@
   }
 
   .modern-checkbox {
-    margin-right: 12px;
+    margin-right: var(--tf-space-3);
     flex-shrink: 0;
     --size: 22px;
     --checkbox-background-checked: var(--tf-accent);
@@ -249,16 +272,16 @@
 .submit-button {
   @include tf-gradient-button;
   height: 52px;
-  font-size: 1rem;
+  font-size: var(--tf-font-size-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: var(--tf-space-2);
 }
 
 .verification-step {
   .input-group {
-    margin-bottom: 20px;
+    margin-bottom: var(--tf-space-5);
   }
 }
 
@@ -267,7 +290,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-top: 20px;
+  margin-top: var(--tf-space-5);
   font-size: 0.85rem;
   color: var(--tf-text-muted);
 }

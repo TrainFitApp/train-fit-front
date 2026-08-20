@@ -1,4 +1,7 @@
 @import '../../../theme/buttons';
+@import '../../../theme/inputs';
+@import '../../../theme/skeleton';
+@import '../../../theme/animations';
 
 .routines-content {
   --background: var(--tf-bg);
@@ -10,86 +13,125 @@
   padding: var(--tf-space-5);
 }
 
-.input-wrapper {
-  position: relative;
+.templates-hint {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-muted);
+}
+
+// --- Crear plantilla: input + CTA en una sola fila en pantallas anchas
+// (mismo criterio que .search-bar en clients.page.scss), apiladas en móvil ---
+.create-bar {
   display: flex;
-  align-items: center;
-  margin-bottom: var(--tf-space-3);
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-5);
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  flex: 1;
+  height: 46px;
 }
 
 .input-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--tf-text-muted);
+  @include tf-input-icon;
   font-size: 1.1rem;
 }
 
 .input-field {
-  width: 100%;
-  height: 46px;
-  padding: 0 14px 0 40px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-text);
-  font-size: 0.9rem;
-
-  &::placeholder {
-    color: var(--tf-text-muted);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--tf-accent);
-  }
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
 }
 
 .submit-button {
   @include tf-gradient-button;
-  width: 100%;
-  height: 48px;
-  margin-bottom: var(--tf-space-5);
+  height: 46px;
+  padding: 0 var(--tf-space-5);
   font-size: 0.92rem;
-}
-
-.templates-hint {
-  margin: 0 0 var(--tf-space-4);
-  font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-muted);
-}
-
-.templates-loading {
   display: flex;
-  justify-content: center;
-  padding: var(--tf-space-6) 0;
-}
-
-.templates-empty {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-6) var(--tf-space-4);
-  color: var(--tf-text-muted);
-  text-align: center;
+  justify-content: center;
+  white-space: nowrap;
 
-  ion-icon {
-    font-size: 40px;
-    opacity: 0.6;
-  }
-
-  p {
-    margin: 0 0 var(--tf-space-2);
+  @media (max-width: 639px) {
+    width: 100%;
   }
 }
 
-.templates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+// --- Carga: mismo esqueleto de la forma final (grid de cards), no un
+// spinner genérico — mismo criterio que dashboard.page.scss ---
+.templates-skeleton {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--tf-space-4);
 }
 
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+.template-card-skeleton {
+  flex: 1 1 260px;
+  max-width: 420px;
+  height: 168px;
+}
+
+// --- Vacío de página completa — mismo patrón que clients/dashboard.page.scss
+// (icono + título + texto). Sin CTA propio aquí: el formulario de crear ya
+// está justo encima, así que un botón duplicado sería ruido. ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: var(--tf-space-8) var(--tf-space-4) 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0;
+  }
+}
+
+// Flex en vez de grid: con auto-fit, un card suelto en la última fila
+// quedaba encajonado en el ancho de su columna (mismo que las filas
+// completas) dejando hueco vacío al lado en vez de ocupar el ancho
+// sobrante de esa fila — flex-wrap + flex-grow lo reparte por línea.
+.templates-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-4);
+}
+
+// Tarjeta clicable completa (abre el builder) — cursor, hover y feedback de
+// pulsación explícitos, más entrada escalonada (mismo patrón que
+// .client-card en clients.page.scss), respetando prefers-reduced-motion.
 .template-card {
+  flex: 1 1 260px;
+  max-width: 420px;
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   padding: var(--tf-space-4);
@@ -97,6 +139,18 @@
   flex-direction: column;
   gap: var(--tf-space-2);
   background: var(--tf-surface-2);
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+  @include tf-card-in-stagger;
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .template-card-header {
@@ -158,15 +212,21 @@
   margin-top: var(--tf-space-2);
 }
 
+// Alto/radio alineados con las acciones secundarias ya establecidas en
+// clients.page.scss (.cancel-review-button/.confirm-button/.reject-button)
+// en vez de reinventar otro tamaño para el mismo rol de botón.
 .secondary-button,
-.primary-button,
 .danger-button {
-  border: none;
-  border-radius: var(--tf-radius-sm);
-  padding: 9px 15px;
+  flex: 1;
+  height: 38px;
+  border-radius: 10px;
+  padding: 0 15px;
   font-size: var(--tf-font-size-sm);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform var(--tf-duration-fast) var(--tf-ease-out);
 
   &:active {
@@ -177,16 +237,17 @@
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
 }
 
 .secondary-button {
   background: var(--tf-surface-4);
   color: var(--tf-text);
-}
-
-.primary-button {
-  background: var(--tf-accent);
-  color: var(--tf-accent-contrast);
+  border: none;
 }
 
 .danger-button {

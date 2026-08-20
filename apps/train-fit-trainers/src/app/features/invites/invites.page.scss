@@ -79,7 +79,7 @@
   padding: 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border-strong);
-  border-radius: 12px;
+  border-radius: var(--tf-radius-lg);
   color: var(--tf-text-secondary);
   font-family: inherit;
   font-size: 0.88rem;
@@ -183,7 +183,7 @@
   margin: 4px 0 20px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: 12px;
+  border-radius: var(--tf-radius-lg);
 }
 
 .intake-config-hint-row {
@@ -253,7 +253,7 @@
   padding: 10px 12px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
   color: var(--tf-text-secondary);
   font-size: 0.86rem;
   font-family: inherit;
@@ -306,7 +306,7 @@
   padding: 4px 6px 4px 12px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
+  border-radius: var(--tf-radius-md);
 }
 
 // Mismo checkbox+label que .field-toggle-row, para que activar/desactivar
@@ -351,7 +351,7 @@
   justify-content: center;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-faint);
   cursor: pointer;
   transition: background 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
@@ -393,7 +393,7 @@
   justify-content: center;
   background: var(--tf-surface-4);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-secondary);
   cursor: pointer;
   transition: opacity 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
@@ -466,7 +466,7 @@
   background: var(--tf-surface-5);
   color: var(--tf-text);
   border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
+  border-radius: var(--tf-radius-sm);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;

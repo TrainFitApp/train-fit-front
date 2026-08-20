@@ -19,8 +19,10 @@
     <div class="skeleton-block" style="height: 180px;"></div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar tu suscripción.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar tu suscripción</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
@@ -36,17 +38,25 @@
         <div class="usage-bar-fill" [style.width.%]="usagePercent"></div>
       </div>
       <span class="usage-unlimited" *ngIf="!entitlements.limits.clients">Ilimitados</span>
+      <span class="usage-renewal" *ngIf="entitlements.isPremium && entitlements.expiresAt">
+        <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+        Se renueva el {{ entitlements.expiresAt | date: 'd MMM yyyy' }}
+      </span>
     </div>
 
     <div class="plans-list">
       <div
         class="plan-card"
-        *ngFor="let plan of plans"
+        *ngFor="let plan of plans; let i = index"
         [class.current]="isCurrentPlan(plan.tier)"
+        [style.animation-delay.ms]="i * 40"
       >
         <div class="plan-header">
           <span class="plan-name">{{ plan.name }}</span>
-          <span class="current-tag" *ngIf="isCurrentPlan(plan.tier)">Tu plan actual</span>
+          <span class="current-tag" *ngIf="isCurrentPlan(plan.tier)">
+            <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+            Tu plan actual
+          </span>
         </div>
         <div class="plan-price">
           <span class="price-value">{{ plan.price }}</span>

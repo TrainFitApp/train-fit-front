@@ -23,6 +23,14 @@ interface EvolutionSeries {
   name: string;
   barsPct: number[];
   colorVar: string;
+  // Delta cronológico (último - primero registro), en kg — solo lectura
+  // derivada de los mismos pesos ya cargados para el gráfico, ninguna
+  // llamada ni dato nuevo. Sin semántica de "bueno/malo": no se conoce el
+  // objetivo del cliente (ganar o perder), así que se muestra el signo tal
+  // cual, sin color de éxito/alerta.
+  deltaKg: number;
+  deltaLabel: string;
+  deltaIcon: string;
 }
 
 const EVOLUTION_COLORS = ['var(--tf-accent)', 'var(--tf-text-secondary)', 'var(--tf-accent-2, #4fc79a)'];
@@ -200,10 +208,15 @@ export class DashboardPage implements OnInit {
             .reverse()
             .map((e) => e.weight as number);
 
+          const deltaKg = weights.length >= 2 ? weights[weights.length - 1] - weights[0] : 0;
+
           return {
             name: `${c.user!.name} ${c.user!.lastname}`.trim(),
             barsPct: this.normalizeToBars(weights),
             colorVar: EVOLUTION_COLORS[i % EVOLUTION_COLORS.length],
+            deltaKg,
+            deltaLabel: `${deltaKg > 0 ? '+' : ''}${deltaKg.toFixed(1)} kg`,
+            deltaIcon: deltaKg > 0 ? 'arrow-up-outline' : 'arrow-down-outline',
           };
         })
         // Un solo punto no dibuja tendencia — se omite en vez de mostrar una

@@ -20,8 +20,10 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar la plantilla.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar la plantilla</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
@@ -66,7 +68,7 @@
          sus alternativas) a otra celda para moverla; el icono de copiar la
          duplica sin moverla del origen. Click en la celda abre el editor. -->
     <div class="board-scroll" *ngIf="activeRows.length">
-      <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', 160px)'">
+      <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', minmax(160px, 1fr))'">
         <div class="board-corner"></div>
         <div class="board-day-header" *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex">
           <div class="board-day-header-row">
@@ -76,7 +78,12 @@
               [ngModel]="rowLabel(row)"
               (ngModelChange)="setRowLabel(row, $event)"
             />
-            <button type="button" class="board-day-remove" (click)="removeRow(d)">
+            <button
+              type="button"
+              class="board-day-remove"
+              [attr.aria-label]="mode === 'sequential' ? 'Eliminar día' : 'Eliminar menú'"
+              (click)="removeRow(d)"
+            >
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
@@ -114,6 +121,7 @@
               class="board-cell-action"
               *ngIf="row.meals[s].alternatives.length"
               title="Copiar a otra columna"
+              aria-label="Copiar a otra columna"
               (click)="duplicateMealTo(d, s, $event)"
             >
               <ion-icon name="copy-outline"></ion-icon>
@@ -151,6 +159,7 @@
           type="button"
           class="remove-alternative-btn"
           title="Duplicar opción (para cambiar solo un alimento)"
+          aria-label="Duplicar opción"
           (click)="duplicateAlternative(i)"
           [disabled]="meal.alternatives.length >= maxAlternatives"
         >
@@ -159,6 +168,7 @@
         <button
           type="button"
           class="remove-alternative-btn"
+          aria-label="Eliminar opción"
           (click)="removeAlternative(i)"
           [disabled]="meal.alternatives.length <= 1"
         >
@@ -179,7 +189,7 @@
       <div class="food-item-card" *ngFor="let item of alt.items; let j = index; trackBy: trackByIndex">
         <div class="food-item-header" *ngIf="alt.items.length > 1">
           <span class="food-item-title">Alimento {{ j + 1 }}</span>
-          <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i, j)">
+          <button type="button" class="remove-alternative-btn" aria-label="Eliminar alimento" (click)="removeFoodItem(i, j)">
             <ion-icon name="trash-outline"></ion-icon>
           </button>
         </div>
@@ -190,7 +200,7 @@
             {{ item.recipeId ? item.recipeName : item.productName }}
             <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
           </span>
-          <button type="button" class="clear-product-btn" (click)="clearProduct(i, j)">
+          <button type="button" class="clear-product-btn" aria-label="Quitar alimento seleccionado" (click)="clearProduct(i, j)">
             <ion-icon name="close-outline"></ion-icon>
           </button>
         </div>

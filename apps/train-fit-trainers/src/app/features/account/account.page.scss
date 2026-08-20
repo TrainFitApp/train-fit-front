@@ -1,6 +1,7 @@
 @import '../../../theme/panel-sheet';
 @import '../../../theme/inputs';
 @import '../../../theme/buttons';
+@import '../../../theme/animations';
 
 .account-content {
   --background: var(--tf-bg);
@@ -12,40 +13,62 @@
 
 .account-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  text-align: center;
-  gap: 6px;
+  text-align: left;
+  gap: var(--tf-space-4);
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
-  padding: var(--tf-space-6) var(--tf-space-5);
+  padding: var(--tf-space-5);
   margin-bottom: var(--tf-space-5);
+  @include tf-card-in-animation;
 }
 
+// Gradiente de acento en vez de --tf-accent plano — mismo tratamiento que el
+// CTA primario (tf-gradient-button), refuerza la identidad de marca en el
+// elemento más prominente de "Mi cuenta".
 .account-avatar {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--tf-accent);
+  background: var(--tf-accent-gradient);
   color: var(--tf-accent-contrast);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+// La info de perfil ocupa el resto de la fila (antes quedaba centrada en
+// columna dentro de la card completa, dejando huecos vacíos a los lados en
+// pantallas anchas) — mismo patrón "icono + contenido flex:1" que ya usa
+// .account-menu-item más abajo.
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .account-name {
-  font-size: 1.1rem;
+  font-size: var(--tf-font-size-lg);
   font-weight: 600;
   color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-email {
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .account-menu {
@@ -56,6 +79,8 @@
   border-radius: var(--tf-radius-lg);
   overflow: hidden;
   margin-bottom: var(--tf-space-5);
+  @include tf-card-in-animation;
+  animation-delay: 35ms;
 }
 
 .account-menu-item {
@@ -81,6 +106,15 @@
 
   &:hover {
     background: var(--tf-surface-2);
+  }
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
   }
 
   ion-icon:first-child {
@@ -115,14 +149,35 @@
   font-weight: 600;
   cursor: pointer;
   transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+  @include tf-card-in-animation;
+  animation-delay: 70ms;
 
   &:active {
     transform: scale(0.98);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+  }
+
   ion-icon {
     font-size: 18px;
   }
+}
+
+// Texto solo para lectores de pantalla (estado "guardando" del botón de
+// perfil, hoy únicamente visual vía el spinner).
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 // --- Panel: editar perfil (bottom sheet) ---

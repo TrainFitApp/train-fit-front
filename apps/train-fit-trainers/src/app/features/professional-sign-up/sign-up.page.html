@@ -23,17 +23,21 @@
       <form class="signup-form" [formGroup]="form" (ngSubmit)="register()">
         <div class="input-row">
           <div class="input-group">
+            <label for="signup-name" class="sr-only">{{ 'SIGN_UP.NAME_PLACEHOLDER' | translate }}</label>
             <div class="input-wrapper">
               <ion-icon name="person-outline" class="input-icon"></ion-icon>
               <input
+                id="signup-name"
                 type="text"
                 formControlName="name"
                 class="input-field"
                 [placeholder]="'SIGN_UP.NAME_PLACEHOLDER' | translate"
+                [attr.aria-invalid]="form.get('name')?.invalid && form.get('name')?.touched ? true : null"
               />
             </div>
             <div
               class="validation-error"
+              aria-live="polite"
               *ngIf="form.get('name')?.invalid && form.get('name')?.touched"
             >
               {{ 'SIGN_UP.NAME_REQUIRED' | translate }}
@@ -41,17 +45,21 @@
           </div>
 
           <div class="input-group">
+            <label for="signup-lastname" class="sr-only">{{ 'SIGN_UP.LASTNAME_PLACEHOLDER' | translate }}</label>
             <div class="input-wrapper">
               <ion-icon name="people-outline" class="input-icon"></ion-icon>
               <input
+                id="signup-lastname"
                 type="text"
                 formControlName="lastname"
                 class="input-field"
                 [placeholder]="'SIGN_UP.LASTNAME_PLACEHOLDER' | translate"
+                [attr.aria-invalid]="form.get('lastname')?.invalid && form.get('lastname')?.touched ? true : null"
               />
             </div>
             <div
               class="validation-error"
+              aria-live="polite"
               *ngIf="form.get('lastname')?.invalid && form.get('lastname')?.touched"
             >
               {{ 'SIGN_UP.LASTNAME_REQUIRED' | translate }}
@@ -60,17 +68,21 @@
         </div>
 
         <div class="input-group">
+          <label for="signup-email" class="sr-only">{{ 'SIGN_UP.EMAIL_PLACEHOLDER' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="mail-outline" class="input-icon"></ion-icon>
             <input
+              id="signup-email"
               type="email"
               formControlName="email"
               class="input-field"
               [placeholder]="'SIGN_UP.EMAIL_PLACEHOLDER' | translate"
+              [attr.aria-invalid]="form.get('email')?.invalid && form.get('email')?.touched ? true : null"
             />
           </div>
           <div
             class="validation-error"
+            aria-live="polite"
             *ngIf="form.get('email')?.invalid && form.get('email')?.touched"
           >
             <span *ngIf="form.get('email')?.errors?.['required']">{{ 'SIGN_UP.EMAIL_REQUIRED' | translate }}</span>
@@ -80,20 +92,29 @@
         </div>
 
         <div class="input-group">
+          <label for="signup-password" class="sr-only">{{ 'SIGN_UP.PASSWORD_PLACEHOLDER' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
             <input
+              id="signup-password"
               [type]="showPass ? 'text' : 'password'"
               formControlName="password"
               class="input-field"
               [placeholder]="'SIGN_UP.PASSWORD_PLACEHOLDER' | translate"
+              [attr.aria-invalid]="form.get('password')?.invalid && form.get('password')?.touched ? true : null"
             />
-            <button type="button" class="password-toggle" (click)="showPass = !showPass">
+            <button
+              type="button"
+              class="password-toggle"
+              [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="showPass = !showPass"
+            >
               <ion-icon [name]="showPass ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </button>
           </div>
           <div
             class="validation-error"
+            aria-live="polite"
             *ngIf="form.get('password')?.invalid && form.get('password')?.touched"
           >
             {{ 'SIGN_UP.PASS_LENGTH' | translate }}
@@ -101,20 +122,29 @@
         </div>
 
         <div class="input-group">
+          <label for="signup-password-rep" class="sr-only">{{ 'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate }}</label>
           <div class="input-wrapper">
             <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
             <input
+              id="signup-password-rep"
               [type]="showPassRep ? 'text' : 'password'"
               formControlName="passwordRep"
               class="input-field"
               [placeholder]="'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate"
+              [attr.aria-invalid]="(form.get('passwordRep')?.touched) && form.errors?.['notSame'] ? true : null"
             />
-            <button type="button" class="password-toggle" (click)="showPassRep = !showPassRep">
+            <button
+              type="button"
+              class="password-toggle"
+              [attr.aria-label]="showPassRep ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              (click)="showPassRep = !showPassRep"
+            >
               <ion-icon [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </button>
           </div>
           <div
             class="validation-error"
+            aria-live="polite"
             *ngIf="(form.get('passwordRep')?.touched) && form.errors?.['notSame']"
           >
             {{ 'SIGN_UP.PASS_NOT_MATCH' | translate }}
@@ -180,9 +210,11 @@
       </p>
 
       <div class="input-group">
+        <label for="signup-code" class="sr-only">{{ 'SIGN_UP.CODE_PLACEHOLDER' | translate }}</label>
         <div class="input-wrapper">
           <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
           <input
+            id="signup-code"
             type="text"
             class="input-field"
             [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"

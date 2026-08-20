@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Output, EventEmitter } from '@angular/core';
 import { ViewChild } from '@angular/core';
 import { PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
@@ -67,6 +68,13 @@ export class SearchExercisesPage implements OnInit {
   // ejercicio ya en curso), aquí se selecciona y se cierra sin más: no hay
   // nada que sustituir, solo añadir.
   @Input() pickerMode = false;
+
+  // Biblioteca de ejercicios (TASK-042) — misma pantalla de picker
+  // reutilizada como catálogo navegable de solo consulta: sin workout, sin
+  // ConfigExercisePage. En 'library' el tap emite exerciseSelected en vez de
+  // abrir/seleccionar, y el header/checkbox de picker se ocultan.
+  @Input() mode: 'default' | 'library' = 'default';
+  @Output() exerciseSelected = new EventEmitter<Exercise>();
 
   // TASK-021 (MASTER_BACKLOG.md) — hilo pasante hacia ConfigExercisePage
   // (ver showQuickSeriesGenerator ahí). Mismo criterio que singleWorkoutMode:
@@ -307,6 +315,11 @@ export class SearchExercisesPage implements OnInit {
   }
 
   public onExerciseCardClick(exercise: Exercise): void {
+    if (this.mode === 'library') {
+      this.exerciseSelected.emit(exercise);
+      return;
+    }
+
     if (this.pickerMode) {
       this.togglePickerSelection(exercise);
       return;

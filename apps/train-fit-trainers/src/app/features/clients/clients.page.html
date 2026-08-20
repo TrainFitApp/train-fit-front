@@ -26,7 +26,10 @@
        "Invitar" (esa pantalla es para invitaciones que aún no se han
        aceptado). Mismo aviso que el badge del sidenav (TASK-023). -->
   <div class="review-banner" *ngIf="reviewSummaries.length">
-    <h2 class="section-heading">Cuestionarios por confirmar</h2>
+    <div class="review-banner-header">
+      <h2 class="section-heading">Cuestionarios por confirmar</h2>
+      <span class="review-count">{{ reviewSummaries.length }}</span>
+    </div>
     <div class="review-list">
       <ng-container *ngFor="let review of reviewSummaries; trackBy: trackByClientEmail">
         <button class="review-row" (click)="openReview(review)">

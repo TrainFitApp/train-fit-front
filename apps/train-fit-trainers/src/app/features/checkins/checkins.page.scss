@@ -1,5 +1,7 @@
 @import '../../../theme/skeleton';
 @import '../../../theme/inputs';
+@import '../../../theme/buttons';
+@import '../../../theme/animations';
 
 .checkins-content {
   --background: var(--tf-bg);
@@ -15,41 +17,90 @@
   font-size: var(--tf-font-size-sm);
 }
 
-.detail-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .skeleton-block {
   @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+// --- Carga de página completa: mismo esqueleto de la forma final (stats-row
+// + tarjetas de historial), no bloques genéricos — ver dashboard.page.scss ---
+.checkins-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.checkins-skeleton .stats-row {
+  margin-bottom: var(--tf-space-3);
+}
+
+.stat-card-skeleton {
+  height: 84px;
+}
+
+.history-card-skeleton {
+  flex: 1 1 320px;
+  max-width: 420px;
+  height: 64px;
   border-radius: 12px;
 }
 
-.section-error {
+// --- Estados de página completa (vacío / error): icono + título + texto +
+// CTA, mismo patrón que dashboard.page/clients.page ---
+.state-message {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   gap: 10px;
-  padding: 24px 0;
+  padding: 96px 32px 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
 
   p {
-    font-size: 0.88rem;
-    color: var(--tf-text-muted);
-    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
   }
 }
 
+.retry-button,
+.checkins-cta {
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .retry-button {
-  height: 38px;
-  padding: 0 16px;
   background: var(--tf-surface-5);
   color: var(--tf-text);
   border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
+  border-radius: var(--tf-radius-sm);
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.checkins-cta {
+  @include tf-gradient-button(10px);
 }
 
 .stats-row {
@@ -64,16 +115,39 @@
 }
 
 .stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
-  padding: var(--tf-space-4) var(--tf-space-5);
+  padding: var(--tf-space-4);
+}
+
+.stat-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.stat-icon {
+  &--success {
+    color: var(--tf-success);
+  }
+
+  &--accent {
+    color: var(--tf-accent);
+  }
+
+  &--muted {
+    color: var(--tf-text-secondary);
+  }
 }
 
 .stat-value {
+  display: block;
+  margin-top: 6px;
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--tf-text);
@@ -102,14 +176,19 @@
 .checkins-header-controls {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--tf-space-3);
+  flex: 1 1 auto;
+  min-width: 0;
   flex-wrap: wrap;
 }
 
 .search-input-wrapper {
   @include tf-input-wrapper(var(--tf-surface-4));
-  height: 38px;
-  width: 200px;
+  height: var(--tf-touch-min);
+  flex: 1 1 auto;
+  min-width: 160px;
+  max-width: 340px;
 }
 
 .search-icon {
@@ -135,9 +214,12 @@
   color: var(--tf-text);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-sm);
-  padding: 8px 30px 8px 12px;
+  height: var(--tf-touch-min);
+  padding: 0 30px 0 12px;
   font-size: var(--tf-font-size-sm);
   font-family: inherit;
+  flex: 0 0 auto;
+  min-width: 150px;
 }
 
 // --- Móvil: la fila título + buscador + select ya no cabe en una línea ---
@@ -153,7 +235,11 @@
   }
 
   .search-input-wrapper {
-    width: auto;
+    max-width: none;
+  }
+
+  .client-select {
+    min-width: 0;
   }
 }
 
@@ -168,12 +254,25 @@
   }
 }
 
+// Flex-wrap en vez de columna única: en escritorio, varias tarjetas de
+// check-in comparten fila en vez de apilarse a lo alto ocupando todo el
+// ancho una a una — mismo criterio que .templates-grid/.exercise-card
+// (flex-grow reparte el ancho sobrante de la fila, incluida una tarjeta
+// suelta en la última línea).
+.history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+}
+
 .history-card {
+  flex: 1 1 320px;
+  max-width: 420px;
   padding: 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
-  margin-bottom: 8px;
+  @include tf-card-in-stagger;
 }
 
 .history-card-header {

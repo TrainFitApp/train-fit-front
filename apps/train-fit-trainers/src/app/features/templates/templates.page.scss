@@ -1,3 +1,9 @@
+@import '../../../theme/skeleton';
+@import '../../../theme/animations';
+@import '../../../theme/buttons';
+@import '../../../theme/panel-sheet';
+@import '../../../theme/inputs';
+
 .templates-content {
   --background: var(--tf-bg);
   --padding-start: 20px;
@@ -13,21 +19,19 @@
 }
 
 .category-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--tf-space-4);
   margin-bottom: var(--tf-space-6);
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 560px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .category-card {
+  // Flex (not grid) on purpose: with a fixed 3-column grid, an
+  // item left alone on the last row sits at 1/3 width with a bare gap
+  // next to it. flex-grow lets a dangling last-row card stretch to fill
+  // the row instead of leaving that gap.
+  flex: 1 1 calc(33.333% - var(--tf-space-4) * 2 / 3);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -39,6 +43,15 @@
   text-decoration: none;
   transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
     transform var(--tf-duration-fast) var(--tf-ease-out);
+  @include tf-card-in-stagger;
+
+  @media (max-width: 900px) {
+    flex-basis: calc(50% - var(--tf-space-4) / 2);
+  }
+
+  @media (max-width: 560px) {
+    flex-basis: 100%;
+  }
 
   &:hover {
     border-color: var(--tf-border-strongest);
@@ -89,25 +102,11 @@
   }
 }
 
-.section-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: var(--tf-space-4);
-}
-
 .section-heading {
-  margin: 0;
+  margin: 0 0 var(--tf-space-4);
   font-size: var(--tf-font-size-lg);
   font-weight: 600;
   color: var(--tf-text);
-}
-
-.section-link {
-  font-size: var(--tf-font-size-sm);
-  font-weight: 600;
-  color: var(--tf-accent-text);
-  text-decoration: none;
 }
 
 .empty-hint {
@@ -121,92 +120,375 @@
   }
 }
 
-.routine-grid {
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+}
+
+// --- Recientes por tipo: una columna por lista en escritorio. auto-fit
+// hace que una columna que no llega a renderizarse (*ngIf en el <section>,
+// ver templates.page.html) no reserve hueco — no hay un nº fijo de
+// columnas que "vaciar", el grid se reparte solo entre las que sí existen. ---
+.recent-columns {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--tf-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--tf-space-5);
+  margin-bottom: var(--tf-space-5);
 
   @media (max-width: 700px) {
     grid-template-columns: 1fr;
   }
 }
 
-.routine-card {
+.recent-column {
+  min-width: 0;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
-  padding: var(--tf-space-4) var(--tf-space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-3);
-  cursor: pointer;
-  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:hover {
-    border-color: var(--tf-border-strongest);
-  }
+  overflow: hidden;
 }
 
-.routine-name {
-  display: block;
+.recent-column-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-4) var(--tf-space-4) var(--tf-space-3);
+}
+
+.recent-column-title {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
   font-weight: 600;
-  font-size: var(--tf-font-size-md);
   color: var(--tf-text);
 }
 
-.routine-desc {
-  display: block;
-  font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-muted);
-  margin-top: 2px;
-}
-
-.routine-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--tf-space-4);
+.recent-column-link {
+  flex-shrink: 0;
   font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-secondary);
-
-  span {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  ion-icon {
-    font-size: 13px;
-  }
-}
-
-.routine-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.routine-tag {
-  background: var(--tf-surface-4);
-  color: var(--tf-text-secondary);
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 9px;
-  border-radius: var(--tf-radius-pill);
-}
-
-.assign-button {
-  width: 100%;
-  background: var(--tf-surface-4);
+  font-weight: 600;
   color: var(--tf-accent-text);
-  border: none;
+  text-decoration: none;
+}
+
+.recent-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  padding: 0 var(--tf-space-4) var(--tf-space-4);
+}
+
+.recent-row-skeleton {
+  height: 40px;
   border-radius: var(--tf-radius-sm);
-  padding: 9px;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &:hover,
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.recent-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recent-row-name {
   font-size: var(--tf-font-size-sm);
   font-weight: 600;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-row-meta {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.recent-row-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
+}
+
+// --- Fila con Aplicar/Eliminar (columna Check-ins) — mismo patrón que
+// .template-card/.template-actions en checkin-templates.page.scss, adaptado
+// a la altura compacta de .recent-row en vez de un cursor de <button> único. ---
+.recent-row--with-actions {
+  cursor: default;
+
+  &:hover,
+  &:active {
+    background: transparent;
+  }
+}
+
+.recent-row-info {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover,
+  &:active {
+    background: var(--tf-surface-2);
+  }
+}
+
+.recent-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.recent-row-action-btn {
+  height: 32px;
+  padding: 0 12px;
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
   transition: transform var(--tf-duration-fast) var(--tf-ease-out);
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
   }
+
+  &--danger {
+    padding: 0 9px;
+    color: var(--tf-danger);
+    border-color: rgba(235, 68, 90, 0.3);
+
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+}
+
+// --- Panel "Aplicar a clientes" (mismo bloque que checkin-templates.page.scss) ---
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+
+  &--tall {
+    max-height: 88vh;
+  }
+}
+
+@media (min-width: 768px) {
+  .apply-panel {
+    top: 0;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    max-width: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-top: none;
+    border-left: 1px solid var(--tf-border-strong);
+    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    animation: tf-panel-in-right 220ms var(--tf-ease-out);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .apply-panel .panel-handle {
+    display: none;
+  }
+
+  .apply-panel .apply-client-list {
+    flex: 1;
+    max-height: none;
+    overflow-y: auto;
+  }
+}
+
+@keyframes tf-panel-in-right {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  margin: 0 0 4px;
+}
+
+.panel-subtitle {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 14px;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 50px;
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 18px;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.95rem;
+}
+
+.apply-client-list {
+  max-height: 42vh;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  overscroll-behavior: contain;
+}
+
+.apply-client-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  margin-bottom: 4px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &--selected {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+  }
+}
+
+.apply-client-avatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.apply-client-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.apply-client-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--tf-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apply-client-email {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apply-client-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: var(--tf-text-faint);
+
+  .apply-client-row--selected & {
+    color: var(--tf-accent);
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -26,37 +26,177 @@
     </a>
   </div>
 
-  <div class="section-row">
-    <h2 class="section-heading">Plantillas de entrenamientos recientes</h2>
-    <a class="section-link" routerLink="/tabs/routines">Ver todas</a>
-  </div>
+  <h2 class="section-heading">Recientes</h2>
 
-  <p class="empty-hint" *ngIf="!loadingRoutineTemplates && !routineTemplates.length">
-    Todavía no has creado ninguna plantilla de entrenamiento.
-    <a routerLink="/tabs/routines">Crear la primera</a>
-  </p>
+  <!-- En escritorio, cada tipo es su propia columna en una grid (auto-fit:
+       una columna sin datos ni skeleton no se renderiza, así que no reserva
+       hueco); en móvil se apilan una debajo de otra. -->
+  <div class="recent-columns">
+    <section class="recent-column" *ngIf="loadingRoutineOverview || routineOverviewRows.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Rutinas</h3>
+        <a class="recent-column-link" routerLink="/tabs/routines-overview">Ver todas</a>
+      </div>
 
-  <div class="routine-grid" *ngIf="routineTemplates.length">
-    <div
-      class="routine-card"
-      *ngFor="let rt of routineTemplates"
-      (click)="openTemplate(rt)"
-    >
-      <div class="routine-card-header">
-        <div>
-          <span class="routine-name">{{ rt.name }}</span>
-          <span class="routine-desc" *ngIf="rt.description">{{ rt.description }}</span>
+      <div class="recent-skeleton" *ngIf="loadingRoutineOverview">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingRoutineOverview">
+        <button
+          type="button"
+          class="recent-row"
+          *ngFor="let row of routineOverviewRows; trackBy: trackByRoutineOverviewRow"
+          (click)="openRoutineOverviewRow(row)"
+        >
+          <div class="recent-row-info">
+            <span class="recent-row-name">{{ row.table.name }}</span>
+            <span class="recent-row-meta">{{ row.clientName }} · {{ row.microcyclesCount }} microciclos</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="recent-column" *ngIf="loadingRoutineTemplates || routineTemplates.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Entrenamientos</h3>
+        <a class="recent-column-link" routerLink="/tabs/routines">Ver todas</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingRoutineTemplates">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingRoutineTemplates">
+        <button type="button" class="recent-row" *ngFor="let rt of routineTemplates" (click)="openTemplate(rt)">
+          <div class="recent-row-info">
+            <span class="recent-row-name">{{ rt.name }}</span>
+            <span class="recent-row-meta">{{ exerciseCount(rt) }} ejercicios</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="recent-column" *ngIf="loadingDietTemplates || dietTemplates.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Dietas</h3>
+        <a class="recent-column-link" routerLink="/tabs/diet-templates">Ver todas</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingDietTemplates">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingDietTemplates">
+        <button type="button" class="recent-row" *ngFor="let dt of dietTemplates" (click)="openDietTemplate(dt)">
+          <div class="recent-row-info">
+            <span class="recent-row-name">{{ dt.name }}</span>
+            <span class="recent-row-meta">{{ dietTemplateMeta(dt) }}</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="recent-column" *ngIf="loadingCheckinTemplates || checkinTemplates.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Check-ins</h3>
+        <a class="recent-column-link" routerLink="/tabs/checkin-templates">Ver todas</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingCheckinTemplates">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingCheckinTemplates">
+        <div class="recent-row recent-row--with-actions" *ngFor="let ct of checkinTemplates; trackBy: trackByCheckinTemplateId">
+          <div class="recent-row-info" (click)="goToCheckinTemplates()">
+            <span class="recent-row-name">{{ ct.name }}</span>
+            <span class="recent-row-meta">{{ ct.enabledFields.length }} campos</span>
+          </div>
+          <div class="recent-row-actions">
+            <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">Aplicar</button>
+            <button
+              class="recent-row-action-btn recent-row-action-btn--danger"
+              (click)="confirmDelete(ct)"
+              [attr.aria-label]="'Borrar plantilla ' + ct.name"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="routine-meta">
-        <span *ngIf="rt.level"><ion-icon name="trending-up-outline"></ion-icon> {{ levelLabels[rt.level] }}</span>
-        <span><ion-icon name="albums-outline"></ion-icon> {{ (rt.blocks || []).length }} bloques</span>
-        <span><ion-icon name="barbell-outline"></ion-icon> {{ exerciseCount(rt) }} ejercicios</span>
-      </div>
-      <div class="routine-tags" *ngIf="rt.tags?.length">
-        <span class="routine-tag" *ngFor="let tag of rt.tags">{{ tag }}</span>
-      </div>
-      <button type="button" class="assign-button" (click)="openTemplate(rt); $event.stopPropagation()">Abrir plantilla</button>
+    </section>
+  </div>
+
+  <p
+    class="empty-hint"
+    *ngIf="
+      !loadingRoutineTemplates && !loadingDietTemplates && !loadingCheckinTemplates && !loadingRoutineOverview &&
+      !routineTemplates.length && !dietTemplates.length && !checkinTemplates.length && !routineOverviewRows.length
+    "
+  >
+    Todavía no has creado ninguna plantilla. Empieza desde cualquiera de las categorías de arriba.
+  </p>
+
+  <!-- Panel: aplicar plantilla de check-in a clientes (mismo patrón que checkin-templates.page) -->
+  <div class="panel-backdrop" *ngIf="showApplyPanel" (click)="closeApplyPanel()"></div>
+  <div class="panel-sheet panel-sheet--tall apply-panel" *ngIf="showApplyPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">Aplicar "{{ applyingTemplate?.name }}"</h3>
+    <p class="panel-subtitle">Selecciona los clientes a los que quieres aplicar esta plantilla.</p>
+
+    <div class="input-wrapper" *ngIf="myClients.length">
+      <ion-icon name="search-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Buscar por nombre o correo"
+        [ngModel]="applyClientSearchQuery"
+        (ngModelChange)="onApplyClientSearchChange($event)"
+      />
     </div>
+
+    <p class="empty-hint" *ngIf="!myClients.length">No tienes clientes todavía.</p>
+    <p class="empty-hint" *ngIf="myClients.length && !filteredApplyClients.length">
+      Ningún cliente coincide con la búsqueda.
+    </p>
+
+    <div class="apply-client-list">
+      <button
+        class="apply-client-row"
+        *ngFor="let client of filteredApplyClients; trackBy: trackByClientId"
+        (click)="toggleClientSelected(client)"
+        [class.apply-client-row--selected]="isClientSelected(client)"
+        [disabled]="!client.user"
+      >
+        <div
+          class="apply-client-avatar"
+          [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
+          [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+        >
+          {{ getInitials(client) }}
+        </div>
+        <div class="apply-client-info">
+          <span class="apply-client-name">{{ getFullName(client) }}</span>
+          <span class="apply-client-email" *ngIf="client.user">{{ client.user.email }}</span>
+        </div>
+        <ion-icon
+          class="apply-client-check"
+          [name]="isClientSelected(client) ? 'checkmark-circle' : 'ellipse-outline'"
+        ></ion-icon>
+      </button>
+    </div>
+
+    <button
+      class="submit-button"
+      (click)="confirmApply()"
+      [disabled]="!selectedClientIds.size || isApplying"
+    >
+      <span *ngIf="!isApplying">Aplicar a {{ selectedClientIds.size }} cliente{{ selectedClientIds.size === 1 ? '' : 's' }}</span>
+      <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
+    </button>
   </div>
 </ion-content>

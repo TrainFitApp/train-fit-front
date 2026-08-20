@@ -1,3 +1,5 @@
+@import '../../../theme/buttons';
+
 .planner-toolbar {
   display: flex;
   gap: var(--tf-space-2);
@@ -25,7 +27,7 @@
   color: var(--tf-text);
   cursor: pointer;
   white-space: nowrap;
-  min-height: 40px;
+  min-height: var(--tf-touch-min);
   transition: transform var(--tf-duration-fast) var(--tf-ease-out),
     opacity var(--tf-duration-fast) var(--tf-ease-out);
 
@@ -59,8 +61,17 @@
   }
 
   &--primary {
-    background: var(--tf-accent);
-    color: var(--tf-accent-contrast);
+    @include tf-gradient-button(var(--tf-radius-sm));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--tf-touch-min);
+    padding: 8px 14px;
+    font-size: var(--tf-font-size-sm);
+
+    ion-icon {
+      font-size: 16px;
+    }
   }
 
   &--danger {
@@ -112,22 +123,46 @@
   }
 }
 
+// Estado vacío de página completa — mismo patrón que .state-message en
+// clients.page.scss/dashboard.page.scss (icono + título + CTA), no un
+// párrafo suelto con un botón genérico.
 .planner-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-6);
+  gap: 10px;
+  width: 100%;
+  padding: 96px var(--tf-space-6) 0;
   color: var(--tf-text-muted);
   text-align: center;
 
   ion-icon {
     font-size: 40px;
-    opacity: 0.6;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
   }
 
-  p {
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
     margin: 0 0 var(--tf-space-2);
+  }
+}
+
+.planner-empty-cta {
+  @include tf-gradient-button(var(--tf-radius-sm));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  font-size: var(--tf-font-size-sm);
+
+  ion-icon {
+    font-size: 16px;
+    color: inherit;
+    margin-bottom: 0;
   }
 }
 

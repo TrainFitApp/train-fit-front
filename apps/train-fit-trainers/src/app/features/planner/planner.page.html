@@ -59,10 +59,11 @@
     ></app-planner-column>
 
     <div class="planner-empty" *ngIf="table && table.splits.length === 0">
-      <ion-icon name="albums-outline"></ion-icon>
-      <p>{{ 'PLANNER.NO_WEEKS_YET' | translate }}</p>
-      <button type="button" class="toolbar-btn toolbar-btn--primary" (click)="addWeek()">
-        {{ 'PLANNER.ADD_WEEK' | translate }}
+      <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+      <h2>{{ 'PLANNER.NO_WEEKS_YET' | translate }}</h2>
+      <button type="button" class="planner-empty-cta" (click)="addWeek()">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'PLANNER.ADD_WEEK' | translate }}</span>
       </button>
     </div>
   </div>

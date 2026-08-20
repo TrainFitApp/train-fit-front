@@ -3,39 +3,63 @@
 @import '../../../../../theme/panel-sheet';
 @import '../../../../../theme/inputs';
 
-// TASK-012 — banner de carga/error mientras se resuelve name/scopes vía
-// resolveClientIdentityFallback() (deep link sin queryParams).
-.header-state-banner {
+// TASK-012 — mientras se resuelve name/scopes vía
+// resolveClientIdentityFallback() (deep link sin queryParams), un esqueleto
+// con la misma forma del layout final (sidebar + tabs), no un spinner
+// genérico — mismo criterio que dashboard.page/clients.page.
+.header-state-skeleton {
+  .profile-layout {
+    pointer-events: none;
+  }
+
+  .profile-avatar-skeleton {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+  }
+
+  .profile-name-skeleton {
+    width: 60%;
+    height: 16px;
+    border-radius: 4px;
+  }
+
+  .tabbar-skeleton {
+    height: 38px;
+    border-radius: var(--tf-radius-sm);
+    margin-bottom: 16px;
+  }
+}
+
+// Estado de error de página completa (identidad del cliente irresoluble) —
+// mismo patrón que dashboard.page/clients.page (icono + título + texto + CTA).
+.state-message {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-6) var(--tf-space-4);
-  color: var(--tf-text-muted);
   text-align: center;
+  gap: 10px;
+  padding: 96px 32px 0;
+  color: var(--tf-text-muted);
 
   ion-icon {
-    font-size: 28px;
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
   }
 
-  button {
-    margin-top: var(--tf-space-2);
-    background: var(--tf-surface-4);
-    color: var(--tf-accent-text);
-    border: none;
-    border-radius: var(--tf-radius-sm);
-    padding: 8px 16px;
-    font-size: var(--tf-font-size-sm);
+  h2 {
+    font-size: 1.05rem;
     font-weight: 600;
-    cursor: pointer;
+    color: var(--tf-text);
+    margin: 0;
   }
 
-  &--error {
-    color: var(--tf-danger, #eb445a);
-
-    button {
-      color: var(--tf-text);
-    }
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
   }
 }
 
@@ -226,6 +250,19 @@
 .skeleton-block {
   @include tf-skeleton-shimmer;
   border-radius: 12px;
+  height: 52px;
+
+  &--sm {
+    height: 44px;
+  }
+
+  &--md {
+    height: 52px;
+  }
+
+  &--lg {
+    height: 64px;
+  }
 }
 
 .section-error {
@@ -243,7 +280,7 @@
 }
 
 .retry-button {
-  height: 38px;
+  height: var(--tf-touch-min);
   padding: 0 16px;
   background: var(--tf-surface-5);
   color: var(--tf-text);
@@ -277,6 +314,8 @@
   div {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -329,8 +368,8 @@
 }
 
 .date-nav-btn {
-  width: 28px;
-  height: 28px;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -451,6 +490,7 @@
 .active-plan-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 2px;
   min-width: 0;
 }
@@ -474,7 +514,7 @@
   margin: 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--tf-danger, #eb445a);
+  color: var(--tf-danger);
 
   ion-icon {
     font-size: 1rem;
@@ -675,7 +715,8 @@
 
 .bulk-apply-btn {
   flex-shrink: 0;
-  width: 44px;
+  width: var(--tf-touch-min);
+  min-height: var(--tf-touch-min);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -811,9 +852,17 @@
 }
 
 .pin-button {
+  flex-shrink: 0;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  // Compensa visualmente el target ampliado a 44px (WCAG) para que no
+  // empuje la fila de la cabecera de la nota — el icono real sigue en 18px.
+  margin: -13px -13px -13px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
-  padding: 2px;
   color: var(--tf-text-muted);
   cursor: pointer;
   transition: color 160ms var(--tf-ease-out), transform 160ms var(--tf-ease-out);
@@ -1151,6 +1200,11 @@
   border-radius: 14px;
   margin-bottom: 20px;
 
+  > div {
+    flex: 1;
+    min-width: 0;
+  }
+
   &--empty {
     color: var(--tf-text-muted);
     font-size: 0.86rem;
@@ -1315,12 +1369,19 @@
 // Replanteamiento MVP (nutrición) — varios alimentos por alternativa,
 // anidados dentro de .alternative-card con un tono más claro para marcar
 // jerarquía visual.
+// Antes era una tarjeta anidada completa (fondo + borde + radio) dentro de
+// .alternative-card, que ya es una tarjeta — "cards anidadas" que
+// PRODUCT.md marca explícitamente como anti-referencia. Un divisor simple
+// mantiene la separación entre alimentos sin apilar jerarquía visual.
 .food-item-card {
-  padding: 10px;
-  margin-bottom: 10px;
-  background: var(--tf-surface-4);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
+  padding: 10px 0;
+  margin-bottom: 0;
+  border-top: 1px solid var(--tf-border-subtle);
+
+  &:first-of-type {
+    padding-top: 0;
+    border-top: none;
+  }
 
   &:last-of-type {
     margin-bottom: 12px;
@@ -1369,8 +1430,8 @@
 }
 
 .remove-alternative-btn {
-  width: 30px;
-  height: 30px;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1426,7 +1487,7 @@
 // cada tarjeta de alternativa, sustituyendo la entrada manual de macros.
 .search-product-btn {
   width: 100%;
-  height: 42px;
+  height: var(--tf-touch-min);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -1468,6 +1529,10 @@
 }
 
 .clear-product-btn {
+  flex-shrink: 0;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin: -12px -12px -12px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1475,5 +1540,8 @@
   border: none;
   color: var(--tf-text-muted);
   cursor: pointer;
-  padding: 4px;
+
+  ion-icon {
+    font-size: 18px;
+  }
 }

@@ -15,14 +15,16 @@
 </ion-header>
 
 <ion-content class="builder-content">
-  <div class="detail-skeleton" *ngIf="state === 'loading'">
-    <div class="skeleton-block" style="height: 60px;"></div>
-    <div class="skeleton-block" style="height: 120px;"></div>
-    <div class="skeleton-block" style="height: 120px;"></div>
+  <div class="builder-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block skeleton-block--sidebar"></div>
+    <div class="skeleton-block skeleton-block--block"></div>
+    <div class="skeleton-block skeleton-block--block"></div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo cargar la plantilla.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar la plantilla</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
@@ -90,23 +92,29 @@
           </p>
 
           <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
-            <div class="block-header" (click)="editBlockAlert(block)">
+            <button type="button" class="block-header" (click)="editBlockAlert(block)">
               <div class="block-header-main">
                 <ion-icon name="layers-outline"></ion-icon>
                 <span class="block-name">{{ block.name || blockTypeLabels[block.type] }}</span>
                 <span class="block-type-badge">{{ blockTypeLabels[block.type] }}</span>
+                <ion-icon name="chevron-forward-outline" class="block-header-chevron"></ion-icon>
               </div>
               <div class="block-header-meta" *ngIf="block.rounds || block.restBetweenExercises || block.restBetweenRounds">
                 <span *ngIf="block.rounds">{{ block.rounds }} rondas</span>
                 <span *ngIf="block.restBetweenExercises">Descanso ejercicios: {{ block.restBetweenExercises }}s</span>
                 <span *ngIf="block.restBetweenRounds">Descanso rondas: {{ block.restBetweenRounds }}s</span>
               </div>
-            </div>
+            </button>
 
             <div class="exercise-row" *ngFor="let ex of block.exercises; trackBy: trackByIndex">
               <div class="exercise-row-header">
                 <span class="exercise-name">{{ ex.exercise?.name || 'Ejercicio eliminado del catálogo' }}</span>
-                <button type="button" class="remove-exercise-btn" (click)="removeExercise(block, ex)">
+                <button
+                  type="button"
+                  class="remove-exercise-btn"
+                  aria-label="Quitar ejercicio"
+                  (click)="removeExercise(block, ex)"
+                >
                   <ion-icon name="close-outline"></ion-icon>
                 </button>
               </div>

@@ -22,14 +22,30 @@
        directo), se resuelven vía resolveClientIdentityFallback(). Mientras
        tanto (o si falla), se avisa en vez de dejar las pestañas en blanco
        sin explicación. -->
-  <div class="header-state-banner" *ngIf="headerState === 'loading'">
-    <ion-spinner name="dots"></ion-spinner>
-    <span>Cargando cliente…</span>
+  <div class="header-state-skeleton" *ngIf="headerState === 'loading'">
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="skeleton-block profile-avatar-skeleton"></div>
+          <div class="skeleton-block profile-name-skeleton"></div>
+        </div>
+      </aside>
+      <div class="profile-main">
+        <div class="skeleton-block tabbar-skeleton"></div>
+        <div class="detail-skeleton">
+          <div class="skeleton-block skeleton-block--lg"></div>
+          <div class="skeleton-block skeleton-block--md"></div>
+          <div class="skeleton-block skeleton-block--md"></div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="header-state-banner header-state-banner--error" *ngIf="headerState === 'error'">
+
+  <div class="state-message" *ngIf="headerState === 'error'">
     <ion-icon name="alert-circle-outline"></ion-icon>
-    <span>No se pudo cargar este cliente. Puede que ya no exista o que no tengas acceso.</span>
-    <button type="button" (click)="goToClientsList()">Volver a clientes</button>
+    <h2>No se pudo cargar este cliente</h2>
+    <p>Puede que ya no exista o que no tengas acceso a su ficha.</p>
+    <button type="button" class="retry-button" (click)="goToClientsList()">Volver a clientes</button>
   </div>
 
   <div class="profile-layout" *ngIf="headerState === 'loaded'">
@@ -58,8 +74,9 @@
           <span class="profile-stat-label">Objetivo activo</span>
           <span class="profile-stat-value profile-stat-value--truncate">{{ goals[0].name }}</span>
         </div>
-        <p class="profile-stats-empty" *ngIf="trainingState !== 'loaded' && nutritionState !== 'loaded'">
-          Cargando resumen…
+        <p class="profile-stats-empty" *ngIf="profileStatsPending">Cargando resumen…</p>
+        <p class="profile-stats-empty" *ngIf="!profileStatsPending && !hasProfileStats">
+          Sin datos de seguimiento todavía.
         </p>
       </div>
     </aside>
@@ -123,9 +140,9 @@
   <!-- === ENTRENAMIENTO === -->
   <div class="tab-panel" *ngIf="scopes.includes('training') && activeTab === 'training'">
     <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
-      <div class="skeleton-block" style="height: 64px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--lg"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="trainingState === 'error'">
@@ -169,6 +186,7 @@
           <button
             class="bulk-apply-btn"
             title="Ver estadísticas"
+            aria-label="Ver estadísticas"
             (click)="openStatistics(table)"
           >
             <ion-icon name="stats-chart-outline"></ion-icon>
@@ -176,6 +194,7 @@
           <button
             class="bulk-apply-btn"
             title="Editar rutina (splits, ejercicios, series)"
+            aria-label="Editar rutina"
             (click)="openPlanner(table)"
           >
             <ion-icon name="construct-outline"></ion-icon>
@@ -183,6 +202,7 @@
           <button
             class="bulk-apply-btn bulk-apply-btn--danger"
             title="Borrar rutina completa"
+            aria-label="Borrar rutina completa"
             (click)="confirmDeleteTable(table, $event)"
           >
             <ion-icon name="trash-outline"></ion-icon>
@@ -253,9 +273,9 @@
   <!-- === NUTRICIÓN === -->
   <div class="tab-panel" *ngIf="scopes.includes('nutrition') && activeTab === 'nutrition'">
     <div class="detail-skeleton" *ngIf="nutritionState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="nutritionState === 'error'">
@@ -350,11 +370,11 @@
       <div class="section-row section-row--top">
         <h2 class="section-heading">Dieta</h2>
         <div class="date-nav">
-          <button class="date-nav-btn" (click)="changeNutritionDate(-1)">
+          <button class="date-nav-btn" aria-label="Día anterior" (click)="changeNutritionDate(-1)">
             <ion-icon name="chevron-back-outline"></ion-icon>
           </button>
           <span class="date-nav-label">{{ nutritionDateLabel }}</span>
-          <button class="date-nav-btn" (click)="changeNutritionDate(1)">
+          <button class="date-nav-btn" aria-label="Día siguiente" (click)="changeNutritionDate(1)">
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </button>
         </div>
@@ -434,8 +454,8 @@
 
       <ng-container *ngIf="showNutritionHistory">
         <div class="detail-skeleton" *ngIf="nutritionHistoryState === 'loading'">
-          <div class="skeleton-block" style="height: 44px;"></div>
-          <div class="skeleton-block" style="height: 44px;"></div>
+          <div class="skeleton-block skeleton-block--sm"></div>
+          <div class="skeleton-block skeleton-block--sm"></div>
         </div>
 
         <div class="section-error" *ngIf="nutritionHistoryState === 'error'">
@@ -542,6 +562,7 @@
             type="button"
             class="remove-alternative-btn"
             title="Duplicar opción (para cambiar solo un alimento)"
+            aria-label="Duplicar opción"
             (click)="duplicateAlternative(i)"
             [disabled]="prescribeAlternatives.length >= maxAlternatives"
           >
@@ -550,6 +571,7 @@
           <button
             type="button"
             class="remove-alternative-btn"
+            aria-label="Eliminar opción"
             (click)="removeAlternative(i)"
             [disabled]="prescribeAlternatives.length <= 1"
           >
@@ -573,7 +595,7 @@
         <div class="food-item-card" *ngFor="let item of alt.items; let j = index">
           <div class="food-item-header" *ngIf="alt.items.length > 1">
             <span class="food-item-title">Alimento {{ j + 1 }}</span>
-            <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i, j)">
+            <button type="button" class="remove-alternative-btn" aria-label="Eliminar alimento" (click)="removeFoodItem(i, j)">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
@@ -584,7 +606,7 @@
               {{ item.recipeId ? item.recipeName : item.productName }}
               <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
             </span>
-            <button type="button" class="clear-product-btn" (click)="clearProduct(i, j)">
+            <button type="button" class="clear-product-btn" aria-label="Quitar selección" (click)="clearProduct(i, j)">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
@@ -636,8 +658,8 @@
   <!-- === HISTORIAL (F09) === -->
   <div class="tab-panel" *ngIf="scopes.includes('training') && activeTab === 'history'">
     <div class="detail-skeleton" *ngIf="trainingState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <ng-container *ngIf="trainingState === 'loaded'">
@@ -682,8 +704,8 @@
   <!-- === COBROS (F26) === -->
   <div class="tab-panel" *ngIf="activeTab === 'payments'">
     <div class="detail-skeleton" *ngIf="paymentsState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="paymentsState === 'error'">
@@ -751,8 +773,8 @@
   <!-- === TAREAS/HÁBITOS (coach-tab FASE4) === -->
   <div class="tab-panel" *ngIf="activeTab === 'tasks'">
     <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="tasksState === 'error'">
@@ -832,8 +854,8 @@
   <!-- === NOTAS (F19) === -->
   <div class="tab-panel" *ngIf="activeTab === 'notes'">
     <div class="detail-skeleton" *ngIf="notesState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="notesState === 'error'">
@@ -887,8 +909,8 @@
   <!-- === CHECK-INS (F17) === -->
   <div class="tab-panel" *ngIf="activeTab === 'checkins'">
     <div class="detail-skeleton" *ngIf="checkinsState === 'loading'">
-      <div class="skeleton-block" style="height: 52px;"></div>
-      <div class="skeleton-block" style="height: 52px;"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
     </div>
 
     <div class="section-error" *ngIf="checkinsState === 'error'">

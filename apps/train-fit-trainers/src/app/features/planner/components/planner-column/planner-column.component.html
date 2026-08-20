@@ -50,4 +50,20 @@
     <ion-icon name="add-outline"></ion-icon>
     {{ 'PLANNER.ADD_CARD' | translate }}
   </button>
+
+  <div class="panel-backdrop" *ngIf="showAddCardPanel" (click)="closeAddCardPanel()"></div>
+  <div class="panel-sheet add-card-sheet" *ngIf="showAddCardPanel">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">{{ 'PLANNER.ADD_CARD' | translate }}</h3>
+    <div class="add-card-options">
+      <button type="button" class="add-card-option" (click)="chooseBlankCard()">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <span>{{ 'PLANNER.ADD_CARD_BLANK' | translate }}</span>
+      </button>
+      <button type="button" class="add-card-option" (click)="chooseCardFromTemplate()">
+        <ion-icon name="download-outline"></ion-icon>
+        <span>{{ 'PLANNER.ADD_CARD_FROM_TEMPLATE' | translate }}</span>
+      </button>
+    </div>
+  </div>
 </div>

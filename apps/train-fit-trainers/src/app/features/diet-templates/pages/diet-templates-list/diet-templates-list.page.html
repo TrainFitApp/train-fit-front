@@ -38,32 +38,51 @@
     <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
   </button>
 
-  <div class="detail-skeleton" *ngIf="state === 'loading'">
-    <div class="skeleton-block" style="height: 60px;"></div>
-    <div class="skeleton-block" style="height: 60px;"></div>
+  <div class="templates-skeleton" *ngIf="state === 'loading'">
+    <div class="template-row template-row--skeleton" *ngFor="let i of [1, 2, 3]">
+      <div class="skeleton-block skeleton-icon"></div>
+      <div class="skeleton-name-block">
+        <div class="skeleton-line skeleton-line--name"></div>
+        <div class="skeleton-line skeleton-line--meta"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudieron cargar tus plantillas.</p>
+  <div class="state-message" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudieron cargar tus plantillas</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="empty-hint" *ngIf="!templates.length">Todavía no has creado ninguna plantilla.</p>
-
-    <div
-      class="template-row"
-      *ngFor="let template of templates; trackBy: trackByTemplateId"
-      (click)="openTemplate(template)"
-    >
+    <div class="state-message" *ngIf="!templates.length">
       <ion-icon name="restaurant-outline"></ion-icon>
-      <div class="template-info">
-        <span class="template-name">{{ template.name }}</span>
-        <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+      <h2>Todavía no has creado ninguna plantilla</h2>
+      <p>Crea tu primera plantilla arriba: un conjunto de días y comidas reutilizable entre clientes.</p>
+    </div>
+
+    <div class="templates-grid" *ngIf="templates.length">
+      <div
+        class="template-row"
+        *ngFor="let template of templates; trackBy: trackByTemplateId"
+      >
+        <button type="button" class="template-row-main" (click)="openTemplate(template)">
+          <ion-icon name="restaurant-outline" class="template-row-icon"></ion-icon>
+          <div class="template-info">
+            <span class="template-name">{{ template.name }}</span>
+            <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          class="delete-template-btn"
+          (click)="confirmDelete(template, $event)"
+          [attr.aria-label]="'Eliminar plantilla ' + template.name"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
       </div>
-      <button type="button" class="delete-template-btn" (click)="confirmDelete(template, $event)">
-        <ion-icon name="trash-outline"></ion-icon>
-      </button>
     </div>
   </ng-container>
 </ion-content>

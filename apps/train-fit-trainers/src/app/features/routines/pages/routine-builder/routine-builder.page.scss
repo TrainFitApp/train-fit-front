@@ -10,33 +10,82 @@
   --padding-bottom: 24px;
 }
 
-.detail-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .skeleton-block {
   @include tf-skeleton-shimmer;
   border-radius: 12px;
 }
 
-.section-error p,
+// --- Carga de página completa: forma aproximada del layout final (panel de
+// metadata + bloques), no dos bloques genéricos — mismo criterio que
+// dashboard.page.scss ---
+.builder-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-block--sidebar {
+  height: 220px;
+}
+
+.skeleton-block--block {
+  height: 120px;
+}
+
 .empty-hint {
   font-size: 0.86rem;
   color: var(--tf-text-muted);
   text-align: center;
 }
 
+// --- Estado de error de página completa — mismo patrón que
+// clients.page.scss / dashboard.page.scss (icono + título + texto + CTA) ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 96px 32px 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
+  }
+}
+
 .retry-button {
-  display: block;
-  margin: 8px auto 0;
-  background: none;
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
+  background: var(--tf-surface-5);
   color: var(--tf-text);
-  padding: 8px 16px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
 }
 
 .builder-layout {
@@ -185,8 +234,22 @@
 }
 
 .block-header {
-  cursor: pointer;
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
   margin-bottom: 8px;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
 }
 
 .block-header-main {
@@ -194,9 +257,18 @@
   align-items: center;
   gap: 8px;
 
-  ion-icon {
+  > ion-icon:first-child {
     color: var(--tf-text-muted);
   }
+}
+
+// Señal de que la cabecera del bloque se puede pulsar (renombrar/rondas/
+// borrar) — en móvil no hay :hover que lo distinga a simple vista, mismo
+// criterio que .stat-chevron en dashboard.page.scss.
+.block-header-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
 }
 
 .block-name {
@@ -262,11 +334,22 @@
   &:hover {
     color: var(--tf-danger);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+    border-radius: 4px;
+  }
 }
 
+// Grid en vez de flex-wrap: con flex-wrap las filas de campos (series/reps/
+// RIR) se quedaban pegadas a la izquierda sin usar el ancho del bloque en
+// desktop (el bloque puede llegar a 800px+ y los inputs a 56px). Con grid +
+// auto-fit las columnas se reparten el ancho disponible entre sí — en móvil
+// caben menos columnas y ninguna queda huérfana ocupando solo su mínimo.
 .scheme-fields {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
   gap: 8px;
 }
 
@@ -274,11 +357,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 56px;
+  min-width: 0;
 
   &--wide {
-    min-width: 100px;
-    flex: 1;
+    grid-column: span 2;
   }
 
   span {

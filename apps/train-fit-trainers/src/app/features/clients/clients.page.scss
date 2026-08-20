@@ -1,6 +1,7 @@
 @import '../../../theme/skeleton';
 @import '../../../theme/buttons';
 @import '../../../theme/inputs';
+@import '../../../theme/animations';
 
 .clients-content {
   --background: var(--tf-bg);
@@ -52,7 +53,7 @@
   text-align: left;
   cursor: pointer;
   transition: background 160ms var(--tf-ease-out);
-  animation: card-in 320ms var(--tf-ease-out) backwards;
+  @include tf-card-in-stagger;
 
   &:first-child {
     border-top: none;
@@ -64,29 +65,6 @@
 
   &:not(.skeleton):hover {
     background: var(--tf-surface-2);
-  }
-
-  @for $i from 1 through 12 {
-    &:nth-child(#{$i}) {
-      animation-delay: #{($i - 1) * 35}ms;
-    }
-  }
-}
-
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .client-card {
-    animation: none;
   }
 }
 
@@ -146,7 +124,6 @@
 .client-card.skeleton {
   cursor: default;
   pointer-events: none;
-  animation: card-in 320ms var(--tf-ease-out) backwards;
 }
 
 .skeleton-block,
@@ -170,11 +147,18 @@
 
 // --- Cuestionarios en_revision (avisados por el badge del shell) ---
 .review-banner {
-  margin: 4px 16px 4px;
+  margin: 4px 16px 20px;
+}
+
+.review-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
 }
 
 .review-banner .section-heading {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -182,13 +166,33 @@
   color: var(--tf-text-muted);
 }
 
+// Conteo, no toda la lista pintada de acento — la atención se marca con un
+// dato puntual (cuántos), no tiñendo el bloque entero de naranja.
+.review-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+// Card neutra (mismo idioma visual que .client-table) en vez de un bloque
+// sólido de --tf-accent-soft: el acento vive en el icono/borde izquierdo de
+// cada fila, no en todo el contenedor — se lee como parte de la app, no
+// como un banner de alerta aparte.
 .review-list {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--tf-accent-soft);
+  border: 1px solid var(--tf-border);
   border-radius: 14px;
   overflow: hidden;
-  background: var(--tf-accent-soft);
+  background: var(--tf-surface-1);
 }
 
 .review-row {
@@ -210,15 +214,31 @@
     border-top: none;
   }
 
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
   &:active {
     background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
   }
 }
 
 .review-icon {
   flex-shrink: 0;
-  font-size: 18px;
-  color: var(--tf-accent);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 16px;
 }
 
 .review-info {
@@ -268,13 +288,11 @@
   padding: 12px 14px;
 }
 
+// Sin card anidada: mismo fondo que la fila que lo abre, separado solo por
+// un divisor (PRODUCT.md — nada de "card sobre card").
 .intake-review {
-  padding: 12px 14px;
-  margin: -4px 0 8px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-top: none;
-  border-radius: 0 0 14px 14px;
+  padding: 14px 18px 16px;
+  border-top: 1px solid var(--tf-border);
 }
 
 .intake-field {
@@ -305,7 +323,7 @@
 
 .cancel-review-button {
   flex: 1;
-  height: 38px;
+  height: var(--tf-touch-min);
   background: var(--tf-surface-2);
   color: var(--tf-text-secondary);
   border: 1px solid var(--tf-border-strong);
@@ -313,12 +331,22 @@
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-text);
+    outline-offset: 2px;
+  }
 }
 
 .confirm-button {
   @include tf-gradient-button(10px);
   flex: 2;
-  height: 38px;
+  height: var(--tf-touch-min);
   font-size: 0.84rem;
   display: flex;
   align-items: center;
@@ -327,7 +355,7 @@
 
 .reject-button {
   flex: 1;
-  height: 38px;
+  height: var(--tf-touch-min);
   background: var(--tf-danger-soft);
   color: var(--tf-danger);
   border: 1px solid var(--tf-danger-border);
@@ -338,6 +366,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+  }
 
   &:disabled {
     opacity: 0.6;
@@ -383,6 +421,13 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
+
+  // A partir de aquí ya no hace falta el scroll horizontal (las 3 chips caben
+  // de sobra) — en vez de dejarlas apretadas a la izquierda con hueco muerto
+  // detrás, se reparten el ancho de la fila como un segmented control.
+  @media (min-width: 480px) {
+    overflow-x: visible;
+  }
 }
 
 .scope-filter-chip {
@@ -397,6 +442,11 @@
   cursor: pointer;
   transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
     background 160ms var(--tf-ease-out);
+
+  @media (min-width: 480px) {
+    flex: 1;
+    text-align: center;
+  }
 
   &.active {
     border-color: var(--tf-accent);

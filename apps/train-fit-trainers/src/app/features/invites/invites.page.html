@@ -14,7 +14,7 @@
 
 <ion-content class="invites-content">
   <form class="invite-form" [formGroup]="form" (ngSubmit)="submit()">
-    <h1 class="form-title">Invita a un cliente</h1>
+    <h2 class="form-title">Invita a un cliente</h2>
     <p class="form-subtitle">
       Introduce su email y elige qué vas a llevarle. Puedes marcar los dos ámbitos a la vez.
     </p>
@@ -237,6 +237,7 @@
                 (click)="confirmCancel(inv)"
                 [disabled]="cancellingId === inv._id"
                 [title]="'Cancelar invitación de ' + scopeLabel(inv.scope)"
+                [attr.aria-label]="'Cancelar invitación de ' + scopeLabel(inv.scope)"
               >
                 <ion-spinner name="dots" *ngIf="cancellingId === inv._id"></ion-spinner>
                 <ion-icon name="close-outline" *ngIf="cancellingId !== inv._id"></ion-icon>

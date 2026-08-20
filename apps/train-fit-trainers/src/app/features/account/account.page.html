@@ -15,20 +15,22 @@
 <ion-content class="account-content">
   <div class="account-card">
     <div class="account-avatar">{{ initials }}</div>
-    <span class="account-name">{{ fullName }}</span>
-    <span class="account-email" *ngIf="user()?.email">{{ user()?.email }}</span>
+    <div class="account-info">
+      <span class="account-name">{{ fullName }}</span>
+      <span class="account-email" *ngIf="user()?.email">{{ user()?.email }}</span>
+    </div>
   </div>
 
   <nav class="account-menu">
     <button type="button" class="account-menu-item" (click)="openEditPanel()">
       <ion-icon name="person-outline"></ion-icon>
       <span>Editar perfil</span>
-      <ion-icon name="chevron-forward" class="account-menu-chevron"></ion-icon>
+      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
     </button>
     <button type="button" class="account-menu-item" (click)="goToSubscription()">
       <ion-icon name="card-outline"></ion-icon>
       <span>Suscripción</span>
-      <ion-icon name="chevron-forward" class="account-menu-chevron"></ion-icon>
+      <ion-icon name="chevron-forward-outline" class="account-menu-chevron"></ion-icon>
     </button>
   </nav>
 
@@ -61,9 +63,13 @@
       class="submit-button"
       (click)="saveProfile()"
       [disabled]="!formName.trim() || !formLastname.trim() || !formEmail.trim() || isSavingProfile"
+      [attr.aria-busy]="isSavingProfile"
     >
       <span *ngIf="!isSavingProfile">Guardar cambios</span>
-      <ion-spinner name="dots" *ngIf="isSavingProfile"></ion-spinner>
+      <ng-container *ngIf="isSavingProfile">
+        <ion-spinner name="dots" aria-hidden="true"></ion-spinner>
+        <span class="sr-only">Guardando cambios</span>
+      </ng-container>
     </button>
   </div>
 </ion-content>

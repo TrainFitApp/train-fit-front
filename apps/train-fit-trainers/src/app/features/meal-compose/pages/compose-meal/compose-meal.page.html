@@ -23,20 +23,25 @@
   <div class="field-row">
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-      <select class="input-field" [(ngModel)]="mealSlot">
+      <select class="input-field select-field" aria-label="Comida" [(ngModel)]="mealSlot">
         <option *ngFor="let slot of mealSlots" [value]="slot">{{ slot }}</option>
       </select>
     </div>
     <div class="input-wrapper">
       <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-      <input type="date" class="input-field" [(ngModel)]="date" />
+      <input type="date" class="input-field" aria-label="Fecha" [(ngModel)]="date" />
     </div>
   </div>
 
   <div class="food-item-card" *ngFor="let item of items; let i = index; trackBy: trackByIndex">
     <div class="food-item-header">
       <span class="food-item-title">Alimento {{ i + 1 }}</span>
-      <button type="button" class="remove-alternative-btn" (click)="removeFoodItem(i)">
+      <button
+        type="button"
+        class="remove-alternative-btn"
+        [attr.aria-label]="'Eliminar alimento ' + (i + 1)"
+        (click)="removeFoodItem(i)"
+      >
         <ion-icon name="trash-outline"></ion-icon>
       </button>
     </div>
@@ -47,7 +52,7 @@
         {{ item.recipeId ? item.recipeName : item.productName }}
         <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
       </span>
-      <button type="button" class="clear-product-btn" (click)="clearProduct(i)">
+      <button type="button" class="clear-product-btn" aria-label="Quitar producto seleccionado" (click)="clearProduct(i)">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>

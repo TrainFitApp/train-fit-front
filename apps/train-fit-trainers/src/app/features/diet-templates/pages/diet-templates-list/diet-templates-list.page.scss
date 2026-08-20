@@ -1,140 +1,256 @@
 @import '../../../../../theme/skeleton';
 @import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+@import '../../../../../theme/animations';
 
 .templates-content {
   --background: var(--tf-bg);
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 12px;
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-6);
 }
 
 .page-hint {
-  font-size: 0.82rem;
+  font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
-  margin: 0 0 16px;
-  line-height: 1.4;
+  line-height: var(--tf-line-height-base);
+  margin: 0 0 var(--tf-space-4);
 }
 
 .input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
+  @include tf-input-wrapper;
+  height: 46px;
+  margin-bottom: var(--tf-space-3);
 }
 
 .input-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--tf-text-muted);
+  @include tf-input-icon;
   font-size: 1.1rem;
 }
 
 .input-field {
-  width: 100%;
-  height: 46px;
-  padding: 0 14px 0 40px;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: 10px;
-  color: var(--tf-text);
-  font-size: 0.9rem;
-
-  &::placeholder {
-    color: var(--tf-text-muted);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--tf-accent);
-  }
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
 }
 
 .submit-button {
   @include tf-gradient-button;
   width: 100%;
   height: 48px;
-  margin-bottom: 20px;
-  font-size: 0.92rem;
+  margin-bottom: var(--tf-space-5);
+  font-size: var(--tf-font-size-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.detail-skeleton {
+// --- Skeleton de carga: misma forma que la fila real (icono + nombre +
+// metadato), no dos bloques genéricos sin relación con el contenido final ---
+.templates-skeleton,
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--tf-space-2);
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.skeleton-block,
+.skeleton-line {
+  @include tf-skeleton-shimmer;
+}
+
+.skeleton-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.skeleton-name-block {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.skeleton-block {
-  @include tf-skeleton-shimmer;
-  border-radius: 12px;
+.skeleton-line {
+  border-radius: 4px;
+  height: 12px;
+
+  &--name {
+    width: 50%;
+    height: 14px;
+  }
+
+  &--meta {
+    width: 30%;
+  }
 }
 
-.section-error p,
-.empty-hint {
-  font-size: 0.86rem;
-  color: var(--tf-text-muted);
+// --- Estados de sección (error / vacío) — mismo patrón que clients.page/
+// dashboard.page (icono + título + texto [+ CTA]), no un párrafo suelto.
+// Padding reducido respecto al patrón de página completa: el formulario de
+// creación arriba ya ocupa la cabecera de la pantalla, esto es una sección. ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  gap: 10px;
+  padding: var(--tf-space-8) var(--tf-space-6) 0;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--tf-text-faint);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--tf-text);
+    margin: 0;
+  }
+
+  p {
+    font-size: var(--tf-font-size-base);
+    line-height: 1.5;
+    max-width: 34ch;
+    margin: 0 0 4px;
+  }
 }
 
 .retry-button {
-  display: block;
-  margin: 8px auto 0;
-  background: none;
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
+  margin-top: 8px;
+  height: var(--tf-touch-min);
+  padding: 0 20px;
+  background: var(--tf-surface-5);
   color: var(--tf-text);
-  padding: 8px 16px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-size: var(--tf-font-size-base);
+  font-weight: 700;
   cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .template-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: 10px;
-  cursor: pointer;
+  border-radius: var(--tf-radius-md);
+  @include tf-card-in-stagger;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
 
-  ion-icon:first-child {
-    color: var(--tf-accent);
-    font-size: 1.2rem;
+  &:hover {
+    border-color: var(--tf-border-strong);
   }
+}
+
+// Zona navegable de la fila (nombre + metadato) — botón real separado del
+// botón de eliminar, en vez de anidar un <button> dentro de otro elemento
+// clicable (accesible por teclado, sin conflicto de foco).
+.template-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--tf-radius-md);
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover,
+  &:active {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.template-row-icon {
+  flex-shrink: 0;
+  color: var(--tf-accent);
+  font-size: 1.2rem;
 }
 
 .template-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
 }
 
 .template-name {
-  font-size: 0.9rem;
+  font-size: var(--tf-font-size-base);
   color: var(--tf-text);
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .template-meta {
-  font-size: 0.76rem;
+  font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
 }
 
+// Objetivo táctil de 44px (PRODUCT.md) — antes 36px. Transparente por
+// defecto para no leerse como una card anidada dentro de la fila.
 .delete-template-btn {
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  margin-right: var(--tf-space-1);
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-muted);
   cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
 
-  &:hover {
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:hover,
+  &:active {
     color: var(--tf-danger);
+    background: var(--tf-danger-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 }
