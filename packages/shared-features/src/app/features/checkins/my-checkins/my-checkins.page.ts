@@ -41,10 +41,12 @@ export class MyCheckinsPage implements OnInit {
     this.load();
   }
 
-  // Mismo defaultHref que tenía el ion-back-button nativo que sustituye
-  // este botón (ver my-checkins.page.html).
+  // Antes volvía a '/tabs' (defaultHref del ion-back-button nativo que
+  // sustituye este botón) — con el único punto de entrada ahora siendo la
+  // tarjeta "Mis check-ins" del tab Coach (ver coach.page.html), atrás debe
+  // volver ahí, no al tab por defecto.
   public close(): void {
-    void this.router.navigate(['/tabs']);
+    void this.router.navigate(['/tabs/coach']);
   }
 
   public load(): void {

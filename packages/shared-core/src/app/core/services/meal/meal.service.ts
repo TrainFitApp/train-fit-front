@@ -115,4 +115,20 @@ export class MealService {
   public getMealIndex(meal: Meal, dietDay: DietDay) {
     return dietDay.meals.findIndex((mTemp) => mTemp.name === meal.name);
   }
+
+  public setCustomProductConsumed(
+    mealId: string,
+    customProductId: string,
+    consumed: boolean
+  ): Observable<Meal> {
+    return this.mealAPIService.setCustomProductConsumed(mealId, customProductId, consumed);
+  }
+
+  public setCustomRecipeConsumed(
+    mealId: string,
+    customRecipeId: string,
+    consumed: boolean
+  ): Observable<Meal> {
+    return this.mealAPIService.setCustomRecipeConsumed(mealId, customRecipeId, consumed);
+  }
 }
