@@ -91,4 +91,28 @@ export class MealAPIService {
       `${MealAPIService.MEAL_ENDPOINT}/customrecipe/${mealId}/${customRecipeId}`
     );
   }
+
+  // TAREA (meals pautados) — marcar/desmarcar consumido un producto/receta
+  // pautados (mismo patrón que setMealCompleted en la app de trainer).
+  public setCustomProductConsumed(
+    mealId: string,
+    customProductId: string,
+    consumed: boolean
+  ): Observable<Meal> {
+    return this.http.patch<Meal>(
+      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customproducts/${customProductId}/consumed`,
+      { consumed }
+    );
+  }
+
+  public setCustomRecipeConsumed(
+    mealId: string,
+    customRecipeId: string,
+    consumed: boolean
+  ): Observable<Meal> {
+    return this.http.patch<Meal>(
+      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes/${customRecipeId}/consumed`,
+      { consumed }
+    );
+  }
 }

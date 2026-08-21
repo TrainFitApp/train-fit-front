@@ -202,7 +202,10 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public editCustomProduct(customProduct: CustomProduct): void {
-    if (this.selectionMode) return;
+    // Pautado — nunca editable directamente (backend, meal-service.js
+    // #assertMealEditable, ya lo rechazaría igualmente; esto solo evita
+    // navegar a un editor que fallaría al guardar).
+    if (this.selectionMode || customProduct.assignedByTrainerId) return;
     const product = customProduct.product;
     const isOwnProduct = !!product?.userId;
     const queryParams: any = {
@@ -225,7 +228,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public editCustomRecipe(instance: CustomRecipe): void {
-    if (this.selectionMode) return;
+    if (this.selectionMode || instance.assignedByTrainerId) return;
     this.navigationService.goToConfigRecipe({
       state: {
         mode: 'edit',
@@ -239,6 +242,9 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public deleteRecipe(meal: Meal, instance: CustomRecipe): void {
+    // Pautado — no eliminable (mismo criterio que editCustomRecipe).
+    if (instance.assignedByTrainerId) return;
+
     const recipeName =
       typeof instance.recipe === 'object' ? instance.recipe.name : this.translate.instant('COMMON.THIS');
 
@@ -277,6 +283,8 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   public deleteProduct(meal: Meal, product: CustomProduct): void {
+    if (product.assignedByTrainerId) return;
+
     const productTemp = product.product;
     const t = this.translate.instant.bind(this.translate);
     const alertOptions: AlertOptions = {
@@ -476,6 +484,75 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   public getCustomRecipesOrdered(meal: Meal): CustomRecipe[] {
     return meal.customRecipes || [];
+  }
+
+  // Pautado — separa lo que indicó el profesional (assignedByTrainerId,
+  // backend) de lo que añadió el propio cliente, reutilizando el mismo
+  // orden que ya tenían (getProductsAndOwnProductsOrdered/
+  // getCustomRecipesOrdered), solo filtrado.
+  public getPautadoProducts(meal: Meal): CustomProduct[] {
+    return this.getProductsAndOwnProductsOrdered(meal).filter((p) => !!p.assignedByTrainerId);
+  }
+
+  public getOwnProducts(meal: Meal): CustomProduct[] {
+    return this.getProductsAndOwnProductsOrdered(meal).filter((p) => !p.assignedByTrainerId);
+  }
+
+  public getPautadoRecipes(meal: Meal): CustomRecipe[] {
+    return this.getCustomRecipesOrdered(meal).filter((r) => !!r.assignedByTrainerId);
+  }
+
+  public getOwnRecipes(meal: Meal): CustomRecipe[] {
+    return this.getCustomRecipesOrdered(meal).filter((r) => !r.assignedByTrainerId);
+  }
+
+  public hasPautadoItems(meal: Meal): boolean {
+    return this.getPautadoProducts(meal).length > 0 || this.getPautadoRecipes(meal).length > 0;
+  }
+
+  // Tema "success" a nivel de meal cuando ya no queda nada pautado por
+  // marcar — mismo criterio visual que el checkbox individual (color
+  // success), extendido a la card completa como señal de "comida
+  // completada según lo indicado por tu profesional".
+  public isPautadoFullyConsumed(meal: Meal): boolean {
+    return (
+      this.hasPautadoItems(meal) &&
+      this.getPautadoProducts(meal).every((p) => p.consumed) &&
+      this.getPautadoRecipes(meal).every((r) => r.consumed)
+    );
+  }
+
+  // Marcar/desmarcar consumido — actualización optimista (mismo patrón que
+  // set.component.ts para los sets de entrenamiento), revertida si el
+  // backend rechaza la petición.
+  public toggleProductConsumed(product: CustomProduct): void {
+    const consumed = !product.consumed;
+    product.consumed = consumed;
+    this.mealService.setCustomProductConsumed(this.meal._id, product._id, consumed).subscribe({
+      error: () => {
+        product.consumed = !consumed;
+        this.ionicUtilService.showErrorToast(
+          this.translate.instant('MEAL.CONSUMED_UPDATE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
+          2500
+        );
+      },
+    });
+  }
+
+  public toggleRecipeConsumed(instance: CustomRecipe): void {
+    const consumed = !instance.consumed;
+    instance.consumed = consumed;
+    this.mealService.setCustomRecipeConsumed(this.meal._id, instance._id, consumed).subscribe({
+      error: () => {
+        instance.consumed = !consumed;
+        this.ionicUtilService.showErrorToast(
+          this.translate.instant('MEAL.CONSUMED_UPDATE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
+          2500
+        );
+      },
+    });
   }
 
   public getRecipeName(instance: CustomRecipe): string {

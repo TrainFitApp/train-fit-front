@@ -538,7 +538,11 @@
     "CLIPBOARD_SELECTION": "Selection in clipboard",
     "CLIPBOARD_TAP_TO_PASTE": "Tap a meal to paste",
     "ITEM_COUNT_SINGULAR": "item",
-    "ITEM_COUNT_PLURAL": "items"
+    "ITEM_COUNT_PLURAL": "items",
+    "PAUTADO_TITLE": "Prescribed",
+    "PAUTADO_SUBTITLE": "Products and recipes assigned by your coach",
+    "OWN_ITEMS_TITLE": "Your foods",
+    "CONSUMED_UPDATE_ERROR": "Could not update"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copied to clipboard",
