@@ -2015,6 +2015,10 @@
     "PINNED_NOTE": {
       "TITLE": "Pinned note",
       "DESCRIPTION": "Stays fixed to this exercise and this day of the routine, no matter which set or microcycle you're viewing. Great for technique reminders or adjustments you always want visible here."
+    },
+    "SET_OBJECTIVE": {
+      "TITLE": "Target set",
+      "DESCRIPTION": "Define the target you expect to achieve in the set here. During the workout you can record what was done and mark it as completed."
     }
   },
   "RECIPE_CARD": {

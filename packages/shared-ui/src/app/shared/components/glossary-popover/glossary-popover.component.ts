@@ -7,7 +7,8 @@ export type GlossaryTermKey =
   | 'BEST_SET'
   | 'EFFECTIVE_VOLUME'
   | 'SETS_COMPARISON'
-  | 'PINNED_NOTE';
+  | 'PINNED_NOTE'
+  | 'SET_OBJECTIVE';
 
 @Component({
   selector: 'app-glossary-popover',

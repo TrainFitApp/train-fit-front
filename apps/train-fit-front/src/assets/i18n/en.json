@@ -1982,6 +1982,10 @@
     "PINNED_NOTE": {
       "TITLE": "Pinned note",
       "DESCRIPTION": "Stays fixed to this exercise throughout all the routine's microcycles. Great for technique reminders or adjustments you always want visible here."
+    },
+    "SET_OBJECTIVE": {
+      "TITLE": "Target set",
+      "DESCRIPTION": "Define the mark you expect to reach in the set here. During training you can record what was actually done and set it as completed."
     }
   },
   "RECIPE_CARD": {

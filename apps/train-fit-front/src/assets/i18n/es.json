@@ -1988,6 +1988,10 @@
     "PINNED_NOTE": {
       "TITLE": "Nota anclada",
       "DESCRIPTION": "Se queda fija en este ejercicio en todos los microciclos de la rutina. Ideal para recordatorios de técnica o ajustes que quieres tener siempre a la vista aquí."
+    },
+    "SET_OBJECTIVE": {
+      "TITLE": "Serie objetivo",
+      "DESCRIPTION": "Define aquí la marca que esperas alcanzar en la serie. Durante el entrenamiento podrás registrar lo realizado y establecerla como completada."
     }
   },
   "RECIPE_CARD": {

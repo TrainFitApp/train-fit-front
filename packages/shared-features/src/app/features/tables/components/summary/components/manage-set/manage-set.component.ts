@@ -83,6 +83,7 @@ export class ManageSetComponent implements OnInit {
     if (this.isIsometric) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
+        weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
         restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
         restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
@@ -136,6 +137,17 @@ export class ManageSetComponent implements OnInit {
         }
       });
     }
+
+    // restSecondsEnabled ahora es formControlName (no [checked] de una sola
+    // vía), así que se puede togglear tocando el checkbox directamente o la
+    // card entera — en ambos casos dispara valueChanges, así que el
+    // limpiado del valor va aquí y no en el click handler (que solo cubría
+    // el caso "clic en la card").
+    this.setForm.get('restSecondsEnabled').valueChanges.subscribe((enabled) => {
+      if (!enabled) {
+        this.setForm.get('restSeconds')?.setValue(null, { emitEvent: false });
+      }
+    });
   }
 
   public get expectedTimeControl(): FormControl {
@@ -183,15 +195,12 @@ export class ManageSetComponent implements OnInit {
   }
 
   public toggleRestSeconds(): void {
+    // El limpiado de restSeconds al desactivar vive en el valueChanges de
+    // initSetForm — se dispara igual venga el toggle de aquí (clic en la
+    // card) o del propio checkbox (formControlName).
     const control = this.setForm.get('restSecondsEnabled');
     if (control) {
-      const newValue = !control.value;
-      control.setValue(newValue);
-
-      // Si se desactiva, limpiar el valor del input
-      if (!newValue) {
-        this.setForm.get('restSeconds')?.setValue(null);
-      }
+      control.setValue(!control.value);
     }
   }
 
@@ -305,7 +314,19 @@ export class ManageSetComponent implements OnInit {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
       }
-      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
+
+      if (
+        this.setForm.controls.weight.value !== null &&
+        this.setForm.controls.weight.value !== undefined
+      )
+        set.weight = this.setForm.controls.weight.value;
+
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     } else if (this.isCardio) {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
@@ -323,7 +344,12 @@ export class ManageSetComponent implements OnInit {
       )
         set.velocity = this.setForm.controls.velocity.value;
 
-      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     } else {
       if (
         !isNaN(this.setForm.controls.rangeREPStart.value) ||
@@ -418,7 +444,12 @@ export class ManageSetComponent implements OnInit {
       )
         set.velocity = this.setForm.controls.velocity.value;
 
-      set.restSeconds = this.setForm.controls.restSeconds.value ?? null;
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     }
 
     this.modalController.dismiss(set);

@@ -2,7 +2,8 @@
   <div class="manage-set-toolbar">
     <div class="header-content">
       <div class="title-section">
-        <ion-title class="manage-set-title">{{ 'TABLES.SET_OBJECTIVE_TITLE' | translate }}</ion-title>
+        <span class="manage-set-title">{{ 'TABLES.SET_OBJECTIVE_TITLE' | translate }}</span>
+        <app-glossary-info term="SET_OBJECTIVE" size="sm"></app-glossary-info>
       </div>
       <ion-buttons slot="end">
         <button class="close-action-button ripple-effect" (click)="close()">
@@ -26,6 +27,28 @@
               [timeControl]="expectedTimeControl"
               [label]="'TABLES.EXPECTED_TIME_LABEL' | translate"
             ></app-time-picker>
+          </div>
+        </div>
+
+        <div class="field-section">
+          <div class="field-label">
+            <span class="label-text">{{ 'TABLES.WEIGHT_LABEL' | translate }}</span>
+          </div>
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="weight"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                maxlength="6"
+                placeholder="{{ 'TABLES.WEIGHT_PLACEHOLDER' | translate }}"
+                appCursorEnd
+                appDecimalInput
+              >
+                <div slot="end" class="input-suffix">KG</div>
+              </ion-input>
+            </div>
           </div>
         </div>
 
@@ -439,7 +462,7 @@
       <div class="checkbox-wrapper">
         <div class="checkbox-item" (click)="toggleRestSeconds()">
           <ion-checkbox
-            [checked]="setForm.get('restSecondsEnabled')?.value"
+            formControlName="restSecondsEnabled"
             mode="ios"
             class="modern-checkbox"
             (click)="$event.stopPropagation()"

@@ -109,7 +109,12 @@
 
           <ng-container *ngIf="isIsometric; else nIsometric">
             <!-- Isometric Inputs -->
-            <ion-col size="10" class="time-col">
+            <ion-col size="5" class="weight-col">
+              <app-numeric-input [inputControl]="getFormControl('weight')" [label]="'TABLES.WEIGHT_LABEL' | translate"
+                placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
+                (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
+            </ion-col>
+            <ion-col size="5" class="time-col">
               <app-time-picker [timeControl]="getFormControl('time')" [label]="'TABLES.TIME_LABEL' | translate"
                 [isDone]="set.doned" (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
             </ion-col>
