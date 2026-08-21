@@ -127,10 +127,6 @@ export class CoachPage implements OnInit {
     this.loadTasks();
   }
 
-  public close(): void {
-    void this.router.navigate(['/tabs/profile']);
-  }
-
   public load(): void {
     this.state = 'loading';
     Promise.all([

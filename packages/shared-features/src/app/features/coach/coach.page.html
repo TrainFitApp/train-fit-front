@@ -1,11 +1,10 @@
 <ion-header class="ion-no-border">
   <div class="tf-page-header">
     <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="close()" aria-label="Volver">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
+      <!-- Sin botón de volver — Coach es un tab raíz, la navegación ya la
+           da la barra de tabs; el hueco se mantiene vacío (mismo ancho que
+           .tf-page-header__actions) solo para que el título siga centrado. -->
+      <div class="tf-page-header__back-section"></div>
       <div class="tf-page-header__title-section">
         <h1 class="tf-page-header__title">Coach</h1>
       </div>
