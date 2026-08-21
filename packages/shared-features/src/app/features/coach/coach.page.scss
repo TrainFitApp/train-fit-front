@@ -97,10 +97,16 @@
   }
 }
 
-.section-header-link {
+.section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   flex-shrink: 0;
-  padding: 0;
   margin-bottom: 8px;
+}
+
+.section-header-link {
+  padding: 0;
   background: none;
   border: none;
   color: #fe9b1a;
@@ -114,8 +120,13 @@
     opacity: 0.6;
   }
 
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
   @media (hover: hover) {
-    &:hover {
+    &:hover:not(:disabled) {
       opacity: 0.8;
     }
   }

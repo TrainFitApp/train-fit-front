@@ -218,6 +218,26 @@ export class CoachPage implements OnInit {
     return this.notifications.filter((n) => !n.read).length;
   }
 
+  public markingAllRead = false;
+
+  public markAllRead(): void {
+    if (this.markingAllRead || !this.unreadNotificationsCount) return;
+
+    this.markingAllRead = true;
+    this.notificationsApi.markAllRead().subscribe({
+      next: () => {
+        this.markingAllRead = false;
+        this.notifications.forEach((n) => (n.read = true));
+        this.updateVisibleNotifications();
+        this.notificationsService.markAllReadLocally();
+      },
+      error: () => {
+        this.markingAllRead = false;
+        this.ionicUtilService.showErrorToast('No se pudieron marcar como leídas', 'Error', 2500);
+      },
+    });
+  }
+
   public notificationIcon(notification: CoachNotification): string {
     return NOTIFICATION_ICONS[notification.type] || 'notifications-outline';
   }

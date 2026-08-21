@@ -83,50 +83,11 @@
     </button>
   </div>
 
-  <!-- === Notificaciones (coach-tab FASE3) === -->
-  <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
-    <div class="skeleton-block" style="height: 56px;"></div>
-  </div>
-
-  <div class="section-card" id="section-notifications" *ngIf="notificationsState === 'loaded'">
-    <div class="section-header-row">
-      <h2 class="section-heading">
-        Notificaciones
-        <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
-      </h2>
-      <button
-        type="button"
-        class="section-header-link"
-        *ngIf="notifications.length > 4"
-        (click)="toggleShowAllNotifications()"
-      >
-        {{ showAllNotifications ? 'Ver menos' : 'Ver todas' }}
-      </button>
-    </div>
-
-    <p class="empty-hint" *ngIf="!notifications.length">No tienes notificaciones todavía.</p>
-
-    <button
-      class="notification-card"
-      *ngFor="let notification of visibleNotifications; trackBy: trackByNotificationId"
-      [class.notification-card--unread]="!notification.read"
-      (click)="openNotification(notification)"
-    >
-      <span class="notification-dot" *ngIf="!notification.read"></span>
-      <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
-      <div class="action-info">
-        <span class="action-title">{{ notificationTitle(notification) }}</span>
-        <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
-      </div>
-      <ion-icon
-        *ngIf="isNotificationInteractive(notification)"
-        name="chevron-forward-outline"
-        class="action-chevron"
-      ></ion-icon>
-    </button>
-  </div>
-
   <!-- === Dashboard: pendiente de ti + tu plan actual === -->
+  <!-- Pendiente de ti va ANTES que Notificaciones: son acciones que
+       requieren algo de ti (check-in, propuesta de comida, cobro...), más
+       importante que un feed informativo — ver comentario del usuario en
+       la sesión de rediseño. -->
   <div class="detail-skeleton" *ngIf="dashboardState === 'loading'">
     <div class="skeleton-block" style="height: 64px;"></div>
     <div class="skeleton-block" style="height: 64px;"></div>
@@ -209,6 +170,60 @@
       </div>
     </div>
   </ng-container>
+
+  <!-- === Notificaciones (coach-tab FASE3) === -->
+  <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
+    <div class="skeleton-block" style="height: 56px;"></div>
+  </div>
+
+  <div class="section-card" id="section-notifications" *ngIf="notificationsState === 'loaded'">
+    <div class="section-header-row">
+      <h2 class="section-heading">
+        Notificaciones
+        <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
+      </h2>
+      <div class="section-header-actions">
+        <button
+          type="button"
+          class="section-header-link"
+          *ngIf="unreadNotificationsCount"
+          [disabled]="markingAllRead"
+          (click)="markAllRead()"
+        >
+          Leer todas
+        </button>
+        <button
+          type="button"
+          class="section-header-link"
+          *ngIf="notifications.length > 4"
+          (click)="toggleShowAllNotifications()"
+        >
+          {{ showAllNotifications ? 'Ver menos' : 'Ver todas' }}
+        </button>
+      </div>
+    </div>
+
+    <p class="empty-hint" *ngIf="!notifications.length">No tienes notificaciones todavía.</p>
+
+    <button
+      class="notification-card"
+      *ngFor="let notification of visibleNotifications; trackBy: trackByNotificationId"
+      [class.notification-card--unread]="!notification.read"
+      (click)="openNotification(notification)"
+    >
+      <span class="notification-dot" *ngIf="!notification.read"></span>
+      <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
+      <div class="action-info">
+        <span class="action-title">{{ notificationTitle(notification) }}</span>
+        <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
+      </div>
+      <ion-icon
+        *ngIf="isNotificationInteractive(notification)"
+        name="chevron-forward-outline"
+        class="action-chevron"
+      ></ion-icon>
+    </button>
+  </div>
 
   <!-- === Tareas de hoy (coach-tab FASE4) === -->
   <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
