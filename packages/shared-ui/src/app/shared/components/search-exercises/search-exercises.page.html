@@ -1,11 +1,10 @@
 <ion-header class="minimal-header">
   <div class="search-header">
     <div class="header-content">
-      <div class="back-section">
-        <button class="back-button" *ngIf="mode !== 'library'" (click)="modalController.dismiss()">
+      <div class="back-section" *ngIf="mode !== 'library'">
+        <button class="back-button" (click)="modalController.dismiss()">
           <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
-        <ion-menu-button class="back-button" *ngIf="mode === 'library'"></ion-menu-button>
       </div>
 
       <div class="search-section">

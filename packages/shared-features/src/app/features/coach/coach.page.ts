@@ -94,6 +94,15 @@ export class CoachPage implements OnInit {
   public notificationsState: ViewState = 'loading';
   public notifications: CoachNotification[] = [];
 
+  // Rediseño "menú de cards" — antes se mostraban TODAS las notificaciones
+  // apiladas de golpe; ahora un preview corto + "Mostrar más" (mismos datos
+  // ya cargados, sin llamada nueva al backend). Calculado explícitamente
+  // (no un getter reevaluado en cada ciclo de detección de cambios del
+  // *ngFor — mismo criterio ya aplicado varias veces en este código base).
+  private static readonly NOTIFICATIONS_PREVIEW_COUNT = 4;
+  public visibleNotifications: CoachNotification[] = [];
+  public showAllNotifications = false;
+
   // coach-tab FASE4 — tareas/hábitos de hoy.
   public tasksState: ViewState = 'loading';
   public tasks: CoachTask[] = [];
@@ -160,18 +169,53 @@ export class CoachPage implements OnInit {
     });
   }
 
+  public get pendingCount(): number {
+    if (!this.dashboard) return 0;
+    return (
+      this.dashboard.pendingCheckins.length +
+      this.dashboard.pendingMealProposals.length +
+      (this.dashboard.nutritionPreferences?.pending ? 1 : 0) +
+      this.dashboard.pendingPayments.length
+    );
+  }
+
+  // Rediseño "menú de cards" — cada tarjeta de arriba lleva a su sección
+  // más abajo en la misma página (no hay pantallas propias por sección
+  // todavía). Scroll nativo del elemento, no de IonContent: ion-content usa
+  // scroll real del propio host, scrollIntoView funciona tal cual.
+  public scrollToSection(sectionId: string): void {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   // --- Notificaciones (coach-tab FASE3) ---
   public loadNotifications(): void {
     this.notificationsState = 'loading';
     this.notificationsApi.getMine().subscribe({
       next: (notifications) => {
         this.notifications = notifications || [];
+        this.showAllNotifications = false;
+        this.updateVisibleNotifications();
         this.notificationsState = 'loaded';
       },
       error: () => {
         this.notificationsState = 'error';
       },
     });
+  }
+
+  private updateVisibleNotifications(): void {
+    this.visibleNotifications = this.showAllNotifications
+      ? this.notifications
+      : this.notifications.slice(0, CoachPage.NOTIFICATIONS_PREVIEW_COUNT);
+  }
+
+  public toggleShowAllNotifications(): void {
+    this.showAllNotifications = !this.showAllNotifications;
+    this.updateVisibleNotifications();
+  }
+
+  public get unreadNotificationsCount(): number {
+    return this.notifications.filter((n) => !n.read).length;
   }
 
   public notificationIcon(notification: CoachNotification): string {
@@ -266,6 +310,10 @@ export class CoachPage implements OnInit {
         this.tasksState = 'error';
       },
     });
+  }
+
+  public get completedTasksCount(): number {
+    return this.tasks.filter((t) => t.completedToday).length;
   }
 
   public toggleTask(task: CoachTask): void {

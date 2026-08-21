@@ -187,6 +187,9 @@ export class ConfigurationPage {
     this.navigationService.goToRestorePasswordPage();
   }
 
+  // Sin acceso propio en esta pantalla (quitados de "Opciones de perfil").
+  // Reubicados como tarjetas siempre visibles en el menú del tab Coach
+  // (CoachPage.goToCheckins()/goToNutritionPreferences(), mismas rutas).
   public goToMyCheckins(): void {
     void this.router.navigate(['/my-checkins']);
   }

@@ -7,8 +7,7 @@ import { DietTemplateApiService } from '../diet-templates/services/diet-template
 import { DietTemplate } from '../diet-templates/models/diet-template.model';
 import { CheckinTemplatesApiService } from '../checkin-templates/services/checkin-templates-api.service';
 import { CheckinTemplateDefinition } from '../checkin-templates/models/checkin-template.model';
-import { TrainerClientSummary } from '../clients/models/trainer-client-summary.model';
-import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
+import { ApplyCheckinTemplateModalComponent } from '../checkin-templates/components/apply-checkin-template-modal/apply-checkin-template-modal.component';
 import { RoutineOverviewRow, RoutinesOverviewService } from '../routines-overview/routines-overview.service';
 
 interface TemplateCategory {
@@ -111,22 +110,10 @@ export class TemplatesPage implements OnInit {
   public routineOverviewRows: RoutineOverviewRow[] = [];
   public loadingRoutineOverview = true;
 
-  // --- Panel: aplicar plantilla de check-in a clientes (mismo patrón que
-  // checkin-templates.page.ts) — Aplicar/Eliminar disponibles también desde
-  // la vista "Recientes" de este hub, no solo entrando al listado completo. ---
-  public showApplyPanel = false;
-  public applyingTemplate: CheckinTemplateDefinition | null = null;
-  public myClients: TrainerClientSummary[] = [];
-  public selectedClientIds = new Set<string>();
-  public isApplying = false;
-  public applyClientSearchQuery = '';
-  public filteredApplyClients: TrainerClientSummary[] = [];
-
   constructor(
     private workoutTemplateApi: WorkoutTemplateApiService,
     private dietTemplateApi: DietTemplateApiService,
     private checkinTemplatesApi: CheckinTemplatesApiService,
-    private trainerClientsApi: TrainerClientsApiService,
     private routinesOverviewService: RoutinesOverviewService,
     private ionicUtilService: IonicUtilService,
     private router: Router
@@ -282,101 +269,16 @@ export class TemplatesPage implements OnInit {
     });
   }
 
-  // --- Aplicar a clientes (mismo flujo que checkin-templates.page.ts) ---
-  public openApplyPanel(template: CheckinTemplateDefinition): void {
-    this.applyingTemplate = template;
-    this.selectedClientIds = new Set();
-    this.applyClientSearchQuery = '';
-    this.showApplyPanel = true;
-    if (this.myClients.length) {
-      this.applyFilteredClients();
-    } else {
-      this.trainerClientsApi.getMyClients().subscribe((clients) => {
-        this.myClients = clients || [];
-        this.applyFilteredClients();
-      });
-    }
-  }
-
-  public closeApplyPanel(): void {
-    this.showApplyPanel = false;
-  }
-
-  public onApplyClientSearchChange(value: string): void {
-    this.applyClientSearchQuery = value;
-    this.applyFilteredClients();
-  }
-
-  private applyFilteredClients(): void {
-    const query = this.applyClientSearchQuery.trim().toLowerCase();
-    this.filteredApplyClients = !query
-      ? this.myClients
-      : this.myClients.filter((c) => {
-          if (!c.user) return false;
-          const haystack = `${c.user.name} ${c.user.lastname} ${c.user.email}`.toLowerCase();
-          return haystack.includes(query);
-        });
-  }
-
-  public toggleClientSelected(client: TrainerClientSummary): void {
-    const id = client.user?._id;
-    if (!id) return;
-    if (this.selectedClientIds.has(id)) this.selectedClientIds.delete(id);
-    else this.selectedClientIds.add(id);
-  }
-
-  public isClientSelected(client: TrainerClientSummary): boolean {
-    return !!client.user && this.selectedClientIds.has(client.user._id);
-  }
-
-  public confirmApply(): void {
-    if (!this.applyingTemplate || !this.selectedClientIds.size || this.isApplying) return;
-
-    this.isApplying = true;
-    this.checkinTemplatesApi
-      .apply(this.applyingTemplate._id, [...this.selectedClientIds])
-      .subscribe({
-        next: (result) => {
-          this.isApplying = false;
-          this.showApplyPanel = false;
-          const total = result.applied.length + result.skipped.length;
-          this.ionicUtilService.showToast({
-            message:
-              result.skipped.length > 0
-                ? `Aplicada a ${result.applied.length} de ${total} clientes (${result.skipped.length} sin relación activa)`
-                : `Aplicada a ${result.applied.length} cliente${result.applied.length === 1 ? '' : 's'}`,
-            duration: 3500,
-          });
-        },
-        error: () => {
-          this.isApplying = false;
-          this.ionicUtilService.showErrorToast('No se pudo aplicar la plantilla', 'Error', 3000);
-        },
-      });
-  }
-
-  public getFullName(client: TrainerClientSummary): string {
-    if (!client.user) return 'Cliente';
-    return `${client.user.name} ${client.user.lastname}`.trim();
-  }
-
-  public getInitials(client: TrainerClientSummary): string {
-    if (!client.user) return '?';
-    const name = client.user.name?.charAt(0) || '';
-    const lastname = client.user.lastname?.charAt(0) || '';
-    return (name + lastname).toUpperCase() || '?';
-  }
-
-  private static readonly AVATAR_HUES = [18, 45, 200, 260, 320, 160];
-
-  public getAvatarHue(client: TrainerClientSummary): number {
-    const id = client.user?._id || '';
-    let sum = 0;
-    for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
-    return TemplatesPage.AVATAR_HUES[sum % TemplatesPage.AVATAR_HUES.length];
-  }
-
-  public trackByClientId(_index: number, client: TrainerClientSummary): string {
-    return client.user?._id || _index.toString();
+  // --- Aplicar a clientes ---
+  // Mismo modal real que checkin-templates.page.ts (ver comentario en
+  // ApplyCheckinTemplateModalComponent) en vez del <div position:fixed>
+  // hecho a mano de antes, que quedaba tapado por el header de esta página
+  // en escritorio.
+  public async openApplyPanel(template: CheckinTemplateDefinition): Promise<void> {
+    await this.ionicUtilService.showModal({
+      component: ApplyCheckinTemplateModalComponent,
+      componentProps: { template },
+      cssClass: 'tf-panel-modal',
+    });
   }
 }

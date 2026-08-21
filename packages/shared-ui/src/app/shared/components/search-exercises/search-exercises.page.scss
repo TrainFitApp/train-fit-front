@@ -300,19 +300,28 @@
 // Exercise Cards with Translucent Design
 .translucent-card {
   background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 
   &.selected {
     border-color: var(--ion-color-primary);
     background-color: rgba(var(--ion-color-primary-rgb), 0.04);
-    
+
     .exercise-name {
       color: var(--ion-color-primary) !important;
+    }
+  }
+
+  // Solo en punteros de precisión (mouse/trackpad) — en touch, :hover se
+  // quedaría "pegado" tras el tap en vez de resolverse al soltar.
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.24);
+      background-color: #181818;
     }
   }
 
@@ -494,29 +503,51 @@
 }
 
 // Versión web (escritorio) — 3 ejercicios por fila en vez de 1 solo,
-// aprovechando el ancho sobrante. La card pasa de fila horizontal
-// (imagen+info+acción en línea) a columna (imagen arriba, a todo el ancho
-// de su celda) porque una fila horizontal exprimida a 1/3 de pantalla deja
-// la imagen minúscula y el texto amontonado.
+// aprovechando el ancho sobrante. La card se queda en fila horizontal
+// (imagen+info+acción en línea, igual que en móvil) con el mismo thumbnail
+// pequeño y cuadrado — un GIF de demostración no es una foto recortable:
+// a todo lo ancho de la celda (banner) el object-fit: cover lo deja
+// desencuadrado. El ancho lo gana el texto, no la imagen.
 @media (min-width: 900px) {
   .exercises-content .exercises-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    // auto-fill con el ancho mínimo real de una card (thumbnail 72px + texto
+    // legible) en vez de un nº de columnas fijo — en 3 monitores anchos
+    // caben 4/5/6 columnas en vez de 3 estiradas con hueco muerto a los
+    // lados.
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     align-items: stretch;
+    gap: 14px;
   }
 
   .exercise-card {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+    align-items: flex-start;
+    height: 100%;
 
     .exercise-image {
-      width: 100%;
-      height: 140px;
+      width: 72px;
+      height: 72px;
+    }
+
+    .exercise-info {
+      // Altura de fila del grid marcada por la card más alta de esa fila —
+      // sin este tope, un ejercicio con muchos grupos musculares (varias
+      // líneas de pills) infla su propia card y desalinea el resto.
+      .exercise-header .exercise-name {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .muscle-groups {
+        max-height: 52px;
+        overflow: hidden;
+      }
     }
 
     .exercise-action {
-      align-self: flex-end;
+      align-self: center;
     }
   }
 }
