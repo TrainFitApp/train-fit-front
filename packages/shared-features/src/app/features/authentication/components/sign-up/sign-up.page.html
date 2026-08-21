@@ -892,9 +892,15 @@
                     ></ion-icon>
                     <input
                       type="text"
+                      inputmode="numeric"
+                      autocomplete="one-time-code"
+                      pattern="[0-9]*"
+                      maxlength="6"
                       [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"
                       class="input-field-modern verification-field-modern"
                       #codeInput
+                      (input)="onCodeInputChange($event)"
+                      (keydown.enter)="verifyCode()"
                     />
                   </div>
                 </div>

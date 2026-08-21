@@ -7,6 +7,7 @@ import { HttpService } from '../http/http.service';
 export class UserAPIService {
   private static readonly USERS_ENDPOINT = 'users';
   private static readonly AUTH_ACTIVATE_ENDPOINT = 'auth/activate';
+  private static readonly AUTH_RESEND_CODE_ENDPOINT = 'auth/resend-code';
   private static readonly AUTH_SOCIAL_REGISTER_ENDPOINT = 'auth/social/register';
   private static readonly AUTH_SOCIAL_COMPLETE_ENDPOINT = 'auth/social/complete';
   private static readonly USERS_SEND_MAIL_CODE_ENDPOINT = 'send/mail/code';
@@ -186,6 +187,12 @@ export class UserAPIService {
     return this.http.post<any>(`${UserAPIService.AUTH_ACTIVATE_ENDPOINT}`, {
       email,
       code,
+    });
+  }
+
+  public resendActivationCode(email: string): Observable<any> {
+    return this.http.post<any>(`${UserAPIService.AUTH_RESEND_CODE_ENDPOINT}`, {
+      email,
     });
   }
 }

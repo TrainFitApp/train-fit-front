@@ -108,7 +108,18 @@
         <div class="input-group">
           <div class="input-wrapper verification-input">
             <ion-icon name="shield-checkmark-outline" class="input-icon"></ion-icon>
-            <input type="text" [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate" class="input-field verification-field" #codeInput />
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]*"
+              maxlength="6"
+              [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"
+              class="input-field verification-field"
+              #codeInput
+              (input)="onCodeInputChange($event)"
+              (keydown.enter)="verifyCode()"
+            />
           </div>
         </div>
       </div>

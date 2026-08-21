@@ -253,6 +253,7 @@
             </div>
             <div class="header-row">
               <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+              <app-glossary-info term="PINNED_NOTE" size="sm"></app-glossary-info>
             </div>
           </div>
           <div class="action-wrapper">
@@ -274,6 +275,7 @@
               </div>
               <div class="header-row">
                 <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+                <app-glossary-info term="PINNED_NOTE" size="sm"></app-glossary-info>
               </div>
             </div>
             <div class="action-wrapper">
@@ -337,6 +339,9 @@
                   <span *ngIf="set.drop" class="intensity-drop">DS</span>
                   <span *ngIf="set.restPause" class="intensity-rp"
                     >RP {{ set.restPause }} Seg</span
+                  >
+                  <span *ngIf="set.restSeconds" class="intensity-rest"
+                    >{{ set.restSeconds }}s</span
                   >
 
                   <ion-buttons slot="end">

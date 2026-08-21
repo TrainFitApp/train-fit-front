@@ -40,6 +40,8 @@ import {
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { ExerciseHistoryService } from 'src/app/core/services/exercise-history/exercise-history.service';
+import { RestTimerService } from 'src/app/core/services/rest-timer/rest-timer.service';
+import { Set } from 'src/app/core/models/set';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTION_TYPE,
@@ -136,6 +138,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly adMobService = inject(AdMobService);
   private readonly exerciseHistoryService = inject(ExerciseHistoryService);
+  public readonly restTimerService = inject(RestTimerService);
 
   constructor(
     private navigationService: NavigationService,
@@ -178,6 +181,12 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
           // Recalcular previousWorkout solo si cambió a un workout diferente
           if (isNewWorkout && this.tableInUse) {
             this.setPreviousWorkout();
+          }
+
+          // Un timer de descanso de OTRO workout no debe seguir visible aquí.
+          const activeTimer = this.restTimerService.active();
+          if (isNewWorkout && activeTimer && activeTimer.workoutId !== this.currentWorkout._id) {
+            this.restTimerService.skip();
           }
 
           this.syncElapsedTimer();
@@ -402,6 +411,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
               // desde este timestamp si se retoma el workout más adelante.
               this.currentWorkout = { ...this.currentWorkout, startedAt: null };
               this.stopElapsedTicker();
+              this.restTimerService.skip();
 
               this.workoutService.clearStartedAt(this.currentWorkout).subscribe(() => {
                 // Sincronizar el workout completo con la tabla antes de navegar
@@ -569,6 +579,7 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
                   );
 
                   this.stopElapsedTicker();
+                  this.restTimerService.skip();
                   this.loading = false;
 
                   const finishAndNavigateBack = () => {
@@ -700,16 +711,26 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         case ACTIONS[ACTION_TYPES.rmCalculator].id:
           this.navigationService.goToRmCalculator();
           break;
+        case ACTIONS[ACTION_TYPES.stopWorkout].id:
+          this.stopWorkout();
+          break;
       }
     });
   }
 
   private getWorkoutOptions(): ACTION_TYPE[] {
-    return [
+    const options = [
       ACTIONS[ACTION_TYPES.moveExercises],
       ACTIONS[ACTION_TYPES.note],
       ACTIONS[ACTION_TYPES.rmCalculator],
     ];
+
+    // Solo tiene sentido detener un entrenamiento que está en curso.
+    if (this.user?.workoutInUse === this.currentWorkout?._id) {
+      options.push(ACTIONS[ACTION_TYPES.stopWorkout]);
+    }
+
+    return options;
   }
 
   public openExerciseOptions(event: Event, index: number): void {
@@ -856,6 +877,49 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
         exercise: exercise?.exercise || exercise,
       },
     });
+  }
+
+  public onSetCompleted(set: Set): void {
+    if (!set.restSeconds || !this.currentWorkout?._id) return;
+    this.restTimerService.start(this.currentWorkout._id, set._id, set.restSeconds);
+  }
+
+  public toggleRestTimerPause(): void {
+    if (this.restTimerService.paused()) {
+      this.restTimerService.resume();
+    } else {
+      this.restTimerService.pause();
+    }
+  }
+
+  public get restTimerCountdownLabel(): string {
+    const totalSeconds = this.restTimerService.remainingSeconds();
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  // Feedback flotante "+10"/"-10" al ajustar el descanso — cada toque genera
+  // su propio badge efímero (no reutiliza uno solo) para que toques rápidos
+  // y repetidos no se corten entre sí ni se bloqueen.
+  public restDeltaBadges: { id: number; value: number }[] = [];
+  private nextDeltaBadgeId = 0;
+
+  public adjustRestTimer(delta: number): void {
+    this.restTimerService.addSeconds(delta);
+    const id = this.nextDeltaBadgeId++;
+    this.restDeltaBadges.push({ id, value: delta });
+    // Red de seguridad por si animationend no llega a disparar (p.ej. el
+    // usuario cambia de pestaña a mitad de animación).
+    setTimeout(() => this.onDeltaBadgeDone(id), 900);
+  }
+
+  public onDeltaBadgeDone(id: number): void {
+    this.restDeltaBadges = this.restDeltaBadges.filter((d) => d.id !== id);
+  }
+
+  public trackByDeltaId(index: number, delta: { id: number; value: number }): number {
+    return delta.id;
   }
 
   public selectExercise(index: number): void {

@@ -2,7 +2,8 @@
   <div class="manage-set-toolbar">
     <div class="header-content">
       <div class="title-section">
-        <ion-title class="manage-set-title">{{ 'TABLES.SET_OBJECTIVE_TITLE' | translate }}</ion-title>
+        <span class="manage-set-title">{{ 'TABLES.SET_OBJECTIVE_TITLE' | translate }}</span>
+        <app-glossary-info term="SET_OBJECTIVE" size="sm"></app-glossary-info>
       </div>
       <ion-buttons slot="end">
         <button class="close-action-button ripple-effect" (click)="close()">
@@ -27,6 +28,32 @@
               [label]="'TABLES.EXPECTED_TIME_LABEL' | translate"
             ></app-time-picker>
           </div>
+        </div>
+
+        <div class="field-section">
+          <div class="field-label">
+            <span class="label-text">{{ 'TABLES.WEIGHT_LABEL' | translate }}</span>
+          </div>
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="weight"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                maxlength="6"
+                placeholder="{{ 'TABLES.WEIGHT_PLACEHOLDER' | translate }}"
+                appCursorEnd
+                appDecimalInput
+              >
+                <div slot="end" class="input-suffix">KG</div>
+              </ion-input>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-section">
+          <ng-container *ngTemplateOutlet="restSecondsCheckbox"></ng-container>
         </div>
       </ng-container>
 
@@ -82,6 +109,10 @@
                 ></ion-input>
               </div>
             </div>
+          </div>
+
+          <div class="checkbox-section">
+            <ng-container *ngTemplateOutlet="restSecondsCheckbox"></ng-container>
           </div>
         </ng-container>
       </ng-template>
@@ -302,6 +333,8 @@
         </div>
 
         <div class="checkbox-section">
+          <ng-container *ngTemplateOutlet="restSecondsCheckbox"></ng-container>
+
           <div class="checkbox-wrapper">
             <div class="checkbox-item" (click)="toggleCheckbox('isFail')">
               <ion-checkbox
@@ -420,7 +453,61 @@
           </div>
         </div>
       </ng-template>
+
     </div>
+
+    <!-- Descanso pautado tras esta serie — checkbox reutilizado en los 3
+         tipos de ejercicio (isométrico/cardio arriba, fuerza encima de FALLO) -->
+    <ng-template #restSecondsCheckbox>
+      <div class="checkbox-wrapper">
+        <div class="checkbox-item" (click)="toggleRestSeconds()">
+          <ion-checkbox
+            formControlName="restSecondsEnabled"
+            mode="ios"
+            class="modern-checkbox"
+            (click)="$event.stopPropagation()"
+          ></ion-checkbox>
+          <span class="checkbox-label">{{ 'TABLES.REST_SECONDS_LABEL' | translate }}</span>
+          <ion-icon
+            name="timer-outline"
+            class="checkbox-icon"
+            color="primary"
+          ></ion-icon>
+        </div>
+        <div
+          class="field-section"
+          *ngIf="setForm.get('restSecondsEnabled')?.value"
+        >
+          <div class="input-row">
+            <div class="input-field">
+              <ion-input
+                formControlName="restSeconds"
+                type="text"
+                inputmode="decimal"
+                fill="outline"
+                maxlength="3"
+                placeholder="{{ 'TABLES.REST_PLACEHOLDER' | translate }}"
+                appCursorEnd
+                appDecimalInput
+              >
+                <div slot="end" class="input-suffix">S</div>
+              </ion-input>
+            </div>
+          </div>
+          <div class="rest-presets">
+            <button
+              type="button"
+              *ngFor="let preset of REST_PRESETS"
+              class="rest-preset-chip"
+              [class.active]="setForm.get('restSeconds').value == preset"
+              (click)="setRestPreset(preset)"
+            >
+              {{ preset }}s
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
 
     <!-- Card explicativo -->
     <div class="info-explainer">

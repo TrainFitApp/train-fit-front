@@ -87,21 +87,19 @@
 
 .summary-workout-meta {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   margin-bottom: 0;
-  flex-wrap: nowrap;
 }
 
 .summary-workout-name {
+  width: 100%;
   min-width: 0;
-  max-width: calc(100% - 60px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: clamp(1.26rem, 3.7dvh, 1.55rem);
-  line-height: 1.18;
+  overflow-wrap: break-word;
+  white-space: normal;
+  font-size: clamp(1.15rem, 3.4dvh, 1.5rem);
+  line-height: 1.22;
   font-weight: 800;
   color: var(--summary-ink);
   margin: 0;
@@ -109,7 +107,7 @@
 
 .summary-date-chip {
   flex: 0 0 auto;
-  max-width: 42%;
+  max-width: 100%;
   padding: 5px 8px;
   border-radius: 999px;
   background: rgba(254, 144, 0, 0.1);
@@ -332,10 +330,25 @@
     min-height: 22px;
     padding: 2px 6px;
     border-radius: 999px;
-    background: rgba(45, 211, 111, 0.12);
-    color: #7ee2a8;
     font-size: 0.65rem;
     font-weight: 800;
+  }
+
+  // Mismo mapeo de color que el resto de la app (set.component.scss /
+  // statistics.page.scss): RP azul, DS rojo, FALLO primary.
+  .badge-restPause {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+  }
+
+  .badge-drop {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+  }
+
+  .badge-fail {
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+    color: var(--ion-color-primary);
   }
 }
 
@@ -401,16 +414,6 @@ ion-footer {
   .summary-stat {
     min-height: 68px;
     padding: 10px 7px;
-  }
-
-  .summary-workout-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .summary-date-chip {
-    max-width: 100%;
   }
 
   .set-main {

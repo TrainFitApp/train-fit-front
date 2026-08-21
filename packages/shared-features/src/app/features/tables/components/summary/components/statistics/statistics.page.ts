@@ -4,29 +4,31 @@ import {
   OnInit,
   ViewChild,
   OnDestroy,
-} from '@angular/core';
-import { Chart, registerables } from 'chart.js';
-import { ActivatedRoute } from '@angular/router';
-import { AlertOptions, NavController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
-import { Table } from 'src/app/core/models/table';
-import { Workout } from 'src/app/core/models/workout';
-import { CustomExercise } from 'src/app/core/models/customExercise';
-import { Set as ISet } from 'src/app/core/models/set';
+} from "@angular/core";
+import { Chart, registerables } from "chart.js";
+import { ActivatedRoute } from "@angular/router";
+import { AlertOptions, NavController } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
+import { Table } from "src/app/core/models/table";
+import { Workout } from "src/app/core/models/workout";
+import { CustomExercise } from "src/app/core/models/customExercise";
+import { Set as ISet } from "src/app/core/models/set";
 import {
   formatRirValue,
   isRirFail,
   normalizeRirValue,
   RIR_FAIL_VALUE,
-} from 'src/app/core/models/rir';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+} from "src/app/core/models/rir";
+import { TableService } from "src/app/core/services/table/table.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
 import {
   ExerciseHistoryService,
   ExerciseHistoryStats,
-} from 'src/app/core/services/exercise-history/exercise-history.service';
-import { take } from 'rxjs/operators';
-import { formatSecondsAsTime, parseTimeToSeconds } from 'src/app/shared/utils';
+} from "src/app/core/services/exercise-history/exercise-history.service";
+import { take } from "rxjs/operators";
+import { formatSecondsAsTime, parseTimeToSeconds } from "src/app/shared/utils";
+import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
+import { PinnedExerciseNote } from "src/app/core/models/pinned-exercise-note";
 
 Chart.register(...registerables);
 
@@ -49,6 +51,7 @@ interface SessionSet {
   isRestPause: boolean;
   isFail: boolean;
   restPause?: number;
+  restSeconds?: number;
   dropSeries?: SubSerie[];
   restPauseSeries?: SubSerie[];
 }
@@ -128,12 +131,12 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-statistics',
-  templateUrl: './statistics.page.html',
-  styleUrls: ['./statistics.page.scss'],
+  selector: "app-statistics",
+  templateUrl: "./statistics.page.html",
+  styleUrls: ["./statistics.page.scss"],
 })
 export class StatisticsPage implements OnInit, OnDestroy {
-  @ViewChild('progressionCanvas') progressionCanvas: ElementRef;
+  @ViewChild("progressionCanvas") progressionCanvas: ElementRef;
 
   public table: Table;
 
@@ -142,7 +145,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public exercises: CustomExercise[] = [];
 
   // Selection State
-  public selectedWorkoutName: string = '';
+  public selectedWorkoutName: string = "";
   public selectedExerciseId: string | null = null;
   public selectedExerciseName: string | null = null;
   public selectedSetIndex: number = 0; // 0 significa "Serie 1"
@@ -150,7 +153,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   // Chart State
   public chart: Chart | null = null;
-  public chartMode: 'evolution' | 'volume' = 'evolution'; // evolution (series) o volume (efectivo/RIR)
+  public chartMode: "evolution" | "volume" = "evolution"; // evolution (series) o volume (efectivo/RIR)
 
   // Data State
   public historyData: SessionData[] = [];
@@ -166,11 +169,13 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public optionsForB: Array<{ idx: number; splitIndex: number }> = [];
 
   public get compareSplitIndexA(): number | undefined {
-    return this.optionsForA.find((o) => o.idx === this.compareIndexA)?.splitIndex;
+    return this.optionsForA.find((o) => o.idx === this.compareIndexA)
+      ?.splitIndex;
   }
 
   public get compareSplitIndexB(): number | undefined {
-    return this.optionsForB.find((o) => o.idx === this.compareIndexB)?.splitIndex;
+    return this.optionsForB.find((o) => o.idx === this.compareIndexB)
+      ?.splitIndex;
   }
 
   // Metrics
@@ -190,7 +195,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // Calendar State
   public calendarCurrentDate: Date = new Date();
   public calendarDays: CalendarDay[] = [];
-  public monthYearString: string = '';
+  public monthYearString: string = "";
   public hasCompletedWorkouts: boolean = false;
   public uniqueWorkoutTypes: Array<{ name: string; color: string }> = [];
 
@@ -200,29 +205,29 @@ export class StatisticsPage implements OnInit, OnDestroy {
   private langChangeSubscription: any;
 
   private readonly SET_COLORS = [
-    '#fe9000',
-    '#d4af37',
-    '#3880ff',
-    '#2dd36f',
-    '#eb445a',
-    '#a78bfa',
-    '#ffc409',
-    '#00d98b',
-    '#4a9eff',
-    '#ffd359',
+    "#fe9000",
+    "#d4af37",
+    "#3880ff",
+    "#2dd36f",
+    "#eb445a",
+    "#a78bfa",
+    "#ffc409",
+    "#00d98b",
+    "#4a9eff",
+    "#ffd359",
   ];
 
   private availableColors = [
-    '#fe9000',
-    '#3880ff',
-    '#2dd36f',
-    '#ffd359',
-    '#ffc455',
-    '#eb445a',
-    '#a78bfa',
-    '#00d98b',
-    '#ffc409',
-    '#4a9eff',
+    "#fe9000",
+    "#3880ff",
+    "#2dd36f",
+    "#ffd359",
+    "#ffc455",
+    "#eb445a",
+    "#a78bfa",
+    "#00d98b",
+    "#ffc409",
+    "#4a9eff",
   ];
   public weekDaysHeader: string[];
 
@@ -236,6 +241,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // de consumidor ('/statistics', sin :clientId): pide su propio histórico,
   // exactamente como siempre.
   public clientIdForHistory: string | null = null;
+  // Nota anclada a la posición (día+ejercicio) de este ejercicio en el
+  // microciclo más reciente de la tabla — no varía al navegar el histórico,
+  // es la misma nota que se ve en "Añadir ejercicio" (config-exercise.page).
+  public pinnedNote: PinnedExerciseNote | null = null;
 
   constructor(
     private tableService: TableService,
@@ -243,20 +252,21 @@ export class StatisticsPage implements OnInit, OnDestroy {
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
     private route: ActivatedRoute,
-    public translate: TranslateService
-  ) { }
+    private pinnedExerciseNoteService: PinnedExerciseNoteService,
+    public translate: TranslateService,
+  ) {}
 
   ngOnInit() {
     this.weekDaysHeader = [
-      this.translate.instant('COMMON.MON'),
-      this.translate.instant('COMMON.TUE'),
-      this.translate.instant('COMMON.WED'),
-      this.translate.instant('COMMON.THU'),
-      this.translate.instant('COMMON.FRI'),
-      this.translate.instant('COMMON.SAT'),
-      this.translate.instant('COMMON.SUN'),
+      this.translate.instant("COMMON.MON"),
+      this.translate.instant("COMMON.TUE"),
+      this.translate.instant("COMMON.WED"),
+      this.translate.instant("COMMON.THU"),
+      this.translate.instant("COMMON.FRI"),
+      this.translate.instant("COMMON.SAT"),
+      this.translate.instant("COMMON.SUN"),
     ];
-    this.clientIdForHistory = this.route.snapshot.paramMap.get('clientId');
+    this.clientIdForHistory = this.route.snapshot.paramMap.get("clientId");
 
     this.table = this.tableService.currentTable();
     if (this.table && this.table.splits) {
@@ -267,13 +277,13 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
       this.weekDaysHeader = [
-        this.translate.instant('COMMON.MON'),
-        this.translate.instant('COMMON.TUE'),
-        this.translate.instant('COMMON.WED'),
-        this.translate.instant('COMMON.THU'),
-        this.translate.instant('COMMON.FRI'),
-        this.translate.instant('COMMON.SAT'),
-        this.translate.instant('COMMON.SUN'),
+        this.translate.instant("COMMON.MON"),
+        this.translate.instant("COMMON.TUE"),
+        this.translate.instant("COMMON.WED"),
+        this.translate.instant("COMMON.THU"),
+        this.translate.instant("COMMON.FRI"),
+        this.translate.instant("COMMON.SAT"),
+        this.translate.instant("COMMON.SUN"),
       ];
       this.updateCalendarDisplay();
       if (this.chart) {
@@ -370,7 +380,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       types.push({ name, color });
     });
     this.uniqueWorkoutTypes = types.sort((a, b) =>
-      a.name.localeCompare(b.name)
+      a.name.localeCompare(b.name),
     );
   }
 
@@ -381,10 +391,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
   }
 
   private generateMonthYearString() {
-    const locale = this.translate.currentLang === 'en' ? 'en' : 'es';
+    const locale = this.translate.currentLang === "en" ? "en" : "es";
     this.monthYearString = this.calendarCurrentDate.toLocaleDateString(locale, {
-      month: 'long',
-      year: 'numeric',
+      month: "long",
+      year: "numeric",
     });
   }
 
@@ -402,8 +412,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     for (let i = 0; i < adjustedStartDay; i++) {
       this.calendarDays.push({
-        day: '',
-        date: '',
+        day: "",
+        date: "",
         workoutNames: [],
         workouts: [],
         completed: false,
@@ -417,7 +427,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
       const workoutsWithColors = workoutNames.map((name) => ({
         name,
-        color: this.workoutColors.get(name) || '#ff6b35',
+        color: this.workoutColors.get(name) || "#ff6b35",
       }));
 
       this.calendarDays.push({
@@ -435,7 +445,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     this.calendarCurrentDate = new Date(
       this.calendarCurrentDate.getFullYear(),
       this.calendarCurrentDate.getMonth() + delta,
-      1
+      1,
     );
     this.updateCalendarDisplay();
   }
@@ -453,6 +463,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.exercises = workout.exercises;
       this.selectedExerciseId = null;
       this.selectedExerciseName = null;
+      this.pinnedNote = null;
       this.historyData = [];
       this.filteredHistory = [];
       this.comparisonData = null;
@@ -469,12 +480,43 @@ export class StatisticsPage implements OnInit, OnDestroy {
     this.selectedExerciseId = exerciseId;
     const exercise = this.exercises.find((ex) => ex._id === exerciseId);
     if (exercise) {
-      this.selectedExerciseName = exercise.exercise?.name || this.translate.instant('TABLES.STATS_SELECT_EXERCISE');
+      this.selectedExerciseName =
+        exercise.exercise?.name ||
+        this.translate.instant("TABLES.STATS_SELECT_EXERCISE");
       this.selectedSetIndex = 0; // Reset a primera serie
-      this.chartMode = 'evolution'; // Default mode
+      this.chartMode = "evolution"; // Default mode
       this.generateHistoryData();
       this.loadHistoricalStats(exercise);
+      this.loadPinnedNote(exercise);
     }
+  }
+
+  // Nota anclada del ejercicio en el microciclo más reciente de la tabla —
+  // misma nota que ya se ve en "Añadir ejercicio" (config-exercise.page),
+  // no cambia al navegar el histórico de microciclos pasados.
+  private loadPinnedNote(exercise: CustomExercise): void {
+    this.pinnedNote = null;
+
+    const targetExDefId = exercise.exercise?._id;
+    const latestSplit = this.table?.splits?.[this.table.splits.length - 1];
+    if (!this.table?._id || !targetExDefId || !latestSplit) return;
+
+    const workoutIndex = latestSplit.workouts.findIndex(
+      (w) => w.name === this.selectedWorkoutName,
+    );
+    if (workoutIndex === -1) return;
+
+    const exerciseIndex = latestSplit.workouts[
+      workoutIndex
+    ].exercises.findIndex((e) => e.exercise?._id === targetExDefId);
+    if (exerciseIndex === -1) return;
+
+    this.pinnedExerciseNoteService
+      .getByPosition(this.table._id, workoutIndex, exerciseIndex)
+      .pipe(take(1))
+      .subscribe((note) => {
+        this.pinnedNote = note;
+      });
   }
 
   // Histórico a través de TODAS las rutinas del usuario (no solo la actual)
@@ -484,7 +526,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
     this.historicalStats = null;
     this.historicalStatsLoading = true;
     this.exerciseHistoryService
-      .getStatsForExercise$(exercise.exercise?._id ?? null, exercise.exercise?.name ?? '', this.clientIdForHistory)
+      .getStatsForExercise$(
+        exercise.exercise?._id ?? null,
+        exercise.exercise?.name ?? "",
+        this.clientIdForHistory,
+      )
       .pipe(take(1))
       .subscribe({
         next: (stats) => {
@@ -534,7 +580,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.table.splits.forEach((split) => {
       const workout = split.workouts.find(
-        (w) => w.name === this.selectedWorkoutName
+        (w) => w.name === this.selectedWorkoutName,
       );
       if (workout && workout.date) {
         const isStarted =
@@ -552,7 +598,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       return;
 
     const targetExDef = this.exercises.find(
-      (e) => e._id === this.selectedExerciseId
+      (e) => e._id === this.selectedExerciseId,
     );
     const targetExDefId = targetExDef?.exercise?._id;
     if (!targetExDefId) return;
@@ -562,11 +608,11 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.table.splits.forEach((split, index) => {
       const workout = split.workouts.find(
-        (w) => w.name === this.selectedWorkoutName
+        (w) => w.name === this.selectedWorkoutName,
       );
       if (workout && workout.date) {
         const targetEx = workout.exercises.find(
-          (e) => e.exercise?._id === targetExDefId
+          (e) => e.exercise?._id === targetExDefId,
         );
         if (targetEx && this.isExerciseStarted(targetEx)) {
           const filteredSets = targetEx.sets.filter(
@@ -574,7 +620,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
               s.doned ||
               (s.weight > 0 && s.reps > 0) ||
               (s.velocity && s.velocity > 0) ||
-              (s.time && parseTimeToSeconds(s.time) > 0)
+              (s.time && parseTimeToSeconds(s.time) > 0),
           );
 
           // Build SessionSet array with sub-series
@@ -597,6 +643,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
               isDropSet: s.drop === true,
               isRestPause: !!(s.restPause && s.restPause > 0),
               isFail: isRirFail(s.rir),
+              restSeconds: s.restSeconds,
               dropSeries: s.dropSetSeries || [],
               restPauseSeries: s.restPauseSeries || [],
             };
@@ -609,22 +656,22 @@ export class StatisticsPage implements OnInit, OnDestroy {
           const bestSet = this.getBestSet(targetEx.sets);
           const totalTimeSeconds = sessionSets.reduce(
             (acc, s) => acc + (s.timeSeconds || 0),
-            0
+            0,
           );
           const maxHoldSeconds = Math.max(
             ...sessionSets.map((s) => s.timeSeconds || 0),
-            0
+            0,
           );
           const maxV = Math.max(...sessionSets.map((s) => s.velocity || 0), 0);
 
           // Average RIR (only numeric, non-fail)
           const rirSets = sessionSets.filter(
-            (s) => typeof s.rirNumeric === 'number' && s.rirNumeric >= 0
+            (s) => typeof s.rirNumeric === "number" && s.rirNumeric >= 0,
           );
           const avgRir =
             rirSets.length > 0
               ? rirSets.reduce((acc, s) => acc + (s.rirNumeric ?? 0), 0) /
-              rirSets.length
+                rirSets.length
               : -1;
 
           // Calculate Effective Volume
@@ -645,7 +692,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
           const dropSetCount = sessionSets.filter((s) => s.isDropSet).length;
           const restPauseCount = sessionSets.filter(
-            (s) => s.isRestPause
+            (s) => s.isRestPause,
           ).length;
           let sessionMax1RM = 0;
           if (!this.isCardio && !this.isIsometric) {
@@ -670,7 +717,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
             maxHoldSeconds,
             isCardio: this.isCardio,
             isIsometric: this.isIsometric,
-            notes: targetEx.notes || '',
+            notes: targetEx.notes || "",
             avgRir,
             minRir:
               rirSets.length > 0
@@ -795,27 +842,27 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     if (this.isCardio) {
       this.personalRecord = Math.max(
-        ...this.historyData.map((h) => h.maxVelocity)
+        ...this.historyData.map((h) => h.maxVelocity),
       );
       this.metrics.max1RM = this.historyData.reduce(
         (acc, h) => acc + h.totalTimeSeconds / 60,
-        0
+        0,
       );
       this.metrics.totalVolume = this.historyData.length;
     } else if (this.isIsometric) {
       // personalRecord reciclado como "aguante más largo" (segundos), a
       // propósito, mismo patrón que ya usa cardio con maxVelocity.
       this.personalRecord = Math.max(
-        ...this.historyData.map((h) => h.maxHoldSeconds)
+        ...this.historyData.map((h) => h.maxHoldSeconds),
       );
       this.metrics.max1RM = this.historyData.reduce(
         (acc, h) => acc + h.totalTimeSeconds / 60,
-        0
+        0,
       );
       this.metrics.totalVolume = this.historyData.length;
     } else {
       this.personalRecord = Math.max(
-        ...this.historyData.map((h) => h.maxWeight)
+        ...this.historyData.map((h) => h.maxWeight),
       );
 
       let peak1RM = 0;
@@ -824,7 +871,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
           if (set.weight && set.reps) {
             const current1RM = this.calculate1RM(
               set.weight,
-              set.reps as number
+              set.reps as number,
             );
             if (current1RM > peak1RM) peak1RM = current1RM;
           }
@@ -833,7 +880,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
       this.metrics.max1RM = peak1RM;
       this.metrics.totalVolume = this.historyData.reduce(
         (acc, h) => acc + (h.volume || 0),
-        0
+        0,
       );
     }
   }
@@ -852,7 +899,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
     const data = [...this.filteredHistory].reverse();
     if (data.length === 0) return;
 
-    if (this.chartMode === 'evolution') {
+    if (this.chartMode === "evolution") {
       this.buildProgressionChart(data);
     } else {
       this.buildEffectiveVolumeChart(data);
@@ -860,7 +907,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
   }
 
   private buildEffectiveVolumeChart(data: SessionData[]) {
-    const ctx = this.progressionCanvas.nativeElement.getContext('2d');
+    const ctx = this.progressionCanvas.nativeElement.getContext("2d");
     const labels = data.map((h) => `M${h.splitIndex}`);
 
     if (this.isCardio) {
@@ -868,29 +915,31 @@ export class StatisticsPage implements OnInit, OnDestroy {
       const velocityData = data.map((h) => h.maxVelocity);
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
           labels,
           datasets: [
             {
-              type: 'bar',
-              label: this.translate.instant('TABLES.STATS_TOTAL_TIME') + ' (min)',
+              type: "bar",
+              label:
+                this.translate.instant("TABLES.STATS_TOTAL_TIME") + " (min)",
               data: timeData,
-              backgroundColor: 'rgba(56, 128, 255, 0.4)',
-              borderColor: '#3880ff',
+              backgroundColor: "rgba(56, 128, 255, 0.4)",
+              borderColor: "#3880ff",
               borderWidth: 1,
               borderRadius: 4,
-              yAxisID: 'y',
+              yAxisID: "y",
             },
             {
-              type: 'line',
-              label: this.translate.instant('TABLES.STATS_BEST_SPEED') + ' (km/h)',
+              type: "line",
+              label:
+                this.translate.instant("TABLES.STATS_BEST_SPEED") + " (km/h)",
               data: velocityData,
-              borderColor: '#fe9000',
+              borderColor: "#fe9000",
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 4,
-              yAxisID: 'y1',
+              yAxisID: "y1",
             },
           ],
         },
@@ -900,14 +949,19 @@ export class StatisticsPage implements OnInit, OnDestroy {
           plugins: {
             legend: {
               display: true,
-              position: 'top',
-              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+              position: "top",
+              labels: { color: "rgba(255,255,255,0.7)", font: { size: 10 } },
             },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  if (ctx.datasetIndex === 0) return ` ${this.translate.instant('TABLES.STATS_TIME')}: ${ctx.raw} min`;
-                  return ` ${this.translate.instant('TABLES.STATS_SPEED')}: ${ctx.raw} km/h`;
+                  if (ctx.datasetIndex === 0)
+                    return ` ${this.translate.instant("TABLES.STATS_TIME")}: ${
+                      ctx.raw
+                    } min`;
+                  return ` ${this.translate.instant("TABLES.STATS_SPEED")}: ${
+                    ctx.raw
+                  } km/h`;
                 },
               },
             },
@@ -915,26 +969,26 @@ export class StatisticsPage implements OnInit, OnDestroy {
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
             y: {
-              position: 'left',
+              position: "left",
               title: {
                 display: true,
-                text: 'min',
-                color: 'rgba(255,255,255,0.3)',
+                text: "min",
+                color: "rgba(255,255,255,0.3)",
               },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
             y1: {
-              position: 'right',
+              position: "right",
               title: {
                 display: true,
-                text: 'km/h',
-                color: 'rgba(254, 144, 0, 0.8)',
+                text: "km/h",
+                color: "rgba(254, 144, 0, 0.8)",
               },
               grid: { drawOnChartArea: false },
-              ticks: { color: 'rgba(254, 144, 0, 0.8)' },
+              ticks: { color: "rgba(254, 144, 0, 0.8)" },
             },
           },
         },
@@ -945,16 +999,17 @@ export class StatisticsPage implements OnInit, OnDestroy {
       const timeData = data.map((h) => h.totalTimeSeconds / 60);
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
           labels,
           datasets: [
             {
-              type: 'bar',
-              label: this.translate.instant('TABLES.STATS_TOTAL_TIME') + ' (min)',
+              type: "bar",
+              label:
+                this.translate.instant("TABLES.STATS_TOTAL_TIME") + " (min)",
               data: timeData,
-              backgroundColor: 'rgba(56, 128, 255, 0.4)',
-              borderColor: '#3880ff',
+              backgroundColor: "rgba(56, 128, 255, 0.4)",
+              borderColor: "#3880ff",
               borderWidth: 1,
               borderRadius: 4,
             },
@@ -966,28 +1021,31 @@ export class StatisticsPage implements OnInit, OnDestroy {
           plugins: {
             legend: {
               display: true,
-              position: 'top',
-              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+              position: "top",
+              labels: { color: "rgba(255,255,255,0.7)", font: { size: 10 } },
             },
             tooltip: {
               callbacks: {
-                label: (ctx) => ` ${this.translate.instant('TABLES.STATS_TIME')}: ${ctx.raw} min`,
+                label: (ctx) =>
+                  ` ${this.translate.instant("TABLES.STATS_TIME")}: ${
+                    ctx.raw
+                  } min`,
               },
             },
           },
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
             y: {
-              position: 'left',
+              position: "left",
               title: {
                 display: true,
-                text: 'min',
-                color: 'rgba(255,255,255,0.3)',
+                text: "min",
+                color: "rgba(255,255,255,0.3)",
               },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
           },
         },
@@ -997,30 +1055,32 @@ export class StatisticsPage implements OnInit, OnDestroy {
       const rirData = data.map((h) => (h.avgRir >= 0 ? h.avgRir : null));
 
       this.chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
           labels,
           datasets: [
             {
-              type: 'bar',
-              label: this.translate.instant('TABLES.STATS_EFFECTIVE_VOLUME') + ' (kg)',
+              type: "bar",
+              label:
+                this.translate.instant("TABLES.STATS_EFFECTIVE_VOLUME") +
+                " (kg)",
               data: volData,
-              backgroundColor: 'rgba(254, 144, 0, 0.4)',
-              borderColor: '#fe9000',
+              backgroundColor: "rgba(254, 144, 0, 0.4)",
+              borderColor: "#fe9000",
               borderWidth: 1,
               borderRadius: 4,
-              yAxisID: 'y',
+              yAxisID: "y",
             },
             {
-              type: 'line',
-              label: this.translate.instant('TABLES.STATS_AVG_RIR'),
+              type: "line",
+              label: this.translate.instant("TABLES.STATS_AVG_RIR"),
               data: rirData,
-              borderColor: '#3880ff',
-              backgroundColor: 'transparent',
+              borderColor: "#3880ff",
+              backgroundColor: "transparent",
               borderWidth: 3,
               pointRadius: 4,
               tension: 0.3,
-              yAxisID: 'y1',
+              yAxisID: "y1",
             },
           ],
         },
@@ -1030,14 +1090,19 @@ export class StatisticsPage implements OnInit, OnDestroy {
           plugins: {
             legend: {
               display: true,
-              position: 'top',
-              labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+              position: "top",
+              labels: { color: "rgba(255,255,255,0.7)", font: { size: 10 } },
             },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  if (ctx.datasetIndex === 0) return ` ${this.translate.instant('TABLES.STATS_VOLUME')}: ${ctx.raw} kg`;
-                  return ` ${this.translate.instant('TABLES.STATS_AVG_RIR')}: ${ctx.raw}`;
+                  if (ctx.datasetIndex === 0)
+                    return ` ${this.translate.instant(
+                      "TABLES.STATS_VOLUME",
+                    )}: ${ctx.raw} kg`;
+                  return ` ${this.translate.instant("TABLES.STATS_AVG_RIR")}: ${
+                    ctx.raw
+                  }`;
                 },
               },
             },
@@ -1045,28 +1110,28 @@ export class StatisticsPage implements OnInit, OnDestroy {
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
             y: {
-              position: 'left',
+              position: "left",
               title: {
                 display: true,
-                text: 'kg',
-                color: 'rgba(255,255,255,0.3)',
+                text: "kg",
+                color: "rgba(255,255,255,0.3)",
               },
-              ticks: { color: 'rgba(255,255,255,0.5)' },
+              ticks: { color: "rgba(255,255,255,0.5)" },
             },
             y1: {
-              position: 'right',
+              position: "right",
               reverse: true, // RIR bajo es más intenso
               title: {
                 display: true,
-                text: 'RIR',
-                color: 'rgba(255,255,255,0.3)',
+                text: "RIR",
+                color: "rgba(255,255,255,0.3)",
               },
               grid: { drawOnChartArea: false },
               min: 0,
-              ticks: { color: 'rgba(56, 128, 255, 0.8)' },
+              ticks: { color: "rgba(56, 128, 255, 0.8)" },
             },
           },
         },
@@ -1076,8 +1141,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   // --- Chart: Progression (Weight and Reps of Selected/Best Set) ---
   private buildProgressionChart(data: SessionData[]) {
-    const ctx = this.progressionCanvas.nativeElement.getContext('2d');
-    const labels = data.map((h) => this.translate.instant('TABLES.STATS_MICROCYCLE', { n: h.splitIndex }));
+    const ctx = this.progressionCanvas.nativeElement.getContext("2d");
+    const labels = data.map((h) =>
+      this.translate.instant("TABLES.STATS_MICROCYCLE", { n: h.splitIndex }),
+    );
 
     let weightData: (number | null)[] = [];
     let repsData: (number | null)[] = [];
@@ -1100,57 +1167,59 @@ export class StatisticsPage implements OnInit, OnDestroy {
         : s.reps || 0;
     });
 
-    const yUnit = this.isCardio ? 'km/h' : this.isIsometric ? 'min' : 'kg';
-    const repsUnit = this.isCardio ? 'min' : 'reps';
+    const yUnit = this.isCardio ? "km/h" : this.isIsometric ? "min" : "kg";
+    const repsUnit = this.isCardio ? "min" : "reps";
 
     const primaryLabel = this.isCardio
-      ? this.translate.instant('TABLES.STATS_SPEED')
+      ? this.translate.instant("TABLES.STATS_SPEED")
       : this.isIsometric
-        ? this.translate.instant('TABLES.STATS_TIME')
-        : this.translate.instant('TABLES.STATS_WEIGHT') + ' (kg)';
+      ? this.translate.instant("TABLES.STATS_TIME")
+      : this.translate.instant("TABLES.STATS_WEIGHT") + " (kg)";
 
     const datasets: any[] = [
       {
         label: primaryLabel,
         data: weightData as any,
-        borderColor: '#fe9000',
-        backgroundColor: 'rgba(254, 144, 0, 0.12)',
+        borderColor: "#fe9000",
+        backgroundColor: "rgba(254, 144, 0, 0.12)",
         borderWidth: 3,
         tension: 0.3,
         fill: true,
-        pointBackgroundColor: '#fe9000',
-        pointBorderColor: '#fff',
+        pointBackgroundColor: "#fe9000",
+        pointBorderColor: "#fff",
         pointBorderWidth: 2,
         pointRadius: 5,
         pointHoverRadius: 7,
         spanGaps: true,
-        yAxisID: 'y',
+        yAxisID: "y",
       },
     ];
 
     // Isométrico: una sola serie (tiempo), sin segunda métrica.
     if (!this.isIsometric) {
       datasets.push({
-        label: this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS'),
+        label: this.isCardio
+          ? this.translate.instant("TABLES.STATS_TIME")
+          : this.translate.instant("TABLES.STATS_REPS"),
         data: repsData as any,
-        borderColor: '#3880ff',
-        backgroundColor: 'rgba(56, 128, 255, 0.05)',
+        borderColor: "#3880ff",
+        backgroundColor: "rgba(56, 128, 255, 0.05)",
         borderWidth: 2,
         borderDash: [5, 4],
         tension: 0.3,
         fill: false,
-        pointBackgroundColor: '#3880ff',
-        pointBorderColor: '#fff',
+        pointBackgroundColor: "#3880ff",
+        pointBorderColor: "#fff",
         pointBorderWidth: 1,
         pointRadius: 3,
         pointHoverRadius: 5,
         spanGaps: true,
-        yAxisID: 'y1',
+        yAxisID: "y1",
       });
     }
 
     this.chart = new Chart(ctx, {
-      type: 'line',
+      type: "line",
       data: {
         labels,
         datasets,
@@ -1161,19 +1230,25 @@ export class StatisticsPage implements OnInit, OnDestroy {
         plugins: {
           legend: {
             display: true,
-            position: 'top',
-            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } },
+            position: "top",
+            labels: { color: "rgba(255,255,255,0.7)", font: { size: 10 } },
           },
           tooltip: {
             callbacks: {
               label: (ctx) => {
                 const v = ctx.raw as number;
-                if (v == null) return '';
+                if (v == null) return "";
                 if (ctx.datasetIndex === 0)
-                  return ` ${this.isCardio ? this.translate.instant('TABLES.STATS_SPEED') : this.translate.instant('TABLES.STATS_WEIGHT')
-                    }: ${v} ${yUnit}`;
-                return ` ${this.isCardio ? this.translate.instant('TABLES.STATS_TIME') : this.translate.instant('TABLES.STATS_REPS')
-                  }: ${v} ${repsUnit}`;
+                  return ` ${
+                    this.isCardio
+                      ? this.translate.instant("TABLES.STATS_SPEED")
+                      : this.translate.instant("TABLES.STATS_WEIGHT")
+                  }: ${v} ${yUnit}`;
+                return ` ${
+                  this.isCardio
+                    ? this.translate.instant("TABLES.STATS_TIME")
+                    : this.translate.instant("TABLES.STATS_REPS")
+                }: ${v} ${repsUnit}`;
               },
             },
           },
@@ -1181,28 +1256,31 @@ export class StatisticsPage implements OnInit, OnDestroy {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: 'rgba(255,255,255,0.5)' },
+            ticks: { color: "rgba(255,255,255,0.5)" },
           },
           y: {
-            position: 'left',
-            ticks: { color: 'rgba(255,255,255,0.5)' },
+            position: "left",
+            ticks: { color: "rgba(255,255,255,0.5)" },
           },
           y1: {
-            position: 'right',
+            position: "right",
             grid: { drawOnChartArea: false },
-            ticks: { color: 'rgba(56, 128, 255, 0.8)' },
+            ticks: { color: "rgba(56, 128, 255, 0.8)" },
           },
         },
       },
     });
   }
 
-  public async showNoteAlert(notes: string, title: string = this.translate.instant('NOTES.TITLE')) {
+  public async showNoteAlert(
+    notes: string,
+    title: string = this.translate.instant("NOTES.TITLE"),
+  ) {
     const alertOptions: AlertOptions = {
       header: title,
       message: notes,
-      buttons: [this.translate.instant('COMMON.OK')],
-      cssClass: 'notes-alert',
+      buttons: [this.translate.instant("COMMON.OK")],
+      cssClass: "notes-alert",
     };
     await this.ionicUtilService.showAlert(alertOptions);
   }
@@ -1210,16 +1288,16 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // --- Helpers ---
 
   public getDiffIcon(diff: number): string {
-    if (diff > 0) return 'trending-up-outline';
-    if (diff < 0) return 'trending-down-outline';
-    return 'remove-outline';
+    if (diff > 0) return "trending-up-outline";
+    if (diff < 0) return "trending-down-outline";
+    return "remove-outline";
   }
 
   public getDiffClass(diff: number, inverse: boolean = false): string {
-    if (diff === 0) return 'neutral';
+    if (diff === 0) return "neutral";
     const positive = diff > 0;
-    if (inverse) return positive ? 'negative' : 'positive'; // for RIR: lower is better
-    return positive ? 'positive' : 'negative';
+    if (inverse) return positive ? "negative" : "positive"; // for RIR: lower is better
+    return positive ? "positive" : "negative";
   }
 
   public formatPerformedRir(rir: unknown): string {
@@ -1232,8 +1310,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   private formatDate(date: Date): string {
     const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
   }
 
@@ -1246,7 +1324,7 @@ export class StatisticsPage implements OnInit, OnDestroy {
           (s.weight > 0 && s.reps > 0) ||
           (s.velocity && s.velocity > 0) ||
           (s.distance && s.distance > 0) ||
-          parseTimeToSeconds(s.time) > 0
+          parseTimeToSeconds(s.time) > 0,
       )
     );
   }

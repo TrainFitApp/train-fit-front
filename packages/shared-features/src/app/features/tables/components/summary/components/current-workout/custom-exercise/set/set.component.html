@@ -37,10 +37,10 @@
               <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
 
               <!-- DROP SET label (always show if drop is true) -->
-              <span *ngIf="set.drop" class="drop-label">{{ 'TABLES.DROP_SET' | translate }}</span>
+              <span *ngIf="set.drop" class="drop-label">DP</span>
 
               <!-- REST PAUSE label (always show if restPause is set) -->
-              <span *ngIf="set.restPause" class="rest-pause-label">{{ 'TABLES.REST_PAUSE' | translate }} ({{
+              <span *ngIf="set.restPause" class="rest-pause-label">RP ({{
                 set.restPause }}{{ 'TABLES.SEG' | translate }})</span>
 
               <!-- RIR value (only if no fail, no drop, no restPause) -->
@@ -109,7 +109,12 @@
 
           <ng-container *ngIf="isIsometric; else nIsometric">
             <!-- Isometric Inputs -->
-            <ion-col size="10" class="time-col">
+            <ion-col size="5" class="weight-col">
+              <app-numeric-input [inputControl]="getFormControl('weight')" [label]="'TABLES.WEIGHT_LABEL' | translate"
+                placeholder="0.0" [maxLength]="6" [isDone]="set.doned"
+                (valueChange)="onFormValueChange('weight', $event)"></app-numeric-input>
+            </ion-col>
+            <ion-col size="5" class="time-col">
               <app-time-picker [timeControl]="getFormControl('time')" [label]="'TABLES.TIME_LABEL' | translate"
                 [isDone]="set.doned" (timeChange)="onFormValueChange('time', $event)"></app-time-picker>
             </ion-col>
@@ -184,5 +189,12 @@
         </ion-row>
       </ion-grid>
     </div>
+  </div>
+
+  <!-- Descanso tras esta serie — debajo de los inputs, universal -->
+  <div class="rest-objective-row" *ngIf="set.restSeconds">
+    <ion-icon name="timer-outline"></ion-icon>
+    <span class="rest-objective-label">{{ 'TABLES.REST_OBJECTIVE_LABEL' | translate }}:</span>
+    <span class="rest-objective-value">{{ set.restSeconds }}{{ 'TABLES.SEG' | translate }}</span>
   </div>
 </form>

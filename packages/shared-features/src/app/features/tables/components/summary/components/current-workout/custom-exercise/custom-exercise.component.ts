@@ -53,6 +53,8 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
 
   @Output()
   public reorderModeChange = new EventEmitter<boolean>();
+  @Output()
+  public setCompleted = new EventEmitter<Set>();
 
   public previousWorkoutCustomExercise: CustomExercise;
   public currentSplitIndex: number = -1;

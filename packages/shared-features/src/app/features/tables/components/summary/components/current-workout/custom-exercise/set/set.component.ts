@@ -55,6 +55,10 @@ export class SetComponent implements OnInit, OnChanges {
   public confSet = new EventEmitter();
   @Output()
   public reorderSets = new EventEmitter<void>();
+  // Solo emite en la transición doned false->true (nunca al desmarcar ni al
+  // reguardar sin cambios) — dispara el arranque del RestTimerService.
+  @Output()
+  public setCompleted = new EventEmitter<Set>();
 
   public isDeleting: boolean;
   public setForm: FormGroup = new FormGroup({});
@@ -131,6 +135,8 @@ export class SetComponent implements OnInit, OnChanges {
         )
       )
       .subscribe((resSetForm) => {
+        const justCompleted = !this.set.doned && resSetForm.doned === true;
+
         // Actualizar solo los valores ejecutados, NO los objetivos
         this.set.velocity = resSetForm.velocity;
         this.set.time = resSetForm.time;
@@ -145,6 +151,10 @@ export class SetComponent implements OnInit, OnChanges {
         this.set.rir = resSetForm.rir ?? null;
 
         this.setService.updateSet(this.set).subscribe(() => {
+          if (justCompleted) {
+            this.setCompleted.emit(this.set);
+          }
+
           if (this.currentWorkout) {
             this.currentWorkout.exercises.forEach(
               (exerciseTemp, indexExercise) => {
@@ -257,8 +267,9 @@ export class SetComponent implements OnInit, OnChanges {
     const actions: ACTION_TYPE[] = [];
 
     // Orden visual coherente: acciones de contenido y finalmente la destructiva.
+    // "Mover series" solo vive en el menú de opciones del ejercicio (arriba),
+    // no aquí — es la misma acción, no hace falta duplicarla por serie.
     actions.push(ACTIONS[this.ACTION_TYPES.edit]);
-    actions.push(ACTIONS[this.ACTION_TYPES.moveSets]);
     actions.push(ACTIONS[this.ACTION_TYPES.duplicate]);
     actions.push(ACTIONS[this.ACTION_TYPES.delete]);
 
@@ -290,10 +301,6 @@ export class SetComponent implements OnInit, OnChanges {
 
       case ACTIONS[this.ACTION_TYPES.delete].id:
         this.showDeleteSweetAlert();
-        break;
-
-      case ACTIONS[this.ACTION_TYPES.moveSets].id:
-        this.reorderSets.emit();
         break;
     }
   }

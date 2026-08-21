@@ -67,7 +67,7 @@
               <span class="set-secondary" *ngIf="set.secondary">{{ set.secondary }}</span>
             </div>
             <div class="set-badges" *ngIf="set.badges.length">
-              <span *ngFor="let badge of set.badges">{{ badge }}</span>
+              <span *ngFor="let badge of set.badges" [class]="'badge-' + badge.type">{{ badge.label }}</span>
             </div>
           </div>
         </div>

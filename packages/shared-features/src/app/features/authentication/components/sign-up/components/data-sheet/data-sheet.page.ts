@@ -188,8 +188,16 @@ export class DataSheetPage implements OnInit, OnDestroy {
     this.ionicUtilService.showToast(toast);
   }
 
+  public onCodeInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = input.value.replace(/\D/g, '').slice(0, 6);
+    if (input.value !== digitsOnly) {
+      input.value = digitsOnly;
+    }
+  }
+
   public verifyCode(): void {
-    const code = this.codeInput.nativeElement.value.toString().trim();
+    const code = this.codeInput.nativeElement.value.toString().trim().replace(/\D/g, '');
     if (!code) {
       this.ionicUtilService.showToast({
         message: this.translate.instant('SIGN_UP.ENTER_CODE'),
@@ -240,8 +248,11 @@ export class DataSheetPage implements OnInit, OnDestroy {
 
     this.startResendCooldown();
     this.isProcessing = true;
-    this.userService.sendMailCode(this.user.email).subscribe({
+    this.userService.resendActivationCode(this.user.email).subscribe({
       next: () => {
+        if (this.codeInput) {
+          this.codeInput.nativeElement.value = '';
+        }
         this.ionicUtilService.showToast({
           message: this.translate.instant('SIGN_UP.CODE_RESENT'),
           duration: 3000,
@@ -251,7 +262,7 @@ export class DataSheetPage implements OnInit, OnDestroy {
       error: (err) => {
         console.error(err);
         this.ionicUtilService.showToast({
-          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
+          message: err?.error?.message || this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
           duration: 3000,
         });
         this.isProcessing = false;

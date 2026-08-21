@@ -14,23 +14,40 @@
         padding: 1rem;
 
         .header-content {
-            display: flex;
+            // Grid de 3 columnas simétricas en vez de flex+space-between:
+            // así title-section queda centrado de verdad respecto al ancho
+            // total del header, no solo en el hueco que deja el botón de
+            // cerrar (con flex, un botón de cerrar de 40px descentra el
+            // título justo esos 40px hacia la izquierda).
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
             height: 100%;
 
             .title-section {
+                grid-column: 2;
+                justify-self: center;
                 display: flex;
                 align-items: center;
                 gap: 12px;
 
                 .manage-set-title {
+                    // span normal, no ion-title: ion-title trae su propio
+                    // posicionamiento absoluto/centrado de fábrica pase lo
+                    // que pase con el flex del wrapper, así que el icono de
+                    // al lado quedaba descolocado.
                     font-size: 1.25rem;
                     font-weight: 600;
                     color: var(--ion-text-color);
                     margin: 0;
                     padding: 0;
+                    white-space: nowrap;
                 }
+            }
+
+            ion-buttons {
+                grid-column: 3;
+                justify-self: end;
             }
 
             .close-action-button {
@@ -200,6 +217,35 @@
         font-weight: 600;
         font-size: 0.9rem;
         padding-right: 8px;
+    }
+}
+
+// Presets rápidos de descanso
+.rest-presets {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.rest-preset-chip {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform 160ms ease-out, background-color 160ms ease-out, border-color 160ms ease-out;
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    &.active {
+        background: rgba(var(--ion-color-primary-rgb), 0.18);
+        border-color: var(--ion-color-primary);
+        color: var(--ion-color-primary);
     }
 }
 

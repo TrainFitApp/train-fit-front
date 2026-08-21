@@ -17,7 +17,8 @@
     "UNSKIP_WORKOUT": "Quitar saltado",
     "COPY_EXERCISES": "Copiar ejercicios",
     "SAVE_AS_TEMPLATE": "Guardar como plantilla",
-    "MANAGE_BLOCKS": "Agrupar en bloque"
+    "MANAGE_BLOCKS": "Agrupar en bloque",
+    "STOP_WORKOUT": "Detener entrenamiento"
   },
   "ACTIONS_FAB": {
     "ADD_WORKOUT": "Añadir entrenamiento",
@@ -829,15 +830,7 @@
     "TREND_UP": "Tendencia al alza",
     "TREND_DOWN": "Tendencia a la baja",
     "TREND_STABLE": "Peso estable",
-    "DAYS_INITIALS": [
-      "L",
-      "M",
-      "X",
-      "J",
-      "V",
-      "S",
-      "D"
-    ],
+    "DAYS_INITIALS": ["L", "M", "X", "J", "V", "S", "D"],
     "WEIGHT_SAVED": "Peso guardado",
     "WEEKLY_WEIGHT_CHART": "Peso semanal (kg)"
   },
@@ -1193,6 +1186,8 @@
     "WITHOUT_SERIES": "SIN SERIES",
     "COMPLETE_COPY": "COMPLETO",
     "MICROCYCLE_ADDED": "Micro-ciclo añadido",
+    "MICROCYCLE_COMPLETED_TITLE": "¡Micro-ciclo completado!",
+    "MICROCYCLE_COMPLETED_MSG": "Has completado todos los entrenamientos de este micro-ciclo. ¿Quieres añadir otro para seguir progresando?",
     "MICROCYCLE_DELETED": "Micro-ciclo eliminado",
     "DELETE_MICROCYCLE_CONFIRM": "¿Estás seguro de eliminar este micro-ciclo?",
     "DELETE_BTN": "ELIMINAR",
@@ -1255,7 +1250,7 @@
     "ROUTINE_DELETED": "{{name}} eliminada",
     "REST_PAUSE_REQUIRED": "Debes ingresar los segundos de descanso para REST PAUSE",
     "MIN": "MIN",
-    "SEG": "SEG",
+    "SEG": "s",
     "VELOCITY": "VELOCIDAD",
     "VELOCITY_PLACEHOLDER": "Velocidad",
     "WEIGHT_LABEL": "Peso",
@@ -1271,6 +1266,10 @@
     "REST_PAUSE": "REST PAUSE",
     "REST_TIME": "TIEMPO DE DESCANSO (SEGS)",
     "REST_PLACEHOLDER": "SEGS",
+    "REST_SECONDS_LABEL": "DESCANSO TRAS LA SERIE",
+    "REST_OBJECTIVE_LABEL": "Descanso",
+    "RESTING": "Descansando",
+    "REST_DONE": "¡Descanso terminado!",
     "SET_OBJECTIVE_TITLE": "Serie objetivo",
     "EXPECTED_TIME_LABEL": "TIEMPO ESPERADO",
     "SET_OBJECTIVE_CARD_TITLE": "Serie objetivo esperada",
@@ -2048,6 +2047,14 @@
     "SETS_COMPARISON": {
       "TITLE": "Series",
       "DESCRIPTION": "Número de series completadas de este ejercicio, comparado entre los dos microciclos seleccionados."
+    },
+    "PINNED_NOTE": {
+      "TITLE": "Nota anclada",
+      "DESCRIPTION": "Se queda fija en este ejercicio y este día de la rutina, sin importar qué serie o microciclo estés consultando. Ideal para recordatorios de técnica o ajustes que quieres tener siempre a la vista aquí."
+    },
+    "SET_OBJECTIVE": {
+      "TITLE": "Serie objetivo",
+      "DESCRIPTION": "Define aquí la marca que esperas alcanzar en la serie. Durante el entrenamiento podrás registrar lo realizado y establecerla como completada."
     }
   },
   "RECIPE_CARD": {

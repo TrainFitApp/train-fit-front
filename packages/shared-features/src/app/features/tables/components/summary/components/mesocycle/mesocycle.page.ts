@@ -313,6 +313,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
   public ionViewDidEnter(): void {
     void this.loadMicrocycleLimit();
+    this.maybeOfferNewMicrocycle();
 
     if (!this.tableInUse?.splits?.length) return;
 
@@ -359,6 +360,37 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     } else {
       this.currentSplitIndex = targetSplitIndex;
     }
+  }
+
+  // Puede repetirse en visitas sucesivas si el usuario no añade otro
+  // micro-ciclo — decisión intencional, no llevamos estado de "ya preguntado".
+  private maybeOfferNewMicrocycle(): void {
+    const splits = this.tableInUse?.splits;
+    if (!splits?.length) return;
+
+    // Solo el último (el "frontera" del progreso) — si ya hay uno siguiente
+    // no hace falta ofrecer nada.
+    const lastSplit = splits[splits.length - 1];
+    if (!this.utilService.isSplitDoned(lastSplit)) return;
+
+    // No ofrecer lo que no se puede dar — evita el "sí puedes... ah no, hazte Pro".
+    if (this.isMicrocycleCreationLimitReached()) return;
+
+    void this.ionicUtilService.showAlert({
+      header: this.translate.instant('TABLES.MICROCYCLE_COMPLETED_TITLE'),
+      message: this.translate.instant('TABLES.MICROCYCLE_COMPLETED_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('TABLES.ADD_MICROCYCLE'),
+          cssClass: 'alert-button-success',
+          handler: () => this.addSplitToTable(),
+        },
+      ],
+    });
   }
 
   private restoreFinishedWorkoutSplit(): boolean {
@@ -1297,7 +1329,12 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     let alertOptions: AlertOptions;
 
-    if (this.tableInUse.splits.length > 20) {
+    // Techo real del usuario (4 free / 50 pro, ver feature-access-service.js).
+    // No hardcodear el número aquí — isMicrocycleCreationLimitReached() de
+    // arriba exime a los usuarios premium, así que este es el único punto
+    // que realmente frena la creación una vez alcanzado el límite premium.
+    const microcycleCeiling = this.microcyclesPerRoutineLimit ?? 50;
+    if (this.tableInUse.splits.length >= microcycleCeiling) {
       alertOptions = {
         header: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR'),
         message: this.translate.instant('TABLES.MAX_MICROCYCLES_ERROR_MSG'),

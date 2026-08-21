@@ -22,6 +22,7 @@ import { DietService } from './services/diet/diet.service';
 import { ExerciseAPIService } from './services/exercise/exercise-api.service';
 import { ExerciseService } from './services/exercise/exercise.service';
 import { RmCalculatorService } from './services/rm-calculator/rm-calculator.service';
+import { RestTimerService } from './services/rest-timer/rest-timer.service';
 import { ExerciseHistoryService } from './services/exercise-history/exercise-history.service';
 import { HttpService } from './services/http/http.service';
 import { MealAPIService } from './services/meal/meal-api.service';
@@ -107,6 +108,7 @@ import { MatchPasswords } from './validators/matchPasswords';
     ExerciseAPIService,
     RmCalculatorService,
     ExerciseHistoryService,
+    RestTimerService,
     // Interceptors
     {
       provide: HTTP_INTERCEPTORS,

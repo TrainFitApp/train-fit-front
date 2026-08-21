@@ -1477,6 +1477,15 @@
   border-radius: 4px;
 }
 
+.intensity-rest {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 // Legacy styles for compatibility
 p {
   color: gray;

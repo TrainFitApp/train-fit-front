@@ -15,6 +15,7 @@ export class ManageSetComponent implements OnInit {
   public set: Set;
   public isCardio: boolean;
   public isIsometric: boolean;
+  public readonly REST_PRESETS = [60, 90, 120, 180];
 
   private backButtonSubscription: any;
 
@@ -82,12 +83,17 @@ export class ManageSetComponent implements OnInit {
     if (this.isIsometric) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
+        weight: new FormControl(this.set?.weight, [Validators.min(0), Validators.max(2000)]),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
     } else if (this.isCardio) {
       this.setForm = new FormGroup({
         expectedTime: new FormControl(this.set?.expectedTime ?? null),
         expectedDistance: new FormControl(this.set?.expectedDistance, [Validators.min(0), Validators.max(100000)]),
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
     } else {
       // Detectar si el set tiene fallo (expectedRir es [-1])
@@ -110,6 +116,8 @@ export class ManageSetComponent implements OnInit {
           hasFail ? null : this.set?.expectedRir?.[1], [Validators.min(0), Validators.max(20)]
         ),
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
+        restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
+        restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {
@@ -129,6 +137,17 @@ export class ManageSetComponent implements OnInit {
         }
       });
     }
+
+    // restSecondsEnabled ahora es formControlName (no [checked] de una sola
+    // vía), así que se puede togglear tocando el checkbox directamente o la
+    // card entera — en ambos casos dispara valueChanges, así que el
+    // limpiado del valor va aquí y no en el click handler (que solo cubría
+    // el caso "clic en la card").
+    this.setForm.get('restSecondsEnabled').valueChanges.subscribe((enabled) => {
+      if (!enabled) {
+        this.setForm.get('restSeconds')?.setValue(null, { emitEvent: false });
+      }
+    });
   }
 
   public get expectedTimeControl(): FormControl {
@@ -169,6 +188,20 @@ export class ManageSetComponent implements OnInit {
       return false;
     }
     return Number(end) <= Number(start);
+  }
+
+  public setRestPreset(seconds: number): void {
+    this.setForm.get('restSeconds')?.setValue(seconds);
+  }
+
+  public toggleRestSeconds(): void {
+    // El limpiado de restSeconds al desactivar vive en el valueChanges de
+    // initSetForm — se dispara igual venga el toggle de aquí (clic en la
+    // card) o del propio checkbox (formControlName).
+    const control = this.setForm.get('restSecondsEnabled');
+    if (control) {
+      control.setValue(!control.value);
+    }
   }
 
   public toggleCheckbox(controlName: string): void {
@@ -281,6 +314,19 @@ export class ManageSetComponent implements OnInit {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
       }
+
+      if (
+        this.setForm.controls.weight.value !== null &&
+        this.setForm.controls.weight.value !== undefined
+      )
+        set.weight = this.setForm.controls.weight.value;
+
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     } else if (this.isCardio) {
       if (this.setForm.controls.expectedTime.value) {
         set.expectedTime = this.setForm.controls.expectedTime.value;
@@ -297,6 +343,13 @@ export class ManageSetComponent implements OnInit {
         this.setForm.controls.velocity.value !== undefined
       )
         set.velocity = this.setForm.controls.velocity.value;
+
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     } else {
       if (
         !isNaN(this.setForm.controls.rangeREPStart.value) ||
@@ -390,6 +443,13 @@ export class ManageSetComponent implements OnInit {
         this.setForm.controls.velocity.value !== undefined
       )
         set.velocity = this.setForm.controls.velocity.value;
+
+      // Igual que restPause: si el checkbox está desactivado, no confiar en
+      // que el control restSeconds esté ya a null (defensa extra por si el
+      // valueChanges no llegó a correr) y forzar null explícitamente.
+      set.restSeconds = this.setForm.controls.restSecondsEnabled.value
+        ? this.setForm.controls.restSeconds.value ?? null
+        : null;
     }
 
     this.modalController.dismiss(set);

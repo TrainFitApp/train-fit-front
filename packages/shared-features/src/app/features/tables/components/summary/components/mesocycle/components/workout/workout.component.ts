@@ -8,58 +8,69 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
-} from '@angular/core';
-import { Subscription, forkJoin, tap } from 'rxjs';
+} from "@angular/core";
+import { Subscription, forkJoin, tap } from "rxjs";
 import {
   ActionSheetOptions,
   AlertOptions,
   ModalController,
   ModalOptions,
   ToastOptions,
-} from '@ionic/angular';
-import { CustomExercise } from 'src/app/core/models/customExercise';
-import { formatRirValue, isRirFail } from 'src/app/core/models/rir';
-import { Split } from 'src/app/core/models/split';
-import { Table } from 'src/app/core/models/table';
-import { User } from 'src/app/core/models/user';
-import { Workout, WorkoutBlock, WorkoutBlockType } from 'src/app/core/models/workout';
+} from "@ionic/angular";
+import { CustomExercise } from "src/app/core/models/customExercise";
+import { formatRirValue, isRirFail } from "src/app/core/models/rir";
+import { Split } from "src/app/core/models/split";
+import { Table } from "src/app/core/models/table";
+import { User } from "src/app/core/models/user";
+import {
+  Workout,
+  WorkoutBlock,
+  WorkoutBlockType,
+} from "src/app/core/models/workout";
 import {
   groupExercisesByBlock,
   hasRenderableBlocks,
-} from 'src/app/core/utils/workout-blocks.util';
-import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
-import { TableService } from 'src/app/core/services/table/table.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { TranslateService } from '@ngx-translate/core';
-import { AdMobService } from 'src/app/core/services/util/ad-mob.service';
-import { UtilService } from 'src/app/core/services/util/util.service';
-import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
-import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
-import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
-import { ActionsSheetComponent } from 'src/app/shared/components/actions-sheet/actions-sheet.component';
-import { SkipWorkoutModalComponent, WorkoutSkipItem } from '../skip-workout-modal/skip-workout-modal.component';
-import { ClipboardExercisesModalComponent } from '../clipboard-exercises-modal/clipboard-exercises-modal.component';
+} from "src/app/core/utils/workout-blocks.util";
+import { CustomExerciseService } from "src/app/core/services/custom-exercise/custom-exercise.service";
+import { TableService } from "src/app/core/services/table/table.service";
+import { UserService } from "src/app/core/services/user/user.service";
+import { IonicUtilService } from "src/app/core/services/util/ionic-util.service";
+import { NavigationService } from "src/app/core/services/util/navigation.service";
+import { TranslateService } from "@ngx-translate/core";
+import { AdMobService } from "src/app/core/services/util/ad-mob.service";
+import { UtilService } from "src/app/core/services/util/util.service";
+import { WorkoutService } from "src/app/core/services/workout/workout.service";
+import { WorkoutTemplateApiService } from "src/app/core/services/workout-template/workout-template-api.service";
+import { RestTimerService } from "src/app/core/services/rest-timer/rest-timer.service";
+import { ConfigExercisePage } from "src/app/features/exercises/components/config-exercise/config-exercise.page";
+import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
+import { ActionsSheetComponent } from "src/app/shared/components/actions-sheet/actions-sheet.component";
+import {
+  SkipWorkoutModalComponent,
+  WorkoutSkipItem,
+} from "../skip-workout-modal/skip-workout-modal.component";
+import { ClipboardExercisesModalComponent } from "../clipboard-exercises-modal/clipboard-exercises-modal.component";
 import {
   ACTION_TYPE,
   ACTION_TYPES,
   ACTION_VALUES,
   ACTIONS,
-} from 'src/app/shared/constants/actions';
-import { STATES } from 'src/app/shared/constants/states';
-import { ExerciseClipboard } from 'src/app/shared/models/exercise-clipboard';
-import { OrderExercisesPage } from '../order-exercises/order-exercises.page';
-import { PinnedExerciseNoteService } from 'src/app/core/services/pinned-exercise-note/pinned-exercise-note.service';
-import { PinnedExerciseNote, PinnedExerciseNoteUpsertDto } from 'src/app/core/models/pinned-exercise-note';
-import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
-import { buildWorkoutSummary } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model';
+} from "src/app/shared/constants/actions";
+import { STATES } from "src/app/shared/constants/states";
+import { ExerciseClipboard } from "src/app/shared/models/exercise-clipboard";
+import { OrderExercisesPage } from "../order-exercises/order-exercises.page";
+import { PinnedExerciseNoteService } from "src/app/core/services/pinned-exercise-note/pinned-exercise-note.service";
+import {
+  PinnedExerciseNote,
+  PinnedExerciseNoteUpsertDto,
+} from "src/app/core/models/pinned-exercise-note";
+import { WorkoutSummaryModalComponent } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component";
+import { buildWorkoutSummary } from "src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary.model";
 
 @Component({
-  selector: 'app-workout',
-  templateUrl: './workout.component.html',
-  styleUrls: ['./workout.component.scss'],
+  selector: "app-workout",
+  templateUrl: "./workout.component.html",
+  styleUrls: ["./workout.component.scss"],
 })
 export class WorkoutComponent implements OnDestroy {
   @Input()
@@ -187,7 +198,7 @@ export class WorkoutComponent implements OnDestroy {
   private clipboardSub: Subscription | null = null;
 
   get locale(): string {
-    return this.translate.currentLang === 'en' ? 'en-US' : 'es-ES';
+    return this.translate.currentLang === "en" ? "en-US" : "es-ES";
   }
 
   constructor(
@@ -202,14 +213,17 @@ export class WorkoutComponent implements OnDestroy {
     private adMobService: AdMobService,
     private translate: TranslateService,
     private pinnedExerciseNoteService: PinnedExerciseNoteService,
-    private workoutTemplateApi: WorkoutTemplateApiService
-  ) { }
+    private workoutTemplateApi: WorkoutTemplateApiService,
+    private restTimerService: RestTimerService,
+  ) {}
 
   ngOnInit(): void {
     this.loadPinnedNotes();
-    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(() => {
-      this.loadPinnedNotes();
-    });
+    this.pinnedNoteCacheSub = this.pinnedExerciseNoteService.cache$.subscribe(
+      () => {
+        this.loadPinnedNotes();
+      },
+    );
     this.clipboardSub = this.workoutService.exerciseClipboard$.subscribe(
       (clipboard) => {
         if (!this.exerciseSelectionMode || !this.workout) return;
@@ -224,12 +238,15 @@ export class WorkoutComponent implements OnDestroy {
           }
         });
         this.selectedExerciseIndices = newIndices;
-      }
+      },
     );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['exerciseCopyActive'] && !changes['exerciseCopyActive'].currentValue) {
+    if (
+      changes["exerciseCopyActive"] &&
+      !changes["exerciseCopyActive"].currentValue
+    ) {
       this.exerciseSelectionMode = false;
       this.selectedExerciseIndices = new Set();
     }
@@ -242,43 +259,58 @@ export class WorkoutComponent implements OnDestroy {
 
   private loadPinnedNotes(): void {
     if (this.tableInUse?._id) {
-      this.pinnedExerciseNoteService.getByTable(this.tableInUse._id).subscribe((notes) => {
-        this.pinnedNotes = notes;
-      });
+      this.pinnedExerciseNoteService
+        .getByTable(this.tableInUse._id)
+        .subscribe((notes) => {
+          this.pinnedNotes = notes;
+        });
     }
   }
 
-  public getPinnedNote(workoutIndex: number, exerciseIndex: number): PinnedExerciseNote | undefined {
+  public getPinnedNote(
+    workoutIndex: number,
+    exerciseIndex: number,
+  ): PinnedExerciseNote | undefined {
     return this.pinnedNotes.find(
-      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+      (n) =>
+        n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
   }
 
   public deletePinnedNote(workoutIndex: number, exerciseIndex: number): void {
     const note = this.pinnedNotes.find(
-      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+      (n) =>
+        n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
     if (!note) return;
 
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('NOTES.DELETE_PINNED_TITLE'),
-      message: this.translate.instant('NOTES.DELETE_PINNED_CONFIRM'),
+      header: this.translate.instant("NOTES.DELETE_PINNED_TITLE"),
+      message: this.translate.instant("NOTES.DELETE_PINNED_CONFIRM"),
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
         },
         {
-          text: this.translate.instant('COMMON.DELETE'),
-          role: 'destructive',
+          text: this.translate.instant("COMMON.DELETE"),
+          role: "destructive",
           handler: () => {
-            this.pinnedExerciseNoteService.delete(note._id, this.tableInUse._id).subscribe({
-              next: () => {
-                this.pinnedNotes = this.pinnedNotes.filter((n) => n._id !== note._id);
-                console.debug('[WorkoutComponent] Pinned note deleted');
-              },
-              error: (err) => console.error('[WorkoutComponent] Failed to delete pinned note', err),
-            });
+            this.pinnedExerciseNoteService
+              .delete(note._id, this.tableInUse._id)
+              .subscribe({
+                next: () => {
+                  this.pinnedNotes = this.pinnedNotes.filter(
+                    (n) => n._id !== note._id,
+                  );
+                  console.debug("[WorkoutComponent] Pinned note deleted");
+                },
+                error: (err) =>
+                  console.error(
+                    "[WorkoutComponent] Failed to delete pinned note",
+                    err,
+                  ),
+              });
             return true;
           },
         },
@@ -290,30 +322,31 @@ export class WorkoutComponent implements OnDestroy {
 
   public editPinnedNote(workoutIndex: number, exerciseIndex: number): void {
     const note = this.pinnedNotes.find(
-      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+      (n) =>
+        n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
     if (!note) return;
 
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('NOTES.TITLE'),
+      header: this.translate.instant("NOTES.TITLE"),
       inputs: [
         {
-          name: 'notes',
-          type: 'textarea',
+          name: "notes",
+          type: "textarea",
           value: note.notes,
-          placeholder: this.translate.instant('NOTES.PLACEHOLDER'),
+          placeholder: this.translate.instant("NOTES.PLACEHOLDER"),
           attributes: { maxlength: 500 },
         },
       ],
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
         },
         {
-          text: this.translate.instant('COMMON.SAVE'),
+          text: this.translate.instant("COMMON.SAVE"),
           handler: (data) => {
-            const newNotes = (data.notes || '').trim();
+            const newNotes = (data.notes || "").trim();
             const dto: PinnedExerciseNoteUpsertDto = {
               tableId: this.tableInUse._id,
               workoutIndex,
@@ -322,11 +355,17 @@ export class WorkoutComponent implements OnDestroy {
             };
             this.pinnedExerciseNoteService.upsert(dto).subscribe({
               next: (updated) => {
-                const idx = this.pinnedNotes.findIndex((n) => n._id === note._id);
+                const idx = this.pinnedNotes.findIndex(
+                  (n) => n._id === note._id,
+                );
                 if (idx >= 0) this.pinnedNotes[idx] = updated;
-                console.debug('[WorkoutComponent] Pinned note updated');
+                console.debug("[WorkoutComponent] Pinned note updated");
               },
-              error: (err) => console.error('[WorkoutComponent] Failed to update pinned note', err),
+              error: (err) =>
+                console.error(
+                  "[WorkoutComponent] Failed to update pinned note",
+                  err,
+                ),
             });
             return true;
           },
@@ -337,16 +376,20 @@ export class WorkoutComponent implements OnDestroy {
     this.ionicUtilService.showAlert(alertOptions);
   }
 
-  public showPinnedNoteAlert(workoutIndex: number, exerciseIndex: number): void {
+  public showPinnedNoteAlert(
+    workoutIndex: number,
+    exerciseIndex: number,
+  ): void {
     const note = this.pinnedNotes.find(
-      (n) => n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex
+      (n) =>
+        n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
     );
     if (!note) return;
     const exercise = this.workout?.exercises?.[exerciseIndex];
     const alertOptions: AlertOptions = {
       header: exercise?.exercise?.name,
       message: note.notes,
-      buttons: [this.translate.instant('COMMON.CONFIRM')],
+      buttons: [this.translate.instant("COMMON.CONFIRM")],
     };
     this.ionicUtilService.showAlert(alertOptions);
   }
@@ -354,7 +397,7 @@ export class WorkoutComponent implements OnDestroy {
   public workoutActions(
     event,
     workoutIndex?: number,
-    customExercise?: CustomExercise
+    customExercise?: CustomExercise,
   ): void {
     // Modal-hoja (sale desde abajo, con tirador) en vez del popover anclado
     // al punto de click — con listas de acciones largas (varias solo se
@@ -423,10 +466,52 @@ export class WorkoutComponent implements OnDestroy {
 
           case ACTIONS[this.ACTION_TYPES.copyToWeek].id:
             this.copyToAnotherWeekAlert();
+          case ACTIONS[this.ACTION_TYPES.stopWorkout].id:
+            this.stopWorkout();
             break;
         }
       }
     });
+  }
+
+  // Misma lógica que current-workout.page.ts#stopWorkout, adaptada a este
+  // contexto (lista de días): no navega a ningún sitio al terminar, solo
+  // sincroniza el estado local — ya estamos en la pantalla de la rutina.
+  private stopWorkout(): void {
+    if (this.workout._id !== this.user?.workoutInUse) return;
+
+    const alertOptions: AlertOptions = {
+      header: this.translate.instant("TABLES.STOP_WORKOUT"),
+      message: this.translate.instant("TABLES.STOP_WORKOUT_CONFIRM", {
+        name: this.workout.name,
+      }),
+      buttons: [
+        {
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
+        },
+        {
+          text: this.translate.instant("TABLES.STOP_BTN"),
+          cssClass: "danger",
+          handler: () => {
+            this.workout.startedAt = null;
+            this.restTimerService.skip();
+
+            this.workoutService.clearStartedAt(this.workout).subscribe(() => {
+              this.tableService.setCurrentTable = this.tableInUse;
+
+              delete this.user.workoutInUse;
+              this.userService.updateUser(this.user).subscribe(() => {
+                this.workoutService.setCurrentWorkout = undefined;
+              });
+            });
+          },
+        },
+      ],
+    };
+
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   private viewWorkoutSummary(): void {
@@ -435,19 +520,19 @@ export class WorkoutComponent implements OnDestroy {
 
     const summary = buildWorkoutSummary(
       this.workout,
-      new Date(this.workout.date)
+      new Date(this.workout.date),
     );
 
     this.ionicUtilService.showModal({
       component: WorkoutSummaryModalComponent,
       componentProps: {
         summary,
-        closeButtonLabel: this.translate.instant('COMMON.CERRAR'),
+        closeButtonLabel: this.translate.instant("COMMON.CERRAR"),
       },
       // 'tf-panel-modal': ver TAREA5 en apps/train-fit-trainers — sin efecto
       // en train-fit-front/train-fit-management (esa regla CSS no existe en
       // el bundle de esas apps).
-      cssClass: ['workout-summary-modal', 'tf-panel-modal'],
+      cssClass: ["workout-summary-modal", "tf-panel-modal"],
     });
   }
 
@@ -459,49 +544,49 @@ export class WorkoutComponent implements OnDestroy {
         idWorkout: this.workout._id,
         idTable: this.tableInUse._id,
       },
-      cssClass: 'tf-panel-modal',
+      cssClass: "tf-panel-modal",
     };
 
     this.ionicUtilService.showModal(modalOptions);
   }
 
   private async presentActionSheet() {
-    const header = 'SHARE';
+    const header = "SHARE";
     const buttons = [
       {
-        text: 'WhatsApp',
-        role: 'destructive',
-        icon: 'logo-whatsapp',
-        id: 'delete-button',
+        text: "WhatsApp",
+        role: "destructive",
+        icon: "logo-whatsapp",
+        id: "delete-button",
         data: {
-          type: 'delete',
+          type: "delete",
         },
         handler: () => {
-          console.log('Delete clicked');
+          console.log("Delete clicked");
         },
       },
       {
-        text: 'Twitter',
-        icon: 'logo-twitter',
+        text: "Twitter",
+        icon: "logo-twitter",
         data: 10,
         handler: () => {
-          console.log('Share clicked');
+          console.log("Share clicked");
         },
       },
       {
-        text: 'Instagram',
-        icon: 'logo-instagram',
-        data: 'Data value',
+        text: "Instagram",
+        icon: "logo-instagram",
+        data: "Data value",
         handler: () => {
-          console.log('Play clicked');
+          console.log("Play clicked");
         },
       },
       {
-        text: 'CANCELAR',
-        icon: 'close',
-        role: 'cancel',
+        text: "CANCELAR",
+        icon: "close",
+        role: "cancel",
         handler: () => {
-          console.log('Cancel clicked');
+          console.log("Cancel clicked");
         },
       },
     ];
@@ -516,17 +601,19 @@ export class WorkoutComponent implements OnDestroy {
 
   private deleteWorkouts(workoutIndex: number): void {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.DELETE_WORKOUTS'),
-      message: this.translate.instant('TABLES.DELETE_WORKOUTS_CONFIRM', { name: this.workout.name }),
+      header: this.translate.instant("TABLES.DELETE_WORKOUTS"),
+      message: this.translate.instant("TABLES.DELETE_WORKOUTS_CONFIRM", {
+        name: this.workout.name,
+      }),
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('TABLES.DELETE_BTN'),
-          cssClass: 'danger',
+          text: this.translate.instant("TABLES.DELETE_BTN"),
+          cssClass: "danger",
           handler: () => {
             const workoutsToDelete: Workout[] = [];
 
@@ -535,7 +622,7 @@ export class WorkoutComponent implements OnDestroy {
               workoutsToDelete.push(workoutTemp);
 
               splitTemp.workouts = splitTemp.workouts.filter(
-                (_, index) => index !== workoutIndex
+                (_, index) => index !== workoutIndex,
               );
             });
             this.tableService.setCurrentTable = this.tableInUse;
@@ -550,7 +637,10 @@ export class WorkoutComponent implements OnDestroy {
               .deleteWorkouts(workoutsToDelete)
               .subscribe(() => {
                 const toastOptions: ToastOptions = {
-                  message: this.translate.instant('TABLES.WORKOUT_DELETED_SUCCESS', { name: workoutsToDelete[0].name }),
+                  message: this.translate.instant(
+                    "TABLES.WORKOUT_DELETED_SUCCESS",
+                    { name: workoutsToDelete[0].name },
+                  ),
                   duration: 2000,
                 };
                 this.ionicUtilService.showToast(toastOptions);
@@ -568,18 +658,22 @@ export class WorkoutComponent implements OnDestroy {
       component: SkipWorkoutModalComponent,
       componentProps: {
         workoutItems: [{ workout: this.workout, splitIndex: this.splitIndex }],
-        header: this.translate.instant('TABLES.SKIP_WORKOUT'),
-        message: this.translate.instant('TABLES.SKIP_WORKOUT_CONFIRM', { name: this.workout.name }),
-        confirmText: this.translate.instant('TABLES.SKIP_BTN'),
+        header: this.translate.instant("TABLES.SKIP_WORKOUT"),
+        message: this.translate.instant("TABLES.SKIP_WORKOUT_CONFIRM", {
+          name: this.workout.name,
+        }),
+        confirmText: this.translate.instant("TABLES.SKIP_BTN"),
       },
-      cssClass: 'tf-panel-modal',
+      cssClass: "tf-panel-modal",
     });
     await modal.present();
     const { role } = await modal.onDidDismiss();
-    if (role === 'confirm') {
+    if (role === "confirm") {
       this.applyWorkoutSkip(this.workout, true).subscribe(() => {
         const toastOptions: ToastOptions = {
-          message: this.translate.instant('TABLES.WORKOUT_SKIPPED_SUCCESS', { name: this.workout.name }),
+          message: this.translate.instant("TABLES.WORKOUT_SKIPPED_SUCCESS", {
+            name: this.workout.name,
+          }),
           duration: 2000,
         };
         this.ionicUtilService.showToast(toastOptions);
@@ -590,7 +684,9 @@ export class WorkoutComponent implements OnDestroy {
   private unskipWorkout(): void {
     this.applyWorkoutSkip(this.workout, false).subscribe(() => {
       const toastOptions: ToastOptions = {
-        message: this.translate.instant('TABLES.WORKOUT_UNSKIPPED_SUCCESS', { name: this.workout.name }),
+        message: this.translate.instant("TABLES.WORKOUT_UNSKIPPED_SUCCESS", {
+          name: this.workout.name,
+        }),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -624,7 +720,7 @@ export class WorkoutComponent implements OnDestroy {
           });
 
         this.tableService.setCurrentTable = this.tableInUse;
-      })
+      }),
     );
   }
 
@@ -636,7 +732,7 @@ export class WorkoutComponent implements OnDestroy {
 
     this.load = false;
 
-    const nameSuffix = this.translate.instant('TABLES.WORKOUT_COPY_SUFFIX');
+    const nameSuffix = this.translate.instant("TABLES.WORKOUT_COPY_SUFFIX");
 
     this.workoutService
       .duplicateWorkoutRow(this.tableInUse._id, this.workout._id, nameSuffix)
@@ -651,9 +747,9 @@ export class WorkoutComponent implements OnDestroy {
           });
 
           const toastOptions: ToastOptions = {
-            message: this.translate.instant('TABLES.WORKOUT_DUPLICATED'),
+            message: this.translate.instant("TABLES.WORKOUT_DUPLICATED"),
             duration: 1000,
-            color: 'success',
+            color: "success",
           };
           this.ionicUtilService.showToast(toastOptions);
           this.load = true;
@@ -662,7 +758,7 @@ export class WorkoutComponent implements OnDestroy {
           this.load = true;
           this.ionicUtilService.showErrorToast(
             error,
-            this.translate.instant('TABLES.WORKOUT_DUPLICATE_ERROR')
+            this.translate.instant("TABLES.WORKOUT_DUPLICATE_ERROR"),
           );
         },
       });
@@ -675,43 +771,47 @@ export class WorkoutComponent implements OnDestroy {
   private copyToSplit(targetSplitId: string): void {
     this.load = false;
 
-    this.workoutService.copyWorkoutToSplit(this.workout._id, targetSplitId).subscribe({
-      next: (splits) => {
-        this.tableInUse.splits = splits;
-        this.tableService.setCurrentTable = this.tableInUse;
+    this.workoutService
+      .copyWorkoutToSplit(this.workout._id, targetSplitId)
+      .subscribe({
+        next: (splits) => {
+          this.tableInUse.splits = splits;
+          this.tableService.setCurrentTable = this.tableInUse;
 
-        const toastOptions: ToastOptions = {
-          message: this.translate.instant('TABLES.WORKOUT_DUPLICATED'),
-          duration: 1000,
-          color: 'success',
-        };
-        this.ionicUtilService.showToast(toastOptions);
-        this.load = true;
-      },
-      error: (error) => {
-        this.load = true;
-        this.ionicUtilService.showErrorToast(
-          error,
-          this.translate.instant('TABLES.WORKOUT_DUPLICATE_ERROR')
-        );
-      },
-    });
+          const toastOptions: ToastOptions = {
+            message: this.translate.instant("TABLES.WORKOUT_DUPLICATED"),
+            duration: 1000,
+            color: "success",
+          };
+          this.ionicUtilService.showToast(toastOptions);
+          this.load = true;
+        },
+        error: (error) => {
+          this.load = true;
+          this.ionicUtilService.showErrorToast(
+            error,
+            this.translate.instant("TABLES.WORKOUT_DUPLICATE_ERROR"),
+          );
+        },
+      });
   }
 
   // Acción nueva del menú "⋮" en plannerMode — copiar a OTRA semana elegida
   // por el trainer (a diferencia de "Duplicar", que copia a la misma).
   public async copyToAnotherWeekAlert(): Promise<void> {
-    const siblingSplits = (this.tableInUse?.splits || []).filter((s) => s._id !== this.split?._id);
+    const siblingSplits = (this.tableInUse?.splits || []).filter(
+      (s) => s._id !== this.split?._id,
+    );
     if (siblingSplits.length === 0) {
       this.ionicUtilService.showToast({
-        message: this.translate.instant('PLANNER.NO_OTHER_WEEKS'),
+        message: this.translate.instant("PLANNER.NO_OTHER_WEEKS"),
         duration: 2000,
       });
       return;
     }
 
     const buttons = siblingSplits.map((s) => ({
-      text: s.name || this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX'),
+      text: s.name || this.translate.instant("PLANNER.WEEK_DEFAULT_PREFIX"),
       handler: () => {
         this.copyToSplit(s._id);
         return false;
@@ -719,8 +819,11 @@ export class WorkoutComponent implements OnDestroy {
     }));
 
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('PLANNER.COPY_TO_WEEK'),
-      buttons: [...buttons, { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' }],
+      header: this.translate.instant("PLANNER.COPY_TO_WEEK"),
+      buttons: [
+        ...buttons,
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
+      ],
     });
   }
 
@@ -730,44 +833,44 @@ export class WorkoutComponent implements OnDestroy {
   // "constrúyelo una vez, reutilízalo" sin un editor de contenido aparte.
   private async saveAsTemplateAlert(): Promise<void> {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('ACTIONS.SAVE_AS_TEMPLATE'),
+      header: this.translate.instant("ACTIONS.SAVE_AS_TEMPLATE"),
       inputs: [
         {
-          name: 'name',
-          type: 'text',
-          placeholder: this.translate.instant('TABLES.WORKOUT_EXAMPLE'),
-          value: this.workout.name || '',
+          name: "name",
+          type: "text",
+          placeholder: this.translate.instant("TABLES.WORKOUT_EXAMPLE"),
+          value: this.workout.name || "",
           attributes: { required: true },
         },
         {
-          name: 'description',
-          type: 'textarea',
-          placeholder: 'Descripción (opcional)',
+          name: "description",
+          type: "textarea",
+          placeholder: "Descripción (opcional)",
         },
       ],
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('COMMON.CONFIRM'),
+          text: this.translate.instant("COMMON.CONFIRM"),
           handler: (data: any) => {
-            const name = (data?.name || '').trim();
+            const name = (data?.name || "").trim();
             if (!name) return false;
 
             this.workoutTemplateApi
               .saveWorkoutAsTemplate(this.workout._id, {
                 name,
-                description: (data?.description || '').trim(),
+                description: (data?.description || "").trim(),
               })
               .subscribe({
                 next: () => {
                   this.ionicUtilService.showToast({
-                    message: 'Plantilla guardada',
+                    message: "Plantilla guardada",
                     duration: 1500,
                   });
                 },
                 error: () => {
                   this.ionicUtilService.showToast({
-                    message: 'No se pudo guardar la plantilla',
+                    message: "No se pudo guardar la plantilla",
                     duration: 2500,
                   });
                 },
@@ -804,43 +907,51 @@ export class WorkoutComponent implements OnDestroy {
     return hasRenderableBlocks(this.workout);
   }
 
-  public trackByBlockGroup(index: number, group: { block: WorkoutBlock | null }): string {
-    return group.block?._id || 'ungrouped';
+  public trackByBlockGroup(
+    index: number,
+    group: { block: WorkoutBlock | null },
+  ): string {
+    return group.block?._id || "ungrouped";
   }
 
-  public trackByExerciseEntry(index: number, entry: { exercise: CustomExercise }): string {
+  public trackByExerciseEntry(
+    index: number,
+    entry: { exercise: CustomExercise },
+  ): string {
     return entry.exercise._id;
   }
 
   public blockTypeLabel(type: WorkoutBlockType): string {
     switch (type) {
-      case 'superset':
-        return this.translate.instant('TABLES.BLOCK_TYPE_SUPERSET');
-      case 'circuit':
-        return this.translate.instant('TABLES.BLOCK_TYPE_CIRCUIT');
-      case 'warmup':
-        return this.translate.instant('TABLES.BLOCK_TYPE_WARMUP');
-      case 'finisher':
-        return this.translate.instant('TABLES.BLOCK_TYPE_FINISHER');
+      case "superset":
+        return this.translate.instant("TABLES.BLOCK_TYPE_SUPERSET");
+      case "circuit":
+        return this.translate.instant("TABLES.BLOCK_TYPE_CIRCUIT");
+      case "warmup":
+        return this.translate.instant("TABLES.BLOCK_TYPE_WARMUP");
+      case "finisher":
+        return this.translate.instant("TABLES.BLOCK_TYPE_FINISHER");
       default:
-        return this.translate.instant('TABLES.BLOCK_TYPE_STRAIGHT');
+        return this.translate.instant("TABLES.BLOCK_TYPE_STRAIGHT");
     }
   }
 
   private saveWorkoutBlocks(blocks: Partial<WorkoutBlock>[]): void {
-    this.workoutService.updateWorkoutBlocks(this.workout._id, blocks).subscribe({
-      next: (updatedWorkout) => {
-        this.workout.blocks = updatedWorkout.blocks;
-        this.workout.exercises = updatedWorkout.exercises;
-        this.tableService.setCurrentTable = this.tableInUse;
-      },
-      error: () => {
-        this.ionicUtilService.showToast({
-          message: this.translate.instant('TABLES.BLOCK_UPDATE_ERROR'),
-          duration: 2500,
-        });
-      },
-    });
+    this.workoutService
+      .updateWorkoutBlocks(this.workout._id, blocks)
+      .subscribe({
+        next: (updatedWorkout) => {
+          this.workout.blocks = updatedWorkout.blocks;
+          this.workout.exercises = updatedWorkout.exercises;
+          this.tableService.setCurrentTable = this.tableInUse;
+        },
+        error: () => {
+          this.ionicUtilService.showToast({
+            message: this.translate.instant("TABLES.BLOCK_UPDATE_ERROR"),
+            duration: 2500,
+          });
+        },
+      });
   }
 
   // Punto de entrada real de gestión de bloques — lista los bloques
@@ -857,37 +968,37 @@ export class WorkoutComponent implements OnDestroy {
     }));
 
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('ACTIONS.MANAGE_BLOCKS'),
+      header: this.translate.instant("ACTIONS.MANAGE_BLOCKS"),
       buttons: [
         ...existingBlockButtons,
         {
-          text: `+ ${this.translate.instant('TABLES.NEW_BLOCK_BTN')}`,
+          text: `+ ${this.translate.instant("TABLES.NEW_BLOCK_BTN")}`,
           handler: () => {
             this.createBlockNameAlert();
             return false;
           },
         },
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
       ],
     });
   }
 
   private async createBlockNameAlert(): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.CREATE_BLOCK'),
+      header: this.translate.instant("TABLES.CREATE_BLOCK"),
       inputs: [
         {
-          name: 'name',
-          type: 'text',
-          placeholder: this.translate.instant('TABLES.BLOCK_NAME_PLACEHOLDER'),
+          name: "name",
+          type: "text",
+          placeholder: this.translate.instant("TABLES.BLOCK_NAME_PLACEHOLDER"),
         },
       ],
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('COMMON.CONFIRM'),
+          text: this.translate.instant("COMMON.CONFIRM"),
           handler: (data: any) => {
-            this.chooseBlockTypeAlert((data?.name || '').trim());
+            this.chooseBlockTypeAlert((data?.name || "").trim());
             return true;
           },
         },
@@ -900,25 +1011,31 @@ export class WorkoutComponent implements OnDestroy {
   // encadenado, mismo patrón que promptReadinessThenStart/promptEffortThenFinish
   // en current-workout.page.ts.
   private async chooseBlockTypeAlert(name: string): Promise<void> {
-    const types: WorkoutBlockType[] = ['straight', 'superset', 'circuit', 'warmup', 'finisher'];
-    const inputs: AlertOptions['inputs'] = types.map((type, index) => ({
-      type: 'radio',
+    const types: WorkoutBlockType[] = [
+      "straight",
+      "superset",
+      "circuit",
+      "warmup",
+      "finisher",
+    ];
+    const inputs: AlertOptions["inputs"] = types.map((type, index) => ({
+      type: "radio",
       label: this.blockTypeLabel(type),
       value: type,
       checked: index === 0,
     }));
 
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.BLOCK_TYPE_PICKER_TITLE'),
+      header: this.translate.instant("TABLES.BLOCK_TYPE_PICKER_TITLE"),
       inputs,
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('COMMON.CONFIRM'),
+          text: this.translate.instant("COMMON.CONFIRM"),
           handler: (type: WorkoutBlockType) => {
             const newBlock: Partial<WorkoutBlock> = {
               name,
-              type: type || 'straight',
+              type: type || "straight",
               order: (this.workout.blocks || []).length,
             };
             this.saveWorkoutBlocks([...(this.workout.blocks || []), newBlock]);
@@ -933,44 +1050,44 @@ export class WorkoutComponent implements OnDestroy {
       header: block.name || this.blockTypeLabel(block.type),
       buttons: [
         {
-          text: this.translate.instant('TABLES.RENAME_BLOCK'),
+          text: this.translate.instant("TABLES.RENAME_BLOCK"),
           handler: () => {
             this.renameBlockAlert(block);
             return false;
           },
         },
         {
-          text: this.translate.instant('TABLES.DELETE_BLOCK_BTN'),
-          cssClass: 'alert-button-danger',
+          text: this.translate.instant("TABLES.DELETE_BLOCK_BTN"),
+          cssClass: "alert-button-danger",
           handler: () => {
             this.confirmDeleteBlock(block);
             return false;
           },
         },
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
       ],
     });
   }
 
   private async renameBlockAlert(block: WorkoutBlock): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.RENAME_BLOCK'),
+      header: this.translate.instant("TABLES.RENAME_BLOCK"),
       inputs: [
         {
-          name: 'name',
-          type: 'text',
-          value: block.name || '',
-          placeholder: this.translate.instant('TABLES.BLOCK_NAME_PLACEHOLDER'),
+          name: "name",
+          type: "text",
+          value: block.name || "",
+          placeholder: this.translate.instant("TABLES.BLOCK_NAME_PLACEHOLDER"),
         },
       ],
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('COMMON.CONFIRM'),
+          text: this.translate.instant("COMMON.CONFIRM"),
           handler: (data: any) => {
-            const name = (data?.name || '').trim();
+            const name = (data?.name || "").trim();
             const updatedBlocks = (this.workout.blocks || []).map((b) =>
-              b._id === block._id ? { ...b, name } : b
+              b._id === block._id ? { ...b, name } : b,
             );
             this.saveWorkoutBlocks(updatedBlocks);
             return true;
@@ -985,15 +1102,17 @@ export class WorkoutComponent implements OnDestroy {
   // a un bloque que ya no existe.
   private async confirmDeleteBlock(block: WorkoutBlock): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.DELETE_BLOCK_CONFIRM'),
-      message: this.translate.instant('TABLES.DELETE_BLOCK_CONFIRM_MSG'),
+      header: this.translate.instant("TABLES.DELETE_BLOCK_CONFIRM"),
+      message: this.translate.instant("TABLES.DELETE_BLOCK_CONFIRM_MSG"),
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('TABLES.DELETE_BTN'),
-          cssClass: 'alert-button-danger',
+          text: this.translate.instant("TABLES.DELETE_BTN"),
+          cssClass: "alert-button-danger",
           handler: () => {
-            const remainingBlocks = (this.workout.blocks || []).filter((b) => b._id !== block._id);
+            const remainingBlocks = (this.workout.blocks || []).filter(
+              (b) => b._id !== block._id,
+            );
             this.saveWorkoutBlocks(remainingBlocks);
           },
         },
@@ -1002,26 +1121,29 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   // Botón por ejercicio — mover a un bloque existente o dejarlo suelto.
-  public async moveExerciseToBlockAlert(exercise: CustomExercise, event: Event): Promise<void> {
+  public async moveExerciseToBlockAlert(
+    exercise: CustomExercise,
+    event: Event,
+  ): Promise<void> {
     event.stopPropagation();
     const blocks = this.workout.blocks || [];
     if (blocks.length === 0) {
       this.ionicUtilService.showToast({
-        message: this.translate.instant('TABLES.NO_BLOCKS_YET'),
+        message: this.translate.instant("TABLES.NO_BLOCKS_YET"),
         duration: 2000,
       });
       return;
     }
 
-    const inputs: AlertOptions['inputs'] = [
+    const inputs: AlertOptions["inputs"] = [
       {
-        type: 'radio',
-        label: this.translate.instant('TABLES.BLOCK_UNGROUPED'),
-        value: '',
+        type: "radio",
+        label: this.translate.instant("TABLES.BLOCK_UNGROUPED"),
+        value: "",
         checked: !exercise.blockId,
       },
       ...blocks.map((block) => ({
-        type: 'radio' as const,
+        type: "radio" as const,
         label: block.name || this.blockTypeLabel(block.type),
         value: block._id,
         checked: exercise.blockId === block._id,
@@ -1029,25 +1151,29 @@ export class WorkoutComponent implements OnDestroy {
     ];
 
     await this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.MOVE_TO_BLOCK'),
+      header: this.translate.instant("TABLES.MOVE_TO_BLOCK"),
       inputs,
       buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
         {
-          text: this.translate.instant('COMMON.CONFIRM'),
+          text: this.translate.instant("COMMON.CONFIRM"),
           handler: (blockId: string) => {
-            this.customExerciseService.setCustomExerciseBlock(exercise._id, blockId || null).subscribe({
-              next: (updated) => {
-                exercise.blockId = updated.blockId;
-                this.tableService.setCurrentTable = this.tableInUse;
-              },
-              error: () => {
-                this.ionicUtilService.showToast({
-                  message: this.translate.instant('TABLES.MOVE_TO_BLOCK_ERROR'),
-                  duration: 2500,
-                });
-              },
-            });
+            this.customExerciseService
+              .setCustomExerciseBlock(exercise._id, blockId || null)
+              .subscribe({
+                next: (updated) => {
+                  exercise.blockId = updated.blockId;
+                  this.tableService.setCurrentTable = this.tableInUse;
+                },
+                error: () => {
+                  this.ionicUtilService.showToast({
+                    message: this.translate.instant(
+                      "TABLES.MOVE_TO_BLOCK_ERROR",
+                    ),
+                    duration: 2500,
+                  });
+                },
+              });
           },
         },
       ],
@@ -1062,7 +1188,7 @@ export class WorkoutComponent implements OnDestroy {
         splitTemp.workouts[indexWorkout].exercises[indexExercise]
       ) {
         deletedExercises.push(
-          splitTemp.workouts[indexWorkout].exercises[indexExercise]._id
+          splitTemp.workouts[indexWorkout].exercises[indexExercise]._id,
         );
         splitTemp.workouts[indexWorkout].exercises.splice(indexExercise, 1);
       }
@@ -1078,20 +1204,22 @@ export class WorkoutComponent implements OnDestroy {
   public async deleteExercisesAlert(
     exerciseName: string,
     indexWorkout: number,
-    indexExercise: number
+    indexExercise: number,
   ) {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.DELETE_EXERCISE'),
-      message: this.translate.instant('TABLES.DELETE_EXERCISE_CONFIRM', { name: exerciseName }),
+      header: this.translate.instant("TABLES.DELETE_EXERCISE"),
+      message: this.translate.instant("TABLES.DELETE_EXERCISE_CONFIRM", {
+        name: exerciseName,
+      }),
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('TABLES.DELETE_BTN'),
-          role: 'destructive',
+          text: this.translate.instant("TABLES.DELETE_BTN"),
+          role: "destructive",
           handler: () => {
             this.deleteExercises(indexWorkout, indexExercise);
           },
@@ -1116,7 +1244,7 @@ export class WorkoutComponent implements OnDestroy {
         // ver ahí para el porqué de reutilizar plannerMode.
         showQuickSeriesGenerator: this.plannerMode,
       },
-      cssClass: 'tf-panel-modal',
+      cssClass: "tf-panel-modal",
     });
     modal.onDidDismiss().then((res) => {
       if (res.data?.setChangeInfo) {
@@ -1140,8 +1268,8 @@ export class WorkoutComponent implements OnDestroy {
     const workouts = Array.isArray(workoutsPayload)
       ? workoutsPayload
       : Array.isArray(workoutsPayload?.workouts)
-        ? workoutsPayload.workouts
-        : [];
+      ? workoutsPayload.workouts
+      : [];
 
     if (!workouts.length) {
       if (workoutsPayload?.setChangeInfo) {
@@ -1159,7 +1287,7 @@ export class WorkoutComponent implements OnDestroy {
           if (workout._id === workoutTemp._id) {
             workoutTemp.exercises = this.mergeCustomExercises(
               workoutTemp.exercises,
-              workout.exercises
+              workout.exercises,
             );
           }
         });
@@ -1184,7 +1312,7 @@ export class WorkoutComponent implements OnDestroy {
 
   private mergeCustomExercises(
     currentExercises: CustomExercise[] = [],
-    incomingExercises: CustomExercise[] = []
+    incomingExercises: CustomExercise[] = [],
   ): CustomExercise[] {
     const mergedExercises = [...(currentExercises || [])];
 
@@ -1192,9 +1320,9 @@ export class WorkoutComponent implements OnDestroy {
       const incomingId = incomingExercise?._id?.toString();
       const existingIndex = incomingId
         ? mergedExercises.findIndex(
-          (currentExercise) =>
-            currentExercise?._id?.toString() === incomingId
-        )
+            (currentExercise) =>
+              currentExercise?._id?.toString() === incomingId,
+          )
         : -1;
 
       if (existingIndex >= 0) {
@@ -1233,7 +1361,7 @@ export class WorkoutComponent implements OnDestroy {
       // shared-theme — en train-fit-front/train-fit-management este nombre
       // de clase no coincide con ninguna regla y el modal se comporta igual
       // que antes. Ver MVP-trainers/tareas-grandes/TAREA5.
-      cssClass: 'tf-panel-modal',
+      cssClass: "tf-panel-modal",
     };
 
     this.ionicUtilService.showModal(modalOptions).then((res) => {
@@ -1279,11 +1407,11 @@ export class WorkoutComponent implements OnDestroy {
       this.selectedExerciseIndices.add(index);
     }
     const selected = Array.from(this.selectedExerciseIndices).map(
-      (i) => this.workout.exercises[i]
+      (i) => this.workout.exercises[i],
     );
     this.workoutService.setExerciseClipboard = new ExerciseClipboard(
       this.workout._id,
-      selected
+      selected,
     );
     this.exerciseCopyEvent.emit({
       workoutId: this.workout._id,
@@ -1301,11 +1429,11 @@ export class WorkoutComponent implements OnDestroy {
       this.selectedExerciseIndices.add(index);
     }
     const selected = Array.from(this.selectedExerciseIndices).map(
-      (i) => this.workout.exercises[i]
+      (i) => this.workout.exercises[i],
     );
     this.workoutService.setExerciseClipboard = new ExerciseClipboard(
       this.workout._id,
-      selected
+      selected,
     );
     this.exerciseCopyEvent.emit({
       workoutId: this.workout._id,
@@ -1322,7 +1450,10 @@ export class WorkoutComponent implements OnDestroy {
   public canPasteExercises(): boolean {
     if (!this.workoutService.hasExerciseClipboard()) return false;
     const clipboard = this.workoutService.getExerciseClipboard;
-    return clipboard.sourceWorkoutId !== this.workout._id && clipboard.selectedExercises.length > 0;
+    return (
+      clipboard.sourceWorkoutId !== this.workout._id &&
+      clipboard.selectedExercises.length > 0
+    );
   }
 
   public async pasteExercises(): Promise<void> {
@@ -1333,12 +1464,12 @@ export class WorkoutComponent implements OnDestroy {
       component: ClipboardExercisesModalComponent,
       componentProps: {
         exercises: clipboard.selectedExercises,
-        mode: 'paste',
+        mode: "paste",
       },
-      cssClass: ['clipboard-modal', 'tf-panel-modal'],
+      cssClass: ["clipboard-modal", "tf-panel-modal"],
     });
 
-    if (modalResult.role !== 'confirm') return;
+    if (modalResult.role !== "confirm") return;
 
     const selected = modalResult.data.selectedExercises as CustomExercise[];
     if (selected.length === 0) return;
@@ -1352,7 +1483,7 @@ export class WorkoutComponent implements OnDestroy {
         this.tableInUse._id,
         clipboard.sourceWorkoutId,
         this.workout._id,
-        selected
+        selected,
       )
       .subscribe((res) => {
         if (res?.tableInUse) {
@@ -1365,7 +1496,7 @@ export class WorkoutComponent implements OnDestroy {
         this.utilService.requestScrollToExercise({
           workoutIndex: this.workoutIndex,
           exerciseIndex: firstPastedIndex,
-          highlightClass: 'highlight-new-set',
+          highlightClass: "highlight-new-set",
         });
 
         const highlighted = new Set<number>();
@@ -1376,12 +1507,12 @@ export class WorkoutComponent implements OnDestroy {
             if (highlighted.has(i)) continue;
             const idx = firstPastedIndex + i;
             const el = document.getElementById(
-              `exercise-${this.workoutIndex}-${idx}`
+              `exercise-${this.workoutIndex}-${idx}`,
             );
             if (el) {
               highlighted.add(i);
-              el.classList.add('highlight-new-set');
-              setTimeout(() => el.classList.remove('highlight-new-set'), 2000);
+              el.classList.add("highlight-new-set");
+              setTimeout(() => el.classList.remove("highlight-new-set"), 2000);
             } else {
               allFound = false;
             }
@@ -1392,7 +1523,7 @@ export class WorkoutComponent implements OnDestroy {
         };
         setTimeout(() => highlightAllPasted(), 600);
         const toast: ToastOptions = {
-          message: this.translate.instant('TABLES.EXERCISES_PASTED'),
+          message: this.translate.instant("TABLES.EXERCISES_PASTED"),
           duration: 2000,
         };
         this.ionicUtilService.showToast(toast);
@@ -1469,6 +1600,11 @@ export class WorkoutComponent implements OnDestroy {
       actions.push(ACTIONS[this.ACTION_TYPES.skipWorkout]);
     }
 
+    // "Detener entrenamiento" solo si este es el que está en curso ahora mismo.
+    if (this.workout._id === this.user?.workoutInUse) {
+      actions.push(ACTIONS[this.ACTION_TYPES.stopWorkout]);
+    }
+
     actions.push(ACTIONS[this.ACTION_TYPES.delete]);
 
     return actions;
@@ -1491,7 +1627,7 @@ export class WorkoutComponent implements OnDestroy {
       this.utilService.requestScrollToExercise({
         workoutIndex: this.workoutIndex,
         exerciseIndex: changeInfo.exerciseIndex,
-        highlightClass: 'highlight-updated-set',
+        highlightClass: "highlight-updated-set",
       });
     } else if (changeInfo.setsCreated > 0) {
       this.setAddedEvent.emit({
@@ -1515,36 +1651,38 @@ export class WorkoutComponent implements OnDestroy {
 
   private setWorkoutNote(): void {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.WORKOUT_NOTE'),
+      header: this.translate.instant("TABLES.WORKOUT_NOTE"),
       inputs: [
         {
-          name: 'notes',
-          type: 'textarea',
+          name: "notes",
+          type: "textarea",
           value: this.workout.notes,
-          placeholder: this.translate.instant('TABLES.WORKOUT_NOTES_PLACEHOLDER'),
+          placeholder: this.translate.instant(
+            "TABLES.WORKOUT_NOTES_PLACEHOLDER",
+          ),
           attributes: { maxlength: 500 },
         },
       ],
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('COMMON.SAVE'),
+          text: this.translate.instant("COMMON.SAVE"),
           handler: (data) => {
-            if (data.notes && data.notes.trim() !== '') {
+            if (data.notes && data.notes.trim() !== "") {
               this.workout.notes = data.notes;
               this.workoutService
                 .modifyWorkout(this.workout)
                 .subscribe(
                   (resWorkout) =>
-                    (this.workoutService.setCurrentWorkout = resWorkout)
+                    (this.workoutService.setCurrentWorkout = resWorkout),
                 );
             } else {
               const toastOptions: ToastOptions = {
-                message: this.translate.instant('TABLES.FIELD_NOT_EMPTY'),
+                message: this.translate.instant("TABLES.FIELD_NOT_EMPTY"),
                 duration: 2000,
               };
               this.ionicUtilService.showToast(toastOptions);
@@ -1560,31 +1698,33 @@ export class WorkoutComponent implements OnDestroy {
 
   private updateWorkoutName(): void {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.CHANGE_NAME'),
+      header: this.translate.instant("TABLES.CHANGE_NAME"),
       inputs: [
         {
-          name: 'name',
-          type: 'text',
+          name: "name",
+          type: "text",
           value: this.workout.name,
-          placeholder: this.translate.instant('TABLES.WORKOUT_NAME_PLACEHOLDER'),
+          placeholder: this.translate.instant(
+            "TABLES.WORKOUT_NAME_PLACEHOLDER",
+          ),
         },
       ],
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('COMMON.SAVE'),
+          text: this.translate.instant("COMMON.SAVE"),
           handler: (data) => {
-            if (data.name && data.name.trim() !== '') {
+            if (data.name && data.name.trim() !== "") {
               this.load = false;
               this.workoutService
                 .updateWorkoutsName(
                   this.tableInUse._id,
                   this.workout._id,
-                  data.name
+                  data.name,
                 )
                 .subscribe(() => {
                   // Emitir evento para que mesocycle actualice solo los nombres
@@ -1595,7 +1735,9 @@ export class WorkoutComponent implements OnDestroy {
 
                   this.load = true;
                   const toastOptions: ToastOptions = {
-                    message: this.translate.instant('TABLES.WORKOUT_NAME_UPDATED'),
+                    message: this.translate.instant(
+                      "TABLES.WORKOUT_NAME_UPDATED",
+                    ),
                     duration: 1000,
                   };
 
@@ -1651,9 +1793,9 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   // Verde = terminado (workout.date), azul = saltado (workout.rest).
-  public getWorkoutStatusColor(fallback: string = ''): string {
-    if (this.workout.date) return 'var(--ion-color-success)';
-    if (this.workout.rest) return 'var(--ion-color-alternative)';
+  public getWorkoutStatusColor(fallback: string = ""): string {
+    if (this.workout.date) return "var(--ion-color-success)";
+    if (this.workout.rest) return "var(--ion-color-alternative)";
     return fallback;
   }
 
@@ -1665,8 +1807,8 @@ export class WorkoutComponent implements OnDestroy {
 
   public generatePopoverId(date: Date): string {
     return date
-      ? 'w-open-date-split-' + this.workoutIndex + '-' + this.splitIndex
-      : '';
+      ? "w-open-date-split-" + this.workoutIndex + "-" + this.splitIndex
+      : "";
   }
 
   public stopPropagation(workout: Workout, event: Event): void {
@@ -1693,7 +1835,7 @@ export class WorkoutComponent implements OnDestroy {
     this.workoutService.modifyWorkout(workout).subscribe(() => {
       this.tableService.setCurrentTable = this.tableInUse;
       const toastOptions: ToastOptions = {
-        message: this.translate.instant('TABLES.DATE_UPDATED'),
+        message: this.translate.instant("TABLES.DATE_UPDATED"),
         duration: 2000,
       };
       this.ionicUtilService.showToast(toastOptions);
@@ -1723,7 +1865,7 @@ export class WorkoutComponent implements OnDestroy {
 
   public updateExerciseNote(
     note: string | undefined,
-    customExercise: CustomExercise
+    customExercise: CustomExercise,
   ): void {
     if (note) customExercise.notes = note;
     else delete customExercise.notes;
@@ -1741,7 +1883,7 @@ export class WorkoutComponent implements OnDestroy {
     const isCurrentWorkout =
       this.workoutService.currentWorkout?._id === this.workout._id;
 
-    console.debug('[WorkoutComponent] Exercise note updated', {
+    console.debug("[WorkoutComponent] Exercise note updated", {
       tableId: this.tableInUse?._id,
       workoutId: this.workout?._id,
       customExerciseId: customExercise?._id,
@@ -1778,10 +1920,9 @@ export class WorkoutComponent implements OnDestroy {
   // no estén ni terminados ni ya saltados.
   private getPendingPreviousWorkouts(): Workout[] {
     const flatWorkouts =
-      this.tableInUse?.splits?.flatMap((splitTemp) => splitTemp.workouts) ??
-      [];
+      this.tableInUse?.splits?.flatMap((splitTemp) => splitTemp.workouts) ?? [];
     const currentIndex = flatWorkouts.findIndex(
-      (workoutTemp) => workoutTemp._id === this.workout._id
+      (workoutTemp) => workoutTemp._id === this.workout._id,
     );
 
     if (currentIndex <= 0) return [];
@@ -1790,10 +1931,12 @@ export class WorkoutComponent implements OnDestroy {
       .filter((workoutTemp) => !workoutTemp.date && !workoutTemp.rest);
   }
 
-  private async confirmSkipPreviousWorkouts(pendingWorkouts: Workout[]): Promise<void> {
+  private async confirmSkipPreviousWorkouts(
+    pendingWorkouts: Workout[],
+  ): Promise<void> {
     const workoutItems: WorkoutSkipItem[] = pendingWorkouts.map((w) => {
       const si = this.tableInUse.splits.findIndex((s) =>
-        s.workouts.some((sw) => sw._id === w._id)
+        s.workouts.some((sw) => sw._id === w._id),
       );
       return { workout: w, splitIndex: si >= 0 ? si : 0 };
     });
@@ -1801,41 +1944,45 @@ export class WorkoutComponent implements OnDestroy {
       component: SkipWorkoutModalComponent,
       componentProps: {
         workoutItems,
-        header: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING'),
-        message: this.translate.instant('TABLES.PREVIOUS_WORKOUT_PENDING_MSG'),
-        confirmText: this.translate.instant('TABLES.SKIP_AND_CONTINUE_BTN'),
+        header: this.translate.instant("TABLES.PREVIOUS_WORKOUT_PENDING"),
+        message: this.translate.instant("TABLES.PREVIOUS_WORKOUT_PENDING_MSG"),
+        confirmText: this.translate.instant("TABLES.SKIP_AND_CONTINUE_BTN"),
         showSecondaryAction: true,
-        secondaryText: this.translate.instant('TABLES.CONTINUE_WITHOUT_SKIP_BTN'),
+        secondaryText: this.translate.instant(
+          "TABLES.CONTINUE_WITHOUT_SKIP_BTN",
+        ),
       },
-      cssClass: 'tf-panel-modal',
+      cssClass: "tf-panel-modal",
     });
     await modal.present();
     const { role } = await modal.onDidDismiss();
-    if (role === 'confirm') {
+    if (role === "confirm") {
       forkJoin(
         pendingWorkouts.map((workoutTemp) =>
-          this.applyWorkoutSkip(workoutTemp, true)
-        )
+          this.applyWorkoutSkip(workoutTemp, true),
+        ),
       ).subscribe(() => {
         this.showStartWorkoutAlert();
       });
-    } else if (role === 'secondary') {
+    } else if (role === "secondary") {
       this.showStartWorkoutAlert();
     }
   }
 
   private showStartWorkoutAlert(): void {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.START_WORKOUT'),
-      message: this.translate.instant('TABLES.START_WORKOUT_CONFIRM', { name: this.workout.name }),
+      header: this.translate.instant("TABLES.START_WORKOUT"),
+      message: this.translate.instant("TABLES.START_WORKOUT_CONFIRM", {
+        name: this.workout.name,
+      }),
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('TABLES.START'),
+          text: this.translate.instant("TABLES.START"),
           handler: () => {
             if (this.user?.premium?.entitled) {
               this.startWorkoutAndNavigate();
@@ -1843,15 +1990,12 @@ export class WorkoutComponent implements OnDestroy {
             }
 
             this.adMobService
-              .interstitial('start_workout')
+              .interstitial("start_workout")
               .then(() => {
                 this.startWorkoutAndNavigate();
               })
               .catch((error) => {
-                console.error(
-                  'Error al mostrar anuncio start_workout:',
-                  error
-                );
+                console.error("Error al mostrar anuncio start_workout:", error);
               });
           },
         },
@@ -1864,7 +2008,7 @@ export class WorkoutComponent implements OnDestroy {
     const dangling = this.workoutService.getDanglingWorkout(
       this.user.workoutInUse,
       this.workout._id,
-      this.tableInUse
+      this.tableInUse,
     );
 
     if (!dangling) {
@@ -1873,12 +2017,14 @@ export class WorkoutComponent implements OnDestroy {
     }
 
     if (!this.workoutService.hasProgress(dangling)) {
-      this.stopDanglingWorkout(dangling, () => this.proceedStartWorkoutAndNavigate());
+      this.stopDanglingWorkout(dangling, () =>
+        this.proceedStartWorkoutAndNavigate(),
+      );
       return;
     }
 
     this.showResolveDanglingWorkoutAlert(dangling, () =>
-      this.proceedStartWorkoutAndNavigate()
+      this.proceedStartWorkoutAndNavigate(),
     );
   }
 
@@ -1896,20 +2042,22 @@ export class WorkoutComponent implements OnDestroy {
 
   private showResolveDanglingWorkoutAlert(
     dangling: Workout,
-    onResolved: () => void
+    onResolved: () => void,
   ): void {
     const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.RESOLVE_PREVIOUS_WORKOUT'),
-      message: this.translate.instant('TABLES.RESOLVE_PREVIOUS_WORKOUT_MSG', { name: dangling.name }),
+      header: this.translate.instant("TABLES.RESOLVE_PREVIOUS_WORKOUT"),
+      message: this.translate.instant("TABLES.RESOLVE_PREVIOUS_WORKOUT_MSG", {
+        name: dangling.name,
+      }),
       buttons: [
         {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: 'cancel',
-          cssClass: 'secondary',
+          text: this.translate.instant("COMMON.CANCEL"),
+          role: "cancel",
+          cssClass: "secondary",
         },
         {
-          text: this.translate.instant('TABLES.STOP_BTN'),
-          cssClass: 'danger',
+          text: this.translate.instant("TABLES.STOP_BTN"),
+          cssClass: "danger",
           handler: () => {
             this.stopDanglingWorkout(dangling, onResolved);
           },
@@ -1924,6 +2072,14 @@ export class WorkoutComponent implements OnDestroy {
     const wasCompleted = !!this.workout.date;
     this.workout.date = null;
 
+    // Empezar un workout saltado debe quitarle el flag `rest` — si no,
+    // sigue azul (getWorkoutStatusColor) y el popover sigue ofreciendo
+    // "quitar saltado" (getActionsPopover) aunque ya esté en curso o
+    // incluso terminado.
+    if (this.workout.rest) {
+      this.workout.rest = false;
+    }
+
     // Reset startedAt if the workout was completed before
     if (!this.workout.startedAt || wasCompleted) {
       this.workout.startedAt = new Date();
@@ -1931,19 +2087,21 @@ export class WorkoutComponent implements OnDestroy {
 
     // If the workout was completed, reset all sets to not done
     if (wasCompleted) {
-      this.workout.exercises = this.workout.exercises?.map(exercise => ({
+      this.workout.exercises = this.workout.exercises?.map((exercise) => ({
         ...exercise,
-        sets: exercise.sets?.map(set => ({
+        sets: exercise.sets?.map((set) => ({
           ...set,
-          doned: false
-        }))
+          doned: false,
+        })),
       }));
     }
 
     // Update the workout in tableInUse as well, so it's in sync
     if (this.tableInUse) {
-      this.tableInUse.splits.forEach(split => {
-        const workoutIndex = split.workouts.findIndex(w => w._id === this.workout._id);
+      this.tableInUse.splits.forEach((split) => {
+        const workoutIndex = split.workouts.findIndex(
+          (w) => w._id === this.workout._id,
+        );
         if (workoutIndex !== -1) {
           split.workouts[workoutIndex] = { ...this.workout };
         }
@@ -1963,7 +2121,7 @@ export class WorkoutComponent implements OnDestroy {
 
   // Funciones para formatear valores esperados
   public formatExpectedReps(expectedReps: number[]): string {
-    if (!expectedReps || expectedReps.length === 0) return '—';
+    if (!expectedReps || expectedReps.length === 0) return "—";
 
     const firstExpected =
       expectedReps[0] !== null &&
@@ -1981,12 +2139,12 @@ export class WorkoutComponent implements OnDestroy {
     } else if (secondExpected) {
       return `${expectedReps[1]}`;
     } else {
-      return '—';
+      return "—";
     }
   }
 
   public formatExpectedRir(expectedRir: number[]): string {
-    if (!expectedRir || expectedRir.length === 0) return '— RIR';
+    if (!expectedRir || expectedRir.length === 0) return "— RIR";
 
     const firstExpected =
       expectedRir[0] !== null &&
@@ -2004,7 +2162,7 @@ export class WorkoutComponent implements OnDestroy {
     } else if (secondExpected) {
       return `${expectedRir[1]} RIR`;
     } else {
-      return '— RIR';
+      return "— RIR";
     }
   }
 
@@ -2037,6 +2195,4 @@ export class WorkoutComponent implements OnDestroy {
       (set.expectedRir[0] === -1 || set.expectedRir[1] === -1)
     );
   }
-
-
 }
