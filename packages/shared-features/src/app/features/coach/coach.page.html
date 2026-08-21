@@ -15,35 +15,79 @@
 </ion-header>
 
 <ion-content class="coach-content">
-  <!-- === Notificaciones (coach-tab FASE3) === -->
-  <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
-    <div class="skeleton-block" style="height: 56px;"></div>
-  </div>
-
-  <div class="mp-section" *ngIf="notificationsState === 'loaded' && notifications.length">
-    <h2 class="section-heading">Notificaciones</h2>
+  <!-- === Menú de un vistazo — antes toda la info de abajo aparecía apilada
+       directamente; ahora estas tarjetas resumen cada sección y llevan a
+       ella (scroll a su ancla más abajo, no hay pantallas propias por
+       sección todavía). === -->
+  <div class="coach-menu-grid">
+    <button
+      type="button"
+      class="coach-menu-card"
+      *ngIf="dashboardState !== 'loaded' || pendingCount > 0"
+      (click)="scrollToSection('section-pending')"
+    >
+      <div class="coach-menu-icon coach-menu-icon--alert"><ion-icon name="alert-circle-outline"></ion-icon></div>
+      <span class="coach-menu-name">Pendiente de ti</span>
+      <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">
+        {{ pendingCount }} pendiente{{ pendingCount === 1 ? '' : 's' }}
+      </span>
+    </button>
 
     <button
-      class="notification-card"
-      *ngFor="let notification of notifications; trackBy: trackByNotificationId"
-      [class.notification-card--unread]="!notification.read"
-      (click)="openNotification(notification)"
+      type="button"
+      class="coach-menu-card"
+      *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine || dashboard?.assignedGoal"
+      (click)="scrollToSection('section-plan')"
     >
-      <span class="notification-dot" *ngIf="!notification.read"></span>
-      <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
-      <div class="action-info">
-        <span class="action-title">{{ notificationTitle(notification) }}</span>
-        <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
-      </div>
-      <ion-icon
-        *ngIf="isNotificationInteractive(notification)"
-        name="chevron-forward-outline"
-        class="action-chevron"
-      ></ion-icon>
+      <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
+      <span class="coach-menu-name">Tu plan actual</span>
+      <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">Activo</span>
+    </button>
+
+    <button
+      type="button"
+      class="coach-menu-card"
+      *ngIf="tasksState !== 'loaded' || tasks.length"
+      (click)="scrollToSection('section-tasks')"
+    >
+      <div class="coach-menu-icon"><ion-icon name="checkbox-outline"></ion-icon></div>
+      <span class="coach-menu-name">Tareas de hoy</span>
+      <span class="coach-menu-stat" *ngIf="tasksState === 'loaded'">{{ completedTasksCount }}/{{ tasks.length }}</span>
+    </button>
+
+    <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
+      <div class="coach-menu-icon"><ion-icon name="people-outline"></ion-icon></div>
+      <span class="coach-menu-name">Tus profesionales</span>
+      <span class="coach-menu-stat" *ngIf="state === 'loaded'">
+        {{ activeProfessionals.length }} activo{{ activeProfessionals.length === 1 ? '' : 's' }}<ng-container
+          *ngIf="pendingInvites.length"
+        > · {{ groupedPendingInvites.length }} invitación{{ groupedPendingInvites.length === 1 ? '' : 'es' }}</ng-container>
+      </span>
+    </button>
+
+    <!-- Antes vivían en Configuración > Opciones de perfil — sin sección
+         propia en esta página (son pantallas aparte, ver goToCheckins()/
+         goToNutritionPreferences()), así que estas tarjetas navegan
+         directo en vez de hacer scroll a una ancla. Siempre visibles (a
+         diferencia de "Pendiente de ti", que solo aparece si hay algo
+         pendiente): sin esto, un cliente sin check-in/preferencia pedidos
+         se quedaba sin ninguna forma de entrar a ninguna de las dos. -->
+    <button type="button" class="coach-menu-card" (click)="goToCheckins()">
+      <div class="coach-menu-icon"><ion-icon name="clipboard-outline"></ion-icon></div>
+      <span class="coach-menu-name">Mis check-ins</span>
+    </button>
+
+    <button type="button" class="coach-menu-card" (click)="goToNutritionPreferences()">
+      <div class="coach-menu-icon"><ion-icon name="nutrition-outline"></ion-icon></div>
+      <span class="coach-menu-name">Preferencias nutricionales</span>
     </button>
   </div>
 
   <!-- === Dashboard: pendiente de ti + tu plan actual === -->
+  <!-- Pendiente de ti va ANTES que Notificaciones: son acciones que
+       requieren algo de ti (check-in, propuesta de comida, cobro...), más
+       importante que un feed informativo — ver comentario del usuario en
+       la sesión de rediseño. -->
   <div class="detail-skeleton" *ngIf="dashboardState === 'loading'">
     <div class="skeleton-block" style="height: 64px;"></div>
     <div class="skeleton-block" style="height: 64px;"></div>
@@ -56,7 +100,8 @@
 
   <ng-container *ngIf="dashboardState === 'loaded' && dashboard as d">
     <div
-      class="mp-section"
+      class="section-card"
+      id="section-pending"
       *ngIf="d.pendingCheckins.length || d.pendingMealProposals.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
     >
       <h2 class="section-heading">Pendiente de ti</h2>
@@ -105,7 +150,7 @@
       </div>
     </div>
 
-    <div class="mp-section" *ngIf="d.assignedRoutine || d.assignedGoal">
+    <div class="section-card" id="section-plan" *ngIf="d.assignedRoutine || d.assignedGoal">
       <h2 class="section-heading">Tu plan actual</h2>
 
       <div class="plan-card" *ngIf="d.assignedRoutine as routine">
@@ -126,12 +171,66 @@
     </div>
   </ng-container>
 
+  <!-- === Notificaciones (coach-tab FASE3) === -->
+  <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
+    <div class="skeleton-block" style="height: 56px;"></div>
+  </div>
+
+  <div class="section-card" id="section-notifications" *ngIf="notificationsState === 'loaded'">
+    <div class="section-header-row">
+      <h2 class="section-heading">
+        Notificaciones
+        <span class="unread-badge" *ngIf="unreadNotificationsCount">{{ unreadNotificationsCount }}</span>
+      </h2>
+      <div class="section-header-actions">
+        <button
+          type="button"
+          class="section-header-link"
+          *ngIf="unreadNotificationsCount"
+          [disabled]="markingAllRead"
+          (click)="markAllRead()"
+        >
+          Leer todas
+        </button>
+        <button
+          type="button"
+          class="section-header-link"
+          *ngIf="notifications.length > 4"
+          (click)="toggleShowAllNotifications()"
+        >
+          {{ showAllNotifications ? 'Ver menos' : 'Ver todas' }}
+        </button>
+      </div>
+    </div>
+
+    <p class="empty-hint" *ngIf="!notifications.length">No tienes notificaciones todavía.</p>
+
+    <button
+      class="notification-card"
+      *ngFor="let notification of visibleNotifications; trackBy: trackByNotificationId"
+      [class.notification-card--unread]="!notification.read"
+      (click)="openNotification(notification)"
+    >
+      <span class="notification-dot" *ngIf="!notification.read"></span>
+      <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
+      <div class="action-info">
+        <span class="action-title">{{ notificationTitle(notification) }}</span>
+        <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
+      </div>
+      <ion-icon
+        *ngIf="isNotificationInteractive(notification)"
+        name="chevron-forward-outline"
+        class="action-chevron"
+      ></ion-icon>
+    </button>
+  </div>
+
   <!-- === Tareas de hoy (coach-tab FASE4) === -->
   <div class="detail-skeleton" *ngIf="tasksState === 'loading'">
     <div class="skeleton-block" style="height: 48px;"></div>
   </div>
 
-  <div class="mp-section" *ngIf="tasksState === 'loaded' && tasks.length">
+  <div class="section-card" id="section-tasks" *ngIf="tasksState === 'loaded' && tasks.length">
     <h2 class="section-heading">Tareas de hoy</h2>
 
     <button
@@ -167,7 +266,7 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <div class="mp-section" *ngIf="pendingInvites.length">
+    <div class="section-card" *ngIf="pendingInvites.length">
       <h2 class="section-heading">Invitaciones pendientes</h2>
 
       <article class="pro-card pro-card--invite" *ngFor="let group of groupedPendingInvites; trackBy: trackByPendingGroup">
@@ -195,7 +294,7 @@
       </article>
     </div>
 
-    <div class="mp-section">
+    <div class="section-card" id="section-professionals">
       <h2 class="section-heading">Tus profesionales</h2>
 
       <p class="empty-hint" *ngIf="!activeProfessionals.length">
@@ -222,7 +321,7 @@
       </article>
     </div>
 
-    <div class="mp-section" *ngIf="history.length">
+    <div class="section-card" *ngIf="history.length">
       <button class="history-toggle" (click)="toggleHistory()">
         <h2 class="section-heading">Historial</h2>
         <ion-icon [name]="showHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>

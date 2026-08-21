@@ -8,7 +8,7 @@
   position: fixed;
   inset: 0;
   background: var(--tf-overlay);
-  z-index: var(--tf-z-modal-backdrop);
+  z-index: var(--tf-z-modal-backdrop, 400);
   animation: tf-backdrop-in 200ms var(--tf-ease-out);
 
   @media (prefers-reduced-motion: reduce) {
@@ -21,7 +21,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: var(--tf-z-modal);
+  z-index: var(--tf-z-modal, 500);
   background: var(--tf-surface-1);
   border-top: 1px solid var(--tf-border-strong);
   border-radius: 20px 20px 0 0;

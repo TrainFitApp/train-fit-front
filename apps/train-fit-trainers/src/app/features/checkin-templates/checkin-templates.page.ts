@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CHECKIN_FIELDS, CheckinField, CheckinFieldGroup } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { TrainerClientSummary } from '../clients/models/trainer-client-summary.model';
-import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
+import { ApplyCheckinTemplateModalComponent } from './components/apply-checkin-template-modal/apply-checkin-template-modal.component';
 import { CheckinCadence, CheckinTemplateDefinition } from './models/checkin-template.model';
 import { CheckinTemplatesApiService } from './services/checkin-templates-api.service';
 
@@ -12,6 +11,12 @@ const GROUP_LABELS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'Composición corporal',
   perimetros: 'Perímetros',
   bienestar: 'Bienestar',
+};
+
+const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
+  composicion_corporal: 'body-outline',
+  perimetros: 'resize-outline',
+  bienestar: 'heart-outline',
 };
 
 export const CADENCE_OPTIONS: { value: CheckinCadence; label: string }[] = [
@@ -55,24 +60,37 @@ export class CheckinTemplatesPage implements OnInit {
     return CADENCE_LABELS[template.cadence] || template.cadence;
   }
 
-  // --- Panel: aplicar a clientes ---
-  public showApplyPanel = false;
-  public applyingTemplate: CheckinTemplateDefinition | null = null;
-  public myClients: TrainerClientSummary[] = [];
-  public selectedClientIds = new Set<string>();
-  public isApplying = false;
+  // Desglose por grupo ("3 composición corporal", "5 perímetros"...) para
+  // que la card muestre de un vistazo QUÉ tiene activado la plantilla, no
+  // solo un conteo total — antes solo decía "8 campos", sin decir de qué.
+  // Cacheado por _id (no un getter evaluado en cada ciclo de detección de
+  // cambios del *ngFor, mismo criterio que filteredApplyClients de abajo).
+  private groupSummaryCache = new Map<string, { key: CheckinFieldGroup; label: string; count: number }[]>();
 
-  // Buscador por nombre/correo dentro del panel — antes era una lista plana
-  // sin forma de filtrar, incómoda en cuanto el trainer pasa de ~10 clientes.
-  // Calculado explícitamente (no un getter de plantilla) para no repetir el
-  // bug de colgado por *ngFor recalculando en cada ciclo de detección de
-  // cambios, ya visto y corregido varias veces esta sesión.
-  public applyClientSearchQuery = '';
-  public filteredApplyClients: TrainerClientSummary[] = [];
+  public templateGroupSummary(
+    template: CheckinTemplateDefinition
+  ): { key: CheckinFieldGroup; label: string; count: number }[] {
+    const cached = this.groupSummaryCache.get(template._id);
+    if (cached) return cached;
+
+    const summary = this.groups
+      .map((g) => ({
+        key: g.key,
+        label: g.label,
+        count: g.fields.filter((f) => template.enabledFields.includes(f.key)).length,
+      }))
+      .filter((g) => g.count > 0);
+
+    this.groupSummaryCache.set(template._id, summary);
+    return summary;
+  }
+
+  public groupIcon(key: CheckinFieldGroup): string {
+    return GROUP_ICONS[key];
+  }
 
   constructor(
     private checkinTemplatesApi: CheckinTemplatesApiService,
-    private trainerClientsApi: TrainerClientsApiService,
     private ionicUtilService: IonicUtilService
   ) {}
 
@@ -85,6 +103,10 @@ export class CheckinTemplatesPage implements OnInit {
     this.checkinTemplatesApi.list().subscribe({
       next: (templates) => {
         this.templates = templates || [];
+        // Invalida el caché de desglose por grupo — una plantilla editada
+        // conserva el mismo _id, así que sin esto seguiría mostrando el
+        // desglose de campos anterior tras guardar cambios.
+        this.groupSummaryCache.clear();
         this.state = 'loaded';
       },
       error: () => {
@@ -183,100 +205,17 @@ export class CheckinTemplatesPage implements OnInit {
   }
 
   // --- Aplicar a clientes ---
-  public openApplyPanel(template: CheckinTemplateDefinition): void {
-    this.applyingTemplate = template;
-    this.selectedClientIds = new Set();
-    this.applyClientSearchQuery = '';
-    this.showApplyPanel = true;
-    if (this.myClients.length) {
-      this.applyFilteredClients();
-    } else {
-      this.trainerClientsApi.getMyClients().subscribe((clients) => {
-        this.myClients = clients || [];
-        this.applyFilteredClients();
-      });
-    }
-  }
-
-  public closeApplyPanel(): void {
-    this.showApplyPanel = false;
-  }
-
-  public onApplyClientSearchChange(value: string): void {
-    this.applyClientSearchQuery = value;
-    this.applyFilteredClients();
-  }
-
-  private applyFilteredClients(): void {
-    const query = this.applyClientSearchQuery.trim().toLowerCase();
-    this.filteredApplyClients = !query
-      ? this.myClients
-      : this.myClients.filter((c) => {
-          if (!c.user) return false;
-          const haystack = `${c.user.name} ${c.user.lastname} ${c.user.email}`.toLowerCase();
-          return haystack.includes(query);
-        });
-  }
-
-  public toggleClientSelected(client: TrainerClientSummary): void {
-    const id = client.user?._id;
-    if (!id) return;
-    if (this.selectedClientIds.has(id)) this.selectedClientIds.delete(id);
-    else this.selectedClientIds.add(id);
-  }
-
-  public isClientSelected(client: TrainerClientSummary): boolean {
-    return !!client.user && this.selectedClientIds.has(client.user._id);
-  }
-
-  public confirmApply(): void {
-    if (!this.applyingTemplate || !this.selectedClientIds.size || this.isApplying) return;
-
-    this.isApplying = true;
-    this.checkinTemplatesApi
-      .apply(this.applyingTemplate._id, [...this.selectedClientIds])
-      .subscribe({
-        next: (result) => {
-          this.isApplying = false;
-          this.showApplyPanel = false;
-          const total = result.applied.length + result.skipped.length;
-          this.ionicUtilService.showToast({
-            message:
-              result.skipped.length > 0
-                ? `Aplicada a ${result.applied.length} de ${total} clientes (${result.skipped.length} sin relación activa)`
-                : `Aplicada a ${result.applied.length} cliente${result.applied.length === 1 ? '' : 's'}`,
-            duration: 3500,
-          });
-        },
-        error: () => {
-          this.isApplying = false;
-          this.ionicUtilService.showErrorToast('No se pudo aplicar la plantilla', 'Error', 3000);
-        },
-      });
-  }
-
-  public getFullName(client: TrainerClientSummary): string {
-    if (!client.user) return 'Cliente';
-    return `${client.user.name} ${client.user.lastname}`.trim();
-  }
-
-  // Mismo patrón de avatar (iniciales + tono por hash del id) que
-  // clients.page.ts — un solo lenguaje visual de "cliente" en toda la app,
-  // no uno distinto por pantalla.
-  public getInitials(client: TrainerClientSummary): string {
-    if (!client.user) return '?';
-    const name = client.user.name?.charAt(0) || '';
-    const lastname = client.user.lastname?.charAt(0) || '';
-    return (name + lastname).toUpperCase() || '?';
-  }
-
-  private static readonly AVATAR_HUES = [18, 45, 200, 260, 320, 160];
-
-  public getAvatarHue(client: TrainerClientSummary): number {
-    const id = client.user?._id || '';
-    let sum = 0;
-    for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
-    return CheckinTemplatesPage.AVATAR_HUES[sum % CheckinTemplatesPage.AVATAR_HUES.length];
+  // Modal real (ver comentario en ApplyCheckinTemplateModalComponent) en vez
+  // del <div position:fixed> hecho a mano de antes: ese quedaba tapado por
+  // el <ion-header> de esta página en escritorio (contain: layout de Ionic
+  // en .ion-page). cssClass: 'tf-panel-modal' le da el mismo aspecto de
+  // panel anclado a la derecha.
+  public async openApplyPanel(template: CheckinTemplateDefinition): Promise<void> {
+    await this.ionicUtilService.showModal({
+      component: ApplyCheckinTemplateModalComponent,
+      componentProps: { template },
+      cssClass: 'tf-panel-modal',
+    });
   }
 
   public trackByTemplateId(_index: number, template: CheckinTemplateDefinition): string {
@@ -285,9 +224,5 @@ export class CheckinTemplatesPage implements OnInit {
 
   public trackByFieldKey(_index: number, field: CheckinField): string {
     return field.key;
-  }
-
-  public trackByClientId(_index: number, client: TrainerClientSummary): string {
-    return client.user?._id || _index.toString();
   }
 }

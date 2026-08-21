@@ -17,10 +17,10 @@
   gap: 8px;
 }
 
-.templates-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
 }
 
 .skeleton-block {
@@ -38,8 +38,16 @@
     height: 14px;
   }
 
+  &--badge {
+    width: 30%;
+    height: 10px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+
   &--meta {
-    width: 35%;
+    width: 65%;
+    margin-top: 4px;
   }
 }
 
@@ -125,22 +133,27 @@
 
 .template-card {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 14px;
-  margin-bottom: 8px;
-  @include tf-card-in-stagger($max-items: 8);
+  @include tf-card-in-stagger($max-items: 9);
+
+  // Solo mouse/trackpad — en touch, :hover se quedaría "pegado" tras el tap.
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--tf-border-strongest);
+    }
+  }
 }
 
 .template-card-main {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
   padding: 4px 6px;
   margin: -4px -6px;
   border-radius: 10px;
@@ -153,20 +166,83 @@
   }
 }
 
-.template-meta {
-  font-size: 0.76rem;
-  color: var(--tf-text-muted);
+.template-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+// Cadencia como badge visible de un vistazo (antes solo texto plano en
+// .template-meta) — es la pregunta que más importa al elegir entre
+// plantillas parecidas: ¿cada cuánto le llega esto al cliente?
+.cadence-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--tf-accent-text);
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  // "Una vez" no es una cadencia recurrente — distinguirla del acento
+  // reservado para semanal/quincenal evita leerla como "la opción activa".
+  &--once {
+    color: var(--tf-text-secondary);
+    background: var(--tf-surface-3);
+    border-color: var(--tf-border-strong);
+  }
+}
+
+// Desglose por grupo — el detalle real que pidió reemplazar al conteo
+// plano de "8 campos" que no decía nada sobre QUÉ mide la plantilla.
+.field-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-text-faint);
+  }
+}
+
+.field-summary-empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--tf-text-faint);
+  font-style: italic;
+}
+
+.template-total-count {
+  padding-top: 8px;
+  border-top: 1px solid var(--tf-border-subtle);
+  font-size: 0.72rem;
+  color: var(--tf-text-faint);
 }
 
 .template-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
 .template-action-btn {
-  height: 38px;
+  flex: 1;
+  height: var(--tf-touch-min, 44px);
   padding: 0 14px;
   background: var(--tf-surface-5);
   color: var(--tf-text);
@@ -182,7 +258,9 @@
   }
 
   &--danger {
-    padding: 0 10px;
+    flex: 0 0 auto;
+    width: var(--tf-touch-min, 44px);
+    padding: 0;
     color: var(--tf-danger);
     border-color: rgba(235, 68, 90, 0.3);
 
@@ -205,57 +283,6 @@
   }
 }
 
-// Panel "Aplicar a clientes": en escritorio deja de ser un bottom-sheet y
-// pasa a ser un panel anclado a la derecha, a pantalla completa — mismo
-// tratamiento que .tf-panel-modal (tokens.scss) para los ion-modal de
-// búsqueda, aplicado aquí a mano porque este panel es HTML propio, no un
-// modalController.create(). Por debajo de 768px se queda como bottom-sheet
-// (mejor uso en móvil que un panel lateral de 420px).
-@media (min-width: 768px) {
-  .apply-panel {
-    top: 0;
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: 420px;
-    max-width: 100%;
-    max-height: none;
-    border-radius: 0;
-    border-top: none;
-    border-left: 1px solid var(--tf-border-strong);
-    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    animation: tf-panel-in-right 220ms var(--tf-ease-out);
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
-  }
-
-  // El handle de "arrastrar hacia abajo" no aplica a un panel lateral.
-  .apply-panel .panel-handle {
-    display: none;
-  }
-
-  .apply-panel .apply-client-list {
-    flex: 1;
-    max-height: none;
-    overflow-y: auto;
-  }
-}
-
-@keyframes tf-panel-in-right {
-  from {
-    transform: translateX(16px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
 .panel-handle {
   @include tf-panel-handle;
 }
@@ -265,12 +292,6 @@
   font-weight: 700;
   color: var(--tf-text);
   margin: 0 0 4px;
-}
-
-.panel-subtitle {
-  font-size: 0.85rem;
-  color: var(--tf-text-muted);
-  margin: 0 0 14px;
 }
 
 .input-wrapper {
@@ -377,97 +398,6 @@
 
 .field-toggle-icon--active {
   color: var(--tf-accent) !important;
-}
-
-// --- Buscador de clientes (panel "Aplicar") ---
-.apply-client-list {
-  max-height: 42vh;
-  overflow-y: auto;
-  margin-bottom: 16px;
-  // Aísla el scroll interno del propio bottom sheet — sin esto, arrastrar
-  // la lista larga movía el panel entero en vez de desplazar los clientes.
-  overscroll-behavior: contain;
-}
-
-.apply-client-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 10px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  margin-bottom: 4px;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  &:active {
-    background: var(--tf-surface-2);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-
-  &--selected {
-    background: var(--tf-accent-soft);
-    border-color: var(--tf-accent-soft-border);
-  }
-}
-
-.apply-client-avatar {
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.apply-client-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.apply-client-name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--tf-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.apply-client-email {
-  font-size: 0.76rem;
-  color: var(--tf-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.apply-client-check {
-  flex-shrink: 0;
-  font-size: 20px;
-  color: var(--tf-text-faint);
-
-  .apply-client-row--selected & {
-    color: var(--tf-accent);
-  }
 }
 
 .submit-button {

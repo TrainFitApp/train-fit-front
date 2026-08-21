@@ -1,0 +1,79 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          aria-label="Cerrar"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Aplicar "{{ template?.name }}"</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="apply-modal-content">
+  <p class="panel-subtitle">Selecciona los clientes a los que quieres aplicar esta plantilla.</p>
+
+  <div class="input-wrapper" *ngIf="myClients.length">
+    <ion-icon name="search-outline" class="input-icon"></ion-icon>
+    <input
+      type="text"
+      class="input-field"
+      placeholder="Buscar por nombre o correo"
+      [ngModel]="searchQuery"
+      (ngModelChange)="onSearchChange($event)"
+    />
+  </div>
+
+  <p class="empty-hint" *ngIf="!loadingClients && !myClients.length">No tienes clientes todavía.</p>
+  <p class="empty-hint" *ngIf="myClients.length && !filteredClients.length">
+    Ningún cliente coincide con la búsqueda.
+  </p>
+
+  <div class="apply-client-list">
+    <button
+      class="apply-client-row"
+      *ngFor="let client of filteredClients; trackBy: trackByClientId"
+      (click)="toggleClientSelected(client)"
+      [class.apply-client-row--selected]="isClientSelected(client)"
+      [disabled]="!client.user"
+    >
+      <div
+        class="apply-client-avatar"
+        [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
+        [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
+      >
+        {{ getInitials(client) }}
+      </div>
+      <div class="apply-client-info">
+        <span class="apply-client-name">{{ getFullName(client) }}</span>
+        <span class="apply-client-email" *ngIf="client.user">{{ client.user.email }}</span>
+      </div>
+      <ion-icon
+        class="apply-client-check"
+        [name]="isClientSelected(client) ? 'checkmark-circle' : 'ellipse-outline'"
+      ></ion-icon>
+    </button>
+  </div>
+</ion-content>
+
+<ion-footer class="apply-modal-footer">
+  <button
+    class="submit-button"
+    (click)="confirmApply()"
+    [disabled]="!selectedClientIds.size || isApplying"
+  >
+    <span *ngIf="!isApplying">
+      Aplicar a {{ selectedClientIds.size }} cliente{{ selectedClientIds.size === 1 ? '' : 's' }}
+    </span>
+    <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
+  </button>
+</ion-footer>

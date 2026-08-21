@@ -109,12 +109,22 @@
   --tf-duration-slow: 250ms;
 
   // --- Escala de z-index (nunca un valor arbitrario tipo 999/9999) ---
-  --tf-z-dropdown: 10;
-  --tf-z-sticky: 20;
-  --tf-z-menu: 30;
-  --tf-z-modal-backdrop: 40;
-  --tf-z-modal: 50;
-  --tf-z-toast: 60;
+  // Un panel/backdrop propio (position: fixed) que vive DENTRO de una página
+  // routeada no compite contra un overlay real: Ionic da a `.ion-page` un
+  // `contain: layout`, que lo convierte en containing block del `fixed` —
+  // el panel deja de posicionarse contra el viewport y pasa a apilarse
+  // codo a codo con el <ion-header> de esa misma página (z-index: 10 fijo
+  // de Ionic). Con la escala vieja (10-60) ese margen era demasiado
+  // estrecho — el header podía terminar ganando y tapaba la parte de
+  // arriba del panel (visto en checkin-templates > panel "Aplicar" en
+  // escritorio). Multiplicado x10: mismo orden relativo, margen real frente
+  // a los z-index internos de Ionic (header/toolbar rondan 1-20).
+  --tf-z-dropdown: 100;
+  --tf-z-sticky: 200;
+  --tf-z-menu: 300;
+  --tf-z-modal-backdrop: 400;
+  --tf-z-modal: 500;
+  --tf-z-toast: 600;
 }
 
 // prefers-reduced-motion: las duraciones colapsan a casi-instantáneo en vez
