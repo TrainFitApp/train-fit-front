@@ -541,7 +541,6 @@
     "ITEM_COUNT_PLURAL": "items",
     "PAUTADO_TITLE": "Prescribed",
     "PAUTADO_SUBTITLE": "Products and recipes assigned by your coach",
-    "OWN_ITEMS_TITLE": "Your foods",
     "CONSUMED_UPDATE_ERROR": "Could not update"
   },
   "TOOLBAR_CALENDAR": {
@@ -842,15 +841,7 @@
       "Saturday",
       "Sunday"
     ],
-    "DAYS_INITIALS": [
-      "M",
-      "T",
-      "W",
-      "T",
-      "F",
-      "S",
-      "S"
-    ],
+    "DAYS_INITIALS": ["M", "T", "W", "T", "F", "S", "S"],
     "WEIGHT_SAVED": "Weight saved",
     "WEEKLY_WEIGHT_CHART": "Weekly weight (kg)",
     "TREND_UP": "Gaining",
