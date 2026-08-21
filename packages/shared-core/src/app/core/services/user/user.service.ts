@@ -455,4 +455,8 @@ export class UserService {
   public activateAccount(email: string, code: string): Observable<any> {
     return this.userAPIService.activateAccount(email, code);
   }
+
+  public resendActivationCode(email: string): Observable<any> {
+    return this.userAPIService.resendActivationCode(email).pipe(take(1));
+  }
 }

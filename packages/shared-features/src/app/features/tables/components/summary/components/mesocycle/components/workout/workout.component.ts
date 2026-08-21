@@ -1501,6 +1501,14 @@ export class WorkoutComponent implements OnDestroy {
     const wasCompleted = !!this.workout.date;
     this.workout.date = null;
 
+    // Empezar un workout saltado debe quitarle el flag `rest` — si no,
+    // sigue azul (getWorkoutStatusColor) y el popover sigue ofreciendo
+    // "quitar saltado" (getActionsPopover) aunque ya esté en curso o
+    // incluso terminado.
+    if (this.workout.rest) {
+      this.workout.rest = false;
+    }
+
     // Reset startedAt if the workout was completed before
     if (!this.workout.startedAt || wasCompleted) {
       this.workout.startedAt = new Date();

@@ -682,8 +682,19 @@ export class SignUpPage implements OnInit, OnDestroy {
     }
   }
 
+  // Cubre tanto tecleo como pegado (paste dispara 'input' igual que teclear):
+  // el código solo puede contener dígitos, máximo 6, tanto si el usuario
+  // escribe letras como si pega el texto completo del email.
+  public onCodeInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = input.value.replace(/\D/g, '').slice(0, 6);
+    if (input.value !== digitsOnly) {
+      input.value = digitsOnly;
+    }
+  }
+
   public verifyCode(): void {
-    const code = this.codeInput.nativeElement.value.toString().trim();
+    const code = this.codeInput.nativeElement.value.toString().trim().replace(/\D/g, '');
     if (!code) {
       this.ionicUtilService.showToast({
         message: this.translate.instant('SIGN_UP.ENTER_CODE'),
@@ -742,9 +753,10 @@ export class SignUpPage implements OnInit, OnDestroy {
     if (!this.user?.email || this.resendDisabled) return;
 
     this.isProcessing = true;
-    this.userService.sendMailCode(this.user.email).subscribe({
+    this.userService.resendActivationCode(this.user.email).subscribe({
       next: () => {
         this.pendingEmailVerificationService.markCodeSent(this.user.email);
+        this.codeInput.nativeElement.value = '';
         this.startResendCooldown();
         this.ionicUtilService.showToast({
           message: this.translate.instant('SIGN_UP.CODE_RESENT'),
@@ -754,7 +766,7 @@ export class SignUpPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.ionicUtilService.showToast({
-          message: this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
+          message: err?.error?.message || this.translate.instant('SIGN_UP.RESEND_CODE_ERROR'),
           duration: 3000,
         });
         this.isProcessing = false;
