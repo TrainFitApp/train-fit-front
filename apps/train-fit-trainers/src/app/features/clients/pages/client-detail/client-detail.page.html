@@ -53,19 +53,19 @@
         </button>
         <button
           class="scope-tab"
-          *ngIf="scopes.includes('training') || scopes.includes('nutrition')"
-          [class.active]="activeTab === 'measurements'"
-          (click)="selectTab('measurements')"
-        >
-          Medidas
-        </button>
-        <button
-          class="scope-tab"
           *ngIf="scopes.includes('nutrition')"
           [class.active]="activeTab === 'nutrition'"
           (click)="selectTab('nutrition')"
         >
           Nutrición
+        </button>
+        <button
+          class="scope-tab"
+          *ngIf="scopes.includes('training') || scopes.includes('nutrition')"
+          [class.active]="activeTab === 'measurements'"
+          (click)="selectTab('measurements')"
+        >
+          Medidas
         </button>
         <button
           class="scope-tab"
@@ -525,58 +525,26 @@
                 <h2 class="section-heading">Dieta</h2>
                 <span class="date-nav-label">{{ nutritionDateLabel }}</span>
               </div>
-              <app-nutrition-calendar
-                [clientId]="clientId"
-                [selectedDate]="nutritionDate"
-                (dateSelected)="onNutritionDateSelected($event)"
-              ></app-nutrition-calendar>
+              <div class="nutrition-card">
+                <app-nutrition-calendar
+                  [clientId]="clientId"
+                  [selectedDate]="nutritionDate"
+                  (dateSelected)="onNutritionDateSelected($event)"
+                ></app-nutrition-calendar>
+              </div>
             </div>
 
-            <!-- Tendencia (no el % agregado de arriba, la evolución día a
-                 día detrás de ese número) — antes solo vivía en dos
-                 columnas fijas y este tercer hueco quedaba vacío en
-                 pantallas anchas. -->
-            <div class="nutrition-chart-col" *ngIf="kcalTrendSeries.length || complianceTrendSeries.length">
+            <!-- F20-ter — pautado vs. consumido real (no solo si siguió el
+                 plan: cuenta también lo que el cliente añadió por su
+                 cuenta a la comida), con selector de rango y de valor a
+                 comparar. Sustituye a las dos gráficas separadas de antes
+                 (kcal consumidas / cumplimiento). -->
+            <div class="nutrition-chart-col">
               <div class="section-row">
                 <h2 class="section-heading">Seguimiento</h2>
               </div>
-
-              <div class="trend-card" *ngIf="kcalTrendSeries.length">
-                <div class="trend-card-header">
-                  <span class="trend-card-title">Kcal consumidas</span>
-                  <span class="trend-card-sub" *ngIf="adherence?.status === 'ok'">{{ adherence?.percentage }}% en objetivo</span>
-                </div>
-                <div class="trend-chart">
-                  <div
-                    class="trend-bar"
-                    [class.trend-bar--off]="!point.withinMargin"
-                    [style.transform]="'scaleY(' + kcalBarScale(point, kcalTrendSeries) + ')'"
-                    *ngFor="let point of kcalTrendSeries"
-                  ></div>
-                </div>
-                <div class="trend-chart-range">
-                  <span>{{ kcalTrendSeries[0].date | date: 'd MMM' }}</span>
-                  <span>Hoy</span>
-                </div>
-              </div>
-
-              <div class="trend-card" *ngIf="complianceTrendSeries.length">
-                <div class="trend-card-header">
-                  <span class="trend-card-title">Cumplimiento</span>
-                  <span class="trend-card-sub" *ngIf="compliancePercentage !== null">{{ compliancePercentage }}%</span>
-                </div>
-                <div class="trend-chart">
-                  <div
-                    class="trend-bar trend-bar--compliance"
-                    [class.trend-bar--empty]="!point.hasPlan"
-                    [style.transform]="'scaleY(' + complianceBarScale(point) + ')'"
-                    *ngFor="let point of complianceTrendSeries"
-                  ></div>
-                </div>
-                <div class="trend-chart-range">
-                  <span>{{ complianceTrendSeries[0].date | date: 'd MMM' }}</span>
-                  <span>Hoy</span>
-                </div>
+              <div class="nutrition-card">
+                <app-nutrition-tracking-chart [clientId]="clientId"></app-nutrition-tracking-chart>
               </div>
             </div>
           </div>

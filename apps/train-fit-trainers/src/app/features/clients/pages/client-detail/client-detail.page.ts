@@ -51,7 +51,6 @@ import {
   MealFoodItemInput,
   MealSummary,
   NutritionalGoal,
-  NutritionComplianceDay,
   NutritionComplianceSummary,
   TrainerNote,
   TrainerPayment,
@@ -841,44 +840,6 @@ export class ClientDetailPage implements OnInit {
     if (!days.length) return null;
     const sum = days.reduce((acc, d) => acc + (d.completionPercentage || 0), 0);
     return Math.round(sum / days.length);
-  }
-
-  // --- F20-bis (columna "Seguimiento") — la evolución día a día detrás de
-  // los dos porcentajes agregados de arriba, no un dato nuevo: mismas
-  // dailyBreakdown de adherence/complianceSummary ya cargadas por
-  // loadNutrition(). ---
-  public get kcalTrendSeries(): {
-    date: string;
-    kcal: number;
-    withinMargin: boolean;
-  }[] {
-    return this.adherence?.dailyBreakdown || [];
-  }
-
-  public get complianceTrendSeries(): NutritionComplianceDay[] {
-    return this.complianceSummary?.dailyBreakdown || [];
-  }
-
-  // Mismo criterio que dashboard.page#monthBarScale — fracción 0..1 para
-  // transform:scaleY() (nunca height, layout thrash), normalizado contra el
-  // máximo de la propia serie.
-  public kcalBarScale(
-    point: { kcal: number },
-    series: { kcal: number }[]
-  ): number {
-    const max = Math.max(...series.map((p) => p.kcal), 1);
-    const pct = Math.max((point.kcal / max) * 100, point.kcal > 0 ? 6 : 2);
-    return Number((pct / 100).toFixed(4));
-  }
-
-  // Cumplimiento ya es un porcentaje (0-100): escala fija, no contra el
-  // máximo de la serie.
-  public complianceBarScale(point: {
-    completionPercentage: number | null;
-  }): number {
-    const value = point.completionPercentage || 0;
-    const pct = Math.max(value, value > 0 ? 6 : 2);
-    return Number((pct / 100).toFixed(4));
   }
 
   // Auditoría de arquitectura (nutrición, Fase 8)

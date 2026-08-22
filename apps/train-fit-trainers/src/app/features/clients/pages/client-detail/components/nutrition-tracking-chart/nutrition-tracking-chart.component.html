@@ -1,0 +1,44 @@
+<div class="tracking-chart">
+  <div class="tracking-chart__controls">
+    <div class="tracking-chart__metrics">
+      <button
+        type="button"
+        class="tracking-chip"
+        *ngFor="let option of metricOptions"
+        [class.is-active]="metric === option.key"
+        (click)="selectMetric(option.key)"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+    <div class="tracking-chart__ranges">
+      <button
+        type="button"
+        class="tracking-range-btn"
+        *ngFor="let days of rangeOptions"
+        [class.is-active]="rangeDays === days"
+        (click)="selectRange(days)"
+      >
+        {{ days }}d
+      </button>
+    </div>
+  </div>
+
+  <div class="tracking-chart__summary" *ngIf="averageAdherencePercentage !== null">
+    <span class="tracking-chart__summary-value">{{ averageAdherencePercentage }}%</span>
+    <span class="tracking-chart__summary-label">de lo pautado consumido, en promedio</span>
+  </div>
+
+  <p class="empty-hint" *ngIf="!isLoading && !daysWithPlan.length">
+    Sin {{ activeMetricOption.label.toLowerCase() }} pautada en este rango.
+  </p>
+
+  <div class="tracking-chart__canvas-wrap" [class.is-loading]="isLoading">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="tracking-chart__legend">
+    <span class="legend-item"><span class="legend-swatch legend-swatch--planned"></span>Pautado</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--consumed"></span>Consumido</span>
+  </div>
+</div>

@@ -86,7 +86,30 @@ export interface NutritionComplianceSummary {
   dailyBreakdown: NutritionComplianceDay[];
 }
 
-// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/comida/objetivo).
+// F20-ter — comparación pautado vs. consumido, día a día. "Consumido" no es
+// solo "marcó lo pautado como hecho": un item que el cliente añadió por su
+// cuenta a la comida (sin que nadie se lo pautara) también cuenta, ver
+// diet-days-nutrition-util.js#isItemConsumed en el backend.
+export interface NutritionMacroTotals {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface NutritionTrackingDay {
+  date: string;
+  hasPlan: boolean;
+  planned: NutritionMacroTotals;
+  consumed: NutritionMacroTotals;
+}
+
+export interface NutritionTrackingSummary {
+  status: 'ok';
+  dailyTracking: NutritionTrackingDay[];
+}
+
+// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
 export interface BulkApplyResult {
   clientId: string;
   success: boolean;

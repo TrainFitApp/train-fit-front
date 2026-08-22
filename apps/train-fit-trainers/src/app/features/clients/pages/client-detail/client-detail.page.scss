@@ -275,95 +275,40 @@
 }
 
 .nutrition-chart-col {
-  flex: 1 1 260px;
+  flex: 1 1 360px;
   min-width: 0;
 }
 
 .nutrition-calendar-col {
-  flex: 1 1 260px;
+  flex: 1 1 380px;
   min-width: 0;
-  max-width: 340px;
+  // Sigue con tope (7 columnas de celdas a aspect-ratio:1 — sin límite se
+  // vuelven cuadrados gigantes) pero más generoso que antes, ahora que la
+  // fila entera tiene más ancho real disponible para repartir.
+  max-width: 480px;
 
   @media (max-width: 640px) {
     max-width: none;
   }
 }
 
-// --- F20-bis: columna "Seguimiento" (kcal consumidas + cumplimiento en el
-// tiempo) — mismo patrón de barras que dashboard.page (Cobros por mes):
-// transform:scaleY() desde abajo, nunca height, para no forzar layout en
-// cada punto de la serie. A diferencia de esa gráfica mensual (pocas barras,
-// una etiqueta cada una), aquí son ~30 días: una etiqueta por barra sería
-// ilegible, así que solo se rotula el rango completo debajo del trazo.
-.trend-card {
-  padding: 12px;
+// F20-ter — antes el calendario y el gráfico de seguimiento se pintaban a
+// ras del fondo de la página, sin la misma tarjeta (fondo/borde/radio) que
+// tiene el resto de esta pestaña (fidelity-card, preferences-card,
+// active-plan-card...) — de ahí que "se vieran mal": el único bloque sin
+// contorno ni superficie propia, flotando suelto entre tarjetas reales.
+.nutrition-card {
+  padding: 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
-  border-radius: 12px;
-  margin-bottom: 12px;
+  border-radius: 14px;
 }
 
-.trend-card-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.trend-card-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--tf-text);
-}
-
-.trend-card-sub {
-  flex-shrink: 0;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--tf-text-muted);
-}
-
-.trend-chart {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 56px;
-}
-
-.trend-bar {
-  flex: 1;
-  height: 100%;
-  min-width: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--tf-success);
-  transform-origin: bottom;
-  transition: transform var(--tf-duration-base) var(--tf-ease-out);
-
-  &--off {
-    background: var(--tf-danger);
-  }
-
-  &--compliance {
-    background: var(--tf-accent);
-  }
-
-  &--empty {
-    background: var(--tf-surface-5);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-
-.trend-chart-range {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6px;
-  font-size: 0.68rem;
-  color: var(--tf-text-faint);
-}
+// F20-ter — el gráfico de la columna "Seguimiento" (pautado vs. consumido)
+// vive en <app-nutrition-tracking-chart>, con sus propios estilos
+// (nutrition-tracking-chart.component.scss) — ya no hay CSS de esa columna
+// aquí (antes .trend-card/.trend-chart/.trend-bar, dos gráficas de barra
+// separadas para kcal y cumplimiento).
 
 // --- F20-bis: etiqueta de la fecha vigente sobre <app-nutrition-calendar>
 // (la navegación en sí ya no son flechas, ver ese componente) ---
@@ -1228,15 +1173,13 @@
 @media (min-width: 900px) {
   .nutrition-layout {
     display: grid;
+    // Sidebar de contexto (fidelidad/preferencias/objetivos) a ancho fijo
+    // angosto — 1fr se lleva TODO lo demás, sin tope: antes esta grid
+    // capaba a max-width:1480px y se centraba, dejando franjas laterales
+    // vacías en monitores anchos justo donde el calendario y el gráfico de
+    // seguimiento más partido le podían sacar al ancho disponible.
     grid-template-columns: minmax(280px, 340px) 1fr;
     gap: var(--tf-space-6);
-    // Antes 1220px, pensado para cuando esta columna competía con el
-    // sidebar de perfil del cliente (ya no existe, ver profile-layout) —
-    // sin él sobraba ancho a los lados. Más ancho aquí es lo que deja sitio
-    // a la tercera columna de .nutrition-charts-row (Seguimiento) sin que
-    // Medidas/Calendario se aprieten.
-    max-width: 1480px;
-    margin: 0 auto;
     align-items: start;
   }
 

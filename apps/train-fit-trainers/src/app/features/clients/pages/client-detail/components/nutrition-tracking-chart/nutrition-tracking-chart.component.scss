@@ -1,0 +1,125 @@
+.tracking-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// View encapsulation por componente — mismo estilo que el resto de la app,
+// no reutilizable desde client-detail.page.scss.
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  margin: 0;
+}
+
+.tracking-chart__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tracking-chart__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tracking-chip {
+  padding: 4px 10px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+}
+
+.tracking-chart__ranges {
+  display: flex;
+  gap: 4px;
+}
+
+.tracking-range-btn {
+  width: 30px;
+  height: 26px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-active {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
+}
+
+.tracking-chart__summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tracking-chart__summary-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--tf-accent-text);
+}
+
+.tracking-chart__summary-label {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+// Chart.js (línea, no barras — ver el componente): necesita un contenedor
+// con alto DEFINIDO, responsive:true + maintainAspectRatio:false hacen que
+// el <canvas> rellene ese alto y se re-ajuste solo al cambiar el ancho.
+.tracking-chart__canvas-wrap {
+  position: relative;
+  height: 180px;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-loading {
+    opacity: 0.5;
+  }
+}
+
+.tracking-chart__legend {
+  display: flex;
+  gap: var(--tf-space-4);
+}
+
+.tracking-chart .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.tracking-chart .legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+
+  &--planned {
+    background: var(--tf-surface-5);
+  }
+
+  &--consumed {
+    background: var(--tf-accent);
+  }
+}
