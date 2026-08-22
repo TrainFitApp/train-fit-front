@@ -509,15 +509,16 @@ export class DietsPage implements OnInit {
     });
   }
 
-  // F28 — alternativas activas (sin elegir todavía) para un hueco de comida concreto.
+  // F28 — alternativas propuestas para un hueco de comida concreto, elegidas
+  // o no: el selector es persistente (el cliente puede alternar en
+  // cualquier momento), no un banner de una sola vez.
   public proposalsForMeal(mealName: string): MealProposal[] {
-    return this.mealProposals.filter(
-      (p) => p.mealSlot === mealName && (p.chosenIndex === null || p.chosenIndex === undefined)
-    );
+    return this.mealProposals.filter((p) => p.mealSlot === mealName);
   }
 
-  public onProposalChosen(proposalId: string): void {
-    this.mealProposals = this.mealProposals.filter((p) => p._id !== proposalId);
+  public onProposalChosen(event: { proposalId: string; chosenIndex: number }): void {
+    const proposal = this.mealProposals.find((p) => p._id === event.proposalId);
+    if (proposal) proposal.chosenIndex = event.chosenIndex;
   }
 
   public onAnthropometrySaved(anthropometry: Anthropometry): void {

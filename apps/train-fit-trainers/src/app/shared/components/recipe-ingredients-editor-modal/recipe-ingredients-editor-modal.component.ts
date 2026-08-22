@@ -116,8 +116,9 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
       // Un ingrediente de receta solo puede ser un producto real — igual
       // que RecipeBuilderModalComponent, las recetas marcadas se descartan.
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items),
+      closeSelf: closeOuter,
       pickCreateProduct: () => void this.createIngredientProduct(closeOuter),
-      onFocusItem: (item) => void this.showDetailPanel(item, null),
+      onFocusItem: (item) => void this.showDetailPanel(item, null, closeOuter),
     };
   }
 
@@ -128,7 +129,11 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
 
   // No espera a que el panel anterior se cierre antes de abrir el nuevo
   // (ver comentario largo en RecipeBuilderModalComponent#showDetailPanel).
-  private async showDetailPanel(item: TrainerFoodSelection, ingredientIndex: number | null): Promise<void> {
+  private async showDetailPanel(
+    item: TrainerFoodSelection,
+    ingredientIndex: number | null,
+    closeOuter?: () => void
+  ): Promise<void> {
     const previous = this.detailModal;
     const modal = await this.modalController.create({
       component: ProductDetailPanelComponent,
@@ -144,8 +149,10 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
             : undefined,
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) =>
-                this.ingredients.push({ product: item.product!, quantity } as CustomProduct)
+            ? (quantity: number) => {
+                this.ingredients.push({ product: item.product!, quantity } as CustomProduct);
+                closeOuter?.();
+              }
             : undefined,
         addLabel: 'Añadir a la receta',
       },

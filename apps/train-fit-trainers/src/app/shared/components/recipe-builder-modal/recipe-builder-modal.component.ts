@@ -45,6 +45,17 @@ export class RecipeBuilderModalComponent {
   public isOpeningPicker = false;
   public isSaving = false;
 
+  // Preparación (instrucciones) — mismo patrón simple que ConfigRecipePage
+  // del cliente (descriptionSteps: pasos de texto plano, sin chips ni
+  // drag&drop — eso se probó y se quitó, complejidad innecesaria). Se
+  // guarda tal cual en el campo description ya existente, sin tocar
+  // modelo de datos. Colapsado por defecto, un botón bajo el nombre lo
+  // revela.
+  public showInstructions = false;
+  public instructions: string[] = [];
+  public readonly maxInstructionSteps = 20;
+  public readonly maxInstructionStepLength = 300;
+
   public get canSave(): boolean {
     return this.name.trim().length > 0 && this.ingredients.length >= 2;
   }
@@ -123,10 +134,11 @@ export class RecipeBuilderModalComponent {
       // ingredientMode:true, que restringe la búsqueda a "products"): las
       // recetas marcadas en la selección múltiple se descartan aquí.
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items, replaceIndex),
+      closeSelf: closeOuter,
       pickCreateProduct: () => void this.createIngredientProduct(closeOuter, replaceIndex),
       // Tocar una card SOLO previsualiza (naranja + panel de detalle
       // aparte, el más a la izquierda de los 3) — nunca añade.
-      onFocusItem: (item) => void this.showDetailPanel(item, null),
+      onFocusItem: (item) => void this.showDetailPanel(item, null, closeOuter),
     };
   }
 
@@ -141,7 +153,11 @@ export class RecipeBuilderModalComponent {
   // un segundo toque sobre B. `previous` se dismissea EN PARALELO al
   // present() del nuevo, nunca antes (eso era lo que forzaba el segundo
   // toque).
-  private async showDetailPanel(item: TrainerFoodSelection, ingredientIndex: number | null): Promise<void> {
+  private async showDetailPanel(
+    item: TrainerFoodSelection,
+    ingredientIndex: number | null,
+    closeOuter?: () => void
+  ): Promise<void> {
     const previous = this.detailModal;
     const modal = await this.modalController.create({
       component: ProductDetailPanelComponent,
@@ -158,9 +174,14 @@ export class RecipeBuilderModalComponent {
         // "Añadir a la receta" directo desde el detalle — solo tiene
         // sentido para un producto que aún no está en la receta (los ya
         // añadidos se abren vía previewIngredient, con ingredientIndex).
+        // Cierra también el buscador (closeOuter): tras añadir, el trainer
+        // debe ver la receta creciendo, no seguir mirando resultados.
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) => this.ingredients.push({ product: item.product!, quantity })
+            ? (quantity: number) => {
+                this.ingredients.push({ product: item.product!, quantity });
+                closeOuter?.();
+              }
             : undefined,
         addLabel: 'Añadir a la receta',
       },
@@ -235,6 +256,26 @@ export class RecipeBuilderModalComponent {
     closeOuter();
   }
 
+  public toggleInstructions(): void {
+    this.showInstructions = !this.showInstructions;
+    if (this.showInstructions && this.instructions.length === 0) {
+      this.instructions.push('');
+    }
+  }
+
+  public addInstructionStep(): void {
+    if (this.instructions.length >= this.maxInstructionSteps) return;
+    this.instructions.push('');
+  }
+
+  public removeInstructionStep(index: number): void {
+    this.instructions.splice(index, 1);
+  }
+
+  public onInstructionChange(index: number, value: string): void {
+    this.instructions[index] = value.slice(0, this.maxInstructionStepLength);
+  }
+
   public async save(): Promise<void> {
     if (!this.canSave || this.isSaving) return;
     this.isSaving = true;
@@ -243,8 +284,11 @@ export class RecipeBuilderModalComponent {
       product: ingredient.product._id,
       quantity: ingredient.quantity,
     }));
+    const description = this.instructions.map((step) => step.trim()).filter(Boolean).join('\n');
 
-    this.recipeService.compose({ recipe: { name: this.name.trim(), customProducts } }).subscribe({
+    this.recipeService
+      .compose({ recipe: { name: this.name.trim(), customProducts, description: description || undefined } })
+      .subscribe({
       next: (result: { recipe: unknown }) => {
         this.isSaving = false;
         void this.modalController.dismiss(result.recipe, 'confirm');

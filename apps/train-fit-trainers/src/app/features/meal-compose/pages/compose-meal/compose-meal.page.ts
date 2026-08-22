@@ -88,6 +88,7 @@ export class ComposeMealPage {
       dietDay: {} as any,
       meal: {} as any,
       confirmSelection: (selection) => this.applySelection(itemIndex, selection),
+      closeSelf: closeOuter,
       pickCreateProduct: () => void this.confirmCreateProduct(itemIndex, closeOuter),
     };
   }

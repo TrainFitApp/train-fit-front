@@ -86,11 +86,52 @@ export interface NutritionComplianceSummary {
   dailyBreakdown: NutritionComplianceDay[];
 }
 
-// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
+// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/comida/objetivo).
 export interface BulkApplyResult {
   clientId: string;
   success: boolean;
   error?: string;
+}
+
+export interface MealSummary {
+  _id: string;
+  name: string;
+  customProducts: unknown[];
+  customRecipes: unknown[];
+}
+
+export interface DietDaySummary {
+  _id: string;
+  date: string;
+  meals: MealSummary[];
+  // TAREA5 — id de la Diet contenedora (User.dietInUse del cliente), no del
+  // propio DietDay. Necesario para pedir productos/recetas recientes de esta
+  // comida (GET /diets/:dietId/recent-products|recipes).
+  dietId?: string;
+}
+
+// TAREA1/TAREA5 (replanteamiento MVP nutrición) — un alimento dentro de una
+// alternativa de composición. Siempre un producto real O una receta real de
+// la biblioteca (ProductSearchModalComponent, panel lateral) — ya no existe
+// la opción de teclear macros a mano (no tenía sentido: un profesional pauta
+// comida real, no un número inventado).
+export interface MealFoodItemInput {
+  productId?: string;
+  productName?: string;
+  recipeId?: string;
+  recipeName?: string;
+  quantity?: number;
+}
+
+// F12/F28 — una alternativa de composición al pautar una comida. Con 1 sola
+// se aplica de inmediato (F12); con 2+ se guardan como propuestas para que
+// el cliente elija (F28). Cada alternativa contiene VARIOS alimentos
+// (`items`) — antes solo admitía uno, así que pautar "pollo + arroz +
+// ensalada" en una misma comida exigía sobrescribir en 3 envíos sucesivos;
+// ahora se acumulan en el panel y se envían juntos en un solo `customProducts`.
+export interface MealAlternativeInput {
+  label: string;
+  items: MealFoodItemInput[];
 }
 
 // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.

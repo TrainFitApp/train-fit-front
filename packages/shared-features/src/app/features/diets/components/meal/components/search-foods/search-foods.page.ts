@@ -100,6 +100,14 @@ export interface SearchFoodsTrainerContext {
   // implementan (client-detail.page.ts, compose-meal.page.ts) mantienen su
   // comportamiento actual sin cambios.
   pickCreateRecipe?: () => void;
+  // Fix — sin esto, confirmTrainerSelection() cerraba el modal "más
+  // reciente" del stack global de Ionic (ModalController.dismiss() sin id
+  // targetea el último <ion-modal> presentado en TODO el documento, no
+  // necesariamente este), así que si quedaba abierto un panel de detalle
+  // (onFocusItem) por encima, se cerraba ESE y este buscador se quedaba
+  // abierto. closeSelf es el mismo closeOuter que ya usan
+  // pickCreateProduct/onFocusItem — apunta siempre a la instancia correcta.
+  closeSelf?: () => void;
 }
 
 @Component({
@@ -3174,7 +3182,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     if (!this.trainerContext || !this.trainerSelection.length) return;
     this.trainerContext.confirmSelection([...this.trainerSelection]);
     this.trainerSelection = [];
-    void this.modalController.dismiss();
+    if (this.trainerContext.closeSelf) {
+      this.trainerContext.closeSelf();
+    } else {
+      void this.modalController.dismiss();
+    }
   }
 
   /**
