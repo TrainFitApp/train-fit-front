@@ -1,0 +1,60 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          aria-label="Cerrar"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Usar plantilla</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="apply-modal-content">
+  <p class="panel-subtitle">
+    Elige una plantilla de rutina completa para asignarla a {{ clientName }}. Se copia entera
+    (microciclos, entrenamientos y ejercicios) — editar la copia no afecta a la plantilla original.
+  </p>
+
+  <div class="templates-skeleton" *ngIf="loading">
+    <div class="skeleton-block template-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+  </div>
+
+  <p class="empty-hint" *ngIf="!loading && !templates.length">
+    Todavía no tienes ninguna plantilla de rutina. Créalas desde "Plantillas" > "Rutinas".
+  </p>
+
+  <div class="apply-template-list" *ngIf="!loading && templates.length">
+    <button
+      class="apply-template-row"
+      *ngFor="let template of templates; trackBy: trackByTemplateId"
+      (click)="select(template)"
+      [class.apply-template-row--selected]="selectedTemplateId === template._id"
+    >
+      <div class="apply-template-info">
+        <span class="apply-template-name">{{ template.name }}</span>
+        <span class="apply-template-meta">{{ microcyclesCount(template) }} microciclos</span>
+      </div>
+      <ion-icon
+        class="apply-template-check"
+        [name]="selectedTemplateId === template._id ? 'checkmark-circle' : 'ellipse-outline'"
+      ></ion-icon>
+    </button>
+  </div>
+</ion-content>
+
+<ion-footer class="apply-modal-footer">
+  <button class="submit-button" (click)="confirmApply()" [disabled]="!selectedTemplateId || isApplying">
+    <span *ngIf="!isApplying">Asignar plantilla</span>
+    <ion-spinner name="dots" *ngIf="isApplying"></ion-spinner>
+  </button>
+</ion-footer>

@@ -1,0 +1,83 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Plantillas de rutina</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="routine-templates-content">
+  <div class="templates-page">
+    <p class="templates-hint">
+      Crea una plantilla de rutina completa (microciclos, entrenamientos y ejercicios) con el
+      mismo Planificador que usas con tus clientes, y aplícala luego a cualquiera de ellos desde
+      su ficha ("Asignar rutina" > "Usar plantilla").
+    </p>
+
+    <div class="create-bar">
+      <div class="input-wrapper">
+        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+        <input
+          type="text"
+          class="input-field"
+          placeholder="Rutina Hipertrofia 4 días"
+          [(ngModel)]="newName"
+          (keyup.enter)="createAndEdit()"
+        />
+      </div>
+      <button
+        type="button"
+        class="submit-button"
+        [disabled]="!newName.trim() || isCreating"
+        (click)="createAndEdit()"
+      >
+        <span *ngIf="!isCreating">Crear plantilla</span>
+        <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+      </button>
+    </div>
+
+    <!-- Carga: mismo esqueleto de la forma final (grid de cards), no un
+         spinner genérico — mismo criterio que dashboard.page.html -->
+    <div class="templates-skeleton" *ngIf="loading">
+      <div class="skeleton-block template-card-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+    </div>
+
+    <!-- Vacío de página completa: mismo patrón que clients/dashboard
+         (icono + título + texto). Sin CTA propio: el formulario de crear ya
+         está justo encima. -->
+    <div class="state-message" *ngIf="!loading && templates.length === 0">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <h2>Todavía no tienes plantillas de rutina</h2>
+      <p>Crea la primera con el formulario de arriba para reutilizarla con cualquier cliente.</p>
+    </div>
+
+    <div class="templates-grid" *ngIf="!loading && templates.length > 0">
+      <div
+        class="template-card"
+        *ngFor="let template of templates; trackBy: trackByTemplateId"
+        (click)="openTemplate(template)"
+      >
+        <div class="template-card-header">
+          <span class="template-name">{{ template.name }}</span>
+        </div>
+
+        <div class="template-meta">
+          <span>{{ microcyclesCount(template) }} microciclos</span>
+          <span>{{ workoutsCount(template) }} entrenamientos</span>
+        </div>
+
+        <div class="template-card-actions">
+          <button type="button" class="danger-button" (click)="confirmDelete(template, $event)">
+            Borrar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

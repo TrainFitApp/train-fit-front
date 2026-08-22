@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
 import { WorkoutTemplate } from 'src/app/core/models/workout-template';
+import { RoutineTemplateApiService } from 'src/app/core/services/routine-template/routine-template-api.service';
+import { Table } from 'src/app/core/models/table';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietTemplateApiService } from '../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../diet-templates/models/diet-template.model';
 import { CheckinTemplatesApiService } from '../checkin-templates/services/checkin-templates-api.service';
 import { CheckinTemplateDefinition } from '../checkin-templates/models/checkin-template.model';
 import { ApplyCheckinTemplateModalComponent } from '../checkin-templates/components/apply-checkin-template-modal/apply-checkin-template-modal.component';
-import { RoutineOverviewRow, RoutinesOverviewService } from '../routines-overview/routines-overview.service';
 
 interface TemplateCategory {
   name: string;
@@ -39,16 +40,17 @@ export class TemplatesPage implements OnInit {
       path: '/tabs/routines',
     },
     {
-      // Antes apuntaba a /tabs/routines igual que "Entrenamientos" de
-      // arriba — mismo destino para dos tarjetas con nombres distintos,
-      // confuso (biblioteca de bloques reutilizables vs. rutinas ya
-      // asignadas). Ahora lleva a las Table reales ya en curso con cada
-      // cliente (microciclos/splits/workouts), no a plantillas.
+      // Rutinas -> Plantillas (rediseño 2026-08): antes apuntaba a las Table
+      // reales ya asignadas a clientes (rutinas en curso, no reutilizables).
+      // Ahora es la biblioteca de plantillas de rutina COMPLETA (microciclos/
+      // splits/workouts) del profesional, construida con el mismo
+      // Planificador que usa con sus clientes — distinta de "Entrenamientos"
+      // (plantilla de un solo día/sesión).
       name: 'Rutinas',
-      description: 'Rutinas ya asignadas a tus clientes, con sus microciclos',
-      icon: 'list-outline',
+      description: 'Plantillas de rutina completa, listas para aplicar a cualquier cliente',
+      icon: 'calendar-outline',
       colorVar: 'var(--tf-accent)',
-      path: '/tabs/routines-overview',
+      path: '/tabs/routine-templates',
     },
     {
       name: 'Dietas',
@@ -103,18 +105,18 @@ export class TemplatesPage implements OnInit {
   public checkinTemplates: CheckinTemplateDefinition[] = [];
   public loadingCheckinTemplates = true;
 
-  // Rutinas ya asignadas a clientes (Table real, con microciclos) — distinto
-  // de "Rutinas" arriba (WorkoutTemplate, biblioteca de bloques
-  // reutilizables). Mismo agregado que RoutinesOverviewPage, recortado a las
-  // 4 más recientes vía RoutinesOverviewService (sin duplicar el forkJoin).
-  public routineOverviewRows: RoutineOverviewRow[] = [];
-  public loadingRoutineOverview = true;
+  // Plantillas de rutina COMPLETA (Table con userId=trainerId, microciclos/
+  // splits/workouts) — distinto de "Entrenamientos" arriba (WorkoutTemplate,
+  // plantilla de un solo día/sesión). Recortado a las 4 más recientes, mismo
+  // criterio que las otras 3 columnas.
+  public fullRoutineTemplates: Table[] = [];
+  public loadingFullRoutineTemplates = true;
 
   constructor(
     private workoutTemplateApi: WorkoutTemplateApiService,
     private dietTemplateApi: DietTemplateApiService,
     private checkinTemplatesApi: CheckinTemplatesApiService,
-    private routinesOverviewService: RoutinesOverviewService,
+    private routineTemplateApi: RoutineTemplateApiService,
     private ionicUtilService: IonicUtilService,
     private router: Router
   ) {}
@@ -123,7 +125,7 @@ export class TemplatesPage implements OnInit {
     this.loadRoutineTemplates();
     this.loadDietTemplates();
     this.loadCheckinTemplates();
-    this.loadRoutineOverview();
+    this.loadFullRoutineTemplates();
   }
 
   // Mismo bug de caché de ion-router-outlet ya corregido en RoutinesPage/
@@ -133,7 +135,7 @@ export class TemplatesPage implements OnInit {
     this.loadRoutineTemplates();
     this.loadDietTemplates();
     this.loadCheckinTemplates();
-    this.loadRoutineOverview();
+    this.loadFullRoutineTemplates();
   }
 
   private loadRoutineTemplates(): void {
@@ -187,26 +189,38 @@ export class TemplatesPage implements OnInit {
     });
   }
 
-  private loadRoutineOverview(): void {
-    this.loadingRoutineOverview = true;
-    this.routinesOverviewService.getAssignedRoutines().subscribe({
-      next: (rows) => {
-        this.routineOverviewRows = rows.slice(0, 4);
-        this.loadingRoutineOverview = false;
+  private loadFullRoutineTemplates(): void {
+    this.loadingFullRoutineTemplates = true;
+    this.routineTemplateApi.list().subscribe({
+      next: (templates) => {
+        // Table no tiene createdAt (a diferencia de WorkoutTemplate/
+        // DietTemplate) — el ObjectId ya codifica el instante de creación en
+        // sus primeros 8 caracteres hex, así que ordena igual de bien sin
+        // depender de un campo que no existe.
+        this.fullRoutineTemplates = templates
+          .slice()
+          .sort((a, b) => b._id.localeCompare(a._id))
+          .slice(0, 4);
+        this.loadingFullRoutineTemplates = false;
       },
       error: () => {
-        this.routineOverviewRows = [];
-        this.loadingRoutineOverview = false;
+        this.fullRoutineTemplates = [];
+        this.loadingFullRoutineTemplates = false;
       },
     });
   }
 
-  public async openRoutineOverviewRow(row: RoutineOverviewRow): Promise<void> {
-    await this.router.navigate(['/tabs', 'clients', row.clientId, 'tables', row.table._id, 'planner']);
+  public async openFullRoutineTemplate(template: Table): Promise<void> {
+    await this.router.navigate(['/tabs', 'routine-templates', template._id, 'planner']);
   }
 
-  public trackByRoutineOverviewRow(_index: number, row: RoutineOverviewRow): string {
-    return row.table._id;
+  public trackByFullRoutineTemplateId(_index: number, template: Table): string {
+    return template._id;
+  }
+
+  public fullRoutineTemplateMeta(template: Table): string {
+    const microcycles = (template.splits || []).length;
+    return `${microcycles} microciclo${microcycles === 1 ? '' : 's'}`;
   }
 
   public exerciseCount(template: WorkoutTemplate): number {
