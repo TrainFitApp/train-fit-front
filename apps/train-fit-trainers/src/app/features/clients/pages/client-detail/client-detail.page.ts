@@ -892,6 +892,7 @@ export class ClientDetailPage implements OnInit {
       dietDay: (this.dietDay || {}) as any,
       meal: (this.prescribeMealTarget || {}) as any,
       confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
+      closeSelf: closeOuter,
       pickCreateProduct: () =>
         void this.confirmPickedFood(altIndex, itemIndex, { kind: 'create' }, closeOuter),
     };

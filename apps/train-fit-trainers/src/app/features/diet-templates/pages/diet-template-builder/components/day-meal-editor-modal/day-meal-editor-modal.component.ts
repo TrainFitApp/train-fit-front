@@ -64,7 +64,10 @@ export class DayMealEditorModalComponent {
   @Input() mode: TemplateMode = 'sequential';
 
   public readonly maxAlternatives = 4;
-  public readonly maxFoodItemsPerAlternative = 8;
+  // Sin límite real de alimentos por alternativa — Infinity mantiene las
+  // comparaciones (>=/<) ya escritas en todo el archivo sin tocar cada
+  // sitio uno a uno.
+  public readonly maxFoodItemsPerAlternative = Infinity;
 
   // Fix4 — sin esto, un doble tap disparaba openProductSearch() dos veces
   // antes de que el primer `await modalController.create()` resolviera,
@@ -182,6 +185,7 @@ export class DayMealEditorModalComponent {
       dietDay: {} as any,
       meal: {} as any,
       confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
+      closeSelf: closeOuter,
       // Fix5 — CreateProductPage es la pantalla real del cliente (macros/
       // micros/alérgenos/vegano/escáner), no el form reducido de
       // ProductSearchModalComponent. modalMode:true hace que, al guardar,
