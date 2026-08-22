@@ -15,6 +15,7 @@ import { AnthropometryCardComponent } from './components/anthropometry/anthropom
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
 import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
 import { DisconnectedComponent } from './components/disconnected/disconnected.component';
+import { ExerciseEditorModalComponent } from './components/exercise-editor-modal/exercise-editor-modal.component';
 import { FilterIconsComponent } from './components/filter-icons/filter-icons.component';
 import { ExerciseFilterIconsComponent } from './components/exercise-filter-icons/exercise-filter-icons.component';
 import { TableFilterIconsComponent } from './components/filter-icons/table-filter-icons.component';
@@ -70,6 +71,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
     MaintenanceWarningBannerComponent,
+    ExerciseEditorModalComponent,
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
   exports: [
@@ -108,6 +110,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     GlossaryInfoComponent,
     GlossaryPopoverComponent,
     MaintenanceWarningBannerComponent,
+    ExerciseEditorModalComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })

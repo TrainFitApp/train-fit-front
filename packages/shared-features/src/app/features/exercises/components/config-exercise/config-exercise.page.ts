@@ -29,6 +29,10 @@ import { IonicUtilService } from "src/app/core/services/util/ionic-util.service"
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import { ManageSetComponent } from "src/app/features/tables/components/summary/components/manage-set/manage-set.component";
+import {
+  QuickSeriesGeneratorModalComponent,
+  QuickSeriesResult,
+} from "./quick-series-generator-modal/quick-series-generator-modal.component";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
@@ -946,100 +950,39 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   // (`manage-set.component.ts#submit()`) y el mismo flujo de alta que
   // `configSets()`/`copySet()` (id temporal negativo, `displayOrder`,
   // `setsToCreate`, `normalizeSetOrder()`).
-  public openQuickSeriesGenerator(): void {
+  //
+  // Modal propio en vez de ion-alert nativo (2026-08) — el alert original
+  // (5 inputs con solo `placeholder`, que además desaparece al escribir, sin
+  // ningún `message` explicativo) no podía llevar ni el icono de ayuda RIR
+  // ya usado en esta misma pantalla (<app-glossary-info>, un componente
+  // Angular real, incompatible con AlertInput) ni una vista previa en vivo.
+  // Ver quick-series-generator-modal.component.ts.
+  public async openQuickSeriesGenerator(): Promise<void> {
     const isCardio = this.isCurrentExerciseCardio;
     const isIsometric = this.isCurrentExerciseIsometric;
 
-    const inputs: AlertInput[] = [
-      {
-        name: "count",
-        type: "number",
-        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_COUNT"),
-        value: 3,
-        min: 1,
-        max: 20,
-      },
-    ];
+    const modalResult = await this.ionicUtilService.showModal({
+      component: QuickSeriesGeneratorModalComponent,
+      componentProps: { isCardio, isIsometric },
+      // 'tf-panel-modal' (apps/train-fit-trainers/theme/tokens.scss): mismo
+      // panel lateral de 420px que ya usa ConfigExercisePage al abrirse
+      // (workout.component.ts addExerciseModal()) — sin esto, este modal se
+      // abría como diálogo centrado flotando sobre ese panel, minúsculo en
+      // una pantalla de escritorio grande.
+      cssClass: ["quick-series-modal", "tf-panel-modal"],
+    });
 
-    if (isCardio) {
-      inputs.push(
-        {
-          name: "expectedTime",
-          type: "text",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
-        },
-        {
-          name: "expectedDistance",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_DISTANCE"),
-        },
-      );
-    } else if (isIsometric) {
-      inputs.push({
-        name: "expectedTime",
-        type: "text",
-        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
-      });
-    } else {
-      inputs.push(
-        {
-          name: "repsMin",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MIN"),
-          value: 8,
-        },
-        {
-          name: "repsMax",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MAX"),
-          value: 12,
-        },
-        {
-          name: "rirMin",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MIN"),
-          value: 1,
-        },
-        {
-          name: "rirMax",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MAX"),
-          value: 2,
-        },
-      );
-    }
-
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_GENERATOR"),
-      inputs,
-      buttons: [
-        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
-        {
-          text: this.translate.instant("EXERCISE_CONFIG.GENERATE"),
-          handler: (res) => this.applyQuickSeries(res, isCardio, isIsometric),
-        },
-      ],
-    };
-
-    this.ionicUtilService.showAlert(alertOptions);
+    if (modalResult.role !== "confirm") return;
+    this.applyQuickSeries(modalResult.data as QuickSeriesResult, isCardio, isIsometric);
   }
 
-  private applyQuickSeries(
-    res: {
-      count?: string | number;
-      expectedTime?: string;
-      expectedDistance?: string | number;
-      repsMin?: string | number;
-      repsMax?: string | number;
-      rirMin?: string | number;
-      rirMax?: string | number;
-    },
-    isCardio: boolean,
-    isIsometric: boolean,
-  ): void {
-    const count = Math.max(1, Math.min(20, Math.round(Number(res?.count)) || 1));
-
-    for (let i = 0; i < count; i++) {
+  // Simplificado (2026-08) — count/repsMin/repsMax/rirMin/rirMax ya llegan
+  // redondeados y con min<=max desde QuickSeriesGeneratorModalComponent
+  // (mismo cálculo, hecho una vez ahí en vez de repetido aquí); antes este
+  // método volvía a parsear/clampar valores string sueltos porque el
+  // ion-alert nativo solo sabía devolver texto plano sin validar.
+  private applyQuickSeries(res: QuickSeriesResult, isCardio: boolean, isIsometric: boolean): void {
+    for (let i = 0; i < res.count; i++) {
       const newSet: ExerciseSet = {
         _id: (--this.idCounter).toString(),
         order: this.setList.length,
@@ -1049,20 +992,15 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
       };
 
       if (isCardio) {
-        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
-        const distance = Number(res?.expectedDistance);
-        if (Number.isFinite(distance) && res?.expectedDistance !== "") {
-          newSet.expectedDistance = distance;
+        newSet.expectedTime = res.expectedTime || "";
+        if (res.expectedDistance !== null && res.expectedDistance !== undefined) {
+          newSet.expectedDistance = res.expectedDistance;
         }
       } else if (isIsometric) {
-        newSet.expectedTime = (res?.expectedTime || "").toString().trim();
+        newSet.expectedTime = res.expectedTime || "";
       } else {
-        const repsMin = Math.max(0, Math.round(Number(res?.repsMin)) || 0);
-        const repsMax = Math.max(repsMin, Math.round(Number(res?.repsMax)) || repsMin);
-        const rirMin = Math.max(0, Math.round(Number(res?.rirMin)) || 0);
-        const rirMax = Math.max(rirMin, Math.round(Number(res?.rirMax)) || rirMin);
-        newSet.expectedReps = [repsMin, repsMax];
-        newSet.expectedRir = [rirMin, rirMax];
+        newSet.expectedReps = [res.repsMin ?? 0, res.repsMax ?? 0];
+        newSet.expectedRir = [res.rirMin ?? 0, res.rirMax ?? 0];
       }
 
       this.setList.push(newSet);

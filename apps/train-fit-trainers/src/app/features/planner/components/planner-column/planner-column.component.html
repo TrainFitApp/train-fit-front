@@ -1,10 +1,7 @@
 <div class="planner-column" [class.planner-column--selected]="selected" [class.planner-column--dimmed]="dimmed">
   <div class="planner-column-header" (click)="selectColumn()">
     <div class="planner-column-title">
-      <span class="planner-column-name">{{ split.name || ('PLANNER.WEEK_DEFAULT_PREFIX' | translate) }}</span>
-      <button type="button" class="rename-btn" (click)="requestRename($event)" [attr.aria-label]="'PLANNER.RENAME_WEEK' | translate">
-        <ion-icon name="pencil-outline"></ion-icon>
-      </button>
+      <span class="planner-column-name">{{ 'PLANNER.WEEK_DEFAULT_PREFIX' | translate }} {{ splitIndex + 1 }}</span>
     </div>
     <span class="planner-column-meta">
       {{ split.workouts.length }} {{ (split.workouts.length === 1 ? 'PLANNER.CARD_SINGULAR' : 'PLANNER.CARD_PLURAL') | translate }}
@@ -15,6 +12,7 @@
   <div
     class="planner-column-body"
     cdkDropList
+    [cdkDropListDisabled]="reorderLock.locked()"
     [cdkDropListData]="split.workouts"
     (cdkDropListDropped)="onCardsDropped($event)"
   >

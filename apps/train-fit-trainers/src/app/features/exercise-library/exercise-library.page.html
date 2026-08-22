@@ -1,4 +1,5 @@
 <app-search-exercises
+  *ngIf="showList"
   mode="library"
   (exerciseSelected)="openExerciseDetail($event)"
 ></app-search-exercises>

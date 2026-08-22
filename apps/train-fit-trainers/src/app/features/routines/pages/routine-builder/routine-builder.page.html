@@ -91,6 +91,22 @@
             Todavía no has añadido ningún bloque. Un bloque agrupa uno o varios ejercicios (recta, superserie, circuito...).
           </p>
 
+          <!-- Explicación del generador de series por esquema (2026-08) —
+               antes los campos "Series/Reps min/Reps max/RIR min/RIR max" no
+               tenían ninguna explicación; lo que más confundía es que las N
+               series que genera son IDÉNTICAS entre sí (mismo rango
+               repetido), no series distintas editables una a una — eso solo
+               se puede hacer después, al aplicar la plantilla a un cliente
+               real. Un solo aviso aquí arriba (no repetido por ejercicio,
+               serían docenas de líneas iguales) más el resumen en vivo de
+               cada ejercicio (más abajo) ya reforzando lo mismo en contexto. -->
+          <p class="scheme-hint" *ngIf="blocks.length > 0">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            Cada ejercicio genera el número de "Series" que indiques, todas con el MISMO rango de
+            reps y RIR (o tiempo/distancia) — no series distintas entre sí. Para variar una serie en
+            concreto, edítala después de aplicar la plantilla a un cliente.
+          </p>
+
           <div class="block-card" *ngFor="let block of blocks; trackBy: trackByIndex">
             <button type="button" class="block-header" (click)="editBlockAlert(block)">
               <div class="block-header-main">

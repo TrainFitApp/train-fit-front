@@ -1,0 +1,167 @@
+<ion-header class="eem-header">
+  <div class="eem-toolbar">
+    <div class="header-content">
+      <button
+        *ngIf="isEditMode"
+        class="header-action-button ripple-effect"
+        aria-label="Eliminar"
+        (click)="confirmDelete()"
+      >
+        <ion-icon name="trash-bin-outline" color="danger"></ion-icon>
+      </button>
+      <span *ngIf="!isEditMode" class="header-spacer"></span>
+
+      <span class="eem-title">
+        {{ (isEditMode ? 'EXERCISE_CONFIG.EDIT_EXERCISE_TITLE' : 'EXERCISE_CONFIG.CREATE_EXERCISE_TITLE') | translate }}
+      </span>
+
+      <button class="header-action-button ripple-effect" aria-label="Cerrar" (click)="dismiss()">
+        <ion-icon name="close" color="primary"></ion-icon>
+      </button>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="eem-content" *ngIf="form">
+  <form [formGroup]="form">
+    <div class="form-container">
+      <label class="field">
+        <span class="field-label">{{ 'EXERCISE_CONFIG.NEW_EXERCISE_NAME' | translate }}</span>
+        <ion-input
+          formControlName="name"
+          fill="outline"
+          mode="ios"
+          [maxlength]="100"
+          [counter]="true"
+        ></ion-input>
+      </label>
+
+      <div class="field">
+        <span class="field-label">{{ 'EXERCISE_CONFIG.EXERCISE_LABEL' | translate }}</span>
+        <ion-segment mode="ios" [value]="exerciseTypeMode" (ionChange)="setExerciseTypeMode($event.detail.value)">
+          <ion-segment-button value="fuerza">
+            <ion-label>{{ 'EXERCISE_CONFIG.STRENGTH' | translate }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="cardio">
+            <ion-label>{{ 'EXERCISE_CONFIG.CARDIO' | translate }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="isometrico">
+            <ion-label>{{ 'EXERCISE_CONFIG.ISOMETRIC' | translate }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <label class="field">
+        <span class="field-label">{{ 'EXERCISE_CONFIG.VIDEO_URL_LABEL' | translate }}</span>
+        <ion-input
+          [(ngModel)]="videoUrl"
+          [ngModelOptions]="{ standalone: true }"
+          [placeholder]="'EXERCISE_CONFIG.VIDEO_URL_PLACEHOLDER' | translate"
+          fill="outline"
+          mode="ios"
+          type="url"
+        ></ion-input>
+      </label>
+
+      <label class="field">
+        <span class="field-label">{{ 'EXERCISE_CONFIG.DESCRIPTION' | translate }}</span>
+        <ion-textarea
+          formControlName="description"
+          fill="outline"
+          mode="ios"
+          [autoGrow]="true"
+          rows="3"
+          [placeholder]="'EXERCISE_CONFIG.DESCRIPTION_PLACEHOLDER' | translate"
+        ></ion-textarea>
+      </label>
+
+      <button type="button" class="details-toggle" (click)="toggleDetails()">
+        <span class="details-toggle-label">
+          {{ 'EXERCISE_CONFIG.CATEGORIES_MUSCLES_EQUIPMENT' | translate }}
+          <span class="details-count" *ngIf="detailsCount > 0">{{ detailsCount }}</span>
+        </span>
+        <ion-icon [name]="showDetails ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+      </button>
+
+      <div class="filters-wrapper" *ngIf="showDetails">
+        <div class="filter-section">
+          <div class="section-header">
+            <ion-icon name="grid-outline" class="section-icon"></ion-icon>
+            <h4 class="section-title">{{ 'EXERCISE_CONFIG.CATEGORIES' | translate }}</h4>
+          </div>
+          <div class="chips-container">
+            <button
+              type="button"
+              class="filter-chip"
+              *ngFor="let category of categoryOptions"
+              [class.is-active]="details.category.includes(category)"
+              (click)="toggleCategory(category)"
+            >
+              {{ category | translateDb }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="section-header">
+            <ion-icon name="barbell-outline" class="section-icon"></ion-icon>
+            <h4 class="section-title">{{ 'EXERCISE_CONFIG.PRIMARY_MUSCLES' | translate }}</h4>
+          </div>
+          <div class="chips-container">
+            <button
+              type="button"
+              class="filter-chip"
+              *ngFor="let muscle of muscleGroupOptions"
+              [class.is-active]="details.muscleGroups1.includes(muscle)"
+              (click)="toggleMuscleGroup1(muscle)"
+            >
+              {{ muscle | translateDb }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="section-header">
+            <ion-icon name="body-outline" class="section-icon"></ion-icon>
+            <h4 class="section-title">{{ 'EXERCISE_CONFIG.SECONDARY_MUSCLES' | translate }}</h4>
+          </div>
+          <div class="chips-container">
+            <button
+              type="button"
+              class="filter-chip"
+              *ngFor="let muscle of muscleGroupOptions"
+              [class.is-active]="details.muscleGroups2.includes(muscle)"
+              (click)="toggleMuscleGroup2(muscle)"
+            >
+              {{ muscle | translateDb }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="section-header">
+            <ion-icon name="construct-outline" class="section-icon"></ion-icon>
+            <h4 class="section-title">{{ 'EXERCISE_CONFIG.EQUIPMENT' | translate }}</h4>
+          </div>
+          <div class="chips-container">
+            <button
+              type="button"
+              class="filter-chip"
+              *ngFor="let equip of equipmentOptions"
+              [class.is-active]="details.equipment.includes(equip)"
+              (click)="toggleEquipment(equip)"
+            >
+              {{ equip | translateDb }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer class="eem-footer">
+  <ion-button expand="block" shape="round" class="save-btn" [disabled]="saving" (click)="save()">
+    {{ (isEditMode ? 'EXERCISE_CONFIG.SAVE_CHANGES' : 'EXERCISE_CONFIG.SAVE_EXERCISE') | translate }}
+  </ion-button>
+</ion-footer>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "train-fit-trainers",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nx", "serve", "@trainfit/train-fit-trainers"],
+      "port": 4200
+    }
+  ]
+}

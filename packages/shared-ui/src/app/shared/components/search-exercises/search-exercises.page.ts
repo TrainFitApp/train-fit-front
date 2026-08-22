@@ -33,6 +33,7 @@ import { ExerciseService } from 'src/app/core/services/exercise/exercise.service
 import { UserService } from 'src/app/core/services/user/user.service';
 import { ConfigExercisePage } from 'src/app/features/exercises/components/config-exercise/config-exercise.page';
 import { ACTIONS_FAB_TYPES } from '../../constants/actions-fab';
+import { ExerciseEditorModalComponent } from '../exercise-editor-modal/exercise-editor-modal.component';
 
 @Component({
   selector: 'app-search-exercises',
@@ -533,6 +534,37 @@ export class SearchExercisesPage implements OnInit {
     if (actionFab === ACTIONS_FAB_TYPES.createExercise) {
       this.createExercise();
     }
+  }
+
+  // Ejercicios propios de entrenador (MASTER_BACKLOG) — el botón "+" del
+  // header ahora también se muestra en pickerMode (elegir ejercicios para
+  // una plantilla) y en mode="library" (catálogo propio "Ejercicios"),
+  // ninguno de los dos tiene un Workout real en curso todavía. createExercise()
+  // exige this.workout (ConfigExercisePage lo necesita para guardar) — para
+  // esos dos casos se abre el editor standalone en su lugar.
+  public onCreateExerciseClick(): void {
+    if (this.workout) {
+      this.createExercise();
+      return;
+    }
+    this.createStandaloneExercise();
+  }
+
+  private createStandaloneExercise(): void {
+    const modalOptions: ModalOptions = {
+      component: ExerciseEditorModalComponent,
+      componentProps: { user: this.user },
+      cssClass: ['exercise-editor-modal', 'tf-panel-modal'],
+    };
+
+    this.ionicUtilService.showModal(modalOptions).then((res) => {
+      if (res.role !== 'confirm' || !res.data) return;
+      const created = res.data as Exercise;
+      this.searchByFilter();
+      if (this.pickerMode) {
+        this.pickerSelectedExercises = [...this.pickerSelectedExercises, created];
+      }
+    });
   }
 
   public createExercise(): void {

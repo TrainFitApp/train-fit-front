@@ -11,6 +11,7 @@ import { SplitService } from 'src/app/core/services/split/split.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { PlannerRowSyncService } from './services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from './services/planner-exercise-copy.service';
+import { PlannerReorderLockService } from './services/planner-reorder-lock.service';
 
 // Planificador visual de periodización (Fase C) — sustituye a mesocycle.page.ts
 // como constructor de rutinas de train-fit-trainers. Tablero Kanban: columnas
@@ -33,7 +34,10 @@ import { PlannerExerciseCopyService } from './services/planner-exercise-copy.ser
   // una instancia por rutina abierta, compartida por todas las columnas (ver
   // planner-exercise-copy.service.ts) para que copiar en un microciclo y
   // pegar en otro funcione igual que entre workouts de la misma semana.
-  providers: [PlannerRowSyncService, PlannerExerciseCopyService],
+  // Reordenar (2026-08) — PlannerReorderLockService, mismo criterio: una
+  // instancia por rutina, compartida por columnas y tablero para que ningún
+  // drag (de columna o de entrenamiento) se solape con otro en curso.
+  providers: [PlannerRowSyncService, PlannerExerciseCopyService, PlannerReorderLockService],
 })
 export class PlannerPage {
   public table: Table | null = null;
@@ -62,6 +66,7 @@ export class PlannerPage {
   // — misma instancia que inyectan las columnas, expuesta aquí para el botón
   // de cancelar a nivel de tablero completo.
   public readonly exerciseCopy = inject(PlannerExerciseCopyService);
+  public readonly reorderLock = inject(PlannerReorderLockService);
   // TASK-017 (MASTER_BACKLOG.md) — ninguno de los subscribe() de abajo
   // cancelaba su suscripción al destruirse el componente: una respuesta HTTP
   // tardía de una acción sobre el cliente A podía llegar y escribir sobre
@@ -309,7 +314,7 @@ export class PlannerPage {
     await this.ionicUtilService.showAlert({
       header: this.translate.instant('PLANNER.DELETE_WEEK'),
       message: this.translate.instant('PLANNER.DELETE_WEEK_CONFIRM_MSG', {
-        name: this.selectedSplit.name || '',
+        name: this.splitLabel(this.selectedSplit),
       }),
       buttons: [
         { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
@@ -363,15 +368,30 @@ export class PlannerPage {
 
   // --- Tablero: reordenar columnas ---
 
+  // Arreglo de carrera (2026-08) — ver planner-reorder-lock.service.ts.
+  // reorderLock.locked() deshabilita el cdkDropList del tablero
+  // (planner.page.html) mientras esta petición está en curso, así que
+  // event.previousIndex===currentIndex por doble drag ya no puede pasar; el
+  // guard de aquí es solo defensivo. Antes tampoco se aplicaba la respuesta
+  // del backend (this.table.splits se quedaba con el estado optimista para
+  // siempre) — ahora sí, para que el tablero refleje EXACTAMENTE lo que
+  // quedó persistido, no una suposición local.
   public onColumnsDropped(event: CdkDragDrop<Split[]>): void {
-    if (!this.table || event.previousIndex === event.currentIndex) return;
+    if (!this.table || event.previousIndex === event.currentIndex || this.reorderLock.locked()) return;
 
     moveItemInArray(this.table.splits, event.previousIndex, event.currentIndex);
     this.persistTable();
 
     const order = this.table.splits.map((s) => s._id);
+    this.reorderLock.lock();
     this.splitService.reorderSplits(this.table._id, order).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (splits) => {
+        this.table.splits = splits;
+        this.persistTable();
+        this.reorderLock.unlock();
+      },
       error: () => {
+        this.reorderLock.unlock();
         this.ionicUtilService.showToast({
           message: this.translate.instant('PLANNER.REORDER_WEEKS_ERROR'),
           duration: 2500,
@@ -400,42 +420,16 @@ export class PlannerPage {
     this.applyingTemplates = false;
   }
 
-  // --- Renombrar semana (cabecera de columna) ---
-
-  public async renameSplit(split: Split): Promise<void> {
-    if (!this.table) return;
-
-    await this.ionicUtilService.showAlert({
-      header: this.translate.instant('PLANNER.RENAME_WEEK'),
-      inputs: [
-        {
-          name: 'name',
-          type: 'text',
-          value: split.name || '',
-          attributes: { maxlength: 100 },
-        },
-      ],
-      buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          handler: (data: any) => {
-            const name = (data?.name || '').trim();
-            if (!name) return false;
-            split.name = name;
-            this.persistTable();
-            this.splitService.updateSplit(split._id, { name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-              error: () => {
-                this.ionicUtilService.showToast({
-                  message: this.translate.instant('PLANNER.RENAME_WEEK_ERROR'),
-                  duration: 2500,
-                });
-              },
-            });
-            return true;
-          },
-        },
-      ],
-    });
+  // Nombres de microciclo (2026-08) — ya NO son editables: igual que la app
+  // de cliente (mesocycle.page.html usa siempre `currentSplitIndex + 1`,
+  // nunca un nombre guardado), el microciclo se identifica solo por su
+  // posición en el tablero. `split.name` puede seguir guardado en la BD para
+  // microciclos ya duplicados antes de este cambio (dato huérfano, inofensivo:
+  // ya no se lee en ningún sitio) — se usa este helper en vez de `split.name`
+  // en todo lo que necesite mostrar "qué microciclo es este" (aquí, en el
+  // mensaje de borrar; el label de la columna vive en planner-column.component.html).
+  public splitLabel(split: Split): string {
+    const index = this.table?.splits.findIndex((s) => s._id === split._id) ?? -1;
+    return `${this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX')} ${index + 1}`;
   }
 }

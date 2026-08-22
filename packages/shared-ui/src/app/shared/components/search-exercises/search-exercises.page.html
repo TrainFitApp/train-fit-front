@@ -24,8 +24,8 @@
         </button>
         <button
           class="action-button ripple-effect"
-          *ngIf="!isChangeMode && !pickerMode && mode !== 'library'"
-          (click)="createExercise()"
+          *ngIf="!isChangeMode"
+          (click)="onCreateExerciseClick()"
         >
           <ion-icon name="add-outline" color="primary"></ion-icon>
         </button>

@@ -14,6 +14,7 @@ import { STATES } from 'src/app/shared/constants/states';
 import { TemplatePickerModalComponent } from '../template-picker-modal/template-picker-modal.component';
 import { PlannerRowSyncService } from '../../services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from '../../services/planner-exercise-copy.service';
+import { PlannerReorderLockService } from '../../services/planner-reorder-lock.service';
 
 // Planificador visual (Fase C) — una columna del tablero (una semana/Split).
 // Cabecera seleccionable (activa los botones de la toolbar superior del
@@ -27,6 +28,12 @@ import { PlannerExerciseCopyService } from '../../services/planner-exercise-copy
 })
 export class PlannerColumnComponent {
   @Input() split: Split;
+  // Nombres de microciclo (2026-08) — ya no editables, se muestran por
+  // posición en el tablero (mismo criterio que la app de cliente,
+  // `currentSplitIndex + 1`). El índice lo calcula el padre (*ngFor de
+  // planner.page.html) porque esta columna no conoce su propia posición
+  // dentro de table.splits.
+  @Input() splitIndex: number;
   @Input() table: Table;
   @Input() selected = false;
   // Tarea (2026-08) — atenuada mientras se arrastra un entrenamiento en OTRA
@@ -42,7 +49,6 @@ export class PlannerColumnComponent {
   public readonly STATES = STATES;
 
   @Output() columnSelected = new EventEmitter<void>();
-  @Output() columnRenamed = new EventEmitter<void>();
   @Output() cardDragStarted = new EventEmitter<void>();
   @Output() cardDragEnded = new EventEmitter<void>();
   // Tarea (2026-08) — "Añadir desde plantilla" tarda varias llamadas
@@ -59,6 +65,7 @@ export class PlannerColumnComponent {
   private readonly workoutService = inject(WorkoutService);
   public readonly rowSync = inject(PlannerRowSyncService);
   public readonly exerciseCopy = inject(PlannerExerciseCopyService);
+  public readonly reorderLock = inject(PlannerReorderLockService);
   private readonly workoutTemplateApi = inject(WorkoutTemplateApiService);
   // TASK-017 — ver planner.page.ts, mismo fix: evita que una respuesta HTTP
   // tardía de una columna ya destruida (cliente/tabla anterior) escriba
@@ -124,11 +131,6 @@ export class PlannerColumnComponent {
 
   public selectColumn(): void {
     this.columnSelected.emit();
-  }
-
-  public requestRename(event: Event): void {
-    event.stopPropagation();
-    this.columnRenamed.emit();
   }
 
   private persistTable(): void {
@@ -311,8 +313,14 @@ export class PlannerColumnComponent {
   // número de entrenamientos — invariante que ya mantienen crear (addCard/
   // plantillas, fan-out a todos) y borrar (mismo índice en todos, ver
   // workout.component.ts#deleteWorkouts) en toda la app.
+  //
+  // Arreglo de carrera (2026-08) — ver planner-reorder-lock.service.ts:
+  // reorderLock.locked() deshabilita CUALQUIER drag (de columnas o de
+  // entrenamientos, en cualquier columna) mientras esta petición está en
+  // curso, así que dos reorders no pueden solaparse y pisarse el resultado
+  // el uno al otro en el backend.
   public onCardsDropped(event: CdkDragDrop<Workout[]>): void {
-    if (!this.table || event.previousIndex === event.currentIndex) return;
+    if (!this.table || event.previousIndex === event.currentIndex || this.reorderLock.locked()) return;
 
     // Snapshot (referencias a los arrays previos, no deep clone — basta para
     // restaurar el orden si falla la persistencia) — con el reorder ahora
@@ -326,14 +334,17 @@ export class PlannerColumnComponent {
     this.persistTable();
 
     const order = this.split.workouts.map((w) => w._id);
+    this.reorderLock.lock();
     this.workoutService.reorderWorkoutRows(this.table._id, order).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (splits) => {
         this.table.splits = splits;
         this.persistTable();
+        this.reorderLock.unlock();
       },
       error: () => {
         this.table.splits.forEach((split, index) => (split.workouts = previousOrders[index]));
         this.persistTable();
+        this.reorderLock.unlock();
         this.ionicUtilService.showToast({
           message: this.translate.instant('PLANNER.REORDER_CARDS_ERROR'),
           duration: 2500,

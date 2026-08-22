@@ -126,14 +126,20 @@ export function buildSetsFromScheme(scheme: ExerciseScheme): WorkoutTemplateSet[
   }));
 }
 
+// "series idénticas" en vez de solo "N ×" (2026-08) — lo que más confunde de
+// este generador es justo eso: las N series creadas comparten EL MISMO
+// rango, no hay una serie 1 distinta de la serie 3. Decirlo explícitamente en
+// el resumen que el entrenador ya mira tras tocar los campos, en vez de solo
+// en un aviso aparte que se puede pasar por alto.
 export function schemeSummary(scheme: ExerciseScheme): string {
+  const plural = scheme.count === 1 ? 'serie' : 'series idénticas';
   if (scheme.kind === 'cardio') {
     const time = scheme.expectedTime || '—';
     const distance = scheme.expectedDistance ? ` · ${scheme.expectedDistance} km` : '';
-    return `${scheme.count} × ${time}${distance}`;
+    return `${scheme.count} ${plural} de ${time}${distance}`;
   }
   if (scheme.kind === 'isometric') {
-    return `${scheme.count} × ${scheme.expectedTime || '—'}`;
+    return `${scheme.count} ${plural} de ${scheme.expectedTime || '—'}`;
   }
-  return `${scheme.count} × ${scheme.repsMin}-${scheme.repsMax} reps · RIR ${scheme.rirMin}-${scheme.rirMax}`;
+  return `${scheme.count} ${plural} de ${scheme.repsMin}-${scheme.repsMax} reps · RIR ${scheme.rirMin}-${scheme.rirMax}`;
 }

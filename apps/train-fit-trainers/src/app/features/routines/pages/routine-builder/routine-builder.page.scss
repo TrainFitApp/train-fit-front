@@ -38,6 +38,30 @@
   text-align: center;
 }
 
+// Explicación del generador de series por esquema (2026-08) — callout suave,
+// una sola vez por página (no por ejercicio), justo antes de la lista de
+// bloques donde viven los campos que explica.
+.scheme-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 var(--tf-space-3);
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  color: var(--tf-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.4;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 16px;
+    color: var(--tf-accent);
+  }
+}
+
 // --- Estado de error de página completa — mismo patrón que
 // clients.page.scss / dashboard.page.scss (icono + título + texto + CTA) ---
 .state-message {

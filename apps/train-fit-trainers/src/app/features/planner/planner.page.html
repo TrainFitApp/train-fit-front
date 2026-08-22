@@ -37,21 +37,22 @@
     class="planner-board"
     cdkDropList
     cdkDropListOrientation="horizontal"
+    [cdkDropListDisabled]="reorderLock.locked()"
     [cdkDropListData]="table?.splits"
     (cdkDropListDropped)="onColumnsDropped($event)"
   >
     <app-planner-column
-      *ngFor="let split of table?.splits; trackBy: trackBySplitId"
+      *ngFor="let split of table?.splits; let i = index; trackBy: trackBySplitId"
       cdkDrag
       cdkDragLockAxis="x"
       [cdkDragData]="split"
       class="planner-board-column"
       [split]="split"
+      [splitIndex]="i"
       [table]="table"
       [selected]="split._id === selectedSplitId"
       [dimmed]="draggingFromSplitId !== null && draggingFromSplitId !== split._id"
       (columnSelected)="selectSplit(split._id)"
-      (columnRenamed)="renameSplit(split)"
       (cardDragStarted)="onCardDragStarted(split._id)"
       (cardDragEnded)="onCardDragEnded()"
       (templatesApplyStarted)="onTemplatesApplyStarted()"
