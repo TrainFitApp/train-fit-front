@@ -1,5 +1,33 @@
 @import '../../../theme/buttons';
 
+// Tarea 1 (2026-08) — el título no tenía forma de editarse. Convertido en
+// <button>, así que solo se resetean los estilos de navegador propios de un
+// button (border/background/cursor) — font-size/weight/color/margin siguen
+// viniendo de .tf-page-header__title (shared-theme), sin tocar ese archivo
+// compartido por las 3 apps.
+.routine-title-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.routine-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .planner-toolbar {
   display: flex;
   gap: var(--tf-space-2);
@@ -86,6 +114,7 @@
 }
 
 .planner-board {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--tf-space-4);
@@ -103,6 +132,78 @@
     padding: var(--tf-space-3);
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+// Tarea (2026-08) — "Añadir desde plantilla" hace varias llamadas seguidas
+// (una por plantilla × microciclo). `position: fixed` en vez de absolute:
+// cubre el tablero completo aunque el entrenador tenga el Kanban desplazado
+// horizontalmente, no solo la parte visible del contenedor con scroll.
+.planner-board-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-3);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+
+  ion-spinner {
+    width: 36px;
+    height: 36px;
+    color: var(--tf-accent);
+  }
+}
+
+// "Copiar ejercicios" (2026-08) — banner flotante, siempre encima del resto
+// (no bloquea nada, solo informa + deja cancelar) mientras el modo copiar
+// está activo en cualquier card del tablero. `position: fixed` por el mismo
+// motivo que .planner-board-overlay: sigue visible aunque el Kanban esté
+// desplazado horizontalmente.
+.planner-copy-banner {
+  position: fixed;
+  bottom: var(--tf-space-5);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 10px var(--tf-space-4) 10px var(--tf-space-3);
+  border-radius: var(--tf-radius-full, 999px);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-accent-soft-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--tf-accent);
+  }
+}
+
+.planner-copy-banner-cancel {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 var(--tf-space-3);
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 

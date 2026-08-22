@@ -13,6 +13,14 @@
     background-color: rgba(var(--ion-color-primary-rgb), 0.04);
   }
 
+  // Solo previsualizado (panel de detalle aparte), no seleccionado — color
+  // distinto (alternative/naranja) para no confundirlo con "ya añadido"
+  // (primary, arriba).
+  &.trainer-focused {
+    border-color: var(--ion-color-alternative);
+    box-shadow: 0 0 0 1px var(--ion-color-alternative);
+  }
+
   &.is-loading {
     pointer-events: none;
   }

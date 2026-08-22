@@ -43,15 +43,28 @@ const routes: Routes = [
           ),
       },
       {
-        // Rutinas ya asignadas a clientes (Table real, con microciclos/
-        // splits/workouts), distinto de /tabs/routines (biblioteca de
-        // WorkoutTemplate reutilizables). Antes la tarjeta "Rutina" del hub
-        // de /tabs/templates apuntaba por error al mismo /tabs/routines que
-        // "Entrenamientos" — ver templates.page.ts.
-        path: 'routines-overview',
+        // Rutinas -> Plantillas (rediseño 2026-08) — biblioteca de plantillas
+        // de rutina COMPLETA (microciclos/splits/workouts) del profesional,
+        // distinta de /tabs/routines (biblioteca de WorkoutTemplate: un solo
+        // día/sesión). Reemplaza a la antigua RoutinesOverviewPage, que
+        // mostraba rutinas ya asignadas a clientes (esa vista se elimina: esa
+        // info ya vive en la ficha de cada cliente) — ver templates.page.ts.
+        // La ruta del Planificador en modo plantilla va DECLARADA ANTES que
+        // esta (más específica primero, mismo criterio que TASK-026 para
+        // 'clients/:clientId/tables/:tableId/planner' vs 'clients').
+        path: 'routine-templates/:tableId/planner',
+        resolve: { table: TableInContextResolver },
+        data: { templateMode: true },
         loadChildren: () =>
-          import('src/app/features/routines-overview/routines-overview.module').then(
-            (m) => m.RoutinesOverviewPageModule
+          import('src/app/features/planner/planner.module').then(
+            (m) => m.PlannerPageModule
+          ),
+      },
+      {
+        path: 'routine-templates',
+        loadChildren: () =>
+          import('src/app/features/routine-templates/routine-templates.module').then(
+            (m) => m.RoutineTemplatesPageModule
           ),
       },
       {

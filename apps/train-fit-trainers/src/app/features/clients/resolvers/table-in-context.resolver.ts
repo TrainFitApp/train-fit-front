@@ -32,6 +32,14 @@ export class TableInContextResolver implements Resolve<Table> {
   // que Angular Router propague un NavigationError sin manejar.
   public resolve(route: ActivatedRouteSnapshot): Observable<Table> {
     const tableId = route.paramMap.get('tableId') || '';
+    // Rutinas -> Plantillas (rediseño 2026-08): este resolver también siembra
+    // el Planificador en modo plantilla (sin cliente, ver
+    // shell-routing.module.ts data.templateMode) — el fallback de error debe
+    // volver a la biblioteca de plantillas en ese caso, no a la lista de
+    // clientes.
+    const fallbackRoute = route.data?.['templateMode']
+      ? ['/tabs/routine-templates']
+      : ['/tabs/clients'];
     return this.tableService.getTableById(tableId).pipe(
       tap((table) => (this.tableService.setCurrentTable = table)),
       catchError((error) => {
@@ -39,7 +47,7 @@ export class TableInContextResolver implements Resolve<Table> {
           error,
           'No se pudo abrir este entrenamiento. Puede que ya no exista o que no tengas acceso.'
         );
-        void this.router.navigate(['/tabs/clients']);
+        void this.router.navigate(fallbackRoute);
         return EMPTY;
       })
     );

@@ -12,6 +12,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
+import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { DietException, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
 import { forkJoin } from 'rxjs';
@@ -611,6 +612,28 @@ export class ClientDetailPage implements OnInit {
         },
       ],
     });
+  }
+
+  // Rutinas -> Plantillas (rediseño 2026-08) — reactiva F11 (getAvailableTemplates/
+  // assignTemplateRoutine en ClientDetailApiService, escrito hace tiempo pero
+  // nunca consumido desde ningún componente): elegir una plantilla de rutina
+  // completa ya construida (propia del profesional) en vez de partir de cero.
+  // Mismo patrón que openApplyTemplateModal() (nutrición) un poco más abajo.
+  public async openApplyRoutineTemplateModal(): Promise<void> {
+    this.closeRoutinePanel();
+    const modal = await this.modalController.create({
+      component: ApplyRoutineTemplateModalComponent,
+      componentProps: { clientId: this.clientId, clientName: this.name },
+    });
+    await modal.present();
+    const { data: table, role } = await modal.onDidDismiss();
+    if (role !== 'confirm' || !table) return;
+
+    this.ionicUtilService.showToast({
+      message: `Plantilla asignada a ${this.name}`,
+      duration: 2000,
+    });
+    void this.openPlanner(table);
   }
 
   private onRoutineAssignError(err: any): void {

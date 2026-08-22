@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ showCreateProduct ? 'Crear producto' : 'Buscar alimento' }}</ion-title>
+    <ion-title>{{ headerTitle }}</ion-title>
     <ion-buttons slot="end">
       <ion-button *ngIf="showCreateProduct" (click)="closeCreateProduct()">Volver</ion-button>
       <ion-button *ngIf="!showCreateProduct" (click)="dismiss()">Cerrar</ion-button>

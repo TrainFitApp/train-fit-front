@@ -719,6 +719,16 @@
   justify-content: center;
 }
 
+// Rutinas -> Plantillas (rediseño 2026-08) — "Usar una plantilla ya
+// construida" en el panel "Asignar rutina": mismo .manage-templates-link
+// que ya usa la sección Dieta, aquí centrado y con separación propia porque
+// vive suelto bajo el <form>, no dentro de un .template-actions-row.
+.panel-sheet .manage-templates-link {
+  display: block;
+  margin: 14px auto 0;
+  text-align: center;
+}
+
 .bulk-apply-btn {
   flex-shrink: 0;
   width: var(--tf-touch-min);
