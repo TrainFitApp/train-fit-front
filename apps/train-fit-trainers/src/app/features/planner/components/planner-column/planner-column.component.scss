@@ -20,6 +20,17 @@
     border-color: var(--tf-accent);
     box-shadow: 0 0 0 1px var(--tf-accent);
   }
+
+  // Tarea (2026-08) — mientras se arrastra un entrenamiento en OTRA columna:
+  // opacidad reducida + pointer-events:none en TODA la columna (rename,
+  // "+ Añadir tarjeta", drag de sus propias cards...), no solo en la lista de
+  // cards — deja claro de un vistazo que ahora mismo no se puede interactuar
+  // con este microciclo, solo con el que se está arrastrando.
+  &--dimmed {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+  }
 }
 
 .planner-column-header {
@@ -107,6 +118,36 @@
 
   &:last-child {
     margin-bottom: 0;
+  }
+}
+
+// Tarea 4 (2026-08) — barra propia ENCIMA del accordion, no superpuesta al
+// header de <app-workout> (componente compartido con su propio menú "⋮" y
+// controles — un botón flotante ahí arriba arriesgaba tapar o pisar algo de
+// ese layout). Siempre visible (no solo al hover: en touch, hover no
+// existe — mismo criterio que .rename-btn con @media (hover: none)).
+.row-sync-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px var(--tf-space-3);
+  background: var(--tf-surface-4);
+  border: none;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &--active {
+    color: var(--tf-accent);
+    background: var(--tf-accent-soft);
   }
 }
 

@@ -1,4 +1,4 @@
-<div class="planner-column" [class.planner-column--selected]="selected">
+<div class="planner-column" [class.planner-column--selected]="selected" [class.planner-column--dimmed]="dimmed">
   <div class="planner-column-header" (click)="selectColumn()">
     <div class="planner-column-title">
       <span class="planner-column-name">{{ split.name || ('PLANNER.WEEK_DEFAULT_PREFIX' | translate) }}</span>
@@ -18,11 +18,26 @@
     [cdkDropListData]="split.workouts"
     (cdkDropListDropped)="onCardsDropped($event)"
   >
-    <div class="planner-card-wrapper" *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId" cdkDrag [cdkDragData]="workout">
+    <div
+      class="planner-card-wrapper"
+      *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId"
+      cdkDrag
+      [cdkDragData]="workout"
+      (cdkDragStarted)="cardDragStarted.emit()"
+      (cdkDragEnded)="cardDragEnded.emit()"
+    >
+      <button
+        type="button"
+        class="row-sync-toggle"
+        [class.row-sync-toggle--active]="rowSync.isSynced(i)"
+        (click)="toggleRowSync($event, workout._id, i)"
+      >
+        <ion-icon [name]="rowSync.isSynced(i) ? 'eye' : 'eye-outline'"></ion-icon>
+        <span>{{ 'PLANNER.SYNC_ROW' | translate }}</span>
+      </button>
       <ion-accordion-group
-        [multiple]="true"
-        [value]="isCardOpen(workout._id) ? 'open' : 'closed'"
-        (ionChange)="onCardAccordionChange($event, workout._id)"
+        [value]="isCardOpen(workout._id, i) ? 'open' : 'closed'"
+        (ionChange)="onCardAccordionChange($event, workout._id, i)"
       >
         <app-workout
           [workout]="workout"
@@ -35,8 +50,10 @@
           [isModal]="true"
           [stateSelected]="STATES.static"
           [savingWorkoutOrder]="false"
-          [exercisePasteMode]="false"
-          [exerciseCopyActive]="false"
+          [exercisePasteMode]="exerciseCopy.pasteMode()"
+          [exerciseCopyActive]="exerciseCopy.copyActive()"
+          [exerciseOriginWorkoutId]="exerciseCopy.originWorkoutId()"
+          (exerciseCopyEvent)="exerciseCopy.onCopyEvent($event)"
         ></app-workout>
       </ion-accordion-group>
     </div>

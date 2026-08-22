@@ -14,6 +14,12 @@ const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
 // nombre/tags y la misma info de preview que ya usa RoutinesPage
 // (nivel/tags/bloques/ejercicios) — mismo dato (WorkoutTemplate[]) ya
 // cargado por el llamante, sin llamada a backend nueva.
+// Multi-selección (2026-08) — antes elegir una plantilla la aplicaba y
+// cerraba el modal de inmediato, obligando a reabrirlo una vez por cada
+// entrenamiento que se quisiera añadir. Ahora se marcan varias con checkbox
+// (o "Seleccionar todas") y se aplican todas de una vez al confirmar — el
+// llamante (planner-column.component.ts) las aplica en secuencia, ya que
+// applyToSplit() es por-plantilla, no existe un endpoint bulk.
 @Component({
   selector: 'app-template-picker-modal',
   templateUrl: './template-picker-modal.component.html',
@@ -24,6 +30,7 @@ export class TemplatePickerModalComponent implements OnInit {
 
   public search = '';
   public filteredTemplates: WorkoutTemplate[] = [];
+  public selectedIds = new Set<string>();
 
   public readonly levelLabels = LEVEL_LABELS;
 
@@ -60,8 +67,33 @@ export class TemplatePickerModalComponent implements OnInit {
     return template._id;
   }
 
-  public choose(template: WorkoutTemplate): void {
-    this.modalController.dismiss(template._id);
+  public toggle(template: WorkoutTemplate): void {
+    if (this.selectedIds.has(template._id)) this.selectedIds.delete(template._id);
+    else this.selectedIds.add(template._id);
+  }
+
+  public isSelected(template: WorkoutTemplate): boolean {
+    return this.selectedIds.has(template._id);
+  }
+
+  // "Seleccionar todas" actúa solo sobre lo visible tras el filtro — marcar
+  // "todas" con un buscador activo no debe arrastrar plantillas ocultas que
+  // el entrenador ni ha visto.
+  public get allFilteredSelected(): boolean {
+    return this.filteredTemplates.length > 0 && this.filteredTemplates.every((t) => this.selectedIds.has(t._id));
+  }
+
+  public toggleSelectAllFiltered(): void {
+    if (this.allFilteredSelected) {
+      this.filteredTemplates.forEach((t) => this.selectedIds.delete(t._id));
+    } else {
+      this.filteredTemplates.forEach((t) => this.selectedIds.add(t._id));
+    }
+  }
+
+  public confirmSelection(): void {
+    if (!this.selectedIds.size) return;
+    this.modalController.dismiss([...this.selectedIds]);
   }
 
   public close(): void {

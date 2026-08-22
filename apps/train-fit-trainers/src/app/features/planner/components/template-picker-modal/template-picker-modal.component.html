@@ -27,14 +27,29 @@
     <p>Ninguna plantilla coincide con "{{ search }}".</p>
   </div>
 
+  <button
+    type="button"
+    class="select-all-row"
+    *ngIf="filteredTemplates.length > 1"
+    (click)="toggleSelectAllFiltered()"
+  >
+    <ion-icon [name]="allFilteredSelected ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+    <span>Seleccionar todas</span>
+  </button>
+
   <div class="templates-list">
     <button
       type="button"
       class="template-row"
       *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId"
-      (click)="choose(template)"
+      [class.template-row--selected]="isSelected(template)"
+      (click)="toggle(template)"
     >
       <div class="template-row-header">
+        <ion-icon
+          class="template-row-check"
+          [name]="isSelected(template) ? 'checkmark-circle' : 'ellipse-outline'"
+        ></ion-icon>
         <span class="template-name">{{ template.name }}</span>
         <span class="template-level">{{ levelLabels[template.level] }}</span>
       </div>
@@ -48,3 +63,9 @@
     </button>
   </div>
 </ion-content>
+
+<ion-footer class="template-picker-footer" *ngIf="selectedIds.size">
+  <button type="button" class="confirm-button" (click)="confirmSelection()">
+    Añadir {{ selectedIds.size }} entrenamiento{{ selectedIds.size === 1 ? '' : 's' }}
+  </button>
+</ion-footer>

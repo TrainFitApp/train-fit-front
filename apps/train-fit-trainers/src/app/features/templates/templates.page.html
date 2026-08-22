@@ -32,26 +32,26 @@
        una columna sin datos ni skeleton no se renderiza, así que no reserva
        hueco); en móvil se apilan una debajo de otra. -->
   <div class="recent-columns">
-    <section class="recent-column" *ngIf="loadingRoutineOverview || routineOverviewRows.length">
+    <section class="recent-column" *ngIf="loadingFullRoutineTemplates || fullRoutineTemplates.length">
       <div class="recent-column-header">
         <h3 class="recent-column-title">Rutinas</h3>
-        <a class="recent-column-link" routerLink="/tabs/routines-overview">Ver todas</a>
+        <a class="recent-column-link" routerLink="/tabs/routine-templates">Ver todas</a>
       </div>
 
-      <div class="recent-skeleton" *ngIf="loadingRoutineOverview">
+      <div class="recent-skeleton" *ngIf="loadingFullRoutineTemplates">
         <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
       </div>
 
-      <div class="recent-list" *ngIf="!loadingRoutineOverview">
+      <div class="recent-list" *ngIf="!loadingFullRoutineTemplates">
         <button
           type="button"
           class="recent-row"
-          *ngFor="let row of routineOverviewRows; trackBy: trackByRoutineOverviewRow"
-          (click)="openRoutineOverviewRow(row)"
+          *ngFor="let template of fullRoutineTemplates; trackBy: trackByFullRoutineTemplateId"
+          (click)="openFullRoutineTemplate(template)"
         >
           <div class="recent-row-info">
-            <span class="recent-row-name">{{ row.table.name }}</span>
-            <span class="recent-row-meta">{{ row.clientName }} · {{ row.microcyclesCount }} microciclos</span>
+            <span class="recent-row-name">{{ template.name }}</span>
+            <span class="recent-row-meta">{{ fullRoutineTemplateMeta(template) }}</span>
           </div>
           <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
         </button>
@@ -134,8 +134,8 @@
   <p
     class="empty-hint"
     *ngIf="
-      !loadingRoutineTemplates && !loadingDietTemplates && !loadingCheckinTemplates && !loadingRoutineOverview &&
-      !routineTemplates.length && !dietTemplates.length && !checkinTemplates.length && !routineOverviewRows.length
+      !loadingRoutineTemplates && !loadingDietTemplates && !loadingCheckinTemplates && !loadingFullRoutineTemplates &&
+      !routineTemplates.length && !dietTemplates.length && !checkinTemplates.length && !fullRoutineTemplates.length
     "
   >
     Todavía no has creado ninguna plantilla. Empieza desde cualquiera de las categorías de arriba.

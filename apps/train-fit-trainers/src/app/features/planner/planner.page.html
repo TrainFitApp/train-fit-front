@@ -7,7 +7,10 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ table?.name }}</h1>
+        <button type="button" class="tf-page-header__title routine-title-button" (click)="renameTable()">
+          <span class="routine-title-text">{{ table?.name }}</span>
+          <ion-icon name="pencil-outline"></ion-icon>
+        </button>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -21,14 +24,6 @@
     <button type="button" class="toolbar-btn" [disabled]="busy || !selectedSplit" (click)="duplicateSelectedWeek()" [attr.aria-label]="'PLANNER.DUPLICATE_WEEK' | translate">
       <ion-icon name="duplicate-outline"></ion-icon>
       <span>{{ 'PLANNER.DUPLICATE_WEEK' | translate }}</span>
-    </button>
-    <button type="button" class="toolbar-btn" [disabled]="!selectedSplit" (click)="copySelectedWeek()" [attr.aria-label]="'PLANNER.COPY_WEEK' | translate">
-      <ion-icon name="copy-outline"></ion-icon>
-      <span>{{ 'PLANNER.COPY_WEEK' | translate }}</span>
-    </button>
-    <button type="button" class="toolbar-btn" [disabled]="busy || !splitClipboard" (click)="pasteWeek()" [attr.aria-label]="'PLANNER.PASTE_WEEK' | translate">
-      <ion-icon name="clipboard-outline"></ion-icon>
-      <span>{{ 'PLANNER.PASTE_WEEK' | translate }}</span>
     </button>
     <button type="button" class="toolbar-btn toolbar-btn--danger" [disabled]="!selectedSplit" (click)="confirmDeleteSelectedWeek()" [attr.aria-label]="'PLANNER.DELETE_WEEK' | translate">
       <ion-icon name="trash-outline"></ion-icon>
@@ -54,8 +49,13 @@
       [split]="split"
       [table]="table"
       [selected]="split._id === selectedSplitId"
+      [dimmed]="draggingFromSplitId !== null && draggingFromSplitId !== split._id"
       (columnSelected)="selectSplit(split._id)"
       (columnRenamed)="renameSplit(split)"
+      (cardDragStarted)="onCardDragStarted(split._id)"
+      (cardDragEnded)="onCardDragEnded()"
+      (templatesApplyStarted)="onTemplatesApplyStarted()"
+      (templatesApplyEnded)="onTemplatesApplyEnded()"
     ></app-planner-column>
 
     <div class="planner-empty" *ngIf="table && table.splits.length === 0">
@@ -66,5 +66,29 @@
         <span>{{ 'PLANNER.ADD_WEEK' | translate }}</span>
       </button>
     </div>
+
+    <!-- Tarea (2026-08) — cubre TODO el tablero mientras "Añadir desde
+         plantilla" hace su secuencia de llamadas, para que el resultado se
+         revele de golpe en vez de ir apareciendo microciclo a microciclo. -->
+    <div class="planner-board-overlay" *ngIf="applyingTemplates">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'PLANNER.APPLYING_TEMPLATES' | translate }}</span>
+    </div>
+  </div>
+
+  <!-- "Copiar ejercicios" (2026-08) — visible en TODO el tablero mientras el
+       modo copiar está activo en cualquier card, para poder cancelarlo desde
+       cualquier sitio sin tener que volver a desplazarse hasta la card de
+       origen. No bloquea nada (a diferencia del overlay de arriba): el
+       entrenador sigue pudiendo marcar ejercicios y pulsar "Pegar" con este
+       banner visible. -->
+  <div class="planner-copy-banner" *ngIf="exerciseCopy.copyActive()">
+    <ion-icon name="copy-outline"></ion-icon>
+    <span *ngIf="exerciseCopy.selectedCount() === 0">{{ 'PLANNER.COPY_MODE_EMPTY' | translate }}</span>
+    <span *ngIf="exerciseCopy.selectedCount() === 1">{{ 'PLANNER.COPY_MODE_COUNT_SINGULAR' | translate }}</span>
+    <span *ngIf="exerciseCopy.selectedCount() > 1">{{ 'PLANNER.COPY_MODE_COUNT_PLURAL' | translate: { count: exerciseCopy.selectedCount() } }}</span>
+    <button type="button" class="planner-copy-banner-cancel" (click)="exerciseCopy.cancel()">
+      {{ 'COMMON.CANCEL' | translate }}
+    </button>
   </div>
 </ion-content>
