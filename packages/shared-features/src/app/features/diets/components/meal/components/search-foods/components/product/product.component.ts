@@ -63,6 +63,11 @@ export class ProductComponent implements OnInit, OnChanges {
   // TAREA5 (auditoría UX, Fase B) — favoritos personales del entrenador.
   @Input()
   public isTrainerFavorite = false;
+  // Fix (ronda detalle) — resaltado naranja cuando este producto es el que
+  // se está previsualizando en el panel de detalle aparte (ver
+  // SearchFoodsPage#onFocusItem). No implica selección.
+  @Input()
+  public isTrainerFocused = false;
 
   @Output()
   public delete = new EventEmitter<string>();
@@ -85,6 +90,9 @@ export class ProductComponent implements OnInit, OnChanges {
 
   @Output()
   public trainerFavoriteToggle = new EventEmitter<IProduct>();
+
+  @Output()
+  public trainerFocus = new EventEmitter<IProduct>();
 
   public measureFilter: MEASURE_FILTER_TYPES;
 
@@ -159,7 +167,10 @@ export class ProductComponent implements OnInit, OnChanges {
     if (this.isBusy) return;
 
     if (this.trainerMultiSelect) {
-      this.trainerToggle.emit({ product: this.product, checked: !this.isTrainerSelected });
+      // Fix (ronda detalle) — tocar la card ya NO añade/quita de la
+      // selección (eso es exclusivo del checkbox, ver onTrainerCheckboxChange
+      // más abajo): solo previsualiza en el panel de detalle aparte.
+      this.trainerFocus.emit(this.product);
       return;
     }
 
@@ -176,6 +187,10 @@ export class ProductComponent implements OnInit, OnChanges {
   // de sus llamadas a la API del consumidor.
   public onTrainerCheckboxChange(event: any): void {
     this.trainerToggle.emit({ product: this.product, checked: event.detail.checked });
+    // Añadir con el check también previsualiza — no solo tocar la card.
+    if (event.detail.checked) {
+      this.trainerFocus.emit(this.product);
+    }
   }
 
   public onTrainerFavoriteClick(event: Event): void {

@@ -87,6 +87,19 @@ export interface SearchFoodsTrainerContext {
   // ciclo completo de buscar→elegir→confirmar por cada alimento.
   confirmSelection: (items: TrainerFoodSelection[]) => void;
   pickCreateProduct: () => void;
+  // Fix (ronda detalle) — tocar una card (no el check) SOLO previsualiza:
+  // avisa a quien abrió este buscador para que muestre/actualice su propio
+  // panel de detalle (macros+micros) en otro sidenav, sin añadir nada a la
+  // selección. Opcional: los consumidores que no lo implementan (p. ej.
+  // client-detail.page.ts) no ofrecen panel de detalle y la card simplemente
+  // no hace nada al tocarla fuera del check (comportamiento sin cambios).
+  onFocusItem?: (item: TrainerFoodSelection) => void;
+  // Fix7 — opcional: cuando el consumidor de trainerContext también sabe
+  // crear una receta nueva, openCreateActionSheet ofrece ambas opciones en
+  // vez de ir directo a "crear producto". Los consumidores que no lo
+  // implementan (client-detail.page.ts, compose-meal.page.ts) mantienen su
+  // comportamiento actual sin cambios.
+  pickCreateRecipe?: () => void;
 }
 
 @Component({
@@ -1136,11 +1149,40 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   public async openCreateActionSheet(): Promise<void> {
-    // TAREA5 — modo entrenador: sin selector (producto vs receta con
-    // ingredientes) por ahora, va directo a crear producto. Ver TAREA5 para
-    // el alcance acordado de esta pasada.
+    // TAREA5/Fix7 — modo entrenador: si el consumidor de trainerContext
+    // implementa pickCreateRecipe, ofrece el mismo selector producto/receta
+    // que el consumidor normal; si no, mantiene el atajo directo a crear
+    // producto de antes.
     if (this.trainerContext) {
-      this.trainerContext.pickCreateProduct();
+      if (!this.trainerContext.pickCreateRecipe) {
+        this.trainerContext.pickCreateProduct();
+        return;
+      }
+
+      const t = this.translate.instant.bind(this.translate);
+      const result = await this.ionicUtilService.showActionSheet({
+        cssClass: "create-action-sheet",
+        mode: "ios",
+        buttons: [
+          {
+            text: t('ACTIONS_FAB.NEW_PRODUCT'),
+            icon: "nutrition-outline",
+            data: ACTIONS_FAB_TYPES.createProduct,
+            cssClass: "action-sheet-product",
+          },
+          {
+            text: t('ACTIONS_FAB.NEW_RECIPE'),
+            icon: "restaurant-outline",
+            data: ACTIONS_FAB_TYPES.createRecipe,
+            cssClass: "action-sheet-recipe",
+          },
+        ],
+      });
+      if (result.data === ACTIONS_FAB_TYPES.createRecipe) {
+        this.trainerContext.pickCreateRecipe();
+      } else if (result.data === ACTIONS_FAB_TYPES.createProduct) {
+        this.trainerContext.pickCreateProduct();
+      }
       return;
     }
 
@@ -2176,11 +2218,31 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return this.hasStartedFoodSearch && !this.isSearchTooShortForProducts();
   }
 
+  // Fix (trainer, ronda 2) — este botón del empty-state (0 resultados de
+  // búsqueda) es el punto de entrada MÁS pisado a "crear producto/receta"
+  // en la práctica, mucho más que el action sheet del FAB. Llamaba
+  // directo a createProduct()/createRecipe() (navegación por rutas del
+  // cliente), saltándose trainerContext por completo — en modo trainer
+  // eso navega la app entera fuera del modal en vez de abrir
+  // CreateProductPage/RecipeBuilderModalComponent. Mismo criterio que
+  // openCreateActionSheet.
   public createProductFromEmptyState(): void {
+    if (this.trainerContext) {
+      this.trainerContext.pickCreateProduct();
+      return;
+    }
     this.createProduct();
   }
 
   public createRecipeFromEmptyState(): void {
+    if (this.trainerContext) {
+      if (this.trainerContext.pickCreateRecipe) {
+        this.trainerContext.pickCreateRecipe();
+      } else {
+        this.trainerContext.pickCreateProduct();
+      }
+      return;
+    }
     void this.createRecipe();
   }
 
@@ -3012,6 +3074,44 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         (item) => !(item.kind === "recipe" && item.recipe?._id === event.recipe._id),
       );
     }
+  }
+
+  // --- Foco/previsualización (modo entrenador) ---
+  // Tocar una card SOLO marca foco (naranja) y avisa a quien controla el
+  // panel de detalle aparte (ver onFocusItem en SearchFoodsTrainerContext,
+  // implementado por RecipeBuilderModalComponent/day-meal-editor-modal...).
+  // Añadir a la selección sigue siendo EXCLUSIVO del checkbox — nunca se
+  // añade solo por tocar la card.
+  public focusedTrainerItem: TrainerFoodSelection | null = null;
+
+  public isProductFocused(product: IProduct): boolean {
+    return this.focusedTrainerItem?.kind === "product" && this.focusedTrainerItem.product?._id === product._id;
+  }
+
+  public isRecipeFocused(recipe: Recipe): boolean {
+    return this.focusedTrainerItem?.kind === "recipe" && this.focusedTrainerItem.recipe?._id === recipe._id;
+  }
+
+  public onTrainerProductFocus(product: IProduct): void {
+    const existing = this.trainerSelection.find(
+      (item) => item.kind === "product" && item.product?._id === product._id,
+    );
+    const item: TrainerFoodSelection = {
+      kind: "product",
+      product,
+      quantity: existing?.quantity ?? product.servingQuantity ?? 100,
+    };
+    this.focusedTrainerItem = item;
+    this.trainerContext?.onFocusItem?.(item);
+  }
+
+  public onTrainerRecipeFocus(recipe: Recipe): void {
+    const existing = this.trainerSelection.find(
+      (item) => item.kind === "recipe" && item.recipe?._id === recipe._id,
+    );
+    const item: TrainerFoodSelection = { kind: "recipe", recipe, quantity: existing?.quantity ?? null };
+    this.focusedTrainerItem = item;
+    this.trainerContext?.onFocusItem?.(item);
   }
 
   public isTrainerFavoriteProduct(product: IProduct): boolean {

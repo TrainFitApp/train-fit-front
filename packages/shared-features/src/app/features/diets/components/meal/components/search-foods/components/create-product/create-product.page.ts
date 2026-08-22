@@ -2,7 +2,7 @@ import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { IonInput, ToastOptions } from '@ionic/angular';
+import { IonInput, ModalController, ToastOptions } from '@ionic/angular';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
 import { IProduct } from 'src/app/core/models/product';
@@ -33,6 +33,20 @@ export class CreateProductPage implements OnInit {
   // Theme support
   @Input() public theme: Theme;
 
+  // TAREA5/Fix5 (train-fit-trainers) — permite abrir esta misma pantalla
+  // (la real y completa: macros+micros+alérgenos+vegano+escáner) como
+  // ion-modal en vez de como ruta del cliente, sin duplicar el formulario
+  // en un componente aparte del trainer. En modalMode se salta
+  // loadParametersFromRoute (no hay ActivatedRoute útil dentro de un
+  // modal) y, al guardar/cancelar, se cierra el modal en vez de navegar
+  // por rutas que no existen en la app del entrenador.
+  @Input() public modalMode = false;
+  // Editar un producto propio ya existente en modalMode (ver
+  // SearchFoodsPage#editTrainerPreviewProduct) — mismo formulario que crear,
+  // solo precargado. En modo ruta normal esto sigue llegando por query
+  // params (loadParametersFromRoute), sin usar este input.
+  @Input() public modalEditProduct?: IProduct;
+
   public productForm: FormGroup;
   public saveInProgress = false;
 
@@ -56,10 +70,21 @@ export class CreateProductPage implements OnInit {
     private navigationService: NavigationService,
     private barCodeScannerService: BarCodeScannerService,
     private adMobService: AdMobService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private modalController: ModalController
   ) {}
 
   public ngOnInit(): void {
+    if (this.modalMode) {
+      this.user = this.userService.getLocalUser;
+      if (this.modalEditProduct) {
+        this.isEditMode = true;
+        this.editingProduct = this.modalEditProduct;
+      }
+      this.initForm();
+      return;
+    }
+
     this.loadParametersFromRoute();
     this.initForm();
 
@@ -207,6 +232,15 @@ export class CreateProductPage implements OnInit {
             duration: 2000,
             color: 'success',
           });
+
+          if (this.modalMode) {
+            void this.modalController.dismiss(
+              { kind: 'product', product: updatedProduct || newProduct, quantity: 100 },
+              'confirm'
+            );
+            return;
+          }
+
           this.navigationService.setTempData(
             'updatedProductForAddProduct',
             updatedProduct || newProduct
@@ -343,6 +377,10 @@ export class CreateProductPage implements OnInit {
 
   public goBack(): void {
     this.cancelProductLookup();
+    if (this.modalMode) {
+      void this.modalController.dismiss(null, 'cancel');
+      return;
+    }
     this.navigationService.backNoAnim();
   }
 
@@ -351,6 +389,11 @@ export class CreateProductPage implements OnInit {
     isScanned: boolean,
     justCreated: boolean = false,
   ): void {
+    if (this.modalMode) {
+      void this.modalController.dismiss({ kind: 'product', product, quantity: 100 }, 'confirm');
+      return;
+    }
+
     const returnUrl = this.returnUrl || '/search-foods';
     const queryParams: any = {
       product: JSON.stringify(product),

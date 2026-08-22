@@ -163,4 +163,89 @@
   .tf-panel-modal .ion-page {
     border-left: 1px solid var(--tf-border-strong);
   }
+
+  // Segundo panel simultáneo, a la izquierda del primero — p. ej.
+  // search-foods para elegir ingredientes MIENTRAS se compone una receta a
+  // la derecha. MISMO ancho que .tf-panel-modal ("del mismo tamaño"): no es
+  // una pantalla más grande, es un panel hermano. Se abre con
+  // showBackdrop:false para no oscurecer el panel derecho.
+  .tf-panel-modal-left {
+    --width: 420px;
+    --height: 100%;
+    --border-radius: 0;
+    --box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
+
+    align-items: stretch;
+    justify-content: flex-end;
+    padding-right: 420px;
+  }
+
+  // "Hay que tocar dos veces / capa invisible" — son DOS capas distintas
+  // dentro de ion-modal, y hacían falta las DOS correcciones a la vez (solo
+  // había dejado la segunda, por eso seguía fallando):
+  //
+  // 1) :host (el propio <ion-modal>, con esta clase) es
+  //    position:absolute;inset:0 con display:flex — aunque la card visible
+  //    (.modal-wrapper) solo ocupe --width, la caja del host entera sigue
+  //    siendo "clicable" en su hueco vacío salvo que se apague aquí. El
+  //    contenido real (.ion-page, proyectado por slot) hereda ese
+  //    pointer-events:none a través del boundary de shadow DOM — por eso
+  //    hay que devolvérselo a auto explícitamente.
+  // 2) <ion-backdrop>, DENTRO del shadow DOM de ion-modal, cubre igualmente
+  //    el viewport completo y SIEMPRE hace stopPropagation() en su propio
+  //    mousedown (backdropDismiss:false/su prop "tappable" solo evita que
+  //    dismissee, no evita que se coma el click) — verificado leyendo
+  //    ion-backdrop.entry.js. El CSS interno de ion-modal fuerza además
+  //    "ion-backdrop{pointer-events:auto}", que gana sobre cualquier valor
+  //    puesto en :host — por eso pointer-events:none en :host (punto 1) NO
+  //    llega a desactivar el backdrop; hace falta apagarlo aparte vía su
+  //    ::part("backdrop") expuesto.
+  .tf-panel-modal-left,
+  .tf-panel-modal-detail-1,
+  .tf-panel-modal-detail-2 {
+    pointer-events: none;
+  }
+
+  .tf-panel-modal-left::part(backdrop),
+  .tf-panel-modal-detail-1::part(backdrop),
+  .tf-panel-modal-detail-2::part(backdrop) {
+    pointer-events: none;
+  }
+
+  .tf-panel-modal-left .ion-page {
+    border-left: 1px solid var(--tf-border-strong);
+    border-right: 1px solid var(--tf-border-strong);
+    pointer-events: auto;
+  }
+
+  // Panel de detalle (ProductDetailPanelComponent) — siempre el más a la
+  // izquierda de los que estén abiertos. Dos variantes según cuántos
+  // paneles de 420px tenga delante: 1 (p. ej. receta sola, tras cerrarse
+  // search-foods) o 2 (receta + search-foods simultáneos). También sin
+  // backdrop propio.
+  .tf-panel-modal-detail-1,
+  .tf-panel-modal-detail-2 {
+    --width: 380px;
+    --height: 100%;
+    --border-radius: 0;
+    --box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
+
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  .tf-panel-modal-detail-1 {
+    padding-right: 420px;
+  }
+
+  .tf-panel-modal-detail-2 {
+    padding-right: 840px;
+  }
+
+  .tf-panel-modal-detail-1 .ion-page,
+  .tf-panel-modal-detail-2 .ion-page {
+    border-left: 1px solid var(--tf-border-strong);
+    border-right: 1px solid var(--tf-border-strong);
+    pointer-events: auto;
+  }
 }

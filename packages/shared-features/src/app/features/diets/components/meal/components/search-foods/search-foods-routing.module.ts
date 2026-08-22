@@ -17,8 +17,8 @@ const routes: Routes = [
   {
     path: 'create-product',
     loadChildren: () =>
-      import('./components/create-product/create-product.module').then(
-        (m) => m.CreateProductPageModule
+      import('./components/create-product/create-product-routing.module').then(
+        (m) => m.CreateProductPageRoutingModule
       ),
   },
   {

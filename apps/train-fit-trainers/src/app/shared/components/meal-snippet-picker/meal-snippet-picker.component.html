@@ -39,23 +39,94 @@
       Ningún snippet coincide con "{{ search }}".
     </p>
 
-    <button
-      type="button"
-      class="snippet-row"
-      *ngFor="let snippet of filteredSnippets; trackBy: trackBySnippetId"
-      (click)="pick(snippet)"
-    >
-      <ion-icon name="bookmark" class="snippet-icon"></ion-icon>
-      <div class="snippet-info">
-        <span class="snippet-name">{{ snippet.name }}</span>
-        <span class="snippet-count">{{ itemCount(snippet) }} alimento{{ itemCount(snippet) === 1 ? '' : 's' }}</span>
-      </div>
-      <button type="button" class="snippet-rename-btn" (click)="renameSnippet($event, snippet)">
-        <ion-icon name="pencil-outline"></ion-icon>
-      </button>
-      <button type="button" class="snippet-delete-btn" (click)="confirmDelete($event, snippet)">
-        <ion-icon name="trash-outline"></ion-icon>
-      </button>
-    </button>
+    <ion-accordion-group class="snippet-group">
+      <ion-accordion
+        *ngFor="let snippet of filteredSnippets; trackBy: trackBySnippetId"
+        [value]="snippet._id"
+        toggleIcon="chevron-down-outline"
+      >
+        <ion-item slot="header" lines="none" class="snippet-header">
+          <ion-icon name="bookmark" slot="start" class="snippet-icon"></ion-icon>
+          <ion-label>
+            <span class="snippet-name">{{ snippet.name }}</span>
+            <span class="snippet-count">{{ itemCount(snippet) }} alimento{{ itemCount(snippet) === 1 ? '' : 's' }}</span>
+          </ion-label>
+        </ion-item>
+
+        <div class="snippet-detail" slot="content">
+          <!-- Mismo card que un alimento ya elegido en el constructor de
+               comidas (picked-food-card): nombre+cantidad+fila de macro-dots,
+               no una fila de texto plana. -->
+          <div class="picked-food-card" *ngFor="let cp of snippet.customProducts">
+            <div class="picked-food-header">
+              <span class="picked-food-name">
+                <ion-icon name="nutrition-outline"></ion-icon>
+                {{ productName(cp) }}
+              </span>
+              <span class="picked-food-qty">{{ entryQuantity(cp) }}</span>
+            </div>
+            <div class="picked-food-macros">
+              <div class="macro-item">
+                <div class="macro-dot kcal"></div>
+                <span class="macro-value">{{ productMacros(cp).kcal | number : '1.0-0' }}</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot protein"></div>
+                <span class="macro-value">{{ productMacros(cp).protein | number : '1.0-1' }}g</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot carbs"></div>
+                <span class="macro-value">{{ productMacros(cp).carbs | number : '1.0-1' }}g</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot fat"></div>
+                <span class="macro-value">{{ productMacros(cp).fat | number : '1.0-1' }}g</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="picked-food-card" *ngFor="let cr of snippet.customRecipes">
+            <div class="picked-food-header">
+              <span class="picked-food-name">
+                <ion-icon name="restaurant-outline"></ion-icon>
+                {{ recipeName(cr) }}
+              </span>
+              <span class="picked-food-qty">{{ entryQuantity(cr) }}</span>
+            </div>
+            <div class="picked-food-macros">
+              <div class="macro-item">
+                <div class="macro-dot kcal"></div>
+                <span class="macro-value">{{ recipeMacros(cr).kcal | number : '1.0-0' }}</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot protein"></div>
+                <span class="macro-value">{{ recipeMacros(cr).protein | number : '1.0-1' }}g</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot carbs"></div>
+                <span class="macro-value">{{ recipeMacros(cr).carbs | number : '1.0-1' }}g</span>
+              </div>
+              <div class="macro-item">
+                <div class="macro-dot fat"></div>
+                <span class="macro-value">{{ recipeMacros(cr).fat | number : '1.0-1' }}g</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="snippet-detail-actions">
+            <button type="button" class="snippet-pick-btn" (click)="pick(snippet)">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              Usar este snippet
+            </button>
+            <button type="button" class="snippet-icon-btn" aria-label="Renombrar" (click)="renameSnippet($event, snippet)">
+              <ion-icon name="pencil-outline"></ion-icon>
+            </button>
+            <button type="button" class="snippet-icon-btn danger" aria-label="Borrar" (click)="confirmDelete($event, snippet)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
   </ng-container>
 </ion-content>

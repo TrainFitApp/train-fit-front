@@ -1,0 +1,208 @@
+@import '../../../../theme/buttons';
+@import '../../../../theme/inputs';
+
+.detail-panel-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.detail-brand {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 12px;
+}
+
+.detail-diet-icons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  .diet-icon {
+    font-size: 1.3rem;
+
+    &.vegan,
+    &.vegetarian {
+      color: var(--ion-color-success);
+    }
+
+    &.lactose,
+    &.gluten {
+      color: var(--ion-color-alternative);
+    }
+  }
+}
+
+.detail-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.qty-label {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+}
+
+.qty-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.qty-input {
+  width: 64px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 0.9rem;
+  text-align: right;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
+}
+
+.qty-unit {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+}
+
+.detail-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px;
+  background: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin-bottom: 20px;
+
+  .macro-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .macro-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+
+    &.kcal {
+      background: var(--ion-color-primary);
+    }
+
+    &.protein {
+      background: var(--ion-color-alternative);
+    }
+
+    &.carbs {
+      background: var(--ion-color-success);
+    }
+
+    &.fat {
+      background: var(--ion-color-secondary);
+    }
+  }
+
+  .macro-value {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .macro-name {
+    font-size: 0.7rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.add-to-target-btn {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 46px;
+  margin-bottom: 20px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-muted);
+  margin: 20px 0 10px;
+}
+
+.nutrient-table {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.nutrient-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--tf-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.nutrient-label {
+  color: var(--tf-text-secondary);
+}
+
+.nutrient-value {
+  color: var(--tf-text);
+  font-weight: 600;
+}
+
+.detail-action-btn {
+  width: 100%;
+  height: 42px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  color: var(--tf-text-secondary);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}

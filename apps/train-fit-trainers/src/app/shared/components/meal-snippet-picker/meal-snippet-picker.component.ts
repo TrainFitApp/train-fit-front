@@ -1,8 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { CustomProduct } from 'src/app/core/models/customProduct';
+import { CustomRecipe } from 'src/app/core/models/customRecipe';
+import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
+import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { MealSnippet } from '../../models/meal-snippet.model';
 import { MealSnippetApiService } from '../../services/meal-snippet-api.service';
+
+const EMPTY_MACROS = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -27,7 +33,9 @@ export class MealSnippetPickerComponent implements OnInit {
   constructor(
     private mealSnippetApi: MealSnippetApiService,
     private ionicUtilService: IonicUtilService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private customProductService: CustomProductService,
+    private recipeService: RecipeService
   ) {}
 
   public ngOnInit(): void {
@@ -61,6 +69,44 @@ export class MealSnippetPickerComponent implements OnInit {
 
   public itemCount(snippet: MealSnippet): number {
     return (snippet.customProducts?.length || 0) + (snippet.customRecipes?.length || 0);
+  }
+
+  // Fix2 — accordion: customProducts/customRecipes vienen autopopulados
+  // por el backend (mongoose-autopopulate, ver meal-schema.js), así que el
+  // producto/receta real ya está disponible sin llamadas extra.
+  public productName(entry: unknown): string {
+    const product = (entry as any)?.product;
+    return (product && typeof product === 'object' && product.name) || 'Producto guardado';
+  }
+
+  public recipeName(entry: unknown): string {
+    const recipe = (entry as any)?.recipe;
+    return (recipe && typeof recipe === 'object' && recipe.name) || 'Receta guardada';
+  }
+
+  public entryQuantity(entry: unknown): string {
+    const quantity = (entry as any)?.quantity;
+    return quantity ? `${quantity}g` : '';
+  }
+
+  // Mismas macros que picked-food-card en day-meal-editor-modal: reutiliza
+  // el cálculo canónico (CustomProductService.getMacros/RecipeService
+  // .calculateCustomRecipeTotals), no lo reinventa.
+  public productMacros(entry: unknown) {
+    const product = (entry as any)?.product;
+    const quantity = (entry as any)?.quantity ?? 100;
+    if (!product || typeof product !== 'object') return EMPTY_MACROS;
+    return this.customProductService.getMacros({ product, quantity } as CustomProduct);
+  }
+
+  public recipeMacros(entry: unknown) {
+    const recipe = (entry as any)?.recipe;
+    const quantity = (entry as any)?.quantity ?? undefined;
+    if (!recipe || typeof recipe !== 'object') return EMPTY_MACROS;
+    return this.recipeService.calculateCustomRecipeTotals(recipe, {
+      quantity,
+      quantityCooked: null,
+    } as CustomRecipe).portionMacros;
   }
 
   public pick(snippet: MealSnippet): void {

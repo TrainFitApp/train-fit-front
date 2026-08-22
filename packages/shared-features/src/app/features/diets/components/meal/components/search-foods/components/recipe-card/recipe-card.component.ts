@@ -43,6 +43,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Input() trainerMultiSelect = false;
   @Input() isTrainerSelected = false;
   @Input() isTrainerFavorite = false;
+  // Fix (ronda detalle) — resaltado naranja al previsualizar (ver
+  // ProductComponent#isTrainerFocused, mismo criterio).
+  @Input() isTrainerFocused = false;
 
   @Output() toggle = new EventEmitter<Recipe>();
   @Output() edit = new EventEmitter<Recipe>();
@@ -50,6 +53,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   @Output() quickAdd = new EventEmitter<Recipe>();
   @Output() trainerToggle = new EventEmitter<{ recipe: Recipe; checked: boolean }>();
   @Output() trainerFavoriteToggle = new EventEmitter<Recipe>();
+  @Output() trainerFocus = new EventEmitter<Recipe>();
 
   public macros: { kcal: number; protein: number; carbs: number; fat: number };
   public topIngredients: string;
@@ -169,7 +173,9 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     if (this.isBusy) return;
 
     if (this.trainerMultiSelect) {
-      this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });
+      // Fix (ronda detalle) — solo previsualiza, no añade (ver
+      // ProductComponent#onCardClick, mismo criterio).
+      this.trainerFocus.emit(this.recipe);
       return;
     }
 
@@ -183,7 +189,10 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     if (this.isBusy) return;
 
     if (this.trainerMultiSelect) {
-      this.trainerToggle.emit({ recipe: this.recipe, checked: !this.isTrainerSelected });
+      const checked = !this.isTrainerSelected;
+      this.trainerToggle.emit({ recipe: this.recipe, checked });
+      // Añadir con el check también previsualiza — no solo tocar la card.
+      if (checked) this.trainerFocus.emit(this.recipe);
       return;
     }
 
