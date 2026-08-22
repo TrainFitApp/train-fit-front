@@ -14,6 +14,7 @@ import {
   ClientTable,
   NutritionalGoal,
   NutritionComplianceSummary,
+  NutritionTrackingSummary,
   TrainerNote,
   TrainerPayment,
   TrainerTask,
@@ -152,6 +153,18 @@ export class ClientDetailApiService {
   ): Observable<NutritionComplianceSummary> {
     return this.http.get<NutritionComplianceSummary>(
       `${this.base(clientId)}/nutrition-compliance?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
+  // F20-ter — pautado vs. consumido (kcal/proteína/carbos/grasa) por día,
+  // para el gráfico de comparación junto al calendario.
+  public getNutritionTracking(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionTrackingSummary> {
+    return this.http.get<NutritionTrackingSummary>(
+      `${this.base(clientId)}/nutrition-tracking?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
     );
   }
 
