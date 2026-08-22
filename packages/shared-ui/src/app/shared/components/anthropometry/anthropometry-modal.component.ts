@@ -15,23 +15,54 @@ export class AnthropometryModalComponent implements OnInit {
   @Input() existingData: Anthropometry | null = null;
   @Input() selectedDate: string = '';
   @Input() allAnthropometryData: Anthropometry[] = [];
+  // Cuando el trainer pide medidas concretas (ver AnthropometryRequestApiService),
+  // solo esos campos deben aparecer para rellenar — sin trainer, o con
+  // trainer pero sin ninguna petición activa, se ve el catálogo completo
+  // (null/vacío = sin filtro).
+  @Input() visibleFieldKeys: string[] | null = null;
 
   form: FormGroup;
   isLoading = false;
   maxDate = new Date().toISOString();
+  // Catálogo completo — mismo campo que ya escribe el check-in del trainer
+  // (ver checkin-field-catalog.js, storage: "anthropometry"): antes este
+  // formulario solo tenía 11 campos y usaba bicepsRelaxed/bicepsContracted/calf
+  // sin lateralidad, ya deprecados (ver anthropometry-schema.js, backend) —
+  // desalineado con lo que el resto de la app ya lee/escribe.
   measurementFields = [
     { key: 'weight', label: 'ANTHROPOMETRY.WEIGHT', unit: 'kg', step: 0.1 },
+    { key: 'muscleMass', label: 'ANTHROPOMETRY.MUSCLE_MASS', unit: 'kg', step: 0.1 },
+    { key: 'fatMass', label: 'ANTHROPOMETRY.FAT_MASS', unit: 'kg', step: 0.1 },
+    { key: 'boneMass', label: 'ANTHROPOMETRY.BONE_MASS', unit: 'kg', step: 0.1 },
+    { key: 'residualMass', label: 'ANTHROPOMETRY.RESIDUAL_MASS', unit: 'kg', step: 0.1 },
     { key: 'neck', label: 'ANTHROPOMETRY.NECK', unit: 'cm', step: 0.1 },
+    { key: 'shoulders', label: 'ANTHROPOMETRY.SHOULDERS', unit: 'cm', step: 0.1 },
     { key: 'chest', label: 'ANTHROPOMETRY.CHEST', unit: 'cm', step: 0.1 },
-    { key: 'bicepsRelaxed', label: 'ANTHROPOMETRY.BICEPS_RELAXED', unit: 'cm', step: 0.1 },
-    { key: 'bicepsContracted', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED', unit: 'cm', step: 0.1 },
     { key: 'waist', label: 'ANTHROPOMETRY.WAIST', unit: 'cm', step: 0.1 },
     { key: 'abdomen', label: 'ANTHROPOMETRY.ABDOMEN', unit: 'cm', step: 0.1 },
     { key: 'hip', label: 'ANTHROPOMETRY.HIP', unit: 'cm', step: 0.1 },
-    { key: 'thighContracted', label: 'ANTHROPOMETRY.THIGH_CONTRACTED', unit: 'cm', step: 0.1 },
+    { key: 'bicepsRelaxedL', label: 'ANTHROPOMETRY.BICEPS_RELAXED_L', unit: 'cm', step: 0.1 },
+    { key: 'bicepsRelaxedR', label: 'ANTHROPOMETRY.BICEPS_RELAXED_R', unit: 'cm', step: 0.1 },
+    { key: 'bicepsContractedL', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_L', unit: 'cm', step: 0.1 },
+    { key: 'bicepsContractedR', label: 'ANTHROPOMETRY.BICEPS_CONTRACTED_R', unit: 'cm', step: 0.1 },
+    { key: 'quadL', label: 'ANTHROPOMETRY.QUAD_L', unit: 'cm', step: 0.1 },
+    { key: 'quadR', label: 'ANTHROPOMETRY.QUAD_R', unit: 'cm', step: 0.1 },
     { key: 'thighRelaxed', label: 'ANTHROPOMETRY.THIGH_RELAXED', unit: 'cm', step: 0.1 },
-    { key: 'calf', label: 'ANTHROPOMETRY.CALF', unit: 'cm', step: 0.1 },
+    { key: 'thighContracted', label: 'ANTHROPOMETRY.THIGH_CONTRACTED', unit: 'cm', step: 0.1 },
+    { key: 'calfL', label: 'ANTHROPOMETRY.CALF_L', unit: 'cm', step: 0.1 },
+    { key: 'calfR', label: 'ANTHROPOMETRY.CALF_R', unit: 'cm', step: 0.1 },
+    { key: 'ankleL', label: 'ANTHROPOMETRY.ANKLE_L', unit: 'cm', step: 0.1 },
+    { key: 'ankleR', label: 'ANTHROPOMETRY.ANKLE_R', unit: 'cm', step: 0.1 },
   ];
+
+  // Lo que el *ngFor del template realmente pinta — measurementFields (todos
+  // los campos posibles) se mantiene intacto para el guardado/carga, que
+  // nunca deben perder datos ya registrados en un campo que hoy no toca
+  // mostrar.
+  get visibleMeasurementFields(): typeof this.measurementFields {
+    if (!this.visibleFieldKeys?.length) return this.measurementFields;
+    return this.measurementFields.filter((f) => this.visibleFieldKeys!.includes(f.key));
+  }
 
   async openDatePicker(): Promise<void> {
     if (this.form.dirty) {

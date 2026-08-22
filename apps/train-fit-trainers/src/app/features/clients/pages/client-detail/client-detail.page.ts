@@ -1,4 +1,4 @@
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -9,12 +9,8 @@ import { ClientDetailApiService } from './services/client-detail-api.service';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
+import { CHECKIN_FIELDS, CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
-import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../shared/components/product-search-modal/product-search-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { DietException, PlanAssignment } from '../../../../shared/models/plan-assignment.model';
@@ -22,13 +18,10 @@ import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import {
-  SearchFoodsPage,
-  SearchFoodsTrainerContext,
-  TrainerFoodSelection,
-} from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
-import {
   AdherenceSummary,
   AnthropometryEntry,
+  AnthropometryRequest,
+  AnthropometryRequestCadence,
   BulkApplyResult,
   CheckinConfig,
   CheckinResponseEntry,
@@ -37,11 +30,9 @@ import {
   ClientScope,
   ClientTable,
   CompletedWorkoutEntry,
-  DietDaySummary,
-  MealAlternativeInput,
-  MealFoodItemInput,
-  MealSummary,
   NutritionalGoal,
+  NutritionComplianceDay,
+  NutritionComplianceSummary,
   TrainerNote,
   TrainerPayment,
   TrainerTask,
@@ -115,33 +106,45 @@ export class ClientDetailPage implements OnInit {
   });
   public isAssigningRoutine = false;
 
-  // Deriva del mismo estado que ya pinta las filas de .profile-stats-card —
-  // sin ellas, la card se quedaba vacía sin explicación cuando no hay
-  // ningún dato real que mostrar (ver profile-stats-card.html).
-  public get profileStatsPending(): boolean {
-    const trainingPending = this.scopes.includes('training') && this.trainingState === 'loading';
-    const nutritionPending = this.scopes.includes('nutrition') && this.nutritionState === 'loading';
-    return trainingPending || nutritionPending;
-  }
-
-  public get hasProfileStats(): boolean {
-    const hasWeight =
-      this.scopes.includes('training') && this.trainingState === 'loaded' && !!this.latestWeight?.weight;
-    const hasAdherence =
-      this.scopes.includes('nutrition') &&
-      this.nutritionState === 'loaded' &&
-      this.adherence?.status === 'ok';
-    const hasGoal =
-      this.scopes.includes('nutrition') && this.nutritionState === 'loaded' && this.goals.length > 0;
-    return hasWeight || hasAdherence || hasGoal;
-  }
+  // --- Medidas (antropometría) — tab propio, no vive dentro de Nutrición:
+  // relevante para cualquier cliente (entrenamiento y/o nutrición), no solo
+  // los de nutrición. ---
+  public measurementsState: SectionState = 'loading';
+  public anthropometryEntries: AnthropometryEntry[] = [];
+  public anthropometryRequest: AnthropometryRequest | null = null;
+  public showMeasurementsRequestPanel = false;
+  public isSavingMeasurementsRequest = false;
+  public isCancelingMeasurementsRequest = false;
+  // Mismo catálogo que los check-ins (ver checkin-fields.ts), filtrado a lo
+  // que realmente alimenta Anthropometry — no duplica etiquetas nuevas.
+  public readonly measurementFieldOptions = CHECKIN_FIELDS.filter((f) => f.storage === 'anthropometry');
+  public readonly measurementFieldGroups: { key: string; label: string }[] = [
+    { key: 'composicion_corporal', label: 'Composición corporal' },
+    { key: 'perimetros', label: 'Perímetros' },
+  ];
+  public readonly measurementCadenceOptions: { value: AnthropometryRequestCadence; label: string }[] = [
+    { value: 'once', label: 'Puntual' },
+    { value: 'daily', label: 'Diaria' },
+    { value: 'weekly', label: 'Semanal' },
+    { value: 'monthly', label: 'Mensual' },
+    { value: 'custom', label: 'Personalizada' },
+  ];
+  public measurementsRequestForm: FormGroup = new FormGroup({
+    fields: new FormControl<string[]>([], Validators.required),
+    cadence: new FormControl<AnthropometryRequestCadence>('once', Validators.required),
+    customIntervalDays: new FormControl<number | null>(null),
+    notes: new FormControl(''),
+  });
 
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
   public nutritionDate: string = new Date().toISOString().slice(0, 10);
-  public dietDay: DietDaySummary | null = null;
   public goals: NutritionalGoal[] = [];
   public adherence: AdherenceSummary | null = null;
+  // F20-bis — cumplimiento del plan (distinto de adherence, ver
+  // client-detail.model.ts), ventana fija de 30 días terminando hoy
+  // (independiente del día que se esté viendo abajo).
+  public complianceSummary: NutritionComplianceSummary | null = null;
   public showGoalPanel = false;
   public goalForm: FormGroup = new FormGroup({
     name: new FormControl('Objetivo asignado', Validators.required),
@@ -151,19 +154,15 @@ export class ClientDetailPage implements OnInit {
     fatGTotal: new FormControl(null, [Validators.required, Validators.min(0)]),
   });
   public isAssigningGoal = false;
+  // Tocar una card de objetivo ya EXISTENTE la pone en uso. Id (no un
+  // booleano suelto) porque varias cards viven en la misma lista y solo una
+  // debe mostrarse "en progreso" a la vez.
+  public activatingGoalId: string | null = null;
   public isRevoking = false;
 
   // --- Preferencias nutricionales (F29, transversal a nutrición) ---
   public nutritionPreferences: ClientNutritionPreferences | null = null;
   public isRequestingPreferences = false;
-
-  // --- Pautar comida (F12/F28) ---
-  public showPrescribePanel = false;
-  public prescribeMealTarget: MealSummary | null = null;
-  public prescribeAlternatives: MealAlternativeInput[] = [];
-  public isPrescribing = false;
-  public readonly maxAlternatives = 4;
-  public readonly maxFoodItemsPerAlternative = 8;
 
   // Auditoría de arquitectura (nutrición, Fase 8) — plan vigente del cliente,
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
@@ -285,6 +284,7 @@ export class ClientDetailPage implements OnInit {
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
+    this.loadMeasurements();
     this.loadNotes();
     this.loadCheckins();
     this.loadPayments();
@@ -348,6 +348,115 @@ export class ClientDetailPage implements OnInit {
   // de una tabla concreta, sin navegar a otra pantalla.
   public toggleTableExpand(table: ClientTable): void {
     this.expandedTableId = this.expandedTableId === table._id ? null : table._id;
+  }
+
+  // --- Medidas (antropometría) ---
+  public loadMeasurements(): void {
+    this.measurementsState = 'loading';
+    Promise.all([
+      this.clientDetailApi.getAnthropometry(this.clientId).toPromise(),
+      this.clientDetailApi.getAnthropometryRequest(this.clientId).toPromise(),
+    ])
+      .then(([entries, request]) => {
+        this.anthropometryEntries = entries || [];
+        this.anthropometryRequest = request || null;
+        this.measurementsState = 'loaded';
+      })
+      .catch(() => {
+        this.measurementsState = 'error';
+      });
+  }
+
+  public measurementFieldsInGroup(group: string): { key: string; label: string; unit?: string }[] {
+    return this.measurementFieldOptions.filter((f) => f.group === group);
+  }
+
+  public isMeasurementFieldSelected(key: string): boolean {
+    return (this.measurementsRequestForm.value.fields || []).includes(key);
+  }
+
+  public get isMeasurementsRequestSubmittable(): boolean {
+    const { fields, cadence, customIntervalDays } = this.measurementsRequestForm.value;
+    if (!fields?.length) return false;
+    if (cadence === 'custom' && !(Number(customIntervalDays) > 0)) return false;
+    return true;
+  }
+
+  public toggleMeasurementField(key: string): void {
+    const current: string[] = this.measurementsRequestForm.value.fields || [];
+    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+    this.measurementsRequestForm.get('fields')?.setValue(next);
+  }
+
+  public openMeasurementsRequestPanel(): void {
+    this.showMeasurementsRequestPanel = true;
+    this.measurementsRequestForm.reset({
+      fields: this.anthropometryRequest?.fields || [],
+      cadence: this.anthropometryRequest?.cadence || 'once',
+      customIntervalDays: this.anthropometryRequest?.customIntervalDays || null,
+      notes: this.anthropometryRequest?.notes || '',
+    });
+  }
+
+  public closeMeasurementsRequestPanel(): void {
+    this.showMeasurementsRequestPanel = false;
+  }
+
+  public submitMeasurementsRequest(): void {
+    if (!this.isMeasurementsRequestSubmittable || this.isSavingMeasurementsRequest) return;
+    const { fields, cadence, customIntervalDays, notes } = this.measurementsRequestForm.value;
+
+    this.isSavingMeasurementsRequest = true;
+    this.clientDetailApi
+      .upsertAnthropometryRequest(this.clientId, {
+        fields,
+        cadence,
+        customIntervalDays: cadence === 'custom' ? Number(customIntervalDays) : null,
+        notes: notes || '',
+      })
+      .subscribe({
+        next: (request) => {
+          this.isSavingMeasurementsRequest = false;
+          this.showMeasurementsRequestPanel = false;
+          this.anthropometryRequest = request;
+          this.ionicUtilService.showToast({
+            message: `Medidas solicitadas a ${this.name}`,
+            duration: 3000,
+          });
+        },
+        error: (err) => {
+          this.isSavingMeasurementsRequest = false;
+          this.ionicUtilService.showErrorToast(
+            err?.error?.message || 'No se pudo solicitar la antropometría',
+            'Error',
+            3500
+          );
+        },
+      });
+  }
+
+  public cancelMeasurementsRequest(): void {
+    if (this.isCancelingMeasurementsRequest) return;
+    this.isCancelingMeasurementsRequest = true;
+    this.clientDetailApi.cancelAnthropometryRequest(this.clientId).subscribe({
+      next: () => {
+        this.isCancelingMeasurementsRequest = false;
+        this.anthropometryRequest = null;
+      },
+      error: (err) => {
+        this.isCancelingMeasurementsRequest = false;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.message || 'No se pudo cancelar la petición',
+          'Error',
+          3500
+        );
+      },
+    });
+  }
+
+  public measurementCadenceLabel(request: AnthropometryRequest): string {
+    if (request.cadence === 'custom') return `Cada ${request.customIntervalDays} días`;
+    return this.measurementCadenceOptions.find((o) => o.value === request.cadence)?.label || request.cadence;
   }
 
   public workoutDuration(workout: { startedAt?: Date | null; date?: Date | null }): string | null {
@@ -519,12 +628,10 @@ export class ClientDetailPage implements OnInit {
   public loadNutrition(date: string = this.nutritionDate): void {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
-    Promise.all([
-      this.clientDetailApi.getDiet(this.clientId, date).toPromise(),
-      this.clientDetailApi.getNutritionalGoals(this.clientId).toPromise(),
-    ])
-      .then(([dietDay, goals]) => {
-        this.dietDay = dietDay || null;
+    this.clientDetailApi
+      .getNutritionalGoals(this.clientId)
+      .toPromise()
+      .then((goals) => {
         this.goals = goals || [];
         this.nutritionState = 'loaded';
       })
@@ -538,6 +645,15 @@ export class ClientDetailPage implements OnInit {
       error: () => (this.adherence = null),
     });
 
+    // F20-bis — ventana fija de 30 días terminando hoy, no la fecha que se
+    // esté viendo abajo (mismo criterio que /adherence).
+    this.clientDetailApi
+      .getNutritionCompliance(this.clientId, this.isoDateDaysAgo(30), this.todayIsoDate())
+      .subscribe({
+        next: (summary) => (this.complianceSummary = summary),
+        error: () => (this.complianceSummary = null),
+      });
+
     // F29 — no bloquea el resto de la sección si falla, es un widget aparte.
     this.clientDetailApi.getNutritionPreferences(this.clientId).subscribe({
       next: (preferences) => (this.nutritionPreferences = preferences),
@@ -545,6 +661,67 @@ export class ClientDetailPage implements OnInit {
     });
 
     void this.loadActivePlan();
+  }
+
+  // F20-bis — llamado por <app-nutrition-calendar> al hacer click en un día;
+  // sustituye a los antiguos botones ±1 día (changeNutritionDate), que no
+  // daban vista de conjunto ni salto directo a una fecha.
+  public onNutritionDateSelected(date: string): void {
+    this.loadNutrition(date);
+  }
+
+  private todayIsoDate(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private isoDateDaysAgo(days: number): string {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() - days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  // F20-bis — % medio de cumplimiento (días con plan) de la ventana de 30
+  // días de complianceSummary. null si no hay ningún día con plan pautado
+  // en ese rango (no confundir con 0%: "sin datos" ≠ "cumplimiento nulo").
+  public get compliancePercentage(): number | null {
+    const days = (this.complianceSummary?.dailyBreakdown || []).filter(
+      (d) => d.hasPlan && d.completionPercentage !== null
+    );
+    if (!days.length) return null;
+    const sum = days.reduce((acc, d) => acc + (d.completionPercentage || 0), 0);
+    return Math.round(sum / days.length);
+  }
+
+  // --- F20-bis (columna "Seguimiento") — la evolución día a día detrás de
+  // los dos porcentajes agregados de arriba, no un dato nuevo: mismas
+  // dailyBreakdown de adherence/complianceSummary ya cargadas por
+  // loadNutrition(). ---
+  public get kcalTrendSeries(): { date: string; kcal: number; withinMargin: boolean }[] {
+    return this.adherence?.dailyBreakdown || [];
+  }
+
+  public get complianceTrendSeries(): NutritionComplianceDay[] {
+    return this.complianceSummary?.dailyBreakdown || [];
+  }
+
+  // Mismo criterio que dashboard.page#monthBarScale — fracción 0..1 para
+  // transform:scaleY() (nunca height, layout thrash), normalizado contra el
+  // máximo de la propia serie.
+  public kcalBarScale(
+    point: { kcal: number },
+    series: { kcal: number }[]
+  ): number {
+    const max = Math.max(...series.map((p) => p.kcal), 1);
+    const pct = Math.max((point.kcal / max) * 100, point.kcal > 0 ? 6 : 2);
+    return Number((pct / 100).toFixed(4));
+  }
+
+  // Cumplimiento ya es un porcentaje (0-100): escala fija, no contra el
+  // máximo de la serie.
+  public complianceBarScale(point: { completionPercentage: number | null }): number {
+    const value = point.completionPercentage || 0;
+    const pct = Math.max(value, value > 0 ? 6 : 2);
+    return Number((pct / 100).toFixed(4));
   }
 
   // Auditoría de arquitectura (nutrición, Fase 8)
@@ -619,12 +796,6 @@ export class ClientDetailPage implements OnInit {
         },
       ],
     });
-  }
-
-  public changeNutritionDate(deltaDays: number): void {
-    const current = new Date(`${this.nutritionDate}T00:00:00.000Z`);
-    current.setUTCDate(current.getUTCDate() + deltaDays);
-    this.loadNutrition(current.toISOString().slice(0, 10));
   }
 
   public get nutritionDateLabel(): string {
@@ -724,6 +895,26 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
+  public activateGoal(goal: NutritionalGoal): void {
+    if (goal.isInUse || this.activatingGoalId) return;
+
+    this.activatingGoalId = goal._id;
+    this.clientDetailApi.activateNutritionalGoal(this.clientId, goal._id).subscribe({
+      next: () => {
+        this.activatingGoalId = null;
+        this.goals = this.goals.map((g) => ({ ...g, isInUse: g._id === goal._id }));
+      },
+      error: (err) => {
+        this.activatingGoalId = null;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.message || 'No se pudo activar el objetivo',
+          'Error',
+          3500
+        );
+      },
+    });
+  }
+
   // Replanteamiento MVP (nutrición) — aplicar una plantilla de dieta ya
   // construida a este cliente, eligiendo solo la fecha de inicio.
   public async openApplyTemplateModal(): Promise<void> {
@@ -746,298 +937,6 @@ export class ClientDetailPage implements OnInit {
 
   public goToDietTemplates(): void {
     this.router.navigate(['/tabs/diet-templates']);
-  }
-
-  // --- Pautar comida (F12: 1 alternativa = aplicación inmediata;
-  // F28: 2+ alternativas nombradas = el cliente elige cuál se aplica) ---
-  public openPrescribePanel(meal: MealSummary): void {
-    this.prescribeMealTarget = meal;
-    this.prescribeAlternatives = [this.emptyAlternative()];
-    this.showPrescribePanel = true;
-  }
-
-  public closePrescribePanel(): void {
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — atajo de escritorio: con el panel de
-  // "Pautar" abierto, Ctrl/Cmd+K abre el buscador directamente sobre el
-  // primer hueco sin producto/receta (o añade uno si no queda ninguno),
-  // sin tener que ir a buscar el botón con el ratón.
-  @HostListener('document:keydown', ['$event'])
-  public onGlobalKeydown(event: KeyboardEvent): void {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return;
-    if (!this.showPrescribePanel || !this.prescribeAlternatives.length) return;
-    event.preventDefault();
-
-    for (let altIndex = 0; altIndex < this.prescribeAlternatives.length; altIndex++) {
-      const alt = this.prescribeAlternatives[altIndex];
-      const itemIndex = alt.items.findIndex((item) => !item.productId && !item.recipeId);
-      if (itemIndex !== -1) {
-        void this.openProductSearch(altIndex, itemIndex);
-        return;
-      }
-    }
-
-    const lastAltIndex = this.prescribeAlternatives.length - 1;
-    const alt = this.prescribeAlternatives[lastAltIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-    void this.openProductSearch(lastAltIndex, alt.items.length - 1);
-  }
-
-  private emptyFoodItem(): MealFoodItemInput {
-    return {};
-  }
-
-  private emptyAlternative(): MealAlternativeInput {
-    return { label: '', items: [this.emptyFoodItem()] };
-  }
-
-  public addAlternative(): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    this.prescribeAlternatives.push(this.emptyAlternative());
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
-  // todos los alimentos (mismo carbohidrato/grasa, solo cambia la proteína).
-  // Duplicar copia la composición entera para editar solo lo que cambia, en
-  // vez de repetir el ciclo de búsqueda completo por cada opción.
-  public duplicateAlternative(index: number): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    const source = this.prescribeAlternatives[index];
-    const copy: MealAlternativeInput = {
-      label: source.label ? `${source.label} (copia)` : '',
-      items: source.items.map((item) => ({ ...item })),
-    };
-    this.prescribeAlternatives.splice(index + 1, 0, copy);
-  }
-
-  public removeAlternative(index: number): void {
-    if (this.prescribeAlternatives.length <= 1) return;
-    this.prescribeAlternatives.splice(index, 1);
-  }
-
-  // Replanteamiento MVP (nutrición) — antes cada alternativa era UN solo
-  // alimento y volver a pautar sobrescribía la comida entera; ahora cada
-  // alternativa acumula VARIOS alimentos (this.maxFoodItemsPerAlternative)
-  // que se envían juntos en un único customProducts al pautar.
-  public addFoodItem(altIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-  }
-
-  public removeFoodItem(altIndex: number, itemIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length <= 1) return;
-    alt.items.splice(itemIndex, 1);
-  }
-
-  // TAREA1/TAREA5 — buscador real de search-foods (misma pantalla/tarjetas
-  // que el consumidor, con productos+recetas+filtros) como panel lateral.
-  // Sus acciones de escritura (compose/deleteMealCustomRecipe/AddProductPage)
-  // llaman a endpoints con auth propia del consumidor logueado, sin
-  // clientId — no sirven para "la dieta de un cliente". Por eso
-  // SearchFoodsPage recibe un trainerContext con callbacks propios: al
-  // elegir un producto/receta, se abre un segundo panel pequeño
-  // (ProductSearchModalComponent, reutilizado aquí solo para el paso de
-  // cantidad/confirmar) que sí aplica el resultado con la lógica de esta
-  // página y cierra ambos paneles. Ver MVP-trainers/tareas-grandes/TAREA5.
-  public async openProductSearch(altIndex: number, itemIndex: number): Promise<void> {
-    const outerModal = await this.modalController.create({
-      component: SearchFoodsPage,
-      componentProps: {
-        trainerContext: this.buildSearchFoodsTrainerContext(altIndex, itemIndex, () =>
-          void outerModal.dismiss()
-        ),
-      },
-      cssClass: 'tf-panel-modal',
-    });
-    await outerModal.present();
-    await outerModal.onDidDismiss();
-  }
-
-  private buildSearchFoodsTrainerContext(
-    altIndex: number,
-    itemIndex: number,
-    closeOuter: () => void
-  ): SearchFoodsTrainerContext {
-    return {
-      clientUser: { _id: this.clientId, name: this.name, dietInUse: this.dietDay?.dietId } as any,
-      dietDay: (this.dietDay || {}) as any,
-      meal: (this.prescribeMealTarget || {}) as any,
-      confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
-      pickCreateProduct: () =>
-        void this.confirmPickedFood(altIndex, itemIndex, { kind: 'create' }, closeOuter),
-    };
-  }
-
-  // TAREA5 (auditoría UX) — selección múltiple: el primer alimento marcado
-  // rellena el hueco donde se pulsó "Buscar producto o receta real"; cada
-  // alimento adicional de la misma pasada de búsqueda se añade como un
-  // nuevo alimento de la alternativa, sin repetir el ciclo de búsqueda.
-  private applyTrainerSelection(
-    altIndex: number,
-    itemIndex: number,
-    items: TrainerFoodSelection[]
-  ): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (!alt || !items.length) return;
-
-    items.forEach((selection, i) => {
-      let targetIndex = itemIndex;
-      if (i > 0) {
-        if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-        alt.items.push(this.emptyFoodItem());
-        targetIndex = alt.items.length - 1;
-      }
-      const item = alt.items[targetIndex];
-      if (selection.kind === 'recipe' && selection.recipe) {
-        item.recipeId = selection.recipe._id;
-        item.recipeName = selection.recipe.name;
-        item.productId = undefined;
-        item.productName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      } else if (selection.kind === 'product' && selection.product) {
-        item.productId = selection.product._id;
-        item.productName = selection.product.name;
-        item.recipeId = undefined;
-        item.recipeName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      }
-    });
-  }
-
-  private async confirmPickedFood(
-    altIndex: number,
-    itemIndex: number,
-    _picked: { kind: 'create' },
-    closeOuter: () => void
-  ): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ProductSearchModalComponent,
-      componentProps: { startInCreateProduct: true },
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
-
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    if (data.kind === 'recipe' && data.recipe) {
-      item.recipeId = data.recipe._id;
-      item.recipeName = data.recipe.name;
-      item.productId = undefined;
-      item.productName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    } else if (data.product) {
-      item.productId = data.product._id;
-      item.productName = data.product.name;
-      item.recipeId = undefined;
-      item.recipeName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    }
-    closeOuter();
-  }
-
-  public clearProduct(altIndex: number, itemIndex: number): void {
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    item.productId = undefined;
-    item.productName = undefined;
-    item.recipeId = undefined;
-    item.recipeName = undefined;
-    item.quantity = undefined;
-  }
-
-  public get prescribeIsMultiple(): boolean {
-    return this.prescribeAlternatives.length >= 2;
-  }
-
-  public get canSubmitPrescribe(): boolean {
-    if (!this.prescribeAlternatives.length) return false;
-    return this.prescribeAlternatives.every(
-      (a) =>
-        a.items.length > 0 &&
-        a.items.every((item) => !!(item.productId || item.recipeId)) &&
-        (!this.prescribeIsMultiple || a.label.trim())
-    );
-  }
-
-  public submitPrescribe(): void {
-    if (!this.canSubmitPrescribe || this.isPrescribing || !this.prescribeMealTarget || !this.dietDay) {
-      return;
-    }
-
-    this.isPrescribing = true;
-    const meal = this.prescribeMealTarget;
-    const date = this.dietDay.date;
-
-    if (!this.prescribeIsMultiple) {
-      const { customProducts, customRecipes } = this.alternativeToCustomEntries(this.prescribeAlternatives[0]);
-      this.clientDetailApi
-        .prescribeMeal(this.clientId, date, meal._id, { customProducts, customRecipes, merge: false })
-        .subscribe({
-          next: () => this.onPrescribeSuccess(`"${meal.name}" pautada para ${this.name}`),
-          error: (err) => this.onPrescribeError(err),
-        });
-      return;
-    }
-
-    const alternatives = this.prescribeAlternatives.map((a) => ({
-      label: a.label.trim(),
-      ...this.alternativeToCustomEntries(a),
-    }));
-    this.clientDetailApi.proposeMealAlternatives(this.clientId, date, meal.name, alternatives).subscribe({
-      next: () =>
-        this.onPrescribeSuccess(`${alternatives.length} alternativas propuestas para "${meal.name}"`),
-      error: (err) => this.onPrescribeError(err),
-    });
-  }
-
-  // TAREA5 — cada alimento de una alternativa es SIEMPRE un producto o una
-  // receta real (ver canSubmitPrescribe), nunca macros tecleadas a mano;
-  // aquí solo se reparte en los dos arrays que espera el backend
-  // (mealModel.pasteMeal trata ambos de forma uniforme).
-  private alternativeToCustomEntries(
-    alt: MealAlternativeInput
-  ): { customProducts: Record<string, unknown>[]; customRecipes: Record<string, unknown>[] } {
-    const customProducts: Record<string, unknown>[] = [];
-    const customRecipes: Record<string, unknown>[] = [];
-
-    for (const item of alt.items) {
-      if (item.recipeId) {
-        customRecipes.push({ recipe: item.recipeId, quantity: item.quantity || null });
-      } else if (item.productId) {
-        customProducts.push({ product: item.productId, quantity: item.quantity || 100 });
-      }
-    }
-
-    return { customProducts, customRecipes };
-  }
-
-  private onPrescribeSuccess(message: string): void {
-    this.isPrescribing = false;
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-    this.ionicUtilService.showToast({ message, duration: 3000 });
-    this.loadNutrition();
-  }
-
-  private onPrescribeError(err: any): void {
-    this.isPrescribing = false;
-    this.ionicUtilService.showErrorToast(err?.error?.message || 'No se pudo pautar la comida', 'Error', 3500);
-  }
-
-  public mealContentSummary(meal: { customProducts: unknown[]; customRecipes: unknown[] }): string {
-    const products = meal.customProducts?.length || 0;
-    const recipes = meal.customRecipes?.length || 0;
-    if (!products && !recipes) return 'Vacía';
-    const parts: string[] = [];
-    if (products) parts.push(`${products} producto${products === 1 ? '' : 's'}`);
-    if (recipes) parts.push(`${recipes} receta${recipes === 1 ? '' : 's'}`);
-    return parts.join(' · ');
   }
 
   public trackByTableId(_index: number, table: ClientTable): string {
@@ -1419,33 +1318,5 @@ export class ClientDetailPage implements OnInit {
       error: () =>
         this.ionicUtilService.showErrorToast('No se pudieron aplicar los objetivos en bloque', 'Error', 3000),
     });
-  }
-
-  public async bulkApplyPrescribedMeal(): Promise<void> {
-    if (this.prescribeIsMultiple || !this.canSubmitPrescribe || !this.prescribeMealTarget || !this.dietDay) {
-      return;
-    }
-    const meal = this.prescribeMealTarget;
-    const date = this.dietDay.date;
-    const targetClientIds = await this.selectTargetClients(
-      'nutrition',
-      `Aplicar "${meal.name}" a otros clientes`
-    );
-    if (!targetClientIds) return;
-
-    const { customProducts, customRecipes } = this.alternativeToCustomEntries(this.prescribeAlternatives[0]);
-    this.clientDetailApi
-      .applyMealToClients(
-        this.clientId,
-        date,
-        meal.name,
-        { customProducts, customRecipes, merge: false },
-        targetClientIds
-      )
-      .subscribe({
-        next: (results) => this.showBulkResultToast(results),
-        error: () =>
-          this.ionicUtilService.showErrorToast('No se pudo aplicar la comida en bloque', 'Error', 3000),
-      });
   }
 }

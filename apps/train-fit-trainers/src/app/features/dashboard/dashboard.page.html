@@ -23,7 +23,10 @@
       <div class="skeleton-block stat-card-skeleton"></div>
       <div class="skeleton-block stat-card-skeleton"></div>
     </div>
-    <div class="skeleton-block panel-card-skeleton"></div>
+    <div class="dashboard-grid">
+      <div class="skeleton-block panel-card-skeleton"></div>
+      <div class="skeleton-block panel-card-skeleton"></div>
+    </div>
   </div>
 
   <div class="state-message" *ngIf="state === 'error'">
@@ -43,13 +46,6 @@
         <span class="stat-value">{{ activeClientsCount }}</span>
         <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
-      <div class="stat-card">
-        <div class="stat-card-row">
-          <span class="stat-label">Plantillas de entrenamiento</span>
-          <ion-icon name="albums-outline" class="stat-icon stat-icon--muted"></ion-icon>
-        </div>
-        <span class="stat-value">{{ routineTemplatesCount }}</span>
-      </div>
       <button type="button" class="stat-card stat-card--link" routerLink="/tabs/checkins">
         <div class="stat-card-row">
           <span class="stat-label">Respuestas de check-in</span>
@@ -58,82 +54,114 @@
         <span class="stat-value">{{ checkinResponsesCount }}</span>
         <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
+      <div class="stat-card" *ngIf="paymentsSummary as payments; else paymentsStatFallback">
+        <div class="stat-card-row">
+          <span class="stat-label">Cobros pendientes</span>
+          <ion-icon
+            name="cash-outline"
+            class="stat-icon"
+            [class.stat-icon--danger]="payments.overdueCount > 0"
+            [class.stat-icon--muted]="payments.overdueCount === 0"
+          ></ion-icon>
+        </div>
+        <span class="stat-value">{{ payments.pendingAmount | currency: 'EUR' : 'symbol' : '1.0-0' }}</span>
+        <span class="stat-sublabel stat-sublabel--danger" *ngIf="payments.overdueCount > 0">
+          {{ payments.overdueCount }} vencido{{ payments.overdueCount === 1 ? '' : 's' }}
+        </span>
+        <span class="stat-sublabel" *ngIf="payments.overdueCount === 0 && payments.pendingCount > 0">
+          {{ payments.pendingCount }} por cobrar
+        </span>
+        <span class="stat-sublabel" *ngIf="payments.pendingCount === 0">Al día</span>
+        <span
+          class="stat-trend"
+          *ngIf="payments.percentChangeVsLastMonth !== null"
+          [class.stat-trend--up]="payments.percentChangeVsLastMonth > 0"
+          [class.stat-trend--down]="payments.percentChangeVsLastMonth < 0"
+        >
+          <ion-icon [name]="payments.percentChangeVsLastMonth >= 0 ? 'trending-up-outline' : 'trending-down-outline'"></ion-icon>
+          {{ payments.percentChangeVsLastMonth > 0 ? '+' : '' }}{{ payments.percentChangeVsLastMonth }}% facturado vs mes pasado
+        </span>
+      </div>
+      <ng-template #paymentsStatFallback>
+        <div class="stat-card">
+          <div class="stat-card-row">
+            <span class="stat-label">Cobros pendientes</span>
+            <ion-icon name="cash-outline" class="stat-icon stat-icon--muted"></ion-icon>
+          </div>
+          <span class="stat-value">—</span>
+        </div>
+      </ng-template>
     </div>
 
     <div class="dashboard-grid">
-      <div class="dashboard-col dashboard-col--side">
-        <section class="panel-card">
-          <div class="panel-card-header">
-            <h2 class="panel-card-title">Actividad reciente</h2>
-            <button
-              type="button"
-              class="mark-all-read-button"
-              *ngIf="hasUnreadNotifications"
-              (click)="markAllNotificationsRead()"
-            >
-              Marcar todas leídas
-            </button>
-          </div>
-
-          <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
-            <div class="skeleton-block" style="height: 48px;"></div>
-            <div class="skeleton-block" style="height: 48px;"></div>
-          </div>
-
-          <p class="empty-hint" *ngIf="notificationsState === 'error'">
-            No se pudo cargar tu actividad reciente.
-          </p>
-
-          <p class="empty-hint" *ngIf="notificationsState === 'loaded' && !notifications.length">
-            Todavía no hay actividad de tus clientes que mostrar aquí.
-          </p>
-
+      <section class="panel-card activity-panel">
+        <div class="panel-card-header">
+          <h2 class="panel-card-title">Actividad reciente</h2>
           <button
-            class="notification-card"
-            *ngFor="let notification of notifications; trackBy: trackByNotificationId"
-            [class.notification-card--unread]="!notification.read"
-            (click)="openNotification(notification)"
+            type="button"
+            class="mark-all-read-button"
+            *ngIf="hasUnreadNotifications"
+            (click)="markAllNotificationsRead()"
           >
-            <span class="notification-dot" *ngIf="!notification.read" aria-hidden="true"></span>
-            <ion-icon [name]="notificationIcon(notification)" class="notification-icon"></ion-icon>
-            <div class="notification-info">
-              <span class="notification-title">
-                {{ notificationTitle(notification) }}
-                <span class="sr-only" *ngIf="!notification.read">(no leída)</span>
-              </span>
-              <span class="notification-subtitle">{{ notification.createdAt | date: 'd MMM, HH:mm' }}</span>
-            </div>
+            Marcar todas leídas
           </button>
-        </section>
-      </div>
+        </div>
 
-      <div class="dashboard-col">
-        <section class="panel-card evolution-card">
-          <h2 class="panel-card-title">Evolución de clientes (peso)</h2>
-          <div class="evolution-grid" *ngIf="evolution.length">
-            <div class="evolution-item" *ngFor="let ev of evolution">
-              <div class="evolution-item-header">
-                <span class="evolution-name">{{ ev.name }}</span>
-                <span class="evolution-delta" *ngIf="ev.deltaKg !== 0">
-                  <ion-icon [name]="ev.deltaIcon"></ion-icon>
-                  {{ ev.deltaLabel }}
-                </span>
-              </div>
-              <div class="evolution-bars">
-                <div
-                  class="evolution-bar"
-                  *ngFor="let pct of ev.barsPct"
-                  [style.height.%]="pct"
-                  [style.background]="ev.colorVar"
-                ></div>
-              </div>
-            </div>
+        <div class="detail-skeleton" *ngIf="notificationsState === 'loading'">
+          <div class="skeleton-block" style="height: 48px;"></div>
+          <div class="skeleton-block" style="height: 48px;"></div>
+        </div>
+
+        <p class="empty-hint" *ngIf="notificationsState === 'error'">
+          No se pudo cargar tu actividad reciente.
+        </p>
+
+        <p class="empty-hint" *ngIf="notificationsState === 'loaded' && !notifications.length">
+          Todavía no hay actividad de tus clientes que mostrar aquí.
+        </p>
+
+        <button
+          class="notification-card"
+          *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+          [class.notification-card--unread]="!notification.read"
+          (click)="openNotification(notification)"
+        >
+          <span class="notification-dot" *ngIf="!notification.read" aria-hidden="true"></span>
+          <ion-icon [name]="notificationIcon(notification)" class="notification-icon"></ion-icon>
+          <div class="notification-info">
+            <span class="notification-title">
+              {{ notificationTitle(notification) }}
+              <span class="sr-only" *ngIf="!notification.read">(no leída)</span>
+            </span>
+            <span class="notification-subtitle">{{ notification.createdAt | date: 'd MMM, HH:mm' }}</span>
           </div>
-          <p class="empty-hint" *ngIf="!evolutionLoading && !evolution.length">
-            Todavía no hay suficiente peso registrado en tus clientes (hacen falta al menos 2 registros) para mostrar una tendencia.
-          </p>
+        </button>
+      </section>
+
+      <section class="panel-card payments-chart-card" *ngIf="paymentsSummary as payments; else paymentsChartFallback">
+        <h2 class="panel-card-title">Cobros por mes</h2>
+        <div class="payments-chart">
+          <div class="payments-bar-col" *ngFor="let point of payments.monthlySeries; last as isLast">
+            <span class="payments-bar-value">
+              {{ point.totalAmount > 0 ? (point.totalAmount | currency: 'EUR' : 'symbol' : '1.0-0') : '' }}
+            </span>
+            <div class="payments-bar-track">
+              <div
+                class="payments-bar"
+                [class.payments-bar--current]="isLast"
+                [style.transform]="'scaleY(' + monthBarScale(point, payments.monthlySeries) + ')'"
+              ></div>
+            </div>
+            <span class="payments-bar-label">{{ monthLabel(point.month) }}</span>
+          </div>
+        </div>
+      </section>
+      <ng-template #paymentsChartFallback>
+        <section class="panel-card payments-chart-card">
+          <h2 class="panel-card-title">Cobros por mes</h2>
+          <p class="empty-hint">No se pudo cargar la gráfica de cobros.</p>
         </section>
-      </div>
+      </ng-template>
     </div>
   </ng-container>
 </ion-content>

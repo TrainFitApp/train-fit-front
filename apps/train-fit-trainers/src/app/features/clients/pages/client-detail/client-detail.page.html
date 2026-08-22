@@ -24,19 +24,11 @@
        sin explicación. -->
   <div class="header-state-skeleton" *ngIf="headerState === 'loading'">
     <div class="profile-layout">
-      <aside class="profile-sidebar">
-        <div class="profile-card">
-          <div class="skeleton-block profile-avatar-skeleton"></div>
-          <div class="skeleton-block profile-name-skeleton"></div>
-        </div>
-      </aside>
-      <div class="profile-main">
-        <div class="skeleton-block tabbar-skeleton"></div>
-        <div class="detail-skeleton">
-          <div class="skeleton-block skeleton-block--lg"></div>
-          <div class="skeleton-block skeleton-block--md"></div>
-          <div class="skeleton-block skeleton-block--md"></div>
-        </div>
+      <div class="skeleton-block tabbar-skeleton"></div>
+      <div class="detail-skeleton">
+        <div class="skeleton-block skeleton-block--lg"></div>
+        <div class="skeleton-block skeleton-block--md"></div>
+        <div class="skeleton-block skeleton-block--md"></div>
       </div>
     </div>
   </div>
@@ -49,38 +41,6 @@
   </div>
 
   <div class="profile-layout" *ngIf="headerState === 'loaded'">
-    <aside class="profile-sidebar">
-      <div class="profile-card">
-        <div class="profile-avatar-lg">{{ name ? name.charAt(0).toUpperCase() : '?' }}</div>
-        <span class="profile-name">{{ name }}</span>
-        <div class="profile-scopes">
-          <span class="scope-chip" *ngIf="scopes.includes('training')">Entrenamiento</span>
-          <span class="scope-chip" *ngIf="scopes.includes('nutrition')">Nutrición</span>
-        </div>
-      </div>
-
-      <!-- Solo datos reales ya cargados por las pestañas — nada inventado.
-           Cada fila aparece en cuanto su sección terminó de cargar. -->
-      <div class="profile-stats-card">
-        <div class="profile-stat-row" *ngIf="scopes.includes('training') && trainingState === 'loaded' && latestWeight?.weight as weight">
-          <span class="profile-stat-label">Peso más reciente</span>
-          <span class="profile-stat-value">{{ weight }} kg</span>
-        </div>
-        <div class="profile-stat-row" *ngIf="scopes.includes('nutrition') && nutritionState === 'loaded' && adherence?.status === 'ok'">
-          <span class="profile-stat-label">Adherencia nutricional</span>
-          <span class="profile-stat-value">{{ adherence?.percentage }}%</span>
-        </div>
-        <div class="profile-stat-row" *ngIf="scopes.includes('nutrition') && nutritionState === 'loaded' && goals.length">
-          <span class="profile-stat-label">Objetivo activo</span>
-          <span class="profile-stat-value profile-stat-value--truncate">{{ goals[0].name }}</span>
-        </div>
-        <p class="profile-stats-empty" *ngIf="profileStatsPending">Cargando resumen…</p>
-        <p class="profile-stats-empty" *ngIf="!profileStatsPending && !hasProfileStats">
-          Sin datos de seguimiento todavía.
-        </p>
-      </div>
-    </aside>
-
     <div class="profile-main">
       <nav class="detail-tabbar">
         <button
@@ -90,6 +50,14 @@
           (click)="selectTab('training')"
         >
           Entrenamiento
+        </button>
+        <button
+          class="scope-tab"
+          *ngIf="scopes.includes('training') || scopes.includes('nutrition')"
+          [class.active]="activeTab === 'measurements'"
+          (click)="selectTab('measurements')"
+        >
+          Medidas
         </button>
         <button
           class="scope-tab"
@@ -270,6 +238,139 @@
     </div>
   </div>
 
+  <!-- === MEDIDAS (antropometría) — tab propio: relevante para cualquier
+       cliente (entrenamiento y/o nutrición), no solo los de nutrición. === -->
+  <div
+    class="tab-panel"
+    *ngIf="(scopes.includes('training') || scopes.includes('nutrition')) && activeTab === 'measurements'"
+  >
+    <div class="detail-skeleton" *ngIf="measurementsState === 'loading'">
+      <div class="skeleton-block skeleton-block--lg"></div>
+      <div class="skeleton-block skeleton-block--md"></div>
+    </div>
+
+    <div class="section-error" *ngIf="measurementsState === 'error'">
+      <p>No se pudieron cargar las medidas de este cliente.</p>
+      <button class="retry-button" (click)="loadMeasurements()">Reintentar</button>
+    </div>
+
+    <ng-container *ngIf="measurementsState === 'loaded'">
+      <app-anthropometry-chart
+        *ngIf="anthropometryEntries.length"
+        [data]="anthropometryEntries"
+      ></app-anthropometry-chart>
+      <p class="empty-hint" *ngIf="!anthropometryEntries.length">
+        Este cliente todavía no tiene medidas registradas.
+      </p>
+
+      <div class="section-row section-row--top">
+        <h2 class="section-heading">Solicitar antropometría</h2>
+        <button class="add-button" *ngIf="!anthropometryRequest" (click)="openMeasurementsRequestPanel()">
+          <ion-icon name="add-outline"></ion-icon>
+          Solicitar
+        </button>
+      </div>
+
+      <p class="empty-hint" *ngIf="!anthropometryRequest">
+        Pídele medidas puntuales o programadas — el cliente recibe una notificación cada vez que toca.
+      </p>
+
+      <div class="request-status-card" *ngIf="anthropometryRequest as request">
+        <div class="request-status-header">
+          <span class="list-card-title">{{ measurementCadenceLabel(request) }}</span>
+          <button class="add-button" (click)="openMeasurementsRequestPanel()">
+            <ion-icon name="create-outline"></ion-icon>
+            Editar
+          </button>
+        </div>
+        <div class="request-status-fields">
+          <span class="scope-chip" *ngFor="let key of request.fields">{{ checkinFieldLabel(key) }}</span>
+        </div>
+        <p class="request-status-notes" *ngIf="request.notes">{{ request.notes }}</p>
+        <p class="request-status-meta">
+          Última vez atendida: {{ request.lastFulfilledAt ? (request.lastFulfilledAt | date: 'd MMM y') : 'todavía no' }}
+        </p>
+        <button class="danger-link" (click)="cancelMeasurementsRequest()" [disabled]="isCancelingMeasurementsRequest">
+          Cancelar petición
+        </button>
+      </div>
+
+      <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
+           para que el flujo se vea completo en la ficha. -->
+      <div class="section-row section-row--top">
+        <h2 class="section-heading">Fotos de progreso</h2>
+      </div>
+      <div class="photos-mock-grid">
+        <div class="photo-mock-slot" *ngFor="let i of [0, 1, 2, 3]">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+      <p class="empty-hint">Próximamente: el cliente podrá subir fotos de progreso desde su app.</p>
+    </ng-container>
+
+    <!-- Panel: Solicitar antropometría -->
+    <div class="panel-backdrop" *ngIf="showMeasurementsRequestPanel" (click)="closeMeasurementsRequestPanel()"></div>
+    <div class="panel-sheet" *ngIf="showMeasurementsRequestPanel">
+      <div class="panel-handle"></div>
+      <h3 class="panel-title">Solicitar antropometría</h3>
+
+      <form [formGroup]="measurementsRequestForm" (ngSubmit)="submitMeasurementsRequest()">
+        <ng-container *ngFor="let group of measurementFieldGroups">
+          <span class="measurement-field-group-label">{{ group.label }}</span>
+          <div class="cadence-options">
+            <button
+              type="button"
+              class="cadence-option"
+              *ngFor="let field of measurementFieldsInGroup(group.key)"
+              [class.cadence-option--active]="isMeasurementFieldSelected(field.key)"
+              (click)="toggleMeasurementField(field.key)"
+            >
+              {{ field.label }}
+            </button>
+          </div>
+        </ng-container>
+
+        <span class="measurement-field-group-label">Cadencia</span>
+        <div class="cadence-options">
+          <button
+            type="button"
+            class="cadence-option"
+            *ngFor="let option of measurementCadenceOptions"
+            [class.cadence-option--active]="measurementsRequestForm.value.cadence === option.value"
+            (click)="measurementsRequestForm.get('cadence')?.setValue(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+
+        <div class="input-wrapper" *ngIf="measurementsRequestForm.value.cadence === 'custom'">
+          <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+          <input
+            type="number"
+            formControlName="customIntervalDays"
+            class="input-field"
+            placeholder="Cada cuántos días"
+            min="1"
+          />
+        </div>
+
+        <div class="input-wrapper">
+          <ion-icon name="chatbox-ellipses-outline" class="input-icon"></ion-icon>
+          <input type="text" formControlName="notes" class="input-field" placeholder="Notas para el cliente (opcional)" />
+        </div>
+
+        <button
+          type="submit"
+          class="submit-button"
+          [disabled]="!isMeasurementsRequestSubmittable || isSavingMeasurementsRequest"
+        >
+          <span *ngIf="!isSavingMeasurementsRequest">Solicitar</span>
+          <ion-spinner name="dots" *ngIf="isSavingMeasurementsRequest"></ion-spinner>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- === NUTRICIÓN === -->
   <div class="tab-panel" *ngIf="scopes.includes('nutrition') && activeTab === 'nutrition'">
     <div class="detail-skeleton" *ngIf="nutritionState === 'loading'">
@@ -284,220 +385,306 @@
     </div>
 
     <ng-container *ngIf="nutritionState === 'loaded'">
-      <!-- F20 -->
-      <div class="adherence-card" *ngIf="adherence?.status === 'ok'">
-        <div class="adherence-percentage">{{ adherence?.percentage }}%</div>
-        <div>
-          <span class="stat-label">Adherencia nutricional</span>
-          <span class="adherence-detail">últimos {{ adherence?.daysInRange }} días · {{ adherence?.daysCounted }} registrados</span>
-        </div>
-      </div>
-      <div class="adherence-card adherence-card--empty" *ngIf="adherence?.status === 'no_goal'">
-        <ion-icon name="pie-chart-outline"></ion-icon>
-        <span>Asigna objetivos nutricionales para ver la adherencia de este cliente.</span>
-      </div>
-
-      <!-- F29 -->
-      <div class="section-row">
-        <h2 class="section-heading">Preferencias nutricionales</h2>
-        <button
-          class="add-button"
-          *ngIf="!nutritionPreferencesPending"
-          (click)="requestNutritionPreferences()"
-          [disabled]="isRequestingPreferences"
-        >
-          <ion-icon name="paper-plane-outline"></ion-icon>
-          {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar cuestionario' }}
-        </button>
-      </div>
-
-      <p class="empty-hint" *ngIf="nutritionPreferencesPending">
-        Solicitado, pendiente de respuesta de {{ name }}.
-      </p>
-
-      <div class="preferences-card" *ngIf="nutritionPreferencesAnswered">
-        <div class="preferences-field preferences-field--critical">
-          <span class="preferences-label">
-            <ion-icon name="warning-outline"></ion-icon>
-            Alergias / intolerancias
-          </span>
-          <p class="preferences-value">{{ nutritionPreferences?.allergies || 'Ninguna indicada' }}</p>
-        </div>
-        <div class="preferences-field">
-          <span class="preferences-label">Favoritos</span>
-          <p class="preferences-value">{{ nutritionPreferences?.favoriteFoods || 'Sin especificar' }}</p>
-        </div>
-        <div class="preferences-field">
-          <span class="preferences-label">No le gustan</span>
-          <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
-        </div>
-        <div class="preferences-field">
-          <span class="preferences-label">¿Cocina en casa?</span>
-          <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
-        </div>
-        <!-- TASK-004 — solo lectura: lo configura el propio cliente en Mis
-             preferencias nutricionales. Nota: todavía no afecta a la dieta
-             real que ve el cliente (ver seguimiento en MASTER_BACKLOG.md). -->
-        <div class="preferences-field" *ngIf="nutritionPreferences?.disabledMealSlots?.length">
-          <span class="preferences-label">Comidas que no hace</span>
-          <p class="preferences-value">{{ nutritionPreferences.disabledMealSlots.join(', ') }}</p>
-        </div>
-      </div>
-
-      <div class="section-row">
-        <h2 class="section-heading">Objetivos nutricionales</h2>
-        <button class="add-button" (click)="openGoalPanel()">
-          <ion-icon name="add-outline"></ion-icon>
-          Asignar objetivos
-        </button>
-      </div>
-
-      <p class="empty-hint" *ngIf="!goals.length">Este cliente todavía no tiene objetivos configurados.</p>
-
-      <div class="goal-card" *ngFor="let goal of goals; trackBy: trackByGoalId">
-        <div class="goal-header">
-          <span class="list-card-title">{{ goal.name }}</span>
-          <span class="assigned-badge" *ngIf="goal.assignedByTrainerId">Asignado por ti</span>
-        </div>
-        <div class="goal-macros">
-          <span>{{ goal.kcalTotal }} kcal</span>
-          <span>P {{ goal.proteinsGTotal }}g</span>
-          <span>C {{ goal.carbohydratesGTotal }}g</span>
-          <span>G {{ goal.fatGTotal }}g</span>
-        </div>
-      </div>
-
-      <div class="section-row section-row--top">
-        <h2 class="section-heading">Dieta</h2>
-        <div class="date-nav">
-          <button class="date-nav-btn" aria-label="Día anterior" (click)="changeNutritionDate(-1)">
-            <ion-icon name="chevron-back-outline"></ion-icon>
-          </button>
-          <span class="date-nav-label">{{ nutritionDateLabel }}</span>
-          <button class="date-nav-btn" aria-label="Día siguiente" (click)="changeNutritionDate(1)">
-            <ion-icon name="chevron-forward-outline"></ion-icon>
-          </button>
-        </div>
-      </div>
-
-      <!-- Replanteamiento MVP (nutrición) — aplicar una plantilla ya
-           construida a este cliente, en vez de pautar comida a comida. -->
-      <div class="template-actions-row">
-        <button type="button" class="add-button" (click)="openApplyTemplateModal()">
-          <ion-icon name="download-outline"></ion-icon>
-          Aplicar plantilla
-        </button>
-        <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
-          Gestionar plantillas
-        </button>
-      </div>
-
-      <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
-           cuándo, sin tener que ir día por día para averiguarlo. -->
-      <div class="active-plan-card" *ngIf="activePlan">
-        <div class="active-plan-header">
-          <ion-icon name="calendar-number-outline"></ion-icon>
-          <div class="active-plan-info">
-            <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
-            <span class="active-plan-range">
-              desde {{ activePlan.startDate }}
-              · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
-            </span>
+      <div class="nutrition-layout">
+        <!-- Columna fija: de un vistazo, sin desplazarse — adherencia,
+             preferencias del cliente y objetivos vigentes. Al no compartir
+             ancho completo con el resto, tarjetas cortas ya no dejan hueco
+             vacío debajo: es una columna angosta por diseño, no un panel de
+             ancho completo a medio llenar. -->
+        <div class="nutrition-sidebar">
+          <!-- F20 / F20-bis — dos métricas distintas, nunca mezcladas en un
+               solo número: adherencia = ¿la comida pautada cuadraba con el
+               objetivo de kcal?; cumplimiento = ¿el cliente marcó lo pautado
+               como hecho? -->
+          <div class="fidelity-card" *ngIf="adherence?.status === 'ok' || compliancePercentage !== null">
+            <div class="fidelity-metric" *ngIf="adherence?.status === 'ok'">
+              <div class="fidelity-value">{{ adherence?.percentage }}%</div>
+              <span class="fidelity-label">
+                <ion-icon name="flame-outline"></ion-icon>
+                Adherencia calórica
+              </span>
+              <span class="fidelity-detail">últimos {{ adherence?.daysInRange }} días · {{ adherence?.daysCounted }} registrados</span>
+            </div>
+            <div class="fidelity-metric" *ngIf="compliancePercentage !== null">
+              <div class="fidelity-value">{{ compliancePercentage }}%</div>
+              <span class="fidelity-label">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+                Cumplimiento del plan
+              </span>
+              <span class="fidelity-detail">últimos 30 días · lo marcado como hecho</span>
+            </div>
           </div>
-        </div>
-        <!-- TASK-044 (MASTER_BACKLOG.md) — antes un plan "choice" nunca
-             avisaba de días atascados sin elegir menú (a diferencia del
-             aviso ya existente para "recurring" en el propio editor de
-             plantillas). Aviso suave, no bloqueante — mismo criterio que
-             el resto de esta tarjeta. -->
-        <p class="stuck-days-hint" *ngIf="activePlan.mode === 'choice' && activePlan.stuckDaysCount">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
-        </p>
-        <div class="active-plan-actions">
-          <button
-            type="button"
-            class="active-plan-action"
-            (click)="createExceptionForToday()"
-            [disabled]="isCreatingException"
+          <div
+            class="fidelity-card fidelity-card--empty"
+            *ngIf="adherence?.status === 'no_goal' && compliancePercentage === null"
           >
-            <ion-icon name="close-circle-outline"></ion-icon>
-            Excepción solo hoy
-          </button>
-          <button type="button" class="active-plan-action" (click)="openApplyTemplateModal()">
-            <ion-icon name="arrow-forward-circle-outline"></ion-icon>
-            Programar siguiente fase
-          </button>
-        </div>
-      </div>
+            <ion-icon name="pie-chart-outline"></ion-icon>
+            <span>Asigna objetivos nutricionales para ver la adherencia de este cliente.</span>
+          </div>
 
-      <p class="empty-hint" *ngIf="!dietDay">
-        Este cliente no tiene dieta activa {{ isNutritionDateToday ? 'hoy' : 'ese día' }}.
-      </p>
+          <!-- F29 -->
+          <div class="section-row">
+            <h2 class="section-heading">Preferencias nutricionales</h2>
+            <button
+              class="add-button"
+              *ngIf="!nutritionPreferencesPending"
+              (click)="requestNutritionPreferences()"
+              [disabled]="isRequestingPreferences"
+            >
+              <ion-icon name="paper-plane-outline"></ion-icon>
+              {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar cuestionario' }}
+            </button>
+          </div>
 
-      <div class="list-card list-card--meal" *ngFor="let meal of dietDay?.meals || []">
-        <div class="meal-info">
-          <span class="list-card-title">{{ meal.name }}</span>
-          <span class="meal-summary">{{ mealContentSummary(meal) }}</span>
-        </div>
-        <button class="prescribe-button" (click)="openPrescribePanel(meal)">Pautar</button>
-      </div>
-
-      <!-- TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones
-           puntuales. No es un log de contenido exacto día a día (ver
-           DECISIONS.md) — muestra QUÉ plan/excepción rigió cuándo, no el
-           contenido literal de cada DietDay tras una edición manual. -->
-      <div class="section-row nutrition-history-toggle" (click)="toggleNutritionHistory()">
-        <h2 class="section-heading">Historial de nutrición</h2>
-        <ion-icon [name]="showNutritionHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-      </div>
-
-      <ng-container *ngIf="showNutritionHistory">
-        <div class="detail-skeleton" *ngIf="nutritionHistoryState === 'loading'">
-          <div class="skeleton-block skeleton-block--sm"></div>
-          <div class="skeleton-block skeleton-block--sm"></div>
-        </div>
-
-        <div class="section-error" *ngIf="nutritionHistoryState === 'error'">
-          <p>No se pudo cargar el historial de nutrición.</p>
-          <button class="retry-button" (click)="loadNutritionHistory()">Reintentar</button>
-        </div>
-
-        <ng-container *ngIf="nutritionHistoryState === 'loaded'">
-          <p class="empty-hint" *ngIf="!nutritionHistory.length">
-            Este cliente todavía no ha tenido ningún plan asignado.
+          <p class="empty-hint" *ngIf="nutritionPreferencesPending">
+            Solicitado, pendiente de respuesta de {{ name }}.
           </p>
 
-          <div class="history-card" *ngFor="let phase of nutritionHistory">
-            <div class="history-card-header">
-              <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
-              <span class="history-date">
-                {{ phase.startDate }} → {{ phase.endDate || 'indefinido' }}
+          <div class="preferences-card" *ngIf="nutritionPreferencesAnswered">
+            <div class="preferences-field preferences-field--critical">
+              <span class="preferences-label">
+                <ion-icon name="warning-outline"></ion-icon>
+                Alergias / intolerancias
               </span>
+              <p class="preferences-value">{{ nutritionPreferences?.allergies || 'Ninguna indicada' }}</p>
             </div>
-            <p class="history-subtitle">
-              {{ phase.status === 'active' ? 'Activo' : phase.status === 'superseded' ? 'Sustituido por otra fase' : 'Finalizado' }}
-            </p>
+            <div class="preferences-field">
+              <span class="preferences-label">Favoritos</span>
+              <p class="preferences-value">{{ nutritionPreferences?.favoriteFoods || 'Sin especificar' }}</p>
+            </div>
+            <div class="preferences-field">
+              <span class="preferences-label">No le gustan</span>
+              <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
+            </div>
+            <div class="preferences-field">
+              <span class="preferences-label">¿Cocina en casa?</span>
+              <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
+            </div>
+            <!-- TASK-004 — solo lectura: lo configura el propio cliente en Mis
+                 preferencias nutricionales. Nota: todavía no afecta a la dieta
+                 real que ve el cliente (ver seguimiento en MASTER_BACKLOG.md). -->
+            <div class="preferences-field" *ngIf="nutritionPreferences?.disabledMealSlots?.length">
+              <span class="preferences-label">Comidas que no hace</span>
+              <p class="preferences-value">{{ nutritionPreferences.disabledMealSlots.join(', ') }}</p>
+            </div>
           </div>
 
-          <ng-container *ngIf="dietExceptions.length">
-            <p class="empty-hint exceptions-heading">Excepciones puntuales</p>
-            <div class="history-card" *ngFor="let exception of dietExceptions">
-              <div class="history-card-header">
-                <span class="list-card-title">
-                  {{ exception.action === 'skip' ? 'Día saltado' : 'Comida sustituida' }}
-                </span>
-                <span class="history-date">{{ exception.date }}</span>
-              </div>
-              <p class="history-subtitle" *ngIf="exception.mealSlot">{{ exception.mealSlot }}</p>
-            </div>
-          </ng-container>
-        </ng-container>
-      </ng-container>
+          <div class="section-row">
+            <h2 class="section-heading">Objetivos nutricionales</h2>
+            <button class="add-button" (click)="openGoalPanel()">
+              <ion-icon name="add-outline"></ion-icon>
+              Asignar objetivos
+            </button>
+          </div>
 
-      <button class="danger-link" (click)="confirmRevoke('nutrition')" [disabled]="isRevoking">
-        Finalizar relación de nutrición
-      </button>
+          <p class="empty-hint" *ngIf="!goals.length">Este cliente todavía no tiene objetivos configurados.</p>
+          <p class="empty-hint" *ngIf="goals.length">Toca un objetivo para ponerlo en uso.</p>
+
+          <button
+            type="button"
+            class="goal-card"
+            [class.goal-card--in-use]="goal.isInUse"
+            [disabled]="goal.isInUse || !!activatingGoalId"
+            (click)="activateGoal(goal)"
+            *ngFor="let goal of goals; trackBy: trackByGoalId"
+          >
+            <div class="goal-header">
+              <span class="list-card-title">{{ goal.name }}</span>
+              <span class="goal-badges">
+                <ion-spinner name="dots" *ngIf="activatingGoalId === goal._id"></ion-spinner>
+                <span class="in-use-badge" *ngIf="goal.isInUse">En uso</span>
+                <span class="assigned-badge" *ngIf="goal.assignedByTrainerId">Asignado por ti</span>
+              </span>
+            </div>
+            <div class="goal-macros">
+              <span>{{ goal.kcalTotal }} kcal</span>
+              <span>P {{ goal.proteinsGTotal }}g</span>
+              <span>C {{ goal.carbohydratesGTotal }}g</span>
+              <span>G {{ goal.fatGTotal }}g</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Columna principal: el plan en sí (medidas, calendario, fase
+             activa, historial) — lo que cambia día a día, con todo el ancho
+             disponible en vez de compartirlo con la columna de contexto. -->
+        <div class="nutrition-main">
+          <!-- F20-bis — calendario y tendencia lado a lado (no apilados): en
+               pantallas anchas se benefician de más ancho, no de quedarse
+               comprimidos en una columna estrecha. Medidas (antropometría)
+               vive en su propio tab, ver "=== MEDIDAS ===" más arriba. -->
+          <div class="nutrition-charts-row">
+            <div class="nutrition-calendar-col">
+              <!-- F20-bis — calendario de mes, sustituye al stepper ±1 día
+                   (sin vista de conjunto ni salto directo a una fecha). -->
+              <div class="section-row">
+                <h2 class="section-heading">Dieta</h2>
+                <span class="date-nav-label">{{ nutritionDateLabel }}</span>
+              </div>
+              <app-nutrition-calendar
+                [clientId]="clientId"
+                [selectedDate]="nutritionDate"
+                (dateSelected)="onNutritionDateSelected($event)"
+              ></app-nutrition-calendar>
+            </div>
+
+            <!-- Tendencia (no el % agregado de arriba, la evolución día a
+                 día detrás de ese número) — antes solo vivía en dos
+                 columnas fijas y este tercer hueco quedaba vacío en
+                 pantallas anchas. -->
+            <div class="nutrition-chart-col" *ngIf="kcalTrendSeries.length || complianceTrendSeries.length">
+              <div class="section-row">
+                <h2 class="section-heading">Seguimiento</h2>
+              </div>
+
+              <div class="trend-card" *ngIf="kcalTrendSeries.length">
+                <div class="trend-card-header">
+                  <span class="trend-card-title">Kcal consumidas</span>
+                  <span class="trend-card-sub" *ngIf="adherence?.status === 'ok'">{{ adherence?.percentage }}% en objetivo</span>
+                </div>
+                <div class="trend-chart">
+                  <div
+                    class="trend-bar"
+                    [class.trend-bar--off]="!point.withinMargin"
+                    [style.transform]="'scaleY(' + kcalBarScale(point, kcalTrendSeries) + ')'"
+                    *ngFor="let point of kcalTrendSeries"
+                  ></div>
+                </div>
+                <div class="trend-chart-range">
+                  <span>{{ kcalTrendSeries[0].date | date: 'd MMM' }}</span>
+                  <span>Hoy</span>
+                </div>
+              </div>
+
+              <div class="trend-card" *ngIf="complianceTrendSeries.length">
+                <div class="trend-card-header">
+                  <span class="trend-card-title">Cumplimiento</span>
+                  <span class="trend-card-sub" *ngIf="compliancePercentage !== null">{{ compliancePercentage }}%</span>
+                </div>
+                <div class="trend-chart">
+                  <div
+                    class="trend-bar trend-bar--compliance"
+                    [class.trend-bar--empty]="!point.hasPlan"
+                    [style.transform]="'scaleY(' + complianceBarScale(point) + ')'"
+                    *ngFor="let point of complianceTrendSeries"
+                  ></div>
+                </div>
+                <div class="trend-chart-range">
+                  <span>{{ complianceTrendSeries[0].date | date: 'd MMM' }}</span>
+                  <span>Hoy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Replanteamiento MVP (nutrición) — aplicar una plantilla ya
+               construida a este cliente, en vez de pautar comida a comida. -->
+          <div class="template-actions-row">
+            <button type="button" class="add-button" (click)="openApplyTemplateModal()">
+              <ion-icon name="download-outline"></ion-icon>
+              Aplicar plantilla
+            </button>
+            <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
+              Gestionar plantillas
+            </button>
+          </div>
+
+          <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
+               cuándo, sin tener que ir día por día para averiguarlo. -->
+          <div class="active-plan-card" *ngIf="activePlan">
+            <div class="active-plan-header">
+              <ion-icon name="calendar-number-outline"></ion-icon>
+              <div class="active-plan-info">
+                <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
+                <span class="active-plan-range">
+                  desde {{ activePlan.startDate }}
+                  · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
+                </span>
+              </div>
+            </div>
+            <!-- TASK-044 (MASTER_BACKLOG.md) — antes un plan "choice" nunca
+                 avisaba de días atascados sin elegir menú (a diferencia del
+                 aviso ya existente para "recurring" en el propio editor de
+                 plantillas). Aviso suave, no bloqueante — mismo criterio que
+                 el resto de esta tarjeta. -->
+            <p class="stuck-days-hint" *ngIf="activePlan.mode === 'choice' && activePlan.stuckDaysCount">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
+            </p>
+            <div class="active-plan-actions">
+              <button
+                type="button"
+                class="active-plan-action"
+                (click)="createExceptionForToday()"
+                [disabled]="isCreatingException"
+              >
+                <ion-icon name="close-circle-outline"></ion-icon>
+                Excepción solo hoy
+              </button>
+              <button type="button" class="active-plan-action" (click)="openApplyTemplateModal()">
+                <ion-icon name="arrow-forward-circle-outline"></ion-icon>
+                Programar siguiente fase
+              </button>
+            </div>
+          </div>
+
+          <!-- TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones
+               puntuales. No es un log de contenido exacto día a día (ver
+               DECISIONS.md) — muestra QUÉ plan/excepción rigió cuándo, no el
+               contenido literal de cada DietDay tras una edición manual. -->
+          <div class="section-row nutrition-history-toggle" (click)="toggleNutritionHistory()">
+            <h2 class="section-heading">Historial de nutrición</h2>
+            <ion-icon [name]="showNutritionHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+
+          <ng-container *ngIf="showNutritionHistory">
+            <div class="detail-skeleton" *ngIf="nutritionHistoryState === 'loading'">
+              <div class="skeleton-block skeleton-block--sm"></div>
+              <div class="skeleton-block skeleton-block--sm"></div>
+            </div>
+
+            <div class="section-error" *ngIf="nutritionHistoryState === 'error'">
+              <p>No se pudo cargar el historial de nutrición.</p>
+              <button class="retry-button" (click)="loadNutritionHistory()">Reintentar</button>
+            </div>
+
+            <ng-container *ngIf="nutritionHistoryState === 'loaded'">
+              <p class="empty-hint" *ngIf="!nutritionHistory.length">
+                Este cliente todavía no ha tenido ningún plan asignado.
+              </p>
+
+              <div class="history-card" *ngFor="let phase of nutritionHistory">
+                <div class="history-card-header">
+                  <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
+                  <span class="history-date">
+                    {{ phase.startDate }} → {{ phase.endDate || 'indefinido' }}
+                  </span>
+                </div>
+                <p class="history-subtitle">
+                  {{ phase.status === 'active' ? 'Activo' : phase.status === 'superseded' ? 'Sustituido por otra fase' : 'Finalizado' }}
+                </p>
+              </div>
+
+              <ng-container *ngIf="dietExceptions.length">
+                <p class="empty-hint exceptions-heading">Excepciones puntuales</p>
+                <div class="history-card" *ngFor="let exception of dietExceptions">
+                  <div class="history-card-header">
+                    <span class="list-card-title">
+                      {{ exception.action === 'skip' ? 'Día saltado' : 'Comida sustituida' }}
+                    </span>
+                    <span class="history-date">{{ exception.date }}</span>
+                  </div>
+                  <p class="history-subtitle" *ngIf="exception.mealSlot">{{ exception.mealSlot }}</p>
+                </div>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+
+          <button class="danger-link" (click)="confirmRevoke('nutrition')" [disabled]="isRevoking">
+            Finalizar relación de nutrición
+          </button>
+        </div>
+      </div>
     </ng-container>
 
     <!-- Panel: Asignar objetivos -->
@@ -543,115 +730,6 @@
           Aplicar también a otros clientes
         </button>
       </form>
-    </div>
-
-    <!-- Panel: Pautar comida (F12: 1 alternativa; F28: 2+ nombradas) -->
-    <div class="panel-backdrop" *ngIf="showPrescribePanel" (click)="closePrescribePanel()"></div>
-    <div class="panel-sheet" *ngIf="showPrescribePanel">
-      <div class="panel-handle"></div>
-      <h3 class="panel-title">Pautar "{{ prescribeMealTarget?.name }}"</h3>
-      <p class="panel-hint">
-        Añade una composición para aplicarla directamente, o 2-3 alternativas nombradas para que
-        {{ name }} elija cuál registra ese día.
-      </p>
-
-      <div class="alternative-card" *ngFor="let alt of prescribeAlternatives; let i = index">
-        <div class="alternative-header" *ngIf="prescribeIsMultiple">
-          <span class="alternative-title">Opción {{ i + 1 }}</span>
-          <button
-            type="button"
-            class="remove-alternative-btn"
-            title="Duplicar opción (para cambiar solo un alimento)"
-            aria-label="Duplicar opción"
-            (click)="duplicateAlternative(i)"
-            [disabled]="prescribeAlternatives.length >= maxAlternatives"
-          >
-            <ion-icon name="copy-outline"></ion-icon>
-          </button>
-          <button
-            type="button"
-            class="remove-alternative-btn"
-            aria-label="Eliminar opción"
-            (click)="removeAlternative(i)"
-            [disabled]="prescribeAlternatives.length <= 1"
-          >
-            <ion-icon name="trash-outline"></ion-icon>
-          </button>
-        </div>
-        <div class="input-wrapper" *ngIf="prescribeIsMultiple">
-          <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-          <input
-            type="text"
-            class="input-field"
-            placeholder="Etiqueta (p. ej. Días de entreno)"
-            [(ngModel)]="alt.label"
-            [ngModelOptions]="{ standalone: true }"
-          />
-        </div>
-
-        <!-- Replanteamiento MVP (nutrición): varios alimentos por alternativa,
-             no uno solo — antes pautar 2 alimentos en la misma comida exigía
-             sobrescribir en 2 envíos sucesivos. -->
-        <div class="food-item-card" *ngFor="let item of alt.items; let j = index">
-          <div class="food-item-header" *ngIf="alt.items.length > 1">
-            <span class="food-item-title">Alimento {{ j + 1 }}</span>
-            <button type="button" class="remove-alternative-btn" aria-label="Eliminar alimento" (click)="removeFoodItem(i, j)">
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
-          </div>
-
-          <div class="product-pick-row" *ngIf="item.productId || item.recipeId">
-            <ion-icon [name]="item.recipeId ? 'restaurant-outline' : 'checkmark-circle-outline'" class="input-icon"></ion-icon>
-            <span class="picked-product-name">
-              {{ item.recipeId ? item.recipeName : item.productName }}
-              <ng-container *ngIf="item.quantity">· {{ item.quantity }}g</ng-container>
-            </span>
-            <button type="button" class="clear-product-btn" aria-label="Quitar selección" (click)="clearProduct(i, j)">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="search-product-btn"
-            *ngIf="!item.productId && !item.recipeId"
-            (click)="openProductSearch(i, j)"
-          >
-            <ion-icon name="search-outline"></ion-icon>
-            Buscar producto o receta real
-          </button>
-        </div>
-
-        <button
-          type="button"
-          class="add-food-item-btn"
-          (click)="addFoodItem(i)"
-          [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
-        >
-          <ion-icon name="add-outline"></ion-icon>
-          Añadir otro alimento a esta comida
-        </button>
-      </div>
-
-      <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="prescribeAlternatives.length >= maxAlternatives">
-        <ion-icon name="add-outline"></ion-icon>
-        Añadir alternativa
-      </button>
-
-      <button type="button" class="submit-button" [disabled]="!canSubmitPrescribe || isPrescribing" (click)="submitPrescribe()">
-        <span *ngIf="!isPrescribing">{{ prescribeIsMultiple ? 'Proponer alternativas' : 'Pautar comida' }}</span>
-        <ion-spinner name="dots" *ngIf="isPrescribing"></ion-spinner>
-      </button>
-      <button
-        type="button"
-        class="bulk-link-button"
-        *ngIf="!prescribeIsMultiple"
-        [disabled]="!canSubmitPrescribe || isPrescribing"
-        (click)="bulkApplyPrescribedMeal()"
-      >
-        <ion-icon name="people-outline"></ion-icon>
-        Aplicar también a otros clientes
-      </button>
     </div>
   </div>
 

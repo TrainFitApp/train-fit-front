@@ -1,0 +1,177 @@
+.nutrition-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.nutrition-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.nutrition-calendar__month-label {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+  text-transform: capitalize;
+}
+
+.nutrition-calendar__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Por debajo del mínimo táctil de 44px a propósito (ya lo estaba antes,
+  // a 32px): control secundario de paso ±1 mes, no una acción repetida, y
+  // el pedido explícito aquí es compacidad — ver PRODUCT.md "táctil
+  // primero" para los controles primarios de la app.
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-4);
+    color: var(--tf-text);
+  }
+}
+
+.nutrition-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+
+  span {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.nutrition-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-loading {
+    opacity: 0.5;
+  }
+}
+
+.nutrition-calendar__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  background: rgba(254, 144, 0, var(--fill-opacity, 0));
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out), transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:not(.is-blank):hover {
+    border-color: var(--tf-border-strong);
+    transform: translateY(-1px);
+  }
+
+  &.is-blank {
+    background: transparent;
+    cursor: default;
+  }
+
+  &.has-no-plan {
+    background: var(--tf-surface-2);
+    color: var(--tf-text-faint);
+  }
+
+  &.is-today {
+    border-color: var(--tf-border-strongest);
+  }
+
+  &.is-selected {
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 1px var(--tf-accent);
+  }
+
+  &.has-exception.is-skip-exception {
+    background: var(--tf-danger-soft);
+  }
+}
+
+.nutrition-calendar__day-number {
+  font-variant-numeric: tabular-nums;
+}
+
+// Tramo de plan asignado — franja continua de color por fase (una fase =
+// un color, ver PHASE_COLORS en el componente), independiente del relleno
+// de cumplimiento: un día puede tener fase asignada sin datos de
+// cumplimiento todavía (dieta no materializada) o viceversa.
+.nutrition-calendar__phase-bar {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  border-radius: 0 0 2px 2px;
+  background: var(--phase-color);
+}
+
+.nutrition-calendar__exception-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tf-danger);
+}
+
+.nutrition-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2) var(--tf-space-3);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: var(--tf-text-muted);
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+
+  &--phase {
+    background: linear-gradient(90deg, #60a5fa, #a78bfa);
+    border-radius: 2px;
+  }
+
+  &--fill {
+    background: var(--tf-accent);
+  }
+
+  &--exception {
+    background: var(--tf-danger);
+    border-radius: 50%;
+  }
+
+  &--empty {
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+  }
+}

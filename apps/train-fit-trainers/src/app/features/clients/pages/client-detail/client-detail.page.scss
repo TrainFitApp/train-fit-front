@@ -5,23 +5,11 @@
 
 // TASK-012 — mientras se resuelve name/scopes vía
 // resolveClientIdentityFallback() (deep link sin queryParams), un esqueleto
-// con la misma forma del layout final (sidebar + tabs), no un spinner
-// genérico — mismo criterio que dashboard.page/clients.page.
+// con la misma forma del layout final, no un spinner genérico — mismo
+// criterio que dashboard.page/clients.page.
 .header-state-skeleton {
   .profile-layout {
     pointer-events: none;
-  }
-
-  .profile-avatar-skeleton {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-  }
-
-  .profile-name-skeleton {
-    width: 60%;
-    height: 16px;
-    border-radius: 4px;
   }
 
   .tabbar-skeleton {
@@ -63,75 +51,16 @@
   }
 }
 
-// Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
-// de resumen persistente a la izquierda + pestañas reales ya existentes a
-// la derecha. Solo envoltorio/CSS nuevo — ninguna lógica de las pestañas se
-// tocó (ver client-detail.page.html).
+// Sin sidebar de resumen: el nombre ya vive en la cabecera de página y las
+// tarjetas de adherencia/objetivo activo ocupaban una columna entera para
+// dos datos que ya se ven dentro de cada pestaña — puro hueco vacío en la
+// mayoría de clientes.
 .profile-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--tf-space-5);
-  align-items: start;
   padding: var(--tf-space-4);
 
   @media (max-width: 760px) {
-    grid-template-columns: 1fr;
     padding: var(--tf-space-3);
   }
-}
-
-.profile-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-4);
-  position: sticky;
-  top: var(--tf-space-4);
-
-  @media (max-width: 760px) {
-    position: static;
-  }
-}
-
-.profile-card,
-.profile-stats-card {
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-lg);
-}
-
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--tf-space-2);
-  padding: var(--tf-space-5);
-}
-
-.profile-avatar-lg {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: var(--tf-surface-4);
-  color: var(--tf-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-
-.profile-name {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--tf-text);
-}
-
-.profile-scopes {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
 }
 
 // Reutilizado también por `.checkin-config-card` más abajo — antes solo
@@ -147,43 +76,6 @@
   border-radius: 6px;
   padding: 2px 8px;
   white-space: nowrap;
-}
-
-.profile-stats-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-4) var(--tf-space-5);
-}
-
-.profile-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--tf-space-3);
-  font-size: 0.85rem;
-}
-
-.profile-stat-label {
-  color: var(--tf-text-muted);
-}
-
-.profile-stat-value {
-  color: var(--tf-text);
-  font-weight: 600;
-
-  &--truncate {
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.profile-stats-empty {
-  margin: 0;
-  color: var(--tf-text-muted);
-  font-size: 0.82rem;
 }
 
 .profile-main {
@@ -360,40 +252,121 @@
   letter-spacing: 0.02em;
 }
 
-// --- F10: navegación de fecha en la dieta del cliente ---
-.date-nav {
+// F20-bis — el HTML ya traía el comentario "medidas y calendario lado a
+// lado" pero nunca llegó el CSS: sin esto .nutrition-charts-row no es un
+// row, son <div> apilados a ancho completo, y el calendario (celdas a
+// aspect-ratio 1 sobre 7 columnas) se estira tan ancho como el panel entero
+// — de ahí que "ocupe tantísimo". Con el row real cada columna coge su
+// parte del ancho disponible; el calendario además limita su propio ancho
+// máximo (ver nutrition-calendar-col) para no crecer sin límite en
+// pantallas muy anchas. flex-wrap (no un breakpoint fijo por número de
+// columnas) — con 2 o 3 columnas activas (Seguimiento es condicional),
+// cada una decide si cabe por su propio flex-basis en vez de que el CSS
+// tenga que saber cuántas hay.
+.nutrition-charts-row {
   display: flex;
-  align-items: center;
-  gap: 6px;
-}
+  flex-wrap: wrap;
+  gap: var(--tf-space-6);
+  align-items: flex-start;
 
-.date-nav-btn {
-  width: var(--tf-touch-min);
-  height: var(--tf-touch-min);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
-  color: var(--tf-text-secondary);
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
-
-  ion-icon {
-    font-size: 14px;
-  }
-
-  &:active {
-    transform: scale(0.92);
-  }
-
-  &:hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
+  @media (max-width: 640px) {
+    flex-direction: column;
   }
 }
 
+.nutrition-chart-col {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.nutrition-calendar-col {
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 340px;
+
+  @media (max-width: 640px) {
+    max-width: none;
+  }
+}
+
+// --- F20-bis: columna "Seguimiento" (kcal consumidas + cumplimiento en el
+// tiempo) — mismo patrón de barras que dashboard.page (Cobros por mes):
+// transform:scaleY() desde abajo, nunca height, para no forzar layout en
+// cada punto de la serie. A diferencia de esa gráfica mensual (pocas barras,
+// una etiqueta cada una), aquí son ~30 días: una etiqueta por barra sería
+// ilegible, así que solo se rotula el rango completo debajo del trazo.
+.trend-card {
+  padding: 12px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.trend-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.trend-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.trend-card-sub {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 56px;
+}
+
+.trend-bar {
+  flex: 1;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--tf-success);
+  transform-origin: bottom;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+
+  &--off {
+    background: var(--tf-danger);
+  }
+
+  &--compliance {
+    background: var(--tf-accent);
+  }
+
+  &--empty {
+    background: var(--tf-surface-5);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.trend-chart-range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--tf-text-faint);
+}
+
+// --- F20-bis: etiqueta de la fecha vigente sobre <app-nutrition-calendar>
+// (la navegación en sí ya no son flechas, ver ese componente) ---
 .date-nav-label {
   min-width: 88px;
   text-align: center;
@@ -599,6 +572,13 @@
   color: var(--tf-text);
 }
 
+.goal-badges {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+}
+
 .assigned-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
@@ -609,40 +589,58 @@
   padding: 2px 8px;
 }
 
-.meal-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.meal-summary {
-  font-size: 0.78rem;
-  color: var(--tf-text-muted);
-}
-
-.prescribe-button {
+// Estado ACTUAL (goal.isInUse) — deliberadamente distinto en color de
+// "Asignado por ti" (quién lo creó): son dos hechos independientes, ver
+// comentario en client-detail.model.ts#NutritionalGoal.
+.in-use-badge {
   flex-shrink: 0;
-  height: 32px;
-  padding: 0 14px;
-  background: var(--tf-surface-5);
-  color: var(--tf-text);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  cursor: pointer;
-
-  &:active {
-    transform: scale(0.95);
-  }
+  color: var(--tf-success);
+  background: var(--tf-success-soft);
+  border: 1px solid var(--tf-success-border);
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 
+// Tocar la card entera activa ese objetivo — de ahí <button>, no <div>: el
+// target táctil es la tarjeta completa (≥44px de alto ya de sobra con el
+// padding actual), no un botón aparte encima.
 .goal-card {
+  display: block;
+  width: 100%;
+  min-height: var(--tf-touch-min);
   padding: 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
   margin-bottom: 8px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 160ms var(--tf-ease-out), background 160ms var(--tf-ease-out);
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.99);
+  }
+
+  &--in-use {
+    border-color: var(--tf-success-border);
+    background: var(--tf-success-soft);
+  }
+
+  // En uso ya está deshabilitada (no hay a dónde activarla); mientras se
+  // activa OTRA card, el resto se deshabilita para evitar dobles envíos —
+  // pero sin el opacity apagado de un disabled normal, que aquí leería como
+  // "objetivo desactivado" en vez de "ocupado un segundo".
+  &:disabled {
+    cursor: default;
+  }
 }
 
 .goal-header {
@@ -650,6 +648,14 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.goal-badges {
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    color: var(--tf-text-muted);
+  }
 }
 
 .goal-macros {
@@ -1189,10 +1195,52 @@
   }
 }
 
-// --- F20: adherencia nutricional ---
-.adherence-card {
+// --- F20-bis: rediseño del tab Nutrición (sidebar de fidelidad/medidas/
+// objetivos + columna principal de calendario/día) ---
+.nutrition-layout {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--tf-space-6);
+}
+
+.nutrition-sidebar {
+  min-width: 0;
+}
+
+.nutrition-main {
+  min-width: 0;
+
+  .nutrition-charts-row .section-row {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 900px) {
+  .nutrition-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    gap: var(--tf-space-6);
+    // Antes 1220px, pensado para cuando esta columna competía con el
+    // sidebar de perfil del cliente (ya no existe, ver profile-layout) —
+    // sin él sobraba ancho a los lados. Más ancho aquí es lo que deja sitio
+    // a la tercera columna de .nutrition-charts-row (Seguimiento) sin que
+    // Medidas/Calendario se aprieten.
+    max-width: 1480px;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  .nutrition-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+}
+
+// --- F20 / F20-bis: adherencia calórica + cumplimiento del plan, dos
+// métricas distintas mostradas juntas, nunca fusionadas ---
+.fidelity-card {
+  display: flex;
+  flex-direction: column;
   gap: 14px;
   padding: 14px;
   background: var(--tf-surface-1);
@@ -1200,12 +1248,10 @@
   border-radius: 14px;
   margin-bottom: 20px;
 
-  > div {
-    flex: 1;
-    min-width: 0;
-  }
-
   &--empty {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
     color: var(--tf-text-muted);
     font-size: 0.86rem;
 
@@ -1217,14 +1263,37 @@
   }
 }
 
-.adherence-percentage {
+.fidelity-metric {
+  display: flex;
+  flex-direction: column;
+
+  & + & {
+    padding-top: 14px;
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+}
+
+.fidelity-value {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--tf-accent-text);
-  flex-shrink: 0;
 }
 
-.adherence-detail {
+.fidelity-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.fidelity-detail {
   display: block;
   font-size: 0.76rem;
   color: var(--tf-text-muted);
@@ -1338,210 +1407,84 @@
   white-space: pre-wrap;
 }
 
-// --- F12/F28: pautar comida (1 alternativa o varias nombradas) ---
-.panel-hint {
-  font-size: 0.82rem;
-  color: var(--tf-text-muted);
-  margin: -8px 0 16px;
-}
-
-.alternative-card {
-  padding: 12px;
-  background: var(--tf-surface-2);
+// --- Medidas: petición de antropometría vigente ---
+.request-status-card {
+  padding: 14px;
+  background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
-.alternative-header {
+.request-status-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 10px;
 }
 
-.alternative-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--tf-text);
-}
-
-// Replanteamiento MVP (nutrición) — varios alimentos por alternativa,
-// anidados dentro de .alternative-card con un tono más claro para marcar
-// jerarquía visual.
-// Antes era una tarjeta anidada completa (fondo + borde + radio) dentro de
-// .alternative-card, que ya es una tarjeta — "cards anidadas" que
-// PRODUCT.md marca explícitamente como anti-referencia. Un divisor simple
-// mantiene la separación entre alimentos sin apilar jerarquía visual.
-.food-item-card {
-  padding: 10px 0;
-  margin-bottom: 0;
-  border-top: 1px solid var(--tf-border-subtle);
-
-  &:first-of-type {
-    padding-top: 0;
-    border-top: none;
-  }
-
-  &:last-of-type {
-    margin-bottom: 12px;
-  }
-}
-
-.food-item-header {
+.request-status-fields {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.request-status-notes {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--tf-text-secondary);
+  white-space: pre-wrap;
+}
+
+.request-status-meta {
+  margin: 0 0 10px;
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.request-status-card .danger-link {
+  margin-top: 0;
+  padding: 8px 0 0;
+  border-top: none;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+// Panel "Solicitar antropometría" — misma cabecera de sección que el resto
+// del formulario (.preferences-label sin el icono, catálogo agrupado en dos
+// bloques: composición corporal / perímetros).
+.measurement-field-group-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+// --- Medidas: fotos de progreso (mock, sin subida real todavía) ---
+.photos-mock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
   margin-bottom: 8px;
 }
 
-.food-item-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--tf-text-secondary);
-}
-
-.add-food-item-btn {
-  width: 100%;
-  height: 38px;
-  margin-bottom: 4px;
+.photo-mock-slot {
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  background: transparent;
+  background: var(--tf-surface-2);
   border: 1px dashed var(--tf-border-strong);
   border-radius: 10px;
-  color: var(--tf-text-muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
-
-  &:not(:disabled):hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
-
-.remove-alternative-btn {
-  width: var(--tf-touch-min);
-  height: var(--tf-touch-min);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--tf-text-muted);
-  cursor: pointer;
-  transition: color 160ms var(--tf-ease-out);
-
-  &:active {
-    transform: scale(0.9);
-  }
-
-  &:not(:disabled):hover {
-    color: var(--tf-danger);
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-}
-
-.add-alternative-btn {
-  width: 100%;
-  height: 44px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px dashed var(--tf-border-strongest);
-  border-radius: 12px;
-  color: var(--tf-text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
-
-  &:not(:disabled):hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
-
-// TAREA1 — búsqueda de alimento real (ProductSearchModalComponent) dentro de
-// cada tarjeta de alternativa, sustituyendo la entrada manual de macros.
-.search-product-btn {
-  width: 100%;
-  height: var(--tf-touch-min);
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
-  border-radius: 10px;
-  color: var(--tf-accent);
-  font-size: 0.84rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.product-pick-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: var(--tf-success-soft);
-  border: 1px solid var(--tf-success-border);
-  border-radius: 10px;
-
-  .input-icon {
-    position: static;
-    color: var(--tf-success);
-  }
-}
-
-.picked-product-name {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--tf-text);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.clear-product-btn {
-  flex-shrink: 0;
-  width: var(--tf-touch-min);
-  height: var(--tf-touch-min);
-  margin: -12px -12px -12px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--tf-text-muted);
-  cursor: pointer;
+  color: var(--tf-text-faint);
 
   ion-icon {
-    font-size: 18px;
+    font-size: 22px;
   }
 }
+

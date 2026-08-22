@@ -1,0 +1,56 @@
+<div class="nutrition-calendar">
+  <div class="nutrition-calendar__header">
+    <button
+      type="button"
+      class="nutrition-calendar__nav-btn"
+      aria-label="Mes anterior"
+      (click)="previousMonth()"
+    >
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <span class="nutrition-calendar__month-label">{{ monthLabel }}</span>
+    <button
+      type="button"
+      class="nutrition-calendar__nav-btn"
+      aria-label="Mes siguiente"
+      (click)="nextMonth()"
+    >
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="nutrition-calendar__weekdays">
+    <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+  </div>
+
+  <div class="nutrition-calendar__grid" [class.is-loading]="isLoading">
+    <button
+      type="button"
+      class="nutrition-calendar__cell"
+      *ngFor="let cell of cells; trackBy: trackByCell"
+      [class.is-blank]="!cell.date"
+      [class.is-selected]="!!cell.date && cell.date === selectedDate"
+      [class.is-today]="!!cell.date && cell.date === todayIso"
+      [class.has-no-plan]="!!cell.compliance && !cell.compliance.hasPlan"
+      [class.has-exception]="!!cell.compliance?.hasException"
+      [class.is-skip-exception]="cell.compliance?.exceptionType === 'skip'"
+      [class.has-phase]="!!cell.phase"
+      [disabled]="!cell.date"
+      [style.--fill-opacity]="cellFillOpacity(cell)"
+      [style.--phase-color]="cell.phase?.color"
+      [title]="cell.phase?.planName || null"
+      (click)="selectDay(cell)"
+    >
+      <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase"></span>
+      <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
+      <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
+    </button>
+  </div>
+
+  <div class="nutrition-calendar__legend">
+    <span class="legend-item"><span class="legend-swatch legend-swatch--phase"></span>Fase de plan</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--fill"></span>Cumplimiento</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--exception"></span>Excepción</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan</span>
+  </div>
+</div>

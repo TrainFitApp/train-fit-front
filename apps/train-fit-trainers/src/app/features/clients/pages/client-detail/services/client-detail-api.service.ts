@@ -4,23 +4,21 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
+  AnthropometryRequest,
+  AnthropometryRequestCadence,
   BulkApplyResult,
   CheckinConfig,
   CheckinResponseEntry,
   ClientNutritionPreferences,
   ClientScope,
   ClientTable,
-  DietDaySummary,
   NutritionalGoal,
+  NutritionComplianceSummary,
   TrainerNote,
   TrainerPayment,
   TrainerTask,
   TrainerTaskType,
 } from '../models/client-detail.model';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 @Injectable({ providedIn: 'root' })
 export class ClientDetailApiService {
@@ -71,12 +69,6 @@ export class ClientDetailApiService {
     return this.http.delete(`tables/${clientId}/${tableId}`);
   }
 
-  public getDiet(clientId: string, date: string = todayIsoDate()): Observable<DietDaySummary | null> {
-    return this.http.get<DietDaySummary | null>(
-      `${this.base(clientId)}/diet?date=${encodeURIComponent(date)}`
-    );
-  }
-
   public getNutritionalGoals(clientId: string): Observable<NutritionalGoal[]> {
     return this.http.get<NutritionalGoal[]>(`${this.base(clientId)}/nutritional-goals`);
   }
@@ -93,6 +85,28 @@ export class ClientDetailApiService {
       `${this.base(clientId)}/nutritional-goals`,
       goal
     );
+  }
+
+  public activateNutritionalGoal(clientId: string, goalId: string): Observable<{ _id: string }> {
+    return this.http.put<{ _id: string }>(
+      `${this.base(clientId)}/nutritional-goals/${goalId}/activate`,
+      {}
+    );
+  }
+
+  public getAnthropometryRequest(clientId: string): Observable<AnthropometryRequest | null> {
+    return this.http.get<AnthropometryRequest | null>(`${this.base(clientId)}/anthropometry-request`);
+  }
+
+  public upsertAnthropometryRequest(
+    clientId: string,
+    body: { fields: string[]; notes: string; cadence: AnthropometryRequestCadence; customIntervalDays: number | null }
+  ): Observable<AnthropometryRequest> {
+    return this.http.put<AnthropometryRequest>(`${this.base(clientId)}/anthropometry-request`, body);
+  }
+
+  public cancelAnthropometryRequest(clientId: string): Observable<unknown> {
+    return this.http.delete(`${this.base(clientId)}/anthropometry-request`);
   }
 
   public getNotes(clientId: string): Observable<TrainerNote[]> {
@@ -129,6 +143,18 @@ export class ClientDetailApiService {
     return this.http.get<AdherenceSummary>(`${this.base(clientId)}/adherence`);
   }
 
+  // F20-bis — cumplimiento por día (para el calendario de nutrición), distinto
+  // de /adherence (kcal pautada vs. objetivo).
+  public getNutritionCompliance(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionComplianceSummary> {
+    return this.http.get<NutritionComplianceSummary>(
+      `${this.base(clientId)}/nutrition-compliance?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
   public getPayments(clientId: string): Observable<TrainerPayment[]> {
     return this.http.get<TrainerPayment[]>(`${this.base(clientId)}/payments`);
   }
@@ -160,32 +186,6 @@ export class ClientDetailApiService {
     return this.http.delete(`${this.base(clientId)}/tasks/${taskId}`);
   }
 
-  // F12 — pautar una única composición, aplicación inmediata sobre el hueco de comida.
-  public prescribeMeal(
-    clientId: string,
-    date: string,
-    mealId: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean }
-  ): Observable<unknown> {
-    return this.http.post(
-      `${this.base(clientId)}/diet-days/${date}/meals/${mealId}/prescribe`,
-      body
-    );
-  }
-
-  // F28 — 2+ alternativas nombradas, aplicación diferida hasta que el cliente elija.
-  public proposeMealAlternatives(
-    clientId: string,
-    date: string,
-    mealSlot: string,
-    alternatives: { label: string; customProducts: unknown[]; customRecipes: unknown[] }[]
-  ): Observable<unknown> {
-    return this.http.post(
-      `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/propose`,
-      { alternatives }
-    );
-  }
-
   // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
   public getNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences | null> {
     return this.http.get<ClientNutritionPreferences | null>(
@@ -208,19 +208,6 @@ export class ClientDetailApiService {
     return this.http.post<BulkApplyResult[]>(
       `trainer/routines/${sourceTableId}/apply-to-clients`,
       { targetClientIds }
-    );
-  }
-
-  public applyMealToClients(
-    sourceClientId: string,
-    date: string,
-    mealSlot: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean },
-    targetClientIds: string[]
-  ): Observable<BulkApplyResult[]> {
-    return this.http.post<BulkApplyResult[]>(
-      `${this.base(sourceClientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/apply-to-clients`,
-      { ...body, targetClientIds }
     );
   }
 

@@ -124,10 +124,11 @@
   text-align: left;
 }
 
-// Clientes activos / Respuestas de check-in navegan a su pantalla — el
-// resto (Plantillas de rutina) se queda como <div>, sin affordance de click.
-// El chevron (.stat-chevron) es la señal de que se puede pulsar, ya que en
-// móvil no existe :hover para distinguirlo a simple vista.
+// Clientes activos / Respuestas de check-in navegan a su pantalla — Cobros
+// pendientes se queda como <div> (no hay pantalla de "todos los cobros"
+// todavía, solo por cliente), sin affordance de click. El chevron
+// (.stat-chevron) es la señal de que se puede pulsar, ya que en móvil no
+// existe :hover para distinguirlo a simple vista.
 .stat-card--link {
   cursor: pointer;
   padding-right: var(--tf-space-8);
@@ -173,6 +174,10 @@
   &--muted {
     color: var(--tf-text-secondary);
   }
+
+  &--danger {
+    color: var(--tf-danger);
+  }
 }
 
 .stat-label {
@@ -188,12 +193,59 @@
   color: var(--tf-text);
 }
 
-// Orden en el DOM: Actividad reciente primero, Evolución después —
-// prioriza lo accionable (una notificación lleva a un cliente) sobre lo
-// analítico, tanto apiladas en móvil como lado a lado en escritorio.
+.stat-sublabel {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+
+  &--danger {
+    color: var(--tf-danger);
+  }
+}
+
+// Variación de facturación mensual vs mes anterior — dato distinto del
+// "pendiente" de arriba (ver payments-chart-card), así que lleva su propia
+// línea con icono de tendencia en vez de mezclarse con .stat-sublabel.
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: var(--tf-space-2);
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  // Sin semántica de éxito/alerta por defecto (más facturado no siempre es
+  // "bueno" para quien lo lee a las 7am) — se tiñe solo con dirección clara.
+  &--up {
+    color: var(--tf-success);
+  }
+
+  &--down {
+    color: var(--tf-danger);
+  }
+}
+
+.panel-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  overflow: hidden;
+}
+
+// Actividad reciente (accionable) primero, gráfica de cobros (analítica)
+// después — apiladas en móvil, lado a lado en escritorio.
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--tf-space-5);
   align-items: start;
 
@@ -202,17 +254,75 @@
   }
 }
 
-.dashboard-col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-5);
+.payments-chart-card {
+  padding: var(--tf-space-5);
 }
 
-.panel-card {
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-lg);
-  overflow: hidden;
+.payments-chart-card .panel-card-title {
+  padding: 0 0 var(--tf-space-5);
+  border-bottom: none;
+}
+
+.payments-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tf-space-2);
+  height: 140px;
+}
+
+.payments-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+
+// Altura reservada SIEMPRE (incluso vacía) — si no, los meses sin cobros
+// (sin esta etiqueta) tendrían un track más alto que los demás y las barras
+// no compartirían línea base.
+.payments-bar-value {
+  display: block;
+  height: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  margin-bottom: var(--tf-space-1);
+  white-space: nowrap;
+}
+
+.payments-bar-track {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+// Altura siempre al 100% del track; el valor real se representa con
+// transform: scaleY() desde abajo, nunca animando height (layout thrash —
+// ver PRODUCT.md, "velocidad sobre ceremonia").
+.payments-bar {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px 3px 0 0;
+  background: var(--tf-surface-5);
+  transform-origin: bottom;
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.payments-bar--current {
+  background: var(--tf-accent);
+}
+
+.payments-bar-label {
+  margin-top: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  text-transform: capitalize;
 }
 
 .panel-card-header,
@@ -233,74 +343,6 @@
   font-weight: 600;
   color: var(--tf-text);
   border-bottom: 1px solid var(--tf-border);
-}
-
-.evolution-card {
-  padding: var(--tf-space-5);
-}
-
-.evolution-card .panel-card-title {
-  padding: 0 0 var(--tf-space-4);
-  border-bottom: none;
-}
-
-.evolution-grid {
-  display: flex;
-  gap: var(--tf-space-6);
-  flex-wrap: wrap;
-}
-
-.evolution-item {
-  flex: 1;
-  min-width: 130px;
-}
-
-.evolution-item-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--tf-space-2);
-  margin-bottom: var(--tf-space-2);
-}
-
-.evolution-name {
-  min-width: 0;
-  font-size: var(--tf-font-size-sm);
-  font-weight: 500;
-  color: var(--tf-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-// Delta cronológico del peso — sin color de éxito/alerta (no se conoce si
-// el objetivo del cliente es ganar o perder), solo dirección y magnitud.
-.evolution-delta {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-muted);
-
-  ion-icon {
-    font-size: 12px;
-    color: var(--tf-text-secondary);
-  }
-}
-
-.evolution-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 56px;
-}
-
-.evolution-bar {
-  flex: 1;
-  border-radius: 2px 2px 0 0;
-  min-height: 4px;
 }
 
 // --- Actividad reciente (notificaciones del trainer) ---

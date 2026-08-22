@@ -46,6 +46,7 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   intake_submitted: 'document-text-outline',
   client_confirmed: 'checkmark-done-outline',
   meal_prescribed: 'restaurant-outline',
+  anthropometry_requested: 'body-outline',
 };
 
 // Mismo conjunto de tipos que navegan a algo en openNotification() — de
@@ -59,6 +60,7 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'routine_assigned',
   'goal_assigned',
   'meal_prescribed',
+  'anthropometry_requested',
 ]);
 
 // Tab Coach, Fase 1 — hub único de todo lo relacionado con los profesionales
@@ -270,6 +272,8 @@ export class CoachPage implements OnInit {
         return 'Tu profesional te ha confirmado';
       case 'meal_prescribed':
         return `Nueva comida pautada: ${p.mealName || ''}`;
+      case 'anthropometry_requested':
+        return 'Te ha pedido nuevas medidas corporales';
       default:
         return 'Nueva actividad';
     }
@@ -301,6 +305,9 @@ export class CoachPage implements OnInit {
         break;
       case 'meal_prescribed':
         void this.router.navigate(['/tabs/diets'], { state: { selectedDate: p.date } });
+        break;
+      case 'anthropometry_requested':
+        void this.router.navigate(['/weight-info']);
         break;
       // payment_created, task_assigned, intake_submitted, client_confirmed:
       // puramente informativas, sin pantalla propia a la que ir (task_assigned
