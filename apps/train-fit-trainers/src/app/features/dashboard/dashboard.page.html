@@ -23,6 +23,7 @@
       <div class="skeleton-block stat-card-skeleton"></div>
       <div class="skeleton-block stat-card-skeleton"></div>
     </div>
+    <div class="skeleton-block attention-panel-skeleton"></div>
     <div class="dashboard-grid">
       <div class="skeleton-block panel-card-skeleton"></div>
       <div class="skeleton-block panel-card-skeleton"></div>
@@ -46,12 +47,17 @@
         <span class="stat-value">{{ activeClientsCount }}</span>
         <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
-      <button type="button" class="stat-card stat-card--link" routerLink="/tabs/checkins">
+      <button type="button" class="stat-card stat-card--link" (click)="scrollToAttention()">
         <div class="stat-card-row">
-          <span class="stat-label">Respuestas de check-in</span>
-          <ion-icon name="clipboard-outline" class="stat-icon stat-icon--accent"></ion-icon>
+          <span class="stat-label">Check-ins pendientes</span>
+          <ion-icon
+            name="clipboard-outline"
+            class="stat-icon"
+            [class.stat-icon--danger]="pendingCheckinsCount > 0"
+            [class.stat-icon--muted]="pendingCheckinsCount === 0"
+          ></ion-icon>
         </div>
-        <span class="stat-value">{{ checkinResponsesCount }}</span>
+        <span class="stat-value">{{ pendingCheckinsCount }}</span>
         <ion-icon name="chevron-forward-outline" class="stat-chevron"></ion-icon>
       </button>
       <div class="stat-card" *ngIf="paymentsSummary as payments; else paymentsStatFallback">
@@ -92,6 +98,42 @@
         </div>
       </ng-template>
     </div>
+
+    <section class="panel-card attention-panel" id="attention-section">
+      <div class="panel-card-header">
+        <h2 class="panel-card-title">Requiere tu atención</h2>
+      </div>
+
+      <div class="detail-skeleton" *ngIf="attentionState === 'loading'">
+        <div class="skeleton-block" style="height: 48px;"></div>
+        <div class="skeleton-block" style="height: 48px;"></div>
+      </div>
+
+      <p class="empty-hint" *ngIf="attentionState === 'error'">
+        No se pudo cargar qué clientes requieren tu atención.
+      </p>
+
+      <p class="empty-hint" *ngIf="attentionState === 'loaded' && !attentionItems.length">
+        Ningún cliente requiere atención ahora mismo.
+      </p>
+
+      <button
+        class="attention-item"
+        *ngFor="let item of visibleAttentionItems; trackBy: trackByAttentionItem"
+        (click)="openAttentionItem(item)"
+      >
+        <ion-icon [name]="attentionIcon(item)" class="attention-item-icon" [class.attention-item-icon--urgent]="item.type === 'plan_ending_soon' && item.daysLeft !== null && item.daysLeft !== undefined && item.daysLeft <= 2"></ion-icon>
+        <div class="attention-item-info">
+          <span class="attention-item-name">{{ item.clientName }}</span>
+          <span class="attention-item-reason">{{ attentionLabel(item) }}</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="attention-item-chevron"></ion-icon>
+      </button>
+
+      <p class="empty-hint" *ngIf="hiddenAttentionItemsCount > 0">
+        +{{ hiddenAttentionItemsCount }} más
+      </p>
+    </section>
 
     <div class="dashboard-grid">
       <section class="panel-card activity-panel">

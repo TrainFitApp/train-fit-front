@@ -29,6 +29,11 @@
   border-radius: var(--tf-radius-lg);
 }
 
+.attention-panel-skeleton {
+  height: 132px;
+  border-radius: var(--tf-radius-lg);
+}
+
 // --- Estados vacío/error de página completa — mismo patrón que
 // clients.page.scss (icono + título + texto + CTA), no un párrafo suelto ---
 .state-message {
@@ -239,6 +244,72 @@
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   overflow: hidden;
+}
+
+// "Requiere tu atención" — entre el stat-grid (contexto) y el
+// dashboard-grid (actividad/cobros, ambos retrospectivos): la única sección
+// del dashboard que responde "qué hago ahora", así que va a ancho completo
+// y por delante de lo analítico, no al lado.
+.attention-panel {
+  margin-bottom: var(--tf-space-5);
+}
+
+.attention-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    background: var(--tf-surface-2);
+  }
+}
+
+.attention-item-icon {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--tf-accent);
+
+  // Plan a caducar en 2 días o menos: mismo tono de urgencia que "vencido"
+  // en la tarjeta de Cobros — no todos los motivos pesan igual.
+  &--urgent {
+    color: var(--tf-danger);
+  }
+}
+
+.attention-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attention-item-name {
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.attention-item-reason {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.attention-item-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
 }
 
 // Actividad reciente (accionable) primero, gráfica de cobros (analítica)

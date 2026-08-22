@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
-import { CheckinReportsApiService } from '../checkins/services/checkin-reports-api.service';
 import { TrainerNotificationsApiService } from './services/trainer-notifications-api.service';
 import { TrainerNotification, TrainerNotificationType } from './models/trainer-notification.model';
 import { TrainerPaymentsApiService } from './services/trainer-payments-api.service';
 import { PaymentsSummary } from './models/payments-summary.model';
+import { TrainerAttentionApiService } from './services/trainer-attention-api.service';
+import { AttentionItem, AttentionItemType } from './models/attention-item.model';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -15,6 +15,12 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   intake_submitted_trainer: 'document-text-outline',
   checkin_responded: 'clipboard-outline',
   nutrition_preferences_updated: 'nutrition-outline',
+};
+
+const ATTENTION_ICONS: Record<AttentionItemType, string> = {
+  pending_review: 'document-text-outline',
+  checkin_overdue: 'clipboard-outline',
+  plan_ending_soon: 'hourglass-outline',
 };
 
 // TASK-001 (MASTER_BACKLOG.md) — antes: KPIs, tareas y alertas 100% inventados
@@ -43,7 +49,6 @@ export class DashboardPage implements OnInit {
   public state: ViewState = 'loading';
 
   public activeClientsCount = 0;
-  public checkinResponsesCount = 0;
 
   public paymentsSummary: PaymentsSummary | null = null;
 
@@ -51,22 +56,32 @@ export class DashboardPage implements OnInit {
   public notificationsState: ViewState = 'loading';
   public notifications: TrainerNotification[] = [];
 
+  // --- "Requiere tu atención" — clientes que necesitan una acción del
+  // trainer ahora mismo (cuestionario por revisar, check-in vencido, plan a
+  // punto de caducar). Sustituye el antiguo stat "Respuestas de check-in"
+  // (conteo histórico, no accionable) por algo que sí dice a quién atender.
+  public attentionState: ViewState = 'loading';
+  public attentionItems: AttentionItem[] = [];
+  private static readonly ATTENTION_PREVIEW_COUNT = 8;
+
   constructor(
     private trainerClientsApi: TrainerClientsApiService,
-    private checkinReportsApi: CheckinReportsApiService,
     private trainerPaymentsApi: TrainerPaymentsApiService,
     private trainerNotificationsApi: TrainerNotificationsApiService,
+    private trainerAttentionApi: TrainerAttentionApiService,
     private router: Router
   ) {}
 
   public ngOnInit(): void {
     this.load();
     this.loadNotifications();
+    this.loadAttentionItems();
   }
 
   public ionViewWillEnter(): void {
     this.load();
     this.loadNotifications();
+    this.loadAttentionItems();
   }
 
   // Carga aparte del resto del dashboard — un fallo aquí no debe ocultar
@@ -150,13 +165,9 @@ export class DashboardPage implements OnInit {
 
   public load(): void {
     this.state = 'loading';
-    forkJoin({
-      clients: this.trainerClientsApi.getMyClients(),
-      checkinResponses: this.checkinReportsApi.getMyResponses(),
-    }).subscribe({
-      next: ({ clients, checkinResponses }) => {
+    this.trainerClientsApi.getMyClients().subscribe({
+      next: (clients) => {
         this.activeClientsCount = clients.length;
-        this.checkinResponsesCount = checkinResponses.length;
         this.state = 'loaded';
       },
       error: () => {
@@ -164,6 +175,68 @@ export class DashboardPage implements OnInit {
       },
     });
     this.loadPaymentsSummary();
+  }
+
+  // --- "Requiere tu atención" ---
+  public loadAttentionItems(): void {
+    this.attentionState = 'loading';
+    this.trainerAttentionApi.getMine().subscribe({
+      next: (items) => {
+        this.attentionItems = items;
+        this.attentionState = 'loaded';
+      },
+      error: () => {
+        this.attentionState = 'error';
+      },
+    });
+  }
+
+  public get visibleAttentionItems(): AttentionItem[] {
+    return this.attentionItems.slice(0, DashboardPage.ATTENTION_PREVIEW_COUNT);
+  }
+
+  public get hiddenAttentionItemsCount(): number {
+    return Math.max(0, this.attentionItems.length - DashboardPage.ATTENTION_PREVIEW_COUNT);
+  }
+
+  // Conteo real (no el de visibleAttentionItems, que puede estar recortado
+  // visualmente) — usado por la stat card "Check-ins pendientes".
+  public get pendingCheckinsCount(): number {
+    return this.attentionItems.filter((i) => i.type === 'checkin_overdue').length;
+  }
+
+  public attentionIcon(item: AttentionItem): string {
+    return ATTENTION_ICONS[item.type] || 'alert-circle-outline';
+  }
+
+  public attentionLabel(item: AttentionItem): string {
+    switch (item.type) {
+      case 'pending_review':
+        return 'Cuestionario por revisar';
+      case 'checkin_overdue':
+        return 'Check-in pendiente';
+      case 'plan_ending_soon':
+        if (item.daysLeft === 0) return 'Plan de nutrición caduca hoy';
+        return `Plan de nutrición caduca en ${item.daysLeft} día${item.daysLeft === 1 ? '' : 's'}`;
+      default:
+        return '';
+    }
+  }
+
+  public openAttentionItem(item: AttentionItem): void {
+    void this.router.navigate(['/tabs/clients', item.clientId]);
+  }
+
+  public trackByAttentionItem(_index: number, item: AttentionItem): string {
+    return `${item.type}-${item.clientId}`;
+  }
+
+  // La stat card "Check-ins pendientes" no tiene pantalla propia a la que
+  // navegar (los pendientes YA están listados abajo, en esta misma
+  // página) — mismo patrón que scrollToSection() en coach.page.ts (lado
+  // cliente) para "Pendiente de ti".
+  public scrollToAttention(): void {
+    document.getElementById('attention-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // Carga aparte (mismo criterio que loadNotifications): un fallo aquí no
