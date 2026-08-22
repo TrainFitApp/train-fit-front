@@ -1132,9 +1132,11 @@ export class ClientDetailPage implements OnInit {
     return { label: '', items: [this.emptyFoodItem()] };
   }
 
+  // Cada alternativa nueva se pone ARRIBA de las anteriores (más reciente
+  // primero) — así lo pidió el trainer, en vez de acumularse al final.
   public addAlternative(): void {
     if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    this.prescribeAlternatives.push(this.emptyAlternative());
+    this.prescribeAlternatives.unshift(this.emptyAlternative());
   }
 
   // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
@@ -1214,6 +1216,7 @@ export class ClientDetailPage implements OnInit {
       } as any,
       dietDay: (this.dietDay || {}) as any,
       meal: (this.prescribeMealTarget || {}) as any,
+      targetLabel: this.prescribeMealTarget?.name,
       confirmSelection: (items) =>
         this.applyTrainerSelection(altIndex, itemIndex, items),
       closeSelf: closeOuter,

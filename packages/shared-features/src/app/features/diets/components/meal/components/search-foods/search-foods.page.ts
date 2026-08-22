@@ -78,6 +78,17 @@ export interface TrainerFoodSelection {
   quantity: number | null;
 }
 
+// Fix — puente para que el panel de detalle EXTERNO (fuera de este
+// componente, ver ProductDetailPanelComponent) pueda marcar un
+// producto/receta como seleccionado en la cesta (como si se tocara el
+// checkbox) sin cerrar este buscador. SearchFoodsPage se registra a sí
+// mismo UNA vez vía SearchFoodsTrainerContext#registerSelectionApi; el
+// consumidor guarda la función recibida y la usa dentro del onAdd que le
+// pasa a ProductDetailPanelComponent en vez de cerrar/confirmar directo.
+export interface TrainerSelectionApi {
+  setSelected: (item: TrainerFoodSelection, quantity: number) => void;
+}
+
 export interface SearchFoodsTrainerContext {
   clientUser: User;
   dietDay: DietDay;
@@ -100,6 +111,13 @@ export interface SearchFoodsTrainerContext {
   // implementan (client-detail.page.ts, compose-meal.page.ts) mantienen su
   // comportamiento actual sin cambios.
   pickCreateRecipe?: () => void;
+  // Fix — "Añadir N a {{ meal?.name }}" quedaba en blanco cuando el
+  // consumidor no tiene un Meal real (p. ej. el constructor de plantillas,
+  // que solo tiene TemplateMeal.slot) o cuando el destino no es una comida
+  // (p. ej. una receta). Los consumidores que sí tienen un Meal real
+  // (client-detail.page.ts) no necesitan pasarlo — meal.name ya funciona.
+  targetLabel?: string;
+  registerSelectionApi?: (api: TrainerSelectionApi) => void;
   // Fix — sin esto, confirmTrainerSelection() cerraba el modal "más
   // reciente" del stack global de Ionic (ModalController.dismiss() sin id
   // targetea el último <ion-modal> presentado en TODO el documento, no
@@ -296,6 +314,9 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.trainerFavoriteProductIds = new Set(trainerUser?.archivedProducts || []);
       this.trainerFavoriteRecipeIds = new Set(trainerUser?.archivedRecipes || []);
       this.currentMode = "products";
+      this.trainerContext.registerSelectionApi?.({
+        setSelected: (item, quantity) => this.setTrainerItemSelected(item, quantity),
+      });
       // Mismo camino que un arranque en frío normal (ver search()/onModeChange
       // más abajo): con hasStartedFoodSearch=false, carga los productos
       // recientes de ESTA comida antes de que el entrenador escriba nada. Se
@@ -3045,6 +3066,25 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     );
   }
 
+  // Fix — cantidad custom actual de la cesta para esta card (product.
+  // component.ts/recipe-card.component.ts#trainerSelectedQuantity), para que
+  // la card muestre la cantidad/macros elegidas en vez de las de serie.
+  public getTrainerSelectedQuantity(product: IProduct): number | null {
+    return (
+      this.trainerSelection.find(
+        (item) => item.kind === "product" && item.product?._id === product._id,
+      )?.quantity ?? null
+    );
+  }
+
+  public getTrainerSelectedRecipeQuantity(recipe: Recipe): number | null {
+    return (
+      this.trainerSelection.find(
+        (item) => item.kind === "recipe" && item.recipe?._id === recipe._id,
+      )?.quantity ?? null
+    );
+  }
+
   public onTrainerProductToggle(event: { product: IProduct; checked: boolean }): void {
     if (event.checked) {
       if (this.isProductInTrainerSelection(event.product)) return;
@@ -3081,6 +3121,31 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       this.trainerSelection = this.trainerSelection.filter(
         (item) => !(item.kind === "recipe" && item.recipe?._id === event.recipe._id),
       );
+    }
+  }
+
+  // Fix — llamado desde fuera (ver registerSelectionApi más arriba) cuando
+  // el trainer pulsa "Añadir" DENTRO del panel de detalle externo: marca el
+  // producto/receta en la cesta con la cantidad que haya puesto ahí (como si
+  // hubiese tocado el checkbox), sin cerrar este buscador. Si ya estaba en
+  // la cesta, solo actualiza la cantidad en vez de duplicarlo.
+  public setTrainerItemSelected(item: TrainerFoodSelection, quantity: number): void {
+    if (item.kind === "product" && item.product) {
+      const product = item.product;
+      const existing = this.trainerSelection.find(
+        (i) => i.kind === "product" && i.product?._id === product._id,
+      );
+      this.trainerSelection = existing
+        ? this.trainerSelection.map((i) => (i === existing ? { ...i, quantity } : i))
+        : [...this.trainerSelection, { kind: "product", product, quantity }];
+    } else if (item.kind === "recipe" && item.recipe) {
+      const recipe = item.recipe;
+      const existing = this.trainerSelection.find(
+        (i) => i.kind === "recipe" && i.recipe?._id === recipe._id,
+      );
+      this.trainerSelection = existing
+        ? this.trainerSelection.map((i) => (i === existing ? { ...i, quantity } : i))
+        : [...this.trainerSelection, { kind: "recipe", recipe, quantity }];
     }
   }
 

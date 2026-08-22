@@ -87,6 +87,7 @@ export class ComposeMealPage {
       clientUser: {} as any,
       dietDay: {} as any,
       meal: {} as any,
+      targetLabel: this.mealSlot,
       confirmSelection: (selection) => this.applySelection(itemIndex, selection),
       closeSelf: closeOuter,
       pickCreateProduct: () => void this.confirmCreateProduct(itemIndex, closeOuter),

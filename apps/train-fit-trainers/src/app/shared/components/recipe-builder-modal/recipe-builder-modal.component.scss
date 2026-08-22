@@ -237,77 +237,190 @@
   margin: 10px 2px 0;
 }
 
-.instructions-toggle-btn {
-  width: 100%;
-  height: 40px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid var(--tf-border);
-  border-radius: 10px;
-  color: var(--tf-text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
+// Preparación — mismo patrón/estilo que ConfigRecipePage del cliente
+// (description-editor-wrapper, ver config-recipe.page.scss), portado con los
+// tokens de color del trainer (--tf-* en vez de --card-border/--text-*).
+.description-editor-wrapper {
+  margin-bottom: 20px;
 
-  &:hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
+  .description-trigger {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:active {
+      background: var(--tf-surface-1);
+    }
+
+    .trigger-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      letter-spacing: 0.2px;
+    }
+
+    .trigger-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .step-counter {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--tf-text-muted);
+    }
+
+    .trigger-icon {
+      font-size: 16px;
+      color: var(--tf-text-secondary);
+      flex-shrink: 0;
+    }
+  }
+
+  .description-card {
+    margin-top: 0;
+    padding: 12px;
+    border: 1px solid var(--tf-border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    background: var(--tf-surface-1);
   }
 }
 
-.instructions-section {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--tf-border);
-}
-
-.instruction-step {
+.description-steps-editor {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 10px;
-}
+  flex-direction: column;
+  gap: 10px;
 
-.instruction-step-index {
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: 50%;
-  color: var(--tf-text-muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
+  .description-step.editable {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+  }
 
-.instruction-step-input {
-  flex: 1;
-  min-width: 0;
-  resize: none;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: var(--tf-text);
-  font-size: 0.85rem;
-  font-family: inherit;
-  line-height: 1.4;
+  .description-step-index {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    color: var(--ion-color-primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+  }
 
-  &::placeholder {
+  .step-input-wrapper {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+
+    .description-step-input {
+      flex: 1;
+      min-width: 0;
+      resize: none;
+      background: var(--tf-surface-2);
+      border: 1px solid var(--tf-border);
+      border-radius: 10px;
+      padding: 10px 36px 10px 12px;
+      color: var(--tf-text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.4;
+      transition: border-color 0.15s ease;
+
+      &::placeholder {
+        color: var(--tf-text-muted);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--tf-accent);
+      }
+    }
+
+    .remove-step-btn-inline {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s ease;
+      z-index: 2;
+
+      ion-icon {
+        font-size: 0.9rem;
+        color: var(--tf-danger);
+        pointer-events: none;
+      }
+
+      &:hover {
+        background: rgba(var(--ion-color-danger-rgb), 0.15);
+      }
+    }
+  }
+
+  .add-step-btn-full {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.3);
+    background: rgba(var(--ion-color-primary-rgb), 0.05);
+    border-radius: 8px;
+    color: var(--ion-color-primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &:active {
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+    }
+
+    &[disabled] {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  }
+
+  .steps-limit-hint {
+    font-size: 0.74rem;
     color: var(--tf-text-muted);
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--tf-accent);
+    text-align: center;
+    margin-top: -4px;
   }
 }
 
