@@ -568,6 +568,7 @@
                     *ngFor="let day of weekdayOptions"
                     [class.is-active]="pattern.appliesTo.includes(day.value)"
                     [style.--pill-color]="weekdayPatternColor(i)"
+                    [style.--pill-bg]="weekdayPatternSoftBackground(i)"
                     [title]="day.label"
                   >{{ day.short }}</span>
                 </span>

@@ -514,10 +514,16 @@
   font-size: 0.66rem;
   font-weight: 700;
 
+  // impeccable/quieter — antes relleno SÓLIDO del color categórico + texto
+  // negro encima (el único sitio de esta pestaña sin el idioma de "tinte +
+  // borde + texto del color" que ya usan .in-use-badge/.assigned-badge más
+  // abajo). --pill-bg es un rgba() al 16% precalculado en TS
+  // (weekdayPatternSoftBackground) — un custom property no puede
+  // descomponerse en sus canales dentro de un rgba() en CSS puro.
   &.is-active {
-    background: var(--pill-color, var(--tf-accent));
+    background: var(--pill-bg, var(--tf-accent-soft));
     border-color: var(--pill-color, var(--tf-accent));
-    color: var(--tf-accent-contrast);
+    color: var(--pill-color, var(--tf-accent));
   }
 }
 

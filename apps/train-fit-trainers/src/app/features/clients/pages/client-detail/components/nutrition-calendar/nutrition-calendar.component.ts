@@ -27,7 +27,15 @@ const MONTH_LABELS = [
 // usada por el relleno de cumplimiento y el punto de excepción, para que
 // los tres canales visuales (fase / cumplimiento / excepción) no se
 // confundan entre sí en la misma celda.
-const PHASE_COLORS = ['#60a5fa', '#a78bfa', '#34d399', '#f472b6', '#fbbf24', '#38bdf8'];
+//
+// impeccable/quieter — versión desaturada (~S 92%→48%, L −6pp) de la
+// paleta original (Tailwind *-400: #60a5fa/#a78bfa/#34d399/#f472b6/#fbbf24/
+// #38bdf8), que competía en brillo con el resto del sistema (fondo casi
+// negro + un único acento naranja). Mismo hue por posición — sigue
+// distinguiendo fases a simple vista — pero ya no "chilla" al lado de
+// --tf-accent. MISMOS valores que weekdayPatternColors en client-detail.page.ts
+// (un solo origen conceptual, dos usos) — cambiar aquí implica cambiar allí.
+const PHASE_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2'];
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
@@ -318,10 +326,20 @@ export class NutritionCalendarComponent implements OnChanges {
     };
   }
 
+  // impeccable/quieter — antes llegaba a 1.0 (naranja SÓLIDO) al 100% de
+  // cumplimiento: en un mes con varios días perfectos, un bloque de celdas
+  // completamente opacas es lo más "chillón" de toda la pestaña, y de paso
+  // el número del día en blanco encima quedaba a 2.3:1 de contraste (falla
+  // AA, mínimo 3:1 para texto grande). Techo en 0.55 — sigue siendo la
+  // señal más fuerte del calendario (100% > 50% > 14% se distingue igual de
+  // bien), pero se queda en TINTE, nunca en bloque sólido; a 0.55 el número
+  // blanco queda en 5.7:1, con margen sobre el mínimo AA.
   public cellFillOpacity(cell: CalendarCell): number {
     const pct = cell.compliance?.completionPercentage;
     if (pct === null || pct === undefined) return 0;
-    return Math.max(0.14, pct / 100);
+    const MIN_OPACITY = 0.14;
+    const MAX_OPACITY = 0.55;
+    return MIN_OPACITY + (Math.max(0, Math.min(100, pct)) / 100) * (MAX_OPACITY - MIN_OPACITY);
   }
 
   public trackByCell(index: number, cell: CalendarCell): string {

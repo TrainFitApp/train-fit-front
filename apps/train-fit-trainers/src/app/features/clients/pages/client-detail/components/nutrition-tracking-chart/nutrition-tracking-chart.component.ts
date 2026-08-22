@@ -25,11 +25,16 @@ interface MetricOption {
 // con varias activas a la vez cada línea necesita distinguirse por sí
 // misma, ver isla de colores ya usada para tramos de plan en el calendario
 // (misma idea, paleta distinta para no confundir ambos conceptos).
+// impeccable/quieter — kcal se queda en el acento de marca (#fe9000, sin
+// tocar); protein/carbs/fat pasan a la MISMA paleta desaturada que
+// PHASE_COLORS/weekdayPatternColors (nutrition-calendar.component.ts /
+// client-detail.page.ts) — los originales (#60a5fa/#34d399/#f472b6) eran el
+// mismo trío Tailwind *-400 saturado que gritaba en las otras dos pantallas.
 const METRIC_OPTIONS: MetricOption[] = [
   { key: 'kcal', label: 'Kcal', unit: 'kcal', color: '#fe9000' },
-  { key: 'protein', label: 'Proteína', unit: 'g', color: '#60a5fa' },
-  { key: 'carbs', label: 'Carbohidratos', unit: 'g', color: '#34d399' },
-  { key: 'fat', label: 'Grasas', unit: 'g', color: '#f472b6' },
+  { key: 'protein', label: 'Proteína', unit: 'g', color: '#6e99cd' },
+  { key: 'carbs', label: 'Carbohidratos', unit: 'g', color: '#4d9b7f' },
+  { key: 'fat', label: 'Grasas', unit: 'g', color: '#cc7ba6' },
 ];
 
 const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"

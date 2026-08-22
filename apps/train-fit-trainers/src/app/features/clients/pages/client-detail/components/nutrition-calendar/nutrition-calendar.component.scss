@@ -282,8 +282,10 @@
   height: 8px;
   border-radius: 2px;
 
+  // impeccable/quieter — mismos 2 primeros tonos que PHASE_COLORS (ya
+  // desaturados), no reinventados aquí.
   &--phase {
-    background: linear-gradient(90deg, #60a5fa, #a78bfa);
+    background: linear-gradient(90deg, #6e99cd, #a18fd7);
     border-radius: 2px;
   }
 

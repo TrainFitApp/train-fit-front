@@ -236,7 +236,11 @@ export class ClientDetailPage implements OnInit {
   // categórico que las fases del calendario, PHASE_COLORS en
   // nutrition-calendar.component.ts) — con un solo patrón se queda en el
   // naranja de acento de siempre, sin inventar distinción donde no hace falta.
-  private readonly weekdayPatternColors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#38bdf8'];
+  // impeccable/quieter — mismo origen que PHASE_COLORS en
+  // nutrition-calendar.component.ts (paleta Tailwind *-400 original,
+  // desaturada ~48% de saturación / −6pp de luminosidad): un solo patrón
+  // conceptual, dos usos, cambiar aquí implica cambiar allí también.
+  private readonly weekdayPatternColors = ['#6e99cd', '#cc7ba6', '#4d9b7f', '#c09c41', '#a18fd7', '#4f9fc2'];
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
   // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
   // (30 días centrados en hoy) en vez de null: antes dependía de que el
@@ -1154,6 +1158,25 @@ export class ClientDetailPage implements OnInit {
     const patterns = this.activePlan?.recurringPatterns || [];
     if (patterns.length <= 1) return 'var(--tf-accent)';
     return this.weekdayPatternColors[index % this.weekdayPatternColors.length];
+  }
+
+  // impeccable/quieter — tinte suave (14%) del color del patrón, para el
+  // fondo de la píldora activa. Antes la píldora activa era un relleno
+  // SÓLIDO del color categórico + texto negro encima — el único sitio de
+  // esta pestaña que no seguía el idioma ya establecido de "fondo con
+  // tinte + borde + texto del color" (ver .in-use-badge/.assigned-badge):
+  // ahora lo sigue también, más calmado y más coherente con el resto.
+  public weekdayPatternSoftBackground(index: number): string {
+    const patterns = this.activePlan?.recurringPatterns || [];
+    if (patterns.length <= 1) return 'var(--tf-accent-soft)';
+    return this.hexToRgba(this.weekdayPatternColors[index % this.weekdayPatternColors.length], 0.16);
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   // --- Pautar comida (F12: 1 alternativa = aplicación inmediata;
