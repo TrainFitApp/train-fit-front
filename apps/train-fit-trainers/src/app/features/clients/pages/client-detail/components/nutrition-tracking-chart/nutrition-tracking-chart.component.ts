@@ -1,10 +1,10 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   Input,
   OnChanges,
   OnDestroy,
+  OnInit,
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
@@ -32,72 +32,68 @@ const METRIC_OPTIONS: MetricOption[] = [
   { key: 'fat', label: 'Grasas', unit: 'g', color: '#f472b6' },
 ];
 
-const RANGE_OPTIONS = [7, 30, 90];
 const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function isoDaysAgo(days: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  return date.toISOString().slice(0, 10);
-}
-
+// F20-terdecies — el rango de fechas (7/30/90d o uno elegido a mano) ya no
+// vive aquí, vive en <app-nutrition-calendar>: "qué fechas ver" se decide
+// en un único sitio (el calendario) y esta gráfica se limita a dibujar
+// [customRange]. Sin selector propio de rango — depende por completo de lo
+// que le llegue del padre.
+//
 // F20-ter/sexies — un único gráfico de LÍNEAS que compara, día a día, lo
-// PAUTADO contra lo REALMENTE consumido — con selector de rango de tiempo
-// (7/30/90d, o un rango exacto elegido en el calendario de al lado, ver
-// [customRange]) y selección MÚLTIPLE de qué valores comparar (kcal,
-// macros, varias a la vez). Como las escalas de kcal y gramos no son
-// comparables, cada métrica activa se dibuja normalizada a "% de lo
-// pautado ese día" (pautado siempre = 100%, línea de referencia
-// discontinua) en vez de en sus unidades crudas — así conviven en un único
-// eje sin que una tape a la otra. "Consumido" no es un simple sí/no de si
-// siguió el plan: incluye tanto los items pautados que marcó como hechos
-// como cualquier producto que el propio cliente haya añadido a la comida
-// sin que nadie se lo pautara (ver backend
+// PAUTADO contra lo REALMENTE consumido, con selección MÚLTIPLE de qué
+// valores comparar (kcal, macros, varias a la vez). Como las escalas de
+// kcal y gramos no son comparables, cada métrica activa se dibuja
+// normalizada a "% de lo pautado ese día" (pautado siempre = 100%, línea
+// de referencia discontinua) en vez de en sus unidades crudas — así
+// conviven en un único eje sin que una tape a la otra. "Consumido" no es
+// un simple sí/no de si siguió el plan: incluye tanto los items pautados
+// que marcó como hechos como cualquier producto que el propio cliente
+// haya añadido a la comida sin que nadie se lo pautara (ver backend
 // diet-days-nutrition-util.js#isItemConsumed).
 @Component({
   selector: 'app-nutrition-tracking-chart',
   templateUrl: './nutrition-tracking-chart.component.html',
   styleUrls: ['./nutrition-tracking-chart.component.scss'],
 })
-export class NutritionTrackingChartComponent implements OnChanges, AfterViewInit, OnDestroy {
+export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDestroy {
   @Input() clientId = '';
-  // F20-quinquies — rango exacto elegido en <app-nutrition-calendar>. Gana
-  // sobre los botones 7/30/90d hasta que el propio usuario pulse uno de
-  // esos botones aquí (ver presetOverride) o el calendario emita un rango
-  // nuevo.
+  // F20-quinquies — rango exacto elegido en <app-nutrition-calendar> (a
+  // mano o vía sus botones 7/30/90d). El calendario ya emite un rango por
+  // defecto al cargar, así que en la práctica esto rara vez llega null.
   @Input() customRange: { start: string; end: string } | null = null;
 
+  // static:true → resuelto antes de ngOnInit (a diferencia de
+  // ngAfterViewInit), mismo criterio que AnthropometryChartComponent.
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
 
   public readonly metricOptions = METRIC_OPTIONS;
-  public readonly rangeOptions = RANGE_OPTIONS;
   public activeMetrics = new Set<MetricKey>(['kcal']);
-  public rangeDays = 30;
   public dailyTracking: NutritionTrackingDay[] = [];
   public isLoading = false;
 
   private chart: Chart<'line'> | null = null;
-  private viewReady = false;
-  private presetOverride = false;
+  private initialized = false;
 
   constructor(private clientDetailApi: ClientDetailApiService) {}
 
-  public ngAfterViewInit(): void {
-    this.viewReady = true;
-    if (this.clientId) this.load();
+  // F20-sedecies — antes esto vivía en ngAfterViewInit, que se ejecuta
+  // DESPUÉS de que Angular ya haya comprobado la plantilla por primera
+  // vez: mutar isLoading ahí (usado en el *ngIf de la línea del
+  // empty-hint) disparaba NG0100 (ExpressionChangedAfterItHasBeenChecked),
+  // que en modo estricto puede llegar a abortar el pintado del componente
+  // entero — la gráfica se quedaba en blanco. static:true en el ViewChild
+  // ya deja chartCanvas listo antes de ngOnInit, así que no hacía falta
+  // esperar a ngAfterViewInit — mismo patrón que AnthropometryChartComponent.
+  public ngOnInit(): void {
+    this.initialized = true;
+    if (this.clientId && this.customRange) this.load();
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['customRange']) {
-      // Un rango nuevo del calendario siempre gana sobre un botón 7/30/90d
-      // que se hubiera pulsado antes.
-      this.presetOverride = false;
-    }
-    if (!this.viewReady || !this.clientId) return;
+    // La primera carga la hace ngOnInit — evita pedir los datos dos veces
+    // si clientId/customRange ya llegan puestos en el primer binding.
+    if (!this.initialized || !this.clientId || !this.customRange) return;
     if (changes['clientId'] || changes['customRange']) {
       this.load();
     }
@@ -131,28 +127,19 @@ export class NutritionTrackingChartComponent implements OnChanges, AfterViewInit
     return this.hexToRgba(option.color, 0.16);
   }
 
-  public selectRange(days: number): void {
-    this.presetOverride = true;
-    const changed = this.rangeDays !== days || !!this.customRange;
-    this.rangeDays = days;
-    if (changed) this.load();
-  }
-
-  public get isUsingCustomRange(): boolean {
-    return !!this.customRange && !this.presetOverride;
-  }
-
-  private effectiveRange(): { from: string; to: string } {
-    if (this.isUsingCustomRange && this.customRange) {
-      return { from: this.customRange.start, to: this.customRange.end };
-    }
-    return { from: isoDaysAgo(this.rangeDays), to: todayIso() };
+  // Días que cubre el rango actual — solo para no amontonar etiquetas en el
+  // eje X (ver maxTicksLimit), no afecta a qué se pide al backend.
+  private get rangeDayCount(): number {
+    if (!this.customRange) return 30;
+    const from = new Date(`${this.customRange.start}T00:00:00.000Z`).getTime();
+    const to = new Date(`${this.customRange.end}T00:00:00.000Z`).getTime();
+    return Math.max(1, Math.round((to - from) / 86400000) + 1);
   }
 
   private load(): void {
-    if (!this.clientId) return;
+    if (!this.clientId || !this.customRange) return;
     this.isLoading = true;
-    const { from, to } = this.effectiveRange();
+    const { start: from, end: to } = this.customRange;
     this.clientDetailApi.getNutritionTracking(this.clientId, from, to).subscribe({
       next: (summary) => {
         this.isLoading = false;
@@ -247,7 +234,7 @@ export class NutritionTrackingChartComponent implements OnChanges, AfterViewInit
               font: { size: 10 },
               maxRotation: 0,
               autoSkip: true,
-              maxTicksLimit: this.rangeDays > 30 ? 6 : 10,
+              maxTicksLimit: this.rangeDayCount > 30 ? 6 : 10,
             },
           },
           y: {

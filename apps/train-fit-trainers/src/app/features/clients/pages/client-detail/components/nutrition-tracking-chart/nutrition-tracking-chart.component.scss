@@ -53,42 +53,17 @@
   }
 }
 
-.tracking-chart__ranges {
-  display: flex;
-  gap: 4px;
-}
-
-.tracking-range-btn {
-  width: 30px;
-  height: 26px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-text-muted);
+// F20-terdecies — el rango ya no se elige aquí (ver el calendario de al
+// lado), solo se muestra cuál está activo.
+.tracking-chart__range-label {
+  flex-shrink: 0;
   font-size: 0.7rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out);
-
-  &.is-active {
-    background: var(--tf-surface-5);
-    color: var(--tf-text);
-  }
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 // F20-sexies — antes un único "% medio" (una sola métrica posible a la
 // vez); con selección múltiple, un badge por métrica activa.
-.tracking-chart__custom-range {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  color: var(--tf-accent-text);
-
-  ion-icon {
-    font-size: 12px;
-  }
-}
 
 .tracking-chart__summary {
   display: flex;

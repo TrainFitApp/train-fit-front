@@ -29,12 +29,29 @@ const MONTH_LABELS = [
 // confundan entre sí en la misma celda.
 const PHASE_COLORS = ['#60a5fa', '#a78bfa', '#34d399', '#f472b6', '#fbbf24', '#38bdf8'];
 
+// F20-terdecies — presets de rango (7/30/90d), antes vivían en
+// <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
+// "qué rango de fechas ver" es del calendario, no de la gráfica; la
+// gráfica solo se limita a dibujar lo que le llega por [customRange].
+const RANGE_PRESETS = [7, 30, 90];
+
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// deltaDays negativo = hacia atrás, positivo = hacia delante.
+function addIsoDays(deltaDays: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + deltaDays);
+  return date.toISOString().slice(0, 10);
 }
 
 function buildMonthGrid(year: number, month: number): CalendarCell[] {
@@ -85,13 +102,22 @@ export class NutritionCalendarComponent implements OnChanges {
   @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
 
   public readonly weekdayLabels = WEEKDAY_LABELS;
+  public readonly rangePresets = RANGE_PRESETS;
   public monthDate = new Date();
   public cells: CalendarCell[] = [];
   public isLoading = false;
-  public readonly todayIso = new Date().toISOString().slice(0, 10);
+  public readonly todayIso = todayIso();
   public isRangeMode = false;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
+  // F20-terdecies — qué preset está activo (null si el rango actual es uno
+  // elegido a mano). Puramente de UI (qué botón se ve resaltado); el rango
+  // real que ve la gráfica es siempre rangeStart/rangeEnd.
+  public activePreset: number | null = 30;
+  // F20-terdecies — día bajo el ratón mientras se elige el día final (entre
+  // el primer click y el segundo): previsualiza el tramo antes de
+  // confirmarlo, mismo gesto que cualquier selector de rango de fechas.
+  public hoverDate: string | null = null;
 
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
@@ -108,6 +134,10 @@ export class NutritionCalendarComponent implements OnChanges {
       this.monthDate = this.selectedDate ? new Date(`${this.selectedDate}T00:00:00.000Z`) : new Date();
       this.loadPlanPhases();
       this.loadMonth();
+      // Emite un rango por defecto (30d) sin esperar a que el usuario toque
+      // nada — <app-nutrition-tracking-chart> ya no tiene fallback propio,
+      // depende por completo de lo que le llegue aquí.
+      this.selectPresetRange(this.activePreset ?? 30);
     }
   }
 
@@ -151,6 +181,7 @@ export class NutritionCalendarComponent implements OnChanges {
       // medias.
       this.rangeStart = null;
       this.rangeEnd = null;
+      this.hoverDate = null;
     }
   }
 
@@ -158,6 +189,26 @@ export class NutritionCalendarComponent implements OnChanges {
     this.rangeStart = null;
     this.rangeEnd = null;
     this.isRangeMode = false;
+    this.activePreset = null;
+  }
+
+  // F20-quattuordecies — CENTRADO en hoy, no "los últimos N días": un
+  // trainer pautea a menudo unos días por delante (p. ej. un patrón
+  // recurring que cae la semana que viene) y quiere verlo reflejado en la
+  // gráfica sin tener que ir a "Seleccionar rango" a mano cada vez. Reparte
+  // días hacia atrás/adelante a partes iguales (algo más de historia que
+  // de futuro si N es impar — ceil hacia atrás).
+  public selectPresetRange(days: number): void {
+    const daysBack = Math.ceil(days / 2);
+    const daysForward = Math.floor(days / 2);
+    const start = addIsoDays(-daysBack);
+    const end = addIsoDays(daysForward);
+    this.rangeStart = start;
+    this.rangeEnd = end;
+    this.activePreset = days;
+    this.isRangeMode = false;
+    this.hoverDate = null;
+    this.rangeSelected.emit({ start, end });
   }
 
   private handleRangeClick(date: string): void {
@@ -166,6 +217,7 @@ export class NutritionCalendarComponent implements OnChanges {
       // completa) — empieza de cero en vez de extender el rango previo.
       this.rangeStart = date;
       this.rangeEnd = null;
+      this.activePreset = null;
       return;
     }
 
@@ -174,11 +226,30 @@ export class NutritionCalendarComponent implements OnChanges {
     this.rangeStart = start;
     this.rangeEnd = end;
     this.isRangeMode = false;
+    this.hoverDate = null;
     this.rangeSelected.emit({ start, end });
+  }
+
+  // F20-terdecies — con el día inicial ya puesto y el ratón encima de otro
+  // día (todavía sin confirmar), previsualiza el tramo completo hasta ahí.
+  public onCellHover(cell: CalendarCell): void {
+    if (!cell.date || !this.isRangeMode || !this.rangeStart || this.rangeEnd) return;
+    this.hoverDate = cell.date;
+  }
+
+  public onGridMouseLeave(): void {
+    this.hoverDate = null;
   }
 
   public isInRange(date: string | null): boolean {
     if (!date || !this.rangeStart) return false;
+
+    if (this.isRangeMode && !this.rangeEnd && this.hoverDate) {
+      const start = this.rangeStart <= this.hoverDate ? this.rangeStart : this.hoverDate;
+      const end = this.rangeStart <= this.hoverDate ? this.hoverDate : this.rangeStart;
+      return date >= start && date <= end;
+    }
+
     const end = this.rangeEnd || this.rangeStart;
     return date >= this.rangeStart && date <= end;
   }

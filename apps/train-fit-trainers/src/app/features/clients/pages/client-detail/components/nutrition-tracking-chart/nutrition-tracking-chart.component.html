@@ -14,22 +14,12 @@
         {{ option.label }}
       </button>
     </div>
-    <div class="tracking-chart__ranges">
-      <button
-        type="button"
-        class="tracking-range-btn"
-        *ngFor="let days of rangeOptions"
-        [class.is-active]="!isUsingCustomRange && rangeDays === days"
-        (click)="selectRange(days)"
-      >
-        {{ days }}d
-      </button>
-    </div>
-  </div>
-
-  <div class="tracking-chart__custom-range" *ngIf="isUsingCustomRange && customRange">
-    <ion-icon name="calendar-clear-outline"></ion-icon>
-    Rango del calendario: {{ customRange.start }} → {{ customRange.end }}
+    <!-- F20-terdecies — el rango (7/30/90d o a mano) se elige en el
+         calendario de al lado, no aquí; esta gráfica solo muestra qué
+         fechas está mirando. -->
+    <span class="tracking-chart__range-label" *ngIf="customRange">
+      {{ customRange.start }} → {{ customRange.end }}
+    </span>
   </div>
 
   <div class="tracking-chart__summary" *ngIf="daysWithPlan.length">

@@ -56,7 +56,7 @@
     </p>
 
     <p class="empty-hint" *ngIf="!activeRows.length">
-      {{ mode === 'sequential' ? 'Añade el primer día para empezar a construir la plantilla.' : 'Añade el primer menú para empezar.' }}
+      {{ emptyRowsHint }}
     </p>
 
     <p class="empty-hint uncovered-hint" *ngIf="mode === 'recurring' && activeRows.length && uncoveredWeekdays">
@@ -89,7 +89,7 @@
             <button
               type="button"
               class="board-day-remove"
-              [attr.aria-label]="mode === 'sequential' ? 'Eliminar día' : 'Eliminar menú'"
+              [attr.aria-label]="'Eliminar ' + rowNoun"
               (click)="removeRow(d)"
             >
               <ion-icon name="trash-outline"></ion-icon>
@@ -177,7 +177,7 @@
 
     <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
-      {{ mode === 'sequential' ? 'Añadir día' : 'Añadir menú' }}
+      {{ 'Añadir ' + rowNoun }}
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">

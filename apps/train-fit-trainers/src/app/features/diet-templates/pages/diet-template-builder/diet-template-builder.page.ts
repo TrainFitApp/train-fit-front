@@ -146,6 +146,23 @@ export class DietTemplateBuilderPage implements OnInit {
     return this.mode === 'sequential' ? this.maxDays : this.maxPatterns;
   }
 
+  // F20-duodecies — antes "Añadir menú"/"Eliminar menú" se usaba tal cual
+  // para recurring Y choice por igual (el código solo distinguía
+  // sequential de "todo lo demás"), aunque solo en choice es de verdad un
+  // menú intercambiable — en recurring es un patrón que decide el
+  // calendario, no el cliente (ver explicación dada al usuario). Un único
+  // getter para no repetir el ternario de 3 vías en cada sitio del html.
+  public get rowNoun(): string {
+    if (this.mode === 'sequential') return 'día';
+    if (this.mode === 'recurring') return 'patrón';
+    return 'menú';
+  }
+
+  public get emptyRowsHint(): string {
+    if (this.mode === 'sequential') return 'Añade el primer día para empezar a construir la plantilla.';
+    return `Añade el primer ${this.rowNoun} para empezar.`;
+  }
+
   public setMode(mode: TemplateMode): void {
     this.mode = mode;
   }

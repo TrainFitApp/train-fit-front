@@ -20,15 +20,33 @@
   </div>
 
   <div class="nutrition-calendar__toolbar">
-    <button
-      type="button"
-      class="range-toggle-btn"
-      [class.is-active]="isRangeMode"
-      (click)="toggleRangeMode()"
-    >
-      <ion-icon name="calendar-clear-outline"></ion-icon>
-      {{ rangeToggleLabel }}
-    </button>
+    <div class="nutrition-calendar__toolbar-row">
+      <button
+        type="button"
+        class="range-toggle-btn"
+        [class.is-active]="isRangeMode"
+        (click)="toggleRangeMode()"
+      >
+        <ion-icon name="calendar-clear-outline"></ion-icon>
+        {{ rangeToggleLabel }}
+      </button>
+
+      <!-- F20-terdecies — 7/30/90d, antes en la propia gráfica: viven aquí
+           junto al resto de controles de rango, para que "qué fechas ver"
+           se decida en un único sitio. -->
+      <div class="range-preset-group">
+        <button
+          type="button"
+          class="range-preset-btn"
+          *ngFor="let days of rangePresets"
+          [class.is-active]="activePreset === days"
+          (click)="selectPresetRange(days)"
+        >
+          {{ days }}d
+        </button>
+      </div>
+    </div>
+
     <button
       type="button"
       class="range-clear-btn"
@@ -45,7 +63,7 @@
     <span *ngFor="let label of weekdayLabels">{{ label }}</span>
   </div>
 
-  <div class="nutrition-calendar__grid" [class.is-loading]="isLoading">
+  <div class="nutrition-calendar__grid" [class.is-loading]="isLoading" (mouseleave)="onGridMouseLeave()">
     <button
       type="button"
       class="nutrition-calendar__cell"
@@ -65,6 +83,7 @@
       [style.--phase-color]="cell.phase?.color"
       [title]="cell.phase?.planName || null"
       (click)="selectDay(cell)"
+      (mouseenter)="onCellHover(cell)"
     >
       <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase"></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>

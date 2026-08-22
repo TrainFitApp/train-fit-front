@@ -61,6 +61,20 @@ import {
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
+// F20-quindecies — mismo reparto que NutritionCalendarComponent
+// #selectPresetRange(30): 15 días hacia atrás, 15 hacia delante. Vive aquí
+// TAMBIÉN (no solo en el calendario) para que customTrackingRange arranque
+// con un valor real desde el primer render, sin depender de que el
+// calendario emita a tiempo durante el arranque de Angular.
+function defaultTrackingRange(): { start: string; end: string } {
+  const addDays = (days: number): string => {
+    const date = new Date();
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  };
+  return { start: addDays(-15), end: addDays(15) };
+}
+
 @Component({
   selector: 'app-client-detail',
   templateUrl: 'client-detail.page.html',
@@ -223,10 +237,14 @@ export class ClientDetailPage implements OnInit {
   // nutrition-calendar.component.ts) — con un solo patrón se queda en el
   // naranja de acento de siempre, sin inventar distinción donde no hace falta.
   private readonly weekdayPatternColors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#38bdf8'];
-  // F20-quinquies — rango elegido en <app-nutrition-calendar> (click día
-  // inicio, día fin); controla las fechas de <app-nutrition-tracking-chart>
-  // en vez de sus botones 7/30/90d por defecto.
-  public customTrackingRange: { start: string; end: string } | null = null;
+  // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
+  // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
+  // (30 días centrados en hoy) en vez de null: antes dependía de que el
+  // calendario emitiera su rango por defecto en el momento justo del
+  // arranque de Angular — funcionaba en teoría, pero es una dependencia
+  // frágil entre dos componentes hermanos para algo que la propia página
+  // puede fijar de entrada sin depender de nadie.
+  public customTrackingRange: { start: string; end: string } | null = defaultTrackingRange();
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
   // Perezoso (solo al expandir) — no todos los trainers necesitan mirar

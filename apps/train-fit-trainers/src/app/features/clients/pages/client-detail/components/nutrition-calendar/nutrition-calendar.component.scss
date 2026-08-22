@@ -48,10 +48,50 @@
 // sin depender del color.
 .nutrition-calendar__toolbar {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nutrition-calendar__toolbar-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--tf-space-2);
   flex-wrap: wrap;
+}
+
+// F20-terdecies — 7/30/90d, mismo control visual que el resto del toolbar
+// (antes vivían en la gráfica como .tracking-range-btn).
+.range-preset-group {
+  display: flex;
+  gap: 4px;
+}
+
+.range-preset-btn {
+  width: 28px;
+  height: 24px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
 }
 
 .range-toggle-btn,
