@@ -29,11 +29,60 @@
     />
   </div>
 
-  <button type="button" class="instructions-toggle-btn" (click)="toggleInstructions()">
-    <ion-icon [name]="showInstructions ? 'chevron-up-outline' : 'list-outline'"></ion-icon>
-    {{ showInstructions ? 'Ocultar preparación' : 'Añadir preparación (opcional)' }}
-  </button>
+  <!-- Preparación — mismo patrón/estilo que ConfigRecipePage del cliente
+       (description-editor-wrapper: cabecera tipo acordeón + pasos debajo). -->
+  <div class="description-editor-wrapper">
+    <button type="button" class="description-trigger" (click)="toggleInstructions()">
+      <span class="trigger-title">Preparación</span>
+      <div class="trigger-right">
+        <span class="step-counter" *ngIf="instructions.length > 0">
+          {{ instructions.length }}/{{ maxInstructionSteps }}
+        </span>
+        <ion-icon [name]="showInstructions ? 'chevron-up' : 'chevron-down'" class="trigger-icon"></ion-icon>
+      </div>
+    </button>
 
+    <div class="description-card" *ngIf="showInstructions">
+      <div class="description-steps-editor">
+        <div class="description-step editable" *ngFor="let step of instructions; let i = index; trackBy: trackByIndex">
+          <span class="description-step-index">{{ i + 1 }}</span>
+          <div class="step-input-wrapper">
+            <textarea
+              class="description-step-input"
+              rows="1"
+              placeholder="Ej. Corta la zanahoria y ponla a hervir..."
+              [value]="step"
+              (input)="onInstructionChange(i, $any($event.target).value)"
+            ></textarea>
+            <button
+              type="button"
+              class="remove-step-btn-inline"
+              aria-label="Quitar paso"
+              *ngIf="instructions.length > 1"
+              (click)="removeInstructionStep(i)"
+            >
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="add-step-btn-full"
+          [disabled]="instructions.length >= maxInstructionSteps"
+          (click)="addInstructionStep()"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          <span>Añadir paso</span>
+        </button>
+        <span class="steps-limit-hint" *ngIf="instructions.length >= maxInstructionSteps">
+          Máximo {{ maxInstructionSteps }} pasos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Productos — debajo de la preparación, mismo orden que el cliente. -->
   <ng-container *ngFor="let ingredient of ingredients; let i = index">
     <div class="picked-food-card">
       <div class="picked-food-header">
@@ -93,38 +142,6 @@
   <p class="ingredients-hint" *ngIf="ingredients.length > 0 && ingredients.length < 2">
     Añade al menos 2 ingredientes para poder guardar.
   </p>
-
-  <div class="instructions-section" *ngIf="showInstructions">
-    <div class="instruction-step" *ngFor="let step of instructions; let i = index">
-      <span class="instruction-step-index">{{ i + 1 }}</span>
-      <textarea
-        class="instruction-step-input"
-        rows="2"
-        placeholder="Ej. Corta la zanahoria y ponla a hervir..."
-        [value]="step"
-        (input)="onInstructionChange(i, $any($event.target).value)"
-      ></textarea>
-      <button
-        type="button"
-        class="remove-btn"
-        aria-label="Quitar paso"
-        *ngIf="instructions.length > 1"
-        (click)="removeInstructionStep(i)"
-      >
-        <ion-icon name="trash-outline"></ion-icon>
-      </button>
-    </div>
-
-    <button
-      type="button"
-      class="add-ingredient-btn"
-      (click)="addInstructionStep()"
-      [disabled]="instructions.length >= maxInstructionSteps"
-    >
-      <ion-icon name="add-outline"></ion-icon>
-      Añadir paso
-    </button>
-  </div>
 </ion-content>
 
 <ion-footer class="builder-modal-footer">

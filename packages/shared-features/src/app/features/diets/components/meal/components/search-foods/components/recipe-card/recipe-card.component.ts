@@ -42,6 +42,12 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   // meal.customRecipes (dieta del CONSUMIDOR logueado, no la del cliente).
   @Input() trainerMultiSelect = false;
   @Input() isTrainerSelected = false;
+  // Fix — mismo motivo que ProductComponent#trainerSelectedQuantity: sin
+  // esto, getRecipeDisplayQuantity() nunca veía la cantidad custom puesta en
+  // la cesta/panel de detalle (foundInstance siempre null en modo
+  // entrenador, meal.customRecipes está vacío) y la card mostraba
+  // cantidad/macros por defecto de la receta.
+  @Input() trainerSelectedQuantity: number | null = null;
   @Input() isTrainerFavorite = false;
   // Fix (ronda detalle) — resaltado naranja al previsualizar (ver
   // ProductComponent#isTrainerFocused, mismo criterio).
@@ -93,7 +99,7 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes.meal || changes.recipe || changes.isTrainerSelected) {
+    if (changes.meal || changes.recipe || changes.isTrainerSelected || changes.trainerSelectedQuantity) {
       console.log('[RECIPE-CARD] Meal changed, rechecking:', this.recipe.name);
       this.checkIsChecked();
       this.calculateMacros();
@@ -216,6 +222,10 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private getRecipeDisplayQuantity(): number | null {
+    if (this.trainerMultiSelect && this.isTrainerSelected && this.trainerSelectedQuantity != null) {
+      return this.trainerSelectedQuantity;
+    }
+
     const total = this.getRecipeTotalCookedWeight();
     const consumed = this.getConsumedWeight();
 

@@ -10,6 +10,7 @@ import {
   SearchFoodsPage,
   SearchFoodsTrainerContext,
   TrainerFoodSelection,
+  TrainerSelectionApi,
 } from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
 import { ProductDetailPanelComponent } from '../product-detail-panel/product-detail-panel.component';
 
@@ -99,7 +100,16 @@ export class RecipeBuilderModalComponent {
         // sin backdrop propio para no oscurecerlo — se ve la receta
         // creciendo a la derecha mientras se buscan/crean ingredientes.
         // MISMO ancho que el panel de la receta ("del mismo tamaño").
-        cssClass: 'tf-panel-modal-left',
+        // ion-disable-focus-trap: con 2+ paneles abiertos a la vez, el focus
+        // trap global de Ionic (trapKeyboardFocus, ver @ionic/core/overlays)
+        // considera "activo" solo el último <ion-modal> presentado y
+        // devuelve a la fuerza el foco ahí en cuanto detecta un focus en
+        // OTRO overlay — ni dejaba escribir en el nombre/instrucciones de la
+        // receta mientras este buscador seguía abierto. Es la clase oficial
+        // de Ionic para optar por que este overlay NO participe en el
+        // focus trap (la usan ellos mismos para el sheet con backdrop
+        // desactivado, mismo caso que el nuestro: showBackdrop:false).
+        cssClass: 'tf-panel-modal-left ion-disable-focus-trap',
         // showBackdrop:false NO desactiva backdropDismiss — sin esto, el
         // backdrop invisible se comía el primer click sobre otra card en
         // vez de dejarlo pasar (había que tocar dos veces).
@@ -133,18 +143,21 @@ export class RecipeBuilderModalComponent {
       // (mismo criterio que ConfigRecipePage.addIngredients con
       // ingredientMode:true, que restringe la búsqueda a "products"): las
       // recetas marcadas en la selección múltiple se descartan aquí.
+      targetLabel: this.name.trim() || 'la receta',
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items, replaceIndex),
       closeSelf: closeOuter,
+      registerSelectionApi: (api) => (this.selectionApi = api),
       pickCreateProduct: () => void this.createIngredientProduct(closeOuter, replaceIndex),
       // Tocar una card SOLO previsualiza (naranja + panel de detalle
       // aparte, el más a la izquierda de los 3) — nunca añade.
-      onFocusItem: (item) => void this.showDetailPanel(item, null, closeOuter),
+      onFocusItem: (item) => void this.showDetailPanel(item, null),
     };
   }
 
   // --- Panel de detalle (ProductDetailPanelComponent) ---
   private pickerModal: HTMLIonModalElement | null = null;
   private detailModal: HTMLIonModalElement | null = null;
+  private selectionApi: TrainerSelectionApi | null = null;
   private suppressNextPickerCleanup = false;
 
   // No espera a que el panel anterior se cierre antes de abrir el nuevo:
@@ -155,8 +168,7 @@ export class RecipeBuilderModalComponent {
   // toque).
   private async showDetailPanel(
     item: TrainerFoodSelection,
-    ingredientIndex: number | null,
-    closeOuter?: () => void
+    ingredientIndex: number | null
   ): Promise<void> {
     const previous = this.detailModal;
     const modal = await this.modalController.create({
@@ -174,20 +186,23 @@ export class RecipeBuilderModalComponent {
         // "Añadir a la receta" directo desde el detalle — solo tiene
         // sentido para un producto que aún no está en la receta (los ya
         // añadidos se abren vía previewIngredient, con ingredientIndex).
-        // Cierra también el buscador (closeOuter): tras añadir, el trainer
-        // debe ver la receta creciendo, no seguir mirando resultados.
+        // Marca el producto en la cesta del buscador (como el checkbox) y
+        // solo cierra el propio panel de detalle — el buscador sigue
+        // abierto. "Añadir N a la receta" (abajo del buscador) es quien de
+        // verdad confirma y cierra todo.
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) => {
-                this.ingredients.push({ product: item.product!, quantity });
-                closeOuter?.();
-              }
+            ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
-        addLabel: 'Añadir a la receta',
+        addLabel: `Añadir a ${this.name.trim() || 'la receta'}`,
       },
       // 2 paneles de 420px delante (receta + buscador) mientras el
       // buscador esté abierto; solo 1 (la receta) si ya se cerró.
-      cssClass: this.pickerModal ? 'tf-panel-modal-detail-2' : 'tf-panel-modal-detail-1',
+      // ion-disable-focus-trap: ver comentario largo en openIngredientPicker
+      // más arriba — imprescindible aquí también, este panel es el que
+      // suele estar MÁS arriba de los 3 (el foco se secuestraba hacia él
+      // incluso queriendo escribir en el propio panel de detalle).
+      cssClass: (this.pickerModal ? 'tf-panel-modal-detail-2' : 'tf-panel-modal-detail-1') + ' ion-disable-focus-trap',
       showBackdrop: false,
       backdropDismiss: false,
     });
@@ -274,6 +289,17 @@ export class RecipeBuilderModalComponent {
 
   public onInstructionChange(index: number, value: string): void {
     this.instructions[index] = value.slice(0, this.maxInstructionStepLength);
+  }
+
+  // Fix — sin trackBy, *ngFor sobre instructions (array de strings) usa la
+  // identidad del propio string como clave: al escribir, onInstructionChange
+  // sustituye el string en ese índice por uno NUEVO, así que Angular veía
+  // "se borró este paso y se insertó otro" y RECREABA el <textarea> en cada
+  // pulsación — el foco se perdía y solo dejaba escribir un carácter de una
+  // vez. Con trackBy por índice, el elemento del array puede cambiar de
+  // valor sin que el nodo DOM se recree.
+  public trackByIndex(index: number): number {
+    return index;
   }
 
   public async save(): Promise<void> {

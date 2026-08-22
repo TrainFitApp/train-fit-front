@@ -22,6 +22,7 @@ import {
   SearchFoodsPage,
   SearchFoodsTrainerContext,
   TrainerFoodSelection,
+  TrainerSelectionApi,
 } from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
 import { MealSnippetPickerComponent } from '../../../../../../shared/components/meal-snippet-picker/meal-snippet-picker.component';
 import { MealSnippetApiService } from '../../../../../../shared/services/meal-snippet-api.service';
@@ -105,9 +106,11 @@ export class DayMealEditorModalComponent {
     return { label: '', items: [] };
   }
 
+  // Cada alternativa nueva se pone ARRIBA de las anteriores (más reciente
+  // primero) — así lo pidió el trainer, en vez de acumularse al final.
   public addAlternative(): void {
     if (this.meal.alternatives.length >= this.maxAlternatives) return;
-    this.meal.alternatives.push(this.emptyAlternative());
+    this.meal.alternatives.unshift(this.emptyAlternative());
   }
 
   // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
@@ -184,8 +187,10 @@ export class DayMealEditorModalComponent {
       clientUser: {} as any,
       dietDay: {} as any,
       meal: {} as any,
+      targetLabel: this.meal.slot,
       confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
       closeSelf: closeOuter,
+      registerSelectionApi: (api) => (this.selectionApi = api),
       // Fix5 — CreateProductPage es la pantalla real del cliente (macros/
       // micros/alérgenos/vegano/escáner), no el form reducido de
       // ProductSearchModalComponent. modalMode:true hace que, al guardar,
@@ -195,13 +200,15 @@ export class DayMealEditorModalComponent {
         void this.pickFromModal(CreateProductPage, { modalMode: true }, altIndex, itemIndex, closeOuter),
       pickCreateRecipe: () => void this.confirmPickedRecipe(altIndex, itemIndex, closeOuter),
       // Tocar una card en el buscador solo previsualiza (naranja + panel de
-      // detalle aparte) — nunca añade directamente, salvo que el propio
-      // trainer pulse "Añadir a la comida" DENTRO del panel de detalle
-      // (ver showDetailPanel).
+      // detalle aparte) — nunca añade directamente. Pulsar "Añadir a
+      // {slot}" DENTRO del panel de detalle marca el alimento en la cesta
+      // del buscador (como si se tocara el checkbox, con la cantidad puesta
+      // ahí) y solo cierra el propio panel de detalle — el buscador sigue
+      // abierto para seguir eligiendo. "Añadir N a {slot}" (abajo del
+      // buscador) es quien de verdad confirma y cierra todo.
       onFocusItem: (item) =>
         void this.showDetailPanel(item, (quantity) => {
-          this.applyTrainerSelection(altIndex, itemIndex, [{ ...item, quantity }]);
-          closeOuter();
+          this.selectionApi?.setSelected(item, quantity);
         }),
     };
   }
@@ -211,6 +218,7 @@ export class DayMealEditorModalComponent {
   // 420px delante (el propio buscador) mientras esté abierto.
   private pickerModal: HTMLIonModalElement | null = null;
   private detailModal: HTMLIonModalElement | null = null;
+  private selectionApi: TrainerSelectionApi | null = null;
 
   // No espera a que el panel anterior se cierre antes de abrir el nuevo
   // (ver comentario largo en RecipeBuilderModalComponent#showDetailPanel):
@@ -225,9 +233,14 @@ export class DayMealEditorModalComponent {
         recipe: item.kind === 'recipe' ? item.recipe : undefined,
         quantity: item.quantity,
         onAdd,
-        addLabel: 'Añadir a la comida',
+        addLabel: `Añadir a ${this.meal.slot}`,
       },
-      cssClass: 'tf-panel-modal-detail-1',
+      // ion-disable-focus-trap: ver comentario largo en
+      // RecipeBuilderModalComponent#openIngredientPicker — sin esto, el
+      // focus trap global de Ionic secuestraba el foco hacia este panel en
+      // cuanto estaba abierto, sin dejar escribir en las cantidades del
+      // editor de comida (ni, con el buscador también abierto, en él).
+      cssClass: 'tf-panel-modal-detail-1 ion-disable-focus-trap',
       // sin esto, el backdrop invisible (showBackdrop:false NO desactiva
       // backdropDismiss) se comía el primer click sobre otro producto —
       // lo interpretaba como "tocar fuera" y cerraba el panel en vez de

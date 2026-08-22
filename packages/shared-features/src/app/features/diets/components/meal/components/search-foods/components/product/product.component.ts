@@ -60,6 +60,14 @@ export class ProductComponent implements OnInit, OnChanges {
   public trainerMultiSelect = false;
   @Input()
   public isTrainerSelected = false;
+  // Fix — sin esto, la card de un producto ya marcado en la cesta (modo
+  // entrenador) mostraba SIEMPRE la cantidad/macros por defecto del
+  // producto (servingQuantity/100g), nunca la cantidad custom que el
+  // trainer puso en la cesta o en el panel de detalle — displayCustomProduct
+  // solo miraba meal.customProducts (vacío en modo entrenador) y
+  // recentCustomProduct (histórico, no la selección actual).
+  @Input()
+  public trainerSelectedQuantity: number | null = null;
   // TAREA5 (auditoría UX, Fase B) — favoritos personales del entrenador.
   @Input()
   public isTrainerFavorite = false;
@@ -146,6 +154,7 @@ export class ProductComponent implements OnInit, OnChanges {
       changes.meal ||
       changes.isIngredientSelected ||
       changes.isTrainerSelected ||
+      changes.trainerSelectedQuantity ||
       changes.product ||
       changes.recentCustomProduct
     ) {
@@ -160,6 +169,13 @@ export class ProductComponent implements OnInit, OnChanges {
   }
 
   public get displayCustomProduct(): CustomProduct | null {
+    if (this.trainerMultiSelect && this.isTrainerSelected && this.trainerSelectedQuantity != null) {
+      return {
+        ...(this.customProduct || {}),
+        product: this.product,
+        quantity: this.trainerSelectedQuantity,
+      } as CustomProduct;
+    }
     return this.customProduct || this.recentCustomProduct || null;
   }
 

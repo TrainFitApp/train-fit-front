@@ -27,7 +27,7 @@
 
   <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
     <div class="alternative-header" *ngIf="isMultiple">
-      <span class="alternative-title">Opción {{ i + 1 }}</span>
+      <span class="alternative-title">Opción {{ meal.alternatives.length - i }}</span>
       <div class="alternative-actions">
         <button
           type="button"

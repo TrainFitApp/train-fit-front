@@ -11,6 +11,7 @@ import {
   SearchFoodsPage,
   SearchFoodsTrainerContext,
   TrainerFoodSelection,
+  TrainerSelectionApi,
 } from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
 import { ProductDetailPanelComponent } from '../product-detail-panel/product-detail-panel.component';
 
@@ -90,7 +91,11 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
         },
         // A la izquierda de este panel (sigue visible detrás), sin backdrop
         // propio, MISMO ancho — mismo criterio que RecipeBuilderModalComponent.
-        cssClass: 'tf-panel-modal-left',
+        // ion-disable-focus-trap: ver comentario largo en
+        // RecipeBuilderModalComponent#openIngredientPicker — sin esto, el
+        // focus trap global de Ionic no dejaba escribir en los ingredientes
+        // de la receta mientras este buscador seguía abierto.
+        cssClass: 'tf-panel-modal-left ion-disable-focus-trap',
         showBackdrop: false,
         backdropDismiss: false,
       });
@@ -115,24 +120,26 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
       meal: {} as any,
       // Un ingrediente de receta solo puede ser un producto real — igual
       // que RecipeBuilderModalComponent, las recetas marcadas se descartan.
+      targetLabel: this.recipe.name || 'la receta',
       confirmSelection: (items: TrainerFoodSelection[]) => this.addIngredients(items),
       closeSelf: closeOuter,
+      registerSelectionApi: (api) => (this.selectionApi = api),
       pickCreateProduct: () => void this.createIngredientProduct(closeOuter),
-      onFocusItem: (item) => void this.showDetailPanel(item, null, closeOuter),
+      onFocusItem: (item) => void this.showDetailPanel(item, null),
     };
   }
 
   // --- Panel de detalle (ProductDetailPanelComponent) ---
   private pickerModal: HTMLIonModalElement | null = null;
   private detailModal: HTMLIonModalElement | null = null;
+  private selectionApi: TrainerSelectionApi | null = null;
   private suppressNextPickerCleanup = false;
 
   // No espera a que el panel anterior se cierre antes de abrir el nuevo
   // (ver comentario largo en RecipeBuilderModalComponent#showDetailPanel).
   private async showDetailPanel(
     item: TrainerFoodSelection,
-    ingredientIndex: number | null,
-    closeOuter?: () => void
+    ingredientIndex: number | null
   ): Promise<void> {
     const previous = this.detailModal;
     const modal = await this.modalController.create({
@@ -147,16 +154,16 @@ export class RecipeIngredientsEditorModalComponent implements OnInit {
                 if (ingredient) ingredient.quantity = value ?? 0;
               }
             : undefined,
+        // Marca el producto en la cesta del buscador (como el checkbox) y
+        // solo cierra el propio panel de detalle — igual que en
+        // RecipeBuilderModalComponent#showDetailPanel.
         onAdd:
           ingredientIndex === null && item.kind === 'product' && item.product
-            ? (quantity: number) => {
-                this.ingredients.push({ product: item.product!, quantity } as CustomProduct);
-                closeOuter?.();
-              }
+            ? (quantity: number) => this.selectionApi?.setSelected(item, quantity)
             : undefined,
-        addLabel: 'Añadir a la receta',
+        addLabel: `Añadir a ${this.recipe.name || 'la receta'}`,
       },
-      cssClass: this.pickerModal ? 'tf-panel-modal-detail-2' : 'tf-panel-modal-detail-1',
+      cssClass: (this.pickerModal ? 'tf-panel-modal-detail-2' : 'tf-panel-modal-detail-1') + ' ion-disable-focus-trap',
       showBackdrop: false,
       backdropDismiss: false,
     });
