@@ -500,6 +500,61 @@
   @include tf-panel-handle;
 }
 
+// Editor de día × comida: en escritorio deja de ser un bottom-sheet y pasa
+// a ser un panel anclado a la derecha, a pantalla completa — mismo
+// tratamiento que .tf-panel-modal (tokens.scss) para los ion-modal de
+// búsqueda, aplicado aquí a mano porque este panel es HTML propio, no un
+// modalController.create() (igual que .apply-panel en
+// checkin-templates.page.scss). Por debajo de 768px se queda como
+// bottom-sheet.
+@media (min-width: 768px) {
+  .day-editor-panel {
+    top: 0;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    max-width: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-top: none;
+    border-left: 1px solid var(--tf-border-strong);
+    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    animation: tf-panel-in-right 220ms var(--tf-ease-out);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .day-editor-panel .panel-handle {
+    display: none;
+  }
+
+  .day-editor-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .day-editor-panel .submit-button {
+    flex-shrink: 0;
+    margin-top: 12px;
+  }
+}
+
+@keyframes tf-panel-in-right {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 .panel-title {
   font-size: 1.05rem;
   font-weight: 700;

@@ -538,7 +538,10 @@
     "CLIPBOARD_SELECTION": "Selection in clipboard",
     "CLIPBOARD_TAP_TO_PASTE": "Tap a meal to paste",
     "ITEM_COUNT_SINGULAR": "item",
-    "ITEM_COUNT_PLURAL": "items"
+    "ITEM_COUNT_PLURAL": "items",
+    "PAUTADO_TITLE": "Prescribed",
+    "PAUTADO_SUBTITLE": "Products and recipes assigned by your coach",
+    "CONSUMED_UPDATE_ERROR": "Could not update"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copied to clipboard",
@@ -838,15 +841,7 @@
       "Saturday",
       "Sunday"
     ],
-    "DAYS_INITIALS": [
-      "M",
-      "T",
-      "W",
-      "T",
-      "F",
-      "S",
-      "S"
-    ],
+    "DAYS_INITIALS": ["M", "T", "W", "T", "F", "S", "S"],
     "WEIGHT_SAVED": "Weight saved",
     "WEEKLY_WEIGHT_CHART": "Weekly weight (kg)",
     "TREND_UP": "Gaining",

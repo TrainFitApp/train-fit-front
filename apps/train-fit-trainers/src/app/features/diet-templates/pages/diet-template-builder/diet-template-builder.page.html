@@ -144,15 +144,16 @@
 
   <!-- Editor de celda: día × comida (Fase 9 — 1+ alternativas por comida) -->
   <div class="panel-backdrop" *ngIf="editingCell" (click)="closeMealEditor()"></div>
-  <div class="panel-sheet" *ngIf="editingCell && editingMeal as meal">
+  <div class="panel-sheet day-editor-panel" *ngIf="editingCell && editingMeal as meal">
     <div class="panel-handle"></div>
-    <h3 class="panel-title">{{ editingDayLabel }} · {{ meal.slot }}</h3>
-    <p class="panel-hint" *ngIf="mode === 'choice'">
-      Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
-      cuál come ese día.
-    </p>
+    <div class="day-editor-body">
+      <h3 class="panel-title">{{ editingDayLabel }} · {{ meal.slot }}</h3>
+      <p class="panel-hint" *ngIf="mode === 'choice'">
+        Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
+        cuál come ese día.
+      </p>
 
-    <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
+      <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
       <div class="alternative-header" *ngIf="editingIsMultiple">
         <span class="alternative-title">Opción {{ i + 1 }}</span>
         <button
@@ -248,10 +249,11 @@
       </button>
     </div>
 
-    <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="meal.alternatives.length >= maxAlternatives">
-      <ion-icon name="add-outline"></ion-icon>
-      Añadir alternativa
-    </button>
+      <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="meal.alternatives.length >= maxAlternatives">
+        <ion-icon name="add-outline"></ion-icon>
+        Añadir alternativa
+      </button>
+    </div>
 
     <button type="button" class="submit-button" (click)="closeMealEditor()">Listo</button>
   </div>

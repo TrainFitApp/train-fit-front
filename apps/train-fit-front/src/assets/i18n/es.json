@@ -544,7 +544,10 @@
     "CLIPBOARD_SELECTION": "Selección en portapapeles",
     "CLIPBOARD_TAP_TO_PASTE": "Toca una comida para pegar",
     "ITEM_COUNT_SINGULAR": "elemento",
-    "ITEM_COUNT_PLURAL": "elementos"
+    "ITEM_COUNT_PLURAL": "elementos",
+    "PAUTADO_TITLE": "Pautado",
+    "PAUTADO_SUBTITLE": "Productos y recetas indicados por tu profesional",
+    "CONSUMED_UPDATE_ERROR": "No se pudo actualizar"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copiado al portapapeles",

@@ -11,6 +11,13 @@ export class CustomProduct {
   customRecipeId?: string;
   baseCustomProductId?: string | CustomProduct;
 
+  // Pautado por trainer (ver custom-product-schema.js backend) — presente
+  // si un profesional pautó este producto. Protegido de borrado/edición
+  // directa (backend, meal-service.js#assertMealEditable).
+  assignedByTrainerId?: string | null;
+  // El cliente lo marca como tomado — nunca bloqueado por assignedByTrainerId.
+  consumed?: boolean;
+
   // Overrides nutricionales
   energyKcal100g?: number | null;
   protein100g?: number | null;

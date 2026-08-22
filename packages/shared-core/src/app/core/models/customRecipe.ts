@@ -16,6 +16,10 @@ export interface CustomRecipe {
   removedBaseCustomProductIds?: string[];
   createdAt?: Date;
   updatedAt?: Date;
+  // Pautado por trainer (ver custom-recipe-schema.js backend) — mismo
+  // criterio que CustomProduct.assignedByTrainerId.
+  assignedByTrainerId?: string | null;
+  consumed?: boolean;
 }
 
 export interface CreateCustomRecipeDTO {

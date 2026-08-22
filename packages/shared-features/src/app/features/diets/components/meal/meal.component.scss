@@ -201,7 +201,62 @@
         &.recipe-item {
           border-left: 3px solid var(--ion-color-primary);
         }
+
+        // Pautado — mismo azul "alternative" que ya usa la nota anclada de
+        // ejercicio (custom-exercise.component.scss > .pinned-note-card):
+        // reutiliza esa tinta en vez de inventar un color nuevo, para que
+        // "esto lo pautó tu profesional" se lea con el mismo lenguaje
+        // visual en toda la app.
+        &.pautado-item {
+          background: rgba(var(--ion-color-alternative-rgb), 0.06);
+          border-color: rgba(var(--ion-color-alternative-rgb), 0.22);
+        }
       }
+
+      // Cabecera de la sección "Pautado" — mismo tratamiento que
+      // .pinned-note-card (gradiente + borde + sombra sutil en vez de una
+      // simple línea), para que destaque de un vistazo sin convertirse en
+      // una card enorme.
+      .pautado-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 14px;
+        margin: 16px 0 12px 0;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          rgba(var(--ion-color-alternative-rgb), 0.1) 0%,
+          rgba(var(--ion-color-alternative-rgb), 0.04) 100%
+        );
+        border: 1px solid rgba(var(--ion-color-alternative-rgb), 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+        ion-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--ion-color-alternative);
+
+          ion-icon {
+            font-size: 15px;
+            color: var(--ion-color-alternative);
+          }
+        }
+      }
+
+      .section-subtitle {
+        margin: 0;
+        padding: 0 4px;
+        font-size: 11px;
+        // Mismo gris tenue que .section-heading/.empty-hint en coach.page.scss
+        // (convención de texto secundario ya establecida en esta app),
+        // no una opacidad nueva inventada — y con contraste AA suficiente
+        // sobre el fondo casi negro de la card (#141414).
+        color: #8b8b8b;
+        font-weight: 400;
+      }
+
     }
   }
 
@@ -370,11 +425,36 @@ ion-spinner {
     }
   }
 
+  // Pautado ya marcado como consumido — mismo lenguaje visual que
+  // .pinned-note-card (custom-exercise.component.scss): gradiente diagonal
+  // suave + borde translúcido, no un borde sólido plano. Mismo verde que el
+  // checkbox (color="success"), extendido a toda la fila.
+  &.pautado-item.consumed {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--ion-color-success-rgb), 0.1) 0%,
+      rgba(var(--ion-color-success-rgb), 0.03) 100%
+    );
+    border-color: rgba(var(--ion-color-success-rgb), 0.3);
+
+    .item-header .item-name {
+      color: var(--ion-color-success);
+    }
+  }
+
   .item-actions ion-checkbox {
     --color-checked: var(--ion-color-primary);
     --border-color: var(--ion-color-primary);
     --background-checked: var(--ion-color-primary);
     --size: 22px;
+  }
+
+  // Checkbox "consumido" (Pautado) — mismo patrón que set.component.scss
+  // para marcar sets de entrenamiento (--size: 28px, verde de éxito),
+  // reutilizado tal cual en vez de inventar un estilo de checkbox nuevo.
+  .item-actions ion-checkbox[color="success"] {
+    --size: 28px;
+    --checkbox-background-checked: var(--ion-color-success);
   }
 }
 
@@ -393,6 +473,21 @@ ion-spinner {
     .meal-name {
       padding: 4px 8px;
     }
+  }
+
+  // Toda la comida completada según lo pautado — mismo tratamiento que
+  // .pinned-note-card/.pautado-item.consumed (gradiente diagonal suave +
+  // borde translúcido + sombra tenue), no un borde sólido plano encima del
+  // fondo oscuro de la card.
+  &.pautado-complete {
+    background: linear-gradient(
+      135deg,
+      rgba(var(--ion-color-success-rgb), 0.08) 0%,
+      rgba(var(--ion-color-success-rgb), 0.02) 100%
+    ),
+    #141414;
+    border-color: rgba(var(--ion-color-success-rgb), 0.28);
+    box-shadow: 0 2px 10px rgba(var(--ion-color-success-rgb), 0.1);
   }
 }
 
