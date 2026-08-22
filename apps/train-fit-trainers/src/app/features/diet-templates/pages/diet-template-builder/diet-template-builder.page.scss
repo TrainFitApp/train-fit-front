@@ -179,6 +179,22 @@
   margin-bottom: 8px;
 }
 
+// Caso contrario a uncoveredWeekdays (un día en 0 patrones vs. un día en 2+)
+// — en --tf-danger, no el acento de marca: aquí el riesgo real es que el
+// trainer crea que manda un patrón cuando en la práctica manda otro.
+.duplicate-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tf-danger);
+  margin-bottom: 8px;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+}
+
 .weekday-picker {
   display: flex;
   gap: 3px;
@@ -363,5 +379,107 @@
   &:hover {
     color: var(--tf-accent);
   }
+}
+
+// F20-septies — fila de totales de macros, misma cuadrícula que el resto
+// del tablero (una celda por columna). Mismos colores por macro que
+// <app-nutrition-tracking-chart> (proteína/carbos/grasa) — el mismo
+// lenguaje visual en todo el módulo de nutrición, no una paleta nueva
+// inventada aquí.
+.board-totals-header {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-faint);
+  background: var(--tf-surface-2);
+}
+
+.board-day-totals {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: var(--tf-surface-2);
+}
+
+.totals-kcal {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--tf-text);
+  line-height: 1;
+
+  small {
+    margin-left: 3px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    text-transform: uppercase;
+  }
+}
+
+.totals-macro-bar {
+  display: flex;
+  height: 5px;
+  border-radius: var(--tf-radius-pill);
+  overflow: hidden;
+  background: var(--tf-surface-4);
+}
+
+.totals-macro-segment {
+  flex-basis: 0;
+  flex-shrink: 0;
+  min-width: 0;
+  transition: flex-grow var(--tf-duration-base) var(--tf-ease-out);
+
+  &--protein {
+    background: #60a5fa;
+  }
+
+  &--carbs {
+    background: #34d399;
+  }
+
+  &--fat {
+    background: #f472b6;
+  }
+}
+
+.totals-macro-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.macro-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  &--protein {
+    color: #60a5fa;
+  }
+
+  &--carbs {
+    color: #34d399;
+  }
+
+  &--fat {
+    color: #f472b6;
+  }
+}
+
+.totals-empty {
+  font-size: 0.74rem;
+  color: var(--tf-text-faint);
+  font-style: italic;
 }
 

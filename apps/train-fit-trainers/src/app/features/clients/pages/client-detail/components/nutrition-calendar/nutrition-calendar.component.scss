@@ -42,6 +42,60 @@
   }
 }
 
+// F20-quinquies — modo "seleccionar rango": alterna el significado del
+// click en una celda (día suelto -> inicio/fin de rango). Botón de texto,
+// no un icono solo, para que el estado ("elige el día final") sea legible
+// sin depender del color.
+.nutrition-calendar__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.range-toggle-btn,
+.range-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 12px;
+  }
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+}
+
+.range-toggle-btn.is-active {
+  background: var(--tf-accent-soft);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent-text);
+}
+
+.range-clear-btn {
+  color: var(--tf-accent-text);
+  border-color: var(--tf-accent-soft-border);
+  font-variant-numeric: tabular-nums;
+}
+
 .nutrition-calendar__weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -85,9 +139,22 @@
     transform: translateY(-1px);
   }
 
+  // Días del mes anterior/siguiente que rellenan la cuadrícula — su número
+  // se ve, pero apagado (--tf-text-faint) y sin fondo/borde propio, para
+  // que quede claro de un vistazo que no pertenecen a este mes. Sin
+  // interacción (no clicables, ver [disabled]="!cell.date" en el html).
+  // opacity (no un color de texto/borde suelto) — reduce TODO el bloque de
+  // golpe, número incluido, así ningún acento de otra clase (seleccionado,
+  // rango, etc.) puede colarse aquí con fuerza visual. pointer-events:none
+  // asegura además que ningún estado :hover de otra regla llegue a
+  // aplicarse, venga de donde venga.
   &.is-blank {
-    background: transparent;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    opacity: 0.35;
     cursor: default;
+    pointer-events: none;
   }
 
   &.has-no-plan {
@@ -106,6 +173,25 @@
 
   &.has-exception.is-skip-exception {
     background: var(--tf-danger-soft);
+  }
+
+  // F20-quinquies — banda del rango elegido (calendario -> gráfica de
+  // seguimiento). Borde, no background sólido: el relleno de cumplimiento
+  // (--fill-opacity) sigue viéndose debajo, ambas señales conviven.
+  &.is-in-range {
+    border-color: var(--tf-accent-soft-border);
+    box-shadow: inset 0 0 0 1px var(--tf-accent-soft-border);
+  }
+
+  &.is-range-endpoint {
+    background: var(--tf-accent);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-contrast);
+    box-shadow: none;
+  }
+
+  &.is-range-pick-mode:not(.is-blank):hover {
+    border-color: var(--tf-accent);
   }
 }
 

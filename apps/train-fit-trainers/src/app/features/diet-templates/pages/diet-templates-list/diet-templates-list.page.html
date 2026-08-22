@@ -18,25 +18,27 @@
     solo la fecha de inicio, en vez de teclear cada comida de cada día a mano.
   </p>
 
-  <div class="input-wrapper">
-    <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-    <input
-      type="text"
-      class="input-field"
-      placeholder="Nombre de la nueva plantilla"
-      [(ngModel)]="newName"
-      (keyup.enter)="createAndEdit()"
-    />
+  <div class="create-template-row">
+    <div class="input-wrapper">
+      <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Nombre de la nueva plantilla"
+        [(ngModel)]="newName"
+        (keyup.enter)="createAndEdit()"
+      />
+    </div>
+    <button
+      type="button"
+      class="submit-button"
+      [disabled]="!newName.trim() || isCreating"
+      (click)="createAndEdit()"
+    >
+      <span *ngIf="!isCreating">Crear</span>
+      <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
+    </button>
   </div>
-  <button
-    type="button"
-    class="submit-button"
-    [disabled]="!newName.trim() || isCreating"
-    (click)="createAndEdit()"
-  >
-    <span *ngIf="!isCreating">Crear plantilla</span>
-    <ion-spinner name="dots" *ngIf="isCreating"></ion-spinner>
-  </button>
 
   <div class="templates-skeleton" *ngIf="state === 'loading'">
     <div class="template-row template-row--skeleton" *ngFor="let i of [1, 2, 3]">

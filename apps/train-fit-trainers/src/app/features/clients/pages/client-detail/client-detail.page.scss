@@ -312,12 +312,24 @@
 
 // --- F20-bis: etiqueta de la fecha vigente sobre <app-nutrition-calendar>
 // (la navegación en sí ya no son flechas, ver ese componente) ---
+// F20-nonies — al cambiar de día en el calendario ya no se recarga toda la
+// pestaña (ver onNutritionDateSelected): solo esta etiqueta se atenúa
+// brevemente mientras llega el dietDay del día nuevo.
 .date-nav-label {
   min-width: 88px;
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--tf-text-secondary);
+  transition: opacity var(--tf-duration-base) var(--tf-ease-out);
+
+  &.is-updating {
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .section-heading {
@@ -393,16 +405,44 @@
   border-radius: 12px;
 }
 
+// F20-quinquies — <button>, no <div>: toda la cabecera abre el editor de la
+// plantilla aplicada (ver openActivePlanTemplate()). Reset de estilos de
+// botón nativo + mismos estados táctiles que .goal-card/.template-row-main.
 .active-plan-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--tf-radius-sm);
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
 
   ion-icon {
     color: var(--tf-accent);
     font-size: 1.3rem;
     flex-shrink: 0;
   }
+
+  &:hover,
+  &:active {
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.active-plan-edit-icon {
+  font-size: 1.1rem !important;
+  color: var(--tf-text-muted) !important;
 }
 
 .active-plan-info {
@@ -422,6 +462,63 @@
 .active-plan-range {
   font-size: 0.76rem;
   color: var(--tf-text-muted);
+}
+
+// F20-octies — píldoras L/M/X/J/V/S/D: días de la semana que cubre un plan
+// "recurring" (ver PlanAssignment.recurringPatterns). Un grupo (nombre +
+// píldoras, color propio, ver weekdayPatternColor()) por patrón cuando hay
+// 2+; con 1 solo patrón, weekday-pattern-name no se pinta y queda igual
+// que antes. Los grupos se colocan en línea uno junto a otro y solo bajan
+// de renglón cuando ya no caben (flex-wrap en el contenedor, no dentro de
+// cada grupo) — aprovecha el ancho en vez de una fila por patrón siempre.
+// Deliberadamente pequeñas ("chiquititos") — son un vistazo, no un control.
+.active-plan-weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.weekday-pattern-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.weekday-pattern-name {
+  flex-shrink: 0;
+  min-width: 56px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weekday-pattern-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.weekday-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  color: var(--tf-text-faint);
+  font-size: 0.66rem;
+  font-weight: 700;
+
+  &.is-active {
+    background: var(--pill-color, var(--tf-accent));
+    border-color: var(--pill-color, var(--tf-accent));
+    color: var(--tf-accent-contrast);
+  }
 }
 
 // TASK-044 — aviso suave de días atascados en un plan "choice".

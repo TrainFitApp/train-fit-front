@@ -63,6 +63,14 @@
       Sin patrón asignado: {{ uncoveredWeekdays }}. Esos días no se tocará la dieta del cliente.
     </p>
 
+    <!-- Caso contrario a uncoveredWeekdays: un día marcado en 2+ patrones a
+         la vez. No bloquea guardar (puede ser algo temporal mientras se
+         reorganiza) pero deja claro cuál de los dos gana en la práctica. -->
+    <p class="empty-hint duplicate-hint" *ngIf="mode === 'recurring' && activeRows.length && duplicateWeekdaysWarning">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      Día repetido en varios patrones: {{ duplicateWeekdaysWarning }}.
+    </p>
+
     <!-- TAREA5 (auditoría UX, Fase C) — tablero semanal: columnas en días o
          menús, comidas en filas. Cada celda se arrastra entera (con todas
          sus alternativas) a otra celda para moverla; el icono de copiar la
@@ -128,6 +136,42 @@
             </button>
           </button>
         </ng-container>
+
+        <!-- F20-septies — total de macros del día/patrón, sumando la
+             primera alternativa de cada comida (la que rige cuando no hay
+             elección) — misma fila del tablero, así queda justo debajo de
+             lo que se está diseñando en esa columna. -->
+        <div class="board-totals-header">Totales</div>
+        <div
+          class="board-day-totals"
+          *ngFor="let row of activeRows; trackBy: trackByIndex"
+        >
+          <ng-container *ngIf="hasAnyItems(row); else emptyTotals">
+            <span class="totals-kcal">{{ dayTotals(row).kcal | number: '1.0-0' }}<small>kcal</small></span>
+            <div class="totals-macro-bar">
+              <span
+                class="totals-macro-segment totals-macro-segment--protein"
+                [style.flex-grow]="macroBarSegments(row).protein || 0.001"
+              ></span>
+              <span
+                class="totals-macro-segment totals-macro-segment--carbs"
+                [style.flex-grow]="macroBarSegments(row).carbs || 0.001"
+              ></span>
+              <span
+                class="totals-macro-segment totals-macro-segment--fat"
+                [style.flex-grow]="macroBarSegments(row).fat || 0.001"
+              ></span>
+            </div>
+            <div class="totals-macro-legend">
+              <span class="macro-tag macro-tag--protein">P {{ dayTotals(row).protein | number: '1.0-0' }}g</span>
+              <span class="macro-tag macro-tag--carbs">C {{ dayTotals(row).carbs | number: '1.0-0' }}g</span>
+              <span class="macro-tag macro-tag--fat">G {{ dayTotals(row).fat | number: '1.0-0' }}g</span>
+            </div>
+          </ng-container>
+          <ng-template #emptyTotals>
+            <span class="totals-empty">Sin alimentos</span>
+          </ng-template>
+        </div>
       </div>
     </div>
 

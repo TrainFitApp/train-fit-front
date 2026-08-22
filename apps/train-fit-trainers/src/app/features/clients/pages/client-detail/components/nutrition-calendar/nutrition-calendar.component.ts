@@ -43,14 +43,22 @@ function buildMonthGrid(year: number, month: number): CalendarCell[] {
   const totalDays = daysInMonth(year, month);
   const cells: CalendarCell[] = [];
 
-  for (let i = 0; i < firstWeekday; i++) {
-    cells.push({ date: null, dayNumber: null, compliance: null, phase: null });
+  // Días de relleno (mes anterior/siguiente) — muestran su número REAL en
+  // gris (ver .is-blank en el scss) en vez de una celda totalmente vacía,
+  // para que se note que son "el mes de al lado", no un hueco sin más.
+  // `date` se queda en null a propósito: siguen sin ser clicables ni
+  // formar parte de ningún rango, mismo comportamiento que antes.
+  const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  for (let i = firstWeekday - 1; i >= 0; i--) {
+    cells.push({ date: null, dayNumber: prevMonthLastDay - i, compliance: null, phase: null });
   }
   for (let day = 1; day <= totalDays; day++) {
     cells.push({ date: isoDate(year, month, day), dayNumber: day, compliance: null, phase: null });
   }
+  let nextMonthDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ date: null, dayNumber: null, compliance: null, phase: null });
+    cells.push({ date: null, dayNumber: nextMonthDay, compliance: null, phase: null });
+    nextMonthDay++;
   }
   return cells;
 }
@@ -70,12 +78,20 @@ export class NutritionCalendarComponent implements OnChanges {
   @Input() clientId = '';
   @Input() selectedDate = '';
   @Output() dateSelected = new EventEmitter<string>();
+  // F20-quinquies — click día inicio, click día fin: alimenta el rango de
+  // <app-nutrition-tracking-chart> en el padre. Modo aparte del click de
+  // día normal (selectDay/dateSelected) para no confundir "qué día veo el
+  // detalle" con "qué rango ve la gráfica de abajo".
+  @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
 
   public readonly weekdayLabels = WEEKDAY_LABELS;
   public monthDate = new Date();
   public cells: CalendarCell[] = [];
   public isLoading = false;
   public readonly todayIso = new Date().toISOString().slice(0, 10);
+  public isRangeMode = false;
+  public rangeStart: string | null = null;
+  public rangeEnd: string | null = null;
 
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
@@ -116,7 +132,55 @@ export class NutritionCalendarComponent implements OnChanges {
 
   public selectDay(cell: CalendarCell): void {
     if (!cell.date) return;
+    if (this.isRangeMode) {
+      this.handleRangeClick(cell.date);
+      return;
+    }
     this.dateSelected.emit(cell.date);
+  }
+
+  public get rangeToggleLabel(): string {
+    if (!this.isRangeMode) return 'Seleccionar rango';
+    return this.rangeStart ? 'Elige el día final' : 'Elige el día inicial';
+  }
+
+  public toggleRangeMode(): void {
+    this.isRangeMode = !this.isRangeMode;
+    if (this.isRangeMode) {
+      // Empieza una selección limpia — no arrastra el rango anterior a
+      // medias.
+      this.rangeStart = null;
+      this.rangeEnd = null;
+    }
+  }
+
+  public clearRange(): void {
+    this.rangeStart = null;
+    this.rangeEnd = null;
+    this.isRangeMode = false;
+  }
+
+  private handleRangeClick(date: string): void {
+    if (!this.rangeStart || this.rangeEnd) {
+      // Primer click de una selección nueva (o la anterior ya estaba
+      // completa) — empieza de cero en vez de extender el rango previo.
+      this.rangeStart = date;
+      this.rangeEnd = null;
+      return;
+    }
+
+    const start = this.rangeStart <= date ? this.rangeStart : date;
+    const end = this.rangeStart <= date ? date : this.rangeStart;
+    this.rangeStart = start;
+    this.rangeEnd = end;
+    this.isRangeMode = false;
+    this.rangeSelected.emit({ start, end });
+  }
+
+  public isInRange(date: string | null): boolean {
+    if (!date || !this.rangeStart) return false;
+    const end = this.rangeEnd || this.rangeStart;
+    return date >= this.rangeStart && date <= end;
   }
 
   private loadMonth(): void {

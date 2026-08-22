@@ -5,8 +5,11 @@
         type="button"
         class="tracking-chip"
         *ngFor="let option of metricOptions"
-        [class.is-active]="metric === option.key"
-        (click)="selectMetric(option.key)"
+        [class.is-active]="isMetricActive(option.key)"
+        [style.--chip-color]="option.color"
+        [style.--chip-bg]="chipBackground(option)"
+        [attr.aria-pressed]="isMetricActive(option.key)"
+        (click)="toggleMetric(option.key)"
       >
         {{ option.label }}
       </button>
@@ -16,7 +19,7 @@
         type="button"
         class="tracking-range-btn"
         *ngFor="let days of rangeOptions"
-        [class.is-active]="rangeDays === days"
+        [class.is-active]="!isUsingCustomRange && rangeDays === days"
         (click)="selectRange(days)"
       >
         {{ days }}d
@@ -24,13 +27,22 @@
     </div>
   </div>
 
-  <div class="tracking-chart__summary" *ngIf="averageAdherencePercentage !== null">
-    <span class="tracking-chart__summary-value">{{ averageAdherencePercentage }}%</span>
-    <span class="tracking-chart__summary-label">de lo pautado consumido, en promedio</span>
+  <div class="tracking-chart__custom-range" *ngIf="isUsingCustomRange && customRange">
+    <ion-icon name="calendar-clear-outline"></ion-icon>
+    Rango del calendario: {{ customRange.start }} → {{ customRange.end }}
+  </div>
+
+  <div class="tracking-chart__summary" *ngIf="daysWithPlan.length">
+    <span class="tracking-chart__summary-item" *ngFor="let option of activeMetricOptions">
+      <span class="tracking-chart__summary-dot" [style.background]="option.color"></span>
+      {{ option.label }}
+      <strong *ngIf="averagePercentageFor(option.key) !== null">{{ averagePercentageFor(option.key) }}%</strong>
+      <span class="tracking-chart__summary-muted" *ngIf="averagePercentageFor(option.key) === null">sin datos</span>
+    </span>
   </div>
 
   <p class="empty-hint" *ngIf="!isLoading && !daysWithPlan.length">
-    Sin {{ activeMetricOption.label.toLowerCase() }} pautada en este rango.
+    Sin nada pautado de lo seleccionado en este rango.
   </p>
 
   <div class="tracking-chart__canvas-wrap" [class.is-loading]="isLoading">
@@ -38,7 +50,10 @@
   </div>
 
   <div class="tracking-chart__legend">
-    <span class="legend-item"><span class="legend-swatch legend-swatch--planned"></span>Pautado</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--consumed"></span>Consumido</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--reference"></span>Pautado (100%)</span>
+    <span class="legend-item" *ngFor="let option of activeMetricOptions; trackBy: trackByMetricKey">
+      <span class="legend-swatch" [style.background]="option.color"></span>
+      {{ option.label }}
+    </span>
   </div>
 </div>

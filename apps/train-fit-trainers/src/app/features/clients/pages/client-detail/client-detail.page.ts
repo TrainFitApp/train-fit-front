@@ -17,6 +17,7 @@ import { SelectClientsModalComponent } from '../../components/select-clients-mod
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
 import {
   DietException,
   PlanAssignment,
@@ -214,6 +215,18 @@ export class ClientDetailPage implements OnInit {
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
   public activePlan: PlanAssignment | null = null;
   public isCreatingException = false;
+  // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
+  // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
+  public readonly weekdayOptions = WEEKDAYS;
+  // F20-octies — un color por patrón cuando el plan tiene 2+ (mismo criterio
+  // categórico que las fases del calendario, PHASE_COLORS en
+  // nutrition-calendar.component.ts) — con un solo patrón se queda en el
+  // naranja de acento de siempre, sin inventar distinción donde no hace falta.
+  private readonly weekdayPatternColors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa', '#38bdf8'];
+  // F20-quinquies — rango elegido en <app-nutrition-calendar> (click día
+  // inicio, día fin); controla las fechas de <app-nutrition-tracking-chart>
+  // en vez de sus botones 7/30/90d por defecto.
+  public customTrackingRange: { start: string; end: string } | null = null;
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
   // Perezoso (solo al expandir) — no todos los trainers necesitan mirar
@@ -813,11 +826,41 @@ export class ClientDetailPage implements OnInit {
     void this.loadActivePlan();
   }
 
+  // F20-quinquies — llamado por <app-nutrition-calendar> al completar una
+  // selección de rango (click día inicio, click día fin); alimenta
+  // <app-nutrition-tracking-chart> con ese rango exacto en vez de sus
+  // botones 7/30/90d.
+  public onNutritionRangeSelected(range: { start: string; end: string }): void {
+    this.customTrackingRange = range;
+  }
+
+  // F20-nonies — solo lo que DE VERDAD depende del día seleccionado
+  // (dietDay) se vuelve a pedir aquí; goals/adherence/complianceSummary/
+  // nutritionPreferences/activePlan no cambian según qué día se esté
+  // mirando, así que no hace falta releerlos ni pasar nutritionState por
+  // 'loading' (eso disparaba el skeleton de LA PESTAÑA ENTERA en cada
+  // click de día — demasiado, para lo poco que realmente cambia).
+  // isSwitchingDate solo atenúa la etiqueta de fecha mientras llega el
+  // nuevo dietDay, en vez de un skeleton.
+  public isSwitchingDate = false;
+
   // F20-bis — llamado por <app-nutrition-calendar> al hacer click en un día;
   // sustituye a los antiguos botones ±1 día (changeNutritionDate), que no
   // daban vista de conjunto ni salto directo a una fecha.
   public onNutritionDateSelected(date: string): void {
-    this.loadNutrition(date);
+    if (date === this.nutritionDate) return;
+    this.nutritionDate = date;
+    this.isSwitchingDate = true;
+    this.clientDetailApi.getDiet(this.clientId, date).subscribe({
+      next: (dietDay) => {
+        this.dietDay = dietDay;
+        this.isSwitchingDate = false;
+      },
+      error: () => {
+        this.dietDay = null;
+        this.isSwitchingDate = false;
+      },
+    });
   }
 
   private todayIsoDate(): string {
@@ -1076,6 +1119,23 @@ export class ClientDetailPage implements OnInit {
 
   public goToDietTemplates(): void {
     this.router.navigate(['/tabs/diet-templates']);
+  }
+
+  // F20-quinquies — la tarjeta de plan activo pasa a ser clicable: abre el
+  // editor de LA plantilla aplicada (mismo builder que "Gestionar
+  // plantillas", pero directo a esta en vez de a la lista completa).
+  public openActivePlanTemplate(): void {
+    if (!this.activePlan?.planId) return;
+    this.router.navigate(['/tabs/diet-templates', this.activePlan.planId]);
+  }
+
+  // F20-octies — color de las píldoras del patrón `index`. Con un solo
+  // patrón activo no hay nada que distinguir: se queda en el acento de
+  // siempre en vez de un color categórico arbitrario.
+  public weekdayPatternColor(index: number): string {
+    const patterns = this.activePlan?.recurringPatterns || [];
+    if (patterns.length <= 1) return 'var(--tf-accent)';
+    return this.weekdayPatternColors[index % this.weekdayPatternColors.length];
   }
 
   // --- Pautar comida (F12: 1 alternativa = aplicación inmediata;

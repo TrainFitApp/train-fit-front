@@ -513,44 +513,11 @@
              activa, historial) — lo que cambia día a día, con todo el ancho
              disponible en vez de compartirlo con la columna de contexto. -->
         <div class="nutrition-main">
-          <!-- F20-bis — calendario y tendencia lado a lado (no apilados): en
-               pantallas anchas se benefician de más ancho, no de quedarse
-               comprimidos en una columna estrecha. Medidas (antropometría)
-               vive en su propio tab, ver "=== MEDIDAS ===" más arriba. -->
-          <div class="nutrition-charts-row">
-            <div class="nutrition-calendar-col">
-              <!-- F20-bis — calendario de mes, sustituye al stepper ±1 día
-                   (sin vista de conjunto ni salto directo a una fecha). -->
-              <div class="section-row">
-                <h2 class="section-heading">Dieta</h2>
-                <span class="date-nav-label">{{ nutritionDateLabel }}</span>
-              </div>
-              <div class="nutrition-card">
-                <app-nutrition-calendar
-                  [clientId]="clientId"
-                  [selectedDate]="nutritionDate"
-                  (dateSelected)="onNutritionDateSelected($event)"
-                ></app-nutrition-calendar>
-              </div>
-            </div>
-
-            <!-- F20-ter — pautado vs. consumido real (no solo si siguió el
-                 plan: cuenta también lo que el cliente añadió por su
-                 cuenta a la comida), con selector de rango y de valor a
-                 comparar. Sustituye a las dos gráficas separadas de antes
-                 (kcal consumidas / cumplimiento). -->
-            <div class="nutrition-chart-col">
-              <div class="section-row">
-                <h2 class="section-heading">Seguimiento</h2>
-              </div>
-              <div class="nutrition-card">
-                <app-nutrition-tracking-chart [clientId]="clientId"></app-nutrition-tracking-chart>
-              </div>
-            </div>
-          </div>
-
           <!-- Replanteamiento MVP (nutrición) — aplicar una plantilla ya
-               construida a este cliente, en vez de pautar comida a comida. -->
+               construida a este cliente, en vez de pautar comida a comida.
+               Junto con la tarjeta de plan activo, va ANTES del calendario/
+               gráfica: es lo primero que se decide (qué plan rige), lo de
+               abajo (calendario/seguimiento) es la consecuencia de eso. -->
           <div class="template-actions-row">
             <button type="button" class="add-button" (click)="openApplyTemplateModal()">
               <ion-icon name="download-outline"></ion-icon>
@@ -564,7 +531,12 @@
           <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
                cuándo, sin tener que ir día por día para averiguarlo. -->
           <div class="active-plan-card" *ngIf="activePlan">
-            <div class="active-plan-header">
+            <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
+                 editar la plantilla aplicada, sin pasar por "Gestionar
+                 plantillas" y buscarla en la lista. Las acciones de abajo
+                 (excepción / siguiente fase) se quedan como botones
+                 independientes, no forman parte de este click. -->
+            <button type="button" class="active-plan-header" (click)="openActivePlanTemplate()">
               <ion-icon name="calendar-number-outline"></ion-icon>
               <div class="active-plan-info">
                 <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
@@ -573,7 +545,35 @@
                   · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
                 </span>
               </div>
+              <ion-icon name="create-outline" class="active-plan-edit-icon"></ion-icon>
+            </button>
+
+            <!-- F20-quinquies — qué días de la semana cubre este plan
+                 (mode:'recurring' solamente; sequential/choice no tienen un
+                 día de la semana fijo, ver plan-resolver.js). -->
+            <!-- F20-octies — un patrón por fila cuando hay 2+ (con su
+                 nombre y color propios, para distinguir "patrón A cubre
+                 L/M/S" de "patrón B cubre X/D"); con 1 solo patrón se queda
+                 igual que antes, sin nombre de por medio. -->
+            <div class="active-plan-weekdays" *ngIf="activePlan.mode === 'recurring' && activePlan.recurringPatterns?.length">
+              <div class="weekday-pattern-row" *ngFor="let pattern of activePlan.recurringPatterns; let i = index">
+                <span
+                  class="weekday-pattern-name"
+                  *ngIf="activePlan.recurringPatterns!.length > 1"
+                  [style.color]="weekdayPatternColor(i)"
+                >{{ pattern.name }}</span>
+                <span class="weekday-pattern-pills">
+                  <span
+                    class="weekday-pill"
+                    *ngFor="let day of weekdayOptions"
+                    [class.is-active]="pattern.appliesTo.includes(day.value)"
+                    [style.--pill-color]="weekdayPatternColor(i)"
+                    [title]="day.label"
+                  >{{ day.short }}</span>
+                </span>
+              </div>
             </div>
+
             <!-- TASK-044 (MASTER_BACKLOG.md) — antes un plan "choice" nunca
                  avisaba de días atascados sin elegir menú (a diferencia del
                  aviso ya existente para "recurring" en el propio editor de
@@ -597,6 +597,46 @@
                 <ion-icon name="arrow-forward-circle-outline"></ion-icon>
                 Programar siguiente fase
               </button>
+            </div>
+          </div>
+
+          <!-- F20-bis — calendario y tendencia lado a lado (no apilados): en
+               pantallas anchas se benefician de más ancho, no de quedarse
+               comprimidos en una columna estrecha. Medidas (antropometría)
+               vive en su propio tab, ver "=== MEDIDAS ===" más arriba. -->
+          <div class="nutrition-charts-row">
+            <div class="nutrition-calendar-col">
+              <!-- F20-bis — calendario de mes, sustituye al stepper ±1 día
+                   (sin vista de conjunto ni salto directo a una fecha). -->
+              <div class="section-row">
+                <h2 class="section-heading">Dieta</h2>
+                <span class="date-nav-label" [class.is-updating]="isSwitchingDate">{{ nutritionDateLabel }}</span>
+              </div>
+              <div class="nutrition-card">
+                <app-nutrition-calendar
+                  [clientId]="clientId"
+                  [selectedDate]="nutritionDate"
+                  (dateSelected)="onNutritionDateSelected($event)"
+                  (rangeSelected)="onNutritionRangeSelected($event)"
+                ></app-nutrition-calendar>
+              </div>
+            </div>
+
+            <!-- F20-ter — pautado vs. consumido real (no solo si siguió el
+                 plan: cuenta también lo que el cliente añadió por su
+                 cuenta a la comida), con selector de rango y de valor a
+                 comparar. Sustituye a las dos gráficas separadas de antes
+                 (kcal consumidas / cumplimiento). -->
+            <div class="nutrition-chart-col">
+              <div class="section-row">
+                <h2 class="section-heading">Seguimiento</h2>
+              </div>
+              <div class="nutrition-card">
+                <app-nutrition-tracking-chart
+                  [clientId]="clientId"
+                  [customRange]="customTrackingRange"
+                ></app-nutrition-tracking-chart>
+              </div>
             </div>
           </div>
 

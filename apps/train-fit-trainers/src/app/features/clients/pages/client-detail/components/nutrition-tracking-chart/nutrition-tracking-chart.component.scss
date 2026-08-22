@@ -26,6 +26,10 @@
   gap: 4px;
 }
 
+// F20-sexies — selección MÚLTIPLE (antes single-select): el color activo es
+// el propio de esa métrica (--chip-color, mismo color que su línea en el
+// gráfico), no el naranja genérico de acento — con varias a la vez, cada
+// chip necesita anticipar de qué color será su línea.
 .tracking-chip {
   padding: 4px 10px;
   background: var(--tf-surface-2);
@@ -37,10 +41,15 @@
   cursor: pointer;
   transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
 
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+
   &.is-active {
-    background: var(--tf-accent-soft);
-    border-color: var(--tf-accent);
-    color: var(--tf-accent-text);
+    background: var(--chip-bg);
+    border-color: var(--chip-color);
+    color: var(--chip-color);
   }
 }
 
@@ -67,21 +76,50 @@
   }
 }
 
+// F20-sexies — antes un único "% medio" (una sola métrica posible a la
+// vez); con selección múltiple, un badge por métrica activa.
+.tracking-chart__custom-range {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--tf-accent-text);
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
 .tracking-chart__summary {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
 }
 
-.tracking-chart__summary-value {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--tf-accent-text);
-}
-
-.tracking-chart__summary-label {
+.tracking-chart__summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.76rem;
   color: var(--tf-text-muted);
+
+  strong {
+    color: var(--tf-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+}
+
+.tracking-chart__summary-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tracking-chart__summary-muted {
+  color: var(--tf-text-faint);
+  font-style: italic;
 }
 
 // Chart.js (línea, no barras — ver el componente): necesita un contenedor
@@ -115,11 +153,7 @@
   height: 10px;
   border-radius: 3px;
 
-  &--planned {
-    background: var(--tf-surface-5);
-  }
-
-  &--consumed {
-    background: var(--tf-accent);
+  &--reference {
+    background: repeating-linear-gradient(90deg, #8b8b8b 0 3px, transparent 3px 6px);
   }
 }

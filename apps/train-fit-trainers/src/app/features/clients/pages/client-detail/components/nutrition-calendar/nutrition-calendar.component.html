@@ -19,6 +19,28 @@
     </button>
   </div>
 
+  <div class="nutrition-calendar__toolbar">
+    <button
+      type="button"
+      class="range-toggle-btn"
+      [class.is-active]="isRangeMode"
+      (click)="toggleRangeMode()"
+    >
+      <ion-icon name="calendar-clear-outline"></ion-icon>
+      {{ rangeToggleLabel }}
+    </button>
+    <button
+      type="button"
+      class="range-clear-btn"
+      *ngIf="rangeStart && !isRangeMode"
+      aria-label="Quitar rango seleccionado"
+      (click)="clearRange()"
+    >
+      <ion-icon name="close-circle-outline"></ion-icon>
+      {{ rangeStart }} → {{ rangeEnd }}
+    </button>
+  </div>
+
   <div class="nutrition-calendar__weekdays">
     <span *ngFor="let label of weekdayLabels">{{ label }}</span>
   </div>
@@ -35,6 +57,9 @@
       [class.has-exception]="!!cell.compliance?.hasException"
       [class.is-skip-exception]="cell.compliance?.exceptionType === 'skip'"
       [class.has-phase]="!!cell.phase"
+      [class.is-in-range]="isInRange(cell.date)"
+      [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
+      [class.is-range-pick-mode]="isRangeMode"
       [disabled]="!cell.date"
       [style.--fill-opacity]="cellFillOpacity(cell)"
       [style.--phase-color]="cell.phase?.color"

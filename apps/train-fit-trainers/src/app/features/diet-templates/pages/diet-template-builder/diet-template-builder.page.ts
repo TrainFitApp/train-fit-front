@@ -168,10 +168,28 @@ export class DietTemplateBuilderPage implements OnInit {
     return row as TemplateDayPattern;
   }
 
+  // F20-decies — un día solo puede pertenecer a UN patrón a la vez: al
+  // marcarlo aquí, se quita automáticamente de cualquier otro patrón que ya
+  // lo tuviera. Antes cada patrón tenía su propia selección de días sin
+  // relación con las demás, así que nada impedía marcar el mismo día en dos
+  // sitios — solo se avisaba a posteriori (ver duplicateWeekdaysWarning).
+  // Con exclusión mutua, la ambigüedad deja de poder CONSTRUIRSE desde el
+  // editor (no hace falta detectarla si no puede existir) — mismo criterio
+  // por el que "sequential" nunca tiene este problema: cada día solo puede
+  // estar en un sitio, por construcción. duplicateWeekdaysWarning se queda
+  // como red de seguridad para plantillas guardadas ANTES de este cambio.
   public toggleWeekday(pattern: TemplateDayPattern, weekday: number): void {
     const i = pattern.appliesTo.indexOf(weekday);
-    if (i >= 0) pattern.appliesTo.splice(i, 1);
-    else pattern.appliesTo.push(weekday);
+    if (i >= 0) {
+      pattern.appliesTo.splice(i, 1);
+      return;
+    }
+    for (const other of this.dayPatterns) {
+      if (other === pattern) continue;
+      const otherIndex = other.appliesTo.indexOf(weekday);
+      if (otherIndex >= 0) other.appliesTo.splice(otherIndex, 1);
+    }
+    pattern.appliesTo.push(weekday);
   }
 
   // Aviso suave (no bloquea guardar) de qué días de la semana no quedan
@@ -183,6 +201,26 @@ export class DietTemplateBuilderPage implements OnInit {
     const covered = new Set(this.dayPatterns.flatMap((p) => p.appliesTo));
     const missing = this.weekdays.filter((w) => !covered.has(w.value));
     return missing.map((w) => w.label).join(', ');
+  }
+
+  // Red de seguridad, no un caso esperado: toggleWeekday ya impide crear
+  // solapes NUEVOS (exclusión mutua entre patrones), pero una plantilla
+  // guardada ANTES de ese cambio (o tocada directamente por API) podría
+  // seguir teniendo un día en 2+ patrones. Si eso ocurre, deja claro cuál
+  // gana — plan-resolver.js#resolvePlanForDate resuelve por orden de
+  // aparición en dayPatterns (.find), el primer patrón de la lista que
+  // cubra ese día es el que se aplica; el resto queda silenciosamente
+  // ignorado para esa fecha.
+  public get duplicateWeekdaysWarning(): string {
+    if (this.mode !== 'recurring') return '';
+    const parts: string[] = [];
+    for (const w of this.weekdays) {
+      const patterns = this.dayPatterns.filter((p) => p.appliesTo.includes(w.value));
+      if (patterns.length < 2) continue;
+      const winner = patterns[0].name.trim() || 'sin nombre';
+      parts.push(`${w.short} (gana "${winner}")`);
+    }
+    return parts.join(', ');
   }
 
   // El backend persiste cada alimento como ref REAL a CustomProduct (refactor
@@ -298,6 +336,57 @@ export class DietTemplateBuilderPage implements OnInit {
 
   public removeRow(index: number): void {
     this.activeRows.splice(index, 1);
+  }
+
+  // F20-septies — total de macros del día/patrón: suma la PRIMERA
+  // alternativa de cada comida (la que rige cuando no hay elección — con
+  // 2+ alternativas no hay un "total real" único, esta es la lectura más
+  // representativa sin inventar una media rara). kcal/protein/carbs/fat de
+  // cada TemplateFoodItem ya vienen calculados para su quantity actual
+  // (mismo snapshot que pinta el resto del builder), no hace falta volver
+  // a tocar producto/receta real.
+  public dayTotals(row: TemplateDay | TemplateDayPattern): {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
+    const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    for (const meal of row.meals) {
+      for (const item of meal.alternatives?.[0]?.items || []) {
+        totals.kcal += item.kcal || 0;
+        totals.protein += item.protein || 0;
+        totals.carbs += item.carbs || 0;
+        totals.fat += item.fat || 0;
+      }
+    }
+    return totals;
+  }
+
+  public hasAnyItems(row: TemplateDay | TemplateDayPattern): boolean {
+    return row.meals.some((meal) => (meal.alternatives?.[0]?.items?.length || 0) > 0);
+  }
+
+  // Proporción de cada macro sobre el total de KCAL del día (no de gramos:
+  // 1g de grasa aporta más del doble de kcal que 1g de proteína/carbo, una
+  // barra por gramos sería visualmente engañosa) — para la barra
+  // segmentada bajo el número de kcal.
+  public macroBarSegments(row: TemplateDay | TemplateDayPattern): {
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
+    const totals = this.dayTotals(row);
+    const proteinKcal = totals.protein * 4;
+    const carbsKcal = totals.carbs * 4;
+    const fatKcal = totals.fat * 9;
+    const sum = proteinKcal + carbsKcal + fatKcal;
+    if (sum <= 0) return { protein: 0, carbs: 0, fat: 0 };
+    return {
+      protein: (proteinKcal / sum) * 100,
+      carbs: (carbsKcal / sum) * 100,
+      fat: (fatKcal / sum) * 100,
+    };
   }
 
   public mealSummary(meal: TemplateMeal): string {
