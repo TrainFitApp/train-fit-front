@@ -27,6 +27,16 @@ export class Set {
   restPauseSeries?: SubSerie[];
   dropSetSeries?: SubSerie[];
   restPauseSeconds?: number;
+  // Movimiento 6 Coach Pro — prescripción por porcentaje del 1RM. Convive
+  // con `weight`, no lo sustituye: hay entrenadores que pautan "80 kg" y
+  // otros "80% del RM", y el segundo necesita que se guarde como porcentaje
+  // para que siga significando lo mismo cuando el RM del cliente suba.
+  expectedPercentRm?: number;
+  // Tempo "E-P1-C-P2" (excéntrica, pausa abajo, concéntrica, pausa arriba)
+  // en segundos: "3-1-1-0". Texto y no cuatro números porque así es como se
+  // escribe y como se lee; "X" en la concéntrica (explosiva) es notación
+  // estándar y por eso no se valida como numérico.
+  tempo?: string;
 }
 
 export interface SubSerie {

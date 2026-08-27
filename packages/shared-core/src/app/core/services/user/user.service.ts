@@ -9,6 +9,7 @@ import {
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
 import { STEPS, STEPS_TYPES } from 'src/app/shared/constants/steps';
+import { bmrMifflinStJeor } from '../../utils/body-metrics.util';
 import { User } from '../../models/user';
 import { UserAPIService } from './user-api.service';
 
@@ -293,18 +294,18 @@ export class UserService {
   }
 
   /**
-   * Calcula el metabolismo basal usando la fórmula Mifflin-St Jeor (1990)
-   * Más precisa (~5%) que Harris-Benedict para poblaciones modernas
+   * Metabolismo basal por Mifflin-St Jeor (1990).
    *
-   * Fórmula:
-   * Hombres: (10 × peso) + (6.25 × altura) – (5 × edad) + 5
-   * Mujeres: (10 × peso) + (6.25 × altura) – (5 × edad) – 161
+   * Movimiento 3 Coach Pro — la fórmula ya no vive aquí: se movió a
+   * utils/body-metrics.util.ts al necesitarla también la calculadora del
+   * entrenador. Copiarla habría dejado dos versiones de la misma cuenta que
+   * se desincronizan a la primera corrección, y con ellas dos objetivos
+   * calóricos distintos para la misma persona según quién mire.
    *
-   * @param sex - Sexo del usuario (SEX_TYPES.male o SEX_TYPES.female)
-   * @param height - Altura en centímetros
-   * @param weight - Peso en kilogramos
-   * @param age - Edad en años
-   * @returns BMR en kcal/día
+   * Este método se queda como adaptador: bmrMifflinStJeor devuelve null si
+   * le faltan datos, y todo lo de aquí abajo espera un número (el flujo de
+   * alta ya obliga a rellenar peso, altura y fecha de nacimiento antes de
+   * llegar).
    */
   private mifflinStJeorBMR(
     sex: number,
@@ -312,8 +313,7 @@ export class UserService {
     weight: number,
     age: number
   ): number {
-    const baseBMR = 10 * weight + 6.25 * height - 5 * age;
-    return sex === SEX_TYPES.male ? baseBMR + 5 : baseBMR - 161;
+    return bmrMifflinStJeor({ weightKg: weight, heightCm: height, age, sex }) ?? 0;
   }
 
   /**

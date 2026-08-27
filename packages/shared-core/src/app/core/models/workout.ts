@@ -1,4 +1,5 @@
 import { CustomExercise } from './customExercise';
+import { SorenessEntry } from '../constants/soreness';
 
 // Rediseño de entrenamiento Fase B — bloques/superseries reintroducidos,
 // esta vez consumidos de verdad en current-workout.page.html (cliente real)
@@ -43,4 +44,9 @@ export class Workout {
   // visible para el profesional junto al historial de entrenamientos (F09).
   readinessPre?: number | null;
   perceivedEffortPost?: number | null;
+  // Movimiento 2 Coach Pro — agujetas al LLEGAR a la sesión, por grupo
+  // muscular. Solo los grupos marcados por encima de "nada"; vacío = nada
+  // reportado. Ver constants/soreness.ts para por qué se pregunta antes de
+  // entrenar y no después.
+  sorenessPre?: SorenessEntry[];
 }
