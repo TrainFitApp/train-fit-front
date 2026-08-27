@@ -1,0 +1,322 @@
+@import '../../../../../../../theme/client-panel';
+@import '../../../../../../../theme/skeleton';
+@import '../../../../../../../theme/panel-sheet';
+@import '../../../../../../../theme/buttons';
+@import '../../../../../../../theme/inputs';
+
+:host {
+  display: block;
+}
+
+.pain-panel {
+  @include tf-client-panel;
+
+}
+
+.pain-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.pain-title {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.pain-period {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+// --- Filas ---
+.pain-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.pain-row {
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+}
+
+.pain-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.pain-row-info {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pain-zone {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.pain-threshold {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.pain-row-values {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-shrink: 0;
+}
+
+.pain-worst {
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+
+  // Por encima del umbral de ESTE cliente (o del genérico si no lo hay).
+  &--over {
+    color: var(--tf-danger-text);
+  }
+}
+
+.pain-worst-max {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 500;
+  color: var(--tf-text-muted);
+}
+
+.pain-trend {
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  background: var(--tf-surface-4);
+  color: var(--tf-text-muted);
+
+  // Los tres estados con color distinto: "va a peor" es lo que hay que ver
+  // sin leer, que es justo para lo que sirve esta columna.
+  &[data-trend='mejor'] {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &[data-trend='peor'] {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.pain-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.row-action {
+  min-height: 36px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-5);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+
+  // Expansor invisible hasta 44px sin engordar la fila, mismo patrón que
+  // .open-button en la Cartera.
+  @include tf-touch-expander;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--danger {
+    padding: 0 9px;
+    color: var(--tf-danger-text);
+    border-color: var(--tf-danger-border);
+
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+}
+
+.pain-detail,
+.pain-note {
+  margin: 6px 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-muted);
+}
+
+.pain-note {
+  padding-left: 10px;
+  border-left: 2px solid var(--tf-accent);
+  color: var(--tf-text-secondary);
+}
+
+.add-threshold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: var(--tf-space-4);
+  padding: 0 var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Panel de edición ---
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.panel-hint {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.zone-select {
+  margin-bottom: var(--tf-space-4);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.select-field,
+.note-field {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.select-field {
+  min-height: 44px;
+}
+
+.note-field {
+  resize: vertical;
+}
+
+.threshold-field {
+  margin-bottom: var(--tf-space-4);
+}
+
+// Once niveles: en rejilla, no en fila. Once botones en línea salen a menos
+// de 30px de ancho y se falla al pulsar.
+.level-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.level-option {
+  min-height: 44px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.selected {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+  }
+
+  // El umbral de parada se marca en rojo: los dos selectores son idénticos
+  // en forma, y sin el color se confundiría cuál se está tocando.
+  &--danger.selected {
+    border-color: var(--tf-danger);
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.level-label {
+  margin: 8px 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+}

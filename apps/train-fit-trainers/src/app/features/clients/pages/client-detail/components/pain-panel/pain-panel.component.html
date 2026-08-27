@@ -1,0 +1,151 @@
+<div class="pain-panel">
+  <div class="pain-header">
+    <h3 class="pain-title">Dolor</h3>
+    <span class="pain-period">Últimos {{ days }} días</span>
+  </div>
+
+  <div class="panel-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo cargar el registro de dolor.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="panel-empty" *ngIf="!summaries.length">
+      Este cliente no ha apuntado ninguna molestia en este periodo. Puedes fijar umbrales por
+      adelantado en una zona que quieras vigilar.
+    </p>
+
+    <div class="pain-list" *ngIf="summaries.length">
+      <div class="pain-row" *ngFor="let summary of summaries; trackBy: trackByZone">
+        <div class="pain-row-main">
+          <div class="pain-row-info">
+            <span class="pain-zone">{{ summary.zone }}</span>
+            <span class="pain-threshold">{{ thresholdLabel(summary) }}</span>
+          </div>
+
+          <div class="pain-row-values" *ngIf="summary.lastDate">
+            <span class="pain-worst" [class.pain-worst--over]="isOverThreshold(summary)">
+              {{ summary.worst }}<span class="pain-worst-max">/10</span>
+            </span>
+            <span class="pain-trend" *ngIf="trendFor(summary) as trend" [attr.data-trend]="trend">
+              {{ trend === 'mejor' ? 'Va a mejor' : trend === 'peor' ? 'Va a peor' : 'Igual' }}
+            </span>
+          </div>
+
+          <div class="pain-row-actions">
+            <button
+              type="button"
+              class="row-action"
+              (click)="openThreshold(summary.zone, summary.threshold)"
+            >
+              {{ summary.threshold ? 'Editar' : 'Fijar umbrales' }}
+            </button>
+            <button
+              type="button"
+              class="row-action row-action--danger"
+              *ngIf="summary.threshold"
+              (click)="confirmRemoveThreshold(summary)"
+              [attr.aria-label]="'Quitar los umbrales de ' + summary.zone"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- La frase del nivel máximo: "6" no dice lo mismo que "dolor
+             moderado: me limita algunos movimientos". -->
+        <p class="pain-detail" *ngIf="summary.lastDate">
+          Máximo: {{ labelFor(summary.worst) }} · último registro el
+          {{ summary.lastDate | date: 'd MMM' }}
+        </p>
+        <p class="pain-detail" *ngIf="!summary.lastDate">
+          Sin registros en este periodo.
+        </p>
+        <p class="pain-note" *ngIf="summary.threshold?.note">{{ summary.threshold.note }}</p>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="add-threshold"
+      *ngIf="zonesWithoutRow.length"
+      (click)="openThreshold(zonesWithoutRow[0], null)"
+    >
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      Fijar umbrales en otra zona
+    </button>
+  </ng-container>
+
+  <!-- Panel: fijar umbrales -->
+  <div class="panel-backdrop" *ngIf="editingZone" (click)="closeThreshold()"></div>
+  <div class="panel-sheet" *ngIf="editingZone">
+    <div class="panel-handle"></div>
+    <h3 class="panel-title">Umbrales</h3>
+
+    <div class="zone-select">
+      <label class="field-label" for="pain-zone">Zona</label>
+      <select id="pain-zone" class="select-field" [(ngModel)]="editingZone">
+        <option *ngFor="let zone of zones" [value]="zone">{{ zone }}</option>
+      </select>
+    </div>
+
+    <p class="panel-hint">
+      Hasta el umbral de trabajo entrena con normalidad. A partir del de dolor, para.
+    </p>
+
+    <div class="threshold-field">
+      <span class="field-label">Puede trabajar hasta</span>
+      <div class="level-picker">
+        <button
+          type="button"
+          class="level-option"
+          *ngFor="let level of levels; trackBy: trackByLevel"
+          [class.selected]="formWork === level"
+          [attr.aria-pressed]="formWork === level"
+          (click)="setFormWork(level)"
+        >
+          {{ level }}
+        </button>
+      </div>
+      <p class="level-label">{{ labelFor(formWork) }}</p>
+    </div>
+
+    <div class="threshold-field">
+      <span class="field-label">Para a partir de</span>
+      <div class="level-picker">
+        <button
+          type="button"
+          class="level-option level-option--danger"
+          *ngFor="let level of levels; trackBy: trackByLevel"
+          [class.selected]="formPain === level"
+          [attr.aria-pressed]="formPain === level"
+          (click)="setFormPain(level)"
+        >
+          {{ level }}
+        </button>
+      </div>
+      <p class="level-label">{{ labelFor(formPain) }}</p>
+    </div>
+
+    <div class="threshold-field">
+      <label class="field-label" for="pain-note">Nota para ti (opcional)</label>
+      <textarea
+        id="pain-note"
+        class="note-field"
+        rows="2"
+        maxlength="300"
+        placeholder="Ej. sin press militar hasta que baje de 3"
+        [(ngModel)]="formNote"
+      ></textarea>
+    </div>
+
+    <button class="submit-button" (click)="saveThreshold()" [disabled]="isSaving">
+      <span *ngIf="!isSaving">Guardar</span>
+      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,212 @@
+<div class="supplements-panel">
+  <div class="panel-header">
+    <h3 class="panel-heading">Suplementación</h3>
+    <button
+      type="button"
+      class="add-button"
+      (click)="openPanel(null)"
+      aria-label="Añadir suplemento"
+      title="Añadir suplemento"
+    >
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <div class="panel-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block row-skeleton" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar los suplementos.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="panel-empty" *ngIf="!supplements.length">
+      Todavía no le has pautado ningún suplemento. Lo que añadas aquí lo ve el cliente en su app,
+      con la dosis, el momento y el porqué.
+    </p>
+
+    <div class="supplement" *ngFor="let supplement of supplements; trackBy: trackById">
+      <div class="supplement-main">
+        <div class="supplement-info">
+          <span class="supplement-name">{{ supplement.name }}</span>
+          <span class="supplement-meta">
+            {{ timingLabel(supplement) }}
+            <span class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">· {{ days }}</span>
+          </span>
+        </div>
+
+        <span class="supplement-dose">{{ supplement.dose }}</span>
+
+        <div class="supplement-actions">
+          <button type="button" class="row-action" (click)="openPanel(supplement)">Editar</button>
+          <button
+            type="button"
+            class="row-action row-action--danger"
+            (click)="confirmRemove(supplement)"
+            [attr.aria-label]="'Quitar ' + supplement.name"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <p class="supplement-reason" *ngIf="supplement.reason">{{ supplement.reason }}</p>
+    </div>
+  </ng-container>
+</div>
+
+<!-- Este contenedor se traslada al body al montar (ngAfterViewInit).
+     Dentro de la ficha, su position:fixed lo capturaba el contain de
+     ion-content, y las gráficas (canvas, con capa propia de
+     composición) se dibujaban por encima del panel. -->
+<div class="panel-portal" #panelHost>
+  <!-- Panel: añadir/editar -->
+  <div class="panel-backdrop" *ngIf="showPanel" (click)="closePanel()"></div>
+  <div
+    class="panel-sheet"
+    *ngIf="showPanel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="supplement-sheet-title"
+  >
+    <div class="panel-handle"></div>
+
+    <header class="sheet-header">
+      <h3 class="panel-title" id="supplement-sheet-title">
+        {{ editingId ? 'Editar suplemento' : 'Añadir suplemento' }}
+      </h3>
+      <button type="button" class="close-button" (click)="closePanel()" aria-label="Cerrar">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
+
+    <!-- Tres bloques, tres preguntas: qué es, cuándo se toma y para qué.
+         Antes eran ocho campos en columna, todos con el mismo peso. -->
+    <section class="form-group">
+      <p class="group-label">Qué toma</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="supplement-name">Nombre</label>
+          <div class="input-wrapper">
+            <ion-icon name="medkit-outline" class="input-icon"></ion-icon>
+            <input
+              id="supplement-name"
+              type="text"
+              class="input-field"
+              maxlength="120"
+              placeholder="Creatina monohidrato"
+              [(ngModel)]="formName"
+            />
+          </div>
+        </div>
+
+        <div class="field field--narrow">
+          <label class="field-label" for="supplement-dose">Dosis</label>
+          <div class="input-wrapper">
+            <ion-icon name="beaker-outline" class="input-icon"></ion-icon>
+            <input
+              id="supplement-dose"
+              type="text"
+              class="input-field"
+              maxlength="60"
+              placeholder="5 g"
+              [(ngModel)]="formDose"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">Cuándo</p>
+
+      <div class="field">
+        <label class="field-label" for="supplement-timing">Momento del día</label>
+        <select id="supplement-timing" class="select-field" [(ngModel)]="formTiming">
+          <option *ngFor="let timing of timings; trackBy: trackByKey" [value]="timing.key">
+            {{ timing.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field" *ngIf="formTiming === 'custom'">
+        <label class="field-label" for="supplement-custom-timing">Especifica cuándo</label>
+        <div class="input-wrapper">
+          <ion-icon name="time-outline" class="input-icon"></ion-icon>
+          <input
+            id="supplement-custom-timing"
+            type="text"
+            class="input-field"
+            maxlength="100"
+            placeholder="Media hora antes de comer"
+            [(ngModel)]="formCustomTiming"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field-label" id="supplement-weekdays-label">Días</span>
+        <!-- El texto de ayuda sale del label a su propia línea: dentro, el
+             label dejaba de leerse como nombre del campo. -->
+        <p class="field-hint">Sin marcar ninguno, se toma todos los días.</p>
+        <div class="weekday-picker" role="group" aria-labelledby="supplement-weekdays-label">
+          <button
+            type="button"
+            class="weekday"
+            *ngFor="let weekday of weekdays; trackBy: trackByValue"
+            [class.selected]="isWeekdaySelected(weekday.value)"
+            [attr.aria-pressed]="isWeekdaySelected(weekday.value)"
+            (click)="toggleWeekday(weekday.value)"
+          >
+            {{ weekday.label }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">Para qué</p>
+
+      <div class="field">
+        <label class="field-label" for="supplement-reason">Motivo</label>
+        <p class="field-hint">Lo lee el cliente. Un suplemento sin motivo se abandona.</p>
+        <textarea
+          id="supplement-reason"
+          class="note-field"
+          rows="2"
+          maxlength="300"
+          placeholder="Rendimiento en series de fuerza"
+          [(ngModel)]="formReason"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="supplement-url">Enlace de compra <span class="field-optional">opcional</span></label>
+        <div class="input-wrapper">
+          <ion-icon name="link-outline" class="input-icon"></ion-icon>
+          <input
+            id="supplement-url"
+            type="url"
+            class="input-field"
+            maxlength="500"
+            placeholder="https://…"
+            [(ngModel)]="formUrl"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Pie pegado al fondo de la hoja: con el formulario desplazado, el
+         botón de guardar quedaba fuera de vista. -->
+    <footer class="sheet-footer">
+      <button type="button" class="ghost-button" (click)="closePanel()">Cancelar</button>
+      <button class="submit-button" (click)="save()" [disabled]="!canSave">
+        <span *ngIf="!isSaving">Guardar</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </footer>
+  </div>
+</div>

@@ -1,0 +1,290 @@
+:host {
+  display: block;
+  margin-bottom: var(--tf-space-4);
+}
+
+.exchanges-editor {
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  overflow: hidden;
+}
+
+.editor-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--tf-space-4);
+  background: none;
+  border: none;
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.editor-toggle-label {
+  flex: 1;
+}
+
+.editor-toggle-count {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+}
+
+.editor-body {
+  padding: 0 var(--tf-space-4) var(--tf-space-4);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.editor-hint {
+  margin: var(--tf-space-3) 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+
+  &--warning {
+    color: var(--tf-accent-text);
+  }
+}
+
+// --- Comidas ---
+.meal {
+  padding: var(--tf-space-3);
+  margin-bottom: var(--tf-space-2);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-md);
+}
+
+.meal-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-2);
+}
+
+.meal-name {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 10px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.meal-remove {
+  flex-shrink: 0;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  // Expansor invisible hasta 44px, mismo patrón que el resto de la app.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+
+  &:hover {
+    color: var(--tf-danger-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.exchange-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 4px 0;
+}
+
+.exchange-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exchange-stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.stepper-button {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.exchange-count {
+  min-width: 34px;
+  text-align: center;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.group-select {
+  width: 100%;
+  min-height: 40px;
+  margin-top: var(--tf-space-2);
+  padding: 0 10px;
+  background: var(--tf-surface-2);
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+// --- Añadir comida ---
+.meal-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--tf-space-3);
+}
+
+.preset-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  position: relative;
+  padding: 0 10px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+  }
+
+  &:hover {
+    color: var(--tf-text);
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+// --- Total del día ---
+.day-totals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tf-space-2) var(--tf-space-3);
+  margin-top: var(--tf-space-4);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.day-totals-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.day-total strong {
+  color: var(--tf-text);
+}

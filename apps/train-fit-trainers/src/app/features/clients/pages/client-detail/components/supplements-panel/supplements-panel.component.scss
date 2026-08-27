@@ -1,0 +1,364 @@
+@import '../../../../../../../theme/client-panel';
+@import '../../../../../../../theme/skeleton';
+@import '../../../../../../../theme/panel-sheet';
+@import '../../../../../../../theme/buttons';
+@import '../../../../../../../theme/inputs';
+
+:host {
+  display: block;
+}
+
+.supplements-panel {
+  @include tf-client-panel;
+  @include tf-panel-row-action;
+
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.panel-heading {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.add-button {
+  // Botón de icono del sistema: con el "+" solo, la palabra "Añadir" era
+  // redundante. 36px pintados para no engordar la cabecera del panel, 44
+  // pulsables por el expansor.
+  @include tf-icon-button(36px, var(--tf-radius-md), 18px);
+  position: relative;
+  flex-shrink: 0;
+
+  @include tf-touch-expander;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Filas ---
+.supplement {
+  padding: var(--tf-space-3);
+  margin-bottom: var(--tf-space-2);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+}
+
+.supplement-main {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.supplement-info {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.supplement-name {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.supplement-meta {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.supplement-days {
+  font-variant-numeric: tabular-nums;
+}
+
+// La dosis con el acento: es el dato que se consulta.
+.supplement-dose {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.supplement-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.supplement-reason {
+  margin: var(--tf-space-2) 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--tf-border-strong);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-secondary);
+}
+
+// --- Panel de edición ---
+
+// Contenedor trasladado al body. No debe ocupar sitio ni capturar clics
+// cuando el panel está cerrado: sus hijos son fixed y se posicionan solos.
+.panel-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+}
+
+.panel-portal > * {
+  pointer-events: auto;
+}
+
+.panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+.panel-sheet {
+  // Panel lateral en escritorio, hoja inferior en móvil. Se rellena mirando
+  // las gráficas de progreso que quedan al lado, que es para lo que se
+  // consulta al pautar un suplemento.
+  @include tf-side-panel(440px);
+}
+
+.panel-handle {
+  @include tf-side-panel-handle;
+}
+
+.panel-sheet {
+  // El pie se queda abajo aunque el formulario sea corto, y el contenido
+  // desplaza por dentro en vez de arrastrar el pie fuera de la pantalla.
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.panel-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.close-button {
+  // Mismo botón de icono que el resto de la app (score-editor-modal,
+  // exercise-detail-modal): 44px, radio 12 y superficie 3. Antes era un
+  // círculo de 40px hecho a mano aquí, con su propio hover y su propio
+  // expansor táctil para llegar a los 44 que el mixin ya da de fábrica.
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+// --- Agrupación ---
+.form-group {
+  padding-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: var(--tf-space-2);
+  }
+}
+
+.group-label {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-accent);
+}
+
+.field + .field {
+  margin-top: var(--tf-space-3);
+}
+
+// Nombre y dosis en la misma línea: la dosis son tres caracteres y en una
+// fila propia dejaba medio ancho de la hoja vacío.
+.field-row {
+  display: flex;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.field-row > .field {
+  flex: 1 1 150px;
+  // Un item de flex no baja de la anchura de su contenido salvo que se le
+  // diga: sin esto el placeholder largo del nombre empujaba la dosis a la
+  // línea siguiente aunque hubiera sitio de sobra.
+  min-width: 0;
+  margin-top: 0;
+}
+
+.field-row > .field--narrow {
+  flex: 0 1 110px;
+}
+
+.field-hint {
+  margin: -2px 0 6px;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-faint);
+}
+
+.field-optional {
+  margin-left: 4px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--tf-text-faint);
+}
+
+// --- Pie ---
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.ghost-button {
+  min-height: 46px;
+  padding: 0 var(--tf-space-5);
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.sheet-footer .submit-button {
+  flex: 1;
+  margin: 0;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper;
+  // tf-input-wrapper no fija altura y tf-input-field pide height:100%:
+  // entre los dos se quedaba en la altura del texto (21px medidos), muy por
+  // debajo del objetivo táctil de 44px de PRODUCT.md. Se fija aquí, alineado
+  // con el .submit-button de esta misma hoja.
+  min-height: 46px;
+  margin-bottom: 0;
+}
+
+.input-icon {
+  @include tf-input-icon;
+}
+
+.input-field {
+  @include tf-input-field;
+}
+
+.field-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.select-field,
+.note-field {
+  width: 100%;
+  // Explícito y no heredado del reset: con content-box, el relleno y el
+  // borde se suman al 100% y el textarea se salía 26px por la derecha.
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+.select-field {
+  min-height: 44px;
+}
+
+.note-field {
+  resize: vertical;
+  margin-bottom: var(--tf-space-3);
+}
+
+.weekday-picker {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: var(--tf-space-3);
+}
+
+.weekday {
+  min-height: 44px;
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+
+  &.selected {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  margin-top: var(--tf-space-2);
+}

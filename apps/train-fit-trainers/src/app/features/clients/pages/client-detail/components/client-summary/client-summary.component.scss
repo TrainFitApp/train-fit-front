@@ -1,0 +1,910 @@
+@import '../../../../../../../theme/skeleton';
+
+// Fase 2 Coach Pro — pestaña Resumen de la ficha del cliente.
+// Mismo vocabulario visual que el dashboard (panel de borde, chip de
+// prioridad, estados de sección): un solo patrón por tipo de componente,
+// no uno reinventado por pantalla.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-5);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Contenedor de sección
+// ---------------------------------------------------------------------------
+.summary-card {
+  background: var(--tf-surface-1);
+  // Elevación declarada una vez: borde, sin sombra encima.
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  overflow: hidden;
+}
+
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border);
+}
+
+.summary-card-title {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.summary-card-hint {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.subsection-title {
+  margin: var(--tf-space-6) 0 var(--tf-space-3);
+  padding: 0 var(--tf-space-5);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Estados
+// ---------------------------------------------------------------------------
+.section-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-5);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-md);
+}
+
+.section-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-8) var(--tf-space-6);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 26px;
+    color: var(--tf-text-faint);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: var(--tf-line-height-base);
+    max-width: 46ch;
+  }
+}
+
+.retry-button {
+  margin-top: var(--tf-space-3);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.empty-hint {
+  margin: 0;
+  padding: var(--tf-space-3) var(--tf-space-5) var(--tf-space-5);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+}
+
+// ---------------------------------------------------------------------------
+// Alertas del cliente
+// ---------------------------------------------------------------------------
+.alerts-count {
+  min-width: 24px;
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-list,
+.dimension-list,
+.delta-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.alert-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-4) var(--tf-space-3) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.alert-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+// El nombre del cliente NO se repite en cada fila, a diferencia del
+// dashboard: aquí ya estamos dentro de su ficha.
+.alert-reason {
+  flex: 1;
+  min-width: 12ch;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+}
+
+// La prioridad se nombra con palabra, no solo con color.
+.priority-chip {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+
+  &--high {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.alert-resolve {
+  flex-shrink: 0;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Adherencia
+// ---------------------------------------------------------------------------
+.adherence-headline {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-5);
+  padding: var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.adherence-overall {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.adherence-overall-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.adherence-overall-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.adherence-verdict {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+
+  strong {
+    color: var(--tf-text);
+  }
+}
+
+// Cuatro columnas fijas: icono, etiqueta, barra (flexible), valor, detalle.
+// Con grid en vez de flex para que los porcentajes queden alineados entre
+// filas — leer cuatro números en una columna recta es lo que hace que el
+// bloque se escanee de un vistazo.
+.dimension-row {
+  display: grid;
+  grid-template-columns: 20px minmax(88px, auto) 1fr 44px 14px;
+  grid-template-areas: 'icon label bar value chevron' '. detail detail detail detail';
+  align-items: center;
+  gap: var(--tf-space-1) var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  // Cada fila es un botón que lleva a la pestaña donde se explica ese
+  // número. Resets de botón: sin ellos hereda el fondo, el borde y la
+  // tipografía del agente de usuario y deja de parecer una fila de tabla.
+  width: 100%;
+  background: none;
+  border-width: 0 0 1px;
+  border-style: solid;
+  border-color: var(--tf-border-subtle);
+  border-radius: 0;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  // `:hover` (0,2,0) gana a `--weakest` (0,1,0), así que sin esto la fila
+  // destacada perdía su tinte justo al apuntarla: el punto débil se
+  // apagaba precisamente cuando ibas a pulsarlo. Sube al tinte fuerte en
+  // vez de volver al gris, para que siga habiendo respuesta al hover.
+  &.dimension-row--weakest:hover {
+    background: var(--tf-accent-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  // El botón es hijo único de su <li>, así que :last-child sobre él sería
+  // siempre cierto y borraría TODAS las separaciones. La última es la fila,
+  // no el botón.
+  li:last-child & {
+    border-bottom-width: 0;
+  }
+}
+
+// --- Desglose de hábitos, colgando de su fila ---
+.habit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--tf-space-5) var(--tf-space-2) 0;
+  background: var(--tf-surface-2);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+// Sangrado a la altura de la etiqueta de la dimensión, para que se lea como
+// dependiente de ella y no como una lista nueva.
+.habit-row {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) auto 1fr 40px;
+  grid-template-areas: 'label target bar value' '. detail detail detail';
+  align-items: center;
+  gap: 2px var(--tf-space-3);
+  padding: 6px 0 6px calc(var(--tf-space-5) + 20px + var(--tf-space-3));
+}
+
+.habit-label {
+  grid-area: label;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.habit-target {
+  grid-area: target;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+  white-space: nowrap;
+}
+
+.habit-bar {
+  grid-area: bar;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tf-surface-5);
+  overflow: hidden;
+}
+
+.habit-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--tf-text-faint);
+}
+
+.habit-value {
+  grid-area: value;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  text-align: right;
+}
+
+.habit-detail {
+  grid-area: detail;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+}
+
+.dimension-chevron {
+  grid-area: chevron;
+  font-size: 13px;
+  color: var(--tf-text-faint);
+}
+
+// El punto débil se marca con un fondo tenue, no con un borde de color: un
+// borde lateral teñido en una lista de cuatro filas convierte el bloque en
+// un semáforo y compite con las alertas reales de arriba.
+.dimension-row--weakest {
+  background: var(--tf-accent-tint);
+}
+
+.dimension-icon {
+  grid-area: icon;
+  font-size: 17px;
+  color: var(--tf-text-muted);
+}
+
+.dimension-label {
+  grid-area: label;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.dimension-bar {
+  grid-area: bar;
+  height: 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  overflow: hidden;
+}
+
+.dimension-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-accent);
+  transition: width var(--tf-duration-base) var(--tf-ease-out);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.dimension-bar--empty {
+  opacity: 0.4;
+}
+
+.dimension-value {
+  grid-area: value;
+  text-align: right;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+
+  &--muted {
+    color: var(--tf-text-muted);
+    font-weight: 400;
+  }
+}
+
+.dimension-detail {
+  grid-area: detail;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+// ---------------------------------------------------------------------------
+// Contexto (qué tiene asignado)
+// ---------------------------------------------------------------------------
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--tf-border);
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.context-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 72px;
+  justify-content: center;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border: none;
+  border-right: 1px solid var(--tf-border-subtle);
+  border-bottom: 1px solid var(--tf-border-subtle);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.context-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.context-value {
+  font-size: var(--tf-font-size-md);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+
+  // El nombre de una rutina es texto largo, no una cifra: se recorta en vez
+  // de romper la retícula de cuatro columnas.
+  &--text {
+    font-size: var(--tf-font-size-base);
+    font-variant-numeric: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.context-sub {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Evolución
+// ---------------------------------------------------------------------------
+.week-switch {
+  display: flex;
+  gap: var(--tf-space-1);
+  background: var(--tf-surface-3);
+  border-radius: var(--tf-radius-pill);
+  padding: 3px;
+}
+
+.week-option {
+  position: relative;
+  min-height: 34px;
+  min-width: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  border: none;
+  border-radius: var(--tf-radius-pill);
+  background: transparent;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // El segmento pintado mide 34px de alto — un control segmentado de 44px
+  // en la cabecera de una tarjeta la engorda hasta competir con el título.
+  // El área PULSABLE sí llega a los 44px que exige PRODUCT.md, vía este
+  // pseudo-elemento. Se extiende solo en vertical: hacerlo también en
+  // horizontal solaparía las zonas activas de los tres segmentos, que son
+  // adyacentes.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tf-touch-min);
+    transform: translateY(-50%);
+  }
+
+  &--active {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// La frase que resume N semanas. Va primero y en grande porque es la única
+// respuesta a "¿hacia dónde va esto?" — la tabla de abajo la sustenta, no
+// la sustituye.
+.weight-trend {
+  margin: 0;
+  padding: var(--tf-space-5);
+  font-size: var(--tf-font-size-base);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+
+  strong {
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &--empty {
+    color: var(--tf-text-muted);
+    font-size: var(--tf-font-size-sm);
+  }
+}
+
+.delta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.delta-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.delta-current {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// Sin verde ni rojo a propósito: el modelo no guarda si este cliente busca
+// perder o ganar peso, así que "bajó 2 kg" no es bueno ni malo por sí solo.
+// Pintarlo de color sería el sistema opinando sobre algo que no sabe.
+.delta-change {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 11ch;
+  justify-content: flex-end;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.delta-pct {
+  font-weight: 400;
+}
+
+// Tabla densa: es la forma correcta de comparar N semanas × M métricas, y
+// en modo operativo la densidad es una virtud. Scroll horizontal DENTRO de
+// su contenedor — la página nunca desborda.
+.trend-scroll {
+  overflow-x: auto;
+  padding: 0 var(--tf-space-5) var(--tf-space-5);
+  -webkit-overflow-scrolling: touch;
+}
+
+.trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-font-size-xs);
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    padding: var(--tf-space-2) var(--tf-space-3);
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--tf-border-subtle);
+  }
+
+  thead th {
+    color: var(--tf-text-muted);
+    font-weight: 600;
+    border-bottom-color: var(--tf-border);
+  }
+
+  tbody td {
+    color: var(--tf-text-secondary);
+  }
+
+  // La última columna es "Actual": se destaca porque es contra la que se
+  // lee todo lo demás.
+  tbody td:last-child,
+  thead th:last-child {
+    color: var(--tf-text);
+    font-weight: 600;
+  }
+
+  tr:last-child td,
+  tr:last-child th {
+    border-bottom: none;
+  }
+}
+
+// Columna de métrica pegada a la izquierda: al desplazar 12 semanas hacia
+// el lado, sin esto se pierde de vista qué fila se está leyendo.
+.trend-metric-head {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left !important;
+  background: var(--tf-surface-1);
+  color: var(--tf-text-secondary) !important;
+  font-weight: 600 !important;
+}
+
+.trend-unit {
+  color: var(--tf-text-muted);
+  font-weight: 400;
+}
+
+// ---------------------------------------------------------------------------
+// Historial de cambios (Fase 4)
+// ---------------------------------------------------------------------------
+.change-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.change-row {
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.change-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.change-title {
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.change-date {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+}
+
+.change-fields {
+  list-style: none;
+  margin: var(--tf-space-2) 0 0;
+  padding: 0;
+}
+
+.change-field {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-3);
+  padding: 2px 0;
+  font-size: var(--tf-font-size-sm);
+}
+
+.change-field-label {
+  min-width: 12ch;
+  color: var(--tf-text-muted);
+}
+
+// "2200 → 2100" en tabulares: es la forma en que un coach lee un cambio, y
+// alinea entre filas cuando hay varios macros modificados a la vez.
+.change-field-values {
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+// El motivo es la razón de ser de todo el historial: se destaca sobre los
+// valores, no al revés.
+.change-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-3) 0 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.show-more-button {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  background: transparent;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+// ---------------------------------------------------------------------------
+// Movimiento 3 Coach Pro — comparación bloque a bloque (microciclos).
+//
+// Dos columnas con la flecha en medio y no una tabla: son exactamente dos
+// cosas y una relación entre ellas, y la flecha dice el signo sin leer.
+// ---------------------------------------------------------------------------
+.block-comparison {
+  padding: 0 var(--tf-space-5);
+}
+
+.block-comparison-body {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+}
+
+.block-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.block-name {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block-value {
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.block-meta {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.block-arrow {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  // Subir volumen no es "bueno" por sí solo (un descarga es una bajada
+  // buscada), así que el color informa de la DIRECCIÓN, no de un juicio:
+  // el acento de la app para arriba, gris para abajo. Nada de verde/rojo.
+  &[data-direction='up'] {
+    color: var(--tf-accent-text);
+  }
+
+  &[data-direction='down'] {
+    color: var(--tf-text-muted);
+  }
+}
+
+.block-hint {
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}

@@ -1,0 +1,103 @@
+<div class="exchanges-editor">
+  <button type="button" class="editor-toggle" [attr.aria-expanded]="expanded" (click)="toggle()">
+    <ion-icon [name]="expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+    <span class="editor-toggle-label">Repartir en intercambios</span>
+    <span class="editor-toggle-count" *ngIf="totalExchanges">{{ totalExchanges }} raciones</span>
+  </button>
+
+  <div class="editor-body" *ngIf="expanded">
+    <p class="editor-hint">
+      Opcional, y compatible con los gramos de arriba. Sirve para pautar "2 raciones de proteína en
+      la comida" y dejar que el cliente elija cuál, en vez de darle una lista cerrada.
+    </p>
+
+    <p class="editor-hint editor-hint--warning" *ngIf="!isLoadingGroups && !groups.length">
+      Todavía no tienes grupos de intercambio. Créalos en Biblioteca → Intercambios y podrás
+      repartirlos aquí.
+    </p>
+
+    <!-- Comidas -->
+    <div class="meal" *ngFor="let meal of meals; let mealIndex = index; trackBy: trackByIndex">
+      <div class="meal-head">
+        <input
+          type="text"
+          class="meal-name"
+          maxlength="60"
+          [value]="meal.name"
+          (change)="renameMeal(mealIndex, $any($event.target).value)"
+          [attr.aria-label]="'Nombre de la comida ' + (mealIndex + 1)"
+        />
+        <button
+          type="button"
+          class="meal-remove"
+          (click)="removeMeal(mealIndex)"
+          [attr.aria-label]="'Quitar ' + meal.name"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="exchange-row" *ngFor="let exchange of meal.exchanges; let i = index; trackBy: trackByIndex">
+        <span class="exchange-name">{{ exchange.groupName }}</span>
+        <div class="exchange-stepper">
+          <button
+            type="button"
+            class="stepper-button"
+            (click)="changeCount(mealIndex, i, -0.5)"
+            [attr.aria-label]="'Quitar media ración de ' + exchange.groupName"
+          >
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <span class="exchange-count">{{ exchange.count }}</span>
+          <button
+            type="button"
+            class="stepper-button"
+            (click)="changeCount(mealIndex, i, 0.5)"
+            [attr.aria-label]="'Añadir media ración de ' + exchange.groupName"
+          >
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <select
+        class="group-select"
+        *ngIf="availableGroupsFor(meal).length"
+        [value]="''"
+        (change)="addExchange(mealIndex, $any($event.target).value); $any($event.target).value = ''"
+        [attr.aria-label]="'Añadir un grupo a ' + meal.name"
+      >
+        <option value="" disabled selected>Añadir grupo…</option>
+        <option *ngFor="let group of availableGroupsFor(meal); trackBy: trackByGroupId" [value]="group._id">
+          {{ group.name }}{{ group.category ? ' · ' + group.category : '' }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Añadir comida: los nombres habituales como atajo, más uno libre. -->
+    <div class="meal-presets">
+      <button
+        type="button"
+        class="preset-button"
+        *ngFor="let preset of presetsNotUsed(); trackBy: trackByIndex"
+        (click)="addMeal(preset)"
+      >
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        {{ preset }}
+      </button>
+      <button type="button" class="preset-button" (click)="addMeal('Nueva comida')">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        Otra
+      </button>
+    </div>
+
+    <!-- Total del día por grupo: es lo que el entrenador compara contra lo
+         que quería pautar, y no se ve mirando comida a comida. -->
+    <div class="day-totals" *ngIf="totalsByGroup.length">
+      <span class="day-totals-label">Total del día</span>
+      <span class="day-total" *ngFor="let total of totalsByGroup; trackBy: trackByIndex">
+        {{ total.groupName }}: <strong>{{ total.count }}</strong>
+      </span>
+    </div>
+  </div>
+</div>
