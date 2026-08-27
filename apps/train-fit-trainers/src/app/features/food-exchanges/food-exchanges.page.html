@@ -1,0 +1,248 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" routerLink="/tabs/templates" aria-label="Volver a plantillas">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Intercambios</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo grupo de intercambio">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="exchanges-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block group-card-skeleton"></div>
+    <div class="skeleton-block group-card-skeleton"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <h2>No se pudieron cargar tus intercambios</h2>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="page-state page-state--intro" *ngIf="state === 'loaded' && !groups.length">
+    <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+    <h2>Qué puede comer en lugar de qué</h2>
+    <p>
+      Define grupos de alimentos equivalentes y tus clientes podrán consultarlos cuando no tengan
+      lo pautado. <strong>Las equivalencias las decides tú</strong>: el sistema no calcula que
+      100 g de pollo equivalgan a 120 g de pavo, porque eso depende de si igualas proteína,
+      calorías o volumen.
+    </p>
+    <button type="button" class="primary-button" (click)="openEditor()">Crear mi primer grupo</button>
+  </div>
+
+  <ul class="group-list" *ngIf="state === 'loaded' && groups.length">
+    <li class="group-card" *ngFor="let group of groups; trackBy: trackByGroupId">
+      <div class="group-main">
+        <div class="group-head">
+          <h2 class="group-name">{{ group.name }}</h2>
+          <span class="category-chip" *ngIf="group.category">{{ group.category }}</span>
+        </div>
+
+        <p class="group-reference">
+          Referencia: <strong>{{ referenceLabel(group) }}</strong>
+        </p>
+
+        <p class="group-note" *ngIf="group.equivalenceNote">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>{{ group.equivalenceNote }}
+        </p>
+
+        <ul class="item-preview">
+          <li class="item-preview-row" *ngFor="let item of group.items; let i = index; trackBy: trackByIndex">
+            <span class="item-quantity">{{ item.quantity }} {{ item.unit }}</span>
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-note" *ngIf="item.note">{{ item.note }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="group-actions">
+        <button type="button" class="icon-button" (click)="openEditor(group)" [attr.aria-label]="'Editar ' + group.name">
+          <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button type="button" class="icon-button icon-button--danger" (click)="confirmDelete(group)" [attr.aria-label]="'Eliminar ' + group.name">
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </li>
+  </ul>
+</ion-content>
+
+<!-- ============ Editor ============ -->
+<div class="panel-backdrop" *ngIf="showEditor" (click)="closeEditor()"></div>
+<div class="panel-sheet" *ngIf="showEditor" role="dialog" aria-modal="true" aria-labelledby="exchange-editor-title">
+  <div class="panel-handle" aria-hidden="true"></div>
+  <h2 class="panel-title" id="exchange-editor-title">
+    {{ editingId ? 'Editar grupo' : 'Nuevo grupo de intercambio' }}
+  </h2>
+
+  <label class="field-label" for="exchange-name">Nombre</label>
+  <div class="input-wrapper">
+    <input id="exchange-name" class="input-field" type="text" maxlength="100" placeholder="Fuentes de proteína" [(ngModel)]="name" />
+  </div>
+
+  <label class="field-label" for="exchange-category">Categoría <span class="field-optional">(opcional)</span></label>
+  <div class="input-wrapper">
+    <input id="exchange-category" class="input-field" type="text" maxlength="50" placeholder="Proteína" [(ngModel)]="category" list="exchange-categories" />
+  </div>
+  <datalist id="exchange-categories">
+    <option *ngFor="let suggestion of categorySuggestions" [value]="suggestion"></option>
+  </datalist>
+
+  <!-- El criterio de equivalencia es lo que impide que un intercambio se
+       malinterprete. Se pide explícitamente, no se deja implícito. -->
+  <label class="field-label" for="exchange-note">¿En qué son equivalentes?</label>
+  <div class="input-wrapper">
+    <input
+      id="exchange-note"
+      class="input-field"
+      type="text"
+      maxlength="300"
+      placeholder="Equivalen en proteína, no en calorías"
+      [(ngModel)]="equivalenceNote"
+    />
+  </div>
+
+  <!-- Movimiento 5 Coach Pro — base numérica y calculadora de etiquetas.
+
+       Esto NO convierte un alimento en otro: el sistema sigue sin asumir
+       equivalencias. Lo que hace es la división que el coach hace a mano
+       veinte veces al montar una dieta, una vez él ha decidido cuánto es
+       una ración. Por eso es opcional: sin base, el grupo se comporta
+       exactamente como hasta ahora. -->
+  <h3 class="section-title">¿Cuánto es una ración? (opcional)</h3>
+  <p class="section-hint">
+    Si lo dices, la app te calcula cuántas raciones es cualquier etiqueta. Si no, el grupo sigue
+    siendo una lista de equivalencias escritas a mano.
+  </p>
+
+  <div class="basis-picker">
+    <button
+      type="button"
+      class="basis-option"
+      *ngFor="let base of bases; trackBy: trackByIndex"
+      [class.selected]="basis === base.key"
+      [attr.aria-pressed]="basis === base.key"
+      (click)="setBasis(base.key)"
+    >
+      {{ base.label }}
+    </button>
+  </div>
+
+  <div class="basis-amount" *ngIf="basis">
+    <label class="field-label" for="basis-amount">
+      Una ración = ¿cuántos {{ basisUnit }} de {{ basisLabel | lowercase }}?
+    </label>
+    <div class="input-wrapper">
+      <input
+        id="basis-amount"
+        class="input-field"
+        type="number"
+        min="0"
+        step="0.1"
+        placeholder="15"
+        [(ngModel)]="basisAmount"
+      />
+    </div>
+  </div>
+
+  <div class="label-calculator" *ngIf="hasBasis">
+    <label class="field-label" for="label-amount">
+      Calculadora: {{ basisLabel | lowercase }} de una etiqueta
+    </label>
+    <div class="input-wrapper">
+      <ion-icon name="calculator-outline" class="input-icon"></ion-icon>
+      <input
+        id="label-amount"
+        class="input-field"
+        type="number"
+        min="0"
+        step="0.1"
+        [placeholder]="'¿Cuántos ' + basisUnit + ' pone?'"
+        [(ngModel)]="labelAmount"
+      />
+    </div>
+    <p class="calculator-result" *ngIf="calculatedExchanges as result">
+      Son <strong>{{ result.rounded }}</strong> ración(es)
+      <span class="calculator-exact" *ngIf="result.exact !== result.rounded">
+        ({{ result.exact }} exactas)
+      </span>
+    </p>
+  </div>
+
+  <h3 class="section-title">Alimentos</h3>
+  <p class="section-hint">El primero es la referencia: los demás se leen contra él.</p>
+
+  <div class="item-editor" *ngFor="let item of items; let i = index; trackBy: trackByIndex">
+    <span class="item-index" [class.item-index--reference]="i === 0" aria-hidden="true">
+      {{ i === 0 ? 'Ref.' : i + 1 }}
+    </span>
+
+    <div class="item-fields">
+      <input
+        class="builder-input"
+        type="text"
+        maxlength="120"
+        placeholder="Pechuga de pollo"
+        [(ngModel)]="item.name"
+        [attr.aria-label]="'Nombre del alimento ' + (i + 1)"
+      />
+      <div class="quantity-row">
+        <input
+          class="builder-input builder-input--narrow"
+          type="number"
+          min="0"
+          [(ngModel)]="item.quantity"
+          [attr.aria-label]="'Cantidad del alimento ' + (i + 1)"
+        />
+        <select class="builder-select" [(ngModel)]="item.unit" [attr.aria-label]="'Unidad del alimento ' + (i + 1)">
+          <option *ngFor="let unit of units" [value]="unit">{{ unit }}</option>
+        </select>
+        <input
+          class="builder-input"
+          type="text"
+          maxlength="200"
+          placeholder="nota (en crudo…)"
+          [(ngModel)]="item.note"
+          [attr.aria-label]="'Nota del alimento ' + (i + 1)"
+        />
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="icon-button"
+      *ngIf="items.length > 2"
+      (click)="removeItem(i)"
+      [attr.aria-label]="'Quitar el alimento ' + (i + 1)"
+    >
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <button type="button" class="add-row-button" (click)="addItem()">
+    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir alimento
+  </button>
+
+  <div class="panel-actions">
+    <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
+    <div class="panel-buttons">
+      <button type="button" class="cancel-button" (click)="closeEditor()">Cancelar</button>
+      <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()">
+        <span *ngIf="!isSaving">{{ editingId ? 'Guardar' : 'Crear grupo' }}</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </div>
+  </div>
+</div>

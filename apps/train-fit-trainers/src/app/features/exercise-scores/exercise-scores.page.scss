@@ -1,0 +1,206 @@
+@import '../../../theme/buttons';
+@import '../../../theme/skeleton';
+@import '../../../theme/inputs';
+
+.scores-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 4px;
+  --padding-bottom: 32px;
+}
+
+.page-hint {
+  margin: 0 0 var(--tf-space-5);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.5;
+}
+
+.page-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  height: 62px;
+  border-radius: var(--tf-radius-md);
+}
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-8) var(--tf-space-4);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 44px;
+    color: var(--tf-text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tf-font-size-md);
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.5;
+    max-width: 42ch;
+  }
+}
+
+.retry-button,
+.invite-cta {
+  min-height: 44px;
+  margin-top: var(--tf-space-3);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+  flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+  @include tf-input-wrapper;
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-icon {
+  @include tf-input-icon;
+}
+
+.search-input {
+  @include tf-input-field;
+}
+
+.scored-count {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+// --- Fichas ---
+.score-card {
+  margin-bottom: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.score-card-main {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+}
+
+.score-card-info {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.score-card-name {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+// Los tres músculos que más trabaja: identifican el ejercicio de un vistazo
+// sin desplegar los dieciséis.
+.score-card-muscles {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.joint-warning {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.score-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.row-action {
+  min-height: 36px;
+  position: relative;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-5);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+
+  // Expansor invisible hasta 44px, mismo patrón que el resto de la app.
+  @include tf-touch-expander;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &--danger {
+    padding: 0 9px;
+    color: var(--tf-danger-text);
+    border-color: var(--tf-danger-border);
+
+    ion-icon {
+      font-size: 15px;
+    }
+  }
+}
+
+.empty-hint {
+  margin: var(--tf-space-4) 0 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}

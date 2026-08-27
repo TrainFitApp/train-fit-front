@@ -1,0 +1,517 @@
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+@import '../../../theme/panel-sheet';
+@import '../../../theme/inputs';
+
+.exchanges-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
+}
+
+.page-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+.group-card-skeleton {
+  height: 160px;
+}
+
+.page-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-12) var(--tf-space-6);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 34px;
+    color: var(--tf-text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tf-font-size-lg);
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: var(--tf-line-height-base);
+    max-width: 56ch;
+  }
+
+  strong {
+    color: var(--tf-text-secondary);
+  }
+}
+
+.page-state--intro ion-icon {
+  color: var(--tf-accent);
+}
+
+.retry-button {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.primary-button {
+  @include tf-gradient-button(var(--tf-radius-lg));
+
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-6);
+  margin-top: var(--tf-space-2);
+  font-size: var(--tf-font-size-base);
+}
+
+// ---------------------------------------------------------------------------
+// Listado
+// ---------------------------------------------------------------------------
+.group-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.group-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+}
+
+.group-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.group-name {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.category-chip {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+}
+
+.group-reference {
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+
+  strong {
+    color: var(--tf-text-secondary);
+    font-weight: 600;
+  }
+}
+
+// El criterio de equivalencia es lo que evita que el intercambio se
+// malinterprete: se destaca, no se esconde entre los alimentos.
+.group-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-3) 0 0;
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  line-height: var(--tf-line-height-base);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.item-preview {
+  list-style: none;
+  margin: var(--tf-space-3) 0 0;
+  padding: 0;
+}
+
+.item-preview-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-space-3);
+  padding: 3px 0;
+  font-size: var(--tf-font-size-sm);
+}
+
+// Cantidades tabulares y alineadas a la derecha: es la columna que se
+// compara entre filas, y desalineada obliga a leerla número a número.
+.item-quantity {
+  min-width: 8ch;
+  text-align: right;
+  color: var(--tf-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.item-name {
+  color: var(--tf-text-secondary);
+}
+
+.item-note {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+}
+
+.group-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-shrink: 0;
+}
+
+.icon-button {
+  @include tf-icon-button(var(--tf-touch-min), var(--tf-radius-sm), 18px);
+
+  &--danger:hover {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Editor
+// ---------------------------------------------------------------------------
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+
+  @media (min-width: 768px) {
+    max-width: 640px;
+    margin: 0 auto;
+    right: 0;
+    left: 0;
+  }
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.section-title {
+  margin: var(--tf-space-6) 0 var(--tf-space-1);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.section-hint {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.field-label {
+  display: block;
+  margin: var(--tf-space-3) 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.field-optional {
+  font-weight: 400;
+  color: var(--tf-text-muted);
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: var(--tf-touch-min);
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
+}
+
+.item-editor {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+// El primer alimento es la referencia contra la que se leen los demás: se
+// marca con la palabra, no solo con la posición.
+.item-index {
+  flex-shrink: 0;
+  min-width: 34px;
+  padding-top: 12px;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  text-align: center;
+
+  &--reference {
+    color: var(--tf-accent-text);
+  }
+}
+
+.item-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.quantity-row {
+  display: flex;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.builder-input,
+.builder-select {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  flex: 1;
+  min-width: 0;
+
+  &::placeholder {
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.builder-input--narrow {
+  flex: 0 0 88px;
+  font-variant-numeric: tabular-nums;
+}
+
+.builder-select {
+  flex: 0 0 84px;
+  padding-right: var(--tf-space-6);
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--tf-text-muted) 50%),
+    linear-gradient(135deg, var(--tf-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 15px) calc(50% + 2px), calc(100% - 10px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+
+  option {
+    background: var(--tf-surface-1);
+    color: var(--tf-text);
+  }
+}
+
+.add-row-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  margin-top: var(--tf-space-2);
+  padding: 0 var(--tf-space-4);
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-6);
+}
+
+.save-error {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.panel-buttons {
+  display: flex;
+  gap: var(--tf-space-3);
+}
+
+.cancel-button {
+  flex: 1;
+  height: var(--tf-touch-min);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button(var(--tf-radius-lg));
+
+  flex: 1;
+  height: var(--tf-touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tf-font-size-base);
+}
+
+// ---------------------------------------------------------------------------
+// Movimiento 5 Coach Pro — base numérica del grupo y calculadora de etiquetas.
+// ---------------------------------------------------------------------------
+.basis-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--tf-space-3);
+}
+
+.basis-option {
+  min-height: 44px;
+  padding: 0 var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.selected {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.basis-amount,
+.label-calculator {
+  margin-bottom: var(--tf-space-3);
+}
+
+// El resultado, separado del campo: es lo que el coach mira, y mezclado con
+// el input se leería como un texto de ayuda más.
+.calculator-result {
+  margin: var(--tf-space-2) 0 0;
+  padding: 10px 12px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-sm);
+  line-height: 1.45;
+
+  strong {
+    font-size: var(--tf-font-size-md);
+  }
+}
+
+// El valor exacto en pequeño y entre paréntesis: se enseña porque el coach
+// puede querer ajustar la ración, pero lo que se pauta es el redondeado.
+.calculator-exact {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+}

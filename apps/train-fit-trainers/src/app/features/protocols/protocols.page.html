@@ -1,0 +1,219 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" routerLink="/tabs/templates" aria-label="Volver a plantillas">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Protocolos</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo protocolo">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="protocols-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block protocol-card-skeleton"></div>
+    <div class="skeleton-block protocol-card-skeleton"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <h2>No se pudieron cargar tus protocolos</h2>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="page-state page-state--intro" *ngIf="state === 'loaded' && !protocols.length">
+    <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+    <h2>Tu metodología, en un solo paso</h2>
+    <p>
+      Un protocolo agrupa lo que le pones a un cliente cuando entra en una fase: macros, plantilla de
+      check-in, plan de dieta, rutina, automatizaciones y hábitos. Créalo una vez —
+      <em>Definición</em>, <em>Volumen</em>, <em>Recomposición</em>— y aplícalo entero cada vez que
+      lo necesites.
+    </p>
+    <button type="button" class="primary-button" (click)="openEditor()">Crear mi primer protocolo</button>
+  </div>
+
+  <!-- Resultado de aplicar: paso a paso y por cliente, porque aplicar un
+       protocolo son 6 operaciones y cualquiera puede fallar sola. -->
+  <section class="results-card" *ngIf="applyResults.length">
+    <div class="results-head">
+      <h2 class="results-title">Resultado</h2>
+      <button type="button" class="link-button" (click)="dismissResults()">Cerrar</button>
+    </div>
+    <div class="result-row" *ngFor="let result of applyResults; trackBy: trackByIndex">
+      <div class="result-head">
+        <ion-icon
+          [name]="result.success ? 'checkmark-circle-outline' : 'alert-circle-outline'"
+          [class.result-icon--ok]="result.success"
+          [class.result-icon--fail]="!result.success"
+          aria-hidden="true"
+        ></ion-icon>
+        <span class="result-client">{{ result.clientId }}</span>
+      </div>
+      <p class="result-error" *ngIf="result.error">{{ result.error }}</p>
+      <ul class="step-list" *ngIf="result.steps?.length">
+        <li class="step-row" *ngFor="let step of result.steps; trackBy: trackByIndex">
+          <span class="step-label">{{ step.label }}</span>
+          <span class="step-status" [class.step-status--skipped]="step.status === 'skipped'" [class.step-status--failed]="step.status === 'failed'">
+            {{ step.status === 'applied' ? 'Aplicado' : step.status === 'skipped' ? 'No incluido' : 'Falló' }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <ul class="protocol-list" *ngIf="state === 'loaded' && protocols.length">
+    <li class="protocol-card" *ngFor="let protocol of protocols; trackBy: trackByProtocolId">
+      <div class="protocol-main">
+        <h2 class="protocol-name">{{ protocol.name }}</h2>
+        <p class="protocol-description" *ngIf="protocol.description">{{ protocol.description }}</p>
+
+        <div class="content-chips">
+          <span class="content-chip" *ngFor="let part of contentSummary(protocol); trackBy: trackByIndex">
+            {{ part }}
+          </span>
+          <span class="content-chip content-chip--empty" *ngIf="!contentSummary(protocol).length">
+            Vacío
+          </span>
+        </div>
+      </div>
+
+      <div class="protocol-actions">
+        <button
+          type="button"
+          class="apply-button"
+          [disabled]="applyingId === protocol._id"
+          (click)="applyProtocol(protocol)"
+        >
+          <span *ngIf="applyingId !== protocol._id">Aplicar</span>
+          <ion-spinner name="dots" *ngIf="applyingId === protocol._id"></ion-spinner>
+        </button>
+        <button type="button" class="icon-button" (click)="openEditor(protocol)" [attr.aria-label]="'Editar ' + protocol.name">
+          <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button type="button" class="icon-button icon-button--danger" (click)="confirmDelete(protocol)" [attr.aria-label]="'Eliminar ' + protocol.name">
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </li>
+  </ul>
+</ion-content>
+
+<!-- ============ Editor ============ -->
+<div class="panel-backdrop" *ngIf="showEditor" (click)="closeEditor()"></div>
+<div class="panel-sheet" *ngIf="showEditor" role="dialog" aria-modal="true" aria-labelledby="protocol-editor-title">
+  <div class="panel-handle" aria-hidden="true"></div>
+  <h2 class="panel-title" id="protocol-editor-title">
+    {{ editingId ? 'Editar protocolo' : 'Nuevo protocolo' }}
+  </h2>
+
+  <label class="field-label" for="protocol-name">Nombre</label>
+  <div class="input-wrapper">
+    <input id="protocol-name" class="input-field" type="text" maxlength="100" placeholder="Definición" [(ngModel)]="name" />
+  </div>
+
+  <label class="field-label" for="protocol-description">Descripción <span class="field-optional">(opcional)</span></label>
+  <div class="input-wrapper">
+    <input id="protocol-description" class="input-field" type="text" maxlength="500" placeholder="Fase de déficit moderado" [(ngModel)]="description" />
+  </div>
+
+  <!-- Macros. Vacío = "este protocolo no toca los macros", que no es lo
+       mismo que 0 kcal — de ahí el texto de ayuda. -->
+  <h3 class="section-title">Objetivo nutricional</h3>
+  <p class="section-hint">Déjalo vacío si este protocolo no cambia los macros del cliente.</p>
+  <div class="macro-grid">
+    <div class="macro-field">
+      <label class="field-label" for="protocol-kcal">Calorías</label>
+      <input id="protocol-kcal" class="builder-input" type="number" min="0" [(ngModel)]="kcalTotal" />
+    </div>
+    <div class="macro-field">
+      <label class="field-label" for="protocol-protein">Proteínas (g)</label>
+      <input id="protocol-protein" class="builder-input" type="number" min="0" [(ngModel)]="proteinsGTotal" />
+    </div>
+    <div class="macro-field">
+      <label class="field-label" for="protocol-carbs">Carbohidratos (g)</label>
+      <input id="protocol-carbs" class="builder-input" type="number" min="0" [(ngModel)]="carbohydratesGTotal" />
+    </div>
+    <div class="macro-field">
+      <label class="field-label" for="protocol-fat">Grasas (g)</label>
+      <input id="protocol-fat" class="builder-input" type="number" min="0" [(ngModel)]="fatGTotal" />
+    </div>
+  </div>
+
+  <h3 class="section-title">Plantillas</h3>
+  <label class="field-label" for="protocol-checkin">Check-in</label>
+  <select id="protocol-checkin" class="builder-select" [(ngModel)]="checkinTemplateId">
+    <option [ngValue]="null">Ninguna</option>
+    <option *ngFor="let option of checkinTemplates" [ngValue]="option._id">{{ option.name }}</option>
+  </select>
+
+  <label class="field-label" for="protocol-diet">Plan de dieta</label>
+  <select id="protocol-diet" class="builder-select" [(ngModel)]="dietTemplateId">
+    <option [ngValue]="null">Ninguno</option>
+    <option *ngFor="let option of dietTemplates" [ngValue]="option._id">{{ option.name }}</option>
+  </select>
+
+  <label class="field-label" for="protocol-routine">Rutina</label>
+  <select id="protocol-routine" class="builder-select" [(ngModel)]="routineTemplateId">
+    <option [ngValue]="null">Ninguna</option>
+    <option *ngFor="let option of routineTemplates" [ngValue]="option._id">{{ option.name }}</option>
+  </select>
+
+  <h3 class="section-title">Automatizaciones</h3>
+  <p class="section-hint" *ngIf="!rules.length">
+    Todavía no tienes automatizaciones. Puedes crearlas desde el menú lateral y añadirlas aquí luego.
+  </p>
+  <div class="rule-chips" *ngIf="rules.length">
+    <button
+      type="button"
+      class="rule-chip"
+      *ngFor="let rule of rules; trackBy: trackByIndex"
+      [class.rule-chip--active]="isRuleSelected(rule._id)"
+      [attr.aria-pressed]="isRuleSelected(rule._id)"
+      (click)="toggleRule(rule._id)"
+    >
+      {{ rule.name }}
+    </button>
+  </div>
+
+  <h3 class="section-title">Hábitos diarios</h3>
+  <div class="task-add-row">
+    <button
+      type="button"
+      class="add-chip"
+      *ngFor="let preset of taskPresets; trackBy: trackByIndex"
+      (click)="addTask(preset.type)"
+    >
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>{{ preset.label }}
+    </button>
+  </div>
+
+  <div class="task-row" *ngFor="let task of dailyTasks; let i = index; trackBy: trackByIndex">
+    <span class="task-name">{{ task.label || 'Hábito' }}</span>
+    <input class="builder-input builder-input--narrow" type="number" min="0" [(ngModel)]="task.target" [attr.aria-label]="'Objetivo de ' + (task.label || 'hábito')" />
+    <span class="task-unit">{{ task.unit }}</span>
+    <button type="button" class="icon-button" (click)="removeTask(i)" [attr.aria-label]="'Quitar ' + (task.label || 'hábito')">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <div class="panel-actions">
+    <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
+    <div class="panel-buttons">
+      <button type="button" class="cancel-button" (click)="closeEditor()">Cancelar</button>
+      <button type="button" class="submit-button" [disabled]="isSaving" (click)="save()">
+        <span *ngIf="!isSaving">{{ editingId ? 'Guardar' : 'Crear protocolo' }}</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </div>
+  </div>
+</div>

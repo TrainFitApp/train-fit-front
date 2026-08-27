@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Automatizaciones</h1>
+      </div>
+      <div class="tf-page-header__actions">
+        <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nueva automatización">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="automations-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block rule-card-skeleton"></div>
+    <div class="skeleton-block rule-card-skeleton"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <h2>No se pudieron cargar tus automatizaciones</h2>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <!-- Estado vacío que enseña qué es esto, con un ejemplo concreto: "no hay
+       nada" no explicaría para qué sirve la pantalla. -->
+  <div class="page-state page-state--intro" *ngIf="state === 'loaded' && !rules.length">
+    <ion-icon name="git-branch-outline" aria-hidden="true"></ion-icon>
+    <h2>Tu metodología, aplicada sola</h2>
+    <p>
+      Una automatización vigila a tus clientes por ti y te avisa cuando pasa algo que a ti te
+      importa. Por ejemplo: <em>si el peso apenas baja durante 2 semanas y la adherencia supera el
+      85%, avísame de un posible estancamiento</em>.
+    </p>
+    <button type="button" class="primary-button" (click)="createRule()">
+      Crear mi primera automatización
+    </button>
+  </div>
+
+  <ul class="rule-list" *ngIf="state === 'loaded' && rules.length">
+    <li class="rule-card" *ngFor="let rule of rules; trackBy: trackByRuleId" [class.rule-card--off]="!rule.enabled">
+      <button type="button" class="rule-main" (click)="openRule(rule)">
+        <span class="rule-head">
+          <span class="rule-name">{{ rule.name }}</span>
+          <span class="level-chip" [class.level-chip--auto]="rule.level === 'automatic'">
+            {{ levelLabel(rule) }}
+          </span>
+        </span>
+
+        <span class="rule-description" *ngIf="rule.description">{{ rule.description }}</span>
+
+        <span class="rule-meta">
+          <span class="rule-meta-item">
+            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>{{ triggerLabel(rule) }}
+          </span>
+          <span class="rule-meta-item">
+            <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>{{ conditionsLabel(rule) }}
+          </span>
+          <span class="rule-meta-item">
+            <ion-icon name="people-outline" aria-hidden="true"></ion-icon>{{ scopeLabel(rule) }}
+          </span>
+        </span>
+
+        <!-- El sistema la apagó solo. Se explica en vez de dejar un
+             interruptor apagado que parecería un fallo. -->
+        <span class="rule-warning" *ngIf="rule.disabledReason">
+          <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>{{ rule.disabledReason }}
+        </span>
+      </button>
+
+      <div class="rule-actions">
+        <button
+          type="button"
+          class="rule-switch"
+          [class.rule-switch--on]="rule.enabled"
+          [disabled]="isToggling(rule)"
+          (click)="toggleRule(rule, $event)"
+          role="switch"
+          [attr.aria-checked]="rule.enabled"
+          [attr.aria-label]="(rule.enabled ? 'Desactivar' : 'Activar') + ' ' + rule.name"
+        >
+          <span class="rule-switch-knob" aria-hidden="true"></span>
+        </button>
+        <button
+          type="button"
+          class="rule-delete"
+          (click)="confirmDelete(rule, $event)"
+          [attr.aria-label]="'Eliminar ' + rule.name"
+        >
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </li>
+  </ul>
+</ion-content>

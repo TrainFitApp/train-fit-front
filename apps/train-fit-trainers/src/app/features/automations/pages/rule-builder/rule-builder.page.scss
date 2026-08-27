@@ -1,0 +1,519 @@
+@import '../../../../../theme/skeleton';
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+.builder-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
+}
+
+.page-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+.page-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-12) var(--tf-space-6);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 34px;
+    color: var(--tf-text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tf-font-size-lg);
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tarjetas de paso
+// ---------------------------------------------------------------------------
+// La regla se lee de arriba abajo como una frase: CUÁNDO → SI → ENTONCES.
+// Cada paso es una tarjeta y entre ellas hay un conector vertical, para que
+// la secuencia se vea antes de leerla.
+.builder-card,
+.step-card {
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-5);
+  margin-bottom: var(--tf-space-4);
+}
+
+.step-card {
+  margin-bottom: 0;
+}
+
+.step-connector {
+  display: flex;
+  justify-content: center;
+  height: var(--tf-space-5);
+
+  span {
+    width: 2px;
+    height: 100%;
+    background: var(--tf-border-strong);
+  }
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-4);
+}
+
+.step-badge {
+  padding: 3px var(--tf-space-3);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  // Los pasos de configuración (nivel, alcance) no forman parte de la frase
+  // CUÁNDO/SI/ENTONCES, así que no compiten por el mismo acento.
+  &--muted {
+    background: var(--tf-surface-4);
+    color: var(--tf-text-secondary);
+  }
+}
+
+.step-hint {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+// ---------------------------------------------------------------------------
+// Campos
+// ---------------------------------------------------------------------------
+.field-label {
+  display: block;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: var(--tf-touch-min);
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
+}
+
+// <select> nativo, no un desplegable propio: en móvil abre la rueda del
+// sistema, que es más rápida y accesible que cualquier lista reimplementada
+// (PRODUCT.md: no reinventar affordances estándar).
+.builder-select {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-8) 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  cursor: pointer;
+  appearance: none;
+  // Flecha dibujada con gradientes, sin imagen externa ni glifo unicode.
+  background-image: linear-gradient(45deg, transparent 50%, var(--tf-text-muted) 50%),
+    linear-gradient(135deg, var(--tf-text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  option,
+  optgroup {
+    background: var(--tf-surface-2);
+    color: var(--tf-text);
+  }
+}
+
+.builder-input {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Opciones (trigger, nivel, alcance)
+// ---------------------------------------------------------------------------
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+
+  &--inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .option-card {
+      flex: 1;
+      min-width: 160px;
+    }
+  }
+}
+
+.option-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+
+  // La opción elegida se marca con borde y tinte de acento — sin icono de
+  // check añadido: el estado ya se lee, y un check duplicaría la señal.
+  &--active {
+    background: var(--tf-accent-tint);
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.option-title {
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.option-description {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  line-height: var(--tf-line-height-base);
+}
+
+// ---------------------------------------------------------------------------
+// Condiciones
+// ---------------------------------------------------------------------------
+.logic-switch {
+  display: flex;
+  gap: 3px;
+  margin-bottom: var(--tf-space-4);
+  padding: 3px;
+  background: var(--tf-surface-3);
+  border-radius: var(--tf-radius-pill);
+  width: fit-content;
+}
+
+.logic-option {
+  position: relative;
+  min-height: 34px;
+  padding: 0 var(--tf-space-4);
+  border: none;
+  border-radius: var(--tf-radius-pill);
+  background: transparent;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+
+  // Mismo criterio que los segmentos del selector de semanas del Resumen:
+  // dibujo compacto, área pulsable al mínimo táctil, ampliada solo en
+  // vertical para no solapar con el segmento vecino.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tf-touch-min);
+    transform: translateY(-50%);
+  }
+
+  &--active {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.condition-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.condition-joiner {
+  align-self: center;
+  padding: 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  letter-spacing: 0.06em;
+}
+
+.condition-card,
+.action-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.action-card {
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.condition-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+// La métrica es lo primero que se elige y la etiqueta más larga: ocupa la
+// línea entera antes de que el resto la deje en 12 caracteres.
+.builder-select--metric {
+  flex: 1 1 100%;
+}
+
+.value-field {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex: 0 1 130px;
+}
+
+.value-unit {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+}
+
+.condition-remove {
+  @include tf-icon-button(var(--tf-touch-min), var(--tf-radius-sm), 20px);
+
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.action-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  width: 100%;
+
+  > ion-icon {
+    font-size: 18px;
+    color: var(--tf-accent);
+  }
+}
+
+.action-title {
+  flex: 1;
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.action-card .input-wrapper {
+  width: 100%;
+}
+
+.priority-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+}
+
+.priority-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.add-row-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  margin-top: var(--tf-space-3);
+  padding: 0 var(--tf-space-4);
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Avisos y guardado
+// ---------------------------------------------------------------------------
+.inline-warning,
+.inline-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-4) 0 0;
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-font-size-xs);
+  line-height: var(--tf-line-height-base);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 15px;
+  }
+}
+
+.inline-warning {
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+}
+
+.inline-note {
+  background: var(--tf-surface-2);
+  color: var(--tf-text-muted);
+}
+
+.client-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+  margin-top: var(--tf-space-4);
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-4);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.client-count {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.save-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-6);
+}
+
+// Por qué no se puede guardar, dicho siempre. Un botón desactivado sin
+// explicación deja al coach adivinando qué le falta.
+.save-error {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.primary-button {
+  @include tf-gradient-button(var(--tf-radius-lg));
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tf-touch-min);
+  font-size: var(--tf-font-size-base);
+}

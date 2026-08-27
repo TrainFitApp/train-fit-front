@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Mi método</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="method-content">
+  <p class="page-hint">Cómo trabajas tú: qué preguntas a tus clientes, qué le montas a uno nuevo y de qué te avisa la app sola.</p>
+
+  <app-category-grid [categories]="categories"></app-category-grid>
+
+  <h2 class="section-heading">Recientes</h2>
+
+  <!-- Mismo patrón de columnas que Biblioteca: auto-fit, así una columna sin
+       datos ni skeleton no reserva hueco. -->
+  <div class="recent-columns">
+    <section class="recent-column" *ngIf="loadingCheckinTemplates || checkinTemplates.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Check-ins</h3>
+        <a class="recent-column-link" routerLink="/tabs/checkin-templates">Ver todas</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingCheckinTemplates">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingCheckinTemplates">
+        <div class="recent-row recent-row--with-actions" *ngFor="let ct of checkinTemplates; trackBy: trackById">
+          <div class="recent-row-info" (click)="goToCheckinTemplates()">
+            <span class="recent-row-name">{{ ct.name }}</span>
+            <span class="recent-row-meta">{{ ct.enabledFields.length }} campos</span>
+          </div>
+          <div class="recent-row-actions">
+            <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">Aplicar</button>
+            <button
+              class="recent-row-action-btn recent-row-action-btn--danger"
+              (click)="confirmDeleteCheckinTemplate(ct)"
+              [attr.aria-label]="'Borrar plantilla ' + ct.name"
+            >
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="recent-column" *ngIf="loadingProtocols || protocols.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Protocolos</h3>
+        <a class="recent-column-link" routerLink="/tabs/protocols">Ver todos</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingProtocols">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingProtocols">
+        <button
+          type="button"
+          class="recent-row"
+          *ngFor="let p of protocols; trackBy: trackById"
+          (click)="goToProtocols()"
+        >
+          <div class="recent-row-info">
+            <span class="recent-row-name">{{ p.name }}</span>
+            <span class="recent-row-meta">{{ protocolMeta(p) }}</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="recent-column" *ngIf="loadingRules || rules.length">
+      <div class="recent-column-header">
+        <h3 class="recent-column-title">Automatizaciones</h3>
+        <a class="recent-column-link" routerLink="/tabs/automations">Ver todas</a>
+      </div>
+
+      <div class="recent-skeleton" *ngIf="loadingRules">
+        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+      </div>
+
+      <div class="recent-list" *ngIf="!loadingRules">
+        <button
+          type="button"
+          class="recent-row"
+          *ngFor="let r of rules; trackBy: trackById"
+          (click)="openRule(r)"
+        >
+          <div class="recent-row-info">
+            <span class="recent-row-name">{{ r.name }}</span>
+            <span class="recent-row-meta">{{ ruleMeta(r) }}</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="recent-row-chevron"></ion-icon>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <p class="empty-hint" *ngIf="isEmpty">
+    Todavía no has definido tu método. Empieza por las plantillas de check-in: son las preguntas que le harás a todos tus clientes.
+  </p>
+</ion-content>

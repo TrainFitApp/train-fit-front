@@ -1,0 +1,10 @@
+<div class="category-grid">
+  <a class="category-card" *ngFor="let c of categories; trackBy: trackByPath" [routerLink]="c.path">
+    <div class="category-icon" [style.background]="c.colorVar">
+      <ion-icon [name]="c.icon"></ion-icon>
+    </div>
+    <span class="category-name">{{ c.name }}</span>
+    <span class="category-desc">{{ c.description }}</span>
+    <span class="category-link">Ver todas <ion-icon name="chevron-forward"></ion-icon></span>
+  </a>
+</div>

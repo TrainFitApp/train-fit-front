@@ -1,0 +1,40 @@
+// La rejilla de categorías vive en shared/components/category-grid y el
+// bloque "Recientes" en theme/_recent-columns.scss — compartidos con
+// Biblioteca (templates.page), de la que esta página es la otra mitad.
+@import '../../../theme/skeleton';
+@import '../../../theme/recent-columns';
+
+.method-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 4px;
+  --padding-bottom: 32px;
+
+  @include tf-recent-columns;
+  // Solo la columna de check-ins trae Aplicar/Borrar en la propia fila.
+  @include tf-recent-row-actions;
+}
+
+.page-hint {
+  margin: 0 0 var(--tf-space-5);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+}
+
+.section-heading {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.empty-hint {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  margin: 0 0 var(--tf-space-6);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+}

@@ -1,0 +1,110 @@
+<div class="score-editor">
+  <header class="editor-header">
+    <div class="editor-title-block">
+      <h2 class="editor-title">{{ exerciseName }}</h2>
+      <p class="editor-subtitle">
+        Tu criterio sobre este ejercicio. Solo lo ves tú: no se comparte con otros profesionales.
+      </p>
+    </div>
+    <button type="button" class="close-button" (click)="cancel()" aria-label="Cerrar">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </header>
+
+  <div class="editor-body">
+    <!-- ===== Músculos ===== -->
+    <div class="section-head">
+      <h3 class="section-title">Estimulación muscular</h3>
+      <span class="section-count" *ngIf="scoredMuscleCount">{{ scoredMuscleCount }} marcados</span>
+    </div>
+
+    <!-- La leyenda va UNA vez arriba: son las mismas cuatro frases para los
+         dieciséis músculos, y repetirlas haría la pantalla ilegible. -->
+    <ul class="legend">
+      <li *ngFor="let level of levels; trackBy: trackByLevel">
+        <strong>{{ level }}</strong> {{ muscleAnchor(level) }}
+      </li>
+    </ul>
+
+    <div class="score-row" *ngFor="let muscle of muscles; trackBy: trackByName">
+      <span class="score-name">{{ muscle }}</span>
+      <div class="score-levels">
+        <button
+          type="button"
+          class="score-level"
+          *ngFor="let level of levels; trackBy: trackByLevel"
+          [class.selected]="muscleValue(muscle) === level"
+          [attr.aria-pressed]="muscleValue(muscle) === level"
+          [attr.aria-label]="muscle + ': ' + muscleAnchor(level)"
+          [title]="muscleAnchor(level)"
+          (click)="setMuscle(muscle, level)"
+        >
+          {{ level }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== Articulaciones ===== -->
+    <!-- Plegadas: casi todo el criterio útil está en los músculos, y quien
+         no quiera tocarlas no debería tener que desplazarse por ocho filas
+         más para llegar al botón de guardar. -->
+    <button type="button" class="joints-toggle" [attr.aria-expanded]="showJoints" (click)="toggleJoints()">
+      <ion-icon [name]="showJoints ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+      <span class="joints-toggle-label">Estrés articular</span>
+      <span class="section-count" *ngIf="scoredJointCount">{{ scoredJointCount }} marcadas</span>
+    </button>
+
+    <div class="joints-body" *ngIf="showJoints">
+      <ul class="legend">
+        <li *ngFor="let level of levels; trackBy: trackByLevel">
+          <strong>{{ level }}</strong> {{ jointAnchor(level) }}
+        </li>
+      </ul>
+
+      <div class="score-row" *ngFor="let joint of joints; trackBy: trackByName">
+        <span class="score-name">{{ joint }}</span>
+        <div class="score-levels">
+          <button
+            type="button"
+            class="score-level score-level--joint"
+            *ngFor="let level of levels; trackBy: trackByLevel"
+            [class.selected]="jointValue(joint) === level"
+            [attr.aria-pressed]="jointValue(joint) === level"
+            [attr.aria-label]="joint + ': ' + jointAnchor(level)"
+            [title]="jointAnchor(level)"
+            (click)="setJoint(joint, level)"
+          >
+            {{ level }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tiempo por serie ===== -->
+    <label class="field-label" for="seconds-per-set">Segundos por serie (opcional)</label>
+    <p class="field-hint">
+      Sin contar el descanso. Se usa para estimar cuánto dura una sesión; si lo dejas vacío se
+      usa un valor por defecto.
+    </p>
+    <div class="input-wrapper">
+      <ion-icon name="stopwatch-outline" class="input-icon"></ion-icon>
+      <input
+        id="seconds-per-set"
+        type="number"
+        class="input-field"
+        min="0"
+        max="600"
+        placeholder="40"
+        [(ngModel)]="secondsPerSet"
+      />
+    </div>
+  </div>
+
+  <footer class="editor-footer">
+    <button type="button" class="cancel-button" (click)="cancel()">Cancelar</button>
+    <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving">
+      <span *ngIf="!isSaving">Guardar</span>
+      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+    </button>
+  </footer>
+</div>

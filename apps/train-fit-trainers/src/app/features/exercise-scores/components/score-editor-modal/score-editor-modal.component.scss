@@ -1,0 +1,270 @@
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/inputs';
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.score-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--tf-bg);
+  color: var(--tf-text);
+}
+
+// La cabecera y el pie se quedan fijos: veinticuatro filas de puntuación no
+// pueden dejar el botón de guardar al final de un desplazamiento largo.
+.editor-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border);
+}
+
+.editor-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-title {
+  margin: 0 0 4px;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+}
+
+.editor-subtitle {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-muted);
+}
+
+.close-button {
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+.editor-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-2);
+}
+
+.section-title {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.section-count {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+}
+
+// Una vez arriba: son las mismas cuatro frases para dieciséis músculos.
+.legend {
+  list-style: none;
+  margin: 0 0 var(--tf-space-4);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+
+  strong {
+    display: inline-block;
+    min-width: 14px;
+    color: var(--tf-text);
+  }
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 6px 0;
+  border-top: 1px solid var(--tf-border-subtle);
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.score-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score-levels {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+// Cuatro botones por fila y veinticuatro filas: no caben a 44 px de ancho en
+// un móvil, así que crecen en ALTO hasta los 44 y se quedan estrechos. La
+// zona pulsable sigue siendo de 44 px en vertical, que es la dirección en la
+// que el pulgar falla. Mismo criterio que la escala de dolor.
+.score-level {
+  width: 38px;
+  min-height: 44px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.selected {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text);
+  }
+
+  // El estrés articular en rojo: son las dos escalas idénticas en forma, y
+  // el color evita confundir cuál se está tocando.
+  &--joint.selected {
+    border-color: var(--tf-danger);
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.joints-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: var(--tf-space-5);
+  padding: 0;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.joints-toggle-label {
+  flex: 1;
+}
+
+.joints-body {
+  padding-top: var(--tf-space-3);
+}
+
+.field-label {
+  display: block;
+  margin: var(--tf-space-5) 0 4px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+.field-hint {
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-muted);
+}
+
+.input-wrapper {
+  @include tf-input-wrapper;
+}
+
+.input-icon {
+  @include tf-input-icon;
+}
+
+.input-field {
+  @include tf-input-field;
+}
+
+.editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border-top: 1px solid var(--tf-border);
+}
+
+.cancel-button {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 var(--tf-space-5);
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  flex: 1;
+}

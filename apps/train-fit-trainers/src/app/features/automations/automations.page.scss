@@ -1,0 +1,304 @@
+@import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+
+.automations-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
+}
+
+.page-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+.rule-card-skeleton {
+  height: 116px;
+}
+
+.page-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-12) var(--tf-space-6);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 34px;
+    color: var(--tf-text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tf-font-size-lg);
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: var(--tf-line-height-base);
+    max-width: 52ch;
+  }
+
+  em {
+    color: var(--tf-text-secondary);
+    font-style: normal;
+    font-weight: 600;
+  }
+}
+
+// El estado vacío es la primera pantalla que ve un coach aquí: el icono va
+// en acento, no en gris apagado, porque no es un error sino una invitación.
+.page-state--intro ion-icon {
+  color: var(--tf-accent);
+}
+
+.retry-button,
+.primary-button {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-6);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  cursor: pointer;
+}
+
+.retry-button {
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-weight: 700;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.primary-button {
+  @include tf-gradient-button(var(--tf-radius-lg));
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--tf-space-2);
+}
+
+// ---------------------------------------------------------------------------
+// Lista de reglas
+// ---------------------------------------------------------------------------
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+}
+
+.rule-card {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-space-2);
+  background: var(--tf-surface-1);
+  // Elevación declarada una vez: borde, sin sombra.
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding-right: var(--tf-space-3);
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+  }
+}
+
+// Una regla apagada se atenúa entera en vez de marcarse con un color: no es
+// un estado de error, es un estado inactivo.
+.rule-card--off {
+  opacity: 0.6;
+}
+
+.rule-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-4);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: var(--tf-radius-lg);
+  }
+}
+
+.rule-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.rule-name {
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.level-chip {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+
+  // El nivel "automático" es el único que actúa sin preguntar: se distingue
+  // porque es la diferencia que importa de un vistazo en un listado.
+  &--auto {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
+}
+
+.rule-description {
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+  max-width: 68ch;
+}
+
+.rule-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.rule-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.rule-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-danger-soft);
+  color: var(--tf-danger-text);
+  font-size: var(--tf-font-size-xs);
+  line-height: var(--tf-line-height-base);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 14px;
+  }
+}
+
+.rule-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  flex-shrink: 0;
+}
+
+// Interruptor propio en vez de ion-toggle: el componente de Ionic renderiza
+// en shadow DOM y solo acepta su propia paleta vía custom properties, lo que
+// obliga a repetir los tokens uno a uno. Aquí son 20 líneas y usa los mismos
+// tokens que todo lo demás.
+.rule-switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  cursor: pointer;
+  transition: background var(--tf-duration-base) var(--tf-ease-out);
+
+  // Área pulsable al mínimo táctil sin engordar el dibujo del interruptor.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--tf-touch-min);
+    height: var(--tf-touch-min);
+    transform: translate(-50%, -50%);
+  }
+
+  &--on {
+    background: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.rule-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--tf-text);
+  transition: transform var(--tf-duration-base) var(--tf-ease-out);
+
+  .rule-switch--on & {
+    transform: translateX(18px);
+    background: var(--tf-accent-contrast);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.rule-delete {
+  @include tf-icon-button(var(--tf-touch-min), var(--tf-radius-sm), 18px);
+
+  &:hover {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}

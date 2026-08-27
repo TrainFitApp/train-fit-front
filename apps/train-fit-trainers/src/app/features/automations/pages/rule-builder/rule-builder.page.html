@@ -1,0 +1,324 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ isNew ? 'Nueva automatización' : 'Editar automatización' }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="builder-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 120px"></div>
+    <div class="skeleton-block" style="height: 200px"></div>
+    <div class="skeleton-block" style="height: 160px"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    <h2>No se pudo abrir esta automatización</h2>
+    <button type="button" class="retry-button" (click)="goBack()">Volver</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <!-- Nombre -->
+    <section class="builder-card">
+      <label class="field-label" for="rule-name">Nombre</label>
+      <div class="input-wrapper">
+        <input
+          id="rule-name"
+          class="input-field"
+          type="text"
+          maxlength="100"
+          placeholder="Posible estancamiento"
+          [(ngModel)]="name"
+        />
+      </div>
+    </section>
+
+    <!-- ============ CUÁNDO ============ -->
+    <section class="step-card">
+      <div class="step-head">
+        <span class="step-badge">Cuándo</span>
+        <span class="step-hint">Con qué frecuencia reviso a tus clientes</span>
+      </div>
+
+      <div class="option-list" role="radiogroup" aria-label="Cuándo se evalúa la automatización">
+        <button
+          type="button"
+          class="option-card"
+          *ngFor="let option of triggers"
+          [class.option-card--active]="trigger === option.key"
+          role="radio"
+          [attr.aria-checked]="trigger === option.key"
+          (click)="trigger = option.key"
+        >
+          <span class="option-title">{{ option.label }}</span>
+          <span class="option-description">{{ option.description }}</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="step-connector" aria-hidden="true"><span></span></div>
+
+    <!-- ============ SI ============ -->
+    <section class="step-card">
+      <div class="step-head">
+        <span class="step-badge">Si</span>
+        <span class="step-hint">Se cumple lo siguiente</span>
+      </div>
+
+      <!-- Y / O. Solo dos opciones: paréntesis anidados dejarían de ser un
+           constructor visual para ser un editor de expresiones. -->
+      <div class="logic-switch" *ngIf="conditions.length > 1" role="group" aria-label="Cómo se combinan las condiciones">
+        <button
+          type="button"
+          class="logic-option"
+          [class.logic-option--active]="conditionLogic === 'all'"
+          [attr.aria-pressed]="conditionLogic === 'all'"
+          (click)="conditionLogic = 'all'"
+        >
+          Se cumplen todas
+        </button>
+        <button
+          type="button"
+          class="logic-option"
+          [class.logic-option--active]="conditionLogic === 'any'"
+          [attr.aria-pressed]="conditionLogic === 'any'"
+          (click)="conditionLogic = 'any'"
+        >
+          Se cumple alguna
+        </button>
+      </div>
+
+      <div class="condition-list">
+        <ng-container *ngFor="let condition of conditions; let i = index; trackBy: trackByIndex">
+          <div class="condition-joiner" *ngIf="i > 0" aria-hidden="true">
+            {{ conditionLogic === 'all' ? 'Y' : 'O' }}
+          </div>
+
+          <div class="condition-card">
+            <div class="condition-fields">
+              <!-- Métrica, agrupada para que una lista de 30 no sea un muro -->
+              <select
+                class="builder-select builder-select--metric"
+                [(ngModel)]="condition.metric"
+                (ngModelChange)="onMetricChange(condition)"
+                [attr.aria-label]="'Métrica de la condición ' + (i + 1)"
+              >
+                <optgroup *ngFor="let group of metricGroups" [label]="group.label">
+                  <option *ngFor="let metric of group.metrics" [value]="metric.key">
+                    {{ metric.label }}
+                  </option>
+                </optgroup>
+              </select>
+
+              <!-- Solo los operadores que tienen sentido para esa métrica -->
+              <select
+                class="builder-select"
+                [(ngModel)]="condition.operator"
+                [attr.aria-label]="'Comparación de la condición ' + (i + 1)"
+              >
+                <option *ngFor="let operator of operatorsFor(condition)" [value]="operator.key">
+                  {{ operator.label }}
+                </option>
+              </select>
+
+              <div class="value-field">
+                <input
+                  class="builder-input"
+                  type="number"
+                  step="any"
+                  [(ngModel)]="condition.value"
+                  [attr.aria-label]="'Valor de la condición ' + (i + 1)"
+                />
+                <span class="value-unit" *ngIf="unitFor(condition)">{{ unitFor(condition) }}</span>
+              </div>
+
+              <select
+                class="builder-select"
+                *ngIf="showsPeriod(condition)"
+                [(ngModel)]="condition.periodDays"
+                [attr.aria-label]="'Periodo de la condición ' + (i + 1)"
+              >
+                <option *ngFor="let period of catalog?.periods" [ngValue]="period.days">
+                  {{ period.label }}
+                </option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="condition-remove"
+              *ngIf="conditions.length > 1"
+              (click)="removeCondition(i)"
+              [attr.aria-label]="'Quitar la condición ' + (i + 1)"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </ng-container>
+      </div>
+
+      <button
+        type="button"
+        class="add-row-button"
+        *ngIf="conditions.length < maxConditions"
+        (click)="addCondition()"
+      >
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        Añadir condición
+      </button>
+    </section>
+
+    <div class="step-connector" aria-hidden="true"><span></span></div>
+
+    <!-- ============ ENTONCES ============ -->
+    <section class="step-card">
+      <div class="step-head">
+        <span class="step-badge">Entonces</span>
+        <span class="step-hint">Esto es lo que hago</span>
+      </div>
+
+      <div class="condition-list">
+        <div class="action-card" *ngFor="let action of actions; let i = index; trackBy: trackByIndex">
+          <div class="action-head">
+            <ion-icon
+              [name]="action.type === 'create_alert' ? 'notifications-outline' : 'checkbox-outline'"
+              aria-hidden="true"
+            ></ion-icon>
+            <span class="action-title">
+              {{ action.type === 'create_alert' ? 'Avisarme con una alerta' : 'Crear una tarea' }}
+            </span>
+            <button
+              type="button"
+              class="condition-remove"
+              *ngIf="action.type !== 'create_alert'"
+              (click)="removeAction(i)"
+              aria-label="Quitar la tarea"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+
+          <div class="input-wrapper">
+            <input
+              class="input-field"
+              type="text"
+              maxlength="200"
+              [placeholder]="action.type === 'create_alert' ? 'Posible estancamiento' : 'Revisar estrategia nutricional'"
+              [(ngModel)]="action.message"
+              [attr.aria-label]="action.type === 'create_alert' ? 'Texto de la alerta' : 'Título de la tarea'"
+            />
+          </div>
+
+          <div class="priority-row" *ngIf="action.type === 'create_alert'">
+            <span class="priority-label">Prioridad</span>
+            <select class="builder-select" [(ngModel)]="action.priority" aria-label="Prioridad de la alerta">
+              <option value="high">Urgente</option>
+              <option value="medium">Revisar</option>
+              <option value="low">Menor</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="add-row-button" *ngIf="!hasTaskAction" (click)="addAction('create_task')">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        Añadir una tarea
+      </button>
+    </section>
+
+    <!-- ============ Nivel de automatización ============ -->
+    <section class="step-card">
+      <div class="step-head">
+        <span class="step-badge step-badge--muted">Hasta dónde</span>
+        <span class="step-hint">Cuánta libertad le doy</span>
+      </div>
+
+      <div class="option-list" role="radiogroup" aria-label="Nivel de automatización">
+        <button
+          type="button"
+          class="option-card"
+          *ngFor="let option of levels"
+          [class.option-card--active]="level === option.key"
+          role="radio"
+          [attr.aria-checked]="level === option.key"
+          (click)="level = option.key"
+        >
+          <span class="option-title">{{ option.label }}</span>
+          <span class="option-description">{{ option.description }}</span>
+        </button>
+      </div>
+
+      <p class="inline-warning" *ngIf="levelNeedsTask">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        Este nivel necesita una tarea que sugerir o crear. Añádela arriba.
+      </p>
+
+      <!-- Límite duro, dicho antes de guardar y no descubierto después -->
+      <p class="inline-note">
+        <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
+        Una automatización nunca modifica planes, calorías ni rutinas. Como mucho te avisa y te crea
+        tareas. Si diera positivo en demasiados clientes a la vez, se desactivaría sola y te lo diría.
+      </p>
+    </section>
+
+    <!-- ============ A quién ============ -->
+    <section class="step-card">
+      <div class="step-head">
+        <span class="step-badge step-badge--muted">A quién</span>
+      </div>
+
+      <div class="option-list option-list--inline" role="radiogroup" aria-label="A qué clientes se aplica">
+        <button
+          type="button"
+          class="option-card"
+          [class.option-card--active]="appliesTo === 'all_clients'"
+          role="radio"
+          [attr.aria-checked]="appliesTo === 'all_clients'"
+          (click)="appliesTo = 'all_clients'"
+        >
+          <span class="option-title">Todos mis clientes</span>
+        </button>
+        <button
+          type="button"
+          class="option-card"
+          [class.option-card--active]="appliesTo === 'selected'"
+          role="radio"
+          [attr.aria-checked]="appliesTo === 'selected'"
+          (click)="appliesTo = 'selected'"
+        >
+          <span class="option-title">Solo algunos</span>
+        </button>
+      </div>
+
+      <div class="client-picker" *ngIf="appliesTo === 'selected'">
+        <button type="button" class="secondary-button" (click)="openClientPicker()">
+          <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+          {{ clientIds.length ? 'Cambiar selección' : 'Elegir clientes' }}
+        </button>
+        <span class="client-count">
+          {{ clientIds.length }} cliente{{ clientIds.length === 1 ? '' : 's' }} seleccionado{{ clientIds.length === 1 ? '' : 's' }}
+        </span>
+      </div>
+    </section>
+
+    <!-- Barra de guardado. El motivo por el que no se puede guardar se dice
+         SIEMPRE, en vez de dejar un botón desactivado sin explicación. -->
+    <div class="save-bar">
+      <p class="save-error" *ngIf="validationError">{{ validationError }}</p>
+      <button type="button" class="primary-button" [disabled]="isSaving" (click)="save()">
+        <span *ngIf="!isSaving">{{ isNew ? 'Crear automatización' : 'Guardar cambios' }}</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </div>
+  </ng-container>
+</ion-content>
