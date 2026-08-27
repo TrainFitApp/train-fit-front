@@ -1,0 +1,67 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="page-toolbar">
+    <ion-buttons slot="start">
+      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Suplementos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="supplements-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>No se pudieron cargar tus suplementos.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="page-state" *ngIf="isEmpty">
+    <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+    <p>Tu profesional no te ha pautado ningún suplemento.</p>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' && groups.length">
+    <!-- Agrupado por momento del día: esta pantalla se abre pensando "¿qué
+         me toca ahora?", no "¿qué tomo en general?". -->
+    <section class="timing-group" *ngFor="let group of groups; trackBy: trackByKey">
+      <h2 class="timing-label">{{ group.label }}</h2>
+
+      <article class="supplement" *ngFor="let supplement of group.supplements; trackBy: trackById">
+        <div class="supplement-head">
+          <span class="supplement-name">{{ supplement.name }}</span>
+          <span class="supplement-dose">{{ supplement.dose }}</span>
+        </div>
+
+        <p class="supplement-detail" *ngIf="timingDetail(supplement) as detail">{{ detail }}</p>
+
+        <!-- Solo se dice cuando NO son todos los días: escribirlo en cada
+             tarjeta sería ruido. -->
+        <p class="supplement-days" *ngIf="weekdaysLabel(supplement) as days">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          Solo {{ days }}
+        </p>
+
+        <p class="supplement-reason" *ngIf="supplement.reason">{{ supplement.reason }}</p>
+
+        <div class="supplement-footer">
+          <span class="supplement-trainer">Pautado por {{ supplement.trainerName }}</span>
+          <button
+            type="button"
+            class="purchase-button"
+            *ngIf="supplement.purchaseUrl"
+            (click)="openPurchase(supplement)"
+          >
+            <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
+            Dónde comprarlo
+          </button>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+</ion-content>

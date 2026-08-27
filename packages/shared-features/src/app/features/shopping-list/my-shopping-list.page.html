@@ -1,0 +1,74 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="page-toolbar">
+    <ion-buttons slot="start">
+      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Lista de la compra</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="shopping-content">
+  <!-- El selector va fuera de los estados de carga: cambiar de rango no debe
+       obligar a esperar a que termine el anterior para poder volver atrás. -->
+  <div class="range-picker" role="group" aria-label="Periodo de la compra">
+    <button
+      type="button"
+      class="range-option"
+      *ngFor="let range of ranges; trackBy: trackByDays"
+      [class.selected]="selectedDays === range.days"
+      [attr.aria-pressed]="selectedDays === range.days"
+      (click)="selectRange(range.days)"
+    >
+      {{ range.label }}
+    </button>
+  </div>
+
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>No se pudo cargar tu lista.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="page-state" *ngIf="isEmpty">
+    <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+    <p>
+      No hay nada pautado en este periodo. Cuando tu profesional te deje comidas planificadas,
+      aquí saldrá lo que tienes que comprar.
+    </p>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded' && list?.items?.length">
+    <p class="page-hint">
+      Suma de lo pautado en {{ list.daysWithPlan }} día{{ list.daysWithPlan === 1 ? '' : 's' }} con
+      plan. Toca lo que ya tengas en el carro.
+    </p>
+
+    <div class="list-progress" *ngIf="checkedCount">
+      {{ checkedCount }} de {{ list.items.length }} en el carro
+    </div>
+
+    <button
+      type="button"
+      class="item"
+      *ngFor="let item of list.items; trackBy: trackByName"
+      [class.item--checked]="isChecked(item)"
+      [attr.aria-pressed]="isChecked(item)"
+      (click)="toggle(item)"
+    >
+      <ion-icon
+        class="item-check"
+        [name]="isChecked(item) ? 'checkbox' : 'square-outline'"
+        aria-hidden="true"
+      ></ion-icon>
+      <span class="item-name">{{ item.name }}</span>
+      <span class="item-days">{{ daysLabel(item) }}</span>
+      <span class="item-quantity">{{ quantityLabel(item) }}</span>
+    </button>
+  </ng-container>
+</ion-content>

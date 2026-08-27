@@ -1,0 +1,128 @@
+@import '../../../../../shared-theme/src/theme/client-page';
+
+// Movimiento 5 Coach Pro — lista de la compra (lado cliente).
+// Sin tokens --tf-*: esos son de la app de entrenadores. Misma paleta en
+// crudo que el resto de shared-features.
+
+@include tf-client-page(52px);
+
+.shopping-content {
+  --background: #0f0f0f;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
+}
+
+// --- Rango ---
+.range-picker {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 14px;
+  padding: 3px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+.range-option {
+  min-height: 44px;
+  padding: 0 14px;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  color: #9a9a9a;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+
+  &.selected {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+}
+
+.list-progress {
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(254, 144, 0, 0.12);
+  color: #fe9b1a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+// --- Filas ---
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 6px;
+  padding: 0 12px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 160ms ease, background 160ms ease;
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: -2px;
+  }
+
+  // Lo que ya está en el carro se atenúa y se tacha, pero NO desaparece:
+  // hacerlo desaparecer impediría corregir un toque por error.
+  &--checked {
+    opacity: 0.45;
+
+    .item-name {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.item-check {
+  flex-shrink: 0;
+  font-size: 20px;
+  color: #6b6b6b;
+
+  .item--checked & {
+    color: #fe9b1a;
+  }
+}
+
+.item-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-days {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: #6b6b6b;
+}
+
+.item-quantity {
+  flex-shrink: 0;
+  min-width: 62px;
+  text-align: right;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

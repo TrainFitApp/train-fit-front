@@ -1,0 +1,130 @@
+@import '../../../../../shared-theme/src/theme/client-page';
+
+// Movimiento 5 Coach Pro — suplementos pautados (lado cliente).
+// Sin tokens --tf-*: esos son de la app de entrenadores. Misma paleta en
+// crudo que el resto de shared-features.
+
+@include tf-client-page(96px);
+
+.supplements-content {
+  --background: #0f0f0f;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
+}
+
+// --- Grupos por momento ---
+.timing-group {
+  margin-bottom: 20px;
+}
+
+.timing-label {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fe9b1a;
+}
+
+.supplement {
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.supplement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.supplement-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+// La dosis es lo segundo que se mira después del nombre, así que va en la
+// misma línea y no perdida en el cuerpo.
+.supplement-dose {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(254, 144, 0, 0.14);
+  color: #fe9b1a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.supplement-detail,
+.supplement-days {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: #9a9a9a;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+}
+
+.supplement-reason {
+  margin: 8px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #c7c7c7;
+}
+
+.supplement-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.supplement-trainer {
+  font-size: 0.74rem;
+  color: #6b6b6b;
+}
+
+.purchase-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
