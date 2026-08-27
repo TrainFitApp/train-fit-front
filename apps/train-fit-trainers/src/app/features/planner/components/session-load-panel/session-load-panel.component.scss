@@ -1,0 +1,234 @@
+@import '../../../../../theme/skeleton';
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.load-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 260px;
+  background: var(--tf-surface-1);
+  border-left: 1px solid var(--tf-border);
+  transition: width var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Contraído queda solo la pestaña para volver a abrirlo: un tablero de
+  // planificación necesita todo el ancho que pueda, y quien no puntúa
+  // ejercicios no debería perder 260 px por una columna vacía.
+  &--collapsed {
+    width: 44px;
+  }
+}
+
+.panel-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--tf-space-3);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.panel-toggle-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tf-space-4) var(--tf-space-3);
+}
+
+.panel-session {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-empty,
+.panel-hint {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.panel-hint {
+  margin-top: var(--tf-space-4);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.panel-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 var(--tf-space-3);
+  padding: 8px 10px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+}
+
+.panel-error {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+
+  p {
+    margin: 0 0 var(--tf-space-2);
+  }
+}
+
+.retry-button {
+  min-height: 44px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.panel-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  height: 22px;
+  border-radius: var(--tf-radius-sm);
+}
+
+// El dato que decide si la sesión cabe en el hueco del cliente: arriba y con
+// tamaño propio.
+.duration {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: var(--tf-space-4);
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border-radius: var(--tf-radius-md);
+
+  ion-icon {
+    font-size: 15px;
+    color: var(--tf-accent-text);
+    align-self: center;
+  }
+}
+
+.duration-value {
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.duration-label {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.group-title {
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 22px;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.bar-name {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-track {
+  height: 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  overflow: hidden;
+}
+
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+
+  // Las articulaciones en rojo: no es lo mismo cargar un músculo que
+  // castigar una articulación, y el color lo dice sin leer la etiqueta.
+  &--joint {
+    background: var(--tf-danger);
+  }
+}
+
+.bar-value {
+  text-align: right;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}

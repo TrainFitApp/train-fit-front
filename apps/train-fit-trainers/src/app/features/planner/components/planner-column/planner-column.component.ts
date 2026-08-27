@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { Split } from 'src/app/core/models/split';
+import { Split, SPLIT_PURPOSES } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { TableService } from 'src/app/core/services/table/table.service';
@@ -51,6 +51,15 @@ export class PlannerColumnComponent {
   // golpe en vez de ir apareciendo microciclo a microciclo.
   @Output() templatesApplyStarted = new EventEmitter<void>();
   @Output() templatesApplyEnded = new EventEmitter<void>();
+  // Movimiento 6 Coach Pro — qué sesión está mirando el entrenador, para el
+  // panel de carga. Se emite al ABRIR una card, que es la señal más honesta
+  // que da el tablero: no hay un concepto de "sesión seleccionada".
+  @Output() workoutFocused = new EventEmitter<Workout>();
+  // Movimiento 6 Coach Pro — el objetivo y el tipo del bloque se editan en la
+  // página, no aquí: la columna solo dice que se han pedido, igual que hace
+  // con el renombrado.
+  @Output() purposeRequested = new EventEmitter<void>();
+  @Output() objectiveRequested = new EventEmitter<void>();
 
   public addingCard = false;
   public showAddCardPanel = false;
@@ -107,8 +116,20 @@ export class PlannerColumnComponent {
     return !this.collapsedCardIds.has(workoutId);
   }
 
-  public onCardAccordionChange(event: CustomEvent, workoutId: string, index: number): void {
+  public onCardAccordionChange(
+    event: CustomEvent,
+    workoutId: string,
+    index: number,
+    workout?: Workout
+  ): void {
     const isOpen = event.detail?.value === 'open';
+
+    // Movimiento 6 Coach Pro — abrir una card es lo más parecido a "estoy
+    // mirando esta sesión", y es lo que el panel de carga necesita saber. Se
+    // emite antes del reparto de estado abierto/cerrado porque no depende de
+    // él: la sesión enfocada es la misma esté sincronizada la fila o no.
+    if (isOpen && workout) this.workoutFocused.emit(workout);
+
     if (this.rowSync.isSynced(index)) {
       this.rowSync.setOpen(index, isOpen);
       return;
@@ -129,6 +150,27 @@ export class PlannerColumnComponent {
   public requestRename(event: Event): void {
     event.stopPropagation();
     this.columnRenamed.emit();
+  }
+
+  // --- Movimiento 6 Coach Pro: qué es este bloque y qué busca ---
+
+  public requestPurpose(event: Event): void {
+    event.stopPropagation();
+    this.purposeRequested.emit();
+  }
+
+  public requestObjective(event: Event): void {
+    event.stopPropagation();
+    this.objectiveRequested.emit();
+  }
+
+  // Vacío cuando el microciclo es "normal": una etiqueta "Normal" en cada
+  // una de las veinte columnas sería ruido, y lo que hay que ver de un
+  // vistazo es dónde están las descargas.
+  public get purposeLabel(): string {
+    const purpose = this.split?.purpose;
+    if (!purpose || purpose === 'regular') return '';
+    return SPLIT_PURPOSES.find((option) => option.key === purpose)?.label || '';
   }
 
   private persistTable(): void {

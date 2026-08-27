@@ -1,0 +1,83 @@
+<aside class="load-panel" [class.load-panel--collapsed]="collapsed">
+  <button
+    type="button"
+    class="panel-toggle"
+    [attr.aria-expanded]="!collapsed"
+    [attr.aria-label]="collapsed ? 'Mostrar la carga de la sesión' : 'Ocultar la carga de la sesión'"
+    (click)="toggle()"
+  >
+    <ion-icon [name]="collapsed ? 'chevron-back-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+    <span class="panel-toggle-label" *ngIf="!collapsed">Carga de la sesión</span>
+  </button>
+
+  <div class="panel-body" *ngIf="!collapsed">
+    <p class="panel-empty" *ngIf="!workout">
+      Elige una sesión del tablero para ver cómo queda repartida.
+    </p>
+
+    <ng-container *ngIf="workout">
+      <p class="panel-session">{{ workout.name }}</p>
+
+      <div class="panel-skeleton" *ngIf="state === 'loading'">
+        <div class="skeleton-block" *ngFor="let i of [1, 2, 3, 4]"></div>
+      </div>
+
+      <div class="panel-error" *ngIf="state === 'error'">
+        <p>No se pudo calcular.</p>
+        <button type="button" class="retry-button" (click)="reload()">Reintentar</button>
+      </div>
+
+      <ng-container *ngIf="state === 'loaded' && load">
+        <!-- La duración va arriba del todo: es el dato que decide si la
+             sesión cabe en el hueco que tiene el cliente. -->
+        <div class="duration">
+          <ion-icon name="stopwatch-outline" aria-hidden="true"></ion-icon>
+          <span class="duration-value">{{ durationLabel }}</span>
+          <span class="duration-label">estimados</span>
+        </div>
+
+        <!-- Un reparto que ignora media sesión en silencio parece completo:
+             se dice cuántos ejercicios faltan por puntuar. -->
+        <p class="panel-warning" *ngIf="load.unscoredExercises">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          {{ load.unscoredExercises }} de {{ load.totalExercises }} ejercicios sin puntuar: no
+          cuentan en el reparto.
+        </p>
+
+        <p class="panel-empty" *ngIf="!hasAnyLoad">
+          Todavía no hay nada que repartir. Puntúa los ejercicios de esta sesión en
+          Mi método → Puntuaciones.
+        </p>
+
+        <ng-container *ngIf="load.muscles.length">
+          <h4 class="group-title">Músculos</h4>
+          <div class="bar-row" *ngFor="let muscle of load.muscles; trackBy: trackByName">
+            <span class="bar-name">{{ muscle.name }}</span>
+            <span class="bar-track">
+              <span class="bar-fill" [style.width.%]="barWidth(muscle.load, load.muscles)"></span>
+            </span>
+            <span class="bar-value">{{ muscle.load }}</span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="load.joints.length">
+          <h4 class="group-title">Articulaciones</h4>
+          <div class="bar-row" *ngFor="let joint of load.joints; trackBy: trackByName">
+            <span class="bar-name">{{ joint.name }}</span>
+            <span class="bar-track">
+              <span
+                class="bar-fill bar-fill--joint"
+                [style.width.%]="barWidth(joint.load, load.joints)"
+              ></span>
+            </span>
+            <span class="bar-value">{{ joint.load }}</span>
+          </div>
+        </ng-container>
+
+        <p class="panel-hint" *ngIf="hasAnyLoad">
+          Puntuación × series. Es el reparto DENTRO de esta sesión, no una escala absoluta.
+        </p>
+      </ng-container>
+    </ng-container>
+  </div>
+</aside>

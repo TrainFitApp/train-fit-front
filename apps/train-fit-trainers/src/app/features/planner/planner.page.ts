@@ -4,8 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AlertOptions, ToastOptions } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { Split } from 'src/app/core/models/split';
+import { Split, SPLIT_PURPOSES, SplitPurpose } from 'src/app/core/models/split';
 import { Table } from 'src/app/core/models/table';
+import { Workout } from 'src/app/core/models/workout';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { SplitService } from 'src/app/core/services/split/split.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
@@ -38,6 +39,12 @@ import { PlannerExerciseCopyService } from './services/planner-exercise-copy.ser
 export class PlannerPage {
   public table: Table | null = null;
   public selectedSplitId: string | null = null;
+
+  // Movimiento 6 Coach Pro — la sesión que el entrenador está mirando, para
+  // el panel de carga. Sale de abrir una card (ver planner-column), que es
+  // la señal más honesta que da el tablero: no hay un concepto de "sesión
+  // seleccionada" y no merece la pena inventarlo solo para esto.
+  public focusedWorkout: Workout | null = null;
   public busy = false;
 
   // Tarea (2026-08) — mientras se arrastra un entrenamiento dentro de un
@@ -437,5 +444,98 @@ export class PlannerPage {
         },
       ],
     });
+  }
+
+  /**
+   * Movimiento 6 Coach Pro — objetivo y tipo del microciclo.
+   *
+   * Aparte de renombrar y no dentro del mismo aviso: cambiar el nombre de una
+   * semana es un gesto de cada día, y definir qué busca el bloque se hace una
+   * vez. Meterlos juntos convertiría un alert de un campo en uno de tres.
+   *
+   * ion-alert con radios para el tipo, texto libre para el objetivo: es la
+   * misma forma que ya usa el resto del planificador, y no merece una
+   * pantalla propia.
+   */
+  public async editSplitPurpose(split: Split): Promise<void> {
+    if (!this.table) return;
+
+    const current = split.purpose || 'regular';
+    let chosen: SplitPurpose = current;
+
+    await this.ionicUtilService.showAlert({
+      header: 'Tipo de microciclo',
+      message: 'Sirve para leer bien sus números: en una descarga, que el volumen baje es lo previsto.',
+      inputs: SPLIT_PURPOSES.map((option) => ({
+        type: 'radio' as const,
+        label: option.label,
+        value: option.key,
+        checked: option.key === current,
+      })),
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (value: SplitPurpose) => {
+            chosen = value || current;
+            return true;
+          },
+        },
+      ],
+    });
+
+    if (chosen === current) return;
+    this.saveSplitMeta(split, { purpose: chosen });
+  }
+
+  public async editSplitObjective(split: Split): Promise<void> {
+    if (!this.table) return;
+
+    await this.ionicUtilService.showAlert({
+      header: 'Objetivo del bloque',
+      message: '¿Qué buscas con este microciclo? Lo lees tú, no el cliente.',
+      inputs: [
+        {
+          name: 'objective',
+          type: 'textarea',
+          value: split.objective || '',
+          placeholder: 'Ej. subir series de espalda sin tocar pierna',
+          attributes: { maxlength: 300 },
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (data: { objective?: string }) => {
+            // Vacío es válido: quitar el objetivo es una acción legítima.
+            this.saveSplitMeta(split, { objective: (data?.objective || '').trim() });
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  // El objeto local se actualiza ANTES de la respuesta y se revierte si
+  // falla: mismo criterio que renameSplit, que es el patrón del tablero.
+  private saveSplitMeta(split: Split, patch: Partial<Split>): void {
+    const previous = { objective: split.objective, purpose: split.purpose };
+    Object.assign(split, patch);
+    this.persistTable();
+
+    this.splitService
+      .updateSplit(split._id, patch)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: () => {
+          Object.assign(split, previous);
+          this.persistTable();
+          this.ionicUtilService.showToast({
+            message: 'No se pudo guardar el bloque',
+            duration: 2500,
+          });
+        },
+      });
   }
 }

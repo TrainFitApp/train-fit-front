@@ -10,6 +10,37 @@
       {{ split.workouts.length }} {{ (split.workouts.length === 1 ? 'PLANNER.CARD_SINGULAR' : 'PLANNER.CARD_PLURAL') | translate }}
       · {{ totalExercises }} {{ 'TABLES.EXERCISE_PLURAL' | translate }}
     </span>
+
+    <!-- Movimiento 6 Coach Pro — qué es este bloque y qué busca.
+         El tipo solo se pinta cuando NO es "normal": una etiqueta "Normal"
+         en cada una de las veinte columnas sería ruido, y lo que hay que ver
+         de un vistazo es dónde están las descargas. -->
+    <div class="planner-column-block">
+      <button
+        type="button"
+        class="purpose-chip"
+        *ngIf="purposeLabel"
+        [attr.data-purpose]="split.purpose"
+        (click)="requestPurpose($event)"
+      >
+        {{ purposeLabel }}
+      </button>
+      <button
+        type="button"
+        class="block-action"
+        *ngIf="!purposeLabel"
+        (click)="requestPurpose($event)"
+      >
+        Tipo
+      </button>
+      <button type="button" class="block-action" (click)="requestObjective($event)">
+        {{ split.objective ? 'Objetivo' : '+ Objetivo' }}
+      </button>
+    </div>
+
+    <p class="planner-column-objective" *ngIf="split.objective" [title]="split.objective">
+      {{ split.objective }}
+    </p>
   </div>
 
   <div
@@ -37,7 +68,7 @@
       </button>
       <ion-accordion-group
         [value]="isCardOpen(workout._id, i) ? 'open' : 'closed'"
-        (ionChange)="onCardAccordionChange($event, workout._id, i)"
+        (ionChange)="onCardAccordionChange($event, workout._id, i, workout)"
       >
         <app-workout
           [workout]="workout"

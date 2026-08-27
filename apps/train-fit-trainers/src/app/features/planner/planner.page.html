@@ -33,6 +33,10 @@
 </ion-header>
 
 <ion-content class="planner-content" scrollY="false">
+  <!-- Movimiento 6 Coach Pro — el tablero y el panel de carga en una fila:
+       el panel queda FUERA del desplazamiento horizontal del tablero, que es
+       lo que hace que siga a la vista con veinte microciclos abiertos. -->
+  <div class="planner-layout">
   <div
     class="planner-board"
     cdkDropList
@@ -56,6 +60,9 @@
       (cardDragEnded)="onCardDragEnded()"
       (templatesApplyStarted)="onTemplatesApplyStarted()"
       (templatesApplyEnded)="onTemplatesApplyEnded()"
+      (workoutFocused)="focusedWorkout = $event"
+      (purposeRequested)="editSplitPurpose(split)"
+      (objectiveRequested)="editSplitObjective(split)"
     ></app-planner-column>
 
     <div class="planner-empty" *ngIf="table && table.splits.length === 0">
@@ -74,6 +81,12 @@
       <ion-spinner name="crescent"></ion-spinner>
       <span>{{ 'PLANNER.APPLYING_TEMPLATES' | translate }}</span>
     </div>
+  </div>
+
+    <!-- Movimiento 6 Coach Pro — cómo queda repartida la sesión abierta.
+         Es lo que da sentido a puntuar los ejercicios: sin esto, las
+         puntuaciones serían una tarea sin recompensa. -->
+    <app-session-load-panel [workout]="focusedWorkout"></app-session-load-panel>
   </div>
 
   <!-- "Copiar ejercicios" (2026-08) — visible en TODO el tablero mientras el

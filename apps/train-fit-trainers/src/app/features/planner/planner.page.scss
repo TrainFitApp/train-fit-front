@@ -113,7 +113,30 @@
   --background: var(--tf-bg);
 }
 
+// Movimiento 6 Coach Pro — tablero + panel de carga. El panel queda FUERA
+// del desplazamiento horizontal del tablero, que es lo que hace que siga a
+// la vista con veinte microciclos abiertos.
+.planner-layout {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
+}
+
+app-session-load-panel {
+  flex-shrink: 0;
+
+  // En pantallas estrechas el panel desaparece: un tablero de planificación
+  // en 700 px no tiene sitio para 260 px de columna lateral, y el
+  // planificador ya es una herramienta de escritorio.
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
 .planner-board {
+  flex: 1;
+  min-width: 0;
   position: relative;
   display: flex;
   align-items: flex-start;

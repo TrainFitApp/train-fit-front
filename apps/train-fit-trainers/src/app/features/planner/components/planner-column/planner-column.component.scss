@@ -282,3 +282,96 @@
     outline-offset: 2px;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Movimiento 6 Coach Pro — qué es este bloque y qué busca.
+// ---------------------------------------------------------------------------
+.planner-column-block {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+// El tipo solo se pinta cuando NO es "normal" (ver purposeLabel): lo que hay
+// que ver de un vistazo es dónde están las descargas, no veinte etiquetas
+// iguales.
+.purpose-chip {
+  min-height: 26px;
+  position: relative;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  // Expansor invisible hasta 44px sin engordar la cabecera de la columna.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  // Descarga y vacaciones en un color distinto: son las dos que explican
+  // por qué los números de ese bloque bajan, y es lo que el entrenador busca
+  // al revisar meses después.
+  &[data-purpose='deload'],
+  &[data-purpose='vacation'] {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+}
+
+.block-action {
+  min-height: 26px;
+  position: relative;
+  padding: 0 8px;
+  background: none;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+
+  &:hover {
+    color: var(--tf-text);
+    border-color: var(--tf-border-strongest);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// El objetivo se recorta a dos líneas: es una nota para el entrenador, no
+// puede empujar las cards hacia abajo en las veinte columnas.
+.planner-column-objective {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
