@@ -1,0 +1,134 @@
+.tracking-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+// View encapsulation por componente — mismo estilo que el resto de la app,
+// no reutilizable desde client-detail.page.scss.
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  margin: 0;
+}
+
+.tracking-chart__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tracking-chart__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+// F20-sexies — selección MÚLTIPLE (antes single-select): el color activo es
+// el propio de esa métrica (--chip-color, mismo color que su línea en el
+// gráfico), no el naranja genérico de acento — con varias a la vez, cada
+// chip necesita anticipar de qué color será su línea.
+.tracking-chip {
+  padding: 4px 10px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    background: var(--chip-bg);
+    border-color: var(--chip-color);
+    color: var(--chip-color);
+  }
+}
+
+// F20-terdecies — el rango ya no se elige aquí (ver el calendario de al
+// lado), solo se muestra cuál está activo.
+.tracking-chart__range-label {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// F20-sexies — antes un único "% medio" (una sola métrica posible a la
+// vez); con selección múltiple, un badge por métrica activa.
+
+.tracking-chart__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+}
+
+.tracking-chart__summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+
+  strong {
+    color: var(--tf-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+}
+
+.tracking-chart__summary-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tracking-chart__summary-muted {
+  color: var(--tf-text-faint);
+  font-style: italic;
+}
+
+// Chart.js (línea, no barras — ver el componente): necesita un contenedor
+// con alto DEFINIDO, responsive:true + maintainAspectRatio:false hacen que
+// el <canvas> rellene ese alto y se re-ajuste solo al cambiar el ancho.
+.tracking-chart__canvas-wrap {
+  position: relative;
+  height: 180px;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-loading {
+    opacity: 0.5;
+  }
+}
+
+.tracking-chart__legend {
+  display: flex;
+  gap: var(--tf-space-4);
+}
+
+.tracking-chart .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.tracking-chart .legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+
+  &--reference {
+    background: repeating-linear-gradient(90deg, #8b8b8b 0 3px, transparent 3px 6px);
+  }
+}

@@ -1,8 +1,11 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { CustomProduct } from 'src/app/core/models/customProduct';
+import { CustomRecipe } from 'src/app/core/models/customRecipe';
+import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
+import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
 import {
   DietTemplate,
@@ -12,22 +15,10 @@ import {
   TemplateDayPattern,
   TemplateFoodItem,
   TemplateMeal,
-  TemplateMealAlternative,
   TemplateMode,
   WEEKDAYS,
 } from '../../models/diet-template.model';
-import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../shared/components/product-search-modal/product-search-modal.component';
-import {
-  SearchFoodsPage,
-  SearchFoodsTrainerContext,
-  TrainerFoodSelection,
-} from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
-import { MealSnippetPickerComponent } from '../../../../shared/components/meal-snippet-picker/meal-snippet-picker.component';
-import { MealSnippetApiService } from '../../../../shared/services/meal-snippet-api.service';
-import { MealSnippet } from '../../../../shared/models/meal-snippet.model';
+import { DayMealEditorModalComponent } from './components/day-meal-editor-modal/day-meal-editor-modal.component';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -54,8 +45,6 @@ export class DietTemplateBuilderPage implements OnInit {
   public isSaving = false;
   public readonly mealSlots = MEAL_SLOTS;
   public readonly maxDays = 14;
-  public readonly maxFoodItemsPerAlternative = 8;
-  public readonly maxAlternatives = 4;
 
   // Auditoría de arquitectura (Fase 8/9) — "sequential" es el tablero
   // Día 1..N de siempre; "recurring" y "choice" comparten `dayPatterns[]`
@@ -69,10 +58,10 @@ export class DietTemplateBuilderPage implements OnInit {
 
   // TAREA5 (auditoría UX, Fase C) — tablero semanal: días × comidas en
   // rejilla, en vez del acordeón día→comida→alimentos anterior. Una celda
-  // se edita en un panel aparte (editingCell), y se puede arrastrar entera
-  // (con todas sus alternativas) a otra celda para moverla, o duplicarla a
-  // otro día sin moverla del origen.
-  public editingCell: BoardCellRef | null = null;
+  // se edita en DayMealEditorModalComponent (ver ese archivo para el porqué
+  // de un modal real en vez de un panel propio), y se puede arrastrar
+  // entera (con todas sus alternativas) a otra celda para moverla, o
+  // duplicarla a otro día sin moverla del origen.
   private draggedFrom: BoardCellRef | null = null;
   public dragOverCell: BoardCellRef | null = null;
 
@@ -82,9 +71,9 @@ export class DietTemplateBuilderPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private dietTemplateApi: DietTemplateApiService,
-    private modalController: ModalController,
     private ionicUtilService: IonicUtilService,
-    private mealSnippetApi: MealSnippetApiService
+    private customProductService: CustomProductService,
+    private recipeService: RecipeService
   ) {}
 
   // TASK-051 (MASTER_BACKLOG.md) — antes leía el :id una sola vez de
@@ -157,6 +146,23 @@ export class DietTemplateBuilderPage implements OnInit {
     return this.mode === 'sequential' ? this.maxDays : this.maxPatterns;
   }
 
+  // F20-duodecies — antes "Añadir menú"/"Eliminar menú" se usaba tal cual
+  // para recurring Y choice por igual (el código solo distinguía
+  // sequential de "todo lo demás"), aunque solo en choice es de verdad un
+  // menú intercambiable — en recurring es un patrón que decide el
+  // calendario, no el cliente (ver explicación dada al usuario). Un único
+  // getter para no repetir el ternario de 3 vías en cada sitio del html.
+  public get rowNoun(): string {
+    if (this.mode === 'sequential') return 'día';
+    if (this.mode === 'recurring') return 'patrón';
+    return 'menú';
+  }
+
+  public get emptyRowsHint(): string {
+    if (this.mode === 'sequential') return 'Añade el primer día para empezar a construir la plantilla.';
+    return `Añade el primer ${this.rowNoun} para empezar.`;
+  }
+
   public setMode(mode: TemplateMode): void {
     this.mode = mode;
   }
@@ -179,10 +185,28 @@ export class DietTemplateBuilderPage implements OnInit {
     return row as TemplateDayPattern;
   }
 
+  // F20-decies — un día solo puede pertenecer a UN patrón a la vez: al
+  // marcarlo aquí, se quita automáticamente de cualquier otro patrón que ya
+  // lo tuviera. Antes cada patrón tenía su propia selección de días sin
+  // relación con las demás, así que nada impedía marcar el mismo día en dos
+  // sitios — solo se avisaba a posteriori (ver duplicateWeekdaysWarning).
+  // Con exclusión mutua, la ambigüedad deja de poder CONSTRUIRSE desde el
+  // editor (no hace falta detectarla si no puede existir) — mismo criterio
+  // por el que "sequential" nunca tiene este problema: cada día solo puede
+  // estar en un sitio, por construcción. duplicateWeekdaysWarning se queda
+  // como red de seguridad para plantillas guardadas ANTES de este cambio.
   public toggleWeekday(pattern: TemplateDayPattern, weekday: number): void {
     const i = pattern.appliesTo.indexOf(weekday);
-    if (i >= 0) pattern.appliesTo.splice(i, 1);
-    else pattern.appliesTo.push(weekday);
+    if (i >= 0) {
+      pattern.appliesTo.splice(i, 1);
+      return;
+    }
+    for (const other of this.dayPatterns) {
+      if (other === pattern) continue;
+      const otherIndex = other.appliesTo.indexOf(weekday);
+      if (otherIndex >= 0) other.appliesTo.splice(otherIndex, 1);
+    }
+    pattern.appliesTo.push(weekday);
   }
 
   // Aviso suave (no bloquea guardar) de qué días de la semana no quedan
@@ -196,34 +220,86 @@ export class DietTemplateBuilderPage implements OnInit {
     return missing.map((w) => w.label).join(', ');
   }
 
-  // El backend persiste cada alimento como "clipboard" (mismo formato que
-  // customProducts en meal-schema.js), no como TemplateFoodItem — se
-  // reconstruye la vista editable a partir de eso. No se guarda el nombre
-  // real del producto (solo su _id), así que un alimento real reaparece
-  // como "picked" con un nombre genérico en vez del nombre original.
+  // Red de seguridad, no un caso esperado: toggleWeekday ya impide crear
+  // solapes NUEVOS (exclusión mutua entre patrones), pero una plantilla
+  // guardada ANTES de ese cambio (o tocada directamente por API) podría
+  // seguir teniendo un día en 2+ patrones. Si eso ocurre, deja claro cuál
+  // gana — plan-resolver.js#resolvePlanForDate resuelve por orden de
+  // aparición en dayPatterns (.find), el primer patrón de la lista que
+  // cubra ese día es el que se aplica; el resto queda silenciosamente
+  // ignorado para esa fecha.
+  public get duplicateWeekdaysWarning(): string {
+    if (this.mode !== 'recurring') return '';
+    const parts: string[] = [];
+    for (const w of this.weekdays) {
+      const patterns = this.dayPatterns.filter((p) => p.appliesTo.includes(w.value));
+      if (patterns.length < 2) continue;
+      const winner = patterns[0].name.trim() || 'sin nombre';
+      parts.push(`${w.short} (gana "${winner}")`);
+    }
+    return parts.join(', ');
+  }
+
+  // El backend persiste cada alimento como ref REAL a CustomProduct (refactor
+  // 2026-08, ver diet-template-schema.js), no como blob "clipboard" crudo —
+  // autopopulate ya trae `cp.product` (Product real) en cada find/findOne.
+  // Antes este método ignoraba eso y ponía un nombre genérico; ahora lee el
+  // nombre real y cachea las macros con el mismo cálculo que usa
+  // day-meal-editor-modal al elegir un alimento nuevo (CustomProductService
+  // .getMacros), para que una plantilla reabierta se vea igual que una recién
+  // compuesta.
   private customProductsToItems(customProducts: any[] | undefined): TemplateFoodItem[] {
     if (!Array.isArray(customProducts)) return [];
     return customProducts
       .filter((cp) => cp?.product)
-      .map((cp) => ({
-        productId: typeof cp.product === 'string' ? cp.product : cp.product?._id,
-        productName: 'Alimento guardado',
-        quantity: cp.quantity,
-      }));
+      .map((cp) => {
+        const macros = this.customProductService.getMacros(cp as CustomProduct);
+        return {
+          productId: typeof cp.product === 'string' ? cp.product : cp.product?._id,
+          productName: cp.product?.name || 'Alimento guardado',
+          quantity: cp.quantity,
+          kcal: macros.kcal,
+          protein: macros.protein,
+          carbs: macros.carbs,
+          fat: macros.fat,
+          // Cacheado para edición de cantidad in situ (ver day-meal-editor-modal
+          // .onQuantityChange) — solo disponible cuando cp.product ya venía
+          // poblado (siempre, salvo datos muy antiguos).
+          product: typeof cp.product === 'object' ? cp.product : undefined,
+        };
+      });
   }
 
-  // Mismo formato "clipboard" que customRecipes en meal-schema.js — igual
-  // limitación que customProductsToItems: no se guarda el nombre real de la
-  // receta, solo su _id.
+  // Mismo criterio que customProductsToItems — `cr.recipe` ya llega
+  // autopoblado (Recipe real), y las macros se calculan con
+  // RecipeService.calculateCustomRecipeTotals (mismo cálculo reutilizado en
+  // day-meal-editor-modal).
   private customRecipesToItems(customRecipes: any[] | undefined): TemplateFoodItem[] {
     if (!Array.isArray(customRecipes)) return [];
     return customRecipes
       .filter((cr) => cr?.recipe)
-      .map((cr) => ({
-        recipeId: typeof cr.recipe === 'string' ? cr.recipe : cr.recipe?._id,
-        recipeName: 'Receta guardada',
-        quantity: cr.quantity,
-      }));
+      .map((cr) => {
+        const macros = this.recipeService.calculateCustomRecipeTotals(
+          cr.recipe,
+          cr as CustomRecipe
+        ).portionMacros;
+        return {
+          recipeId: typeof cr.recipe === 'string' ? cr.recipe : cr.recipe?._id,
+          recipeName: cr.recipe?.name || 'Receta guardada',
+          quantity: cr.quantity,
+          kcal: macros.kcal,
+          protein: macros.protein,
+          carbs: macros.carbs,
+          fat: macros.fat,
+          recipe: typeof cr.recipe === 'object' ? cr.recipe : undefined,
+          // Personalización ya guardada de esta receta para esta comida
+          // (ver RecipeIngredientsEditorModalComponent) — autopoblada igual
+          // que cr.recipe, se conserva al reabrir la plantilla.
+          addedCustomProducts: cr.addedCustomProducts,
+          modifiedBaseCustomProducts: cr.modifiedBaseCustomProducts,
+          removedBaseCustomProductIds: cr.removedBaseCustomProductIds,
+        };
+      });
   }
 
   // Espejo de alternativeToCustomEntries en client-detail.page.ts — mismo
@@ -238,7 +314,19 @@ export class DietTemplateBuilderPage implements OnInit {
 
     for (const item of items) {
       if (item.recipeId) {
-        customRecipes.push({ recipe: item.recipeId, quantity: item.quantity || null });
+        customRecipes.push({
+          recipe: item.recipeId,
+          quantity: item.quantity || null,
+          // Personalización de ingredientes para esta comida en concreto
+          // (ver RecipeIngredientsEditorModalComponent) — backend ya la
+          // materializa igual que el resto (custom-recipe-dao.js
+          // #createCustomRecipe).
+          addedCustomProducts: (item.addedCustomProducts || []).map((cp) =>
+            this.recipeService.serializeCustomProductForPersistence(cp)
+          ),
+          modifiedBaseCustomProducts: item.modifiedBaseCustomProducts || [],
+          removedBaseCustomProductIds: item.removedBaseCustomProductIds || [],
+        });
       } else if (item.productId) {
         customProducts.push({ product: item.productId, quantity: item.quantity || 100 });
       }
@@ -265,7 +353,57 @@ export class DietTemplateBuilderPage implements OnInit {
 
   public removeRow(index: number): void {
     this.activeRows.splice(index, 1);
-    if (this.editingCell?.dayIndex === index) this.editingCell = null;
+  }
+
+  // F20-septies — total de macros del día/patrón: suma la PRIMERA
+  // alternativa de cada comida (la que rige cuando no hay elección — con
+  // 2+ alternativas no hay un "total real" único, esta es la lectura más
+  // representativa sin inventar una media rara). kcal/protein/carbs/fat de
+  // cada TemplateFoodItem ya vienen calculados para su quantity actual
+  // (mismo snapshot que pinta el resto del builder), no hace falta volver
+  // a tocar producto/receta real.
+  public dayTotals(row: TemplateDay | TemplateDayPattern): {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
+    const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    for (const meal of row.meals) {
+      for (const item of meal.alternatives?.[0]?.items || []) {
+        totals.kcal += item.kcal || 0;
+        totals.protein += item.protein || 0;
+        totals.carbs += item.carbs || 0;
+        totals.fat += item.fat || 0;
+      }
+    }
+    return totals;
+  }
+
+  public hasAnyItems(row: TemplateDay | TemplateDayPattern): boolean {
+    return row.meals.some((meal) => (meal.alternatives?.[0]?.items?.length || 0) > 0);
+  }
+
+  // Proporción de cada macro sobre el total de KCAL del día (no de gramos:
+  // 1g de grasa aporta más del doble de kcal que 1g de proteína/carbo, una
+  // barra por gramos sería visualmente engañosa) — para la barra
+  // segmentada bajo el número de kcal.
+  public macroBarSegments(row: TemplateDay | TemplateDayPattern): {
+    protein: number;
+    carbs: number;
+    fat: number;
+  } {
+    const totals = this.dayTotals(row);
+    const proteinKcal = totals.protein * 4;
+    const carbsKcal = totals.carbs * 4;
+    const fatKcal = totals.fat * 9;
+    const sum = proteinKcal + carbsKcal + fatKcal;
+    if (sum <= 0) return { protein: 0, carbs: 0, fat: 0 };
+    return {
+      protein: (proteinKcal / sum) * 100,
+      carbs: (carbsKcal / sum) * 100,
+      fat: (fatKcal / sum) * 100,
+    };
   }
 
   public mealSummary(meal: TemplateMeal): string {
@@ -279,36 +417,25 @@ export class DietTemplateBuilderPage implements OnInit {
   }
 
   // --- Editor de celda (día × comida) ---
-  public openMealEditor(dayIndex: number, mealIndex: number): void {
-    this.editingCell = { dayIndex, mealIndex };
-    const meal = this.editingMeal;
+  // meal se pasa por referencia al modal: las mutaciones que haga dentro
+  // (añadir/quitar alternativas, alimentos...) se reflejan directamente
+  // aquí, en el mismo objeto que vive dentro de days/dayPatterns — no hace
+  // falta releer nada al cerrar.
+  public async openMealEditor(dayIndex: number, mealIndex: number): Promise<void> {
+    const row = this.activeRows[dayIndex];
+    const meal = row.meals[mealIndex];
     // Siempre se edita con al menos una alternativa visible en pantalla,
     // aunque la celda esté vacía — igual que el panel de "Pautar" en
     // client-detail.page.ts.
-    if (meal && !meal.alternatives.length) {
-      meal.alternatives.push(this.emptyAlternative());
+    if (!meal.alternatives.length) {
+      meal.alternatives.push({ label: '', items: [{}] });
     }
-  }
 
-  public closeMealEditor(): void {
-    this.editingCell = null;
-  }
-
-  public get editingMeal(): TemplateMeal | null {
-    if (!this.editingCell) return null;
-    return this.activeRows[this.editingCell.dayIndex]?.meals[this.editingCell.mealIndex] || null;
-  }
-
-  public get editingDayLabel(): string {
-    if (!this.editingCell) return '';
-    const row = this.activeRows[this.editingCell.dayIndex];
-    return row ? this.rowLabel(row) : '';
-  }
-
-  // Fase 9 — igual criterio que client-detail.page.ts#prescribeIsMultiple:
-  // la etiqueta de cada alternativa solo se pide/muestra cuando hay 2+.
-  public get editingIsMultiple(): boolean {
-    return (this.editingMeal?.alternatives.length || 0) >= 2;
+    await this.ionicUtilService.showModal({
+      component: DayMealEditorModalComponent,
+      componentProps: { meal, dayLabel: this.rowLabel(row), mode: this.mode },
+      cssClass: 'tf-panel-modal',
+    });
   }
 
   // --- Arrastrar y soltar: mover una comida completa (con todas sus
@@ -392,242 +519,6 @@ export class DietTemplateBuilderPage implements OnInit {
         { text: 'Cancelar', role: 'cancel' },
       ],
     });
-  }
-
-  private emptyFoodItem(): TemplateFoodItem {
-    return {};
-  }
-
-  private emptyAlternative(): TemplateMealAlternative {
-    return { label: '', items: [this.emptyFoodItem()] };
-  }
-
-  // --- Alternativas de la celda en edición (Fase 9) ---
-  public addAlternative(): void {
-    const meal = this.editingMeal;
-    if (!meal || meal.alternatives.length >= this.maxAlternatives) return;
-    meal.alternatives.push(this.emptyAlternative());
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
-  // todos los alimentos. Duplicar copia la composición entera para editar
-  // solo lo que cambia, en vez de repetir el ciclo de búsqueda completo.
-  public duplicateAlternative(altIndex: number): void {
-    const meal = this.editingMeal;
-    if (!meal || meal.alternatives.length >= this.maxAlternatives) return;
-    const source = meal.alternatives[altIndex];
-    meal.alternatives.splice(altIndex + 1, 0, {
-      label: source.label ? `${source.label} (copia)` : '',
-      items: source.items.map((item) => ({ ...item })),
-    });
-  }
-
-  public removeAlternative(altIndex: number): void {
-    const meal = this.editingMeal;
-    if (!meal || meal.alternatives.length <= 1) return;
-    meal.alternatives.splice(altIndex, 1);
-  }
-
-  public addFoodItem(altIndex: number): void {
-    const alt = this.editingMeal?.alternatives[altIndex];
-    if (!alt || alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-  }
-
-  public removeFoodItem(altIndex: number, itemIndex: number): void {
-    const alt = this.editingMeal?.alternatives[altIndex];
-    if (!alt || alt.items.length <= 1) return;
-    alt.items.splice(itemIndex, 1);
-  }
-
-  // TAREA5 — mismo buscador real search-foods que client-detail (ver ahí el
-  // porqué del trainerContext). Aquí no hay cliente/dieta real de por medio
-  // (una plantilla es local hasta pulsar "Guardar"), así que los callbacks
-  // solo abren el panel de cantidad/confirmar y escriben en el array local.
-  public async openProductSearch(altIndex: number, itemIndex: number): Promise<void> {
-    const outerModal = await this.modalController.create({
-      component: SearchFoodsPage,
-      componentProps: {
-        trainerContext: this.buildSearchFoodsTrainerContext(altIndex, itemIndex, () =>
-          void outerModal.dismiss()
-        ),
-      },
-      cssClass: 'tf-panel-modal',
-    });
-    await outerModal.present();
-    await outerModal.onDidDismiss();
-  }
-
-  private buildSearchFoodsTrainerContext(
-    altIndex: number,
-    itemIndex: number,
-    closeOuter: () => void
-  ): SearchFoodsTrainerContext {
-    return {
-      clientUser: {} as any,
-      dietDay: {} as any,
-      meal: {} as any,
-      confirmSelection: (items) => this.applyTrainerSelection(altIndex, itemIndex, items),
-      pickCreateProduct: () =>
-        void this.confirmPickedFood(altIndex, itemIndex, { kind: 'create' }, closeOuter),
-    };
-  }
-
-  // TAREA5 (auditoría UX) — igual que client-detail: el primer alimento
-  // marcado rellena el hueco actual, el resto se añade como alimentos
-  // nuevos de la misma alternativa, sin repetir la búsqueda.
-  private applyTrainerSelection(altIndex: number, itemIndex: number, items: TrainerFoodSelection[]): void {
-    const alt = this.editingMeal?.alternatives[altIndex];
-    if (!alt || !items.length) return;
-
-    items.forEach((selection, i) => {
-      let targetIndex = itemIndex;
-      if (i > 0) {
-        if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-        alt.items.push(this.emptyFoodItem());
-        targetIndex = alt.items.length - 1;
-      }
-      const item = alt.items[targetIndex];
-      if (selection.kind === 'recipe' && selection.recipe) {
-        item.recipeId = selection.recipe._id;
-        item.recipeName = selection.recipe.name;
-        item.productId = undefined;
-        item.productName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      } else if (selection.kind === 'product' && selection.product) {
-        item.productId = selection.product._id;
-        item.productName = selection.product.name;
-        item.recipeId = undefined;
-        item.recipeName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      }
-    });
-  }
-
-  private async confirmPickedFood(
-    altIndex: number,
-    itemIndex: number,
-    _picked: { kind: 'create' },
-    closeOuter: () => void
-  ): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ProductSearchModalComponent,
-      componentProps: { startInCreateProduct: true },
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
-
-    const item = this.editingMeal?.alternatives[altIndex]?.items[itemIndex];
-    if (!item) return;
-    if (data.kind === 'recipe' && data.recipe) {
-      item.recipeId = data.recipe._id;
-      item.recipeName = data.recipe.name;
-      item.productId = undefined;
-      item.productName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    } else if (data.product) {
-      item.productId = data.product._id;
-      item.productName = data.product.name;
-      item.recipeId = undefined;
-      item.recipeName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    }
-    closeOuter();
-  }
-
-  // --- Snippets (TAREA5, Fase C): insertar de golpe, o guardar la
-  // alternativa actual como snippet reutilizable en cualquier otra
-  // plantilla/cliente ---
-  public async openSnippetPicker(altIndex: number): Promise<void> {
-    const modal = await this.modalController.create({
-      component: MealSnippetPickerComponent,
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<MealSnippet>();
-    if (role !== 'confirm' || !data) return;
-    this.insertSnippet(altIndex, data);
-  }
-
-  private insertSnippet(altIndex: number, snippet: MealSnippet): void {
-    const alt = this.editingMeal?.alternatives[altIndex];
-    if (!alt) return;
-    for (const cp of snippet.customProducts || []) {
-      if (alt.items.length >= this.maxFoodItemsPerAlternative) break;
-      const productId = typeof cp.product === 'string' ? cp.product : (cp as any).product?._id;
-      if (!productId) continue;
-      alt.items.push({
-        productId,
-        productName: (cp as any).productName || 'Producto guardado',
-        quantity: (cp as any).quantity ?? undefined,
-      });
-    }
-    for (const cr of snippet.customRecipes || []) {
-      if (alt.items.length >= this.maxFoodItemsPerAlternative) break;
-      const recipeId = typeof (cr as any).recipe === 'string' ? (cr as any).recipe : (cr as any).recipe?._id;
-      if (!recipeId) continue;
-      alt.items.push({
-        recipeId,
-        recipeName: (cr as any).recipeName || 'Receta guardada',
-        quantity: (cr as any).quantity ?? undefined,
-      });
-    }
-  }
-
-  public async saveAsSnippet(altIndex: number, event: Event): Promise<void> {
-    event.stopPropagation();
-    const alt = this.editingMeal?.alternatives[altIndex];
-    const slot = this.editingMeal?.slot;
-    if (!alt || !alt.items.length || !alt.items.every((i) => i.productId || i.recipeId)) return;
-
-    await this.ionicUtilService.showAlert({
-      header: 'Guardar como snippet',
-      message: 'Reutilizable en cualquier plantilla o cliente, con 1 clic.',
-      inputs: [{ name: 'name', type: 'text', placeholder: `p. ej. ${slot} habitual` }],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Guardar',
-          handler: (data: { name?: string }) => {
-            const name = (data?.name || '').trim();
-            if (!name) return false;
-            const { customProducts, customRecipes } = this.snippetEntries(alt.items);
-            this.mealSnippetApi.create(name, customProducts, customRecipes).subscribe({
-              next: () => this.ionicUtilService.showToast({ message: `Snippet "${name}" guardado`, duration: 2000 }),
-              error: () => this.ionicUtilService.showErrorToast('No se pudo guardar el snippet', 'Error', 3000),
-            });
-            return true;
-          },
-        },
-      ],
-    });
-  }
-
-  private snippetEntries(
-    items: TemplateFoodItem[]
-  ): { customProducts: Record<string, unknown>[]; customRecipes: Record<string, unknown>[] } {
-    const customProducts: Record<string, unknown>[] = [];
-    const customRecipes: Record<string, unknown>[] = [];
-    for (const item of items) {
-      if (item.recipeId) {
-        customRecipes.push({ recipe: item.recipeId, recipeName: item.recipeName, quantity: item.quantity || null });
-      } else if (item.productId) {
-        customProducts.push({ product: item.productId, productName: item.productName, quantity: item.quantity || 100 });
-      }
-    }
-    return { customProducts, customRecipes };
-  }
-
-  public clearProduct(altIndex: number, itemIndex: number): void {
-    const item = this.editingMeal?.alternatives[altIndex]?.items[itemIndex];
-    if (!item) return;
-    item.productId = undefined;
-    item.productName = undefined;
-    item.recipeId = undefined;
-    item.recipeName = undefined;
-    item.quantity = undefined;
   }
 
   public trackByIndex(index: number): number {

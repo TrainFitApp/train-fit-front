@@ -67,11 +67,14 @@
           [showRecentIcon]="isRecentProduct(product)"
           [trainerMultiSelect]="!!trainerContext"
           [isTrainerSelected]="isProductInTrainerSelection(product)"
+          [trainerSelectedQuantity]="getTrainerSelectedQuantity(product)"
           [isTrainerFavorite]="isTrainerFavoriteProduct(product)"
+          [isTrainerFocused]="isProductFocused(product)"
           (delete)="deleteProduct($event)"
           (ingredientToggle)="onIngredientToggle($event)"
           (trainerToggle)="onTrainerProductToggle($event)"
           (trainerFavoriteToggle)="onTrainerFavoriteProductToggle($event)"
+          (trainerFocus)="onTrainerProductFocus($event)"
         ></app-product>
       </ng-container>
     </ion-list>
@@ -114,13 +117,16 @@
           [showRecentIcon]="isRecentRecipe(recipe)"
           [trainerMultiSelect]="!!trainerContext"
           [isTrainerSelected]="isRecipeInTrainerSelection(recipe)"
+          [trainerSelectedQuantity]="getTrainerSelectedRecipeQuantity(recipe)"
           [isTrainerFavorite]="isTrainerFavoriteRecipe(recipe)"
+          [isTrainerFocused]="isRecipeFocused(recipe)"
           (toggle)="onRecipeToggle($event)"
           (quickAdd)="onRecipeQuickAdd($event)"
           (edit)="onRecipeEdit($event)"
           (remove)="onRecipeRemove($event)"
           (trainerToggle)="onTrainerRecipeToggle($event)"
           (trainerFavoriteToggle)="onTrainerFavoriteRecipeToggle($event)"
+          (trainerFocus)="onTrainerRecipeFocus($event)"
         ></app-recipe-card>
       </ng-container>
     </ion-list>
@@ -328,7 +334,7 @@
         </div>
       </div>
       <button type="button" class="trainer-basket-confirm" (click)="confirmTrainerSelection()">
-        Añadir {{ trainerSelection.length }} a {{ meal?.name }}
+        Añadir {{ trainerSelection.length }} a {{ trainerContext?.targetLabel || meal?.name }}
       </button>
     </div>
 

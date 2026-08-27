@@ -38,18 +38,38 @@
   cursor: pointer;
 }
 
-.snippet-row {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
+// Fix2 — cada snippet es un ion-accordion: el header pica/colapsa la
+// vista previa de sus productos/recetas, y "Usar este snippet" (dentro,
+// no en el header) es la única acción que lo inserta — así expandir para
+// mirar contenido y elegirlo son dos gestos distintos, no el mismo click.
+.snippet-group {
+  display: block;
   margin-bottom: 8px;
-  background: var(--tf-surface-1);
+
+  // Espacio entre accordions — Ionic los renderiza pegados por defecto.
+  ion-accordion {
+    display: block;
+    margin-bottom: 10px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.snippet-header {
+  --background: var(--tf-surface-1);
+  --border-color: var(--tf-border);
+  --color: var(--tf-text);
   border: 1px solid var(--tf-border);
   border-radius: 10px;
-  cursor: pointer;
-  text-align: left;
+
+  // Ionic inyecta el chevron de expandir/colapsar con su color por
+  // defecto (pensado para tema claro) — sin esto se ve apagado sobre
+  // --tf-surface-1 oscuro.
+  .ion-accordion-toggle-icon {
+    color: var(--tf-text-muted);
+  }
 }
 
 .snippet-icon {
@@ -58,29 +78,146 @@
   flex-shrink: 0;
 }
 
-.snippet-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
 .snippet-name {
+  display: block;
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--tf-text);
 }
 
 .snippet-count {
+  display: block;
   font-size: 0.76rem;
   color: var(--tf-text-muted);
+  margin-top: 2px;
 }
 
-.snippet-delete-btn,
-.snippet-rename-btn {
-  width: 30px;
-  height: 30px;
+.snippet-detail {
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 10px 14px 12px;
+}
+
+// Mismo shell que picked-food-card en day-meal-editor-modal — un alimento
+// dentro de un snippet se lee igual que un alimento ya elegido en el
+// constructor de comidas.
+.picked-food-card {
+  background-color: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &:last-of-type {
+    margin-bottom: 12px;
+  }
+}
+
+.picked-food-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picked-food-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: var(--tf-accent);
+  }
+}
+
+.picked-food-qty {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.picked-food-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+
+  .macro-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .macro-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.kcal {
+      background: var(--ion-color-primary);
+    }
+
+    &.protein {
+      background: var(--ion-color-alternative);
+    }
+
+    &.carbs {
+      background: var(--ion-color-success);
+    }
+
+    &.fat {
+      background: var(--ion-color-secondary);
+    }
+  }
+
+  .macro-value {
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+  }
+}
+
+.snippet-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.snippet-pick-btn {
+  flex: 1;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  border-radius: 8px;
+  color: var(--tf-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.snippet-icon-btn {
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,14 +226,14 @@
   color: var(--tf-text-muted);
   cursor: pointer;
   flex-shrink: 0;
-}
 
-.snippet-delete-btn:hover {
-  color: var(--tf-danger);
-}
+  &:hover {
+    color: var(--tf-accent);
+  }
 
-.snippet-rename-btn:hover {
-  color: var(--tf-accent);
+  &.danger:hover {
+    color: var(--tf-danger);
+  }
 }
 
 // TASK-047 — buscador, mismo patrón visual ya usado en RoutinesPage/

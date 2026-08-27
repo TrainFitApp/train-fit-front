@@ -1,8 +1,16 @@
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
+import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 
 export type ClientScope = 'training' | 'nutrition';
-export type ClientDetailTab = ClientScope | 'notes' | 'history' | 'checkins' | 'payments' | 'tasks';
+export type ClientDetailTab =
+  | ClientScope
+  | 'measurements'
+  | 'notes'
+  | 'history'
+  | 'checkins'
+  | 'payments'
+  | 'tasks';
 
 export interface TrainerNote {
   _id: string;
@@ -57,10 +65,55 @@ export interface AdherenceSummary {
   dailyBreakdown?: { date: string; kcal: number; withinMargin: boolean }[];
 }
 
-export interface AnthropometryEntry {
-  _id: string;
+// F20-bis — mismo tipo que alimenta <app-anthropometry-chart> (shared-ui):
+// el backend ya devuelve el árbol completo de medidas, así que en vez de un
+// tipo empobrecido propio (antes solo {_id,date,weight}) se reutiliza el
+// modelo real.
+export type AnthropometryEntry = Anthropometry;
+
+// F20-bis — un día del calendario de nutrición: cumplimiento (% de items
+// pautados marcados como hechos) y si hubo alguna excepción ese día.
+export interface NutritionComplianceDay {
   date: string;
-  weight?: number;
+  hasPlan: boolean;
+  completionPercentage: number | null;
+  hasException: boolean;
+  exceptionType: 'override' | 'skip' | null;
+}
+
+export interface NutritionComplianceSummary {
+  status: 'ok';
+  dailyBreakdown: NutritionComplianceDay[];
+}
+
+// F20-ter — comparación pautado vs. consumido, día a día. "Consumido" no es
+// solo "marcó lo pautado como hecho": un item que el cliente añadió por su
+// cuenta a la comida (sin que nadie se lo pautara) también cuenta, ver
+// diet-days-nutrition-util.js#isItemConsumed en el backend.
+export interface NutritionMacroTotals {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface NutritionTrackingDay {
+  date: string;
+  hasPlan: boolean;
+  planned: NutritionMacroTotals;
+  consumed: NutritionMacroTotals;
+}
+
+export interface NutritionTrackingSummary {
+  status: 'ok';
+  dailyTracking: NutritionTrackingDay[];
+}
+
+// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
+export interface BulkApplyResult {
+  clientId: string;
+  success: boolean;
+  error?: string;
 }
 
 export interface MealSummary {
@@ -104,13 +157,6 @@ export interface MealAlternativeInput {
   items: MealFoodItemInput[];
 }
 
-// F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/comida/objetivo).
-export interface BulkApplyResult {
-  clientId: string;
-  success: boolean;
-  error?: string;
-}
-
 // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
 export interface ClientNutritionPreferences {
   clientId: string;
@@ -139,6 +185,22 @@ export interface TrainerTask {
   createdAt: string;
 }
 
+// "Solicitar antropometría" — cadencia propia, independiente de la del
+// check-in de bienestar (mismo catálogo de campos, ver checkin-fields.ts,
+// filtrado a storage === 'anthropometry').
+export type AnthropometryRequestCadence = 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
+
+export interface AnthropometryRequest {
+  _id: string;
+  fields: string[];
+  notes: string;
+  cadence: AnthropometryRequestCadence;
+  customIntervalDays: number | null;
+  active: boolean;
+  lastRequestedAt: string;
+  lastFulfilledAt: string | null;
+}
+
 export interface NutritionalGoal {
   _id: string;
   name: string;
@@ -146,5 +208,12 @@ export interface NutritionalGoal {
   proteinsGTotal: number;
   carbohydratesGTotal: number;
   fatGTotal: number;
+  // Histórico: quién CREÓ este objetivo (o null si lo hizo el propio
+  // cliente) — no cambia aunque se active/desactive.
   assignedByTrainerId: string | null;
+  // Estado ACTUAL: si es el objetivo vigente del cliente ahora mismo
+  // (User.goalInUse en el backend) — independiente de quién lo creó, un
+  // cliente puede tener en uso un objetivo propio aunque el trainer le
+  // haya asignado otro que todavía no activó, o viceversa.
+  isInUse: boolean;
 }

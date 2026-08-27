@@ -6,9 +6,18 @@ import { ClientDetailPage } from './pages/client-detail/client-detail.page';
 import { SelectClientsModalComponent } from './components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
+import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
+import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
 
 @NgModule({
   imports: [SharedModule, ClientsPageRoutingModule, ProductSearchModalModule],
-  declarations: [ClientsPage, ClientDetailPage, SelectClientsModalComponent, ApplyDietTemplateModalComponent],
+  declarations: [
+    ClientsPage,
+    ClientDetailPage,
+    SelectClientsModalComponent,
+    ApplyDietTemplateModalComponent,
+    NutritionCalendarComponent,
+    NutritionTrackingChartComponent,
+  ],
 })
 export class ClientsPageModule {}

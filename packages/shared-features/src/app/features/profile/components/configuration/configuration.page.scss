@@ -320,6 +320,35 @@ body[color-theme="dark"] {
   }
 }
 
+// Escritorio: cada sección (Suscripción, Ayuda y recursos, Idioma...) es
+// su propia columna — título arriba, opciones debajo — y las columnas se
+// reparten el ancho disponible; las que no caben en la fila pasan a la
+// siguiente. auto-fit decide cuántas caben (2 en pantallas medianas, 3+ en
+// muy anchas) en vez de forzar siempre 2.
+//
+// Grid real, no masonry: como cada fila iguala su altura a la sección más
+// alta de esa fila, una sección corta puede dejar algo de hueco debajo
+// antes de que empiece la siguiente fila si su pareja de fila es más
+// alta — comportamiento estándar de cualquier grid de tarjetas (masonry
+// sin JS se probó y no es fiable dentro de un ion-content real). align-
+// items: start evita que la sección corta se ESTIRE para rellenar ese
+// hueco (issue distinto, sí solucionable), no evita el hueco en sí.
+@media (min-width: 820px) {
+  .config-sections {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    align-items: start;
+    gap: 24px 28px;
+
+    .section-group {
+      margin-bottom: 0;
+    }
+  }
+}
+
 // High contrast mode support
 @media (prefers-contrast: high) {
   .configuration-content {

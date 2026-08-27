@@ -1,0 +1,308 @@
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
+import { Chart, ChartConfiguration } from 'chart.js';
+import { ClientDetailApiService } from '../../services/client-detail-api.service';
+import { NutritionTrackingDay } from '../../models/client-detail.model';
+
+type MetricKey = 'kcal' | 'protein' | 'carbs' | 'fat';
+
+interface MetricOption {
+  key: MetricKey;
+  label: string;
+  unit: string;
+  color: string;
+}
+
+// F20-sexies — un color propio por métrica (no solo pautado/consumido):
+// con varias activas a la vez cada línea necesita distinguirse por sí
+// misma, ver isla de colores ya usada para tramos de plan en el calendario
+// (misma idea, paleta distinta para no confundir ambos conceptos).
+// impeccable/quieter — kcal se queda en el acento de marca (#fe9000, sin
+// tocar); protein/carbs/fat pasan a la MISMA paleta desaturada que
+// PHASE_COLORS/weekdayPatternColors (nutrition-calendar.component.ts /
+// client-detail.page.ts) — los originales (#60a5fa/#34d399/#f472b6) eran el
+// mismo trío Tailwind *-400 saturado que gritaba en las otras dos pantallas.
+const METRIC_OPTIONS: MetricOption[] = [
+  { key: 'kcal', label: 'Kcal', unit: 'kcal', color: '#fe9000' },
+  { key: 'protein', label: 'Proteína', unit: 'g', color: '#6e99cd' },
+  { key: 'carbs', label: 'Carbohidratos', unit: 'g', color: '#4d9b7f' },
+  { key: 'fat', label: 'Grasas', unit: 'g', color: '#cc7ba6' },
+];
+
+const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"
+
+// F20-terdecies — el rango de fechas (7/30/90d o uno elegido a mano) ya no
+// vive aquí, vive en <app-nutrition-calendar>: "qué fechas ver" se decide
+// en un único sitio (el calendario) y esta gráfica se limita a dibujar
+// [customRange]. Sin selector propio de rango — depende por completo de lo
+// que le llegue del padre.
+//
+// F20-ter/sexies — un único gráfico de LÍNEAS que compara, día a día, lo
+// PAUTADO contra lo REALMENTE consumido, con selección MÚLTIPLE de qué
+// valores comparar (kcal, macros, varias a la vez). Como las escalas de
+// kcal y gramos no son comparables, cada métrica activa se dibuja
+// normalizada a "% de lo pautado ese día" (pautado siempre = 100%, línea
+// de referencia discontinua) en vez de en sus unidades crudas — así
+// conviven en un único eje sin que una tape a la otra. "Consumido" no es
+// un simple sí/no de si siguió el plan: incluye tanto los items pautados
+// que marcó como hechos como cualquier producto que el propio cliente
+// haya añadido a la comida sin que nadie se lo pautara (ver backend
+// diet-days-nutrition-util.js#isItemConsumed).
+@Component({
+  selector: 'app-nutrition-tracking-chart',
+  templateUrl: './nutrition-tracking-chart.component.html',
+  styleUrls: ['./nutrition-tracking-chart.component.scss'],
+})
+export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDestroy {
+  @Input() clientId = '';
+  // F20-quinquies — rango exacto elegido en <app-nutrition-calendar> (a
+  // mano o vía sus botones 7/30/90d). El calendario ya emite un rango por
+  // defecto al cargar, así que en la práctica esto rara vez llega null.
+  @Input() customRange: { start: string; end: string } | null = null;
+
+  // static:true → resuelto antes de ngOnInit (a diferencia de
+  // ngAfterViewInit), mismo criterio que AnthropometryChartComponent.
+  @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+
+  public readonly metricOptions = METRIC_OPTIONS;
+  public activeMetrics = new Set<MetricKey>(['kcal']);
+  public dailyTracking: NutritionTrackingDay[] = [];
+  public isLoading = false;
+
+  private chart: Chart<'line'> | null = null;
+  private initialized = false;
+
+  constructor(private clientDetailApi: ClientDetailApiService) {}
+
+  // F20-sedecies — antes esto vivía en ngAfterViewInit, que se ejecuta
+  // DESPUÉS de que Angular ya haya comprobado la plantilla por primera
+  // vez: mutar isLoading ahí (usado en el *ngIf de la línea del
+  // empty-hint) disparaba NG0100 (ExpressionChangedAfterItHasBeenChecked),
+  // que en modo estricto puede llegar a abortar el pintado del componente
+  // entero — la gráfica se quedaba en blanco. static:true en el ViewChild
+  // ya deja chartCanvas listo antes de ngOnInit, así que no hacía falta
+  // esperar a ngAfterViewInit — mismo patrón que AnthropometryChartComponent.
+  public ngOnInit(): void {
+    this.initialized = true;
+    if (this.clientId && this.customRange) this.load();
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    // La primera carga la hace ngOnInit — evita pedir los datos dos veces
+    // si clientId/customRange ya llegan puestos en el primer binding.
+    if (!this.initialized || !this.clientId || !this.customRange) return;
+    if (changes['clientId'] || changes['customRange']) {
+      this.load();
+    }
+  }
+
+  public ngOnDestroy(): void {
+    this.chart?.destroy();
+  }
+
+  public toggleMetric(key: MetricKey): void {
+    if (this.activeMetrics.has(key)) {
+      // Nunca se queda sin ninguna métrica activa — no tiene sentido un
+      // gráfico vacío por apagar la última.
+      if (this.activeMetrics.size === 1) return;
+      this.activeMetrics.delete(key);
+    } else {
+      this.activeMetrics.add(key);
+    }
+    this.renderChart();
+  }
+
+  public isMetricActive(key: MetricKey): boolean {
+    return this.activeMetrics.has(key);
+  }
+
+  // Fondo del chip activo (tinte suave del color propio de la métrica) —
+  // precalculado en TS en vez de CSS color-mix() para no depender de
+  // soporte de navegador (el WebView de la app puede ir por detrás de
+  // Chrome/Safari de escritorio).
+  public chipBackground(option: MetricOption): string {
+    return this.hexToRgba(option.color, 0.16);
+  }
+
+  // Días que cubre el rango actual — solo para no amontonar etiquetas en el
+  // eje X (ver maxTicksLimit), no afecta a qué se pide al backend.
+  private get rangeDayCount(): number {
+    if (!this.customRange) return 30;
+    const from = new Date(`${this.customRange.start}T00:00:00.000Z`).getTime();
+    const to = new Date(`${this.customRange.end}T00:00:00.000Z`).getTime();
+    return Math.max(1, Math.round((to - from) / 86400000) + 1);
+  }
+
+  private load(): void {
+    if (!this.clientId || !this.customRange) return;
+    this.isLoading = true;
+    const { start: from, end: to } = this.customRange;
+    this.clientDetailApi.getNutritionTracking(this.clientId, from, to).subscribe({
+      next: (summary) => {
+        this.isLoading = false;
+        this.dailyTracking = summary?.dailyTracking || [];
+        this.renderChart();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.dailyTracking = [];
+        this.renderChart();
+      },
+    });
+  }
+
+  private renderChart(): void {
+    const ctx = this.chartCanvas?.nativeElement.getContext('2d');
+    if (!ctx) return;
+
+    const config = this.buildConfig();
+    if (this.chart) {
+      this.chart.data = config.data;
+      this.chart.options = config.options!;
+      this.chart.update();
+      return;
+    }
+    this.chart = new Chart(ctx, config);
+  }
+
+  private buildConfig(): ChartConfiguration<'line'> {
+    const labels = this.dailyTracking.map((d) => this.formatDate(d.date));
+    const activeOptions = this.metricOptions.filter((o) => this.activeMetrics.has(o.key));
+
+    const datasets: ChartConfiguration<'line'>['data']['datasets'] = [
+      {
+        label: 'Pautado (100%)',
+        data: labels.map(() => 100),
+        borderColor: REFERENCE_COLOR,
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        tension: 0,
+      },
+      ...activeOptions.map((option) => ({
+        label: option.label,
+        data: this.dailyTracking.map((d) => this.percentValue(d, option.key)),
+        borderColor: option.color,
+        backgroundColor: this.hexToRgba(option.color, 0.1),
+        borderWidth: 2.5,
+        fill: activeOptions.length === 1,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointBackgroundColor: option.color,
+        tension: 0.3,
+        spanGaps: true,
+      })),
+    ];
+
+    return {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(20, 20, 20, 0.95)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            borderWidth: 1,
+            cornerRadius: 10,
+            padding: 10,
+            callbacks: {
+              label: (context) => {
+                const value = context.parsed.y;
+                return value === null || value === undefined
+                  ? `${context.dataset.label}: sin dato`
+                  : `${context.dataset.label}: ${Math.round(Number(value))}%`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.5)',
+              font: { size: 10 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: this.rangeDayCount > 30 ? 6 : 10,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: {
+              color: 'rgba(255, 255, 255, 0.5)',
+              font: { size: 10 },
+              callback: (value) => `${value}%`,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  private hexToRgba(hex: string, alpha: number): string {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  private formatDate(date: string): string {
+    return new Date(`${date}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    });
+  }
+
+  private rawValue(day: NutritionTrackingDay, key: MetricKey, side: 'planned' | 'consumed'): number {
+    return day[side]?.[key] || 0;
+  }
+
+  // null (no un 0) cuando no hay nada pautado ese día para esta métrica —
+  // "sin dato" es distinto de "cumplió 0%", y spanGaps evita que la línea
+  // se desplome a cero entre medias.
+  private percentValue(day: NutritionTrackingDay, key: MetricKey): number | null {
+    const planned = this.rawValue(day, key, 'planned');
+    if (planned <= 0) return null;
+    return (this.rawValue(day, key, 'consumed') / planned) * 100;
+  }
+
+  public get daysWithPlan(): NutritionTrackingDay[] {
+    const keys = Array.from(this.activeMetrics);
+    return this.dailyTracking.filter((d) => keys.some((k) => this.rawValue(d, k, 'planned') > 0));
+  }
+
+  // % medio por métrica activa — puede superar 100% (comió más de lo
+  // pautado), no se recorta a propósito.
+  public averagePercentageFor(key: MetricKey): number | null {
+    const days = this.dailyTracking.filter((d) => this.rawValue(d, key, 'planned') > 0);
+    if (!days.length) return null;
+    const values = days.map((d) => this.percentValue(d, key) || 0);
+    return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+  }
+
+  public get activeMetricOptions(): MetricOption[] {
+    return this.metricOptions.filter((o) => this.activeMetrics.has(o.key));
+  }
+
+  public trackByMetricKey(_index: number, option: MetricOption): string {
+    return option.key;
+  }
+}

@@ -1,0 +1,199 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          aria-label="Cerrar"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ dayLabel }} · {{ meal.slot }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="editor-modal-content">
+  <p class="panel-hint" *ngIf="mode === 'choice'">
+    Añade una composición para esta comida, o 2 o más opciones nombradas para que el cliente elija
+    cuál come ese día.
+  </p>
+
+  <div class="alternative-card" *ngFor="let alt of meal.alternatives; let i = index; trackBy: trackByIndex">
+    <div class="alternative-header" *ngIf="isMultiple">
+      <span class="alternative-title">Opción {{ meal.alternatives.length - i }}</span>
+      <div class="alternative-actions">
+        <button
+          type="button"
+          class="remove-alternative-btn alternative-action-copy"
+          title="Duplicar opción (para cambiar solo un alimento)"
+          aria-label="Duplicar opción"
+          (click)="duplicateAlternative(i)"
+          [disabled]="meal.alternatives.length >= maxAlternatives"
+        >
+          <ion-icon name="copy-outline"></ion-icon>
+        </button>
+        <button
+          type="button"
+          class="remove-alternative-btn alternative-action-danger"
+          aria-label="Eliminar opción"
+          (click)="removeAlternative(i)"
+          [disabled]="meal.alternatives.length <= 1"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+    <div class="input-wrapper" *ngIf="isMultiple">
+      <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
+      <input
+        type="text"
+        class="input-field"
+        placeholder="Etiqueta (p. ej. Desayuno A)"
+        [(ngModel)]="alt.label"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+
+    <ng-container *ngFor="let item of alt.items; let j = index; trackBy: trackByIndex">
+      <!-- Elegido — mismo lenguaje visual que las cards de search-foods
+           (nombre + cantidad, fila de macro-dots) en vez de una fila plana. -->
+      <div class="picked-food-card" *ngIf="item.productId || item.recipeId">
+        <div class="picked-food-header">
+          <button
+            type="button"
+            class="picked-food-name picked-food-name-btn"
+            aria-label="Cambiar por otro alimento"
+            title="Cambiar por otro alimento"
+            (click)="openProductSearch(i, j)"
+            [disabled]="isOpeningPicker"
+          >
+            <ion-icon [name]="item.recipeId ? 'restaurant-outline' : 'nutrition-outline'"></ion-icon>
+            {{ item.recipeId ? item.recipeName : item.productName }}
+          </button>
+          <button
+            type="button"
+            class="remove-alternative-btn"
+            aria-label="Editar ingredientes de la receta"
+            title="Editar ingredientes de la receta"
+            *ngIf="item.recipeId && item.recipe"
+            (click)="editRecipeIngredients(i, j)"
+          >
+            <ion-icon name="options-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="remove-alternative-btn"
+            aria-label="Eliminar alimento"
+            *ngIf="alt.items.length > 1"
+            (click)="removeFoodItem(i, j)"
+          >
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="picked-food-qty-row">
+          <ion-label class="qty-label">Cantidad</ion-label>
+          <div class="qty-input-wrapper">
+            <input
+              type="number"
+              class="qty-input"
+              min="1"
+              [ngModel]="item.quantity"
+              (ngModelChange)="onQuantityChange(item, $event)"
+            />
+            <span class="qty-unit">g</span>
+          </div>
+        </div>
+
+        <div class="picked-food-macros" *ngIf="item.kcal !== undefined">
+          <div class="macro-item">
+            <div class="macro-dot kcal"></div>
+            <span class="macro-value">{{ item.kcal | number : '1.0-0' }}</span>
+          </div>
+          <div class="macro-item">
+            <div class="macro-dot protein"></div>
+            <span class="macro-value">{{ item.protein | number : '1.0-1' }}g</span>
+          </div>
+          <div class="macro-item">
+            <div class="macro-dot carbs"></div>
+            <span class="macro-value">{{ item.carbs | number : '1.0-1' }}g</span>
+          </div>
+          <div class="macro-item">
+            <div class="macro-dot fat"></div>
+            <span class="macro-value">{{ item.fat | number : '1.0-1' }}g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vacío — solo alcanzable tras "Cambiar por otro alimento" sobre un
+           item ya elegido (nunca al crear: "Añadir alimento" va directo al
+           buscador, ver addFoodItem()). -->
+      <div class="empty-food-slot" *ngIf="!item.productId && !item.recipeId">
+        <button
+          type="button"
+          class="search-product-btn"
+          (click)="openProductSearch(i, j)"
+          [disabled]="isOpeningPicker"
+        >
+          <ion-icon name="search-outline"></ion-icon>
+          Buscar producto o receta real
+        </button>
+        <button
+          type="button"
+          class="remove-alternative-btn"
+          aria-label="Eliminar alimento"
+          *ngIf="alt.items.length > 1"
+          (click)="removeFoodItem(i, j)"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+    </ng-container>
+
+    <div class="snippet-actions-row">
+      <button
+        type="button"
+        class="add-food-item-btn"
+        (click)="addFoodItem(i)"
+        [disabled]="alt.items.length >= maxFoodItemsPerAlternative || isOpeningPicker"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+        Añadir alimento
+      </button>
+      <button
+        type="button"
+        class="add-food-item-btn"
+        (click)="openSnippetPicker(i)"
+        [disabled]="alt.items.length >= maxFoodItemsPerAlternative"
+      >
+        <ion-icon name="bookmark-outline"></ion-icon>
+        Insertar snippet
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="snippet-save-link"
+      *ngIf="alt.items.length"
+      (click)="saveAsSnippet(i, $event)"
+    >
+      <ion-icon name="bookmark-outline"></ion-icon>
+      Guardar como snippet
+    </button>
+  </div>
+
+  <button type="button" class="add-alternative-btn" (click)="addAlternative()" [disabled]="meal.alternatives.length >= maxAlternatives">
+    <ion-icon name="add-outline"></ion-icon>
+    Añadir alternativa
+  </button>
+</ion-content>
+
+<ion-footer class="editor-modal-footer">
+  <button type="button" class="submit-button" (click)="dismiss()">Listo</button>
+</ion-footer>

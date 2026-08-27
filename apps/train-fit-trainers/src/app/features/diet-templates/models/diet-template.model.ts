@@ -1,3 +1,8 @@
+import { IProduct } from 'src/app/core/models/product';
+import { Recipe } from 'src/app/core/models/recipe';
+import { CustomProduct } from 'src/app/core/models/customProduct';
+import { ModifiedBaseCustomProduct } from 'src/app/core/models/customRecipe';
+
 // Replanteamiento MVP (nutrición) — mismo formato "clipboard" que ya usa
 // MealAlternativeInput/customProducts en client-detail.model.ts, reutilizado
 // aquí para construir plantillas reutilizables entre clientes.
@@ -10,6 +15,31 @@ export interface TemplateFoodItem {
   recipeId?: string;
   recipeName?: string;
   quantity?: number;
+  // Snapshot de macros calculado UNA vez al elegir el alimento (mismo
+  // criterio que CustomProductService.getMacros()/RecipeService
+  // .calculateCustomRecipeTotals(), reutilizados sin reinventar el cálculo)
+  // — permite pintar la card con el mismo look que search-foods (fila de
+  // macro-dots) sin volver a pedir el producto/receta real solo para eso.
+  kcal?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  // Producto/receta real cacheado en memoria (nunca viaja al backend, ver
+  // itemsToCustomEntries en diet-template-builder.page.ts) — permite
+  // recalcular macros en vivo al editar la cantidad in situ, sin volver a
+  // pedir el alimento solo para eso.
+  product?: IProduct;
+  recipe?: Recipe;
+  // Personalización de los ingredientes de la receta PARA ESTA comida en
+  // concreto — nunca toca la receta base (recipe.customProducts). Mismo
+  // modelo que CustomRecipe.addedCustomProducts/modifiedBaseCustomProducts/
+  // removedBaseCustomProductIds, ya soportado íntegro por el backend
+  // (custom-recipe-dao.js#createCustomRecipe). "Rico" en memoria (product
+  // poblado) para poder recalcular macros in situ; itemsToCustomEntries lo
+  // aplana a ids reales al guardar.
+  addedCustomProducts?: CustomProduct[];
+  modifiedBaseCustomProducts?: ModifiedBaseCustomProduct[];
+  removedBaseCustomProductIds?: string[];
 }
 
 // Fase 9 — una comida ya no es una lista plana de alimentos: son 1+

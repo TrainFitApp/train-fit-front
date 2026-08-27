@@ -1,0 +1,443 @@
+@import '../../../../theme/buttons';
+@import '../../../../theme/inputs';
+
+.builder-modal-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.panel-hint {
+  font-size: 0.82rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 16px;
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 50px;
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  @include tf-input-icon;
+  font-size: 1.1rem;
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: 0.9rem;
+}
+
+// Mismo shell que las cards elegidas del constructor de comidas
+// (day-meal-editor-modal.component.scss) — un ingrediente ya elegido es
+// conceptualmente lo mismo que un alimento pautado.
+.picked-food-card {
+  background-color: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.picked-food-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picked-food-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: var(--tf-accent);
+  }
+}
+
+// El nombre es también el botón "cambiar producto" — mismo texto/icono
+// que el vecino de solo-lectura, pero clicable (reabre el buscador
+// apuntando a este ingrediente en concreto).
+.picked-food-name-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--tf-accent);
+
+    ion-icon {
+      color: var(--tf-accent);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.picked-food-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.qty-label {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+.qty-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.qty-input {
+  width: 56px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 0.85rem;
+  text-align: right;
+
+  &:focus {
+    outline: none;
+  }
+
+  // Ocultar las flechas nativas del number input — el teclado numérico
+  // del móvil ya cubre esto, las flechas solo añaden ruido visual.
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
+}
+
+.qty-unit {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+}
+
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.picked-food-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+
+  .macro-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .macro-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.kcal {
+      background: var(--ion-color-primary);
+    }
+
+    &.protein {
+      background: var(--ion-color-alternative);
+    }
+
+    &.carbs {
+      background: var(--ion-color-success);
+    }
+
+    &.fat {
+      background: var(--ion-color-secondary);
+    }
+  }
+
+  .macro-value {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+  }
+}
+
+.add-ingredient-btn {
+  width: 100%;
+  height: 44px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.ingredients-hint {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+  margin: 10px 2px 0;
+}
+
+// Preparación — mismo patrón/estilo que ConfigRecipePage del cliente
+// (description-editor-wrapper, ver config-recipe.page.scss), portado con los
+// tokens de color del trainer (--tf-* en vez de --card-border/--text-*).
+.description-editor-wrapper {
+  margin-bottom: 20px;
+
+  .description-trigger {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-secondary);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:active {
+      background: var(--tf-surface-1);
+    }
+
+    .trigger-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+      letter-spacing: 0.2px;
+    }
+
+    .trigger-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .step-counter {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--tf-text-muted);
+    }
+
+    .trigger-icon {
+      font-size: 16px;
+      color: var(--tf-text-secondary);
+      flex-shrink: 0;
+    }
+  }
+
+  .description-card {
+    margin-top: 0;
+    padding: 12px;
+    border: 1px solid var(--tf-border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    background: var(--tf-surface-1);
+  }
+}
+
+.description-steps-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .description-step.editable {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .description-step-index {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(var(--ion-color-primary-rgb), 0.12);
+    color: var(--ion-color-primary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .step-input-wrapper {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+
+    .description-step-input {
+      flex: 1;
+      min-width: 0;
+      resize: none;
+      background: var(--tf-surface-2);
+      border: 1px solid var(--tf-border);
+      border-radius: 10px;
+      padding: 10px 36px 10px 12px;
+      color: var(--tf-text);
+      font-size: 0.9rem;
+      font-family: inherit;
+      line-height: 1.4;
+      transition: border-color 0.15s ease;
+
+      &::placeholder {
+        color: var(--tf-text-muted);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--tf-accent);
+      }
+    }
+
+    .remove-step-btn-inline {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s ease;
+      z-index: 2;
+
+      ion-icon {
+        font-size: 0.9rem;
+        color: var(--tf-danger);
+        pointer-events: none;
+      }
+
+      &:hover {
+        background: rgba(var(--ion-color-danger-rgb), 0.15);
+      }
+    }
+  }
+
+  .add-step-btn-full {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: 1px dashed rgba(var(--ion-color-primary-rgb), 0.3);
+    background: rgba(var(--ion-color-primary-rgb), 0.05);
+    border-radius: 8px;
+    color: var(--ion-color-primary);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &:active {
+      background: rgba(var(--ion-color-primary-rgb), 0.12);
+    }
+
+    &[disabled] {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  }
+
+  .steps-limit-hint {
+    font-size: 0.74rem;
+    color: var(--tf-text-muted);
+    text-align: center;
+    margin-top: -4px;
+  }
+}
+
+.builder-modal-footer {
+  --background: var(--tf-surface-1);
+  padding: 12px 16px;
+  border-top: 1px solid var(--tf-border);
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}

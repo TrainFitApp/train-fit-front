@@ -65,7 +65,9 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public clipboardClearCounter = 0;
   @Input()
   public mealIndex!: number;
-  // F28 — alternativas nombradas pendientes de elegir para este hueco de comida en esta fecha.
+  // F28 — alternativas nombradas para este hueco de comida en esta fecha
+  // (elegida o no: el cliente puede alternar libremente entre ellas, no es
+  // solo un banner de una sola vez).
   @Input()
   public proposals: MealProposal[] = [];
   @Output()
@@ -75,7 +77,7 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   @Output()
   public copyEvent = new EventEmitter();
   @Output()
-  public proposalChosen = new EventEmitter<string>();
+  public proposalChosen = new EventEmitter<{ proposalId: string; chosenIndex: number }>();
 
   @ViewChild('mealAccordion', { read: ElementRef })
   public mealAccordion!: ElementRef<HTMLIonAccordionElement>;
@@ -1035,11 +1037,15 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  // F28 — el cliente elige una de las alternativas propuestas por su
-  // profesional; se aplica de verdad sobre esta comida (mismo resultado
-  // final que pautar con F12, solo que diferido hasta esta elección).
+  // F28 — el cliente elige (o cambia) una de las alternativas propuestas
+  // por su profesional; se aplica de verdad sobre esta comida (mismo
+  // resultado final que pautar con F12). Selector persistente: se puede
+  // volver a llamar cuantas veces se quiera para alternar, no es una
+  // elección de un solo uso — pasteMeal en el backend reemplaza el
+  // contenido cada vez (merge:false), así que cambiar de opción no
+  // acumula nada.
   public chooseAlternative(proposal: MealProposal, index: number): void {
-    if (this.isChoosingProposal) return;
+    if (this.isChoosingProposal || proposal.chosenIndex === index) return;
     this.isChoosingProposal = true;
 
     this.mealProposalApiService.choose(this.dietDay.date, proposal._id, index).subscribe({
@@ -1050,7 +1056,8 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         if (indexMeal !== -1) this.dietDay.meals[indexMeal] = updatedMeal;
         this.dietDayService.setCurrentDietDay = this.dietDay;
         this.getMealInfo();
-        this.proposalChosen.emit(proposal._id);
+        proposal.chosenIndex = index;
+        this.proposalChosen.emit({ proposalId: proposal._id, chosenIndex: index });
         this.ionicUtilService.showToast({
           message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
           duration: 2000,

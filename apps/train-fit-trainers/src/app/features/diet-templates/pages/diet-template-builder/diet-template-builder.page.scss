@@ -1,7 +1,6 @@
 @import '../../../../../theme/skeleton';
 @import '../../../../../theme/buttons';
 @import '../../../../../theme/inputs';
-@import '../../../../../theme/panel-sheet';
 
 .builder-content {
   --background: var(--tf-bg);
@@ -98,127 +97,6 @@
   font-size: 0.9rem;
 }
 
-.food-item-card {
-  padding: 10px;
-  margin-bottom: 10px;
-  background: var(--tf-surface-4);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
-
-  &:last-of-type {
-    margin-bottom: 10px;
-  }
-}
-
-.food-item-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.food-item-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--tf-text-secondary);
-}
-
-.remove-alternative-btn {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--tf-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-
-  &:hover {
-    color: var(--tf-danger);
-  }
-}
-
-.product-pick-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: var(--tf-success-soft);
-  border: 1px solid var(--tf-success-border);
-  border-radius: 10px;
-
-  .input-icon {
-    color: var(--tf-success);
-  }
-}
-
-.picked-product-name {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--tf-text);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.clear-product-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--tf-text-muted);
-  cursor: pointer;
-  padding: 4px;
-}
-
-.search-product-btn {
-  width: 100%;
-  height: 42px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
-  border-radius: 10px;
-  color: var(--tf-accent);
-  font-size: 0.84rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.add-food-item-btn {
-  width: 100%;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px dashed var(--tf-border-strong);
-  border-radius: 10px;
-  color: var(--tf-text-muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:not(:disabled):hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-}
-
 .add-alternative-btn {
   width: 100%;
   height: 44px;
@@ -299,6 +177,22 @@
 .uncovered-hint {
   color: var(--tf-accent-text);
   margin-bottom: 8px;
+}
+
+// Caso contrario a uncoveredWeekdays (un día en 0 patrones vs. un día en 2+)
+// — en --tf-danger, no el acento de marca: aquí el riesgo real es que el
+// trainer crea que manda un patrón cuando en la práctica manda otro.
+.duplicate-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tf-danger);
+  margin-bottom: 8px;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
 }
 
 .weekday-picker {
@@ -487,132 +381,105 @@
   }
 }
 
-// --- Panel editor de celda (día × comida) ---
-.panel-backdrop {
-  @include tf-panel-backdrop;
-}
-
-.panel-sheet {
-  @include tf-panel-sheet;
-}
-
-.panel-handle {
-  @include tf-panel-handle;
-}
-
-// Editor de día × comida: en escritorio deja de ser un bottom-sheet y pasa
-// a ser un panel anclado a la derecha, a pantalla completa — mismo
-// tratamiento que .tf-panel-modal (tokens.scss) para los ion-modal de
-// búsqueda, aplicado aquí a mano porque este panel es HTML propio, no un
-// modalController.create() (igual que .apply-panel en
-// checkin-templates.page.scss). Por debajo de 768px se queda como
-// bottom-sheet.
-@media (min-width: 768px) {
-  .day-editor-panel {
-    top: 0;
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: 420px;
-    max-width: 100%;
-    max-height: none;
-    border-radius: 0;
-    border-top: none;
-    border-left: 1px solid var(--tf-border-strong);
-    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    animation: tf-panel-in-right 220ms var(--tf-ease-out);
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
-  }
-
-  .day-editor-panel .panel-handle {
-    display: none;
-  }
-
-  .day-editor-body {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .day-editor-panel .submit-button {
-    flex-shrink: 0;
-    margin-top: 12px;
-  }
-}
-
-@keyframes tf-panel-in-right {
-  from {
-    transform: translateX(16px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.panel-title {
-  font-size: 1.05rem;
+// F20-septies — fila de totales de macros, misma cuadrícula que el resto
+// del tablero (una celda por columna). Mismos colores por macro que
+// <app-nutrition-tracking-chart> (proteína/carbos/grasa) — el mismo
+// lenguaje visual en todo el módulo de nutrición, no una paleta nueva
+// inventada aquí.
+.board-totals-header {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: var(--tf-text);
-  margin: 0 0 16px;
-}
-
-// Fase 9 — tarjeta de alternativa dentro del editor de celda, mismo patrón
-// que client-detail.page.scss (panel "Pautar comida").
-.panel-hint {
-  font-size: 0.82rem;
-  color: var(--tf-text-muted);
-  margin: -8px 0 16px;
-}
-
-.alternative-card {
-  padding: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-text-faint);
   background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: 12px;
-  margin-bottom: 12px;
 }
 
-.alternative-header {
+.board-day-totals {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.alternative-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--tf-text);
-}
-
-.snippet-actions-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 8px;
-
-  .add-alternative-btn {
-    margin-bottom: 0;
-  }
-}
-
-.snippet-save-link {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   gap: 6px;
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--tf-accent);
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 16px;
-  cursor: pointer;
+  padding: 10px;
+  background: var(--tf-surface-2);
 }
+
+.totals-kcal {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--tf-text);
+  line-height: 1;
+
+  small {
+    margin-left: 3px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    text-transform: uppercase;
+  }
+}
+
+.totals-macro-bar {
+  display: flex;
+  height: 5px;
+  border-radius: var(--tf-radius-pill);
+  overflow: hidden;
+  background: var(--tf-surface-4);
+}
+
+.totals-macro-segment {
+  flex-basis: 0;
+  flex-shrink: 0;
+  min-width: 0;
+  transition: flex-grow var(--tf-duration-base) var(--tf-ease-out);
+
+  &--protein {
+    background: #60a5fa;
+  }
+
+  &--carbs {
+    background: #34d399;
+  }
+
+  &--fat {
+    background: #f472b6;
+  }
+}
+
+.totals-macro-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.macro-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  &--protein {
+    color: #60a5fa;
+  }
+
+  &--carbs {
+    color: #34d399;
+  }
+
+  &--fat {
+    color: #f472b6;
+  }
+}
+
+.totals-empty {
+  font-size: 0.74rem;
+  color: var(--tf-text-faint);
+  font-style: italic;
+}
+

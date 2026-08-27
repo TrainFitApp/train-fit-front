@@ -18,10 +18,21 @@
   margin: 0 0 var(--tf-space-4);
 }
 
+// Nombre + "Crear" en una sola fila — antes dos bloques a ancho completo
+// apilados (input, luego botón), doble alto de lo necesario para una sola
+// acción de una línea.
+.create-template-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-5);
+}
+
 .input-wrapper {
   @include tf-input-wrapper;
   height: 46px;
-  margin-bottom: var(--tf-space-3);
+  flex: 1;
+  min-width: 0;
 }
 
 .input-icon {
@@ -36,13 +47,15 @@
 
 .submit-button {
   @include tf-gradient-button;
-  width: 100%;
-  height: 48px;
-  margin-bottom: var(--tf-space-5);
+  width: auto;
+  height: 46px;
+  padding: 0 var(--tf-space-5);
   font-size: var(--tf-font-size-base);
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 // --- Skeleton de carga: misma forma que la fila real (icono + nombre +

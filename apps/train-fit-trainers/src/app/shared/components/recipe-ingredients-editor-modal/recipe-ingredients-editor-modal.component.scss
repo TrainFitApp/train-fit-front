@@ -1,0 +1,233 @@
+@import '../../../../theme/buttons';
+@import '../../../../theme/inputs';
+
+.editor-modal-content {
+  --background: var(--tf-bg);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.panel-hint {
+  font-size: 0.82rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 16px;
+}
+
+.picked-food-card {
+  background-color: #141414;
+  border: 1px solid #252525;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.picked-food-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picked-food-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    color: var(--tf-accent);
+  }
+}
+
+.picked-food-name-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-accent);
+
+    ion-icon {
+      color: var(--tf-accent);
+    }
+  }
+}
+
+.base-badge {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--tf-text-muted);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+
+  &:hover {
+    color: var(--tf-danger);
+  }
+}
+
+.picked-food-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.qty-label {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+.qty-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.qty-input {
+  width: 56px;
+  background: transparent;
+  border: none;
+  color: var(--tf-text);
+  font-size: 0.85rem;
+  text-align: right;
+
+  &:focus {
+    outline: none;
+  }
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  -moz-appearance: textfield;
+}
+
+.qty-unit {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+}
+
+.picked-food-macros {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+
+  .macro-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .macro-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.kcal {
+      background: var(--ion-color-primary);
+    }
+
+    &.protein {
+      background: var(--ion-color-alternative);
+    }
+
+    &.carbs {
+      background: var(--ion-color-success);
+    }
+
+    &.fat {
+      background: var(--ion-color-secondary);
+    }
+  }
+
+  .macro-value {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+  }
+}
+
+.add-ingredient-btn {
+  width: 100%;
+  height: 44px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--tf-border-strong);
+  border-radius: 10px;
+  color: var(--tf-text-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.editor-modal-footer {
+  --background: var(--tf-surface-1);
+  padding: 12px 16px;
+  border-top: 1px solid var(--tf-border);
+}
+
+.submit-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 50px;
+  font-size: 0.92rem;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}

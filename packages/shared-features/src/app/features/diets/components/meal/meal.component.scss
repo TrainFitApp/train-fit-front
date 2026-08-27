@@ -617,5 +617,16 @@ ion-skeleton-text {
     font-weight: 600;
     cursor: pointer;
     margin: 0;
+
+    // Opción actualmente elegida — sólida en vez de tenue, para que el
+    // selector persistente deje claro cuál está activa ahora mismo.
+    &.meal-proposal-chip--active {
+      --background: #fe9000;
+      --color: #141414;
+
+      ion-icon {
+        margin-inline-end: 4px;
+      }
+    }
   }
 }

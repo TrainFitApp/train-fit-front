@@ -2,6 +2,17 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+// Sin botón de volver (tab raíz) — el hueco vacío necesita el mismo ancho
+// que .tf-page-header__actions (40px/36px, ver global.scss) para que el
+// título siga centrado en vez de desplazarse hacia la derecha.
+.tf-page-header__back-section {
+  min-width: 40px;
+
+  @media (max-width: 768px) {
+    min-width: 36px;
+  }
+}
+
 .coach-content {
   --background: #0f0f0f;
 }

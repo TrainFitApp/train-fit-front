@@ -1,0 +1,305 @@
+.nutrition-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.nutrition-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+}
+
+.nutrition-calendar__month-label {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+  text-transform: capitalize;
+}
+
+.nutrition-calendar__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Por debajo del mínimo táctil de 44px a propósito (ya lo estaba antes,
+  // a 32px): control secundario de paso ±1 mes, no una acción repetida, y
+  // el pedido explícito aquí es compacidad — ver PRODUCT.md "táctil
+  // primero" para los controles primarios de la app.
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-4);
+    color: var(--tf-text);
+  }
+}
+
+// F20-quinquies — modo "seleccionar rango": alterna el significado del
+// click en una celda (día suelto -> inicio/fin de rango). Botón de texto,
+// no un icono solo, para que el estado ("elige el día final") sea legible
+// sin depender del color.
+.nutrition-calendar__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nutrition-calendar__toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+// F20-terdecies — 7/30/90d, mismo control visual que el resto del toolbar
+// (antes vivían en la gráfica como .tracking-range-btn).
+.range-preset-group {
+  display: flex;
+  gap: 4px;
+}
+
+.range-preset-btn {
+  width: 28px;
+  height: 24px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-sm);
+  color: var(--tf-text-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
+}
+
+.range-toggle-btn,
+.range-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out), border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 12px;
+  }
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 1px;
+  }
+}
+
+.range-toggle-btn.is-active {
+  background: var(--tf-accent-soft);
+  border-color: var(--tf-accent);
+  color: var(--tf-accent-text);
+}
+
+.range-clear-btn {
+  color: var(--tf-accent-text);
+  border-color: var(--tf-accent-soft-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.nutrition-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+
+  span {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.nutrition-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-loading {
+    opacity: 0.5;
+  }
+}
+
+.nutrition-calendar__cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-sm);
+  background: rgba(254, 144, 0, var(--fill-opacity, 0));
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out), transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:not(.is-blank):hover {
+    border-color: var(--tf-border-strong);
+    transform: translateY(-1px);
+  }
+
+  // Días del mes anterior/siguiente que rellenan la cuadrícula — su número
+  // se ve, pero apagado (--tf-text-faint) y sin fondo/borde propio, para
+  // que quede claro de un vistazo que no pertenecen a este mes. Sin
+  // interacción (no clicables, ver [disabled]="!cell.date" en el html).
+  // opacity (no un color de texto/borde suelto) — reduce TODO el bloque de
+  // golpe, número incluido, así ningún acento de otra clase (seleccionado,
+  // rango, etc.) puede colarse aquí con fuerza visual. pointer-events:none
+  // asegura además que ningún estado :hover de otra regla llegue a
+  // aplicarse, venga de donde venga.
+  &.is-blank {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  &.has-no-plan {
+    background: var(--tf-surface-2);
+    color: var(--tf-text-faint);
+  }
+
+  &.is-today {
+    border-color: var(--tf-border-strongest);
+  }
+
+  &.is-selected {
+    border-color: var(--tf-accent);
+    box-shadow: 0 0 0 1px var(--tf-accent);
+  }
+
+  &.has-exception.is-skip-exception {
+    background: var(--tf-danger-soft);
+  }
+
+  // F20-quinquies — banda del rango elegido (calendario -> gráfica de
+  // seguimiento). Borde, no background sólido: el relleno de cumplimiento
+  // (--fill-opacity) sigue viéndose debajo, ambas señales conviven.
+  &.is-in-range {
+    border-color: var(--tf-accent-soft-border);
+    box-shadow: inset 0 0 0 1px var(--tf-accent-soft-border);
+  }
+
+  &.is-range-endpoint {
+    background: var(--tf-accent);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-contrast);
+    box-shadow: none;
+  }
+
+  &.is-range-pick-mode:not(.is-blank):hover {
+    border-color: var(--tf-accent);
+  }
+}
+
+.nutrition-calendar__day-number {
+  font-variant-numeric: tabular-nums;
+}
+
+// Tramo de plan asignado — franja continua de color por fase (una fase =
+// un color, ver PHASE_COLORS en el componente), independiente del relleno
+// de cumplimiento: un día puede tener fase asignada sin datos de
+// cumplimiento todavía (dieta no materializada) o viceversa.
+.nutrition-calendar__phase-bar {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  border-radius: 0 0 2px 2px;
+  background: var(--phase-color);
+}
+
+.nutrition-calendar__exception-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tf-danger);
+}
+
+.nutrition-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2) var(--tf-space-3);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  color: var(--tf-text-muted);
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+
+  // impeccable/quieter — mismos 2 primeros tonos que PHASE_COLORS (ya
+  // desaturados), no reinventados aquí.
+  &--phase {
+    background: linear-gradient(90deg, #6e99cd, #a18fd7);
+    border-radius: 2px;
+  }
+
+  &--fill {
+    background: var(--tf-accent);
+  }
+
+  &--exception {
+    background: var(--tf-danger);
+    border-radius: 50%;
+  }
+
+  &--empty {
+    background: var(--tf-surface-2);
+    border: 1px solid var(--tf-border);
+  }
+}

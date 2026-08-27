@@ -1,0 +1,152 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Nueva receta</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="builder-modal-content">
+  <p class="panel-hint">
+    Crea una receta real a partir de 2 o más productos: quedará en tu biblioteca, lista para pautar en cualquier plantilla o cliente.
+  </p>
+
+  <div class="input-wrapper">
+    <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
+    <input
+      type="text"
+      class="input-field"
+      placeholder="Nombre de la receta"
+      [(ngModel)]="name"
+    />
+  </div>
+
+  <!-- Preparación — mismo patrón/estilo que ConfigRecipePage del cliente
+       (description-editor-wrapper: cabecera tipo acordeón + pasos debajo). -->
+  <div class="description-editor-wrapper">
+    <button type="button" class="description-trigger" (click)="toggleInstructions()">
+      <span class="trigger-title">Preparación</span>
+      <div class="trigger-right">
+        <span class="step-counter" *ngIf="instructions.length > 0">
+          {{ instructions.length }}/{{ maxInstructionSteps }}
+        </span>
+        <ion-icon [name]="showInstructions ? 'chevron-up' : 'chevron-down'" class="trigger-icon"></ion-icon>
+      </div>
+    </button>
+
+    <div class="description-card" *ngIf="showInstructions">
+      <div class="description-steps-editor">
+        <div class="description-step editable" *ngFor="let step of instructions; let i = index; trackBy: trackByIndex">
+          <span class="description-step-index">{{ i + 1 }}</span>
+          <div class="step-input-wrapper">
+            <textarea
+              class="description-step-input"
+              rows="1"
+              placeholder="Ej. Corta la zanahoria y ponla a hervir..."
+              [value]="step"
+              (input)="onInstructionChange(i, $any($event.target).value)"
+            ></textarea>
+            <button
+              type="button"
+              class="remove-step-btn-inline"
+              aria-label="Quitar paso"
+              *ngIf="instructions.length > 1"
+              (click)="removeInstructionStep(i)"
+            >
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="add-step-btn-full"
+          [disabled]="instructions.length >= maxInstructionSteps"
+          (click)="addInstructionStep()"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          <span>Añadir paso</span>
+        </button>
+        <span class="steps-limit-hint" *ngIf="instructions.length >= maxInstructionSteps">
+          Máximo {{ maxInstructionSteps }} pasos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Productos — debajo de la preparación, mismo orden que el cliente. -->
+  <ng-container *ngFor="let ingredient of ingredients; let i = index">
+    <div class="picked-food-card">
+      <div class="picked-food-header">
+        <button
+          type="button"
+          class="picked-food-name picked-food-name-btn"
+          aria-label="Ver detalle del ingrediente"
+          title="Ver detalle"
+          (click)="previewIngredient(i)"
+        >
+          <ion-icon name="nutrition-outline"></ion-icon>
+          {{ ingredient.product.name }}
+        </button>
+        <button type="button" class="remove-btn" aria-label="Quitar ingrediente" (click)="removeIngredient(i)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="picked-food-qty-row">
+        <ion-label class="qty-label">Cantidad</ion-label>
+        <div class="qty-input-wrapper">
+          <input
+            type="number"
+            class="qty-input"
+            min="1"
+            [ngModel]="ingredient.quantity"
+            (ngModelChange)="onQuantityChange(ingredient, $event)"
+          />
+          <span class="qty-unit">g</span>
+        </div>
+      </div>
+      <div class="picked-food-macros">
+        <div class="macro-item">
+          <div class="macro-dot kcal"></div>
+          <span class="macro-value">{{ ingredientMacros(ingredient).kcal | number : '1.0-0' }}</span>
+        </div>
+        <div class="macro-item">
+          <div class="macro-dot protein"></div>
+          <span class="macro-value">{{ ingredientMacros(ingredient).protein | number : '1.0-1' }}g</span>
+        </div>
+        <div class="macro-item">
+          <div class="macro-dot carbs"></div>
+          <span class="macro-value">{{ ingredientMacros(ingredient).carbs | number : '1.0-1' }}g</span>
+        </div>
+        <div class="macro-item">
+          <div class="macro-dot fat"></div>
+          <span class="macro-value">{{ ingredientMacros(ingredient).fat | number : '1.0-1' }}g</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <button type="button" class="add-ingredient-btn" (click)="openIngredientPicker()" [disabled]="isOpeningPicker">
+    <ion-icon name="add-outline"></ion-icon>
+    Añadir ingrediente
+  </button>
+
+  <p class="ingredients-hint" *ngIf="ingredients.length > 0 && ingredients.length < 2">
+    Añade al menos 2 ingredientes para poder guardar.
+  </p>
+</ion-content>
+
+<ion-footer class="builder-modal-footer">
+  <button type="button" class="submit-button" (click)="save()" [disabled]="!canSave || isSaving">
+    <span *ngIf="!isSaving">Guardar receta</span>
+    <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+  </button>
+</ion-footer>

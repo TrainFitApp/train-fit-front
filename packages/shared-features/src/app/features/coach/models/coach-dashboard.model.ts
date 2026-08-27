@@ -68,7 +68,8 @@ export type CoachNotificationType =
   | 'task_assigned'
   | 'intake_submitted'
   | 'client_confirmed'
-  | 'meal_prescribed';
+  | 'meal_prescribed'
+  | 'anthropometry_requested';
 
 export interface CoachNotification {
   _id: string;

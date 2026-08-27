@@ -4,6 +4,8 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
+  AnthropometryRequest,
+  AnthropometryRequestCadence,
   BulkApplyResult,
   CheckinConfig,
   CheckinResponseEntry,
@@ -12,6 +14,8 @@ import {
   ClientTable,
   DietDaySummary,
   NutritionalGoal,
+  NutritionComplianceSummary,
+  NutritionTrackingSummary,
   TrainerNote,
   TrainerPayment,
   TrainerTask,
@@ -95,6 +99,28 @@ export class ClientDetailApiService {
     );
   }
 
+  public activateNutritionalGoal(clientId: string, goalId: string): Observable<{ _id: string }> {
+    return this.http.put<{ _id: string }>(
+      `${this.base(clientId)}/nutritional-goals/${goalId}/activate`,
+      {}
+    );
+  }
+
+  public getAnthropometryRequest(clientId: string): Observable<AnthropometryRequest | null> {
+    return this.http.get<AnthropometryRequest | null>(`${this.base(clientId)}/anthropometry-request`);
+  }
+
+  public upsertAnthropometryRequest(
+    clientId: string,
+    body: { fields: string[]; notes: string; cadence: AnthropometryRequestCadence; customIntervalDays: number | null }
+  ): Observable<AnthropometryRequest> {
+    return this.http.put<AnthropometryRequest>(`${this.base(clientId)}/anthropometry-request`, body);
+  }
+
+  public cancelAnthropometryRequest(clientId: string): Observable<unknown> {
+    return this.http.delete(`${this.base(clientId)}/anthropometry-request`);
+  }
+
   public getNotes(clientId: string): Observable<TrainerNote[]> {
     return this.http.get<TrainerNote[]>(`${this.base(clientId)}/notes`);
   }
@@ -127,6 +153,30 @@ export class ClientDetailApiService {
 
   public getAdherence(clientId: string): Observable<AdherenceSummary> {
     return this.http.get<AdherenceSummary>(`${this.base(clientId)}/adherence`);
+  }
+
+  // F20-bis — cumplimiento por día (para el calendario de nutrición), distinto
+  // de /adherence (kcal pautada vs. objetivo).
+  public getNutritionCompliance(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionComplianceSummary> {
+    return this.http.get<NutritionComplianceSummary>(
+      `${this.base(clientId)}/nutrition-compliance?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
+  // F20-ter — pautado vs. consumido (kcal/proteína/carbos/grasa) por día,
+  // para el gráfico de comparación junto al calendario.
+  public getNutritionTracking(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionTrackingSummary> {
+    return this.http.get<NutritionTrackingSummary>(
+      `${this.base(clientId)}/nutrition-tracking?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
   }
 
   public getPayments(clientId: string): Observable<TrainerPayment[]> {

@@ -165,6 +165,16 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
     return this.recipeService.getTopIngredients(recipe, 3);
   }
 
+  // Fix7 — el título reflejaba solo showCreateProduct; con preselectedRecipe
+  // (creación de receta nueva desde el trainer, ver RecipeBuilderModalComponent)
+  // este modal se abre directo en la vista "cantidad/confirmar" y seguía
+  // diciendo "Buscar alimento" aunque la búsqueda ni se mostraba.
+  public get headerTitle(): string {
+    if (this.showCreateProduct) return 'Crear producto';
+    if (this.selectedProduct || this.selectedRecipe) return 'Confirmar cantidad';
+    return 'Buscar alimento';
+  }
+
   public trackByProductId(_index: number, product: IProduct): string {
     return product._id;
   }

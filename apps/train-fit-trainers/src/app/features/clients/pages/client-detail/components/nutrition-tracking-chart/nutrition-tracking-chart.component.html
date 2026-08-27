@@ -1,0 +1,49 @@
+<div class="tracking-chart">
+  <div class="tracking-chart__controls">
+    <div class="tracking-chart__metrics">
+      <button
+        type="button"
+        class="tracking-chip"
+        *ngFor="let option of metricOptions"
+        [class.is-active]="isMetricActive(option.key)"
+        [style.--chip-color]="option.color"
+        [style.--chip-bg]="chipBackground(option)"
+        [attr.aria-pressed]="isMetricActive(option.key)"
+        (click)="toggleMetric(option.key)"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+    <!-- F20-terdecies — el rango (7/30/90d o a mano) se elige en el
+         calendario de al lado, no aquí; esta gráfica solo muestra qué
+         fechas está mirando. -->
+    <span class="tracking-chart__range-label" *ngIf="customRange">
+      {{ customRange.start }} → {{ customRange.end }}
+    </span>
+  </div>
+
+  <div class="tracking-chart__summary" *ngIf="daysWithPlan.length">
+    <span class="tracking-chart__summary-item" *ngFor="let option of activeMetricOptions">
+      <span class="tracking-chart__summary-dot" [style.background]="option.color"></span>
+      {{ option.label }}
+      <strong *ngIf="averagePercentageFor(option.key) !== null">{{ averagePercentageFor(option.key) }}%</strong>
+      <span class="tracking-chart__summary-muted" *ngIf="averagePercentageFor(option.key) === null">sin datos</span>
+    </span>
+  </div>
+
+  <p class="empty-hint" *ngIf="!isLoading && !daysWithPlan.length">
+    Sin nada pautado de lo seleccionado en este rango.
+  </p>
+
+  <div class="tracking-chart__canvas-wrap" [class.is-loading]="isLoading">
+    <canvas #chartCanvas></canvas>
+  </div>
+
+  <div class="tracking-chart__legend">
+    <span class="legend-item"><span class="legend-swatch legend-swatch--reference"></span>Pautado (100%)</span>
+    <span class="legend-item" *ngFor="let option of activeMetricOptions; trackBy: trackByMetricKey">
+      <span class="legend-swatch" [style.background]="option.color"></span>
+      {{ option.label }}
+    </span>
+  </div>
+</div>

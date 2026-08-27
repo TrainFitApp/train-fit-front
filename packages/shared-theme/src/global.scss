@@ -464,7 +464,22 @@ ion-header {
 }
 
 // Unified clean page header (replacement for app-page-header)
+//
+// z-index: 1 explícito — sin esto, un panel/modal propio (position: fixed)
+// que vive dentro de la misma página routeada puede acabar pintándose por
+// DEBAJO de este header en vez de por encima. Causa: Ionic da a `.ion-page`
+// un `contain: layout`, que lo convierte en containing block de ese
+// `fixed` — dejando de posicionarse contra el viewport para apilarse codo
+// a codo con este header dentro de `.ion-page`. Ya se subió la escala de
+// z-index de los paneles (ver apps/train-fit-trainers/src/theme/tokens.scss
+// > --tf-z-modal) para ganar ese margen, pero ese cambio vive en una app
+// concreta; este header es compartido por las 3 apps y no tenía ningún
+// z-index propio con el que competir — position: relative + z-index bajo
+// aquí cierra el hueco en el origen, para cualquier panel futuro, sin
+// depender de que cada página recuerde subir el suyo.
 .tf-page-header {
+  position: relative;
+  z-index: 1;
   background: #141414;
   border-bottom: 1px solid #252525;
 }
