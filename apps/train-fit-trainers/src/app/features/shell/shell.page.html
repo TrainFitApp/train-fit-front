@@ -18,25 +18,32 @@
       </div>
 
       <nav aria-label="Navegación principal" class="app-menu-nav">
-        <ion-menu-toggle *ngFor="let item of menuItems" auto-hide="false">
-          <a
-            class="menu-item"
-            [routerLink]="item.path"
-            routerLinkActive="menu-item--active"
-            #rla="routerLinkActive"
-            [routerLinkActiveOptions]="item.routerLinkActiveOptions"
-            [attr.aria-current]="rla.isActive ? 'page' : null"
-            [title]="collapsed ? item.label : null"
-          >
-            <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
-            <span *ngIf="!collapsed">{{ item.label }}</span>
-            <span
-              class="menu-item-badge"
-              *ngIf="item.badgeCount"
-              [title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
-            >{{ item.badgeCount }}</span>
-          </a>
-        </ion-menu-toggle>
+        <div class="menu-group" *ngFor="let group of menuGroups">
+          <!-- Contraído el encabezado se sustituye por un separador: el texto
+               no cabe, pero la separación entre grupos sí debe seguir viéndose. -->
+          <p class="menu-group-label" *ngIf="group.label && !collapsed">{{ group.label }}</p>
+          <div class="menu-group-rule" *ngIf="group.label && collapsed" aria-hidden="true"></div>
+
+          <ion-menu-toggle *ngFor="let item of group.items" auto-hide="false">
+            <a
+              class="menu-item"
+              [routerLink]="item.path"
+              routerLinkActive="menu-item--active"
+              #rla="routerLinkActive"
+              [routerLinkActiveOptions]="item.routerLinkActiveOptions"
+              [attr.aria-current]="rla.isActive ? 'page' : null"
+              [title]="collapsed ? item.label : null"
+            >
+              <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+              <span *ngIf="!collapsed">{{ item.label }}</span>
+              <span
+                class="menu-item-badge"
+                *ngIf="item.badgeCount"
+                [title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
+              >{{ item.badgeCount }}</span>
+            </a>
+          </ion-menu-toggle>
+        </div>
       </nav>
 
       <div class="app-menu-footer">

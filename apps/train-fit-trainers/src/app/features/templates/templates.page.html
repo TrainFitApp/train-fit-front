@@ -5,7 +5,7 @@
         <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Plantillas</h1>
+        <h1 class="tf-page-header__title">Biblioteca</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -13,18 +13,9 @@
 </ion-header>
 
 <ion-content class="templates-content">
-  <p class="page-hint">Biblioteca central de entrenamientos, planes nutricionales y formularios reutilizables.</p>
+  <p class="page-hint">Todo lo que preparas para dárselo a un cliente: entrenamientos, rutinas, dietas e intercambios.</p>
 
-  <div class="category-grid">
-    <a class="category-card" *ngFor="let c of categories" [routerLink]="c.path">
-      <div class="category-icon" [style.background]="c.colorVar">
-        <ion-icon [name]="c.icon"></ion-icon>
-      </div>
-      <span class="category-name">{{ c.name }}</span>
-      <span class="category-desc">{{ c.description }}</span>
-      <span class="category-link">Ver todas <ion-icon name="chevron-forward"></ion-icon></span>
-    </a>
-  </div>
+  <app-category-grid [categories]="categories"></app-category-grid>
 
   <h2 class="section-heading">Recientes</h2>
 
@@ -100,44 +91,15 @@
       </div>
     </section>
 
-    <section class="recent-column" *ngIf="loadingCheckinTemplates || checkinTemplates.length">
-      <div class="recent-column-header">
-        <h3 class="recent-column-title">Check-ins</h3>
-        <a class="recent-column-link" routerLink="/tabs/checkin-templates">Ver todas</a>
-      </div>
-
-      <div class="recent-skeleton" *ngIf="loadingCheckinTemplates">
-        <div class="skeleton-block recent-row-skeleton" *ngFor="let i of [1, 2, 3]"></div>
-      </div>
-
-      <div class="recent-list" *ngIf="!loadingCheckinTemplates">
-        <div class="recent-row recent-row--with-actions" *ngFor="let ct of checkinTemplates; trackBy: trackByCheckinTemplateId">
-          <div class="recent-row-info" (click)="goToCheckinTemplates()">
-            <span class="recent-row-name">{{ ct.name }}</span>
-            <span class="recent-row-meta">{{ ct.enabledFields.length }} campos</span>
-          </div>
-          <div class="recent-row-actions">
-            <button class="recent-row-action-btn" (click)="openApplyPanel(ct)">Aplicar</button>
-            <button
-              class="recent-row-action-btn recent-row-action-btn--danger"
-              (click)="confirmDelete(ct)"
-              [attr.aria-label]="'Borrar plantilla ' + ct.name"
-            >
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 
   <p
     class="empty-hint"
     *ngIf="
-      !loadingRoutineTemplates && !loadingDietTemplates && !loadingCheckinTemplates && !loadingFullRoutineTemplates &&
-      !routineTemplates.length && !dietTemplates.length && !checkinTemplates.length && !fullRoutineTemplates.length
+      !loadingRoutineTemplates && !loadingDietTemplates && !loadingFullRoutineTemplates &&
+      !routineTemplates.length && !dietTemplates.length && !fullRoutineTemplates.length
     "
   >
-    Todavía no has creado ninguna plantilla. Empieza desde cualquiera de las categorías de arriba.
+    Todavía no has creado nada. Empieza desde cualquiera de las categorías de arriba.
   </p>
 </ion-content>

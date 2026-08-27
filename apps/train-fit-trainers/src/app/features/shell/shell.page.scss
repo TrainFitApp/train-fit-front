@@ -126,6 +126,39 @@
   gap: var(--tf-space-1);
 }
 
+// Movimiento 1 Coach Pro — grupos con encabezado.
+.menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+
+  // El aire va ENTRE grupos, no dentro: separar visualmente es todo el
+  // trabajo que hace el agrupado.
+  & + & {
+    margin-top: var(--tf-space-4);
+  }
+}
+
+.menu-group-label {
+  margin: 0 0 var(--tf-space-1);
+  padding: 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  // Muted (no secondary): es una etiqueta de orientación, no un destino; si
+  // compitiera en peso con los items sería ruido. tokens.scss reserva
+  // --tf-text-muted justo para esto.
+  color: var(--tf-text-muted);
+}
+
+// Sustituto del encabezado cuando el sidebar está contraído.
+.menu-group-rule {
+  height: 1px;
+  margin: var(--tf-space-2) var(--tf-space-3) var(--tf-space-1);
+  background: var(--tf-border);
+}
+
 .menu-item {
   display: flex;
   align-items: center;

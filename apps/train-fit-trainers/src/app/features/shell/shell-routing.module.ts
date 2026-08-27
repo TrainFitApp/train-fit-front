@@ -23,13 +23,36 @@ const routes: Routes = [
           ),
       },
       {
-        // Mockup "TrainFit Panel" > Plantillas — hub que agrupa rutinas,
-        // nutrición (diet-templates real) y formularios de iniciación
-        // (checkin-templates real).
+        // Mockup "TrainFit Panel" > Plantillas, hoy **Biblioteca**: lo que el
+        // entrenador prepara para dárselo a un cliente (entrenamientos,
+        // rutinas, dietas, intercambios, ejercicios). La ruta sigue siendo
+        // 'templates' a propósito — renombrarla rompería los enlaces
+        // guardados de quien ya usa la app sin ganar nada: el nombre que ve
+        // el usuario está en la cabecera y en el menú, no en la URL.
         path: 'templates',
         loadChildren: () =>
           import('src/app/features/templates/templates.module').then(
             (m) => m.TemplatesPageModule
+          ),
+      },
+      {
+        // Movimiento 6 Coach Pro — cuánto estimula cada ejercicio a cada
+        // músculo y cuánto castiga a cada articulación, según ESTE
+        // entrenador. Alcanzable desde Mi método: es literalmente eso, y no
+        // material que se le dé al cliente.
+        path: 'exercise-scores',
+        loadChildren: () =>
+          import('src/app/features/exercise-scores/exercise-scores.module').then(
+            (m) => m.ExerciseScoresPageModule
+          ),
+      },
+      {
+        // Movimiento 1 Coach Pro — la otra mitad del antiguo hub: cómo
+        // trabaja el entrenador (check-ins, protocolos, automatizaciones).
+        path: 'method',
+        loadChildren: () =>
+          import('src/app/features/method/method.module').then(
+            (m) => m.MethodPageModule
           ),
       },
       {
@@ -69,22 +92,12 @@ const routes: Routes = [
       },
       {
         // TASK-042 (MASTER_BACKLOG.md) — catálogo de ejercicios como pantalla
-        // propia, alcanzable desde la categoría "Biblioteca de ejercicios" en
-        // /tabs/templates (no destino nuevo del sidebar, ver templates.page.ts).
+        // propia, alcanzable desde la categoría "Ejercicios" en Biblioteca
+        // (/tabs/templates), no como destino nuevo del sidebar.
         path: 'exercises',
         loadChildren: () =>
           import('src/app/features/exercise-library/exercise-library.module').then(
             (m) => m.ExerciseLibraryPageModule
-          ),
-      },
-      {
-        // Mockup "TrainFit Panel" > Check-ins — historial agregado por
-        // cliente. Distinto de checkin-templates (que gestiona el catálogo
-        // de campos, no el historial).
-        path: 'checkins',
-        loadChildren: () =>
-          import('src/app/features/checkins/checkins.module').then(
-            (m) => m.CheckinsPageModule
           ),
       },
       {
@@ -177,6 +190,36 @@ const routes: Routes = [
         loadChildren: () =>
           import('src/app/features/checkin-templates/checkin-templates.module').then(
             (m) => m.CheckinTemplatesPageModule
+          ),
+      },
+      {
+        // Fase 5 Coach Pro — grupos de intercambio de alimentos (§16).
+        // Alcanzable desde Biblioteca: es material para el cliente.
+        path: 'food-exchanges',
+        loadChildren: () =>
+          import('src/app/features/food-exchanges/food-exchanges.module').then(
+            (m) => m.FoodExchangesPageModule
+          ),
+      },
+      {
+        // Fase 4 Coach Pro — protocolos: la metodología del coach empaquetada.
+        // Alcanzable desde Mi método (method.page.ts), no como destino propio
+        // del sidebar: se define una vez, no es un flujo de trabajo diario.
+        path: 'protocols',
+        loadChildren: () =>
+          import('src/app/features/protocols/protocols.module').then(
+            (m) => m.ProtocolsPageModule
+          ),
+      },
+      {
+        // Fase 3 Coach Pro — reglas WHEN/IF/THEN del profesional. El
+        // constructor vive en la subruta ':id' (con 'new' como literal), no
+        // en un panel: es un formulario largo y el botón de volver del móvil
+        // debe salir de la regla, no de la sección.
+        path: 'automations',
+        loadChildren: () =>
+          import('src/app/features/automations/automations.module').then(
+            (m) => m.AutomationsPageModule
           ),
       },
       {

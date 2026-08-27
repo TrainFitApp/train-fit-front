@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { TrainerReviewStatusService } from 'src/app/features/invites/services/trainer-review-status.service';
-import { CheckinReportsApiService } from 'src/app/features/checkins/services/checkin-reports-api.service';
 
 export interface ShellMenuItem {
   label: string;
@@ -16,6 +15,21 @@ export interface ShellMenuItem {
   // TASK-023 (MASTER_BACKLOG.md) — contador opcional (p. ej. clientes en
   // onboarding con cuestionario esperando revisión). 0/undefined = sin badge.
   badgeCount?: number;
+}
+
+// Movimiento 1 Coach Pro — el menú pasa de una lista plana de 6 destinos a
+// grupos con encabezado.
+//
+// El problema no era el NÚMERO de destinos sino que todos pesaran igual: un
+// coach entra en "Hoy" y "Clientes" varias veces al día, y en "Biblioteca" o
+// "Automatizaciones" una vez al mes. Una lista plana no dice eso; dos grupos
+// con nombre, sí. Agrupar además deja sitio para crecer sin que el menú se
+// convierta en una lista de doce cosas indistinguibles.
+export interface ShellMenuGroup {
+  // null en el primer grupo: encabezar "Trabajo diario" justo debajo de la
+  // marca añade una etiqueta donde no hace falta — se entiende por posición.
+  label: string | null;
+  items: ShellMenuItem[];
 }
 
 type ShellMenuItemInput = Omit<ShellMenuItem, 'routerLinkActiveOptions'>;
@@ -48,18 +62,46 @@ export class ShellPage implements OnInit {
     localStorage.setItem(ShellPage.COLLAPSE_KEY, this.collapsed ? '1' : '0');
   }
 
-  public readonly menuItems: ShellMenuItem[] = buildMenuItems([
-    { label: 'Dashboard', path: '/tabs/dashboard', icon: 'speedometer-outline' },
-    { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
-    { label: 'Plantillas', path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
-    { label: 'Check-ins', path: '/tabs/checkins', icon: 'clipboard-outline', matchPrefix: true },
-    { label: 'Configuración', path: '/tabs/configuration', icon: 'settings-outline' },
-  ]);
+  public readonly menuGroups: ShellMenuGroup[] = [
+    {
+      label: null,
+      items: buildMenuItems([
+        // "Hoy" y no "Dashboard": el nombre dice qué responde la pantalla, no
+        // a qué categoría de software pertenece.
+        { label: 'Hoy', path: '/tabs/dashboard', icon: 'today-outline' },
+        { label: 'Clientes', path: '/tabs/clients', icon: 'people-outline', matchPrefix: true },
+      ]),
+    },
+    {
+      // "Mi negocio" prometia lo que no habia: los dos elementos son
+      // metodologia reutilizable, y el unico dato de negocio real (los cobros
+      // agregados de todos los clientes) vive en el dashboard Hoy, servido por
+      // GET /trainer/payments/summary. Etiquetar esto como negocio mandaba a
+      // buscar dinero donde solo hay plantillas.
+      label: 'Metodología',
+      items: buildMenuItems([
+        // "Plantillas" guardaba ocho cosas heterogéneas. Se parte en dos por
+        // una distinción que un entrenador reconoce sin explicación: lo que
+        // le DOY al cliente frente a CÓMO trabajo yo.
+        { label: 'Biblioteca', path: '/tabs/templates', icon: 'albums-outline', matchPrefix: true },
+        { label: 'Mi método', path: '/tabs/method', icon: 'construct-outline', matchPrefix: true },
+      ]),
+    },
+    {
+      label: null,
+      items: buildMenuItems([
+        { label: 'Configuración', path: '/tabs/configuration', icon: 'settings-outline' },
+      ]),
+    },
+  ];
 
-  constructor(
-    private trainerReviewStatus: TrainerReviewStatusService,
-    private checkinReportsApi: CheckinReportsApiService
-  ) {}
+  // Acceso plano para la lógica de badges — recorrer grupos cada vez que
+  // llega un contador sería trabajo repetido sin ninguna ganancia.
+  private get allMenuItems(): ShellMenuItem[] {
+    return this.menuGroups.flatMap((group) => group.items);
+  }
+
+  constructor(private trainerReviewStatus: TrainerReviewStatusService) {}
 
   // TASK-023 (MASTER_BACKLOG.md) — antes un cliente con cuestionario ya
   // enviado (status "en_revision", esperando confirmación del trainer) solo
@@ -71,24 +113,10 @@ export class ShellPage implements OnInit {
   // CLIENTE, no hay nada que el trainer deba hacer todavía.
   public ngOnInit(): void {
     this.trainerReviewStatus.reviewInvites.subscribe((invites) => {
-      const clientsItem = this.menuItems.find((item) => item.label === 'Clientes');
+      const clientsItem = this.allMenuItems.find((item) => item.label === 'Clientes');
       if (clientsItem) clientsItem.badgeCount = invites.length;
     });
     this.trainerReviewStatus.refresh();
 
-    // TASK-024 (MASTER_BACKLOG.md) — antes ninguna respuesta de check-in
-    // generaba aviso alguno al trainer; había que visitar "Check-ins" a
-    // ciegas para enterarse de que había algo nuevo. CheckinsPage llama a
-    // markSeen() al montar, así que este contador se limpia solo al
-    // visitarla — no hace falta lógica de "marcar como leído" aquí.
-    this.checkinReportsApi.getUnseenCount().subscribe({
-      next: ({ count }) => {
-        const checkinsItem = this.menuItems.find((item) => item.label === 'Check-ins');
-        if (checkinsItem) checkinsItem.badgeCount = count;
-      },
-      error: () => {
-        // Silencioso, mismo criterio que el badge de Clientes de arriba.
-      },
-    });
   }
 }
