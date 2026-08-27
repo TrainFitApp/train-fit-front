@@ -1,0 +1,88 @@
+:host {
+  display: block;
+}
+
+.history-chart {
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.history-chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.history-chart__title {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.history-chart__hint {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+}
+
+.metric-picker {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--tf-space-4);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.metric-chip {
+  flex: 0 0 auto;
+  position: relative;
+  min-height: 32px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  // 32px pintados, 44 pulsables: son muchos chips en fila y a 44 de alto
+  // real el selector competiría con la propia gráfica.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tf-touch-min, 44px);
+    transform: translateY(-50%);
+  }
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &.active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// Alto fijo en el contenedor y no en el <canvas>: Chart.js lo redimensiona
+// solo al cambiar el ancho, pero necesita un alto del que partir.
+.history-chart__canvas-wrap {
+  position: relative;
+  height: 240px;
+}

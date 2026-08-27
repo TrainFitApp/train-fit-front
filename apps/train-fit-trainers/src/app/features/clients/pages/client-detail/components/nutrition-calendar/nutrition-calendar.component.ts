@@ -102,7 +102,33 @@ function buildMonthGrid(year: number, month: number): CalendarCell[] {
 export class NutritionCalendarComponent implements OnChanges {
   @Input() clientId = '';
   @Input() selectedDate = '';
+
+  // El rango llega ahora desde fuera: los presets se eligen encima de la
+  // gráfica. Sin este Input, el calendario dejaría de pintar sombreado el
+  // periodo que la gráfica está mostrando y habría dos verdades a la vez.
+  @Input() public set activeRange(range: { start: string; end: string } | null) {
+    if (!range) return;
+    this.rangeStart = range.start;
+    this.rangeEnd = range.end;
+  }
   @Output() dateSelected = new EventEmitter<string>();
+
+  // Solo tiene sentido ofrecerlo si hay plan activo que saltarse: lo sabe
+  // la ficha, no el calendario.
+  @Input() canCreateException = false;
+  @Input() isCreatingException = false;
+  @Output() exceptionRequested = new EventEmitter<string>();
+
+  public get selectedDateLabel(): string {
+    if (!this.selectedDate) return 'este día';
+    const fecha = new Date(this.selectedDate + 'T00:00:00Z');
+    const etiqueta = fecha.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    });
+    return this.selectedDate === todayIso() ? `hoy (${etiqueta})` : `el ${etiqueta}`;
+  }
   // F20-quinquies — click día inicio, click día fin: alimenta el rango de
   // <app-nutrition-tracking-chart> en el padre. Modo aparte del click de
   // día normal (selectDay/dateSelected) para no confundir "qué día veo el
@@ -116,6 +142,17 @@ export class NutritionCalendarComponent implements OnChanges {
   public isLoading = false;
   public readonly todayIso = todayIso();
   public isRangeMode = false;
+
+  // Modo "elegir un rango y nada más": lo usa el panel de aplicar plantilla,
+  // donde el calendario sirve para fijar inicio y fin de la fase nueva. Se
+  // sigue pintando lo que ya hay pautado —fases y cumplimiento— porque es
+  // justo lo que evita elegir unas fechas que pisen otra fase.
+  @Input() public set pickerMode(activo: boolean) {
+    if (!activo) return;
+    this.isRangeMode = true;
+    this.rangeStart = null;
+    this.rangeEnd = null;
+  }
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
   // F20-terdecies — qué preset está activo (null si el rango actual es uno

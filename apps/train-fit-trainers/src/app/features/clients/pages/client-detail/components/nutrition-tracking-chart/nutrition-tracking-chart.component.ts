@@ -1,7 +1,9 @@
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
+  Output,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -67,6 +69,33 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
   // mano o vía sus botones 7/30/90d). El calendario ya emite un rango por
   // defecto al cargar, así que en la práctica esto rara vez llega null.
   @Input() customRange: { start: string; end: string } | null = null;
+  @Input() activePreset: number | null = 30;
+  @Output() presetSelected = new EventEmitter<number>();
+
+  // "7d/30d/90d" era jerga de panel; el trainer piensa en semanas y meses.
+  // Los días siguen siendo el valor real que viaja: solo cambia cómo se
+  // nombra.
+  public readonly rangePresets = [
+    { days: 7, label: 'Una semana' },
+    { days: 30, label: '1 mes' },
+    { days: 90, label: '3 meses' },
+  ];
+
+  public selectPreset(days: number): void {
+    this.presetSelected.emit(days);
+  }
+
+  // "1 mar → 31 mar" en vez de dos fechas ISO crudas.
+  public get rangeLabel(): string {
+    if (!this.customRange) return '';
+    const fmt = (iso: string): string =>
+      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+      });
+    return `${fmt(this.customRange.start)} → ${fmt(this.customRange.end)}`;
+  }
 
   // static:true → resuelto antes de ngOnInit (a diferencia de
   // ngAfterViewInit), mismo criterio que AnthropometryChartComponent.

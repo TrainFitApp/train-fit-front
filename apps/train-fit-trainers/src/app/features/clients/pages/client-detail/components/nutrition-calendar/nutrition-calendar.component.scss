@@ -60,40 +60,8 @@
   flex-wrap: wrap;
 }
 
-// F20-terdecies — 7/30/90d, mismo control visual que el resto del toolbar
-// (antes vivían en la gráfica como .tracking-range-btn).
-.range-preset-group {
-  display: flex;
-  gap: 4px;
-}
-
-.range-preset-btn {
-  width: 28px;
-  height: 24px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-sm);
-  color: var(--tf-text-muted);
-  font-size: 0.66rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out), color var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:hover {
-    color: var(--tf-text);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 1px;
-  }
-
-  &.is-active {
-    background: var(--tf-surface-5);
-    color: var(--tf-text);
-  }
-}
-
+// Los presets de periodo se movieron encima de la gráfica; aquí quedan el
+// conmutador de selección manual y el rango elegido.
 .range-toggle-btn,
 .range-clear-btn {
   display: flex;
@@ -102,7 +70,8 @@
   padding: 3px 8px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-pill);
+  // Cuadrado de esquinas redondeadas, como el resto de controles de la app.
+  border-radius: var(--tf-radius-lg);
   color: var(--tf-text-muted);
   font-size: 0.68rem;
   font-weight: 600;
@@ -167,7 +136,10 @@
   aspect-ratio: 1;
   border: 1px solid transparent;
   border-radius: var(--tf-radius-sm);
-  background: rgba(254, 144, 0, var(--fill-opacity, 0));
+  // Verde y no naranja: el naranja es el color de acción de la app (día
+  // seleccionado, extremos del rango) y competía con él. El cumplimiento no
+  // es una acción, es un resultado, y el verde lo dice sin leer la leyenda.
+  background: rgba(var(--tf-success-rgb), var(--fill-opacity, 0));
   color: var(--tf-text);
   font-size: var(--tf-font-size-sm);
   padding: 0;
@@ -266,7 +238,26 @@
 .nutrition-calendar__legend {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--tf-space-2) var(--tf-space-3);
+  margin-top: var(--tf-space-3);
+}
+
+// El segundo bloque se separa con una línea: son dos vocabularios, no una
+// lista más larga.
+.nutrition-calendar__legend--nav {
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.legend-title {
+  flex: 0 0 100%;
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-text-faint);
 }
 
 .legend-item {
@@ -289,7 +280,25 @@
     border-radius: 2px;
   }
 
-  &--fill {
+  // Hoy y seleccionado se distinguen por el BORDE, así que su muestra es un
+  // borde, no un relleno.
+  &--today {
+    background: transparent;
+    border: 1px solid var(--tf-border-strongest);
+  }
+
+  &--selected {
+    background: transparent;
+    border: 1px solid var(--tf-accent);
+    box-shadow: 0 0 0 1px var(--tf-accent);
+  }
+
+  &--range {
+    background: transparent;
+    border: 1px solid var(--tf-accent-soft-border);
+  }
+
+  &--endpoint {
     background: var(--tf-accent);
   }
 
@@ -301,5 +310,65 @@
   &--empty {
     background: var(--tf-surface-2);
     border: 1px solid var(--tf-border);
+  }
+}
+
+// Tres muestras con la misma opacidad que usan las casillas (0,14 / 0,35 /
+// 0,55): la del medio no es decorativa, es el punto medio real de la escala.
+.legend-scale {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.legend-scale__step {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(var(--tf-success-rgb), var(--step));
+}
+
+.legend-item--scale {
+  gap: 6px;
+}
+
+// Acción del día seleccionado, bajo la leyenda. Ancho completo: es la única
+// acción de la tarjeta y partirla en un botón pequeño la escondería.
+.exception-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: var(--tf-space-3);
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--tf-text);
+    border-color: var(--tf-accent);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
   }
 }

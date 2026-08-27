@@ -12,6 +12,76 @@
   margin: 0;
 }
 
+// Fila de rango, encima de todo: qué fechas se están viendo y en qué
+// periodo. Antes las fechas eran una etiqueta perdida entre los chips de
+// métrica, y los periodos vivían en el calendario de al lado.
+.tracking-chart__range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-3);
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.tracking-chart__dates {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.range-preset-group {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.range-preset-btn {
+  position: relative;
+  min-height: 30px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // 30px pintados, 44 pulsables: tres píldoras a 44 de alto real encima de
+  // la gráfica pesarían más que la propia gráfica.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tf-touch-min, 44px);
+    transform: translateY(-50%);
+  }
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 .tracking-chart__controls {
   display: flex;
   align-items: center;
@@ -55,13 +125,6 @@
 
 // F20-terdecies — el rango ya no se elige aquí (ver el calendario de al
 // lado), solo se muestra cuál está activo.
-.tracking-chart__range-label {
-  flex-shrink: 0;
-  font-size: 0.7rem;
-  color: var(--tf-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 // F20-sexies — antes un único "% medio" (una sola métrica posible a la
 // vez); con selección múltiple, un badge por métrica activa.
 

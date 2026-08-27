@@ -1,4 +1,24 @@
 <div class="tracking-chart">
+  <!-- Rango y periodo ENCIMA de la gráfica: son la pregunta previa a
+       mirarla ("qué fechas estoy viendo"), no un detalle que buscar
+       después. Los presets vivían en el calendario de al lado. -->
+  <div class="tracking-chart__range">
+    <span class="tracking-chart__dates" *ngIf="customRange">
+      {{ rangeLabel }}
+    </span>
+    <div class="range-preset-group">
+      <button
+        type="button"
+        class="range-preset-btn"
+        *ngFor="let preset of rangePresets"
+        [class.is-active]="activePreset === preset.days"
+        (click)="selectPreset(preset.days)"
+      >
+        {{ preset.label }}
+      </button>
+    </div>
+  </div>
+
   <div class="tracking-chart__controls">
     <div class="tracking-chart__metrics">
       <button
@@ -14,12 +34,6 @@
         {{ option.label }}
       </button>
     </div>
-    <!-- F20-terdecies — el rango (7/30/90d o a mano) se elige en el
-         calendario de al lado, no aquí; esta gráfica solo muestra qué
-         fechas está mirando. -->
-    <span class="tracking-chart__range-label" *ngIf="customRange">
-      {{ customRange.start }} → {{ customRange.end }}
-    </span>
   </div>
 
   <div class="tracking-chart__summary" *ngIf="daysWithPlan.length">

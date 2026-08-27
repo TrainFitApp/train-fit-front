@@ -1,0 +1,31 @@
+<section class="history-chart" *ngIf="series.length">
+  <div class="history-chart__head">
+    <h3 class="history-chart__title">Evolución</h3>
+    <span class="history-chart__hint">{{ selected?.puntos?.length }} registros</span>
+  </div>
+
+  <!-- Un chip por campo con histórico. Solo salen los numéricos con dos o
+       más registros: con uno no hay línea que trazar. -->
+  <div class="metric-picker" role="tablist" aria-label="Dato a representar">
+    <button
+      type="button"
+      class="metric-chip"
+      *ngFor="let serie of series"
+      role="tab"
+      [class.active]="serie.key === selectedKey"
+      [attr.aria-selected]="serie.key === selectedKey"
+      (click)="select(serie.key)"
+    >
+      {{ serie.label }}
+    </button>
+  </div>
+
+  <div class="history-chart__canvas-wrap">
+    <canvas #chartCanvas></canvas>
+  </div>
+</section>
+
+<p class="empty-hint" *ngIf="!series.length">
+  Todavía no hay suficientes respuestas para dibujar una evolución. Hacen falta
+  al menos dos check-ins con el mismo dato.
+</p>

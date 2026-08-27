@@ -31,20 +31,6 @@
         {{ rangeToggleLabel }}
       </button>
 
-      <!-- F20-terdecies — 7/30/90d, antes en la propia gráfica: viven aquí
-           junto al resto de controles de rango, para que "qué fechas ver"
-           se decida en un único sitio. -->
-      <div class="range-preset-group">
-        <button
-          type="button"
-          class="range-preset-btn"
-          *ngFor="let days of rangePresets"
-          [class.is-active]="activePreset === days"
-          (click)="selectPresetRange(days)"
-        >
-          {{ days }}d
-        </button>
-      </div>
     </div>
 
     <button
@@ -91,10 +77,53 @@
     </button>
   </div>
 
+  <!-- La leyenda va en DOS bloques porque cada casilla superpone dos cosas
+       distintas: lo que dice del cliente (relleno, barra, excepciones) y
+       dónde estás mirando tú (hoy, seleccionado, rango). Mezclarlas en una
+       fila hacía leer el borde naranja del rango como si fuera un dato. -->
   <div class="nutrition-calendar__legend">
-    <span class="legend-item"><span class="legend-swatch legend-swatch--phase"></span>Fase de plan</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--fill"></span>Cumplimiento</span>
+    <p class="legend-title">Qué dice del cliente</p>
+
+    <!-- Escala, no un cuadradito: el cumplimiento se lee por INTENSIDAD del
+         relleno, no por color. Con una muestra única no había forma de
+         saberlo. -->
+    <span class="legend-item legend-item--scale">
+      <span class="legend-scale" aria-hidden="true">
+        <span class="legend-scale__step" style="--step: 0.14"></span>
+        <span class="legend-scale__step" style="--step: 0.35"></span>
+        <span class="legend-scale__step" style="--step: 0.55"></span>
+      </span>
+      Cumplimiento: de nada a todo
+    </span>
+
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch--phase"></span>
+      Fase del plan (un color por fase)
+    </span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--exception"></span>Excepción</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan ese día</span>
   </div>
+
+  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav">
+    <p class="legend-title">Dónde estás mirando</p>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Hoy</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--selected"></span>Día seleccionado</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>Dentro del rango</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>Inicio y fin del rango</span>
+  </div>
+
+  <!-- Debajo de la leyenda y no en la tarjeta del plan: la acción es sobre
+       el día que se acaba de pulsar en el calendario, y antes había que
+       cruzar media pantalla para ejecutarla sobre una fecha que se elegía
+       aquí. El texto nombra el día para que no haya duda de cuál se marca. -->
+  <button
+    type="button"
+    class="exception-btn"
+    *ngIf="canCreateException"
+    [disabled]="isCreatingException"
+    (click)="exceptionRequested.emit(selectedDate)"
+  >
+    <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
+    Marcar {{ selectedDateLabel }} como excepción
+  </button>
 </div>
