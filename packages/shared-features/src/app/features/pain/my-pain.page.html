@@ -1,0 +1,109 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="page-toolbar">
+    <ion-buttons slot="start">
+      <button type="button" class="back-btn" (click)="close()" aria-label="Volver">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Dolor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pain-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>No se pudo cargar tu registro de dolor.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="state === 'loaded'">
+    <p class="page-hint">
+      Marca solo lo que te duela HOY. Lo que apuntes lo ve tu entrenador, y le sirve para
+      decidir si toca cambiar algo del entrenamiento.
+    </p>
+
+    <!-- Aviso cuando alguna zona ya condiciona el entrenamiento. Va arriba y
+         no al lado de la zona: es lo que hay que leer antes de entrenar. -->
+    <p class="pain-warning" *ngIf="hasAnyPain">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      Has marcado dolor que te limita. No fuerces esa zona hoy y díselo a tu entrenador.
+    </p>
+
+    <div class="zone-list">
+      <div class="zone" *ngFor="let row of rows; trackBy: trackByZone">
+        <button
+          type="button"
+          class="zone-head"
+          [class.zone-head--marked]="row.level !== null"
+          [attr.aria-expanded]="expandedZone === row.zone"
+          (click)="toggleZone(row.zone)"
+        >
+          <span class="zone-name">{{ row.zone }}</span>
+
+          <!-- El nivel marcado, si lo hay. Un hueco es "no he apuntado nada",
+               que no es lo mismo que un 0 ("hoy no me duele"). -->
+          <span
+            class="zone-level"
+            *ngIf="row.level !== null"
+            [class.zone-level--limiting]="isLimiting(row.level)"
+          >{{ row.level }}</span>
+
+          <ion-icon
+            [name]="expandedZone === row.zone ? 'chevron-down-outline' : 'chevron-forward-outline'"
+            aria-hidden="true"
+          ></ion-icon>
+        </button>
+
+        <div class="zone-body" *ngIf="expandedZone === row.zone">
+          <div class="level-picker">
+            <button
+              type="button"
+              class="level-option"
+              *ngFor="let level of levels; trackBy: trackByLevel"
+              [class.selected]="row.level === level"
+              [class.limiting]="level >= limitingLevel"
+              [attr.aria-pressed]="row.level === level"
+              [attr.aria-label]="level + ': ' + labelFor(level)"
+              (click)="setLevel(row, level)"
+            >
+              {{ level }}
+            </button>
+          </div>
+
+          <!-- La frase del tramo marcado. Sin ella, el número no significa
+               lo mismo para el cliente que para el entrenador. -->
+          <p class="level-label" *ngIf="row.level !== null">{{ labelFor(row.level) }}</p>
+
+          <div class="zone-note" *ngIf="row.level !== null">
+            <textarea
+              class="note-input"
+              rows="2"
+              maxlength="300"
+              placeholder="¿En qué movimiento lo notas? (opcional)"
+              [(ngModel)]="row.note"
+              (blur)="saveNote(row)"
+            ></textarea>
+          </div>
+
+          <button type="button" class="clear-button" *ngIf="row.level !== null" (click)="clear(row)">
+            Quitar el registro de hoy
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- La leyenda va una sola vez al final: son los mismos seis tramos para
+         las quince zonas. -->
+    <ul class="pain-legend">
+      <li *ngFor="let band of bands">
+        <strong>{{ band.from === band.to ? band.from : band.from + '-' + band.to }}</strong>
+        {{ band.label }}
+      </li>
+    </ul>
+  </ng-container>
+</ion-content>
