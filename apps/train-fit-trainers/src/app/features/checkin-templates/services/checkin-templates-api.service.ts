@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { ApplyResult, CheckinCadence, CheckinTemplateDefinition } from '../models/checkin-template.model';
+import {
+  ApplyResult,
+  CheckinCadence,
+  CheckinTemplateDefinition,
+  CustomCheckinQuestion,
+} from '../models/checkin-template.model';
 
 @Injectable({ providedIn: 'root' })
 export class CheckinTemplatesApiService {
@@ -14,18 +19,25 @@ export class CheckinTemplatesApiService {
   public create(
     name: string,
     enabledFields: string[],
-    cadence: CheckinCadence
+    cadence: CheckinCadence,
+    customQuestions: CustomCheckinQuestion[] = []
   ): Observable<CheckinTemplateDefinition> {
     return this.http.post<CheckinTemplateDefinition>('trainer/checkin-templates', {
       name,
       enabledFields,
       cadence,
+      customQuestions,
     });
   }
 
   public update(
     id: string,
-    updates: { name?: string; enabledFields?: string[]; cadence?: CheckinCadence }
+    updates: {
+      name?: string;
+      enabledFields?: string[];
+      cadence?: CheckinCadence;
+      customQuestions?: CustomCheckinQuestion[];
+    }
   ): Observable<CheckinTemplateDefinition> {
     return this.http.put<CheckinTemplateDefinition>(`trainer/checkin-templates/${id}`, updates);
   }

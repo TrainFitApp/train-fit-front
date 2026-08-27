@@ -125,7 +125,13 @@
           *ngFor="let field of group.fields; trackBy: trackByFieldKey"
           (click)="toggleField(field.key)"
         >
-          <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
+          <span class="field-toggle-text">
+            <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
+            <!-- Movimiento 2 Coach Pro — qué va a leer el cliente realmente.
+                 Activar "Nivel de estrés" sin saber que su 5 es "desbordado,
+                 me afecta al sueño" es activarlo a ciegas. -->
+            <span class="field-toggle-detail" *ngIf="fieldDetail(field)">{{ fieldDetail(field) }}</span>
+          </span>
           <ion-icon
             [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
             [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
@@ -133,6 +139,114 @@
         </button>
       </div>
     </div>
+
+    <!-- ===== Preguntas propias (Fase 5 Coach Pro, §7) =====
+         Van al final, después del catálogo: son el añadido del coach sobre
+         lo que el sistema ya sabe medir, no la forma principal de armar un
+         check-in. -->
+    <div class="field-group">
+      <h4 class="field-group-heading">Tus propias preguntas</h4>
+      <p class="field-group-hint">
+        Lo que el catálogo de arriba no cubra. Estas respuestas se guardan y se te muestran, pero
+        no alimentan gráficas ni automatizaciones — para eso están los campos del catálogo.
+      </p>
+
+      <div class="custom-question" *ngFor="let question of formCustomQuestions; let i = index; trackBy: trackByIndex">
+        <div class="custom-question-head">
+          <input
+            class="custom-question-input"
+            type="text"
+            maxlength="200"
+            placeholder="¿Cómo has dormido esta semana?"
+            [(ngModel)]="question.label"
+            [attr.aria-label]="'Enunciado de la pregunta ' + (i + 1)"
+          />
+          <button
+            type="button"
+            class="custom-question-remove"
+            (click)="removeCustomQuestion(i)"
+            [attr.aria-label]="'Quitar la pregunta ' + (i + 1)"
+          >
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <div class="custom-question-row">
+          <select
+            class="custom-question-select"
+            [(ngModel)]="question.type"
+            (ngModelChange)="onQuestionTypeChange(question)"
+            [attr.aria-label]="'Tipo de la pregunta ' + (i + 1)"
+          >
+            <option *ngFor="let type of questionTypes" [value]="type.key">{{ type.label }}</option>
+          </select>
+
+          <input
+            *ngIf="question.type === 'number'"
+            class="custom-question-input custom-question-input--narrow"
+            type="text"
+            maxlength="20"
+            placeholder="unidad"
+            [(ngModel)]="question.unit"
+            [attr.aria-label]="'Unidad de la pregunta ' + (i + 1)"
+          />
+
+          <button
+            type="button"
+            class="required-toggle"
+            [class.required-toggle--on]="question.required"
+            (click)="question.required = !question.required"
+            role="switch"
+            [attr.aria-checked]="!!question.required"
+          >
+            Obligatoria
+          </button>
+        </div>
+
+        <p class="custom-question-hint">{{ hintFor(question) }}</p>
+
+        <!-- Opciones, solo para el tipo selector -->
+        <div class="option-editor" *ngIf="question.type === 'select'">
+          <div class="option-row" *ngFor="let option of question.options; let o = index; trackBy: trackByIndex">
+            <input
+              class="custom-question-input"
+              type="text"
+              maxlength="60"
+              placeholder="Opción"
+              [(ngModel)]="question.options[o]"
+              [attr.aria-label]="'Opción ' + (o + 1)"
+            />
+            <button
+              type="button"
+              class="custom-question-remove"
+              (click)="removeOption(question, o)"
+              [attr.aria-label]="'Quitar la opción ' + (o + 1)"
+            >
+              <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+          <button
+            type="button"
+            class="add-option-button"
+            *ngIf="(question.options?.length || 0) < maxQuestionOptions"
+            (click)="addOption(question)"
+          >
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir opción
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="add-question-button"
+        *ngIf="formCustomQuestions.length < maxCustomQuestions"
+        (click)="addCustomQuestion()"
+      >
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir pregunta
+      </button>
+    </div>
+
+    <p class="save-error" *ngIf="customQuestionsError">{{ customQuestionsError }}</p>
 
     <button
       class="submit-button"
