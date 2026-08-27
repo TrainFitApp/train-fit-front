@@ -23,6 +23,10 @@ import { Table } from 'src/app/core/models/table';
 import { User } from 'src/app/core/models/user';
 import { Workout, WorkoutBlock } from 'src/app/core/models/workout';
 import {
+  SessionCheckinModalComponent,
+  SessionCheckinResult,
+} from './session-checkin-modal/session-checkin-modal.component';
+import {
   groupExercisesByBlock,
   hasRenderableBlocks,
   WorkoutExerciseGroup,
@@ -277,32 +281,33 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // saltable: no bloquea nunca el inicio del entrenamiento. El valor se
   // persiste vía el mismo `modifyWorkout` que ya hace `proceedStartWorkoutFlow`,
   // sin una llamada HTTP adicional.
-  private promptReadinessThenStart(): void {
-    const inputs: AlertOptions['inputs'] = [1, 2, 3, 4, 5].map((n) => ({
-      type: 'radio',
-      label: String(n),
-      value: n,
-    }));
-
-    this.ionicUtilService.showAlert({
-      header: this.translate.instant('TABLES.READINESS_TITLE'),
-      message: this.translate.instant('TABLES.READINESS_MESSAGE'),
-      inputs,
-      buttons: [
-        {
-          text: this.translate.instant('TABLES.SKIP'),
-          role: 'cancel',
-          handler: () => this.proceedStartWorkoutFlow(),
-        },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          handler: (value: number) => {
-            this.currentWorkout.readinessPre = value ?? null;
-            this.proceedStartWorkoutFlow();
-          },
-        },
-      ],
+  //
+  // Movimiento 2 Coach Pro — deja de ser un ion-alert de cinco radios
+  // numerados y pasa a un modal propio: ahora cada nivel lleva escrito lo
+  // que significa (los tres de en medio no decían nada, y son donde cae casi
+  // toda respuesta) y se recogen además las agujetas por grupo muscular.
+  // Ver session-checkin-modal.component.ts para por qué van juntas y por qué
+  // las agujetas se preguntan al empezar y no al terminar.
+  private async promptReadinessThenStart(): Promise<void> {
+    // showModal ya devuelve el onDidDismiss (ver ionic-util.service.ts).
+    const dismissed = await this.ionicUtilService.showModal({
+      component: SessionCheckinModalComponent,
+      componentProps: {
+        readiness: this.currentWorkout.readinessPre ?? null,
+        soreness: this.currentWorkout.sorenessPre || [],
+      },
     });
+
+    const result = (dismissed?.data as SessionCheckinResult) || null;
+
+    // null = saltó o cerró el modal. No se toca nada: lo que hubiera
+    // guardado de un intento anterior se queda como estaba.
+    if (result) {
+      this.currentWorkout.readinessPre = result.readiness;
+      this.currentWorkout.sorenessPre = result.soreness;
+    }
+
+    this.proceedStartWorkoutFlow();
   }
 
   // Además de limpiar el startedAt en backend, hay que mutar el objeto local:
@@ -500,10 +505,21 @@ export class CurrentWorkoutPage implements OnInit, OnDestroy {
   // el DAO de `finishWorkout` solo hace `$set: { date }` + `$unset: { paused }`
   // (no acepta campos arbitrarios como sí hace `modifyWorkout`).
   private promptEffortThenFinish(): void {
-    const inputs: AlertOptions['inputs'] = [1, 2, 3, 4, 5].map((n) => ({
+    // Movimiento 2 Coach Pro — cada nivel con su frase. Aquí SÍ se queda el
+    // ion-alert (a diferencia del de readiness, que pasó a modal): es una
+    // sola pregunta de cinco opciones, y las radios del alert la resuelven
+    // sin construir una pantalla entera. Lo que faltaba eran las etiquetas.
+    const EFFORT_ANCHORS = [
+      'Muy suave, casi no me ha costado',
+      'Cómodo, podría haber hecho más',
+      'Exigente pero llevadero',
+      'Duro, he acabado justo',
+      'Al límite, no podía más',
+    ];
+    const inputs: AlertOptions['inputs'] = EFFORT_ANCHORS.map((anchor, index) => ({
       type: 'radio',
-      label: String(n),
-      value: n,
+      label: `${index + 1} · ${anchor}`,
+      value: index + 1,
     }));
 
     this.ionicUtilService.showAlert({

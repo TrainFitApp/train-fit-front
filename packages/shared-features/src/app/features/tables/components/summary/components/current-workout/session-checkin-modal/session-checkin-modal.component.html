@@ -1,0 +1,73 @@
+<div class="session-checkin">
+  <header class="session-checkin__header">
+    <h2 class="session-checkin__title">¿Cómo llegas hoy?</h2>
+    <p class="session-checkin__subtitle">Todo es opcional. Puedes saltarlo y empezar directamente.</p>
+  </header>
+
+  <div class="session-checkin__body">
+    <!-- Readiness con la frase de cada nivel, no cinco números pelados. -->
+    <div class="anchor-list">
+      <button
+        type="button"
+        class="anchor-option"
+        *ngFor="let anchor of readinessAnchors; let i = index"
+        [class.selected]="readiness === i + 1"
+        [attr.aria-pressed]="readiness === i + 1"
+        (click)="selectReadiness(i + 1)"
+      >
+        <span class="anchor-number">{{ i + 1 }}</span>
+        <span class="anchor-text">{{ anchor }}</span>
+      </button>
+    </div>
+
+    <!-- Agujetas: plegadas de entrada. Quien no tenga nada que reportar ve
+         solo la pregunta de arriba, igual que antes de esta pantalla. -->
+    <button
+      type="button"
+      class="soreness-toggle"
+      [attr.aria-expanded]="showSoreness"
+      (click)="toggleSoreness()"
+    >
+      <ion-icon [name]="showSoreness ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+      <span class="soreness-toggle__label">¿Tienes agujetas?</span>
+      <span class="soreness-toggle__count" *ngIf="soreMuscleCount">{{ soreMuscleCount }}</span>
+    </button>
+
+    <div class="soreness-panel" *ngIf="showSoreness">
+      <p class="soreness-hint">
+        Marca solo los grupos que notes. El 1 es "no lo noto" y no hace falta tocarlo.
+      </p>
+
+      <div class="soreness-row" *ngFor="let muscle of muscles; trackBy: trackByMuscle">
+        <span class="soreness-muscle">{{ muscle | translateDb }}</span>
+        <div class="soreness-levels">
+          <button
+            type="button"
+            class="soreness-level"
+            *ngFor="let anchor of sorenessAnchors; let i = index"
+            [class.selected]="levelFor(muscle) === i + 1"
+            [attr.aria-pressed]="levelFor(muscle) === i + 1"
+            [attr.aria-label]="muscle + ': ' + anchor"
+            [title]="anchor"
+            (click)="setLevel(muscle, i + 1)"
+          >
+            {{ i + 1 }}
+          </button>
+        </div>
+      </div>
+
+      <!-- La leyenda va una sola vez al final y no en cada una de las 16
+           filas: son las mismas cinco frases dieciséis veces. -->
+      <ul class="soreness-legend">
+        <li *ngFor="let anchor of sorenessAnchors; let i = index">
+          <strong>{{ i + 1 }}</strong> {{ anchor }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <footer class="session-checkin__footer">
+    <button type="button" class="session-checkin__skip" (click)="skip()">Saltar</button>
+    <button type="button" class="session-checkin__confirm" (click)="confirm()">Empezar</button>
+  </footer>
+</div>

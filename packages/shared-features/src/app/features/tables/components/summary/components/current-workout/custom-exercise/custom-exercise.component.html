@@ -168,11 +168,30 @@
     <ion-progress-bar type="indeterminate" color="primary"></ion-progress-bar>
   </div>
 
-  <!-- Premium Exercise Notes -->
-  <div class="premium-exercise-notes" *ngIf="customExercise?.notes">
-    <app-notes [object]="customExercise" [notes]="customExercise.notes" [tableId]="tableInUse?._id"
-      [workoutIndex]="currentWorkoutIndex" [exerciseIndex]="indexCustomExercise" [detail]="true"></app-notes>
+  <!-- Movimiento 2 Coach Pro — dos notas, no una compartida.
+
+       La del ENTRENADOR es de solo lectura aquí: es su indicación para este
+       ejercicio, y hasta ahora el cliente la borraba sin querer al escribir
+       la suya encima (las dos vivían en el mismo campo).
+
+       La del CLIENTE se edita con el botón de nota que ya existe abajo
+       (manageNote), que ahora escribe en clientNotes. -->
+  <div class="premium-exercise-notes trainer-note" *ngIf="customExercise?.notes">
+    <span class="note-author">
+      <ion-icon name="megaphone-outline" aria-hidden="true"></ion-icon>
+      De tu entrenador
+    </span>
+    <p class="note-body">{{ customExercise.notes }}</p>
   </div>
+
+  <button type="button" class="premium-exercise-notes client-note" *ngIf="customExercise?.clientNotes"
+    (click)="manageNote()">
+    <span class="note-author">
+      <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+      Tu nota
+    </span>
+    <p class="note-body">{{ customExercise.clientNotes }}</p>
+  </button>
 
   <!-- Current Sets -->
   <ion-reorder-group (ionItemReorder)="doReorder($event)" [disabled]="!reorderMode">

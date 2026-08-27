@@ -320,6 +320,18 @@
               [workoutIndex]="workoutIndex" [exerciseIndex]="entry.index"
               (update)="updateExerciseNote($event, entry.exercise)"></app-notes>
           </div>
+
+          <!-- Movimiento 2 Coach Pro — lo que apuntó EL CLIENTE en este
+               ejercicio ("me molestó el hombro"). De solo lectura: es suyo,
+               y hasta ahora ni siquiera se distinguía de la nota del
+               entrenador porque compartían campo. -->
+          <div *ngIf="entry.exercise?.clientNotes" class="client-note-container">
+            <span class="client-note-author">
+              <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+              Nota del cliente
+            </span>
+            <p class="client-note-body">{{ entry.exercise.clientNotes }}</p>
+          </div>
         </div>
       </ng-container>
     </ng-container>

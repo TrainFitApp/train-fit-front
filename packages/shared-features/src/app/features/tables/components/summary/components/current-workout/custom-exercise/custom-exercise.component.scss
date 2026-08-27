@@ -719,6 +719,64 @@ ion-app.dark {
   overflow: hidden;
 }
 
+/* Movimiento 2 Coach Pro — la nota del entrenador y la del cliente dejan de
+   compartir campo, así que también dejan de parecer la misma cosa: el autor
+   va escrito arriba y el color de acento las separa de un vistazo. */
+.trainer-note,
+.client-note {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 10px 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+  font-family: inherit;
+}
+
+.client-note {
+  /* Es un <button>: la nota propia se toca para editarla. */
+  min-height: 44px;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+}
+
+.note-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9a9a9a;
+
+  ion-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* La del entrenador lleva el acento: es una instrucción que hay que leer,
+     no un apunte propio ya conocido. */
+  .trainer-note & {
+    color: #fe9b1a;
+  }
+}
+
+.note-body {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+}
+
 // Pinned Exercise Note (shown in all splits at this position)
 .pinned-note-container {
   margin: 12px 8px 8px 8px;

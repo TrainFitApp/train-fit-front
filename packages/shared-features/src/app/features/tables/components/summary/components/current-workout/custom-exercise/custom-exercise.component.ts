@@ -368,11 +368,15 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
 
+    // Movimiento 2 Coach Pro — el cliente escribe en SU campo (clientNotes),
+    // no en el del entrenador. Antes los dos compartían `notes`, así que
+    // apuntar aquí "me molestó el hombro" borraba la indicación que el
+    // entrenador había dejado en el ejercicio.
     const alertInputs: AlertInput[] = [
       {
         name: 'notes',
         type: 'textarea',
-        value: this.customExercise.notes || '',
+        value: this.customExercise.clientNotes || '',
         placeholder: this.translate.instant('COMMON.WRITE_NOTES_HERE'),
         attributes: { maxlength: 500 },
       },
@@ -394,7 +398,15 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
       if (result.role === 'cancel') return;
 
       const notesValue = (result.data?.values?.notes || '').trim();
-      if (!notesValue) {
+
+      // Movimiento 2 Coach Pro — vaciar el texto borra la nota, en vez del
+      // "campo obligatorio" de antes. Ahora que la nota del cliente tiene
+      // campo propio, dejarla en blanco es la única forma de quitarla —
+      // antes ese error no molestaba porque `notes` casi siempre venía del
+      // entrenador y el cliente no la borraba.
+      //
+      // Anclar SÍ exige texto: una nota anclada vacía no tendría sentido.
+      if (!notesValue && shouldPin) {
         const errorAlert: AlertOptions = {
           header: this.translate.instant('COMMON.ERROR'),
           message: this.translate.instant('COMMON.FIELD_REQUIRED'),
@@ -420,7 +432,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
 
-      this.customExercise.notes = notesValue;
+      this.customExercise.clientNotes = notesValue;
       this.customExerciseService.updateCustomExercise(this.customExercise).subscribe();
       if (this.currentWorkout) {
         this.workoutService.setCurrentWorkout = this.currentWorkout;

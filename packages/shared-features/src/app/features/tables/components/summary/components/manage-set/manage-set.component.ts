@@ -118,6 +118,17 @@ export class ManageSetComponent implements OnInit {
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
         restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
         restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
+        // Movimiento 6 Coach Pro — %RM y tempo. Solo en el bloque de fuerza:
+        // un porcentaje del RM no significa nada en un cardio ni en un
+        // isométrico, y ofrecerlo ahí sería invitar a rellenarlo con ruido.
+        //
+        // Hasta 120 porque un pautaje excéntrico por encima del 100% del RM
+        // concéntrico es real; topar en 100 lo haría imposible de escribir.
+        expectedPercentRm: new FormControl(this.set?.expectedPercentRm, [
+          Validators.min(0),
+          Validators.max(120),
+        ]),
+        tempo: new FormControl(this.set?.tempo),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {
@@ -450,6 +461,18 @@ export class ManageSetComponent implements OnInit {
       set.restSeconds = this.setForm.controls.restSecondsEnabled.value
         ? this.setForm.controls.restSeconds.value ?? null
         : null;
+
+      // Movimiento 6 Coach Pro — %RM y tempo. Se escriben SIEMPRE (aunque
+      // sea null) para que borrarlos funcione: si solo se asignaran cuando
+      // tienen valor, quitar un tempo dejaría el anterior guardado.
+      const percentRm = this.setForm.controls.expectedPercentRm.value;
+      set.expectedPercentRm =
+        percentRm === null || percentRm === undefined || percentRm === ''
+          ? null
+          : Number(percentRm);
+
+      const tempo = (this.setForm.controls.tempo.value || '').toString().trim();
+      set.tempo = tempo || null;
     }
 
     this.modalController.dismiss(set);
