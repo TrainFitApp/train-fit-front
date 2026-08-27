@@ -857,9 +857,9 @@
     ],
     "WEIGHT_SAVED": "Weight saved",
     "WEEKLY_WEIGHT_CHART": "Weekly weight (kg)",
-    "TREND_UP": "Gaining",
-    "TREND_DOWN": "Losing",
-    "TREND_STABLE": "Stable",
+    "TREND_UP": "Upward trend",
+    "TREND_DOWN": "Downward trend",
+    "TREND_STABLE": "Stable weight",
     "MONTHS": [
       "January",
       "February",
@@ -887,10 +887,7 @@
       "Oct",
       "Nov",
       "Dec"
-    ],
-    "TREND_UP": "Upward trend",
-    "TREND_DOWN": "Downward trend",
-    "TREND_STABLE": "Stable weight"
+    ]
   },
   "STEPS": {
     "NOT_COUNTED": "I haven't counted them",
@@ -2029,7 +2026,37 @@
   "GLOSSARY": {
     "RIR": {
       "TITLE": "RIR (Reps in Reserve)",
-      "DESCRIPTION": "Shows how many more reps you could do before reaching muscle failure. For example, finishing a set at RIR 2 means you could have done 2 more reps before failing."
+      "DESCRIPTION": "Shows how many more reps you could do before reaching muscle failure. For example, finishing a set at RIR 2 means you could have done 2 more reps before failing.",
+      "LEVELS": [
+        {
+          "value": "Failure",
+          "text": "Couldn't complete one more rep, however hard I tried"
+        },
+        {
+          "value": "RIR 0",
+          "text": "The last rep barely went up; another one would not have"
+        },
+        {
+          "value": "RIR 1",
+          "text": "I had 1 rep left, and it would have been hard"
+        },
+        {
+          "value": "RIR 2",
+          "text": "I had 2 clean reps left"
+        },
+        {
+          "value": "RIR 3",
+          "text": "I had 3 left: demanding, but with clear margin"
+        },
+        {
+          "value": "RIR 4-5",
+          "text": "Comfortable set, still far from the limit"
+        },
+        {
+          "value": "RIR 6+",
+          "text": "Very far from failure: useful for technique or warm-up"
+        }
+      ]
     },
     "MICROCYCLE": {
       "TITLE": "Microcycle",

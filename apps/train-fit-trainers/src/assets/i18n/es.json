@@ -863,9 +863,9 @@
     ],
     "WEIGHT_SAVED": "Peso guardado",
     "WEEKLY_WEIGHT_CHART": "Peso semanal (kg)",
-    "TREND_UP": "Ganando",
-    "TREND_DOWN": "Perdiendo",
-    "TREND_STABLE": "Estable",
+    "TREND_UP": "Tendencia al alza",
+    "TREND_DOWN": "Tendencia a la baja",
+    "TREND_STABLE": "Peso estable",
     "MONTHS": [
       "Enero",
       "Febrero",
@@ -893,10 +893,7 @@
       "Oct",
       "Nov",
       "Dic"
-    ],
-    "TREND_UP": "Tendencia al alza",
-    "TREND_DOWN": "Tendencia a la baja",
-    "TREND_STABLE": "Peso estable"
+    ]
   },
   "STEPS": {
     "NOT_COUNTED": "No los he contado",
@@ -2035,7 +2032,37 @@
   "GLOSSARY": {
     "RIR": {
       "TITLE": "RIR (Repeticiones en Reserva)",
-      "DESCRIPTION": "Indica cuántas repeticiones más podrías hacer antes de llegar al fallo muscular. Por ejemplo, terminar una serie con RIR 2 significa que podrías haber hecho 2 repeticiones más antes de no poder completar ninguna otra."
+      "DESCRIPTION": "Indica cuántas repeticiones más podrías hacer antes de llegar al fallo muscular. Por ejemplo, terminar una serie con RIR 2 significa que podrías haber hecho 2 repeticiones más antes de no poder completar ninguna otra.",
+      "LEVELS": [
+        {
+          "value": "Fallo",
+          "text": "No podía completar ni una repetición más, por mucho que lo intentara"
+        },
+        {
+          "value": "RIR 0",
+          "text": "La última salió justo: otra más no habría subido"
+        },
+        {
+          "value": "RIR 1",
+          "text": "Me quedaba 1 repetición, y habría costado"
+        },
+        {
+          "value": "RIR 2",
+          "text": "Me quedaban 2 repeticiones limpias"
+        },
+        {
+          "value": "RIR 3",
+          "text": "Me quedaban 3: exigente, pero con margen claro"
+        },
+        {
+          "value": "RIR 4-5",
+          "text": "Serie cómoda, aún lejos del límite"
+        },
+        {
+          "value": "RIR 6+",
+          "text": "Muy lejos del fallo: sirve de técnica o calentamiento"
+        }
+      ]
     },
     "MICROCYCLE": {
       "TITLE": "Microciclo",

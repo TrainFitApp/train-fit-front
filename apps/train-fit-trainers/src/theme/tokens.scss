@@ -65,6 +65,10 @@
   // Verde intencionalmente distinto de --ion-color-success (#2dd36f) — más
   // cercano al verde "success" de iOS, mejor contraste sobre fondo oscuro.
   --tf-success: #34c759;
+  // Terna suelta para componer rgba() con opacidad variable: el relleno de
+  // cumplimiento del calendario de dieta gradúa el alpha según el
+  // porcentaje, y rgba() no acepta un hex dentro de una variable.
+  --tf-success-rgb: 52, 199, 89;
   --tf-success-soft: rgba(52, 199, 89, 0.08);
   --tf-success-border: rgba(52, 199, 89, 0.35);
   // Mismo rojo que --ion-color-danger en shared-theme — referenciado, no repetido.
@@ -72,6 +76,15 @@
   --tf-danger: var(--ion-color-danger, #eb445a);
   --tf-danger-soft: rgba(235, 68, 90, 0.1);
   --tf-danger-border: rgba(235, 68, 90, 0.35);
+  // Variante de peligro para TEXTO pequeño, por el MISMO motivo que
+  // --tf-accent-text: --tf-danger sobre --tf-danger-soft da 4,41:1 (medido),
+  // por debajo del 4,5 que exige AA — y un chip "Urgente" en negrita de 12px
+  // es texto, no un elemento gráfico. Con este tono sube a 4,94:1 sobre ese
+  // mismo fondo y a 5,42:1 sobre las superficies oscuras. --tf-danger se
+  // reserva para iconos, bordes y superficies sólidas (umbral 3:1).
+  // Mismo valor que --ion-color-danger-tint en shared-theme — referenciado,
+  // no repetido.
+  --tf-danger-text: var(--ion-color-danger-tint, #ed576b);
 
   // --- Espaciado (escala de 4px) ---
   --tf-space-1: 4px;

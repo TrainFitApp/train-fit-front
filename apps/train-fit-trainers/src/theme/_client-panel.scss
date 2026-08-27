@@ -1,0 +1,111 @@
+@import 'buttons';
+@import 'skeleton';
+
+// Armazón de los paneles de la ficha de cliente (calculadora corporal,
+// dolor, suplementos, lista de la compra).
+//
+// Los cuatro repetían la misma tarjeta, el mismo esqueleto de carga, el
+// mismo bloque de error con su botón de reintentar y el mismo botón de
+// acción de fila con su expansor a 44 px. Cuatro copias es donde empiezan
+// las derivas: un borde de un color aquí y de otro allá, un expansor que se
+// olvida en uno de los cuatro.
+//
+// Cada panel aplica el mixin y añade encima solo lo suyo. Mismo criterio que
+// tf-recent-columns y tf-skeleton-shimmer.
+
+@mixin tf-client-panel {
+  position: relative;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  padding: var(--tf-space-5);
+
+  .panel-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-2);
+  }
+
+  .skeleton-block {
+    @include tf-skeleton-shimmer;
+  }
+
+  .row-skeleton {
+    height: 56px;
+    border-radius: var(--tf-radius-md);
+  }
+
+  // Vacío y error comparten forma a propósito: los dos dicen "aquí no hay
+  // nada que enseñar todavía".
+  .panel-empty {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: 1.5;
+    color: var(--tf-text-muted);
+  }
+
+  .section-error {
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-muted);
+
+    p {
+      margin: 0 0 var(--tf-space-3);
+    }
+  }
+
+  .retry-button {
+    min-height: 44px;
+    padding: 0 var(--tf-space-5);
+    background: var(--tf-surface-3);
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+    color: var(--tf-text);
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Botón compacto de una fila (Editar, Quitar). Aparte del mixin de arriba
+// porque no todos los paneles tienen filas con acciones.
+//
+// 36 px de alto con un expansor invisible hasta 44: en una tabla densa un
+// botón de 44 px real engorda cada fila 8 px, y multiplicado por veinte
+// filas es media pantalla. El expansor solo crece, no desplaza nada.
+@mixin tf-panel-row-action {
+  .row-action {
+    min-height: 36px;
+    position: relative;
+    padding: 0 var(--tf-space-3);
+    background: var(--tf-surface-5);
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+    color: var(--tf-text);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    cursor: pointer;
+
+    @include tf-touch-expander;
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+
+    &--danger {
+      padding: 0 9px;
+      color: var(--tf-danger-text);
+      border-color: var(--tf-danger-border);
+
+      ion-icon {
+        font-size: 15px;
+      }
+    }
+  }
+}

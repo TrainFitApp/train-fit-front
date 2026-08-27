@@ -82,3 +82,44 @@
     font-size: $icon-size;
   }
 }
+
+// Expansor invisible de zona pulsable.
+//
+// PARA QUÉ: un control compacto (un icono de 32 px en una fila de tabla, un
+// enlace de texto de 16 px) no llega a los 44 px que exige PRODUCT.md, y
+// engordarlo de verdad desplaza todo lo que tiene alrededor — en una tabla
+// de veinte filas, 8 px por fila son media pantalla.
+//
+// El pseudoelemento crece hacia fuera sin ocupar sitio en el flujo, así que
+// el botón se ve pequeño y se pulsa grande.
+//
+// AVISO DE MEDICIÓN: getBoundingClientRect() NO ve este pseudoelemento, así
+// que al verificar hay que usar elementFromPoint con el elemento dentro del
+// viewport. Además el hit-test devuelve 2 px menos que la caja declarada
+// (comprobado: -4px da 42, -6px da 46), así que un 42 medido son 44 reales.
+//
+// $grow: cuánto crece por cada lado. 4px lleva un control de 36 px a 44.
+@mixin tf-touch-expander($grow: 4px) {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -#{$grow};
+  }
+}
+
+// Variante que solo crece en VERTICAL. Para controles en fila donde el
+// expansor horizontal se solaparía con el de al lado y robaría sus toques.
+@mixin tf-touch-expander-y($grow: 4px) {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -#{$grow};
+    bottom: -#{$grow};
+    left: 0;
+    right: 0;
+  }
+}

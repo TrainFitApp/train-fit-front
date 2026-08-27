@@ -9,10 +9,17 @@
   inset: 0;
   background: var(--tf-overlay);
   z-index: var(--tf-z-modal-backdrop, 400);
-  animation: tf-backdrop-in 200ms var(--tf-ease-out);
+  // `both` y no el valor por defecto `none`: sin fill-mode el elemento se
+  // queda en su valor BASE mientras la animación está pendiente de arrancar
+  // —pestaña en segundo plano, webview que difiere el primer frame— y como
+  // el keyframe parte de opacity 0, la hoja aparecía a medias, translúcida,
+  // dejando ver la ficha de detrás. Medido: con la animación sin avanzar,
+  // opacity computaba 0.
+  animation: tf-backdrop-in 200ms var(--tf-ease-out) both;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    opacity: 1;
   }
 }
 
@@ -28,10 +35,14 @@
   padding: 10px 16px 24px;
   max-height: 80vh;
   overflow-y: auto;
-  animation: tf-sheet-in 260ms var(--tf-ease-out);
+  animation: tf-sheet-in 260ms var(--tf-ease-out) both;
 
+  // Sin animación, el estado final tiene que quedar explícito: `none` borra
+  // también el `both` de arriba.
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -59,6 +70,80 @@
   }
   to {
     transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Panel lateral derecho. Misma pieza que la bottom sheet pero anclado al
+// lado, para formularios largos que se rellenan mirando el contenido de
+// detrás (suplementos junto a sus gráficas, por ejemplo).
+//
+// En móvil NO se lateraliza: 400px de ancho sobre una pantalla de 390 es una
+// hoja a pantalla completa mal hecha. Por debajo de 768px sigue siendo
+// bottom sheet, que es el gesto que la gente espera ahí.
+// ---------------------------------------------------------------------------
+// El velo se aclara en escritorio: el panel se lateraliza precisamente para
+// poder mirar lo que hay detrás mientras se rellena (las gráficas de
+// progreso, al pautar un suplemento). Al 50% quedaban apagadas.
+@mixin tf-side-panel-backdrop {
+  @include tf-panel-backdrop;
+
+  @media (min-width: 768px) {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+@mixin tf-side-panel($width: 420px) {
+  @include tf-panel-sheet;
+
+  @media (min-width: 768px) {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: $width;
+    max-width: 92vw;
+    // 100vh y no `none`: si un ancestro con `contain` captura el fixed
+    // (ion-content lo hace), el panel toma la altura de ESE ancestro. Si
+    // mide más que la ventana, el pie con Guardar se queda fuera de
+    // pantalla. Medido: 840px de alto en una ventana de 800.
+    max-height: 100vh;
+    // Sin esto el relleno se suma al ancho y al alto: el panel medía 481px
+    // pidiendo 440, y 840 de alto en una ventana de 800, desbordando por
+    // abajo. Este proyecto no tiene reset global de box-sizing.
+    box-sizing: border-box;
+    border-top: none;
+    border-left: 1px solid var(--tf-border-strong);
+    border-radius: 0;
+    padding: var(--tf-space-5) var(--tf-space-5) 0;
+    animation: tf-side-panel-in 260ms var(--tf-ease-out) both;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+// El asa de arrastre solo tiene sentido en la hoja inferior: en un panel
+// lateral no hay nada que arrastrar hacia abajo.
+@mixin tf-side-panel-handle {
+  @include tf-panel-handle;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+@keyframes tf-side-panel-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
     opacity: 1;
   }
 }
