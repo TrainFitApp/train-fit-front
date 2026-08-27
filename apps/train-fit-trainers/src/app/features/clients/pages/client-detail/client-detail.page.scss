@@ -91,22 +91,104 @@
 
 .scope-tab {
   flex: 0 0 auto;
-  padding: 10px 2px;
+  // 44px reales de zona pulsable (PRODUCT.md > Accesibilidad). Antes eran
+  // ~39px; al bajar de 9 pestañas a 4 (Movimiento 1) sobra sitio de sobra
+  // para darles su altura correcta.
+  min-height: 44px;
+  padding: 0 2px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--tf-text-muted);
-  font-size: 0.88rem;
+  font-size: var(--tf-font-size-md);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
   transition: color 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
 
   &.active {
     color: var(--tf-text);
     border-color: var(--tf-accent);
   }
 }
+
+// --- Subbarra de la sección abierta (Movimiento 1 Coach Pro) ---
+// Píldoras y no subrayado: con dos barras de subrayado seguidas no se
+// distingue cuál manda. La forma distinta dice "esto está dentro de lo de
+// arriba" sin necesidad de indentarlo ni de dibujar una línea.
+.detail-subtabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) 0 0;
+}
+
+.sub-tab {
+  flex: 0 0 auto;
+  position: relative;
+  // 44px directos, sin expansor ::before: es un control de navegación de la
+  // página, no un enlace incrustado en un párrafo, así que puede permitirse
+  // el alto real. Un expansor invisible aquí solo añadiría una capa que
+  // verificar (y que se mide peor) para ahorrar 8px que no molestan.
+  min-height: 44px;
+  // flex para alinear icono y etiqueta por su centro óptico: con el botón
+  // en display por defecto, el icono se apoyaba en la línea base del texto.
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  // Cuadrado de esquinas redondeadas, como los botones de icono y los
+  // filtros de Hoy: la app deja de mezclar cápsulas con cuadrados.
+  border-radius: var(--tf-radius-lg);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out),
+    border-color 160ms var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &.active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-text);
+  }
+}
+
+// Un punto por debajo del texto y en el color tenue: el icono ayuda a
+// localizar la subpestaña de un vistazo, pero la etiqueta es la que manda.
+// En la activa hereda el color del chip, para que no se quede apagado.
+.sub-tab-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-faint);
+}
+
+.sub-tab.active .sub-tab-icon {
+  color: inherit;
+}
+
 
 .detail-content {
   --background: var(--tf-bg);
@@ -543,35 +625,6 @@
   }
 }
 
-.active-plan-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.active-plan-action {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid var(--tf-accent);
-  background: var(--tf-surface-1);
-  color: var(--tf-accent);
-  font-size: 0.76rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  ion-icon {
-    font-size: 1rem;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-}
 
 .list-card {
   display: flex;
@@ -1380,11 +1433,54 @@
   }
 }
 
+// Movimiento 2 Coach Pro — cada respuesta pasa a ser un bloque en vez de
+// texto suelto, porque las escalas traen debajo la frase que eligió el
+// cliente y sin ancho propio se mezclarían unas con otras.
+.checkin-value-item {
+  max-width: 34ch;
+}
+
+.checkin-value-anchor {
+  display: block;
+  margin-top: 2px;
+  color: var(--tf-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .pulse-badge {
   color: var(--tf-accent-text) !important;
   background: var(--tf-accent-soft);
   border-radius: 6px;
   padding: 2px 8px;
+}
+
+// Movimiento 3 Coach Pro — calculadora corporal y panel de dolor, dentro de
+// la sección de Medidas.
+.calculator-wrapper {
+  margin-top: var(--tf-space-5);
+}
+
+// Movimiento 5 Coach Pro — bloque suelto dentro de la columna fija de
+// nutrición (suplementación).
+.sidebar-block {
+  margin-top: var(--tf-space-4);
+}
+
+// Movimiento 2 Coach Pro — agujetas con las que el cliente llegó a la sesión.
+.soreness-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
 }
 
 .danger-link {
@@ -1544,3 +1640,83 @@
   }
 }
 
+// --- Secuencia de fases del plan ---
+.plan-track {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-space-3);
+  overflow-x: auto;
+  padding-bottom: var(--tf-space-2);
+  scroll-snap-type: x proximity;
+}
+
+// La vigente conserva todo su detalle y manda en el ancho; las programadas
+// son fichas estrechas, porque de ellas solo importa qué plan y cuándo.
+.plan-track > .active-plan-card {
+  flex: 1 0 320px;
+  scroll-snap-align: start;
+}
+
+.plan-phase-order {
+  display: block;
+  margin-bottom: var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-faint);
+}
+
+.next-phase-card {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  text-align: left;
+}
+
+.next-phase-card__name {
+  margin: 0 0 4px;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.next-phase-card__range {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// Cierra la fila por la derecha: la fase nueva aparece justo aquí.
+.next-phase-card--add {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-style: dashed;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    color: var(--tf-accent);
+    border-color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}

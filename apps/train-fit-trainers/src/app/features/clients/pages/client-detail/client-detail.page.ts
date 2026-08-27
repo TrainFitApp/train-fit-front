@@ -12,7 +12,11 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import {
   CHECKIN_FIELDS,
   CHECKIN_FIELDS_BY_KEY,
+  checkinAnchorFor,
+  checkinScaleSuffix,
 } from 'src/app/core/constants/checkin-fields';
+import { formatSoreness } from 'src/app/core/constants/soreness';
+import { ClientBodyProfile, GoalMeal } from './models/client-progress.model';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
@@ -42,10 +46,15 @@ import {
   BulkApplyResult,
   CheckinConfig,
   CheckinResponseEntry,
+  ClientDetailSection,
+  ClientDetailSectionDef,
   ClientDetailTab,
+  ClientDetailTabDef,
   ClientNutritionPreferences,
   ClientScope,
   ClientTable,
+  CLIENT_DETAIL_SECTIONS,
+  SECTION_BY_TAB,
   CompletedWorkoutEntry,
   DietDaySummary,
   MealAlternativeInput,
@@ -85,6 +94,11 @@ export class ClientDetailPage implements OnInit {
   public name = 'Cliente';
   public scopes: ClientScope[] = [];
   public activeTab: ClientDetailTab = 'training';
+  // Movimiento 1 Coach Pro — las 9 pestañas planas pasan a 4 secciones con
+  // subpestañas. activeTab sigue identificando el PANEL (los *ngIf de la
+  // plantilla no cambian) y activeSection, la sección que lo contiene.
+  public activeSection: ClientDetailSection = 'summary';
+  public readonly sections = CLIENT_DETAIL_SECTIONS;
   // TASK-012 (MASTER_BACKLOG.md) — name/scopes normalmente llegan por
   // queryParams (navegación desde ClientsPage), pero un deep link directo
   // (notificación, returnUrl de TASK-010, F5 en esta misma pantalla) no los
@@ -205,6 +219,14 @@ export class ClientDetailPage implements OnInit {
       Validators.min(0),
     ]),
     fatGTotal: new FormControl(null, [Validators.required, Validators.min(0)]),
+    // Fase 5 Coach Pro — "fibra si procede" (§15). SIN Validators.required:
+    // dejarlo vacío significa "este objetivo no pauta fibra", que no es lo
+    // mismo que 0 g. Los objetivos anteriores siguen siendo válidos.
+    fiberGTotal: new FormControl(null, [Validators.min(0)]),
+    // Fase 4 Coach Pro — el porqué del cambio (§18). Opcional: obligarlo en
+    // una acción que un coach repite a diario acabaría rellenándose con
+    // basura.
+    reason: new FormControl(''),
   });
   public isAssigningGoal = false;
   // Tocar una card de objetivo ya EXISTENTE la pone en uso. Id (no un
@@ -228,6 +250,7 @@ export class ClientDetailPage implements OnInit {
   // Auditoría de arquitectura (nutrición, Fase 8) — plan vigente del cliente,
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
   public activePlan: PlanAssignment | null = null;
+  public planPhases: PlanAssignment[] = [];
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
@@ -249,6 +272,7 @@ export class ClientDetailPage implements OnInit {
   // frágil entre dos componentes hermanos para algo que la propia página
   // puede fijar de entrada sin depender de nadie.
   public customTrackingRange: { start: string; end: string } | null = defaultTrackingRange();
+  public nutritionPreset: number | null = 30;
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
   // Perezoso (solo al expandir) — no todos los trainers necesitan mirar
@@ -365,7 +389,16 @@ export class ClientDetailPage implements OnInit {
   }
 
   private initTabsAndLoadSections(): void {
-    this.activeTab = this.scopes[0] || 'training';
+    // Fase 2 Coach Pro — se abre en Resumen, no en el primer scope. La
+    // pregunta con la que un coach entra en una ficha es "cómo va", y
+    // Entrenamiento/Nutrición responden "qué le he pautado".
+    //
+    // Salvo que quien navega pida una subpestaña concreta con ?tab=: la
+    // notificación de "check-in respondido" tiene que abrir en Check-ins,
+    // no dejarte en Resumen buscándolo. selectTab valida el destino, así
+    // que un tab inventado en la URL no rompe nada.
+    const tabPedida = this.route.snapshot.queryParamMap.get('tab') as ClientDetailTab | null;
+    this.selectTab(tabPedida && SECTION_BY_TAB[tabPedida] ? tabPedida : 'summary');
 
     if (this.scopes.includes('training')) this.loadTraining();
     if (this.scopes.includes('nutrition')) this.loadNutrition();
@@ -403,8 +436,68 @@ export class ClientDetailPage implements OnInit {
     );
   }
 
+  // Sigue recibiendo la pestaña-hoja (la usa el Resumen para saltar a
+  // "Medidas" o a "Entrenamiento" desde sus enlaces) y deduce la sección
+  // que hay que abrir, en vez de obligar a cada llamante a saberla.
   public selectTab(tab: ClientDetailTab): void {
-    this.activeTab = tab;
+    const section = SECTION_BY_TAB[tab];
+    const definicion = this.sections.find((candidate) => candidate.key === section);
+    if (!definicion) return;
+
+    // Un cliente solo de nutrición no tiene pestaña "Entrenamiento": si algo
+    // pide abrirla igualmente (el Resumen enlaza a las cuatro dimensiones de
+    // adherencia y a la rutina asignada sin saber qué scopes hay), el panel
+    // se queda en blanco, porque su *ngIf sí comprueba el scope. Se cae a la
+    // primera pestaña disponible de esa misma sección en vez de no hacer
+    // nada: el usuario ha pedido ir ahí y la sección sigue siendo correcta.
+    const disponibles = this.visibleTabsOf(definicion);
+    const destino = disponibles.some((candidate) => candidate.key === tab)
+      ? tab
+      : disponibles[0]?.key;
+    if (!destino) return;
+
+    this.activeTab = destino;
+    this.activeSection = section;
+  }
+
+  // Al pulsar una sección se abre su primera subpestaña DISPONIBLE: si el
+  // cliente solo tiene nutrición, "Plan" debe abrir Nutrición y no dejar el
+  // panel en blanco esperando a un Entrenamiento que no existe.
+  public selectSection(section: ClientDetailSectionDef): void {
+    const tabs = this.visibleTabsOf(section);
+    if (!tabs.length) return;
+    this.selectTab(tabs[0].key);
+  }
+
+  public get visibleSections(): ClientDetailSectionDef[] {
+    // Una sección cuyas subpestañas dependan todas de un scope que este
+    // cliente no tiene no llega a mostrarse (hoy solo puede pasarle a Plan).
+    return this.sections.filter((section) => this.visibleTabsOf(section).length > 0);
+  }
+
+  // Subpestañas de la sección abierta. Vacío cuando solo hay una: una
+  // subbarra con un único botón siempre pulsado no informa de nada.
+  public get visibleSubTabs(): ClientDetailTabDef[] {
+    const section = this.sections.find((candidate) => candidate.key === this.activeSection);
+    if (!section) return [];
+    const tabs = this.visibleTabsOf(section);
+    return tabs.length > 1 ? tabs : [];
+  }
+
+  private visibleTabsOf(section: ClientDetailSectionDef): ClientDetailTabDef[] {
+    return section.tabs.filter((tab) => {
+      if (!tab.requiresScope) return true;
+      if (tab.requiresScope === 'any') return this.scopes.length > 0;
+      return this.scopes.includes(tab.requiresScope);
+    });
+  }
+
+  public trackBySectionKey(_index: number, section: ClientDetailSectionDef): string {
+    return section.key;
+  }
+
+  public trackByTabKey(_index: number, tab: ClientDetailTabDef): string {
+    return tab.key;
   }
 
   // --- Entrenamiento ---
@@ -442,6 +535,16 @@ export class ClientDetailPage implements OnInit {
   }
 
   // --- Medidas (antropometría) ---
+  // Movimiento 3 Coach Pro — altura/sexo/nacimiento para la calculadora
+  // corporal. Lo demás que necesita (las mediciones) ya se carga aquí.
+  public bodyProfile: ClientBodyProfile | null = null;
+
+  // La medición MÁS RECIENTE. getAnthropometry devuelve orden descendente
+  // (lo último primero), igual que el gráfico de arriba espera.
+  public get latestMeasurement(): AnthropometryEntry | null {
+    return this.anthropometryEntries[0] || null;
+  }
+
   public loadMeasurements(): void {
     this.measurementsState = 'loading';
     Promise.all([
@@ -456,6 +559,14 @@ export class ClientDetailPage implements OnInit {
       .catch(() => {
         this.measurementsState = 'error';
       });
+
+    // Aparte del Promise.all: que falte el perfil (o falle su consulta) no
+    // debe dejar la pestaña de Medidas en estado de error — el gráfico y el
+    // histórico se leen igual sin él. La calculadora dirá qué le falta.
+    this.clientDetailApi.getBodyProfile(this.clientId).subscribe({
+      next: (profile) => (this.bodyProfile = profile),
+      error: () => (this.bodyProfile = null),
+    });
   }
 
   public measurementFieldsInGroup(
@@ -650,6 +761,13 @@ export class ClientDetailPage implements OnInit {
       (a, b) =>
         new Date(b.date as Date).getTime() - new Date(a.date as Date).getTime()
     );
+  }
+
+  // Movimiento 2 Coach Pro — "Cuádriceps 4 · Glúteo 3". Devuelve cadena
+  // vacía (que la plantilla trata como falsy con `as`) cuando no hay nada:
+  // una sesión sin agujetas apuntadas no debe pintar una línea vacía.
+  public sorenessLabel(workout: CompletedWorkoutEntry): string {
+    return formatSoreness(workout.sorenessPre);
   }
 
   public trackByWorkoutId(
@@ -852,7 +970,27 @@ export class ClientDetailPage implements OnInit {
   // selección de rango (click día inicio, click día fin); alimenta
   // <app-nutrition-tracking-chart> con ese rango exacto en vez de sus
   // botones 7/30/90d.
+  // El preset se elige encima de la gráfica y el rango se calcula aquí, en
+  // el padre: es el único que puede pasárselo a la vez a la gráfica (que lo
+  // dibuja) y al calendario (que lo sombrea). Reparte los días mitad hacia
+  // atrás y mitad hacia delante —algo más de historia si son impares—
+  // porque un plan puede tener fases futuras ya asignadas.
+  public onNutritionPresetSelected(days: number): void {
+    const desplazar = (offset: number): string => {
+      const fecha = new Date();
+      fecha.setUTCDate(fecha.getUTCDate() + offset);
+      return fecha.toISOString().slice(0, 10);
+    };
+    this.nutritionPreset = days;
+    this.customTrackingRange = {
+      start: desplazar(-Math.ceil(days / 2)),
+      end: desplazar(Math.floor(days / 2)),
+    };
+  }
+
   public onNutritionRangeSelected(range: { start: string; end: string }): void {
+    // Rango elegido a mano en el calendario: deja de haber preset activo.
+    this.nutritionPreset = null;
     this.customTrackingRange = range;
   }
 
@@ -909,15 +1047,45 @@ export class ClientDetailPage implements OnInit {
 
   // Auditoría de arquitectura (nutrición, Fase 8)
   public loadActivePlan(): Promise<void> {
-    return this.planAssignmentApi
-      .getActive(this.clientId)
+    // La secuencia entera, no solo la vigente: las fases programadas se
+    // pintan a la derecha de la actual, así que hacen falta desde el primer
+    // render y no solo al desplegar el historial de abajo.
+    return forkJoin({
+      active: this.planAssignmentApi.getActive(this.clientId),
+      history: this.planAssignmentApi.getHistory(this.clientId),
+    })
       .toPromise()
-      .then((plan) => {
-        this.activePlan = plan || null;
+      .then((res) => {
+        this.activePlan = res?.active || null;
+        this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
         this.activePlan = null;
+        this.planPhases = [];
       });
+  }
+
+  /**
+   * Las fases en el orden en que rigen: de la más antigua a la más futura.
+   *
+   * Se quedan fuera las ya terminadas —el histórico vive en su propio
+   * bloque, más abajo—: aquí interesa lo vigente y lo que viene después,
+   * que es sobre lo que se decide.
+   *
+   * Ojo con `status`: al programar una fase futura, applyPlan marca la
+   * anterior como "superseded" EN EL ACTO, aunque siga siendo la que rige
+   * hoy. Por eso lo vigente se decide por FECHA y no por el status.
+   */
+  private buildPhaseSequence(history: PlanAssignment[]): PlanAssignment[] {
+    const hoy = new Date().toISOString().slice(0, 10);
+    return history
+      .filter((phase) => !phase.endDate || phase.endDate >= hoy)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  }
+
+  public isCurrentPhase(phase: PlanAssignment): boolean {
+    const hoy = new Date().toISOString().slice(0, 10);
+    return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
@@ -951,7 +1119,10 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  public async createExceptionForToday(): Promise<void> {
+  // Se llamaba createExceptionForToday pero SIEMPRE usó nutritionDate, el
+  // día seleccionado en el calendario. El nombre y la etiqueta del botón
+  // decían "hoy" y el comportamiento era otro.
+  public async createExceptionForSelectedDay(): Promise<void> {
     if (!this.activePlan || this.isCreatingException) return;
     await this.ionicUtilService.showAlert({
       header: `¿Marcar ${this.nutritionDateLabel} como excepción?`,
@@ -1049,6 +1220,19 @@ export class ClientDetailPage implements OnInit {
     return 'Sin especificar';
   }
 
+  // Movimiento 5 Coach Pro — reparto por comidas en intercambios. Fuera del
+  // FormGroup a propósito: es una estructura anidada (comidas -> raciones)
+  // que se edita con su propio componente, y meterla en un FormArray dentro
+  // de un formulario de cinco números solo añadiría ceremonia.
+  public goalMealExchanges: GoalMeal[] = [];
+
+  // El objetivo vigente del cliente. Se deriva de la lista en vez de
+  // guardarse aparte: dos copias del "cuál está activo" se desincronizan en
+  // cuanto se activa otro.
+  public get activeGoal(): NutritionalGoal | null {
+    return this.goals.find((goal) => goal.isInUse) || null;
+  }
+
   public openGoalPanel(): void {
     this.showGoalPanel = true;
     this.goalForm.reset({
@@ -1058,6 +1242,13 @@ export class ClientDetailPage implements OnInit {
       carbohydratesGTotal: null,
       fatGTotal: null,
     });
+    // Se parte del reparto que ya tuviera el objetivo activo: pautar los
+    // intercambios de cero cada vez que se retocan las kcal sería
+    // inaceptable.
+    this.goalMealExchanges = (this.activeGoal?.mealExchanges || []).map((meal) => ({
+      name: meal.name,
+      exchanges: [...(meal.exchanges || [])],
+    }));
   }
 
   public closeGoalPanel(): void {
@@ -1072,7 +1263,13 @@ export class ClientDetailPage implements OnInit {
 
     this.isAssigningGoal = true;
     this.clientDetailApi
-      .assignNutritionalGoal(this.clientId, this.goalForm.value)
+      .assignNutritionalGoal(this.clientId, {
+        ...this.goalForm.value,
+        // Movimiento 5 Coach Pro — viaja junto a los gramos, en la misma
+        // petición: son dos formas de pautar EL MISMO objetivo, y guardarlas
+        // por separado abriría la puerta a que una se guardase y la otra no.
+        mealExchanges: this.goalMealExchanges,
+      })
       .subscribe({
         next: () => {
           this.isAssigningGoal = false;
@@ -1121,10 +1318,32 @@ export class ClientDetailPage implements OnInit {
 
   // Replanteamiento MVP (nutrición) — aplicar una plantilla de dieta ya
   // construida a este cliente, eligiendo solo la fecha de inicio.
+  // Suma días a una fecha ISO en UTC: hacerlo con el huso local desplaza
+  // el día cerca de medianoche y encadenaría la fase con un día de más o
+  // de menos.
+  private addDaysToIso(iso: string, days: number): string {
+    const fecha = new Date(iso + 'T00:00:00Z');
+    fecha.setUTCDate(fecha.getUTCDate() + days);
+    return fecha.toISOString().slice(0, 10);
+  }
+
   public async openApplyTemplateModal(): Promise<void> {
+    // La última fase de la secuencia es contra la que se encadena, no la
+    // vigente: si ya hay dos programadas, la nueva va DETRÁS de la última.
+    const ultima = this.planPhases[this.planPhases.length - 1] || null;
+    const finAnterior = ultima?.endDate || null;
+
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
-      componentProps: { clientId: this.clientId, clientName: this.name },
+      // Panel derecho, como el resto de formularios largos de la app.
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.name,
+        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+        previousPhaseEnd: finAnterior,
+        previousPhaseName: ultima?.planName || '',
+      },
     });
     await modal.present();
     const { data, role } = await modal.onDidDismiss();
@@ -1567,7 +1786,10 @@ export class ClientDetailPage implements OnInit {
           void this.router.navigate(['/tabs/clients']);
           return;
         }
-        this.activeTab = this.scopes[0];
+        // selectTab, no asignación directa: al revocar un scope la pestaña
+        // abierta puede haber dejado de existir, y la sección tiene que
+        // moverse con ella.
+        this.selectTab(this.scopes[0]);
         this.ionicUtilService.showToast({
           message: `Relación de ${
             scope === 'training' ? 'entrenamiento' : 'nutrición'
@@ -1669,17 +1891,49 @@ export class ClientDetailPage implements OnInit {
       });
   }
 
+  // Fase 5 Coach Pro — las respuestas a preguntas propias del coach viajan
+  // con la clave "custom:<id>", que no está en el catálogo: su enunciado se
+  // busca en la configuración aplicada a ESTE cliente. Sin esto, el
+  // histórico mostraría "custom:507f1f77bcf86cd799439011".
   public checkinFieldLabel(key: string): string {
+    if (key.startsWith('custom:')) {
+      const questionId = key.slice('custom:'.length);
+      const question = (this.checkinConfig?.customQuestions || []).find(
+        (q) => String(q._id) === questionId
+      );
+      return question?.label || 'Pregunta eliminada';
+    }
     return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
   }
 
+  // Un booleano crudo se leería como "true"/"false".
+  public checkinValueLabel(value: number | string | boolean): string {
+    if (value === true) return 'Sí';
+    if (value === false) return 'No';
+    return String(value);
+  }
+
+  // `raw` además de `value`: el segundo ya viene formateado a texto (un
+  // booleano se lee "Sí"/"No"), y buscar el ancla de una escala necesita el
+  // número tal cual lo guardó el cliente.
   public checkinValueEntries(
     response: CheckinResponseEntry
-  ): { key: string; value: number }[] {
+  ): { key: string; value: string; raw: number | string | boolean }[] {
     return Object.entries(response.values).map(([key, value]) => ({
       key,
-      value,
+      value: this.checkinValueLabel(value),
+      raw: value,
     }));
+  }
+
+  // Movimiento 2 Coach Pro — "Nivel de estrés: 4" no dice nada; "4/5 ·
+  // Bastante estrés, me cuesta desconectar" es lo que respondió el cliente.
+  public checkinScaleSuffix(key: string): string {
+    return checkinScaleSuffix(key);
+  }
+
+  public checkinAnchor(key: string, value: unknown): string | null {
+    return checkinAnchorFor(key, value);
   }
 
   public trackByResponseId(
@@ -1863,7 +2117,7 @@ export class ClientDetailPage implements OnInit {
         error: (err) => {
           this.isSavingTask = false;
           this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo crear la tarea',
+            err?.error?.message || 'No se pudo crear el hábito',
             'Error',
             3000
           );
@@ -1873,7 +2127,7 @@ export class ClientDetailPage implements OnInit {
 
   public async confirmDeactivateTask(task: TrainerTask): Promise<void> {
     await this.ionicUtilService.showAlert({
-      header: 'Quitar tarea',
+      header: 'Quitar hábito',
       message: `¿Seguro que quieres dejar de asignar "${this.taskDisplayLabel(
         task
       )}"? El historial de cumplimiento ya registrado se conserva.`,
@@ -1895,7 +2149,7 @@ export class ClientDetailPage implements OnInit {
       },
       error: () => {
         this.ionicUtilService.showErrorToast(
-          'No se pudo quitar la tarea',
+          'No se pudo quitar el hábito',
           'Error',
           2500
         );
@@ -1904,7 +2158,7 @@ export class ClientDetailPage implements OnInit {
   }
 
   public taskDisplayLabel(task: TrainerTask): string {
-    if (task.type === 'custom') return task.label || 'Tarea';
+    if (task.type === 'custom') return task.label || 'Hábito';
     return (
       this.taskTypeOptions.find((o) => o.value === task.type)?.label ||
       task.type

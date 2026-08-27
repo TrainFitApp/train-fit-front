@@ -1,0 +1,242 @@
+<div class="roster-skeleton" *ngIf="state === 'loading'">
+  <div class="skeleton-block roster-row-skeleton" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+</div>
+
+<div class="state-message" *ngIf="state === 'error'">
+  <ion-icon name="cloud-offline-outline"></ion-icon>
+  <h2>No se pudo cargar tu cartera</h2>
+  <p>Comprueba tu conexión e inténtalo de nuevo.</p>
+  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+</div>
+
+<div class="state-message" *ngIf="state === 'empty'">
+  <ion-icon name="people-outline"></ion-icon>
+  <h2>Todavía no hay nada que comparar</h2>
+  <p>Cuando tengas clientes activos verás aquí su adherencia, su peso y sus check-ins uno al lado del otro.</p>
+</div>
+
+<ng-container *ngIf="state === 'loaded'">
+  <!-- Buscador y filtro sobre la tabla: buscar es lo que se hace de
+       continuo, así que ocupa el ancho; filtrar es puntual y cabe en un
+       botón que abre el panel. -->
+  <div class="roster-toolbar">
+    <div class="roster-search">
+      <ion-icon name="search-outline" class="roster-search__icon" aria-hidden="true"></ion-icon>
+      <input
+        type="search"
+        class="roster-search__input"
+        placeholder="Buscar por nombre o correo"
+        aria-label="Buscar por nombre o correo"
+        [(ngModel)]="searchQuery"
+      />
+    </div>
+
+    <button
+      type="button"
+      class="roster-filter-btn"
+      [class.has-filters]="activeFilterCount"
+      (click)="showFilters = true"
+      aria-label="Filtrar clientes"
+    >
+      <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
+      <span class="roster-filter-btn__count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+    </button>
+  </div>
+
+  <p class="roster-hint">
+    Últimos {{ periodDays }} días. Pulsa una columna para ordenar por ella, o una fila para ver el desglose.
+  </p>
+
+  <!-- La tabla desborda en horizontal dentro de su propio contenedor; el
+       nombre queda fijo a la izquierda para no perder de vista de quién es
+       cada fila al desplazarse. -->
+  <div class="roster-scroll">
+    <table class="roster-table">
+      <thead>
+        <tr>
+          <th scope="col" class="col-name">
+            <button type="button" class="sort-button" (click)="toggleSort('name')">
+              Cliente
+              <ion-icon [name]="sortIcon('name')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('adherence')">
+              Adherencia
+              <ion-icon [name]="sortIcon('adherence')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">Punto débil</th>
+          <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('weight')">
+              Peso
+              <ion-icon [name]="sortIcon('weight')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('checkin')">
+              Último check-in
+              <ion-icon [name]="sortIcon('checkin')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('sessions')">
+              Sesiones
+              <ion-icon [name]="sortIcon('sessions')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col">
+            <button type="button" class="sort-button" (click)="toggleSort('alerts')">
+              Alertas
+              <ion-icon [name]="sortIcon('alerts')" aria-hidden="true"></ion-icon>
+            </button>
+          </th>
+          <th scope="col"><span class="sr-only">Abrir ficha</span></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <ng-container *ngFor="let row of visibleRows; trackBy: trackByClientId">
+          <tr
+            class="roster-row"
+            [class.roster-row--expanded]="expandedClientId === row.clientId"
+            (click)="toggleRow(row)"
+          >
+            <th scope="row" class="col-name">
+              <span class="row-name">{{ row.clientName }}</span>
+            </th>
+
+            <td>
+              <span class="adherence-pill" [attr.data-level]="adherenceLevel(row)">
+                {{ adherenceLabel(row) }}
+              </span>
+            </td>
+
+            <td class="cell-muted">{{ weakestLabel(row) }}</td>
+
+            <td>
+              <span class="weight-value" [title]="weightDetail(row)">{{ weightLabel(row) }}</span>
+            </td>
+
+            <td>
+              <span class="checkin-value" [class.checkin-value--overdue]="isCheckinOverdue(row)">
+                {{ checkinLabel(row) }}
+              </span>
+            </td>
+
+            <td class="cell-number">{{ row.sessions }}</td>
+
+            <td>
+              <span class="alert-count" *ngIf="row.openAlerts" [class.alert-count--urgent]="row.urgentAlerts">
+                {{ row.openAlerts }}
+              </span>
+              <span class="cell-muted" *ngIf="!row.openAlerts">—</span>
+            </td>
+
+            <td class="col-action">
+              <button
+                type="button"
+                class="open-button"
+                (click)="openClient(row); $event.stopPropagation()"
+                [attr.aria-label]="'Abrir la ficha de ' + row.clientName"
+              >
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Desglose: los cuatro números detrás de la media, y el motivo
+               por el que alguno no se puede medir. -->
+          <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId">
+            <td [attr.colspan]="8">
+              <div class="dimension-grid">
+                <div class="dimension" *ngFor="let key of dimensionKeys; trackBy: trackByDimension">
+                  <span class="dimension-label">{{ dimensionLabel(key) }}</span>
+                  <span
+                    class="dimension-value"
+                    [class.dimension-value--unavailable]="!row.adherence.dimensions[key].applicable"
+                  >
+                    {{ dimensionValue(row.adherence.dimensions[key]) }}
+                  </span>
+                  <span class="dimension-detail" *ngIf="row.adherence.dimensions[key].applicable">
+                    {{ row.adherence.dimensions[key].detail }}
+                  </span>
+                </div>
+              </div>
+
+              <p class="detail-line">{{ weightDetail(row) }}</p>
+              <p class="detail-line" *ngIf="row.planEndingSoon">
+                Su plan termina en {{ row.planEndingSoon.daysLeft }} día(s) ({{ row.planEndingSoon.endDate }}).
+              </p>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</ng-container>
+
+<!-- Panel de filtros. Mismo patrón que el de suplementos: contenedor que se
+     traslada al body, porque dentro del árbol su position:fixed queda a
+     merced del contain de ion-content. -->
+<div class="panel-portal" #panelHost>
+  <div class="panel-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+  <div
+    class="panel-sheet"
+    *ngIf="showFilters"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="roster-filters-title"
+  >
+    <div class="panel-handle"></div>
+
+    <header class="sheet-header">
+      <h3 class="panel-title" id="roster-filters-title">Filtrar</h3>
+      <button type="button" class="close-button" (click)="showFilters = false" aria-label="Cerrar">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
+
+    <section class="form-group">
+      <p class="group-label">Punto débil</p>
+      <div class="filter-options">
+        <button
+          type="button"
+          class="filter-option"
+          [class.is-active]="!filterWeakest"
+          (click)="filterWeakest = null"
+        >
+          Cualquiera
+        </button>
+        <button
+          type="button"
+          class="filter-option"
+          *ngFor="let key of dimensionKeys"
+          [class.is-active]="filterWeakest === key"
+          (click)="filterWeakest = key"
+        >
+          {{ dimensionLabel(key) }}
+        </button>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">Solo mostrar</p>
+      <label class="filter-check">
+        <input type="checkbox" [(ngModel)]="filterOnlyWithAlerts" />
+        <span>Con alertas abiertas</span>
+      </label>
+      <label class="filter-check">
+        <input type="checkbox" [(ngModel)]="filterOnlyOverdueCheckin" />
+        <span>Con el check-in vencido</span>
+      </label>
+    </section>
+
+    <footer class="sheet-footer">
+      <button type="button" class="ghost-button" (click)="clearFilters()">Quitar filtros</button>
+      <button type="button" class="submit-button" (click)="showFilters = false">
+        Ver {{ visibleRows.length }}
+      </button>
+    </footer>
+  </div>
+</div>

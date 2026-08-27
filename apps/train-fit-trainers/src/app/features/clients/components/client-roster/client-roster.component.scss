@@ -1,0 +1,589 @@
+@import '../../../../../theme/buttons';
+@import '../../../../../theme/panel-sheet';
+@import '../../../../../theme/inputs';
+@import '../../../../../theme/skeleton';
+
+:host {
+  display: block;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.roster-hint {
+  margin: 0 0 var(--tf-space-4);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+}
+
+.roster-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+}
+
+.roster-row-skeleton {
+  height: 52px;
+  border-radius: var(--tf-radius-md);
+}
+
+// El desbordamiento horizontal vive AQUÍ y no en el body de la página: una
+// tabla de 8 columnas no cabe en un móvil, y lo que no debe pasar es que la
+// página entera se desplace de lado por su culpa.
+.roster-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-font-size-sm);
+
+  th,
+  td {
+    padding: var(--tf-space-3) var(--tf-space-4);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--tf-surface-2);
+    border-bottom: 1px solid var(--tf-border);
+    color: var(--tf-text-muted);
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0 var(--tf-space-4);
+  }
+}
+
+// Columna de nombre congelada: al desplazar de lado hay que seguir viendo
+// de quién es cada fila, o los números dejan de significar nada.
+.col-name {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--tf-surface-1);
+  // Borde a la derecha para que se lea como columna aparte cuando el resto
+  // pasa por debajo.
+  box-shadow: 1px 0 0 var(--tf-border);
+}
+
+thead .col-name {
+  z-index: 3;
+  background: var(--tf-surface-2);
+}
+
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  // 44px de zona pulsable (PRODUCT.md > Accesibilidad) sin engordar la
+  // cabecera: el botón ocupa toda la altura de la celda.
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+}
+
+.roster-row {
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  th,
+  td {
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+
+  &:hover,
+  &:hover .col-name {
+    background: var(--tf-surface-2);
+  }
+
+  &--expanded,
+  &--expanded .col-name {
+    background: var(--tf-surface-2);
+  }
+}
+
+.row-name {
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.cell-muted {
+  color: var(--tf-text-muted);
+}
+
+.cell-number {
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Adherencia ---
+// El color va sobre texto, no solo sobre fondo: el nivel tiene que
+// distinguirse también en escala de grises y para quien no separa rojo de
+// verde. El número siempre está escrito, el color solo lo acompaña.
+.adherence-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 3px 10px;
+  border-radius: var(--tf-radius-pill);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  // Tokens semánticos ya existentes, no colores nuevos. Los pares
+  // texto-sobre-fondo son los mismos que tokens.scss documenta como AA:
+  // --tf-accent-text sobre --tf-accent-soft y --tf-danger-text sobre
+  // --tf-danger-soft.
+  &[data-level='ok'] {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &[data-level='low'] {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
+
+  &[data-level='critical'] {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+
+  &[data-level='none'] {
+    background: var(--tf-surface-3);
+    color: var(--tf-text-muted);
+  }
+}
+
+.weight-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+}
+
+.checkin-value {
+  color: var(--tf-text);
+
+  &--overdue {
+    color: var(--tf-danger-text);
+    font-weight: 600;
+  }
+}
+
+.alert-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+
+  &--urgent {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+.col-action {
+  width: 44px;
+  padding-left: 0;
+}
+
+.open-button {
+  // Mismo botón de icono que el resto de la app, pero sin acento: es una
+  // acción por fila, y en una tabla de treinta clientes treinta botones
+  // naranjas serían ruido. Sin fondo NO se leía como botón: parecía un
+  // adorno al final de la fila.
+  @include tf-icon-button(36px, var(--tf-radius-md), 18px);
+  position: relative;
+
+  // 36px pintados, 44 pulsables: a 44 reales el botón engorda la fila.
+  @include tf-touch-expander;
+
+  &:hover {
+    background: var(--tf-surface-5);
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// --- Fila desplegada ---
+.roster-detail-row td {
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border-top: 1px solid var(--tf-border-subtle);
+  white-space: normal;
+}
+
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.dimension {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-3);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+}
+
+.dimension-label {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dimension-value {
+  font-size: var(--tf-font-size-lg);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+
+  // Una dimensión que no aplica no se pinta como un número grande: no lo
+  // es, y darle el mismo peso visual invitaría a leerla como un dato.
+  &--unavailable {
+    font-size: var(--tf-font-size-sm);
+    font-weight: 500;
+    color: var(--tf-text-muted);
+  }
+}
+
+.dimension-detail {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.detail-line {
+  margin: 0 0 4px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+// --- Estados vacíos/erróneos ---
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-8) var(--tf-space-4);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--tf-text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--tf-font-size-md);
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    max-width: 40ch;
+  }
+}
+
+.retry-button {
+  min-height: 44px;
+  margin-top: var(--tf-space-2);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// --- Barra sobre la tabla ---
+.roster-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
+}
+
+.roster-search {
+  @include tf-input-wrapper;
+  flex: 1;
+  min-width: 0;
+  // tf-input-wrapper no fija altura y el campo pide height:100%: sin esto
+  // colapsa a la altura del texto.
+  min-height: 44px;
+}
+
+.roster-search__icon {
+  @include tf-input-icon;
+}
+
+.roster-search__input {
+  @include tf-input-field;
+}
+
+// Botón de icono del sistema, en acento: es la única acción de la barra y
+// tiene que distinguirse del campo de búsqueda que lleva al lado.
+.roster-filter-btn {
+  @include tf-icon-button;
+  position: relative;
+  flex-shrink: 0;
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent);
+
+  &:hover,
+  &:active {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &.has-filters {
+    background: var(--tf-accent);
+    color: #1a1a1a;
+  }
+}
+
+// Cuántos filtros hay puestos, sin abrir el panel para comprobarlo.
+.roster-filter-btn__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: var(--tf-accent);
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+// --- Panel de filtros ---
+.panel-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+}
+
+.panel-portal > * {
+  pointer-events: auto;
+}
+
+.panel-backdrop {
+  @include tf-side-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-side-panel(380px);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+.panel-handle {
+  @include tf-side-panel-handle;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
+}
+
+.panel-title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.close-button {
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+.form-group {
+  padding-bottom: var(--tf-space-4);
+  margin-bottom: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.group-label {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-accent);
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-option {
+  min-height: 36px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: 44px;
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--tf-accent);
+    cursor: pointer;
+  }
+}
+
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: var(--tf-space-3);
+  margin-top: auto;
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.ghost-button {
+  min-height: 46px;
+  padding: 0 var(--tf-space-4);
+  background: none;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.sheet-footer .submit-button {
+  @include tf-gradient-button;
+  flex: 1;
+  min-height: 46px;
+  margin: 0;
+}

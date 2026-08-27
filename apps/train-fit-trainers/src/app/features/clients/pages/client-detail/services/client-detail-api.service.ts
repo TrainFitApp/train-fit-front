@@ -16,11 +16,21 @@ import {
   NutritionalGoal,
   NutritionComplianceSummary,
   NutritionTrackingSummary,
+  Supplement,
+  SupplementTiming,
   TrainerNote,
   TrainerPayment,
   TrainerTask,
   TrainerTaskType,
 } from '../models/client-detail.model';
+import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
+import {
+  ClientBodyProfile,
+  ClientProgress,
+  ClientSummary,
+  ClientTrainingProgress,
+  PlanChange,
+} from '../models/client-progress.model';
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -89,9 +99,19 @@ export class ClientDetailApiService {
     return this.http.delete(`trainer/clients/${clientId}?scope=${scope}`);
   }
 
+  // `fiberGTotal` (Fase 5) y `reason` (Fase 4) son opcionales: los objetivos
+  // sin fibra y los cambios sin motivo siguen siendo válidos.
   public assignNutritionalGoal(
     clientId: string,
-    goal: { name: string; kcalTotal: number; proteinsGTotal: number; carbohydratesGTotal: number; fatGTotal: number }
+    goal: {
+      name: string;
+      kcalTotal: number;
+      proteinsGTotal: number;
+      carbohydratesGTotal: number;
+      fatGTotal: number;
+      fiberGTotal?: number | null;
+      reason?: string;
+    }
   ): Observable<NutritionalGoal> {
     return this.http.post<NutritionalGoal>(
       `${this.base(clientId)}/nutritional-goals`,
@@ -153,6 +173,120 @@ export class ClientDetailApiService {
 
   public getAdherence(clientId: string): Observable<AdherenceSummary> {
     return this.http.get<AdherenceSummary>(`${this.base(clientId)}/adherence`);
+  }
+
+  // Fase 2 Coach Pro — la pestaña Resumen en UNA petición: alertas,
+  // adherencia multidimensional, tendencia de peso y qué tiene asignado.
+  // Antes esa misma respuesta exigía 4 llamadas repartidas por 4 pestañas.
+  public getSummary(clientId: string): Observable<ClientSummary> {
+    return this.http.get<ClientSummary>(`${this.base(clientId)}/summary`);
+  }
+
+  // Movimiento 3 Coach Pro — altura, sexo y nacimiento del cliente, lo único
+  // que le falta a la calculadora corporal (las mediciones ya las carga la
+  // pestaña). Llamada propia y barata (una consulta): colgarla de
+  // getSummary obligaría a Medidas a pagar las ~9 consultas de Resumen.
+  public getBodyProfile(clientId: string): Observable<ClientBodyProfile> {
+    return this.http.get<ClientBodyProfile>(`${this.base(clientId)}/body-profile`);
+  }
+
+  // Movimiento 5 Coach Pro — suplementación pautada. El catálogo de momentos
+  // lo decide el backend, igual que el de dolor y el de reglas: así es
+  // imposible que la interfaz ofrezca uno que el validador no conoce.
+  public getSupplementTimings(): Observable<{ timings: SupplementTiming[] }> {
+    return this.http.get<{ timings: SupplementTiming[] }>('supplements/timings');
+  }
+
+  public getSupplements(clientId: string): Observable<Supplement[]> {
+    return this.http.get<Supplement[]>(`${this.base(clientId)}/supplements`);
+  }
+
+  public createSupplement(clientId: string, payload: Partial<Supplement>): Observable<Supplement> {
+    return this.http.post<Supplement>(`${this.base(clientId)}/supplements`, payload);
+  }
+
+  public updateSupplement(
+    clientId: string,
+    supplementId: string,
+    payload: Partial<Supplement>
+  ): Observable<Supplement> {
+    return this.http.put<Supplement>(
+      `${this.base(clientId)}/supplements/${supplementId}`,
+      payload
+    );
+  }
+
+  public deleteSupplement(clientId: string, supplementId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(clientId)}/supplements/${supplementId}`);
+  }
+
+  // Movimiento 5 Coach Pro — qué tiene que comprar el cliente para cumplir
+  // el plan de ese rango. Sin modelo nuevo detrás: son los mismos días de
+  // dieta sumados por producto.
+  public getShoppingList(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<{
+    items: { name: string; quantity: number; dayCount: number }[];
+    daysWithPlan: number;
+    period: { from: string; to: string } | null;
+  }> {
+    return this.http.get<{
+      items: { name: string; quantity: number; dayCount: number }[];
+      daysWithPlan: number;
+      period: { from: string; to: string } | null;
+    }>(`${this.base(clientId)}/shopping-list?from=${from}&to=${to}`);
+  }
+
+  // Movimiento 3 Coach Pro — registro diario de dolor del cliente + los
+  // umbrales que fijó este entrenador, en UNA petición: la pantalla los
+  // enseña juntos porque un "6 en rodilla" no significa nada hasta leerlo al
+  // lado de "para a partir de 5".
+  public getClientPain(
+    clientId: string,
+    days: number
+  ): Observable<{ days: number; entries: PainEntry[]; thresholds: PainThreshold[] }> {
+    return this.http.get<{ days: number; entries: PainEntry[]; thresholds: PainThreshold[] }>(
+      `${this.base(clientId)}/pain?days=${days}`
+    );
+  }
+
+  public savePainThreshold(
+    clientId: string,
+    threshold: PainThreshold
+  ): Observable<PainThreshold> {
+    return this.http.put<PainThreshold>(`${this.base(clientId)}/pain/thresholds`, threshold);
+  }
+
+  public removePainThreshold(clientId: string, zone: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base(clientId)}/pain/thresholds/${encodeURIComponent(zone)}`
+    );
+  }
+
+  // Serie semanal + comparativa de la última semana contra la anterior. La
+  // comparativa no es otra llamada: son los dos últimos elementos de la
+  // misma serie, calculados en el backend para no duplicar la aritmética.
+  public getProgress(clientId: string, weeks: number): Observable<ClientProgress> {
+    return this.http.get<ClientProgress>(`${this.base(clientId)}/progress?weeks=${weeks}`);
+  }
+
+  // Fase 4 Coach Pro — qué le he cambiado a este cliente y por qué.
+  public getChanges(clientId: string): Observable<PlanChange[]> {
+    return this.http.get<PlanChange[]>(`${this.base(clientId)}/changes`);
+  }
+
+  // Fase 6 Coach Pro — volumen, PRs y evolución de cargas. Llamada aparte de
+  // getProgress porque su consulta es con diferencia la más cara del módulo:
+  // solo se pide si el cliente tiene ámbito de entrenamiento.
+  public getTrainingProgress(
+    clientId: string,
+    weeks: number
+  ): Observable<ClientTrainingProgress> {
+    return this.http.get<ClientTrainingProgress>(
+      `${this.base(clientId)}/training-progress?weeks=${weeks}`
+    );
   }
 
   // F20-bis — cumplimiento por día (para el calendario de nutrición), distinto
