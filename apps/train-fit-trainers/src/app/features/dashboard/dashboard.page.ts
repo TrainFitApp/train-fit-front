@@ -1,14 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
 import { TrainerNotificationsApiService } from './services/trainer-notifications-api.service';
 import { TrainerNotification, TrainerNotificationType } from './models/trainer-notification.model';
 import { TrainerPaymentsApiService } from './services/trainer-payments-api.service';
 import { PaymentsSummary } from './models/payments-summary.model';
-import { TrainerAttentionApiService } from './services/trainer-attention-api.service';
-import { AttentionItem, AttentionItemType } from './models/attention-item.model';
+import { CoachAlertsApiService } from './services/coach-alerts-api.service';
+import { CoachTasksApiService } from './services/coach-tasks-api.service';
+import { CoachAlert, CoachAlertPriority, CoachAlertType } from './models/coach-alert.model';
+import { CoachTask } from './models/coach-task.model';
 
 type ViewState = 'loading' | 'error' | 'loaded';
+type AlertFilter = 'all' | 'high';
 
 const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   invite_accepted: 'person-add-outline',
@@ -17,81 +21,396 @@ const NOTIFICATION_ICONS: Record<TrainerNotificationType, string> = {
   nutrition_preferences_updated: 'nutrition-outline',
 };
 
-const ATTENTION_ICONS: Record<AttentionItemType, string> = {
+// Un icono por TIPO de problema, no por prioridad: la prioridad ya se lee en
+// el chip de al lado, y repetirla en el icono gastaría el único canal que
+// distingue "peso" de "check-in" de un vistazo.
+const ALERT_ICONS: Record<CoachAlertType, string> = {
   pending_review: 'document-text-outline',
   checkin_overdue: 'clipboard-outline',
   plan_ending_soon: 'hourglass-outline',
+  stagnation: 'remove-outline',
+  weight_change: 'trending-up-outline',
+  measurement_change: 'resize-outline',
+  low_adherence: 'pie-chart-outline',
+  inactive_client: 'moon-outline',
 };
 
-// TASK-001 (MASTER_BACKLOG.md) — antes: KPIs, tareas y alertas 100% inventados
-// (nombres de cliente que no existen en la BD real). Ahora conecta con datos
-// reales donde ya existe un endpoint que los respalda 1:1. "Tareas de hoy" y
-// "Rutinas pendientes de revisar" se retiran en vez de rellenarse con otro
-// mock: no existe ningún concepto de agenda del entrenador ni de "rutina
-// enviada a revisión" en el backend hoy — inventar una UI para un concepto
-// que no existe sería el mismo problema del audit con otro disfraz. Ver
-// TASK-077 (seguimiento) para construir esa base real antes de tener un
-// hueco que llenar aquí.
-//
-// "Plantillas de entrenamiento" y "Evolución de clientes (peso)" se
-// retiraron a petición del usuario (no aportaban valor operativo diario en
-// el dashboard). En su lugar, "Cobros": tarjeta de pendiente/vencido +
-// gráfica de barras mensual junto a "Actividad reciente" — una sola query
-// agregada (trainer-payment-dao.js#getPaymentsOverview) en vez del fan-out
-// por cliente que tenía el gráfico de evolución.
+const PRIORITY_LABELS: Record<CoachAlertPriority, string> = {
+  high: 'Urgente',
+  medium: 'Revisar',
+  low: 'Menor',
+};
+
+// Título por defecto de la tarea que nace de cada alerta. El coach puede
+// cambiarlo antes de guardar — esto solo evita empezar con un campo vacío
+// cuando el siguiente paso es evidente por el tipo de problema.
+const TASK_TITLE_BY_ALERT: Record<CoachAlertType, string> = {
+  pending_review: 'Revisar cuestionario inicial',
+  checkin_overdue: 'Recordar el check-in',
+  plan_ending_soon: 'Renovar el plan de nutrición',
+  stagnation: 'Revisar estrategia nutricional',
+  weight_change: 'Revisar el cambio de peso',
+  measurement_change: 'Revisar las medidas',
+  low_adherence: 'Contactar para revisar adherencia',
+  inactive_client: 'Contactar con el cliente',
+};
+
 const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+// Fase 1 Coach Pro — el dashboard deja de ser un panel de métricas para
+// responder una sola pregunta: "¿dónde tengo que intervenir hoy?".
+//
+// Cambios de fondo respecto a la versión anterior:
+//   - "Requiere tu atención" leía AttentionItem (3 señales recalculadas en
+//     cada carga, sin prioridad ni estado). Ahora lee CoachAlert: 8 señales
+//     ya evaluadas, con prioridad, motivo redactado y acciones reales
+//     (resolver, crear tarea) — antes la única acción posible era navegar.
+//   - Las 3 stat cards de arriba desaparecen como estructura de la página.
+//     "Clientes activos" pasa a la línea de contexto del header (es contexto,
+//     no una decisión), "Check-ins pendientes" era un recuento de algo que ya
+//     está listado justo debajo, y "Cobros pendientes" se funde con su propia
+//     gráfica al final. En su lugar, una barra de triaje que además FILTRA la
+//     lista — cuenta y sirve para algo, no solo cuenta.
+//   - "Mis pendientes" es nuevo: hasta ahora el profesional no tenía dónde
+//     anotar lo que debía hacer, y las alertas no tenían adónde desembocar.
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.page.html',
   styleUrls: ['dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit {
-  public state: ViewState = 'loading';
+  private static readonly ALERT_PREVIEW_COUNT = 12;
 
-  public activeClientsCount = 0;
-
+  public activeClientsCount: number | null = null;
   public paymentsSummary: PaymentsSummary | null = null;
 
-  // --- Notificaciones (sustituye el hueco "Agenda y revisiones") ---
+  // --- Alertas ---
+  public alertsState: ViewState = 'loading';
+  public alerts: CoachAlert[] = [];
+  public alertFilter: AlertFilter = 'all';
+  public showAllAlerts = false;
+  public isEvaluating = false;
+  private resolvingAlertIds = new Set<string>();
+
+  // --- Mis pendientes ---
+  public tasksState: ViewState = 'loading';
+  public tasks: CoachTask[] = [];
+  public showTaskPanel = false;
+  public taskTitle = '';
+  public taskDueDate = '';
+  public taskClientId: string | null = null;
+  public taskSourceAlertId: string | null = null;
+  public taskClientName: string | null = null;
+  public isSavingTask = false;
+
+  // --- Actividad reciente ---
   public notificationsState: ViewState = 'loading';
   public notifications: TrainerNotification[] = [];
-
-  // --- "Requiere tu atención" — clientes que necesitan una acción del
-  // trainer ahora mismo (cuestionario por revisar, check-in vencido, plan a
-  // punto de caducar). Sustituye el antiguo stat "Respuestas de check-in"
-  // (conteo histórico, no accionable) por algo que sí dice a quién atender.
-  public attentionState: ViewState = 'loading';
-  public attentionItems: AttentionItem[] = [];
-  private static readonly ATTENTION_PREVIEW_COUNT = 8;
 
   constructor(
     private trainerClientsApi: TrainerClientsApiService,
     private trainerPaymentsApi: TrainerPaymentsApiService,
     private trainerNotificationsApi: TrainerNotificationsApiService,
-    private trainerAttentionApi: TrainerAttentionApiService,
+    private coachAlertsApi: CoachAlertsApiService,
+    private coachTasksApi: CoachTasksApiService,
+    private ionicUtilService: IonicUtilService,
     private router: Router
   ) {}
 
   public ngOnInit(): void {
-    this.load();
-    this.loadNotifications();
-    this.loadAttentionItems();
+    this.loadAll();
   }
 
   public ionViewWillEnter(): void {
-    this.load();
-    this.loadNotifications();
-    this.loadAttentionItems();
+    this.loadAll();
   }
 
-  // Carga aparte del resto del dashboard — un fallo aquí no debe ocultar
-  // los stat cards ni viceversa (mismo criterio que loadDashboard() en
-  // coach.page.ts, lado cliente).
+  // Cada sección carga por su cuenta: un fallo en cobros no debe dejar sin
+  // alertas al profesional, ni al revés. Mismo criterio que ya seguía esta
+  // página para notificaciones.
+  private loadAll(): void {
+    this.loadAlerts();
+    this.loadTasks();
+    this.loadNotifications();
+    this.loadClientsCount();
+    this.loadPaymentsSummary();
+  }
+
+  // --- Alertas ---
+
+  public loadAlerts(): void {
+    this.alertsState = 'loading';
+    this.coachAlertsApi.getMine('open').subscribe({
+      next: (alerts) => {
+        this.alerts = alerts;
+        this.alertsState = 'loaded';
+      },
+      error: () => {
+        this.alertsState = 'error';
+      },
+    });
+  }
+
+  public get highPriorityCount(): number {
+    return this.alerts.filter((alert) => alert.priority === 'high').length;
+  }
+
+  public get filteredAlerts(): CoachAlert[] {
+    if (this.alertFilter === 'high') {
+      return this.alerts.filter((alert) => alert.priority === 'high');
+    }
+    return this.alerts;
+  }
+
+  public get visibleAlerts(): CoachAlert[] {
+    const filtered = this.filteredAlerts;
+    return this.showAllAlerts ? filtered : filtered.slice(0, DashboardPage.ALERT_PREVIEW_COUNT);
+  }
+
+  public get hiddenAlertsCount(): number {
+    return Math.max(0, this.filteredAlerts.length - DashboardPage.ALERT_PREVIEW_COUNT);
+  }
+
+  public setAlertFilter(filter: AlertFilter): void {
+    this.alertFilter = filter;
+    this.showAllAlerts = false;
+  }
+
+  public alertIcon(alert: CoachAlert): string {
+    return ALERT_ICONS[alert.type] || 'alert-circle-outline';
+  }
+
+  public priorityLabel(priority: CoachAlertPriority): string {
+    return PRIORITY_LABELS[priority] || 'Revisar';
+  }
+
+  // "Detectado hoy" / "hace 3 días" — la antigüedad importa: un
+  // estancamiento de hace tres semanas pesa más que el de esta mañana, y una
+  // fecha absoluta obliga a calcularlo mentalmente.
+  public alertAge(alert: CoachAlert): string {
+    const days = Math.floor(
+      (Date.now() - new Date(alert.createdAt).getTime()) / 86400000
+    );
+    if (days <= 0) return 'Detectado hoy';
+    if (days === 1) return 'Detectado ayer';
+    return `Detectado hace ${days} días`;
+  }
+
+  public isResolving(alert: CoachAlert): boolean {
+    return this.resolvingAlertIds.has(alert._id);
+  }
+
+  public openAlertClient(alert: CoachAlert): void {
+    void this.router.navigate(['/tabs/clients', alert.clientId]);
+  }
+
+  // Se retira de la lista al instante y se ofrece deshacer en el propio
+  // toast: en un panel de triaje, esperar la respuesta del servidor para
+  // cada fila hace el trabajo lento, y confirmar cada resolución con un
+  // diálogo lo hace insoportable. Si la llamada falla, la fila vuelve.
+  public resolveAlert(alert: CoachAlert, event: Event): void {
+    event.stopPropagation();
+    if (this.resolvingAlertIds.has(alert._id)) return;
+
+    const index = this.alerts.findIndex((a) => a._id === alert._id);
+    if (index === -1) return;
+
+    this.resolvingAlertIds.add(alert._id);
+    this.alerts = this.alerts.filter((a) => a._id !== alert._id);
+
+    this.coachAlertsApi.setStatus(alert._id, 'resolved').subscribe({
+      next: () => {
+        this.resolvingAlertIds.delete(alert._id);
+        void this.presentUndoToast(alert, index);
+      },
+      error: (error) => {
+        this.resolvingAlertIds.delete(alert._id);
+        this.restoreAlert(alert, index);
+        void this.ionicUtilService.showErrorToast(error, 'No se pudo resolver la alerta');
+      },
+    });
+  }
+
+  private async presentUndoToast(alert: CoachAlert, index: number): Promise<void> {
+    await this.ionicUtilService.showToast({
+      message: `Resuelta: ${alert.clientName}`,
+      duration: 5000,
+      position: 'bottom',
+      cssClass: 'toast-safe-area',
+      buttons: [
+        {
+          text: 'Deshacer',
+          handler: () => {
+            this.coachAlertsApi.setStatus(alert._id, 'open').subscribe({
+              next: () => this.restoreAlert(alert, index),
+              error: (error) =>
+                void this.ionicUtilService.showErrorToast(error, 'No se pudo reabrir la alerta'),
+            });
+          },
+        },
+      ],
+    });
+  }
+
+  // Devuelve la fila a su sitio original, no al final — el orden lo decide la
+  // prioridad, y reinsertar al final la haría "saltar" al recargar.
+  private restoreAlert(alert: CoachAlert, index: number): void {
+    const next = [...this.alerts];
+    next.splice(Math.min(index, next.length), 0, alert);
+    this.alerts = next;
+  }
+
+  // El ciclo natural del evaluador es de 24 h. Sin esta acción, un
+  // profesional que acaba de dar de alta a sus clientes vería un panel vacío
+  // hasta la mañana siguiente y concluiría que no funciona.
+  public evaluateNow(): void {
+    if (this.isEvaluating) return;
+    this.isEvaluating = true;
+
+    this.coachAlertsApi.evaluateNow().subscribe({
+      next: () => {
+        this.isEvaluating = false;
+        this.loadAlerts();
+      },
+      error: (error) => {
+        this.isEvaluating = false;
+        void this.ionicUtilService.showErrorToast(error, 'No se pudo revisar a tus clientes');
+      },
+    });
+  }
+
+  public trackByAlertId(_index: number, alert: CoachAlert): string {
+    return alert._id;
+  }
+
+  // --- Mis pendientes ---
+
+  public loadTasks(): void {
+    this.tasksState = 'loading';
+    this.coachTasksApi.getMine('pending').subscribe({
+      next: (tasks) => {
+        this.tasks = tasks;
+        this.tasksState = 'loaded';
+      },
+      error: () => {
+        this.tasksState = 'error';
+      },
+    });
+  }
+
+  public openTaskPanel(): void {
+    this.taskTitle = '';
+    this.taskDueDate = '';
+    this.taskClientId = null;
+    this.taskClientName = null;
+    this.taskSourceAlertId = null;
+    this.showTaskPanel = true;
+  }
+
+  // Desde una alerta: el título viene propuesto por tipo y la tarea queda
+  // atada al cliente y a la alerta de origen, para que la ficha pueda
+  // enseñar más tarde de dónde salió.
+  public openTaskPanelFromAlert(alert: CoachAlert, event: Event): void {
+    event.stopPropagation();
+    this.taskTitle = TASK_TITLE_BY_ALERT[alert.type] || 'Revisar cliente';
+    this.taskDueDate = '';
+    this.taskClientId = alert.clientId;
+    this.taskClientName = alert.clientName;
+    this.taskSourceAlertId = alert._id;
+    this.showTaskPanel = true;
+  }
+
+  public closeTaskPanel(): void {
+    this.showTaskPanel = false;
+  }
+
+  public get canSubmitTask(): boolean {
+    return !!this.taskTitle.trim() && !this.isSavingTask;
+  }
+
+  public submitTask(): void {
+    if (!this.canSubmitTask) return;
+    this.isSavingTask = true;
+
+    this.coachTasksApi
+      .create({
+        title: this.taskTitle.trim(),
+        dueDate: this.taskDueDate || null,
+        clientId: this.taskClientId,
+        sourceAlertId: this.taskSourceAlertId,
+      })
+      .subscribe({
+        next: () => {
+          this.isSavingTask = false;
+          this.showTaskPanel = false;
+          this.loadTasks();
+        },
+        error: (error) => {
+          this.isSavingTask = false;
+          void this.ionicUtilService.showErrorToast(error, 'No se pudo crear la tarea');
+        },
+      });
+  }
+
+  // Marcar hecha retira la tarea de la lista de pendientes al instante,
+  // mismo criterio optimista que resolver una alerta.
+  public completeTask(task: CoachTask, event: Event): void {
+    event.stopPropagation();
+    const index = this.tasks.findIndex((t) => t._id === task._id);
+    this.tasks = this.tasks.filter((t) => t._id !== task._id);
+
+    this.coachTasksApi.update(task._id, { status: 'done' }).subscribe({
+      error: (error) => {
+        const next = [...this.tasks];
+        next.splice(Math.min(index, next.length), 0, task);
+        this.tasks = next;
+        void this.ionicUtilService.showErrorToast(error, 'No se pudo completar la tarea');
+      },
+    });
+  }
+
+  public openTaskClient(task: CoachTask): void {
+    if (!task.clientId) return;
+    void this.router.navigate(['/tabs/clients', task.clientId._id]);
+  }
+
+  public taskClientLabel(task: CoachTask): string | null {
+    if (!task.clientId) return null;
+    return `${task.clientId.name} ${task.clientId.lastname}`.trim();
+  }
+
+  // "Vence hoy" / "Vencida" / "Vence el 4 sep" — el estado de vencimiento es
+  // lo que decide si una tarea sube en la lista, así que se nombra en vez de
+  // dejar una fecha suelta que hay que comparar mentalmente con hoy.
+  public taskDueLabel(task: CoachTask): string | null {
+    if (!task.dueDate) return null;
+    const today = new Date().toISOString().slice(0, 10);
+    if (task.dueDate < today) return 'Vencida';
+    if (task.dueDate === today) return 'Vence hoy';
+    return `Vence el ${this.formatShortDate(task.dueDate)}`;
+  }
+
+  public isTaskOverdue(task: CoachTask): boolean {
+    if (!task.dueDate) return false;
+    return task.dueDate <= new Date().toISOString().slice(0, 10);
+  }
+
+  private formatShortDate(isoDate: string): string {
+    const [, month, day] = isoDate.split('-');
+    return `${Number(day)} ${MONTH_LABELS[Number(month) - 1] || ''}`.trim();
+  }
+
+  public trackByTaskId(_index: number, task: CoachTask): string {
+    return task._id;
+  }
+
+  // --- Actividad reciente ---
+
   public loadNotifications(): void {
     this.notificationsState = 'loading';
     this.trainerNotificationsApi.getMine().subscribe({
       next: (notifications) => {
-        this.notifications = notifications.slice(0, 8);
+        this.notifications = notifications.slice(0, 6);
         this.notificationsState = 'loaded';
       },
       error: () => {
@@ -133,7 +452,15 @@ export class DashboardPage implements OnInit {
 
     switch (notification.type) {
       case 'checkin_responded':
-        void this.router.navigate(['/tabs/checkins']);
+        // A la ficha del cliente, subpestaña Check-ins. Antes iba a la
+        // bandeja agregada, que se retiró por redundante con esta.
+        if (notification.client) {
+          void this.router.navigate(['/tabs/clients', notification.client._id], {
+            queryParams: { tab: 'checkins' },
+          });
+        } else {
+          void this.router.navigate(['/tabs/clients']);
+        }
         break;
       case 'nutrition_preferences_updated':
       case 'intake_submitted_trainer':
@@ -163,84 +490,19 @@ export class DashboardPage implements OnInit {
     return notification._id;
   }
 
-  public load(): void {
-    this.state = 'loading';
+  // --- Contexto (clientes activos, cobros) ---
+
+  public loadClientsCount(): void {
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         this.activeClientsCount = clients.length;
-        this.state = 'loaded';
       },
       error: () => {
-        this.state = 'error';
-      },
-    });
-    this.loadPaymentsSummary();
-  }
-
-  // --- "Requiere tu atención" ---
-  public loadAttentionItems(): void {
-    this.attentionState = 'loading';
-    this.trainerAttentionApi.getMine().subscribe({
-      next: (items) => {
-        this.attentionItems = items;
-        this.attentionState = 'loaded';
-      },
-      error: () => {
-        this.attentionState = 'error';
+        this.activeClientsCount = null;
       },
     });
   }
 
-  public get visibleAttentionItems(): AttentionItem[] {
-    return this.attentionItems.slice(0, DashboardPage.ATTENTION_PREVIEW_COUNT);
-  }
-
-  public get hiddenAttentionItemsCount(): number {
-    return Math.max(0, this.attentionItems.length - DashboardPage.ATTENTION_PREVIEW_COUNT);
-  }
-
-  // Conteo real (no el de visibleAttentionItems, que puede estar recortado
-  // visualmente) — usado por la stat card "Check-ins pendientes".
-  public get pendingCheckinsCount(): number {
-    return this.attentionItems.filter((i) => i.type === 'checkin_overdue').length;
-  }
-
-  public attentionIcon(item: AttentionItem): string {
-    return ATTENTION_ICONS[item.type] || 'alert-circle-outline';
-  }
-
-  public attentionLabel(item: AttentionItem): string {
-    switch (item.type) {
-      case 'pending_review':
-        return 'Cuestionario por revisar';
-      case 'checkin_overdue':
-        return 'Check-in pendiente';
-      case 'plan_ending_soon':
-        if (item.daysLeft === 0) return 'Plan de nutrición caduca hoy';
-        return `Plan de nutrición caduca en ${item.daysLeft} día${item.daysLeft === 1 ? '' : 's'}`;
-      default:
-        return '';
-    }
-  }
-
-  public openAttentionItem(item: AttentionItem): void {
-    void this.router.navigate(['/tabs/clients', item.clientId]);
-  }
-
-  public trackByAttentionItem(_index: number, item: AttentionItem): string {
-    return `${item.type}-${item.clientId}`;
-  }
-
-  // La stat card "Check-ins pendientes" no tiene pantalla propia a la que
-  // navegar (los pendientes YA están listados abajo, en esta misma
-  // página) — mismo patrón que scrollToSection() en coach.page.ts (lado
-  // cliente) para "Pendiente de ti".
-  public scrollToAttention(): void {
-    document.getElementById('attention-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  // Carga aparte (mismo criterio que loadNotifications): un fallo aquí no
-  // debe tumbar el resto del dashboard.
   public loadPaymentsSummary(): void {
     this.trainerPaymentsApi.getOverview().subscribe({
       next: (summary) => {

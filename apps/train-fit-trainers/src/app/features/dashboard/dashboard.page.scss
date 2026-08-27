@@ -1,87 +1,14 @@
 @import '../../../theme/skeleton';
+@import '../../../theme/buttons';
+@import '../../../theme/panel-sheet';
+@import '../../../theme/inputs';
 
-.detail-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.skeleton-block {
-  @include tf-skeleton-shimmer;
-  border-radius: 12px;
-}
-
-// --- Carga de página completa: mismo esqueleto de la forma final (stat-grid
-// + panel), no dos bloques genéricos ---
-.dashboard-skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tf-space-5);
-}
-
-.stat-card-skeleton {
-  height: 84px;
-  border-radius: var(--tf-radius-lg);
-}
-
-.panel-card-skeleton {
-  height: 220px;
-  border-radius: var(--tf-radius-lg);
-}
-
-.attention-panel-skeleton {
-  height: 132px;
-  border-radius: var(--tf-radius-lg);
-}
-
-// --- Estados vacío/error de página completa — mismo patrón que
-// clients.page.scss (icono + título + texto + CTA), no un párrafo suelto ---
-.state-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  padding: 96px 32px 0;
-  color: var(--tf-text-muted);
-
-  ion-icon {
-    font-size: 40px;
-    color: var(--tf-text-faint);
-    margin-bottom: 6px;
-  }
-
-  h2 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--tf-text);
-    margin: 0;
-  }
-
-  p {
-    font-size: 0.9rem;
-    line-height: 1.5;
-    max-width: 34ch;
-    margin: 0 0 4px;
-  }
-}
-
-.retry-button {
-  margin-top: 8px;
-  height: var(--tf-touch-min);
-  padding: 0 20px;
-  background: var(--tf-surface-5);
-  color: var(--tf-text);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: var(--tf-radius-sm);
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:active {
-    transform: scale(0.96);
-  }
+.dashboard-content {
+  --background: var(--tf-bg);
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 12px;
+  --padding-bottom: 32px;
 }
 
 // Texto solo para lectores de pantalla (estado "no leída" de notificaciones,
@@ -98,222 +25,571 @@
   border: 0;
 }
 
-.dashboard-content {
-  --background: var(--tf-bg);
-  --padding-start: 20px;
-  --padding-end: 20px;
-  --padding-top: 12px;
-  --padding-bottom: 32px;
-}
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--tf-space-4);
-  margin-bottom: var(--tf-space-5);
-
-  @media (max-width: 700px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.stat-card {
-  position: relative;
-  display: block;
-  width: 100%;
-  background: var(--tf-surface-1);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-lg);
-  padding: var(--tf-space-4);
-  font-family: inherit;
-  text-align: left;
-}
-
-// Clientes activos / Respuestas de check-in navegan a su pantalla — Cobros
-// pendientes se queda como <div> (no hay pantalla de "todos los cobros"
-// todavía, solo por cliente), sin affordance de click. El chevron
-// (.stat-chevron) es la señal de que se puede pulsar, ya que en móvil no
-// existe :hover para distinguirlo a simple vista.
-.stat-card--link {
-  cursor: pointer;
-  padding-right: var(--tf-space-8);
-  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
-    transform var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:hover {
-    border-color: var(--tf-border-strong);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.stat-chevron {
-  position: absolute;
-  right: var(--tf-space-4);
-  bottom: var(--tf-space-4);
-  font-size: 16px;
-  color: var(--tf-text-faint);
-}
-
-.stat-card-row {
+// ---------------------------------------------------------------------------
+// Barra de triaje
+// ---------------------------------------------------------------------------
+// Sustituye al grid de 3 stat cards. Los números siguen ahí, pero ahora cada
+// uno es un filtro de la lista de abajo en vez de una tarjeta que solo se
+// mira. "Clientes activos" queda a la derecha como contexto tipográfico —
+// dato de fondo, no una decisión que tomar.
+.triage-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  ion-icon {
-    font-size: 16px;
-  }
+  gap: var(--tf-space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-4);
 }
 
-.stat-icon {
-  &--success {
-    color: var(--tf-success);
-  }
-
-  &--accent {
-    color: var(--tf-accent);
-  }
-
-  &--muted {
-    color: var(--tf-text-secondary);
-  }
-
-  &--danger {
-    color: var(--tf-danger);
-  }
+.triage-filters {
+  display: flex;
+  gap: var(--tf-space-2);
 }
 
-.stat-label {
+.triage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  // Cuadrado de esquinas redondeadas, igual que los botones de icono del
+  // sistema (tf-icon-button, 12px): la app no mezcla cápsulas y cuadrados
+  // en la misma barra.
+  border-radius: var(--tf-radius-lg);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
   font-size: var(--tf-font-size-sm);
-  color: var(--tf-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover:not(:disabled) {
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &--active {
+    background: var(--tf-surface-4);
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text);
+  }
+
+  // El chip de urgentes se tiñe solo cuando ESTÁ activo: en reposo compite
+  // con las alertas reales de la lista si va siempre en rojo.
+  &--urgent.triage-chip--active {
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+    color: var(--tf-danger-text);
+  }
 }
 
-.stat-value {
-  display: block;
-  margin-top: 6px;
-  font-size: 1.7rem;
+// El icono, un punto por debajo del texto: ayuda a distinguir los dos
+// filtros de un vistazo, pero la etiqueta es la que manda. En el activo
+// hereda el color del chip para no quedarse apagado.
+.triage-chip__icon {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--tf-text-faint);
+}
+
+.triage-chip--active .triage-chip__icon,
+.triage-chip--urgent .triage-chip__icon {
+  color: inherit;
+}
+
+.triage-count {
+  // Tabulares para que el ancho del chip no baile al pasar de 9 a 10.
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--tf-text);
+
+  .triage-chip--urgent.triage-chip--active & {
+    color: inherit;
+  }
 }
 
-.stat-sublabel {
-  display: block;
-  margin-top: 2px;
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
+.triage-context {
+  font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
-
-  &--danger {
-    color: var(--tf-danger);
-  }
+  font-variant-numeric: tabular-nums;
 }
 
-// Variación de facturación mensual vs mes anterior — dato distinto del
-// "pendiente" de arriba (ver payments-chart-card), así que lleva su propia
-// línea con icono de tendencia en vez de mezclarse con .stat-sublabel.
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: var(--tf-space-2);
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-border-subtle);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text-muted);
-
-  ion-icon {
-    font-size: 13px;
-  }
-
-  // Sin semántica de éxito/alerta por defecto (más facturado no siempre es
-  // "bueno" para quien lo lee a las 7am) — se tiñe solo con dirección clara.
-  &--up {
-    color: var(--tf-success);
-  }
-
-  &--down {
-    color: var(--tf-danger);
-  }
-}
-
+// ---------------------------------------------------------------------------
+// Contenedores de sección
+// ---------------------------------------------------------------------------
 .panel-card {
   background: var(--tf-surface-1);
+  // Elevación declarada UNA vez: borde, sin sombra encima.
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-lg);
   overflow: hidden;
 }
 
-// "Requiere tu atención" — entre el stat-grid (contexto) y el
-// dashboard-grid (actividad/cobros, ambos retrospectivos): la única sección
-// del dashboard que responde "qué hago ahora", así que va a ancho completo
-// y por delante de lo analítico, no al lado.
-.attention-panel {
+.alerts-panel,
+.tasks-panel {
   margin-bottom: var(--tf-space-5);
 }
 
-.attention-item {
-  position: relative;
-  width: 100%;
+.panel-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  border: none;
-  border-top: 1px solid var(--tf-border);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border);
+}
+
+.panel-card-title {
+  margin: 0;
+  font-size: var(--tf-font-size-md);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.link-button {
+  position: relative;
   background: transparent;
-  color: inherit;
+  border: none;
+  padding: 0;
+  color: var(--tf-accent-text);
   font-family: inherit;
-  text-align: left;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out);
 
-  &:active {
-    background: var(--tf-surface-2);
+  // Un enlace de texto en la cabecera de una tarjeta mide lo que mide su
+  // texto: 16px de alto, muy por debajo del mínimo táctil de 44px que exige
+  // PRODUCT.md. Darle padding lo convertiría en un botón y competiría con el
+  // título de al lado, así que se amplía solo el ÁREA PULSABLE — misma
+  // técnica que la casilla de tareas y los segmentos del selector de semanas.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: var(--tf-touch-min);
+    width: 100%;
+    height: var(--tf-touch-min);
+    transform: translate(-50%, -50%);
+  }
+
+  &:disabled {
+    color: var(--tf-text-muted);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 3px;
+    border-radius: var(--tf-radius-sm);
   }
 }
 
-.attention-item-icon {
-  flex-shrink: 0;
-  font-size: 17px;
-  color: var(--tf-accent);
-
-  // Plan a caducar en 2 días o menos: mismo tono de urgencia que "vencido"
-  // en la tarjeta de Cobros — no todos los motivos pesan igual.
-  &--urgent {
-    color: var(--tf-danger);
-  }
-}
-
-.attention-item-info {
-  flex: 1;
-  min-width: 0;
+// ---------------------------------------------------------------------------
+// Estados de sección (carga / error / vacío)
+// ---------------------------------------------------------------------------
+.alerts-skeleton {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
-.attention-item-name {
+.skeleton-block {
+  @include tf-skeleton-shimmer;
+  border-radius: var(--tf-radius-lg);
+}
+
+// Mismas alturas que las filas reales: el esqueleto anticipa la forma final,
+// no un bloque genérico que luego salta.
+.alert-row-skeleton {
+  height: 92px;
+  border-radius: 0;
+}
+
+.task-row-skeleton {
+  height: 64px;
+  border-radius: 0;
+}
+
+.section-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-8) var(--tf-space-6);
+  color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 28px;
+    color: var(--tf-text-faint);
+    margin-bottom: var(--tf-space-1);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--tf-font-size-sm);
+    line-height: var(--tf-line-height-base);
+    max-width: 48ch;
+  }
+
+  .retry-button {
+    margin-top: var(--tf-space-3);
+  }
+}
+
+.section-state__title {
   font-size: var(--tf-font-size-base);
   font-weight: 600;
   color: var(--tf-text);
 }
 
-.attention-item-reason {
+// "Todo en orden" no es un error: el icono va en verde, no en gris apagado.
+.section-state--calm ion-icon {
+  color: var(--tf-success);
+}
+
+.retry-button {
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lista de alertas
+// ---------------------------------------------------------------------------
+.alert-list,
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.alert-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-space-2);
+  padding-right: var(--tf-space-4);
+  border-bottom: 1px solid var(--tf-border-subtle);
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+}
+
+// Toda la fila (icono + textos) es el destino principal: abrir la ficha del
+// cliente. Las dos acciones sueltas viven fuera de este botón para no anidar
+// controles interactivos.
+.alert-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-2) var(--tf-space-4) var(--tf-space-5);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 18px;
+  color: var(--tf-text-secondary);
+
+  &--high {
+    color: var(--tf-danger);
+  }
+}
+
+.alert-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+}
+
+.alert-head {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+.alert-client {
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+// La prioridad se nombra con PALABRA, no solo con color — el color solo
+// sería inaccesible para daltonismo y en escala de grises (PRODUCT.md > AA).
+.priority-chip {
+  padding: 2px var(--tf-space-2);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+
+  // --tf-danger-text, no --tf-danger: en negrita de 12px sobre el fondo
+  // teñido esto es TEXTO (umbral AA 4,5:1), no un elemento gráfico.
+  &--high {
+    background: var(--tf-danger-soft);
+    color: var(--tf-danger-text);
+  }
+}
+
+// La frase la redacta el backend con los números dentro; aquí solo se le da
+// una medida legible.
+.alert-reason {
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-secondary);
+  max-width: 68ch;
+}
+
+.alert-age {
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
 }
 
-.attention-item-chevron {
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
   flex-shrink: 0;
-  font-size: 16px;
-  color: var(--tf-text-faint);
 }
 
-// Actividad reciente (accionable) primero, gráfica de cobros (analítica)
-// después — apiladas en móvil, lado a lado en escritorio.
+.alert-action {
+  @include tf-icon-button(var(--tf-touch-min), var(--tf-radius-sm), 20px);
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &--resolve:hover:not(:disabled) {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+}
+
+.show-more-button {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  border: none;
+  border-top: 1px solid var(--tf-border);
+  background: transparent;
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mis pendientes
+// ---------------------------------------------------------------------------
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: 0 var(--tf-space-4) 0 var(--tf-space-5);
+  border-bottom: 1px solid var(--tf-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+}
+
+// Casilla de "hecho": el icono solo se tiñe al pasar por encima o con foco,
+// para que en reposo se lea como una casilla vacía y no como algo ya marcado.
+.task-check {
+  position: relative;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1.5px solid var(--tf-border-strongest);
+  border-radius: 50%;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  // El círculo pintado mide 24px, pero el área pulsable llega al mínimo
+  // táctil de 44px vía este pseudo-elemento centrado — agrandar el dibujo
+  // haría que una lista de pendientes pareciera un formulario.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--tf-touch-min);
+    height: var(--tf-touch-min);
+    transform: translate(-50%, -50%);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--tf-success);
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--tf-space-3) 0;
+  min-height: 56px;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+    border-radius: var(--tf-radius-sm);
+  }
+
+  // Sin cliente al que navegar: deja de comportarse como un enlace en vez de
+  // fingir una acción que no ocurre.
+  &--plain {
+    cursor: default;
+  }
+}
+
+.task-title {
+  font-size: var(--tf-font-size-base);
+  color: var(--tf-text);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.task-client {
+  color: var(--tf-text-secondary);
+}
+
+.task-due--overdue {
+  color: var(--tf-danger-text);
+  font-weight: 600;
+}
+
+// ---------------------------------------------------------------------------
+// Actividad reciente + cobros
+// ---------------------------------------------------------------------------
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -325,13 +601,93 @@
   }
 }
 
-.payments-chart-card {
-  padding: var(--tf-space-5);
+.notification-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-3) var(--tf-space-5);
+  border: none;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--tf-surface-2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
 }
 
-.payments-chart-card .panel-card-title {
-  padding: 0 0 var(--tf-space-5);
-  border-bottom: none;
+.notification-dot {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tf-accent);
+}
+
+.notification-card--unread {
+  padding-left: calc(var(--tf-space-5) + 10px);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--tf-text-secondary);
+}
+
+.notification-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notification-title {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.notification-subtitle {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.payments-chart-card {
+  padding-bottom: var(--tf-space-5);
+}
+
+.payments-header {
+  flex-wrap: wrap;
+}
+
+.payments-pending {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+
+  &--overdue {
+    color: var(--tf-danger-text);
+  }
 }
 
 .payments-chart {
@@ -339,6 +695,7 @@
   align-items: flex-end;
   gap: var(--tf-space-2);
   height: 140px;
+  padding: var(--tf-space-5) var(--tf-space-5) 0;
 }
 
 .payments-bar-col {
@@ -361,6 +718,7 @@
   color: var(--tf-text-muted);
   margin-bottom: var(--tf-space-1);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .payments-bar-track {
@@ -396,101 +754,125 @@
   text-transform: capitalize;
 }
 
-.panel-card-header,
-.panel-card-title {
-  padding: var(--tf-space-4) var(--tf-space-5);
-}
-
-.panel-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 0;
-}
-
-.panel-card-title {
-  margin: 0;
-  font-size: var(--tf-font-size-md);
-  font-weight: 600;
-  color: var(--tf-text);
-  border-bottom: 1px solid var(--tf-border);
-}
-
-// --- Actividad reciente (notificaciones del trainer) ---
-.mark-all-read-button {
-  background: transparent;
-  border: none;
-  color: var(--tf-accent-text);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-}
-
-.notification-card {
-  position: relative;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--tf-space-3);
-  padding: var(--tf-space-3) var(--tf-space-5);
-  border: none;
-  border-top: 1px solid var(--tf-border);
-  background: transparent;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background var(--tf-duration-fast) var(--tf-ease-out);
-
-  &:active {
-    background: var(--tf-surface-2);
-  }
-}
-
-.notification-dot {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--tf-accent);
-}
-
-.notification-card--unread {
-  padding-left: calc(var(--tf-space-5) + 10px);
-}
-
-.notification-icon {
-  flex-shrink: 0;
-  font-size: 17px;
-  color: var(--tf-accent);
-}
-
-.notification-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.notification-title {
-  font-size: var(--tf-font-size-base);
-  color: var(--tf-text-secondary);
-}
-
-.notification-subtitle {
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-}
-
 .empty-hint {
   margin: 0;
   padding: var(--tf-space-2) var(--tf-space-5) var(--tf-space-4);
   color: var(--tf-text-muted);
   font-size: var(--tf-font-size-sm);
-  line-height: 1.5;
+  line-height: var(--tf-line-height-base);
+}
+
+// ---------------------------------------------------------------------------
+// Panel de nueva tarea — mismos mixins que el resto de bottom sheets
+// ---------------------------------------------------------------------------
+.panel-backdrop {
+  @include tf-panel-backdrop;
+}
+
+.panel-sheet {
+  @include tf-panel-sheet;
+}
+
+.panel-handle {
+  @include tf-panel-handle;
+}
+
+.panel-title {
+  margin: 0 0 var(--tf-space-1);
+  font-size: var(--tf-font-size-lg);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.panel-subtitle {
+  margin: 0 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+}
+
+.field-label {
+  display: block;
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-secondary);
+}
+
+.field-optional {
+  font-weight: 400;
+  color: var(--tf-text-muted);
+}
+
+.input-wrapper {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: var(--tf-touch-min);
+}
+
+.input-field {
+  @include tf-input-field;
+  font-size: var(--tf-font-size-base);
+}
+
+.panel-actions {
+  display: flex;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-6);
+}
+
+.cancel-button {
+  flex: 1;
+  height: var(--tf-touch-min);
+  background: var(--tf-surface-3);
+  color: var(--tf-text-secondary);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.submit-button {
+  @include tf-gradient-button(var(--tf-radius-lg));
+
+  flex: 1;
+  height: var(--tf-touch-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--tf-font-size-base);
+}
+
+// ---------------------------------------------------------------------------
+// Móvil
+// ---------------------------------------------------------------------------
+// Por debajo de 560px las dos acciones de la alerta bajan a su propia línea:
+// mantenerlas a la derecha dejaría la frase del motivo en una columna de
+// ~14 caracteres, ilegible justo en el texto que explica el problema.
+@media (max-width: 560px) {
+  .alert-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-right: 0;
+  }
+
+  .alert-main {
+    padding-right: var(--tf-space-5);
+  }
+
+  .alert-actions {
+    justify-content: flex-end;
+    gap: var(--tf-space-2);
+    padding: 0 var(--tf-space-5) var(--tf-space-4);
+  }
+
+  .triage-bar {
+    justify-content: flex-start;
+  }
 }
