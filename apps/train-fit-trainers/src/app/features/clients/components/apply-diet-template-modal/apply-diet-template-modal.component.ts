@@ -32,6 +32,30 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
 
+  // Fecha con la que arranca el formulario cuando se encadena una fase: el
+  // día siguiente al fin de la anterior, para que no quede un hueco sin
+  // plan ni dos planes el mismo día. Sin fase previa (o si acaba
+  // "indefinido"), hoy.
+  @Input() public set suggestedStartDate(value: string | null) {
+    if (value) this.startDate = value;
+  }
+
+  // Lo que se enseña bajo el campo para justificar esa fecha.
+  @Input() public previousPhaseEnd: string | null = null;
+  @Input() public previousPhaseName = '';
+
+  // Rango elegido en el calendario: fija inicio y fin de una vez y cambia
+  // el modo de fin a "fecha exacta", que es lo que acaba de decidirse.
+  public onRangePicked(range: { start: string; end: string }): void {
+    this.startDate = range.start;
+    this.fixedEndDate = range.end;
+    this.endMode = 'fixedDate';
+    this.overlapError = null;
+  }
+
+  // Mensaje del 409 del backend: las fechas pisan otra fase.
+  public overlapError: string | null = null;
+
   public state: ViewState = 'loading';
   public templates: DietTemplate[] = [];
   public selectedTemplateId: string | null = null;
@@ -94,6 +118,7 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   public confirm(): void {
     if (!this.canConfirm || !this.selectedTemplateId) return;
     this.state = 'applying';
+    this.overlapError = null;
     this.planAssignmentApi
       .apply(this.clientId, this.selectedTemplateId, {
         startDate: this.startDate,
@@ -104,8 +129,15 @@ export class ApplyDietTemplateModalComponent implements OnInit {
       })
       .subscribe({
         next: (result) => void this.modalController.dismiss(result, 'confirm'),
-        error: () => {
+        error: (err) => {
           this.state = 'loaded';
+          // 409 = las fechas pisan otra fase. Se dice en el propio
+          // formulario, junto a las fechas: cerrar el panel con un toast
+          // genérico obligaría a reabrirlo y adivinar qué falló.
+          this.overlapError =
+            err?.status === 409
+              ? err?.error?.message || 'Esas fechas se solapan con otra fase.'
+              : null;
         },
       });
   }

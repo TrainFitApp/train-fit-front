@@ -148,3 +148,37 @@
   color: var(--tf-text-muted);
   margin: 10px 2px 0;
 }
+
+// Justificación de la fecha propuesta, bajo el campo.
+.date-hint {
+  margin: -4px 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-faint);
+
+  strong {
+    color: var(--tf-text-muted);
+    font-weight: 600;
+  }
+}
+
+// Choque de fechas: junto al formulario, no en un toast que se va.
+.overlap-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 var(--tf-space-3);
+  padding: var(--tf-space-3);
+  background: var(--tf-danger-soft);
+  border: 1px solid var(--tf-danger-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-danger-text);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    margin-top: 1px;
+  }
+}

@@ -40,10 +40,35 @@
       ></ion-icon>
     </div>
 
+    <!-- El mismo calendario de la ficha, en modo selección de rango: pinta
+         las fases ya pautadas, así que las fechas ocupadas se ven ANTES de
+         elegirlas en vez de descubrirse al guardar. -->
+    <app-nutrition-calendar
+      *ngIf="selectedTemplateId"
+      [clientId]="clientId"
+      [pickerMode]="true"
+      [selectedDate]="startDate"
+      (rangeSelected)="onRangePicked($event)"
+    ></app-nutrition-calendar>
+
     <div class="input-wrapper" *ngIf="selectedTemplateId">
       <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
       <input type="date" class="input-field" [(ngModel)]="startDate" />
     </div>
+
+    <!-- De dónde sale la fecha propuesta: sin decirlo, un campo ya relleno
+         con una fecha futura parece un valor arbitrario. -->
+    <p class="date-hint" *ngIf="selectedTemplateId && previousPhaseEnd">
+      Encadena con
+      <strong *ngIf="previousPhaseName">{{ previousPhaseName }}</strong>
+      <span *ngIf="!previousPhaseName">la fase anterior</span>, que termina el
+      {{ previousPhaseEnd }}.
+    </p>
+
+    <p class="overlap-error" *ngIf="overlapError">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      {{ overlapError }}
+    </p>
 
     <!-- Auditoría de arquitectura (Fase 8) — hasta cuándo aplica, no solo desde cuándo -->
     <ng-container *ngIf="selectedTemplateId">

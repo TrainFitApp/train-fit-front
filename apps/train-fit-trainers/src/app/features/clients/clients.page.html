@@ -8,8 +8,11 @@
         <h1 class="tf-page-header__title">Clientes</h1>
       </div>
       <div class="tf-page-header__actions">
-        <button type="button" class="tf-page-header__back-button" (click)="goToInvite()" aria-label="Invitar cliente">
-          <ion-icon name="person-add-outline"></ion-icon>
+        <!-- Con texto: un icono de persona con un "+" no dice si añade un
+             cliente, lo invita o abre su agenda. -->
+        <button type="button" class="header-add-btn" (click)="goToInvite()">
+          <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+          Cliente
         </button>
       </div>
     </div>
@@ -92,109 +95,8 @@
     </div>
   </div>
 
-  <!-- Loading -->
-  <div class="client-table" *ngIf="state === 'loading'">
-    <div class="client-list">
-      <div class="client-card skeleton" *ngFor="let i of [1, 2, 3, 4]">
-        <div class="client-avatar skeleton-block"></div>
-        <div class="skeleton-name-block">
-          <div class="skeleton-line skeleton-line--name"></div>
-          <div class="skeleton-line skeleton-line--chip"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Error -->
-  <div class="state-message" *ngIf="state === 'error'">
-    <ion-icon name="cloud-offline-outline"></ion-icon>
-    <h2>No se pudo cargar tu lista de clientes</h2>
-    <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-    <button class="retry-button" (click)="load()">Reintentar</button>
-  </div>
-
-  <!-- Empty -->
-  <div class="state-message" *ngIf="state === 'empty'">
-    <ion-icon name="people-outline"></ion-icon>
-    <h2>Todavía no tienes clientes</h2>
-    <p>Invita a tu primer cliente por email para empezar a gestionar su entrenamiento o nutrición.</p>
-    <button class="invite-cta" (click)="goToInvite()">Invitar a tu primer cliente</button>
-  </div>
-
-  <!-- Loaded -->
-  <ng-container *ngIf="state === 'loaded'">
-    <div class="search-bar">
-      <div class="search-input-wrapper">
-        <ion-icon name="search-outline" class="search-icon"></ion-icon>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Buscar por nombre o email"
-          [ngModel]="searchQuery"
-          (ngModelChange)="onSearchChange($event)"
-        />
-      </div>
-      <div class="scope-filter">
-        <button
-          class="scope-filter-chip"
-          [class.active]="scopeFilter === 'all'"
-          (click)="setScopeFilter('all')"
-        >
-          Todos
-        </button>
-        <button
-          class="scope-filter-chip"
-          [class.active]="scopeFilter === 'training'"
-          (click)="setScopeFilter('training')"
-        >
-          Entrenamiento
-        </button>
-        <button
-          class="scope-filter-chip"
-          [class.active]="scopeFilter === 'nutrition'"
-          (click)="setScopeFilter('nutrition')"
-        >
-          Nutrición
-        </button>
-      </div>
-    </div>
-
-    <div class="client-table">
-      <div class="client-table-head">
-        <span></span><span>Cliente</span><span>Ámbito</span><span></span>
-      </div>
-
-      <div class="client-list">
-        <button
-          class="client-card"
-          *ngFor="let client of filteredClients; trackBy: trackByClientId"
-          (click)="openClient(client)"
-        >
-          <div
-            class="client-avatar"
-            [style.background]="'hsl(' + getAvatarHue(client) + ', 45%, 22%)'"
-            [style.color]="'hsl(' + getAvatarHue(client) + ', 70%, 78%)'"
-          >
-            {{ getInitials(client) }}
-          </div>
-          <span class="client-name">{{ getFullName(client) }}</span>
-          <div class="client-scopes">
-            <span class="scope-chip" *ngFor="let scope of getScopeLabels(client)">{{ scope }}</span>
-          </div>
-          <ion-icon name="chevron-forward-outline" class="client-chevron"></ion-icon>
-        </button>
-
-        <div class="state-message state-message--inline" *ngIf="!filteredClients.length">
-          <ion-icon name="search-outline"></ion-icon>
-          <p>Ningún cliente coincide con la búsqueda/filtro.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- TASK-022 (MASTER_BACKLOG.md) — antes se traían todos los clientes de
-         golpe; ahora pagina en servidor con scroll infinito. -->
-    <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="clients.length >= total">
-      <ion-infinite-scroll-content></ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  </ng-container>
+  <!-- Vista única: la Cartera. El listado plano mostraba los mismos
+       clientes sin ninguna de las cifras por las que se decide a quién
+       atender, así que era una versión peor de lo mismo. -->
+  <app-client-roster></app-client-roster>
 </ion-content>

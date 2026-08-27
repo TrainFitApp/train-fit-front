@@ -21,8 +21,16 @@ type ViewState = 'loading' | 'error' | 'loaded';
 })
 export class SelectClientsModalComponent implements OnInit {
   @Input() public excludeClientId?: string;
-  @Input() public requiredScope!: TrainerClientScope;
+  // Fase 3 Coach Pro — pasa a ser OPCIONAL. Los tres consumidores originales
+  // (rutinas, comidas, objetivos) siguen pasándolo y filtrando igual; el
+  // selector de clientes de una automatización no puede exigir un ámbito,
+  // porque una regla sobre el peso vale tanto para un cliente de nutrición
+  // como para uno de entrenamiento.
+  @Input() public requiredScope?: TrainerClientScope;
   @Input() public title = 'Aplicar a otros clientes';
+  // Fase 3 Coach Pro — permite reabrir el selector con lo ya elegido en vez
+  // de empezar de cero cada vez que se edita una regla.
+  @Input() public preselectedIds: string[] = [];
 
   public state: ViewState = 'loading';
   public clients: TrainerClientSummary[] = [];
@@ -39,10 +47,15 @@ export class SelectClientsModalComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.preselectedIds.forEach((id) => this.selectedIds.add(id));
     this.trainerClientsApi.getMyClients().subscribe({
       next: (clients) => {
         this.clients = (clients || []).filter(
-          (c) => c.user && c.user._id !== this.excludeClientId && c.scopes.includes(this.requiredScope)
+          (c) =>
+            c.user &&
+            c.user._id !== this.excludeClientId &&
+            // Sin requiredScope no se filtra por ámbito (ver el @Input).
+            (!this.requiredScope || c.scopes.includes(this.requiredScope))
         );
         this.state = 'loaded';
         if (this.requiredScope === 'nutrition') this.loadAllergies();

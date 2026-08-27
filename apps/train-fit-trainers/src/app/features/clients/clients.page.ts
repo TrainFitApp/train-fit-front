@@ -2,16 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonRefresher } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { TrainerClientsApiService } from './services/trainer-clients-api.service';
-import { TrainerClientSummary } from './models/trainer-client-summary.model';
 import { TrainerReviewStatusService } from '../invites/services/trainer-review-status.service';
 import { TrainerInvitesApiService } from '../invites/services/trainer-invites-api.service';
 import { ClientIntake, TrainerInvite } from '../invites/models/trainer-invite.model';
 
-type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
 type ScopeFilter = 'all' | 'training' | 'nutrition';
 
-const PAGE_SIZE = 20;
+// Movimiento 1 Coach Pro — dos formas de mirar la MISMA lista, no dos
+// destinos distintos del menú:
+//   lista   -> ¿quién es? (buscar a alguien concreto, dar de alta, filtrar)
+//   cartera -> ¿cómo van? (comparar a todos entre sí y decidir a quién
+//              atender hoy)
 
 // El badge del sidenav en "Clientes" avisa de cuestionarios en_revision
 // (ver shell.page.ts TASK-023: "son literalmente clientes en proceso de
@@ -33,16 +34,14 @@ interface ReviewSummary {
   styleUrls: ['clients.page.scss'],
 })
 export class ClientsPage implements OnInit {
-  public state: ViewState = 'loading';
-  public clients: TrainerClientSummary[] = [];
-  public total = 0;
+  // Persistida: un entrenador que trabaja desde la Cartera no debería tener
+  // que volver a elegirla cada vez que entra. Mismo criterio que el sidebar
+  // contraído (shell.page.ts).
+
   private hasLoadedOnce = false;
-  private page = 0;
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
 
   // --- F23: búsqueda y filtro ---
-  public searchQuery = '';
-  public scopeFilter: ScopeFilter = 'all';
 
   // Calculado UNA VEZ por cada emisión de reviewInvites (ver ngOnInit), no
   // en un getter — un getter usado en el template se re-ejecuta en cada
@@ -72,7 +71,6 @@ export class ClientsPage implements OnInit {
   };
 
   constructor(
-    private trainerClientsApi: TrainerClientsApiService,
     private trainerReviewStatus: TrainerReviewStatusService,
     private trainerInvitesApi: TrainerInvitesApiService,
     private ionicUtilService: IonicUtilService,
@@ -84,7 +82,7 @@ export class ClientsPage implements OnInit {
       this.reviewInvitesRaw = invites;
       this.reviewSummaries = this.groupReviewInvites(invites);
     });
-    this.load();
+    this.trainerReviewStatus.refresh();
     this.hasLoadedOnce = true;
   }
 
@@ -109,7 +107,7 @@ export class ClientsPage implements OnInit {
   // relación (F08) o asignar algo en F06 mostraría datos obsoletos hasta un
   // refresco manual.
   public ionViewWillEnter(): void {
-    if (this.hasLoadedOnce) this.load();
+    if (this.hasLoadedOnce) this.trainerReviewStatus.refresh();
   }
 
   public openReview(review: ReviewSummary): void {
@@ -150,7 +148,7 @@ export class ClientsPage implements OnInit {
         this.isConfirming = false;
         this.ionicUtilService.showToast({ message: 'Cliente confirmado, coaching desbloqueado', duration: 3000 });
         this.closeReview();
-        this.load();
+        this.trainerReviewStatus.refresh();
         this.trainerReviewStatus.refresh();
       },
       error: (err) => {
@@ -214,110 +212,23 @@ export class ClientsPage implements OnInit {
     }
   }
 
-  // TASK-022 (MASTER_BACKLOG.md) — antes traía TODAS las relaciones activas
-  // de golpe y filtraba en memoria en cada tecleo (lag confirmado con
-  // cientos de clientes). Ahora pagina y busca en servidor
-  // (GET trainer/clients/paginated); scopeFilter se mantiene en cliente,
-  // aplicado sobre la página ya cargada — es un filtro secundario grueso,
-  // no la búsqueda principal que causaba el problema de escala.
-  public load(refresher?: IonRefresher): void {
-    if (!refresher) {
-      this.state = 'loading';
-    }
-    this.page = 0;
 
-    this.trainerClientsApi.getMyClientsPaginated(this.page, PAGE_SIZE, this.searchQuery).subscribe({
-      next: ({ clients, total }) => {
-        this.clients = clients || [];
-        this.total = total;
-        this.state = this.total ? 'loaded' : 'empty';
-        refresher?.complete();
-        // Encadenada, no en paralelo con la de arriba — ver comentario en
-        // trainer-review-status.service.ts.
-        this.trainerReviewStatus.refresh();
-      },
-      error: () => {
-        this.state = 'error';
-        refresher?.complete();
-        this.trainerReviewStatus.refresh();
-      },
-    });
-  }
 
-  public loadMore(event: any): void {
-    this.page++;
-    this.trainerClientsApi.getMyClientsPaginated(this.page, PAGE_SIZE, this.searchQuery).subscribe({
-      next: ({ clients }) => {
-        this.clients = this.clients.concat(clients || []);
-        event.target.complete();
-        if (this.clients.length >= this.total) {
-          event.target.disabled = true;
-        }
-      },
-      error: () => {
-        this.page--;
-        event.target.complete();
-      },
-    });
-  }
-
-  public onSearchChange(value: string): void {
-    this.searchQuery = value;
-    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
-    this.searchDebounceHandle = setTimeout(() => this.load(), 300);
-  }
-
+  // Tirar para refrescar: recarga el banner de revisiones. La Cartera se
+  // refresca por su cuenta al montarse.
   public onRefresh(event: CustomEvent): void {
-    this.load((event.target as unknown) as IonRefresher);
+    this.trainerReviewStatus.refresh();
+    ((event.target as unknown) as IonRefresher).complete();
   }
 
   public goToInvite(): void {
     void this.router.navigate(['/tabs/invites']);
   }
 
-  public openClient(client: TrainerClientSummary): void {
-    if (!client.user) return;
-    void this.router.navigate(['/tabs/clients', client.user._id], {
-      queryParams: {
-        name: this.getFullName(client),
-        scopes: client.scopes.join(','),
-      },
-    });
-  }
 
-  public getFullName(client: TrainerClientSummary): string {
-    if (!client.user) return 'Cliente';
-    return `${client.user.name} ${client.user.lastname}`.trim();
-  }
 
-  public getInitials(client: TrainerClientSummary): string {
-    if (!client.user) return '?';
-    const name = client.user.name?.charAt(0) || '';
-    const lastname = client.user.lastname?.charAt(0) || '';
-    return (name + lastname).toUpperCase() || '?';
-  }
 
-  public getScopeLabels(client: TrainerClientSummary): string[] {
-    return client.scopes.map((scope) =>
-      scope === 'training' ? 'Entrenamiento' : 'Nutrición'
-    );
-  }
 
-  // scopeFilter ya no filtra por búsqueda de texto (eso ahora es
-  // server-side, ver load()) — solo aplica el filtro de scope sobre la
-  // página ya cargada.
-  public get filteredClients(): TrainerClientSummary[] {
-    if (this.scopeFilter === 'all') return this.clients;
-    return this.clients.filter((client) => client.scopes.includes(this.scopeFilter as 'training' | 'nutrition'));
-  }
-
-  public setScopeFilter(filter: ScopeFilter): void {
-    this.scopeFilter = filter;
-  }
-
-  public trackByClientId(_index: number, client: TrainerClientSummary): string {
-    return client.user?._id || _index.toString();
-  }
 
   public trackByClientEmail(_index: number, review: ReviewSummary): string {
     return review.clientEmail;
@@ -325,10 +236,4 @@ export class ClientsPage implements OnInit {
 
   private static readonly AVATAR_HUES = [18, 45, 200, 260, 320, 160];
 
-  public getAvatarHue(client: TrainerClientSummary): number {
-    const id = client.user?._id || '';
-    let sum = 0;
-    for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
-    return ClientsPage.AVATAR_HUES[sum % ClientsPage.AVATAR_HUES.length];
-  }
 }

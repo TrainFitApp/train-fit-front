@@ -7,6 +7,63 @@
   --background: var(--tf-bg);
 }
 
+// --- Conmutador Lista/Cartera (Movimiento 1 Coach Pro) ---
+// Segmentado y no dos píldoras sueltas: son dos vistas EXCLUYENTES de lo
+// mismo, y el fondo común lo dice sin necesidad de explicarlo. Distinto a
+// propósito de .scope-filter-chip de más abajo, que filtra dentro de una
+// vista en vez de cambiar de vista.
+.view-switch {
+  display: inline-flex;
+  gap: 2px;
+  margin: var(--tf-space-3) 16px 0;
+  padding: 3px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+}
+
+.view-switch-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  // 44px reales, sin expansor ::before: el conmutador queda algo más alto,
+  // pero un truco invisible para ahorrar 6px no compensa tener que
+  // verificar aparte que la zona pulsable es la que dice ser.
+  min-height: 44px;
+  padding: 0 var(--tf-space-4);
+  background: none;
+  border: none;
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &.active {
+    background: var(--tf-surface-4);
+    color: var(--tf-text);
+  }
+}
+
+app-client-roster {
+  display: block;
+  margin: var(--tf-space-4) 16px 24px;
+}
+
 .client-table {
   margin: 4px 16px 24px;
   border: 1px solid var(--tf-border);
@@ -517,4 +574,22 @@
 
 .invite-cta {
   @include tf-gradient-button(10px);
+}
+
+// Acción principal de la pantalla: con etiqueta, no un icono a interpretar.
+// Mismo radio (12px, --tf-radius-lg) que los botones de icono del sistema,
+// para que la barra superior no mezcle cápsulas con cuadrados redondeados.
+.header-add-btn {
+  @include tf-gradient-button(var(--tf-radius-lg));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+
+  ion-icon {
+    font-size: 18px;
+  }
 }
