@@ -121,6 +121,46 @@ const routes: Routes = [
       ).then((m) => m.MyCheckinsPageModule),
   },
   {
+    // Movimiento 5 Coach Pro — lo que le ha pautado su profesional: qué,
+    // cuánto, cuándo y por qué. Solo lectura.
+    path: 'my-supplements',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/supplements/my-supplements.module').then(
+        (m) => m.MySupplementsPageModule
+      ),
+  },
+  {
+    // Movimiento 5 Coach Pro — qué comprar para cumplir el plan. No hay
+    // modelo nuevo detrás: son los mismos días de dieta sumados por producto.
+    path: 'my-shopping-list',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/shopping-list/my-shopping-list.module').then(
+        (m) => m.MyShoppingListPageModule
+      ),
+  },
+  {
+    // Movimiento 3 Coach Pro — registro DIARIO de dolor por zona (EVA 0-10).
+    // Pantalla propia y no un campo del check-in: aquél es semanal, y una
+    // molestia va por días. Ver core/constants/pain.ts.
+    path: 'my-pain',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import('src/app/features/pain/my-pain.module').then((m) => m.MyPainPageModule),
+  },
+  {
+    // Fase 5 Coach Pro (§16) — qué puede comer en lugar de qué, según lo que
+    // haya definido su profesional. Solo lectura: las equivalencias son una
+    // prescripción, no algo que el cliente ajuste.
+    path: 'my-food-exchanges',
+    canMatch: [authMatchGuard, onboardingMatchGuard],
+    loadChildren: () =>
+      import(
+        'src/app/features/food-exchanges/my-food-exchanges.module'
+      ).then((m) => m.MyFoodExchangesPageModule),
+  },
+  {
     // MVP-trainers F29 — preferencias nutricionales del cliente (alergias,
     // favoritos, no le gusta, si cocina en casa), solicitadas por su
     // nutricionista y rellenadas/editadas por el propio cliente.

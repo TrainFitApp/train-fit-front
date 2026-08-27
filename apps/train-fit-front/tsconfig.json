@@ -23,6 +23,18 @@
       "src/app/features/exercises/*": [
         "../../packages/shared-features/src/app/features/exercises/*"
       ],
+      "src/app/features/pain/*": [
+        "../../packages/shared-features/src/app/features/pain/*"
+      ],
+      "src/app/features/supplements/*": [
+        "../../packages/shared-features/src/app/features/supplements/*"
+      ],
+      "src/app/features/shopping-list/*": [
+        "../../packages/shared-features/src/app/features/shopping-list/*"
+      ],
+      "src/app/features/food-exchanges/*": [
+        "../../packages/shared-features/src/app/features/food-exchanges/*"
+      ],
       "src/app/features/nutrition-preferences/*": [
         "../../packages/shared-features/src/app/features/nutrition-preferences/*"
       ],
