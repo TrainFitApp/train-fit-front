@@ -18,68 +18,111 @@
        directamente; ahora estas tarjetas resumen cada sección y llevan a
        ella (scroll a su ancla más abajo, no hay pantallas propias por
        sección todavía). === -->
-  <div class="coach-menu-grid">
-    <button
-      type="button"
-      class="coach-menu-card"
-      *ngIf="dashboardState !== 'loaded' || pendingCount > 0"
-      (click)="scrollToSection('section-pending')"
-    >
-      <div class="coach-menu-icon coach-menu-icon--alert"><ion-icon name="alert-circle-outline"></ion-icon></div>
-      <span class="coach-menu-name">Pendiente de ti</span>
-      <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">
-        {{ pendingCount }} pendiente{{ pendingCount === 1 ? '' : 's' }}
-      </span>
-    </button>
+  <!-- Movimiento final — el menú pasa de once tarjetas planas a tres grupos.
 
-    <button
-      type="button"
-      class="coach-menu-card"
-      *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine || dashboard?.assignedGoal"
-      (click)="scrollToSection('section-plan')"
-    >
-      <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
-      <span class="coach-menu-name">Tu plan actual</span>
-      <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">Activo</span>
-    </button>
+       El problema no era el NÚMERO de destinos sino que todos pesaran igual:
+       "Pendiente de ti" (que baja a una sección de esta misma página) y
+       "Suplementos" (que abre otra pantalla) se veían idénticos, y entre
+       ellos no había forma de saber cuáles piden algo del cliente y cuáles
+       solo se consultan. Es el mismo cajón de sastre que se arregló en el
+       menú del entrenador, y había vuelto a crecer aquí. -->
+  <div class="coach-menu-group">
+    <div class="coach-menu-grid">
+      <button
+        type="button"
+        class="coach-menu-card"
+        *ngIf="dashboardState !== 'loaded' || pendingCount > 0"
+        (click)="scrollToSection('section-pending')"
+      >
+        <div class="coach-menu-icon coach-menu-icon--alert"><ion-icon name="alert-circle-outline"></ion-icon></div>
+        <span class="coach-menu-name">Pendiente de ti</span>
+        <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">
+          {{ pendingCount }} pendiente{{ pendingCount === 1 ? '' : 's' }}
+        </span>
+      </button>
 
-    <button
-      type="button"
-      class="coach-menu-card"
-      *ngIf="tasksState !== 'loaded' || tasks.length"
-      (click)="scrollToSection('section-tasks')"
-    >
-      <div class="coach-menu-icon"><ion-icon name="checkbox-outline"></ion-icon></div>
-      <span class="coach-menu-name">Tareas de hoy</span>
-      <span class="coach-menu-stat" *ngIf="tasksState === 'loaded'">{{ completedTasksCount }}/{{ tasks.length }}</span>
-    </button>
+      <button
+        type="button"
+        class="coach-menu-card"
+        *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine || dashboard?.assignedGoal"
+        (click)="scrollToSection('section-plan')"
+      >
+        <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
+        <span class="coach-menu-name">Tu plan actual</span>
+        <span class="coach-menu-stat" *ngIf="dashboardState === 'loaded'">Activo</span>
+      </button>
 
-    <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
-      <div class="coach-menu-icon"><ion-icon name="people-outline"></ion-icon></div>
-      <span class="coach-menu-name">Tus profesionales</span>
-      <span class="coach-menu-stat" *ngIf="state === 'loaded'">
-        {{ activeProfessionals.length }} activo{{ activeProfessionals.length === 1 ? '' : 's' }}<ng-container
-          *ngIf="pendingInvites.length"
-        > · {{ groupedPendingInvites.length }} invitación{{ groupedPendingInvites.length === 1 ? '' : 'es' }}</ng-container>
-      </span>
-    </button>
+      <button
+        type="button"
+        class="coach-menu-card"
+        *ngIf="tasksState !== 'loaded' || tasks.length"
+        (click)="scrollToSection('section-tasks')"
+      >
+        <div class="coach-menu-icon"><ion-icon name="checkbox-outline"></ion-icon></div>
+        <span class="coach-menu-name">Tareas de hoy</span>
+        <span class="coach-menu-stat" *ngIf="tasksState === 'loaded'">{{ completedTasksCount }}/{{ tasks.length }}</span>
+      </button>
 
-    <!-- Antes vivían en Configuración > Opciones de perfil — sin sección
-         propia en esta página (son pantallas aparte, ver goToCheckins()/
-         goToNutritionPreferences()), así que estas tarjetas navegan
-         directo en vez de hacer scroll a una ancla. Siempre visibles (a
-         diferencia de "Pendiente de ti", que solo aparece si hay algo
-         pendiente): sin esto, un cliente sin check-in/preferencia pedidos
-         se quedaba sin ninguna forma de entrar a ninguna de las dos. -->
-    <button type="button" class="coach-menu-card" (click)="goToCheckins()">
-      <div class="coach-menu-icon"><ion-icon name="clipboard-outline"></ion-icon></div>
-      <span class="coach-menu-name">Mis check-ins</span>
-    </button>
+      <button type="button" class="coach-menu-card" (click)="scrollToSection('section-professionals')">
+        <div class="coach-menu-icon"><ion-icon name="people-outline"></ion-icon></div>
+        <span class="coach-menu-name">Tus profesionales</span>
+        <span class="coach-menu-stat" *ngIf="state === 'loaded'">
+          {{ activeProfessionals.length }} activo{{ activeProfessionals.length === 1 ? '' : 's' }}<ng-container
+            *ngIf="pendingInvites.length"
+          > · {{ groupedPendingInvites.length }} invitación{{ groupedPendingInvites.length === 1 ? '' : 'es' }}</ng-container>
+        </span>
+      </button>
+    </div>
+  </div>
 
-    <button type="button" class="coach-menu-card" (click)="goToNutritionPreferences()">
-      <div class="coach-menu-icon"><ion-icon name="nutrition-outline"></ion-icon></div>
-      <span class="coach-menu-name">Preferencias nutricionales</span>
-    </button>
+  <!-- Lo que el cliente APORTA: check-ins, dolor y preferencias son datos
+       que pone EL. La etiqueta decia "Lo que te toca a ti", que suena a
+       deber y dejaba fuera de sitio a "Tareas de hoy" (que si es un deber,
+       pero vive arriba porque es un ancla a esta misma pagina, no un enlace
+       a otra). Siempre visibles (a diferencia de las de
+       arriba, que dependen de que haya algo): si "Dolor" solo apareciera
+       cuando ya hay dolor apuntado, nadie sabría que se puede apuntar. -->
+  <div class="coach-menu-group">
+    <p class="coach-menu-group-label">Lo que aportas tú</p>
+    <div class="coach-menu-grid">
+      <button type="button" class="coach-menu-card" (click)="goToCheckins()">
+        <div class="coach-menu-icon"><ion-icon name="clipboard-outline"></ion-icon></div>
+        <span class="coach-menu-name">Mis check-ins</span>
+      </button>
+
+      <button type="button" class="coach-menu-card" (click)="goToPain()">
+        <div class="coach-menu-icon"><ion-icon name="bandage-outline"></ion-icon></div>
+        <span class="coach-menu-name">Dolor</span>
+      </button>
+
+      <button type="button" class="coach-menu-card" (click)="goToNutritionPreferences()">
+        <div class="coach-menu-icon"><ion-icon name="nutrition-outline"></ion-icon></div>
+        <span class="coach-menu-name">Preferencias</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Lo que el cliente CONSULTA: prescripciones, todas de solo lectura.
+       "Mi reparto del día" ya no está: se fusionó dentro de Intercambios,
+       porque eran dos pantallas para una sola pregunta (cuánto y de qué). -->
+  <div class="coach-menu-group">
+    <p class="coach-menu-group-label">Lo que te ha pautado</p>
+    <div class="coach-menu-grid">
+      <button type="button" class="coach-menu-card" (click)="goToFoodExchanges()">
+        <div class="coach-menu-icon"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
+        <span class="coach-menu-name">Intercambios</span>
+      </button>
+
+      <button type="button" class="coach-menu-card" (click)="goToSupplements()">
+        <div class="coach-menu-icon"><ion-icon name="medkit-outline"></ion-icon></div>
+        <span class="coach-menu-name">Suplementos</span>
+      </button>
+
+      <button type="button" class="coach-menu-card" (click)="goToShoppingList()">
+        <div class="coach-menu-icon"><ion-icon name="cart-outline"></ion-icon></div>
+        <span class="coach-menu-name">Lista de la compra</span>
+      </button>
+    </div>
   </div>
 
   <!-- === Dashboard: pendiente de ti + tu plan actual === -->

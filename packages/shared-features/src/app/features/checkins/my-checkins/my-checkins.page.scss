@@ -185,7 +185,8 @@
 
 .scale-option {
   flex: 1;
-  height: 40px;
+  /* 44px: era 40 y se queda corto para pulsar con el pulgar. */
+  min-height: 44px;
   background: #1a1a1a;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
@@ -201,6 +202,83 @@
     color: #ffffff;
     background: rgba(254, 144, 0, 0.14);
   }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+}
+
+/* Movimiento 2 Coach Pro — cómo tomar la medida, encima del control. */
+.checkin-field-hint {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #9a9a9a;
+}
+
+/* Escala con anclas escritas.
+   En columna y no en fila: la frase de cada nivel es lo que hay que leer, y
+   cinco frases en horizontal no caben ni se leen. El número se queda al
+   lado —pequeño— porque es lo que se guarda y lo que verá el entrenador. */
+.anchor-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.anchor-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #c7c7c7;
+  font-family: inherit;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+
+  &.selected {
+    border-color: #fe9000;
+    background: rgba(254, 144, 0, 0.14);
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fe9000;
+    outline-offset: 2px;
+  }
+}
+
+.anchor-number {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  .anchor-option.selected & {
+    background: #fe9000;
+    color: #0f0f0f;
+  }
+}
+
+.anchor-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .submit-button {
@@ -298,5 +376,79 @@
   strong {
     color: #8b8b8b;
     font-weight: 600;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Fase 5 Coach Pro — preguntas propias del coach
+   --------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* El asterisco es refuerzo visual; quien use lector de pantalla oye
+   "(obligatoria)" desde el .sr-only de al lado, no un símbolo suelto. */
+.required-mark {
+  margin-left: 2px;
+  color: var(--ion-color-danger, #eb445a);
+  font-weight: 700;
+}
+
+.required-hint {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  color: #8b8b8b;
+
+  strong {
+    color: #ffffff;
+  }
+}
+
+/* Sí/no: dos opciones, así que cada botón ocupa más ancho que un número de
+   la escala 1-5 para que quepa la palabra. */
+.scale-option--wide {
+  flex: 1;
+  min-width: 88px;
+}
+
+/* Selector y frecuencia: mismo lenguaje que .scale-picker (botones que se
+   marcan al pulsar), pero envolviendo a varias líneas porque las etiquetas
+   son palabras y no caben cinco en una fila de móvil. */
+.option-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: #c7c7c7;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+
+  &.selected {
+    background: var(--ion-color-primary, #fe9000);
+    border-color: var(--ion-color-primary, #fe9000);
+    color: #0f0f0f;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary, #fe9000);
+    outline-offset: 2px;
   }
 }

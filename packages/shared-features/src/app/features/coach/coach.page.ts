@@ -577,6 +577,34 @@ export class CoachPage implements OnInit {
     void this.router.navigate(['/nutrition-preferences']);
   }
 
+  // Fase 5 Coach Pro (§16) — qué puede comer en lugar de qué. Enlazado desde
+  // aquí y no desde el tab de dietas porque es contenido de SU profesional,
+  // que es lo que agrupa esta pantalla.
+  public goToFoodExchanges(): void {
+    void this.router.navigate(['/my-food-exchanges']);
+  }
+
+  // Movimiento 3 Coach Pro — registro diario de dolor por zona. Enlazado
+  // desde aquí por el mismo motivo que los intercambios: lo lee su
+  // profesional, y esta pantalla es la que agrupa todo lo que tiene que ver
+  // con él.
+  public goToPain(): void {
+    void this.router.navigate(['/my-pain']);
+  }
+
+  // --- Movimiento 5 Coach Pro ---
+  // Las tres viven aquí por el mismo motivo que los intercambios: son
+  // contenido de SU profesional, y esta pantalla es la que lo agrupa.
+
+
+  public goToSupplements(): void {
+    void this.router.navigate(['/my-supplements']);
+  }
+
+  public goToShoppingList(): void {
+    void this.router.navigate(['/my-shopping-list']);
+  }
+
   public goToMealProposal(proposalDate: string): void {
     void this.router.navigate(['/tabs/diets'], { state: { selectedDate: proposalDate } });
   }

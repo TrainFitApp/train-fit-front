@@ -11,7 +11,12 @@ export class MyCheckinsApiService {
     return this.http.get<MyCheckinConfig[]>('trainer/checkins/mine');
   }
 
-  public respond(trainerId: string, values: Record<string, number | string>): Observable<unknown> {
+  // `boolean` desde la Fase 5: las preguntas propias del coach admiten un
+  // tipo sí/no, que se guarda como booleano y no como texto.
+  public respond(
+    trainerId: string,
+    values: Record<string, number | string | boolean>
+  ): Observable<unknown> {
     return this.http.post(`trainer/checkins/${trainerId}/respond`, { values });
   }
 

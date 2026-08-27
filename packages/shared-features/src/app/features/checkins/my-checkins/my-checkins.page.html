@@ -46,7 +46,16 @@
 
       <div class="checkin-form" *ngIf="expandedTrainerId === config.trainerId">
         <div class="checkin-field" *ngFor="let field of fieldsFor(config); trackBy: trackByFieldKey">
-          <span class="checkin-field-label">{{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span></span>
+          <span class="checkin-field-label">
+            {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
+            ><span class="required-mark" *ngIf="field.required" aria-hidden="true">*</span>
+            <span class="sr-only" *ngIf="field.required">(obligatoria)</span>
+          </span>
+
+          <!-- Movimiento 2 Coach Pro — cómo tomar la medida. Va ANTES del
+               control, no debajo: leerlo después de haber medido no sirve
+               de nada. -->
+          <p class="checkin-field-hint" *ngIf="field.hint">{{ field.hint }}</p>
 
           <input
             *ngIf="field.type === 'number'"
@@ -55,14 +64,34 @@
             [(ngModel)]="formValues[field.key]"
           />
 
-          <div class="scale-picker" *ngIf="field.type === 'scale_1_5'">
+          <!-- Movimiento 2 Coach Pro — la escala deja de ser cinco números
+               desnudos. Cada nivel lleva escrito lo que significa, y el
+               número de niveles lo dicen las anclas del campo (el color de
+               orina tiene 8, el resto 5). Sin la frase, el 3 de cada cliente
+               —y el 3 del mismo cliente en dos semanas distintas— no son el
+               mismo 3, y la serie temporal no mide nada. -->
+          <div class="scale-picker" *ngIf="field.type === 'scale_1_5' && !anchorsFor(field)">
             <button
-              *ngFor="let n of [1, 2, 3, 4, 5]"
+              *ngFor="let n of levelsFor(field)"
               class="scale-option"
               [class.selected]="formValues[field.key] === n"
               (click)="setScaleValue(field.key, n)"
             >
               {{ n }}
+            </button>
+          </div>
+
+          <div class="anchor-picker" *ngIf="field.type === 'scale_1_5' && anchorsFor(field) as anchors">
+            <button
+              *ngFor="let anchor of anchors; let i = index"
+              type="button"
+              class="anchor-option"
+              [class.selected]="formValues[field.key] === i + 1"
+              [attr.aria-pressed]="formValues[field.key] === i + 1"
+              (click)="setScaleValue(field.key, i + 1)"
+            >
+              <span class="anchor-number">{{ i + 1 }}</span>
+              <span class="anchor-text">{{ anchor }}</span>
             </button>
           </div>
 
@@ -74,7 +103,43 @@
             [ngModel]="formValues[field.key]"
             (ngModelChange)="setTextValue(field.key, $event)"
           ></textarea>
+
+          <!-- Fase 5 Coach Pro — tipos de las preguntas propias del coach.
+               Sí/no y frecuencia reutilizan el mismo control de botones que
+               la escala 1-5: un solo patrón de "elegir una opción" en toda
+               la pantalla, no tres controles distintos. -->
+          <div class="scale-picker" *ngIf="field.type === 'yes_no'">
+            <button
+              class="scale-option scale-option--wide"
+              [class.selected]="formValues[field.key] === true"
+              (click)="setScaleValue(field.key, true)"
+            >
+              Sí
+            </button>
+            <button
+              class="scale-option scale-option--wide"
+              [class.selected]="formValues[field.key] === false"
+              (click)="setScaleValue(field.key, false)"
+            >
+              No
+            </button>
+          </div>
+
+          <div class="option-picker" *ngIf="field.type === 'select' || field.type === 'frequency'">
+            <button
+              *ngFor="let option of optionsFor(field)"
+              class="option-button"
+              [class.selected]="formValues[field.key] === option"
+              (click)="setTextValue(field.key, option)"
+            >
+              {{ option }}
+            </button>
+          </div>
         </div>
+
+        <p class="required-hint" *ngIf="missingRequiredLabel(config) as missing">
+          Falta responder: <strong>{{ missing }}</strong>
+        </p>
 
         <button
           class="submit-button"

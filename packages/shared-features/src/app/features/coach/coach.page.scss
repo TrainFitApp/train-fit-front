@@ -751,3 +751,22 @@
   color: #6b6b6b;
   flex-shrink: 0;
 }
+
+/* Movimiento final — el menú se agrupa. El aire va ENTRE grupos, no dentro:
+   separar visualmente es todo el trabajo que hace el agrupado. */
+.coach-menu-group {
+  & + & {
+    margin-top: 22px;
+  }
+}
+
+/* Etiqueta de orientación, no un destino: si compitiera en peso con las
+   tarjetas sería ruido. */
+.coach-menu-group-label {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8b8b8b;
+}

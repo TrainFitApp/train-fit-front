@@ -1,8 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CHECKIN_FIELDS_BY_KEY, CheckinField } from 'src/app/core/constants/checkin-fields';
+import {
+  CHECKIN_FIELDS_BY_KEY,
+  CheckinField,
+  scaleLevelsFor,
+} from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { CheckinCadence, CheckinHistoryEntry, MyCheckinConfig } from './models/my-checkin.model';
+import {
+  CheckinCadence,
+  CheckinHistoryEntry,
+  FREQUENCY_OPTIONS,
+  MyCheckinConfig,
+  customQuestionKey,
+  isCustomQuestionKey,
+} from './models/my-checkin.model';
 import { MyCheckinsApiService } from './services/my-checkins-api.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
@@ -23,7 +34,7 @@ export class MyCheckinsPage implements OnInit {
   public configs: MyCheckinConfig[] = [];
 
   public expandedTrainerId: string | null = null;
-  public formValues: Record<string, number | string | null> = {};
+  public formValues: Record<string, number | string | boolean | null> = {};
   public isSubmitting = false;
   public submittedTrainerIds = new Set<string>();
 
@@ -53,7 +64,12 @@ export class MyCheckinsPage implements OnInit {
     this.state = 'loading';
     this.myCheckinsApi.getMine().subscribe({
       next: (configs) => {
-        this.configs = (configs || []).filter((c) => c.enabledFields?.length);
+        // Fase 5 — un check-in compuesto SOLO de preguntas propias del coach
+        // (sin ningún campo del catálogo) es perfectamente válido; antes
+        // este filtro lo descartaba y el cliente no veía nada que responder.
+        this.configs = (configs || []).filter(
+          (c) => c.enabledFields?.length || c.customQuestions?.some((q) => q.enabled !== false)
+        );
         this.state = 'loaded';
       },
       error: () => {
@@ -77,14 +93,33 @@ export class MyCheckinsPage implements OnInit {
     return `${entry.trainer.name} ${entry.trainer.lastname}`.trim();
   }
 
+  // El enunciado de una pregunta propia no está en el catálogo: se busca en
+  // las configuraciones cargadas. Si el coach la borró, se dice así en vez
+  // de mostrar "custom:507f1f…" en el historial del cliente.
   public historyFieldLabel(key: string): string {
+    if (isCustomQuestionKey(key)) {
+      for (const config of this.configs) {
+        const question = (config.customQuestions || []).find(
+          (q) => customQuestionKey(q._id) === key
+        );
+        if (question) return question.label;
+      }
+      return 'Pregunta eliminada';
+    }
     return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
   }
 
-  public historyEntries(entry: CheckinHistoryEntry): { label: string; value: number | string }[] {
+  // Un booleano crudo se leería como "true"/"false" en el historial.
+  public historyValueLabel(value: number | string | boolean): string {
+    if (value === true) return 'Sí';
+    if (value === false) return 'No';
+    return String(value);
+  }
+
+  public historyEntries(entry: CheckinHistoryEntry): { label: string; value: string }[] {
     return Object.entries(entry.values).map(([key, value]) => ({
       label: this.historyFieldLabel(key),
-      value,
+      value: this.historyValueLabel(value),
     }));
   }
 
@@ -101,10 +136,82 @@ export class MyCheckinsPage implements OnInit {
     return CADENCE_LABELS[config.cadence] || config.cadence;
   }
 
+  // Los campos del catálogo y las preguntas propias del coach salen por la
+  // misma lista: convertir las segundas a la forma de CheckinField deja que
+  // la plantilla las pinte con el mismo código, en vez de duplicar todo el
+  // formulario para un segundo tipo de pregunta.
   public fieldsFor(config: MyCheckinConfig): CheckinField[] {
-    return config.enabledFields
+    const catalogFields = config.enabledFields
       .map((key) => CHECKIN_FIELDS_BY_KEY.get(key))
       .filter((f): f is CheckinField => !!f);
+
+    const customFields: CheckinField[] = (config.customQuestions || [])
+      .filter((question) => question.enabled !== false)
+      .map((question) => ({
+        key: customQuestionKey(question._id),
+        label: question.label,
+        type: question.type,
+        unit: question.unit,
+        options: question.options,
+        required: question.required,
+        // Una pregunta propia no se guarda en Anthropometry ni pertenece a
+        // ningún grupo del catálogo: va con el resto del bienestar, que es
+        // donde el formulario agrupa lo que no son medidas.
+        group: 'bienestar',
+        storage: 'wellbeing',
+      }));
+
+    return [...catalogFields, ...customFields];
+  }
+
+  public get frequencyOptions(): string[] {
+    return FREQUENCY_OPTIONS;
+  }
+
+  public optionsFor(field: CheckinField): string[] {
+    return field.type === 'frequency' ? FREQUENCY_OPTIONS : field.options || [];
+  }
+
+  // Movimiento 2 Coach Pro — devuelve null (no []) cuando el campo no tiene
+  // anclas, porque la plantilla lo usa con `as` para elegir entre el
+  // selector de números pelados y el de frases; un array vacío pasaría el
+  // truthy check y dejaría el control en blanco.
+  //
+  // Sin anclas se quedan las preguntas propias del coach: las escribe él, y
+  // la app no puede inventarle qué significa su 3.
+  public anchorsFor(field: CheckinField): string[] | null {
+    return field.anchors?.length ? field.anchors : null;
+  }
+
+  // Niveles del selector numérico de respaldo. Se calculan en vez de
+  // escribir [1,2,3,4,5] en la plantilla, que era donde el 5 estaba
+  // realmente clavado.
+  public levelsFor(field: CheckinField): number[] {
+    const levels = scaleLevelsFor(field);
+    const cacheKey = String(levels);
+    // Misma referencia entre ciclos de detección de cambios: un array nuevo
+    // en cada uno haría que *ngFor destruyese y recrease los botones sin
+    // parar (mismo problema ya visto en clients.page.ts#reviewSummaries).
+    if (!this.levelsCache.has(cacheKey)) {
+      this.levelsCache.set(
+        cacheKey,
+        Array.from({ length: levels }, (_unused, index) => index + 1)
+      );
+    }
+    return this.levelsCache.get(cacheKey) as number[];
+  }
+
+  private readonly levelsCache = new Map<string, number[]>();
+
+  // Una obligatoria sin responder bloquea el envío. Se dice cuál falta en
+  // vez de dejar un botón desactivado sin explicación.
+  public missingRequiredLabel(config: MyCheckinConfig): string | null {
+    for (const field of this.fieldsFor(config)) {
+      if (!field.required) continue;
+      const value = this.formValues[field.key];
+      if (value === null || value === undefined || value === '') return field.label;
+    }
+    return null;
   }
 
   public toggleExpand(config: MyCheckinConfig): void {
@@ -116,7 +223,9 @@ export class MyCheckinsPage implements OnInit {
     this.formValues = {};
   }
 
-  public setScaleValue(key: string, value: number): void {
+  // Acepta boolean además de number: sí/no reutiliza este mismo control de
+  // botones que la escala 1-5, en vez de un tercer patrón de selección.
+  public setScaleValue(key: string, value: number | boolean): void {
     this.formValues[key] = value;
   }
 
@@ -131,15 +240,26 @@ export class MyCheckinsPage implements OnInit {
   public submitResponse(config: MyCheckinConfig): void {
     if (this.isSubmitting || !this.hasAnyValue()) return;
 
-    // El tipo "text" se envía tal cual (recortado); el resto se envía como
-    // número — Number(cadena_vacía) da 0, así que cada campo se valida por
-    // su propio tipo en vez de castear todo con Number() a ciegas.
-    const values: Record<string, number | string> = {};
+    const missing = this.missingRequiredLabel(config);
+    if (missing) {
+      this.ionicUtilService.showErrorToast(`"${missing}" es obligatoria`, 'Falta una respuesta', 3000);
+      return;
+    }
+
+    // Cada tipo se envía en su propia forma. Antes todo lo que no era "text"
+    // se casteaba con Number(); con los tipos de la Fase 5 eso convertiría
+    // "Casa" en NaN y el campo se perdería en silencio.
+    const values: Record<string, number | string | boolean> = {};
     for (const field of this.fieldsFor(config)) {
       const value = this.formValues[field.key];
       if (value === null || value === undefined || value === '') continue;
+
       if (field.type === 'text') {
         values[field.key] = String(value).trim();
+      } else if (field.type === 'select' || field.type === 'frequency') {
+        values[field.key] = String(value);
+      } else if (field.type === 'yes_no') {
+        values[field.key] = value === true || value === 'true';
       } else if (!Number.isNaN(Number(value))) {
         values[field.key] = Number(value);
       }
