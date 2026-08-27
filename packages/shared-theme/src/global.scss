@@ -349,8 +349,13 @@ body[color-theme="dark"] {
   --fat-color: #ff9500;
 }
 
-// Alert controller
-.alert-head {
+// Alert controller de Ionic. `ion-alert` NO es opcional en el selector:
+// `.alert-head` es una clase interna de Ionic, pero este fichero es
+// GLOBAL, así que sin acotar pintaba también el `.alert-head` del panel
+// "Requiere acción" del dashboard —que es otra cosa: el nombre del
+// cliente y su chip de prioridad— con una barra naranja de lado a lado
+// que dejaba el chip "Urgente" naranja sobre naranja.
+ion-alert .alert-head {
   background-color: var(--ion-color-primary);
 }
 

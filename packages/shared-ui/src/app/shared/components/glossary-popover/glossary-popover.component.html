@@ -6,4 +6,13 @@
   <p class="glossary-popover__description">
     {{ 'GLOSSARY.' + term + '.DESCRIPTION' | translate }}
   </p>
+
+  <!-- Movimiento 2 Coach Pro — la escala nivel a nivel, para los términos
+       que la tienen. Ver el comentario de `levels` en el componente. -->
+  <ul class="glossary-popover__levels" *ngIf="levels.length">
+    <li class="glossary-popover__level" *ngFor="let level of levels">
+      <span class="glossary-popover__level-value">{{ level.value }}</span>
+      <span class="glossary-popover__level-text">{{ level.text }}</span>
+    </li>
+  </ul>
 </div>

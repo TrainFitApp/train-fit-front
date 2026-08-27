@@ -30,3 +30,37 @@
   line-height: 1.4;
   color: var(--ion-color-medium);
 }
+
+/* Movimiento 2 Coach Pro — la escala nivel a nivel. */
+.glossary-popover__levels {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.glossary-popover__level {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.glossary-popover__level-value {
+  flex-shrink: 0;
+  /* Ancho fijo para que las descripciones arranquen todas en la misma
+     columna: leída en vertical, la lista se recorre de un vistazo. */
+  min-width: 42px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.glossary-popover__level-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--ion-color-medium);
+}

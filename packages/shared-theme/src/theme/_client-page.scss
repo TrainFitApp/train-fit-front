@@ -1,0 +1,132 @@
+// Armazón de las pantallas del cliente que abre desde el tab Coach
+// (check-ins, dolor, intercambios, suplementos, lista de la compra).
+//
+// Las cinco repetían literalmente el mismo bloque: barra superior, botón de
+// volver, esqueleto de carga, estado vacío/error y botón de reintentar.
+// Unas 120 líneas × 5 ficheros, con las derivas que eso trae — un back-btn
+// de 40 px aquí y de 44 allá, un shimmer con otra duración.
+//
+// Colores en crudo y no tokens --tf-*: esos son de la app de entrenadores.
+// Aquí se usa la misma paleta literal que ya usaba el resto de
+// shared-features, para no arrastrar un sistema de tokens a un sitio que no
+// lo tiene.
+//
+// Cada pantalla aplica el mixin sobre su propio contenedor y añade encima
+// solo lo suyo. Mismo criterio que tf-skeleton-shimmer en la app del
+// entrenador.
+
+@mixin tf-client-page($skeleton-height: 84px) {
+  .page-toolbar {
+    --background: #141414;
+    --color: #ffffff;
+    --border-width: 0;
+  }
+
+  .back-btn {
+    // 44 px de zona pulsable. Antes eran 40 en las cinco pantallas: por
+    // debajo del mínimo, y multiplicado por cinco sitios donde arreglarlo.
+    width: 44px;
+    height: 44px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #fe9000;
+      outline-offset: 2px;
+    }
+  }
+
+  .page-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .skeleton-block {
+    height: $skeleton-height;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    background: #1e1e1e;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      animation: tf-client-shimmer 1.4s infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &::after {
+        animation: none;
+      }
+    }
+  }
+
+  // Vacío y error comparten forma: los dos son "aquí no hay nada que
+  // enseñar", y distinguirlos con dos diseños distintos no ayudaría a nadie.
+  .page-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 48px 16px;
+    color: #9a9a9a;
+
+    ion-icon {
+      font-size: 40px;
+      color: #6b6b6b;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      max-width: 36ch;
+    }
+  }
+
+  .retry-button {
+    min-height: 44px;
+    padding: 0 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    color: #ffffff;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid #fe9000;
+      outline-offset: 2px;
+    }
+  }
+
+  .page-hint {
+    margin: 0 0 14px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: #9a9a9a;
+  }
+}
+
+// Un solo keyframes para todas: antes había uno por pantalla
+// (exchange-shimmer, pain-shimmer, supplement-shimmer, shopping-shimmer),
+// idénticos y con nombres distintos.
+@keyframes tf-client-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
