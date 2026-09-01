@@ -537,6 +537,15 @@
               <ion-icon name="download-outline"></ion-icon>
               Aplicar plantilla
             </button>
+            <!-- Al lado de "Aplicar plantilla": la otra forma de darle un
+                 plan al cliente, construida aquí mismo en vez de salir de la
+                 biblioteca de plantillas. Nunca crea una plantilla
+                 reutilizable — el resultado es exclusivo de este cliente
+                 desde el principio (ver createDirect en el backend). -->
+            <button type="button" class="add-button" (click)="openCreateDietModal()">
+              <ion-icon name="add-outline"></ion-icon>
+              Crear dieta
+            </button>
             <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
               Gestionar plantillas
             </button>

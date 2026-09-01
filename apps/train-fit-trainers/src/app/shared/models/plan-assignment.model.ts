@@ -7,8 +7,13 @@ export type PlanAssignmentStatus = 'active' | 'superseded' | 'ended';
 export type DietTemplateMode = 'sequential' | 'recurring' | 'choice';
 
 export interface PlanAssignment {
+  // La copia congelada de la plantilla ES la asignación — un solo documento,
+  // sin PlanAssignment aparte (ver train-fit-back/components/dietTemplates/diet-template-schema.js).
   _id: string;
-  planId: string;
+  // Informativo — de qué plantilla se copió, solo para "ver plantilla
+  // aplicada" (openActivePlanTemplate). Puede ser null si la plantilla
+  // original ya se borró.
+  sourceTemplateId: string | null;
   clientId: string;
   trainerId: string;
   startDate: string;

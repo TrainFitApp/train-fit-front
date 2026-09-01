@@ -61,7 +61,8 @@
 }
 
 // Los presets de periodo se movieron encima de la gráfica; aquí quedan el
-// conmutador de selección manual y el rango elegido.
+// conmutador de selección manual y el rango elegido, uno a cada lado de la
+// misma fila (.toolbar-row ya es space-between).
 .range-toggle-btn,
 .range-clear-btn {
   display: flex;
@@ -70,8 +71,10 @@
   padding: 3px 8px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
-  // Cuadrado de esquinas redondeadas, como el resto de controles de la app.
-  border-radius: var(--tf-radius-lg);
+  // Cuadrado con esquinas redondeadas — --tf-radius-lg (12px) en un botón
+  // de ~20px de alto se leía como una píldora; --tf-radius-sm mantiene el
+  // radio visible sin perder la esquina cuadrada.
+  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-muted);
   font-size: 0.68rem;
   font-weight: 600;

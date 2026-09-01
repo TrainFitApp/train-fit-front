@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "train-fit-trainers",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "serve:t"],
+      "port": 8100
+    }
+  ]
+}

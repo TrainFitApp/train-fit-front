@@ -32,6 +32,14 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
 
+  // "Crear dieta" reusa este mismo modal solo para la parte de fecha/nombre
+  // — el contenido no existe todavía, se construye después en el builder
+  // (ver client-detail.page.ts#openCreateDietModal). En este modo no hay
+  // plantilla que listar ni que aplicar: confirm() solo devuelve lo
+  // recogido aquí, nunca llama a la API.
+  @Input() public forDirectCreate = false;
+  public name = '';
+
   // Fecha con la que arranca el formulario cuando se encadena una fase: el
   // día siguiente al fin de la anterior, para que no quede un hueco sin
   // plan ni dos planes el mismo día. Sin fase previa (o si acaba
@@ -73,6 +81,10 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    if (this.forDirectCreate) {
+      this.state = 'loaded';
+      return;
+    }
     this.dietTemplateApi.list().subscribe({
       next: (templates) => {
         this.templates = templates || [];
@@ -109,14 +121,34 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   }
 
   public get canConfirm(): boolean {
-    if (!this.selectedTemplateId || !this.startDate) return false;
+    if (this.forDirectCreate ? !this.name.trim() : !this.selectedTemplateId) return false;
+    if (!this.startDate) return false;
     if (this.endMode === 'fixedDate') return !!this.fixedEndDate;
     if (this.endMode === 'duration') return !!this.durationValue && this.durationValue > 0;
     return true; // indefinite
   }
 
   public confirm(): void {
-    if (!this.canConfirm || !this.selectedTemplateId) return;
+    if (!this.canConfirm) return;
+
+    if (this.forDirectCreate) {
+      // Nada que aplicar todavía — solo se recoge nombre/fecha, el
+      // contenido se construye después en el builder.
+      void this.modalController.dismiss(
+        {
+          name: this.name.trim(),
+          startDate: this.startDate,
+          endMode: this.endMode,
+          fixedEndDate: this.endMode === 'fixedDate' ? this.fixedEndDate : undefined,
+          durationValue: this.endMode === 'duration' ? this.durationValue : undefined,
+          durationUnit: this.endMode === 'duration' ? this.durationUnit : undefined,
+        },
+        'confirm'
+      );
+      return;
+    }
+
+    if (!this.selectedTemplateId) return;
     this.state = 'applying';
     this.overlapError = null;
     this.planAssignmentApi

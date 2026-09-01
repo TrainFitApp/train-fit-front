@@ -7,7 +7,7 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Editar plantilla</h1>
+        <h1 class="tf-page-header__title">{{ isCreatingForClient ? 'Crear dieta' : 'Editar plantilla' }}</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -20,17 +20,31 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error'">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
+  <!-- Solo llega aquí si el modal previo (nombre + fechas) no dejó nada
+       que usar — página abierta directa, sin pasar por el flujo normal. -->
+  <div class="state-message" *ngIf="state === 'error' && isCreatingForClient">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <h2>Faltan las fechas del plan</h2>
+    <p>Vuelve a la ficha del cliente y empieza de nuevo desde "Crear dieta".</p>
+    <button class="retry-button" (click)="goBack()">Volver</button>
+  </div>
+
   <ng-container *ngIf="state === 'loaded'">
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-      <input type="text" class="input-field" placeholder="Nombre de la plantilla" [(ngModel)]="name" />
+      <input
+        type="text"
+        class="input-field"
+        [placeholder]="isCreatingForClient ? 'Nombre de la dieta' : 'Nombre de la plantilla'"
+        [(ngModel)]="name"
+      />
     </div>
 
     <!-- Auditoría de arquitectura (Fase 8/9) — mismo tablero, tres maneras de
@@ -181,7 +195,7 @@
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">Guardar plantilla</span>
+      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : 'Guardar plantilla' }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>
