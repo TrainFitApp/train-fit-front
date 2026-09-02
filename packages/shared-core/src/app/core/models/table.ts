@@ -13,4 +13,7 @@ export class Table {
     workoutsCount?: number;
     // MVP-trainers F11/F15: presente si un profesional asignó esta rutina.
     assignedByTrainerId?: string | null;
+    // MVP-trainers — rutina que el cliente sigue ahora mismo (User.tableInUse
+    // resuelto server-side). Solo puede haber una por cliente a la vez.
+    isActive?: boolean;
 }

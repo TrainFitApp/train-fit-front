@@ -108,8 +108,29 @@
         </ng-container>
 
         <ng-container *ngIf="group.enabledFields.has('equipment')">
+          <label class="form-label">Lugar de entrenamiento</label>
+          <div class="option-row">
+            <button
+              class="option-chip"
+              *ngFor="let option of trainingLocationOptions"
+              [class.option-chip--active]="trainingLocation === option.value"
+              (click)="trainingLocation = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+
           <label class="form-label">Equipamiento disponible</label>
-          <input type="text" class="form-input" [(ngModel)]="equipment" placeholder="Ej. Gimnasio completo, mancuernas en casa..." />
+          <div class="option-row">
+            <button
+              class="option-chip"
+              *ngFor="let option of equipmentTagOptions"
+              [class.option-chip--active]="equipmentTags.includes(option.value)"
+              (click)="toggleEquipmentTag(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </ng-container>
 
         <ng-container *ngIf="group.enabledFields.has('allergies')">

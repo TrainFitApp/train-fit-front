@@ -16,6 +16,8 @@ import { PainPanelComponent } from './pages/client-detail/components/pain-panel/
 import { MealExchangesEditorComponent } from './pages/client-detail/components/meal-exchanges-editor/meal-exchanges-editor.component';
 import { SupplementsPanelComponent } from './pages/client-detail/components/supplements-panel/supplements-panel.component';
 import { ShoppingListPanelComponent } from './pages/client-detail/components/shopping-list-panel/shopping-list-panel.component';
+import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
+import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 
 @NgModule({
   imports: [SharedModule, ClientsPageRoutingModule, ProductSearchModalModule, SelectClientsModalModule],
@@ -33,6 +35,8 @@ import { ShoppingListPanelComponent } from './pages/client-detail/components/sho
     MealExchangesEditorComponent,
     SupplementsPanelComponent,
     ShoppingListPanelComponent,
+    TrainingCalendarComponent,
+    TrainingComparisonChartComponent,
   ],
 })
 export class ClientsPageModule {}

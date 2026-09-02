@@ -190,6 +190,20 @@ export interface LoadEvolutionExercise {
   weeks: { start: string; maxWeight: number | null }[];
 }
 
+// Tarea 4 (2026-09) — qué comparar en la gráfica de Entrenamiento. Un
+// selector, no varios activos a la vez (a diferencia de Nutrición): las
+// métricas no comparten escala (sesiones/series son conteos, volumen son
+// kg, grupos musculares es un reparto) y no hay un "100% pautado" contra el
+// que normalizarlas todas en un único eje.
+export type TrainingComparisonMetric = 'sessions' | 'sets' | 'volume' | 'muscleGroups';
+
+export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric, string> = {
+  sessions: 'Entrenos completados',
+  sets: 'Series completadas',
+  volume: 'Volumen de entrenamiento',
+  muscleGroups: 'Grupos musculares implicados',
+};
+
 // Movimiento 3 Coach Pro — el mismo trabajo agrupado por MICROCICLO.
 // Un microciclo no dura siete días (dura lo que el entrenador decida), así
 // que las semanas naturales lo parten por la mitad: comparar la semana 3
@@ -216,16 +230,21 @@ export interface BlockComparisonSide {
   sessions: number;
 }
 
+// Tarea 4 (2026-09) — carga por grupo muscular, por microciclo. `group` es
+// el string crudo del catálogo (Exercise.muscleGroups1/2), sin diccionario
+// de traducción propio en el frontend: mismo criterio que `splitName` en
+// TrainingBlock, el backend no inventa una etiqueta distinta de la que ya
+// usa el resto de la app para nombrar grupos musculares.
+export interface BlockMuscleGroup {
+  splitId: string;
+  name: string;
+  start: string;
+  end: string;
+  muscleGroups: { group: string; volume: number }[];
+}
+
 export interface ClientTrainingProgress {
-  weeks: number;
   period: { from: string; to: string };
-  weekly: TrainingWeek[];
-  volumeComparison: {
-    current: number;
-    previous: number;
-    absolute: number;
-    percentage: number;
-  } | null;
   blocks: TrainingBlock[];
   blockComparison: {
     current: BlockComparisonSide;
@@ -233,9 +252,21 @@ export interface ClientTrainingProgress {
     absolute: number;
     percentage: number;
   } | null;
-  personalRecords: PersonalRecord[];
-  loadEvolution: LoadEvolutionExercise[];
+  blockMuscleGroups: BlockMuscleGroup[];
   totalSets: number;
+  // Presentes solo en modo `weeks` (Resumen); ausentes en modo `from`/`to`
+  // (comparación por microciclo de Entrenamiento) — ver
+  // client-progress-controller.js#getTrainingProgress.
+  weeks?: number;
+  weekly?: TrainingWeek[];
+  volumeComparison?: {
+    current: number;
+    previous: number;
+    absolute: number;
+    percentage: number;
+  } | null;
+  personalRecords?: PersonalRecord[];
+  loadEvolution?: LoadEvolutionExercise[];
 }
 
 // --- Historial de cambios (Fase 4) ---

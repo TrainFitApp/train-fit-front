@@ -46,6 +46,39 @@ export interface ClientIntakeCustomAnswer {
   value: string;
 }
 
+// Tarea 3 (Trainers, 2026-08) — catálogo cerrado, debe coincidir con
+// train-fit-back/components/clientIntake/client-intake-schema.js.
+export type TrainingLocation = 'gym' | 'home' | 'outdoor' | 'mixed';
+export type EquipmentTag =
+  | 'dumbbells'
+  | 'barbell'
+  | 'machines'
+  | 'bands'
+  | 'kettlebells'
+  | 'bench'
+  | 'pullup_bar'
+  | 'none';
+
+// Mismas labels que onboarding-status.page.ts (lado cliente) — el trainer
+// lee aquí exactamente lo que el cliente vio al elegir.
+export const TRAINING_LOCATION_LABELS: Record<TrainingLocation, string> = {
+  gym: 'Gimnasio',
+  home: 'Casa',
+  outdoor: 'Exterior',
+  mixed: 'Mixto',
+};
+
+export const EQUIPMENT_TAG_LABELS: Record<EquipmentTag, string> = {
+  dumbbells: 'Mancuernas',
+  barbell: 'Barra y discos',
+  machines: 'Máquinas de gimnasio',
+  bands: 'Bandas elásticas',
+  kettlebells: 'Kettlebells',
+  bench: 'Banco',
+  pullup_bar: 'Barra de dominadas',
+  none: 'Sin material',
+};
+
 // TAREA 3 — cuestionario inicial enviado por el cliente, uno por par
 // (profesional, cliente) — no por scope.
 export interface ClientIntake {
@@ -53,7 +86,11 @@ export interface ClientIntake {
   healthConditions: string;
   experienceLevel: 'none' | 'beginner' | 'intermediate' | 'advanced' | null;
   availability: string;
+  // DEPRECATED — dato legado de cuestionarios enviados antes de Tarea 3;
+  // sustituido por trainingLocation/equipmentTags, ya no se escribe.
   equipment: string;
+  trainingLocation: TrainingLocation | null;
+  equipmentTags: EquipmentTag[];
   customAnswers: ClientIntakeCustomAnswer[];
   submittedAt: string;
 }

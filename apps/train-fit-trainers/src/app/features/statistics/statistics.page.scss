@@ -1,0 +1,1524 @@
+// Tarea 2 (2026-08) — este bloque es el único punto de acoplamiento al
+// sistema de diseño de Trainers: el resto del archivo (grids, breakpoints,
+// espaciados ya afinados) queda igual, cada `var(--orange)`/`var(--dark-gray)`
+// de más abajo ahora resuelve a un token --tf-* real en vez de a los
+// --ion-color-* genéricos (con fallback hardcodeado) que traía de
+// shared-features. --blue/--purple quedan como colores literales a
+// propósito: son series secundarias de los gráficos (RIR, aguante
+// isométrico), no colores de marca — no hay (ni debe inventarse) un token
+// --tf-* para eso.
+:host {
+  --black: var(--tf-bg);
+  --dark-gray: var(--tf-surface-1);
+  --medium-gray: var(--tf-border);
+  --light-gray: var(--tf-border-strong);
+  --text-primary: var(--tf-text);
+  --text-secondary: var(--tf-text-secondary);
+  --text-tertiary: var(--tf-text-muted);
+  --orange: var(--tf-accent);
+  --orange-light: var(--tf-accent-text);
+  --orange-dark: var(--tf-accent);
+  --orange-glow: var(--tf-accent-soft-border);
+  --blue: #3880ff;
+  --green: var(--tf-success);
+  --purple: #ffd359;
+}
+
+/* Desactivar efectos hover y cursores en toda la página */
+*,
+::after,
+::before {
+  &:hover {
+    cursor: default !important;
+  }
+}
+
+ion-button,
+ion-item,
+ion-chip,
+ion-segment-button,
+.clickable,
+button,
+a {
+  --background-hover: transparent !important;
+  --background-activated: transparent !important;
+  --background-focused: transparent !important;
+  --ripple-color: transparent !important;
+  --color-hover: inherit !important;
+  --box-shadow: none !important;
+}
+
+/* Content Wrapper */
+// impeccable/emil (2026-08) — el tope de 800px es la razón real de "se ve
+// como versión móvil": en un monitor de escritorio, todo (calendario,
+// tarjetas, comparativa, gráfica) quedaba apilado en una columna angosta
+// centrada con franjas vacías a los lados, aunque .comparison-grid y
+// .stat-cards-grid YA eran auto-fit por dentro — nunca tenían ancho real
+// que repartir. 1400px es la misma familia de tope que ya usa el resto de
+// Trainers para una ficha de escritorio (ver .tab-panel--training).
+.content {
+  padding: 12px;
+  max-width: 100%;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    max-width: 1400px;
+    padding: 16px;
+  }
+}
+
+// La cabecera (calendario + selectores) es CONTROL, no contenido: calendario
+// ancho fijo a la izquierda, selectores apilados a la derecha — mismo
+// criterio de columna lateral que ya usa el resto de la app (Nutrición,
+// Entrenamiento), reutilizado aquí en vez de inventar un cuarto patrón.
+.stats-controls-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-4);
+}
+
+@media (min-width: 900px) {
+  .stats-controls-row {
+    display: grid;
+    grid-template-columns: minmax(320px, 380px) 1fr;
+    align-items: start;
+    gap: var(--tf-space-4);
+  }
+
+  .stats-selectors-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-4);
+  }
+}
+
+.stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+
+  .stat-card {
+    margin: 0;
+  }
+}
+
+/* Ionic Overrides */
+ion-content {
+  --background: var(--black);
+  --color: var(--text-primary);
+}
+
+ion-card {
+  --background: var(--dark-gray);
+  --color: var(--text-primary);
+  border: 1px solid var(--medium-gray);
+  border-radius: 14px;
+  margin: 0 0 12px 0;
+  box-shadow: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    margin-bottom: 16px;
+  }
+
+  ion-card-header {
+    padding: 14px 16px 6px;
+
+    @media (min-width: 768px) {
+      padding: 16px 20px 8px;
+    }
+  }
+
+  ion-card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  ion-card-subtitle {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    @media (min-width: 768px) {
+      font-size: 14px;
+    }
+  }
+
+  ion-card-content {
+    padding: 10px 12px 14px;
+
+    @media (min-width: 768px) {
+      padding: 12px 20px 20px;
+    }
+  }
+}
+
+.section-icon {
+  width: 6px;
+  height: 6px;
+  background: var(--orange);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--orange-glow);
+  flex-shrink: 0;
+}
+
+/* Calendar Card */
+.calendar-card {
+  position: relative;
+  overflow: visible;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--orange-light));
+  }
+
+  ion-card-content {
+    overflow: visible;
+  }
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
+
+  @media (min-width: 768px) {
+    margin-bottom: 16px;
+  }
+
+  ion-button {
+    --color: var(--text-secondary);
+    --padding-start: 4px;
+    --padding-end: 4px;
+    margin: 0;
+    flex-shrink: 0;
+    min-width: 40px;
+  }
+}
+
+.month-label {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--text-primary);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (min-width: 576px) {
+    font-size: 15px;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 16px;
+  }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  @media (min-width: 576px) {
+    gap: 6px;
+  }
+
+  @media (min-width: 768px) {
+    gap: 8px;
+  }
+}
+
+.day-header {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  padding: 4px 0;
+
+  @media (min-width: 576px) {
+    font-size: 11px;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 2px;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  @media (min-width: 576px) {
+    font-size: 13px;
+    border-radius: 7px;
+    padding: 3px;
+    gap: 3px;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+  }
+
+  &.inactive {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &.completed {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .day-number {
+    z-index: 1;
+    font-size: 11px;
+    line-height: 1;
+
+    @media (min-width: 576px) {
+      font-size: 12px;
+    }
+
+    @media (min-width: 768px) {
+      font-size: 13px;
+    }
+  }
+
+  .workout-indicators {
+    display: flex;
+    gap: 2px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+    overflow: hidden;
+
+    @media (min-width: 768px) {
+      gap: 3px;
+    }
+  }
+
+  .workout-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    @media (min-width: 576px) {
+      width: 5px;
+      height: 5px;
+    }
+
+    @media (min-width: 768px) {
+      width: 6px;
+      height: 6px;
+    }
+  }
+}
+
+.calendar-legend {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--medium-gray);
+
+  @media (min-width: 768px) {
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+
+  .legend-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    margin-top: 0;
+
+    @media (min-width: 768px) {
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+
+    @media (min-width: 768px) {
+      gap: 8px;
+    }
+  }
+}
+
+.legend-chip {
+  --background: rgba(255, 255, 255, 0.05);
+  --color: var(--text-secondary);
+  height: 28px;
+  font-size: 11px;
+  border: 1px solid var(--medium-gray);
+  transition: all 0.2s ease;
+  margin: 0;
+
+  @media (min-width: 768px) {
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .workout-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 4px;
+
+    @media (min-width: 768px) {
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+    }
+  }
+
+  ion-label {
+    font-size: 11px;
+
+    @media (min-width: 768px) {
+      font-size: 12px;
+    }
+  }
+}
+
+/* Disabled Card */
+.disabled-card {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Ionic Select Styling */
+ion-item {
+  --background: transparent;
+  --border-color: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --min-height: 48px;
+
+  .select-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .select-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #ffffff;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  ion-select {
+    width: 100%;
+    --padding-end: 36px;
+    --placeholder-color: #ffffff !important;
+    --placeholder-opacity: 1;
+    color: #ffffff !important;
+    --color: #ffffff !important;
+    font-size: 15px;
+    font-weight: 500;
+
+    &::part(text),
+    &::part(placeholder),
+    &::part(icon) {
+      color: #ffffff !important;
+      opacity: 1 !important;
+      --color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+    }
+
+    &.ios {
+      --color: #ffffff !important;
+      color: #ffffff !important;
+    }
+
+    @media (min-width: 768px) {
+      font-size: 16px;
+    }
+  }
+}
+
+/* Action Sheet global overrides para selects en esta página */
+::ng-deep .no-cancel-action-sheet {
+  --button-color: #ffffff !important;
+  --button-color-activated: #ffffff !important;
+  --color: #ffffff !important;
+  
+  .action-sheet-button {
+    color: #ffffff !important;
+  }
+}
+
+/* Stats Grid */
+ion-grid {
+  padding: 0;
+}
+
+/* Stats Cards */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--orange-light));
+  }
+
+  ion-card-content {
+    padding: 14px;
+
+    @media (min-width: 768px) {
+      padding: 16px;
+    }
+  }
+}
+
+.stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+
+  @media (min-width: 768px) {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+
+  @media (min-width: 576px) {
+    font-size: 26px;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  small {
+    font-size: 0.5em;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+}
+
+.stat-change {
+  font-size: 11px;
+
+  @media (min-width: 768px) {
+    font-size: 12px;
+  }
+}
+
+/* Chart Section */
+.chart-card {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+
+  &::before {
+    display: none;
+  }
+
+  ion-card-header {
+    padding-bottom: 0;
+  }
+}
+
+// Chart header with tabs
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 0;
+  gap: 8px;
+
+  ion-card-title {
+    flex-shrink: 0;
+    font-size: 15px;
+  }
+}
+
+.chart-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+
+  .chart-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: "Outfit", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    ion-icon {
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    &.active {
+      background: var(--orange);
+      color: #fff;
+    }
+  }
+}
+
+.chart-mode-desc {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  text-align: center;
+  min-height: 16px;
+}
+
+// All-Time Historical Stats Card
+.historical-stats-card {
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+
+    ion-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+.historical-stats-loading {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.historical-stats-empty {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+// Comparison Card
+.comparison-card {
+  ion-card-content {
+    padding-top: 0;
+  }
+}
+
+.comparison-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+
+  ion-card-title {
+    font-size: 15px;
+  }
+}
+
+.comparison-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comparison-selectors {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compare-select-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.compare-arrow {
+  font-size: 14px;
+  color: var(--orange);
+  flex-shrink: 0;
+}
+
+// Mismo patrón de trigger + ion-select oculto que el selector de
+// microciclos de mesocycle.page/nutritional-objectives, para consistencia
+// visual en toda la app.
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.microcycle-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.25);
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+  border-radius: 8px;
+  min-width: 0;
+
+  .trigger-value {
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: "Outfit", sans-serif;
+    color: var(--orange);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .trigger-chevron {
+    font-size: 12px;
+    color: var(--orange);
+    flex-shrink: 0;
+  }
+}
+
+.micro-cycle-selector-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: auto;
+  --padding-start: 0;
+  --padding-end: 0;
+  --background: transparent;
+  --border-width: 0;
+  --border-color: transparent;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.comparison-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+
+  .comparison-item-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+
+    ion-icon {
+      font-size: 12px;
+      color: var(--orange);
+    }
+  }
+
+  .comparison-item-values {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 4px;
+
+    .prev-val {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .curr-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    ion-icon {
+      font-size: 14px;
+
+      &.positive {
+        color: var(--tf-success);
+      }
+
+      &.negative {
+        color: var(--tf-danger);
+      }
+
+      &.neutral {
+        color: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+
+  .comparison-item-pct {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+
+    &.positive {
+      color: var(--tf-success);
+    }
+
+    &.negative {
+      color: var(--tf-danger);
+    }
+
+    &.neutral {
+      color: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+.chart-container {
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 20, 0.95) 0%,
+    rgba(30, 30, 30, 0.95) 100%
+  );
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  position: relative;
+  min-height: 350px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    opacity: 0.6;
+    z-index: 2;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 300px !important;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    min-height: 280px;
+
+    canvas {
+      height: 250px !important;
+    }
+  }
+}
+
+/* History List & Table Header */
+.history-table-header {
+  display: flex;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 4px;
+
+  span {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+}
+
+.history-list {
+  background: transparent;
+  padding: 0;
+}
+
+/* Session Grouping Header */
+.session-divider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--medium-gray);
+
+  // Contenedor izquierdo: label + fecha en flex row con gap explícito.
+  // Usar gap CSS (no whitespace entre elementos inline) es la ÚNICA forma
+  // de garantizar separación consistente en todos los dispositivos y fuentes.
+  .session-header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;  // Separación garantizada por CSS, nunca por whitespace
+    min-width: 0;
+  }
+
+  // Badge visual implementado como <span> para evitar variaciones de
+  // renderizado de ion-badge entre dispositivos
+  .week-badge-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(var(--ion-color-medium-rgb), 0.2);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.3);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .session-date {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .session-note-icon {
+    margin-left: auto;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+
+.history-item {
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  --min-height: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.history-row-content,
+.history-table-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+
+  .header-col-session,
+  .col-session {
+    width: 15%;
+    flex-shrink: 0;
+  }
+
+  .col-session {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .header-col-weight,
+  .col-weight {
+    width: 25%;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .header-col-reps,
+  .col-reps {
+    width: 25%;
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .header-col-rir,
+  .col-rir {
+    width: 35%;
+    flex-shrink: 0;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  &.is-cardio {
+    .header-col-session,
+    .col-session {
+      width: 20%;
+    }
+    .header-col-weight,
+    .col-weight {
+      width: 40%;
+    }
+    .header-col-reps,
+    .col-reps {
+      width: 40%;
+    }
+  }
+
+  &.is-isometric {
+    .header-col-session,
+    .col-session {
+      width: 20%;
+    }
+    .header-col-weight,
+    .col-weight {
+      width: 80%;
+    }
+  }
+
+  .header-col-notes,
+  .col-notes {
+    /* This column is removed as the sum of the other columns is 100% */
+    display: none;
+  }
+}
+
+.set-index {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.session-indicators {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+
+  .type-dot {
+    font-size: 8px;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.drop {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    &.rest {
+      color: #2563eb;
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    &.fail {
+      color: var(--orange);
+      background: var(--tf-accent-soft);
+      border: 1px solid rgba(254, 144, 0, 0.2);
+    }
+  }
+}
+
+.history-row-content {
+  .col-weight,
+  .col-reps {
+    span {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    small {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-left: 3px;
+      font-weight: 500;
+    }
+  }
+
+  .col-rir {
+    small {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-left: 3px;
+      font-weight: 500;
+    }
+  }
+}
+
+.rir-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+// Intensity badge styles — same as workout.component.scss
+.fail-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.week-badge {
+  --background: var(--medium-gray);
+  --color: var(--text-secondary);
+  --padding-top: 4px;
+  --padding-bottom: 4px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 32px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+
+  @media (min-width: 768px) {
+    padding: 60px 20px;
+  }
+
+  ion-icon {
+    font-size: 56px;
+    margin-bottom: 14px;
+    opacity: 0.3;
+
+    @media (min-width: 768px) {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+
+  p {
+    font-size: 13px;
+    max-width: 300px;
+    margin: 0 auto;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+
+    @media (min-width: 768px) {
+      font-size: 14px;
+    }
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+ion-card {
+  animation: fadeInUp 0.4s ease backwards;
+}
+
+/* ─── Sub-series DS / RP in History Table ─────────────────────────── */
+.subseries-container {
+  width: 100%;
+  padding: 4px 16px 8px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.subseries-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+
+  .subseries-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.35);
+    min-width: 52px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .subseries-val {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .subseries-rir {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.3);
+    margin-left: auto;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+}
+
+// DS sub-series: red accent
+ion-item:has(.type-dot.drop) ~ .subseries-container {
+  .subseries-item {
+    border-left-color: rgba(239, 68, 68, 0.4);
+  }
+
+  .subseries-label {
+    color: rgba(239, 68, 68, 0.7);
+  }
+}
+
+// RP sub-series: blue accent
+ion-item:has(.type-dot.rest) ~ .subseries-container {
+  .subseries-item {
+    border-left-color: rgba(37, 99, 235, 0.4);
+  }
+
+  .subseries-label {
+    color: rgba(56, 128, 255, 0.7);
+  }
+}
+
+/* ─── Comparison: Full-width item ─────────────────────────────────── */
+.comparison-item-full {
+  grid-column: 1 / -1;
+}
+
+/* ─── Comparison: Technique chips ─────────────────────────────────── */
+.technique-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.technique-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 90px;
+
+  .t-label {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  ion-icon {
+    font-size: 13px;
+    margin-left: auto;
+
+    &.positive {
+      color: var(--tf-success);
+    }
+
+    &.negative {
+      color: var(--tf-danger);
+    }
+
+    &.neutral {
+      color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &.ds {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: rgba(239, 68, 68, 0.9);
+
+    .t-label {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+  }
+
+  &.rp {
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: rgba(56, 128, 255, 0.9);
+
+    .t-label {
+      background: rgba(37, 99, 235, 0.15);
+      color: #3880ff;
+    }
+  }
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.intensity-drop {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.intensity-rp {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.rest-seconds-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+}
+
+.chart-mode-container {
+  margin-bottom: 16px;
+  width: 100%;
+
+  ion-segment {
+    --background: transparent;
+    border-radius: 12px;
+    padding: 2px;
+
+    ion-segment-button {
+      --color: rgba(255, 255, 255, 0.5);
+      --color-checked: var(--tf-accent);
+      --indicator-color: rgba(254, 144, 0, 0.12);
+      font-size: 11px;
+      font-weight: 700;
+      min-height: 36px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.set-select-wrapper {
+  width: auto;
+  margin-left: auto;
+  flex-shrink: 0;
+
+  .microcycle-trigger {
+    width: auto;
+    padding: 6px 10px;
+  }
+}
+
+// Nota anclada del ejercicio — misma identidad visual que en
+// config-exercise.page.scss, versión de solo lectura (sin acciones).
+.pinned-note-container {
+  margin: 12px 8px;
+
+  .pinned-note-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: linear-gradient(
+      135deg,
+      rgba(56, 128, 255, 0.10) 0%,
+      rgba(56, 128, 255, 0.04) 100%
+    );
+    border: 1px solid rgba(56, 128, 255, 0.20);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    .card-header {
+      display: flex;
+      align-items: center;
+
+      .left-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #3880ff;
+
+          ion-icon {
+            font-size: 1rem;
+          }
+        }
+
+        .title {
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #3880ff;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
+
+    .text {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+    }
+  }
+}
+
+.chart-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}

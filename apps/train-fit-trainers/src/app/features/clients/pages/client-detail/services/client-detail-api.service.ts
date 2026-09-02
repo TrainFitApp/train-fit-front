@@ -22,6 +22,7 @@ import {
   TrainerPayment,
   TrainerTask,
   TrainerTaskType,
+  TrainingGoal,
 } from '../models/client-detail.model';
 import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
 import {
@@ -46,6 +47,21 @@ export class ClientDetailApiService {
 
   public getTables(clientId: string): Observable<ClientTable[]> {
     return this.http.get<ClientTable[]>(`${this.base(clientId)}/tables`);
+  }
+
+  public getTrainingGoal(clientId: string): Observable<TrainingGoal> {
+    return this.http.get<TrainingGoal>(`${this.base(clientId)}/training-goal`);
+  }
+
+  public updateTrainingGoal(clientId: string, goal: TrainingGoal): Observable<TrainingGoal> {
+    return this.http.put<TrainingGoal>(`${this.base(clientId)}/training-goal`, goal);
+  }
+
+  public activateTable(clientId: string, tableId: string): Observable<{ _id: string }> {
+    return this.http.put<{ _id: string }>(
+      `${this.base(clientId)}/tables/${tableId}/activate`,
+      {}
+    );
   }
 
   public getAvailableTemplates(clientId: string): Observable<ClientTable[]> {
@@ -286,6 +302,19 @@ export class ClientDetailApiService {
   ): Observable<ClientTrainingProgress> {
     return this.http.get<ClientTrainingProgress>(
       `${this.base(clientId)}/training-progress?weeks=${weeks}`
+    );
+  }
+
+  // Tarea 4 (2026-09) — mismo endpoint, modo rango libre: comparación por
+  // microciclo en Entrenamiento, con las fechas que el entrenador elija en
+  // el calendario en vez de una de las 3 ventanas fijas de arriba.
+  public getTrainingBlocks(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<ClientTrainingProgress> {
+    return this.http.get<ClientTrainingProgress>(
+      `${this.base(clientId)}/training-progress?from=${from}&to=${to}`
     );
   }
 

@@ -1,0 +1,52 @@
+<div class="training-calendar">
+  <div class="training-calendar__header">
+    <button type="button" class="training-calendar__nav-btn" aria-label="Mes anterior" (click)="previousMonth()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <span class="training-calendar__month-label">{{ monthLabel }}</span>
+    <button type="button" class="training-calendar__nav-btn" aria-label="Mes siguiente" (click)="nextMonth()">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="training-calendar__presets">
+    <button
+      type="button"
+      class="preset-btn"
+      *ngFor="let preset of rangePresets"
+      [class.is-active]="activePreset === preset"
+      (click)="selectPresetRange(preset)"
+    >
+      {{ preset }}d
+    </button>
+    <span class="range-label" *ngIf="rangeStart && rangeEnd">{{ rangeStart }} → {{ rangeEnd }}</span>
+  </div>
+
+  <div class="training-calendar__weekdays">
+    <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+  </div>
+
+  <div class="training-calendar__grid" (mouseleave)="onGridMouseLeave()">
+    <button
+      type="button"
+      class="training-calendar__cell"
+      *ngFor="let cell of cells; trackBy: trackByCell"
+      [class.is-blank]="!cell.date"
+      [class.is-today]="!!cell.date && cell.date === todayIso"
+      [class.has-session]="cell.hasSession"
+      [class.is-in-range]="isInRange(cell.date)"
+      [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
+      [disabled]="!cell.date"
+      (click)="selectDay(cell)"
+      (mouseenter)="onCellHover(cell)"
+    >
+      <span class="training-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
+    </button>
+  </div>
+
+  <div class="training-calendar__legend">
+    <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>Sesión completada</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>Dentro del rango</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>Inicio y fin</span>
+  </div>
+</div>

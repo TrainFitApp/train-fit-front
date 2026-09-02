@@ -1,0 +1,6 @@
+<div class="chart-container">
+  <canvas #chartCanvas></canvas>
+</div>
+<p class="empty-hint" *ngIf="!isLoading && !hasData">
+  No hay microciclos con series completadas en el rango elegido.
+</p>

@@ -11,7 +11,12 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
 import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
-import { IntakeApiService, IntakeSubmission } from './services/intake-api.service';
+import {
+  EquipmentTag,
+  IntakeApiService,
+  IntakeSubmission,
+  TrainingLocation,
+} from './services/intake-api.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -37,6 +42,28 @@ const COOKS_OPTIONS: { value: IntakeSubmission['cooksAtHome']; label: string }[]
   { value: 'sometimes', label: 'A veces' },
 ];
 
+// Tarea 3 (Trainers, 2026-08) — "Equipamiento utilizado": sustituye el
+// antiguo textarea libre de `equipment` por lugar de entreno (select) +
+// maquinaria disponible (checkboxes de catálogo cerrado, ver
+// intake-api.service.ts#TrainingLocation/EquipmentTag).
+const TRAINING_LOCATION_OPTIONS: { value: TrainingLocation; label: string }[] = [
+  { value: 'gym', label: 'Gimnasio' },
+  { value: 'home', label: 'Casa' },
+  { value: 'outdoor', label: 'Exterior' },
+  { value: 'mixed', label: 'Mixto' },
+];
+
+const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
+  { value: 'dumbbells', label: 'Mancuernas' },
+  { value: 'barbell', label: 'Barra y discos' },
+  { value: 'machines', label: 'Máquinas de gimnasio' },
+  { value: 'bands', label: 'Bandas elásticas' },
+  { value: 'kettlebells', label: 'Kettlebells' },
+  { value: 'bench', label: 'Banco' },
+  { value: 'pullup_bar', label: 'Barra de dominadas' },
+  { value: 'none', label: 'Sin material' },
+];
+
 // TAREA 3 (coach-tab) — pantalla que ve el cliente mientras no tiene ninguna
 // relación activa todavía: si alguno de sus profesionales sigue esperando el
 // cuestionario inicial, lo rellena aquí; si ya lo envió, ve un mensaje de
@@ -55,12 +82,15 @@ export class OnboardingStatusPage {
   public isLoadingIntake = false;
   public readonly experienceOptions = EXPERIENCE_OPTIONS;
   public readonly cooksOptions = COOKS_OPTIONS;
+  public readonly trainingLocationOptions = TRAINING_LOCATION_OPTIONS;
+  public readonly equipmentTagOptions = EQUIPMENT_TAG_OPTIONS;
 
   public goals = '';
   public healthConditions = '';
   public experienceLevel: IntakeSubmission['experienceLevel'] = null;
   public availability = '';
-  public equipment = '';
+  public trainingLocation: TrainingLocation | null = null;
+  public equipmentTags: EquipmentTag[] = [];
   public allergies = '';
   public favoriteFoods = '';
   public dislikedFoods = '';
@@ -191,7 +221,8 @@ export class OnboardingStatusPage {
           this.healthConditions = intake.healthConditions || '';
           this.experienceLevel = intake.experienceLevel;
           this.availability = intake.availability || '';
-          this.equipment = intake.equipment || '';
+          this.trainingLocation = intake.trainingLocation;
+          this.equipmentTags = intake.equipmentTags || [];
           intake.customAnswers.forEach((answer) => {
             this.customAnswers[answer.questionId] = answer.value;
           });
@@ -217,12 +248,19 @@ export class OnboardingStatusPage {
     this.healthConditions = '';
     this.experienceLevel = null;
     this.availability = '';
-    this.equipment = '';
+    this.trainingLocation = null;
+    this.equipmentTags = [];
     this.allergies = '';
     this.favoriteFoods = '';
     this.dislikedFoods = '';
     this.cooksAtHome = null;
     this.customAnswers = {};
+  }
+
+  public toggleEquipmentTag(tag: EquipmentTag): void {
+    this.equipmentTags = this.equipmentTags.includes(tag)
+      ? this.equipmentTags.filter((t) => t !== tag)
+      : [...this.equipmentTags, tag];
   }
 
   public closeIntakeForm(): void {
@@ -247,7 +285,8 @@ export class OnboardingStatusPage {
         healthConditions: this.healthConditions.trim(),
         experienceLevel: this.experienceLevel,
         availability: this.availability.trim(),
-        equipment: this.equipment.trim(),
+        trainingLocation: this.trainingLocation,
+        equipmentTags: this.equipmentTags,
         allergies: this.allergies.trim(),
         favoriteFoods: this.favoriteFoods.trim(),
         dislikedFoods: this.dislikedFoods.trim(),

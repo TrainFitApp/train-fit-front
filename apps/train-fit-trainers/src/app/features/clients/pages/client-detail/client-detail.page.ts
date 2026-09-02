@@ -1,12 +1,37 @@
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  HostListener,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
+import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
+import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
+import {
+  ClientIntake,
+  EQUIPMENT_TAG_LABELS,
+  EquipmentTag,
+  TRAINING_LOCATION_LABELS,
+  TrainingLocation,
+} from '../../../invites/models/trainer-invite.model';
+
+Chart.register(...registerables);
+
+const TRAINING_GOAL_TYPE_LABELS: Record<TrainingGoalType, string> = {
+  strength: 'Fuerza',
+  hypertrophy: 'Hipertrofia',
+  endurance: 'Resistencia',
+  mobility: 'Movilidad',
+  general: 'General',
+};
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import {
@@ -16,7 +41,17 @@ import {
   checkinScaleSuffix,
 } from 'src/app/core/constants/checkin-fields';
 import { formatSoreness } from 'src/app/core/constants/soreness';
-import { ClientBodyProfile, GoalMeal } from './models/client-progress.model';
+import {
+  AdherenceDimension,
+  BlockMuscleGroup,
+  ClientBodyProfile,
+  ClientTrainingProgress,
+  GoalMeal,
+  TRAINING_COMPARISON_METRIC_LABELS,
+  TrainingBlock,
+  TrainingComparisonMetric,
+} from './models/client-progress.model';
+import { TrainingFilterPanelComponent } from './components/training-filter-panel/training-filter-panel.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
@@ -56,6 +91,8 @@ import {
   CLIENT_DETAIL_SECTIONS,
   SECTION_BY_TAB,
   CompletedWorkoutEntry,
+  TrainingGoal,
+  TrainingGoalType,
   DietDaySummary,
   MealAlternativeInput,
   MealFoodItemInput,
@@ -151,6 +188,31 @@ export class ClientDetailPage implements OnInit {
   public trainingState: SectionState = 'loading';
   public tables: ClientTable[] = [];
   public latestWeight: AnthropometryEntry | null = null;
+  // Tarea 3 — "Equipamiento utilizado". Mismo cuestionario que ya lee
+  // ClientsPage al revisar un cliente nuevo (TrainerInvitesApiService), leído
+  // aquí de nuevo porque la ficha en curso no lo cargaba hasta ahora.
+  public clientIntake: ClientIntake | null = null;
+  public clientIntakeState: SectionState = 'loading';
+
+  // Tarea 3 bis — "Objetivo de entrenamiento" (paridad mínima con
+  // "Objetivos nutricionales"): tipo + frecuencia declarada, editable en
+  // línea. Mismo patrón que ya usaba el chip de objetivo de nutrición.
+  public trainingGoal: TrainingGoal | null = null;
+  public trainingGoalState: SectionState = 'loading';
+  public isEditingTrainingGoal = false;
+  public trainingGoalTypeDraft: TrainingGoalType | null = null;
+  public trainingFrequencyDraft: number | null = null;
+  public isSavingTrainingGoal = false;
+  public readonly trainingGoalTypeOptions: { value: TrainingGoalType; label: string }[] =
+    Object.entries(TRAINING_GOAL_TYPE_LABELS).map(([value, label]) => ({
+      value: value as TrainingGoalType,
+      label,
+    }));
+
+  // Tarea 3 bis — calendario + gráfica de frecuencia semanal, versión de
+  // vistazo para Entrenamiento (a diferencia de Estadísticas, que es el
+  // detalle POR ejercicio de UNA rutina): agregado de todas las rutinas
+  // asignadas por este entrenador, ya cargadas en completedWorkouts.
   public expandedTableId: string | null = null;
   public showRoutinePanel = false;
   public routineForm: FormGroup = new FormGroup({
@@ -233,6 +295,10 @@ export class ClientDetailPage implements OnInit {
   // booleano suelto) porque varias cards viven en la misma lista y solo una
   // debe mostrarse "en progreso" a la vez.
   public activatingGoalId: string | null = null;
+  // Mismo criterio que activatingGoalId: id suelto (no un booleano) porque
+  // varios routine-block viven en la misma lista y solo uno debe mostrarse
+  // "activando" a la vez.
+  public activatingTableId: string | null = null;
   public isRevoking = false;
 
   // --- Pautar comida (F12/F28) ---
@@ -294,7 +360,8 @@ export class ClientDetailPage implements OnInit {
     private userService: UserService,
     private tableService: TableService,
     private planAssignmentApi: PlanAssignmentApiService,
-    private trainerClientsApi: TrainerClientsApiService
+    private trainerClientsApi: TrainerClientsApiService,
+    private trainerInvitesApi: TrainerInvitesApiService
   ) {}
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
@@ -458,6 +525,7 @@ export class ClientDetailPage implements OnInit {
 
     this.activeTab = destino;
     this.activeSection = section;
+
   }
 
   // Al pulsar una sección se abre su primera subpestaña DISPONIBLE: si el
@@ -525,6 +593,179 @@ export class ClientDetailPage implements OnInit {
       .catch(() => {
         this.trainingState = 'error';
       });
+
+    this.loadClientIntake();
+    this.loadTrainingGoal();
+    this.loadTrainingAdherence();
+  }
+
+  // --- Tarea 3 bis: Objetivo de entrenamiento ---
+  private loadTrainingGoal(): void {
+    this.trainingGoalState = 'loading';
+    this.clientDetailApi.getTrainingGoal(this.clientId).subscribe({
+      next: (goal) => {
+        this.trainingGoal = goal;
+        this.trainingGoalState = 'loaded';
+      },
+      error: () => {
+        this.trainingGoalState = 'error';
+      },
+    });
+  }
+
+  public trainingGoalTypeLabel(type: TrainingGoalType | null): string {
+    return type ? TRAINING_GOAL_TYPE_LABELS[type] || type : 'Sin declarar';
+  }
+
+  public startEditTrainingGoal(): void {
+    this.trainingGoalTypeDraft = this.trainingGoal?.trainingGoalType || null;
+    this.trainingFrequencyDraft = this.trainingGoal?.trainingFrequencyTarget || null;
+    this.isEditingTrainingGoal = true;
+  }
+
+  public cancelEditTrainingGoal(): void {
+    this.isEditingTrainingGoal = false;
+  }
+
+  public saveTrainingGoal(): void {
+    if (this.isSavingTrainingGoal) return;
+    this.isSavingTrainingGoal = true;
+    const payload: TrainingGoal = {
+      trainingGoalType: this.trainingGoalTypeDraft,
+      trainingFrequencyTarget: this.trainingFrequencyDraft,
+    };
+    this.clientDetailApi.updateTrainingGoal(this.clientId, payload).subscribe({
+      next: (goal) => {
+        this.trainingGoal = goal;
+        this.isSavingTrainingGoal = false;
+        this.isEditingTrainingGoal = false;
+      },
+      error: () => {
+        this.isSavingTrainingGoal = false;
+        this.ionicUtilService.showErrorToast('No se pudo guardar el objetivo', 'Error', 3000);
+      },
+    });
+  }
+
+  // --- Tarea 4 (2026-09): adherencia de entrenamiento unificada ---
+  // Antes esta pestaña calculaba su propio % (sesiones reales / target
+  // declarado a mano) que podía no coincidir con el que ya se ve en Resumen
+  // (adherence.dimensions.training, completadas/planificadas de la rutina
+  // REAL). Ahora es el mismo número en los dos sitios — se lee de /summary
+  // en vez de recalcularlo aquí. `applicable:false` (sin rutina asignada)
+  // se distingue de un 0% real; nunca se inventa una cifra.
+  public trainingAdherence: AdherenceDimension | null = null;
+  public trainingAdherenceState: SectionState = 'loading';
+
+  private loadTrainingAdherence(): void {
+    this.trainingAdherenceState = 'loading';
+    this.clientDetailApi.getSummary(this.clientId).subscribe({
+      next: (summary) => {
+        this.trainingAdherence = summary.adherence?.dimensions?.training ?? null;
+        this.trainingAdherenceState = 'loaded';
+      },
+      error: () => {
+        this.trainingAdherence = null;
+        this.trainingAdherenceState = 'error';
+      },
+    });
+  }
+
+  // --- Tarea 4 (2026-09), remodelado: comparación por microciclo ---
+  // Sustituye a la Entrega 2 (volumen/récords/evolución de cargas) y al
+  // calendario+gráfica de frecuencia de la Tarea 3 bis: un único sistema
+  // configurable (calendario de rango + gráfica + panel de filtro) en vez
+  // de varios bloques fijos. Resumen no se toca, sigue en modo `weeks`.
+  public trainingComparisonRange: { start: string; end: string } | null = null;
+  public trainingComparisonMetric: TrainingComparisonMetric = 'volume';
+  public trainingBlocksState: SectionState = 'loading';
+  public trainingBlocks: TrainingBlock[] = [];
+  public trainingBlockMuscleGroups: BlockMuscleGroup[] = [];
+  public trainingBlockComparison: ClientTrainingProgress['blockComparison'] = null;
+
+  public get trainingComparisonMetricLabel(): string {
+    return TRAINING_COMPARISON_METRIC_LABELS[this.trainingComparisonMetric];
+  }
+
+  // Fechas ISO (no toDateString) con sesión completada — el calendario
+  // compara contra el mismo formato que period.from/to del backend.
+  public get sessionDatesSet(): Set<string> {
+    return new Set(
+      this.completedWorkouts
+        .filter((w) => w.date)
+        .map((w) => new Date(w.date as Date).toISOString().slice(0, 10))
+    );
+  }
+
+  public onTrainingRangeSelected(range: { start: string; end: string }): void {
+    this.trainingComparisonRange = range;
+    this.loadTrainingBlocks();
+  }
+
+  private loadTrainingBlocks(): void {
+    if (!this.trainingComparisonRange) return;
+    this.trainingBlocksState = 'loading';
+    const { start, end } = this.trainingComparisonRange;
+    this.clientDetailApi.getTrainingBlocks(this.clientId, start, end).subscribe({
+      next: (data) => {
+        this.trainingBlocks = data.blocks || [];
+        this.trainingBlockMuscleGroups = data.blockMuscleGroups || [];
+        this.trainingBlockComparison = data.blockComparison || null;
+        this.trainingBlocksState = 'loaded';
+      },
+      error: () => {
+        this.trainingBlocks = [];
+        this.trainingBlockMuscleGroups = [];
+        this.trainingBlockComparison = null;
+        this.trainingBlocksState = 'error';
+      },
+    });
+  }
+
+  public async openTrainingFilterPanel(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: TrainingFilterPanelComponent,
+      componentProps: { selectedMetric: this.trainingComparisonMetric },
+      cssClass: 'tf-panel-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<TrainingComparisonMetric>();
+    if (role === 'confirm' && data) {
+      this.trainingComparisonMetric = data;
+    }
+  }
+
+  // --- Tarea 3 bis: vista previa de sesiones (link a Progreso > Sesiones) ---
+  public get recentCompletedWorkouts(): CompletedWorkoutEntry[] {
+    return this.completedWorkouts.slice(0, 3);
+  }
+
+  public goToSessionsTab(): void {
+    this.selectTab('history');
+  }
+
+  // Tarea 3 — mismo endpoint que ClientsPage usa al revisar un cliente
+  // nuevo (GET /trainer/clients/:clientId/intake, sin requireActiveClient:
+  // legible aunque la relación no esté "active" todavía).
+  private loadClientIntake(): void {
+    this.clientIntakeState = 'loading';
+    this.trainerInvitesApi.getClientIntake(this.clientId).subscribe({
+      next: (intake) => {
+        this.clientIntake = intake;
+        this.clientIntakeState = 'loaded';
+      },
+      error: () => {
+        this.clientIntakeState = 'error';
+      },
+    });
+  }
+
+  public trainingLocationLabel(location: TrainingLocation | null): string {
+    return location ? TRAINING_LOCATION_LABELS[location] || location : 'No indicado';
+  }
+
+  public equipmentTagLabel(tag: EquipmentTag): string {
+    return EQUIPMENT_TAG_LABELS[tag] || tag;
   }
 
   // F09 — detalle de rutina en modo lectura: expandir/colapsar splits/workouts
@@ -532,6 +773,31 @@ export class ClientDetailPage implements OnInit {
   public toggleTableExpand(table: ClientTable): void {
     this.expandedTableId =
       this.expandedTableId === table._id ? null : table._id;
+  }
+
+  // Poner en uso una rutina ya asignada — mismo patrón que activateGoal.
+  public activateTable(table: ClientTable, event: Event): void {
+    event.stopPropagation();
+    if (table.isActive || this.activatingTableId) return;
+
+    this.activatingTableId = table._id;
+    this.clientDetailApi.activateTable(this.clientId, table._id).subscribe({
+      next: () => {
+        this.activatingTableId = null;
+        this.tables = this.tables.map((t) => ({
+          ...t,
+          isActive: t._id === table._id,
+        }));
+      },
+      error: (err) => {
+        this.activatingTableId = null;
+        this.ionicUtilService.showErrorToast(
+          err?.error?.message || 'No se pudo activar la rutina',
+          'Error',
+          3500
+        );
+      },
+    });
   }
 
   // --- Medidas (antropometría) ---
@@ -832,6 +1098,7 @@ export class ClientDetailPage implements OnInit {
   // TableInContextResolver siembra la tabla del cliente antes de activar.
   public async openStatistics(table: ClientTable): Promise<void> {
     await this.router.navigate([
+      '/tabs',
       'clients',
       this.clientId,
       'tables',

@@ -131,6 +131,16 @@ export interface TrainerNote {
 // el backend (getClientTables) devuelve exactamente esa misma estructura.
 export type ClientTable = Table;
 
+// Tarea 3 bis (2026-08) — "Objetivo de entrenamiento", versión mínima:
+// tipo declarado + frecuencia objetivo. Esta última es también el
+// denominador de "adherencia de entrenamiento" (ver client-detail.page.ts).
+export type TrainingGoalType = 'strength' | 'hypertrophy' | 'endurance' | 'mobility' | 'general';
+
+export interface TrainingGoal {
+  trainingGoalType: TrainingGoalType | null;
+  trainingFrequencyTarget: number | null;
+}
+
 // Un workout "aplanado" fuera de su split, con contexto de a qué rutina
 // pertenece — usado por la sección de historial (F09) y F18.
 export interface CompletedWorkoutEntry extends Workout {

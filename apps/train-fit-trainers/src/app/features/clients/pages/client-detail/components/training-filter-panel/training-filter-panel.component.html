@@ -1,0 +1,38 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Comparar por</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="filter-panel-content">
+  <p class="panel-subtitle">Qué métrica comparar entre microciclos.</p>
+
+  <div class="metric-option-list">
+    <button
+      type="button"
+      class="metric-option"
+      *ngFor="let metric of metrics"
+      [class.metric-option--selected]="selectedMetric === metric"
+      (click)="choose(metric)"
+    >
+      <span>{{ metricLabels[metric] }}</span>
+      <ion-icon
+        [name]="selectedMetric === metric ? 'checkmark-circle' : 'ellipse-outline'"
+      ></ion-icon>
+    </button>
+  </div>
+</ion-content>
+
+<ion-footer class="filter-panel-footer">
+  <button class="submit-button" (click)="confirm()">Aplicar</button>
+</ion-footer>

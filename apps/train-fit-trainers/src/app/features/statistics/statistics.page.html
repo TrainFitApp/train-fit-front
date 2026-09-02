@@ -1,0 +1,867 @@
+<ion-header>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ 'TABLES.STATS_PAGE_TITLE' | translate }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+
+<ion-content>
+  <div class="content">
+    <!-- impeccable/emil — calendario (control amplio) + selectores (control
+         estrecho, apilados) como fila de 2 columnas: son los mandos que
+         deciden qué se ve más abajo, no contenido en sí, mismo criterio de
+         columna lateral que ya usa el resto de la app. -->
+    <div class="stats-controls-row">
+    <!-- Global Calendar (Always Visible) -->
+    <ion-card class="calendar-card">
+      <ion-card-header>
+        <ion-card-subtitle>
+          <span class="section-icon"></span>
+          {{ 'TABLES.STATS_CALENDAR_TITLE' | translate }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="calendar-header">
+          <ion-button fill="clear" (click)="changeMonth(-1)">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </ion-button>
+          <div class="month-label">{{ monthYearString }}</div>
+          <ion-button fill="clear" (click)="changeMonth(1)">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="calendar-grid">
+          <div class="day-header" *ngFor="let d of weekDaysHeader">{{ d }}</div>
+          <div
+            class="day-cell"
+            *ngFor="let day of calendarDays"
+            [class.inactive]="day.inactive"
+            [class.completed]="day.completed"
+          >
+            <span class="day-number">{{ day.day }}</span>
+            <div
+              class="workout-indicators"
+              *ngIf="day.completed && day.workouts"
+            >
+              <div
+                class="workout-dot"
+                *ngFor="let w of day.workouts"
+                [style.background-color]="w.color"
+                [title]="w.name"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="calendar-legend"
+          *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
+        >
+          <ion-text color="medium">
+            <p class="legend-title">{{ 'TABLES.STATS_TRAINING_TYPES' | translate }}</p>
+          </ion-text>
+          <div class="legend-items">
+            <ion-chip
+              *ngFor="let type of uniqueWorkoutTypes"
+              class="legend-chip"
+            >
+              <div
+                class="workout-dot"
+                [style.background-color]="type.color"
+              ></div>
+              <ion-label>{{ type.name | translateDb }}</ion-label>
+            </ion-chip>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="stats-selectors-col">
+    <!-- Workout Selector -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>
+          <span class="section-icon"></span>
+          {{ 'TABLES.STATS_SELECT_WORKOUT' | translate }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <div class="select-wrapper">
+            <ion-select
+              mode="ios"
+              interface="action-sheet"
+              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              [placeholder]="'TABLES.STATS_CHOOSE_WORKOUT' | translate"
+              [value]="selectedWorkoutName"
+              (ionChange)="onWorkoutChange($event)"
+            >
+              <ion-select-option *ngFor="let w of workouts" [value]="w.name">
+                {{ w.name | translateDb }} ({{ w.exercises.length }} {{ 'TABLES.EXERCISE_PLURAL' | translate }})
+              </ion-select-option>
+            </ion-select>
+            <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Exercise Selector -->
+    <ion-card [class.disabled-card]="!selectedWorkoutName">
+      <ion-card-header>
+        <ion-card-subtitle>
+          <span class="section-icon"></span>
+          {{ 'TABLES.STATS_SELECT_EXERCISE' | translate }}
+        </ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <div class="select-wrapper">
+            <ion-select
+              mode="ios"
+              interface="action-sheet"
+              [interfaceOptions]="{ cssClass: 'no-cancel-action-sheet' }"
+              [placeholder]="'TABLES.STATS_CHOOSE_EXERCISE' | translate"
+              [disabled]="!selectedWorkoutName"
+              [value]="selectedExerciseId"
+              (ionChange)="onExerciseChange($event)"
+            >
+              <ion-select-option *ngFor="let ex of exercises" [value]="ex._id">
+                {{ ex.exercise?.name | translateDb }}
+              </ion-select-option>
+            </ion-select>
+            <ion-icon name="chevron-down-outline" class="select-icon"></ion-icon>
+          </div>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+    </div>
+    </div>
+
+    <!-- Nota anclada del ejercicio (posición actual, no varía por microciclo) -->
+    <div class="pinned-note-container" *ngIf="pinnedNote">
+      <div class="pinned-note-card">
+        <div class="card-header">
+          <div class="left-section">
+            <div class="icon-wrapper">
+              <ion-icon name="pin"></ion-icon>
+            </div>
+            <span class="title">{{ 'NOTES.PINNED_TO_POSITION' | translate }}</span>
+            <app-glossary-info term="PINNED_NOTE" size="sm"></app-glossary-info>
+          </div>
+        </div>
+        <p class="text">{{ pinnedNote.notes }}</p>
+      </div>
+    </div>
+
+    <!-- Stats Grid — impeccable/emil: grid real (auto-fit), no ion-col
+         size="6" fijo a 2 columnas siempre. En escritorio ancho caben las 4
+         a la vez; en móvil caen a 2 o 1 según el espacio real. -->
+    <div class="stat-cards-grid" *ngIf="selectedExerciseId && historyData.length > 0">
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <div class="stat-label">
+            {{ isCardio ? ('TABLES.STATS_BEST_SPEED' | translate) : isIsometric ? ('TABLES.STATS_LONGEST_HOLD' | translate) : ('TABLES.STATS_PERSONAL_RECORD' | translate) }}
+          </div>
+          <div class="stat-value">
+            <ng-container *ngIf="isIsometric; else notIsometricPr">{{ formatSeconds(personalRecord) }}</ng-container>
+            <ng-template #notIsometricPr
+              >{{ personalRecord | esNumber:'1.0-1' }}<small>{{ isCardio ? 'km/h' : 'kg' }}</small></ng-template
+            >
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <div class="stat-label">
+            {{ (isCardio || isIsometric) ? ('TABLES.STATS_TOTAL_TIME' | translate) : ('TABLES.STATS_ESTIMATED_1RM' | translate) }}
+            <app-glossary-info *ngIf="isStrength" term="ONE_RM" size="sm"></app-glossary-info>
+          </div>
+          <div class="stat-value">
+            {{ (isCardio || isIsometric) ? (metrics.max1RM | esNumber:'1.0-0') :
+            (metrics.max1RM | esNumber:'1.0-1') }}
+            <small>{{ (isCardio || isIsometric) ? 'min' : 'kg' }}</small>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <div class="stat-label">
+            {{ (isCardio || isIsometric) ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
+          </div>
+          <div class="stat-value">
+            {{ metrics.totalVolume | esNumber:'1.0-0' }}
+            <small *ngIf="isStrength">kg</small>
+          </div>
+          <div class="stat-change">
+            <ion-text color="medium"
+              >{{ (isCardio || isIsometric) ? ('TABLES.STATS_THIS_MONTH' | translate) : ('TABLES.STATS_ACCUMULATED' | translate) }}</ion-text
+            >
+          </div>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <div class="stat-label">
+            {{ (isCardio || isIsometric) ? ('TABLES.STATS_TOTAL_SESSIONS' | translate) : ('TABLES.STATS_COMPLETED_TIMES' | translate) }}
+          </div>
+          <div class="stat-value">{{ workoutCompletionCount }}</div>
+          <div class="stat-change">
+            <ion-text color="medium">{{ 'TABLES.STATS_SESSIONS' | translate }}</ion-text>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- All-Time Historical Stats -->
+    <!-- TASK-020: en contexto trainer (:clientId en la ruta), loadHistoricalStats
+         ya pide el endpoint scoped al cliente — ver statistics.page.ts. -->
+    <ion-card
+      class="historical-stats-card"
+      *ngIf="selectedExerciseId"
+    >
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="trophy-outline"></ion-icon>
+          {{ 'TABLES.STATS_ALL_TIME_TITLE' | translate }}
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="historicalStatsLoading" class="historical-stats-loading">
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+        <ng-container *ngIf="!historicalStatsLoading">
+          <ng-container *ngIf="isCardio; else notCardioHistorical">
+            <ion-row *ngIf="historicalStats?.bestVelocityEver !== null && historicalStats?.bestVelocityEver !== undefined; else noHistoricalData">
+              <ion-col size="12">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_PACE' | translate }}</div>
+                    <div class="stat-value">
+                      {{ historicalStats.bestVelocityEver | esNumber:'1.0-1' }}<small>km/h</small>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ng-container>
+          <ng-template #notCardioHistorical>
+            <ng-container *ngIf="isIsometric; else notIsometricHistorical">
+              <ion-row *ngIf="historicalStats && historicalStats.bestTimeSecondsEver > 0; else noHistoricalData">
+                <ion-col size="12">
+                  <ion-card class="stat-card">
+                    <ion-card-content>
+                      <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_LONGEST_HOLD' | translate }}</div>
+                      <div class="stat-value">{{ historicalStats.bestTimeEver }}</div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+          </ng-template>
+          <ng-template #notIsometricHistorical>
+            <ion-row *ngIf="historicalStats?.bestSet as best; else noHistoricalData">
+              <ion-col size="6">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_BEST_SET' | translate }}</div>
+                    <div class="stat-value">
+                      {{ best.weight | esNumber:'1.0-1' }}<small>kg</small> × {{ best.reps }}
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="6">
+                <ion-card class="stat-card">
+                  <ion-card-content>
+                    <div class="stat-label">{{ 'TABLES.STATS_ALL_TIME_MAX_WEIGHT' | translate }}</div>
+                    <div class="stat-value">
+                      {{ historicalStats.maxWeightEver | esNumber:'1.0-1' }}<small>kg</small>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ng-template>
+          <ng-template #noHistoricalData>
+            <ion-text color="medium" class="historical-stats-empty">
+              {{ 'TABLES.STATS_ALL_TIME_EMPTY' | translate }}
+            </ion-text>
+          </ng-template>
+        </ng-container>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Comparison Card -->
+    <ion-card
+      class="comparison-card"
+      *ngIf="filteredHistory.length >= 2 && selectedExerciseId"
+    >
+      <ion-card-header>
+        <div class="comparison-header">
+          <div class="comparison-title-row">
+            <ion-card-title>{{ 'TABLES.STATS_COMPARISON' | translate }}</ion-card-title>
+          </div>
+          <div class="comparison-selectors">
+            <div class="select-wrapper compare-select-wrapper">
+              <button type="button" class="microcycle-trigger">
+                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexA} }}</span>
+                <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+              </button>
+              <ion-select
+                class="micro-cycle-selector-hidden"
+                mode="ios"
+                interface="action-sheet"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                [(ngModel)]="compareIndexA"
+                (ionChange)="onCompareChange()"
+              >
+                <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
+                </ion-select-option>
+              </ion-select>
+            </div>
+            <ion-icon
+              name="arrow-forward-outline"
+              class="compare-arrow"
+            ></ion-icon>
+            <div class="select-wrapper compare-select-wrapper">
+              <button type="button" class="microcycle-trigger">
+                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexB} }}</span>
+                <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+              </button>
+              <ion-select
+                class="micro-cycle-selector-hidden"
+                mode="ios"
+                interface="action-sheet"
+                [interfaceOptions]="{ cssClass: 'white-text-action-sheet' }"
+                [(ngModel)]="compareIndexB"
+                (ionChange)="onCompareChange()"
+              >
+                <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
+                </ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="comparison-grid">
+          <!-- Cardio: Velocidad -->
+          <div class="comparison-item" *ngIf="isCardio">
+            <div class="comparison-item-label">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              {{ 'TABLES.STATS_BEST_SPEED' | translate }}
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevMaxVelocity }} km/h</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.velocityDiff)"
+                [class]="getDiffClass(comparisonData.velocityDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currMaxVelocity }} km/h</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.velocityDiff)"
+            >
+              <span *ngIf="comparisonData.velocityDiff !== 0">
+                {{ comparisonData.velocityDiff > 0 ? '+' : '' }}{{
+                comparisonData.velocityPct | esNumber:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.velocityDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Isométrico: Mejor aguante -->
+          <div class="comparison-item" *ngIf="isIsometric">
+            <div class="comparison-item-label">
+              <ion-icon name="hourglass-outline"></ion-icon>
+              {{ 'TABLES.STATS_LONGEST_HOLD' | translate }}
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val">{{ formatSeconds(comparisonData.prevMaxHold) }}</span>
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.maxHoldDiff)"
+                [class]="getDiffClass(comparisonData.maxHoldDiff)"
+              ></ion-icon>
+              <span class="curr-val">{{ formatSeconds(comparisonData.currMaxHold) }}</span>
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.maxHoldDiff)"
+            >
+              <span *ngIf="comparisonData.maxHoldDiff !== 0">
+                {{ comparisonData.maxHoldDiff > 0 ? '+' : '' }}{{
+                comparisonData.maxHoldPct | esNumber:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.maxHoldDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Cardio/Isométrico: Tiempo Total -->
+          <div class="comparison-item" *ngIf="isCardio || isIsometric">
+            <div class="comparison-item-label">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ 'TABLES.STATS_TOTAL_TIME' | translate }}
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevTotalTime | esNumber:'1.0-1' }} min</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.timeDiff)"
+                [class]="getDiffClass(comparisonData.timeDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currTotalTime | esNumber:'1.0-1' }} min</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.timeDiff)"
+            >
+              <span *ngIf="comparisonData.timeDiff !== 0">
+                {{ comparisonData.timeDiff > 0 ? '+' : '' }}{{
+                comparisonData.timePct | esNumber:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.timeDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Peso máximo -->
+          <div class="comparison-item" *ngIf="isStrength">
+            <div class="comparison-item-label">
+              <ion-icon name="barbell-outline"></ion-icon>
+              {{ 'TABLES.STATS_BEST_SET' | translate }}
+              <app-glossary-info term="BEST_SET" size="sm"></app-glossary-info>
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevMaxWeight }} kg</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.weightDiff)"
+                [class]="getDiffClass(comparisonData.weightDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currMaxWeight }} kg</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.weightDiff)"
+            >
+              <span *ngIf="comparisonData.weightDiff !== 0">
+                {{ comparisonData.weightDiff > 0 ? '+' : '' }}{{
+                comparisonData.weightPct | esNumber:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.weightDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Volumen Efectivo -->
+          <div class="comparison-item" *ngIf="isStrength">
+            <div class="comparison-item-label">
+              <ion-icon name="trending-up-outline"></ion-icon>
+              {{ 'TABLES.STATS_EFFECTIVE_VOLUME' | translate }}
+              <app-glossary-info term="EFFECTIVE_VOLUME" size="sm"></app-glossary-info>
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevEffectiveVolume | esNumber:'1.0-0' }}</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.effVolumeDiff)"
+                [class]="getDiffClass(comparisonData.effVolumeDiff)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currEffectiveVolume | esNumber:'1.0-0' }}</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.effVolumeDiff)"
+            >
+              <span *ngIf="comparisonData.effVolumeDiff !== 0">
+                {{ comparisonData.effVolumeDiff > 0 ? '+' : '' }}{{
+                comparisonData.effVolumePct | esNumber:'1.0-1' }}%
+              </span>
+              <span *ngIf="comparisonData.effVolumeDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_NO_CHANGE' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- RIR Medio -->
+          <div class="comparison-item" *ngIf="isStrength">
+            <div class="comparison-item-label">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              {{ 'TABLES.STATS_AVG_RIR' | translate }}
+              <app-glossary-info term="RIR" size="sm"></app-glossary-info>
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val"
+                >{{ comparisonData.prevAvgRir >= 0 ? (comparisonData.prevAvgRir
+                | esNumber:'1.1-1') : '—' }}</span
+              >
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.rirDiff)"
+                [class]="getDiffClass(comparisonData.rirDiff, true)"
+              ></ion-icon>
+              <span class="curr-val"
+                >{{ comparisonData.currAvgRir >= 0 ? (comparisonData.currAvgRir
+                | esNumber:'1.1-1') : '—' }}</span
+              >
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.rirDiff, true)"
+            >
+              <span *ngIf="comparisonData.rirDiff !== 0">
+                {{ comparisonData.rirDiff > 0 ? '+' : '' }}{{
+                comparisonData.rirDiff | esNumber:'1.1-1' }} RIR
+              </span>
+              <span *ngIf="comparisonData.rirDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_SAME' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Series -->
+          <div class="comparison-item">
+            <div class="comparison-item-label">
+              <ion-icon name="list-outline"></ion-icon>
+              {{ 'TABLES.STATS_SETS' | translate }}
+              <app-glossary-info term="SETS_COMPARISON" size="sm"></app-glossary-info>
+            </div>
+            <div class="comparison-item-values">
+              <span class="prev-val">{{ comparisonData.prevSets }}</span>
+              <ion-icon
+                [name]="getDiffIcon(comparisonData.setsDiff)"
+                [class]="getDiffClass(comparisonData.setsDiff)"
+              ></ion-icon>
+              <span class="curr-val">{{ comparisonData.currSets }}</span>
+            </div>
+            <div
+              class="comparison-item-pct"
+              [class]="getDiffClass(comparisonData.setsDiff)"
+            >
+              <span *ngIf="comparisonData.setsDiff !== 0"
+                >{{ comparisonData.setsDiff > 0 ? '+' : '' }}{{
+                comparisonData.setsDiff }} {{ 'TABLES.STATS_SETS' | translate | lowercase }}</span
+              >
+              <span *ngIf="comparisonData.setsDiff === 0" class="neutral"
+                >{{ 'TABLES.STATS_SAME' | translate }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Técnicas avanzadas -->
+          <div
+            class="comparison-item comparison-item-full"
+            *ngIf="comparisonData.prevDropSets + comparisonData.currDropSets + comparisonData.prevRestPauses + comparisonData.currRestPauses > 0"
+          >
+            <div class="comparison-item-label">
+              <ion-icon name="flash-outline"></ion-icon>
+              {{ 'TABLES.STATS_ADVANCED_TECHNIQUES' | translate }}
+            </div>
+            <div class="technique-row">
+              <span
+                class="technique-chip ds"
+                *ngIf="comparisonData.prevDropSets > 0 || comparisonData.currDropSets > 0"
+              >
+                <span class="t-label">DS</span>
+                {{ comparisonData.prevDropSets }} → {{
+                comparisonData.currDropSets }}
+                <ion-icon
+                  [name]="getDiffIcon(comparisonData.currDropSets - comparisonData.prevDropSets)"
+                  [class]="getDiffClass(comparisonData.currDropSets - comparisonData.prevDropSets)"
+                ></ion-icon>
+              </span>
+              <span
+                class="technique-chip rp"
+                *ngIf="comparisonData.prevRestPauses > 0 || comparisonData.currRestPauses > 0"
+              >
+                <span class="t-label">RP</span>
+                {{ comparisonData.prevRestPauses }} → {{
+                comparisonData.currRestPauses }}
+                <ion-icon
+                  [name]="getDiffIcon(comparisonData.currRestPauses - comparisonData.prevRestPauses)"
+                  [class]="getDiffClass(comparisonData.currRestPauses - comparisonData.prevRestPauses)"
+                ></ion-icon>
+              </span>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Chart Section -->
+    <ion-card
+      class="chart-card"
+      *ngIf="selectedExerciseId && historyData.length > 0"
+    >
+      <ion-card-header class="chart-card-header">
+        <div class="chart-mode-container">
+          <ion-segment
+            [(ngModel)]="chartMode"
+            (ionChange)="onChartModeChange($event)"
+            mode="ios"
+          >
+            <ion-segment-button value="evolution">
+              <ion-label>{{ 'TABLES.STATS_EVOLUTION' | translate }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="volume">
+              <ion-label>{{ 'TABLES.STATS_VOLUME' | translate }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+        <div class="chart-header-main" *ngIf="chartMode === 'evolution'">
+          <ion-card-title>{{ 'TABLES.STATS_DIRECT_PROGRESSION' | translate }}</ion-card-title>
+          <div class="select-wrapper set-select-wrapper">
+            <button type="button" class="microcycle-trigger">
+              <span class="trigger-value">{{ 'TABLES.STATS_SET' | translate: {n: selectedSetIndex + 1} }}</span>
+              <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
+            </button>
+            <ion-select
+              class="micro-cycle-selector-hidden"
+              mode="ios"
+              interface="popover"
+              [value]="selectedSetIndex"
+              (ionChange)="onSetTypeChange($event)"
+            >
+              <ion-select-option
+                *ngFor="let idx of availableSetOptions"
+                [value]="idx"
+              >
+                {{ 'TABLES.STATS_SET' | translate: {n: idx + 1} }}
+              </ion-select-option>
+            </ion-select>
+          </div>
+        </div>
+        <div class="chart-header-main" *ngIf="chartMode === 'volume'">
+          <ion-card-title>{{ 'TABLES.STATS_WORKLOAD' | translate }}</ion-card-title>
+          <ion-text color="medium" style="font-size: 0.8rem">
+            {{ isCardio ? ('TABLES.STATS_TIME_VS_SPEED' | translate) : isIsometric ? ('TABLES.STATS_HOLD_WORKLOAD' | translate) : ('TABLES.STATS_EFF_VOLUME_VS_RIR' | translate) }}
+          </ion-text>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="chart-container">
+          <canvas #progressionCanvas></canvas>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Data Table -->
+    <ion-card *ngIf="selectedExerciseId && historyData.length > 0">
+      <ion-card-header>
+        <ion-card-title>{{ 'TABLES.STATS_DETAILED_HISTORY' | translate }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Table Header -->
+        <div
+          class="history-table-header"
+          [class.is-cardio]="isCardio"
+          [class.is-isometric]="isIsometric"
+        >
+          <span class="header-col-session">{{ 'TABLES.STATS_SESSION' | translate }}</span>
+
+          <ng-container *ngIf="isStrength">
+            <span class="header-col-weight">{{ 'TABLES.STATS_WEIGHT' | translate }}</span>
+            <span class="header-col-reps">{{ 'TABLES.STATS_REPS' | translate }}</span>
+          </ng-container>
+
+          <ng-container *ngIf="isCardio">
+            <span class="header-col-weight">{{ 'TABLES.STATS_SPEED' | translate }}</span>
+            <span class="header-col-reps">{{ 'TABLES.STATS_TIME' | translate }}</span>
+          </ng-container>
+
+          <ng-container *ngIf="isIsometric">
+            <span class="header-col-weight">{{ 'TABLES.STATS_TIME' | translate }}</span>
+          </ng-container>
+
+          <span class="header-col-rir" *ngIf="isStrength">{{ 'TABLES.STATS_INTENSITY' | translate }}</span>
+        </div>
+
+        <ion-list lines="none" class="history-list">
+          <div *ngFor="let session of filteredHistory">
+            <!-- Session Header Row -->
+            <div class="session-divider">
+              <!-- Contenedor izquierdo: label + fecha separados por CSS gap,
+                   NO por whitespace entre elementos inline (causa del bug) -->
+              <div class="session-header-left">
+                <span class="week-badge-label"
+                  >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: session.splitIndex} }}</span
+                >
+                <span class="session-date"
+                  >{{ session.date | date:'dd/MM/yyyy' }}</span
+                >
+              </div>
+              <ion-icon
+                *ngIf="session.notes"
+                name="create-outline"
+                color="primary"
+                class="session-note-icon clickable"
+                (click)="showNoteAlert(session.notes, translate.instant('TABLES.STATS_MICROCYCLE_NOTE', {n: session.splitIndex}))"
+              ></ion-icon>
+            </div>
+
+            <!-- Sets Rows -->
+            <ion-item
+              *ngFor="let set of session.sets; let i = index"
+              class="history-item"
+            >
+              <div
+                class="history-row-content"
+                [class.is-cardio]="isCardio"
+                [class.is-isometric]="isIsometric"
+              >
+                <div class="col-session">
+                  <span class="set-index">{{ 'TABLES.STATS_SET_LABEL' | translate: {n: i + 1} }}</span>
+                  <!-- Descanso pautado tras esta serie -->
+                  <span *ngIf="set.restSeconds" class="rest-seconds-badge">
+                    <ion-icon name="timer-outline"></ion-icon>
+                    {{ set.restSeconds }}s
+                  </span>
+                </div>
+
+                <!-- Strength Content -->
+                <ng-container *ngIf="isStrength">
+                  <div class="col-weight">
+                    <span>{{ set.weight }}</span>
+                    <small>kg</small>
+                  </div>
+                  <div class="col-reps">
+                    <span>{{ set.reps }}</span>
+                  </div>
+                  <div class="col-rir">
+                    <!-- FALLO -->
+                    <span *ngIf="set.isFail" class="fail-label">{{ 'TABLES.STATS_FAILURE' | translate }}</span>
+                    <!-- RIR normal -->
+                    <span
+                      *ngIf="!set.isFail && set.rir !== '-'"
+                      class="rir-value"
+                      >{{ set.rir }} RIR</span
+                    >
+                    <!-- Drop Set -->
+                    <span *ngIf="set.isDropSet" class="intensity-drop">DS</span>
+                    <!-- Rest Pause -->
+                    <span *ngIf="set.isRestPause" class="intensity-rp"
+                      >RP {{ set.restPause }}</span
+                    >
+                    <!-- Guion solo si no hay NADA de lo anterior -->
+                    <span
+                      *ngIf="!set.isFail && set.rir === '-' && !set.isDropSet && !set.isRestPause"
+                      class="rir-value"
+                      >—</span
+                    >
+                  </div>
+                </ng-container>
+
+                <!-- Cardio Content -->
+                <ng-container *ngIf="isCardio">
+                  <div class="col-weight">
+                    <span>{{ set.velocity }}</span>
+                    <small>km/h</small>
+                  </div>
+                  <div class="col-reps">
+                    <span>{{ set.time }}</span>
+                  </div>
+                </ng-container>
+
+                <!-- Isometric Content -->
+                <ng-container *ngIf="isIsometric">
+                  <div class="col-weight">
+                    <span>{{ set.time }}</span>
+                  </div>
+                </ng-container>
+              </div>
+
+              <!-- Drop Set sub-series -->
+              <div
+                class="subseries-container"
+                *ngIf="set.isDropSet && set.dropSeries?.length > 0"
+              >
+                <div
+                  class="subseries-item"
+                  *ngFor="let ds of set.dropSeries; let j = index"
+                >
+                  <span class="subseries-label">{{ 'TABLES.STATS_DROP' | translate: {n: j + 1} }}</span>
+                  <span class="subseries-val">{{ ds.weight }} kg</span>
+                  <span class="subseries-val">× {{ ds.reps }}</span>
+                  <span class="subseries-rir" *ngIf="ds.rir !== undefined"
+                    >RIR {{ formatPerformedRir(ds.rir) }}</span
+                  >
+                </div>
+              </div>
+
+              <!-- Rest Pause sub-series -->
+              <div
+                class="subseries-container"
+                *ngIf="set.isRestPause && set.restPauseSeries?.length > 0"
+              >
+                <div
+                  class="subseries-item"
+                  *ngFor="let rp of set.restPauseSeries; let j = index"
+                >
+                  <span class="subseries-label">{{ 'TABLES.STATS_RP' | translate: {n: j + 1} }}</span>
+                  <span class="subseries-val">{{ rp.weight }} kg</span>
+                  <span class="subseries-val">× {{ rp.reps }}</span>
+                  <span class="subseries-rir" *ngIf="rp.rir !== undefined"
+                    >RIR {{ formatPerformedRir(rp.rir) }}</span
+                  >
+                </div>
+              </div>
+            </ion-item>
+          </div>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Empty State -->
+    <div
+      class="empty-state"
+      *ngIf="!selectedWorkoutName || !selectedExerciseId"
+    >
+      <ion-icon name="stats-chart-outline"></ion-icon>
+      <h3>{{ 'TABLES.STATS_SELECT_ROUTINE_EXERCISE' | translate }}</h3>
+      <p>{{ 'TABLES.STATS_SELECT_HINT' | translate }}</p>
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="selectedExerciseId && historyData.length === 0"
+    >
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <h3>{{ 'TABLES.STATS_NO_DATA' | translate }}</h3>
+      <p>{{ 'TABLES.STATS_NO_DATA_HINT' | translate }}</p>
+    </div>
+  </div>
+</ion-content>

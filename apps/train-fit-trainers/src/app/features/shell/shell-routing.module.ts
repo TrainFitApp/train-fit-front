@@ -122,6 +122,20 @@ const routes: Routes = [
           ),
       },
       {
+        // Tarea 2 (2026-08) — componente propio de Trainers (antes
+        // StatisticsPage de shared-features, vivía como ruta raíz en
+        // app-routing.module.ts, fuera de 'tabs' — mismo problema que TASK-026
+        // ya arregló para el Planner: sin el sidebar persistente al abrirse).
+        // Misma posición relativa que 'planner' (más específica antes que
+        // 'clients') y mismo resolver, reutilizado tal cual.
+        path: 'clients/:clientId/tables/:tableId/statistics',
+        resolve: { table: TableInContextResolver },
+        loadChildren: () =>
+          import('src/app/features/statistics/statistics.module').then(
+            (m) => m.StatisticsPageModule
+          ),
+      },
+      {
         path: 'clients',
         loadChildren: () =>
           import('src/app/features/clients/clients.module').then(

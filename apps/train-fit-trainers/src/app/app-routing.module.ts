@@ -2,25 +2,8 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authMatchGuard } from 'src/app/core/guards/auth.guard';
 import { DisconnectedComponent } from 'src/app/shared/components/disconnected/disconnected.component';
-import { TableInContextResolver } from 'src/app/features/clients/resolvers/table-in-context.resolver';
 
 const routes: Routes = [
-  {
-    // TASK-007 (MASTER_BACKLOG.md) — StatisticsPage reutilizada tal cual de
-    // shared-features, mismo resolver que el Planner. Alcance reducido: solo
-    // el gráfico de progresión/comparación (ya correctamente scoped por
-    // TableService.currentTable) — StatisticsPage oculta por sí sola la
-    // tarjeta de histórico "all-time" al detectar :clientId en la ruta,
-    // porque ese widget usa un endpoint self-service (ver DECISIONS.md,
-    // 2026-08-11). TASK-020 queda pendiente para reactivarlo correctamente.
-    path: 'clients/:clientId/tables/:tableId/statistics',
-    canMatch: [authMatchGuard],
-    resolve: { table: TableInContextResolver },
-    loadChildren: () =>
-      import(
-        'src/app/features/tables/components/summary/components/statistics/statistics.module'
-      ).then((m) => m.StatisticsPageModule),
-  },
   {
     path: '',
     redirectTo: 'user-loader',

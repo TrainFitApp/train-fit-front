@@ -98,12 +98,186 @@
     </div>
 
     <ng-container *ngIf="trainingState === 'loaded'">
-      <div class="stat-card" *ngIf="latestWeight?.weight as weight">
-        <ion-icon name="scale-outline"></ion-icon>
-        <div>
-          <span class="stat-value">{{ weight }} kg</span>
-          <span class="stat-label">Peso más reciente</span>
+      <!-- Tarea 3 (2026-08) — mismo patrón que Nutrición: columna fija de
+           contexto (lo que no cambia día a día) + columna principal (el
+           plan en sí, con todo el ancho). -->
+      <div class="training-layout">
+        <div class="training-sidebar">
+          <!-- Tarea 4 (2026-09) — misma cifra que ya es "oficial" en Resumen
+               (adherence.dimensions.training): completadas/planificadas de
+               la rutina real, no un target declarado a mano. Antes había dos
+               números de adherencia de entrenamiento distintos en la app. -->
+          <div class="fidelity-card" *ngIf="trainingAdherence?.applicable; else noTrainingAdherenceCard">
+            <div class="fidelity-metric">
+              <div class="fidelity-value">{{ trainingAdherence?.percentage }}%</div>
+              <span class="fidelity-label">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+                Adherencia de entrenamiento
+              </span>
+              <span class="fidelity-detail">{{ trainingAdherence?.detail }}</span>
+            </div>
+          </div>
+          <ng-template #noTrainingAdherenceCard>
+            <div class="fidelity-card fidelity-card--empty" *ngIf="trainingAdherenceState === 'loaded'">
+              <ion-icon name="pie-chart-outline"></ion-icon>
+              <span>Asigna una rutina a este cliente para ver su adherencia de entrenamiento.</span>
+            </div>
+          </ng-template>
+
+          <!-- Tarea 3 bis — paridad con "Objetivos nutricionales": tipo +
+               frecuencia declarada, editable en línea, mismo patrón visual
+               que ya usan los chips de objetivo en Entrenamiento (Movimiento
+               6 Coach Pro las traía solo dentro del Planificador; aquí es la
+               ficha del cliente). -->
+          <div class="section-row">
+            <h2 class="section-heading">Objetivo de entrenamiento</h2>
+          </div>
+          <div class="detail-skeleton" *ngIf="trainingGoalState === 'loading'">
+            <div class="skeleton-block" style="height: 40px;"></div>
+          </div>
+          <div class="equipment-card" *ngIf="trainingGoalState === 'loaded' && !isEditingTrainingGoal">
+            <div class="equipment-field">
+              <span class="equipment-field-label">Tipo</span>
+              <span class="equipment-field-value">{{ trainingGoalTypeLabel(trainingGoal?.trainingGoalType ?? null) }}</span>
+            </div>
+            <div class="equipment-field">
+              <span class="equipment-field-label">Frecuencia objetivo</span>
+              <span class="equipment-field-value">
+                {{ trainingGoal?.trainingFrequencyTarget ? (trainingGoal.trainingFrequencyTarget + ' sesiones/semana') : 'Sin declarar' }}
+              </span>
+            </div>
+            <button type="button" class="add-button" (click)="startEditTrainingGoal()">
+              <ion-icon name="create-outline"></ion-icon>
+              Editar
+            </button>
+          </div>
+          <div class="equipment-card" *ngIf="isEditingTrainingGoal">
+            <div class="equipment-field">
+              <span class="equipment-field-label">Tipo</span>
+              <select class="training-goal-type-select" [(ngModel)]="trainingGoalTypeDraft" [disabled]="isSavingTrainingGoal">
+                <option [ngValue]="null">Sin declarar</option>
+                <option *ngFor="let opt of trainingGoalTypeOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+            <div class="equipment-field">
+              <span class="equipment-field-label">Frecuencia objetivo (sesiones/semana)</span>
+              <ion-input
+                type="number"
+                min="1"
+                max="14"
+                placeholder="Ej. 4"
+                [(ngModel)]="trainingFrequencyDraft"
+                [disabled]="isSavingTrainingGoal"
+              ></ion-input>
+            </div>
+            <div class="training-goal-edit-actions">
+              <button type="button" class="add-button" (click)="saveTrainingGoal()" [disabled]="isSavingTrainingGoal">
+                <ion-spinner name="dots" *ngIf="isSavingTrainingGoal"></ion-spinner>
+                <span *ngIf="!isSavingTrainingGoal">Guardar</span>
+              </button>
+              <button type="button" class="manage-templates-link" (click)="cancelEditTrainingGoal()" [disabled]="isSavingTrainingGoal">
+                Cancelar
+              </button>
+            </div>
+          </div>
+
+          <div class="stat-card" *ngIf="latestWeight?.weight as weight">
+            <ion-icon name="scale-outline"></ion-icon>
+            <div>
+              <span class="stat-value">{{ weight }} kg</span>
+              <span class="stat-label">Peso más reciente</span>
+            </div>
+          </div>
+
+          <!-- Tarea 3 — sustituye el antiguo bloque de "preferencias
+               nutricionales" (que aquí no aplica): dónde entrena y con qué,
+               respondido por el cliente en el cuestionario inicial, no
+               pautado por el entrenador. -->
+          <div class="section-row">
+            <h2 class="section-heading">Equipamiento utilizado</h2>
+          </div>
+
+          <div class="detail-skeleton" *ngIf="clientIntakeState === 'loading'">
+            <div class="skeleton-block" style="height: 40px;"></div>
+          </div>
+          <p class="empty-hint" *ngIf="clientIntakeState === 'loaded' && !clientIntake">
+            Este cliente todavía no ha respondido su cuestionario inicial.
+          </p>
+          <p class="empty-hint" *ngIf="clientIntakeState === 'error'">
+            No se pudo cargar el cuestionario inicial.
+          </p>
+          <div
+            class="equipment-card"
+            *ngIf="clientIntakeState === 'loaded' && clientIntake as intake"
+          >
+            <div class="equipment-field">
+              <span class="equipment-field-label">Lugar de entrenamiento</span>
+              <span class="equipment-field-value">{{ trainingLocationLabel(intake.trainingLocation) }}</span>
+            </div>
+            <div class="equipment-field" *ngIf="intake.equipmentTags?.length">
+              <span class="equipment-field-label">Maquinaria disponible</span>
+              <div class="equipment-tags">
+                <span class="scope-chip" *ngFor="let tag of intake.equipmentTags">{{ equipmentTagLabel(tag) }}</span>
+              </div>
+            </div>
+            <p class="empty-hint" *ngIf="!intake.equipmentTags?.length && !intake.trainingLocation">
+              No indicó lugar de entrenamiento ni equipamiento.
+            </p>
+          </div>
         </div>
+
+        <div class="training-main">
+      <!-- Tarea 4 (2026-09), remodelado — calendario de rango + gráfica de
+           comparación por microciclo configurable desde un panel lateral.
+           Sustituye por completo al calendario de solo lectura + gráfica de
+           frecuencia + récords + evolución de cargas (Entrega 2): un único
+           sistema configurable en vez de varios bloques fijos. Resumen no
+           se toca, sigue con su propia llamada en modo semanas. -->
+      <div class="nutrition-charts-row">
+        <div class="nutrition-card nutrition-calendar-col">
+          <app-training-calendar
+            [sessionDates]="sessionDatesSet"
+            (rangeSelected)="onTrainingRangeSelected($event)"
+          ></app-training-calendar>
+        </div>
+        <div class="nutrition-card nutrition-chart-col">
+          <div class="section-row">
+            <h2 class="section-heading">{{ trainingComparisonMetricLabel }}</h2>
+            <button type="button" class="add-button" (click)="openTrainingFilterPanel()">
+              <ion-icon name="options-outline"></ion-icon>
+              Comparar por
+            </button>
+          </div>
+          <p class="history-subtitle" *ngIf="trainingBlockComparison as bc">
+            {{ bc.absolute >= 0 ? '+' : '' }}{{ bc.percentage }}% de volumen por sesión frente al microciclo anterior
+          </p>
+          <app-training-comparison-chart
+            [blocks]="trainingBlocks"
+            [blockMuscleGroups]="trainingBlockMuscleGroups"
+            [metric]="trainingComparisonMetric"
+            [isLoading]="trainingBlocksState === 'loading'"
+          ></app-training-comparison-chart>
+        </div>
+      </div>
+
+      <!-- Tarea 3 bis — vista previa, no el historial completo: eso ya vive
+           en Progreso > Sesiones (decisión previa, ver
+           CLIENT_DETAIL_SECTIONS) — aquí solo contexto de un vistazo con
+           enlace directo, igual que Nutrición pliega su historial en vez de
+           listarlo entero en Plan. -->
+      <div class="section-row" *ngIf="completedWorkouts.length">
+        <h2 class="section-heading">Últimas sesiones</h2>
+        <button type="button" class="add-button" (click)="goToSessionsTab()">
+          Ver todas
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="history-card" *ngFor="let workout of recentCompletedWorkouts; trackBy: trackByWorkoutId">
+        <div class="history-card-header">
+          <span class="list-card-title">{{ workout.name }}</span>
+          <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
+        </div>
+        <p class="history-subtitle">{{ workout.tableName }} · {{ workout.splitName }}</p>
       </div>
 
       <div class="section-row">
@@ -124,11 +298,23 @@
           >
             <ion-icon name="barbell-outline"></ion-icon>
             <span class="list-card-title">{{ table.name }}</span>
+            <span class="in-use-badge" *ngIf="table.isActive">En uso</span>
             <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
             <ion-icon
               class="expand-chevron"
               [name]="expandedTableId === table._id ? 'chevron-up-outline' : 'chevron-down-outline'"
             ></ion-icon>
+          </button>
+          <button
+            class="bulk-apply-btn bulk-apply-btn--activate"
+            *ngIf="!table.isActive"
+            title="Poner en uso"
+            aria-label="Poner en uso"
+            [disabled]="activatingTableId === table._id"
+            (click)="activateTable(table, $event)"
+          >
+            <ion-spinner name="dots" *ngIf="activatingTableId === table._id"></ion-spinner>
+            <ion-icon name="checkmark-circle-outline" *ngIf="activatingTableId !== table._id"></ion-icon>
           </button>
           <button
             class="bulk-apply-btn"
@@ -187,6 +373,8 @@
       <button class="danger-link" (click)="confirmRevoke('training')" [disabled]="isRevoking">
         Finalizar relación de entrenamiento
       </button>
+        </div>
+      </div>
     </ng-container>
 
     <!-- Panel: Asignar rutina -->

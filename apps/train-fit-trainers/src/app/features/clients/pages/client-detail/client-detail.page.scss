@@ -386,6 +386,23 @@
   border-radius: 14px;
 }
 
+.training-goal-type-select {
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-text);
+  font-size: var(--tf-font-size-sm);
+}
+
+.training-goal-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+}
+
 // F20-ter — el gráfico de la columna "Seguimiento" (pautado vs. consumido)
 // vive en <app-nutrition-tracking-chart>, con sus propios estilos
 // (nutrition-tracking-chart.component.scss) — ya no hay CSS de esa columna
@@ -859,6 +876,19 @@
   &--danger:not(:disabled):hover {
     border-color: var(--tf-danger);
     color: var(--tf-danger);
+  }
+
+  // "Poner en uso" — contraria a borrar: verde (mismo tono que
+  // .in-use-badge), siempre visible en vez de solo al hover, porque solo
+  // aparece cuando de verdad hace falta actuar (rutina asignada que no está
+  // en uso todavía).
+  &--activate {
+    border-color: var(--tf-success-border);
+    color: var(--tf-success);
+
+    &:not(:disabled):hover {
+      background: var(--tf-success-soft);
+    }
   }
 
   &:disabled {
@@ -1343,6 +1373,80 @@
     position: sticky;
     top: 20px;
   }
+}
+
+// Tarea 3 (2026-08) — mismo patrón de columnas que Nutrición
+// (.nutrition-layout de arriba): sidebar de contexto fijo + columna
+// principal. Reutiliza el mismo breakpoint y las mismas proporciones a
+// propósito — un solo patrón de "ficha con columna lateral" en toda la app,
+// no uno por pestaña.
+.training-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-6);
+}
+
+.training-sidebar {
+  min-width: 0;
+}
+
+.training-main {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .training-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    gap: var(--tf-space-6);
+    align-items: start;
+  }
+
+  .training-sidebar {
+    position: sticky;
+    top: 20px;
+  }
+}
+
+// Tarea 3 — "Equipamiento utilizado". Mismas clases .scope-chip que ya usa
+// el resto de la ficha (check-ins activos) para las etiquetas de
+// maquinaria: no se inventa un lenguaje visual nuevo para el mismo tipo de
+// contenido (tags de texto corto).
+.equipment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+
+.equipment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.equipment-field-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--tf-text-muted);
+}
+
+.equipment-field-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.equipment-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 // --- F20 / F20-bis: adherencia calórica + cumplimiento del plan, dos

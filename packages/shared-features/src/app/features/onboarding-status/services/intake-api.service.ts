@@ -8,13 +8,29 @@ export interface IntakeCustomAnswer {
   value: string;
 }
 
+// Tarea 3 (Trainers, 2026-08) — catálogo cerrado, debe coincidir con
+// train-fit-back/components/clientIntake/client-intake-schema.js
+// (TRAINING_LOCATIONS / EQUIPMENT_TAGS) — mismo criterio que IntakeFieldKey
+// más abajo en onboarding.service.ts.
+export type TrainingLocation = 'gym' | 'home' | 'outdoor' | 'mixed';
+export type EquipmentTag =
+  | 'dumbbells'
+  | 'barbell'
+  | 'machines'
+  | 'bands'
+  | 'kettlebells'
+  | 'bench'
+  | 'pullup_bar'
+  | 'none';
+
 export interface IntakeSubmission {
   trainerId: string;
   goals: string;
   healthConditions: string;
   experienceLevel: 'none' | 'beginner' | 'intermediate' | 'advanced' | null;
   availability: string;
-  equipment: string;
+  trainingLocation: TrainingLocation | null;
+  equipmentTags: EquipmentTag[];
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
@@ -32,7 +48,12 @@ export interface StoredIntake {
   healthConditions: string;
   experienceLevel: 'none' | 'beginner' | 'intermediate' | 'advanced' | null;
   availability: string;
+  // DEPRECATED — dato legado de cuestionarios enviados antes de Tarea 3.
+  // Ya no se escribe desde este formulario; se sigue leyendo aquí solo para
+  // no perder lo que un cliente ya había respondido.
   equipment: string;
+  trainingLocation: TrainingLocation | null;
+  equipmentTags: EquipmentTag[];
   customAnswers: IntakeCustomAnswer[];
   submittedAt: string;
 }
