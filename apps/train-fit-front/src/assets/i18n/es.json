@@ -1221,6 +1221,7 @@
     "SKIP_AND_CONTINUE_BTN": "SALTAR Y CONTINUAR",
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUAR SIN SALTAR",
     "SKIPPED_DAY_LABEL": "Saltado",
+    "PLANNED_REST_DAY_LABEL": "Descanso planificado",
     "DELETE_EXERCISE": "Eliminar ejercicio",
     "DELETE_EXERCISE_CONFIRM": "¿Estás seguro de que quieres eliminar {{name}}? Esto lo eliminará también de todos los micro-ciclos.",
     "CREATE_ROUTINE_MSG_MESO": "Introduce el nombre de la rutina",

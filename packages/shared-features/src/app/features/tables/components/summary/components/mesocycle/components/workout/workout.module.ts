@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { SharedModule } from 'src/app/shared/shared.module';
 import { WorkoutComponent } from './workout.component';
 
@@ -11,7 +12,7 @@ import { WorkoutComponent } from './workout.component';
 // (RouterModule.forChild con path:'' → MesocyclePage), lo que competiría con
 // la ruta propia del módulo que lo importe — este módulo evita ese problema.
 @NgModule({
-  imports: [SharedModule, FormsModule],
+  imports: [SharedModule, FormsModule, DragDropModule],
   declarations: [WorkoutComponent],
   exports: [WorkoutComponent],
 })

@@ -123,11 +123,12 @@
   min-height: 0;
 }
 
-app-session-load-panel {
+app-session-load-panel,
+app-muscle-volume-panel {
   flex-shrink: 0;
 
   // En pantallas estrechas el panel desaparece: un tablero de planificación
-  // en 700 px no tiene sitio para 260 px de columna lateral, y el
+  // en 700 px no tiene sitio para 260-280 px de columna lateral, y el
   // planificador ya es una herramienta de escritorio.
   @media (max-width: 900px) {
     display: none;

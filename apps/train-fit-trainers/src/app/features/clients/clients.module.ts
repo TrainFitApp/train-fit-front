@@ -5,6 +5,7 @@ import { ClientsPage } from './clients.page';
 import { ClientDetailPage } from './pages/client-detail/client-detail.page';
 import { SelectClientsModalModule } from './components/select-clients-modal/select-clients-modal.module';
 import { ApplyDietTemplateModalComponent } from './components/apply-diet-template-modal/apply-diet-template-modal.component';
+import { ApplyRoutineModalComponent } from './components/apply-routine-modal/apply-routine-modal.component';
 import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
 import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
@@ -25,6 +26,7 @@ import { TrainingComparisonChartComponent } from './pages/client-detail/componen
     ClientsPage,
     ClientDetailPage,
     ApplyDietTemplateModalComponent,
+    ApplyRoutineModalComponent,
     NutritionCalendarComponent,
     CheckinHistoryChartComponent,
     NutritionTrackingChartComponent,

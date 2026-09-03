@@ -56,6 +56,9 @@ import { SelectClientsModalComponent } from '../../components/select-clients-mod
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
+import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
+import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
 import {
   DietException,
@@ -295,10 +298,6 @@ export class ClientDetailPage implements OnInit {
   // booleano suelto) porque varias cards viven en la misma lista y solo una
   // debe mostrarse "en progreso" a la vez.
   public activatingGoalId: string | null = null;
-  // Mismo criterio que activatingGoalId: id suelto (no un booleano) porque
-  // varios routine-block viven en la misma lista y solo uno debe mostrarse
-  // "activando" a la vez.
-  public activatingTableId: string | null = null;
   public isRevoking = false;
 
   // --- Pautar comida (F12/F28) ---
@@ -360,6 +359,7 @@ export class ClientDetailPage implements OnInit {
     private userService: UserService,
     private tableService: TableService,
     private planAssignmentApi: PlanAssignmentApiService,
+    private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService
   ) {}
@@ -597,6 +597,7 @@ export class ClientDetailPage implements OnInit {
     this.loadClientIntake();
     this.loadTrainingGoal();
     this.loadTrainingAdherence();
+    this.loadActiveRoutine();
   }
 
   // --- Tarea 3 bis: Objetivo de entrenamiento ---
@@ -700,6 +701,7 @@ export class ClientDetailPage implements OnInit {
   public onTrainingRangeSelected(range: { start: string; end: string }): void {
     this.trainingComparisonRange = range;
     this.loadTrainingBlocks();
+    this.loadTrainingSchedule(range);
   }
 
   private loadTrainingBlocks(): void {
@@ -775,27 +777,198 @@ export class ClientDetailPage implements OnInit {
       this.expandedTableId === table._id ? null : table._id;
   }
 
-  // Poner en uso una rutina ya asignada — mismo patrón que activateGoal.
-  public activateTable(table: ClientTable, event: Event): void {
-    event.stopPropagation();
-    if (table.isActive || this.activatingTableId) return;
+  // --- Tarea 4 (2026-09): "Fases de entrenamiento" ---
+  // Mismo patrón que "Fases del plan" de Nutrición (activePlan/planPhases/
+  // nutritionHistory), simplificado: sin endDate, así que no hay rango que
+  // filtrar — solo desde-cuándo. Sustituye al antiguo activateTable()
+  // instantáneo: poner una rutina en marcha (hoy o en el futuro) pasa
+  // siempre por el mismo formulario (openApplyRoutinePhaseModal).
+  public routinePhases: RoutineAssignment[] = [];
+  public routineHistory: RoutineAssignment[] = [];
+  public routineHistoryState: SectionState = 'loading';
+  public showRoutineHistory = false;
 
-    this.activatingTableId = table._id;
-    this.clientDetailApi.activateTable(this.clientId, table._id).subscribe({
-      next: () => {
-        this.activatingTableId = null;
-        this.tables = this.tables.map((t) => ({
-          ...t,
-          isActive: t._id === table._id,
-        }));
+  // Un único fetch (historial completo) basta: "cuál es la actual" se
+  // calcula por fecha (currentRoutinePhase, más abajo), nunca leyendo
+  // `status` — así no hace falta el `active` de /routine-assignments/active
+  // aparte, que solo refleja la BD, no lo que de verdad rige hoy.
+  public loadActiveRoutine(): void {
+    this.routineHistoryState = 'loading';
+    this.routineAssignmentApi.getHistory(this.clientId).subscribe({
+      next: (history) => {
+        this.routinePhases = this.buildRoutinePhaseSequence(history || []);
+        this.routineHistory = history || [];
+        this.routineHistoryState = 'loaded';
       },
-      error: (err) => {
-        this.activatingTableId = null;
-        this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo activar la rutina',
-          'Error',
-          3500
+      error: () => {
+        this.routinePhases = [];
+        this.routineHistory = [];
+        this.routineHistoryState = 'error';
+      },
+    });
+  }
+
+  // Cronológico, excluyendo "ended" (reservado, sin uso real hoy — igual
+  // que en nutrición). Sin endDate que filtrar: a diferencia de nutrición,
+  // aquí no hay fases "ya terminadas" que descartar de la lista.
+  private buildRoutinePhaseSequence(history: RoutineAssignment[]): RoutineAssignment[] {
+    return history
+      .filter((phase) => phase.status !== 'ended')
+      .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  }
+
+  // Sin rango [start,end] que comprobar (no hay endDate): es la fase con el
+  // startDate más reciente que ya haya llegado, dentro de la secuencia.
+  public isCurrentRoutinePhase(phase: RoutineAssignment): boolean {
+    const actual = this.currentRoutinePhase;
+    return !!actual && actual._id === phase._id;
+  }
+
+  // OJO: NO usar `activeRoutinePhase` (el `status:"active"` crudo del
+  // backend) para decidir qué mostrar como "en uso" — programar una fase
+  // FUTURA la marca "active" en la BD de inmediato aunque todavía no rija
+  // (mismo comportamiento que PlanAssignment en Nutrición, documentado en
+  // plan-assignment-service.js). "Actual" se calcula SIEMPRE por fecha,
+  // nunca por status — si no, la tarjeta "En uso" mostraría la rutina
+  // programada antes de que empiece de verdad.
+  public get currentRoutinePhase(): RoutineAssignment | null {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const vigentes = this.routinePhases.filter((p) => p.startDate <= hoy);
+    return vigentes[vigentes.length - 1] || null;
+  }
+
+  public toggleRoutineHistory(): void {
+    this.showRoutineHistory = !this.showRoutineHistory;
+  }
+
+  public trackByRoutinePhaseId(_index: number, phase: RoutineAssignment): string {
+    return phase._id;
+  }
+
+  // Tarea 4bis (2026-09) — "me he equivocado" / cliente lesionado: quitar
+  // una fase programada antes de que empiece. Mismo patrón de confirmación
+  // que confirmDeleteTable (showAlert con botón de peligro).
+  public cancellingRoutinePhaseId: string | null = null;
+
+  public async confirmCancelRoutinePhase(phase: RoutineAssignment, event: Event): Promise<void> {
+    event.stopPropagation();
+    await this.ionicUtilService.showAlert({
+      header: 'Quitar fase programada',
+      message: `¿Seguro que quieres quitar "${phase.tableName}", programada para el ${this.formatShortDate(phase.startDate)}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Quitar',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.cancellingRoutinePhaseId = phase._id;
+            this.routineAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+              next: () => {
+                this.cancellingRoutinePhaseId = null;
+                this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+                this.loadActiveRoutine();
+                this.loadTraining();
+              },
+              error: (err) => {
+                this.cancellingRoutinePhaseId = null;
+                this.ionicUtilService.showToast({
+                  message: err?.error?.message || 'No se pudo quitar la fase',
+                  duration: 2500,
+                });
+              },
+            });
+          },
+        },
+      ],
+    });
+  }
+
+  // Tarea 4ter (2026-09) — "quiero extenderlo": cambiar solo la fecha de
+  // una fase programada (aún no en curso), sin pasar por cancelar +
+  // reprogramar. Reutiliza el mismo modal que "Programar rutina" en modo
+  // 'reschedule' (tabla fija, solo se edita la fecha).
+  public async openRescheduleRoutinePhaseModal(phase: RoutineAssignment, event: Event): Promise<void> {
+    event.stopPropagation();
+
+    const modal = await this.modalController.create({
+      component: ApplyRoutineModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        mode: 'reschedule',
+        assignmentId: phase._id,
+        fixedTableName: phase.tableName || '',
+        suggestedStartDate: phase.startDate,
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role !== 'confirm' || !data) return;
+
+    this.ionicUtilService.showToast({ message: 'Fecha actualizada', duration: 1500 });
+    this.loadActiveRoutine();
+    this.loadTraining();
+  }
+
+  // Getter de conveniencia para el badge inline en el listado de Rutinas:
+  // qué fase PROGRAMADA (aún no en curso) corresponde a esta tabla, si hay
+  // alguna — así el trainer ve "cuándo entra en marcha" sin tener que bajar
+  // hasta Fases de entrenamiento.
+  public scheduledPhaseForTable(tableId: string): RoutineAssignment | null {
+    return (
+      this.routinePhases.find(
+        (phase) => phase.tableId === tableId && !this.isCurrentRoutinePhase(phase)
+      ) || null
+    );
+  }
+
+  private formatShortDate(iso: string): string {
+    return new Date(`${iso}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    });
+  }
+
+  public async openApplyRoutinePhaseModal(): Promise<void> {
+    // Sin endDate del que encadenar: si ya hay una última fase, se sugiere
+    // "mañana" (una rutina se presume vigente hasta que se sustituya, no
+    // hay "el día siguiente a cuando termina"); sin ninguna, hoy.
+    const ultima = this.routinePhases[this.routinePhases.length - 1] || null;
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+
+    const modal = await this.modalController.create({
+      component: ApplyRoutineModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.name,
+        suggestedStartDate: ultima ? manana.toISOString().slice(0, 10) : null,
+        previousPhaseName: ultima?.tableName || '',
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role !== 'confirm' || !data) return;
+
+    this.ionicUtilService.showToast({ message: 'Rutina programada', duration: 2000 });
+    this.loadActiveRoutine();
+    this.loadTraining();
+  }
+
+  // --- Tarea 4 (2026-09): proyección de la rutina sobre el calendario ---
+  public projectedTrainingDays: Map<string, { isPlannedRestDay: boolean; name: string }> = new Map();
+
+  private loadTrainingSchedule(range: { start: string; end: string }): void {
+    this.routineAssignmentApi.getActiveSchedule(this.clientId, range.start, range.end).subscribe({
+      next: (days: RoutineScheduleDay[]) => {
+        this.projectedTrainingDays = new Map(
+          (days || []).map((d) => [d.date, { isPlannedRestDay: d.isPlannedRestDay, name: d.name }])
         );
+      },
+      error: () => {
+        this.projectedTrainingDays = new Map();
       },
     });
   }

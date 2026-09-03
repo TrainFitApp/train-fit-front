@@ -375,3 +375,44 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+// Fase D (planner-audit) — comparación contra el microciclo anterior. Solo
+// visible con la columna seleccionada (ver comentario en el componente).
+.planner-column-compare {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: var(--tf-space-3);
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.compare-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.72rem;
+}
+
+.compare-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compare-value {
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// Sin verde/rojo a propósito (ver comentario en el componente): un delta no
+// es bueno ni malo sin saber el propósito del bloque.
+.compare-delta {
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

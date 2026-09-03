@@ -32,7 +32,7 @@
           <ion-col class="ion-no-padding header-detail">
             <ion-label color="medium"><strong>{{
                 workout.exercises.length === 0
-                ? ('TABLES.NO_EXERCISES' | translate)
+                ? (workout.isPlannedRestDay ? ('TABLES.PLANNED_REST_DAY_LABEL' | translate) : ('TABLES.NO_EXERCISES' | translate))
                 : workout.exercises.length === 1
                 ? workout.exercises.length + ' ' + ('TABLES.EXERCISE_SINGULAR' | translate)
                 : workout.exercises.length + ' ' + ('TABLES.EXERCISE_PLURAL' | translate)
@@ -53,6 +53,15 @@
         <ion-row *ngIf="!plannerMode && !workout.date && workout.rest">
           <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small" color="alternative">{{
               'TABLES.SKIPPED_DAY_LABEL' | translate }}</ion-label></ion-col>
+        </ion-row>
+
+        <!-- Tarea 4 (2026-09) — a diferencia del badge de "saltado" (arriba),
+             este SÍ se ve en plannerMode: es un hecho de autoría, no de
+             ejecución, y el entrenador necesita verlo mientras construye la
+             rutina, no solo el cliente mientras la sigue. -->
+        <ion-row *ngIf="workout.isPlannedRestDay">
+          <ion-col class="ion-no-padding header-detail"><ion-label style="font-size: x-small" color="medium">{{
+              'TABLES.PLANNED_REST_DAY_LABEL' | translate }}</ion-label></ion-col>
         </ion-row>
 
         <ion-popover [trigger]="generatePopoverId(workout.date)" *ngIf="!plannerMode && workout.date">
@@ -160,10 +169,19 @@
           <span class="block-name">{{ 'TABLES.BLOCK_UNGROUPED' | translate }}</span>
         </div>
 
-        <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + entry.index"
-          *ngFor="let entry of group.entries; trackBy: trackByExerciseEntry" (click)="exerciseCardClick(entry.exercise, $event)"
-          [class.exercise-selected]="isExerciseSelected(entry.index)"
-          [class.exercise-copy-mode]="exerciseSelectionMode">
+        <!-- Fase C (planner-audit) — mismo CDK que ya reordena microciclos y
+             tarjetas del tablero, en vez del modal OrderExercisesPage +
+             alert de confirmación. cdkDropListDisabled/cdkDragDisabled
+             apagan esto entero fuera de canReorderExercises (plannerMode
+             sin bloques): en el resto de apps y casos es un wrapper inerte,
+             cero cambio de comportamiento. -->
+        <div class="exercise-list" cdkDropList [cdkDropListDisabled]="!canReorderExercises"
+          (cdkDropListDropped)="onExercisesDropped($event)">
+          <div class="exercise-card" [id]="'exercise-' + workoutIndex + '-' + entry.index"
+            *ngFor="let entry of group.entries; trackBy: trackByExerciseEntry" (click)="exerciseCardClick(entry.exercise, $event)"
+            [class.exercise-selected]="isExerciseSelected(entry.index)"
+            [class.exercise-copy-mode]="exerciseSelectionMode"
+            cdkDrag [cdkDragDisabled]="!canReorderExercises" cdkDragLockAxis="y">
           <div class="exercise-item">
             <div class="pinned-note-container" *ngIf="getPinnedNote(workoutIndex, entry.index) as pinnedNote"
               (click)="$event.stopPropagation()">
@@ -190,6 +208,11 @@
               </div>
             </div>
             <div class="exercise-info">
+              <button *ngIf="!exerciseSelectionMode && canReorderExercises" type="button" class="exercise-drag-handle"
+                cdkDragHandle [attr.aria-label]="'TABLES.REORDER_EXERCISES_HANDLE' | translate"
+                (click)="$event.stopPropagation()">
+                <ion-icon name="reorder-two-outline" aria-hidden="true"></ion-icon>
+              </button>
               <div class="exercise-name" [class.completed]="isCustomExerciseCompleted(entry.exercise)">
                 {{ (entry.exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
               </div>
@@ -243,6 +266,7 @@
                       <th>{{ 'TABLES.WEIGHT_LABEL' | translate }}</th>
                       <th>{{ 'TABLES.REPS' | translate }}</th>
                       <th>{{ 'TABLES.RIR' | translate }}<app-glossary-info term="RIR" size="sm"></app-glossary-info></th>
+                      <th *ngIf="plannerMode">{{ 'TABLES.REST_LABEL' | translate }}</th>
                     </ng-template>
                   </ng-template>
                 </tr>
@@ -272,47 +296,95 @@
                     </ng-container>
                   </ng-template>
                   <ng-template #nonCardio>
-                    <!-- Mostrar datos esperados si no está doned, datos reales si está doned -->
-                    <td>{{ set.weight ? set.weight + " Kg" : "—" }}</td>
-                    <td>
-                      {{
-                      set.doned
-                      ? set.reps || "—"
-                      : formatExpectedReps(set.expectedReps)
-                      }}
+                    <!-- Mostrar datos esperados si no está doned, datos reales si está doned.
+                         Fase A (planner-audit) — en plannerMode, con la serie sin ejecutar,
+                         la celda se vuelve editable en línea (canInlineEditSet); el resto de
+                         apps/casos conserva exactamente el mismo texto de siempre. -->
+                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'weight')"
+                      (click)="startEditCell(entry.exercise, set, 'weight', $event)">
+                      <ng-container *ngIf="!isEditingCell(set, 'weight')">{{ set.weight ? set.weight + " Kg" : "—"
+                        }}</ng-container>
+                      <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal"
+                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-weight'"
+                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        (keydown.enter)="commitEditCell(entry.exercise, set, 'weight')"
+                        (keydown.escape)="cancelEditCell()"
+                        (blur)="commitEditCell(entry.exercise, set, 'weight')" />
                     </td>
-                    <td>
-                      <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
-                      <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
-                      <span *ngIf="
-                          !isFail(set) &&
-                          ((set.doned &&
-                            set.rir !== null &&
-                            set.rir !== undefined) ||
-                            (!set.doned && hasValidExpectedRir(set.expectedRir)))
-                        " class="intensity-rir-after">
-                        {{
+                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'reps')"
+                      (click)="startEditCell(entry.exercise, set, 'reps', $event)">
+                      <ng-container *ngIf="!isEditingCell(set, 'reps')">{{
                         set.doned
-                        ? formatPerformedRir(set.rir)
-                        : formatExpectedRir(set.expectedRir)
-                        }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">{{
-                        'TABLES.DROP_SET' | translate }}</span><span *ngIf="set.restPause">&nbsp;</span><span
-                        *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ 'TABLES.SEG' | translate
-                        }}</span>
-                      <span *ngIf="
-                          !isFail(set) &&
-                          ((set.doned &&
-                            (set.rir === null || set.rir === undefined)) ||
-                            (!set.doned &&
-                              !hasValidExpectedRir(set.expectedRir))) &&
-                          !set.drop &&
-                          !set.restPause
-                        ">—</span>
+                        ? set.reps || "—"
+                        : formatExpectedReps(set.expectedReps)
+                        }}</ng-container>
+                      <input *ngIf="isEditingCell(set, 'reps')" type="text" inputmode="numeric"
+                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-reps'" placeholder="8-10"
+                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        (keydown.enter)="commitEditCell(entry.exercise, set, 'reps')"
+                        (keydown.escape)="cancelEditCell()"
+                        (blur)="commitEditCell(entry.exercise, set, 'reps')" />
+                    </td>
+                    <td class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rir')"
+                      (click)="startEditCell(entry.exercise, set, 'rir', $event)">
+                      <ng-container *ngIf="!isEditingCell(set, 'rir')">
+                        <span *ngIf="isFail(set)" class="fail-label">{{ 'TABLES.FAIL' | translate }}</span>
+                        <!-- Mostrar RIR esperado si no está doned, RIR real si está doned -->
+                        <span *ngIf="
+                            !isFail(set) &&
+                            ((set.doned &&
+                              set.rir !== null &&
+                              set.rir !== undefined) ||
+                              (!set.doned && hasValidExpectedRir(set.expectedRir)))
+                          " class="intensity-rir-after">
+                          {{
+                          set.doned
+                          ? formatPerformedRir(set.rir)
+                          : formatExpectedRir(set.expectedRir)
+                          }}</span><span *ngIf="set.drop">&nbsp;</span><span *ngIf="set.drop" class="intensity-drop">{{
+                          'TABLES.DROP_SET' | translate }}</span><span *ngIf="set.restPause">&nbsp;</span><span
+                          *ngIf="set.restPause" class="intensity-rp">RP {{ set.restPause }} {{ 'TABLES.SEG' | translate
+                          }}</span>
+                        <span *ngIf="
+                            !isFail(set) &&
+                            ((set.doned &&
+                              (set.rir === null || set.rir === undefined)) ||
+                              (!set.doned &&
+                                !hasValidExpectedRir(set.expectedRir))) &&
+                            !set.drop &&
+                            !set.restPause
+                          ">—</span>
+                      </ng-container>
+                      <input *ngIf="isEditingCell(set, 'rir')" type="text" inputmode="numeric"
+                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rir'" placeholder="2"
+                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        (keydown.enter)="commitEditCell(entry.exercise, set, 'rir')"
+                        (keydown.escape)="cancelEditCell()"
+                        (blur)="commitEditCell(entry.exercise, set, 'rir')" />
+                    </td>
+                    <td *ngIf="plannerMode" class="tf-editable-cell" [class.tf-editing]="isEditingCell(set, 'rest')"
+                      (click)="startEditCell(entry.exercise, set, 'rest', $event)">
+                      <ng-container *ngIf="!isEditingCell(set, 'rest')">{{ set.restSeconds ? set.restSeconds + "s" :
+                        "—" }}</ng-container>
+                      <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric"
+                        class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
+                        [(ngModel)]="editingCellValue" (click)="$event.stopPropagation()"
+                        (keydown.enter)="commitEditCell(entry.exercise, set, 'rest')"
+                        (keydown.escape)="cancelEditCell()"
+                        (blur)="commitEditCell(entry.exercise, set, 'rest')" />
                     </td>
                   </ng-template>
                 </tr>
               </tbody>
             </table>
+
+            <button *ngIf="plannerMode && !entry.exercise.exercise?.isCardio && !entry.exercise.exercise?.isIsometric"
+              type="button" class="quick-add-set-btn" [disabled]="quickAddingSetId === entry.exercise._id"
+              (click)="quickAddSet(entry.exercise, $event)">
+              <ion-icon name="add-outline"></ion-icon>
+              <span *ngIf="quickAddingSetId !== entry.exercise._id">{{ 'TABLES.ADD_SET_QUICK' | translate }}</span>
+              <ion-spinner *ngIf="quickAddingSetId === entry.exercise._id" name="crescent"></ion-spinner>
+            </button>
           </div>
 
           <div *ngIf="entry.exercise?.notes" class="notes-container">
@@ -331,6 +403,7 @@
               Nota del cliente
             </span>
             <p class="client-note-body">{{ entry.exercise.clientNotes }}</p>
+          </div>
           </div>
         </div>
       </ng-container>

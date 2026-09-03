@@ -84,6 +84,150 @@ export class PlannerColumnComponent {
     return (this.split.workouts || []).reduce((sum, w) => sum + (w.exercises?.length || 0), 0);
   }
 
+  // --- Fase D (planner-audit) — comparación contra el microciclo anterior ---
+  //
+  // Solo se calcula/pinta cuando la columna está SELECTED: veinte columnas
+  // con esto siempre visible sería justo el ruido que el propio Planner ya
+  // evita en otros sitios (ver purposeLabel, "una etiqueta 'Normal' en cada
+  // columna sería ruido").
+  //
+  // Deliberadamente SIN color semántico (verde=sube/rojo=baja): el propio
+  // editSplitPurpose ya dice por qué — "en una descarga, que el volumen baje
+  // es lo previsto". Un delta no es bueno ni malo sin el propósito del
+  // bloque, que ya está un clic más arriba (chip de tipo). Aquí solo se
+  // informa la magnitud y el sentido.
+
+  public get previousSplit(): Split | null {
+    if (!this.table || !this.split) return null;
+    const index = this.table.splits.findIndex((s) => s._id === this.split._id);
+    return index > 0 ? this.table.splits[index - 1] : null;
+  }
+
+  public get totalSets(): number {
+    return this.sumSets(this.split);
+  }
+
+  public get tonnageKg(): number {
+    return this.sumTonnage(this.split);
+  }
+
+  public get tonnageLabel(): string {
+    return this.formatTonnage(this.tonnageKg);
+  }
+
+  public get avgRir(): number | null {
+    return this.averageRir(this.split);
+  }
+
+  public get avgRirLabel(): string {
+    return this.avgRir === null
+      ? '—'
+      : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(this.avgRir);
+  }
+
+  public get setsDeltaText(): string | null {
+    if (!this.previousSplit) return null;
+    return this.formatSignedDelta(this.totalSets - this.sumSets(this.previousSplit), (n) =>
+      `${Math.round(n)}`
+    );
+  }
+
+  public get tonnageDeltaText(): string | null {
+    if (!this.previousSplit) return null;
+    return this.formatSignedDelta(
+      this.tonnageKg - this.sumTonnage(this.previousSplit),
+      (n) => `${Math.round(n)} kg`
+    );
+  }
+
+  public get rirDeltaText(): string | null {
+    if (!this.previousSplit) return null;
+    const current = this.avgRir;
+    const previous = this.averageRir(this.previousSplit);
+    if (current === null || previous === null) return null;
+    return this.formatSignedDelta(current - previous, (n) =>
+      new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n)
+    );
+  }
+
+  private sumSets(split: Split | null): number {
+    if (!split) return 0;
+    return (split.workouts || []).reduce(
+      (sum, w) => sum + (w.exercises || []).reduce((s, e) => s + (e.sets?.length || 0), 0),
+      0
+    );
+  }
+
+  // Tonelaje = peso × reps de cada serie, sumado. Usa el PUNTO MEDIO del
+  // rango de reps esperado (p. ej. "8-10" → 9): es una previsión de carga
+  // total si se ejecuta la pauta, no una medida de lo ya realizado (eso ya
+  // lo da StatisticsPage sobre sets doned=true). Cardio/isométrico quedan
+  // fuera: no tienen peso × reps, esa cifra no significa nada para ellos.
+  private sumTonnage(split: Split | null): number {
+    if (!split) return 0;
+    let total = 0;
+    for (const workout of split.workouts || []) {
+      for (const exercise of workout.exercises || []) {
+        if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) continue;
+        for (const set of exercise.sets || []) {
+          const reps = this.midpoint(set.expectedReps);
+          if (!set.weight || !reps) continue;
+          total += set.weight * reps;
+        }
+      }
+    }
+    return total;
+  }
+
+  private averageRir(split: Split | null): number | null {
+    if (!split) return null;
+    let sum = 0;
+    let count = 0;
+    for (const workout of split.workouts || []) {
+      for (const exercise of workout.exercises || []) {
+        for (const set of exercise.sets || []) {
+          const rir = this.midpoint(set.expectedRir);
+          // -1 codifica "al fallo" (ver config-exercise.page.ts) — no es un
+          // RIR numérico real; contarlo como "0" sesgaría la media hacia más
+          // intensidad de la que refleja el dato.
+          if (rir === null || rir === -1) continue;
+          sum += rir;
+          count++;
+        }
+      }
+    }
+    return count > 0 ? sum / count : null;
+  }
+
+  private midpoint(range: number[] | undefined): number | null {
+    if (!range || range.length === 0) return null;
+    const a = range[0];
+    const b = range[1];
+    const hasA = a !== null && a !== undefined && !isNaN(a);
+    const hasB = b !== null && b !== undefined && !isNaN(b);
+    if (hasA && hasB) return (a + b) / 2;
+    if (hasA) return a;
+    if (hasB) return b;
+    return null;
+  }
+
+  private formatTonnage(kg: number): string {
+    if (kg >= 1000) {
+      return `${new Intl.NumberFormat('es-ES', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(kg / 1000)} t`;
+    }
+    return `${Math.round(kg)} kg`;
+  }
+
+  private formatSignedDelta(value: number, formatMagnitude: (n: number) => string): string {
+    if (Math.abs(value) < 0.05) return '· 0';
+    const arrow = value > 0 ? '▲' : '▼';
+    const sign = value > 0 ? '+' : '−';
+    return `${arrow} ${sign}${formatMagnitude(Math.abs(value))}`;
+  }
+
   public trackByWorkoutId(_index: number, workout: Workout): string {
     return workout._id;
   }
@@ -200,6 +344,14 @@ export class PlannerColumnComponent {
   public chooseCardFromTemplate(): void {
     this.showAddCardPanel = false;
     this.applyTemplateAlert();
+  }
+
+  // Tarea 4 (2026-09) — descanso pautado. Mismo fan-out que "En blanco"
+  // (addCard), no un mecanismo nuevo: así el invariante de "misma cantidad
+  // de filas en todos los microciclos" se mantiene automáticamente.
+  public chooseRestDayCard(): void {
+    this.showAddCardPanel = false;
+    this.addRestDayCard();
   }
 
   // TASK-043 (MASTER_BACKLOG.md) — antes un AlertOptions de texto plano, un
@@ -322,6 +474,36 @@ export class PlannerColumnComponent {
     const workout = new Workout();
     workout.name = this.translate.instant('PLANNER.NEW_CARD_DEFAULT_NAME');
     workout.exercises = [];
+
+    this.workoutService.addWorkoutsToSplits(this.table._id, workout).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (splits) => {
+        const updatedSplit = splits.find((s) => s._id === this.split._id);
+        if (updatedSplit) this.split.workouts = updatedSplit.workouts;
+        this.table.splits = splits;
+        this.persistTable();
+        this.addingCard = false;
+      },
+      error: () => {
+        this.addingCard = false;
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('PLANNER.ADD_CARD_ERROR'),
+          duration: 2500,
+        });
+      },
+    });
+  }
+
+  // Tarea 4 (2026-09) — idéntico a addCard() salvo por isPlannedRestDay: es
+  // el mismo POST workouts/multiple/:idTable con fan-out a todos los splits,
+  // solo cambia el payload. Cero cambios en reorderWorkoutRows/borrado.
+  public addRestDayCard(): void {
+    if (this.addingCard) return;
+    this.addingCard = true;
+
+    const workout = new Workout();
+    workout.name = this.translate.instant('PLANNER.REST_DAY_DEFAULT_NAME');
+    workout.exercises = [];
+    workout.isPlannedRestDay = true;
 
     this.workoutService.addWorkoutsToSplits(this.table._id, workout).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (splits) => {

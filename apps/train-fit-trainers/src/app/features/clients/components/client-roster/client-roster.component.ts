@@ -47,7 +47,10 @@ const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
 // harían dudar de si son el mismo dato.
 const UNAVAILABLE_LABELS: Record<string, string> = {
   sin_datos: 'Sin datos suficientes',
-  sin_plan: 'Sin rutina asignada',
+  // Tarea 5 (2026-09) — ahora hace falta una FASE con fecha (RoutineAssignment),
+  // no solo una tabla asignada: un cliente con tableInUse pero sin ninguna
+  // fase programada también cae en este motivo.
+  sin_plan: 'Sin fase programada',
   sin_tareas: 'Sin hábitos asignados',
   sin_cadencia: 'Sin check-in configurado',
   periodo_corto: 'Aún no tocaba ninguno',

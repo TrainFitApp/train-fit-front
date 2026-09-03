@@ -399,13 +399,13 @@ export class UtilService {
 
   public isSplitDoned(split: Split): boolean {
     if (!split?.workouts) return false;
-    return split.workouts.every((wTemp) => wTemp.rest || wTemp.date);
+    return split.workouts.every((wTemp) => wTemp.rest || wTemp.date || wTemp.isPlannedRestDay);
   }
 
   public getCurrentPlayingSplit(table: Table): number {
     return (
       table.splits.findIndex((split) =>
-        split.workouts.some((workout) => !workout.date && !workout.rest)
+        split.workouts.some((workout) => !workout.date && !workout.rest && !workout.isPlannedRestDay)
       ) + 1
     );
   }

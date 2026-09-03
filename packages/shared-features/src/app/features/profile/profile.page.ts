@@ -719,7 +719,7 @@ export class ProfilePage implements OnInit {
   }
 
   public async openAboutUs(): Promise<void> {
-    await Browser.open({ url: 'https://www.trainfit.net/index.html#about' });
+    await Browser.open({ url: 'https://trainfit.net/sobre-trainfit/' });
   }
 
   public getISODate(workoutDate: Date): string {

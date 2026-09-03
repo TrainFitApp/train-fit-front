@@ -1215,6 +1215,7 @@
     "SKIP_AND_CONTINUE_BTN": "SKIP AND CONTINUE",
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUE WITHOUT SKIPPING",
     "SKIPPED_DAY_LABEL": "Skipped",
+    "PLANNED_REST_DAY_LABEL": "Planned rest day",
     "DELETE_EXERCISE": "Delete exercise",
     "DELETE_EXERCISE_CONFIRM": "Are you sure you want to delete {{name}}? This will also remove it from all micro-cycles.",
     "CREATE_ROUTINE_MSG_MESO": "Enter the routine name",

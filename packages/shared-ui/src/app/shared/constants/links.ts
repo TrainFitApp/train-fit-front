@@ -1,5 +1,5 @@
 export const LINKS = {
-  termsAndConditions: 'https://www.trainfit.net/#/terminosycondiciones',
-  privacyAndPolicy: 'https://www.trainfit.net/#/politicas',
-  us: 'https://www.trainfit.net/#/SobreNosotros',
+  termsAndConditions: 'https://trainfit.net/terminos/',
+  privacyAndPolicy: 'https://trainfit.net/privacidad/',
+  us: 'https://trainfit.net/sobre-trainfit/',
 } as const;

@@ -1,9 +1,15 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
+interface ProjectedDay {
+  isPlannedRestDay: boolean;
+  name: string;
+}
+
 interface TrainingCalendarCell {
   date: string | null;
   dayNumber: number | null;
   hasSession: boolean;
+  projected: ProjectedDay | null;
 }
 
 const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -41,14 +47,14 @@ function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
 
   const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   for (let i = firstWeekday - 1; i >= 0; i--) {
-    cells.push({ date: null, dayNumber: prevMonthLastDay - i, hasSession: false });
+    cells.push({ date: null, dayNumber: prevMonthLastDay - i, hasSession: false, projected: null });
   }
   for (let day = 1; day <= totalDays; day++) {
-    cells.push({ date: isoDate(year, month, day), dayNumber: day, hasSession: false });
+    cells.push({ date: isoDate(year, month, day), dayNumber: day, hasSession: false, projected: null });
   }
   let nextMonthDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ date: null, dayNumber: nextMonthDay, hasSession: false });
+    cells.push({ date: null, dayNumber: nextMonthDay, hasSession: false, projected: null });
     nextMonthDay++;
   }
   return cells;
@@ -67,6 +73,14 @@ function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
 })
 export class TrainingCalendarComponent implements OnChanges, OnInit {
   @Input() sessionDates: Set<string> = new Set();
+
+  // Tarea 4 (2026-09) — capa independiente de `sessionDates` (que es solo
+  // lo YA hecho): lo que la rutina activa PREVÉ para cada día, con fecha
+  // real de por medio (RoutineAssignment.startDate + posición en la
+  // secuencia). Dos capas visuales sobre la misma celda, mismo patrón de
+  // composición que ya usa <app-nutrition-calendar> (color de fase de
+  // fondo + relleno de cumplimiento encima).
+  @Input() projectedDays: Map<string, ProjectedDay> = new Map();
 
   @Input() public set activeRange(range: { start: string; end: string } | null) {
     if (!range) return;
@@ -88,13 +102,13 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public hoverDate: string | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['sessionDates']) {
-      this.cells = this.withSessions(this.cells.length ? this.cells : buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
+    if (changes['sessionDates'] || changes['projectedDays']) {
+      this.cells = this.applyOverlays(this.cells.length ? this.cells : buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     }
   }
 
   public ngOnInit(): void {
-    this.cells = this.withSessions(buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
+    this.cells = this.applyOverlays(buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     this.selectPresetRange(this.activePreset ?? 90);
   }
 
@@ -114,13 +128,14 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     const next = new Date(this.monthDate);
     next.setUTCMonth(next.getUTCMonth() + delta);
     this.monthDate = next;
-    this.cells = this.withSessions(buildMonthGrid(next.getUTCFullYear(), next.getUTCMonth()));
+    this.cells = this.applyOverlays(buildMonthGrid(next.getUTCFullYear(), next.getUTCMonth()));
   }
 
-  private withSessions(cells: TrainingCalendarCell[]): TrainingCalendarCell[] {
+  private applyOverlays(cells: TrainingCalendarCell[]): TrainingCalendarCell[] {
     return cells.map((cell) => ({
       ...cell,
       hasSession: !!cell.date && this.sessionDates.has(cell.date),
+      projected: (cell.date && this.projectedDays.get(cell.date)) || null,
     }));
   }
 

@@ -1297,6 +1297,7 @@
     "SKIP_AND_CONTINUE_BTN": "SALTAR Y CONTINUAR",
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUAR SIN SALTAR",
     "SKIPPED_DAY_LABEL": "Saltado",
+    "PLANNED_REST_DAY_LABEL": "Descanso planificado",
     "MICROCYCLES_DELETED_MULTIPLE": "{{count}} micro-ciclos eliminados",
     "DELETE_MICROCYCLES_CONFIRM_SINGLE": "Se eliminará el micro-ciclo seleccionado y todos sus datos.",
     "DELETE_MICROCYCLES_CONFIRM_MULTIPLE": "Se eliminarán {{count}} micro-ciclos y todos sus datos.",

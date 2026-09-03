@@ -83,6 +83,12 @@
     </div>
   </div>
 
+    <!-- Rediseño del Planner (Fase B, planner-audit) — series por grupo
+         muscular del microciclo seleccionado, con delta contra el anterior.
+         Distinto del panel de abajo: cuenta series reales, no una
+         puntuación manual del entrenador. -->
+    <app-muscle-volume-panel [split]="selectedSplit" [previousSplit]="previousSplit"></app-muscle-volume-panel>
+
     <!-- Movimiento 6 Coach Pro — cómo queda repartida la sesión abierta.
          Es lo que da sentido a puntuar los ejercicios: sin esto, las
          puntuaciones serían una tarea sin recompensa. -->

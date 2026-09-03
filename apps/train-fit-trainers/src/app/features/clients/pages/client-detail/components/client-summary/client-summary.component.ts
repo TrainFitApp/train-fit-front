@@ -44,7 +44,9 @@ const DIMENSION_ICONS: Record<AdherenceDimensionKey, string> = {
 // el texto que lee el entrenador (Movimiento 1: "tareas" -> "hábitos").
 const UNAVAILABLE_LABELS: Record<string, string> = {
   sin_datos: 'Sin datos suficientes',
-  sin_plan: 'Sin rutina asignada',
+  // Tarea 5 (2026-09) — ahora hace falta una FASE con fecha (RoutineAssignment),
+  // no solo una tabla asignada.
+  sin_plan: 'Sin fase programada',
   sin_tareas: 'Sin hábitos asignados',
   sin_cadencia: 'Sin check-in configurado',
   periodo_corto: 'Aún no tocaba ninguno',

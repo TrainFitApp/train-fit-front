@@ -308,6 +308,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 20px 0 10px;
 
   &--top {
@@ -372,6 +374,30 @@
   @media (max-width: 640px) {
     max-width: none;
   }
+}
+
+// Tarea 4ter (2026-09) — mismo patrón que .nutrition-charts-row justo
+// arriba (flex-wrap + flex-basis, sin grid ni breakpoint propio): en vez de
+// que Fases/Historial/Últimas sesiones/Rutinas se apilen como 4 bloques a
+// TODO el ancho de .training-main (que es 1fr sin tope — en un monitor
+// ancho eso eran filas de >1500px con el contenido pegado a los bordes),
+// se reparten en 2 columnas con significado propio: izquierda "cuándo"
+// (cronológico), derecha "qué" (catálogo de rutinas). Se envuelve solo
+// cuando de verdad no cabe, nunca antes.
+.training-plan-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tf-space-6);
+}
+
+.training-plan-col {
+  flex: 1 1 420px;
+  min-width: 0;
+  // Tope generoso: una columna de rutinas/fases no necesita más de ~640px
+  // para leerse bien — sin tope, con solo 1 rutina asignada la columna se
+  // estira igual que antes, solo que ahora sola en vez de a pares.
+  max-width: 640px;
 }
 
 // F20-ter — antes el calendario y el gráfico de seguimiento se pintaban a
@@ -442,6 +468,19 @@
   &--top {
     margin-top: 28px;
   }
+}
+
+// Tarea 4ter (2026-09) — un escalón por debajo de .section-heading: dentro
+// de una misma columna, "Fases de entrenamiento" es el título de bloque,
+// "Historial"/"Últimas sesiones" son sub-bloques suyos — sin esto los tres
+// pesaban igual y la columna se leía como una lista plana sin jerarquía.
+.subsection-heading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tf-text-faint);
+  margin: var(--tf-space-5) 0 0;
 }
 
 .add-button {
@@ -648,6 +687,11 @@
   align-items: center;
   gap: 12px;
   width: 100%;
+  // Sin esto, el título largo (flex:1) no se encoge nunca por debajo de su
+  // ancho de contenido — en .routine-header-row, donde esta card comparte
+  // fila con 3 botones de icono fijos, eso desborda la fila entera en
+  // móvil en vez de truncar el texto (ver .list-card-title).
+  min-width: 0;
   padding: 12px 14px;
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
@@ -685,6 +729,10 @@
 
 .list-card-title {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--tf-text);
@@ -719,6 +767,33 @@
   border: 1px solid var(--tf-success-border);
   border-radius: 6px;
   padding: 2px 8px;
+}
+
+// Tarea 4bis (2026-09) — "va a entrar en marcha, todavía no" — deliberadamente
+// neutro (ni el verde de "en uso" ni el naranja de "asignada por ti"): es un
+// estado de espera, no un hecho consumado ni una acción del entrenador.
+.scheduled-badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-3);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.next-phase-row {
+  margin-bottom: 8px;
+
+  // A diferencia de .routine-header-row (que usa .list-card--button y ya
+  // tiene su flex:1 propio), aquí la "fila" es un <div> de solo lectura +
+  // un botón — sin flex:1 explícito se encoge a su contenido y el botón de
+  // quitar queda pegado al texto en vez de a la derecha de la columna.
+  .list-card {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 // Tocar la card entera activa ese objetivo — de ahí <button>, no <div>: el

@@ -314,6 +314,10 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
     this.table.splits.forEach((split) => {
       split.workouts.forEach((w) => {
+        // Tarea 4 (2026-09) — un descanso pautado nunca tiene datos de
+        // ejercicio; sin este filtro aparece como entrada seleccionable
+        // vacía en el desplegable, un callejón sin salida para el trainer.
+        if (w.isPlannedRestDay) return;
         if (!workoutMap.has(w.name)) {
           // Clonar para no mutar el original
           workoutMap.set(w.name, { ...w, exercises: [...w.exercises] });

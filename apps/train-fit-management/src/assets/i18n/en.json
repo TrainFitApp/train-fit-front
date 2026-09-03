@@ -1291,6 +1291,7 @@
     "SKIP_AND_CONTINUE_BTN": "SKIP AND CONTINUE",
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUE WITHOUT SKIPPING",
     "SKIPPED_DAY_LABEL": "Skipped",
+    "PLANNED_REST_DAY_LABEL": "Planned rest day",
     "MICROCYCLES_DELETED_MULTIPLE": "{{count}} micro-cycles deleted",
     "DELETE_MICROCYCLES_CONFIRM_SINGLE": "The selected micro-cycle and all its data will be deleted.",
     "DELETE_MICROCYCLES_CONFIRM_MULTIPLE": "{{count}} micro-cycles and all their data will be deleted.",

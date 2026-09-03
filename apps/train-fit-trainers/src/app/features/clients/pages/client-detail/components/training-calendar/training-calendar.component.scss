@@ -121,8 +121,17 @@
     pointer-events: none;
   }
 
-  &.has-session {
-    background: rgba(var(--tf-success-rgb), 0.35);
+  // Tarea 4 (2026-09) — dos capas independientes, mismo criterio que
+  // <app-nutrition-calendar> (fase de fondo + cumplimiento encima): la
+  // proyección (previsto) es el fondo, la sesión real completada es el
+  // punto que se pinta encima — así conviven sin que una tape a la otra.
+  &.is-projected-training {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &.is-projected-rest {
+    background: var(--tf-surface-3);
   }
 
   &.is-today {
@@ -150,6 +159,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+.training-calendar__session-dot {
+  position: absolute;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(var(--tf-success-rgb), 1);
+}
+
 .training-calendar__legend {
   display: flex;
   flex-wrap: wrap;
@@ -171,8 +189,18 @@
   height: 8px;
   border-radius: 2px;
 
+  &--projected-training {
+    background: var(--tf-accent-soft);
+    border: 1px solid var(--tf-accent-soft-border);
+  }
+
+  &--projected-rest {
+    background: var(--tf-surface-3);
+  }
+
   &--session {
-    background: rgba(var(--tf-success-rgb), 0.35);
+    background: rgba(var(--tf-success-rgb), 1);
+    border-radius: 50%;
   }
 
   &--range {

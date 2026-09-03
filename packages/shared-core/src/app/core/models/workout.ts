@@ -38,6 +38,10 @@ export class Workout {
   // True when the user explicitly skipped this training day. Mutually
   // exclusive with `date`: a skipped workout is never marked as finished.
   rest?: boolean;
+  // Tarea 4 (2026-09) — trainer-authored rest day, decided when building the
+  // routine. Orthogonal to `rest` (which is the client skipping at runtime):
+  // this row was never meant to be trained in the first place.
+  isPlannedRestDay?: boolean;
   blocks?: WorkoutBlock[];
   exercises: CustomExercise[];
   // MVP-trainers F18 — pulso opcional de readiness/esfuerzo por sesión (1-5),

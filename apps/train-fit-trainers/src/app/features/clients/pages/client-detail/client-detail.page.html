@@ -120,7 +120,7 @@
           <ng-template #noTrainingAdherenceCard>
             <div class="fidelity-card fidelity-card--empty" *ngIf="trainingAdherenceState === 'loaded'">
               <ion-icon name="pie-chart-outline"></ion-icon>
-              <span>Asigna una rutina a este cliente para ver su adherencia de entrenamiento.</span>
+              <span>Programa una fase de rutina (con fecha) para ver su adherencia de entrenamiento.</span>
             </div>
           </ng-template>
 
@@ -237,6 +237,7 @@
         <div class="nutrition-card nutrition-calendar-col">
           <app-training-calendar
             [sessionDates]="sessionDatesSet"
+            [projectedDays]="projectedTrainingDays"
             (rangeSelected)="onTrainingRangeSelected($event)"
           ></app-training-calendar>
         </div>
@@ -260,109 +261,190 @@
         </div>
       </div>
 
-      <!-- Tarea 3 bis — vista previa, no el historial completo: eso ya vive
-           en Progreso > Sesiones (decisión previa, ver
-           CLIENT_DETAIL_SECTIONS) — aquí solo contexto de un vistazo con
-           enlace directo, igual que Nutrición pliega su historial en vez de
-           listarlo entero en Plan. -->
-      <div class="section-row" *ngIf="completedWorkouts.length">
-        <h2 class="section-heading">Últimas sesiones</h2>
-        <button type="button" class="add-button" (click)="goToSessionsTab()">
-          Ver todas
-          <ion-icon name="arrow-forward-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="history-card" *ngFor="let workout of recentCompletedWorkouts; trackBy: trackByWorkoutId">
-        <div class="history-card-header">
-          <span class="list-card-title">{{ workout.name }}</span>
-          <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
-        </div>
-        <p class="history-subtitle">{{ workout.tableName }} · {{ workout.splitName }}</p>
-      </div>
+      <!-- Tarea 4ter (2026-09), rediseño — antes "Fases", "Historial",
+           "Últimas sesiones" y "Rutinas" eran 4 bloques apilados a todo el
+           ancho de .training-main (1fr sin tope): en un monitor ancho cada
+           fila se estiraba a >1500px con el contenido pegado a los bordes.
+           Ahora son 2 columnas con significado propio — IZQUIERDA "cuándo"
+           (fases + sesiones recientes, orden cronológico), DERECHA "qué"
+           (el catálogo de rutinas) — igual que .nutrition-charts-row ya
+           reparte calendario+gráfica en vez de apilarlos. flex-wrap, no un
+           grid con breakpoint: se envuelve solo cuando de verdad no cabe. -->
+      <div class="training-plan-row">
+        <div class="training-plan-col">
+          <div class="section-row">
+            <h2 class="section-heading">Fases de entrenamiento</h2>
+            <button type="button" class="add-button" (click)="openApplyRoutinePhaseModal()">
+              <ion-icon name="calendar-outline"></ion-icon>
+              Programar
+            </button>
+          </div>
 
-      <div class="section-row">
-        <h2 class="section-heading">Rutinas</h2>
-        <button class="add-button" (click)="openRoutinePanel()">
-          <ion-icon name="add-outline"></ion-icon>
-          Asignar rutina
-        </button>
-      </div>
+          <div class="nutrition-card active-plan-card" *ngIf="currentRoutinePhase as phase">
+            <div class="goal-header">
+              <ion-icon name="checkmark-circle" color="success"></ion-icon>
+              <span class="list-card-title">{{ phase.tableName }}</span>
+              <span class="in-use-badge">En uso</span>
+            </div>
+            <p class="history-subtitle">Desde el {{ phase.startDate | date: 'd MMM y' }}</p>
+          </div>
+          <p class="empty-hint" *ngIf="routineHistoryState === 'loaded' && !currentRoutinePhase">
+            Este cliente todavía no tiene ninguna rutina programada.
+          </p>
 
-      <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
-
-      <div class="routine-block" *ngFor="let table of tables; trackBy: trackByTableId">
-        <div class="routine-header-row">
-          <button
-            class="list-card list-card--button"
-            (click)="toggleTableExpand(table)"
+          <!-- Tarea 4bis (2026-09) — fila accionable (icono + título + badge
+               + botón "Quitar"): una fase programada admite acción
+               (quitarla si el entrenador se equivoca, o si el plan cambia
+               por lesión), no es un dato histórico cerrado. -->
+          <div
+            class="routine-header-row next-phase-row"
+            *ngFor="let phase of routinePhases; trackBy: trackByRoutinePhaseId"
           >
-            <ion-icon name="barbell-outline"></ion-icon>
-            <span class="list-card-title">{{ table.name }}</span>
-            <span class="in-use-badge" *ngIf="table.isActive">En uso</span>
-            <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
-            <ion-icon
-              class="expand-chevron"
-              [name]="expandedTableId === table._id ? 'chevron-up-outline' : 'chevron-down-outline'"
-            ></ion-icon>
-          </button>
-          <button
-            class="bulk-apply-btn bulk-apply-btn--activate"
-            *ngIf="!table.isActive"
-            title="Poner en uso"
-            aria-label="Poner en uso"
-            [disabled]="activatingTableId === table._id"
-            (click)="activateTable(table, $event)"
-          >
-            <ion-spinner name="dots" *ngIf="activatingTableId === table._id"></ion-spinner>
-            <ion-icon name="checkmark-circle-outline" *ngIf="activatingTableId !== table._id"></ion-icon>
-          </button>
-          <button
-            class="bulk-apply-btn"
-            title="Ver estadísticas"
-            aria-label="Ver estadísticas"
-            (click)="openStatistics(table)"
-          >
-            <ion-icon name="stats-chart-outline"></ion-icon>
-          </button>
-          <button
-            class="bulk-apply-btn"
-            title="Editar rutina (splits, ejercicios, series)"
-            aria-label="Editar rutina"
-            (click)="openPlanner(table)"
-          >
-            <ion-icon name="construct-outline"></ion-icon>
-          </button>
-          <button
-            class="bulk-apply-btn bulk-apply-btn--danger"
-            title="Borrar rutina completa"
-            aria-label="Borrar rutina completa"
-            (click)="confirmDeleteTable(table, $event)"
-          >
-            <ion-icon name="trash-outline"></ion-icon>
-          </button>
-        </div>
-
-        <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
-        <div class="routine-detail" *ngIf="expandedTableId === table._id">
-          <p class="empty-hint" *ngIf="!table.splits?.length">Esta rutina todavía no tiene microciclos.</p>
-
-          <div class="split-block" *ngFor="let split of table.splits">
-            <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
-
-            <div class="workout-row" *ngFor="let workout of split.workouts">
-              <div class="workout-row-header">
-                <span class="workout-name">{{ workout.name }}</span>
-                <span class="workout-status" [class.workout-status--done]="workout.date">
-                  {{ workout.date ? (workout.date | date: 'd MMM y') : 'Pendiente' }}
-                </span>
+            <ng-container *ngIf="!isCurrentRoutinePhase(phase)">
+              <div class="list-card">
+                <ion-icon name="time-outline" color="medium"></ion-icon>
+                <span class="list-card-title">{{ phase.tableName }}</span>
+                <span class="scheduled-badge">Programada · {{ phase.startDate | date: 'd MMM' }}</span>
               </div>
-              <div class="exercise-row" *ngFor="let exercise of workout.exercises">
-                <span class="exercise-name">{{ exercise.exercise?.name || 'Ejercicio' }}</span>
-                <div class="exercise-sets-group">
-                  <span class="exercise-sets exercise-sets--expected">Prescrito: {{ expectedDescription(exercise) }}</span>
-                  <span class="exercise-sets" [class.exercise-sets--done]="hasAnyDoneSet(exercise)">
-                    Realizado: {{ setDescription(exercise) }}
-                  </span>
+              <button
+                class="bulk-apply-btn"
+                title="Cambiar fecha"
+                aria-label="Cambiar fecha"
+                [disabled]="cancellingRoutinePhaseId === phase._id"
+                (click)="openRescheduleRoutinePhaseModal(phase, $event)"
+              >
+                <ion-icon name="calendar-outline"></ion-icon>
+              </button>
+              <button
+                class="bulk-apply-btn bulk-apply-btn--danger"
+                title="Quitar fase programada"
+                aria-label="Quitar fase programada"
+                [disabled]="cancellingRoutinePhaseId === phase._id"
+                (click)="confirmCancelRoutinePhase(phase, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
+              </button>
+            </ng-container>
+          </div>
+
+          <div class="section-row nutrition-history-toggle" (click)="toggleRoutineHistory()">
+            <h3 class="subsection-heading">Historial de rutinas</h3>
+            <ion-icon [name]="showRoutineHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+          </div>
+          <ng-container *ngIf="showRoutineHistory">
+            <p class="empty-hint" *ngIf="!routineHistory.length">Todavía no hay historial de rutinas.</p>
+            <div class="history-card" *ngFor="let phase of routineHistory; trackBy: trackByRoutinePhaseId">
+              <div class="history-card-header">
+                <span class="list-card-title">{{ phase.tableName }}</span>
+                <span class="history-date">{{ phase.startDate | date: 'd MMM y' }}</span>
+              </div>
+              <p class="history-subtitle">
+                {{ phase.status === 'active' ? 'Activa' : phase.status === 'superseded' ? 'Sustituida por otra fase' : 'Finalizada' }}
+              </p>
+            </div>
+          </ng-container>
+
+          <!-- Tarea 3 bis — vista previa, no el historial completo: eso ya
+               vive en Progreso > Sesiones — aquí solo contexto de un
+               vistazo con enlace directo. -->
+          <div class="section-row" *ngIf="completedWorkouts.length">
+            <h3 class="subsection-heading">Últimas sesiones</h3>
+            <button type="button" class="add-button" (click)="goToSessionsTab()">
+              Ver todas
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="history-card" *ngFor="let workout of recentCompletedWorkouts; trackBy: trackByWorkoutId">
+            <div class="history-card-header">
+              <span class="list-card-title">{{ workout.name }}</span>
+              <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
+            </div>
+            <p class="history-subtitle">{{ workout.tableName }} · {{ workout.splitName }}</p>
+          </div>
+        </div>
+
+        <div class="training-plan-col">
+          <div class="section-row">
+            <h2 class="section-heading">Rutinas</h2>
+            <button class="add-button" (click)="openRoutinePanel()">
+              <ion-icon name="add-outline"></ion-icon>
+              Asignar rutina
+            </button>
+          </div>
+
+          <p class="empty-hint" *ngIf="!tables.length">Este cliente todavía no tiene ninguna rutina.</p>
+
+          <div class="routine-block" *ngFor="let table of tables; trackBy: trackByTableId">
+            <div class="routine-header-row">
+              <button
+                class="list-card list-card--button"
+                (click)="toggleTableExpand(table)"
+              >
+                <ion-icon name="barbell-outline"></ion-icon>
+                <span class="list-card-title">{{ table.name }}</span>
+                <span class="in-use-badge" *ngIf="table.isActive">En uso</span>
+                <span class="assigned-badge" *ngIf="table.assignedByTrainerId">Asignada por ti</span>
+                <!-- Tarea 4bis (2026-09) — cuándo entra en marcha, sin tener
+                     que mirar la columna de Fases: las dos vistas leen la
+                     misma fuente (routinePhases). -->
+                <span class="scheduled-badge" *ngIf="scheduledPhaseForTable(table._id) as sp">
+                  Programada · {{ sp.startDate | date: 'd MMM' }}
+                </span>
+                <ion-icon
+                  class="expand-chevron"
+                  [name]="expandedTableId === table._id ? 'chevron-up-outline' : 'chevron-down-outline'"
+                ></ion-icon>
+              </button>
+              <button
+                class="bulk-apply-btn"
+                title="Ver estadísticas"
+                aria-label="Ver estadísticas"
+                (click)="openStatistics(table)"
+              >
+                <ion-icon name="stats-chart-outline"></ion-icon>
+              </button>
+              <button
+                class="bulk-apply-btn"
+                title="Editar rutina (splits, ejercicios, series)"
+                aria-label="Editar rutina"
+                (click)="openPlanner(table)"
+              >
+                <ion-icon name="construct-outline"></ion-icon>
+              </button>
+              <button
+                class="bulk-apply-btn bulk-apply-btn--danger"
+                title="Borrar rutina completa"
+                aria-label="Borrar rutina completa"
+                (click)="confirmDeleteTable(table, $event)"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+
+            <!-- F09: detalle de rutina en modo lectura (splits > workouts > ejercicios > series) -->
+            <div class="routine-detail" *ngIf="expandedTableId === table._id">
+              <p class="empty-hint" *ngIf="!table.splits?.length">Esta rutina todavía no tiene microciclos.</p>
+
+              <div class="split-block" *ngFor="let split of table.splits">
+                <h4 class="split-heading">{{ split.name || 'Microciclo' }}</h4>
+
+                <div class="workout-row" *ngFor="let workout of split.workouts">
+                  <div class="workout-row-header">
+                    <span class="workout-name">{{ workout.name }}</span>
+                    <span class="workout-status" [class.workout-status--done]="workout.date">
+                      {{ workout.date ? (workout.date | date: 'd MMM y') : 'Pendiente' }}
+                    </span>
+                  </div>
+                  <div class="exercise-row" *ngFor="let exercise of workout.exercises">
+                    <span class="exercise-name">{{ exercise.exercise?.name || 'Ejercicio' }}</span>
+                    <div class="exercise-sets-group">
+                      <span class="exercise-sets exercise-sets--expected">Prescrito: {{ expectedDescription(exercise) }}</span>
+                      <span class="exercise-sets" [class.exercise-sets--done]="hasAnyDoneSet(exercise)">
+                        Realizado: {{ setDescription(exercise) }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

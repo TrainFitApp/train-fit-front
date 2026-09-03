@@ -163,6 +163,15 @@ export class PlannerPage {
     this.selectedSplitId = this.selectedSplitId === splitId ? null : splitId;
   }
 
+  // Panel de volumen (Fase B, planner-audit) — el microciclo inmediatamente
+  // anterior al seleccionado, para el delta. null si no hay seleccionado o
+  // el seleccionado ya es el primero (nada con qué comparar).
+  public get previousSplit(): Split | null {
+    if (!this.table || !this.selectedSplitId) return null;
+    const index = this.table.splits.findIndex((s) => s._id === this.selectedSplitId);
+    return index > 0 ? this.table.splits[index - 1] : null;
+  }
+
   public trackBySplitId(_index: number, split: Split): string {
     return split._id;
   }

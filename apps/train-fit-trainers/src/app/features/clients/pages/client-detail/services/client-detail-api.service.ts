@@ -57,12 +57,6 @@ export class ClientDetailApiService {
     return this.http.put<TrainingGoal>(`${this.base(clientId)}/training-goal`, goal);
   }
 
-  public activateTable(clientId: string, tableId: string): Observable<{ _id: string }> {
-    return this.http.put<{ _id: string }>(
-      `${this.base(clientId)}/tables/${tableId}/activate`,
-      {}
-    );
-  }
 
   public getAvailableTemplates(clientId: string): Observable<ClientTable[]> {
     return this.http.get<ClientTable[]>(

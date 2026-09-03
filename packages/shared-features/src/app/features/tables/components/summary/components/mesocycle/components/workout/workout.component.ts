@@ -10,6 +10,7 @@ import {
   SimpleChanges,
 } from "@angular/core";
 import { Subscription, forkJoin, tap } from "rxjs";
+import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import {
   ActionSheetOptions,
   AlertOptions,
@@ -19,6 +20,10 @@ import {
 } from "@ionic/angular";
 import { CustomExercise } from "src/app/core/models/customExercise";
 import { formatRirValue, isRirFail } from "src/app/core/models/rir";
+// Alias: el archivo ya usa el Set global de JS (selectedExerciseIndices,
+// muscleGroupsSet...) — mismo alias que config-exercise.page.ts ya usa para
+// este mismo choque de nombres.
+import { Set as ExerciseSet } from "src/app/core/models/set";
 import { Split } from "src/app/core/models/split";
 import { Table } from "src/app/core/models/table";
 import { User } from "src/app/core/models/user";
@@ -130,6 +135,15 @@ export class WorkoutComponent implements OnDestroy {
   // compartida entre semanas" que el Planificador deja atrás).
   @Input()
   public plannerMode = false;
+
+  // Fase A del rediseño del Planner — edición en línea de series (ver
+  // planner-audit, sección 04). Solo se activa con plannerMode: el resto de
+  // apps sigue abriendo ConfigExercisePage/ManageSetComponent como hoy.
+  // Clave = `${set._id}-${campo}`, no un booleano por campo, porque solo una
+  // celda puede estar en edición a la vez en toda la tarjeta.
+  public editingCellKey: string | null = null;
+  public editingCellValue = "";
+  public quickAddingSetId: string | null = null;
 
   @Output()
   public exerciseCopyEvent = new EventEmitter<{
@@ -1786,16 +1800,272 @@ export class WorkoutComponent implements OnDestroy {
     return [...sets].sort((a, b) => a.order - b.order);
   }
 
+  // --- Edición en línea de series (Fase A, solo plannerMode) ---
+
+  // Cardio/isométrico quedan fuera de esta pasada (tiempo/distancia con
+  // formato propio, ver ManageSetComponent) — siguen abriendo el modal. Un
+  // set ya "doned" es un registro de ejecución real, no una previsión: no se
+  // edita en línea desde el planificador.
+  public canInlineEditSet(exercise: CustomExercise, set: ExerciseSet): boolean {
+    return (
+      this.plannerMode &&
+      !!exercise?.exercise &&
+      !exercise.exercise.isCardio &&
+      !exercise.exercise.isIsometric &&
+      !set.doned
+    );
+  }
+
+  public isEditingCell(set: ExerciseSet, field: string): boolean {
+    return this.editingCellKey === `${set._id}-${field}`;
+  }
+
+  public startEditCell(
+    exercise: CustomExercise,
+    set: ExerciseSet,
+    field: "weight" | "reps" | "rir" | "rest",
+    event: Event,
+  ): void {
+    if (!this.canInlineEditSet(exercise, set)) return;
+    event.stopPropagation();
+
+    this.editingCellKey = `${set._id}-${field}`;
+    this.editingCellValue = this.rawCellValue(set, field);
+
+    const inputId = `tf-cell-${set._id}-${field}`;
+    setTimeout(() => {
+      const el = document.getElementById(inputId) as HTMLInputElement | null;
+      el?.focus();
+      el?.select();
+    });
+  }
+
+  public cancelEditCell(): void {
+    this.editingCellKey = null;
+  }
+
+  public commitEditCell(
+    exercise: CustomExercise,
+    set: ExerciseSet,
+    field: "weight" | "reps" | "rir" | "rest",
+  ): void {
+    const key = `${set._id}-${field}`;
+    if (this.editingCellKey !== key) return; // ya comprometido o cancelado (Escape)
+    this.editingCellKey = null;
+
+    const raw = this.editingCellValue.trim();
+    const updatedSet: ExerciseSet = { ...set };
+    let changed = false;
+
+    if (field === "weight" || field === "rest") {
+      const parsed = raw === "" ? undefined : Number(raw.replace(",", "."));
+      if (raw !== "" && (parsed === undefined || isNaN(parsed))) return;
+
+      if (field === "weight") {
+        changed = updatedSet.weight !== parsed;
+        updatedSet.weight = parsed;
+      } else {
+        const rounded =
+          parsed === undefined ? undefined : Math.round(parsed);
+        changed = updatedSet.restSeconds !== rounded;
+        updatedSet.restSeconds = rounded;
+      }
+    } else {
+      const range = this.parseRangeInput(raw);
+      if (range === null) return; // texto no numérico: se ignora, no se guarda basura
+
+      if (field === "reps") {
+        updatedSet.expectedReps = range;
+      } else {
+        updatedSet.expectedRir = range;
+      }
+      changed = true;
+    }
+
+    if (!changed) return;
+    this.persistSetUpdate(exercise, updatedSet);
+  }
+
+  public quickAddSet(exercise: CustomExercise, event: Event): void {
+    event.stopPropagation();
+    if (
+      !this.plannerMode ||
+      !exercise?.sets?.length ||
+      this.quickAddingSetId === exercise._id
+    ) {
+      return;
+    }
+
+    // Mismo patrón que CustomExerciseComponent#copySet (current-workout/
+    // custom-exercise.component.ts:543-583): duplica server-side la última
+    // serie con copySetOnCustomExercise en vez de recalcular el esquema en
+    // el cliente.
+    const normalizedSets = this.sortSets(exercise.sets).map(
+      (setTemp, index) => ({ ...setTemp, order: index }),
+    );
+    const sourceSet = normalizedSets[normalizedSets.length - 1];
+    const newSet: ExerciseSet = { ...sourceSet };
+    delete newSet._id;
+
+    const requestSets = [...normalizedSets, newSet];
+    requestSets.forEach((setTemp, index) => {
+      setTemp.order = index;
+    });
+
+    this.quickAddingSetId = exercise._id;
+
+    this.customExerciseService
+      .copySetOnCustomExercise(newSet.order, {
+        ...exercise,
+        sets: requestSets,
+      })
+      .subscribe({
+        next: (updated) => {
+          this.quickAddingSetId = null;
+          exercise.sets = this.sortSets(updated.sets);
+          this.tableService.setCurrentTable = this.tableInUse;
+        },
+        error: () => {
+          this.quickAddingSetId = null;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant("TABLES.ADD_SET_ERROR"),
+            duration: 2500,
+          });
+        },
+      });
+  }
+
+  private rawCellValue(
+    set: ExerciseSet,
+    field: "weight" | "reps" | "rir" | "rest",
+  ): string {
+    switch (field) {
+      case "weight":
+        return set.weight != null ? `${set.weight}` : "";
+      case "rest":
+        return set.restSeconds != null ? `${set.restSeconds}` : "";
+      case "reps":
+        return this.formatRangeForInput(set.expectedReps);
+      case "rir":
+        return this.formatRangeForInput(set.expectedRir);
+      default:
+        return "";
+    }
+  }
+
+  private formatRangeForInput(range: number[]): string {
+    if (!range || range.length === 0) return "";
+    const [a, b] = range;
+    const hasA = a !== null && a !== undefined && !isNaN(a);
+    const hasB = b !== null && b !== undefined && !isNaN(b);
+    if (hasA && hasB && a !== b) return `${a}-${b}`;
+    if (hasA) return `${a}`;
+    if (hasB) return `${b}`;
+    return "";
+  }
+
+  // "" => borra el rango; "8" => [8] (formatExpectedReps ya pinta un array
+  // de un solo valor como número plano, no como rango); "8-10" => [8, 10].
+  // null es la señal de "no es un número", para que el llamador ignore el
+  // cambio en vez de guardar basura.
+  private parseRangeInput(raw: string): number[] | null {
+    if (raw === "") return [];
+    const parts = raw
+      .split(/[-–—]/)
+      .map((p) => p.trim())
+      .filter((p) => p !== "");
+    const nums = parts.map((p) => Number(p.replace(",", ".")));
+    if (nums.length === 0 || nums.some((n) => isNaN(n))) return null;
+    return nums.length === 1 ? [nums[0]] : [nums[0], nums[1]];
+  }
+
+  private persistSetUpdate(
+    exercise: CustomExercise,
+    updatedSet: ExerciseSet,
+  ): void {
+    const index = exercise.sets.findIndex((s) => s._id === updatedSet._id);
+    if (index === -1) return;
+
+    const previousSet = exercise.sets[index];
+    exercise.sets[index] = updatedSet; // optimista
+
+    this.customExerciseService
+      .updateCustomExercise(exercise, [], [updatedSet], [])
+      .subscribe({
+        next: () => {
+          this.tableService.setCurrentTable = this.tableInUse;
+        },
+        error: () => {
+          exercise.sets[index] = previousSet; // revertir
+          this.ionicUtilService.showToast({
+            message: this.translate.instant("TABLES.UPDATE_SET_ERROR"),
+            duration: 2500,
+          });
+        },
+      });
+  }
+
+  // --- Reordenar ejercicios arrastrando (Fase C, solo plannerMode) ---
+
+  // Mismo CDK que ya reordena microciclos y tarjetas en el tablero, en vez
+  // del modal OrderExercisesPage + alert de confirmación. Acotado a workouts
+  // SIN bloques: groupExercisesByBlock() reagrupa por blockId y antepone los
+  // bloques a los sueltos, así que el orden mostrado por grupo puede no
+  // coincidir con workout.exercises — solo cuando no hay bloques,
+  // exerciseGroupEntries es UN único grupo en el mismo orden que el array
+  // real, y arrastrar dentro de él es una reordenación 1:1 segura. Con
+  // bloques, reordenar sigue pasando por el modal de siempre (sin cambios).
+  public get canReorderExercises(): boolean {
+    return this.plannerMode && !this.showsBlocks;
+  }
+
+  public onExercisesDropped(event: CdkDragDrop<CustomExercise[]>): void {
+    if (!this.canReorderExercises) return;
+    if (event.previousIndex === event.currentIndex) return;
+
+    // Mismo mecanismo que OrderExercisesPage#handleReorder: un array de
+    // índices ORIGINALES movido en paralelo al array real, para mandar al
+    // backend qué posición original ocupa cada hueco nuevo.
+    const order = this.workout.exercises.map((_, i) => i);
+    moveItemInArray(order, event.previousIndex, event.currentIndex);
+    moveItemInArray(
+      this.workout.exercises,
+      event.previousIndex,
+      event.currentIndex,
+    );
+    this.tableService.setCurrentTable = this.tableInUse;
+
+    this.workoutService
+      .updateWorkoutsOrder(this.workout._id, this.tableInUse._id, order)
+      .subscribe({
+        error: () => {
+          moveItemInArray(
+            this.workout.exercises,
+            event.currentIndex,
+            event.previousIndex,
+          ); // revertir
+          this.tableService.setCurrentTable = this.tableInUse;
+          this.ionicUtilService.showToast({
+            message: this.translate.instant("TABLES.REORDER_EXERCISES_ERROR"),
+            duration: 2500,
+          });
+        },
+      });
+  }
+
   // TODO: Actualmente se usa workout.date para comprobar que un
   // entrenamiento está terminado
   public isWorkoutDoned(): boolean {
     return this.utilService.isWorkoutDoned(this.workout);
   }
 
-  // Verde = terminado (workout.date), azul = saltado (workout.rest).
+  // Verde = terminado (workout.date), azul = saltado (workout.rest), gris =
+  // descanso pautado (workout.isPlannedRestDay) — tres hechos distintos, tres
+  // colores distintos.
   public getWorkoutStatusColor(fallback: string = ""): string {
     if (this.workout.date) return "var(--ion-color-success)";
     if (this.workout.rest) return "var(--ion-color-alternative)";
+    if (this.workout.isPlannedRestDay) return "var(--ion-color-medium)";
     return fallback;
   }
 
@@ -1928,7 +2198,7 @@ export class WorkoutComponent implements OnDestroy {
     if (currentIndex <= 0) return [];
     return flatWorkouts
       .slice(0, currentIndex)
-      .filter((workoutTemp) => !workoutTemp.date && !workoutTemp.rest);
+      .filter((workoutTemp) => !workoutTemp.date && !workoutTemp.rest && !workoutTemp.isPlannedRestDay);
   }
 
   private async confirmSkipPreviousWorkouts(

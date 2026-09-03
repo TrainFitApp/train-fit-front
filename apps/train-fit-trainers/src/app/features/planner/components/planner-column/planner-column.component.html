@@ -41,6 +41,27 @@
     <p class="planner-column-objective" *ngIf="split.objective" [title]="split.objective">
       {{ split.objective }}
     </p>
+
+    <!-- Fase D (planner-audit) — comparación contra el microciclo anterior.
+         Solo con la columna seleccionada: mismo criterio que purposeLabel,
+         para no repetir esto en las veinte columnas del tablero. -->
+    <div class="planner-column-compare" *ngIf="selected && totalSets > 0">
+      <div class="compare-row">
+        <span class="compare-label">Series</span>
+        <span class="compare-value">{{ totalSets }}</span>
+        <span class="compare-delta" *ngIf="setsDeltaText">{{ setsDeltaText }}</span>
+      </div>
+      <div class="compare-row">
+        <span class="compare-label">Tonelaje</span>
+        <span class="compare-value">{{ tonnageLabel }}</span>
+        <span class="compare-delta" *ngIf="tonnageDeltaText">{{ tonnageDeltaText }}</span>
+      </div>
+      <div class="compare-row" *ngIf="avgRir !== null">
+        <span class="compare-label">RIR medio</span>
+        <span class="compare-value">{{ avgRirLabel }}</span>
+        <span class="compare-delta" *ngIf="rirDeltaText">{{ rirDeltaText }}</span>
+      </div>
+    </div>
   </div>
 
   <div
@@ -111,6 +132,10 @@
       <button type="button" class="add-card-option" (click)="chooseCardFromTemplate()">
         <ion-icon name="download-outline"></ion-icon>
         <span>{{ 'PLANNER.ADD_CARD_FROM_TEMPLATE' | translate }}</span>
+      </button>
+      <button type="button" class="add-card-option" (click)="chooseRestDayCard()">
+        <ion-icon name="moon-outline"></ion-icon>
+        <span>{{ 'PLANNER.ADD_REST_DAY_OPTION' | translate }}</span>
       </button>
     </div>
   </div>

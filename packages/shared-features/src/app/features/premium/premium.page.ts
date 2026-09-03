@@ -20,10 +20,10 @@ import { NavigationService } from "src/app/core/services/util/navigation.service
 })
 export class PremiumPage {
   private readonly LEGAL_LINKS = {
-    privacy: "https://trainfit.net/#/politicas",
+    privacy: "https://trainfit.net/privacidad/",
     iosTerms:
       "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
-    defaultTerms: "https://www.trainfit.net/#/terminosycondiciones",
+    defaultTerms: "https://trainfit.net/terminos/",
   } as const;
 
   public readonly isNativeBillingAvailable: boolean;

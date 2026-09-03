@@ -429,8 +429,8 @@ export class ConfigurationPage {
 
   // Links constants
   public LINKS = {
-    privacyAndPolicy: 'https://trainfit.net/#/politicas',
-    us: 'https://trainfit.net/#/SobreNosotros',
-    termsAndConditions: 'https://trainfit.net/#/terminosycondiciones',
+    privacyAndPolicy: 'https://trainfit.net/privacidad/',
+    us: 'https://trainfit.net/sobre-trainfit/',
+    termsAndConditions: 'https://trainfit.net/terminos/',
   };
 }

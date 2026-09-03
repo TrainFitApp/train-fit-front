@@ -1,0 +1,170 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.volume-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 280px;
+  background: var(--tf-surface-1);
+  border-left: 1px solid var(--tf-border);
+  transition: width var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Mismo criterio que <app-session-load-panel>: contraído queda solo la
+  // pestaña, para no robarle ancho al tablero a quien no lo está mirando.
+  &--collapsed {
+    width: 44px;
+  }
+}
+
+.panel-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--tf-space-3);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.panel-toggle-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tf-space-4) var(--tf-space-3);
+}
+
+.panel-session {
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-empty,
+.panel-hint {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.panel-hint {
+  margin-top: var(--tf-space-4);
+  padding-top: var(--tf-space-3);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.vol-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 28px 46px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+}
+
+.vol-name {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vol-track {
+  position: relative;
+  height: 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-3);
+}
+
+// La franja del rango de referencia vive DEBAJO del relleno: marca dónde
+// "debería" caer la barra sin competir visualmente con el dato real.
+.vol-range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-5);
+}
+
+.vol-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent);
+
+  // Mismo vocabulario de color que el resto de la app: éxito/peligro son
+  // semánticos, no una paleta nueva para este panel.
+  &--low,
+  &--high {
+    background: var(--tf-danger);
+  }
+}
+
+.vol-count {
+  text-align: right;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+
+  &--low,
+  &--high {
+    color: var(--tf-danger-text);
+  }
+}
+
+.vol-delta {
+  text-align: right;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--up {
+    color: var(--tf-success);
+  }
+
+  &--down {
+    color: var(--tf-danger-text);
+  }
+}

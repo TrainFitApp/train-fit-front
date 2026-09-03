@@ -1,0 +1,81 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ mode === 'reschedule' ? 'Cambiar fecha' : 'Programar rutina' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="apply-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 52px;"></div>
+    <div class="skeleton-block" style="height: 52px;"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar las rutinas de este cliente.</p>
+  </div>
+
+  <ng-container *ngIf="mode === 'reschedule' && (state === 'loaded' || state === 'applying')">
+    <div class="template-row template-row--selected">
+      <ion-icon name="barbell-outline"></ion-icon>
+      <div class="template-info">
+        <span class="template-name">{{ fixedTableName }}</span>
+      </div>
+    </div>
+
+    <div class="input-wrapper">
+      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+      <input type="date" class="input-field" [(ngModel)]="startDate" />
+    </div>
+
+    <p class="overlap-error" *ngIf="overlapError">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      {{ overlapError }}
+    </p>
+  </ng-container>
+
+  <ng-container *ngIf="mode === 'apply' && (state === 'loaded' || state === 'applying')">
+    <p class="empty-hint" *ngIf="!tables.length">
+      Este cliente todavía no tiene ninguna rutina asignada.
+    </p>
+
+    <div
+      class="template-row"
+      *ngFor="let table of tables; trackBy: trackByTableId"
+      [class.template-row--selected]="selectedTableId === table._id"
+      (click)="select(table)"
+    >
+      <ion-icon name="barbell-outline"></ion-icon>
+      <div class="template-info">
+        <span class="template-name">{{ table.name }}</span>
+        <span class="template-meta" *ngIf="table.isActive">En uso ahora</span>
+      </div>
+      <ion-icon class="selected-check" *ngIf="selectedTableId === table._id" name="checkmark-circle"></ion-icon>
+    </div>
+
+    <div class="input-wrapper" *ngIf="selectedTableId">
+      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+      <input type="date" class="input-field" [(ngModel)]="startDate" />
+    </div>
+
+    <p class="date-hint" *ngIf="selectedTableId && previousPhaseName">
+      Encadena con <strong>{{ previousPhaseName }}</strong>.
+    </p>
+
+    <p class="overlap-error" *ngIf="overlapError">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      {{ overlapError }}
+    </p>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state === 'loaded' || state === 'applying'">
+  <ion-toolbar>
+    <button class="confirm-button" [disabled]="!canConfirm || state === 'applying'" (click)="confirm()">
+      <span *ngIf="state !== 'applying'">{{ mode === 'reschedule' ? 'Guardar nueva fecha' : 'Aplicar a ' + clientName }}</span>
+      <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
+    </button>
+  </ion-toolbar>
+</ion-footer>

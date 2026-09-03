@@ -7,6 +7,7 @@ import { PlannerPage } from './planner.page';
 import { PlannerColumnComponent } from './components/planner-column/planner-column.component';
 import { TemplatePickerModalComponent } from './components/template-picker-modal/template-picker-modal.component';
 import { SessionLoadPanelComponent } from './components/session-load-panel/session-load-panel.component';
+import { MuscleVolumePanelComponent } from './components/muscle-volume-panel/muscle-volume-panel.component';
 
 @NgModule({
   imports: [SharedModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
@@ -15,6 +16,7 @@ import { SessionLoadPanelComponent } from './components/session-load-panel/sessi
     PlannerColumnComponent,
     TemplatePickerModalComponent,
     SessionLoadPanelComponent,
+    MuscleVolumePanelComponent,
   ],
 })
 export class PlannerPageModule {}
