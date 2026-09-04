@@ -1,4 +1,5 @@
 @import '../../../../../../../theme/buttons';
+@import '../../../../../../../theme/inputs';
 
 .filter-panel-content {
   --background: var(--tf-bg);
@@ -57,6 +58,29 @@
   }
 }
 
+// Comparar por ejercicio — buscador, solo cuando hay más de 6 ejercicios que
+// desplazarse a mano no resuelve bien (ver el *ngIf en la plantilla).
+.exercise-search {
+  @include tf-input-wrapper(var(--tf-surface-2));
+  height: 44px;
+  margin-bottom: 10px;
+
+  ion-icon {
+    @include tf-input-icon;
+    font-size: 16px;
+  }
+
+  input {
+    @include tf-input-field;
+    font-size: 0.9rem;
+  }
+}
+
+.empty-hint {
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+}
+
 .filter-panel-footer {
   --background: var(--tf-surface-1);
   padding: 12px 16px;
@@ -71,4 +95,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }

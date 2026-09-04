@@ -1,10 +1,15 @@
-<div class="planner-column" [class.planner-column--selected]="selected" [class.planner-column--dimmed]="dimmed">
+<div
+  class="planner-column"
+  [class.planner-column--selected]="selected"
+  [class.planner-column--dimmed]="dimmed"
+  [class.planner-column--completed]="isCompleted"
+>
   <div class="planner-column-header" (click)="selectColumn()">
     <div class="planner-column-title">
-      <span class="planner-column-name">{{ split.name || ('PLANNER.WEEK_DEFAULT_PREFIX' | translate) }}</span>
-      <button type="button" class="rename-btn" (click)="requestRename($event)" [attr.aria-label]="'PLANNER.RENAME_WEEK' | translate">
-        <ion-icon name="pencil-outline"></ion-icon>
-      </button>
+      <span class="planner-column-name">
+        <ion-icon name="checkmark-circle" *ngIf="isCompleted" aria-hidden="true"></ion-icon>
+        {{ 'PLANNER.WEEK_DEFAULT_PREFIX' | translate }} {{ columnIndex + 1 }}
+      </span>
     </div>
     <span class="planner-column-meta">
       {{ split.workouts.length }} {{ (split.workouts.length === 1 ? 'PLANNER.CARD_SINGULAR' : 'PLANNER.CARD_PLURAL') | translate }}
@@ -21,6 +26,7 @@
         class="purpose-chip"
         *ngIf="purposeLabel"
         [attr.data-purpose]="split.purpose"
+        [title]="purposeTooltip"
         (click)="requestPurpose($event)"
       >
         {{ purposeLabel }}
@@ -29,6 +35,7 @@
         type="button"
         class="block-action"
         *ngIf="!purposeLabel"
+        [title]="purposeTooltip"
         (click)="requestPurpose($event)"
       >
         Tipo
@@ -51,11 +58,6 @@
         <span class="compare-value">{{ totalSets }}</span>
         <span class="compare-delta" *ngIf="setsDeltaText">{{ setsDeltaText }}</span>
       </div>
-      <div class="compare-row">
-        <span class="compare-label">Tonelaje</span>
-        <span class="compare-value">{{ tonnageLabel }}</span>
-        <span class="compare-delta" *ngIf="tonnageDeltaText">{{ tonnageDeltaText }}</span>
-      </div>
       <div class="compare-row" *ngIf="avgRir !== null">
         <span class="compare-label">RIR medio</span>
         <span class="compare-value">{{ avgRirLabel }}</span>
@@ -66,27 +68,22 @@
 
   <div
     class="planner-column-body"
+    #columnBody
     cdkDropList
     [cdkDropListData]="split.workouts"
     (cdkDropListDropped)="onCardsDropped($event)"
+    (scroll)="onBodyScroll($event)"
   >
     <div
       class="planner-card-wrapper"
+      [class.planner-card-wrapper--completed]="isWorkoutCompleted(workout)"
       *ngFor="let workout of split.workouts; let i = index; trackBy: trackByWorkoutId"
       cdkDrag
       [cdkDragData]="workout"
+      (click)="focusWorkout(workout)"
       (cdkDragStarted)="cardDragStarted.emit()"
       (cdkDragEnded)="cardDragEnded.emit()"
     >
-      <button
-        type="button"
-        class="row-sync-toggle"
-        [class.row-sync-toggle--active]="rowSync.isSynced(i)"
-        (click)="toggleRowSync($event, workout._id, i)"
-      >
-        <ion-icon [name]="rowSync.isSynced(i) ? 'eye' : 'eye-outline'"></ion-icon>
-        <span>{{ 'PLANNER.SYNC_ROW' | translate }}</span>
-      </button>
       <ion-accordion-group
         [value]="isCardOpen(workout._id, i) ? 'open' : 'closed'"
         (ionChange)="onCardAccordionChange($event, workout._id, i, workout)"

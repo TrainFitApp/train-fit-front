@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { Split } from 'src/app/core/models/split';
+// Movida a utils/planner-metrics.ts (2026-09) — la comparte con el modal de
+// comparación de microciclos, que cuenta las series igual.
+import { countByMuscleGroup } from '../../utils/planner-metrics';
 
 type VolumeStatus = 'low' | 'ok' | 'high';
 
@@ -36,6 +39,16 @@ const COLLAPSE_KEY = 'tf-muscle-volume-collapsed';
 export class MuscleVolumePanelComponent {
   @Input() public split: Split | null = null;
   @Input() public previousSplit: Split | null = null;
+  // Punto 2 (mejoras Planner, 2026-09) — split.name ya no es la etiqueta
+  // visible (los microciclos no se pueden renombrar, ver
+  // planner-column.component.ts#columnIndex); el padre calcula "Microciclo
+  // N" por posición (planner.page.ts#splitLabel) y lo pasa aquí, porque este
+  // panel no conoce table.splits para calcular el índice por sí mismo.
+  @Input() public splitLabel = '';
+  // 2026-09 — dentro de <app-planner-insights-panel> (pestaña "Semana") el
+  // marco lo pone el padre: aquí solo se pinta el contenido, sin aside
+  // propio, sin ancho fijo y sin botón de plegar.
+  @Input() public embedded = false;
 
   public collapsed = localStorage.getItem(COLLAPSE_KEY) === '1';
 
@@ -97,8 +110,8 @@ export class MuscleVolumePanelComponent {
   }
 
   private computeRows(): MuscleVolumeRow[] {
-    const current = this.countByMuscleGroup(this.split);
-    const previous = this.countByMuscleGroup(this.previousSplit);
+    const current = countByMuscleGroup(this.split);
+    const previous = countByMuscleGroup(this.previousSplit);
     const hasPrevious = !!this.previousSplit;
 
     const names = new Set<string>([
@@ -119,31 +132,4 @@ export class MuscleVolumePanelComponent {
       .sort((a, b) => b.count - a.count);
   }
 
-  // Cada serie cuenta entera para cada grupo muscular PRIMARIO del ejercicio
-  // (muscleGroups1) — un press banca con 4 series suma 4 a "Pecho" y 4 a
-  // "Tríceps" si ambos están listados, no 2+2. Es la misma simplificación
-  // que ya usa el resto de la app al listar "músculos principales" por
-  // workout (ver WorkoutComponent#getWorkoutMuscleGroups): un reparto
-  // fraccionario por grupo sería más preciso pero no es un dato que el
-  // catálogo de ejercicios modele hoy (sin peso relativo entre grupos).
-  // muscleGroups2 (secundarios) queda fuera a propósito: mezclar primarios y
-  // secundarios en la misma cuenta diluiría la señal que el panel existe
-  // para dar.
-  private countByMuscleGroup(split: Split | null): Record<string, number> {
-    const counts: Record<string, number> = {};
-    if (!split) return counts;
-
-    for (const workout of split.workouts || []) {
-      for (const exercise of workout.exercises || []) {
-        const setCount = exercise.sets?.length || 0;
-        if (!setCount) continue;
-
-        for (const group of exercise.exercise?.muscleGroups1 || []) {
-          counts[group] = (counts[group] || 0) + setCount;
-        }
-      }
-    }
-
-    return counts;
-  }
 }

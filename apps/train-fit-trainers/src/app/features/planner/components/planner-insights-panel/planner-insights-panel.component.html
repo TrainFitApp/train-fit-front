@@ -1,0 +1,47 @@
+<aside class="insights-panel" [class.insights-panel--collapsed]="collapsed">
+  <button
+    type="button"
+    class="panel-toggle"
+    [attr.aria-expanded]="!collapsed"
+    [attr.aria-label]="collapsed ? 'Mostrar el panel de análisis' : 'Ocultar el panel de análisis'"
+    (click)="toggle()"
+  >
+    <ion-icon [name]="collapsed ? 'chevron-back-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+    <span class="panel-toggle-label" *ngIf="!collapsed">Análisis</span>
+  </button>
+
+  <ng-container *ngIf="!collapsed">
+    <!-- Cada pestaña lleva debajo la PREGUNTA que responde: es lo que
+         distingue dos listas de músculos que, sin eso, se leen como el mismo
+         dato contado de dos formas distintas. -->
+    <ion-segment
+      class="insights-tabs"
+      [value]="tab"
+      (ionChange)="onSegmentChange($any($event).detail?.value)"
+    >
+      <ion-segment-button value="week">
+        <ion-label>Semana</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="session">
+        <ion-label>Sesión</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <div class="insights-body">
+      <ng-container *ngIf="tab === 'week'">
+        <p class="tab-question">¿Cuántas series le doy a cada grupo esta semana?</p>
+        <app-muscle-volume-panel
+          [embedded]="true"
+          [split]="split"
+          [previousSplit]="previousSplit"
+          [splitLabel]="splitLabel"
+        ></app-muscle-volume-panel>
+      </ng-container>
+
+      <ng-container *ngIf="tab === 'session'">
+        <p class="tab-question">¿Cómo queda repartida esta sesión concreta?</p>
+        <app-session-load-panel [embedded]="true" [workout]="workout"></app-session-load-panel>
+      </ng-container>
+    </div>
+  </ng-container>
+</aside>

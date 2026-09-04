@@ -236,7 +236,7 @@
       <div class="nutrition-charts-row">
         <div class="nutrition-card nutrition-calendar-col">
           <app-training-calendar
-            [sessionDates]="sessionDatesSet"
+            [completedDays]="completedDaysMap"
             [projectedDays]="projectedTrainingDays"
             (rangeSelected)="onTrainingRangeSelected($event)"
           ></app-training-calendar>
@@ -255,6 +255,8 @@
           <app-training-comparison-chart
             [blocks]="trainingBlocks"
             [blockMuscleGroups]="trainingBlockMuscleGroups"
+            [blockExercise]="trainingBlockExercise"
+            [selectedExercise]="selectedTrainingExercise"
             [metric]="trainingComparisonMetric"
             [isLoading]="trainingBlocksState === 'loading'"
           ></app-training-comparison-chart>
@@ -285,8 +287,34 @@
               <ion-icon name="checkmark-circle" color="success"></ion-icon>
               <span class="list-card-title">{{ phase.tableName }}</span>
               <span class="in-use-badge">En uso</span>
+              <!-- Borrado coherente de fases/rutinas — quitar la fase EN USO
+                   ahora mismo ya es una acción válida (el backend restaura
+                   la anterior, o limpia tableInUse si no había ninguna):
+                   mismo botón/handler que las demás filas del historial. -->
+              <button
+                class="bulk-apply-btn bulk-apply-btn--danger"
+                title="Quitar fase"
+                aria-label="Quitar fase"
+                [disabled]="cancellingRoutinePhaseId === phase._id"
+                (click)="confirmCancelRoutinePhase(phase, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
+              </button>
             </div>
             <p class="history-subtitle">Desde el {{ phase.startDate | date: 'd MMM y' }}</p>
+
+            <!-- 2026-09 — el Planificador de la rutina EN USO estaba solo
+                 detrás del icono de una fila de la lista de rutinas, más
+                 abajo: la acción más frecuente del entrenador (abrir la
+                 rutina que el cliente está haciendo ahora) era la más
+                 escondida. Los accesos por fila siguen donde estaban; esto
+                 es un atajo directo, no un sustituto. -->
+            <button type="button" class="open-planner-btn" (click)="openPlannerForCurrentPhase()">
+              <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+              <span>Abrir en el Planificador</span>
+              <ion-icon name="chevron-forward-outline" class="open-planner-chevron" aria-hidden="true"></ion-icon>
+            </button>
           </div>
           <p class="empty-hint" *ngIf="routineHistoryState === 'loaded' && !currentRoutinePhase">
             Este cliente todavía no tiene ninguna rutina programada.

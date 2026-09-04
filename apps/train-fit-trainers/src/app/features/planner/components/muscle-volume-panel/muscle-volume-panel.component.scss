@@ -17,6 +17,13 @@
   &--collapsed {
     width: 44px;
   }
+
+  // Dentro de <app-planner-insights-panel>: el marco (ancho, borde, plegado)
+  // lo pone el padre, aquí solo queda el contenido.
+  &--embedded {
+    width: 100%;
+    border-left: none;
+  }
 }
 
 .panel-toggle {

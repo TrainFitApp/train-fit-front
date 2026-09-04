@@ -1349,6 +1349,15 @@ export class WorkoutComponent implements OnDestroy {
     return mergedExercises;
   }
 
+  // Punto 5 (mejoras Planner, 2026-09) — Fase C (2026-08) hacía que
+  // añadir/quitar un ejercicio por el checkbox rápido de SearchExercisesPage
+  // solo afectara a ESTE workout en plannerMode (singleWorkoutMode, ya
+  // eliminado de SearchExercisesPage). Se revierte: el resto del tablero
+  // (crear card, plantillas, borrar, añadir ejercicio abriendo
+  // ConfigExercisePage) ya propaga a la misma fila en todos los microciclos
+  // — este era el único hueco, y el entrenador lo reportó como bug, no como
+  // comportamiento esperado. Ahora usa siempre el barrido por defecto de
+  // SearchExercisesPage#toggleExerciseSelection, igual que el resto de apps.
   public searchExercises(workout: Workout, currentSplit: Split) {
     this.workout = workout;
     const modalOptions: ModalOptions = {
@@ -1360,10 +1369,6 @@ export class WorkoutComponent implements OnDestroy {
         user: this.user,
         tableInUse: this.tableInUse,
         currentSplit: currentSplit,
-        // Planificador visual (Fase C) — en plannerMode, alta/baja instantánea
-        // scoped a ESTE workout._id, no al barrido cruzado entre splits
-        // (ver SearchExercisesPage#toggleExerciseSelection).
-        singleWorkoutMode: this.plannerMode,
         // TASK-021 (MASTER_BACKLOG.md) — plannerMode ya distingue "abierto
         // desde el Planner de train-fit-trainers"; se reutiliza como gate
         // del generador rápido de series en vez de crear un @Input() nuevo.

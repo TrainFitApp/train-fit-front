@@ -28,17 +28,58 @@
   white-space: nowrap;
 }
 
+// Punto 1/4 (mejoras Planner, 2026-09) — antes una sola fila de 3 botones
+// con overflow-x:auto. Ahora dos grupos (acciones a la izquierda,
+// equipamiento del cliente a la derecha) que se envuelven en pantallas
+// estrechas en vez de forzar scroll horizontal — con 4 botones + chips de
+// equipamiento, una sola fila con scroll ya no era cómoda de recorrer.
 .planner-toolbar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--tf-space-2);
   padding: var(--tf-space-2) var(--tf-space-4) var(--tf-space-3);
   border-bottom: 1px solid var(--tf-border);
   background: var(--tf-bg);
-  overflow-x: auto;
 
   @media (max-width: 560px) {
     padding: var(--tf-space-2) var(--tf-space-3) var(--tf-space-3);
   }
+}
+
+.planner-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  flex-wrap: wrap;
+}
+
+// Chips de equipamiento del cliente ("Equipamiento utilizado") — mismo
+// vocabulario visual que .scope-chip en client-detail.page.scss, adaptado a
+// la barra de herramientas: compacto, sin necesitar abrir la ficha.
+.planner-toolbar-equipment {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--tf-text-muted);
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+}
+
+.equipment-chip {
+  padding: 3px 10px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .toolbar-btn {
@@ -107,6 +148,12 @@
     color: var(--tf-danger);
     border: 1px solid var(--tf-danger-border);
   }
+
+  // Punto 4 — estado activo del interruptor "Modo comparación".
+  &--active {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
 }
 
 .planner-content {
@@ -123,8 +170,7 @@
   min-height: 0;
 }
 
-app-session-load-panel,
-app-muscle-volume-panel {
+app-planner-insights-panel {
   flex-shrink: 0;
 
   // En pantallas estrechas el panel desaparece: un tablero de planificación

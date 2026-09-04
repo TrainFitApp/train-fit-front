@@ -43,6 +43,7 @@ import {
 import { formatSoreness } from 'src/app/core/constants/soreness';
 import {
   AdherenceDimension,
+  BlockExerciseProgress,
   BlockMuscleGroup,
   ClientBodyProfile,
   ClientTrainingProgress,
@@ -51,7 +52,11 @@ import {
   TrainingBlock,
   TrainingComparisonMetric,
 } from './models/client-progress.model';
-import { TrainingFilterPanelComponent } from './components/training-filter-panel/training-filter-panel.component';
+import {
+  TrainingFilterPanelComponent,
+  TrainingFilterResult,
+} from './components/training-filter-panel/training-filter-panel.component';
+import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
@@ -682,20 +687,42 @@ export class ClientDetailPage implements OnInit {
   public trainingBlocksState: SectionState = 'loading';
   public trainingBlocks: TrainingBlock[] = [];
   public trainingBlockMuscleGroups: BlockMuscleGroup[] = [];
+  // Comparar por ejercicio (2026-09) — "ejercicios por micros". exerciseNames
+  // sale gratis de la misma petición que ya trae blocks/blockMuscleGroups;
+  // blockExercise solo llega poblado cuando ya hay un ejercicio elegido (ver
+  // loadTrainingBlocks, que reenvía selectedTrainingExercise al backend).
+  public trainingExerciseNames: string[] = [];
+  public trainingBlockExercise: BlockExerciseProgress[] = [];
+  public selectedTrainingExercise: string | null = null;
   public trainingBlockComparison: ClientTrainingProgress['blockComparison'] = null;
 
   public get trainingComparisonMetricLabel(): string {
     return TRAINING_COMPARISON_METRIC_LABELS[this.trainingComparisonMetric];
   }
 
-  // Fechas ISO (no toDateString) con sesión completada — el calendario
-  // compara contra el mismo formato que period.from/to del backend.
-  public get sessionDatesSet(): Set<string> {
-    return new Set(
-      this.completedWorkouts
-        .filter((w) => w.date)
-        .map((w) => new Date(w.date as Date).toISOString().slice(0, 10))
-    );
+  // Movimiento adherencia-por-fase (2026-09) — antes solo el Set de fechas
+  // ISO con sesión (sessionDatesSet); ahora nombre + % de series cumplidas
+  // frente a las prescritas ESE día, para que el calendario pinte qué se
+  // entrenó y cuánto se cumplió sin tener que abrir nada. Sale de
+  // completedWorkouts (cada Workout ya trae sus exercises/sets completos),
+  // ninguna llamada nueva. Mismo denominador que "fidelidad de pauta" en el
+  // resto de la app: series con expectedReps[], no todas las series (una
+  // serie sin rango prescrito no es incumplimiento, es un dato que no
+  // aplica).
+  public get completedDaysMap(): Map<string, CompletedDay> {
+    const map = new Map<string, CompletedDay>();
+    for (const workout of this.completedWorkouts) {
+      if (!workout.date) continue;
+      const date = new Date(workout.date as Date).toISOString().slice(0, 10);
+      const sets = (workout.exercises || []).flatMap((exercise) => exercise.sets || []);
+      const measurable = sets.filter((set) => set.expectedReps?.length);
+      const doned = measurable.filter((set) => set.doned).length;
+      map.set(date, {
+        name: workout.name,
+        completionPercentage: measurable.length ? Math.round((doned / measurable.length) * 100) : null,
+      });
+    }
+    return map;
   }
 
   public onTrainingRangeSelected(range: { start: string; end: string }): void {
@@ -708,32 +735,53 @@ export class ClientDetailPage implements OnInit {
     if (!this.trainingComparisonRange) return;
     this.trainingBlocksState = 'loading';
     const { start, end } = this.trainingComparisonRange;
-    this.clientDetailApi.getTrainingBlocks(this.clientId, start, end).subscribe({
-      next: (data) => {
-        this.trainingBlocks = data.blocks || [];
-        this.trainingBlockMuscleGroups = data.blockMuscleGroups || [];
-        this.trainingBlockComparison = data.blockComparison || null;
-        this.trainingBlocksState = 'loaded';
-      },
-      error: () => {
-        this.trainingBlocks = [];
-        this.trainingBlockMuscleGroups = [];
-        this.trainingBlockComparison = null;
-        this.trainingBlocksState = 'error';
-      },
-    });
+    this.clientDetailApi
+      .getTrainingBlocks(this.clientId, start, end, this.selectedTrainingExercise || undefined)
+      .subscribe({
+        next: (data) => {
+          this.trainingBlocks = data.blocks || [];
+          this.trainingBlockMuscleGroups = data.blockMuscleGroups || [];
+          this.trainingBlockComparison = data.blockComparison || null;
+          this.trainingExerciseNames = data.exerciseNames || [];
+          this.trainingBlockExercise = data.blockExercise || [];
+          this.trainingBlocksState = 'loaded';
+        },
+        error: () => {
+          this.trainingBlocks = [];
+          this.trainingBlockMuscleGroups = [];
+          this.trainingBlockComparison = null;
+          this.trainingExerciseNames = [];
+          this.trainingBlockExercise = [];
+          this.trainingBlocksState = 'error';
+        },
+      });
   }
 
   public async openTrainingFilterPanel(): Promise<void> {
     const modal = await this.modalController.create({
       component: TrainingFilterPanelComponent,
-      componentProps: { selectedMetric: this.trainingComparisonMetric },
+      componentProps: {
+        selectedMetric: this.trainingComparisonMetric,
+        selectedExercise: this.selectedTrainingExercise,
+        exerciseNames: this.trainingExerciseNames,
+      },
       cssClass: 'tf-panel-modal',
     });
     await modal.present();
-    const { data, role } = await modal.onDidDismiss<TrainingComparisonMetric>();
-    if (role === 'confirm' && data) {
-      this.trainingComparisonMetric = data;
+    const { data, role } = await modal.onDidDismiss<TrainingFilterResult>();
+    if (role !== 'confirm' || !data) return;
+
+    this.trainingComparisonMetric = data.metric;
+    const exerciseChanged = data.exercise !== this.selectedTrainingExercise;
+    this.selectedTrainingExercise = data.exercise;
+
+    // Solo hace falta volver a pedir al backend si de verdad cambió el
+    // ejercicio elegido — blockExercise solo llega poblado para el que se
+    // pidió la última vez (ver loadTrainingBlocks). Cambiar a/desde las
+    // otras 4 métricas no necesita ninguna llamada nueva: sus datos ya
+    // están en memoria desde la última carga del rango.
+    if (data.metric === 'exercise' && exerciseChanged) {
+      this.loadTrainingBlocks();
     }
   }
 
@@ -1256,28 +1304,40 @@ export class ClientDetailPage implements OnInit {
   // (features/routines/pages/routine-builder), una pantalla completamente
   // distinta (autoría de una WorkoutTemplate reutilizable) — este método
   // abre el Planificador (Table ya asignada a este cliente), no eso.
+  // El botón "Volver" del Planificador (PlannerPage#close()) necesita saber
+  // a qué pestaña regresar — sin esto siempre caía en Resumen (el valor por
+  // defecto de initTabsAndLoadSections cuando no hay ?tab= en la URL),
+  // aunque se hubiera entrado desde Entrenamiento. returnTab viaja en la
+  // URL de ida; PlannerPage se limita a reenviarlo como `tab` al volver,
+  // reutilizando el mecanismo de ?tab= que ya existe (ver
+  // initTabsAndLoadSections, usado hoy por los enlaces de notificación).
+  // 2026-09 — atajo directo al Planificador de la rutina EN USO desde la
+  // tarjeta "En uso". Navega por tableId de la fase (la tabla puede no estar
+  // todavía en `this.tables`, que se carga aparte) reutilizando la MISMA ruta
+  // y el mismo returnTab que openPlanner, sin duplicar criterio.
+  public async openPlannerForCurrentPhase(): Promise<void> {
+    const phase = this.currentRoutinePhase;
+    if (!phase?.tableId) return;
+    await this.openPlanner({ _id: phase.tableId } as ClientTable);
+  }
+
   public async openPlanner(table: ClientTable): Promise<void> {
-    await this.router.navigate([
-      '/tabs',
-      'clients',
-      this.clientId,
-      'tables',
-      table._id,
-      'planner',
-    ]);
+    await this.router.navigate(
+      ['/tabs', 'clients', this.clientId, 'tables', table._id, 'planner'],
+      { queryParams: { returnTab: this.activeTab } }
+    );
   }
 
   // TASK-007 — mismo patrón que openPlanner: ruta completa +
   // TableInContextResolver siembra la tabla del cliente antes de activar.
+  // Mismo motivo que openPlanner de arriba: StatisticsPage#goBack() sigue
+  // el mismo criterio (comentario propio: "mismo criterio que
+  // PlannerPage#close()"), así que necesita el mismo returnTab.
   public async openStatistics(table: ClientTable): Promise<void> {
-    await this.router.navigate([
-      '/tabs',
-      'clients',
-      this.clientId,
-      'tables',
-      table._id,
-      'statistics',
-    ]);
+    await this.router.navigate(
+      ['/tabs', 'clients', this.clientId, 'tables', table._id, 'statistics'],
+      { queryParams: { returnTab: this.activeTab } }
+    );
   }
 
   // TASK-019 (MASTER_BACKLOG.md) — antes no existía forma de eliminar una
@@ -1300,13 +1360,19 @@ export class ClientDetailPage implements OnInit {
               .deleteTable(this.clientId, table._id)
               .subscribe({
                 next: () => {
-                  this.tables = this.tables.filter((t) => t._id !== table._id);
+                  // Borrado coherente de fases/rutinas — borrar una tabla
+                  // puede ahora restaurar/limpiar tableInUse y borrar fases
+                  // (RoutineAssignment) asociadas en el backend. Un parche
+                  // local de `this.tables` dejaría currentRoutinePhase y el
+                  // badge "en uso" de las demás tablas desincronizados hasta
+                  // un refresco manual — se recarga todo en su lugar.
                   if (this.expandedTableId === table._id)
                     this.expandedTableId = null;
                   this.ionicUtilService.showToast({
                     message: 'Rutina borrada',
                     duration: 1500,
                   });
+                  this.loadTraining();
                 },
                 error: () => {
                   this.ionicUtilService.showToast({

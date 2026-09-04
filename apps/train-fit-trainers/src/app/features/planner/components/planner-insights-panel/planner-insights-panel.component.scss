@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Un solo panel donde antes había dos hermanos de 280px + 260px. El ancho
+// es el del más ancho de los dos, no la suma: el tablero recupera 260px.
+.insights-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 280px;
+  background: var(--tf-surface-1);
+  border-left: 1px solid var(--tf-border);
+  transition: width var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Contraído queda solo la pestaña para volver a abrirlo: un tablero de
+  // planificación necesita todo el ancho que pueda.
+  &--collapsed {
+    width: 44px;
+  }
+}
+
+.panel-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--tf-space-3);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--tf-border);
+  color: var(--tf-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: var(--tf-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: -2px;
+  }
+}
+
+.panel-toggle-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insights-tabs {
+  flex-shrink: 0;
+  --background: var(--tf-surface-2);
+  padding: var(--tf-space-2) var(--tf-space-2) 0;
+  background: var(--tf-surface-1);
+
+  ion-segment-button {
+    --color: var(--tf-text-muted);
+    --color-checked: var(--tf-text);
+    --indicator-color: var(--tf-surface-4);
+    min-height: 32px;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+.insights-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// La pregunta que responde la pestaña, no un subtítulo decorativo: sin ella
+// las dos listas de músculos se confunden entre sí.
+.tab-question {
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--tf-space-3) var(--tf-space-3) var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-text-muted);
+}
+
+app-muscle-volume-panel,
+app-session-load-panel {
+  flex: 1;
+  min-height: 0;
+}

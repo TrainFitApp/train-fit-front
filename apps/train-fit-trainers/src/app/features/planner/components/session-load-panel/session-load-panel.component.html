@@ -1,5 +1,10 @@
-<aside class="load-panel" [class.load-panel--collapsed]="collapsed">
+<aside
+  class="load-panel"
+  [class.load-panel--collapsed]="!embedded && collapsed"
+  [class.load-panel--embedded]="embedded"
+>
   <button
+    *ngIf="!embedded"
     type="button"
     class="panel-toggle"
     [attr.aria-expanded]="!collapsed"
@@ -10,13 +15,35 @@
     <span class="panel-toggle-label" *ngIf="!collapsed">Carga de la sesión</span>
   </button>
 
-  <div class="panel-body" *ngIf="!collapsed">
+  <div class="panel-body" *ngIf="embedded || !collapsed">
     <p class="panel-empty" *ngIf="!workout">
-      Elige una sesión del tablero para ver cómo queda repartida.
+      Toca la cabecera de un entrenamiento en el tablero para ver cómo queda repartido.
     </p>
 
     <ng-container *ngIf="workout">
       <p class="panel-session">{{ workout.name }}</p>
+
+      <!-- Series REALES por grupo muscular de ESTA sesión (2026-09). Va
+           primero porque no depende de haber puntuado nada: sale de contar
+           Sets sobre los músculos primarios del ejercicio, igual que la
+           pestaña Semana pero de un solo entrenamiento. -->
+      <ng-container *ngIf="seriesByMuscle.length">
+        <h4 class="group-title">
+          <span>Series por músculo</span>
+          <span class="group-unit">{{ totalWorkoutSets }} en total</span>
+        </h4>
+        <div class="bar-row" *ngFor="let row of seriesByMuscle; trackBy: trackByName">
+          <span class="bar-name">{{ row.name | translateDb }}</span>
+          <span class="bar-track">
+            <span class="bar-fill" [style.width.%]="seriesBarWidth(row.count)"></span>
+          </span>
+          <span class="bar-value">{{ row.count }}</span>
+        </div>
+        <p class="panel-hint panel-hint--tight">
+          Series de esta sesión por grupo muscular principal. Una serie cuenta entera en cada
+          músculo primario del ejercicio.
+        </p>
+      </ng-container>
 
       <div class="panel-skeleton" *ngIf="state === 'loading'">
         <div class="skeleton-block" *ngFor="let i of [1, 2, 3, 4]"></div>
@@ -28,7 +55,11 @@
       </div>
 
       <ng-container *ngIf="state === 'loaded' && load">
-        <!-- La duración va arriba del todo: es el dato que decide si la
+        <h4 class="group-title" *ngIf="seriesByMuscle.length">
+          <span>Carga estimada</span>
+        </h4>
+
+        <!-- La duración va arriba del reparto: es el dato que decide si la
              sesión cabe en el hueco que tiene el cliente. -->
         <div class="duration">
           <ion-icon name="stopwatch-outline" aria-hidden="true"></ion-icon>
@@ -38,44 +69,61 @@
 
         <!-- Un reparto que ignora media sesión en silencio parece completo:
              se dice cuántos ejercicios faltan por puntuar. -->
-        <p class="panel-warning" *ngIf="load.unscoredExercises">
+        <p class="panel-warning" *ngIf="load.unscoredExercises && hasAnyLoad">
           <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
           {{ load.unscoredExercises }} de {{ load.totalExercises }} ejercicios sin puntuar: no
           cuentan en el reparto.
         </p>
 
-        <p class="panel-empty" *ngIf="!hasAnyLoad">
-          Todavía no hay nada que repartir. Puntúa los ejercicios de esta sesión en
-          Mi método → Puntuaciones.
+        <!-- Tres vacíos distintos (2026-09): antes los tres decían "puntúa
+             los ejercicios", culpando al entrenador aunque el problema fuese
+             que la sesión no tiene series todavía. -->
+        <p class="panel-empty" *ngIf="emptyReason === 'no-exercises'">
+          Este entrenamiento aún no tiene ejercicios.
+        </p>
+        <p class="panel-empty" *ngIf="emptyReason === 'no-sets'">
+          Los ejercicios están puntuados, pero este entrenamiento aún no tiene series que repartir.
+        </p>
+        <p class="panel-empty" *ngIf="emptyReason === 'unscored'">
+          Ninguno de estos {{ load.totalExercises }} ejercicios está puntuado todavía. Puntúalos en
+          Mi método → Puntuaciones y aquí verás el reparto.
         </p>
 
         <ng-container *ngIf="load.muscles.length">
-          <h4 class="group-title">Músculos</h4>
+          <h4 class="group-title">
+            <span>Músculos</span>
+            <span class="group-unit">pts × series</span>
+          </h4>
           <div class="bar-row" *ngFor="let muscle of load.muscles; trackBy: trackByName">
-            <span class="bar-name">{{ muscle.name }}</span>
+            <span class="bar-name">{{ muscle.name | translateDb }}</span>
             <span class="bar-track">
-              <span class="bar-fill" [style.width.%]="barWidth(muscle.load, load.muscles)"></span>
+              <span class="bar-fill" [style.width.%]="barWidth(muscle.load)"></span>
             </span>
             <span class="bar-value">{{ muscle.load }}</span>
           </div>
         </ng-container>
 
         <ng-container *ngIf="load.joints.length">
-          <h4 class="group-title">Articulaciones</h4>
+          <h4 class="group-title">
+            <span>Articulaciones</span>
+            <span class="group-unit">pts × series</span>
+          </h4>
           <div class="bar-row" *ngFor="let joint of load.joints; trackBy: trackByName">
-            <span class="bar-name">{{ joint.name }}</span>
+            <span class="bar-name">{{ joint.name | translateDb }}</span>
             <span class="bar-track">
-              <span
-                class="bar-fill bar-fill--joint"
-                [style.width.%]="barWidth(joint.load, load.joints)"
-              ></span>
+              <span class="bar-fill bar-fill--joint" [style.width.%]="barWidth(joint.load)"></span>
             </span>
             <span class="bar-value">{{ joint.load }}</span>
           </div>
         </ng-container>
 
-        <p class="panel-hint" *ngIf="hasAnyLoad">
-          Puntuación × series. Es el reparto DENTRO de esta sesión, no una escala absoluta.
+        <!-- SIEMPRE visible, no solo cuando hay datos: antes vivía bajo
+             *ngIf="hasAnyLoad", así que la única explicación de la métrica
+             no se leía justo cuando más falta hacía. -->
+        <p class="panel-hint">
+          Cada número es la puntuación que diste a ese músculo en el ejercicio × sus series. Es el
+          reparto DENTRO de esta sesión, no una escala absoluta ni series reales (eso está en la
+          pestaña Semana).
         </p>
       </ng-container>
     </ng-container>

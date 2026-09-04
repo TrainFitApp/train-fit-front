@@ -5,10 +5,25 @@ interface ProjectedDay {
   name: string;
 }
 
+// Movimiento adherencia-por-fase (2026-09) — antes "hecho" era un booleano
+// (sessionDates: Set<string>, solo "hubo sesión ese día sí/no"). El
+// entrenador pidió ver qué se entrenó y cuánto se cumplió sin tener que
+// tocar el día: el padre ya tiene el Workout completo cargado
+// (completedWorkouts), así que enriquecer esto no cuesta ninguna llamada
+// nueva, solo mapear lo que ya existe.
+export interface CompletedDay {
+  name: string;
+  // null cuando el workout no tiene ninguna serie con expectedReps que
+  // medir (p.ej. un día suelto sin series prescritas) — "hubo sesión" pero
+  // no hay fidelidad que calcular. Se pinta como completado a secas, sin
+  // graduar el relleno (ver fillOpacity).
+  completionPercentage: number | null;
+}
+
 interface TrainingCalendarCell {
   date: string | null;
   dayNumber: number | null;
-  hasSession: boolean;
+  completed: CompletedDay | null;
   projected: ProjectedDay | null;
 }
 
@@ -47,32 +62,33 @@ function buildMonthGrid(year: number, month: number): TrainingCalendarCell[] {
 
   const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
   for (let i = firstWeekday - 1; i >= 0; i--) {
-    cells.push({ date: null, dayNumber: prevMonthLastDay - i, hasSession: false, projected: null });
+    cells.push({ date: null, dayNumber: prevMonthLastDay - i, completed: null, projected: null });
   }
   for (let day = 1; day <= totalDays; day++) {
-    cells.push({ date: isoDate(year, month, day), dayNumber: day, hasSession: false, projected: null });
+    cells.push({ date: isoDate(year, month, day), dayNumber: day, completed: null, projected: null });
   }
   let nextMonthDay = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ date: null, dayNumber: nextMonthDay, hasSession: false, projected: null });
+    cells.push({ date: null, dayNumber: nextMonthDay, completed: null, projected: null });
     nextMonthDay++;
   }
   return cells;
 }
 
-// Tarea 4 (2026-09) — calendario de rango para la comparación de
-// microciclos en Entrenamiento. Adaptado de <app-nutrition-calendar>: mismo
-// mecanismo de selección de rango (presets + clic-clic), pero sin fases de
-// plan ni cumplimiento por día (no aplican aquí) — el relleno es solo "hubo
-// sesión ese día", con los datos que el padre ya tiene cargados
-// (completedWorkouts), sin ninguna llamada propia.
+// Tarea 4 (2026-09), enriquecido (2026-09) — calendario de rango para la
+// comparación de microciclos en Entrenamiento. Adaptado de
+// <app-nutrition-calendar>: mismo mecanismo de selección de rango (presets +
+// clic-clic) y el mismo patrón de dos capas visuales (fondo previsto +
+// relleno de cumplimiento graduado encima), con los datos que el padre ya
+// tiene cargados (completedWorkouts/projectedTrainingDays), sin ninguna
+// llamada propia añadida.
 @Component({
   selector: 'app-training-calendar',
   templateUrl: './training-calendar.component.html',
   styleUrls: ['./training-calendar.component.scss'],
 })
 export class TrainingCalendarComponent implements OnChanges, OnInit {
-  @Input() sessionDates: Set<string> = new Set();
+  @Input() completedDays: Map<string, CompletedDay> = new Map();
 
   // Tarea 4 (2026-09) — capa independiente de `sessionDates` (que es solo
   // lo YA hecho): lo que la rutina activa PREVÉ para cada día, con fecha
@@ -102,7 +118,7 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public hoverDate: string | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['sessionDates'] || changes['projectedDays']) {
+    if (changes['completedDays'] || changes['projectedDays']) {
       this.cells = this.applyOverlays(this.cells.length ? this.cells : buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     }
   }
@@ -134,9 +150,45 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   private applyOverlays(cells: TrainingCalendarCell[]): TrainingCalendarCell[] {
     return cells.map((cell) => ({
       ...cell,
-      hasSession: !!cell.date && this.sessionDates.has(cell.date),
+      completed: (cell.date && this.completedDays.get(cell.date)) || null,
       projected: (cell.date && this.projectedDays.get(cell.date)) || null,
     }));
+  }
+
+  // Mismo patrón que <app-nutrition-calendar>#cellFillOpacity: tinte, nunca
+  // bloque sólido (el número del día se sigue leyendo encima), mismo rango
+  // 0.14-0.55 para que las dos capas visuales de la ficha del cliente
+  // hablen el mismo idioma. Sin `completionPercentage` (nada que medir) se
+  // pinta con el tope, no con 0: "hubo sesión" sigue siendo una señal.
+  private static readonly MIN_FILL_OPACITY = 0.14;
+  private static readonly MAX_FILL_OPACITY = 0.55;
+
+  public fillOpacity(cell: TrainingCalendarCell): number {
+    if (!cell.completed) return 0;
+    const pct = cell.completed.completionPercentage;
+    if (pct === null) return TrainingCalendarComponent.MAX_FILL_OPACITY;
+    const { MIN_FILL_OPACITY: MIN, MAX_FILL_OPACITY: MAX } = TrainingCalendarComponent;
+    return MIN + (Math.max(0, Math.min(100, pct)) / 100) * (MAX - MIN);
+  }
+
+  // "Torso A" -> "TA", "Piernas" -> "PI". Dos caracteres es lo único que se
+  // lee con garantías en una celda de ~30px — el nombre completo sigue
+  // disponible en el title (tooltip). Prioriza lo HECHO sobre lo previsto:
+  // si un día se entrenó distinto de lo pautado, lo que importa a golpe de
+  // vista es qué se hizo de verdad.
+  public monogram(cell: TrainingCalendarCell): string {
+    const name = cell.completed?.name || cell.projected?.name;
+    if (!name) return '';
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    return (words[0] || '').slice(0, 2).toUpperCase();
+  }
+
+  public cellTitle(cell: TrainingCalendarCell): string | null {
+    if (cell.completed && cell.projected && !cell.projected.isPlannedRestDay) {
+      return `${cell.completed.name} (previsto: ${cell.projected.name})`;
+    }
+    return cell.completed?.name || cell.projected?.name || null;
   }
 
   public selectPresetRange(days: number): void {

@@ -1,5 +1,10 @@
-<aside class="volume-panel" [class.volume-panel--collapsed]="collapsed">
+<aside
+  class="volume-panel"
+  [class.volume-panel--collapsed]="!embedded && collapsed"
+  [class.volume-panel--embedded]="embedded"
+>
   <button
+    *ngIf="!embedded"
     type="button"
     class="panel-toggle"
     [attr.aria-expanded]="!collapsed"
@@ -10,13 +15,13 @@
     <span class="panel-toggle-label" *ngIf="!collapsed">Volumen semanal</span>
   </button>
 
-  <div class="panel-body" *ngIf="!collapsed">
+  <div class="panel-body" *ngIf="embedded || !collapsed">
     <p class="panel-empty" *ngIf="!split">
       Selecciona un microciclo (toca su cabecera) para ver sus series por grupo muscular.
     </p>
 
     <ng-container *ngIf="split">
-      <p class="panel-session">{{ split.name || 'Microciclo' }}</p>
+      <p class="panel-session">{{ splitLabel || 'Microciclo' }}</p>
 
       <p class="panel-empty" *ngIf="rows.length === 0">
         Todavía no hay series en este microciclo.
@@ -24,7 +29,7 @@
 
       <div class="vol-row" *ngFor="let row of rows; trackBy: trackByName">
         <span class="vol-name">{{ row.name | translateDb }}</span>
-        <span class="vol-track">
+        <span class="vol-track" title="Barra: series de este microciclo frente al rango de referencia (zona sombreada, {{ targetMin }}–{{ targetMax }}).">
           <span class="vol-range" [style.left.%]="rangeStart" [style.width.%]="rangeWidth"></span>
           <span
             class="vol-fill"
@@ -33,19 +38,24 @@
             [style.width.%]="fillWidth(row.count)"
           ></span>
         </span>
-        <span class="vol-count" [class.vol-count--low]="row.status === 'low'" [class.vol-count--high]="row.status === 'high'">{{
-          row.count
-        }}</span>
+        <span
+          class="vol-count"
+          [class.vol-count--low]="row.status === 'low'"
+          [class.vol-count--high]="row.status === 'high'"
+          title="Series totales prescritas en este microciclo para este grupo muscular"
+        >{{ row.count }}</span>
         <span
           class="vol-delta"
           *ngIf="delta(row) !== null"
           [class.vol-delta--up]="delta(row)! > 0"
           [class.vol-delta--down]="delta(row)! < 0"
+          title="Diferencia de series frente al microciclo anterior"
         >{{ delta(row) === 0 ? '·' : (delta(row)! > 0 ? '▲' : '▼') }} {{ delta(row)! > 0 ? '+' : '' }}{{ delta(row) }}</span>
       </div>
 
       <p class="panel-hint" *ngIf="rows.length">
-        Series por grupo muscular principal, rango de referencia {{ targetMin }}–{{ targetMax }}/semana.
+        Series por grupo muscular principal (solo primario, sin secundarios), rango de referencia {{ targetMin }}–{{ targetMax }}/semana.
+        {{ previousSplit ? 'La flecha compara con el microciclo anterior.' : '' }}
       </p>
     </ng-container>
   </div>

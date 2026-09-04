@@ -95,8 +95,10 @@
 .training-calendar__cell {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
   aspect-ratio: 1;
   border: 1px solid transparent;
   border-radius: var(--tf-radius-sm);
@@ -106,6 +108,21 @@
   padding: 0;
   cursor: pointer;
   transition: border-color var(--tf-duration-fast) var(--tf-ease-out), transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Relleno de cumplimiento (mismo mecanismo que <app-nutrition-calendar>#
+  // cellFillOpacity) como capa PROPIA en vez de background directo: así
+  // convive con el fondo previsto (naranja/gris) de abajo en lugar de
+  // sustituirlo — un día previsto Y completado enseña las dos señales a la
+  // vez, que es justo el caso que más le importa mirar al entrenador.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: rgba(var(--tf-success-rgb), var(--fill-opacity, 0));
+    pointer-events: none;
+  }
 
   &:not(.is-blank):hover {
     border-color: var(--tf-border-strong);
@@ -156,16 +173,27 @@
 }
 
 .training-calendar__day-number {
+  position: relative;
+  z-index: 1;
   font-variant-numeric: tabular-nums;
+  font-size: 0.7rem;
+  line-height: 1;
 }
 
-.training-calendar__session-dot {
-  position: absolute;
-  bottom: 3px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(var(--tf-success-rgb), 1);
+// Iniciales del workout (previsto y/o hecho) — lo único que se lee con
+// garantías en una celda de ~30px. Ver monogram() en el componente.
+.training-calendar__monogram {
+  position: relative;
+  z-index: 1;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--tf-accent-text);
+
+  &.is-done {
+    color: var(--tf-success);
+  }
 }
 
 .training-calendar__legend {
@@ -199,8 +227,10 @@
   }
 
   &--session {
-    background: rgba(var(--tf-success-rgb), 1);
-    border-radius: 50%;
+    // Tono representativo del relleno graduado (mismo rango 0.14-0.55 que
+    // fillOpacity), no un punto sólido: la leyenda debe parecerse a lo que
+    // de verdad se ve en la celda.
+    background: rgba(var(--tf-success-rgb), 0.4);
   }
 
   &--range {

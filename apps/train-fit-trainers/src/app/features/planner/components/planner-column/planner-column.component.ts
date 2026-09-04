@@ -1,4 +1,15 @@
-import { Component, DestroyRef, EventEmitter, Input, Output, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DestroyRef,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
@@ -14,6 +25,11 @@ import { STATES } from 'src/app/shared/constants/states';
 import { TemplatePickerModalComponent } from '../template-picker-modal/template-picker-modal.component';
 import { PlannerRowSyncService } from '../../services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from '../../services/planner-exercise-copy.service';
+// Movidas a utils/planner-metrics.ts (2026-09): el modal de comparación
+// necesita EXACTAMENTE estos mismos números, y dos copias de las fórmulas se
+// desincronizarían dejando dos cifras distintas para lo mismo en la misma
+// pantalla.
+import { averageRir, formatSignedDelta, sumSets } from '../../utils/planner-metrics';
 
 // Planificador visual (Fase C) — una columna del tablero (una semana/Split).
 // Cabecera seleccionable (activa los botones de la toolbar superior del
@@ -25,10 +41,19 @@ import { PlannerExerciseCopyService } from '../../services/planner-exercise-copy
   templateUrl: './planner-column.component.html',
   styleUrls: ['./planner-column.component.scss'],
 })
-export class PlannerColumnComponent {
+export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('columnBody') private bodyRef?: ElementRef<HTMLElement>;
+
   @Input() split: Split;
   @Input() table: Table;
   @Input() selected = false;
+  // Rediseño (2026-09) — posición real de esta columna en table.splits,
+  // pasada por el padre (*ngFor; let i = index). Sustituye a split.name
+  // como etiqueta ("Microciclo N") y al findIndex por _id que usaba
+  // previousSplit: los microciclos ya no se pueden renombrar (deben seguir
+  // el mismo orden numérico que la app de cliente, ver mesocycle.page.html),
+  // así que la posición es la única fuente de verdad para el nombre.
+  @Input() columnIndex = 0;
   // Tarea (2026-08) — atenuada mientras se arrastra un entrenamiento en OTRA
   // columna (ver planner.page.ts#draggingFromSplitId): deja claro que solo
   // se puede reordenar dentro del mismo microciclo.
@@ -42,7 +67,6 @@ export class PlannerColumnComponent {
   public readonly STATES = STATES;
 
   @Output() columnSelected = new EventEmitter<void>();
-  @Output() columnRenamed = new EventEmitter<void>();
   @Output() cardDragStarted = new EventEmitter<void>();
   @Output() cardDragEnded = new EventEmitter<void>();
   // Tarea (2026-08) — "Añadir desde plantilla" tarda varias llamadas
@@ -56,8 +80,7 @@ export class PlannerColumnComponent {
   // que da el tablero: no hay un concepto de "sesión seleccionada".
   @Output() workoutFocused = new EventEmitter<Workout>();
   // Movimiento 6 Coach Pro — el objetivo y el tipo del bloque se editan en la
-  // página, no aquí: la columna solo dice que se han pedido, igual que hace
-  // con el renombrado.
+  // página, no aquí: la columna solo dice que se han pedido.
   @Output() purposeRequested = new EventEmitter<void>();
   @Output() objectiveRequested = new EventEmitter<void>();
 
@@ -84,6 +107,29 @@ export class PlannerColumnComponent {
     return (this.split.workouts || []).reduce((sum, w) => sum + (w.exercises?.length || 0), 0);
   }
 
+  // --- Microciclo completado (2026-09) ---
+  //
+  // "Completado" = todas sus filas están resueltas: entrenadas (workout.date,
+  // el sello que pone el cliente al terminar) o saltadas explícitamente
+  // (workout.rest), más los descansos pautados por el entrenador
+  // (isPlannedRestDay), que nunca hubo que entrenar. Mismo criterio de
+  // "hecho" que usa el resto de la app: se mira `date`, no si hay series con
+  // doned — duplicar un microciclo arrastra los valores del origen y solo
+  // limpia `doned`, así que contar series haría parecer entrenado un
+  // microciclo recién copiado.
+  //
+  // Un microciclo vacío NO cuenta como completado: cero filas resueltas de
+  // cero no es "terminado", es "sin empezar a montar".
+  public get isCompleted(): boolean {
+    const workouts = this.split?.workouts || [];
+    if (!workouts.length) return false;
+    return workouts.every((w) => !!w.date || !!w.rest || !!w.isPlannedRestDay);
+  }
+
+  public isWorkoutCompleted(workout: Workout): boolean {
+    return !!workout?.date;
+  }
+
   // --- Fase D (planner-audit) — comparación contra el microciclo anterior ---
   //
   // Solo se calcula/pinta cuando la columna está SELECTED: veinte columnas
@@ -98,25 +144,16 @@ export class PlannerColumnComponent {
   // informa la magnitud y el sentido.
 
   public get previousSplit(): Split | null {
-    if (!this.table || !this.split) return null;
-    const index = this.table.splits.findIndex((s) => s._id === this.split._id);
-    return index > 0 ? this.table.splits[index - 1] : null;
+    if (!this.table) return null;
+    return this.columnIndex > 0 ? this.table.splits[this.columnIndex - 1] : null;
   }
 
   public get totalSets(): number {
-    return this.sumSets(this.split);
-  }
-
-  public get tonnageKg(): number {
-    return this.sumTonnage(this.split);
-  }
-
-  public get tonnageLabel(): string {
-    return this.formatTonnage(this.tonnageKg);
+    return sumSets(this.split);
   }
 
   public get avgRir(): number | null {
-    return this.averageRir(this.split);
+    return averageRir(this.split);
   }
 
   public get avgRirLabel(): string {
@@ -127,105 +164,19 @@ export class PlannerColumnComponent {
 
   public get setsDeltaText(): string | null {
     if (!this.previousSplit) return null;
-    return this.formatSignedDelta(this.totalSets - this.sumSets(this.previousSplit), (n) =>
+    return formatSignedDelta(this.totalSets - sumSets(this.previousSplit), (n) =>
       `${Math.round(n)}`
-    );
-  }
-
-  public get tonnageDeltaText(): string | null {
-    if (!this.previousSplit) return null;
-    return this.formatSignedDelta(
-      this.tonnageKg - this.sumTonnage(this.previousSplit),
-      (n) => `${Math.round(n)} kg`
     );
   }
 
   public get rirDeltaText(): string | null {
     if (!this.previousSplit) return null;
     const current = this.avgRir;
-    const previous = this.averageRir(this.previousSplit);
+    const previous = averageRir(this.previousSplit);
     if (current === null || previous === null) return null;
-    return this.formatSignedDelta(current - previous, (n) =>
+    return formatSignedDelta(current - previous, (n) =>
       new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(n)
     );
-  }
-
-  private sumSets(split: Split | null): number {
-    if (!split) return 0;
-    return (split.workouts || []).reduce(
-      (sum, w) => sum + (w.exercises || []).reduce((s, e) => s + (e.sets?.length || 0), 0),
-      0
-    );
-  }
-
-  // Tonelaje = peso × reps de cada serie, sumado. Usa el PUNTO MEDIO del
-  // rango de reps esperado (p. ej. "8-10" → 9): es una previsión de carga
-  // total si se ejecuta la pauta, no una medida de lo ya realizado (eso ya
-  // lo da StatisticsPage sobre sets doned=true). Cardio/isométrico quedan
-  // fuera: no tienen peso × reps, esa cifra no significa nada para ellos.
-  private sumTonnage(split: Split | null): number {
-    if (!split) return 0;
-    let total = 0;
-    for (const workout of split.workouts || []) {
-      for (const exercise of workout.exercises || []) {
-        if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) continue;
-        for (const set of exercise.sets || []) {
-          const reps = this.midpoint(set.expectedReps);
-          if (!set.weight || !reps) continue;
-          total += set.weight * reps;
-        }
-      }
-    }
-    return total;
-  }
-
-  private averageRir(split: Split | null): number | null {
-    if (!split) return null;
-    let sum = 0;
-    let count = 0;
-    for (const workout of split.workouts || []) {
-      for (const exercise of workout.exercises || []) {
-        for (const set of exercise.sets || []) {
-          const rir = this.midpoint(set.expectedRir);
-          // -1 codifica "al fallo" (ver config-exercise.page.ts) — no es un
-          // RIR numérico real; contarlo como "0" sesgaría la media hacia más
-          // intensidad de la que refleja el dato.
-          if (rir === null || rir === -1) continue;
-          sum += rir;
-          count++;
-        }
-      }
-    }
-    return count > 0 ? sum / count : null;
-  }
-
-  private midpoint(range: number[] | undefined): number | null {
-    if (!range || range.length === 0) return null;
-    const a = range[0];
-    const b = range[1];
-    const hasA = a !== null && a !== undefined && !isNaN(a);
-    const hasB = b !== null && b !== undefined && !isNaN(b);
-    if (hasA && hasB) return (a + b) / 2;
-    if (hasA) return a;
-    if (hasB) return b;
-    return null;
-  }
-
-  private formatTonnage(kg: number): string {
-    if (kg >= 1000) {
-      return `${new Intl.NumberFormat('es-ES', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      }).format(kg / 1000)} t`;
-    }
-    return `${Math.round(kg)} kg`;
-  }
-
-  private formatSignedDelta(value: number, formatMagnitude: (n: number) => string): string {
-    if (Math.abs(value) < 0.05) return '· 0';
-    const arrow = value > 0 ? '▲' : '▼';
-    const sign = value > 0 ? '+' : '−';
-    return `${arrow} ${sign}${formatMagnitude(Math.abs(value))}`;
   }
 
   public trackByWorkoutId(_index: number, workout: Workout): string {
@@ -250,14 +201,60 @@ export class PlannerColumnComponent {
   // igual que openWorkoutIndex en mesocycle.page.ts.
   public collapsedCardIds = new Set<string>();
 
-  // Tarea 4 (2026-08) — comparar el mismo día entre microciclos: si esta
-  // FILA (índice, no workout._id — distinto en cada split) está marcada como
-  // sincronizada (checkbox propio, ver toggleRowSync), el estado abierto/
-  // cerrado sale del servicio compartido (mismo para todas las columnas) en
+  // Tarea 4 (2026-08, interruptor global 2026-09) — comparar el mismo día
+  // entre microciclos: con "Modo comparación" activo (ver PlannerRowSyncService
+  // #compareAllMode, interruptor único en la toolbar del padre), el estado
+  // abierto/cerrado de esta FILA (índice, no workout._id — distinto en cada
+  // split) sale del servicio compartido (mismo para todas las columnas) en
   // vez del Set local de esta columna.
   public isCardOpen(workoutId: string, index: number): boolean {
-    if (this.rowSync.isSynced(index)) return this.rowSync.isOpen(index);
+    if (this.rowSync.compareAllMode) return this.rowSync.isOpen(index);
     return !this.collapsedCardIds.has(workoutId);
+  }
+
+  // Bug real (2026-09) — el panel de carga decía "elige una sesión del
+  // tablero" para siempre. La sesión enfocada solo se emitía desde el
+  // ionChange del acordeón, pero las cards NACEN abiertas (collapsedCardIds
+  // vacío) e ionChange de Ionic solo se emite por interacción del usuario
+  // (asignar [value] por binding emite ionValueChange, no ionChange): al
+  // entrar al Planner no se disparaba ninguno, así que el panel se quedaba
+  // vacío con todas las sesiones abiertas delante, y solo despertaba si el
+  // entrenador cerraba y volvía a abrir una card.
+  //
+  // Tocar la card ES el gesto honesto de "estoy mirando esta sesión". No
+  // hace stopPropagation ni preventDefault: solo emite, así que no interfiere
+  // con arrastrar, copiar ejercicios ni editar series dentro.
+  public focusWorkout(workout: Workout): void {
+    this.workoutFocused.emit(workout);
+  }
+
+  // --- Scroll sincronizado con "Alinear filas" (2026-09) ---
+  //
+  // Con el modo activo, desplazar esta columna desplaza las demás a la misma
+  // altura (ver PlannerRowSyncService). Sin esto, "alinear filas" solo
+  // igualaba abierto/cerrado: el entrenador seguía teniendo que buscar el
+  // día 4 columna por columna, que era justo el trabajo que quería evitar.
+  // Identidad estable de esta columna dentro del servicio: el _id del split,
+  // que es lo que ya usa el trackBy del padre (una instancia por split).
+  private get scrollId(): string {
+    return this.split?._id || `col-${this.columnIndex}`;
+  }
+
+  public onBodyScroll(event: Event): void {
+    if (!this.rowSync.compareAllMode) return;
+    const target = event.target as HTMLElement | null;
+    if (target) this.rowSync.publishScroll(this.scrollId, target.scrollTop);
+  }
+
+  public ngAfterViewInit(): void {
+    this.rowSync.registerScroll(this.scrollId, (top) => {
+      const element = this.bodyRef?.nativeElement;
+      if (element && Math.abs(element.scrollTop - top) > 1) element.scrollTop = top;
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.rowSync.unregisterScroll(this.scrollId);
   }
 
   public onCardAccordionChange(
@@ -271,10 +268,10 @@ export class PlannerColumnComponent {
     // Movimiento 6 Coach Pro — abrir una card es lo más parecido a "estoy
     // mirando esta sesión", y es lo que el panel de carga necesita saber. Se
     // emite antes del reparto de estado abierto/cerrado porque no depende de
-    // él: la sesión enfocada es la misma esté sincronizada la fila o no.
+    // él: la sesión enfocada es la misma esté activo el modo comparación o no.
     if (isOpen && workout) this.workoutFocused.emit(workout);
 
-    if (this.rowSync.isSynced(index)) {
+    if (this.rowSync.compareAllMode) {
       this.rowSync.setOpen(index, isOpen);
       return;
     }
@@ -282,18 +279,8 @@ export class PlannerColumnComponent {
     else this.collapsedCardIds.add(workoutId);
   }
 
-  public toggleRowSync(event: Event, workoutId: string, index: number): void {
-    event.stopPropagation();
-    this.rowSync.toggleSynced(index, this.isCardOpen(workoutId, index));
-  }
-
   public selectColumn(): void {
     this.columnSelected.emit();
-  }
-
-  public requestRename(event: Event): void {
-    event.stopPropagation();
-    this.columnRenamed.emit();
   }
 
   // --- Movimiento 6 Coach Pro: qué es este bloque y qué busca ---
@@ -315,6 +302,15 @@ export class PlannerColumnComponent {
     const purpose = this.split?.purpose;
     if (!purpose || purpose === 'regular') return '';
     return SPLIT_PURPOSES.find((option) => option.key === purpose)?.label || '';
+  }
+
+  // Punto 3 (mejoras Planner, 2026-09) — confusión real reportada: "no
+  // entiendo el Tipo, se sale de mi información en la app principal". Tiene
+  // sentido que no aparezca ahí — es una nota exclusiva del entrenador, el
+  // cliente nunca la ve. El tooltip lo deja explícito al pasar el cursor,
+  // sin esperar a abrir el diálogo de edición para descubrirlo.
+  public get purposeTooltip(): string {
+    return 'Nota solo para ti: no la ve el cliente ni aparece en su app. Sirve para leer bien los números del bloque (p. ej. en una descarga, que el volumen baje es lo previsto).';
   }
 
   private persistTable(): void {

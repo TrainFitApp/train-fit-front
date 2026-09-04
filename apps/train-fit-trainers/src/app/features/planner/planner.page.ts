@@ -10,8 +10,17 @@ import { Workout } from 'src/app/core/models/workout';
 import { TableService } from 'src/app/core/services/table/table.service';
 import { SplitService } from 'src/app/core/services/split/split.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
 import { PlannerRowSyncService } from './services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from './services/planner-exercise-copy.service';
+import { TrainerInvitesApiService } from '../invites/services/trainer-invites-api.service';
+import {
+  ClientIntake,
+  EquipmentTag,
+  EQUIPMENT_TAG_LABELS,
+  TrainingLocation,
+  TRAINING_LOCATION_LABELS,
+} from '../invites/models/trainer-invite.model';
 
 // Planificador visual de periodización (Fase C) — sustituye a mesocycle.page.ts
 // como constructor de rutinas de train-fit-trainers. Tablero Kanban: columnas
@@ -63,12 +72,25 @@ export class PlannerPage {
   // vez de ir apareciendo microciclo a microciclo según llega cada respuesta.
   public applyingTemplates = false;
 
+  // Punto 1 (mejoras Planner, 2026-09) — "Equipamiento utilizado" del
+  // cliente, consultable arriba en la barra de herramientas (ver
+  // planner.page.html) sin salir a la ficha del cliente. Mismo endpoint que
+  // ya usa client-detail.page.ts#loadClientIntake — null mientras carga, en
+  // templateMode (biblioteca de plantillas propia del profesional, sin
+  // cliente real) o si el cliente no ha respondido cuestionario aún.
+  public clientIntake: ClientIntake | null = null;
+
   private readonly tableService = inject(TableService);
   private readonly splitService = inject(SplitService);
+  private readonly trainerInvitesApi = inject(TrainerInvitesApiService);
   // "Copiar ejercicios" — banner "Cancelar" (2026-08, ver planner.page.html)
   // — misma instancia que inyectan las columnas, expuesta aquí para el botón
   // de cancelar a nivel de tablero completo.
   public readonly exerciseCopy = inject(PlannerExerciseCopyService);
+  // Punto 4 (mejoras Planner, 2026-09) — misma instancia que inyectan las
+  // columnas (ver planner-column.component.ts), expuesta aquí para el
+  // interruptor global "Modo comparación" de la barra de herramientas.
+  public readonly rowSync = inject(PlannerRowSyncService);
   // TASK-017 (MASTER_BACKLOG.md) — ninguno de los subscribe() de abajo
   // cancelaba su suscripción al destruirse el componente: una respuesta HTTP
   // tardía de una acción sobre el cliente A podía llegar y escribir sobre
@@ -88,6 +110,38 @@ export class PlannerPage {
       const table = this.tableService.currentTable();
       if (table) this.table = table;
     });
+
+    this.loadClientIntake();
+  }
+
+  // Punto 1 — mismo criterio que close(): clientId sale de la ruta, no de
+  // this.table (puede tardar en poblarse vía el resolver). En templateMode
+  // no hay cliente real (table.userId es el propio profesional), así que no
+  // tiene sentido pedir un cuestionario que no existe.
+  private loadClientIntake(): void {
+    if (this.route.snapshot.data['templateMode']) return;
+    const clientId = this.route.snapshot.paramMap.get('clientId');
+    if (!clientId) return;
+
+    this.trainerInvitesApi
+      .getClientIntake(clientId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (intake) => (this.clientIntake = intake),
+        error: () => (this.clientIntake = null),
+      });
+  }
+
+  public trainingLocationLabel(location: TrainingLocation | null): string {
+    return location ? TRAINING_LOCATION_LABELS[location] || location : '';
+  }
+
+  public equipmentTagLabel(tag: EquipmentTag): string {
+    return EQUIPMENT_TAG_LABELS[tag] || tag;
+  }
+
+  public get hasEquipmentInfo(): boolean {
+    return !!(this.clientIntake?.trainingLocation || this.clientIntake?.equipmentTags?.length);
   }
 
   // TASK-027 (MASTER_BACKLOG.md) — antes usaba location.back(): si el
@@ -102,6 +156,13 @@ export class PlannerPage {
   // ver shell-routing.module.ts data.templateMode) — table.userId en ese
   // caso ES el propio profesional, no un clientId real, así que no sirve
   // como destino de "Volver".
+  // Bug real (2026-09): "Volver" siempre aterrizaba en Resumen, aunque se
+  // hubiera entrado desde Entrenamiento — ClientDetailPage#
+  // initTabsAndLoadSections abre en 'summary' salvo que la URL traiga
+  // ?tab=, y esta navegación nunca lo mandaba. openPlanner (client-detail.
+  // page.ts) ahora adjunta ?returnTab=<pestaña de origen> al entrar aquí;
+  // esto solo lo reenvía como ?tab= al volver, mismo mecanismo de ?tab= que
+  // ya usan los enlaces de notificación — sin inventar uno nuevo.
   public close(): void {
     if (this.route.snapshot.data['templateMode']) {
       void this.router.navigate(['/tabs', 'routine-templates']);
@@ -111,12 +172,18 @@ export class PlannerPage {
     // como fallback por si se cierra antes de que el resolver termine de
     // poblar this.table.
     const clientId = this.table?.userId || this.route.snapshot.paramMap.get('clientId');
-    void this.router.navigate(clientId ? ['/tabs', 'clients', clientId] : ['/tabs', 'clients']);
+    const returnTab = this.route.snapshot.queryParamMap.get('returnTab');
+    void this.router.navigate(
+      clientId ? ['/tabs', 'clients', clientId] : ['/tabs', 'clients'],
+      returnTab ? { queryParams: { tab: returnTab } } : undefined
+    );
   }
 
-  // El título del header no tenía forma de editarse — mismo patrón que
-  // renameSplit() más abajo, pero sobre el propio Table (tableService.updateTableName,
-  // ya existente en shared-core, nunca consumido desde esta app).
+  // El título del header no tenía forma de editarse — sobre el propio Table
+  // (tableService.updateTableName, ya existente en shared-core, nunca
+  // consumido desde esta app). A diferencia de los microciclos (ver punto 2,
+  // splitLabel), el nombre de la RUTINA sí sigue siendo editable: es el
+  // propio Table.name, no un Split — nada exige que siga un orden numérico.
   public async renameTable(): Promise<void> {
     if (!this.table) return;
 
@@ -161,6 +228,16 @@ export class PlannerPage {
 
   public selectSplit(splitId: string): void {
     this.selectedSplitId = this.selectedSplitId === splitId ? null : splitId;
+
+    // Respaldo del foco de sesión (2026-09): si al seleccionar un microciclo
+    // no hay ninguna sesión enfocada, o la que había es de OTRO microciclo,
+    // se enfoca la primera de este. Sin esto la pestaña "Sesión" del panel
+    // se quedaba vacía hasta que el entrenador tocaba una card, y no había
+    // nada que le dijera que ese era el gesto que faltaba.
+    const split = this.selectedSplit;
+    if (!split?.workouts?.length) return;
+    const focusBelongsHere = split.workouts.some((w) => w._id === this.focusedWorkout?._id);
+    if (!focusBelongsHere) this.focusedWorkout = split.workouts[0];
   }
 
   // Panel de volumen (Fase B, planner-audit) — el microciclo inmediatamente
@@ -192,41 +269,16 @@ export class PlannerPage {
   public async addWeek(): Promise<void> {
     if (!this.table || this.busy) return;
 
+    // Punto 2 (mejoras Planner, 2026-09) — los microciclos ya no se pueden
+    // renombrar (deben seguir el mismo orden numérico que la app de cliente,
+    // ver mesocycle.page.html), así que pedir un nombre para el primero ya
+    // no tiene sentido: se crea directamente como "Microciclo 1".
     if (this.table.splits.length === 0) {
-      await this.promptBlankWeek();
+      this.createBlankWeek(`${this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX')} 1`);
       return;
     }
 
     await this.promptDuplicateLastWeek();
-  }
-
-  private async promptBlankWeek(): Promise<void> {
-    if (!this.table) return;
-
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant('PLANNER.ADD_WEEK'),
-      inputs: [
-        {
-          name: 'name',
-          type: 'text',
-          placeholder: this.translate.instant('PLANNER.WEEK_NAME_PLACEHOLDER'),
-          value: `${this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX')} 1`,
-        },
-      ],
-      buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          handler: (data: any) => {
-            const name = (data?.name || '').trim();
-            this.createBlankWeek(name);
-            return true;
-          },
-        },
-      ],
-    };
-
-    await this.ionicUtilService.showAlert(alertOptions);
   }
 
   private createBlankWeek(name: string): void {
@@ -319,13 +371,54 @@ export class PlannerPage {
     });
   }
 
+  // Punto 2 — los microciclos ya no tienen nombre editable: la etiqueta sale
+  // de la posición en table.splits, igual que en la app de cliente
+  // (mesocycle.page.html: originalIndex + 1).
+  public splitLabel(split: Split | null): string {
+    if (!this.table || !split) return '';
+    const index = this.table.splits.findIndex((s) => s._id === split._id);
+    return index >= 0
+      ? `${this.translate.instant('PLANNER.WEEK_DEFAULT_PREFIX')} ${index + 1}`
+      : '';
+  }
+
+  // --- Comparar dos microciclos ---
+
+  public get canCompare(): boolean {
+    return (this.table?.splits?.length || 0) >= 2;
+  }
+
+  // La columna seleccionada solo PRESIEMBRA la comparación (B = la
+  // seleccionada, A = la anterior); la elección real vive dentro del modal.
+  // Deliberadamente NO se toca selectedSplitId: de él cuelgan Duplicar,
+  // Eliminar, el resaltado de columna y el panel lateral, y convertirlo en
+  // "selección doble" los rompería a los cuatro.
+  public async openCompareSplits(): Promise<void> {
+    if (!this.table || !this.canCompare) return;
+
+    const selectedIndex = this.table.splits.findIndex((s) => s._id === this.selectedSplitId);
+    const indexB = selectedIndex > 0 ? selectedIndex : this.table.splits.length - 1;
+    const indexA = indexB > 0 ? indexB - 1 : 0;
+
+    await this.ionicUtilService.showModal({
+      component: CompareSplitsModalComponent,
+      componentProps: {
+        splits: this.table.splits,
+        indexA: indexA === indexB ? 0 : indexA,
+        indexB: indexA === indexB ? 1 : indexB,
+      },
+      // Una tabla emparejada no cabe en los 420px de tf-panel-modal.
+      cssClass: 'tf-compare-modal',
+    });
+  }
+
   public async confirmDeleteSelectedWeek(): Promise<void> {
     if (!this.table || !this.selectedSplit) return;
 
     await this.ionicUtilService.showAlert({
       header: this.translate.instant('PLANNER.DELETE_WEEK'),
       message: this.translate.instant('PLANNER.DELETE_WEEK_CONFIRM_MSG', {
-        name: this.selectedSplit.name || '',
+        name: this.splitLabel(this.selectedSplit),
       }),
       buttons: [
         { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
@@ -416,45 +509,6 @@ export class PlannerPage {
     this.applyingTemplates = false;
   }
 
-  // --- Renombrar semana (cabecera de columna) ---
-
-  public async renameSplit(split: Split): Promise<void> {
-    if (!this.table) return;
-
-    await this.ionicUtilService.showAlert({
-      header: this.translate.instant('PLANNER.RENAME_WEEK'),
-      inputs: [
-        {
-          name: 'name',
-          type: 'text',
-          value: split.name || '',
-          attributes: { maxlength: 100 },
-        },
-      ],
-      buttons: [
-        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          handler: (data: any) => {
-            const name = (data?.name || '').trim();
-            if (!name) return false;
-            split.name = name;
-            this.persistTable();
-            this.splitService.updateSplit(split._id, { name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-              error: () => {
-                this.ionicUtilService.showToast({
-                  message: this.translate.instant('PLANNER.RENAME_WEEK_ERROR'),
-                  duration: 2500,
-                });
-              },
-            });
-            return true;
-          },
-        },
-      ],
-    });
-  }
-
   /**
    * Movimiento 6 Coach Pro — objetivo y tipo del microciclo.
    *
@@ -474,7 +528,8 @@ export class PlannerPage {
 
     await this.ionicUtilService.showAlert({
       header: 'Tipo de microciclo',
-      message: 'Sirve para leer bien sus números: en una descarga, que el volumen baje es lo previsto.',
+      message:
+        'Nota solo para ti: no la ve el cliente ni aparece en su app. Sirve para leer bien los números del bloque — en una descarga, que el volumen baje es lo previsto.',
       inputs: SPLIT_PURPOSES.map((option) => ({
         type: 'radio' as const,
         label: option.label,
@@ -527,7 +582,7 @@ export class PlannerPage {
   }
 
   // El objeto local se actualiza ANTES de la respuesta y se revierte si
-  // falla: mismo criterio que renameSplit, que es el patrón del tablero.
+  // falla: mismo criterio optimista que usa el resto del tablero.
   private saveSplitMeta(split: Split, patch: Partial<Split>): void {
     const previous = { objective: split.objective, purpose: split.purpose };
     Object.assign(split, patch);

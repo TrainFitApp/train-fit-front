@@ -305,10 +305,12 @@ export class ClientDetailApiService {
   public getTrainingBlocks(
     clientId: string,
     from: string,
-    to: string
+    to: string,
+    exercise?: string
   ): Observable<ClientTrainingProgress> {
+    const exerciseParam = exercise ? `&exercise=${encodeURIComponent(exercise)}` : '';
     return this.http.get<ClientTrainingProgress>(
-      `${this.base(clientId)}/training-progress?from=${from}&to=${to}`
+      `${this.base(clientId)}/training-progress?from=${from}&to=${to}${exerciseParam}`
     );
   }
 

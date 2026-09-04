@@ -33,25 +33,28 @@
       *ngFor="let cell of cells; trackBy: trackByCell"
       [class.is-blank]="!cell.date"
       [class.is-today]="!!cell.date && cell.date === todayIso"
-      [class.has-session]="cell.hasSession"
+      [class.has-session]="!!cell.completed"
       [class.is-projected-training]="cell.projected && !cell.projected.isPlannedRestDay"
       [class.is-projected-rest]="cell.projected?.isPlannedRestDay"
       [class.is-in-range]="isInRange(cell.date)"
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
       [disabled]="!cell.date"
-      [title]="cell.projected?.name || null"
+      [style.--fill-opacity]="fillOpacity(cell)"
+      [title]="cellTitle(cell)"
       (click)="selectDay(cell)"
       (mouseenter)="onCellHover(cell)"
     >
       <span class="training-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
-      <span class="training-calendar__session-dot" *ngIf="cell.hasSession"></span>
+      <span class="training-calendar__monogram" *ngIf="cell.completed || cell.projected" [class.is-done]="cell.completed">{{
+        monogram(cell)
+      }}</span>
     </button>
   </div>
 
   <div class="training-calendar__legend">
     <span class="legend-item"><span class="legend-swatch legend-swatch--projected-training"></span>Entreno previsto</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--projected-rest"></span>Descanso previsto</span>
-    <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>Sesión completada</span>
+    <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>Completado (más oscuro = más cumplimiento)</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>Dentro del rango</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--endpoint"></span>Inicio y fin</span>
   </div>

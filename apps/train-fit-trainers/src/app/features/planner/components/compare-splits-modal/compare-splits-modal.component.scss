@@ -1,0 +1,429 @@
+.compare-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-5);
+}
+
+// Los dos selectores y el botón de intercambio, en una fila que se apila
+// por debajo de 560px (el modal cae a pantalla completa ahí).
+.compare-picker {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tf-space-2);
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border);
+}
+
+.picker-select {
+  flex: 1;
+  min-width: 0;
+  --background: var(--tf-surface-2);
+  --border-radius: var(--tf-radius-md);
+  --padding-start: var(--tf-space-3);
+  --padding-end: var(--tf-space-2);
+  min-height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  font-size: var(--tf-font-size-sm);
+}
+
+.swap-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tf-touch-min);
+  height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.compare-context {
+  margin-top: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+
+  p {
+    margin: 0 0 4px;
+    font-size: var(--tf-font-size-xs);
+    line-height: 1.45;
+    color: var(--tf-text-secondary);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.compare-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: var(--tf-space-3) 0 0;
+  padding: 8px 10px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+}
+
+// Cuatro cifras que responden "¿progresó algo?" sin leer la lista entera.
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--tf-space-2);
+
+  @media (max-width: 560px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.progress-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--tf-space-3) var(--tf-space-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-1);
+
+  // "Misma pauta" es lo único que se resalta: es el descuido que el
+  // entrenador no ve por sí solo. En 0 se apaga — no hay nada que avisar.
+  &--warn {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+  }
+
+  &--quiet {
+    border-color: var(--tf-border);
+    background: var(--tf-surface-1);
+  }
+}
+
+.progress-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--tf-text-muted);
+}
+
+.compare-deload {
+  margin-top: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+
+  .section-question {
+    margin-top: 0;
+  }
+}
+
+.deload-line {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-question {
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.section-hint {
+  margin: var(--tf-space-3) 0 0;
+  padding-top: var(--tf-space-2);
+  border-top: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.5;
+  color: var(--tf-text-muted);
+}
+
+.section-empty {
+  margin: var(--tf-space-3) 0 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+// A → delta → B, con los números alineados en columna para poder barrerlos
+// de un vistazo.
+.headline-row {
+  display: grid;
+  grid-template-columns: 1fr 72px 96px 72px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.headline-label {
+  color: var(--tf-text-muted);
+}
+
+.headline-a,
+.headline-b {
+  text-align: right;
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// Sin verde/rojo: un delta no es bueno ni malo sin saber el propósito del
+// bloque (en una descarga, que baje es lo previsto). Misma regla que el
+// resto del Planner.
+.headline-delta {
+  text-align: center;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.compare-views {
+  margin-top: var(--tf-space-4);
+  --background: var(--tf-surface-2);
+
+  ion-segment-button {
+    --color: var(--tf-text-muted);
+    --color-checked: var(--tf-text);
+    --indicator-color: var(--tf-surface-4);
+    min-height: 34px;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+.only-changes {
+  display: block;
+  margin: var(--tf-space-3) 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  ion-checkbox {
+    --size: 18px;
+    --checkbox-background-checked: var(--tf-accent);
+  }
+}
+
+.workout-group {
+  margin-bottom: var(--tf-space-4);
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-1);
+}
+
+.workout-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-2);
+  margin-bottom: var(--tf-space-2);
+}
+
+.workout-name {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  color: var(--tf-text);
+}
+
+.workout-sets {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.workout-note {
+  margin: 0 0 var(--tf-space-2);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.exercise-row {
+  padding: var(--tf-space-2) 0;
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.exercise-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.exercise-name {
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.exercise-status {
+  padding: 1px 7px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  color: var(--tf-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+
+  // El único badge con color: repetir pauta sin querer es lo que el
+  // entrenador no detecta solo, y es la razón de que exista esta pantalla.
+  &--stagnant {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+  }
+}
+
+// A y B lado a lado en escritorio; el modal cae a pantalla completa por
+// debajo de 768px y ahí se apilan.
+.exercise-sides {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--tf-text-faint);
+  }
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+
+    ion-icon {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.side {
+  font-variant-numeric: tabular-nums;
+
+  &--b {
+    color: var(--tf-text);
+    font-weight: 600;
+  }
+}
+
+.exercise-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.change-chip {
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.muscle-row {
+  display: grid;
+  grid-template-columns: 1fr 48px 84px 48px;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--tf-border-subtle);
+  font-size: var(--tf-font-size-xs);
+}
+
+.muscle-name {
+  color: var(--tf-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muscle-head {
+  display: grid;
+  grid-template-columns: 1fr 48px 84px 48px;
+  gap: 6px;
+  padding-bottom: 4px;
+}
+
+.muscle-head-label {
+  text-align: right;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tf-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.muscle-a,
+.muscle-b {
+  text-align: right;
+  font-weight: 700;
+  color: var(--tf-text);
+  font-variant-numeric: tabular-nums;
+}
+
+// Frecuencia junto al conteo, no en columna propia: es contexto del número
+// de series, no un dato que se lea por su cuenta.
+.muscle-days {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tf-text-faint);
+}
+
+.muscle-delta {
+  text-align: center;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--flat {
+    color: var(--tf-text-faint);
+  }
+}

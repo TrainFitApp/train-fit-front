@@ -261,4 +261,14 @@
     border-right: 1px solid var(--tf-border-strong);
     pointer-events: auto;
   }
+
+  // Comparar microciclos (2026-09) — centrado y ancho, no panel lateral:
+  // enfrenta dos microciclos ejercicio a ejercicio y en 420px las dos
+  // columnas no caben. Por debajo de 768px cae al modal nativo a pantalla
+  // completa, como el resto.
+  .tf-compare-modal {
+    --width: min(1080px, 94vw);
+    --height: min(88vh, 900px);
+    --border-radius: var(--tf-radius-lg);
+  }
 }

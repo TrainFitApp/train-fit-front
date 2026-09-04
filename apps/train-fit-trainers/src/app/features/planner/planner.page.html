@@ -17,18 +17,60 @@
   </div>
 
   <div class="planner-toolbar">
-    <button type="button" class="toolbar-btn toolbar-btn--primary" [disabled]="busy" (click)="addWeek()" [attr.aria-label]="'PLANNER.ADD_WEEK' | translate">
-      <ion-icon name="add-outline"></ion-icon>
-      <span>{{ 'PLANNER.ADD_WEEK' | translate }}</span>
-    </button>
-    <button type="button" class="toolbar-btn" [disabled]="busy || !selectedSplit" (click)="duplicateSelectedWeek()" [attr.aria-label]="'PLANNER.DUPLICATE_WEEK' | translate">
-      <ion-icon name="duplicate-outline"></ion-icon>
-      <span>{{ 'PLANNER.DUPLICATE_WEEK' | translate }}</span>
-    </button>
-    <button type="button" class="toolbar-btn toolbar-btn--danger" [disabled]="!selectedSplit" (click)="confirmDeleteSelectedWeek()" [attr.aria-label]="'PLANNER.DELETE_WEEK' | translate">
-      <ion-icon name="trash-outline"></ion-icon>
-      <span>{{ 'PLANNER.DELETE_WEEK' | translate }}</span>
-    </button>
+    <div class="planner-toolbar-actions">
+      <button type="button" class="toolbar-btn toolbar-btn--primary" [disabled]="busy" (click)="addWeek()" [attr.aria-label]="'PLANNER.ADD_WEEK' | translate">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>{{ 'PLANNER.ADD_WEEK' | translate }}</span>
+      </button>
+      <button type="button" class="toolbar-btn" [disabled]="busy || !selectedSplit" (click)="duplicateSelectedWeek()" [attr.aria-label]="'PLANNER.DUPLICATE_WEEK' | translate">
+        <ion-icon name="duplicate-outline"></ion-icon>
+        <span>{{ 'PLANNER.DUPLICATE_WEEK' | translate }}</span>
+      </button>
+      <button type="button" class="toolbar-btn toolbar-btn--danger" [disabled]="!selectedSplit" (click)="confirmDeleteSelectedWeek()" [attr.aria-label]="'PLANNER.DELETE_WEEK' | translate">
+        <ion-icon name="trash-outline"></ion-icon>
+        <span>{{ 'PLANNER.DELETE_WEEK' | translate }}</span>
+      </button>
+      <!-- Punto 4 (mejoras Planner, 2026-09) — antes un checkbox por fila
+           repetido en cada card (veinte en un tablero de veinte columnas);
+           ahora un único interruptor global (ver PlannerRowSyncService). -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        [class.toolbar-btn--active]="rowSync.compareAllMode"
+        (click)="rowSync.toggleCompareAll()"
+        [attr.aria-label]="'PLANNER.SYNC_ROW' | translate"
+        [attr.aria-pressed]="rowSync.compareAllMode"
+      >
+        <ion-icon [name]="rowSync.compareAllMode ? 'eye' : 'eye-outline'"></ion-icon>
+        <span>{{ 'PLANNER.SYNC_ROW' | translate }}</span>
+      </button>
+      <!-- Comparar dos microciclos (2026-09) — diff de PAUTA A→B, ejercicio a
+           ejercicio: la única pregunta que no responde ninguna otra pantalla
+           del panel. -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        [disabled]="!canCompare"
+        (click)="openCompareSplits()"
+        [attr.aria-label]="'PLANNER.COMPARE_SPLITS' | translate"
+      >
+        <ion-icon name="git-compare-outline"></ion-icon>
+        <span>{{ 'PLANNER.COMPARE_SPLITS' | translate }}</span>
+      </button>
+    </div>
+
+    <!-- Punto 1 (mejoras Planner, 2026-09) — equipamiento del cliente a la
+         vista sin salir a su ficha, mismos datos que client-detail.page.html
+         (ClientIntake, TrainerInvitesApiService). -->
+    <div class="planner-toolbar-equipment" *ngIf="hasEquipmentInfo">
+      <ion-icon name="barbell-outline" aria-hidden="true"></ion-icon>
+      <span class="equipment-chip" *ngIf="clientIntake.trainingLocation">
+        {{ trainingLocationLabel(clientIntake.trainingLocation) }}
+      </span>
+      <span class="equipment-chip" *ngFor="let tag of clientIntake.equipmentTags">
+        {{ equipmentTagLabel(tag) }}
+      </span>
+    </div>
   </div>
 </ion-header>
 
@@ -45,17 +87,17 @@
     (cdkDropListDropped)="onColumnsDropped($event)"
   >
     <app-planner-column
-      *ngFor="let split of table?.splits; trackBy: trackBySplitId"
+      *ngFor="let split of table?.splits; let i = index; trackBy: trackBySplitId"
       cdkDrag
       cdkDragLockAxis="x"
       [cdkDragData]="split"
       class="planner-board-column"
       [split]="split"
       [table]="table"
+      [columnIndex]="i"
       [selected]="split._id === selectedSplitId"
       [dimmed]="draggingFromSplitId !== null && draggingFromSplitId !== split._id"
       (columnSelected)="selectSplit(split._id)"
-      (columnRenamed)="renameSplit(split)"
       (cardDragStarted)="onCardDragStarted(split._id)"
       (cardDragEnded)="onCardDragEnded()"
       (templatesApplyStarted)="onTemplatesApplyStarted()"
@@ -83,16 +125,17 @@
     </div>
   </div>
 
-    <!-- Rediseño del Planner (Fase B, planner-audit) — series por grupo
-         muscular del microciclo seleccionado, con delta contra el anterior.
-         Distinto del panel de abajo: cuenta series reales, no una
-         puntuación manual del entrenador. -->
-    <app-muscle-volume-panel [split]="selectedSplit" [previousSplit]="previousSplit"></app-muscle-volume-panel>
-
-    <!-- Movimiento 6 Coach Pro — cómo queda repartida la sesión abierta.
-         Es lo que da sentido a puntuar los ejercicios: sin esto, las
-         puntuaciones serían una tarea sin recompensa. -->
-    <app-session-load-panel [workout]="focusedWorkout"></app-session-load-panel>
+    <!-- 2026-09 — un solo panel con dos pestañas donde antes había dos
+         hermanos de 280px + 260px. "Semana" = series reales por grupo
+         muscular del microciclo seleccionado; "Sesión" = reparto de la
+         puntuación del entrenador en la sesión enfocada. Puestos uno al lado
+         del otro se leían como el mismo dato contado de dos formas. -->
+    <app-planner-insights-panel
+      [split]="selectedSplit"
+      [previousSplit]="previousSplit"
+      [splitLabel]="splitLabel(selectedSplit)"
+      [workout]="focusedWorkout"
+    ></app-planner-insights-panel>
   </div>
 
   <!-- "Copiar ejercicios" (2026-08) — visible en TODO el tablero mientras el

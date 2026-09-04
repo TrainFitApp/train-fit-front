@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
+  BlockExerciseProgress,
   BlockMuscleGroup,
   TrainingBlock,
   TrainingComparisonMetric,
@@ -31,6 +32,10 @@ const MUSCLE_GROUP_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c4
 export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   @Input() blocks: TrainingBlock[] = [];
   @Input() blockMuscleGroups: BlockMuscleGroup[] = [];
+  @Input() blockExercise: BlockExerciseProgress[] = [];
+  // Solo para el mensaje vacío ("elige un ejercicio" vs "sin datos en el
+  // rango") — la gráfica en sí ya recibe blockExercise ya filtrado.
+  @Input() selectedExercise: string | null = null;
   @Input() metric: TrainingComparisonMetric = 'volume';
   @Input() isLoading = false;
 
@@ -39,7 +44,7 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   private chart: Chart | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['blocks'] || changes['blockMuscleGroups'] || changes['metric']) {
+    if (changes['blocks'] || changes['blockMuscleGroups'] || changes['blockExercise'] || changes['metric']) {
       this.renderChart();
     }
   }
@@ -49,7 +54,9 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   }
 
   public get hasData(): boolean {
-    return this.metric === 'muscleGroups' ? this.blockMuscleGroups.length > 0 : this.blocks.length > 0;
+    if (this.metric === 'muscleGroups') return this.blockMuscleGroups.length > 0;
+    if (this.metric === 'exercise') return this.blockExercise.length > 0;
+    return this.blocks.length > 0;
   }
 
   private renderChart(): void {
@@ -57,12 +64,62 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
     if (!ctx) return;
 
     const config =
-      this.metric === 'muscleGroups' ? this.buildMuscleGroupConfig() : this.buildSimpleMetricConfig();
+      this.metric === 'muscleGroups'
+        ? this.buildMuscleGroupConfig()
+        : this.metric === 'exercise'
+        ? this.buildExerciseConfig()
+        : this.buildSimpleMetricConfig();
 
     if (this.chart) {
       this.chart.destroy();
     }
     this.chart = new Chart(ctx, config);
+  }
+
+  // Comparar por ejercicio (2026-09) — peso máximo por microciclo como línea
+  // principal (mismo criterio que PersonalRecord: es como un entrenador lee
+  // un récord). Volumen y series quedan en el tooltip como contexto, no como
+  // líneas propias — mismo motivo que el resto de métricas son un selector,
+  // no varias activas a la vez: no comparten escala con los kg.
+  private buildExerciseConfig(): ChartConfiguration<'line'> {
+    const labels = this.blockExercise.map((b) => this.blockLabel(b));
+    const data = this.blockExercise.map((b) => b.maxWeight);
+    const base = this.baseOptions();
+
+    return {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Peso máximo (kg)',
+            data,
+            borderColor: '#fe9000',
+            backgroundColor: 'rgba(254, 144, 0, 0.12)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#fe9000',
+          },
+        ],
+      },
+      options: {
+        ...base,
+        plugins: {
+          ...base.plugins,
+          tooltip: {
+            ...base.plugins?.tooltip,
+            callbacks: {
+              afterLabel: (context) => {
+                const block = this.blockExercise[context.dataIndex];
+                return block ? [`Volumen: ${block.volume} kg`, `Series: ${block.sets}`] : [];
+              },
+            },
+          },
+        },
+      },
+    };
   }
 
   private blockLabel(block: { name: string; start: string; end: string }): string {

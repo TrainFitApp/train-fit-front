@@ -317,12 +317,16 @@ export class StatisticsPage implements OnInit, OnDestroy {
   // Navegación explícita en vez de navCtrl.back() (histórico del navegador):
   // si esta pantalla es la primera de la sesión (deep link, F5), "atrás" deja
   // al entrenador varado — mismo criterio que PlannerPage#close().
+  // Mismo fix que PlannerPage#close() (mismo criterio, ver comentario de
+  // arriba): reenvía ?returnTab= (adjuntado por
+  // ClientDetailPage#openStatistics) como ?tab= al volver, para no caer
+  // siempre en Resumen.
   public goBack() {
-    void this.router.navigate([
-      '/tabs',
-      'clients',
-      this.clientIdForHistory,
-    ]);
+    const returnTab = this.route.snapshot.queryParamMap.get('returnTab');
+    void this.router.navigate(
+      ['/tabs', 'clients', this.clientIdForHistory],
+      returnTab ? { queryParams: { tab: returnTab } } : undefined
+    );
   }
 
   // --- Data Pre-processing ---

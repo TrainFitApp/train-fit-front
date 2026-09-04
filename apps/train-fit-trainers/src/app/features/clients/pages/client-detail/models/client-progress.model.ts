@@ -195,14 +195,34 @@ export interface LoadEvolutionExercise {
 // métricas no comparten escala (sesiones/series son conteos, volumen son
 // kg, grupos musculares es un reparto) y no hay un "100% pautado" contra el
 // que normalizarlas todas en un único eje.
-export type TrainingComparisonMetric = 'sessions' | 'sets' | 'volume' | 'muscleGroups';
+// 'exercise' (2026-09) — "ejercicios por micros": el mismo ejercicio,
+// microciclo a microciclo (peso máximo, con volumen/series de contexto),
+// distinto de los 4 agregados de arriba que mezclan todos los ejercicios.
+export type TrainingComparisonMetric = 'sessions' | 'sets' | 'volume' | 'muscleGroups' | 'exercise';
 
 export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric, string> = {
   sessions: 'Entrenos completados',
   sets: 'Series completadas',
   volume: 'Volumen de entrenamiento',
   muscleGroups: 'Grupos musculares implicados',
+  exercise: 'Un ejercicio concreto',
 };
+
+// Comparar por ejercicio — mismo agrupado por microciclo que TrainingBlock,
+// pero filtrado a UN ejercicio. maxWeight es la cifra principal (mismo
+// criterio que PersonalRecord: "así lee un récord un entrenador"); volume/
+// sets quedan de contexto en el tooltip de la gráfica, no como líneas
+// propias — misma razón que TrainingComparisonMetric es un selector y no
+// varias métricas activas a la vez.
+export interface BlockExerciseProgress {
+  splitId: string;
+  name: string;
+  start: string;
+  end: string;
+  maxWeight: number;
+  volume: number;
+  sets: number;
+}
 
 // Movimiento 3 Coach Pro — el mismo trabajo agrupado por MICROCICLO.
 // Un microciclo no dura siete días (dura lo que el entrenador decida), así
@@ -253,6 +273,12 @@ export interface ClientTrainingProgress {
     percentage: number;
   } | null;
   blockMuscleGroups: BlockMuscleGroup[];
+  // Comparar por ejercicio — nombres con carga real disponibles en el
+  // periodo (alimenta el selector), y el desglose por bloque SOLO cuando se
+  // pidió un ejercicio concreto (query `exercise`, ver
+  // client-detail-api.service.ts#getTrainingBlocks).
+  exerciseNames: string[];
+  blockExercise?: BlockExerciseProgress[];
   totalSets: number;
   // Presentes solo en modo `weeks` (Resumen); ausentes en modo `from`/`to`
   // (comparación por microciclo de Entrenamiento) — ver

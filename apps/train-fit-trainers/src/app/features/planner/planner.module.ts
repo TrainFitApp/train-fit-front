@@ -8,6 +8,8 @@ import { PlannerColumnComponent } from './components/planner-column/planner-colu
 import { TemplatePickerModalComponent } from './components/template-picker-modal/template-picker-modal.component';
 import { SessionLoadPanelComponent } from './components/session-load-panel/session-load-panel.component';
 import { MuscleVolumePanelComponent } from './components/muscle-volume-panel/muscle-volume-panel.component';
+import { PlannerInsightsPanelComponent } from './components/planner-insights-panel/planner-insights-panel.component';
+import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
 
 @NgModule({
   imports: [SharedModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
@@ -17,6 +19,8 @@ import { MuscleVolumePanelComponent } from './components/muscle-volume-panel/mus
     TemplatePickerModalComponent,
     SessionLoadPanelComponent,
     MuscleVolumePanelComponent,
+    PlannerInsightsPanelComponent,
+    CompareSplitsModalComponent,
   ],
 })
 export class PlannerPageModule {}

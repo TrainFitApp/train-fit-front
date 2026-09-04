@@ -31,8 +31,40 @@
       ></ion-icon>
     </button>
   </div>
+
+  <!-- Comparar por ejercicio (2026-09) — segundo paso, solo con ese modo
+       elegido: qué ejercicio concreto seguir microciclo a microciclo. -->
+  <ng-container *ngIf="selectedMetric === 'exercise'">
+    <p class="panel-subtitle">Qué ejercicio seguir.</p>
+
+    <p class="empty-hint" *ngIf="!exerciseNames.length">
+      Sin ejercicios con carga registrada en el rango elegido.
+    </p>
+
+    <ng-container *ngIf="exerciseNames.length">
+      <div class="exercise-search" *ngIf="exerciseNames.length > 6">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Buscar ejercicio" [(ngModel)]="exerciseSearch" />
+      </div>
+
+      <div class="metric-option-list exercise-option-list">
+        <button
+          type="button"
+          class="metric-option"
+          *ngFor="let name of filteredExerciseNames"
+          [class.metric-option--selected]="selectedExercise === name"
+          (click)="chooseExercise(name)"
+        >
+          <span>{{ name }}</span>
+          <ion-icon
+            [name]="selectedExercise === name ? 'checkmark-circle' : 'ellipse-outline'"
+          ></ion-icon>
+        </button>
+      </div>
+    </ng-container>
+  </ng-container>
 </ion-content>
 
 <ion-footer class="filter-panel-footer">
-  <button class="submit-button" (click)="confirm()">Aplicar</button>
+  <button class="submit-button" [disabled]="!canConfirm" (click)="confirm()">Aplicar</button>
 </ion-footer>

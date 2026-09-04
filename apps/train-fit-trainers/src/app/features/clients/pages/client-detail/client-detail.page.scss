@@ -543,6 +543,57 @@
   border-radius: 12px;
 }
 
+// 2026-09 — atajo al Planificador de la rutina en uso. Ancho completo y con
+// texto (no un icono más en una fila de iconos): es la acción que el
+// entrenador repite cada vez que entra, y estaba escondida detrás de un
+// icono de otra lista más abajo.
+.open-planner-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: 0 12px;
+  border: 1px solid var(--tf-accent);
+  border-radius: 10px;
+  background: var(--tf-surface-1);
+  color: var(--tf-accent-text);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  span {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .open-planner-chevron {
+    font-size: 15px;
+    color: var(--tf-text-muted);
+  }
+
+  &:hover {
+    background: var(--tf-surface-3);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 // F20-quinquies — <button>, no <div>: toda la cabecera abre el editor de la
 // plantilla aplicada (ver openActivePlanTemplate()). Reset de estilos de
 // botón nativo + mismos estados táctiles que .goal-card/.template-row-main.

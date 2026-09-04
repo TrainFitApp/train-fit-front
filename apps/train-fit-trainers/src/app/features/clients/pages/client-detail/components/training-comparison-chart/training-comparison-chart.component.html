@@ -1,6 +1,9 @@
 <div class="chart-container">
   <canvas #chartCanvas></canvas>
 </div>
-<p class="empty-hint" *ngIf="!isLoading && !hasData">
+<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'exercise' && !selectedExercise">
+  Elige un ejercicio en "Comparar por" para ver su progresión por microciclo.
+</p>
+<p class="empty-hint" *ngIf="!isLoading && !hasData && !(metric === 'exercise' && !selectedExercise)">
   No hay microciclos con series completadas en el rango elegido.
 </p>
