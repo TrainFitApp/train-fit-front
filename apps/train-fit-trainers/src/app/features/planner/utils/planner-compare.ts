@@ -285,12 +285,6 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
   pushIfChanged(chips, 'RIR', rirLabel(a), rirLabel(b));
   pushIfChanged(chips, 'Descanso', restLabel(a), restLabel(b));
   pushIfChanged(chips, 'Tempo', uniqueValue(a, (s) => s.tempo), uniqueValue(b, (s) => s.tempo));
-  pushIfChanged(
-    chips,
-    '%RM',
-    uniqueValue(a, (s) => (s.expectedPercentRm ? `${s.expectedPercentRm}%` : '')),
-    uniqueValue(b, (s) => (s.expectedPercentRm ? `${s.expectedPercentRm}%` : ''))
-  );
 
   if ((a.notes || '').trim() !== (b.notes || '').trim()) chips.push('Nota del entrenador editada');
 

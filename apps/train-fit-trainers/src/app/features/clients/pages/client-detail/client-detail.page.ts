@@ -203,13 +203,13 @@ export class ClientDetailPage implements OnInit {
   public clientIntakeState: SectionState = 'loading';
 
   // Tarea 3 bis — "Objetivo de entrenamiento" (paridad mínima con
-  // "Objetivos nutricionales"): tipo + frecuencia declarada, editable en
-  // línea. Mismo patrón que ya usaba el chip de objetivo de nutrición.
+  // "Objetivos nutricionales"): tipo de objetivo, editable en línea. Mismo
+  // patrón que ya usaba el chip de objetivo de nutrición. La frecuencia
+  // declarada se quitó (2026-09): no alimentaba ningún cálculo.
   public trainingGoal: TrainingGoal | null = null;
   public trainingGoalState: SectionState = 'loading';
   public isEditingTrainingGoal = false;
   public trainingGoalTypeDraft: TrainingGoalType | null = null;
-  public trainingFrequencyDraft: number | null = null;
   public isSavingTrainingGoal = false;
   public readonly trainingGoalTypeOptions: { value: TrainingGoalType; label: string }[] =
     Object.entries(TRAINING_GOAL_TYPE_LABELS).map(([value, label]) => ({
@@ -625,7 +625,6 @@ export class ClientDetailPage implements OnInit {
 
   public startEditTrainingGoal(): void {
     this.trainingGoalTypeDraft = this.trainingGoal?.trainingGoalType || null;
-    this.trainingFrequencyDraft = this.trainingGoal?.trainingFrequencyTarget || null;
     this.isEditingTrainingGoal = true;
   }
 
@@ -638,7 +637,6 @@ export class ClientDetailPage implements OnInit {
     this.isSavingTrainingGoal = true;
     const payload: TrainingGoal = {
       trainingGoalType: this.trainingGoalTypeDraft,
-      trainingFrequencyTarget: this.trainingFrequencyDraft,
     };
     this.clientDetailApi.updateTrainingGoal(this.clientId, payload).subscribe({
       next: (goal) => {

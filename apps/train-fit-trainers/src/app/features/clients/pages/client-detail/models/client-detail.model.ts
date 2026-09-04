@@ -131,14 +131,15 @@ export interface TrainerNote {
 // el backend (getClientTables) devuelve exactamente esa misma estructura.
 export type ClientTable = Table;
 
-// Tarea 3 bis (2026-08) — "Objetivo de entrenamiento", versión mínima:
-// tipo declarado + frecuencia objetivo. Esta última es también el
-// denominador de "adherencia de entrenamiento" (ver client-detail.page.ts).
+// Tarea 3 bis (2026-08) — "Objetivo de entrenamiento", versión mínima: tipo
+// declarado. La frecuencia objetivo se quitó (2026-09): nunca fue el
+// denominador real de "adherencia de entrenamiento" — esa se calcula sobre
+// la fase vigente (ver client-progress), no sobre un número declarado a
+// mano por el entrenador.
 export type TrainingGoalType = 'strength' | 'hypertrophy' | 'endurance' | 'mobility' | 'general';
 
 export interface TrainingGoal {
   trainingGoalType: TrainingGoalType | null;
-  trainingFrequencyTarget: number | null;
 }
 
 // Un workout "aplanado" fuera de su split, con contexto de a qué rutina

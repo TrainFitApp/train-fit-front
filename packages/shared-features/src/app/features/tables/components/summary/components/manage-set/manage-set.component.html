@@ -509,26 +509,13 @@
       </div>
     </ng-template>
 
-    <!-- Movimiento 6 Coach Pro — %RM y tempo.
-         Solo en el bloque de fuerza (setForm tiene estos controles nada más
-         en esa rama): un porcentaje del RM no significa nada en un cardio ni
-         en un isométrico. Los dos son opcionales — hay entrenadores que
-         pautan en kilos y no usan ninguno. -->
-    <div class="field-section" *ngIf="setForm.get('expectedPercentRm')">
+    <!-- Movimiento 6 Coach Pro — tempo.
+         Solo en el bloque de fuerza (setForm tiene este control nada más en
+         esa rama): el tempo no significa nada en un cardio ni en un
+         isométrico. Opcional — hay entrenadores que no lo usan. %RM se quitó
+         (2026-09): no era una funcionalidad que interesara. -->
+    <div class="field-section" *ngIf="setForm.get('tempo')">
       <div class="input-row">
-        <div class="input-field">
-          <ion-input
-            formControlName="expectedPercentRm"
-            type="number"
-            inputmode="decimal"
-            fill="outline"
-            label="% del RM"
-            labelPlacement="stacked"
-            placeholder="80"
-          >
-            <div slot="end" class="input-suffix">%</div>
-          </ion-input>
-        </div>
         <div class="input-field">
           <ion-input
             formControlName="tempo"

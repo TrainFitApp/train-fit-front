@@ -124,11 +124,14 @@
             </div>
           </ng-template>
 
-          <!-- Tarea 3 bis — paridad con "Objetivos nutricionales": tipo +
-               frecuencia declarada, editable en línea, mismo patrón visual
-               que ya usan los chips de objetivo en Entrenamiento (Movimiento
-               6 Coach Pro las traía solo dentro del Planificador; aquí es la
-               ficha del cliente). -->
+          <!-- Tarea 3 bis — paridad con "Objetivos nutricionales": tipo de
+               objetivo, editable en línea, mismo patrón visual que ya usan
+               los chips de objetivo en Entrenamiento (Movimiento 6 Coach Pro
+               las traía solo dentro del Planificador; aquí es la ficha del
+               cliente). La frecuencia declarada se quitó (2026-09): no
+               alimentaba ningún cálculo — la adherencia de entrenamiento se
+               calcula sobre la fase vigente, no sobre un número declarado a
+               mano. -->
           <div class="section-row">
             <h2 class="section-heading">Objetivo de entrenamiento</h2>
           </div>
@@ -139,12 +142,6 @@
             <div class="equipment-field">
               <span class="equipment-field-label">Tipo</span>
               <span class="equipment-field-value">{{ trainingGoalTypeLabel(trainingGoal?.trainingGoalType ?? null) }}</span>
-            </div>
-            <div class="equipment-field">
-              <span class="equipment-field-label">Frecuencia objetivo</span>
-              <span class="equipment-field-value">
-                {{ trainingGoal?.trainingFrequencyTarget ? (trainingGoal.trainingFrequencyTarget + ' sesiones/semana') : 'Sin declarar' }}
-              </span>
             </div>
             <button type="button" class="add-button" (click)="startEditTrainingGoal()">
               <ion-icon name="create-outline"></ion-icon>
@@ -158,17 +155,6 @@
                 <option [ngValue]="null">Sin declarar</option>
                 <option *ngFor="let opt of trainingGoalTypeOptions" [ngValue]="opt.value">{{ opt.label }}</option>
               </select>
-            </div>
-            <div class="equipment-field">
-              <span class="equipment-field-label">Frecuencia objetivo (sesiones/semana)</span>
-              <ion-input
-                type="number"
-                min="1"
-                max="14"
-                placeholder="Ej. 4"
-                [(ngModel)]="trainingFrequencyDraft"
-                [disabled]="isSavingTrainingGoal"
-              ></ion-input>
             </div>
             <div class="training-goal-edit-actions">
               <button type="button" class="add-button" (click)="saveTrainingGoal()" [disabled]="isSavingTrainingGoal">
