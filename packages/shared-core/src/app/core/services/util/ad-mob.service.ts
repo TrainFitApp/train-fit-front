@@ -14,6 +14,7 @@ import { User } from 'src/app/core/models/user';
 import { Platform } from '@ionic/angular';
 import { environment } from 'src/environments/environment';
 import { BillingService } from '../billing/billing.service';
+import { APP_SHELL_CONFIG } from 'src/app/app-shell.config';
 
 export type InterstitialPlacement =
   | 'default'
@@ -88,7 +89,21 @@ export class AdMobService {
   private lastProfileStartAt = 0;
   private activeInterstitialRequest: ActiveInterstitialRequest | null = null;
 
+  // App de entrenadores/gestión — sin anuncios (APP_SHELL_CONFIG.adsEnabled
+  // = false ahí): sin este guard, el constructor de este servicio (inyectado
+  // en más de una decena de páginas compartidas — nutrition-editor,
+  // config-exercise, create-product...) llamaba a AdMob.initialize() en
+  // TODAS las apps por igual, disparando el warning nativo "Google Mobile
+  // Ads SDK was initialized without an application ID" (esas apps no
+  // declaran GADApplicationIdentifier en su Info.plist, a propósito) y el
+  // prompt de tracking (ATT) de iOS, ninguno de los dos con sentido fuera
+  // del cliente free con anuncios.
+  private readonly adsEnabled = APP_SHELL_CONFIG.adsEnabled !== false;
+
   constructor() {
+    if (!this.adsEnabled) {
+      return;
+    }
     this.initAdMobEventLogging();
     this.initialize();
   }
@@ -96,6 +111,10 @@ export class AdMobService {
   public async interstitial(
     placement: InterstitialPlacement = 'default'
   ): Promise<void> {
+    if (!this.adsEnabled) {
+      return;
+    }
+
     const profileGuardEnabled = placement === 'profile_start';
 
     if (profileGuardEnabled && !this.reserveProfileStartSlot()) {

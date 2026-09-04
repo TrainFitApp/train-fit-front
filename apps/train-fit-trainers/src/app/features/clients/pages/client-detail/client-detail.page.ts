@@ -1868,12 +1868,44 @@ export class ClientDetailPage implements OnInit {
     this.router.navigate(['/tabs/diet-templates']);
   }
 
+  // "Crear dieta" — mismo modal que "Aplicar plantilla" (ApplyDietTemplateModalComponent
+  // #forDirectCreate), pero solo para recoger nombre y fechas: el contenido
+  // no existe todavía, se construye en el builder (diet-template-builder.page.ts,
+  // ruta for-client/:clientId) al que se navega justo después.
+  public async openCreateDietModal(): Promise<void> {
+    const ultima = this.planPhases[this.planPhases.length - 1] || null;
+    const finAnterior = ultima?.endDate || null;
+
+    const modal = await this.modalController.create({
+      component: ApplyDietTemplateModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.name,
+        forDirectCreate: true,
+        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+        previousPhaseEnd: finAnterior,
+        previousPhaseName: ultima?.planName || '',
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+    if (role !== 'confirm' || !data) return;
+
+    void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
+      state: { ...data, clientName: this.name },
+    });
+  }
+
   // F20-quinquies — la tarjeta de plan activo pasa a ser clicable: abre el
   // editor de LA plantilla aplicada (mismo builder que "Gestionar
   // plantillas", pero directo a esta en vez de a la lista completa).
   public openActivePlanTemplate(): void {
-    if (!this.activePlan?.planId) return;
-    this.router.navigate(['/tabs/diet-templates', this.activePlan.planId]);
+    // sourceTemplateId, no planId: planId es la copia congelada exclusiva de
+    // este cliente (ver plan-assignment.model.ts) — editarla no debe ser
+    // posible desde aquí, así que este atajo va siempre a la plantilla real.
+    if (!this.activePlan?.sourceTemplateId) return;
+    this.router.navigate(['/tabs/diet-templates', this.activePlan.sourceTemplateId]);
   }
 
   // F20-octies — color de las píldoras del patrón `index`. Con un solo

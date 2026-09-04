@@ -1,7 +1,28 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { ApplyPlanRequest, DietException, PlanAssignment } from '../models/plan-assignment.model';
+import { ApplyPlanRequest, DietException, DurationUnit, PlanAssignment, PlanEndMode } from '../models/plan-assignment.model';
+import {
+  DietTemplateDayPatternPayload,
+  DietTemplateDayPayload,
+  TemplateMode,
+} from '../../features/diet-templates/models/diet-template.model';
+
+// "Crear dieta" — mismos campos de fecha/duración que ApplyPlanRequest, más
+// el contenido en crudo (mismo shape que DietTemplateApiService#create/
+// update): no hay plantilla de origen, el trainer lo construye aquí mismo
+// para este cliente (ver plan-assignment-service.js#createDirectPlan).
+export interface CreateDirectPlanRequest {
+  name: string;
+  days: DietTemplateDayPayload[];
+  mode: TemplateMode;
+  dayPatterns: DietTemplateDayPatternPayload[];
+  startDate: string;
+  endMode: PlanEndMode;
+  fixedEndDate?: string;
+  durationValue?: number;
+  durationUnit?: DurationUnit;
+}
 
 @Injectable({ providedIn: 'root' })
 export class PlanAssignmentApiService {
@@ -13,6 +34,10 @@ export class PlanAssignmentApiService {
 
   public apply(clientId: string, planId: string, body: ApplyPlanRequest): Observable<PlanAssignment> {
     return this.http.post<PlanAssignment>(`${this.base(clientId)}/${planId}/apply`, body);
+  }
+
+  public createDirect(clientId: string, body: CreateDirectPlanRequest): Observable<PlanAssignment> {
+    return this.http.post<PlanAssignment>(this.base(clientId), body);
   }
 
   public getActive(clientId: string): Observable<PlanAssignment | null> {

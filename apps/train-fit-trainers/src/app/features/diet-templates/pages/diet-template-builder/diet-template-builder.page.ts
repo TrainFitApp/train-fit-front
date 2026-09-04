@@ -9,6 +9,8 @@ import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { DietTemplateApiService } from '../../services/diet-template-api.service';
 import {
   DietTemplate,
+  DietTemplateDayPatternPayload,
+  DietTemplateDayPayload,
   DietTemplateMealPayload,
   MEAL_SLOTS,
   TemplateDay,
@@ -19,8 +21,23 @@ import {
   WEEKDAYS,
 } from '../../models/diet-template.model';
 import { DayMealEditorModalComponent } from './components/day-meal-editor-modal/day-meal-editor-modal.component';
+import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { DurationUnit, PlanEndMode } from '../../../../shared/models/plan-assignment.model';
 
 type ViewState = 'loading' | 'error' | 'loaded';
+
+// Lo que trae el modal de "Crear dieta" (ver ApplyDietTemplateModalComponent
+// #forDirectCreate) antes de llegar aquí — nombre y fechas ya decididos, el
+// contenido se construye en esta misma pantalla.
+interface ForClientNavigationState {
+  clientName?: string;
+  name?: string;
+  startDate: string;
+  endMode: PlanEndMode;
+  fixedEndDate?: string;
+  durationValue?: number;
+  durationUnit?: DurationUnit;
+}
 
 interface BoardCellRef {
   dayIndex: number;
@@ -65,16 +82,36 @@ export class DietTemplateBuilderPage implements OnInit {
   private draggedFrom: BoardCellRef | null = null;
   public dragOverCell: BoardCellRef | null = null;
 
+  // "Crear dieta" (ver diet-templates-routing.module.ts, ruta
+  // for-client/:clientId) — mismo tablero, pero sin plantilla que cargar:
+  // guardar crea+asigna directo a este cliente en vez de actualizar una
+  // plantilla de la biblioteca.
+  public isCreatingForClient = false;
+  public clientId = '';
+  public clientName = '';
+  private forClientSchedule: ForClientNavigationState | null = null;
+
   private readonly destroyRef = inject(DestroyRef);
+  // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
+  // cuanto la navegación termina, y ngOnInit ya corre después) — mismo
+  // motivo por el que Angular documenta leerlo aquí y no más abajo.
+  private readonly navigationState = (this.routerNavigationState() || {}) as Partial<ForClientNavigationState> & {
+    clientName?: string;
+  };
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private dietTemplateApi: DietTemplateApiService,
+    private planAssignmentApi: PlanAssignmentApiService,
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService
   ) {}
+
+  private routerNavigationState(): unknown {
+    return this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+  }
 
   // TASK-051 (MASTER_BACKLOG.md) — antes leía el :id una sola vez de
   // route.snapshot en ngOnInit. Sin explotar hoy (la lista no navega de una
@@ -84,9 +121,37 @@ export class DietTemplateBuilderPage implements OnInit {
   // parámetro) — mismo criterio aplicado en RoutineBuilderPage.
   public ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const clientId = params.get('clientId');
+      if (clientId) {
+        this.startForClient(clientId);
+        return;
+      }
       this.templateId = params.get('id') || '';
       this.load();
     });
+  }
+
+  // Sin plantilla que cargar — arranca en blanco, listo para construir.
+  // Nombre y fechas ya se decidieron en el modal previo (ver
+  // ApplyDietTemplateModalComponent#forDirectCreate); si por lo que sea no
+  // llegaron (refresco de página, navegación directa a la URL), no hay
+  // fecha con la que crear nada — mejor un error claro que una asignación a
+  // medias.
+  private startForClient(clientId: string): void {
+    const nav = this.navigationState;
+    if (!nav.startDate || !nav.endMode) {
+      this.state = 'error';
+      return;
+    }
+    this.isCreatingForClient = true;
+    this.clientId = clientId;
+    this.clientName = nav.clientName || 'este cliente';
+    this.name = nav.name || '';
+    this.forClientSchedule = nav as ForClientNavigationState;
+    this.mode = 'sequential';
+    this.days = [];
+    this.dayPatterns = [];
+    this.state = 'loaded';
   }
 
   public load(): void {
@@ -577,6 +642,11 @@ export class DietTemplateBuilderPage implements OnInit {
       meals: this.mealsToSave(pattern.meals),
     }));
 
+    if (this.isCreatingForClient) {
+      this.saveForClient(daysToSave, dayPatternsToSave);
+      return;
+    }
+
     this.dietTemplateApi.update(this.templateId, this.name.trim(), daysToSave, this.mode, dayPatternsToSave).subscribe({
       next: () => {
         this.isSaving = false;
@@ -589,7 +659,46 @@ export class DietTemplateBuilderPage implements OnInit {
     });
   }
 
+  private saveForClient(daysToSave: DietTemplateDayPayload[], dayPatternsToSave: DietTemplateDayPatternPayload[]): void {
+    const schedule = this.forClientSchedule;
+    if (!schedule) {
+      this.isSaving = false;
+      this.ionicUtilService.showErrorToast('Faltan las fechas del plan — vuelve atrás e inténtalo de nuevo', 'Error', 3500);
+      return;
+    }
+
+    this.planAssignmentApi
+      .createDirect(this.clientId, {
+        name: this.name.trim(),
+        days: daysToSave,
+        mode: this.mode,
+        dayPatterns: dayPatternsToSave,
+        startDate: schedule.startDate,
+        endMode: schedule.endMode,
+        fixedEndDate: schedule.fixedEndDate,
+        durationValue: schedule.durationValue,
+        durationUnit: schedule.durationUnit,
+      })
+      .subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.ionicUtilService.showToast({ message: `Dieta creada y asignada a ${this.clientName}`, duration: 2500 });
+          this.router.navigate(['/tabs/clients', this.clientId]);
+        },
+        error: (err) => {
+          this.isSaving = false;
+          const message =
+            err?.status === 409 ? err?.error?.message || 'Esas fechas se solapan con otra fase.' : 'No se pudo crear la dieta';
+          this.ionicUtilService.showErrorToast(message, 'Error', 3500);
+        },
+      });
+  }
+
   public goBack(): void {
+    if (this.isCreatingForClient) {
+      this.router.navigate(['/tabs/clients', this.clientId]);
+      return;
+    }
     this.router.navigate(['/tabs/diet-templates']);
   }
 }

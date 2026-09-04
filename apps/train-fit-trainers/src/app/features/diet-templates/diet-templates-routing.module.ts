@@ -5,6 +5,9 @@ import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-temp
 
 const routes: Routes = [
   { path: '', component: DietTemplatesListPage },
+  // "Crear dieta" — mismo builder, en modo "para este cliente" en vez de
+  // "editar plantilla existente" (ver diet-template-builder.page.ts).
+  { path: 'for-client/:clientId', component: DietTemplateBuilderPage },
   { path: ':id', component: DietTemplateBuilderPage },
 ];
 

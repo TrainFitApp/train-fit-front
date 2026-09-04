@@ -31,18 +31,17 @@
         {{ rangeToggleLabel }}
       </button>
 
+      <button
+        type="button"
+        class="range-clear-btn"
+        *ngIf="rangeStart && !isRangeMode"
+        aria-label="Quitar rango seleccionado"
+        (click)="clearRange()"
+      >
+        <ion-icon name="close-circle-outline"></ion-icon>
+        {{ rangeStart }} → {{ rangeEnd }}
+      </button>
     </div>
-
-    <button
-      type="button"
-      class="range-clear-btn"
-      *ngIf="rangeStart && !isRangeMode"
-      aria-label="Quitar rango seleccionado"
-      (click)="clearRange()"
-    >
-      <ion-icon name="close-circle-outline"></ion-icon>
-      {{ rangeStart }} → {{ rangeEnd }}
-    </button>
   </div>
 
   <div class="nutrition-calendar__weekdays">
