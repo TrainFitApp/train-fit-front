@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "serve:t"],
       "port": 8100
+    },
+    {
+      "name": "train-fit-front",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:pre", "--workspace", "@trainfit/train-fit-front"],
+      "port": 8100
     }
   ]
 }

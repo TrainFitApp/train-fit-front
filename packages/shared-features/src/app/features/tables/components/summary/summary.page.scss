@@ -209,6 +209,7 @@
     gap: 10px;
   }
 
+  // Buscar/crear rutina: siempre arriba del todo, con o sin rutina activa.
   .nav-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -216,27 +217,215 @@
     margin-bottom: 8px;
   }
 
+  // Etiqueta "CONTINUAR" (Summary Screen Redesign) — valores calcados del
+  // diseño de referencia (medidos ahi: color/tamaño/tracking exactos).
+  .continue-label {
+    display: block;
+    color: rgba(var(--ion-color-secondary-rgb), 0.85);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  // Card "Continuar" (Summary Screen Redesign) — reemplaza al botón suelto
+  // "Reanudar entrenamiento": la tarjeta ENTERA es el botón. Declarada
+  // suelta (no bajo .section) porque vive fuera de cualquier .section.
+  // Fila de 3 hermanos (icon-badge, body, chevron) igual que el diseño de
+  // referencia — el icono NUNCA va anidado dentro del título.
+  .continue-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    // Mismo patrón que .premium-banner (Hazte Pro): fondo plano tintado en
+    // el color, no degradado ni superficie neutra.
+    background: rgba(var(--ion-color-secondary-rgb), 0.08);
+    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.22);
+    border-radius: 18px;
+    padding: 16px 18px;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background: rgba(var(--ion-color-secondary-rgb), 0.14);
+    }
+
+    &__icon-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: rgba(var(--ion-color-secondary-rgb), 0.18);
+      color: var(--ion-color-secondary);
+      font-size: 22px;
+      // Ahora es tappable (despliega el resumen) — no solo decorativo.
+      cursor: pointer;
+    }
+
+    &__body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    &__title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    &__arrow {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+    }
+
+    &__subtitle {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      margin-bottom: 10px;
+    }
+
+    &__progress {
+      display: block;
+      background: var(--progress-bg, rgba(255, 255, 255, 0.08));
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    &__progress-fill {
+      display: block;
+      background: var(--ion-color-secondary);
+      height: 100%;
+      border-radius: 2px;
+    }
+  }
+
+  // Envuelve .continue-card + su panel desplegable — solo para que el
+  // panel sea hermano del botón (no puede vivir DENTRO del <button>: tiene
+  // sus propios iconos clicables y un <button> no debe anidar controles).
+  .continue-card-group {
+    display: block;
+    width: 100%;
+  }
+
+  // Resumen de ejercicios (sustituye a la vieja card suelta "Detalle del
+  // entrenamiento") — mismo lenguaje visual que .continue-card, pegado
+  // justo debajo.
+  .workout-summary {
+    margin-top: 8px;
+    padding: 14px 16px;
+    background: rgba(var(--ion-color-secondary-rgb), 0.05);
+    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.16);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__exercise {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    &__exercise-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    &__exercise-name {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &.completed {
+        color: var(--ion-color-success);
+        text-decoration: line-through;
+        opacity: 0.65;
+      }
+    }
+
+    &__exercise-icons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+
+    &__exercise-sets {
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    &__exercise-progress {
+      display: block;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--progress-bg, rgba(255, 255, 255, 0.08));
+      overflow: hidden;
+    }
+
+    &__exercise-progress-fill {
+      display: block;
+      height: 100%;
+      border-radius: 2px;
+      background: var(--ion-color-secondary);
+    }
+  }
+
+  // Botones compactos de buscar/crear (siempre arriba) — antes había una
+  // versión grande (80px, card con sombra) para el estado sin rutina y otra
+  // pequeña para cuando bajaban a secundarias abajo; una sola regla ahora
+  // que solo viven arriba, icono en primary en vez del gris neutro que
+  // tenía la pequeña.
   .nav-btn {
+    // Contorno restaurado — al quitar la versión grande se perdió también
+    // el fondo/borde de card por error, dejando el botón en texto suelto
+    // sin ningún contenedor visible.
     background: #141414;
     border: 1px solid #252525;
-    border-radius: 8px;
-    padding: 20px 16px;
+    box-shadow: none;
+    min-height: auto;
+    padding: 14px 10px;
+    border-radius: 10px;
     text-align: center;
-    box-shadow: 0 2px 8px var(--shadow);
-    color: var(--text-primary);
-    font-size: 14px;
+    color: var(--text-secondary);
+    font-size: 12.5px;
     font-weight: 600;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    min-height: 80px;
+    gap: 4px;
     justify-content: center;
 
     .nav-icon {
-      font-size: 24px;
-      color: var(--accent);
-      margin-bottom: 8px;
+      font-size: 18px;
+      color: var(--ion-color-primary);
+      margin-bottom: 4px;
       display: block;
     }
 
@@ -290,11 +479,15 @@
     }
   }
 
+  // padding/radius medidos en el diseño de referencia (18px/14px, no
+  // 24px/12px) — afecta por igual a esta card y a "Detalle del
+  // entrenamiento" (ambas comparten .section), que en el diseño llevan
+  // exactamente los mismos valores.
   .section {
     position: relative;
     background: #141414;
-    border-radius: 12px;
-    padding: 24px;
+    border-radius: 14px;
+    padding: 18px;
     margin-bottom: 16px;
     border: 1px solid #252525;
     text-align: center;
@@ -451,93 +644,170 @@
       }
     }
 
-    // Exit full-width button
-    .exit-btn {
+    // Enlace de texto discreto (Summary Screen Redesign) — antes botón
+    // ancho/bordeado compitiendo con mesociclo/estadísticas; "salir" es
+    // destructivo y poco frecuente, no debería pesar lo mismo en la tarjeta.
+    // Valores medidos en el diseño de referencia: el gris es MÁS apagado
+    // que --text-secondary (rgb(107,114,128), no rgb(156,163,175)) — ahí
+    // está el contraste reducido, no en una opacity inventada por mí.
+    .exit-link {
       width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #252525;
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-secondary);
-      font-size: 0.85rem;
+      padding: 0;
+      border: none;
+      background: none;
+      color: #6b7280;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      margin-top: 12px;
+      margin-top: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
 
       &__icon {
-        font-size: 16px;
+        font-size: 14px;
       }
 
       &:active {
-        transform: scale(0.98);
-        background: rgba(255, 255, 255, 0.08);
+        opacity: 0.6;
       }
+    }
+
+    // Confirmación INLINE al pulsar "Salir" (Summary Screen Redesign) — no
+    // alert nativo. Ocupa el mismo sitio que .exit-link, con el mismo tipo
+    // de separador que ya usa .routine-divider (mismo --border), medido en
+    // el diseño de referencia (ahí SOLO aparece al confirmar; el "Salir"
+    // normal no lleva línea propia).
+    .exit-confirm {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      &__actions {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+      }
+
+      &__btn {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: none;
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      &__btn--cancel {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-secondary);
+
+        &:active {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      &__btn--danger {
+        background: var(--ion-color-danger);
+        color: #ffffff;
+
+        &:active {
+          opacity: 0.85;
+        }
+      }
+    }
+
+    // Separador entre la barra de splits y las acciones (Ver mesociclo /
+    // Estadísticas) — presente en el diseño de referencia, valores medidos
+    // ahí (1px, --border, 16px arriba/abajo).
+    .routine-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
     }
 
     // 50/50 bottom cards row
+    // Sin margin-bottom propio: en el diseño la separación hasta "Salir" (o
+    // la confirmación inline) la pone SU margin-top, no esta fila — con las
+    // dos a la vez la separación salía más ancha de lo medido.
     .bottom-cards-row {
       display: flex;
       gap: 10px;
-      margin-bottom: 12px;
     }
 
+    // Valores medidos en el diseño de referencia: "Ver mesociclo" en naranja
+    // y "Estadísticas" en amarillo (--ion-color-warning) A PROPÓSITO, no por
+    // error — son dos acciones distintas y el color las separa de un
+    // vistazo. En la sesión anterior "corregí" esto pensando que --orange
+    // pintando en amarillo era un bug de nombres; era yo sin haber medido el
+    // diseño real. Revertido: el color va en el MODIFICADOR (--orange /
+    // --warning), la base .bottom-card no impone ninguno de los dos.
     .bottom-card {
       flex: 1;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 8px;
-      padding: 16px 10px;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 10px;
       border-radius: 12px;
-      background: rgba(var(--ion-color-primary-rgb), 0.06);
-      border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
       cursor: pointer;
       transition: all 0.2s ease;
 
-      &:active {
-        transform: scale(0.97);
-        background: rgba(var(--ion-color-primary-rgb), 0.12);
-      }
-
       &__icon {
-        font-size: 22px;
-        color: var(--ion-color-primary);
+        font-size: 16px;
+        flex-shrink: 0;
       }
 
       &__label {
-        font-size: 0.8rem;
+        font-size: 12.5px;
         font-weight: 600;
-        color: var(--ion-color-primary);
         text-align: center;
       }
 
       &--orange {
-        background: rgba(var(--ion-color-warning-rgb), 0.06);
-        border-color: rgba(var(--ion-color-warning-rgb), 0.18);
+        background: rgba(var(--ion-color-primary-rgb), 0.06);
+        border: 1px solid rgba(var(--ion-color-primary-rgb), 0.18);
 
         &:active {
-          background: rgba(var(--ion-color-warning-rgb), 0.12);
+          background: rgba(var(--ion-color-primary-rgb), 0.12);
         }
 
-        .bottom-card__icon {
-          color: var(--ion-color-warning);
+        .bottom-card__icon,
+        .bottom-card__label {
+          color: var(--ion-color-primary);
+        }
+      }
+
+      &--warning {
+        background: rgba(var(--ion-color-warning-rgb), 0.08);
+        border: 1px solid rgba(var(--ion-color-warning-rgb), 0.2);
+
+        &:active {
+          background: rgba(var(--ion-color-warning-rgb), 0.14);
         }
 
+        .bottom-card__icon,
         .bottom-card__label {
           color: var(--ion-color-warning);
         }
       }
     }
 
+    // 17px/700/margin-bottom 2px medidos en el diseño de referencia.
     .routine-name {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 4px;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 2px;
     }
 
     .routine-description {
@@ -549,7 +819,7 @@
     .split-indicators {
       display: flex;
       gap: 6px;
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
     .split-rect {
@@ -588,10 +858,11 @@
       .workout-status {
         background: linear-gradient(135deg, #f39c12, #e67e22);
         color: white;
-        padding: 4px 8px;
+        // 8px (medido: 10px) era ilegible para una palabra en mayúsculas.
+        padding: 4px 9px;
         border-radius: 8px;
-        font-size: 8px;
-        font-weight: 600;
+        font-size: 10px;
+        font-weight: 700;
       }
     }
 
@@ -658,6 +929,10 @@
             &.completed {
               color: var(--ion-color-success);
               text-decoration: line-through;
+              // Medido en el diseño de referencia: el verde de "hecho" va
+              // atenuado, no a brillo completo — es lo que lee como
+              // "terminado y ya no reclama atención", no solo "en otro color".
+              opacity: 0.65;
             }
           }
 

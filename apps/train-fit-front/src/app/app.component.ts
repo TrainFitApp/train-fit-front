@@ -2,6 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { register } from 'swiper/element/bundle';
 import { RemoteConfigGateService } from 'src/app/core/services/remote-config/remote-config-gate.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
@@ -9,6 +10,8 @@ import { PendingEmailVerificationService } from 'src/app/core/services/auth/pend
 import { BillingService } from 'src/app/core/services/billing/billing.service';
 import { NotificationService } from 'src/app/core/services/util/notification.service';
 import { ThemeService } from 'src/app/core/services/util/theme.service';
+import { WorkoutService } from 'src/app/core/services/workout/workout.service';
+import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
 
 register();
 @Component({
@@ -20,6 +23,7 @@ export class AppComponent implements OnDestroy {
   private readonly isNativeClient = Capacitor.isNativePlatform();
   private hasAuthenticatedSession = false;
   private appStateListener: PluginListenerHandle | null = null;
+  private currentWorkoutSubscription: Subscription | null = null;
 
   constructor(
     private router: Router,
@@ -28,7 +32,9 @@ export class AppComponent implements OnDestroy {
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private billingService: BillingService,
     private themeService: ThemeService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private workoutService: WorkoutService,
+    private workoutNotificationService: WorkoutNotificationService
   ) {
     void this.initializeApp();
   }
@@ -42,10 +48,21 @@ export class AppComponent implements OnDestroy {
     // Force dark theme regardless of OS preference
     this.themeService.toggleColorMode('dark');
     void this.notificationService.initialize();
+    void this.initWorkoutSetNotifications();
     this.initSessionTracking();
     this.routeOnStartup();
     this.restoreSessionOnStartup();
     this.initForegroundBillingRefresh();
+  }
+
+  // Notificación local con el siguiente set pendiente del entrenamiento
+  // activo — se re-agenda cada vez que cambia el workout en curso (arranca
+  // uno nuevo, se marca un set desde la propia app, termina el workout...).
+  private async initWorkoutSetNotifications(): Promise<void> {
+    await this.workoutNotificationService.initialize();
+    this.currentWorkoutSubscription = this.workoutService.getCurrentWorkout.subscribe(
+      (workout) => void this.workoutNotificationService.refreshForWorkout(workout)
+    );
   }
 
   private routeOnStartup(): void {
@@ -159,5 +176,6 @@ export class AppComponent implements OnDestroy {
       void this.appStateListener.remove();
       this.appStateListener = null;
     }
+    this.currentWorkoutSubscription?.unsubscribe();
   }
 }

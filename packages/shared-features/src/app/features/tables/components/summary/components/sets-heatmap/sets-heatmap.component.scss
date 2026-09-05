@@ -1,0 +1,148 @@
+// Ahora vive embebido dentro de .section (card de rutina) — sin fondo,
+// radio ni sombra propios para no anidar card-dentro-de-card; solo
+// separación respecto a lo que va antes (routine-divider) y después
+// (bottom-cards-row).
+.heatmap-card {
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.heatmap-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  // Gris, no --text-primary: es un rótulo de contexto, no debe pesar tanto
+  // como el resto de títulos de la página.
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+  // El scroll interno no debe robarse el gesto de swipe-back de iOS
+  // (volver de pantalla) cuando la rejilla ya esta al principio.
+  overscroll-behavior-x: contain;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 3px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.heatmap-row-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 18px; // alinea con la fila de celdas, debajo de la etiqueta de mes
+  margin-right: 4px;
+}
+
+// Tamaño y color medidos en el diseño de referencia (9px, gris apagado) —
+// "Lun"/"Mié" completos, no una sola inicial, necesitan su propio ancho de
+// columna en vez de encajar en las 12px de antes.
+.heatmap-row-label {
+  height: 16px;
+  line-height: 16px;
+  font-size: 9px;
+  color: rgb(107, 114, 128);
+  white-space: nowrap;
+}
+
+.heatmap-column {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  // Pocas columnas: crecen para llenar el ancho disponible (celda se
+  // ensancha). Muchas columnas: nunca bajan de 16px, el sobrante dispara
+  // el scroll horizontal de .heatmap-scroll (comportamiento actual).
+  flex: 1 0 16px;
+
+  // Solo las celdas de la rejilla son tocables (tooltip); las de la
+  // leyenda (.heatmap-legend .heatmap-cell) no llevan click.
+  .heatmap-cell {
+    cursor: pointer;
+  }
+}
+
+.heatmap-month-label {
+  height: 16px;
+  line-height: 16px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-secondary, #8b8b8b);
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+
+// 16px + radio 2px medidos en el diseño de referencia (antes 12px/3px) —
+// ancho minimo, se ensancha con la columna cuando hay pocas semanas.
+.heatmap-cell {
+  width: 100%;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  background: #262626;
+
+  &.is-empty {
+    background: transparent;
+  }
+
+  // 0 = sin series, 1-4 = intensidad relativa al maximo del periodo (ver
+  // levelFor() en el componente) — mismo naranja de marca, distinta opacidad.
+  &[data-level="0"] {
+    background: #262626;
+  }
+  &[data-level="1"] {
+    background: rgba(254, 144, 0, 0.3);
+  }
+  &[data-level="2"] {
+    background: rgba(254, 144, 0, 0.55);
+  }
+  &[data-level="3"] {
+    background: rgba(254, 144, 0, 0.78);
+  }
+  &[data-level="4"] {
+    background: #fe9000;
+  }
+}
+
+.heatmap-footer {
+  display: flex;
+  align-items: center;
+  // Antes justify-content: space-between entre el link "Series completadas"
+  // (quitado) y la leyenda — ahora la leyenda es el único hijo, se queda a
+  // la derecha en vez de recentrarse sola en medio.
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .heatmap-cell {
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+  }
+}
+
+.heatmap-legend-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #8b8b8b);
+  margin: 0 2px;
+}

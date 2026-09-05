@@ -1,7 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, catchError, forkJoin, from, of, switchMap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  forkJoin,
+  from,
+  of,
+  switchMap,
+  throwError,
+} from 'rxjs';
 import {
   trigger,
   state,
@@ -164,16 +172,25 @@ export class UserLoaderPage implements OnInit, OnDestroy {
               this.updateProgress(40);
 
               const tableObservable: Observable<Table> = resUser.tableInUse
-                ? this.tableService.getTableById(resUser.tableInUse)
+                ? this.recoverFromStalePointer(
+                    this.tableService.getTableById(resUser.tableInUse),
+                    'tableInUse'
+                  )
                 : of(null);
 
               const dietObservable: Observable<Diet> = resUser.dietInUse
-                ? this.dietService.getDietById(resUser.dietInUse)
+                ? this.recoverFromStalePointer(
+                    this.dietService.getDietById(resUser.dietInUse),
+                    'dietInUse'
+                  )
                 : of(null);
 
               const workoutInUseObservable: Observable<Workout> =
                 resUser.workoutInUse
-                  ? this.workoutService.getWorkoutById(resUser.workoutInUse)
+                  ? this.recoverFromStalePointer(
+                      this.workoutService.getWorkoutById(resUser.workoutInUse),
+                      'workoutInUse'
+                    )
                   : of(null);
 
               // Tab Coach (Fases 1/3) y TAREA 3 (onboarding) — endpoints del
@@ -259,6 +276,34 @@ export class UserLoaderPage implements OnInit, OnDestroy {
           this.updateProgress(0);
         }
       );
+  }
+
+  // `tableInUse` / `dietInUse` / `workoutInUse` son punteros: guardan un id,
+  // no el documento. Si lo apuntado se borra (o deja de ser accesible), el id
+  // se queda colgado en el usuario y este arranque pedía un documento que ya
+  // no existe. Antes eso reventaba el forkJoin entero: reintento, reintento, y
+  // la pantalla de carga se quedaba fija para siempre — con la app instalada,
+  // sin forma de salir. Un puntero muerto degrada a "nada en uso" (la app
+  // arranca y el usuario elige otra rutina/dieta, lo que reescribe el
+  // puntero); cualquier otro error sí sube, para no tapar un 401 que debe
+  // acabar en re-login ni un backend caído que sí merece el reintento.
+  private recoverFromStalePointer<T>(
+    source$: Observable<T>,
+    pointer: string
+  ): Observable<T> {
+    return source$.pipe(
+      catchError((error) => {
+        const status = error?.status ?? error?.error?.status;
+        if (status !== 404 && status !== 403) {
+          return throwError(() => error);
+        }
+        console.warn(
+          `[user-loader] ${pointer} apunta a un documento inaccesible (${status}); se arranca sin él`,
+          error
+        );
+        return of(null as T);
+      })
+    );
   }
 
   private requiresRelogin(error: any): boolean {

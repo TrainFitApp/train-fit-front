@@ -1090,6 +1090,11 @@
     "SEARCH_ROUTINES": "Search Routines",
     "CREATE_ROUTINE_BTN": "Create Routine",
     "RM_CALCULATOR_BTN": "1RM Calculator",
+    "SETS_HEATMAP_TITLE": "Session activity",
+    "SETS_HEATMAP_LESS": "Less",
+    "SETS_HEATMAP_MORE": "More",
+    "SETS_HEATMAP_INFO": "Sets completed",
+    "SETS_HEATMAP_INFO_MSG": "Each day counts the number of sets marked as completed that day, across the microcycles of your active routine.",
     "FILTER_DEFAULT": "Default",
     "FILTER_MINE": "My routines",
     "NO_MATCHES": "No matches found",
@@ -1120,6 +1125,9 @@
     "WORKOUT_NOTE_TYPE": "Workout Note",
     "EXERCISE_LIST": "Exercise List",
     "RESUME_WORKOUT": "Resume workout",
+    "CONTINUE_LABEL": "Continue",
+    "NEXT_WORKOUT_LABEL": "Next workout",
+    "WORKOUT_DETAIL": "Workout detail",
     "NO_WORKOUT_IN_USE": "No workout in use",
     "SELECT_WORKOUT_TO_START": "Select a workout to start",
     "NO_EXERCISES": "No exercises assigned",
@@ -1184,6 +1192,8 @@
     "EDIT_ROUTINE_NAME": "Edit routine name",
     "ROUTINE_NAME_UPDATED": "Routine name updated",
     "UNLINK_ROUTINE": "Leave {{name}}",
+    "UNLINK_ROUTINE_INLINE": "Leave {{name}}?",
+    "EXIT_ROUTINE": "Exit routine",
     "UNLINK_ROUTINE_MSG": "You can find this routine again in My routines",
     "ADD_WORKOUT_ALERT": "Add workout",
     "ADD_WORKOUT_MSG": "Enter the workout name",
@@ -1298,6 +1308,7 @@
     "NAME_OPTION": "Name",
     "ROUTINE_IN_USE": "Routine",
     "ROUTINE_IN_USE_MSG": "You currently have a routine in use. If you select another one, the current one will be saved in My routines",
+    "VIEW_MESOCYCLE": "View mesocycle",
     "ROUTINE_ALREADY_IN_USE_TOAST": "This routine is already in use",
     "ROUTINE_CAN_PAUSE": "You can always pause and choose another",
     "ROUTINE_WILL_BE_ADDED": "It will be added to My routines and started",
@@ -2053,6 +2064,10 @@
     "MICROCYCLE": {
       "TITLE": "Microcycle",
       "DESCRIPTION": "A block of consecutive days (training and rest) that you define yourself — it doesn't have to be a week, it lasts as long as you decide. When you finish a microcycle, the next one begins and so on in a cyclic manner."
+    },
+    "SESSION_ACTIVITY": {
+      "TITLE": "Session activity",
+      "DESCRIPTION": "Activity is measured by the number of sets completed in each session."
     },
     "ONE_RM": {
       "TITLE": "1RM (One-Rep Max)",

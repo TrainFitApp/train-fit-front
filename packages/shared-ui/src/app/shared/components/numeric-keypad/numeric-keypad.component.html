@@ -1,0 +1,82 @@
+<div class="numeric-keypad" [class.numeric-keypad--visible]="visible$ | async">
+  <div class="numeric-keypad__row">
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      *ngFor="let digit of digitRows[0]"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDigit(digit)"
+    >{{ digit }}</button>
+    <button
+      type="button"
+      class="numeric-keypad__key numeric-keypad__key--muted"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapHideKeyboard()"
+    >
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="numeric-keypad__row">
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      *ngFor="let digit of digitRows[1]"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDigit(digit)"
+    >{{ digit }}</button>
+    <button
+      type="button"
+      class="numeric-keypad__key numeric-keypad__key--muted"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapIncrement()"
+    >+</button>
+  </div>
+
+  <div class="numeric-keypad__row">
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      *ngFor="let digit of digitRows[2]"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDigit(digit)"
+    >{{ digit }}</button>
+    <button
+      type="button"
+      class="numeric-keypad__key numeric-keypad__key--muted"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDecrement()"
+    >-</button>
+  </div>
+
+  <div class="numeric-keypad__row">
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDecimalPoint()"
+    >.</button>
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapDigit('0')"
+    >0</button>
+    <button
+      type="button"
+      class="numeric-keypad__key"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapBackspace()"
+    >
+      <ion-icon name="backspace-outline"></ion-icon>
+    </button>
+    <button
+      type="button"
+      class="numeric-keypad__key numeric-keypad__key--accent"
+      (mousedown)="$event.preventDefault()"
+      (click)="tapNext()"
+    >
+      <ion-icon name="return-down-back-outline"></ion-icon>
+    </button>
+  </div>
+</div>

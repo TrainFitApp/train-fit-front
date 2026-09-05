@@ -565,6 +565,14 @@ ion-content.has-rest-timer {
   --padding-bottom: 92px;
 }
 
+// Reserva el alto del teclado a medida (ver numeric-keypad.component.scss:
+// 4 filas de 48px + 3 gaps de 6px + padding 8px arriba/abajo = 226px) para
+// que un input al final de la lista no quede tapado por el teclado, que es
+// position:fixed y no empuja el layout por sí solo.
+ion-content.keypad-open {
+  --padding-bottom: 226px;
+}
+
 // Barra de descanso: fija, nunca modal — no debe tapar la serie siguiente.
 .rest-timer-bar {
   position: fixed;

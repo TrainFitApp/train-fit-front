@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  max-width: 220px;
+}
+
+.heatmap-cell-popover {
+  padding: 12px 14px;
+}
+
+.heatmap-cell-popover__title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.heatmap-cell-popover__date {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.heatmap-cell-popover__sets {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}

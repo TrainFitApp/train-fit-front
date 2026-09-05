@@ -24,6 +24,7 @@ import { GlossaryPopoverComponent } from './components/glossary-popover/glossary
 import { MaintenanceWarningBannerComponent } from './components/maintenance-warning-banner/maintenance-warning-banner.component';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
+import { NumericKeypadComponent } from './components/numeric-keypad/numeric-keypad.component';
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
@@ -43,6 +44,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
+    NumericKeypadComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     TableFilterIconsComponent,
@@ -83,6 +85,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
+    NumericKeypadComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     TableFilterIconsComponent,
