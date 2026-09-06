@@ -29,23 +29,6 @@ export class DietService {
     private dietDayService: DietDayService
   ) {}
 
-  public searchDiet(search: string, page: number) {
-    return this.http
-      .post<Diet[]>(`diets/search?page=${page}&limit=10`, { search })
-      .pipe(
-        map((resDiets) =>
-          resDiets.map((dietTemp) => {
-            dietTemp.kcalAverage = this.getDietAverageKcal(dietTemp);
-            dietTemp.proteinsGAverage = this.getDietAverageProtein(dietTemp);
-            dietTemp.carbohydratesGAverage =
-              this.getDietAverageCarbohydrates(dietTemp);
-            dietTemp.fatGAverage = this.getDietAverageFat(dietTemp);
-            return dietTemp;
-          })
-        )
-      );
-  }
-
   getDietById(id: number): Observable<Diet> {
     return this.http.get<Diet>(`diets/${id}`);
   }
@@ -84,16 +67,10 @@ export class DietService {
     );
   }
 
-  createDiet(diet: Diet): Observable<Diet> {
-    return this.http.post<Diet>(`diets`, diet);
-  }
-
+  // Refactor nutrición (2026-09) — sin wrapper Diet el día ya nace con su
+  // dueño: el endpoint sobrevive como no-op para las apps instaladas.
   addDietDietDay(idDiet: string, idDietDay: string): Observable<Diet> {
     return this.http.put<Diet>(`diets/${idDiet}/${idDietDay}`, null);
-  }
-
-  addDietUser(idUser: string, idDiet: string): Observable<any> {
-    return this.http.put<Diet>(`diets/add/${idUser}/${idDiet}`, null);
   }
 
   getDietAverageKcal(diet: Diet) {
