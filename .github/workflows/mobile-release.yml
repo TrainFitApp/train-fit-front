@@ -429,11 +429,18 @@ jobs:
           # de la app" de App Store Connect. Corresponden a la opcion 2 del
           # dialogo de Apple ("Algoritmos de encriptación estándar en lugar
           # de, o además de, utilizar la encriptación del sistema operativo de
-          # Apple") y a "No" en la pregunta de disponibilidad en Francia.
+          # Apple"). La API de Apple RECHAZA (409) esa opcion combinada con
+          # Francia=No: exige availableOnFrenchStore=true salvo que la app
+          # use cifrado propietario. No es una eleccion nuestra, es una regla
+          # dura del backend de Apple, verificada contra la API real:
+          #   "Cannot create appEncryptionDeclarations unless either
+          #    containsProprietaryCryptography is True or
+          #    containsThirdPartyCryptography and availableOnFrenchStore
+          #    are both True"
           # Cambiar aqui si la respuesta real deja de ser esta.
           ENCRYPTION_PROPRIETARY: 'false'
           ENCRYPTION_STANDARD_OR_THIRD_PARTY: 'true'
-          ENCRYPTION_AVAILABLE_IN_FRANCE: 'false'
+          ENCRYPTION_AVAILABLE_IN_FRANCE: 'true'
           BETA_GROUP_NAME: 'Beta testers 1.0'
           BETA_WHATS_NEW: 'Nueva versión disponible para probar'
         run: |
@@ -504,10 +511,17 @@ jobs:
             | jq -r '.data.id')"
           echo "Declaracion de cifrado creada: $DECL_ID"
 
-          auth -X PATCH "$API/builds/$BUILD_ID" \
+          # PATCH /v1/builds/{id} con relationships.appEncryptionDeclaration
+          # devuelve 200 pero NO aplica nada (verificado contra la API real:
+          # la relacion se queda en null). El unico camino que funciona de
+          # verdad es el inverso, desde la propia declaracion hacia el build
+          # -pese a que Apple marca este endpoint como "deprecated" en la
+          # documentacion, es el unico que cambia de verdad
+          # internalBuildState/externalBuildState de MISSING_EXPORT_COMPLIANCE
+          # a READY_FOR_BETA_SUBMISSION.
+          auth -X POST "$API/appEncryptionDeclarations/$DECL_ID/relationships/builds" \
             -H 'Content-Type: application/json' \
-            -d "$(jq -n --arg id "$BUILD_ID" --arg decl "$DECL_ID" \
-              '{data:{type:"builds",id:$id,relationships:{appEncryptionDeclaration:{data:{type:"appEncryptionDeclarations",id:$decl}}}}}')" \
+            -d "$(jq -n --arg id "$BUILD_ID" '{data:[{type:"builds",id:$id}]}')" \
             -o /dev/null
           echo "Build asociado a la declaracion de cifrado"
 
