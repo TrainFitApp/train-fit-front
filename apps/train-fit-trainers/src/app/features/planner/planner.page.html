@@ -44,6 +44,20 @@
         <ion-icon [name]="rowSync.compareAllMode ? 'eye' : 'eye-outline'"></ion-icon>
         <span>{{ 'PLANNER.SYNC_ROW' | translate }}</span>
       </button>
+      <!-- Reordenar microciclos (2026-09) — cdkDrag deja de estar SIEMPRE
+           activo (chocaba con el scroll táctil en móvil); solo arrastra con
+           este modo encendido. Mismo patrón que "Alinear filas" arriba. -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        [class.toolbar-btn--active]="reorderMode"
+        (click)="toggleReorderMode()"
+        [attr.aria-label]="'PLANNER.REORDER_WEEKS_MODE' | translate"
+        [attr.aria-pressed]="reorderMode"
+      >
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>{{ 'PLANNER.REORDER_WEEKS_MODE' | translate }}</span>
+      </button>
       <!-- Comparar dos microciclos (2026-09) — diff de PAUTA A→B, ejercicio a
            ejercicio: la única pregunta que no responde ninguna otra pantalla
            del panel. -->
@@ -89,9 +103,11 @@
     <app-planner-column
       *ngFor="let split of table?.splits; let i = index; trackBy: trackBySplitId"
       cdkDrag
+      [cdkDragDisabled]="!reorderMode"
       cdkDragLockAxis="x"
       [cdkDragData]="split"
       class="planner-board-column"
+      [class.planner-board-column--reorder]="reorderMode"
       [split]="split"
       [table]="table"
       [columnIndex]="i"

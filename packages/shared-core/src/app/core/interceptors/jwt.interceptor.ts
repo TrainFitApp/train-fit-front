@@ -15,6 +15,17 @@ import { AuthApiService } from '../services/auth/auth-api.service';
 import { AuthService } from '../services/auth/auth.service';
 import { MaintenanceModalService } from '../services/maintenance/maintenance-modal.service';
 import { RemoteConfigMaintenanceStatus } from '../models/remote-config-status';
+import { IonicUtilService } from '../services/util/ionic-util.service';
+
+// 2026-09 — códigos de error que el backend ya devuelve con un mensaje
+// pensado para enseñárselo tal cual al usuario (ver
+// table-access.js#rejectIfAssignedTableLockedForOwner). Antes cada punto de
+// mutación tenía que acordarse de capturar el 403 y mostrarlo — bastaba con
+// olvidar uno (pasó de verdad: current-workout dejaba el error sin
+// manejar, "Uncaught (in promise)" en consola) para que el cliente se
+// quedara sin saber qué pasó. Un solo sitio, para cualquier endpoint,
+// presente o futuro.
+const SELF_EXPLANATORY_ERROR_CODES = new Set(['TABLE_ASSIGNED_BY_TRAINER']);
 
 /**
  * Context token that marks a request as already having been retried after
@@ -63,6 +74,7 @@ export class JWTInterceptor implements HttpInterceptor {
   private refreshToken$ = new BehaviorSubject<string | null>(null);
 
   private maintenanceModal: MaintenanceModalService | null = null;
+  private ionicUtilService: IonicUtilService | null = null;
 
   constructor(
     private authService: AuthService,
@@ -122,6 +134,23 @@ export class JWTInterceptor implements HttpInterceptor {
         message: error.error?.message || '',
       };
       void this.maintenanceModal.presentIfActive(maintenance);
+      return throwError(() => error);
+    }
+
+    // Errores con mensaje ya pensado para el usuario final (ver
+    // SELF_EXPLANATORY_ERROR_CODES arriba) — se muestran aquí, una sola vez,
+    // para que ningún punto de mutación necesite acordarse de capturarlos.
+    // El error sigue propagándose (throwError) para que la lógica optimista
+    // de cada componente revierta su cambio local igual que con cualquier
+    // otro fallo.
+    if (SELF_EXPLANATORY_ERROR_CODES.has(error.error?.code)) {
+      if (!this.ionicUtilService) {
+        this.ionicUtilService = this.injector.get(IonicUtilService);
+      }
+      this.ionicUtilService.showToast({
+        message: error.error?.message || 'No se pudo completar la acción.',
+        duration: 3500,
+      });
       return throwError(() => error);
     }
 

@@ -117,6 +117,19 @@ export class WorkoutComponent implements OnDestroy {
   @Input()
   public tableInUse: Table;
 
+  // 2026-09 — bug real: bloquear la mutación en el backend
+  // (assignedByTrainerId) sin deshabilitar la UI dejaba que el cliente
+  // hiciera toda la acción de editar y solo se enterara al guardar, con un
+  // 403 sin manejar. Oculta los controles de mutación de ESTA card cuando la
+  // rutina está asignada por el entrenador — mismo criterio que
+  // mesocycle.page.ts#isReadonly, pasado explícitamente porque este
+  // componente no conoce table.assignedByTrainerId por sí mismo (solo
+  // recibe tableInUse). No afecta a nada de ejecución (marcar hecho,
+  // cronómetro, notas del cliente): esas rutas nunca pasaron por el bloqueo
+  // del backend, así que tampoco hace falta ocultarlas aquí.
+  @Input()
+  public isReadonly = false;
+
   // Rediseño de entrenamiento (Fase A) — mismo campo/semántica que
   // mesocycle.page.ts#isModal (panel del entrenador desde train-fit-trainers).
   // Gatea la acción "Guardar como plantilla": esa ruta del backend es
@@ -291,7 +304,22 @@ export class WorkoutComponent implements OnDestroy {
     );
   }
 
+  // 2026-09 — segunda barrera además de ocultar el botón en la plantilla:
+  // si por lo que sea el control sigue siendo clicable (p. ej. se llega por
+  // otra vía que no repasamos), esto corta la mutación antes de la llamada
+  // HTTP y avisa con el mismo mensaje del backend — nunca un 403 sin
+  // manejar en consola.
+  private guardReadonly(): boolean {
+    if (!this.isReadonly) return false;
+    this.ionicUtilService.showToast({
+      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      duration: 3000,
+    });
+    return true;
+  }
+
   public deletePinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    if (this.guardReadonly()) return;
     const note = this.pinnedNotes.find(
       (n) =>
         n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
@@ -335,6 +363,7 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public editPinnedNote(workoutIndex: number, exerciseIndex: number): void {
+    if (this.guardReadonly()) return;
     const note = this.pinnedNotes.find(
       (n) =>
         n.workoutIndex === workoutIndex && n.exerciseIndex === exerciseIndex,
@@ -413,6 +442,7 @@ export class WorkoutComponent implements OnDestroy {
     workoutIndex?: number,
     customExercise?: CustomExercise,
   ): void {
+    if (this.guardReadonly()) return;
     // Modal-hoja (sale desde abajo, con tirador) en vez del popover anclado
     // al punto de click — con listas de acciones largas (varias solo se
     // ofrecen en el Planificador) queda más legible y elegante que un
@@ -1060,6 +1090,7 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public async editBlockAlert(block: WorkoutBlock): Promise<void> {
+    if (this.guardReadonly()) return;
     await this.ionicUtilService.showAlert({
       header: block.name || this.blockTypeLabel(block.type),
       buttons: [
@@ -1140,6 +1171,7 @@ export class WorkoutComponent implements OnDestroy {
     event: Event,
   ): Promise<void> {
     event.stopPropagation();
+    if (this.guardReadonly()) return;
     const blocks = this.workout.blocks || [];
     if (blocks.length === 0) {
       this.ionicUtilService.showToast({
@@ -1220,6 +1252,7 @@ export class WorkoutComponent implements OnDestroy {
     indexWorkout: number,
     indexExercise: number,
   ) {
+    if (this.guardReadonly()) return;
     const alertOptions: AlertOptions = {
       header: this.translate.instant("TABLES.DELETE_EXERCISE"),
       message: this.translate.instant("TABLES.DELETE_EXERCISE_CONFIRM", {
@@ -1245,6 +1278,7 @@ export class WorkoutComponent implements OnDestroy {
   }
 
   public async addExerciseModal(customExercise: CustomExercise) {
+    if (this.guardReadonly()) return;
     const modal = await this.modalController.create({
       component: ConfigExercisePage,
       componentProps: {
@@ -1359,6 +1393,7 @@ export class WorkoutComponent implements OnDestroy {
   // comportamiento esperado. Ahora usa siempre el barrido por defecto de
   // SearchExercisesPage#toggleExerciseSelection, igual que el resto de apps.
   public searchExercises(workout: Workout, currentSplit: Split) {
+    if (this.guardReadonly()) return;
     this.workout = workout;
     const modalOptions: ModalOptions = {
       component: SearchExercisesPage,

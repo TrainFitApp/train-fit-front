@@ -56,6 +56,19 @@ export class ExerciseScoresApiService {
     return this.http.delete<void>(`${ExerciseScoresApiService.ENDPOINT}/${exerciseId}`);
   }
 
+  // 2026-09 — sugerencia inicial por patrón de movimiento (ver
+  // exercise-score-defaults.js en el backend, fuente única de la
+  // biblioteca) para cuando el entrenador todavía no ha puntuado ESTE
+  // ejercicio. `null` = ningún patrón conocido encaja, el editor arranca
+  // vacío como hasta ahora.
+  public getDefault(
+    exerciseId: string
+  ): Observable<Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null> {
+    return this.http.get<Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null>(
+      `${ExerciseScoresApiService.ENDPOINT}/default/${exerciseId}`
+    );
+  }
+
   // Puntuar 200 ejercicios de uno en uno es lo que hace que nadie lo haga
   // nunca. Las filas mal formadas se descartan y se cuentan, no tumban la
   // carga entera.

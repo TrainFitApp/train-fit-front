@@ -1,6 +1,16 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>Antes de empezar</ion-title>
+    <!-- 2026-09 — antes esta pantalla no tenía NINGUNA salida (ni back, ni
+         tab bar, ni cerrar sesión) en cuanto la única relación pendiente
+         pasaba a "en_revision": el cliente quedaba atrapado hasta forzar el
+         cierre de la app. -->
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon slot="start" name="log-out-outline"></ion-icon>
+        {{ 'CONFIGURATION.LOGOUT' | translate }}
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

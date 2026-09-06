@@ -28,6 +28,11 @@ export class ScoreEditorModalComponent implements OnInit {
   @Input() public exerciseId = '';
   @Input() public exerciseName = '';
   @Input() public existing: ExerciseScore | null = null;
+  // 2026-09 — `existing` trae la sugerencia por defecto (ver
+  // exercise-score-defaults.js), no una puntuación que el entrenador ya
+  // decidió. Sin este aviso, abrir un ejercicio nunca tocado con valores ya
+  // puestos se leería como "esto ya lo puntué yo", que es falso.
+  @Input() public isDefault = false;
   @Input() public catalog: ScoreCatalog | null = null;
 
   public readonly levels = SCORE_LEVELS;

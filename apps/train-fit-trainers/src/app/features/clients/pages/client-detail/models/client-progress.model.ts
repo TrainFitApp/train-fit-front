@@ -198,7 +198,24 @@ export interface LoadEvolutionExercise {
 // 'exercise' (2026-09) — "ejercicios por micros": el mismo ejercicio,
 // microciclo a microciclo (peso máximo, con volumen/series de contexto),
 // distinto de los 4 agregados de arriba que mezclan todos los ejercicios.
-export type TrainingComparisonMetric = 'sessions' | 'sets' | 'volume' | 'muscleGroups' | 'exercise';
+// 'readiness' (2026-09) — el pulso de readiness/esfuerzo (1-5) que el
+// cliente deja antes/después de cada sesión, promediado por microciclo.
+// Aparte de historial (ver client-detail.page.html, sección "SESIONES
+// HECHAS"): comparar bloque a bloque es lo que responde "¿está llegando
+// cansado a los bloques duros?", que un badge suelto por sesión no dice.
+// 'adherence' (2026-09) — % de series hechas frente a las pautadas. Solo
+// tiene un denominador honesto a nivel SESIÓN (ver SessionAdherence): la
+// sesión ya existe con sus series reales desde que se le asignó al cliente,
+// terminarla no exige tenerlas todas. A nivel microciclo es la suma de esas
+// sesiones (BlockAdherence), no una media de porcentajes.
+export type TrainingComparisonMetric =
+  | 'sessions'
+  | 'sets'
+  | 'volume'
+  | 'muscleGroups'
+  | 'exercise'
+  | 'readiness'
+  | 'adherence';
 
 export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric, string> = {
   sessions: 'Entrenos completados',
@@ -206,7 +223,16 @@ export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric,
   volume: 'Volumen de entrenamiento',
   muscleGroups: 'Grupos musculares implicados',
   exercise: 'Un ejercicio concreto',
+  readiness: 'Readiness y esfuerzo percibido',
+  adherence: 'Adherencia a lo pautado',
 };
+
+// 2026-09 — granularidad del comparador: por microciclo (promedia/agrega,
+// como hasta ahora) o por sesión individual (una sesión suelta mala no se
+// esconde detrás de la media del bloque). 'sessions' no tiene versión por
+// sesión con sentido (es un conteo DE sesiones), así que ese metric ignora
+// la granularidad y siempre sale por microciclo.
+export type TrainingGranularity = 'block' | 'session';
 
 // Comparar por ejercicio — mismo agrupado por microciclo que TrainingBlock,
 // pero filtrado a UN ejercicio. maxWeight es la cifra principal (mismo
@@ -242,6 +268,21 @@ export interface TrainingBlock {
   volumePerSession: number | null;
 }
 
+// 2026-09 — readiness/esfuerzo promediado por microciclo. El pulso es
+// opcional, así que avgReadinessPre/avgPerceivedEffortPost salen null (no
+// 0) cuando ninguna sesión del bloque lo trajo — mismo criterio que
+// TrainingWeek.volume. sessionsWithPulse dice sobre cuántas sesiones se
+// calculó, para no leer un "4.8" como representativo de todo el bloque
+// cuando solo 1 de 12 sesiones lo dejó.
+export interface BlockReadiness {
+  splitId: string;
+  name: string;
+  start: string;
+  avgReadinessPre: number | null;
+  avgPerceivedEffortPost: number | null;
+  sessionsWithPulse: number;
+}
+
 export interface BlockComparisonSide {
   name: string;
   start: string;
@@ -263,6 +304,62 @@ export interface BlockMuscleGroup {
   muscleGroups: { group: string; volume: number }[];
 }
 
+// 2026-09 — granularidad "Por sesión": los mismos agregados que arriba pero
+// sin colapsar por microciclo, una fila por fecha con sesión. splitId/
+// splitName van de contexto (para pintar "Semana 2" junto a la fecha en la
+// etiqueta), no para agrupar.
+export interface SessionTraining {
+  date: string;
+  splitId: string | null;
+  splitName: string | null;
+  volume: number;
+  sets: number;
+}
+
+export interface SessionMuscleGroup {
+  date: string;
+  splitId: string | null;
+  splitName: string | null;
+  muscleGroups: { group: string; volume: number }[];
+}
+
+export interface SessionReadiness {
+  date: string;
+  splitId: string | null;
+  splitName: string | null;
+  readinessPre: number | null;
+  perceivedEffortPost: number | null;
+}
+
+export interface SessionExerciseProgress {
+  date: string;
+  splitId: string | null;
+  splitName: string | null;
+  maxWeight: number;
+  volume: number;
+  sets: number;
+}
+
+// Adherencia (2026-09) — series hechas frente a las pautadas. totalSets/
+// donedSets vienen para que el frontend pueda mostrar "18 de 24 series" y
+// no solo el %.
+export interface SessionAdherence {
+  date: string;
+  splitId: string | null;
+  splitName: string | null;
+  totalSets: number;
+  donedSets: number;
+  adherence: number | null;
+}
+
+export interface BlockAdherence {
+  splitId: string;
+  name: string;
+  start: string;
+  adherence: number | null;
+  sessions: number;
+}
+
 export interface ClientTrainingProgress {
   period: { from: string; to: string };
   blocks: TrainingBlock[];
@@ -272,13 +369,28 @@ export interface ClientTrainingProgress {
     absolute: number;
     percentage: number;
   } | null;
+  blockReadiness: BlockReadiness[];
   blockMuscleGroups: BlockMuscleGroup[];
+  blockAdherence: BlockAdherence[];
+  sessionTraining: SessionTraining[];
+  sessionMuscleGroups: SessionMuscleGroup[];
+  sessionReadiness: SessionReadiness[];
+  sessionAdherence: SessionAdherence[];
   // Comparar por ejercicio — nombres con carga real disponibles en el
-  // periodo (alimenta el selector), y el desglose por bloque SOLO cuando se
-  // pidió un ejercicio concreto (query `exercise`, ver
-  // client-detail-api.service.ts#getTrainingBlocks).
+  // periodo (alimenta el selector). blockExerciseByName/sessionExerciseByName
+  // solo llegan cuando se pidió al menos un ejercicio (query `exercises`,
+  // ver client-detail-api.service.ts#getTrainingBlocks) — varios a la vez
+  // (2026-09 bis), tope de 5 (MAX_COMPARED_EXERCISES en el backend): más
+  // líneas en la misma gráfica deja de leerse.
   exerciseNames: string[];
-  blockExercise?: BlockExerciseProgress[];
+  blockExerciseByName?: Record<string, BlockExerciseProgress[]>;
+  sessionExerciseByName?: Record<string, SessionExerciseProgress[]>;
+  // "Elegir el workout a ver" (2026-09) — nombres de entrenamiento (p.ej.
+  // "Día de pierna") con sesión en el rango. A diferencia de exerciseNames,
+  // este filtro no es una métrica aparte: cuando se pide `workout`, TODOS
+  // los agregados de arriba (blocks, sessionTraining, etc.) salen ya
+  // recortados a ese workout — el backend filtra antes de calcular nada.
+  workoutNames: string[];
   totalSets: number;
   // Presentes solo en modo `weeks` (Resumen); ausentes en modo `from`/`to`
   // (comparación por microciclo de Entrenamiento) — ver

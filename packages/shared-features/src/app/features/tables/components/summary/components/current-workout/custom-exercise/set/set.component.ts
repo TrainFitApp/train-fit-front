@@ -8,7 +8,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ModalOptions, PopoverOptions } from '@ionic/angular';
+import { ModalController, PopoverOptions } from '@ionic/angular';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { Set } from 'src/app/core/models/set';
 import { RirValue } from 'src/app/core/models/rir';
@@ -18,7 +18,6 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { TranslateService } from '@ngx-translate/core';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
-import { ManageSetComponent } from 'src/app/features/tables/components/summary/components/manage-set/manage-set.component';
 import { PopoverActionsComponent } from 'src/app/shared/components/popover-actions/popover-actions.component';
 import {
   ACTION_TYPE,
@@ -46,6 +45,13 @@ export class SetComponent implements OnInit, OnChanges {
   public reorderMode: boolean = false;
   @Input()
   public originalIndex: number | undefined;
+  // 2026-09 ter — "Objetivo" (editSet) y el menú ⋮ (handleActions#edit/
+  // #delete) abrían su PROPIO modal / llamaban a la API directamente,
+  // esquivando por completo el guardReadonly() del padre (custom-exercise.
+  // component.ts) — el mismo bug de fondo que configSet, pero por una vía
+  // que ni siquiera pasaba por el padre. Ver guardReadonly() más abajo.
+  @Input()
+  public isReadonly: boolean = false;
 
   @Output()
   public deleteSet = new EventEmitter();
@@ -178,6 +184,19 @@ export class SetComponent implements OnInit, OnChanges {
     this.confSet.emit(set);
   }
 
+  // 2026-09 ter — guarda local para las acciones que NO delegan en el padre
+  // (a diferencia de configSet/copySet, que solo emiten y dejan que
+  // custom-exercise.component.ts decida): showDeleteSweetAlert llama a la
+  // API directamente desde aquí, así que necesita su propio guardado.
+  private guardReadonly(): boolean {
+    if (!this.isReadonly) return false;
+    this.ionicUtilService.showToast({
+      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      duration: 3000,
+    });
+    return true;
+  }
+
   public onRirValueChange(value: RirValue): void {
     // rir can be: null, [-1] (fail), [0-10], or [first, second] for ranges.
     if (this.rirFormControl?.value === value) {
@@ -203,6 +222,7 @@ export class SetComponent implements OnInit, OnChanges {
   }
 
   public showDeleteSweetAlert(): void {
+    if (this.guardReadonly()) return;
     const alertOptions = {
       header: this.translate.instant('TABLES.DELETE_SET'),
       message: this.translate.instant('TABLES.DELETE_SET_CONFIRM'),
@@ -246,21 +266,13 @@ export class SetComponent implements OnInit, OnChanges {
     event.stopPropagation();
   }
 
+  // 2026-09 ter — antes abría su PROPIO modal y guardaba directo por
+  // setService.updateSet (esquivando el guardReadonly del padre por
+  // completo — ni siquiera pasaba por confSet). Ahora delega en el padre
+  // igual que el menú ⋮ "Editar", que es quien decide si toca guardar (guard)
+  // y por dónde (updateCustomExercise, protegido en rutina asignada).
   public editSet(): void {
-    const modalOptions: ModalOptions = {
-      component: ManageSetComponent,
-      componentProps: {
-        set: this.set,
-        isCardio: this.isCardio,
-        isIsometric: this.isIsometric,
-      },
-    };
-
-    this.ionicUtilService.showModal(modalOptions).then((resSet) => {
-      if (resSet.data) {
-        this.updateSetFromModal(resSet.data as Set);
-      }
-    });
+    this.configSet(this.set);
   }
 
   private getActionsPopover(): ACTION_TYPE[] {
@@ -283,37 +295,14 @@ export class SetComponent implements OnInit, OnChanges {
         break;
 
       case ACTIONS[this.ACTION_TYPES.edit].id:
-        const modalOptions: ModalOptions = {
-          component: ManageSetComponent,
-          componentProps: {
-            set: this.set,
-            isCardio: this.isCardio,
-            isIsometric: this.isIsometric,
-          },
-        };
-
-        this.ionicUtilService.showModal(modalOptions).then((resSet) => {
-          if (resSet.data) {
-            this.updateSetFromModal(resSet.data as Set);
-          }
-        });
+        // 2026-09 ter — delega en el padre, mismo motivo que editSet().
+        this.configSet(this.set);
         break;
 
       case ACTIONS[this.ACTION_TYPES.delete].id:
         this.showDeleteSweetAlert();
         break;
     }
-  }
-
-  private updateSetFromModal(set: Set): void {
-    this.setService.updateSet(set).subscribe((resS) => {
-      const sets = this.currentWorkout.exercises[this.indexCustomExercise].sets;
-      const indexSet = sets.findIndex((sTemp) => sTemp._id === resS._id);
-
-      sets[indexSet] = resS;
-      this.set = resS;
-      this.workoutService.setCurrentWorkout = this.currentWorkout;
-    });
   }
 
   public isFail(set: any): boolean {

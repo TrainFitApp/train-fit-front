@@ -1,9 +1,13 @@
 <div class="chart-container">
   <canvas #chartCanvas></canvas>
 </div>
-<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'exercise' && !selectedExercise">
-  Elige un ejercicio en "Comparar por" para ver su progresión por microciclo.
+<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'exercise' && !selectedExercises.length">
+  Elige uno o varios ejercicios en "Comparar por" para ver su progresión.
 </p>
-<p class="empty-hint" *ngIf="!isLoading && !hasData && !(metric === 'exercise' && !selectedExercise)">
-  No hay microciclos con series completadas en el rango elegido.
+<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'readiness'">
+  El cliente todavía no ha dejado ningún pulso de readiness o esfuerzo en este rango — es opcional,
+  se lo pregunta la app al empezar y al terminar cada sesión.
+</p>
+<p class="empty-hint" *ngIf="!isLoading && !hasData && metric !== 'readiness' && !(metric === 'exercise' && !selectedExercises.length)">
+  {{ granularity === 'session' && metric !== 'sessions' ? 'No hay sesiones con series completadas en el rango elegido.' : 'No hay microciclos con series completadas en el rango elegido.' }}
 </p>

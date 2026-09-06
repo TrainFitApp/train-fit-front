@@ -241,9 +241,17 @@
           <app-training-comparison-chart
             [blocks]="trainingBlocks"
             [blockMuscleGroups]="trainingBlockMuscleGroups"
-            [blockExercise]="trainingBlockExercise"
-            [selectedExercise]="selectedTrainingExercise"
+            [blockExerciseByName]="trainingBlockExerciseByName"
+            [blockReadiness]="trainingBlockReadiness"
+            [blockAdherence]="trainingBlockAdherence"
+            [sessionTraining]="trainingSessionTraining"
+            [sessionMuscleGroups]="trainingSessionMuscleGroups"
+            [sessionExerciseByName]="trainingSessionExerciseByName"
+            [sessionReadiness]="trainingSessionReadiness"
+            [sessionAdherence]="trainingSessionAdherence"
+            [selectedExercises]="selectedTrainingExercises"
             [metric]="trainingComparisonMetric"
+            [granularity]="trainingGranularity"
             [isLoading]="trainingBlocksState === 'loading'"
           ></app-training-comparison-chart>
         </div>
@@ -288,7 +296,12 @@
                 <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
               </button>
             </div>
-            <p class="history-subtitle">Desde el {{ phase.startDate | date: 'd MMM y' }}</p>
+            <p class="history-subtitle">
+              Desde el {{ phase.startDate | date: 'd MMM y' }}
+              <ng-container *ngIf="phase.estimatedEndDate">
+                · Fin previsto el {{ phase.estimatedEndDate | date: 'd MMM y' }}
+              </ng-container>
+            </p>
 
             <!-- 2026-09 — el Planificador de la rutina EN USO estaba solo
                  detrás del icono de una fila de la lista de rutinas, más
@@ -318,7 +331,12 @@
               <div class="list-card">
                 <ion-icon name="time-outline" color="medium"></ion-icon>
                 <span class="list-card-title">{{ phase.tableName }}</span>
-                <span class="scheduled-badge">Programada · {{ phase.startDate | date: 'd MMM' }}</span>
+                <span class="scheduled-badge">
+                  Programada · {{ phase.startDate | date: 'd MMM' }}
+                  <ng-container *ngIf="phase.estimatedEndDate">
+                    → {{ phase.estimatedEndDate | date: 'd MMM' }}
+                  </ng-container>
+                </span>
               </div>
               <button
                 class="bulk-apply-btn"
@@ -375,6 +393,12 @@
               <span class="history-date">{{ workout.date | date: 'd MMM y' }}</span>
             </div>
             <p class="history-subtitle">{{ workout.tableName }} · {{ workout.splitName }}</p>
+            <!-- F18 — mismo badge que la pestaña Sesiones (Progreso >
+                 Sesiones): antes solo se veía ahí, aparte de Entrenamiento. -->
+            <div class="history-meta" *ngIf="workout.readinessPre || workout.perceivedEffortPost">
+              <span class="pulse-badge" *ngIf="workout.readinessPre">Readiness {{ workout.readinessPre }}/5</span>
+              <span class="pulse-badge" *ngIf="workout.perceivedEffortPost">Esfuerzo {{ workout.perceivedEffortPost }}/5</span>
+            </div>
           </div>
         </div>
 

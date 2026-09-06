@@ -9,15 +9,23 @@ import {
 } from '@angular/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
+  BlockAdherence,
   BlockExerciseProgress,
   BlockMuscleGroup,
+  BlockReadiness,
+  SessionAdherence,
+  SessionExerciseProgress,
+  SessionMuscleGroup,
+  SessionReadiness,
+  SessionTraining,
   TrainingBlock,
   TrainingComparisonMetric,
+  TrainingGranularity,
 } from '../../models/client-progress.model';
 
-// Paleta categórica para grupos musculares — misma familia desaturada que
-// el resto de la app (PHASE_COLORS en nutrition-calendar), no la Tailwind
-// *-400 saturada original.
+// Paleta categórica para grupos musculares y para comparar varios ejercicios
+// a la vez — misma familia desaturada que el resto de la app (PHASE_COLORS
+// en nutrition-calendar), no la Tailwind *-400 saturada original.
 const MUSCLE_GROUP_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2', '#7fb0b0', '#b98a5e'];
 
 // Tarea 4 (2026-09) — gráfica de comparación por microciclo. Un único
@@ -32,11 +40,24 @@ const MUSCLE_GROUP_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c4
 export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   @Input() blocks: TrainingBlock[] = [];
   @Input() blockMuscleGroups: BlockMuscleGroup[] = [];
-  @Input() blockExercise: BlockExerciseProgress[] = [];
-  // Solo para el mensaje vacío ("elige un ejercicio" vs "sin datos en el
-  // rango") — la gráfica en sí ya recibe blockExercise ya filtrado.
-  @Input() selectedExercise: string | null = null;
+  @Input() blockReadiness: BlockReadiness[] = [];
+  @Input() blockAdherence: BlockAdherence[] = [];
+  // 2026-09 — granularidad "Por sesión": mismos agregados que arriba, una
+  // fila por fecha en vez de por microciclo.
+  @Input() sessionTraining: SessionTraining[] = [];
+  @Input() sessionMuscleGroups: SessionMuscleGroup[] = [];
+  @Input() sessionReadiness: SessionReadiness[] = [];
+  @Input() sessionAdherence: SessionAdherence[] = [];
+  // Comparar por ejercicio, varios a la vez (2026-09 bis) — un array por
+  // cada ejercicio elegido, indexado por nombre (mismo shape que devuelve
+  // el backend). selectedExercises es solo para el mensaje vacío ("elige un
+  // ejercicio" vs "sin datos en el rango"); la gráfica en sí itera las
+  // claves de blockExerciseByName/sessionExerciseByName.
+  @Input() blockExerciseByName: Record<string, BlockExerciseProgress[]> = {};
+  @Input() sessionExerciseByName: Record<string, SessionExerciseProgress[]> = {};
+  @Input() selectedExercises: string[] = [];
   @Input() metric: TrainingComparisonMetric = 'volume';
+  @Input() granularity: TrainingGranularity = 'block';
   @Input() isLoading = false;
 
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
@@ -44,7 +65,20 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   private chart: Chart | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['blocks'] || changes['blockMuscleGroups'] || changes['blockExercise'] || changes['metric']) {
+    if (
+      changes['blocks'] ||
+      changes['blockMuscleGroups'] ||
+      changes['blockExerciseByName'] ||
+      changes['blockReadiness'] ||
+      changes['blockAdherence'] ||
+      changes['sessionTraining'] ||
+      changes['sessionMuscleGroups'] ||
+      changes['sessionExerciseByName'] ||
+      changes['sessionReadiness'] ||
+      changes['sessionAdherence'] ||
+      changes['metric'] ||
+      changes['granularity']
+    ) {
       this.renderChart();
     }
   }
@@ -53,10 +87,33 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
     this.chart?.destroy();
   }
 
+  // 'sessions' (conteo DE sesiones por microciclo) no tiene lectura por
+  // sesión con sentido — siempre sale por microciclo, ignorando el toggle.
+  private get isSessionMode(): boolean {
+    return this.granularity === 'session' && this.metric !== 'sessions';
+  }
+
   public get hasData(): boolean {
-    if (this.metric === 'muscleGroups') return this.blockMuscleGroups.length > 0;
-    if (this.metric === 'exercise') return this.blockExercise.length > 0;
-    return this.blocks.length > 0;
+    if (this.metric === 'muscleGroups') {
+      return this.isSessionMode ? this.sessionMuscleGroups.length > 0 : this.blockMuscleGroups.length > 0;
+    }
+    if (this.metric === 'exercise') {
+      const byName = this.isSessionMode ? this.sessionExerciseByName : this.blockExerciseByName;
+      return Object.values(byName).some((entries) => entries.length > 0);
+    }
+    // 'readiness' — al menos una fila con AL MENOS una de las dos métricas,
+    // no basta con que exista la fila (puede no traer ningún pulso).
+    if (this.metric === 'readiness') {
+      return this.isSessionMode
+        ? this.sessionReadiness.some((s) => s.readinessPre !== null || s.perceivedEffortPost !== null)
+        : this.blockReadiness.some((b) => b.avgReadinessPre !== null || b.avgPerceivedEffortPost !== null);
+    }
+    if (this.metric === 'adherence') {
+      return this.isSessionMode
+        ? this.sessionAdherence.some((s) => s.adherence !== null)
+        : this.blockAdherence.some((b) => b.adherence !== null);
+    }
+    return this.isSessionMode ? this.sessionTraining.length > 0 : this.blocks.length > 0;
   }
 
   private renderChart(): void {
@@ -68,6 +125,10 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
         ? this.buildMuscleGroupConfig()
         : this.metric === 'exercise'
         ? this.buildExerciseConfig()
+        : this.metric === 'readiness'
+        ? this.buildReadinessConfig()
+        : this.metric === 'adherence'
+        ? this.buildAdherenceConfig()
         : this.buildSimpleMetricConfig();
 
     if (this.chart) {
@@ -76,14 +137,122 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
     this.chart = new Chart(ctx, config);
   }
 
-  // Comparar por ejercicio (2026-09) — peso máximo por microciclo como línea
-  // principal (mismo criterio que PersonalRecord: es como un entrenador lee
-  // un récord). Volumen y series quedan en el tooltip como contexto, no como
-  // líneas propias — mismo motivo que el resto de métricas son un selector,
-  // no varias activas a la vez: no comparten escala con los kg.
+  // Etiqueta del eje X en modo "Por sesión": la fecha corta, no el nombre
+  // del microciclo (que se repite en varias sesiones seguidas y no
+  // distinguiría los puntos).
+  private sessionLabel(item: { date: string }): string {
+    return new Date(`${item.date}T00:00:00`).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+    });
+  }
+
+  // Comparar por ejercicio, varios a la vez (2026-09 bis) — una línea de
+  // peso máximo por ejercicio elegido (mismo criterio que PersonalRecord: es
+  // como un entrenador lee un récord), coloreadas como los grupos
+  // musculares. Volumen y series quedan en el tooltip como contexto, no
+  // como líneas propias.
+  //
+  // El eje X es CANÓNICO (todos los microciclos/sesiones del rango, ver
+  // this.blocks/this.sessionTraining), no la unión de los que tiene cada
+  // ejercicio: dos ejercicios entrenados en días distintos deben alinearse
+  // contra el mismo eje, con hueco (`null`, Chart.js corta la línea ahí,
+  // `spanGaps` false por defecto) donde ese ejercicio no se hizo — mismo
+  // criterio que ya usa buildReadinessConfig para sesiones sin pulso.
   private buildExerciseConfig(): ChartConfiguration<'line'> {
-    const labels = this.blockExercise.map((b) => this.blockLabel(b));
-    const data = this.blockExercise.map((b) => b.maxWeight);
+    const sessionMode = this.isSessionMode;
+    const byName = sessionMode ? this.sessionExerciseByName : this.blockExerciseByName;
+    const names = this.selectedExercises.length ? this.selectedExercises : Object.keys(byName);
+
+    const canonicalKeys = sessionMode
+      ? this.sessionTraining.map((s) => s.date)
+      : this.blocks.map((b) => b.splitId);
+    const labels = sessionMode
+      ? this.sessionTraining.map((s) => this.sessionLabel(s))
+      : this.blocks.map((b) => this.blockLabel(b));
+
+    // Normaliza block/session a la misma forma (clave + los 3 valores) para
+    // no repartir casts de tipo por todo el método.
+    const entriesByName = new Map<string, Map<string, { maxWeight: number; volume: number; sets: number }>>();
+    for (const name of names) {
+      const rows = byName[name] || [];
+      const byKey = new Map(
+        rows.map((row): [string, { maxWeight: number; volume: number; sets: number }] => [
+          sessionMode ? (row as SessionExerciseProgress).date : (row as BlockExerciseProgress).splitId,
+          { maxWeight: row.maxWeight, volume: row.volume, sets: row.sets },
+        ])
+      );
+      entriesByName.set(name, byKey);
+    }
+
+    const datasets = names.map((name, index) => {
+      const byKey = entriesByName.get(name)!;
+      const color = MUSCLE_GROUP_COLORS[index % MUSCLE_GROUP_COLORS.length];
+      return {
+        label: name,
+        data: canonicalKeys.map((key) => byKey.get(key)?.maxWeight ?? null),
+        borderColor: color,
+        backgroundColor: color,
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.3,
+        pointRadius: 3,
+        pointBackgroundColor: color,
+      };
+    });
+
+    const base = this.baseOptions();
+    return {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        ...base,
+        plugins: {
+          ...base.plugins,
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 }, boxWidth: 10 },
+          },
+          tooltip: {
+            ...base.plugins?.tooltip,
+            callbacks: {
+              afterLabel: (context) => {
+                const name = names[context.datasetIndex];
+                const key = canonicalKeys[context.dataIndex];
+                const entry = entriesByName.get(name)?.get(key);
+                return entry ? [`Volumen: ${entry.volume} kg`, `Series: ${entry.sets}`] : [];
+              },
+            },
+          },
+        },
+      },
+    };
+  }
+
+  private blockLabel(block: { name: string; start?: string; end?: string }): string {
+    return block.name;
+  }
+
+  // 2026-09 — readiness (antes de entrenar) y esfuerzo percibido (después),
+  // promediados por microciclo. Dos líneas en la MISMA escala 1-5 (a
+  // diferencia de sessions/sets/volume, que sí comparten eje con
+  // beginAtZero): un eje que empezara en 0 aplastaría la diferencia real
+  // entre "3 de esfuerzo" y "4 de esfuerzo", que es exactamente lo que el
+  // entrenador necesita distinguir. Bloques sin ningún pulso registrado se
+  // dejan como `null` en el dataset (Chart.js corta la línea ahí, `spanGaps`
+  // false por defecto) en vez de un 0 que se leería como "agotado".
+  private buildReadinessConfig(): ChartConfiguration<'line'> {
+    const sessionMode = this.isSessionMode;
+    const labels = sessionMode
+      ? this.sessionReadiness.map((s) => this.sessionLabel(s))
+      : this.blockReadiness.map((b) => this.blockLabel(b));
+    const readinessData = sessionMode
+      ? this.sessionReadiness.map((s) => s.readinessPre)
+      : this.blockReadiness.map((b) => b.avgReadinessPre);
+    const effortData = sessionMode
+      ? this.sessionReadiness.map((s) => s.perceivedEffortPost)
+      : this.blockReadiness.map((b) => b.avgPerceivedEffortPost);
     const base = this.baseOptions();
 
     return {
@@ -92,15 +261,90 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
         labels,
         datasets: [
           {
-            label: 'Peso máximo (kg)',
-            data,
-            borderColor: '#fe9000',
-            backgroundColor: 'rgba(254, 144, 0, 0.12)',
+            label: 'Readiness (antes de entrenar)',
+            data: readinessData,
+            borderColor: '#4f9fc2',
+            backgroundColor: '#4f9fc2',
             borderWidth: 2.5,
-            fill: true,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#4f9fc2',
+          },
+          {
+            label: 'Esfuerzo percibido (al terminar)',
+            data: effortData,
+            borderColor: '#fe9000',
+            backgroundColor: '#fe9000',
+            borderWidth: 2.5,
+            fill: false,
             tension: 0.3,
             pointRadius: 3,
             pointBackgroundColor: '#fe9000',
+          },
+        ],
+      },
+      options: {
+        ...base,
+        plugins: {
+          ...base.plugins,
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: 'rgba(255,255,255,0.7)', font: { size: 10 }, boxWidth: 10 },
+          },
+          tooltip: {
+            ...base.plugins?.tooltip,
+            callbacks: sessionMode
+              ? {}
+              : {
+                  afterLabel: (context) => {
+                    const block = this.blockReadiness[context.dataIndex];
+                    if (!block) return [];
+                    return [`${block.sessionsWithPulse} sesión(es) con pulso registrado`];
+                  },
+                },
+          },
+        },
+        scales: {
+          ...base.scales,
+          y: {
+            min: 1,
+            max: 5,
+            ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 1 },
+          },
+        },
+      },
+    };
+  }
+
+  // Adherencia (2026-09) — % de series hechas frente a las pautadas. Una
+  // sola línea 0-100%, sin relleno (a diferencia del resto de métricas
+  // "simples"): el relleno bajo una línea que puede tocar 0% se lee como
+  // "barra vacía", que confunde con un gráfico de progreso.
+  private buildAdherenceConfig(): ChartConfiguration<'line'> {
+    const sessionMode = this.isSessionMode;
+    const items: Array<{ adherence: number | null }> = sessionMode ? this.sessionAdherence : this.blockAdherence;
+    const labels = sessionMode
+      ? this.sessionAdherence.map((s) => this.sessionLabel(s))
+      : this.blockAdherence.map((b) => this.blockLabel(b));
+    const base = this.baseOptions();
+
+    return {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Adherencia a lo pautado (%)',
+            data: items.map((i) => i.adherence),
+            borderColor: '#4d9b7f',
+            backgroundColor: '#4d9b7f',
+            borderWidth: 2.5,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: '#4d9b7f',
           },
         ],
       },
@@ -112,21 +356,51 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
             ...base.plugins?.tooltip,
             callbacks: {
               afterLabel: (context) => {
-                const block = this.blockExercise[context.dataIndex];
-                return block ? [`Volumen: ${block.volume} kg`, `Series: ${block.sets}`] : [];
+                if (sessionMode) {
+                  const session = this.sessionAdherence[context.dataIndex];
+                  return session ? [`${session.donedSets} de ${session.totalSets} series`] : [];
+                }
+                const block = this.blockAdherence[context.dataIndex];
+                return block ? [`${block.sessions} sesión(es)`] : [];
               },
             },
           },
+        },
+        scales: {
+          ...base.scales,
+          y: { min: 0, max: 100, ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 20 } },
         },
       },
     };
   }
 
-  private blockLabel(block: { name: string; start: string; end: string }): string {
-    return block.name;
-  }
-
   private buildSimpleMetricConfig(): ChartConfiguration<'line'> {
+    // 'sessions' siempre por microciclo (ver isSessionMode).
+    if (this.isSessionMode) {
+      const labels = this.sessionTraining.map((s) => this.sessionLabel(s));
+      const data = this.sessionTraining.map((s) => (this.metric === 'sets' ? s.sets : s.volume));
+      return {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: this.metricUnitLabel(),
+              data,
+              borderColor: '#fe9000',
+              backgroundColor: 'rgba(254, 144, 0, 0.12)',
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: '#fe9000',
+            },
+          ],
+        },
+        options: this.baseOptions(),
+      };
+    }
+
     const labels = this.blocks.map((b) => this.blockLabel(b));
     const data = this.blocks.map((b) =>
       this.metric === 'sessions' ? b.sessions : this.metric === 'sets' ? b.sets : b.volume
@@ -160,16 +434,18 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   // como "no existe esta serie", que es lo que responde "¿se ha dejado de
   // trabajar este grupo?".
   private buildMuscleGroupConfig(): ChartConfiguration<'line'> {
-    const labels = this.blockMuscleGroups.map((b) => this.blockLabel(b));
-    const allGroups = Array.from(
-      new Set(this.blockMuscleGroups.flatMap((b) => b.muscleGroups.map((g) => g.group)))
-    );
+    const sessionMode = this.isSessionMode;
+    const items = sessionMode ? this.sessionMuscleGroups : this.blockMuscleGroups;
+    const labels = sessionMode
+      ? this.sessionMuscleGroups.map((s) => this.sessionLabel(s))
+      : this.blockMuscleGroups.map((b) => this.blockLabel(b));
+    const allGroups = Array.from(new Set(items.flatMap((b) => b.muscleGroups.map((g) => g.group))));
 
     const datasets = allGroups.map((group, index) => {
       const color = MUSCLE_GROUP_COLORS[index % MUSCLE_GROUP_COLORS.length];
       return {
         label: group,
-        data: this.blockMuscleGroups.map((b) => b.muscleGroups.find((g) => g.group === group)?.volume ?? 0),
+        data: items.map((b) => b.muscleGroups.find((g) => g.group === group)?.volume ?? 0),
         borderColor: color,
         backgroundColor: color,
         borderWidth: 2.5,

@@ -14,6 +14,14 @@ export interface RoutineAssignment {
   supersededBy: string | null;
   createdAt: string;
   tableName?: string | null;
+  // 2026-09 — cuándo se completaría la rutina entera una vez, empezando en
+  // startDate, si se entrena un día tras otro sin saltarse ninguno. Mismo
+  // mecanismo que la adherencia de entrenamiento (proyecta TODOS los splits
+  // de la tabla día a día, ver routine-assignment-projection.js#
+  // getProjectedPhaseEndDate). Sigue sin ser un endDate real — una fase
+  // rige hasta que otra la sustituye, esto es solo la estimación de
+  // planificación. null si la tabla no tiene ningún entrenamiento.
+  estimatedEndDate?: string | null;
 }
 
 export interface ApplyRoutineRequest {

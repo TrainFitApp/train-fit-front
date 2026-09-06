@@ -65,6 +65,17 @@ export class PlannerPage {
   // ORIGEN del drag activo (null = nada en curso).
   public draggingFromSplitId: string | null = null;
 
+  // Reordenar microciclos (2026-09) — antes cdkDrag SIEMPRE activo en la
+  // columna; en móvil el gesto de arrastre choca con el scroll horizontal
+  // del tablero y no engancha bien. Ahora el drag solo se activa con este
+  // modo explícito (botón en la toolbar, mismo patrón que "Alinear filas"),
+  // así el scroll normal del dedo nunca se confunde con "quiero mover esto".
+  public reorderMode = false;
+
+  public toggleReorderMode(): void {
+    this.reorderMode = !this.reorderMode;
+  }
+
   // Tarea (2026-08) — "Añadir desde plantilla" hace varias llamadas seguidas
   // (una por plantilla × microciclo); mientras dura la secuencia, el tablero
   // entero queda cubierto por un overlay (ver planner-column.component.ts,

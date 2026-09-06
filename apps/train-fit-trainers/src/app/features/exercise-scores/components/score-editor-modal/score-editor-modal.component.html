@@ -12,6 +12,15 @@
   </header>
 
   <div class="editor-body">
+    <!-- 2026-09 — avisa de que los valores puestos son una SUGERENCIA por
+         patrón de movimiento, no algo que el entrenador ya decidió: sin
+         esto, un ejercicio nunca tocado con casillas ya marcadas se lee
+         como "esto ya lo puntué yo". -->
+    <p class="default-hint" *ngIf="isDefault">
+      <ion-icon name="bulb-outline" aria-hidden="true"></ion-icon>
+      Sugerencia de partida según el tipo de ejercicio. Ajústala a tu criterio y guarda.
+    </p>
+
     <!-- ===== Músculos ===== -->
     <div class="section-head">
       <h3 class="section-title">Estimulación muscular</h3>

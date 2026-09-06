@@ -62,6 +62,10 @@ export class CustomExerciseService {
     return this.customExerciseAPIService.setCustomExerciseBlock(id, blockId);
   }
 
+  public updateClientNotes(id: string, clientNotes: string): Observable<CustomExercise> {
+    return this.customExerciseAPIService.updateClientNotes(id, clientNotes);
+  }
+
   public deleteCustomExercise(id: string): Observable<any> {
     return this.customExerciseAPIService.deleteCustomExercise(id).pipe(take(1));
   }

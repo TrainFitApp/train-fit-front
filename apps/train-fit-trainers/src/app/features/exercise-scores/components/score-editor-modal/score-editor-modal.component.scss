@@ -55,6 +55,24 @@
   padding: var(--tf-space-4) var(--tf-space-5) var(--tf-space-5);
 }
 
+// 2026-09 — aviso de "esto es una sugerencia, no lo que ya decidiste".
+.default-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0 0 var(--tf-space-4);
+  padding: var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-sm);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+}
+
 .section-head {
   display: flex;
   align-items: baseline;

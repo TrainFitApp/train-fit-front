@@ -509,30 +509,6 @@
       </div>
     </ng-template>
 
-    <!-- Movimiento 6 Coach Pro — tempo.
-         Solo en el bloque de fuerza (setForm tiene este control nada más en
-         esa rama): el tempo no significa nada en un cardio ni en un
-         isométrico. Opcional — hay entrenadores que no lo usan. %RM se quitó
-         (2026-09): no era una funcionalidad que interesara. -->
-    <div class="field-section" *ngIf="setForm.get('tempo')">
-      <div class="input-row">
-        <div class="input-field">
-          <ion-input
-            formControlName="tempo"
-            type="text"
-            fill="outline"
-            maxlength="15"
-            label="Tempo"
-            labelPlacement="stacked"
-            placeholder="3-1-1-0"
-          ></ion-input>
-        </div>
-      </div>
-      <p class="field-hint">
-        Tempo: excéntrica · pausa abajo · concéntrica · pausa arriba, en segundos. Usa X para
-        explosiva.
-      </p>
-    </div>
 
     <!-- Card explicativo -->
     <div class="info-explainer">

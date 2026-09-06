@@ -284,7 +284,6 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
   pushIfChanged(chips, 'Reps', repsLabel(a), repsLabel(b));
   pushIfChanged(chips, 'RIR', rirLabel(a), rirLabel(b));
   pushIfChanged(chips, 'Descanso', restLabel(a), restLabel(b));
-  pushIfChanged(chips, 'Tempo', uniqueValue(a, (s) => s.tempo), uniqueValue(b, (s) => s.tempo));
 
   if ((a.notes || '').trim() !== (b.notes || '').trim()) chips.push('Nota del entrenador editada');
 
@@ -367,16 +366,6 @@ function restLabel(exercise: CustomExercise): string {
   return range ? `${range} s` : '';
 }
 
-function uniqueValue(exercise: CustomExercise, read: (set: ExerciseSet) => string): string {
-  const values = new Set<string>();
-  for (const set of exercise.sets || []) {
-    const value = (read(set) || '').trim();
-    if (value) values.add(value);
-  }
-  const list = [...values];
-  if (!list.length) return '';
-  return list.length === 1 ? list[0] : list.join(' / ');
-}
 
 function rangeLabel(values: number[]): string {
   if (!values.length) return '';

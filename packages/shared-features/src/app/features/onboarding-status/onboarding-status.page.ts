@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
@@ -7,6 +7,7 @@ import {
   OnboardingRelation,
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
+import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
 import { PendingInvite } from '../coach/models/professional-relation.model';
@@ -73,7 +74,7 @@ const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
   templateUrl: 'onboarding-status.page.html',
   styleUrls: ['onboarding-status.page.scss'],
 })
-export class OnboardingStatusPage {
+export class OnboardingStatusPage implements OnDestroy {
   public state: ViewState = 'loading';
   public groups: TrainerGroup[] = [];
 
@@ -106,17 +107,37 @@ export class OnboardingStatusPage {
   public pendingInvites: PendingInvite[] = [];
   public respondingInviteId: string | null = null;
 
+  // Bug real (2026-09) — esta pantalla no tenía NINGÚN control de
+  // navegación (ni back, ni tab bar —estructuralmente ausente mientras el
+  // guard bloquea /tabs—, ni cerrar sesión) en cuanto la única relación
+  // pendiente pasaba a "en_revision": el cliente quedaba atrapado hasta
+  // forzar el cierre de la app. Dos partes al fix, ninguna toca la
+  // condición del guard (onboardingMatchGuard/blocked ya está bien acotada,
+  // solo bloquea sin NINGUNA relación activa): (1) salida siempre
+  // disponible (logout), (2) auto-desatasco por si el entrenador confirma
+  // mientras el cliente sigue en esta pantalla.
+  private pollHandle: ReturnType<typeof setInterval> | null = null;
+
   constructor(
     private router: Router,
     private onboardingService: OnboardingService,
     private intakeApi: IntakeApiService,
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private authService: AuthService
   ) {}
 
   public ionViewWillEnter(): void {
     this.load();
+  }
+
+  public ionViewWillLeave(): void {
+    this.stopPolling();
+  }
+
+  public ngOnDestroy(): void {
+    this.stopPolling();
   }
 
   public load(): void {
@@ -128,16 +149,51 @@ export class OnboardingStatusPage {
       next: ({ status, pendingInvites }) => {
         this.pendingInvites = pendingInvites || [];
         if (!status.blocked && !this.pendingInvites.length) {
+          this.stopPolling();
           void this.router.navigate(['/tabs']);
           return;
         }
         this.groups = this.groupByTrainer(status.relations);
         this.state = 'loaded';
+
+        // Nada que rellenar, solo esperar confirmación del entrenador: se
+        // sondea cada 30s para que el cliente entre solo a /tabs en cuanto
+        // se confirme, sin tener que forzar el cierre de la app. Mientras
+        // quede algún cuestionario por rellenar (pendingCount > 0) no hay
+        // nada que "esperar" todavía, así que no se sondea.
+        if (this.pendingCount === 0) {
+          this.startPolling();
+        } else {
+          this.stopPolling();
+        }
       },
       error: () => {
         this.state = 'error';
       },
     });
+  }
+
+  private startPolling(): void {
+    if (this.pollHandle) return;
+    this.pollHandle = setInterval(() => this.load(), 30000);
+  }
+
+  private stopPolling(): void {
+    if (this.pollHandle) {
+      clearInterval(this.pollHandle);
+      this.pollHandle = null;
+    }
+  }
+
+  // Válvula de escape siempre disponible: la espera de confirmación del
+  // entrenador no tiene SLA (puede ser minutos o días), y hasta ahora esta
+  // pantalla no ofrecía ninguna forma de salir salvo forzar el cierre de la
+  // app. AuthService#logout() es autocontenido (limpia estado, avisa al
+  // backend y navega a login por su cuenta) — mismo método que ya usa
+  // Configuración.
+  public logout(): void {
+    this.stopPolling();
+    this.authService.logout();
   }
 
   public respondToInvite(invite: PendingInvite, decision: 'accept' | 'decline'): void {
