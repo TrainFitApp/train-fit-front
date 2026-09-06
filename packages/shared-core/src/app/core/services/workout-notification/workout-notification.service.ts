@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { CustomExercise } from '../../models/customExercise';
 import { Set as WorkoutSet } from '../../models/set';
 import { Workout } from '../../models/workout';
+import { LiveActivityService } from '../live-activity/live-activity.service';
 import { NavigationService } from '../util/navigation.service';
 import { RestTimerService } from '../rest-timer/rest-timer.service';
 import { SetService } from '../set/set.service';
@@ -40,6 +41,7 @@ export class WorkoutNotificationService {
     private setService: SetService,
     private restTimerService: RestTimerService,
     private navigationService: NavigationService,
+    private liveActivityService: LiveActivityService,
   ) {}
 
   public async initialize(): Promise<void> {
@@ -67,6 +69,14 @@ export class WorkoutNotificationService {
   // marca/edita un set desde la propia app, etc.) — mantiene la
   // notificación siempre apuntando al siguiente set pendiente real.
   public async refreshForWorkout(workout: Workout | null): Promise<void> {
+    // Donde hay Live Activity (iOS 17+) manda esa: trae steppers de
+    // KG/REPS/RIR y check en la propia pantalla de bloqueo. La notificación
+    // simple es el plan B del resto de plataformas.
+    if (await this.liveActivityService.refreshForWorkout(workout)) {
+      await this.cancel();
+      return;
+    }
+
     if (!workout) {
       await this.cancel();
       return;

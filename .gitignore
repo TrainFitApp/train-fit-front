@@ -41,4 +41,8 @@ npm-debug.log*
 
 bash.exe.stackdump
 
-build.yml
+# Ojo: la regla suelta "build.yml" (sin barra) casa con CUALQUIER fichero de ese
+# nombre a cualquier profundidad, incluido .github/workflows/build.yml — por eso
+# los workflows de deploy nunca llegaron a subirse al repositorio. Se ancla a la
+# raíz para que solo afecte al build.yml de Ionic Appflow.
+/build.yml

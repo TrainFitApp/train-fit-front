@@ -1,5 +1,18 @@
 apply plugin: 'com.android.application'
 
+// Release signing material comes from the environment on CI (the keystore is
+// written to disk by the workflow and never committed). Locally these are all
+// null, so the release build simply falls back to the debug signing config and
+// nothing changes for day-to-day development.
+def releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+def hasReleaseKeystore = releaseKeystorePath != null && !releaseKeystorePath.isEmpty() && file(releaseKeystorePath).exists()
+
+// versionCode/versionName stay checked in as the source of truth, but CI can
+// override them (-PversionCode=...) so every upload gets a fresh, monotonic
+// code without touching this file.
+def resolvedVersionCode = (project.findProperty("versionCode") ?: 101347) as Integer
+def resolvedVersionName = (project.findProperty("versionName") ?: "101.3.47") as String
+
 android {
     namespace "com.trainfit.trainfit"
     compileSdk rootProject.ext.compileSdkVersion
@@ -7,8 +20,8 @@ android {
         applicationId "com.trainfit.trainfit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 101347
-        versionName "101.3.47"
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +29,23 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(releaseKeystorePath)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

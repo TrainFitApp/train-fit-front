@@ -1,0 +1,378 @@
+name: Mobile release
+
+# Pipeline de publicación para las apps Capacitor del monorepo.
+#
+# Grafo de trabajos (lo que puede ir en paralelo y lo que no):
+#
+#   prepare ──> build-web ──┬──> android ──> (Google Play)
+#                           └──> ios     ──> (TestFlight)
+#
+# build-web es el único cuello de botella real: `cap sync` de las dos
+# plataformas necesita el mismo `www/`, así que se compila UNA vez en un runner
+# Linux (barato) y se pasa como artefacto. android e ios arrancan a la vez en
+# cuanto termina; entre ellos no hay ninguna dependencia.
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: App del monorepo a publicar
+        type: choice
+        default: train-fit-front
+        options:
+          - train-fit-front
+          - train-fit-management
+          - train-fit-trainers
+      environment:
+        description: Configuración de Angular con la que se compila el web
+        type: choice
+        default: production
+        options:
+          - production
+          - pre
+      platform:
+        description: Plataformas a construir
+        type: choice
+        default: both
+        options:
+          - both
+          - android
+          - ios
+      publish:
+        description: Subir a las tiendas (si se desmarca, solo genera artefactos)
+        type: boolean
+        default: false
+      android_track:
+        description: Canal de Google Play cuando publish=true
+        type: choice
+        default: internal
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      marketing_version:
+        description: "Versión visible (opcional; vacío = la del proyecto)"
+        type: string
+        default: ''
+
+# Dos despliegues simultáneos de la misma app pisarían el mismo versionCode y
+# el mismo build de TestFlight. Se serializan, pero NO se cancelan a medias:
+# cancelar entre el archive y la subida deja la versión quemada en la tienda.
+concurrency:
+  group: mobile-release-${{ inputs.app }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  # Google Play exige versionCode estrictamente creciente. La base es el último
+  # versionCode publicado a mano; a partir de ahí manda el contador de runs.
+  ANDROID_VERSION_CODE_BASE: '101347'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Resuelve rutas y flags una sola vez para que los demás trabajos no repitan
+  # la misma lógica de `if`. Cuesta segundos y evita desincronizaciones.
+  # ---------------------------------------------------------------------------
+  prepare:
+    name: Preparar
+    runs-on: ubuntu-latest
+    outputs:
+      app_dir: apps/${{ inputs.app }}
+      ng_configuration: ${{ inputs.environment }}
+      build_android: ${{ inputs.platform == 'both' || inputs.platform == 'android' }}
+      build_ios: ${{ inputs.platform == 'both' || inputs.platform == 'ios' }}
+      version_code: ${{ steps.versions.outputs.version_code }}
+      build_number: ${{ steps.versions.outputs.build_number }}
+    steps:
+      - id: versions
+        run: |
+          echo "version_code=$(( ${{ env.ANDROID_VERSION_CODE_BASE }} + ${{ github.run_number }} ))" >> "$GITHUB_OUTPUT"
+          echo "build_number=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Bundle web compartido por Android e iOS.
+  # ---------------------------------------------------------------------------
+  build-web:
+    name: Build web (${{ inputs.environment }})
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --fund=false
+
+      # Se llama a `ng` directamente en vez de al script `build:pro`, que usa
+      # `ionic build`: @ionic/cli no está en las dependencias del repo, solo
+      # instalado a mano en local, así que en CI el script fallaría con
+      # "ionic: command not found". `ionic build` no es más que `ng build`.
+      - name: Compilar Angular
+        working-directory: ${{ needs.prepare.outputs.app_dir }}
+        run: npx ng build --configuration=${{ needs.prepare.outputs.ng_configuration }}
+
+      - name: Publicar www como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: www-${{ inputs.app }}
+          path: ${{ needs.prepare.outputs.app_dir }}/www
+          retention-days: 5
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Android — runner Linux, 1/10 del coste en minutos que macOS.
+  # ---------------------------------------------------------------------------
+  android:
+    name: Android (AAB)
+    needs: [prepare, build-web]
+    if: needs.prepare.outputs.build_android == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # AGP 8.7 + el `compileOptions` que genera Capacitor exigen Java 21.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # node_modules hace falta también aquí: `cap sync` resuelve las rutas de
+      # los plugins contra node_modules y regenera capacitor-cordova-android-plugins,
+      # que app/build.gradle incluye como proyecto.
+      - name: Instalar dependencias
+        run: npm ci --no-audit --fund=false
+
+      - name: Descargar www
+        uses: actions/download-artifact@v4
+        with:
+          name: www-${{ inputs.app }}
+          path: ${{ needs.prepare.outputs.app_dir }}/www
+
+      - name: Sincronizar Capacitor
+        working-directory: ${{ needs.prepare.outputs.app_dir }}
+        run: npx cap sync android
+
+      - name: Restaurar keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::Falta el secreto ANDROID_KEYSTORE_BASE64"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/signing"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/release.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/signing/release.keystore" >> "$GITHUB_ENV"
+
+      - name: Construir AAB firmado
+        working-directory: ${{ needs.prepare.outputs.app_dir }}/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease \
+            -PversionCode=${{ needs.prepare.outputs.version_code }} \
+            ${{ inputs.marketing_version != '' && format('-PversionName={0}', inputs.marketing_version) || '' }} \
+            --no-daemon --stacktrace
+
+      - name: Verificar que el AAB va firmado
+        working-directory: ${{ needs.prepare.outputs.app_dir }}/android
+        run: |
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          test -f "$AAB" || { echo "::error::No se generó $AAB"; exit 1; }
+          unzip -l "$AAB" | grep -q 'META-INF/.*\.RSA\|META-INF/.*\.EC' \
+            || { echo "::error::El AAB no está firmado (¿keystore mal configurado?)"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.app }}-${{ needs.prepare.outputs.version_code }}
+          path: ${{ needs.prepare.outputs.app_dir }}/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Subir a Google Play
+        if: inputs.publish
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.ANDROID_PACKAGE_NAME || 'com.trainfit.trainfit' }}
+          releaseFiles: ${{ needs.prepare.outputs.app_dir }}/android/app/build/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.android_track }}
+          status: completed
+
+  # ---------------------------------------------------------------------------
+  # iOS — arranca a la vez que android, no después.
+  # ---------------------------------------------------------------------------
+  ios:
+    name: iOS (IPA)
+    needs: [prepare, build-web]
+    if: needs.prepare.outputs.build_ios == 'true'
+    runs-on: macos-15
+    env:
+      APP_DIR: ${{ needs.prepare.outputs.app_dir }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --fund=false
+
+      - name: Descargar www
+        uses: actions/download-artifact@v4
+        with:
+          name: www-${{ inputs.app }}
+          path: ${{ env.APP_DIR }}/www
+
+      # `cap sync ios` copia el web y regenera el Podfile; el `pod install` que
+      # lanza por dentro se aprovecha de la caché de abajo.
+      - name: Cachear CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.APP_DIR }}/ios/App/Pods
+            ~/Library/Caches/CocoaPods
+          key: pods-${{ inputs.app }}-${{ hashFiles(format('{0}/ios/App/Podfile.lock', env.APP_DIR)) }}
+          restore-keys: pods-${{ inputs.app }}-
+
+      - name: Sincronizar Capacitor
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          LANG: en_US.UTF-8
+        run: npx cap sync ios
+
+      # Certificado de distribución en un llavero temporal propio del job: no se
+      # toca el llavero de login del runner y desaparece con la máquina.
+      - name: Instalar certificado de firma
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE_P12_BASE64" ]; then
+            echo "::error::Falta el secreto APPLE_CERTIFICATE_P12_BASE64"
+            exit 1
+          fi
+          KEYCHAIN="$RUNNER_TEMP/build.keychain"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          echo "$APPLE_CERTIFICATE_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/cert.p12"
+
+      # Clave de App Store Connect: sirve para que xcodebuild cree/actualice
+      # solos los perfiles de los DOS bundle IDs (la app y la extensión
+      # TrainFitWidget) y para subir el build después.
+      - name: Preparar clave de App Store Connect
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          if [ -z "$APP_STORE_CONNECT_KEY_ID" ] || [ -z "$APP_STORE_CONNECT_PRIVATE_KEY" ]; then
+            echo "::error::Faltan APP_STORE_CONNECT_KEY_ID / APP_STORE_CONNECT_PRIVATE_KEY"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/private_keys"
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > "$RUNNER_TEMP/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+
+      - name: Archivar
+        working-directory: ${{ env.APP_DIR }}/ios/App
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID || '4YRKMJXVS6' }}
+        run: |
+          set -o pipefail
+          EXTRA=()
+          if [ -n "${{ inputs.marketing_version }}" ]; then
+            EXTRA+=("MARKETING_VERSION=${{ inputs.marketing_version }}")
+          fi
+          xcodebuild archive \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION=${{ needs.prepare.outputs.build_number }} \
+            "${EXTRA[@]}" \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            -quiet
+
+      - name: Exportar IPA
+        working-directory: ${{ env.APP_DIR }}/ios/App
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID || '4YRKMJXVS6' }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+            <key>destination</key><string>export</string>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/private_keys/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8" \
+            -authenticationKeyID "$APP_STORE_CONNECT_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ inputs.app }}-${{ needs.prepare.outputs.build_number }}
+          path: ${{ runner.temp }}/export/*.ipa
+          if-no-files-found: error
+
+      - name: Subir a TestFlight
+        if: inputs.publish
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP/private_keys"
+          IPA="$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
+          xcrun altool --upload-app -f "$IPA" -t ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Limpiar llavero
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/build.keychain" || true

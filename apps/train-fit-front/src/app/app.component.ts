@@ -12,6 +12,7 @@ import { NotificationService } from 'src/app/core/services/util/notification.ser
 import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
+import { LiveActivityService } from 'src/app/core/services/live-activity/live-activity.service';
 
 register();
 @Component({
@@ -34,7 +35,8 @@ export class AppComponent implements OnDestroy {
     private themeService: ThemeService,
     private notificationService: NotificationService,
     private workoutService: WorkoutService,
-    private workoutNotificationService: WorkoutNotificationService
+    private workoutNotificationService: WorkoutNotificationService,
+    private liveActivityService: LiveActivityService
   ) {
     void this.initializeApp();
   }
@@ -59,6 +61,7 @@ export class AppComponent implements OnDestroy {
   // activo — se re-agenda cada vez que cambia el workout en curso (arranca
   // uno nuevo, se marca un set desde la propia app, termina el workout...).
   private async initWorkoutSetNotifications(): Promise<void> {
+    await this.liveActivityService.initialize();
     await this.workoutNotificationService.initialize();
     this.currentWorkoutSubscription = this.workoutService.getCurrentWorkout.subscribe(
       (workout) => void this.workoutNotificationService.refreshForWorkout(workout)
