@@ -65,9 +65,18 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
-  # Google Play exige versionCode estrictamente creciente. La base es el último
-  # versionCode publicado a mano; a partir de ahí manda el contador de runs.
-  ANDROID_VERSION_CODE_BASE: '101347'
+  # Google Play exige versionCode estrictamente creciente EN TODAS LAS PISTAS A
+  # LA VEZ (internal/alpha/beta/production comparten el mismo contador, no cada
+  # una el suyo). El build.gradle del repo usaba 101347, pero un CI antiguo con
+  # fastlane dejó en la pista "internal" un release ya completado con
+  # versionCode 94000561 (fastlane suele codificar MAJOR*1_000_000 + build, p.
+  # ej. versión 94.0.0 build 561). Esa marca de agua histórica manda, no la del
+  # build.gradle: la base tiene que superarla o Play rechaza el rollout con
+  # "does not allow any existing users to upgrade" aunque el número sea más
+  # alto que el de producción. Comprobar antes de tocar esto:
+  #   GET .../androidpublisher/v3/applications/{package}/edits/{id}/tracks/{track}
+  #   para cada pista, y usar el mayor versionCode visto + margen.
+  ANDROID_VERSION_CODE_BASE: '95000000'
 
 jobs:
   # ---------------------------------------------------------------------------
