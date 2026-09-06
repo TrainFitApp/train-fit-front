@@ -370,7 +370,29 @@ jobs:
           path: ${{ runner.temp }}/export/*.ipa
           if-no-files-found: error
 
+      # CFBundleShortVersionString/CFBundleVersion/CFBundleIdentifier reales,
+      # leidos del propio IPA exportado en vez de recalculados: es la unica
+      # fuente que no puede desincronizarse de lo que Apple va a procesar, y
+      # sirve tanto si marketing_version quedo vacio (usa el default del
+      # proyecto) como si se lanzo para train-fit-front/management/trainers
+      # (bundle id distinto cada vez).
+      - name: Leer versión real del IPA
+        id: ipa_version
+        run: |
+          IPA="$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
+          WORKDIR="$(mktemp -d)"
+          unzip -q "$IPA" -d "$WORKDIR"
+          APP_PLIST="$(find "$WORKDIR/Payload" -maxdepth 2 -iname Info.plist | head -1)"
+          MARKETING_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
+          BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
+          BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PLIST")"
+          echo "marketing_version=$MARKETING_VERSION" >> "$GITHUB_OUTPUT"
+          echo "bundle_version=$BUNDLE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "bundle_id=$BUNDLE_ID" >> "$GITHUB_OUTPUT"
+          echo "IPA: $BUNDLE_ID $MARKETING_VERSION ($BUNDLE_VERSION)"
+
       - name: Subir a TestFlight
+        id: upload_testflight
         if: inputs.publish
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -378,9 +400,161 @@ jobs:
         run: |
           export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP/private_keys"
           IPA="$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
+          # altool puede salir con codigo 0 aunque la subida haya fallado de
+          # verdad (pasó en un run anterior: "UPLOAD FAILED" en el log,
+          # step marcado como exitoso). Se comprueba el texto, no solo el
+          # exit code.
+          set -o pipefail
           xcrun altool --upload-app -f "$IPA" -t ios \
             --apiKey "$APP_STORE_CONNECT_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID" 2>&1 | tee "$RUNNER_TEMP/altool.log"
+          if ! grep -q "UPLOAD SUCCEEDED" "$RUNNER_TEMP/altool.log"; then
+            echo "::error::altool no confirmo 'UPLOAD SUCCEEDED' - la subida a TestFlight fallo de verdad"
+            exit 1
+          fi
+
+      # Todo esto se hacia a mano en App Store Connect tras cada build:
+      # documentacion de cifrado, notificar testers, texto de "que probar" y
+      # asignar el build al grupo externo. Se automatiza aqui via API.
+      - name: Configurar cumplimiento de exportación y TestFlight
+        if: inputs.publish
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          BUNDLE_ID: ${{ steps.ipa_version.outputs.bundle_id }}
+          MARKETING_VERSION: ${{ steps.ipa_version.outputs.marketing_version }}
+          BUNDLE_VERSION: ${{ steps.ipa_version.outputs.bundle_version }}
+          # Respuestas fijas al cuestionario "Documentación sobre encriptación
+          # de la app" de App Store Connect. Corresponden a la opcion 2 del
+          # dialogo de Apple ("Algoritmos de encriptación estándar en lugar
+          # de, o además de, utilizar la encriptación del sistema operativo de
+          # Apple") y a "No" en la pregunta de disponibilidad en Francia.
+          # Cambiar aqui si la respuesta real deja de ser esta.
+          ENCRYPTION_PROPRIETARY: 'false'
+          ENCRYPTION_STANDARD_OR_THIRD_PARTY: 'true'
+          ENCRYPTION_AVAILABLE_IN_FRANCE: 'false'
+          BETA_GROUP_NAME: 'Beta testers 1.0'
+          BETA_WHATS_NEW: 'Nueva versión disponible para probar'
+        run: |
+          set -euo pipefail
+
+          # 1) JWT firmado ES256 para la API de App Store Connect (misma
+          #    clave que ya usa altool, reutilizada aqui via curl directo
+          #    porque altool no expone estos endpoints).
+          JWT="$(node -e '
+            const crypto = require("crypto");
+            const b64url = (buf) => buf.toString("base64").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+            const header = { alg: "ES256", kid: process.env.APP_STORE_CONNECT_KEY_ID, typ: "JWT" };
+            const now = Math.floor(Date.now() / 1000);
+            const payload = { iss: process.env.APP_STORE_CONNECT_ISSUER_ID, iat: now, exp: now + 1200, aud: "appstoreconnect-v1" };
+            const unsigned = b64url(Buffer.from(JSON.stringify(header))) + "." + b64url(Buffer.from(JSON.stringify(payload)));
+            const sign = crypto.createSign("SHA256");
+            sign.update(unsigned);
+            const sig = sign.sign({ key: process.env.APP_STORE_CONNECT_PRIVATE_KEY, dsaEncoding: "ieee-p1363" });
+            process.stdout.write(unsigned + "." + b64url(sig));
+          ')"
+          API="https://api.appstoreconnect.apple.com/v1"
+          # -g desactiva el globbing de curl: sin esto interpreta los [] de
+          # filter[bundleId]= como un rango y falla con "bad range in URL".
+          auth() { curl -sS -g --fail-with-body -H "Authorization: Bearer $JWT" "$@"; }
+
+          # 2) ID de la app por bundle id (no hardcodeado: sirve para
+          #    train-fit-front/management/trainers segun cual se este
+          #    desplegando).
+          APP_ID="$(auth "$API/apps?filter[bundleId]=$BUNDLE_ID" | jq -r '.data[0].id // empty')"
+          if [ -z "$APP_ID" ]; then
+            echo "::error::No se encontro ninguna app con bundle id $BUNDLE_ID en App Store Connect"
+            exit 1
+          fi
+          echo "App $BUNDLE_ID -> $APP_ID"
+
+          # 3) Esperar a que Apple termine de procesar el build. altool
+          #    confirma la subida al momento, pero el build tarda varios
+          #    minutos en pasar de PROCESSING a VALID via API.
+          BUILD_ID=""
+          STATE=""
+          for i in $(seq 1 40); do
+            RESP="$(auth "$API/builds?filter[app]=$APP_ID&filter[version]=$BUNDLE_VERSION&filter[preReleaseVersion.version]=$MARKETING_VERSION&limit=1")"
+            BUILD_ID="$(echo "$RESP" | jq -r '.data[0].id // empty')"
+            STATE="$(echo "$RESP" | jq -r '.data[0].attributes.processingState // empty')"
+            echo "Intento $i/40: build=$BUILD_ID estado=$STATE"
+            [ "$STATE" = "VALID" ] && break
+            if [ "$STATE" = "FAILED" ] || [ "$STATE" = "INVALID" ]; then
+              echo "::error::Apple rechazo el build tras procesarlo (estado $STATE) - revisar a mano en App Store Connect"
+              exit 1
+            fi
+            sleep 30
+          done
+          if [ "$STATE" != "VALID" ]; then
+            echo "::error::El build $MARKETING_VERSION ($BUNDLE_VERSION) no llego a VALID tras 20 min. Configurar a mano en App Store Connect."
+            exit 1
+          fi
+
+          # 4) Documentacion de cumplimiento de exportacion (encriptacion).
+          DECL_ID="$(auth -X POST "$API/appEncryptionDeclarations" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -n \
+              --arg desc "$BUNDLE_ID" \
+              --argjson french "$ENCRYPTION_AVAILABLE_IN_FRANCE" \
+              --argjson proprietary "$ENCRYPTION_PROPRIETARY" \
+              --argjson thirdparty "$ENCRYPTION_STANDARD_OR_THIRD_PARTY" \
+              --arg appId "$APP_ID" \
+              '{data:{type:"appEncryptionDeclarations",attributes:{appDescription:$desc,availableOnFrenchStore:$french,containsProprietaryCryptography:$proprietary,containsThirdPartyCryptography:$thirdparty},relationships:{app:{data:{type:"apps",id:$appId}}}}}')" \
+            | jq -r '.data.id')"
+          echo "Declaracion de cifrado creada: $DECL_ID"
+
+          auth -X PATCH "$API/builds/$BUILD_ID" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -n --arg id "$BUILD_ID" --arg decl "$DECL_ID" \
+              '{data:{type:"builds",id:$id,relationships:{appEncryptionDeclaration:{data:{type:"appEncryptionDeclarations",id:$decl}}}}}')" \
+            -o /dev/null
+          echo "Build asociado a la declaracion de cifrado"
+
+          # 5) Notificar automaticamente a los testers en cuanto el build
+          #    quede disponible.
+          BBD_ID="$(auth "$API/builds/$BUILD_ID/buildBetaDetail" | jq -r '.data.id')"
+          auth -X PATCH "$API/buildBetaDetails/$BBD_ID" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -n --arg id "$BBD_ID" '{data:{type:"buildBetaDetails",id:$id,attributes:{autoNotifyEnabled:true}}}')" \
+            -o /dev/null
+          echo "Notificacion automatica a testers: activada"
+
+          # 6) Texto de "que probar", en el idioma principal de la app.
+          LOCALE="$(auth "$API/apps/$APP_ID" | jq -r '.data.attributes.primaryLocale')"
+          EXISTING="$(auth "$API/builds/$BUILD_ID/betaBuildLocalizations" | jq -r --arg l "$LOCALE" '.data[] | select(.attributes.locale==$l) | .id' | head -1)"
+          if [ -n "$EXISTING" ]; then
+            auth -X PATCH "$API/betaBuildLocalizations/$EXISTING" \
+              -H 'Content-Type: application/json' \
+              -d "$(jq -n --arg id "$EXISTING" --arg wn "$BETA_WHATS_NEW" \
+                '{data:{type:"betaBuildLocalizations",id:$id,attributes:{whatsNew:$wn}}}')" \
+              -o /dev/null
+          else
+            auth -X POST "$API/betaBuildLocalizations" \
+              -H 'Content-Type: application/json' \
+              -d "$(jq -n --arg build "$BUILD_ID" --arg locale "$LOCALE" --arg wn "$BETA_WHATS_NEW" \
+                '{data:{type:"betaBuildLocalizations",attributes:{locale:$locale,whatsNew:$wn},relationships:{build:{data:{type:"builds",id:$build}}}}}')" \
+              -o /dev/null
+          fi
+          echo "Texto 'que probar' ($LOCALE): listo"
+
+          # 7) Asignar el build al grupo externo de beta testers. El grupo
+          #    tiene que existir ya en App Store Connect (se crea una vez a
+          #    mano); este paso solo lo reutiliza.
+          # filter[name] en betaGroups devuelve 400 (no soportado); se lista
+          # y se filtra con jq en vez de depender de ese filtro.
+          GROUP_ID="$(auth "$API/apps/$APP_ID/betaGroups?limit=50" | jq -r --arg n "$BETA_GROUP_NAME" '.data[] | select(.attributes.name==$n) | .id' | head -1)"
+          if [ -z "$GROUP_ID" ]; then
+            echo "::error::No existe el grupo externo '$BETA_GROUP_NAME' en App Store Connect. Creelo una vez a mano con ese nombre exacto."
+            exit 1
+          fi
+          auth -X POST "$API/betaGroups/$GROUP_ID/relationships/builds" \
+            -H 'Content-Type: application/json' \
+            -d "$(jq -n --arg id "$BUILD_ID" '{data:[{type:"builds",id:$id}]}')" \
+            -o /dev/null
+          echo "Build asignado al grupo '$BETA_GROUP_NAME'"
+
+          echo "Listo: $BUNDLE_ID $MARKETING_VERSION ($BUNDLE_VERSION) configurado y notificado."
 
       - name: Limpiar llavero
         if: always()
