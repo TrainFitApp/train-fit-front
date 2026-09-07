@@ -49,12 +49,21 @@ const MONTH_LABELS = [
 //   entre cualquier par) por el arco libre de rojo/naranja. Seguía
 //   viéndose deslavada: a saturación tan baja, todo el conjunto lee como
 //   variaciones de un mismo gris pastel, angulo de tono aparte.
-//   3ª pasada (actual) — prioriza distinguirse sobre "quieter": S~72% (casi
-//   la saturación original de Tailwind, ~92%) y luminosidad ALTERNADA
-//   56%/66% entre índices consecutivos, no fija — dos fases contiguas
-//   difieren en tono Y en claridad a la vez, no solo en tono. Sigue fuera
-//   de la banda [335º,360º)∪[0º,50º) reservada arriba.
-const PHASE_COLORS = ['#bae03e', '#6ae76c', '#3ee0c2', '#6a9ce7', '#7f3ee0', '#e76ad0'];
+//   3ª pasada — prioriza distinguirse sobre "quieter": S~72% (casi la
+//   saturación original de Tailwind, ~92%) y luminosidad ALTERNADA 56%/66%
+//   entre índices consecutivos. Seguía fallando en lo que más importa: los
+//   tonos estaban ordenados de menor a mayor, o sea que dos fases SEGUIDAS
+//   caían siempre a la mínima distancia posible (47º) — fase 1 lima y fase
+//   2 verde, las dos verdes.
+//   4ª pasada (actual) — mismos 6 tonos, REORDENADOS para que cada índice
+//   salte al lado opuesto de la rueda: separación mínima entre fases
+//   consecutivas 95º en vez de 47º (fuerza bruta sobre las 720
+//   permutaciones, maximizando el mínimo). Orden resultante: lima, azul,
+//   verde, magenta, turquesa, violeta. La luminosidad se alterna sobre el
+//   orden YA definitivo, así que dos fases seguidas siguen difiriendo en
+//   tono Y en claridad. Sigue fuera de la banda [335º,360º)∪[0º,50º)
+//   reservada arriba.
+const PHASE_COLORS = ['#bae03e', '#6a9ce7', '#3ee041', '#e76ad0', '#3ee0c2', '#9c6ae7'];
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
@@ -168,10 +177,19 @@ export class NutritionCalendarComponent implements OnChanges {
   // justo lo que evita elegir unas fechas que pisen otra fase.
   @Input() public set pickerMode(activo: boolean) {
     if (!activo) return;
+    this.isPickerMode = true;
     this.isRangeMode = true;
     this.rangeStart = null;
     this.rangeEnd = null;
   }
+
+  // A diferencia de isRangeMode (se apaga solo al completar un rango, ver
+  // handleRangeClick), esto se queda fijo mientras dure la instancia: es
+  // "este calendario entero es un selector de fechas para una fase nueva",
+  // no "hay una selección en curso ahora mismo". Cambia qué se ve
+  // (cuadradito sólido por fase en vez de barra) y qué se puede pulsar
+  // (un día ya ocupado por otra fase no es seleccionable aquí).
+  public isPickerMode = false;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
   // F20-terdecies — qué preset está activo (null si el rango actual es uno
