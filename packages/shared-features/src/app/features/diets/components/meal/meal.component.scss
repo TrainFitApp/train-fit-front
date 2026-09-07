@@ -135,32 +135,6 @@
               background: rgba(var(--ion-color-danger-rgb), 0.14);
             }
           }
-
-          // Único punto de edición en un pautado (ver
-          // editPautadoProductQuantity/editPautadoRecipeQuantity) — el
-          // resto de la fila abre la vista de solo lectura al pulsarla.
-          .quantity-edit-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            margin-left: 4px;
-            padding: 0;
-            border: none;
-            border-radius: 50%;
-            background: rgba(var(--ion-color-alternative-rgb), 0.14);
-            color: var(--ion-color-alternative);
-            vertical-align: middle;
-
-            ion-icon {
-              font-size: 13px;
-            }
-
-            &:active {
-              background: rgba(var(--ion-color-alternative-rgb), 0.24);
-            }
-          }
         }
 
         // Información nutricional

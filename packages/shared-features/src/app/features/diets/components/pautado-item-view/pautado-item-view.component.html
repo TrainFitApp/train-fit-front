@@ -15,26 +15,43 @@
 </ion-header>
 
 <ion-content class="modal-content">
-  <!-- Modo lectura a propósito: nada aquí es editable. Cambiar la cantidad
-       consumida se hace desde la propia fila de la comida, no desde esta
-       vista (ver meal.component.html). -->
+  <!-- Modo lectura salvo por la cantidad: es el único campo editable de
+       toda esta vista (ver saveQuantity en pautado-item-view.component.ts). -->
   <h2 class="pautado-view-name">{{ name }}</h2>
 
-  <div class="pautado-view-quantity-row">
-    <span class="pautado-view-quantity-label">{{ 'MEAL.QUANTITY_CONSUMED_LABEL' | translate }}</span>
-    <span class="pautado-view-quantity-value">
-      {{ quantity | number : '1.0-1' }}g
+  <div class="quantity-edit-block">
+    <span class="quantity-edit-label">{{ 'MEAL.EDIT_CONSUMED_QUANTITY_HEADER' | translate }}</span>
+    <div class="quantity-edit-row">
+      <div class="quantity-input-wrap">
+        <ion-input
+          type="number"
+          inputmode="decimal"
+          min="0"
+          [(ngModel)]="editableQuantity"
+          [placeholder]="'MEAL.QUANTITY_PLACEHOLDER' | translate"
+          [disabled]="saving"
+        ></ion-input>
+        <span class="quantity-input-unit">g</span>
+      </div>
       <span
         class="quantity-delta"
         *ngIf="delta !== 0"
         [class.quantity-delta--positive]="delta > 0"
         [class.quantity-delta--negative]="delta < 0"
       >{{ delta > 0 ? '+' : '' }}{{ delta }}</span>
-    </span>
+      <ion-button
+        class="save-quantity-btn"
+        [disabled]="!quantityChanged || saving"
+        (click)="saveQuantity()"
+      >
+        <ion-spinner *ngIf="saving" name="dots"></ion-spinner>
+        <span *ngIf="!saving">{{ 'MEAL.SAVE_QUANTITY' | translate }}</span>
+      </ion-button>
+    </div>
+    <p class="pautado-view-assigned-hint" *ngIf="assignedQuantity !== null">
+      {{ 'MEAL.QUANTITY_ASSIGNED_HINT' | translate : { quantity: assignedQuantity } }}
+    </p>
   </div>
-  <p class="pautado-view-assigned-hint" *ngIf="assignedQuantity !== null">
-    {{ 'MEAL.QUANTITY_ASSIGNED_HINT' | translate : { quantity: assignedQuantity } }}
-  </p>
 
   <div class="nutrition-info pautado-view-macros">
     <div class="nutrition-item calories">
@@ -54,4 +71,16 @@
       <span class="nutrition-label">{{ 'MEAL.FAT_LABEL' | translate }}</span>
     </div>
   </div>
+
+  <!-- Solo productos: una receta no tiene desglose completo por nutriente
+       calculado en ningún sitio de la app, solo los 4 macros de arriba. -->
+  <ng-container *ngIf="extraNutrition.length">
+    <h3 class="extra-nutrition-title">{{ 'MEAL.NUTRITION_INFO_EXTENDED' | translate }}</h3>
+    <div class="extra-nutrition-list">
+      <div class="extra-nutrition-row" *ngFor="let row of extraNutrition">
+        <span class="extra-nutrition-label">{{ row.label }}</span>
+        <span class="extra-nutrition-value">{{ row.value | number : '1.0-2' }} {{ row.unit }}</span>
+      </div>
+    </div>
+  </ng-container>
 </ion-content>

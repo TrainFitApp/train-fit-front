@@ -79,29 +79,64 @@
   line-height: 1.25;
 }
 
-.pautado-view-quantity-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+// Único bloque editable de toda la vista — deliberadamente destacado con
+// su propio fondo/borde, para que quede claro que es la excepción a "todo
+// esto es solo lectura", no una fila más de datos.
+.quantity-edit-block {
   padding: 12px 14px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 10px;
 }
 
-.pautado-view-quantity-label {
+.quantity-edit-label {
+  display: block;
+  margin-bottom: 8px;
   font-size: 13px;
   color: var(--muted);
 }
 
-.pautado-view-quantity-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
+.quantity-edit-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+.quantity-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  ion-input {
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .quantity-input-unit {
+    font-size: 13px;
+    color: var(--muted);
+  }
+}
+
+.save-quantity-btn {
+  --border-radius: 8px;
+  height: 38px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 // Mismo verde/rojo que el resto de la app para +/- (ver
@@ -180,4 +215,43 @@
       color: var(--ion-color-secondary);
     }
   }
+}
+
+.extra-nutrition-title {
+  margin: 20px 2px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.extra-nutrition-list {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.extra-nutrition-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.extra-nutrition-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.extra-nutrition-value {
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
 }
