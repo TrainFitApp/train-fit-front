@@ -243,88 +243,153 @@
       ></app-notes>
 
       <!-- Pautado — indicado por el profesional (assignedByTrainerId, backend).
-           Fusionado con sus secciones de tipo (Recetas/Productos) en vez de un
-           banner propio encima: para 1-2 elementos pautados un bloque entero
-           con cabecera+subtítulo pesaba más que el propio contenido. Ahora es
-           solo un badge icono+"Pautado" dentro de la card, mismo tratamiento
-           visual (tinta .pautado-item) que ya tenía la fila. Van primero
-           dentro de su sección de tipo, igual que antes quedaban primero en
-           la lista. -->
+           Sin subcabeceras por tipo: bloque nuevo, no hay comportamiento previo
+           que preservar aquí, y una lista plana pesa menos visualmente para
+           1-2 elementos pautados. El resto de alimentos no lleva rótulo propio
+           ("Tus alimentos"): la sección Pautado ya marca la frontera, y un
+           segundo rótulo para "lo demás" era redundante. -->
+      <ng-container *ngIf="hasPautadoItems(meal)">
+        <div class="section-header pautado-header">
+          <ion-label>
+            <ion-icon name="ribbon-outline"></ion-icon>
+            <strong>{{ 'MEAL.PAUTADO_TITLE' | translate }}</strong>
+          </ion-label>
+          <p class="section-subtitle">{{ 'MEAL.PAUTADO_SUBTITLE' | translate }}</p>
+        </div>
+
+        <div
+          *ngFor="let instance of getPautadoRecipes(meal)"
+          class="meal-item recipe-item pautado-item"
+          [class.selected]="isRecipeSelected(instance)"
+          [class.consumed]="instance.consumed"
+          (click)="selectionMode && toggleRecipeSelection(instance)"
+        >
+          <div class="item-content">
+            <div class="item-header">
+              <h3 class="item-name">
+                {{ getRecipeName(instance) }}
+                <span class="item-quantity">{{
+                  getRecipeConsumedQuantity(instance) | number : "1.0-1"
+                }}g</span>
+              </h3>
+            </div>
+
+            <div class="nutrition-info">
+              <div class="nutrition-item calories">
+                <span class="nutrition-value">{{
+                  getInstanceMacros(instance).kcal | number : "1.0-0"
+                }}</span>
+              </div>
+              <div class="nutrition-item protein">
+                <span class="nutrition-value">{{
+                  getInstanceMacros(instance).protein | number : "1.1-1"
+                }}</span>
+              </div>
+              <div class="nutrition-item carbs">
+                <span class="nutrition-value">{{
+                  getInstanceMacros(instance).carbs | number : "1.1-1"
+                }}</span>
+              </div>
+              <div class="nutrition-item fat">
+                <span class="nutrition-value">{{
+                  getInstanceMacros(instance).fat | number : "1.1-1"
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <ion-checkbox
+              *ngIf="selectionMode"
+              mode="ios"
+              [checked]="isRecipeSelected(instance)"
+              (ionChange)="onRecipeSelectionChange(instance, $event)"
+              (click)="$event.stopPropagation()"
+              color="primary"
+            ></ion-checkbox>
+            <ion-checkbox
+              *ngIf="!selectionMode"
+              mode="ios"
+              [ngClass]="{ completed: instance.consumed }"
+              [checked]="instance.consumed"
+              [attr.aria-label]="getRecipeName(instance)"
+              (ionChange)="toggleRecipeConsumed(instance)"
+              (click)="$event.stopPropagation()"
+              color="success"
+            ></ion-checkbox>
+          </div>
+        </div>
+
+        <div
+          *ngFor="let product of getPautadoProducts(meal)"
+          class="meal-item product-item pautado-item"
+          [class.selected]="isProductSelected(product)"
+          [class.consumed]="product.consumed"
+          (click)="selectionMode && toggleProductSelection(product)"
+        >
+          <div class="item-content">
+            <div class="item-header">
+              <h3 class="item-name">
+                {{ product.product?.name }}
+                <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
+              </h3>
+            </div>
+
+            <div class="nutrition-info">
+              <div class="nutrition-item calories">
+                <span class="nutrition-value">{{
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy) | number : "1.0-0"
+                }}</span>
+              </div>
+              <div class="nutrition-item protein">
+                <span class="nutrition-value">{{
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein) | number : "1.1-1"
+                }}</span>
+              </div>
+              <div class="nutrition-item carbs">
+                <span class="nutrition-value">{{
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates) | number : "1.1-1"
+                }}</span>
+              </div>
+              <div class="nutrition-item fat">
+                <span class="nutrition-value">{{
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat) | number : "1.1-1"
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <ion-checkbox
+              *ngIf="selectionMode"
+              mode="ios"
+              [checked]="isProductSelected(product)"
+              (ionChange)="onProductSelectionChange(product, $event)"
+              (click)="$event.stopPropagation()"
+              color="primary"
+            ></ion-checkbox>
+            <ion-checkbox
+              *ngIf="!selectionMode"
+              mode="ios"
+              [ngClass]="{ completed: product.consumed }"
+              [checked]="product.consumed"
+              [attr.aria-label]="product.product?.name"
+              (ionChange)="toggleProductConsumed(product)"
+              (click)="$event.stopPropagation()"
+              color="success"
+            ></ion-checkbox>
+          </div>
+        </div>
+      </ng-container>
 
       <!-- Recipes Section -->
       <div
-        *ngIf="getOwnRecipes(meal).length > 0 || getPautadoRecipes(meal).length > 0"
+        *ngIf="getOwnRecipes(meal).length > 0"
         class="section-header"
       >
         <ion-label color="primary">
           <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</strong>
         </ion-label>
-      </div>
-
-      <div
-        *ngFor="let instance of getPautadoRecipes(meal)"
-        class="meal-item recipe-item pautado-item"
-        [class.selected]="isRecipeSelected(instance)"
-        [class.consumed]="instance.consumed"
-        (click)="selectionMode && toggleRecipeSelection(instance)"
-      >
-        <div class="item-content">
-          <div class="item-header">
-            <h3 class="item-name">
-              <span class="pautado-badge">
-                <ion-icon name="ribbon-outline"></ion-icon>{{ 'MEAL.PAUTADO_TITLE' | translate }}
-              </span>
-              {{ getRecipeName(instance) }}
-              <span class="item-quantity">{{
-                getRecipeConsumedQuantity(instance) | number : "1.0-1"
-              }}g</span>
-            </h3>
-          </div>
-
-          <div class="nutrition-info">
-            <div class="nutrition-item calories">
-              <span class="nutrition-value">{{
-                getInstanceMacros(instance).kcal | number : "1.0-0"
-              }}</span>
-            </div>
-            <div class="nutrition-item protein">
-              <span class="nutrition-value">{{
-                getInstanceMacros(instance).protein | number : "1.1-1"
-              }}</span>
-            </div>
-            <div class="nutrition-item carbs">
-              <span class="nutrition-value">{{
-                getInstanceMacros(instance).carbs | number : "1.1-1"
-              }}</span>
-            </div>
-            <div class="nutrition-item fat">
-              <span class="nutrition-value">{{
-                getInstanceMacros(instance).fat | number : "1.1-1"
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="item-actions">
-          <ion-checkbox
-            *ngIf="selectionMode"
-            mode="ios"
-            [checked]="isRecipeSelected(instance)"
-            (ionChange)="onRecipeSelectionChange(instance, $event)"
-            (click)="$event.stopPropagation()"
-            color="primary"
-          ></ion-checkbox>
-          <ion-checkbox
-            *ngIf="!selectionMode"
-            mode="ios"
-            [ngClass]="{ completed: instance.consumed }"
-            [checked]="instance.consumed"
-            [attr.aria-label]="getRecipeName(instance)"
-            (ionChange)="toggleRecipeConsumed(instance)"
-            (click)="$event.stopPropagation()"
-            color="success"
-          ></ion-checkbox>
-        </div>
       </div>
 
       <div
@@ -384,77 +449,13 @@
 
       <!-- Products Section -->
       <div
-        *ngIf="getOwnProducts(meal).length > 0 || getPautadoProducts(meal).length > 0"
+        *ngIf="getOwnProducts(meal).length > 0"
         class="section-header"
         style="margin-top: 10px"
       >
         <ion-label color="primary">
           <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</strong>
         </ion-label>
-      </div>
-
-      <div
-        *ngFor="let product of getPautadoProducts(meal)"
-        class="meal-item product-item pautado-item"
-        [class.selected]="isProductSelected(product)"
-        [class.consumed]="product.consumed"
-        (click)="selectionMode && toggleProductSelection(product)"
-      >
-        <div class="item-content">
-          <div class="item-header">
-            <h3 class="item-name">
-              <span class="pautado-badge">
-                <ion-icon name="ribbon-outline"></ion-icon>{{ 'MEAL.PAUTADO_TITLE' | translate }}
-              </span>
-              {{ product.product?.name }}
-              <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
-            </h3>
-          </div>
-
-          <div class="nutrition-info">
-            <div class="nutrition-item calories">
-              <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy) | number : "1.0-0"
-              }}</span>
-            </div>
-            <div class="nutrition-item protein">
-              <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein) | number : "1.1-1"
-              }}</span>
-            </div>
-            <div class="nutrition-item carbs">
-              <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates) | number : "1.1-1"
-              }}</span>
-            </div>
-            <div class="nutrition-item fat">
-              <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat) | number : "1.1-1"
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="item-actions">
-          <ion-checkbox
-            *ngIf="selectionMode"
-            mode="ios"
-            [checked]="isProductSelected(product)"
-            (ionChange)="onProductSelectionChange(product, $event)"
-            (click)="$event.stopPropagation()"
-            color="primary"
-          ></ion-checkbox>
-          <ion-checkbox
-            *ngIf="!selectionMode"
-            mode="ios"
-            [ngClass]="{ completed: product.consumed }"
-            [checked]="product.consumed"
-            [attr.aria-label]="product.product?.name"
-            (ionChange)="toggleProductConsumed(product)"
-            (click)="$event.stopPropagation()"
-            color="success"
-          ></ion-checkbox>
-        </div>
       </div>
 
       <div

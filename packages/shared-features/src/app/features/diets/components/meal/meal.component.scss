@@ -213,31 +213,50 @@
         }
       }
 
-      // Badge "Pautado" fusionado en la propia card de producto/receta — antes
-      // era un banner de sección aparte (.pautado-header, con cabecera +
-      // subtítulo); para 1-2 elementos pesaba más que el propio contenido. Va
-      // dentro de .item-name, mismo azul "alternative" que .pinned-note-card
-      // (custom-exercise.component.scss), consistente con la tinta que ya
-      // llevaba la fila (.pautado-item).
-      .pautado-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        margin-right: 6px;
-        padding: 1px 6px;
-        border-radius: 8px;
-        font-size: 10px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
-        color: var(--ion-color-alternative);
-        background: rgba(var(--ion-color-alternative-rgb), 0.14);
-        vertical-align: middle;
+      // Cabecera de la sección "Pautado" — mismo tratamiento que
+      // .pinned-note-card (gradiente + borde + sombra sutil en vez de una
+      // simple línea), para que destaque de un vistazo sin convertirse en
+      // una card enorme.
+      .pautado-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 14px;
+        margin: 16px 0 12px 0;
+        border-radius: 12px;
+        background: linear-gradient(
+          135deg,
+          rgba(var(--ion-color-alternative-rgb), 0.1) 0%,
+          rgba(var(--ion-color-alternative-rgb), 0.04) 100%
+        );
+        border: 1px solid rgba(var(--ion-color-alternative-rgb), 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-        ion-icon {
-          font-size: 11px;
+        ion-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--ion-color-alternative);
+
+          ion-icon {
+            font-size: 15px;
+            color: var(--ion-color-alternative);
+          }
         }
       }
+
+      .section-subtitle {
+        margin: 0;
+        padding: 0 4px;
+        font-size: 11px;
+        // Mismo gris tenue que .section-heading/.empty-hint en coach.page.scss
+        // (convención de texto secundario ya establecida en esta app),
+        // no una opacidad nueva inventada — y con contraste AA suficiente
+        // sobre el fondo casi negro de la card (#141414).
+        color: #8b8b8b;
+        font-weight: 400;
+      }
+
     }
   }
 

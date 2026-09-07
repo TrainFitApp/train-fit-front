@@ -540,6 +540,7 @@
     "ITEM_COUNT_SINGULAR": "item",
     "ITEM_COUNT_PLURAL": "items",
     "PAUTADO_TITLE": "Prescribed",
+    "PAUTADO_SUBTITLE": "Products and recipes assigned by your coach",
     "CONSUMED_UPDATE_ERROR": "Could not update"
   },
   "TOOLBAR_CALENDAR": {

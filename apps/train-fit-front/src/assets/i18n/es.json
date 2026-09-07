@@ -546,6 +546,7 @@
     "ITEM_COUNT_SINGULAR": "elemento",
     "ITEM_COUNT_PLURAL": "elementos",
     "PAUTADO_TITLE": "Pautado",
+    "PAUTADO_SUBTITLE": "Productos y recetas indicados por tu profesional",
     "CONSUMED_UPDATE_ERROR": "No se pudo actualizar"
   },
   "TOOLBAR_CALENDAR": {
