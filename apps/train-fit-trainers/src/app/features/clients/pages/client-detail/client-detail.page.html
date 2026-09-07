@@ -843,7 +843,10 @@
                donde se espera que aparezca. Con muchas, la fila desplaza
                dentro de su caja en vez de estirar la página. -->
           <div class="plan-track" *ngIf="activePlan">
-          <div class="active-plan-card">
+          <!-- Mismo color que este tramo pinta en el calendario de abajo
+               (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
+               vistazo la tarjeta con su franja de días. -->
+          <div class="active-plan-card" [style.--phase-color]="phaseColor(activePlan)">
             <span class="plan-phase-order" *ngIf="planPhases.length > 1">1ª · en curso</span>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
                  editar la plantilla aplicada, sin pasar por "Gestionar
@@ -903,7 +906,11 @@
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
                tienen sentido sobre la que está rigiendo. -->
           <ng-container *ngFor="let phase of planPhases; let i = index">
-            <article class="next-phase-card" *ngIf="!isCurrentPhase(phase)">
+            <article
+              class="next-phase-card"
+              *ngIf="!isCurrentPhase(phase)"
+              [style.--phase-color]="phaseColor(phase)"
+            >
               <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
               <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
               <p class="next-phase-card__range">

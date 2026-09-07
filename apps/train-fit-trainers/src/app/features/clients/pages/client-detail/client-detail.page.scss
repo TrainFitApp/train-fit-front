@@ -533,6 +533,7 @@
 
 // Auditoría de arquitectura (Fase 8) — plan vigente en la cabecera de "Dieta"
 .active-plan-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -541,6 +542,20 @@
   background: var(--tf-accent-soft);
   border: 1px solid var(--tf-accent);
   border-radius: 12px;
+  overflow: hidden;
+
+  // Misma barra superior que pinta esta fase en el calendario (ver
+  // .nutrition-calendar__phase-bar) — asocia tarjeta y tramo de días con el
+  // mismo color en vez de repetir el degradado de acento fijo.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--phase-color, var(--tf-accent));
+  }
 }
 
 // 2026-09 — atajo al Planificador de la rutina en uso. Ancho completo y con
@@ -1898,6 +1913,7 @@
 }
 
 .next-phase-card {
+  position: relative;
   flex: 0 0 180px;
   scroll-snap-align: start;
   display: flex;
@@ -1907,6 +1923,18 @@
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-md);
   text-align: left;
+  overflow: hidden;
+
+  // Misma barra superior que .active-plan-card — ver comentario allí.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--phase-color, var(--tf-border));
+  }
 }
 
 .next-phase-card__name {

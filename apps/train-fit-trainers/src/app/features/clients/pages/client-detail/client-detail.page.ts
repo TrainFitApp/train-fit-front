@@ -321,6 +321,19 @@ export class ClientDetailPage implements OnInit {
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
   public activePlan: PlanAssignment | null = null;
   public planPhases: PlanAssignment[] = [];
+  // Historial COMPLETO (incluye fases ya terminadas), ordenado por fecha de
+  // inicio — a diferencia de planPhases (solo vigente+futuras, ver
+  // buildPhaseSequence). Existe solo para que phaseColor() calcule el mismo
+  // índice que usa el calendario (PHASE_COLORS en
+  // nutrition-calendar.component.ts, que sí cuenta las terminadas): si
+  // usara planPhases, una fase ya cerrada desplazaría el índice de las que
+  // siguen y el color dejaría de coincidir con el del calendario.
+  private allPhasesHistory: PlanAssignment[] = [];
+  // Misma paleta y MISMO ORDEN que PHASE_COLORS en
+  // nutrition-calendar.component.ts — el índice de una fase en
+  // allPhasesHistory tiene que mapear al mismo color en los dos sitios, o
+  // la tarjeta de fase y su tramo en el calendario dejan de coincidir.
+  private readonly phaseColors = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2'];
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
@@ -1561,6 +1574,9 @@ export class ClientDetailPage implements OnInit {
       .toPromise()
       .then((res) => {
         this.activePlan = res?.active || null;
+        this.allPhasesHistory = (res?.history || [])
+          .slice()
+          .sort((a, b) => a.startDate.localeCompare(b.startDate));
         this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
@@ -1590,6 +1606,18 @@ export class ClientDetailPage implements OnInit {
   public isCurrentPhase(phase: PlanAssignment): boolean {
     const hoy = new Date().toISOString().slice(0, 10);
     return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
+  }
+
+  // Mismo color que este tramo pinta en <app-nutrition-calendar> — el
+  // índice se calcula sobre allPhasesHistory (TODA la secuencia), no sobre
+  // planPhases, por la misma razón que el calendario cuenta las fases ya
+  // terminadas al asignar color (ver PHASE_COLORS/findPhaseForDate en
+  // nutrition-calendar.component.ts).
+  public phaseColor(phase: PlanAssignment | null): string {
+    if (!phase) return 'var(--tf-accent)';
+    const index = this.allPhasesHistory.findIndex((p) => p._id === phase._id);
+    if (index < 0) return 'var(--tf-accent)';
+    return this.phaseColors[index % this.phaseColors.length];
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
