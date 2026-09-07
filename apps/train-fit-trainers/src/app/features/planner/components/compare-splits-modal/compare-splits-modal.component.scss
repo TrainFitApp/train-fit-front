@@ -1,429 +1,58 @@
-.compare-content {
-  --background: var(--tf-bg);
-  --padding-start: var(--tf-space-4);
-  --padding-end: var(--tf-space-4);
-  --padding-top: var(--tf-space-3);
-  --padding-bottom: var(--tf-space-5);
-}
-
-// Los dos selectores y el botón de intercambio, en una fila que se apila
-// por debajo de 560px (el modal cae a pantalla completa ahí).
-.compare-picker {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--tf-space-2);
-  padding-bottom: var(--tf-space-3);
-  border-bottom: 1px solid var(--tf-border);
-}
-
-.picker-select {
-  flex: 1;
-  min-width: 0;
-  --background: var(--tf-surface-2);
-  --border-radius: var(--tf-radius-md);
-  --padding-start: var(--tf-space-3);
-  --padding-end: var(--tf-space-2);
-  min-height: var(--tf-touch-min);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: var(--tf-radius-md);
-  font-size: var(--tf-font-size-sm);
-}
-
-.swap-button {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--tf-touch-min);
-  height: var(--tf-touch-min);
-  border: 1px solid var(--tf-border-strong);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-surface-3);
-  color: var(--tf-text);
-  cursor: pointer;
-
-  ion-icon {
-    font-size: 18px;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--tf-accent);
-    outline-offset: 2px;
-  }
-}
-
-.compare-context {
-  margin-top: var(--tf-space-3);
-  padding: var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-surface-2);
-
-  p {
-    margin: 0 0 4px;
-    font-size: var(--tf-font-size-xs);
-    line-height: 1.45;
-    color: var(--tf-text-secondary);
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.compare-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: var(--tf-space-3) 0 0;
-  padding: 8px 10px;
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-accent-soft);
-  color: var(--tf-accent-text);
-  font-size: var(--tf-font-size-xs);
-  line-height: 1.4;
-
-  ion-icon {
-    flex-shrink: 0;
-    font-size: 14px;
-    margin-top: 1px;
-  }
-}
-
-// Cuatro cifras que responden "¿progresó algo?" sin leer la lista entera.
-.progress-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--tf-space-2);
-
-  @media (max-width: 560px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.progress-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: var(--tf-space-3) var(--tf-space-2);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-surface-1);
-
-  // "Misma pauta" es lo único que se resalta: es el descuido que el
-  // entrenador no ve por sí solo. En 0 se apaga — no hay nada que avisar.
-  &--warn {
-    border-color: var(--tf-accent);
-    background: var(--tf-accent-soft);
-  }
-
-  &--quiet {
-    border-color: var(--tf-border);
-    background: var(--tf-surface-1);
-  }
-}
-
-.progress-value {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--tf-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.progress-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-align: center;
-  color: var(--tf-text-muted);
-}
-
-.compare-deload {
-  margin-top: var(--tf-space-3);
-  padding: var(--tf-space-3);
-  border-radius: var(--tf-radius-md);
-  border: 1px solid var(--tf-border-strong);
-  background: var(--tf-surface-2);
-
-  .section-question {
-    margin-top: 0;
-  }
-}
-
-.deload-line {
-  margin: 0;
-  font-size: var(--tf-font-size-xs);
-  line-height: 1.5;
-  color: var(--tf-text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.section-question {
-  margin: var(--tf-space-4) 0 var(--tf-space-2);
-  font-size: var(--tf-font-size-sm);
-  font-weight: 700;
-  color: var(--tf-text);
-}
-
-.section-hint {
-  margin: var(--tf-space-3) 0 0;
-  padding-top: var(--tf-space-2);
-  border-top: 1px solid var(--tf-border-subtle);
-  font-size: var(--tf-font-size-xs);
-  line-height: 1.5;
-  color: var(--tf-text-muted);
-}
-
-.section-empty {
-  margin: var(--tf-space-3) 0 0;
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-}
-
-// A → delta → B, con los números alineados en columna para poder barrerlos
-// de un vistazo.
-.headline-row {
-  display: grid;
-  grid-template-columns: 1fr 72px 96px 72px;
-  align-items: baseline;
-  gap: 6px;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--tf-border-subtle);
-  font-size: var(--tf-font-size-xs);
-
-  &:last-of-type {
-    border-bottom: none;
-  }
-}
-
-.headline-label {
-  color: var(--tf-text-muted);
-}
-
-.headline-a,
-.headline-b {
-  text-align: right;
-  font-weight: 700;
-  color: var(--tf-text);
-  font-variant-numeric: tabular-nums;
-}
-
-// Sin verde/rojo: un delta no es bueno ni malo sin saber el propósito del
-// bloque (en una descarga, que baje es lo previsto). Misma regla que el
-// resto del Planner.
-.headline-delta {
-  text-align: center;
-  color: var(--tf-text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.compare-views {
-  margin-top: var(--tf-space-4);
-  --background: var(--tf-surface-2);
-
-  ion-segment-button {
-    --color: var(--tf-text-muted);
-    --color-checked: var(--tf-text);
-    --indicator-color: var(--tf-surface-4);
-    min-height: 34px;
-    font-size: var(--tf-font-size-xs);
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: 0;
-  }
-}
-
-.only-changes {
-  display: block;
-  margin: var(--tf-space-3) 0;
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-secondary);
-
-  ion-checkbox {
-    --size: 18px;
-    --checkbox-background-checked: var(--tf-accent);
-  }
-}
-
-.workout-group {
-  margin-bottom: var(--tf-space-4);
-  padding: var(--tf-space-3);
-  border: 1px solid var(--tf-border);
-  border-radius: var(--tf-radius-md);
-  background: var(--tf-surface-1);
-}
-
-.workout-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--tf-space-2);
-  margin-bottom: var(--tf-space-2);
-}
-
-.workout-name {
-  font-size: var(--tf-font-size-sm);
-  font-weight: 700;
-  color: var(--tf-text);
-}
-
-.workout-sets {
-  flex-shrink: 0;
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.workout-note {
-  margin: 0 0 var(--tf-space-2);
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-muted);
-}
-
-.exercise-row {
-  padding: var(--tf-space-2) 0;
-  border-top: 1px solid var(--tf-border-subtle);
-}
-
-.exercise-head {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.exercise-name {
-  font-size: var(--tf-font-size-xs);
-  font-weight: 600;
-  color: var(--tf-text);
-}
-
-.exercise-status {
-  padding: 1px 7px;
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-surface-4);
-  color: var(--tf-text-muted);
-  font-size: 10px;
-  font-weight: 600;
-
-  // El único badge con color: repetir pauta sin querer es lo que el
-  // entrenador no detecta solo, y es la razón de que exista esta pantalla.
-  &--stagnant {
-    background: var(--tf-accent-soft);
-    color: var(--tf-accent-text);
-  }
-}
-
-// A y B lado a lado en escritorio; el modal cae a pantalla completa por
-// debajo de 768px y ahí se apilan.
-.exercise-sides {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 3px;
-  font-size: var(--tf-font-size-xs);
-  color: var(--tf-text-secondary);
-
-  ion-icon {
-    flex-shrink: 0;
-    font-size: 12px;
-    color: var(--tf-text-faint);
-  }
-
-  @media (max-width: 560px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-
-    ion-icon {
-      transform: rotate(90deg);
-    }
-  }
-}
-
-.side {
-  font-variant-numeric: tabular-nums;
-
-  &--b {
-    color: var(--tf-text);
-    font-weight: 600;
-  }
-}
-
-.exercise-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 5px;
-}
-
-.change-chip {
-  padding: 2px 8px;
-  border-radius: var(--tf-radius-pill);
-  background: var(--tf-accent-soft);
-  color: var(--tf-accent-text);
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.muscle-row {
-  display: grid;
-  grid-template-columns: 1fr 48px 84px 48px;
-  align-items: baseline;
-  gap: 6px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--tf-border-subtle);
-  font-size: var(--tf-font-size-xs);
-}
-
-.muscle-name {
-  color: var(--tf-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.muscle-head {
-  display: grid;
-  grid-template-columns: 1fr 48px 84px 48px;
-  gap: 6px;
-  padding-bottom: 4px;
-}
-
-.muscle-head-label {
-  text-align: right;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--tf-text-faint);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.muscle-a,
-.muscle-b {
-  text-align: right;
-  font-weight: 700;
-  color: var(--tf-text);
-  font-variant-numeric: tabular-nums;
-}
-
-// Frecuencia junto al conteo, no en columna propia: es contexto del número
-// de series, no un dato que se lea por su cuenta.
-.muscle-days {
-  display: block;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--tf-text-faint);
-}
-
-.muscle-delta {
-  text-align: center;
-  color: var(--tf-text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-
-  &--flat {
-    color: var(--tf-text-faint);
-  }
+:host { --compare-rise: var(--tf-success); --compare-fall: var(--tf-accent-text); color: var(--tf-text); font-size: var(--tf-font-size-sm); }
+.compare-content { --background: var(--tf-bg); --padding-start: 20px; --padding-end: 20px; --padding-top: 12px; --padding-bottom: 24px; }
+.compare-picker { display: flex; align-items: center; gap: 12px; }
+.picker-select { flex: 1; min-width: 0; min-height: 56px; padding-inline: 12px; border: 1px solid var(--tf-border-strong); border-radius: var(--tf-radius-sm); background: var(--tf-surface-2); font-size: var(--tf-font-size-sm); }
+.swap-button { display: grid; place-items: center; flex: 0 0 var(--tf-touch-min); height: var(--tf-touch-min); border: 1px solid var(--tf-border-strong); border-radius: var(--tf-radius-sm); background: var(--tf-surface-2); color: var(--tf-text-secondary); cursor: pointer; ion-icon { font-size: 20px; } &:hover { background: var(--tf-surface-4); color: var(--tf-text); } &:disabled { opacity: .45; cursor: default; } }
+.comparison-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; ion-segment { max-width: 260px; background: var(--tf-surface-2); } ion-segment-button { min-height: var(--tf-touch-min); --color: var(--tf-text-secondary); --color-checked: var(--tf-accent-text); --indicator-color: var(--tf-surface-4); font-size: var(--tf-font-size-sm); text-transform: none; letter-spacing: normal; } }
+.comparison-legend { color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); white-space: nowrap; span { margin-inline: 4px; } }
+.data-scope, .table-guide { color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); line-height: 1.5; margin: 8px 0 12px; }
+.context-line { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-block: 12px; color: var(--tf-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
+.purpose-note { color: var(--tf-accent-text); font-weight: 600; }
+.notice { margin: 8px 0; padding: 8px 12px; border-radius: var(--tf-radius-sm); background: var(--tf-accent-soft); color: var(--tf-accent-text); line-height: 1.5; }
+.overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding-block: 16px; border-block: 1px solid var(--tf-border-strong); background: var(--tf-surface-1); }
+.overview-metric { padding-inline: 16px; border-inline-end: 1px solid var(--tf-border); &:last-child { border: 0; } h2 { margin: 0 0 8px; color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); font-weight: 500; } }
+.metric-values, .cell-values { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums; }
+.metric-values { font-size: 1.35rem; margin-bottom: 6px; }
+.metric-values > span:first-child, .cell-values > span:first-child { color: var(--tf-text-secondary); }
+.value-arrow { color: var(--tf-text-muted); font-size: var(--tf-font-size-xs); }
+.metric-delta { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 3px; color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); line-height: 1.5; font-variant-numeric: tabular-nums; ion-icon { flex: 0 0 14px; font-size: 14px; } small { font-size: inherit; } }
+.trend-up { color: var(--compare-rise); }
+.trend-down { color: var(--compare-fall); }
+.completion-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding-block: 12px; border-bottom: 1px solid var(--tf-border); color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); }
+.completion-item { display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+.completion-track { width: 70px; height: 4px; background: var(--tf-surface-5); border-radius: 2px; overflow: hidden; i { display: block; height: 100%; background: var(--tf-text-muted); } }
+.completion-track--b i { background: var(--tf-accent); }
+.progress-strip { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-block: 12px 20px; font-size: var(--tf-font-size-xs); > span { display: inline-flex; align-items: center; gap: 4px; } ion-icon { font-size: 14px; } }
+.section-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; h2 { margin: 0; font-size: var(--tf-font-size-md); font-weight: 650; span { margin-left: 4px; font-size: var(--tf-font-size-xs); color: var(--tf-text-secondary); font-weight: 400; } } ion-checkbox { --size: 18px; min-height: var(--tf-touch-min); font-size: var(--tf-font-size-xs); } }
+.table-scroll { overflow-x: auto; border: 1px solid var(--tf-border-strong); border-radius: var(--tf-radius-sm); }
+.exercise-table { width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; table-layout: fixed; .exercise-column { width: 29%; } th, td { padding: 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--tf-border); } thead th { color: var(--tf-text-secondary); background: var(--tf-surface-2); font-size: var(--tf-font-size-xs); font-weight: 500; } tbody tr:last-child > * { border-bottom: 0; } td { background: var(--tf-surface-1); } .cell-values { flex-wrap: wrap; gap: 4px; margin-bottom: 5px; font-size: var(--tf-font-size-sm); } .cell-values strong { color: var(--tf-text); font-weight: 650; } tr:hover td, tr:hover .exercise-name { background: var(--tf-surface-2); } }
+.workout-heading th { background: var(--tf-surface-3); padding-block: 9px; font-size: var(--tf-font-size-xs); div { display: flex; justify-content: space-between; gap: 12px; } div > span:last-child { color: var(--tf-text-secondary); font-weight: 400; white-space: nowrap; } small { display: block; margin-top: 4px; color: var(--tf-accent-text); font-weight: 400; font-size: inherit; } }
+.exercise-name { background: var(--tf-surface-1); font-weight: 600; overflow-wrap: anywhere; line-height: 1.45; > small { display: block; margin-top: 4px; color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); font-weight: 400; } > small.status-changed { color: var(--tf-accent-text); } }
+.set-details { font-weight: 400; font-size: var(--tf-font-size-xs); margin-top: 3px; summary { min-height: 28px; padding-block: 5px; color: var(--tf-text-secondary); cursor: pointer; } }
+.set-detail-content { p { margin: 8px 0; } span { display: block; font-variant-numeric: tabular-nums; } span + span { margin-top: 4px; } .detail-change { color: var(--tf-accent-text); } }
+.empty-row, .empty-state { color: var(--tf-text-secondary); line-height: 1.6; padding: 16px; }
+.muscle-section { margin-top: 20px; border-block: 1px solid var(--tf-border-strong); > summary { padding-block: 16px; cursor: pointer; font-weight: 600; span { color: var(--tf-text-secondary); font-weight: 400; margin-left: 8px; font-size: var(--tf-font-size-xs); } } }
+.muscle-row { display: grid; grid-template-columns: 1fr 1fr 120px 130px; align-items: center; gap: 16px; padding-block: 12px; border-top: 1px solid var(--tf-border); > strong { font-weight: 500; overflow-wrap: anywhere; } small { display: block; margin-top: 4px; color: var(--tf-text-secondary); } }
+.muscle-bars { display: grid; gap: 4px; i { height: 5px; background: var(--tf-text-muted); border-radius: 2px; } i + i { background: var(--tf-accent); } }
+.reading-notes { margin-top: 12px; color: var(--tf-text-secondary); font-size: var(--tf-font-size-xs); summary { padding-block: 12px; cursor: pointer; } p { max-width: 75ch; line-height: 1.6; } }
+button:focus-visible, summary:focus-visible, .table-scroll:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 3px; }
+summary:hover { color: var(--tf-text); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 600px) {
+  .compare-content { --padding-start: 12px; --padding-end: 12px; }
+  .compare-picker { gap: 6px; }
+  .picker-select { padding-inline: 8px; }
+  .comparison-tools { flex-wrap: wrap; gap: 8px; ion-segment { max-width: none; } }
+  .overview { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-block: 0; }
+  .overview-metric { padding: 12px; &:nth-child(2) { border-inline-end: 0; } &:nth-child(-n + 2) { border-bottom: 1px solid var(--tf-border); } }
+  .metric-values { font-size: 1.2rem; }
+  .completion-strip { gap: 8px 12px; > span:first-child { width: 100%; } }
+  .completion-track { width: 36px; }
+  .progress-strip { gap: 8px 16px; margin-bottom: 12px; }
+  .exercise-table { min-width: 700px; .exercise-column { width: 156px; } th, td { padding: 10px 8px; } }
+  .exercise-name, .exercise-table thead th:first-child { position: sticky; left: 0; z-index: 1; border-right: 1px solid var(--tf-border-strong); }
+  .workout-heading div { max-width: calc(100vw - 44px); flex-wrap: wrap; }
+  .muscle-row { grid-template-columns: 1fr 100px; gap: 8px 16px; }
+  .muscle-bars { grid-column: 1; }
+  .muscle-row > span { grid-column: 2; }
 }

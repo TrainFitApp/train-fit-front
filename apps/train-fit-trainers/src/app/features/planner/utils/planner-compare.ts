@@ -3,7 +3,7 @@ import { Workout } from 'src/app/core/models/workout';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Set as ExerciseSet } from 'src/app/core/models/set';
 import { formatRirValue } from 'src/app/core/models/rir';
-import { countByMuscleGroup, topWeight } from './planner-metrics';
+import { countByMuscleGroup } from './planner-metrics';
 
 /**
  * Motor de comparación de dos microciclos (2026-09). Puro y sin
@@ -22,6 +22,13 @@ export interface PrescriptionSummary {
   // ejercicio no son homogéneas y hay que dar la envolvente.
   label: string;
   sets: number;
+  weight: string;
+  reps: string;
+  rir: string;
+  topWeight: number | null;
+  uniformReps: number | null;
+  uniformRir: number | null;
+  details: string[];
 }
 
 export interface CompareExerciseRow {
@@ -285,6 +292,14 @@ function buildChips(a: CustomExercise, b: CustomExercise): string[] {
   pushIfChanged(chips, 'RIR', rirLabel(a), rirLabel(b));
   pushIfChanged(chips, 'Descanso', restLabel(a), restLabel(b));
 
+  // Las envolventes y el peso máximo pueden ocultar cambios en series intermedias.
+  const signature = (exercise: CustomExercise) => JSON.stringify((exercise.sets || []).map((set) => [
+    set.expectedReps || [], set.weight ?? null, set.expectedRir || [],
+    set.restSeconds ?? null, set.expectedTime ?? null, set.expectedDistance ?? null,
+    set.drop ?? false, set.restPause ?? null, set.dropSetSeries ?? [], set.restPauseSeries ?? [],
+  ]));
+  if (!chips.length && signature(a) !== signature(b)) chips.push('Distribución de series modificada');
+
   if ((a.notes || '').trim() !== (b.notes || '').trim()) chips.push('Nota del entrenador editada');
 
   return chips;
@@ -302,7 +317,6 @@ function pushIfChanged(chips: string[], label: string, a: string, b: string): vo
 function summarize(exercise: CustomExercise | null): PrescriptionSummary | null {
   if (!exercise) return null;
   const sets = exercise.sets || [];
-  if (!sets.length) return { label: 'sin series', sets: 0 };
 
   const parts: string[] = [];
   const reps = repsLabel(exercise);
@@ -315,7 +329,37 @@ function summarize(exercise: CustomExercise | null): PrescriptionSummary | null 
   if (rir) parts.push(`RIR ${rir}`);
 
   const homogeneous = isHomogeneous(exercise);
-  return { label: `${homogeneous ? '' : '~'}${parts.join(' · ')}`, sets: sets.length };
+  return {
+    label: sets.length ? `${homogeneous ? '' : '~'}${parts.join(' · ')}` : 'sin series',
+    sets: sets.length,
+    weight: weight || '—',
+    reps: reps || '—',
+    rir: rir || '—',
+    topWeight: topWeight(exercise),
+    uniformReps: uniformValue(sets.map((set) => set.expectedReps)),
+    uniformRir: uniformValue(sets.map((set) => set.expectedRir)),
+    details: sets.map((set, index) => {
+      const single = { ...exercise, sets: [set] };
+      const duration = set.expectedTime ? ` · ${set.expectedTime}` : '';
+      const distance = set.expectedDistance != null ? ` · ${set.expectedDistance} km` : '';
+      return `${index + 1}. ${repsLabel(single) || '—'} reps · ${weightLabel(single) || '—'} · RIR ${rirLabel(single) || '—'}${duration}${distance}`;
+    }),
+  };
+}
+
+function uniformValue(ranges: (number[] | undefined)[]): number | null {
+  const first = ranges[0]?.[0];
+  if (typeof first !== 'number' || !Number.isFinite(first) || first < 0) return null;
+  return ranges.every((range) => !!range?.length && range.every((value) => value === first))
+    ? first : null;
+}
+
+// El cero es una carga registrada; cardio e isométricos no son comparables en kg.
+function topWeight(exercise: CustomExercise): number | null {
+  if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) return null;
+  const weights = (exercise.sets || []).map((set) => set.weight)
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0);
+  return weights.length ? Math.max(...weights) : null;
 }
 
 function isHomogeneous(exercise: CustomExercise): boolean {
@@ -339,6 +383,7 @@ function repsLabel(exercise: CustomExercise): string {
 }
 
 function weightLabel(exercise: CustomExercise): string {
+  if (exercise.exercise?.isCardio || exercise.exercise?.isIsometric) return '';
   const values = (exercise.sets || [])
     .map((set) => set.weight)
     .filter((weight): weight is number => typeof weight === 'number' && !isNaN(weight));

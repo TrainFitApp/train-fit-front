@@ -1,8 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ labelFor(indexA) }} → {{ labelFor(indexB) }}</ion-title>
+    <ion-title>Comparar microciclos</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="close()">
+      <ion-button (click)="close()" aria-label="Cerrar comparación">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -10,251 +10,143 @@
 </ion-header>
 
 <ion-content class="compare-content">
-  <!-- Elegir qué se compara con qué. A = origen (el más antiguo), B =
-       destino: todos los deltas son B − A. Mismo criterio A→B que ya usa la
-       pantalla de Estadísticas del panel. -->
   <div class="compare-picker">
-    <ion-select
-      class="picker-select"
-      interface="popover"
-      label="De"
-      labelPlacement="stacked"
-      [value]="indexA"
-      (ionChange)="onSelectA($any($event).detail?.value)"
-    >
+    <ion-select class="picker-select" interface="popover" label="A · Referencia" labelPlacement="stacked"
+      [value]="indexA" (ionChange)="onSelectA($event.detail.value)" [disabled]="splits.length < 2">
       <ion-select-option *ngFor="let split of splits; let i = index" [value]="i">
-        {{ labelFor(i) }}{{ purposeLabel(split) ? ' · ' + purposeLabel(split) : '' }}
+        {{ labelFor(i) }} · {{ purposeLabel(split) }}
       </ion-select-option>
     </ion-select>
-
-    <button type="button" class="swap-button" (click)="swap()" aria-label="Intercambiar microciclos">
-      <ion-icon name="swap-horizontal-outline"></ion-icon>
+    <button type="button" class="swap-button" (click)="swap()" aria-label="Intercambiar A y B" [disabled]="!hasPair">
+      <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
     </button>
-
-    <ion-select
-      class="picker-select"
-      interface="popover"
-      label="A"
-      labelPlacement="stacked"
-      [value]="indexB"
-      (ionChange)="onSelectB($any($event).detail?.value)"
-    >
+    <ion-select class="picker-select" interface="popover" label="B · Comparar" labelPlacement="stacked"
+      [value]="indexB" (ionChange)="onSelectB($event.detail.value)" [disabled]="splits.length < 2">
       <ion-select-option *ngFor="let split of splits; let i = index" [value]="i">
-        {{ labelFor(i) }}{{ purposeLabel(split) ? ' · ' + purposeLabel(split) : '' }}
+        {{ labelFor(i) }} · {{ purposeLabel(split) }}
       </ion-select-option>
     </ion-select>
   </div>
 
-  <!-- El objetivo declarado de cada bloque va DELANTE de los números: sin
-       saber que B es una descarga, "−40% de volumen" no se puede juzgar. -->
-  <div class="compare-context" *ngIf="splitA?.objective || splitB?.objective">
-    <p *ngIf="splitA?.objective"><strong>{{ labelFor(indexA) }}:</strong> {{ splitA.objective }}</p>
-    <p *ngIf="splitB?.objective"><strong>{{ labelFor(indexB) }}:</strong> {{ splitB.objective }}</p>
-  </div>
-
-  <!-- Estructura distinta: con los números concretos, nunca un aviso
-       genérico. El emparejamiento es por posición, así que las filas
-       sobrantes se quedan sin pareja y hay que decirlo. -->
-  <p class="compare-banner" *ngIf="result?.structure as structure">
-    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-    Estructura distinta ({{ structure.a }} vs {{ structure.b }} entrenamientos): se emparejan por
-    posición y las filas sobrantes quedan sin pareja.
-  </p>
-
-  <!-- Lo primero que mira un entrenador al comparar dos semanas: si de
-       verdad progresó algo, y sobre todo cuántos ejercicios repiten pauta
-       sin querer (el error típico al duplicar y retocar solo los primeros
-       días). Va ANTES de los agregados: es la respuesta, no el contexto. -->
-  <section class="compare-progress" *ngIf="progress as p">
-    <h3 class="section-question">¿Qué progresó de {{ labelFor(indexA) }} a {{ labelFor(indexB) }}?</h3>
-    <div class="progress-grid">
-      <div class="progress-cell">
-        <span class="progress-value">{{ p.progressed }}</span>
-        <span class="progress-label">suben peso</span>
-      </div>
-      <div class="progress-cell">
-        <span class="progress-value">{{ p.regressed }}</span>
-        <span class="progress-label">bajan peso</span>
-      </div>
-      <div class="progress-cell progress-cell--warn" [class.progress-cell--quiet]="!p.stagnant">
-        <span class="progress-value">{{ p.stagnant }}</span>
-        <span class="progress-label">misma pauta</span>
-      </div>
-      <div class="progress-cell">
-        <span class="progress-value">{{ p.added }}/{{ p.removed }}</span>
-        <span class="progress-label">nuevos / fuera</span>
-      </div>
+  <p class="empty-state" *ngIf="!hasPair">Necesitas dos microciclos para comparar. Cierra esta vista y añade otro en el Planner.</p>
+  <ng-container *ngIf="hasPair">
+    <div class="comparison-tools">
+      <ion-segment [value]="mode" (ionChange)="onModeChange($event.detail.value)" aria-label="Datos de la comparación">
+        <ion-segment-button value="plan"><ion-label>Pauta</ion-label></ion-segment-button>
+        <ion-segment-button value="done"><ion-label>Registrado</ion-label></ion-segment-button>
+      </ion-segment>
+      <span class="comparison-legend">A → B <span>·</span> Variación respecto a A</span>
     </div>
-    <p class="section-hint" *ngIf="p.stagnant">
-      «Misma pauta» = mismo ejercicio con series en los dos microciclos y ni un solo cambio (peso,
-      reps, series ni RIR). Repetir una semana puede ser deliberado; si no lo era, aquí es donde se
-      ve. Para localizarlos en la lista, desactiva «Solo cambios»: salen marcados.
+    <p class="data-scope">{{ mode === 'plan' ? 'Reps y RIR pautados · carga guardada en el ejercicio.' : 'Solo series marcadas como completadas · reps y RIR registrados.' }}</p>
+
+    <div class="context-line" *ngIf="splitA?.objective || splitB?.objective || splitB?.purpose === 'deload'">
+      <span *ngIf="splitB?.purpose === 'deload'" class="purpose-note">B · Descarga</span>
+      <span *ngIf="splitA?.objective"><b>A</b> {{ splitA?.objective }}</span>
+      <span *ngIf="splitB?.objective"><b>B</b> {{ splitB?.objective }}</span>
+    </div>
+    <p class="notice" *ngIf="result?.structure as structure">
+      {{ structure.a }} sesiones en A / {{ structure.b }} en B. Se emparejan por posición; las sobrantes quedan sin pareja.
     </p>
-  </section>
 
-  <!-- Descarga declarada: se enseñan los números que la definen, sin
-       veredicto ni umbrales inventados. -->
-  <section class="compare-deload" *ngIf="isDeloadB">
-    <h3 class="section-question">Declaraste Descarga en {{ labelFor(indexB) }}</h3>
-    <p class="deload-line">
-      Series {{ setsA }} → {{ setsB }}
-      <strong *ngIf="deloadSetsDropPercent !== null">({{ deloadSetsDropPercent }}%)</strong>
-      · RIR medio {{ rirLabelA }} → {{ rirLabelB }}
-      · Series al fallo {{ failureSetsA }} → {{ failureSetsB }}
-    </p>
-  </section>
+    <section class="overview" aria-label="Resumen de microciclos">
+      <div class="overview-metric" *ngFor="let metric of metrics">
+        <h2>{{ metric.label }}</h2>
+        <div class="metric-values"><span>{{ metric.a }}</span><span class="value-arrow" aria-hidden="true">→</span><strong>{{ metric.b }}</strong></div>
+        <ng-container *ngTemplateOutlet="delta; context: { $implicit: metric }"></ng-container>
+      </div>
+    </section>
 
-  <!-- Agregados: contexto compacto, no el plato principal (estos mismos
-       números ya se ven en la columna al seleccionarla). -->
-  <section class="compare-headline">
-    <h3 class="section-question">Volumen e intensidad</h3>
-
-    <div class="headline-row">
-      <span class="headline-label">Series</span>
-      <span class="headline-a">{{ setsA }}</span>
-      <span class="headline-delta">{{ setsDelta }}</span>
-      <span class="headline-b">{{ setsB }}</span>
-    </div>
-    <div class="headline-row">
-      <span class="headline-label">RIR medio</span>
-      <span class="headline-a">{{ rirLabelA }}</span>
-      <span class="headline-delta">{{ rirDelta || '—' }}</span>
-      <span class="headline-b">{{ rirLabelB }}</span>
-    </div>
-    <div class="headline-row">
-      <span class="headline-label">Días entrenables</span>
-      <span class="headline-a">{{ trainableDaysA }}</span>
-      <span class="headline-delta"></span>
-      <span class="headline-b">{{ trainableDaysB }}</span>
-    </div>
-    <div class="headline-row" *ngIf="failureSetsA || failureSetsB">
-      <span class="headline-label">Series al fallo</span>
-      <span class="headline-a">{{ failureSetsA }}</span>
-      <span class="headline-delta"></span>
-      <span class="headline-b">{{ failureSetsB }}</span>
-    </div>
-    <div class="headline-row" *ngIf="doneSetsA || doneSetsB">
-      <span class="headline-label">Series completadas</span>
-      <span class="headline-a">{{ doneSetsA }} de {{ setsA }}</span>
-      <span class="headline-delta"></span>
-      <span class="headline-b">{{ doneSetsB }} de {{ setsB }}</span>
-    </div>
-
-    <!-- SIEMPRE visible, no bajo *ngIf: la explicación de una métrica que
-         solo aparece cuando ya hay datos es la que nadie lee. -->
-    <p class="section-hint">
-      Las series al fallo (RIR «FALLO») no entran en la media de RIR.
-      <span *ngIf="untonnagedA || untonnagedB">
-        Cardio e isométrico no llevan peso comparable ({{ untonnagedA }} series en
-        {{ labelFor(indexA) }}, {{ untonnagedB }} en {{ labelFor(indexB) }}).
+    <div class="completion-strip" aria-label="Series completadas">
+      <span>Completadas</span>
+      <span class="completion-item"><b>A</b> {{ completionA.done }}/{{ completionA.total }}
+        <span class="completion-track" aria-hidden="true"><i [style.width.%]="completionA.percent"></i></span>
+        {{ completionA.total ? completionA.percent + '%' : '—' }}
       </span>
-      Esto es la PAUTA: lo ejecutado se compara en Estadísticas.
-    </p>
-  </section>
-
-  <ion-segment
-    class="compare-views"
-    [value]="view"
-    (ionChange)="onViewChange($any($event).detail?.value)"
-  >
-    <ion-segment-button value="exercises">
-      <ion-label>Ejercicios</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="volume">
-      <ion-label>Volumen</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
-  <!-- VISTA EJERCICIOS — el núcleo: "¿se estancó un ejercicio?" -->
-  <section class="compare-exercises" *ngIf="view === 'exercises'">
-    <label class="only-changes">
-      <ion-checkbox [(ngModel)]="onlyChanges" labelPlacement="end">Solo cambios</ion-checkbox>
-    </label>
-
-    <p class="section-empty" *ngIf="onlyChanges && !visibleWorkouts.length">
-      No hay ninguna diferencia de pauta entre {{ labelFor(indexA) }} y {{ labelFor(indexB) }}.
-    </p>
-
-    <div class="workout-group" *ngFor="let row of visibleWorkouts; trackBy: trackByIndex">
-      <div class="workout-head">
-        <span class="workout-name">Día {{ row.index + 1 }} · {{ workoutTitle(row) }}</span>
-        <span class="workout-sets">
-          {{ row.setsA }} → {{ row.setsB }} series
-        </span>
-      </div>
-
-      <p class="workout-note" *ngIf="row.onlyIn">
-        Este día solo existe en {{ row.onlyIn === 'a' ? labelFor(indexA) : labelFor(indexB) }}.
-      </p>
-      <p class="workout-note" *ngIf="row.restDayA !== row.restDayB">
-        Cambia de {{ row.restDayA ? 'descanso' : 'entrenamiento' }} a
-        {{ row.restDayB ? 'descanso' : 'entrenamiento' }}.
-      </p>
-
-      <div class="exercise-row" *ngFor="let exercise of visibleExercises(row); trackBy: trackByIndex">
-        <div class="exercise-head">
-          <span class="exercise-name">
-            {{ (exercise.name || 'Ejercicio eliminado del catálogo') | translateDb }}
-          </span>
-          <span class="exercise-status" *ngIf="exercise.status !== 'same' && exercise.status !== 'changed'">
-            {{ statusLabel(exercise.status, exercise.movedFrom) }}
-          </span>
-          <span class="exercise-status exercise-status--stagnant" *ngIf="exercise.stagnant">
-            misma pauta
-          </span>
-        </div>
-
-        <div class="exercise-sides">
-          <span class="side side--a">{{ exercise.a?.label || '—' }}</span>
-          <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
-          <span class="side side--b">{{ exercise.b?.label || '—' }}</span>
-        </div>
-
-        <div class="exercise-chips" *ngIf="exercise.chips.length">
-          <span class="change-chip" *ngFor="let chip of exercise.chips">{{ chip }}</span>
-        </div>
-      </div>
-    </div>
-
-    <p class="section-hint" *ngIf="hiddenWorkouts">
-      {{ hiddenWorkouts }} día(s) sin cambios, ocultos por «Solo cambios».
-    </p>
-  </section>
-
-  <!-- VISTA VOLUMEN — "¿subí volumen donde quería?" -->
-  <section class="compare-volume" *ngIf="view === 'volume'">
-    <h3 class="section-question">¿Subí el volumen donde quería?</h3>
-
-    <p class="section-empty" *ngIf="!result?.muscles?.length">
-      Ninguno de los dos microciclos tiene series todavía.
-    </p>
-
-    <div class="muscle-head" *ngIf="result?.muscles?.length">
-      <span></span>
-      <span class="muscle-head-label">{{ labelFor(indexA) }}</span>
-      <span></span>
-      <span class="muscle-head-label">{{ labelFor(indexB) }}</span>
-    </div>
-
-    <div class="muscle-row" *ngFor="let muscle of result?.muscles; trackBy: trackByIndex">
-      <span class="muscle-name">{{ muscle.name | translateDb }}</span>
-      <span class="muscle-a">
-        {{ muscle.a }}
-        <small class="muscle-days">{{ muscle.daysA }}d</small>
-      </span>
-      <span class="muscle-delta" [class.muscle-delta--flat]="muscle.delta === 0">
-        {{ muscle.delta === 0 ? '· 0' : (muscle.delta > 0 ? '▲ +' : '▼ −') + (muscle.delta > 0 ? muscle.delta : -muscle.delta) }}
-      </span>
-      <span class="muscle-b">
-        {{ muscle.b }}
-        <small class="muscle-days">{{ muscle.daysB }}d</small>
+      <span class="completion-item"><b>B</b> {{ completionB.done }}/{{ completionB.total }}
+        <span class="completion-track completion-track--b" aria-hidden="true"><i [style.width.%]="completionB.percent"></i></span>
+        {{ completionB.total ? completionB.percent + '%' : '—' }}
       </span>
     </div>
-
-    <p class="section-hint">
-      Series por grupo muscular principal (solo primario, sin secundarios), ordenadas por el tamaño
-      del cambio. «2d» = repartidas en 2 días distintos: 12 series en un día y 12 en dos no son la
-      misma semana. Rango de referencia habitual: 10-20 series por semana.
+    <p class="notice" *ngIf="mode === 'done' && (completionA.done < completionA.total || completionB.done < completionB.total)">
+      Registro parcial. Compara también las series completadas antes de interpretar la variación.
     </p>
-  </section>
+    <p class="notice" *ngIf="mode === 'done' && (!completionA.done || !completionB.done)">
+      {{ !completionA.done && !completionB.done ? 'A y B no tienen' : !completionA.done ? 'A no tiene' : 'B no tiene' }} series completadas. Los guiones indican ausencia de registro.
+    </p>
+
+    <div class="progress-strip" *ngIf="result?.progress as progress" aria-label="Cambios de carga máxima por ejercicio">
+      <span class="trend-up"><ion-icon name="arrow-up-outline" aria-hidden="true"></ion-icon><b>{{ progress.progressed }}</b> suben carga</span>
+      <span class="trend-down"><ion-icon name="arrow-down-outline" aria-hidden="true"></ion-icon><b>{{ progress.regressed }}</b> bajan carga</span>
+      <span><b>{{ progress.stagnant }}</b> sin cambios</span>
+      <span *ngIf="progress.added || progress.removed"><b>{{ progress.added }}/{{ progress.removed }}</b> solo B / solo A</span>
+    </div>
+
+    <section class="exercise-section" aria-labelledby="exercise-heading">
+      <div class="section-toolbar">
+        <h2 id="exercise-heading">Ejercicios <span>{{ visibleCount }}/{{ totalCount }}</span></h2>
+        <ion-checkbox [(ngModel)]="onlyChanges" (ionChange)="filterWorkouts()" labelPlacement="end">Solo cambios</ion-checkbox>
+      </div>
+      <p class="table-guide">Cada celda: A → B · Δ carga sobre el máximo · ↑ sube / ↓ baja, sin juicio de mejora.</p>
+      <div class="table-scroll" role="region" aria-label="Comparación de ejercicios; desplaza horizontalmente para ver todas las métricas" tabindex="0" *ngIf="visibleWorkouts.length">
+        <table class="exercise-table">
+          <caption class="sr-only">{{ labelFor(indexA) }} frente a {{ labelFor(indexB) }}. Datos {{ mode === 'plan' ? 'de pauta' : 'registrados' }}.</caption>
+          <colgroup><col class="exercise-column"><col><col><col><col></colgroup>
+          <thead><tr><th scope="col">Ejercicio</th><th scope="col">Carga · kg</th><th scope="col">Repeticiones</th><th scope="col">Series</th><th scope="col">RIR</th></tr></thead>
+          <tbody *ngFor="let workout of visibleWorkouts; trackBy: trackByIndex">
+            <tr class="workout-heading"><th colspan="5" scope="rowgroup">
+              <div><span>Día {{ workout.index + 1 }} · {{ workout.nameB || workout.nameA || 'Sin nombre' }}</span><span>{{ workout.setsA }} → {{ workout.setsB }} series</span></div>
+              <small *ngIf="workout.onlyIn">Solo en {{ workout.onlyIn === 'a' ? 'A' : 'B' }}</small>
+              <small *ngIf="workout.restDayA !== workout.restDayB">{{ workout.restDayA ? 'Descanso → entrenamiento' : 'Entrenamiento → descanso' }}</small>
+            </th></tr>
+            <tr *ngFor="let exercise of workout.exercises; trackBy: trackByIndex">
+              <th scope="row" class="exercise-name">
+                <span>{{ (exercise.name || 'Ejercicio eliminado del catálogo') | translateDb }}</span>
+                <small [class.status-changed]="exercise.status !== 'same'">{{ statusLabel(exercise) }}</small>
+                <details *ngIf="exercise.details.length || exercise.chips.length" class="set-details">
+                  <summary>Ver series</summary>
+                  <div class="set-detail-content">
+                    <p *ngFor="let detail of exercise.details"><span><b>A</b> {{ detail.a }}</span><span><b>B</b> {{ detail.b }}</span></p>
+                    <p *ngFor="let chip of exercise.chips" class="detail-change">{{ chip }}</p>
+                  </div>
+                </details>
+              </th>
+              <td *ngFor="let metric of exercise.metrics">
+                <div class="cell-values"><span>{{ metric.a }}</span><span class="value-arrow" aria-hidden="true">→</span><strong>{{ metric.b }}</strong></div>
+                <ng-container *ngTemplateOutlet="delta; context: { $implicit: metric }"></ng-container>
+              </td>
+            </tr>
+            <tr *ngIf="!workout.exercises.length"><td colspan="5" class="empty-row">{{ workout.restDayA && workout.restDayB ? 'Descanso pautado' : 'Sin ejercicios comparables en esta sesión.' }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="empty-state" *ngIf="!visibleWorkouts.length">{{ onlyChanges ? 'Sin diferencias entre A y B. Desactiva «Solo cambios» para ver todos los ejercicios.' : 'Estos microciclos no tienen sesiones. Añade ejercicios desde el Planner.' }}</p>
+    </section>
+
+    <details class="muscle-section">
+      <summary>Volumen por grupo muscular <span>{{ muscles.length }} grupos</span></summary>
+      <p class="table-guide">Series por grupo principal · barras A / B en la misma escala · frecuencia en sesiones.</p>
+      <div class="muscle-row" *ngFor="let muscle of muscles">
+        <strong>{{ muscle.name | translateDb }}</strong>
+        <div class="muscle-bars" aria-hidden="true"><i [style.width.%]="muscle.widthA"></i><i [style.width.%]="muscle.widthB"></i></div>
+        <span>{{ muscle.a }} → <b>{{ muscle.b }}</b><small>{{ muscle.daysA }} → {{ muscle.daysB }} sesiones</small></span>
+        <ng-container *ngTemplateOutlet="delta; context: { $implicit: muscle.metric }"></ng-container>
+      </div>
+      <p class="empty-state" *ngIf="!muscles.length">Sin series asignadas a grupos musculares.</p>
+    </details>
+    <details class="reading-notes">
+      <summary>Cómo leer los datos</summary>
+      <p>Los cambios son B − A. Una bajada de carga o series puede corresponder a una descarga; más carga por sí sola no demuestra mejora.</p>
+      <p>El peso es compartido entre pauta y registro: no conserva una prescripción histórica. «Registrado» usa solo series confirmadas como completadas; una copia puede conservar valores previos si el cliente los confirma sin editarlos.</p>
+      <p>RIR medio excluye FALLO y valores ausentes. Un RIR menor significa menos repeticiones en reserva. Los rangos muestran los valores disponibles; «Ver series» permite localizar huecos y cambios de distribución.</p>
+      <p>Cardio e isométricos no tienen carga comparable. Tiempo y distancia aparecen en el detalle. Los porcentajes no se calculan con referencia cero o ausente.</p>
+      <p>Las sesiones se emparejan por posición y los ejercicios por identidad dentro de cada sesión. Cada serie cuenta en todos sus grupos primarios; los secundarios se excluyen.</p>
+    </details>
+  </ng-container>
 </ion-content>
+
+<ng-template #delta let-metric>
+  <span class="metric-delta" [class.trend-up]="metric.direction === 'up'" [class.trend-down]="metric.direction === 'down'">
+    <ion-icon *ngIf="metric.direction === 'up' || metric.direction === 'down'" [name]="trendIcon(metric)" aria-hidden="true"></ion-icon>
+    {{ metric.delta }}<small *ngIf="metric.percent && metric.direction !== 'flat'">({{ metric.percent }})</small>
+  </span>
+</ng-template>
