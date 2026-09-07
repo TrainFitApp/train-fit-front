@@ -40,6 +40,7 @@ import {
 } from 'src/app/shared/constants/actions';
 import { MealClipboard } from 'src/app/shared/models/meal-clipboard';
 import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-meal-modal.component';
+import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
 import { MealProposal } from '../../models/meal-proposal.model';
 import { MealProposalApiService } from '../../services/meal-proposal-api.service';
 
@@ -522,6 +523,156 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
       this.getPautadoProducts(meal).every((p) => p.consumed) &&
       this.getPautadoRecipes(meal).every((r) => r.consumed)
     );
+  }
+
+  // Diferencia entre lo que se pautó y lo que de verdad se consumió — 0 (o
+  // sin assignedQuantity, pautados de antes de este feature que la
+  // migración no pudo rellenar) oculta el badge en el HTML. Redondeado:
+  // igual que el resto de esta card, la cantidad se muestra en enteros.
+  public productAssignedDelta(product: CustomProduct): number {
+    if (product.assignedQuantity == null) return 0;
+    return Math.round((Number(product.quantity) || 0) - product.assignedQuantity);
+  }
+
+  public recipeAssignedDelta(instance: CustomRecipe): number {
+    if (instance.assignedQuantity == null) return 0;
+    return Math.round(this.getRecipeConsumedQuantity(instance) - instance.assignedQuantity);
+  }
+
+  // Única edición permitida sobre un pautado: cuánto se consumió de
+  // verdad. Vía controlada propia en el backend (setCustomProductQuantity),
+  // nunca pasa por assertMealEditable ni toca nada más del producto/receta.
+  public editPautadoProductQuantity(product: CustomProduct, event: Event): void {
+    event.stopPropagation();
+    if (this.selectionMode) return;
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('MEAL.EDIT_CONSUMED_QUANTITY_HEADER'),
+      inputs: [
+        {
+          name: 'quantity',
+          type: 'number',
+          value: product.quantity,
+          min: 0,
+          placeholder: t('MEAL.QUANTITY_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        { text: t('COMMON.CANCEL').toUpperCase(), role: 'cancel' },
+        {
+          text: t('COMMON.SAVE').toUpperCase(),
+          cssClass: 'alert-button-success',
+          handler: (data) => {
+            const quantity = Number(data.quantity);
+            if (!Number.isFinite(quantity) || quantity < 0) {
+              this.ionicUtilService.showErrorToast(
+                t('MEAL.INVALID_QUANTITY'),
+                t('COMMON.ERROR'),
+                2000
+              );
+              return false;
+            }
+            const previous = product.quantity;
+            product.quantity = quantity;
+            this.mealService
+              .setCustomProductQuantity(this.meal._id!, product._id!, quantity)
+              .subscribe({
+                error: () => {
+                  product.quantity = previous;
+                  this.ionicUtilService.showErrorToast(
+                    t('MEAL.QUANTITY_UPDATE_ERROR'),
+                    t('COMMON.ERROR'),
+                    2500
+                  );
+                },
+              });
+            return true;
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  public editPautadoRecipeQuantity(instance: CustomRecipe, event: Event): void {
+    event.stopPropagation();
+    if (this.selectionMode) return;
+    const t = this.translate.instant.bind(this.translate);
+    const alertOptions: AlertOptions = {
+      header: t('MEAL.EDIT_CONSUMED_QUANTITY_HEADER'),
+      inputs: [
+        {
+          name: 'quantity',
+          type: 'number',
+          value: instance.quantity,
+          min: 0,
+          placeholder: t('MEAL.QUANTITY_PLACEHOLDER'),
+        },
+      ],
+      buttons: [
+        { text: t('COMMON.CANCEL').toUpperCase(), role: 'cancel' },
+        {
+          text: t('COMMON.SAVE').toUpperCase(),
+          cssClass: 'alert-button-success',
+          handler: (data) => {
+            const quantity = Number(data.quantity);
+            if (!Number.isFinite(quantity) || quantity < 0) {
+              this.ionicUtilService.showErrorToast(
+                t('MEAL.INVALID_QUANTITY'),
+                t('COMMON.ERROR'),
+                2000
+              );
+              return false;
+            }
+            const previous = instance.quantity;
+            instance.quantity = quantity;
+            this.mealService
+              .setCustomRecipeQuantity(this.meal._id!, instance._id!, quantity)
+              .subscribe({
+                error: () => {
+                  instance.quantity = previous;
+                  this.ionicUtilService.showErrorToast(
+                    t('MEAL.QUANTITY_UPDATE_ERROR'),
+                    t('COMMON.ERROR'),
+                    2500
+                  );
+                },
+              });
+            return true;
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
+  }
+
+  // Tap en la fila de un pautado — modo lectura, nunca el editor de
+  // composición (ver comentario de assignedByTrainerId en
+  // editCustomProduct/editCustomRecipe más arriba).
+  public async viewPautadoProduct(product: CustomProduct): Promise<void> {
+    if (this.selectionMode) {
+      this.toggleProductSelection(product);
+      return;
+    }
+    const modal = await this.modalController.create({
+      component: PautadoItemViewComponent,
+      componentProps: { kind: 'product', product },
+      cssClass: 'auto-height-modal',
+    });
+    await modal.present();
+  }
+
+  public async viewPautadoRecipe(instance: CustomRecipe): Promise<void> {
+    if (this.selectionMode) {
+      this.toggleRecipeSelection(instance);
+      return;
+    }
+    const modal = await this.modalController.create({
+      component: PautadoItemViewComponent,
+      componentProps: { kind: 'recipe', recipeInstance: instance },
+      cssClass: 'auto-height-modal',
+    });
+    await modal.present();
   }
 
   // Marcar/desmarcar consumido — actualización optimista (mismo patrón que

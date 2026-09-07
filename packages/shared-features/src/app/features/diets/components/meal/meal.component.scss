@@ -114,6 +114,53 @@
             font-weight: 500;
             margin-left: 6px;
           }
+
+          // Delta sobre lo pautado, a la derecha de la cantidad — mismo
+          // verde/rojo que el resto de la app usa para "más"/"menos" (ver
+          // pautado-item-view.component.scss, mismo criterio ahí).
+          .quantity-delta {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+
+            &--positive {
+              color: var(--ion-color-success);
+              background: rgba(var(--ion-color-success-rgb), 0.14);
+            }
+
+            &--negative {
+              color: var(--ion-color-danger);
+              background: rgba(var(--ion-color-danger-rgb), 0.14);
+            }
+          }
+
+          // Único punto de edición en un pautado (ver
+          // editPautadoProductQuantity/editPautadoRecipeQuantity) — el
+          // resto de la fila abre la vista de solo lectura al pulsarla.
+          .quantity-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            margin-left: 4px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background: rgba(var(--ion-color-alternative-rgb), 0.14);
+            color: var(--ion-color-alternative);
+            vertical-align: middle;
+
+            ion-icon {
+              font-size: 13px;
+            }
+
+            &:active {
+              background: rgba(var(--ion-color-alternative-rgb), 0.24);
+            }
+          }
         }
 
         // Información nutricional

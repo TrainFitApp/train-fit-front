@@ -1,0 +1,183 @@
+// Mismo header/toolbar/close-button que clipboard-meal-modal.component.scss
+// — un solo lenguaje de modal en Diets, no dos.
+:host {
+  --surface: #101010;
+  --surface-raised: #181818;
+  --border: rgba(255, 255, 255, 0.1);
+  --muted: #9ca3af;
+}
+
+.modal-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-toolbar {
+  min-height: 60px;
+  padding: 10px 12px 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toolbar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+
+  ion-title {
+    padding: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+  }
+}
+
+.pautado-view-icon {
+  font-size: 20px;
+  color: var(--ion-color-alternative);
+}
+
+.close-action-button {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.modal-content {
+  --background: #0a0a0b;
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --padding-top: 20px;
+  --padding-bottom: 24px;
+}
+
+.pautado-view-name {
+  margin: 0 0 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+}
+
+.pautado-view-quantity-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.pautado-view-quantity-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pautado-view-quantity-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+// Mismo verde/rojo que el resto de la app para +/- (ver
+// meal.component.scss .quantity-delta) — un solo lenguaje de color para
+// "más de lo pautado" / "menos de lo pautado" en toda la sección Diets.
+.quantity-delta {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+
+  &--positive {
+    color: var(--ion-color-success);
+    background: rgba(var(--ion-color-success-rgb), 0.14);
+  }
+
+  &--negative {
+    color: var(--ion-color-danger);
+    background: rgba(var(--ion-color-danger-rgb), 0.14);
+  }
+}
+
+.pautado-view-assigned-hint {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.pautado-view-macros {
+  margin-top: 20px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+// Mismo grid de 4 columnas que .nutrition-info en meal.component.scss,
+// aquí con etiqueta debajo del valor (en la fila de la comida el nombre
+// del macro no hace falta, ahí ya lo distingue el color; aquí sí, al
+// mostrarse en una card mas grande).
+.nutrition-info {
+  display: flex;
+  gap: 12px;
+
+  .nutrition-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .nutrition-value {
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .nutrition-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    &.calories .nutrition-value {
+      color: var(--ion-color-primary);
+    }
+
+    &.protein .nutrition-value {
+      color: var(--ion-color-alternative, #ff6b6b);
+    }
+
+    &.carbs .nutrition-value {
+      color: var(--ion-color-success);
+    }
+
+    &.fat .nutrition-value {
+      color: var(--ion-color-secondary);
+    }
+  }
+}

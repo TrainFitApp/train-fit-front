@@ -541,7 +541,16 @@
     "ITEM_COUNT_PLURAL": "items",
     "PAUTADO_TITLE": "Prescribed",
     "PAUTADO_SUBTITLE": "Products and recipes assigned by your coach",
-    "CONSUMED_UPDATE_ERROR": "Could not update"
+    "CONSUMED_UPDATE_ERROR": "Could not update",
+    "QUANTITY_CONSUMED_LABEL": "Consumed quantity",
+    "QUANTITY_ASSIGNED_HINT": "Prescribed: {{quantity}}g",
+    "EDIT_CONSUMED_QUANTITY_HEADER": "Consumed quantity",
+    "QUANTITY_PLACEHOLDER": "Grams",
+    "INVALID_QUANTITY": "Enter a valid quantity",
+    "QUANTITY_UPDATE_ERROR": "Could not update the quantity",
+    "PROTEIN_LABEL": "Protein",
+    "CARBS_LABEL": "Carbs",
+    "FAT_LABEL": "Fat"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copied to clipboard",

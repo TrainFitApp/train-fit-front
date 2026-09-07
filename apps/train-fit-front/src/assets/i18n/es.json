@@ -547,7 +547,16 @@
     "ITEM_COUNT_PLURAL": "elementos",
     "PAUTADO_TITLE": "Pautado",
     "PAUTADO_SUBTITLE": "Productos y recetas indicados por tu profesional",
-    "CONSUMED_UPDATE_ERROR": "No se pudo actualizar"
+    "CONSUMED_UPDATE_ERROR": "No se pudo actualizar",
+    "QUANTITY_CONSUMED_LABEL": "Cantidad consumida",
+    "QUANTITY_ASSIGNED_HINT": "Pautado: {{quantity}}g",
+    "EDIT_CONSUMED_QUANTITY_HEADER": "Cantidad consumida",
+    "QUANTITY_PLACEHOLDER": "Gramos",
+    "INVALID_QUANTITY": "Introduce una cantidad válida",
+    "QUANTITY_UPDATE_ERROR": "No se pudo actualizar la cantidad",
+    "PROTEIN_LABEL": "Proteína",
+    "CARBS_LABEL": "Carbohidratos",
+    "FAT_LABEL": "Grasas"
   },
   "TOOLBAR_CALENDAR": {
     "DATE_COPIED": "{{date}} copiado al portapapeles",

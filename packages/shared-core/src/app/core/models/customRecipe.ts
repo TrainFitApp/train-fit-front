@@ -19,6 +19,9 @@ export interface CustomRecipe {
   // Pautado por trainer (ver custom-recipe-schema.js backend) — mismo
   // criterio que CustomProduct.assignedByTrainerId.
   assignedByTrainerId?: string | null;
+  // Cantidad ORIGINAL pautada, fija — mismo criterio que
+  // CustomProduct.assignedQuantity (ver ese comentario).
+  assignedQuantity?: number | null;
   consumed?: boolean;
 }
 

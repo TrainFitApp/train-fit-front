@@ -262,7 +262,7 @@
           class="meal-item recipe-item pautado-item"
           [class.selected]="isRecipeSelected(instance)"
           [class.consumed]="instance.consumed"
-          (click)="selectionMode && toggleRecipeSelection(instance)"
+          (click)="viewPautadoRecipe(instance)"
         >
           <div class="item-content">
             <div class="item-header">
@@ -271,6 +271,25 @@
                 <span class="item-quantity">{{
                   getRecipeConsumedQuantity(instance) | number : "1.0-1"
                 }}g</span>
+                <!-- Delta sobre lo pautado — solo si el cliente ya la tocó
+                     (ver recipeAssignedDelta en meal.component.ts). -->
+                <span
+                  class="quantity-delta"
+                  *ngIf="recipeAssignedDelta(instance) !== 0"
+                  [class.quantity-delta--positive]="recipeAssignedDelta(instance) > 0"
+                  [class.quantity-delta--negative]="recipeAssignedDelta(instance) < 0"
+                >{{ recipeAssignedDelta(instance) > 0 ? '+' : '' }}{{ recipeAssignedDelta(instance) }}</span>
+                <!-- Única edición permitida en un pautado: cuánto se
+                     consumió. Todo lo demás de la receta queda en modo
+                     lectura (ver viewPautadoRecipe). -->
+                <button
+                  type="button"
+                  class="quantity-edit-btn"
+                  [attr.aria-label]="'MEAL.EDIT_CONSUMED_QUANTITY_HEADER' | translate"
+                  (click)="editPautadoRecipeQuantity(instance, $event)"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                </button>
               </h3>
             </div>
 
@@ -325,13 +344,27 @@
           class="meal-item product-item pautado-item"
           [class.selected]="isProductSelected(product)"
           [class.consumed]="product.consumed"
-          (click)="selectionMode && toggleProductSelection(product)"
+          (click)="viewPautadoProduct(product)"
         >
           <div class="item-content">
             <div class="item-header">
               <h3 class="item-name">
                 {{ product.product?.name }}
                 <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
+                <span
+                  class="quantity-delta"
+                  *ngIf="productAssignedDelta(product) !== 0"
+                  [class.quantity-delta--positive]="productAssignedDelta(product) > 0"
+                  [class.quantity-delta--negative]="productAssignedDelta(product) < 0"
+                >{{ productAssignedDelta(product) > 0 ? '+' : '' }}{{ productAssignedDelta(product) }}</span>
+                <button
+                  type="button"
+                  class="quantity-edit-btn"
+                  [attr.aria-label]="'MEAL.EDIT_CONSUMED_QUANTITY_HEADER' | translate"
+                  (click)="editPautadoProductQuantity(product, $event)"
+                >
+                  <ion-icon name="create-outline"></ion-icon>
+                </button>
               </h3>
             </div>
 

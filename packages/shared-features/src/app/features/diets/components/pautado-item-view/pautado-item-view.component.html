@@ -1,0 +1,57 @@
+<ion-header class="modal-header" mode="ios">
+  <div class="modal-toolbar">
+    <div class="toolbar-title-group">
+      <ion-icon name="ribbon-outline" class="pautado-view-icon"></ion-icon>
+      <ion-title>{{ 'MEAL.PAUTADO_TITLE' | translate }}</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+  <!-- Modo lectura a propósito: nada aquí es editable. Cambiar la cantidad
+       consumida se hace desde la propia fila de la comida, no desde esta
+       vista (ver meal.component.html). -->
+  <h2 class="pautado-view-name">{{ name }}</h2>
+
+  <div class="pautado-view-quantity-row">
+    <span class="pautado-view-quantity-label">{{ 'MEAL.QUANTITY_CONSUMED_LABEL' | translate }}</span>
+    <span class="pautado-view-quantity-value">
+      {{ quantity | number : '1.0-1' }}g
+      <span
+        class="quantity-delta"
+        *ngIf="delta !== 0"
+        [class.quantity-delta--positive]="delta > 0"
+        [class.quantity-delta--negative]="delta < 0"
+      >{{ delta > 0 ? '+' : '' }}{{ delta }}</span>
+    </span>
+  </div>
+  <p class="pautado-view-assigned-hint" *ngIf="assignedQuantity !== null">
+    {{ 'MEAL.QUANTITY_ASSIGNED_HINT' | translate : { quantity: assignedQuantity } }}
+  </p>
+
+  <div class="nutrition-info pautado-view-macros">
+    <div class="nutrition-item calories">
+      <span class="nutrition-value">{{ macros.kcal | number : '1.0-0' }}</span>
+      <span class="nutrition-label">Kcal</span>
+    </div>
+    <div class="nutrition-item protein">
+      <span class="nutrition-value">{{ macros.protein | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.PROTEIN_LABEL' | translate }}</span>
+    </div>
+    <div class="nutrition-item carbs">
+      <span class="nutrition-value">{{ macros.carbs | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.CARBS_LABEL' | translate }}</span>
+    </div>
+    <div class="nutrition-item fat">
+      <span class="nutrition-value">{{ macros.fat | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.FAT_LABEL' | translate }}</span>
+    </div>
+  </div>
+</ion-content>
