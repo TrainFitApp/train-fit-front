@@ -539,8 +539,12 @@
   gap: 10px;
   padding: 12px;
   margin-bottom: 12px;
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent);
+  // Antes fijo en el naranja de acento (reservado para navegación/UI: hoy,
+  // seleccionado...) — la fase vigente ahora lleva SU color, igual que las
+  // programadas (.next-phase-card); el fallback deja intacta la card de
+  // rutina homónima de más arriba, que no fija --phase-bg/--phase-color.
+  background: var(--phase-bg, var(--tf-accent-soft));
+  border: 1px solid var(--phase-color, var(--tf-accent));
   border-radius: 12px;
   overflow: hidden;
 
@@ -1910,6 +1914,21 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--tf-text-faint);
+}
+
+// Marca "esto es lo que rige ahora" con un icono, no con color — el color
+// ya lo lleva la card entera (phaseColor/phaseSoftBackground) igual que
+// las programadas, así que aquí hacía falta una señal aparte para seguir
+// distinguiendo "vigente" de "programada" de un vistazo.
+.plan-phase-order--current {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--phase-color, var(--tf-accent));
+
+  ion-icon {
+    font-size: 13px;
+  }
 }
 
 .next-phase-card {

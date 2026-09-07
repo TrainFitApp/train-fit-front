@@ -42,11 +42,19 @@ const MONTH_LABELS = [
 // impeccable/quieter — versión desaturada (~S 92%→48%, L −6pp) de la
 // paleta original (Tailwind *-400: #60a5fa/#a78bfa/#34d399/#f472b6/#fbbf24/
 // #38bdf8), que competía en brillo con el resto del sistema (fondo casi
-// negro + un único acento naranja). Mismo hue por posición — sigue
-// distinguiendo fases a simple vista — pero ya no "chilla" al lado de
-// --tf-accent. MISMOS valores que weekdayPatternColors en client-detail.page.ts
-// (un solo origen conceptual, dos usos) — cambiar aquí implica cambiar allí.
-const PHASE_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2'];
+// negro + un único acento naranja). MISMOS valores que weekdayPatternColors
+// en client-detail.page.ts (un solo origen conceptual, dos usos) —
+// cambiar aquí implica cambiar allí.
+//
+// impeccable/quieter (2026-09, 2ª pasada) — la primera versión tenía dos
+// azules casi idénticos (#6e99cd / #4f9fc2, 13º de diferencia de tono),
+// indistinguibles cuando caían en fases contiguas. Estos 6 tonos se
+// reparten uniformemente por el arco de la rueda de color que queda
+// LIBRE de rojo/naranja (banda [335º,360º)∪[0º,50º), la reservada arriba
+// para cumplimiento/excepción/acento) — separación mínima garantizada de
+// 47º entre cualquier par de fases, no solo entre consecutivas. Mismo S/L
+// (48%/60%) que antes.
+const PHASE_COLORS = ['#b3ca68', '#68ca6a', '#68cab8', '#688fca', '#8f68ca', '#ca68b8'];
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente

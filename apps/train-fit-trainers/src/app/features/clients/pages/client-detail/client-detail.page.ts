@@ -333,7 +333,16 @@ export class ClientDetailPage implements OnInit {
   // nutrition-calendar.component.ts — el índice de una fase en
   // allPhasesHistory tiene que mapear al mismo color en los dos sitios, o
   // la tarjeta de fase y su tramo en el calendario dejan de coincidir.
-  private readonly phaseColors = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c41', '#4f9fc2'];
+  //
+  // impeccable/quieter (2026-09, 2ª pasada) — la versión anterior tenía dos
+  // azules casi iguales (#6e99cd / #4f9fc2, solo 13º de diferencia de
+  // tono) que quedaban indistinguibles en fases contiguas. Estos 6 tonos
+  // se reparten uniformemente por el arco de la rueda de color que queda
+  // LIBRE de rojo/naranja (esa banda es de --tf-danger/--tf-accent, ver
+  // comentario en PHASE_COLORS de nutrition-calendar.component.ts) —
+  // separación mínima garantizada de 47º entre cualquier par, no solo
+  // entre consecutivos. Mismo S/L (48%/60%) que la paleta anterior.
+  private readonly phaseColors = ['#b3ca68', '#68ca6a', '#68cab8', '#688fca', '#8f68ca', '#ca68b8'];
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
@@ -342,11 +351,11 @@ export class ClientDetailPage implements OnInit {
   // categórico que las fases del calendario, PHASE_COLORS en
   // nutrition-calendar.component.ts) — con un solo patrón se queda en el
   // naranja de acento de siempre, sin inventar distinción donde no hace falta.
-  // impeccable/quieter — mismo origen que PHASE_COLORS en
-  // nutrition-calendar.component.ts (paleta Tailwind *-400 original,
-  // desaturada ~48% de saturación / −6pp de luminosidad): un solo patrón
-  // conceptual, dos usos, cambiar aquí implica cambiar allí también.
-  private readonly weekdayPatternColors = ['#6e99cd', '#cc7ba6', '#4d9b7f', '#c09c41', '#a18fd7', '#4f9fc2'];
+  // impeccable/quieter — mismo origen que PHASE_COLORS/phaseColors (2ª
+  // pasada, ver comentario de phaseColors más arriba): tonos por ángulo
+  // áureo, no elegidos a mano. Un solo patrón conceptual, dos usos —
+  // cambiar aquí implica cambiar allí también.
+  private readonly weekdayPatternColors = ['#b3ca68', '#68ca6a', '#68cab8', '#688fca', '#8f68ca', '#ca68b8'];
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
   // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
   // (30 días centrados en hoy) en vez de null: antes dependía de que el
@@ -1618,6 +1627,18 @@ export class ClientDetailPage implements OnInit {
     const index = this.allPhasesHistory.findIndex((p) => p._id === phase._id);
     if (index < 0) return 'var(--tf-accent)';
     return this.phaseColors[index % this.phaseColors.length];
+  }
+
+  // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
+  // acento (mismo criterio "esto es tuyo, no del sistema" que llevó a
+  // sacar el naranja de las próximas: la fase activa tampoco es un estado
+  // de navegación/UI, es un dato del cliente como cualquier otra fase).
+  // Reutiliza hexToRgba, igual que weekdayPatternSoftBackground.
+  public phaseSoftBackground(phase: PlanAssignment | null): string {
+    if (!phase) return 'var(--tf-accent-soft)';
+    const index = this.allPhasesHistory.findIndex((p) => p._id === phase._id);
+    if (index < 0) return 'var(--tf-accent-soft)';
+    return this.hexToRgba(this.phaseColors[index % this.phaseColors.length], 0.14);
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
