@@ -214,7 +214,10 @@
 // el color de fase es el ÚNICO dato que importa, así que ocupa la celda
 // entera en vez de una barra de 3px: "esto ya es de otra fase" tiene que
 // verse a la primera, no fijándose en el borde superior.
-.nutrition-calendar--picker .nutrition-calendar__cell.has-phase {
+// .is-occupied, no .has-phase: una fase indefinida en curso también tiene
+// fase, pero SÍ se puede elegir (ver blocksNewPhase), y pintarla sólida
+// diría lo contrario — esa se queda con la barra de siempre.
+.nutrition-calendar--picker .nutrition-calendar__cell.is-occupied {
   background: var(--phase-color);
   // Texto oscuro fijo: la paleta de fases es ahora vívida (L 56%/66%), un
   // gris claro de texto normal perdería contraste encima. No hace falta
@@ -339,6 +342,42 @@
   &--empty {
     background: var(--tf-surface-2);
     border: 1px solid var(--tf-border);
+  }
+
+  // Selector de fase nueva — la celda entera pintada: "este día ya es de
+  // otra fase y no se puede elegir". Mismos dos tonos que --phase (la
+  // muestra representa "cualquier color de fase", no uno concreto).
+  &--occupied {
+    background: linear-gradient(135deg, #bae03e, #3ee0c2);
+  }
+
+  // El otro caso del selector: fase indefinida en curso, que se pinta con
+  // barra y SÍ es seleccionable. La muestra imita la barra, no el bloque,
+  // para que se lea distinta de --occupied de un vistazo.
+  &--phase-bar {
+    background: transparent;
+    border-top: 3px solid #bae03e;
+    border-radius: 0;
+  }
+}
+
+// Por qué se ha rechazado el tramo recién marcado (ver handleRangeClick) —
+// mismo tratamiento que .overlap-error del modal que lo contiene: el aviso
+// va junto a donde se acaba de actuar, no en un toast que tape el
+// calendario.
+.range-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-danger);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 14px;
   }
 }
 

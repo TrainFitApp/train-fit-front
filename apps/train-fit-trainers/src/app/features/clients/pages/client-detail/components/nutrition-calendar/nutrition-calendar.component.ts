@@ -8,6 +8,14 @@ interface CalendarPhaseInfo {
   id: string;
   color: string;
   planName: string | null;
+  // ¿Impide que una fase nueva empiece en este día? Misma regla que el
+  // backend (plan-assignment-service.js#blocksNewPhase): una fase con
+  // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
+  // "le cambio el plan a partir de hoy" es el caso normal y se resuelve
+  // cortándola. Sin esta distinción el selector se quedaría muerto para
+  // cualquier cliente con plan indefinido: esa fase cubre todos los días
+  // desde su inicio en adelante, así que no quedaría ni un día pulsable.
+  blocksNewPhase: boolean;
 }
 
 // Leyenda dinámica: qué fases pinta el mes que se está viendo, con su
@@ -190,6 +198,10 @@ export class NutritionCalendarComponent implements OnChanges {
   // (cuadradito sólido por fase en vez de barra) y qué se puede pulsar
   // (un día ya ocupado por otra fase no es seleccionable aquí).
   public isPickerMode = false;
+  // Solo en modo selector: por qué se ha rechazado el tramo que se acababa
+  // de marcar (se solapa con una fase con fechas cerradas). Se limpia en
+  // cuanto se empieza una selección nueva.
+  public rangeError: string | null = null;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
   // F20-terdecies — qué preset está activo (null si el rango actual es uno
@@ -209,6 +221,9 @@ export class NutritionCalendarComponent implements OnChanges {
   // cronológico — se recalcula en withPhases() cada vez que cambian las
   // celdas (mes nuevo o fases recién cargadas).
   public visiblePhaseLegend: PhaseLegendItem[] = [];
+  // ¿El mes visible tiene días de una fase indefinida en curso? (ver
+  // withPhases) — solo lo usa la leyenda del selector.
+  public hasOpenEndedVisible = false;
 
   constructor(
     private clientDetailApi: ClientDetailApiService,
@@ -248,11 +263,12 @@ export class NutritionCalendarComponent implements OnChanges {
 
   public selectDay(cell: CalendarCell): void {
     if (!cell.date) return;
-    // Un día ya ocupado por otra fase no puede ser ni inicio ni fin del
-    // rango nuevo — bloqueado aquí en el click, no solo avisado al aplicar
-    // (el 409 del backend se queda como red de seguridad para el caso de
-    // un rango que ENGLOBE una fase entera sin tocar sus extremos).
-    if (this.isPickerMode && cell.phase) return;
+    // Un día que ya pertenece a una fase BLOQUEANTE no puede ser ni inicio
+    // ni fin del rango nuevo — se corta aquí, en el click, en vez de dejar
+    // llegar hasta el 409 del backend. Los días de una fase indefinida ya
+    // en curso sí son pulsables: el backend los acepta (corta la fase
+    // anterior), y es justo el caso de "le cambio el plan a partir de hoy".
+    if (this.isPickerMode && cell.phase?.blocksNewPhase) return;
     if (this.isRangeMode) {
       this.handleRangeClick(cell.date);
       return;
@@ -309,11 +325,31 @@ export class NutritionCalendarComponent implements OnChanges {
       this.rangeStart = date;
       this.rangeEnd = null;
       this.activePreset = null;
+      this.rangeError = null;
       return;
     }
 
     const start = this.rangeStart <= date ? this.rangeStart : date;
     const end = this.rangeStart <= date ? date : this.rangeStart;
+
+    // Los dos extremos pueden estar libres y aun así el tramo tragarse una
+    // fase entera por el medio. Bloquear el click día a día no lo cubre:
+    // hay que mirar el rango completo, y hacerlo aquí evita que el trainer
+    // rellene el resto del formulario para descubrirlo en el 409 al aplicar.
+    if (this.isPickerMode) {
+      const choque = this.findBlockingPhaseInRange(start, end);
+      if (choque) {
+        this.rangeError = `Ese tramo se solapa con otra fase (${choque.startDate} → ${
+          choque.endDate || 'indefinido'
+        }). Elige otras fechas.`;
+        this.rangeStart = null;
+        this.rangeEnd = null;
+        this.hoverDate = null;
+        return;
+      }
+    }
+
+    this.rangeError = null;
     this.rangeStart = start;
     this.rangeEnd = end;
     this.isRangeMode = false;
@@ -393,6 +429,11 @@ export class NutritionCalendarComponent implements OnChanges {
       phase: cell.date ? this.findPhaseForDate(cell.date) : null,
     }));
     this.visiblePhaseLegend = this.buildVisiblePhaseLegend(mapped);
+    // Solo para la leyenda del selector: si en el mes visible hay días de
+    // una fase indefinida en curso, se pintan con barra y SÍ son pulsables
+    // — un caso a medio camino entre "ocupado" y "libre" que hay que
+    // explicar, o parece una incoherencia.
+    this.hasOpenEndedVisible = mapped.some((cell) => cell.phase && !cell.phase.blocksNewPhase);
     return mapped;
   }
 
@@ -427,7 +468,26 @@ export class NutritionCalendarComponent implements OnChanges {
       id: phase._id,
       color: PHASE_COLORS[index % PHASE_COLORS.length],
       planName: phase.planName || null,
+      blocksNewPhase: phase.endDate !== null,
     };
+  }
+
+  // ¿Hay alguna fase con fin cerrado pisando este tramo? Misma condición de
+  // solape que findOverlapping en el backend, pero filtrando por la misma
+  // regla que blocksNewPhase: una indefinida ya en curso no cuenta.
+  //
+  // Se comprueba contra planPhases (el historial ENTERO), no contra las
+  // celdas del mes: un rango puede cruzar de un mes a otro y tragarse una
+  // fase que ni siquiera se ve en la cuadrícula actual.
+  private findBlockingPhaseInRange(start: string, end: string): PlanAssignment | null {
+    return (
+      this.planPhases.find((phase) => {
+        const solapa = phase.startDate <= end && (!phase.endDate || phase.endDate >= start);
+        if (!solapa) return false;
+        const abiertaYaEnCurso = phase.endDate === null && phase.startDate <= start;
+        return !abiertaYaEnCurso;
+      }) || null
+    );
   }
 
   // impeccable/quieter — antes llegaba a 1.0 (naranja SÓLIDO) al 100% de
