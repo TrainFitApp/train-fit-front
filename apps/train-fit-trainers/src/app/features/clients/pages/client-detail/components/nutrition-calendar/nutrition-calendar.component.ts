@@ -37,24 +37,24 @@ const MONTH_LABELS = [
 // orden de inicio) — deliberadamente fuera de la gama naranja/roja ya
 // usada por el relleno de cumplimiento y el punto de excepción, para que
 // los tres canales visuales (fase / cumplimiento / excepción) no se
-// confundan entre sí en la misma celda.
+// confundan entre sí en la misma celda. MISMOS valores que
+// weekdayPatternColors en client-detail.page.ts (un solo origen
+// conceptual, dos usos) — cambiar aquí implica cambiar allí.
 //
-// impeccable/quieter — versión desaturada (~S 92%→48%, L −6pp) de la
-// paleta original (Tailwind *-400: #60a5fa/#a78bfa/#34d399/#f472b6/#fbbf24/
-// #38bdf8), que competía en brillo con el resto del sistema (fondo casi
-// negro + un único acento naranja). MISMOS valores que weekdayPatternColors
-// en client-detail.page.ts (un solo origen conceptual, dos usos) —
-// cambiar aquí implica cambiar allí.
-//
-// impeccable/quieter (2026-09, 2ª pasada) — la primera versión tenía dos
-// azules casi idénticos (#6e99cd / #4f9fc2, 13º de diferencia de tono),
-// indistinguibles cuando caían en fases contiguas. Estos 6 tonos se
-// reparten uniformemente por el arco de la rueda de color que queda
-// LIBRE de rojo/naranja (banda [335º,360º)∪[0º,50º), la reservada arriba
-// para cumplimiento/excepción/acento) — separación mínima garantizada de
-// 47º entre cualquier par de fases, no solo entre consecutivas. Mismo S/L
-// (48%/60%) que antes.
-const PHASE_COLORS = ['#b3ca68', '#68ca6a', '#68cab8', '#688fca', '#8f68ca', '#ca68b8'];
+// Historial de esta paleta (2026-09):
+//   1ª pasada (quieter, ~S48%/L60%) — desaturada a propósito para no
+//   competir con el resto del sistema. Tenía dos azules casi idénticos
+//   (#6e99cd/#4f9fc2, 13º de diferencia de tono).
+//   2ª pasada — mismo S/L, tonos repartidos uniformemente (47º mínimo
+//   entre cualquier par) por el arco libre de rojo/naranja. Seguía
+//   viéndose deslavada: a saturación tan baja, todo el conjunto lee como
+//   variaciones de un mismo gris pastel, angulo de tono aparte.
+//   3ª pasada (actual) — prioriza distinguirse sobre "quieter": S~72% (casi
+//   la saturación original de Tailwind, ~92%) y luminosidad ALTERNADA
+//   56%/66% entre índices consecutivos, no fija — dos fases contiguas
+//   difieren en tono Y en claridad a la vez, no solo en tono. Sigue fuera
+//   de la banda [335º,360º)∪[0º,50º) reservada arriba.
+const PHASE_COLORS = ['#bae03e', '#6ae76c', '#3ee0c2', '#6a9ce7', '#7f3ee0', '#e76ad0'];
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
