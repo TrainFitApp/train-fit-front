@@ -45,6 +45,8 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>app.trainfit.net</key>
@@ -60,6 +62,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Esta aplicación necesita acceso a la cámara para escanear códigos.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>TrainFit necesita acceso a la red local para conectarse con servidores de tu red.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
