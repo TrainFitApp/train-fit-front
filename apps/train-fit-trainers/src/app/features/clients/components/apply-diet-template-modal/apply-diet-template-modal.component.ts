@@ -80,20 +80,42 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     private modalController: ModalController
   ) {}
 
+  // Filtro "solo las dietas de este cliente" — activo al abrir: pautando a
+  // Pepe, lo que casi siempre quieres aplicarle es material suyo, no toda la
+  // biblioteca. Quitarlo añade las plantillas generales (nunca las propias
+  // de OTRO cliente, eso lo garantiza el backend).
+  public onlyOwnedByClient = true;
+
   public ngOnInit(): void {
     if (this.forDirectCreate) {
       this.state = 'loaded';
       return;
     }
-    this.dietTemplateApi.list().subscribe({
-      next: (templates) => {
-        this.templates = templates || [];
-        this.state = 'loaded';
-      },
-      error: () => {
-        this.state = 'error';
-      },
-    });
+    this.loadTemplates();
+  }
+
+  public toggleOwnedFilter(): void {
+    this.onlyOwnedByClient = !this.onlyOwnedByClient;
+    // La plantilla elegida puede haber desaparecido de la lista nueva — sin
+    // esto se quedaría seleccionada de forma invisible y "Aplicar" mandaría
+    // algo que ya no se ve.
+    this.selectedTemplateId = null;
+    this.loadTemplates();
+  }
+
+  private loadTemplates(): void {
+    this.state = 'loading';
+    this.dietTemplateApi
+      .list({ forClientId: this.clientId, onlyOwned: this.onlyOwnedByClient })
+      .subscribe({
+        next: (templates) => {
+          this.templates = templates || [];
+          this.state = 'loaded';
+        },
+        error: () => {
+          this.state = 'error';
+        },
+      });
   }
 
   public select(template: DietTemplate): void {
@@ -121,7 +143,11 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   }
 
   public get canConfirm(): boolean {
-    if (this.forDirectCreate ? !this.name.trim() : !this.selectedTemplateId) return false;
+    // Crear dieta: solo hace falta el nombre — no se eligen fechas aquí, la
+    // dieta se crea como material propio del cliente y se aplica después.
+    if (this.forDirectCreate) return !!this.name.trim();
+
+    if (!this.selectedTemplateId) return false;
     if (!this.startDate) return false;
     if (this.endMode === 'fixedDate') return !!this.fixedEndDate;
     if (this.endMode === 'duration') return !!this.durationValue && this.durationValue > 0;
@@ -132,19 +158,10 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     if (!this.canConfirm) return;
 
     if (this.forDirectCreate) {
-      // Nada que aplicar todavía — solo se recoge nombre/fecha, el
-      // contenido se construye después en el builder.
-      void this.modalController.dismiss(
-        {
-          name: this.name.trim(),
-          startDate: this.startDate,
-          endMode: this.endMode,
-          fixedEndDate: this.endMode === 'fixedDate' ? this.fixedEndDate : undefined,
-          durationValue: this.endMode === 'duration' ? this.durationValue : undefined,
-          durationUnit: this.endMode === 'duration' ? this.durationUnit : undefined,
-        },
-        'confirm'
-      );
+      // Nada que aplicar todavía — solo se recoge el nombre; el contenido se
+      // construye después en el builder, que la guarda como dieta propia del
+      // cliente (sin fechas: eso se decide al aplicarla como fase).
+      void this.modalController.dismiss({ name: this.name.trim() }, 'confirm');
       return;
     }
 

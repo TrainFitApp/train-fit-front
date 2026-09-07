@@ -24,7 +24,23 @@
     </div>
 
     <ng-container *ngIf="!forDirectCreate">
-      <p class="empty-hint" *ngIf="!templates.length">
+      <!-- Activo al abrir: pautando a este cliente, lo habitual es aplicarle
+           material suyo. Quitarlo añade las generales de la biblioteca. -->
+      <button
+        type="button"
+        class="owned-filter-chip"
+        [class.is-active]="onlyOwnedByClient"
+        (click)="toggleOwnedFilter()"
+      >
+        <ion-icon [name]="onlyOwnedByClient ? 'person' : 'people-outline'"></ion-icon>
+        {{ onlyOwnedByClient ? ('Solo dietas de ' + clientName) : 'Todas: generales + suyas' }}
+      </button>
+
+      <p class="empty-hint" *ngIf="!templates.length && onlyOwnedByClient">
+        {{ clientName }} todavía no tiene dietas propias. Créale una con "Crear dieta",
+        o quita el filtro para aplicarle una plantilla general.
+      </p>
+      <p class="empty-hint" *ngIf="!templates.length && !onlyOwnedByClient">
         Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
       </p>
 
@@ -34,10 +50,13 @@
         [class.template-row--selected]="selectedTemplateId === template._id"
         (click)="select(template)"
       >
-        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-icon [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"></ion-icon>
         <div class="template-info">
           <span class="template-name">{{ template.name }}</span>
-          <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+          <span class="template-meta">
+            {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
+            <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
+          </span>
         </div>
         <ion-icon
           class="selected-check"
@@ -50,22 +69,25 @@
     <!-- El mismo calendario de la ficha, en modo selección de rango: pinta
          las fases ya pautadas, así que las fechas ocupadas se ven ANTES de
          elegirlas en vez de descubrirse al guardar. -->
+    <!-- "Crear dieta" no elige fechas: crea material de biblioteca propio de
+         este cliente. Cuándo rige se decide al aplicarlo como fase, aquí
+         mismo pero en el modo de aplicar. -->
     <app-nutrition-calendar
-      *ngIf="forDirectCreate || selectedTemplateId"
+      *ngIf="!forDirectCreate && selectedTemplateId"
       [clientId]="clientId"
       [pickerMode]="true"
       [selectedDate]="startDate"
       (rangeSelected)="onRangePicked($event)"
     ></app-nutrition-calendar>
 
-    <div class="input-wrapper" *ngIf="forDirectCreate || selectedTemplateId">
+    <div class="input-wrapper" *ngIf="!forDirectCreate && selectedTemplateId">
       <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
       <input type="date" class="input-field" [(ngModel)]="startDate" />
     </div>
 
     <!-- De dónde sale la fecha propuesta: sin decirlo, un campo ya relleno
          con una fecha futura parece un valor arbitrario. -->
-    <p class="date-hint" *ngIf="(forDirectCreate || selectedTemplateId) && previousPhaseEnd">
+    <p class="date-hint" *ngIf="!forDirectCreate && selectedTemplateId && previousPhaseEnd">
       Encadena con
       <strong *ngIf="previousPhaseName">{{ previousPhaseName }}</strong>
       <span *ngIf="!previousPhaseName">la fase anterior</span>, que termina el
@@ -78,7 +100,7 @@
     </p>
 
     <!-- Auditoría de arquitectura (Fase 8) — hasta cuándo aplica, no solo desde cuándo -->
-    <ng-container *ngIf="forDirectCreate || selectedTemplateId">
+    <ng-container *ngIf="!forDirectCreate && selectedTemplateId">
       <p class="section-hint">¿Hasta cuándo?</p>
       <div class="end-mode-options">
         <button type="button" class="end-mode-option" [class.selected]="endMode === 'fixedDate'" (click)="endMode = 'fixedDate'">

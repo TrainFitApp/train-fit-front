@@ -1912,14 +1912,14 @@ export class ClientDetailPage implements OnInit {
     this.router.navigate(['/tabs/diet-templates']);
   }
 
-  // "Crear dieta" — mismo modal que "Aplicar plantilla" (ApplyDietTemplateModalComponent
-  // #forDirectCreate), pero solo para recoger nombre y fechas: el contenido
-  // no existe todavía, se construye en el builder (diet-template-builder.page.ts,
-  // ruta for-client/:clientId) al que se navega justo después.
+  // "Crear dieta" — mismo modal que "Aplicar plantilla"
+  // (ApplyDietTemplateModalComponent#forDirectCreate), pero solo para
+  // recoger el NOMBRE: el contenido se construye en el builder
+  // (diet-template-builder.page.ts, ruta for-client/:clientId), que lo
+  // guarda como dieta propia de este cliente. No pide fechas — esto no
+  // asigna nada; se aplica luego desde "Siguiente fase", único sitio donde
+  // se eligen fechas y se valida el solape.
   public async openCreateDietModal(): Promise<void> {
-    const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
-
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
       cssClass: 'tf-panel-modal',
@@ -1927,9 +1927,6 @@ export class ClientDetailPage implements OnInit {
         clientId: this.clientId,
         clientName: this.name,
         forDirectCreate: true,
-        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
-        previousPhaseEnd: finAnterior,
-        previousPhaseName: ultima?.planName || '',
       },
     });
     await modal.present();

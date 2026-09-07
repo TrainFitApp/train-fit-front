@@ -21,22 +21,16 @@ import {
   WEEKDAYS,
 } from '../../models/diet-template.model';
 import { DayMealEditorModalComponent } from './components/day-meal-editor-modal/day-meal-editor-modal.component';
-import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
-import { DurationUnit, PlanEndMode } from '../../../../shared/models/plan-assignment.model';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
 // Lo que trae el modal de "Crear dieta" (ver ApplyDietTemplateModalComponent
-// #forDirectCreate) antes de llegar aquí — nombre y fechas ya decididos, el
-// contenido se construye en esta misma pantalla.
+// #forDirectCreate) antes de llegar aquí — solo el nombre; el contenido se
+// construye en esta misma pantalla y se guarda como dieta propia del
+// cliente, sin fechas (esas se eligen al aplicarla como fase).
 interface ForClientNavigationState {
   clientName?: string;
   name?: string;
-  startDate: string;
-  endMode: PlanEndMode;
-  fixedEndDate?: string;
-  durationValue?: number;
-  durationUnit?: DurationUnit;
 }
 
 interface BoardCellRef {
@@ -84,12 +78,11 @@ export class DietTemplateBuilderPage implements OnInit {
 
   // "Crear dieta" (ver diet-templates-routing.module.ts, ruta
   // for-client/:clientId) — mismo tablero, pero sin plantilla que cargar:
-  // guardar crea+asigna directo a este cliente en vez de actualizar una
-  // plantilla de la biblioteca.
+  // guardar crea una dieta de biblioteca PROPIA de este cliente
+  // (ownerClientId), que no rige hasta aplicarse como fase.
   public isCreatingForClient = false;
   public clientId = '';
   public clientName = '';
-  private forClientSchedule: ForClientNavigationState | null = null;
 
   private readonly destroyRef = inject(DestroyRef);
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
@@ -103,7 +96,6 @@ export class DietTemplateBuilderPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private dietTemplateApi: DietTemplateApiService,
-    private planAssignmentApi: PlanAssignmentApiService,
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService
@@ -131,23 +123,24 @@ export class DietTemplateBuilderPage implements OnInit {
     });
   }
 
-  // Sin plantilla que cargar — arranca en blanco, listo para construir.
-  // Nombre y fechas ya se decidieron en el modal previo (ver
+  // Sin plantilla que cargar — arranca en blanco, listo para construir. El
+  // nombre ya se decidió en el modal previo (ver
   // ApplyDietTemplateModalComponent#forDirectCreate); si por lo que sea no
-  // llegaron (refresco de página, navegación directa a la URL), no hay
-  // fecha con la que crear nada — mejor un error claro que una asignación a
-  // medias.
+  // llegó (refresco de página, navegación directa a la URL), no hay nada con
+  // lo que crear — mejor un error claro que una dieta sin nombre.
   private startForClient(clientId: string): void {
     const nav = this.navigationState;
-    if (!nav.startDate || !nav.endMode) {
+    // Solo hace falta el nombre: esto crea una dieta de biblioteca propia de
+    // ese cliente, sin fechas. Cuándo rige se decide luego, al aplicarla como
+    // fase desde "Siguiente fase" — un solo sitio decide fechas.
+    if (!nav.name) {
       this.state = 'error';
       return;
     }
     this.isCreatingForClient = true;
     this.clientId = clientId;
     this.clientName = nav.clientName || 'este cliente';
-    this.name = nav.name || '';
-    this.forClientSchedule = nav as ForClientNavigationState;
+    this.name = nav.name;
     this.mode = 'sequential';
     this.days = [];
     this.dayPatterns = [];
@@ -156,7 +149,7 @@ export class DietTemplateBuilderPage implements OnInit {
 
   public load(): void {
     this.state = 'loading';
-    this.dietTemplateApi.list().subscribe({
+    this.dietTemplateApi.list({ includeOwned: true }).subscribe({
       next: (templates) => {
         const template = (templates || []).find((t) => t._id === this.templateId);
         if (!template) {
@@ -659,37 +652,26 @@ export class DietTemplateBuilderPage implements OnInit {
     });
   }
 
+  // Crea una dieta de BIBLIOTECA propia de este cliente (ownerClientId), sin
+  // fechas y sin asignar nada: no rige hasta que se aplique como fase desde
+  // "Siguiente fase", que es donde se eligen las fechas y donde el backend
+  // valida solapes. Antes esto creaba la fase directamente (createDirect) y
+  // había dos sitios distintos decidiendo fechas.
   private saveForClient(daysToSave: DietTemplateDayPayload[], dayPatternsToSave: DietTemplateDayPatternPayload[]): void {
-    const schedule = this.forClientSchedule;
-    if (!schedule) {
-      this.isSaving = false;
-      this.ionicUtilService.showErrorToast('Faltan las fechas del plan — vuelve atrás e inténtalo de nuevo', 'Error', 3500);
-      return;
-    }
-
-    this.planAssignmentApi
-      .createDirect(this.clientId, {
-        name: this.name.trim(),
-        days: daysToSave,
-        mode: this.mode,
-        dayPatterns: dayPatternsToSave,
-        startDate: schedule.startDate,
-        endMode: schedule.endMode,
-        fixedEndDate: schedule.fixedEndDate,
-        durationValue: schedule.durationValue,
-        durationUnit: schedule.durationUnit,
-      })
+    this.dietTemplateApi
+      .create(this.name.trim(), daysToSave, this.clientId, this.mode, dayPatternsToSave)
       .subscribe({
         next: () => {
           this.isSaving = false;
-          this.ionicUtilService.showToast({ message: `Dieta creada y asignada a ${this.clientName}`, duration: 2500 });
+          this.ionicUtilService.showToast({
+            message: `Dieta creada para ${this.clientName}. Aplícala cuando quieras desde "Siguiente fase".`,
+            duration: 3000,
+          });
           this.router.navigate(['/tabs/clients', this.clientId]);
         },
-        error: (err) => {
+        error: () => {
           this.isSaving = false;
-          const message =
-            err?.status === 409 ? err?.error?.message || 'Esas fechas se solapan con otra fase.' : 'No se pudo crear la dieta';
-          this.ionicUtilService.showErrorToast(message, 'Error', 3500);
+          this.ionicUtilService.showErrorToast('No se pudo crear la dieta', 'Error', 3500);
         },
       });
   }

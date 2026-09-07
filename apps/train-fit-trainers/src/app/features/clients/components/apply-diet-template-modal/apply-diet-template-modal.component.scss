@@ -27,6 +27,41 @@
   text-align: center;
 }
 
+// Conmutador del alcance de la lista — chip y no un toggle suelto: el texto
+// dice en cada estado QUÉ se está viendo, sin depender de leer un label
+// aparte ni de recordar qué significa el interruptor encendido.
+.owned-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 999px;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 .template-row {
   display: flex;
   align-items: center;
