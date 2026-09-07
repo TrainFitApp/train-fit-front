@@ -248,6 +248,11 @@ export class NutritionCalendarComponent implements OnChanges {
 
   public selectDay(cell: CalendarCell): void {
     if (!cell.date) return;
+    // Un día ya ocupado por otra fase no puede ser ni inicio ni fin del
+    // rango nuevo — bloqueado aquí en el click, no solo avisado al aplicar
+    // (el 409 del backend se queda como red de seguridad para el caso de
+    // un rango que ENGLOBE una fase entera sin tocar sus extremos).
+    if (this.isPickerMode && cell.phase) return;
     if (this.isRangeMode) {
       this.handleRangeClick(cell.date);
       return;

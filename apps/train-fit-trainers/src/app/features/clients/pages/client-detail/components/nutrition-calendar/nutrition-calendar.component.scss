@@ -210,6 +210,31 @@
   }
 }
 
+// Selector de fechas para una fase nueva (apply-diet-template-modal) — aquí
+// el color de fase es el ÚNICO dato que importa, así que ocupa la celda
+// entera en vez de una barra de 3px: "esto ya es de otra fase" tiene que
+// verse a la primera, no fijándose en el borde superior.
+.nutrition-calendar--picker .nutrition-calendar__cell.has-phase {
+  background: var(--phase-color);
+  // Texto oscuro fijo: la paleta de fases es ahora vívida (L 56%/66%), un
+  // gris claro de texto normal perdería contraste encima. No hace falta
+  // calcular contraste por color — a esa luminosidad, oscuro siempre lee
+  // bien en las 6.
+  color: rgba(0, 0, 0, 0.78);
+
+  &[disabled] {
+    // Sin la opacidad que el navegador aplicaría por defecto a un botón
+    // disabled — el color pleno ES la señal de "ocupado", apagarlo la
+    // arruinaría.
+    opacity: 1;
+    cursor: not-allowed;
+  }
+
+  &:hover {
+    transform: none;
+  }
+}
+
 .nutrition-calendar__day-number {
   font-variant-numeric: tabular-nums;
 }
@@ -276,10 +301,11 @@
   height: 8px;
   border-radius: 2px;
 
-  // impeccable/quieter — mismos 2 primeros tonos que PHASE_COLORS (ya
-  // desaturados), no reinventados aquí.
+  // Mismos 2 primeros tonos que PHASE_COLORS — desactualizado dos veces
+  // (quedó con la paleta original tras cada repaso de PHASE_COLORS); no se
+  // regenera solo, hay que tocarlo a mano si vuelve a cambiar la paleta.
   &--phase {
-    background: linear-gradient(90deg, #6e99cd, #a18fd7);
+    background: linear-gradient(90deg, #bae03e, #3ee0c2);
     border-radius: 2px;
   }
 

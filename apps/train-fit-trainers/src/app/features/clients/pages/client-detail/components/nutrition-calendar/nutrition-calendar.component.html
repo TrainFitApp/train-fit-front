@@ -1,4 +1,4 @@
-<div class="nutrition-calendar">
+<div class="nutrition-calendar" [class.nutrition-calendar--picker]="isPickerMode">
   <div class="nutrition-calendar__header">
     <button
       type="button"
@@ -63,14 +63,20 @@
       [class.is-in-range]="isInRange(cell.date)"
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
       [class.is-range-pick-mode]="isRangeMode"
-      [disabled]="!cell.date"
+      [class.is-occupied]="isPickerMode && !!cell.phase"
+      [disabled]="!cell.date || (isPickerMode && !!cell.phase)"
       [style.--fill-opacity]="cellFillOpacity(cell)"
       [style.--phase-color]="cell.phase?.color"
       [title]="cell.phase?.planName || null"
       (click)="selectDay(cell)"
       (mouseenter)="onCellHover(cell)"
     >
-      <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase"></span>
+      <!-- Fuera del selector: barra fina arriba (convive con el relleno de
+           cumplimiento). Dentro del selector: cuadradito sólido entero (ver
+           .nutrition-calendar--picker en el scss) — aquí el color de fase
+           es el único dato que importa, ocupa toda la celda para que
+           "ocupado" se vea a la primera, no en una franja de 3px. -->
+      <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase && !isPickerMode"></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
       <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
     </button>
@@ -80,7 +86,7 @@
        distintas: lo que dice del cliente (relleno, barra, excepciones) y
        dónde estás mirando tú (hoy, seleccionado, rango). Mezclarlas en una
        fila hacía leer el borde naranja del rango como si fuera un dato. -->
-  <div class="nutrition-calendar__legend">
+  <div class="nutrition-calendar__legend" *ngIf="!isPickerMode">
     <p class="legend-title">Qué dice del cliente</p>
 
     <!-- Escala, no un cuadradito: el cumplimiento se lee por INTENSIDAD del
@@ -111,6 +117,21 @@
     </span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--exception"></span>Excepción</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan ese día</span>
+  </div>
+
+  <!-- Selector de fechas para una fase nueva: lo único que importa aquí es
+       "¿este día ya es de otra fase o está libre?" — cumplimiento,
+       excepciones y "sin plan" son datos de seguimiento pasado, irrelevantes
+       al programar fechas. -->
+  <div class="nutrition-calendar__legend" *ngIf="isPickerMode">
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch--phase"></span>
+      Ocupado (ya tiene fase asignada)
+    </span>
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch--empty"></span>
+      Libre
+    </span>
   </div>
 
   <div class="nutrition-calendar__legend nutrition-calendar__legend--nav">
