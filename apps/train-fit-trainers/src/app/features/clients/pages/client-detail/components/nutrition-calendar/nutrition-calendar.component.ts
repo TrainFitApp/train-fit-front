@@ -42,36 +42,38 @@ const MONTH_LABELS = [
 ];
 
 // Paleta categórica para tramos de plan (una fase = un color, cíclico por
-// orden de inicio) — deliberadamente fuera de la gama naranja/roja ya
-// usada por el relleno de cumplimiento y el punto de excepción, para que
-// los tres canales visuales (fase / cumplimiento / excepción) no se
-// confundan entre sí en la misma celda. MISMOS valores que
-// weekdayPatternColors en client-detail.page.ts (un solo origen
-// conceptual, dos usos) — cambiar aquí implica cambiar allí.
+// orden de inicio). MISMOS valores que weekdayPatternColors en
+// client-detail.page.ts (un solo origen conceptual, dos usos) — cambiar
+// aquí implica cambiar allí.
 //
-// Historial de esta paleta (2026-09):
-//   1ª pasada (quieter, ~S48%/L60%) — desaturada a propósito para no
-//   competir con el resto del sistema. Tenía dos azules casi idénticos
-//   (#6e99cd/#4f9fc2, 13º de diferencia de tono).
-//   2ª pasada — mismo S/L, tonos repartidos uniformemente (47º mínimo
-//   entre cualquier par) por el arco libre de rojo/naranja. Seguía
-//   viéndose deslavada: a saturación tan baja, todo el conjunto lee como
-//   variaciones de un mismo gris pastel, angulo de tono aparte.
-//   3ª pasada — prioriza distinguirse sobre "quieter": S~72% (casi la
-//   saturación original de Tailwind, ~92%) y luminosidad ALTERNADA 56%/66%
-//   entre índices consecutivos. Seguía fallando en lo que más importa: los
-//   tonos estaban ordenados de menor a mayor, o sea que dos fases SEGUIDAS
-//   caían siempre a la mínima distancia posible (47º) — fase 1 lima y fase
-//   2 verde, las dos verdes.
-//   4ª pasada (actual) — mismos 6 tonos, REORDENADOS para que cada índice
-//   salte al lado opuesto de la rueda: separación mínima entre fases
-//   consecutivas 95º en vez de 47º (fuerza bruta sobre las 720
-//   permutaciones, maximizando el mínimo). Orden resultante: lima, azul,
-//   verde, magenta, turquesa, violeta. La luminosidad se alterna sobre el
-//   orden YA definitivo, así que dos fases seguidas siguen difiriendo en
-//   tono Y en claridad. Sigue fuera de la banda [335º,360º)∪[0º,50º)
-//   reservada arriba.
-const PHASE_COLORS = ['#bae03e', '#6a9ce7', '#3ee041', '#e76ad0', '#3ee0c2', '#9c6ae7'];
+// Verde, azul-violeta, turquesa, rosa, dorado, azul cielo.
+//
+// Historial (2026-09) — cuatro intentos fallidos, todos por el mismo error
+// de método: repartir TONOS en HSL. El ángulo de tono no mide lo que ve el
+// ojo, así que "40º de separación" puede leerse idéntico (verde 100º y
+// verde 140º) o clarísimo (amarillo 50º y verde 90º). Los tres primeros
+// intentos ajustaban saturación/luminosidad; el cuarto reordenaba para
+// maximizar la distancia entre fases CONSECUTIVAS — pero todas las fases
+// se ven a la vez en el calendario y en la leyenda, así que lo que hay que
+// separar es CUALQUIER par, no solo los vecinos. Con ese criterio, la
+// paleta anterior tenía fase 1 (#bae03e) y fase 3 (#3ee041) a ΔE 14: dos
+// verdes prácticamente iguales.
+//
+// Esta versión se eligió optimizando sobre distancia perceptual real
+// (CIEDE2000 en espacio Lab, el estándar para "¿estos dos se parecen?"),
+// maximizando el MÍNIMO ΔE entre todos los pares. Resultado: ΔE ≥ 28.9
+// entre cualquier par (>10 ya es "claramente distintos"), y ≥ 48 entre
+// consecutivos. Restricciones de la búsqueda:
+//   · contraste ≥ 4.8:1 sobre el fondo #141414 (legibles en oscuro)
+//   · ΔE ≥ 22 respecto a --tf-danger (#eb445a, punto de excepción) y a
+//     --tf-accent (#fe9000, hoy/seleccionado) — antes se excluía la banda
+//     roja/naranja ENTERA, y eso dejaba solo 285º de rueda para 6 colores,
+//     que es justo lo que forzaba los pares indistinguibles. Con distancia
+//     medida en vez de un veto por sector caben rosa y dorado sin
+//     confundirse con esos dos (quedan a 22.2 y 22.5).
+// El script de búsqueda no se versiona: es de un solo uso, y estos 6
+// valores son el resultado.
+const PHASE_COLORS = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente

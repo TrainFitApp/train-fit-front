@@ -334,14 +334,13 @@ export class ClientDetailPage implements OnInit {
   // allPhasesHistory tiene que mapear al mismo color en los dos sitios, o
   // la tarjeta de fase y su tramo en el calendario dejan de coincidir.
   //
-  // 4ª pasada (2026-09) — ver historial completo en el comentario de
-  // PHASE_COLORS en nutrition-calendar.component.ts. Lo que fallaba hasta
-  // ahora: los tonos estaban ordenados de menor a mayor, así que dos fases
-  // SEGUIDAS caían siempre a la mínima distancia de tono posible. Este
-  // orden salta al lado opuesto de la rueda en cada índice — 95º mínimo
-  // entre consecutivas en vez de 47º — y la luminosidad se alterna sobre
-  // ese orden ya definitivo (dos fases seguidas difieren en tono Y brillo).
-  private readonly phaseColors = ['#bae03e', '#6a9ce7', '#3ee041', '#e76ad0', '#3ee0c2', '#9c6ae7'];
+  // Elegida optimizando distancia perceptual real (CIEDE2000), no ángulo
+  // de tono HSL — ver el historial de los cuatro intentos fallidos y las
+  // restricciones en el comentario de PHASE_COLORS
+  // (nutrition-calendar.component.ts). ΔE ≥ 28.9 entre CUALQUIER par, no
+  // solo entre consecutivos: en el calendario y en la leyenda se ven todas
+  // a la vez, así que el par más flojo es el que manda.
+  private readonly phaseColors = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
@@ -350,10 +349,10 @@ export class ClientDetailPage implements OnInit {
   // categórico que las fases del calendario, PHASE_COLORS en
   // nutrition-calendar.component.ts) — con un solo patrón se queda en el
   // naranja de acento de siempre, sin inventar distinción donde no hace falta.
-  // Mismo origen que PHASE_COLORS/phaseColors (4ª pasada, ver comentario de
-  // phaseColors más arriba) — un solo patrón conceptual, tres usos, cambiar
-  // aquí implica cambiar allí también.
-  private readonly weekdayPatternColors = ['#bae03e', '#6a9ce7', '#3ee041', '#e76ad0', '#3ee0c2', '#9c6ae7'];
+  // Mismo origen que PHASE_COLORS/phaseColors (ver comentario de phaseColors
+  // más arriba) — un solo patrón conceptual, tres usos, cambiar aquí implica
+  // cambiar allí también.
+  private readonly weekdayPatternColors = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
   // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
   // (30 días centrados en hoy) en vez de null: antes dependía de que el

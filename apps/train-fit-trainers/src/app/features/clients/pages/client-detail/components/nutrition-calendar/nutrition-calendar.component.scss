@@ -1,3 +1,16 @@
+// Muestras de la leyenda: primer y último color de PHASE_COLORS
+// (nutrition-calendar.component.ts). Representan "un color de fase
+// cualquiera", no una fase concreta — las entradas por fase real sí
+// reciben su color por [style.background] desde el template.
+//
+// Un único sitio que tocar aquí si cambia la paleta: antes estos hex
+// estaban repetidos en tres reglas distintas y se quedaron desfasados en
+// cada repaso de PHASE_COLORS.
+:host {
+  --phase-sample-a: #5db530;
+  --phase-sample-b: #12b7f3;
+}
+
 .nutrition-calendar {
   display: flex;
   flex-direction: column;
@@ -219,11 +232,13 @@
 // diría lo contrario — esa se queda con la barra de siempre.
 .nutrition-calendar--picker .nutrition-calendar__cell.is-occupied {
   background: var(--phase-color);
-  // Texto oscuro fijo: la paleta de fases es ahora vívida (L 56%/66%), un
-  // gris claro de texto normal perdería contraste encima. No hace falta
-  // calcular contraste por color — a esa luminosidad, oscuro siempre lee
-  // bien en las 6.
-  color: rgba(0, 0, 0, 0.78);
+  // Texto oscuro fijo: los 6 colores de fase son vivos y claros, así que el
+  // gris de texto normal (pensado para fondo oscuro) se perdería encima.
+  // Blanco tampoco vale — sobre esta paleta se queda entre 1.4:1 y 3.8:1,
+  // muy por debajo del mínimo. Al 86% de negro el peor de los seis queda en
+  // 4.9:1 (al 78% que había antes, el índigo se quedaba en 4.4:1, por
+  // debajo de AA).
+  color: rgba(0, 0, 0, 0.86);
 
   &[disabled] {
     // Sin la opacidad que el navegador aplicaría por defecto a un botón
@@ -308,7 +323,7 @@
   // (quedó con la paleta original tras cada repaso de PHASE_COLORS); no se
   // regenera solo, hay que tocarlo a mano si vuelve a cambiar la paleta.
   &--phase {
-    background: linear-gradient(90deg, #bae03e, #3ee0c2);
+    background: linear-gradient(90deg, var(--phase-sample-a), var(--phase-sample-b));
     border-radius: 2px;
   }
 
@@ -348,7 +363,7 @@
   // otra fase y no se puede elegir". Mismos dos tonos que --phase (la
   // muestra representa "cualquier color de fase", no uno concreto).
   &--occupied {
-    background: linear-gradient(135deg, #bae03e, #3ee0c2);
+    background: linear-gradient(135deg, var(--phase-sample-a), var(--phase-sample-b));
   }
 
   // El otro caso del selector: fase indefinida en curso, que se pinta con
@@ -356,7 +371,7 @@
   // para que se lea distinta de --occupied de un vistazo.
   &--phase-bar {
     background: transparent;
-    border-top: 3px solid #bae03e;
+    border-top: 3px solid var(--phase-sample-a);
     border-radius: 0;
   }
 }
