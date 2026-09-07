@@ -5,8 +5,19 @@ import { PlanAssignmentApiService } from '../../../../../../shared/services/plan
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
 
 interface CalendarPhaseInfo {
+  id: string;
   color: string;
   planName: string | null;
+}
+
+// Leyenda dinámica: qué fases pinta el mes que se está viendo, con su
+// nombre real en vez del genérico "Fase del plan (un color por fase)" de
+// antes — solo las que de verdad aparecen, no todo el historial del
+// cliente (que puede acumular muchas y no caben ni aportan aquí).
+export interface PhaseLegendItem {
+  id: string;
+  color: string;
+  label: string;
 }
 
 interface CalendarCell {
@@ -168,6 +179,10 @@ export class NutritionCalendarComponent implements OnChanges {
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
   // cruza dos meses se pinta igual en ambos sin refetch.
   private planPhases: PlanAssignment[] = [];
+  // Solo las fases que aparecen en el mes visible ahora mismo, en orden
+  // cronológico — se recalcula en withPhases() cada vez que cambian las
+  // celdas (mes nuevo o fases recién cargadas).
+  public visiblePhaseLegend: PhaseLegendItem[] = [];
 
   constructor(
     private clientDetailApi: ClientDetailApiService,
@@ -342,10 +357,30 @@ export class NutritionCalendarComponent implements OnChanges {
   }
 
   private withPhases(cells: CalendarCell[]): CalendarCell[] {
-    return cells.map((cell) => ({
+    const mapped = cells.map((cell) => ({
       ...cell,
       phase: cell.date ? this.findPhaseForDate(cell.date) : null,
     }));
+    this.visiblePhaseLegend = this.buildVisiblePhaseLegend(mapped);
+    return mapped;
+  }
+
+  // Deduplica por id conservando el orden de aparición (días 1..N del mes,
+  // en orden) — así la leyenda lee de arriba abajo igual que el calendario
+  // de izquierda a derecha.
+  private buildVisiblePhaseLegend(cells: CalendarCell[]): PhaseLegendItem[] {
+    const seen = new Set<string>();
+    const legend: PhaseLegendItem[] = [];
+    for (const cell of cells) {
+      if (!cell.phase || seen.has(cell.phase.id)) continue;
+      seen.add(cell.phase.id);
+      legend.push({
+        id: cell.phase.id,
+        color: cell.phase.color,
+        label: cell.phase.planName || 'Plan aplicado',
+      });
+    }
+    return legend;
   }
 
   // Un plan vigente ('active') gana sobre cualquier fase pasada que, por
@@ -358,6 +393,7 @@ export class NutritionCalendarComponent implements OnChanges {
     const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
     const index = this.planPhases.indexOf(phase);
     return {
+      id: phase._id,
       color: PHASE_COLORS[index % PHASE_COLORS.length],
       planName: phase.planName || null,
     };

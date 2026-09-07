@@ -95,7 +95,17 @@
       Cumplimiento: de nada a todo
     </span>
 
-    <span class="legend-item">
+    <!-- Una entrada por fase que de verdad aparece este mes, con su color
+         real — antes era un único swatch genérico ("un color por fase") sin
+         decir cuál era cuál. -->
+    <span
+      class="legend-item"
+      *ngFor="let phase of visiblePhaseLegend"
+    >
+      <span class="legend-swatch legend-swatch--phase" [style.background]="phase.color"></span>
+      {{ phase.label }}
+    </span>
+    <span class="legend-item" *ngIf="!visiblePhaseLegend.length">
       <span class="legend-swatch legend-swatch--phase"></span>
       Fase del plan (un color por fase)
     </span>
