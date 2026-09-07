@@ -255,3 +255,22 @@
   color: #fff;
   font-variant-numeric: tabular-nums;
 }
+
+.allergens-line {
+  margin: 0 2px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.instructions-text {
+  margin: 0 2px;
+  padding: 14px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-wrap;
+}

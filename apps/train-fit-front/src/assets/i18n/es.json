@@ -555,6 +555,7 @@
     "INVALID_QUANTITY": "Introduce una cantidad válida",
     "QUANTITY_UPDATE_ERROR": "No se pudo actualizar la cantidad",
     "QUANTITY_UPDATED": "Cantidad actualizada",
+    "RECIPE_INSTRUCTIONS": "Instrucciones",
     "NUTRITION_INFO_EXTENDED": "Información nutricional",
     "SAVE_QUANTITY": "Guardar cantidad",
     "PROTEIN_LABEL": "Proteína",

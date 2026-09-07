@@ -89,10 +89,20 @@ export class PautadoItemViewComponent implements OnInit {
   public quantity = 0;
   public assignedQuantity: number | null = null;
   public macros = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-  // Solo para productos — una receta no tiene un desglose completo por
-  // nutriente ya calculado en ningún sitio de la app (calculateCustomRecipeTotals
-  // solo agrega los 4 macros principales), así que se queda vacío para 'recipe'.
+  // Producto: directo de sus campos per-100g. Receta: sumado ingrediente a
+  // ingrediente y escalado por portionRatio — mismo criterio que ya usa
+  // recipeService para portionMacros, extendido a los ~30 campos en vez de
+  // solo los 4 macros principales (ver buildRecipeExtraNutrition).
   public extraNutrition: NutritionRow[] = [];
+  // Solo productos.
+  public allergens: string[] = [];
+  public traces: string[] = [];
+  // Solo recetas — composición real (overrides/añadidos/quitados ya
+  // resueltos), no la lista cruda de Recipe.customProducts.
+  public ingredientRows: { name: string; quantity: number }[] = [];
+  // Solo recetas — no existe un campo "instrucciones" en el modelo de
+  // Recipe (ni backend ni frontend); esto es lo más parecido que hay.
+  public instructions = '';
 
   public editableQuantity = 0;
   public saving = false;
@@ -113,7 +123,9 @@ export class PautadoItemViewComponent implements OnInit {
       this.assignedQuantity =
         this.product.assignedQuantity != null ? Number(this.product.assignedQuantity) : null;
       this.macros = this.customProductService.getMacros(this.product);
-      this.extraNutrition = this.buildExtraNutrition(this.product);
+      this.extraNutrition = this.buildProductExtraNutrition(this.product);
+      this.allergens = this.product.allergens || [];
+      this.traces = this.product.traces || [];
     } else if (this.kind === 'recipe' && this.recipeInstance) {
       const recipe =
         typeof this.recipeInstance.recipe === 'object' ? this.recipeInstance.recipe : null;
@@ -123,17 +135,49 @@ export class PautadoItemViewComponent implements OnInit {
         this.recipeInstance.assignedQuantity != null
           ? Number(this.recipeInstance.assignedQuantity)
           : null;
-      this.macros = recipe
-        ? this.recipeService.calculateCustomRecipeTotals(recipe, this.recipeInstance).portionMacros
-        : { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+      this.instructions = recipe?.description || '';
+      if (recipe) {
+        const totals = this.recipeService.calculateCustomRecipeTotals(recipe, this.recipeInstance);
+        this.macros = totals.portionMacros;
+        this.ingredientRows = totals.ingredients.map((ingredient) => ({
+          name: ingredient.product?.name || '',
+          quantity: Number(ingredient.quantity) || 0,
+        }));
+        this.extraNutrition = this.buildRecipeExtraNutrition(totals.ingredients, totals.portionRatio);
+      }
     }
     this.editableQuantity = this.quantity;
   }
 
-  private buildExtraNutrition(product: CustomProduct): NutritionRow[] {
+  private buildProductExtraNutrition(product: CustomProduct): NutritionRow[] {
     const rows: NutritionRow[] = [];
     for (const [field, labelKey, unit] of EXTRA_NUTRITION_FIELDS) {
       const value = this.customProductService.getCustomProductInfo(product, field as string);
+      if (!value) continue;
+      rows.push({ label: this.translate.instant(labelKey), value, unit });
+    }
+    return rows;
+  }
+
+  // No existe en ningún sitio de la app un cálculo agregado de micros para
+  // una receta (recipeService solo agrega los 4 macros principales, ver
+  // RecipeMacros) — se construye aquí sumando cada nutriente ingrediente a
+  // ingrediente (misma función getCustomProductInfo que usa un producto
+  // suelto) y aplicando portionRatio, EXACTAMENTE el mismo factor que
+  // recipeService usa para escalar totals -> portionMacros. No es un
+  // cálculo nuevo/paralelo: es el mismo, extendido a más campos.
+  private buildRecipeExtraNutrition(
+    ingredients: CustomProduct[],
+    portionRatio: number
+  ): NutritionRow[] {
+    const rows: NutritionRow[] = [];
+    for (const [field, labelKey, unit] of EXTRA_NUTRITION_FIELDS) {
+      const rawTotal = ingredients.reduce(
+        (sum, ingredient) =>
+          sum + this.customProductService.getCustomProductInfo(ingredient, field as string),
+        0
+      );
+      const value = rawTotal * portionRatio;
       if (!value) continue;
       rows.push({ label: this.translate.instant(labelKey), value, unit });
     }
@@ -184,15 +228,22 @@ export class PautadoItemViewComponent implements OnInit {
         if (this.kind === 'product' && this.product) {
           this.product.quantity = quantity;
           this.macros = this.customProductService.getMacros(this.product);
-          this.extraNutrition = this.buildExtraNutrition(this.product);
+          this.extraNutrition = this.buildProductExtraNutrition(this.product);
         } else if (this.kind === 'recipe' && this.recipeInstance) {
           this.recipeInstance.quantity = quantity;
           const recipe =
             typeof this.recipeInstance.recipe === 'object' ? this.recipeInstance.recipe : null;
-          this.macros = recipe
-            ? this.recipeService.calculateCustomRecipeTotals(recipe, this.recipeInstance)
-                .portionMacros
-            : this.macros;
+          if (recipe) {
+            const totals = this.recipeService.calculateCustomRecipeTotals(
+              recipe,
+              this.recipeInstance
+            );
+            this.macros = totals.portionMacros;
+            this.extraNutrition = this.buildRecipeExtraNutrition(
+              totals.ingredients,
+              totals.portionRatio
+            );
+          }
         }
         this.ionicUtilService.showToast({
           message: this.translate.instant('MEAL.QUANTITY_UPDATED'),
