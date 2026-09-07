@@ -332,7 +332,10 @@
     "CREATE_ACCOUNT_ERROR_WITH_PROVIDER": "Error creating account with {{provider}}",
     "REGISTER_ERROR_WITH_PROVIDER": "Could not complete registration with {{provider}}",
     "SOCIAL_AUTH_RETRY": "Could not sign in with {{provider}}. Please try again",
-    "UNEXPECTED_ERROR": "An unexpected error occurred"
+    "UNEXPECTED_ERROR": "An unexpected error occurred",
+    "ALREADY_HAVE_ACCOUNT": "Already have an account?",
+    "OR": "or",
+    "LOGIN_SUBTITLE": "Enter your details to access your account."
   },
   "RESTORE_PASSWORD": {
     "TITLE": "Restore Password",
