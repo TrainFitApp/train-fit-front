@@ -3,6 +3,7 @@ import { ClientDetailApiService } from '../../services/client-detail-api.service
 import { NutritionComplianceDay } from '../../models/client-detail.model';
 import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
+import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 
 interface CalendarPhaseInfo {
   id: string;
@@ -41,39 +42,9 @@ const MONTH_LABELS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
-// Paleta categórica para tramos de plan (una fase = un color, cíclico por
-// orden de inicio). MISMOS valores que weekdayPatternColors en
-// client-detail.page.ts (un solo origen conceptual, dos usos) — cambiar
-// aquí implica cambiar allí.
-//
-// Verde, azul-violeta, turquesa, rosa, dorado, azul cielo.
-//
-// Historial (2026-09) — cuatro intentos fallidos, todos por el mismo error
-// de método: repartir TONOS en HSL. El ángulo de tono no mide lo que ve el
-// ojo, así que "40º de separación" puede leerse idéntico (verde 100º y
-// verde 140º) o clarísimo (amarillo 50º y verde 90º). Los tres primeros
-// intentos ajustaban saturación/luminosidad; el cuarto reordenaba para
-// maximizar la distancia entre fases CONSECUTIVAS — pero todas las fases
-// se ven a la vez en el calendario y en la leyenda, así que lo que hay que
-// separar es CUALQUIER par, no solo los vecinos. Con ese criterio, la
-// paleta anterior tenía fase 1 (#bae03e) y fase 3 (#3ee041) a ΔE 14: dos
-// verdes prácticamente iguales.
-//
-// Esta versión se eligió optimizando sobre distancia perceptual real
-// (CIEDE2000 en espacio Lab, el estándar para "¿estos dos se parecen?"),
-// maximizando el MÍNIMO ΔE entre todos los pares. Resultado: ΔE ≥ 28.9
-// entre cualquier par (>10 ya es "claramente distintos"), y ≥ 48 entre
-// consecutivos. Restricciones de la búsqueda:
-//   · contraste ≥ 4.8:1 sobre el fondo #141414 (legibles en oscuro)
-//   · ΔE ≥ 22 respecto a --tf-danger (#eb445a, punto de excepción) y a
-//     --tf-accent (#fe9000, hoy/seleccionado) — antes se excluía la banda
-//     roja/naranja ENTERA, y eso dejaba solo 285º de rueda para 6 colores,
-//     que es justo lo que forzaba los pares indistinguibles. Con distancia
-//     medida en vez de un veto por sector caben rosa y dorado sin
-//     confundirse con esos dos (quedan a 22.2 y 22.5).
-// El script de búsqueda no se versiona: es de un solo uso, y estos 6
-// valores son el resultado.
-const PHASE_COLORS = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
+// Paleta y algoritmo de asignación — ver phase-color.util.ts (historial
+// completo de cómo se eligieron estos 6 tonos ahí, junto con el porqué de
+// asignarlos por proximidad y no por índice%6).
 
 // F20-terdecies — presets de rango (7/30/90d), antes vivían en
 // <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
@@ -219,6 +190,10 @@ export class NutritionCalendarComponent implements OnChanges {
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
   // cruza dos meses se pinta igual en ambos sin refetch.
   private planPhases: PlanAssignment[] = [];
+  // Color por fase, calculado una vez al cargar planPhases (no en cada
+  // findPhaseForDate — eso lo recalcularía hasta ~35 veces por render de
+  // mes sin necesidad, ver assignPhaseColors en phase-color.util.ts).
+  private phaseColorMap = new Map<string, string>();
   // Solo las fases que aparecen en el mes visible ahora mismo, en orden
   // cronológico — se recalcula en withPhases() cada vez que cambian las
   // celdas (mes nuevo o fases recién cargadas).
@@ -409,6 +384,7 @@ export class NutritionCalendarComponent implements OnChanges {
         // Orden estable por fecha de inicio — así el color de cada fase no
         // cambia de un mes a otro dentro de la misma sesión.
         this.planPhases = (phases || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+        this.phaseColorMap = buildPhaseColorMap(this.planPhases.map((p) => p._id));
         this.cells = this.withPhases(this.cells);
       },
       error: () => {
@@ -465,10 +441,9 @@ export class NutritionCalendarComponent implements OnChanges {
     if (!matches.length) return null;
 
     const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
-    const index = this.planPhases.indexOf(phase);
     return {
       id: phase._id,
-      color: PHASE_COLORS[index % PHASE_COLORS.length],
+      color: this.phaseColorMap.get(phase._id) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
       blocksNewPhase: phase.endDate !== null,
     };

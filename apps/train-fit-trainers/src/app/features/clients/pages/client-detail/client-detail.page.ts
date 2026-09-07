@@ -61,6 +61,7 @@ import { SelectClientsModalComponent } from '../../components/select-clients-mod
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
@@ -323,36 +324,30 @@ export class ClientDetailPage implements OnInit {
   public planPhases: PlanAssignment[] = [];
   // Historial COMPLETO (incluye fases ya terminadas), ordenado por fecha de
   // inicio — a diferencia de planPhases (solo vigente+futuras, ver
-  // buildPhaseSequence). Existe solo para que phaseColor() calcule el mismo
-  // índice que usa el calendario (PHASE_COLORS en
-  // nutrition-calendar.component.ts, que sí cuenta las terminadas): si
-  // usara planPhases, una fase ya cerrada desplazaría el índice de las que
-  // siguen y el color dejaría de coincidir con el del calendario.
+  // buildPhaseSequence). Existe para que phaseColorMap se construya sobre la
+  // MISMA secuencia que usa el calendario (PHASE_COLORS/assignPhaseColors en
+  // phase-color.util.ts, que también cuenta las terminadas): si usara
+  // planPhases, una fase ya cerrada desplazaría a las que siguen un puesto
+  // en la secuencia y el color dejaría de coincidir con el del calendario.
   private allPhasesHistory: PlanAssignment[] = [];
-  // Misma paleta y MISMO ORDEN que PHASE_COLORS en
-  // nutrition-calendar.component.ts — el índice de una fase en
-  // allPhasesHistory tiene que mapear al mismo color en los dos sitios, o
-  // la tarjeta de fase y su tramo en el calendario dejan de coincidir.
-  //
-  // Elegida optimizando distancia perceptual real (CIEDE2000), no ángulo
-  // de tono HSL — ver el historial de los cuatro intentos fallidos y las
-  // restricciones en el comentario de PHASE_COLORS
-  // (nutrition-calendar.component.ts). ΔE ≥ 28.9 entre CUALQUIER par, no
-  // solo entre consecutivos: en el calendario y en la leyenda se ven todas
-  // a la vez, así que el par más flojo es el que manda.
-  private readonly phaseColors = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
+  // Color por fase — recalculado junto con allPhasesHistory (ver
+  // loadActivePlan), no en cada llamada a phaseColor(): assignPhaseColors
+  // mira varias fases hacia atrás por cada una, buscarlo por índice en el
+  // array sería EXTRA trabajo repetido sin necesidad.
+  private phaseColorMap = new Map<string, string>();
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
   public readonly weekdayOptions = WEEKDAYS;
   // F20-octies — un color por patrón cuando el plan tiene 2+ (mismo criterio
-  // categórico que las fases del calendario, PHASE_COLORS en
-  // nutrition-calendar.component.ts) — con un solo patrón se queda en el
-  // naranja de acento de siempre, sin inventar distinción donde no hace falta.
-  // Mismo origen que PHASE_COLORS/phaseColors (ver comentario de phaseColors
-  // más arriba) — un solo patrón conceptual, tres usos, cambiar aquí implica
-  // cambiar allí también.
-  private readonly weekdayPatternColors = ['#5db530', '#7b72ee', '#4cf6df', '#e49ab8', '#f4cd2f', '#12b7f3'];
+  // categórico que las fases del calendario) — con un solo patrón se queda
+  // en el naranja de acento de siempre, sin inventar distinción donde no
+  // hace falta. Misma paleta que PHASE_COLORS (phase-color.util.ts) — un
+  // patrón dentro de UN plan es un conjunto pequeño y no espacial (no hay
+  // "cercanía" que razonar como en el calendario), así que aquí basta el
+  // índice simple sobre la paleta compartida en vez del algoritmo de
+  // proximidad completo.
+  private readonly weekdayPatternColors = PHASE_COLORS;
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
   // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
   // (30 días centrados en hoy) en vez de null: antes dependía de que el
@@ -1583,6 +1578,7 @@ export class ClientDetailPage implements OnInit {
         this.allPhasesHistory = (res?.history || [])
           .slice()
           .sort((a, b) => a.startDate.localeCompare(b.startDate));
+        this.phaseColorMap = buildPhaseColorMap(this.allPhasesHistory.map((p) => p._id));
         this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
@@ -1614,16 +1610,13 @@ export class ClientDetailPage implements OnInit {
     return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
   }
 
-  // Mismo color que este tramo pinta en <app-nutrition-calendar> — el
-  // índice se calcula sobre allPhasesHistory (TODA la secuencia), no sobre
-  // planPhases, por la misma razón que el calendario cuenta las fases ya
-  // terminadas al asignar color (ver PHASE_COLORS/findPhaseForDate en
-  // nutrition-calendar.component.ts).
+  // Mismo color que este tramo pinta en <app-nutrition-calendar> — mismo
+  // phaseColorMap, construido sobre allPhasesHistory (TODA la secuencia,
+  // fases terminadas incluidas), exactamente como hace el calendario en
+  // phase-color.util.ts.
   public phaseColor(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent)';
-    const index = this.allPhasesHistory.findIndex((p) => p._id === phase._id);
-    if (index < 0) return 'var(--tf-accent)';
-    return this.phaseColors[index % this.phaseColors.length];
+    return this.phaseColorMap.get(phase._id) ?? 'var(--tf-accent)';
   }
 
   // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
@@ -1633,9 +1626,9 @@ export class ClientDetailPage implements OnInit {
   // Reutiliza hexToRgba, igual que weekdayPatternSoftBackground.
   public phaseSoftBackground(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent-soft)';
-    const index = this.allPhasesHistory.findIndex((p) => p._id === phase._id);
-    if (index < 0) return 'var(--tf-accent-soft)';
-    return this.hexToRgba(this.phaseColors[index % this.phaseColors.length], 0.14);
+    const color = this.phaseColorMap.get(phase._id);
+    if (!color) return 'var(--tf-accent-soft)';
+    return this.hexToRgba(color, 0.14);
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
