@@ -1091,6 +1091,7 @@
     "CREATE_ROUTINE_BTN": "Create Routine",
     "RM_CALCULATOR_BTN": "1RM Calculator",
     "SETS_HEATMAP_TITLE": "Session activity",
+    "SETS_HEATMAP_AXIS": "SESSIONS",
     "SETS_HEATMAP_LESS": "Less",
     "SETS_HEATMAP_MORE": "More",
     "SETS_HEATMAP_INFO": "Sets completed",

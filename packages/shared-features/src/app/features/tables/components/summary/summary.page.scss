@@ -296,15 +296,21 @@
       font-size: 0.8rem;
       color: var(--text-secondary);
       margin-top: 2px;
-      margin-bottom: 10px;
     }
 
+    // El espacio antes de la barra vive AQUÍ (margin-top), no como
+    // margin-bottom colgando del subtítulo: la card "Siguiente
+    // entrenamiento" no pinta barra de progreso, y un margen fijo detrás
+    // del subtítulo quedaba como hueco invisible al fondo del body — con
+    // align-items:center en .continue-card eso descentraba el bloque de
+    // texto hacia arriba respecto al icon-badge.
     &__progress {
       display: block;
       background: var(--progress-bg, rgba(255, 255, 255, 0.08));
       height: 4px;
       border-radius: 2px;
       overflow: hidden;
+      margin-top: 10px;
     }
 
     &__progress-fill {

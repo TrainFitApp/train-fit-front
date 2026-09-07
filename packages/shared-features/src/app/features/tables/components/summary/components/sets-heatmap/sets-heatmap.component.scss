@@ -39,22 +39,23 @@
   min-width: 100%;
 }
 
-.heatmap-row-labels {
+// Título de eje vertical ("SESIONES"), pegado al borde izquierdo de toda la
+// rejilla — identifica qué representan las filas sin repetirlo en cada una.
+// rotate(180deg) sobre vertical-rl para que se lea de abajo arriba, como el
+// eje Y de cualquier gráfico.
+.heatmap-axis-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: stretch;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-top: 18px; // alinea con la fila de celdas, debajo de la etiqueta de mes
-  margin-right: 4px;
-}
-
-// Tamaño y color medidos en el diseño de referencia (9px, gris apagado) —
-// "Lun"/"Mié" completos, no una sola inicial, necesitan su propio ancho de
-// columna en vez de encajar en las 12px de antes.
-.heatmap-row-label {
-  height: 16px;
-  line-height: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px; // alinea con la fila de celdas, debajo de la etiqueta de split
+  margin-right: 6px;
   font-size: 9px;
-  color: rgb(107, 114, 128);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.3);
   white-space: nowrap;
 }
 
@@ -75,14 +76,16 @@
   }
 }
 
-.heatmap-month-label {
+// Etiqueta de columna (S1, S2... un split por columna) — mismo tratamiento
+// visual que antes tenía el mes, solo que ahora identifica el microciclo.
+.heatmap-column-label {
   height: 16px;
   line-height: 16px;
   font-size: 0.65rem;
   font-weight: 600;
   color: var(--text-secondary, #8b8b8b);
   white-space: nowrap;
-  text-transform: capitalize;
+  text-align: center;
 }
 
 // 16px + radio 2px medidos en el diseño de referencia (antes 12px/3px) —
