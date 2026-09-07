@@ -272,7 +272,7 @@
                      lo consumido pegado a la derecha — no la cantidad
                      consumida en sí, esa se ve (y se edita) dentro de la
                      vista de solo lectura (ver viewPautadoRecipe). -->
-                <span class="item-quantity">{{ instance.assignedQuantity | number : "1.0-1" }}g</span>
+                <span class="item-quantity">{{ recipeDisplayQuantity(instance) | number : "1.0-1" }}g</span>
                 <span
                   class="quantity-delta"
                   *ngIf="recipeAssignedDelta(instance) !== 0"
@@ -342,7 +342,7 @@
                 <!-- Siempre la cantidad PAUTADA (fija) + delta a la derecha
                      — la consumida se ve/edita dentro de la vista de solo
                      lectura (ver viewPautadoProduct). -->
-                <span class="item-quantity">{{ product.assignedQuantity | number : "1.0-1" }}g</span>
+                <span class="item-quantity">{{ productDisplayQuantity(product) | number : "1.0-1" }}g</span>
                 <span
                   class="quantity-delta"
                   *ngIf="productAssignedDelta(product) !== 0"

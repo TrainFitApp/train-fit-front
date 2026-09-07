@@ -539,6 +539,19 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     return Math.round(this.getRecipeConsumedQuantity(instance) - instance.assignedQuantity);
   }
 
+  // Número que se ve en la fila (antes de la "g") — SIEMPRE assignedQuantity
+  // cuando existe; si no (pautados de antes de este feature, sin migrar
+  // todavía en esta BBDD — ver migrate-pautado-assigned-quantity.js en el
+  // backend), cae a quantity para no dejar la cifra en blanco delante de
+  // la "g". El delta de arriba ya se oculta solo en ese mismo caso.
+  public productDisplayQuantity(product: CustomProduct): number {
+    return product.assignedQuantity ?? (Number(product.quantity) || 0);
+  }
+
+  public recipeDisplayQuantity(instance: CustomRecipe): number {
+    return instance.assignedQuantity ?? this.getRecipeConsumedQuantity(instance);
+  }
+
   // Tap en la fila de un pautado — abre toda la info nutricional en modo
   // lectura, con la cantidad consumida como único campo editable ahí
   // dentro (ver PautadoItemViewComponent). Nunca el editor de composición
