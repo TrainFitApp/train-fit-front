@@ -143,6 +143,16 @@
     }
   }
 
+  // "Alinear filas" (2026-09) — clase [class.toolbar-btn--active] ya se
+  // togglaba desde el template pero sin regla CSS: el botón nunca mostraba
+  // si el modo estaba activo o no. Borde+fondo naranja, mismos tokens que
+  // ya usa el resto del Planner para "seleccionado" (training-filter-panel).
+  &--active {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent);
+    border: 1px solid var(--tf-accent);
+  }
+
   &--danger {
     background: var(--tf-danger-soft);
     color: var(--tf-danger);
@@ -349,4 +359,46 @@ app-planner-insights-panel {
 
 .cdk-drop-list-dragging .planner-board-column:not(.cdk-drag-placeholder) {
   transition: transform 200ms var(--tf-ease-out);
+}
+
+// Reordenar microciclos (2026-09) — cursor "grab" solo cuando el modo está
+// activo, para que la columna no invite a arrastrarla el resto del tiempo
+// (cdkDrag ya lo bloquea vía [cdkDragDisabled], esto es solo la señal
+// visual a juego).
+.planner-board-column--reorder {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.planner-pain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 16px;
+  max-height: 160px;
+  overflow-y: auto;
+  border-top: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-xs);
+  > ion-icon { color: var(--tf-accent-text); font-size: 18px; }
+  .pain-label { font-weight: 600; }
+  button { min-height: var(--tf-touch-min); background: transparent; color: var(--tf-accent-text); border: 0; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
+}
+.pain-entry {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  strong { color: var(--tf-text); }
+  &--over { border-color: var(--tf-accent-soft-border); background: var(--tf-accent-soft); color: var(--tf-accent-text); }
 }

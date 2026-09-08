@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -43,19 +44,24 @@ import {
 import { formatSoreness } from 'src/app/core/constants/soreness';
 import {
   AdherenceDimension,
+  BlockAdherence,
   BlockExerciseProgress,
   BlockMuscleGroup,
+  BlockReadiness,
   ClientBodyProfile,
   ClientTrainingProgress,
   GoalMeal,
+  SessionAdherence,
+  SessionExerciseProgress,
+  SessionMuscleGroup,
+  SessionReadiness,
+  SessionTraining,
   TRAINING_COMPARISON_METRIC_LABELS,
   TrainingBlock,
   TrainingComparisonMetric,
+  TrainingGranularity,
 } from './models/client-progress.model';
-import {
-  TrainingFilterPanelComponent,
-  TrainingFilterResult,
-} from './components/training-filter-panel/training-filter-panel.component';
+import { TrainingFilterPanelComponent, TrainingFilterResult } from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
@@ -692,25 +698,42 @@ export class ClientDetailPage implements OnInit {
   // --- Tarea 4 (2026-09), remodelado: comparación por microciclo ---
   // Sustituye a la Entrega 2 (volumen/récords/evolución de cargas) y al
   // calendario+gráfica de frecuencia de la Tarea 3 bis: un único sistema
-  // configurable (calendario de rango + gráfica + panel de filtro) en vez
+  // configurable (calendario de rango + gráfica + selectores) en vez
   // de varios bloques fijos. Resumen no se toca, sigue en modo `weeks`.
   public trainingComparisonRange: { start: string; end: string } | null = null;
   public trainingComparisonMetric: TrainingComparisonMetric = 'volume';
+  // 2026-09 — granularidad "Por microciclo" / "Por sesión". No pide nada
+  // nuevo al backend: la misma respuesta ya trae los dos agregados (ver
+  // loadTrainingBlocks), esto solo decide cuál pinta la gráfica.
+  public trainingGranularity: TrainingGranularity = 'block';
   public trainingBlocksState: SectionState = 'loading';
+  private trainingBlocksSubscription?: Subscription;
+  public readonly trainingMetricOptions = (Object.keys(TRAINING_COMPARISON_METRIC_LABELS) as TrainingComparisonMetric[]).map((value) => ({ value, label: TRAINING_COMPARISON_METRIC_LABELS[value] }));
   public trainingBlocks: TrainingBlock[] = [];
   public trainingBlockMuscleGroups: BlockMuscleGroup[] = [];
-  // Comparar por ejercicio (2026-09) — "ejercicios por micros". exerciseNames
-  // sale gratis de la misma petición que ya trae blocks/blockMuscleGroups;
-  // blockExercise solo llega poblado cuando ya hay un ejercicio elegido (ver
-  // loadTrainingBlocks, que reenvía selectedTrainingExercise al backend).
+  // Readiness/esfuerzo (2026-09) — sale gratis de la misma petición, igual
+  // que blockMuscleGroups.
+  public trainingBlockReadiness: BlockReadiness[] = [];
+  public trainingBlockAdherence: BlockAdherence[] = [];
+  public trainingSessionTraining: SessionTraining[] = [];
+  public trainingSessionMuscleGroups: SessionMuscleGroup[] = [];
+  public trainingSessionReadiness: SessionReadiness[] = [];
+  public trainingSessionAdherence: SessionAdherence[] = [];
+  // Comparar por ejercicio, varios a la vez (2026-09 bis) — "ejercicios por
+  // micros". exerciseNames sale gratis de la misma petición que ya trae
+  // blocks/blockMuscleGroups; blockExerciseByName/sessionExerciseByName
+  // solo llegan poblados cuando ya hay al menos un ejercicio elegido (ver
+  // loadTrainingBlocks, que reenvía selectedTrainingExercises al backend).
   public trainingExerciseNames: string[] = [];
-  public trainingBlockExercise: BlockExerciseProgress[] = [];
-  public selectedTrainingExercise: string | null = null;
-  public trainingBlockComparison: ClientTrainingProgress['blockComparison'] = null;
+  public trainingBlockExerciseByName: Record<string, BlockExerciseProgress[]> = {};
+  public trainingSessionExerciseByName: Record<string, SessionExerciseProgress[]> = {};
+  public selectedTrainingExercises: string[] = [];
+  // "Elegir el workout a ver" (2026-09) — filtro ortogonal a la métrica.
+  // Igual que el ejercicio, es un parámetro que el BACKEND aplica (recorta
+  // sets antes de agregar), así que cambiarlo sí necesita volver a pedir.
+  public trainingWorkoutNames: string[] = [];
+  public selectedTrainingWorkout: string | null = null;
 
-  public get trainingComparisonMetricLabel(): string {
-    return TRAINING_COMPARISON_METRIC_LABELS[this.trainingComparisonMetric];
-  }
 
   // Movimiento adherencia-por-fase (2026-09) — antes solo el Set de fechas
   // ISO con sesión (sessionDatesSet); ahora nombre + % de series cumplidas
@@ -743,27 +766,49 @@ export class ClientDetailPage implements OnInit {
     this.loadTrainingSchedule(range);
   }
 
-  private loadTrainingBlocks(): void {
+  public loadTrainingBlocks(): void {
     if (!this.trainingComparisonRange) return;
+    this.trainingBlocksSubscription?.unsubscribe();
     this.trainingBlocksState = 'loading';
     const { start, end } = this.trainingComparisonRange;
-    this.clientDetailApi
-      .getTrainingBlocks(this.clientId, start, end, this.selectedTrainingExercise || undefined)
+    this.trainingBlocksSubscription = this.clientDetailApi
+      .getTrainingBlocks(
+        this.clientId,
+        start,
+        end,
+        this.selectedTrainingExercises.length ? this.selectedTrainingExercises : undefined,
+        this.selectedTrainingWorkout || undefined
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           this.trainingBlocks = data.blocks || [];
           this.trainingBlockMuscleGroups = data.blockMuscleGroups || [];
-          this.trainingBlockComparison = data.blockComparison || null;
+          this.trainingBlockReadiness = data.blockReadiness || [];
+          this.trainingBlockAdherence = data.blockAdherence || [];
+          this.trainingSessionTraining = data.sessionTraining || [];
+          this.trainingSessionMuscleGroups = data.sessionMuscleGroups || [];
+          this.trainingSessionReadiness = data.sessionReadiness || [];
+          this.trainingSessionAdherence = data.sessionAdherence || [];
           this.trainingExerciseNames = data.exerciseNames || [];
-          this.trainingBlockExercise = data.blockExercise || [];
+          this.trainingBlockExerciseByName = data.blockExerciseByName || {};
+          this.trainingSessionExerciseByName = data.sessionExerciseByName || {};
+          this.trainingWorkoutNames = data.workoutNames || [];
           this.trainingBlocksState = 'loaded';
         },
         error: () => {
           this.trainingBlocks = [];
           this.trainingBlockMuscleGroups = [];
-          this.trainingBlockComparison = null;
+          this.trainingBlockReadiness = [];
+          this.trainingBlockAdherence = [];
+          this.trainingSessionTraining = [];
+          this.trainingSessionMuscleGroups = [];
+          this.trainingSessionReadiness = [];
+          this.trainingSessionAdherence = [];
           this.trainingExerciseNames = [];
-          this.trainingBlockExercise = [];
+          this.trainingBlockExerciseByName = {};
+          this.trainingSessionExerciseByName = {};
+          this.trainingWorkoutNames = [];
           this.trainingBlocksState = 'error';
         },
       });
@@ -774,8 +819,11 @@ export class ClientDetailPage implements OnInit {
       component: TrainingFilterPanelComponent,
       componentProps: {
         selectedMetric: this.trainingComparisonMetric,
-        selectedExercise: this.selectedTrainingExercise,
+        selectedExercises: this.selectedTrainingExercises,
         exerciseNames: this.trainingExerciseNames,
+        selectedGranularity: this.trainingGranularity,
+        selectedWorkout: this.selectedTrainingWorkout,
+        workoutNames: this.trainingWorkoutNames,
       },
       cssClass: 'tf-panel-modal',
     });
@@ -784,17 +832,39 @@ export class ClientDetailPage implements OnInit {
     if (role !== 'confirm' || !data) return;
 
     this.trainingComparisonMetric = data.metric;
-    const exerciseChanged = data.exercise !== this.selectedTrainingExercise;
-    this.selectedTrainingExercise = data.exercise;
+    this.trainingGranularity = data.granularity;
+    const exercisesChanged =
+      JSON.stringify(data.exercises) !== JSON.stringify(this.selectedTrainingExercises);
+    this.selectedTrainingExercises = data.exercises;
+    const workoutChanged = data.workout !== this.selectedTrainingWorkout;
+    this.selectedTrainingWorkout = data.workout;
 
-    // Solo hace falta volver a pedir al backend si de verdad cambió el
-    // ejercicio elegido — blockExercise solo llega poblado para el que se
-    // pidió la última vez (ver loadTrainingBlocks). Cambiar a/desde las
-    // otras 4 métricas no necesita ninguna llamada nueva: sus datos ya
-    // están en memoria desde la última carga del rango.
-    if (data.metric === 'exercise' && exerciseChanged) {
+    // Solo hace falta volver a pedir al backend si de verdad cambió la
+    // selección de ejercicios o el workout — el backend recorta `sets` a
+    // ese workout/esos ejercicios ANTES de agregar (ver
+    // client-progress-controller.js), así que no basta con re-renderizar en
+    // el cliente. Cambiar de métrica o de granularidad no necesita ninguna
+    // llamada nueva: la respuesta ya trae todos los agregados de una vez.
+    if ((data.metric === 'exercise' && exercisesChanged) || workoutChanged) {
       this.loadTrainingBlocks();
     }
+  }
+
+  public get selectedTrainingExercise(): string | null {
+    return this.selectedTrainingExercises.length === 1 ? this.selectedTrainingExercises[0] : null;
+  }
+
+  public onTrainingMetricChanged(metric: TrainingComparisonMetric): void {
+    this.trainingComparisonMetric = metric;
+    if (metric === 'exercise' && !this.selectedTrainingExercises.length && this.trainingExerciseNames.length) {
+      this.onTrainingExerciseChanged(this.trainingExerciseNames[0]);
+    }
+  }
+
+  public onTrainingExerciseChanged(exercise: string): void {
+    if (this.selectedTrainingExercises.length === 1 && exercise === this.selectedTrainingExercises[0]) return;
+    this.selectedTrainingExercises = [exercise];
+    this.loadTrainingBlocks();
   }
 
   // --- Tarea 3 bis: vista previa de sesiones (link a Progreso > Sesiones) ---

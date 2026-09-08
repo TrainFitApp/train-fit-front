@@ -32,10 +32,68 @@
     </button>
   </div>
 
-  <!-- Comparar por ejercicio (2026-09) — segundo paso, solo con ese modo
-       elegido: qué ejercicio concreto seguir microciclo a microciclo. -->
+  <!-- 2026-09 — granularidad. Oculto para 'sessions': es un conteo DE
+       sesiones por microciclo, no tiene una lectura "por sesión". -->
+  <ng-container *ngIf="selectedMetric !== 'sessions'">
+    <p class="panel-subtitle">Cómo agrupar los puntos.</p>
+    <div class="granularity-toggle">
+      <button
+        type="button"
+        class="granularity-option"
+        [class.granularity-option--selected]="selectedGranularity === 'block'"
+        (click)="chooseGranularity('block')"
+      >
+        Por microciclo
+      </button>
+      <button
+        type="button"
+        class="granularity-option"
+        [class.granularity-option--selected]="selectedGranularity === 'session'"
+        (click)="chooseGranularity('session')"
+      >
+        Por sesión
+      </button>
+    </div>
+  </ng-container>
+
+  <!-- "Elegir el workout a ver" (2026-09) — filtro ortogonal a la métrica
+       (a diferencia del selector de ejercicio, que solo aparece en modo
+       'exercise'): siempre visible, con "Todos" para quitarlo. -->
+  <ng-container *ngIf="workoutNames.length">
+    <p class="panel-subtitle">Qué entrenamiento ver.</p>
+    <div class="metric-option-list">
+      <button
+        type="button"
+        class="metric-option"
+        [class.metric-option--selected]="!selectedWorkout"
+        (click)="chooseWorkout(null)"
+      >
+        <span>Todos</span>
+        <ion-icon [name]="!selectedWorkout ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="metric-option"
+        *ngFor="let name of workoutNames"
+        [class.metric-option--selected]="selectedWorkout === name"
+        (click)="chooseWorkout(name)"
+      >
+        <span>{{ name }}</span>
+        <ion-icon [name]="selectedWorkout === name ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+      </button>
+    </div>
+  </ng-container>
+
+  <!-- Comparar por ejercicio (2026-09), varios a la vez (2026-09 bis) —
+       segundo paso, solo con ese modo elegido: qué ejercicios seguir
+       microciclo a microciclo, hasta maxComparedExercises a la vez. -->
   <ng-container *ngIf="selectedMetric === 'exercise'">
-    <p class="panel-subtitle">Qué ejercicio seguir.</p>
+    <p class="panel-subtitle">
+      Qué ejercicios seguir (hasta {{ maxComparedExercises }}).
+      <ng-container *ngIf="selectedExercises.length">
+        {{ selectedExercises.length }}/{{ maxComparedExercises }}
+      </ng-container>
+    </p>
 
     <p class="empty-hint" *ngIf="!exerciseNames.length">
       Sin ejercicios con carga registrada en el rango elegido.
@@ -52,12 +110,13 @@
           type="button"
           class="metric-option"
           *ngFor="let name of filteredExerciseNames"
-          [class.metric-option--selected]="selectedExercise === name"
-          (click)="chooseExercise(name)"
+          [class.metric-option--selected]="selectedExercises.includes(name)"
+          [disabled]="!selectedExercises.includes(name) && selectedExercises.length >= maxComparedExercises"
+          (click)="toggleExercise(name)"
         >
           <span>{{ name }}</span>
           <ion-icon
-            [name]="selectedExercise === name ? 'checkmark-circle' : 'ellipse-outline'"
+            [name]="selectedExercises.includes(name) ? 'checkmark-circle' : 'ellipse-outline'"
           ></ion-icon>
         </button>
       </div>

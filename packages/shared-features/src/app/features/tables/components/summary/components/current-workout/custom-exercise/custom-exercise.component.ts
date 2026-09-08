@@ -17,7 +17,6 @@ import { Set } from 'src/app/core/models/set';
 import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { CustomExerciseService } from 'src/app/core/services/custom-exercise/custom-exercise.service';
-import { SetService } from 'src/app/core/services/set/set.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
@@ -78,7 +77,6 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private customExerciseService: CustomExerciseService,
     private utilService: UtilService,
-    private setService: SetService,
     private ionicUtilService: IonicUtilService,
     private workoutService: WorkoutService,
     private pinnedExerciseNoteService: PinnedExerciseNoteService,
@@ -303,7 +301,28 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
     return `Microciclo ${this.historicalSplitIndex + 1}`;
   }
 
+  // 2026-09 bis — análisis "casuísticas current-workout con rutina
+  // asignada": añadir/copiar/reordenar/borrar series y editar su config ya
+  // están bloqueados en el BACKEND para una rutina asignada (ver
+  // set-controller.js/custom-exercise-controller.js), pero el cliente podía
+  // recorrer toda la UI (abrir el modal, arrastrar, confirmar) y solo
+  // enterarse del bloqueo al final, con el 403. Mismo patrón que
+  // workout.component.ts#guardReadonly en el Planner.
+  public get isReadonly(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
+  private guardReadonly(): boolean {
+    if (!this.isReadonly) return false;
+    this.ionicUtilService.showToast({
+      message: 'Esta rutina te la asignó tu entrenador. Pídele el cambio en vez de editarla tú mismo.',
+      duration: 3000,
+    });
+    return true;
+  }
+
   public openSetManager(): void {
+    if (this.guardReadonly()) return;
     const modalOptions: ModalOptions = {
       component: ManageSetComponent,
       componentProps: {
@@ -432,15 +451,27 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
 
+      // 2026-09 — vía dedicada (no updateCustomExercise: esa queda
+      // bloqueada en rutinas asignadas por el entrenador, y la nota del
+      // cliente tiene que poder guardarse siempre, sea cual sea la rutina).
+      const previousClientNotes = this.customExercise.clientNotes;
       this.customExercise.clientNotes = notesValue;
-      this.customExerciseService.updateCustomExercise(this.customExercise).subscribe();
-      if (this.currentWorkout) {
-        this.workoutService.setCurrentWorkout = this.currentWorkout;
-      }
+      this.customExerciseService.updateClientNotes(this.customExercise._id, notesValue).subscribe({
+        next: () => {
+          if (this.currentWorkout) {
+            this.workoutService.setCurrentWorkout = this.currentWorkout;
+          }
+        },
+        error: () => {
+          this.customExercise.clientNotes = previousClientNotes;
+          this.ionicUtilService.showErrorToast('No se pudo guardar la nota', 'Error', 2500);
+        },
+      });
     });
   }
 
   public deleteSet(set: Set): void {
+    if (this.guardReadonly()) return;
     const indexSet = this.customExercise.sets.findIndex(
       (setTemp) => setTemp._id === set._id
     );
@@ -453,6 +484,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public enterReorderMode(): void {
+    if (this.guardReadonly()) return;
     this.reorderMode = true;
     this.hasReorderChanges = false;
     this.originalSetsOrder = this.customExercise.sets.map(s => ({ ...s }));
@@ -518,6 +550,7 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public configSet(set: Set): void {
+    if (this.guardReadonly()) return;
     const modalOptions: ModalOptions = {
       component: ManageSetComponent,
       componentProps: {
@@ -529,18 +562,23 @@ export class CustomExerciseComponent implements OnInit, OnChanges, OnDestroy {
 
     this.ionicUtilService.showModal(modalOptions).then((resSet) => {
       if (resSet.data) {
-        this.setService.updateSet(resSet.data as Set).subscribe((resS) => {
-          const indexSet = this.customExercise.sets.findIndex(
-            (sTemp) => sTemp._id === resS._id
-          );
-          this.customExercise.sets[indexSet] = resS;
-          this.replaceCurrentSets(this.customExercise.sets);
-        });
+        // 2026-09 bis — ManageSetComponent edita config PAUTADA (expectedReps/
+        // expectedRir/restSeconds/restPause/drop), no lo REALMENTE hecho, así
+        // que este guardado tiene que ir por updateCustomExercise (protegido
+        // en rutinas asignadas), no por setService.updateSet (deliberadamente
+        // abierto para marcar series hechas — ver set-controller.js#updateSet).
+        // Mismo patrón que ya usa el Planner: workout.component.ts#persistSetUpdate.
+        this.customExerciseService
+          .updateCustomExercise(this.customExercise, [], [resSet.data as Set], [])
+          .subscribe((resCustomExercise) => {
+            this.replaceCurrentSets(resCustomExercise.sets);
+          });
       }
     });
   }
 
   public copySet(set: Set, indexSet: number): void {
+    if (this.guardReadonly()) return;
     const normalizedSets = this.sortSets(this.customExercise.sets).map(
       (setTemp, index) => ({
         ...setTemp,

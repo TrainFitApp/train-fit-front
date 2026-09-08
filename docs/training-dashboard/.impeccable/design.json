@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-08T10:52:47.262Z",
+  "title": "Design System: Training dashboard",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Naranja heredado",
+        "tonalRamp": [
+          "oklch(15.00% 0.1765 60.44)",
+          "oklch(26.43% 0.1765 60.44)",
+          "oklch(37.86% 0.1765 60.44)",
+          "oklch(49.29% 0.1765 60.44)",
+          "oklch(60.71% 0.1765 60.44)",
+          "oklch(72.14% 0.1765 60.44)",
+          "oklch(83.57% 0.1765 60.44)",
+          "oklch(95.00% 0.1765 60.44)"
+        ]
+      },
+      "reference-a": {
+        "role": "secondary",
+        "displayName": "Referencia A local",
+        "tonalRamp": [
+          "oklch(15.00% 0.0716 247.51)",
+          "oklch(26.43% 0.0716 247.51)",
+          "oklch(37.86% 0.0716 247.51)",
+          "oklch(49.29% 0.0716 247.51)",
+          "oklch(60.71% 0.0716 247.51)",
+          "oklch(72.14% 0.0716 247.51)",
+          "oklch(83.57% 0.0716 247.51)",
+          "oklch(95.00% 0.0716 247.51)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Superficie de campo",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Texto principal",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 89.88)",
+          "oklch(26.43% 0.0000 89.88)",
+          "oklch(37.86% 0.0000 89.88)",
+          "oklch(49.29% 0.0000 89.88)",
+          "oklch(60.71% 0.0000 89.88)",
+          "oklch(72.14% 0.0000 89.88)",
+          "oklch(83.57% 0.0000 89.88)",
+          "oklch(95.00% 0.0000 89.88)"
+        ]
+      }
+    },
+    "rampNote": "Rampas sintetizadas solo para previsualizar colores; no son tokens de implementación.",
+    "breakpoints": [
+      {
+        "name": "phase-mobile",
+        "value": "700px"
+      },
+      {
+        "name": "stacked-comparison",
+        "value": "640px"
+      },
+      {
+        "name": "compact-table",
+        "value": "480px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Selector de comparación",
+      "kind": "input",
+      "refersTo": "comparison-select",
+      "description": "Extracto estático del control real; no ejecuta la comparación Angular.",
+      "html": "<label class=\"ds-label\">Comparar por<select class=\"ds-select\"><option>Volumen por sesión</option><option>Progreso de un ejercicio</option></select></label>",
+      "css": ".ds-label{display:grid;gap:5px;min-width:0;font-size:12px;color:var(--tf-text-secondary,#c7c7c7)}.ds-select{width:100%;min-width:0;min-height:44px;padding:8px;border:1px solid var(--tf-border-strong,rgba(255,255,255,.16));border-radius:8px;background:var(--tf-surface-2,#1a1a1a);color:var(--tf-text,#ffffff)}.ds-select:focus-visible{outline:2px solid var(--tf-accent,#fe9000);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Revisión directa del entrenamiento",
+    "overview": "Modo **Operate**, limitado a comparación, fases y dolor en Planner. Hereda el mundo oscuro/naranja de [PRODUCT](../../apps/train-fit-trainers/PRODUCT.md) y [tokens.scss](../../apps/train-fit-trainers/src/theme/tokens.scss); la implementación actual es la autoridad. No redefine DESIGN global.",
+    "keyCharacteristics": [
+      "Tabla A/B explícita; fases primero; estados de dolor distinguibles."
+    ],
+    "rules": [
+      {
+        "name": "The Direction Rule",
+        "body": "Flechas, signos y texto indican B menos A, nunca mejora garantizada.",
+        "section": "colors"
+      },
+      {
+        "name": "The Phases First Rule",
+        "body": "Fase vigente, programadas e historial preceden al calendario y a la comparación.",
+        "section": "layout"
+      },
+      {
+        "name": "The Recorded Zero Rule",
+        "body": "Un cero posterior sustituye el positivo de esa zona; ausencia, carga y error nunca equivalen a cero.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** leer carga, reps y RIR juntos y mantener nombres/fechas de fases legibles."
+    ],
+    "donts": [
+      "**Don't** inventar ceros, umbrales o mejoras; extender este ship a toda la UI."
+    ]
+  }
+}
+

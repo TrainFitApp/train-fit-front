@@ -56,6 +56,14 @@
       color: var(--tf-accent);
     }
   }
+
+  // Comparación de varios ejercicios a la vez (2026-09 bis) — botones no
+  // seleccionados se deshabilitan al llegar al tope, para que quede claro
+  // que hay que quitar uno antes de añadir otro.
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
 }
 
 // Comparar por ejercicio — buscador, solo cuando hay más de 6 ejercicios que
@@ -73,6 +81,36 @@
   input {
     @include tf-input-field;
     font-size: 0.9rem;
+  }
+}
+
+// 2026-09 — toggle de granularidad "Por microciclo" / "Por sesión". Dos
+// opciones excluyentes en una fila, no una lista vertical como las métricas
+// (metric-option-list): son solo 2 y conceptualmente son un switch, no un
+// listado que pueda crecer.
+.granularity-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.granularity-option {
+  flex: 1;
+  padding: 10px;
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--tf-text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: background 160ms var(--tf-ease-out), border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
+
+  &--selected {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent-soft-border);
+    color: var(--tf-accent);
   }
 }
 

@@ -306,11 +306,18 @@ export class ClientDetailApiService {
     clientId: string,
     from: string,
     to: string,
-    exercise?: string
+    exercises?: string[],
+    workout?: string
   ): Observable<ClientTrainingProgress> {
-    const exerciseParam = exercise ? `&exercise=${encodeURIComponent(exercise)}` : '';
+    // Parámetros repetidos (exercises=A&exercises=B), no una lista separada
+    // por comas: un nombre de ejercicio con una coma literal rompería el
+    // split del backend sin forma de distinguirla del separador.
+    const exercisesParam = (exercises || [])
+      .map((name) => `&exercises=${encodeURIComponent(name)}`)
+      .join('');
+    const workoutParam = workout ? `&workout=${encodeURIComponent(workout)}` : '';
     return this.http.get<ClientTrainingProgress>(
-      `${this.base(clientId)}/training-progress?from=${from}&to=${to}${exerciseParam}`
+      `${this.base(clientId)}/training-progress?from=${from}&to=${to}${exercisesParam}${workoutParam}`
     );
   }
 

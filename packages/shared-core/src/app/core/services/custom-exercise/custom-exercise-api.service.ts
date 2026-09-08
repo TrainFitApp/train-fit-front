@@ -54,6 +54,17 @@ export class CustomExerciseAPIService {
     );
   }
 
+  // 2026-09 — vía dedicada para la nota del CLIENTE ("me molestó el
+  // hombro"), separada de updateCustomExercise: esa sí queda bloqueada en
+  // rutinas asignadas (403 TABLE_ASSIGNED_BY_TRAINER), esta nunca — es la
+  // propia anotación del cliente, no toca lo que pautó el entrenador.
+  public updateClientNotes(id: string, clientNotes: string): Observable<CustomExercise> {
+    return this.http.put<CustomExercise>(
+      `${CustomExerciseAPIService.CUSTOM_EXERCISE_ENDPOINT}/${id}/client-notes`,
+      { clientNotes }
+    );
+  }
+
   public deleteCustomExercise(id: string): Observable<any> {
     return this.http.delete<CustomExercise>(
       `${CustomExerciseAPIService.CUSTOM_EXERCISE_ENDPOINT}/${id}`

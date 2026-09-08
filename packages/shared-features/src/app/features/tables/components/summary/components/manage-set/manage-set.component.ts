@@ -118,10 +118,6 @@ export class ManageSetComponent implements OnInit {
         velocity: new FormControl(this.set?.velocity, [Validators.min(0), Validators.max(50)]),
         restSeconds: new FormControl(this.set?.restSeconds, [Validators.min(0), Validators.max(600)]),
         restSecondsEnabled: new FormControl(this.set?.restSeconds ? true : false),
-        // Movimiento 6 Coach Pro — tempo. Solo en el bloque de fuerza: no
-        // significa nada en un cardio ni en un isométrico. %RM se quitó
-        // (2026-09): no era una funcionalidad que interesara.
-        tempo: new FormControl(this.set?.tempo),
       });
 
       this.setForm.get('drop').valueChanges.subscribe((res) => {
@@ -454,12 +450,6 @@ export class ManageSetComponent implements OnInit {
       set.restSeconds = this.setForm.controls.restSecondsEnabled.value
         ? this.setForm.controls.restSeconds.value ?? null
         : null;
-
-      // Movimiento 6 Coach Pro — tempo. Se escribe SIEMPRE (aunque sea null)
-      // para que borrarlo funcione: si solo se asignara cuando tiene valor,
-      // quitar un tempo dejaría el anterior guardado.
-      const tempo = (this.setForm.controls.tempo.value || '').toString().trim();
-      set.tempo = tempo || null;
     }
 
     this.modalController.dismiss(set);

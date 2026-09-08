@@ -124,26 +124,46 @@ export class ExerciseScoresPage implements OnInit {
     this.showPicker = false;
   }
 
-  public async onExerciseSelected(exercise: Exercise): Promise<void> {
+  public onExerciseSelected(exercise: Exercise): void {
     this.showPicker = false;
-    await this.openEditor(exercise._id, exercise.name, null);
+
+    // 2026-09 — sugerencia inicial por patrón de movimiento (ver
+    // exercise-score-defaults.js), para que el editor no arranque "en
+    // blanco" en un ejercicio que nadie ha puntuado todavía. Sigue siendo
+    // 100% editable: solo cambia el valor con el que abre el formulario, el
+    // guardado real sigue siendo el mismo upsert de siempre.
+    this.exerciseScoresApi.getDefault(exercise._id).subscribe({
+      next: (defaultScore) => this.openEditor(exercise._id, exercise.name, null, defaultScore),
+      // Sin sugerencia disponible (el ejercicio no coincide con ningún
+      // patrón, o falló la petición) el editor arranca vacío, como siempre
+      // — nunca bloquea poder puntuar por esto.
+      error: () => this.openEditor(exercise._id, exercise.name, null, null),
+    });
   }
 
   public async editRow(row: ScoredExerciseRow): Promise<void> {
     const exerciseId =
       (row.score as unknown as { exerciseId?: { _id?: string } }).exerciseId?._id ||
       String(row.score.exerciseId);
-    await this.openEditor(exerciseId, row.name, row.score);
+    await this.openEditor(exerciseId, row.name, row.score, null);
   }
 
   private async openEditor(
     exerciseId: string,
     exerciseName: string,
-    existing: ExerciseScore | null
+    existing: ExerciseScore | null,
+    defaultScore: Pick<ExerciseScore, 'muscleScores' | 'jointScores'> | null
   ): Promise<void> {
+    // Sin puntuación real todavía, pero con sugerencia: el editor arranca
+    // con ella tal cual arrancaría con una puntuación guardada — es lo que
+    // permite cambiarla "como ahora". isDefault le dice al modal que avise
+    // de que esto es un punto de partida, no lo que el entrenador ya decidió.
+    const isDefault = !existing && !!defaultScore;
+    const initial = existing || (defaultScore ? { ...defaultScore, secondsPerSet: null } : null);
+
     const dismissed = await this.ionicUtilService.showModal({
       component: ScoreEditorModalComponent,
-      componentProps: { exerciseId, exerciseName, existing, catalog: this.catalog },
+      componentProps: { exerciseId, exerciseName, existing: initial, isDefault, catalog: this.catalog },
       cssClass: 'tf-panel-modal',
     });
 

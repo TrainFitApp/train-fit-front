@@ -1,10 +1,14 @@
-<ion-header />
+<ion-header class="signup-header">
+  <div class="app-header">
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="stepProgressPercent"></div>
+    </div>
+  </div>
+</ion-header>
 <ion-content class="auth-content" fullscreen scroll-y="false">
   <div class="auth-container">
     <form class="signup-form" [formGroup]="signUpForm" (ngSubmit)="showSheet()">
       <swiper-container
-        pagination="true"
-        pagination-type="progressbar"
         init="false"
         #swiperSignUp
       >
@@ -14,18 +18,17 @@
               <h2 class="section-title">{{ 'SIGN_UP.TELL_US_ABOUT_YOU' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.START_WITH_BASICS' | translate }}</p>
 
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon name="person-outline" class="input-icon"></ion-icon>
-                  <input
-                    type="text"
-                    id="name"
-                    formControlName="name"
-                    class="input-field"
-                    [placeholder]="'SIGN_UP.NAME_PLACEHOLDER' | translate"
-                    required
-                  />
-                </div>
+              <div class="field">
+                <input
+                  type="text"
+                  id="name"
+                  formControlName="name"
+                  class="field-input"
+                  placeholder=" "
+                  autocapitalize="words"
+                  required
+                />
+                <label class="field-label" for="name">{{ 'SIGN_UP.NAME_PLACEHOLDER' | translate }}</label>
                 <div
                   *ngIf="signUpForm.get('name')?.invalid && signUpForm.get('name')?.touched"
                   class="validation-error"
@@ -36,18 +39,17 @@
                 </div>
               </div>
 
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon name="people-outline" class="input-icon"></ion-icon>
-                  <input
-                    type="text"
-                    id="lastname"
-                    formControlName="lastname"
-                    class="input-field"
-                    [placeholder]="'SIGN_UP.LASTNAME_PLACEHOLDER' | translate"
-                    required
-                  />
-                </div>
+              <div class="field">
+                <input
+                  type="text"
+                  id="lastname"
+                  formControlName="lastname"
+                  class="field-input"
+                  placeholder=" "
+                  autocapitalize="words"
+                  required
+                />
+                <label class="field-label" for="lastname">{{ 'SIGN_UP.LASTNAME_PLACEHOLDER' | translate }}</label>
                 <div
                   *ngIf="signUpForm.get('lastname')?.invalid && signUpForm.get('lastname')?.touched"
                   class="validation-error"
@@ -65,65 +67,45 @@
               <h2 class="section-title">{{ 'SIGN_UP.BIRTH_DATE' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.SELECT_BIRTH_DATE' | translate }}</p>
 
-              <div class="input-group">
-                <div
-                  class="input-wrapper"
-                  [ngClass]="{
-                  'has-error': signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched
-                }"
-                >
-                  <ion-icon
-                    name="calendar-outline"
-                    class="input-icon"
-                  ></ion-icon>
-                  <ion-datetime-button
-                    datetime="birthdate"
-                    class="input-field"
-                  ></ion-datetime-button>
-
-                  <ion-modal
-                    [keepContentsMounted]="true"
-                    (willPresent)="isDateModalOpen = true"
-                    (willDismiss)="isDateModalOpen = false"
-                    class="datetime-modal birthdate-datetime-modal"
-                  >
-                    <ng-template>
-                      <ion-datetime
-                        id="birthdate"
-                        mode="ios"
-                        formControlName="birth"
-                        presentation="date"
-                        [preferWheel]="true"
-                        [max]="getMaxDate()"
-                        [min]="getMinDate()"
-                        [showDefaultButtons]="true"
-                        [locale]="locale"
-                        [doneText]="('COMMON.CONFIRM' | translate)"
-                        [cancelText]="('COMMON.CANCEL' | translate)"
-                        (ionChange)="onDateChange($event)"
-                      >
-                        <div slot="title" class="datetime-title">
-                          <ion-icon name="calendar-outline"></ion-icon>
-                          <span>{{ 'SIGN_UP.BIRTH_DATE' | translate }}</span>
-                        </div>
-                      </ion-datetime>
-                    </ng-template>
-                  </ion-modal>
+              <div class="wheel-group">
+                <div class="wheel-highlight"></div>
+                <div class="wheel">
+                  <div class="wheel-scroll" id="wheel-birth-day-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let v of dayWheelValues">{{ v }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
                 </div>
-                <div
-                  *ngIf="signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched"
-                  class="validation-error"
-                >
-                  <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
-                    >{{ 'SIGN_UP.BIRTH_REQUIRED' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('birth')?.errors?.['minAge']"
-                    >{{ 'SIGN_UP.BIRTH_MIN_AGE' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('birth')?.errors?.['maxAge']"
-                    >{{ 'SIGN_UP.BIRTH_INVALID' | translate }}</span
-                  >
+                <span class="wheel-sep">/</span>
+                <div class="wheel is-wide">
+                  <div class="wheel-scroll" id="wheel-birth-month-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let m of monthWheelValues">{{ m.label }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
                 </div>
+                <span class="wheel-sep">/</span>
+                <div class="wheel">
+                  <div class="wheel-scroll" id="wheel-birth-year-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let v of yearWheelValues">{{ v }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
+                </div>
+              </div>
+              <div
+                *ngIf="signUpForm.get('birth')?.invalid && signUpForm.get('birth')?.touched"
+                class="validation-error"
+              >
+                <span *ngIf="signUpForm.get('birth')?.errors?.['required']"
+                  >{{ 'SIGN_UP.BIRTH_REQUIRED' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('birth')?.errors?.['minAge']"
+                  >{{ 'SIGN_UP.BIRTH_MIN_AGE' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('birth')?.errors?.['maxAge']"
+                  >{{ 'SIGN_UP.BIRTH_INVALID' | translate }}</span
+                >
               </div>
             </div>
           </swiper-slide>
@@ -132,39 +114,38 @@
             <div class="form-section">
               <h2 class="section-title">{{ 'SIGN_UP.YOUR_WEIGHT' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.WEIGHT_SUBTITLE' | translate }}</p>
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon
-                    name="fitness-outline"
-                    class="input-icon"
-                  ></ion-icon>
-                  <input
-                    type="text"
-                    inputmode="decimal"
-                    id="weight"
-                    formControlName="weight"
-                    class="input-field"
-                    step="0.1"
-                    maxlength="6"
-                    [placeholder]="'SIGN_UP.WEIGHT_PLACEHOLDER' | translate"
-                    required
-                    appDecimalInput
-                  />
+              <div class="wheel-group">
+                <div class="wheel-highlight"></div>
+                <div class="wheel">
+                  <div class="wheel-scroll" id="wheel-weight-int-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let v of weightIntWheelValues">{{ v }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
                 </div>
-                <div
-                  *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
-                  class="validation-error"
+                <span class="wheel-sep">,</span>
+                <div class="wheel is-narrow">
+                  <div class="wheel-scroll" id="wheel-weight-dec-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let v of weightDecWheelValues">{{ v }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
+                </div>
+                <span class="wheel-unit">kg</span>
+              </div>
+              <div
+                *ngIf="signUpForm.get('weight')?.invalid && signUpForm.get('weight')?.touched"
+                class="validation-error"
+              >
+                <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
+                  >{{ 'SIGN_UP.WEIGHT_REQUIRED' | translate }}</span
                 >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['required']"
-                    >{{ 'SIGN_UP.WEIGHT_REQUIRED' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
-                    >{{ 'SIGN_UP.WEIGHT_MIN' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
-                    >{{ 'SIGN_UP.WEIGHT_MAX' | translate }}</span
-                  >
-                </div>
+                <span *ngIf="signUpForm.get('weight')?.errors?.['min']"
+                  >{{ 'SIGN_UP.WEIGHT_MIN' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('weight')?.errors?.['max']"
+                  >{{ 'SIGN_UP.WEIGHT_MAX' | translate }}</span
+                >
               </div>
             </div>
           </swiper-slide>
@@ -175,36 +156,30 @@
               <p class="section-subtitle">
                 {{ 'SIGN_UP.HEIGHT_SUBTITLE' | translate }}
               </p>
-              <div class="input-group">
-                <div class="input-wrapper">
-                  <ion-icon name="resize-outline" class="input-icon"></ion-icon>
-                  <input
-                    type="text"
-                    inputmode="numeric"
-                    id="height"
-                    formControlName="height"
-                    class="input-field"
-                    maxlength="3"
-                    [placeholder]="'SIGN_UP.HEIGHT_PLACEHOLDER' | translate"
-                    required
-                    appDecimalInput
-                    [maxDecimals]="0"
-                  />
+              <div class="wheel-group">
+                <div class="wheel-highlight"></div>
+                <div class="wheel">
+                  <div class="wheel-scroll" id="wheel-height-scroll">
+                    <div class="wheel-pad"></div>
+                    <div class="wheel-item" *ngFor="let v of heightWheelValues">{{ v }}</div>
+                    <div class="wheel-pad"></div>
+                  </div>
                 </div>
-                <div
-                  *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
-                  class="validation-error"
+                <span class="wheel-unit">cm</span>
+              </div>
+              <div
+                *ngIf="signUpForm.get('height')?.invalid && signUpForm.get('height')?.touched"
+                class="validation-error"
+              >
+                <span *ngIf="signUpForm.get('height')?.errors?.['required']"
+                  >{{ 'SIGN_UP.HEIGHT_REQUIRED' | translate }}</span
                 >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['required']"
-                    >{{ 'SIGN_UP.HEIGHT_REQUIRED' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['min']"
-                    >{{ 'SIGN_UP.HEIGHT_MIN' | translate }}</span
-                  >
-                  <span *ngIf="signUpForm.get('height')?.errors?.['max']"
-                    >{{ 'SIGN_UP.HEIGHT_MAX' | translate }}</span
-                  >
-                </div>
+                <span *ngIf="signUpForm.get('height')?.errors?.['min']"
+                  >{{ 'SIGN_UP.HEIGHT_MIN' | translate }}</span
+                >
+                <span *ngIf="signUpForm.get('height')?.errors?.['max']"
+                  >{{ 'SIGN_UP.HEIGHT_MAX' | translate }}</span
+                >
               </div>
             </div>
           </swiper-slide>
@@ -217,28 +192,32 @@
               </p>
               <div class="choice-group">
                 <div
-                  class="gender-options"
+                  class="options-list"
                   [ngClass]="{
                   'has-error': signUpForm.get('sex')?.invalid && signUpForm.get('sex')?.touched
                 }"
                 >
-                  <div class="gender-option">
-                    <input
-                      type="radio"
-                      id="male"
-                      [value]="SEX_TYPES.male"
-                      formControlName="sex"
-                    />
-                    <label for="male"><span>{{ 'SIGN_UP.MALE' | translate }}</span></label>
+                  <div
+                    class="option-card"
+                    [class.is-selected]="signUpForm.get('sex')?.value === SEX_TYPES.male"
+                    (click)="selectSex(SEX_TYPES.male)"
+                  >
+                    <div class="option-icon"><ion-icon name="male-outline"></ion-icon></div>
+                    <div class="option-text">
+                      <div class="option-title">{{ 'SIGN_UP.MALE' | translate }}</div>
+                    </div>
+                    <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                   </div>
-                  <div class="gender-option">
-                    <input
-                      type="radio"
-                      id="female"
-                      [value]="SEX_TYPES.female"
-                      formControlName="sex"
-                    />
-                    <label for="female"><span>{{ 'SIGN_UP.FEMALE' | translate }}</span></label>
+                  <div
+                    class="option-card"
+                    [class.is-selected]="signUpForm.get('sex')?.value === SEX_TYPES.female"
+                    (click)="selectSex(SEX_TYPES.female)"
+                  >
+                    <div class="option-icon"><ion-icon name="female-outline"></ion-icon></div>
+                    <div class="option-text">
+                      <div class="option-title">{{ 'SIGN_UP.FEMALE' | translate }}</div>
+                    </div>
+                    <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                   </div>
                 </div>
                 <div
@@ -260,18 +239,22 @@
                 {{ 'SIGN_UP.DAILY_ACTIVITY_SUBTITLE' | translate }}
               </p>
               <div
-                class="selection-options"
+                class="options-list"
                 [ngClass]="{
                 'has-error': signUpForm.get('steps')?.invalid && signUpForm.get('steps')?.touched
               }"
               >
                 <div
-                  class="selection-option"
+                  class="option-card"
                   *ngFor="let stepValue of STEPS_VALUES"
-                  [class.selected]="signUpForm.get('steps')?.value === stepValue.value"
+                  [class.is-selected]="signUpForm.get('steps')?.value === stepValue.value"
                   (click)="selectSteps(stepValue.value)"
                 >
-                  <h3 class="selection-title">{{ stepValue.name | translate }}</h3>
+                  <div class="option-icon"><ion-icon name="walk-outline"></ion-icon></div>
+                  <div class="option-text">
+                    <div class="option-title">{{ stepValue.name | translate }}</div>
+                  </div>
+                  <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                 </div>
               </div>
               <div
@@ -293,19 +276,23 @@
               </p>
 
               <div
-                class="selection-options"
+                class="options-list"
                 [ngClass]="{
                 'has-error': signUpForm.get('activity')?.invalid && signUpForm.get('activity')?.touched
               }"
               >
                 <div
-                  class="selection-option"
+                  class="option-card"
                   *ngFor="let activity of ACTIVITY_FACTOR_VALUES"
-                  [class.selected]="signUpForm.controls.activity.value === activity.value"
+                  [class.is-selected]="signUpForm.controls.activity.value === activity.value"
                   (click)="selectActivity(activity.value)"
                 >
-                  <h3 class="selection-title">{{ activity.name | translate }}</h3>
-                  <p class="selection-desc">{{ activity.description | translate }}</p>
+                  <div class="option-icon"><ion-icon name="flash-outline"></ion-icon></div>
+                  <div class="option-text">
+                    <div class="option-title">{{ activity.name | translate }}</div>
+                    <div class="option-desc">{{ activity.description | translate }}</div>
+                  </div>
+                  <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                 </div>
               </div>
 
@@ -327,18 +314,22 @@
               </p>
 
               <div
-                class="selection-options"
+                class="options-list"
                 [ngClass]="{
                 'has-error': signUpForm.get('training')?.invalid && signUpForm.get('training')?.touched
               }"
               >
                 <div
-                  class="selection-option"
+                  class="option-card"
                   *ngFor="let training of TRAINING_TYPE_VALUES"
-                  [class.selected]="signUpForm.controls.training.value === training.value"
+                  [class.is-selected]="signUpForm.controls.training.value === training.value"
                   (click)="selectTraining(training.value)"
                 >
-                  <h3 class="selection-title">{{ training.name | translate }}</h3>
+                  <div class="option-icon"><ion-icon name="calendar-outline"></ion-icon></div>
+                  <div class="option-text">
+                    <div class="option-title">{{ training.name | translate }}</div>
+                  </div>
+                  <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                 </div>
               </div>
               <div
@@ -355,36 +346,40 @@
               <h2 class="section-title">{{ 'SIGN_UP.WHAT_IS_YOUR_GOAL' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.SELECT_MAIN_GOAL' | translate }}</p>
               <div
-                class="selection-options"
+                class="options-list"
                 [ngClass]="{
                 'has-error': signUpForm.get('objetive')?.invalid && signUpForm.get('objetive')?.touched
               }"
               >
                 <div
-                  class="selection-option"
+                  class="option-card"
                   *ngFor="let objetive of OBJETIVES_VALUES;"
-                  [class.selected]="signUpForm.get('objetive')?.value === objetive.value"
+                  [class.is-selected]="signUpForm.get('objetive')?.value === objetive.value"
                   (click)="selectObjetive(objetive)"
                 >
-                  <h3 class="selection-title">{{ objetive.name | translate }}</h3>
-                  <p
-                    class="selection-desc"
-                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.gain].key"
-                  >
-                    {{ 'SIGN_UP.GOAL_GAIN_DESC' | translate }}
-                  </p>
-                  <p
-                    class="selection-desc"
-                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.loss].key"
-                  >
-                    {{ 'SIGN_UP.GOAL_LOSS_DESC' | translate }}
-                  </p>
-                  <p
-                    class="selection-desc"
-                    *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.maintenance].key"
-                  >
-                    {{ 'SIGN_UP.GOAL_MAINTENANCE_DESC' | translate }}
-                  </p>
+                  <div class="option-icon"><ion-icon name="flag-outline"></ion-icon></div>
+                  <div class="option-text">
+                    <div class="option-title">{{ objetive.name | translate }}</div>
+                    <p
+                      class="option-desc"
+                      *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.gain].key"
+                    >
+                      {{ 'SIGN_UP.GOAL_GAIN_DESC' | translate }}
+                    </p>
+                    <p
+                      class="option-desc"
+                      *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.loss].key"
+                    >
+                      {{ 'SIGN_UP.GOAL_LOSS_DESC' | translate }}
+                    </p>
+                    <p
+                      class="option-desc"
+                      *ngIf="objetive.key === OBJETIVES[OBJETIVE_TYPES.maintenance].key"
+                    >
+                      {{ 'SIGN_UP.GOAL_MAINTENANCE_DESC' | translate }}
+                    </p>
+                  </div>
+                  <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
                 </div>
               </div>
 
@@ -448,25 +443,25 @@
               <p class="section-subtitle">
                 {{ 'SIGN_UP.EMAIL_SUBTITLE' | translate }}
               </p>
-              <div class="input-group">
-                <div
-                  class="input-wrapper"
-                  [ngClass]="{
-                  'has-error': signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)
-                }"
+              <div class="field">
+                <input
+                  type="email"
+                  id="email"
+                  autocapitalize="none"
+                  autocorrect="off"
+                  spellcheck="false"
+                  placeholder=" "
+                  formControlName="email"
+                  appLowercaseEmailInput
+                  class="field-input"
+                />
+                <label class="field-label" for="email">{{ 'SIGN_UP.EMAIL_PLACEHOLDER' | translate }}</label>
+                <span
+                  class="field-icon"
+                  [class.is-visible]="signUpForm.get('email')?.valid"
                 >
-                  <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-                  <input
-                    type="email"
-                    autocapitalize="none"
-                    autocorrect="off"
-                    spellcheck="false"
-                    [placeholder]="'SIGN_UP.EMAIL_PLACEHOLDER' | translate"
-                    formControlName="email"
-                    appLowercaseEmailInput
-                    class="input-field"
-                  />
-                </div>
+                  <ion-icon name="checkmark"></ion-icon>
+                </span>
                 <div
                   *ngIf="signUpForm.get('email')?.invalid && (signUpForm.get('email')?.touched || signUpForm.get('email')?.dirty)"
                   class="validation-error"
@@ -491,29 +486,24 @@
               <p class="section-subtitle">
                 {{ 'SIGN_UP.PASSWORD_SUBTITLE' | translate }}
               </p>
-              <div class="input-group">
-                <div class="input-wrapper">
+              <div class="field">
+                <input
+                  [type]="showPass ? 'text' : 'password'"
+                  id="password"
+                  placeholder=" "
+                  formControlName="password"
+                  class="field-input"
+                />
+                <label class="field-label" for="password">{{ 'SIGN_UP.PASSWORD_PLACEHOLDER' | translate }}</label>
+                <button
+                  type="button"
+                  class="field-toggle"
+                  (click)="showPass = !showPass"
+                >
                   <ion-icon
-                    name="lock-closed-outline"
-                    class="input-icon"
+                    [name]="showPass ? 'eye-off-outline' : 'eye-outline'"
                   ></ion-icon>
-                  <input
-                    [type]="showPass ? 'text' : 'password'"
-                    [placeholder]="'SIGN_UP.PASSWORD_PLACEHOLDER' | translate"
-                    formControlName="password"
-                    class="input-field"
-                  />
-                  <ion-button
-                    fill="clear"
-                    class="password-toggle"
-                    (click)="showPass = !showPass"
-                    type="button"
-                  >
-                    <ion-icon
-                      [name]="showPass ? 'eye-off-outline' : 'eye-outline'"
-                    ></ion-icon>
-                  </ion-button>
-                </div>
+                </button>
                 <div
                   *ngIf="signUpForm.get('password')?.invalid && signUpForm.get('password')?.touched"
                   class="validation-error"
@@ -535,29 +525,24 @@
                 </div>
               </div>
 
-              <div class="input-group">
-                <div class="input-wrapper">
+              <div class="field" style="margin-top: 20px;">
+                <input
+                  [type]="showPassRep ? 'text' : 'password'"
+                  id="passwordRep"
+                  placeholder=" "
+                  formControlName="passwordRep"
+                  class="field-input"
+                />
+                <label class="field-label" for="passwordRep">{{ 'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate }}</label>
+                <button
+                  type="button"
+                  class="field-toggle"
+                  (click)="showPassRep = !showPassRep"
+                >
                   <ion-icon
-                    name="lock-closed-outline"
-                    class="input-icon"
+                    [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"
                   ></ion-icon>
-                  <input
-                    [type]="showPassRep ? 'text' : 'password'"
-                    [placeholder]="'SIGN_UP.PASSWORD_REPEAT_PLACEHOLDER' | translate"
-                    formControlName="passwordRep"
-                    class="input-field"
-                  />
-                  <ion-button
-                    fill="clear"
-                    class="password-toggle"
-                    (click)="showPassRep = !showPassRep"
-                    type="button"
-                  >
-                    <ion-icon
-                      [name]="showPassRep ? 'eye-off-outline' : 'eye-outline'"
-                    ></ion-icon>
-                  </ion-button>
-                </div>
+                </button>
                 <div
                   *ngIf="signUpForm.get('passwordRep')?.invalid && signUpForm.get('passwordRep')?.touched"
                   class="validation-error"
@@ -593,101 +578,6 @@
 
           <swiper-slide>
             <div class="form-section">
-              <h2 class="section-title">{{ 'SIGN_UP.NOTIF_TITLE' | translate }}</h2>
-              <p class="section-subtitle">{{ 'SIGN_UP.NOTIF_SUBTITLE' | translate }}</p>
-
-              <div class="signup-notif-card">
-                <div class="signup-notif-row">
-                  <div class="signup-notif-info">
-                    <ion-icon name="scale-outline" class="signup-notif-icon"></ion-icon>
-                    <div>
-                      <span class="signup-notif-label">{{ 'NOTIFICATIONS.WEIGHT_REMINDER' | translate }}</span>
-                      <span class="signup-notif-desc">{{ 'NOTIFICATIONS.WEIGHT_REMINDER_DESC' | translate }}</span>
-                    </div>
-                  </div>
-                  <ion-toggle [(ngModel)]="notifEnabled" (ionChange)="onNotifToggle()" [ngModelOptions]="{standalone: true}"></ion-toggle>
-                </div>
-
-                <ng-container *ngIf="notifEnabled">
-                  <div class="signup-notif-divider"></div>
-
-                  <div class="signup-notif-option">
-                    <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.FREQUENCY' | translate }}</span>
-                    <ion-select [(ngModel)]="notifFrequency" (ionChange)="onNotifSettingsChange()" [ngModelOptions]="{standalone: true}" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
-                      <ion-select-option value="daily">{{ 'NOTIFICATIONS.DAILY' | translate }}</ion-select-option>
-                      <ion-select-option value="weekly">{{ 'NOTIFICATIONS.WEEKLY' | translate }}</ion-select-option>
-                      <ion-select-option value="interval">{{ 'NOTIFICATIONS.CUSTOM_INTERVAL' | translate }}</ion-select-option>
-                    </ion-select>
-                  </div>
-
-                  <ng-container *ngIf="notifFrequency === 'weekly'">
-                    <div class="signup-notif-divider"></div>
-                    <div class="signup-notif-option">
-                      <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.DAY_OF_WEEK' | translate }}</span>
-                      <ion-select [(ngModel)]="notifWeekday" (ionChange)="onNotifSettingsChange()" [ngModelOptions]="{standalone: true}" interface="popover" okText="{{ 'COMMON.OK' | translate }}" cancelText="{{ 'COMMON.CANCEL' | translate }}">
-                        <ion-select-option [value]="1">{{ 'NOTIFICATIONS.SUNDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="2">{{ 'NOTIFICATIONS.MONDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="3">{{ 'NOTIFICATIONS.TUESDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="4">{{ 'NOTIFICATIONS.WEDNESDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="5">{{ 'NOTIFICATIONS.THURSDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="6">{{ 'NOTIFICATIONS.FRIDAY' | translate }}</ion-select-option>
-                        <ion-select-option [value]="7">{{ 'NOTIFICATIONS.SATURDAY' | translate }}</ion-select-option>
-                      </ion-select>
-                    </div>
-                  </ng-container>
-
-                  <ng-container *ngIf="notifFrequency === 'interval'">
-                    <div class="signup-notif-divider"></div>
-                    <div class="signup-notif-option">
-                      <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.EVERY_X_DAYS' | translate:{ days: notifIntervalDays } }}</span>
-                      <div class="signup-notif-stepper">
-                        <ion-button fill="clear" size="small" (click)="changeNotifInterval(-1)">
-                          <ion-icon name="remove-outline"></ion-icon>
-                        </ion-button>
-                        <span class="signup-stepper-value">{{ notifIntervalDays }}</span>
-                        <ion-button fill="clear" size="small" (click)="changeNotifInterval(1)">
-                          <ion-icon name="add-outline"></ion-icon>
-                        </ion-button>
-                      </div>
-                    </div>
-                  </ng-container>
-
-                  <div class="signup-notif-divider"></div>
-                  <div class="signup-notif-option">
-                    <span class="signup-notif-option-label">{{ 'NOTIFICATIONS.TIME' | translate }}</span>
-                    <div class="signup-time-display" id="signup-notif-time-trigger">
-                      <ion-icon name="time-outline"></ion-icon>
-                      <span>{{ getNotifTimeDisplay() }}</span>
-                    </div>
-                  </div>
-                  <ion-modal [keepContentsMounted]="true" [showBackdrop]="true" class="time-datetime-modal" trigger="signup-notif-time-trigger" (willPresent)="isTimeModalOpen = true" (willDismiss)="isTimeModalOpen = false">
-                    <ng-template>
-                      <ion-datetime
-                        id="signup-notif-datetime"
-                        mode="ios"
-                        presentation="time"
-                        [preferWheel]="true"
-                        [locale]="locale"
-                        [showDefaultButtons]="true"
-                        [doneText]="'COMMON.OK' | translate"
-                        [cancelText]="'COMMON.CANCEL' | translate"
-                        [(ngModel)]="notifTime"
-                        (ionChange)="onNotifSettingsChange()"
-                      >
-                        <div slot="title" class="datetime-title">
-                          <ion-icon name="time-outline"></ion-icon>
-                          <span>{{ 'NOTIFICATIONS.TIME' | translate }}</span>
-                        </div>
-                      </ion-datetime>
-                    </ng-template>
-                  </ion-modal>
-                </ng-container>
-              </div>
-            </div>
-          </swiper-slide>
-
-          <swiper-slide>
-            <div class="form-section">
               <h2 class="section-title">{{ 'SIGN_UP.FINISH_REGISTRATION' | translate }}</h2>
               <p class="section-subtitle">{{ 'SIGN_UP.ACCEPT_TERMS' | translate }}</p>
               <div class="checkbox-section">
@@ -713,11 +603,6 @@
                       >{{ 'SIGN_UP.TERMS_AND_CONDITIONS' | translate }}</a
                     >
                   </span>
-                  <ion-icon
-                    name="document-text-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
                 </div>
                 <div
                   *ngIf="signUpForm.get('termsAndConditions')?.invalid && signUpForm.get('termsAndConditions')?.touched"
@@ -748,11 +633,6 @@
                       >{{ 'SIGN_UP.PRIVACY_POLICY' | translate }}</a
                     >
                   </span>
-                  <ion-icon
-                    name="shield-checkmark-outline"
-                    class="checkbox-icon"
-                    color="primary"
-                  ></ion-icon>
                 </div>
                 <div
                   *ngIf="signUpForm.get('policyAndPrivacy')?.invalid && signUpForm.get('policyAndPrivacy')?.touched"
@@ -760,17 +640,6 @@
                 >
                   <span>{{ 'SIGN_UP.PRIVACY_REQUIRED' | translate }}</span>
                 </div>
-              </div>
-              <div class="submit-button-container">
-                <ion-button
-                  type="submit"
-                  expand="block"
-                  class="submit-button"
-                  [disabled]="signUpForm.invalid"
-                  *ngIf="!isLastDataSlide"
-                >
-                  <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
-                </ion-button>
               </div>
               <div *ngIf="signUpForm.invalid && error" class="error-message">
                 <ion-icon color="danger" name="alert-circle-outline"></ion-icon>
@@ -884,31 +753,27 @@
               </div>
 
               <div class="form-fields-modern">
-                <div class="input-group-modern">
-                  <div class="input-wrapper-modern verification-input-modern">
-                    <ion-icon
-                      name="shield-checkmark-outline"
-                      class="input-icon-modern"
-                    ></ion-icon>
-                    <input
-                      type="text"
-                      inputmode="numeric"
-                      autocomplete="one-time-code"
-                      pattern="[0-9]*"
-                      maxlength="6"
-                      [placeholder]="'SIGN_UP.CODE_PLACEHOLDER' | translate"
-                      class="input-field-modern verification-field-modern"
-                      #codeInput
-                      (input)="onCodeInputChange($event)"
-                      (keydown.enter)="verifyCode()"
-                    />
-                  </div>
+                <div class="field">
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    pattern="[0-9]*"
+                    maxlength="6"
+                    placeholder=" "
+                    class="field-input verification-field-modern"
+                    #codeInput
+                    (input)="onCodeInputChange($event)"
+                    (keydown.enter)="verifyCode()"
+                  />
+                  <label class="field-label">{{ 'SIGN_UP.CODE_PLACEHOLDER' | translate }}</label>
                 </div>
               </div>
 
               <ion-button
                 expand="block"
-                class="verify-button-modern"
+                class="cta-btn is-enabled"
+                fill="clear"
                 (click)="verifyCode()"
                 [disabled]="isProcessing"
               >
@@ -937,36 +802,39 @@
 </ion-content>
 
 <ion-footer class="signup-footer">
-  <div class="footer-buttons" [class.is-last-slide]="isLastDataSlide">
-    <ion-button
-      class="nav-button prev exit-btn"
-      (click)="exitRegistration()"
-      *ngIf="!existPrev"
-      fill="outline"
+  <div class="app-footer">
+    <button
+      type="button"
+      class="btn-icon btn-icon--footer"
+      (click)="handleHeaderBack()"
     >
-      <ion-icon name="exit-outline" slot="start"></ion-icon>
-      {{ 'SIGN_UP.EXIT' | translate }}
-    </ion-button>
+      <ion-icon [name]="existPrev ? 'arrow-back-outline' : 'exit-outline'"></ion-icon>
+    </button>
+
     <ion-button
-      class="nav-button prev"
-      (click)="prevSlide()"
-      *ngIf="existPrev"
-      fill="outline"
-    >
-      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
-      {{ 'SIGN_UP.PREVIOUS' | translate }}
-    </ion-button>
-    <ion-button
-      class="nav-button next"
+      class="cta-btn is-enabled"
+      fill="clear"
       (click)="nextSlide()"
-      *ngIf="existNext && !isLastDataSlide && !isLastFormSlide && !verifyEmailOnly"
+      *ngIf="existNext && !isLastDataSlide && !isLastFormSlide"
     >
       <strong>{{ 'SIGN_UP.NEXT' | translate }}</strong>
       <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
     </ion-button>
 
     <ion-button
-      class="nav-button next finalize-btn"
+      class="cta-btn is-enabled"
+      fill="clear"
+      (click)="showSheet()"
+      *ngIf="isLastFormSlide && !isLastDataSlide"
+      [disabled]="signUpForm.invalid"
+    >
+      <strong>{{ 'SIGN_UP.VIEW_SHEET' | translate }}</strong>
+      <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+    </ion-button>
+
+    <ion-button
+      class="cta-btn is-enabled"
+      fill="clear"
       (click)="register()"
       *ngIf="isLastDataSlide && !codeSended"
       [disabled]="isProcessing"

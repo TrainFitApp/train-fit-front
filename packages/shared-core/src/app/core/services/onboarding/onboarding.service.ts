@@ -81,6 +81,15 @@ export class OnboardingService {
   public readonly blocked = computed(() => this._status().blocked);
   public readonly relations = computed(() => this._status().relations);
 
+  // El cliente puede elegir "seguir usando la app" desde onboarding-status
+  // aunque le quede cuestionario por rellenar — completar el intake ya no es
+  // obligatorio para navegar, es un recordatorio. Dura lo que dure la
+  // sesión: onboarding-status sigue accesible para volver a rellenarlo
+  // cuando quiera, y el guard vuelve a preguntar en el próximo login
+  // (servicio providedIn:'root', se recrea entero con la app).
+  private readonly _dismissed: WritableSignal<boolean> = signal(false);
+  public readonly dismissed = this._dismissed.asReadonly();
+
   constructor(private http: HttpService) {}
 
   public refresh(): Observable<OnboardingStatus> {
@@ -92,5 +101,9 @@ export class OnboardingService {
         return of(EMPTY_STATUS);
       })
     );
+  }
+
+  public dismiss(): void {
+    this._dismissed.set(true);
   }
 }

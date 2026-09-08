@@ -14,13 +14,12 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { IonModal, Platform, ToastOptions } from '@ionic/angular';
+import { Platform, ToastOptions } from '@ionic/angular';
 import { Subscription, Subject } from 'rxjs';
 import { User } from 'src/app/core/models/user';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NavigationService } from 'src/app/core/services/util/navigation.service';
-import { NotificationService, NotificationFrequency } from 'src/app/core/services/util/notification.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { MatchPasswords } from 'src/app/core/validators/matchPasswords';
 import {
@@ -44,7 +43,6 @@ import {
 import { TRAINING_TYPE } from 'src/app/shared/constants/training';
 
 import { Router } from '@angular/router';
-import { Capacitor } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 import { AuthService } from 'src/app/core/services/auth/auth.service';
@@ -66,8 +64,6 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class SignUpPage implements OnInit, OnDestroy {
   @ViewChild('codeInput') public codeInput: ElementRef<HTMLInputElement>;
-  @ViewChild(IonModal) dateModal: IonModal;
-  public isDateModalOpen = false;
   @ViewChild('swiperSignUp')
   public swiperSignUpRef:
     | ElementRef<HTMLElement & { swiper?: Swiper } & { initialize: () => void }>
@@ -99,7 +95,7 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public objetiveKcal: number = 200;
 
-  public currentSlide: number;
+  public currentSlide: number = 0;
 
   public existPrev: boolean;
   public existNext: boolean;
@@ -138,19 +134,9 @@ export class SignUpPage implements OnInit, OnDestroy {
   public TRAINING_TYPE_VALUES: TRAINING_TYPE[] = [];
   public LINKS = LINKS;
 
-  public notifEnabled: boolean = false;
-  public notifFrequency: NotificationFrequency = 'daily';
-  public notifWeekday: number = 1;
-  public notifIntervalDays: number = 2;
-  public notifTime: string = '';
-  public isTimeModalOpen: boolean = false;
-  private notifPermissionAttempted: boolean = false;
-
   private readonly MIN_SIGN_UP_AGE = 13;
   private readonly MAX_SIGN_UP_AGE = 120;
   private _defaultBirthDate: string | null = null;
-  private _maxDate: string | null = null;
-  private _minDate: string | null = null;
 
   get locale(): string {
     return this.i18nService.current === 'en' ? 'en-US' : 'es-ES';
@@ -168,8 +154,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     private signUpStateService: SignUpStateService,
     private pendingEmailVerificationService: PendingEmailVerificationService,
     private translate: TranslateService,
-    private i18nService: I18nService,
-    private notificationService: NotificationService
+    private i18nService: I18nService
   ) {
     // Determinar tipo de registro
     const localUser = this.userService.getLocalUser;
@@ -254,6 +239,261 @@ export class SignUpPage implements OnInit, OnDestroy {
   public ngAfterViewInit(): void {
     // TODO: lamentable que se tenga que cargar con un delay
     setTimeout(() => this.swiperReady());
+    // Un setTimeout(0) compite con el propio layout async de Swiper (init()
+    // no es síncrono): si corre antes de que Swiper termine de posicionar
+    // los slides fuera de pantalla, el scrollHeight de esas wheels es 0 en
+    // ese instante y el scrollTop inicial se clampea a 0 en silencio (se
+    // queda ahí para siempre, el layout posterior no lo reajusta solo). Dos
+    // rAF encadenados garantizan que ya hubo un pintado real de por medio.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        this.initWeightHeightWheels();
+        this.initBirthWheels();
+      })
+    );
+  }
+
+  // ---------- Wheel pickers (peso/altura/fecha de nacimiento), portados de
+  // trainfit-onboarding-prototype.html. Escriben en signUpForm.weight /
+  // .height / .birth con el mismo formato que ya usaban (string decimal /
+  // ISO date), sin tocar validators ni el resto del flujo.
+  private readonly WHEEL_ITEM_HEIGHT = 52;
+  private wheelsInitialized = false;
+  private weightWheelInt = 70;
+  private weightWheelDecimal = 0;
+
+  public heightWheelValues: number[] = this.range(70, 300);
+  public weightIntWheelValues: number[] = this.range(30, 300);
+  public weightDecWheelValues: number[] = this.range(0, 9);
+
+  private range(min: number, max: number): number[] {
+    const values: number[] = [];
+    for (let v = min; v <= max; v++) values.push(v);
+    return values;
+  }
+
+  private initWeightHeightWheels(): void {
+    if (this.wheelsInitialized || this.verifyEmailOnly) return;
+    this.wheelsInitialized = true;
+
+    const currentHeight = parseInt(this.signUpForm.get('height')?.value, 10);
+    this.initWheel(
+      'wheel-height',
+      70,
+      300,
+      Number.isFinite(currentHeight) ? currentHeight : 170,
+      (val) => {
+        this.signUpForm.get('height')?.setValue(String(val));
+        this.signUpForm.get('height')?.markAsTouched();
+      }
+    );
+
+    const rawWeight = parseFloat(this.signUpForm.get('weight')?.value);
+    this.weightWheelInt = Number.isFinite(rawWeight) ? Math.trunc(rawWeight) : 70;
+    const rawDecimal = Number.isFinite(rawWeight)
+      ? Math.round((rawWeight % 1) * 10)
+      : 0;
+    this.weightWheelDecimal = Math.min(9, Math.max(0, rawDecimal));
+
+    this.initWheel('wheel-weight-int', 30, 300, this.weightWheelInt, (val) => {
+      this.weightWheelInt = val;
+      this.commitWeightWheel();
+    });
+    this.initWheel('wheel-weight-dec', 0, 9, this.weightWheelDecimal, (val) => {
+      this.weightWheelDecimal = val;
+      this.commitWeightWheel();
+    });
+  }
+
+  private commitWeightWheel(): void {
+    const value =
+      this.weightWheelDecimal === 0
+        ? `${this.weightWheelInt}`
+        : `${this.weightWheelInt}.${this.weightWheelDecimal}`;
+    this.signUpForm.get('weight')?.setValue(value);
+    this.signUpForm.get('weight')?.markAsTouched();
+  }
+
+  // ---------- Wheel de fecha de nacimiento (día/mes/año) ----------
+  // El día depende del mes+año seleccionados (28-31, bisiestos) — a
+  // diferencia de peso/altura, esta wheel necesita re-renderizar su propia
+  // columna cuando cambia el rango, así que se reinicializa (initWheel es
+  // idempotente: vuelve a leer los .wheel-item actuales del DOM).
+  private birthWheelsInitialized = false;
+  private birthDay = 1;
+  private birthMonth = 0;
+  private birthYear = 2000;
+
+  public dayWheelValues: number[] = this.range(1, 31);
+  public monthWheelValues: { value: number; label: string }[] = [];
+  public yearWheelValues: number[] = [];
+
+  private daysInMonth(year: number, month: number): number {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
+  private buildLocalizedMonths(): { value: number; label: string }[] {
+    const formatter = new Intl.DateTimeFormat(this.locale, { month: 'long' });
+    return this.range(0, 11).map((month) => {
+      const label = formatter.format(new Date(2000, month, 1));
+      return { value: month, label: label.charAt(0).toUpperCase() + label.slice(1) };
+    });
+  }
+
+  private initBirthWheels(): void {
+    if (this.birthWheelsInitialized || this.verifyEmailOnly) return;
+    this.birthWheelsInitialized = true;
+
+    const currentYear = new Date().getFullYear();
+    this.yearWheelValues = this.range(
+      currentYear - this.MAX_SIGN_UP_AGE,
+      currentYear - this.MIN_SIGN_UP_AGE
+    );
+    this.monthWheelValues = this.buildLocalizedMonths();
+
+    const existing = this.toDateOnly(this.signUpForm.get('birth')?.value);
+    const base = existing || this.toDateOnly(this.getDefaultBirthDate()) || new Date();
+
+    this.birthDay = base.getDate();
+    this.birthMonth = base.getMonth();
+    this.birthYear = base.getFullYear();
+    this.dayWheelValues = this.range(1, this.daysInMonth(this.birthYear, this.birthMonth));
+
+    // Los 3 arrays de arriba acaban de asignarse: Angular todavía no ha
+    // vuelto a renderizar los *ngFor con ellos, así que initWheel encontraría
+    // 0 .wheel-item por columna (y el scroll caería al principio de la
+    // lista). Un tick de margen para que el DOM se ponga al día primero.
+    setTimeout(() => {
+      const firstYear = this.yearWheelValues[0];
+      const lastYear = this.yearWheelValues[this.yearWheelValues.length - 1];
+      this.initWheel('wheel-birth-year', firstYear, lastYear, this.birthYear, (val) => {
+        this.birthYear = val;
+        this.onBirthMonthOrYearChange();
+      });
+
+      this.initWheel('wheel-birth-month', 0, 11, this.birthMonth, (val) => {
+        this.birthMonth = val;
+        this.onBirthMonthOrYearChange();
+      });
+
+      this.initBirthDayWheel();
+    });
+  }
+
+  private initBirthDayWheel(): void {
+    this.initWheel(
+      'wheel-birth-day',
+      1,
+      this.dayWheelValues.length,
+      this.birthDay,
+      (val) => {
+        this.birthDay = val;
+        this.commitBirthDate();
+      }
+    );
+  }
+
+  private onBirthMonthOrYearChange(): void {
+    const maxDay = this.daysInMonth(this.birthYear, this.birthMonth);
+    const dayCountChanged = this.dayWheelValues.length !== maxDay;
+    this.birthDay = Math.min(this.birthDay, maxDay);
+
+    if (dayCountChanged) {
+      this.dayWheelValues = this.range(1, maxDay);
+      // Esperar a que Angular re-renderice la columna con el nuevo número
+      // de .wheel-item antes de volver a engancharle los listeners.
+      setTimeout(() => this.initBirthDayWheel());
+    }
+
+    this.commitBirthDate();
+  }
+
+  private commitBirthDate(): void {
+    const date = new Date(this.birthYear, this.birthMonth, this.birthDay);
+    this.signUpForm.get('birth')?.setValue(date.toISOString());
+    this.signUpForm.get('birth')?.markAsTouched();
+  }
+
+  private initWheel(
+    idBase: string,
+    min: number,
+    max: number,
+    defVal: number,
+    onSettle: (val: number) => void
+  ): void {
+    const scrollEl = document.getElementById(`${idBase}-scroll`) as
+      | (HTMLElement & { __wheelScrollHandler?: EventListener })
+      | null;
+    if (!scrollEl) return;
+    // Reinicializable: la wheel de día se vuelve a llamar cuando cambian los
+    // días del mes. *ngFor sin trackBy reutiliza los nodos cuyo valor
+    // coincide (p.ej. día 1-28 persiste entre meses), así que hay que quitar
+    // el listener de scroll anterior (si no, se acumulan y onSettle se
+    // dispara N veces) y no volver a enganchar click en items ya enganchados.
+    if (scrollEl.__wheelScrollHandler) {
+      scrollEl.removeEventListener('scroll', scrollEl.__wheelScrollHandler);
+    }
+    const items = Array.from(
+      scrollEl.querySelectorAll<HTMLElement & { __wheelClickBound?: boolean }>('.wheel-item')
+    );
+
+    const setActive = (centerIdx: number): void => {
+      items.forEach((item, i) => {
+        item.classList.remove('is-active', 'is-near');
+        const delta = Math.abs(i - centerIdx);
+        if (delta === 0) item.classList.add('is-active');
+        else if (delta === 1) item.classList.add('is-near');
+      });
+    };
+
+    const pulse = (centerIdx: number): void => {
+      const activeEl = items[centerIdx];
+      if (!activeEl) return;
+      activeEl.classList.add('is-settled');
+      const handler = () => {
+        activeEl.classList.remove('is-settled');
+        activeEl.removeEventListener('animationend', handler);
+      };
+      activeEl.addEventListener('animationend', handler);
+    };
+
+    const initialIdx = Math.min(Math.max(defVal - min, 0), items.length - 1);
+    // Forzar layout antes de fijar scrollTop: si los .wheel-item se acaban
+    // de insertar en este mismo tick (wheel de nacimiento, con arrays que se
+    // rellenan justo antes de esto), el navegador aún no tiene calculado el
+    // scrollHeight real y clampea el scrollTop a 0 de forma silenciosa y
+    // definitiva — no se reajusta solo cuando el layout llega después.
+    void scrollEl.offsetHeight;
+    scrollEl.scrollTop = initialIdx * this.WHEEL_ITEM_HEIGHT;
+    setActive(initialIdx);
+
+    let settleTimer: ReturnType<typeof setTimeout> | null = null;
+    const scrollHandler = () => {
+      const idxFloat = scrollEl.scrollTop / this.WHEEL_ITEM_HEIGHT;
+      const idx = Math.max(0, Math.min(items.length - 1, Math.round(idxFloat)));
+      setActive(idx);
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        const snapped = Math.max(
+          0,
+          Math.min(items.length - 1, Math.round(scrollEl.scrollTop / this.WHEEL_ITEM_HEIGHT))
+        );
+        scrollEl.scrollTo({ top: snapped * this.WHEEL_ITEM_HEIGHT, behavior: 'smooth' });
+        setActive(snapped);
+        pulse(snapped);
+        onSettle(min + snapped);
+      }, 120);
+    };
+    scrollEl.__wheelScrollHandler = scrollHandler;
+    scrollEl.addEventListener('scroll', scrollHandler, { passive: true });
+
+    items.forEach((item, i) => {
+      if (item.__wheelClickBound) return;
+      item.__wheelClickBound = true;
+      item.addEventListener('click', () => {
+        scrollEl.scrollTo({ top: i * this.WHEEL_ITEM_HEIGHT, behavior: 'smooth' });
+      });
+    });
   }
 
   public ionViewWillLeave(): void {
@@ -272,10 +512,6 @@ export class SignUpPage implements OnInit, OnDestroy {
   private initVariables(): void {
     this.existNext = true;
     this.updateTrainingOptions();
-
-    const date = new Date();
-    date.setHours(9, 0, 0, 0);
-    this.notifTime = date.toISOString();
   }
 
   public initForm(): void {
@@ -384,16 +620,66 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.signUpForm.get('objetive')?.setValue(objetive.value);
   }
 
+  // Mismo criterio que ya usaba el footer original pa elegir entre "Anterior"
+  // y "Salir" (*ngIf="existPrev" / *ngIf="!existPrev"): existPrev ya vale
+  // false en slide 0, en verifyEmailOnly y en la pantalla de verificacion
+  // (codeSended), asi que cubre los 3 casos sin logica nueva.
+  public handleHeaderBack(): void {
+    if (this.existPrev) {
+      this.prevSlide();
+    } else {
+      this.exitRegistration();
+    }
+  }
+
+  // Getters puramente de presentacion pa la barra de progreso/contador del
+  // header prototype. No tocan signUpForm ni validacion.
+  public get stepProgressPercent(): number {
+    const total = this.getPresentSlidesControls().length;
+    if (total <= 1) return 100;
+    return (this.currentSlide / (total - 1)) * 100;
+  }
+
+  // Reskin del paso sexo: mismo patron click-to-select que steps/activity/
+  // training/objetive (selectSteps/selectActivity...), solo pa unificar el
+  // control nativo radio bajo option-card en vez de 2 tarjetas lado a lado.
+  public selectSex(value: number): void {
+    this.signUpForm.get('sex')?.setValue(value);
+    this.autoAdvanceAfterSelection('sex', value);
+  }
+
   public selectSteps(stepValue: number): void {
     this.signUpForm.get('steps')?.setValue(stepValue);
+    this.autoAdvanceAfterSelection('steps', stepValue);
   }
 
   public selectActivity(value: number): void {
     this.signUpForm.controls.activity.setValue(value);
+    this.autoAdvanceAfterSelection('activity', value);
   }
 
   public selectTraining(value: number | string): void {
     this.signUpForm.controls.training.setValue(value);
+    this.autoAdvanceAfterSelection('training', value);
+  }
+
+  // Avanza solo automaticamente en selects de opcion unica cuya pantalla no
+  // tiene nada mas que interactuar despues de elegir (objetivo se queda
+  // fuera a proposito: debajo tiene el slider de superavit/deficit calorico,
+  // avanzar solo se lo saltaria sin que el usuario llegue a verlo). El boton
+  // "Siguiente" del footer sigue ahi igual, esto es un atajo, no un
+  // reemplazo — por eso la guarda: si el usuario ya le dio a "Siguiente" a
+  // mano o cambio de opcion antes de que salte el timer, no hace nada.
+  private autoAdvanceAfterSelection(controlName: string, value: unknown): void {
+    const slideAtSelection = this.currentSlide;
+    setTimeout(() => {
+      if (
+        this.currentSlide === slideAtSelection &&
+        this.signUpForm.get(controlName)?.value === value
+      ) {
+        this.nextSlide();
+      }
+    }, 420);
   }
 
   public toggleControl(controlName: string): void {
@@ -423,9 +709,7 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.swiper = this.swiperSignUpRef?.nativeElement.swiper;
     this.swiper.on('slideChange', () => {
       this.checkNextAndPrev();
-      this.checkNotificationSlide();
     });
-    setTimeout(() => this.checkNotificationSlide(), 300);
   }
 
   private checkNextAndPrev(): void {
@@ -435,6 +719,14 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.currentSlide = activeIndex;
     this.existNext = activeIndex < swiper.slides.length - 1 && !this.codeSended;
     this.existPrev = activeIndex > 0 && !this.codeSended;
+
+    // El scroll vertical vive en .signup-form (por encima del propio
+    // swiper, ver sign-up.page.scss), no por-slide — sin esto, si el
+    // usuario dejaba una slide alta (p.ej. "Tu actividad diaria") scrolleada
+    // hacia abajo, la siguiente slide (aunque fuera corta) aparecia igual
+    // de desplazada, cortada por arriba.
+    const form = this.swiperSignUpRef.nativeElement.closest('form');
+    if (form) form.scrollTop = 0;
   }
 
   public get isLastDataSlide(): boolean {
@@ -499,97 +791,6 @@ export class SignUpPage implements OnInit, OnDestroy {
 
   public prevSlide(): void {
     this.swiperSignUpRef.nativeElement.swiper.slidePrev();
-  }
-
-  public async onNotifToggle(): Promise<void> {
-    if (this.notifEnabled) {
-      const granted = await this.requestNotifPermission();
-      if (!granted) {
-        this.notifEnabled = false;
-        return;
-      }
-    }
-    await this.saveNotifSettings();
-  }
-
-  public async onNotifSettingsChange(): Promise<void> {
-    await this.saveNotifSettings();
-  }
-
-  public changeNotifInterval(delta: number): void {
-    const newVal = this.notifIntervalDays + delta;
-    if (newVal >= 1 && newVal <= 60) {
-      this.notifIntervalDays = newVal;
-      void this.saveNotifSettings();
-    }
-  }
-
-  public getNotifTimeDisplay(): string {
-    if (!this.notifTime) return '--:--';
-    const date = new Date(this.notifTime);
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    return `${h}:${m}`;
-  }
-
-  private checkNotificationSlide(): void {
-    if (this.notifPermissionAttempted || this.verifyEmailOnly || !this.swiper) return;
-
-    const slides = this.getPresentSlidesControls();
-    const termsIndex = slides.findIndex(
-      (s) =>
-        Array.isArray(s) &&
-        s.includes('termsAndConditions') &&
-        s.includes('policyAndPrivacy'),
-    );
-    const notifIndex = termsIndex - 1;
-
-    if (this.swiper.activeIndex === notifIndex) {
-      this.notifPermissionAttempted = true;
-      void this.requestNotifPermission();
-    }
-  }
-
-  private async requestNotifPermission(): Promise<boolean> {
-    if (!Capacitor.isNativePlatform()) return false;
-    try {
-      const granted = await this.notificationService.requestPermissions();
-      if (!granted) {
-        this.ionicUtilService.showToast({
-          message: this.translate.instant('NOTIFICATIONS.PERMISSION_DENIED'),
-          duration: 2000,
-          color: 'warning',
-        });
-        return false;
-      }
-      this.notifEnabled = true;
-      if (!this.notifTime) {
-        const date = new Date();
-        date.setHours(9, 0, 0, 0);
-        this.notifTime = date.toISOString();
-      }
-      await this.saveNotifSettings();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  private async saveNotifSettings(): Promise<void> {
-    if (!this.notifTime) {
-      const date = new Date();
-      date.setHours(9, 0, 0, 0);
-      this.notifTime = date.toISOString();
-    }
-    const timeDate = new Date(this.notifTime);
-    await this.notificationService.saveAndSchedule({
-      enabled: this.notifEnabled,
-      hour: timeDate.getHours(),
-      minute: timeDate.getMinutes(),
-      frequency: this.notifFrequency,
-      weekday: this.notifFrequency === 'weekly' ? this.notifWeekday : undefined,
-      intervalDays: this.notifFrequency === 'interval' ? this.notifIntervalDays : undefined,
-    });
   }
 
   public exitRegistration(): void {
@@ -824,34 +1025,6 @@ export class SignUpPage implements OnInit, OnDestroy {
     return this.userService.getAge(new Date(birth));
   }
 
-  public onDateChange(event: any): void {
-    const selectedDate = event.detail.value;
-    if (selectedDate) {
-      this.signUpForm.get('birth')?.setValue(selectedDate);
-      this.signUpForm.get('birth')?.markAsTouched();
-    }
-  }
-
-  public getMaxDate(): string {
-    if (!this._maxDate) {
-      const maxDate = this.getTodayDateOnly();
-      maxDate.setFullYear(maxDate.getFullYear() - this.MIN_SIGN_UP_AGE);
-      maxDate.setMonth(11, 31);
-      this._maxDate = maxDate.toISOString();
-    }
-    return this._maxDate;
-  }
-
-  public getMinDate(): string {
-    if (!this._minDate) {
-      const minDate = this.getTodayDateOnly();
-      minDate.setFullYear(minDate.getFullYear() - this.MAX_SIGN_UP_AGE);
-      minDate.setMonth(0, 1);
-      this._minDate = minDate.toISOString();
-    }
-    return this._minDate;
-  }
-
   private getDefaultBirthDate(): string {
     if (!this._defaultBirthDate) {
       const defaultBirthDate = this.getTodayDateOnly();
@@ -945,7 +1118,6 @@ export class SignUpPage implements OnInit, OnDestroy {
       slides.push(['password', 'passwordRep']);
     }
 
-    slides.push([]); // Notificaciones
     slides.push(['termsAndConditions', 'policyAndPrivacy']);
     slides.push([]); // Ficha de datos
     if (this.registerSocialPending) {
@@ -1023,10 +1195,6 @@ export class SignUpPage implements OnInit, OnDestroy {
     this.backButton$ = this.platform.backButton.subscribeWithPriority(
       9999,
       async () => {
-        if (this.isDateModalOpen) {
-          await this.dateModal.dismiss();
-          return;
-        }
         this.showExitConfirm();
       }
     );

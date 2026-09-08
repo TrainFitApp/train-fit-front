@@ -179,7 +179,9 @@ export class AuthService {
   private isTransientAuthError(error: any): boolean {
     return (
       error?.status === 0 ||
+      error?.status === 408 ||
       error?.status === 409 ||
+      error?.status === 429 ||
       error?.status >= 500 ||
       error?.name === 'TimeoutError'
     );

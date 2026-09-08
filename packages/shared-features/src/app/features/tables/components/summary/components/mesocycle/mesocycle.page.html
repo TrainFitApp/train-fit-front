@@ -137,6 +137,7 @@
                 [exerciseCopyActive]="exerciseCopyActive"
                 [exerciseOriginWorkoutId]="exerciseOriginWorkoutId"
                 [isModal]="isModal"
+                [isReadonly]="isReadonly"
                 (exerciseCopyEvent)="onExerciseCopyEvent($event)"
                 (exerciseAddedEvent)="onExerciseAdded($event)"
                 (setAddedEvent)="onSetAdded($event)"
@@ -302,7 +303,7 @@
       </ng-container>
 
       <ion-button
-        *ngIf="!loadingSplit && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static"
+        *ngIf="!loadingSplit && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static && !isReadonly"
         expand="block"
         shape="round"
         class="ion-margin t-add-workout"
@@ -312,7 +313,7 @@
 
       <section
         class="workout-template-panel"
-        *ngIf="stateSelected === STATES.static && shouldShowWorkoutTemplates"
+        *ngIf="stateSelected === STATES.static && shouldShowWorkoutTemplates && !isReadonly"
       >
         <ion-accordion-group class="workout-template-dropdown">
           <ion-accordion value="templates">
@@ -517,7 +518,7 @@
         </div>
 
         <div
-          *ngIf="stateSelected === STATES.static"
+          *ngIf="stateSelected === STATES.static && !isReadonly"
           class="micro-cycle-actions"
         >
           <button

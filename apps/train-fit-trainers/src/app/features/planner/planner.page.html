@@ -44,6 +44,20 @@
         <ion-icon [name]="rowSync.compareAllMode ? 'eye' : 'eye-outline'"></ion-icon>
         <span>{{ 'PLANNER.SYNC_ROW' | translate }}</span>
       </button>
+      <!-- Reordenar microciclos (2026-09) — cdkDrag deja de estar SIEMPRE
+           activo (chocaba con el scroll táctil en móvil); solo arrastra con
+           este modo encendido. Mismo patrón que "Alinear filas" arriba. -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        [class.toolbar-btn--active]="reorderMode"
+        (click)="toggleReorderMode()"
+        [attr.aria-label]="'PLANNER.REORDER_WEEKS_MODE' | translate"
+        [attr.aria-pressed]="reorderMode"
+      >
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>{{ 'PLANNER.REORDER_WEEKS_MODE' | translate }}</span>
+      </button>
       <!-- Comparar dos microciclos (2026-09) — diff de PAUTA A→B, ejercicio a
            ejercicio: la única pregunta que no responde ninguna otra pantalla
            del panel. -->
@@ -72,6 +86,23 @@
       </span>
     </div>
   </div>
+  <div class="planner-pain" *ngIf="painEnabled" aria-live="polite">
+    <ion-icon name="bandage-outline" aria-hidden="true"></ion-icon>
+    <span class="pain-label">Dolor · últimos 7 días</span>
+    <span *ngIf="painState === 'loading'">Actualizando registros…</span>
+    <span *ngIf="painState === 'loaded' && !clientPain.length">Sin registros en los últimos 7 días.</span>
+    <span *ngIf="painState === 'loaded' && clientPain.length && !activeClientPain.length">Últimos registros: 0/10 · {{ clientPain[0].date | date: 'd MMM' }}</span>
+    <span *ngFor="let pain of activeClientPain" class="pain-entry" [class.pain-entry--over]="pain.overThreshold"
+      [title]="pain.note || ''">
+      <strong>{{ pain.zone }} {{ pain.level }}/10</strong>
+      <span>{{ pain.date | date: 'd MMM' }}</span>
+      <span *ngIf="pain.threshold">Umbral pautado {{ pain.threshold.painLevel }}/10</span>
+      <span *ngIf="pain.overThreshold">Umbral alcanzado</span>
+      <span *ngIf="pain.note">{{ pain.note }}</span>
+    </span>
+    <span *ngIf="painState === 'error'">No se pudo actualizar el dolor.</span>
+    <button type="button" *ngIf="painState === 'error'" (click)="loadClientPain()">Reintentar</button>
+  </div>
 </ion-header>
 
 <ion-content class="planner-content" scrollY="false">
@@ -89,9 +120,11 @@
     <app-planner-column
       *ngFor="let split of table?.splits; let i = index; trackBy: trackBySplitId"
       cdkDrag
+      [cdkDragDisabled]="!reorderMode"
       cdkDragLockAxis="x"
       [cdkDragData]="split"
       class="planner-board-column"
+      [class.planner-board-column--reorder]="reorderMode"
       [split]="split"
       [table]="table"
       [columnIndex]="i"

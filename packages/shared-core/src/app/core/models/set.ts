@@ -27,11 +27,6 @@ export class Set {
   restPauseSeries?: SubSerie[];
   dropSetSeries?: SubSerie[];
   restPauseSeconds?: number;
-  // Tempo "E-P1-C-P2" (excéntrica, pausa abajo, concéntrica, pausa arriba)
-  // en segundos: "3-1-1-0". Texto y no cuatro números porque así es como se
-  // escribe y como se lee; "X" en la concéntrica (explosiva) es notación
-  // estándar y por eso no se valida como numérico.
-  tempo?: string;
 }
 
 export interface SubSerie {

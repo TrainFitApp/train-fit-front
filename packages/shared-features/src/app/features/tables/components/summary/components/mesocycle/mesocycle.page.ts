@@ -152,6 +152,18 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   public loadingSplit: boolean = false;
   public stateSelected = STATES.static;
 
+  // 2026-09 — un cliente no debe poder modificar una rutina que le asignó su
+  // entrenador (renombrar/añadir/borrar microciclos, entrenamientos,
+  // ejercicios, series). El límite real vive en el backend
+  // (table-access.js#rejectIfAssignedTableLockedForOwner, aplicado en todos
+  // los endpoints de mutación); esto es solo UX — no enseñar controles que
+  // fallarían con 403. No aplica al entrenador editando la tabla de su
+  // cliente desde train-fit-trainers (assignedByTrainerId es del cliente
+  // dueño, no de quien está mirando esta pantalla ahí).
+  public get isReadonly(): boolean {
+    return !!this.tableInUse?.assignedByTrainerId;
+  }
+
   public get isManagementAdmin(): boolean {
     return APP_SHELL_CONFIG.managementEntryEnabled && this.user?.roles?.includes('admin');
   }
@@ -1833,7 +1845,7 @@ export class MesocyclePage implements OnInit, AfterViewInit {
   }
 
   public async showSplitMenu(event: Event): Promise<void> {
-    if (this.loadingSplit) return;
+    if (this.loadingSplit || this.isReadonly) return;
 
     const popoverOptions = {
       component: SplitMenuPopoverComponent,

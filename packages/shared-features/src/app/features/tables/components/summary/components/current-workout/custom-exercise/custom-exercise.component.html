@@ -199,6 +199,7 @@
       <ion-reorder class="current-set-container">
         <app-set [set]="row.set" [index]="row.index" [originalIndex]="row.originalIndex"
           [indexCustomExercise]="indexCustomExercise" [currentWorkout]="currentWorkout" [reorderMode]="reorderMode"
+          [isReadonly]="isReadonly"
           (deleteSet)="deleteSet(row.set)" (copySet)="copySet(row.set, row.index)" (confSet)="configSet(row.set)"
           (reorderSets)="enterReorderMode()" (setCompleted)="setCompleted.emit($event)"></app-set>
       </ion-reorder>
@@ -228,7 +229,7 @@
           <span class="btn-text">{{ 'TABLES.NOTE' | translate }}</span>
         </ion-button>
 
-        <ion-button (click)="openSetManager()" fill="clear" class="action-btn set-btn">
+        <ion-button *ngIf="!isReadonly" (click)="openSetManager()" fill="clear" class="action-btn set-btn">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           <span class="btn-text">{{ 'TABLES.SERIES' | translate }}</span>
         </ion-button>

@@ -1,0 +1,234 @@
+<div class="wizard-header">
+  <div class="progress-track">
+    <div class="progress-fill" [style.width.%]="stepProgressPercent"></div>
+  </div>
+</div>
+
+<div class="wizard-body">
+  <swiper-container init="false" #intakeSwiper>
+    <swiper-slide *ngIf="enabledFields.has('goals')">
+      <div class="form-section">
+        <h2 class="section-title">Tus objetivos</h2>
+        <p class="section-subtitle">¿Qué quieres conseguir con {{ trainerName }}?</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [(ngModel)]="goals"
+          ></textarea>
+          <label class="field-label">Cuéntaselo con tus palabras</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('healthConditions')">
+      <div class="form-section">
+        <h2 class="section-title">Salud y lesiones</h2>
+        <p class="section-subtitle">Cualquier cosa que tu profesional deba tener en cuenta.</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [(ngModel)]="healthConditions"
+          ></textarea>
+          <label class="field-label">Lesiones, condiciones médicas...</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('experienceLevel')">
+      <div class="form-section">
+        <h2 class="section-title">Tu experiencia</h2>
+        <p class="section-subtitle">¿Cuánto llevas entrenando?</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of experienceOptions"
+            [class.is-selected]="experienceLevel === option.value"
+            (click)="selectExperience(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="trending-up-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.label }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('availability')">
+      <div class="form-section">
+        <h2 class="section-title">Tu disponibilidad</h2>
+        <p class="section-subtitle">¿Qué días y horarios te vienen mejor?</p>
+        <div class="field">
+          <input
+            type="text"
+            class="field-input"
+            placeholder=" "
+            [(ngModel)]="availability"
+          />
+          <label class="field-label">Ej. 3 días/semana, tardes</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('equipment')">
+      <div class="form-section">
+        <h2 class="section-title">Lugar de entrenamiento</h2>
+        <p class="section-subtitle">¿Dónde vas a entrenar principalmente?</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of trainingLocationOptions"
+            [class.is-selected]="trainingLocation === option.value"
+            (click)="selectTrainingLocation(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="location-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.label }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('equipment')">
+      <div class="form-section">
+        <h2 class="section-title">Equipamiento disponible</h2>
+        <p class="section-subtitle">Puedes marcar varios.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of equipmentTagOptions"
+            [class.is-selected]="equipmentTags.includes(option.value)"
+            (click)="toggleEquipmentTag(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="barbell-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.label }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('allergies')">
+      <div class="form-section">
+        <h2 class="section-title">Alergias</h2>
+        <p class="section-subtitle">Alimentos que debas evitar por alergia o intolerancia.</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [(ngModel)]="allergies"
+          ></textarea>
+          <label class="field-label">Ej. frutos secos, lactosa...</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('favoriteFoods')">
+      <div class="form-section">
+        <h2 class="section-title">Alimentos favoritos</h2>
+        <p class="section-subtitle">Lo que más te gusta comer.</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [(ngModel)]="favoriteFoods"
+          ></textarea>
+          <label class="field-label">Tus favoritos</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('dislikedFoods')">
+      <div class="form-section">
+        <h2 class="section-title">Alimentos que no te gustan</h2>
+        <p class="section-subtitle">Así tu profesional evita metértelos en el plan.</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [(ngModel)]="dislikedFoods"
+          ></textarea>
+          <label class="field-label">Lo que prefieres evitar</label>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('cooksAtHome')">
+      <div class="form-section">
+        <h2 class="section-title">¿Cocinas en casa?</h2>
+        <p class="section-subtitle">Ayuda a ajustar el nivel de detalle de las recetas.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of cooksOptions"
+            [class.is-selected]="cooksAtHome === option.value"
+            (click)="selectCooksAtHome(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="restaurant-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.label }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
+      <div class="form-section">
+        <h2 class="section-title">{{ question.label }}</h2>
+        <p class="section-subtitle">Pregunta de {{ trainerName }}.</p>
+        <div class="field">
+          <textarea
+            class="field-input field-textarea"
+            rows="4"
+            placeholder=" "
+            [ngModel]="customAnswerFor(question.id)"
+            (ngModelChange)="setCustomAnswer(question.id, $event)"
+          ></textarea>
+          <label class="field-label">Tu respuesta</label>
+        </div>
+      </div>
+    </swiper-slide>
+  </swiper-container>
+</div>
+
+<div class="wizard-footer">
+  <button type="button" class="btn-icon btn-icon--footer" (click)="handleBack()">
+    <ion-icon [name]="existPrev ? 'arrow-back-outline' : 'close-outline'"></ion-icon>
+  </button>
+
+  <ion-button
+    class="cta-btn is-enabled"
+    fill="clear"
+    (click)="nextStep()"
+    *ngIf="!isLastStep"
+  >
+    <strong>Siguiente</strong>
+    <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+  </ion-button>
+
+  <ion-button
+    class="cta-btn is-enabled"
+    fill="clear"
+    (click)="submit()"
+    *ngIf="isLastStep"
+    [disabled]="isSubmitting"
+  >
+    <span *ngIf="!isSubmitting"><strong>Enviar cuestionario</strong></span>
+    <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
+    <ion-icon name="checkmark-circle-outline" slot="end" *ngIf="!isSubmitting"></ion-icon>
+  </ion-button>
+</div>

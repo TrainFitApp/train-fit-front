@@ -11,7 +11,11 @@ export const onboardingMatchGuard: CanMatchFn = () => {
   const onboardingService = inject(OnboardingService);
   const router = inject(Router);
 
-  if (onboardingService.blocked()) {
+  // dismissed(): el cliente ya eligió "seguir usando la app" desde
+  // onboarding-status — completar el cuestionario deja de ser obligatorio
+  // para navegar, así que el guard deja de redirigir hasta el próximo login
+  // (ver OnboardingService#dismiss).
+  if (onboardingService.blocked() && !onboardingService.dismissed()) {
     return router.createUrlTree(['/onboarding-status']);
   }
   return true;

@@ -1,7 +1,7 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Platform } from '@ionic/angular';
+import { IonModal, Platform } from '@ionic/angular';
 import { Observer } from 'rxjs';
 import { User } from 'src/app/core/models/user';
 import {
@@ -37,13 +37,14 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./sign-in.page.scss'],
 })
 export class SignInPage implements OnInit {
+  @ViewChild(IonModal) public loginModal: IonModal;
+
   public loginForm: FormGroup;
   public user: User;
   public loading: boolean;
   public theme: Theme;
   public showPass: boolean;
-  public showLogo: boolean;
-  public hasFormFocus: boolean;
+  public isLoginModalOpen = false;
 
   public isApple: boolean;
   public isAndroid: boolean;
@@ -56,7 +57,6 @@ export class SignInPage implements OnInit {
   public error: string;
   public loginErrorKind: LoginErrorKind | null;
   public isLoginErrorRetryable: boolean;
-  private logoSyncTimeoutId?: ReturnType<typeof setTimeout>;
 
   public THEMES = Theme;
   public SOCIAL_NETWORKS = SOCIAL_NETWORKS;
@@ -66,7 +66,6 @@ export class SignInPage implements OnInit {
   constructor(
     private _platform: Platform,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
@@ -104,14 +103,11 @@ export class SignInPage implements OnInit {
   public ngOnInit(): void {
     this.initForm();
     this.applyNavigationFeedback();
-  }
-
-  public ionViewWillLeave(): void {
-    this.hasFormFocus = false;
-    this.syncLogoVisibility();
-    if (this.logoSyncTimeoutId) {
-      clearTimeout(this.logoSyncTimeoutId);
-      this.logoSyncTimeoutId = undefined;
+    // Si venimos de un intento de login fallido (p.ej. sesión expirada,
+    // fallo de red al reintentar), el error debe verse ya abierto — la
+    // pantalla de Bienvenida por defecto lo dejaría oculto dentro del modal.
+    if (this.error) {
+      this.isLoginModalOpen = true;
     }
   }
 
@@ -120,8 +116,6 @@ export class SignInPage implements OnInit {
     this.error = '';
     this.loginErrorKind = null;
     this.isLoginErrorRetryable = false;
-    this.showLogo = true;
-    this.hasFormFocus = false;
 
     // DETECCIÓN DE PLATAFORMA PARA PRO
     // Android: Solo Google
@@ -536,10 +530,14 @@ export class SignInPage implements OnInit {
     this.userService
       .getUserByEmail(this.formControls.email.value.toLowerCase())
       .subscribe({
-        next: (resUser) => {
+        next: async (resUser) => {
           this.userService.setLocalUser = resUser;
           const colorMode: ColorMode = resUser.theme;
           this.themeService.toggleColorMode(colorMode);
+          // Mismo motivo que goToRestorePass/navigateSignUp: hay que esperar
+          // el dismiss() real del modal antes de navegar, si no se queda
+          // "vivo" superpuesto encima de la pantalla de carga.
+          await this.loginModal?.dismiss();
           this.navigationService.goToUserLoader(this.getReturnUrl());
         },
         error: (error) => {
@@ -673,11 +671,18 @@ export class SignInPage implements OnInit {
     return true;
   }
 
-  public goToRestorePass(): void {
+  public async goToRestorePass(): Promise<void> {
+    // Con isOpen=false a secas, si la navegacion se dispara en el mismo
+    // tick la pagina de sign-in pasa a estar inactiva antes de que Ionic
+    // termine de animar el cierre (ion-router-outlet mantiene la pagina
+    // saliente montada) y el modal se queda "vivo" superpuesto encima de
+    // la siguiente pantalla. Esperar el dismiss() real evita eso.
+    await this.loginModal?.dismiss();
     this.navigationService.goToRestorePasswordPage();
   }
 
-  public navigateSignUp(): void {
+  public async navigateSignUp(): Promise<void> {
+    await this.loginModal?.dismiss();
     const extras = {
       state: {
         data: { fromSignIn: true },
@@ -686,40 +691,11 @@ export class SignInPage implements OnInit {
     this.navigationService.goToSignUp(extras);
   }
 
-  public onFormFocusIn(): void {
-    this.hasFormFocus = true;
-    // En iOS, esconder instantáneamente con *ngIf al ganar foco puede cortar
-    // la apertura del teclado; retrasamos mínimamente el update.
-    this.syncLogoVisibility(90);
+  public openLoginModal(): void {
+    this.isLoginModalOpen = true;
   }
 
-  public onFormFocusOut(): void {
-    setTimeout(() => {
-      const active = document.activeElement as HTMLElement | null;
-      const stillInsideForm = !!active?.closest?.('.login-form');
-      this.hasFormFocus = stillInsideForm;
-      this.syncLogoVisibility();
-    }, 0);
-  }
-
-  private syncLogoVisibility(delayMs: number = 0): void {
-    if (this.logoSyncTimeoutId) {
-      clearTimeout(this.logoSyncTimeoutId);
-      this.logoSyncTimeoutId = undefined;
-    }
-
-    const apply = () => {
-      this.showLogo = !this.hasFormFocus;
-      try {
-        this.cdr.detectChanges();
-      } catch {}
-    };
-
-    if (delayMs > 0) {
-      this.logoSyncTimeoutId = setTimeout(apply, delayMs);
-      return;
-    }
-
-    apply();
+  public closeLoginModal(): void {
+    this.isLoginModalOpen = false;
   }
 }
