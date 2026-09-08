@@ -1600,7 +1600,8 @@
     "CHIP_VERIFIED_PRODUCTS": "Verified",
     "CHIP_VERIFIED_RECIPES": "Verified",
     "CHIP_FAVORITES_PRODUCTS": "Favorites",
-    "CHIP_FAVORITES_RECIPES": "Favorites"
+    "CHIP_FAVORITES_RECIPES": "Favorites",
+    "CHIP_PAUTADO": "Prescribed"
   },
   "FILTER_DESC": {
     "PRODUCT_ADDED_BY_ME": "Added by me",
@@ -1618,7 +1619,9 @@
     "ALL_RECIPES": "All recipes",
     "VERIFIED_RECIPES": "Verified recipes",
     "FAVORITE_RECIPES": "Favorite recipes",
-    "VERIFIED_FAVORITE_RECIPES": "Verified favorite recipes"
+    "VERIFIED_FAVORITE_RECIPES": "Verified favorite recipes",
+    "PAUTADO_PRODUCTS": "Prescribed by your coach",
+    "PAUTADO_RECIPES": "Recipes prescribed by your coach"
   },
   "PROFILE": {
     "STEPS": "Steps",

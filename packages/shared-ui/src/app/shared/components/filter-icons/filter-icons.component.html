@@ -58,6 +58,23 @@
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
+
+      <!-- Lo pautado por el profesional en esta comida. Azul y no el acento
+           de siempre: es el mismo color con el que se pintan esos productos
+           en la lista, así que el chip y lo que filtra se leen como una sola
+           cosa. Solo aparece si hay algo pautado que enseñar. -->
+      <button
+        type="button"
+        class="modern-pill modern-pill--pautado"
+        *ngIf="showPautadoFilter"
+        [class.is-active]="pautadoFilter"
+        [disabled]="disabled"
+        (click)="addFilter(PRODUCT_FILTERS.pautado)"
+      >
+        <ion-icon name="clipboard"></ion-icon>
+        <span class="label">{{ 'FILTER.CHIP_PAUTADO' | translate }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
     </div>
   </div>
   <div class="filter-info-row">

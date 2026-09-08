@@ -8,6 +8,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { DietDay } from 'src/app/core/models/dietDay';
 import { Meal } from 'src/app/core/models/meal';
@@ -17,6 +18,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DB_ES_EN_MAP } from 'src/app/shared/constants/db-translations/es-en-db.map';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { UtilService } from 'src/app/core/services/util/util.service';
+import { PautadoItemViewComponent } from '../../../../../pautado-item-view/pautado-item-view.component';
 import { MEASURE_FILTER_TYPES } from 'src/app/shared/constants/measureFilter';
 
 @Component({
@@ -81,8 +83,17 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
     private recipeService: RecipeService,
     private translate: TranslateService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private modalController: ModalController
   ) {}
+
+  // Pautada por el profesional en esta comida — mismo criterio que
+  // ProductComponent#isPautado: solo lectura, porque el backend rechaza
+  // cambiar su composición.
+  public get isPautado(): boolean {
+    if (this.trainerMultiSelect) return false;
+    return !!this.foundInstance?.assignedByTrainerId;
+  }
 
   public ngOnInit(): void {
     this.setTopIngredients();
@@ -178,6 +189,12 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
   public onCardClick(): void {
     if (this.isBusy) return;
 
+    // Pautada: se consulta, no se edita (ver isPautado).
+    if (this.isPautado) {
+      void this.openPautadoView();
+      return;
+    }
+
     if (this.trainerMultiSelect) {
       // Fix (ronda detalle) — solo previsualiza, no añade (ver
       // ProductComponent#onCardClick, mismo criterio).
@@ -187,6 +204,19 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
 
     // Click on card always goes to add/edit mode
     this.toggle.emit(this.recipe);
+  }
+
+  private async openPautadoView(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: PautadoItemViewComponent,
+      componentProps: {
+        kind: 'recipe',
+        recipeInstance: this.foundInstance,
+        mealId: this.meal?._id,
+      },
+      cssClass: 'auto-height-modal',
+    });
+    await modal.present();
   }
 
   public onCheckboxClick(event: Event): void {

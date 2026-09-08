@@ -21,6 +21,20 @@
     box-shadow: 0 0 0 1px var(--ion-color-alternative);
   }
 
+  // Pautado por el profesional: azul y más redondeado, para que se distinga
+  // de un vistazo del resto de resultados sin tener que leer nada. Va
+  // después de .product-selected a propósito — un pautado SIEMPRE está en la
+  // comida, así que lleva también esa clase y sin este orden ganaría el
+  // naranja de "ya añadido", que aquí no es lo que hay que contar.
+  &.is-pautado {
+    border-radius: 20px;
+    border-color: var(--ion-color-alternative);
+    background-color: rgba(var(--ion-color-alternative-rgb), 0.08);
+    // Es de solo lectura, pero sigue abriendo su ficha nutricional: el
+    // cursor no debe decir "aquí no se puede tocar".
+    cursor: pointer;
+  }
+
   &.is-loading {
     pointer-events: none;
   }
@@ -73,6 +87,15 @@
 .recent-product-icon {
   margin-left: 4px;
   color: var(--ion-color-primary);
+  font-size: 0.95rem;
+  vertical-align: -2px;
+}
+
+// Mismo sitio y tamaño que el de reciente (se sustituyen, nunca conviven),
+// en el azul de pautado.
+.pautado-product-icon {
+  margin-left: 4px;
+  color: var(--ion-color-alternative);
   font-size: 0.95rem;
   vertical-align: -2px;
 }

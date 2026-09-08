@@ -16,6 +16,17 @@
         box-shadow: 0 0 0 1px var(--ion-color-alternative);
     }
 
+    // Pautada por el profesional — mismo tratamiento que en
+    // product.component.scss: azul, más redondeada, y después de .is-checked
+    // (una pautada siempre está en la comida, así que lleva las dos clases y
+    // el orden decide cuál gana).
+    &.is-pautado {
+        border-radius: 20px;
+        border-color: var(--ion-color-alternative);
+        background-color: rgba(var(--ion-color-alternative-rgb), 0.08);
+        cursor: pointer;
+    }
+
     &.is-loading {
         pointer-events: none;
     }
@@ -75,6 +86,14 @@
 .recent-product-icon {
     margin-left: 4px;
     color: var(--ion-color-primary);
+    font-size: 0.95rem;
+    vertical-align: -2px;
+}
+
+// Sustituye al de reciente (nunca conviven), en el azul de pautado.
+.pautado-product-icon {
+    margin-left: 4px;
+    color: var(--ion-color-alternative);
     font-size: 0.95rem;
     vertical-align: -2px;
 }

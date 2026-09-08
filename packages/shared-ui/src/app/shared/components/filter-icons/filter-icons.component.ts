@@ -38,6 +38,11 @@ export class FilterIconsComponent implements OnInit, OnChanges {
   @Input()
   public currentMode: FilterMode = 'products'; // Accept mode from parent
 
+  // Chip "Pautados": solo tiene sentido si hay algo pautado que enseñar, así
+  // que lo decide el padre (la comida abierta) y no este componente.
+  @Input()
+  public showPautadoFilter = false;
+
   @Output()
   public filterSelection = new EventEmitter<SearchFilterGroup>();
   @Output()
@@ -51,6 +56,10 @@ export class FilterIconsComponent implements OnInit, OnChanges {
   public ownFilter: boolean = false;
   public favFilter: boolean = false;
   public shieldFilter: boolean = false;
+  // Exclusivo con los otros tres: own/shield/fav acotan el CATÁLOGO en el
+  // backend, mientras que pautado enseña lo que ya está en la comida. Son dos
+  // universos distintos, y cruzarlos no significaría nada.
+  public pautadoFilter: boolean = false;
 
   public picker: HTMLIonPickerElement;
   private pickerOptions: PickerOptions;
@@ -103,6 +112,7 @@ export class FilterIconsComponent implements OnInit, OnChanges {
       this.ownFilter = false;
       this.favFilter = false;
       this.shieldFilter = false;
+      this.pautadoFilter = false;
       // Update description but DON'T emit event - parent already handles search
       this.updateFilterDescriptionWithoutEmit();
     } else if (changes['currentMode'] && changes['currentMode'].firstChange) {
@@ -122,12 +132,26 @@ export class FilterIconsComponent implements OnInit, OnChanges {
       this.ownFilter = false;
       this.favFilter = false;
       this.shieldFilter = false;
+      this.pautadoFilter = false;
       this.setFilterDescription();
       this.modeChange.emit(this.currentMode);
     }
   }
 
   public addFilter(filter: string): void {
+    // Pautados no convive con los demás (ver pautadoFilter): elegir uno
+    // apaga el otro lado en vez de dejar una combinación sin significado.
+    if (filter === PRODUCT_FILTERS.pautado) {
+      this.pautadoFilter = !this.pautadoFilter;
+      this.ownFilter = false;
+      this.favFilter = false;
+      this.shieldFilter = false;
+      this.setFilterDescription();
+      return;
+    }
+
+    this.pautadoFilter = false;
+
     switch (filter) {
       case PRODUCT_FILTERS.own:
         this.ownFilter = !this.ownFilter;
@@ -149,11 +173,12 @@ export class FilterIconsComponent implements OnInit, OnChanges {
     this.ownFilter = false;
     this.favFilter = false;
     this.shieldFilter = false;
+    this.pautadoFilter = false;
     this.setFilterDescription();
   }
 
   public isAllSelected(): boolean {
-    return !this.ownFilter && !this.favFilter && !this.shieldFilter;
+    return !this.ownFilter && !this.favFilter && !this.shieldFilter && !this.pautadoFilter;
   }
 
   public showShieldDisabledToast(): void {
@@ -205,6 +230,7 @@ export class FilterIconsComponent implements OnInit, OnChanges {
       favFilter: this.favFilter,
       ownFilter: this.ownFilter,
       shieldFilter: this.shieldFilter,
+      pautadoFilter: this.pautadoFilter,
     };
 
     // Only emit after initialization to avoid duplicate searches
@@ -227,6 +253,16 @@ export class FilterIconsComponent implements OnInit, OnChanges {
 
   private updateFilterDescriptionText(): void {
     this.filterDescription = '';
+
+    // Corta antes de las cadenas de own/shield/fav: con Pautados activo esos
+    // tres están apagados, así que caería siempre en el "todos" y diría lo
+    // contrario de lo que se está viendo.
+    if (this.pautadoFilter) {
+      this.filterDescription = this.translate.instant(
+        this.currentMode === 'products' ? 'FILTER_DESC.PAUTADO_PRODUCTS' : 'FILTER_DESC.PAUTADO_RECIPES'
+      );
+      return;
+    }
 
     if (this.currentMode === 'products') {
       this.setProductFilterDescription();

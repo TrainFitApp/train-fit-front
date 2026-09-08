@@ -7,6 +7,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { take } from 'rxjs';
 import {
   CUSTOM_PRODUCT_KEYS,
@@ -28,6 +29,7 @@ import {
   MEASURE_FILTER,
   MEASURE_FILTER_TYPES,
 } from 'src/app/shared/constants/measureFilter';
+import { PautadoItemViewComponent } from '../../../../../pautado-item-view/pautado-item-view.component';
 
 @Component({
   selector: 'app-product',
@@ -136,7 +138,8 @@ export class ProductComponent implements OnInit, OnChanges {
     private dietDayService: DietDayService,
     private userService: UserService,
     private navigationService: NavigationService,
-    private mealService: MealService
+    private mealService: MealService,
+    private modalController: ModalController
   ) {}
 
   public ngOnInit(): void {
@@ -168,6 +171,16 @@ export class ProductComponent implements OnInit, OnChanges {
     return this.loading.value || this.actionLoading;
   }
 
+  // Pautado por el profesional en esta comida. Es de solo lectura: el
+  // backend rechaza cambiar su composición (assertMealEditable), así que
+  // enseñar checkbox aquí sería ofrecer algo que va a fallar. Solo cuenta en
+  // el modo normal del cliente — en modo entrenador (trainerMultiSelect) la
+  // comida es de OTRO usuario y no hay customProduct propio que mirar.
+  public get isPautado(): boolean {
+    if (this.trainerMultiSelect || this.ingredientMode) return false;
+    return !!this.customProduct?.assignedByTrainerId;
+  }
+
   public get displayCustomProduct(): CustomProduct | null {
     if (this.trainerMultiSelect && this.isTrainerSelected && this.trainerSelectedQuantity != null) {
       return {
@@ -181,6 +194,14 @@ export class ProductComponent implements OnInit, OnChanges {
 
   public onCardClick(): void {
     if (this.isBusy) return;
+
+    // Un pautado no se edita: se consulta. Va a la vista de solo lectura con
+    // toda su información nutricional (única cosa editable ahí: la cantidad
+    // consumida), nunca a add-product, que es el editor de composición.
+    if (this.isPautado) {
+      void this.openPautadoView();
+      return;
+    }
 
     if (this.trainerMultiSelect) {
       // Fix (ronda detalle) — tocar la card ya NO añade/quita de la
@@ -463,6 +484,19 @@ export class ProductComponent implements OnInit, OnChanges {
 
   private getLoading(): void {
     this.utilService.getLoading.subscribe((res) => (this.loading.value = res));
+  }
+
+  private async openPautadoView(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: PautadoItemViewComponent,
+      componentProps: {
+        kind: 'product',
+        product: this.customProduct,
+        mealId: this.meal?._id,
+      },
+      cssClass: 'auto-height-modal',
+    });
+    await modal.present();
   }
 
   public openAddProduct(): void {

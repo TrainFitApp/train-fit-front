@@ -4,6 +4,7 @@
   [class.ingredient-mode]="ingredientMode"
   [class.is-loading]="actionLoading"
   [class.trainer-focused]="isTrainerFocused"
+  [class.is-pautado]="isPautado"
   (click)="onCardClick()"
 >
   <div class="product-content">
@@ -12,8 +13,16 @@
       <div class="product-info">
         <div class="name-row">
           <span class="product-name">
+            <!-- Pautado gana al reloj de "reciente": un pautado también es
+                 reciente casi siempre, y de las dos cosas la que cambia lo
+                 que puedes hacer con la card es que lo mandó tu profesional. -->
             <ion-icon
-              *ngIf="showRecentIcon"
+              *ngIf="isPautado"
+              name="clipboard"
+              class="pautado-product-icon"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="showRecentIcon && !isPautado"
               name="time-outline"
               class="recent-product-icon"
             ></ion-icon>
@@ -50,8 +59,11 @@
         <ion-icon [name]="isTrainerFavorite ? 'bookmark' : 'bookmark-outline'"></ion-icon>
       </button>
 
+      <!-- Sin checkbox en un pautado: no se puede quitar ni volver a añadir
+           (el backend bloquea su composición), así que un control marcado y
+           deshabilitado solo daría a entender que hay algo que decidir. -->
       <div
-        *ngIf="meal || ingredientMode || trainerMultiSelect"
+        *ngIf="!isPautado && (meal || ingredientMode || trainerMultiSelect)"
         class="checkbox-container"
         (click)="$event.stopPropagation()"
       >

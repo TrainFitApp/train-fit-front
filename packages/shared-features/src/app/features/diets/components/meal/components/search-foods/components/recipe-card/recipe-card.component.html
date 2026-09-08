@@ -3,6 +3,7 @@
   [class.is-checked]="isChecked"
   [class.is-loading]="isBusy"
   [class.trainer-focused]="isTrainerFocused"
+  [class.is-pautado]="isPautado"
   (click)="onCardClick()"
 >
   <div class="recipe-content">
@@ -11,8 +12,15 @@
       <div class="recipe-info">
         <div class="name-row">
           <span class="recipe-name">
+            <!-- Pautado gana al reloj de "reciente" — ver el mismo cambio
+                 en product.component.html. -->
             <ion-icon
-              *ngIf="showRecentIcon"
+              *ngIf="isPautado"
+              name="clipboard"
+              class="pautado-product-icon"
+            ></ion-icon>
+            <ion-icon
+              *ngIf="showRecentIcon && !isPautado"
               name="time-outline"
               class="recent-product-icon"
             ></ion-icon>
@@ -45,8 +53,10 @@
         >
           <ion-icon [name]="isTrainerFavorite ? 'bookmark' : 'bookmark-outline'"></ion-icon>
         </button>
+        <!-- Sin checkbox en una pautada: no se puede quitar ni volver a
+             añadir (ver ProductComponent, mismo motivo). -->
         <div
-          *ngIf="meal || trainerMultiSelect"
+          *ngIf="!isPautado && (meal || trainerMultiSelect)"
           class="checkbox-container"
           (click)="onCheckboxClick($event)"
         >

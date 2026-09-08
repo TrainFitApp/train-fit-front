@@ -66,6 +66,16 @@
   border-color: transparent;
 }
 
+// Pautados va en azul, no en el naranja de los demás chips: es el color con
+// el que se pintan los productos pautados en la lista, y compartirlo hace
+// que el chip y lo que filtra se lean como la misma cosa. Texto blanco: el
+// #121212 del chip naranja se queda en 2.5:1 sobre este azul, por debajo del
+// mínimo AA; en blanco sube a 4.6:1.
+.modern-pill--pautado.is-active {
+  background: linear-gradient(135deg, var(--ion-color-alternative, #3880ff) 0%, #2b6cd4 100%);
+  color: #ffffff;
+}
+
 .modern-pill[disabled] {
   opacity: 0.6;
   pointer-events: none;

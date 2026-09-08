@@ -4,6 +4,10 @@ export class SearchFilterGroup {
   public ownFilter?: boolean = false;
   public favFilter?: boolean = false;
   public shieldFilter?: boolean = false;
+  // No se manda al backend: lo pautado no es una propiedad del catálogo de
+  // productos, sino de la comida que se está editando. Lo resuelve
+  // search-foods.page.ts sin salir a la red.
+  public pautadoFilter?: boolean = false;
   public defaultOnly?: boolean = false;
   public userId?: string;
 }

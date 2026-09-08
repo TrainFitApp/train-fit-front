@@ -1062,6 +1062,13 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       return;
     }
 
+    // "Pautados" no pagina: sale entero de la comida que ya está en memoria,
+    // no de una búsqueda en el servidor.
+    if (this.isPautadoFilterActive) {
+      event.target.complete();
+      return;
+    }
+
     if (this.currentMode === "products" && this.shouldSkipProductsSearch()) {
       event.target.complete();
       return;
@@ -2138,7 +2145,53 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return products;
   }
 
+  // Lo que el profesional ha pautado en ESTA comida. No sale del catálogo,
+  // así que no hay búsqueda que hacer: ya está todo en meal.customProducts /
+  // meal.customRecipes. El chip se esconde si no hay nada que enseñar (sería
+  // un filtro que siempre deja la lista vacía).
+  public get isPautadoFilterActive(): boolean {
+    return !!this.searchFilterGroup?.pautadoFilter;
+  }
+
+  public get showPautadoFilter(): boolean {
+    if (this.trainerContext || this.ingredientMode) return false;
+    return (
+      (this.meal?.customProducts || []).some((cp) => !!cp?.assignedByTrainerId) ||
+      (this.meal?.customRecipes || []).some((cr) => !!cr?.assignedByTrainerId)
+    );
+  }
+
+  // El texto de la searchbar sigue acotando dentro de lo pautado: con una
+  // comida de 15 líneas, buscar ahí dentro es igual de útil que en el
+  // catálogo.
+  private matchesPautadoSearch(name: string | undefined | null): boolean {
+    const search = (this.searchFilterGroup?.search || "").trim().toLowerCase();
+    if (!search) return true;
+    return (name || "").toLowerCase().includes(search);
+  }
+
+  private applyPautadoProductsFilter(): void {
+    this.products = (this.meal?.customProducts || [])
+      .filter((customProduct) => !!customProduct?.assignedByTrainerId)
+      .map((customProduct) => customProduct.product as IProduct)
+      .filter((product) => !!product?._id && this.matchesPautadoSearch(product.name));
+    this.load = true;
+  }
+
+  private applyPautadoRecipesFilter(): void {
+    this.recipes = (this.meal?.customRecipes || [])
+      .filter((instance) => !!instance?.assignedByTrainerId)
+      .map((instance) => instance.recipe as Recipe)
+      .filter((recipe) => !!recipe?._id && this.matchesPautadoSearch(recipe.name));
+    this.load = true;
+  }
+
   private searchProducts(): void {
+    if (this.isPautadoFilterActive) {
+      this.applyPautadoProductsFilter();
+      return;
+    }
+
     if (this.shouldSkipProductsSearch()) {
       this.load = true;
       this.products = [];
@@ -2219,6 +2272,7 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
     return !!this.searchFilterGroup?.ownFilter
       || !!this.searchFilterGroup?.favFilter
       || !!this.searchFilterGroup?.shieldFilter
+      || !!this.searchFilterGroup?.pautadoFilter
       || !!this.searchFilterGroup?.defaultOnly;
   }
 
@@ -2338,6 +2392,11 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
   }
 
   private searchRecipes(): void {
+    if (this.isPautadoFilterActive) {
+      this.applyPautadoRecipesFilter();
+      return;
+    }
+
     const search = (this.searchFilterGroup?.search || "").trim();
 
     // When search is empty, load recent recipes and put meal ones first
