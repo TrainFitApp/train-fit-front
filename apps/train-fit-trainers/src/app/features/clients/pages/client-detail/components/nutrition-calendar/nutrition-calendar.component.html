@@ -39,7 +39,7 @@
         (click)="clearRange()"
       >
         <ion-icon name="close-circle-outline"></ion-icon>
-        {{ rangeStart }} → {{ rangeEnd }}
+        {{ rangeStart }} → {{ openEnded ? 'indefinido' : rangeEnd }}
       </button>
     </div>
   </div>
@@ -64,12 +64,13 @@
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
       [class.is-range-pick-mode]="isRangeMode"
       [class.is-occupied]="isPickerMode && !!cell.phase?.blocksNewPhase"
-      [disabled]="!cell.date || (isPickerMode && !!cell.phase?.blocksNewPhase)"
+      [class.is-open-ended-tail]="isOpenEndedTail(cell)"
+      [disabled]="!cell.date"
+      [attr.aria-disabled]="isPickerMode && !!cell.phase?.blocksNewPhase ? 'true' : null"
       [style.--fill-opacity]="cellFillOpacity(cell)"
       [style.--phase-color]="cell.phase?.color"
-      [title]="cell.phase?.planName || null"
       (click)="selectDay(cell)"
-      (mouseenter)="onCellHover(cell)"
+      (mouseenter)="onCellHover(cell, $event)"
     >
       <!-- Fuera del selector: barra fina arriba (convive con el relleno de
            cumplimiento). Dentro del selector: cuadradito sólido entero (ver
@@ -85,7 +86,23 @@
       ></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
       <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
+      <!-- Tramo indefinido: sin esto el rango parecería acabar donde acaba
+           la cuadrícula, que es justo lo contrario de lo que significa. -->
+      <span class="nutrition-calendar__open-end" *ngIf="isOpenEndedTail(cell)" aria-hidden="true">››</span>
     </button>
+
+    <!-- Por qué no se puede (o sí, pero cortando) elegir el día que hay
+         debajo del ratón. Va aquí, hijo de la rejilla, para posicionarse con
+         los offsets de la celda sin depender del scroll de la página. -->
+    <div
+      class="nutrition-calendar__tooltip"
+      *ngIf="occupiedTooltip"
+      role="tooltip"
+      [style.left.px]="occupiedTooltip.left"
+      [style.top.px]="occupiedTooltip.top"
+    >
+      {{ occupiedTooltip.text }}
+    </div>
   </div>
 
   <!-- La leyenda va en DOS bloques porque cada casilla superpone dos cosas

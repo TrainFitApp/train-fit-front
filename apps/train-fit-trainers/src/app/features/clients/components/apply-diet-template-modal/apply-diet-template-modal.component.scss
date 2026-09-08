@@ -138,6 +138,18 @@
 }
 
 // Auditoría de arquitectura (Fase 8) — selector de periodo
+// Los dos campos de fecha son <input type="date"> idénticos y estaban uno
+// debajo del otro sin nada que dijera cuál era cuál: había que deducirlo del
+// orden. El label lo dice, y de paso el `for`/`id` los ata para lectores de
+// pantalla, que antes solo oían "fecha".
+.field-label {
+  display: block;
+  margin: 12px 2px -2px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
 .section-hint {
   font-size: 0.78rem;
   font-weight: 600;

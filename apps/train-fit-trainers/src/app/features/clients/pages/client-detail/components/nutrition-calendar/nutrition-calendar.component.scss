@@ -134,6 +134,10 @@
 }
 
 .nutrition-calendar__grid {
+  // Marco de referencia del globo de aviso: las celdas se posicionan contra
+  // esta caja (offsetLeft/offsetTop en updateOccupiedTooltip), así que el
+  // globo se coloca con esos mismos números sin medir nada más.
+  position: relative;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
@@ -142,6 +146,32 @@
   &.is-loading {
     opacity: 0.5;
   }
+}
+
+// Aviso de "este día ya es de otra fase". Encima de la celda y centrado en
+// ella; pointer-events:none para que no se robe el propio hover que lo ha
+// abierto y empiece a parpadear.
+.nutrition-calendar__tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 6px));
+  // Sin límite se estira a lo ancho de la rejilla y en las columnas de los
+  // extremos se sale del panel; con él parte en dos líneas y se queda dentro.
+  max-width: 190px;
+  width: max-content;
+  padding: 6px 8px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-5);
+  // El borde más marcado de la escala, y sombra: --tf-surface-5 (#252525)
+  // apenas se despega del fondo del panel, y un globo flotante que no se
+  // recorta contra lo de debajo no se lee como flotante.
+  border: 1px solid var(--tf-border-strongest);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  color: var(--tf-text);
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-align: left;
+  pointer-events: none;
 }
 
 .nutrition-calendar__cell {
@@ -239,18 +269,37 @@
   // 4.9:1 (al 78% que había antes, el índigo se quedaba en 4.4:1, por
   // debajo de AA).
   color: rgba(0, 0, 0, 0.86);
-
-  &[disabled] {
-    // Sin la opacidad que el navegador aplicaría por defecto a un botón
-    // disabled — el color pleno ES la señal de "ocupado", apagarlo la
-    // arruinaría.
-    opacity: 1;
-    cursor: not-allowed;
-  }
+  // No lleva [disabled] a propósito: un botón deshabilitado no dispara
+  // eventos de ratón y sin ellos el globo que explica POR QUÉ está ocupado
+  // no llegaría a salir nunca, justo en las celdas que hay que explicar. El
+  // click ya se ignora en selectDay, y aria-disabled lo dice a lectores de
+  // pantalla; aquí solo queda decirlo con el cursor.
+  cursor: not-allowed;
 
   &:hover {
     transform: none;
+    // El color pleno ES la señal de "ocupado" — el realce de hover normal
+    // insinuaría que se puede pulsar.
+    border-color: transparent;
   }
+}
+
+// Marca de "el tramo sigue más allá" en el último día del mes cuando la fase
+// es indefinida.
+.nutrition-calendar__open-end {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 0.6rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--tf-accent);
+}
+
+.nutrition-calendar__cell.is-open-ended-tail {
+  // Borde derecho discontinuo: el rango no se corta aquí, se sale de la
+  // cuadrícula.
+  border-right: 1px dashed var(--tf-accent);
 }
 
 .nutrition-calendar__day-number {

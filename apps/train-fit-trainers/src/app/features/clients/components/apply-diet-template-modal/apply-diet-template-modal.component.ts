@@ -37,6 +37,12 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   // (ver client-detail.page.ts#openCreateDietModal). En este modo no hay
   // plantilla que listar ni que aplicar: confirm() solo devuelve lo
   // recogido aquí, nunca llama a la API.
+  //
+  // Las FECHAS sí se piden aquí, igual que al aplicar una plantilla: crear
+  // una dieta para un cliente y no decir cuándo rige dejaba el trabajo a
+  // medias — había que volver a "Siguiente fase" a repetir la elección. El
+  // builder las arrastra y, al guardar, crea la dieta y la aplica de una vez
+  // (ver diet-template-builder.page.ts#saveForClient).
   @Input() public forDirectCreate = false;
   public name = '';
 
@@ -59,6 +65,33 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     this.fixedEndDate = range.end;
     this.endMode = 'fixedDate';
     this.overlapError = null;
+  }
+
+  // Primer click del rango: mueve ya la fecha de inicio sin tocar el modo de
+  // fin. Así, si el fin lo decide el formulario (duración o indefinido), el
+  // tramo se repinta al instante y a menudo no hace falta un segundo click.
+  public onStartPicked(date: string): void {
+    this.startDate = date;
+    this.overlapError = null;
+  }
+
+  // Lo que el calendario tiene que pintar AHORA mismo con lo que hay puesto
+  // en el formulario. `end: null` significa "no termina" y solo se manda en
+  // indefinido — en fecha exacta o duración a medio rellenar se manda el
+  // propio día de inicio, que es un tramo de un día, no uno infinito.
+  public get rangePreview(): { start: string; end: string | null } | null {
+    if (!this.startDate) return null;
+    if (this.endMode === 'indefinite') return { start: this.startDate, end: null };
+    const end = this.computedEndDate;
+    // Un fin anterior al inicio (se teclea una fecha suelta y queda al revés)
+    // no se pinta como rango invertido: se queda en el día de inicio hasta
+    // que la fecha tenga sentido.
+    return { start: this.startDate, end: end && end >= this.startDate ? end : this.startDate };
+  }
+
+  // Nombre aparte, las fechas se piden igual en los dos modos.
+  public get showDatePicker(): boolean {
+    return this.forDirectCreate || !!this.selectedTemplateId;
   }
 
   // Mensaje del 409 del backend: las fechas pisan otra fase.
@@ -143,11 +176,9 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   }
 
   public get canConfirm(): boolean {
-    // Crear dieta: solo hace falta el nombre — no se eligen fechas aquí, la
-    // dieta se crea como material propio del cliente y se aplica después.
-    if (this.forDirectCreate) return !!this.name.trim();
+    if (this.forDirectCreate && !this.name.trim()) return false;
+    if (!this.forDirectCreate && !this.selectedTemplateId) return false;
 
-    if (!this.selectedTemplateId) return false;
     if (!this.startDate) return false;
     if (this.endMode === 'fixedDate') return !!this.fixedEndDate;
     if (this.endMode === 'duration') return !!this.durationValue && this.durationValue > 0;
@@ -158,10 +189,21 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     if (!this.canConfirm) return;
 
     if (this.forDirectCreate) {
-      // Nada que aplicar todavía — solo se recoge el nombre; el contenido se
-      // construye después en el builder, que la guarda como dieta propia del
-      // cliente (sin fechas: eso se decide al aplicarla como fase).
-      void this.modalController.dismiss({ name: this.name.trim() }, 'confirm');
+      // Nada que aplicar todavía — no hay contenido que asignar. Se llevan
+      // nombre Y fechas al builder, que al guardar crea la dieta propia del
+      // cliente y la aplica como fase con estas mismas fechas, en un solo
+      // gesto (ver diet-template-builder.page.ts#saveForClient).
+      void this.modalController.dismiss(
+        {
+          name: this.name.trim(),
+          startDate: this.startDate,
+          endMode: this.endMode,
+          fixedEndDate: this.endMode === 'fixedDate' ? this.fixedEndDate : undefined,
+          durationValue: this.endMode === 'duration' ? this.durationValue : undefined,
+          durationUnit: this.endMode === 'duration' ? this.durationUnit : undefined,
+        },
+        'confirm'
+      );
       return;
     }
 

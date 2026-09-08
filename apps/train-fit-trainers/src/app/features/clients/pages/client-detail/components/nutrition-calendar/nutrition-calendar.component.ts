@@ -119,8 +119,41 @@ export class NutritionCalendarComponent implements OnChanges {
     if (!range) return;
     this.rangeStart = range.start;
     this.rangeEnd = range.end;
+    this.openEnded = false;
+    this.awaitingRangeEnd = false;
   }
   @Output() dateSelected = new EventEmitter<string>();
+
+  // Rango que se está componiendo AHORA MISMO en el formulario de al lado
+  // (fecha de inicio + "hasta cuándo"), para verlo pintado según se teclea en
+  // vez de descubrirlo al guardar.
+  //
+  // Va aparte de activeRange por dos motivos: admite un fin abierto (con
+  // "indefinido" no hay fecha que pasar, y el tramo se pinta hasta el final
+  // del mes con marca de que sigue, ver isOpenEndedTail), y cede el paso a
+  // una selección a mano en curso — si el usuario ya ha dado el primer click,
+  // manda su gesto, no el formulario, que todavía no se ha enterado.
+  @Input() public set rangePreview(preview: { start: string; end: string | null } | null) {
+    if (this.awaitingRangeEnd) return;
+    if (!preview?.start) {
+      this.rangeStart = null;
+      this.rangeEnd = null;
+      this.openEnded = false;
+      return;
+    }
+    this.rangeStart = preview.start;
+    this.rangeEnd = preview.end;
+    this.openEnded = preview.end === null;
+  }
+
+  // Fin abierto: el tramo no termina en rangeEnd (que es null), sigue más
+  // allá de lo que se ve.
+  public openEnded = false;
+
+  // Primer click de rango dado, falta el segundo. Antes esto se deducía de
+  // `!rangeStart || rangeEnd`, que ya no vale: con un fin abierto rangeEnd es
+  // null legítimamente y esa cuenta lo confundía con "a media selección".
+  private awaitingRangeEnd = false;
 
   // Solo tiene sentido ofrecerlo si hay plan activo que saltarse: lo sabe
   // la ficha, no el calendario.
@@ -144,6 +177,12 @@ export class NutritionCalendarComponent implements OnChanges {
   // detalle" con "qué rango ve la gráfica de abajo".
   @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
 
+  // Solo el día INICIAL, en cuanto se pulsa (sin esperar al segundo click).
+  // Lo usa el formulario de fase nueva para mover su "fecha de inicio" ya
+  // mismo: el fin puede venir de ahí (duración/indefinido) en vez de un
+  // segundo click, y sin esto el formulario se quedaría con la fecha vieja.
+  @Output() rangeStartPicked = new EventEmitter<string>();
+
   public readonly weekdayLabels = WEEKDAY_LABELS;
   public readonly rangePresets = RANGE_PRESETS;
   public monthDate = new Date();
@@ -162,6 +201,7 @@ export class NutritionCalendarComponent implements OnChanges {
     this.isRangeMode = true;
     this.rangeStart = null;
     this.rangeEnd = null;
+    this.awaitingRangeEnd = false;
   }
 
   // A diferencia de isRangeMode (se apaga solo al completar un rango, ver
@@ -185,6 +225,14 @@ export class NutritionCalendarComponent implements OnChanges {
   // el primer click y el segundo): previsualiza el tramo antes de
   // confirmarlo, mismo gesto que cualquier selector de rango de fechas.
   public hoverDate: string | null = null;
+
+  // Aviso flotante al pasar por encima de un día que ya tiene fase (solo en
+  // el selector). Se resuelve en JS y no con el `title` nativo por dos
+  // razones: el `title` del navegador tarda ~1s, no se puede estilar y —lo
+  // que lo hacía inútil aquí— un <button disabled> ni siquiera dispara
+  // eventos de ratón, así que en las celdas ocupadas, que son justo las que
+  // hay que explicar, no salía nunca.
+  public occupiedTooltip: { text: string; left: number; top: number } | null = null;
 
   // Historial completo de fases (todas, no solo la activa) — se pide una
   // vez por cliente, no por mes: son pocos documentos y así un tramo que
@@ -215,7 +263,12 @@ export class NutritionCalendarComponent implements OnChanges {
       // Emite un rango por defecto (30d) sin esperar a que el usuario toque
       // nada — <app-nutrition-tracking-chart> ya no tiene fallback propio,
       // depende por completo de lo que le llegue aquí.
-      this.selectPresetRange(this.activePreset ?? 30);
+      //
+      // En el selector NO: ahí no hay gráfica que alimentar y ese rango de
+      // cortesía se colaba como si el trainer lo hubiera elegido — pisaba las
+      // fechas del formulario (rangeSelected -> onRangePicked) nada más abrir
+      // el panel, antes de que nadie tocara el calendario.
+      if (!this.isPickerMode) this.selectPresetRange(this.activePreset ?? 30);
     }
   }
 
@@ -255,7 +308,7 @@ export class NutritionCalendarComponent implements OnChanges {
 
   public get rangeToggleLabel(): string {
     if (!this.isRangeMode) return 'Seleccionar rango';
-    return this.rangeStart ? 'Elige el día final' : 'Elige el día inicial';
+    return this.awaitingRangeEnd ? 'Elige el día final' : 'Elige el día inicial';
   }
 
   public toggleRangeMode(): void {
@@ -265,14 +318,18 @@ export class NutritionCalendarComponent implements OnChanges {
       // medias.
       this.rangeStart = null;
       this.rangeEnd = null;
+      this.openEnded = false;
       this.hoverDate = null;
+      this.awaitingRangeEnd = false;
     }
   }
 
   public clearRange(): void {
     this.rangeStart = null;
     this.rangeEnd = null;
+    this.openEnded = false;
     this.isRangeMode = false;
+    this.awaitingRangeEnd = false;
     this.activePreset = null;
   }
 
@@ -289,20 +346,25 @@ export class NutritionCalendarComponent implements OnChanges {
     const end = addIsoDays(daysForward);
     this.rangeStart = start;
     this.rangeEnd = end;
+    this.openEnded = false;
     this.activePreset = days;
     this.isRangeMode = false;
     this.hoverDate = null;
+    this.awaitingRangeEnd = false;
     this.rangeSelected.emit({ start, end });
   }
 
   private handleRangeClick(date: string): void {
-    if (!this.rangeStart || this.rangeEnd) {
+    if (!this.awaitingRangeEnd) {
       // Primer click de una selección nueva (o la anterior ya estaba
       // completa) — empieza de cero en vez de extender el rango previo.
       this.rangeStart = date;
       this.rangeEnd = null;
+      this.openEnded = false;
+      this.awaitingRangeEnd = true;
       this.activePreset = null;
       this.rangeError = null;
+      this.rangeStartPicked.emit(date);
       return;
     }
 
@@ -322,6 +384,7 @@ export class NutritionCalendarComponent implements OnChanges {
         this.rangeStart = null;
         this.rangeEnd = null;
         this.hoverDate = null;
+        this.awaitingRangeEnd = false;
         return;
       }
     }
@@ -329,33 +392,93 @@ export class NutritionCalendarComponent implements OnChanges {
     this.rangeError = null;
     this.rangeStart = start;
     this.rangeEnd = end;
+    this.openEnded = false;
     this.isRangeMode = false;
     this.hoverDate = null;
+    this.awaitingRangeEnd = false;
     this.rangeSelected.emit({ start, end });
   }
 
   // F20-terdecies — con el día inicial ya puesto y el ratón encima de otro
   // día (todavía sin confirmar), previsualiza el tramo completo hasta ahí.
-  public onCellHover(cell: CalendarCell): void {
-    if (!cell.date || !this.isRangeMode || !this.rangeStart || this.rangeEnd) return;
+  public onCellHover(cell: CalendarCell, event?: MouseEvent): void {
+    this.updateOccupiedTooltip(cell, event);
+    if (!cell.date || !this.awaitingRangeEnd) return;
     this.hoverDate = cell.date;
   }
 
   public onGridMouseLeave(): void {
     this.hoverDate = null;
+    this.occupiedTooltip = null;
+  }
+
+  // Qué se dice al pasar por encima de un día que ya tiene fase. Dos
+  // mensajes distintos porque son dos situaciones distintas y confundirlas
+  // deja al trainer sin saber por qué unas celdas de color se pueden pulsar
+  // y otras no: la fase con fechas cerradas simplemente no admite otra
+  // encima, mientras que la indefinida en curso sí — empezar ahí la corta,
+  // que es el gesto normal de "le cambio el plan a partir de este día".
+  private updateOccupiedTooltip(cell: CalendarCell, event?: MouseEvent): void {
+    const celda = event?.currentTarget as HTMLElement | undefined;
+    if (!this.isPickerMode || !cell.date || !cell.phase || !celda) {
+      this.occupiedTooltip = null;
+      return;
+    }
+
+    const nombre = cell.phase.planName || 'otra fase';
+    this.occupiedTooltip = {
+      text: cell.phase.blocksNewPhase
+        ? `Ocupado por ${nombre}. No puedes empezar una fase nueva aquí.`
+        : `${nombre} sigue vigente. Si empiezas aquí, se corta el día anterior.`,
+      left: this.tooltipLeft(celda),
+      // offsetTop va contra la propia rejilla (position: relative en el
+      // scss), que es donde se pinta el globo — así no hace falta medir la
+      // ventana ni recolocarlo al hacer scroll.
+      top: celda.offsetTop,
+    };
+  }
+
+  // El globo se centra en la celda, pero en las columnas de los extremos eso
+  // lo saca de la rejilla y el panel lo recorta (overflow horizontal oculto),
+  // justo en lunes y domingo. Se empuja hacia dentro lo justo para que quepa
+  // entero; si la rejilla es más estrecha que el globo, se centra en ella y
+  // no hay nada mejor que hacer.
+  private tooltipLeft(celda: HTMLElement): number {
+    const MAX_ANCHO = 190; // mismo tope que .nutrition-calendar__tooltip
+    const mitad = MAX_ANCHO / 2;
+    const centro = celda.offsetLeft + celda.offsetWidth / 2;
+    const anchoRejilla = celda.parentElement?.clientWidth ?? 0;
+    if (!anchoRejilla) return centro;
+    if (anchoRejilla < MAX_ANCHO) return anchoRejilla / 2;
+    return Math.min(Math.max(centro, mitad), anchoRejilla - mitad);
   }
 
   public isInRange(date: string | null): boolean {
     if (!date || !this.rangeStart) return false;
 
-    if (this.isRangeMode && !this.rangeEnd && this.hoverDate) {
+    if (this.awaitingRangeEnd && this.hoverDate) {
       const start = this.rangeStart <= this.hoverDate ? this.rangeStart : this.hoverDate;
       const end = this.rangeStart <= this.hoverDate ? this.hoverDate : this.rangeStart;
       return date >= start && date <= end;
     }
 
+    // Indefinido: no hay fin que comparar, así que entra todo lo que venga
+    // después del inicio. Al no acotar por mes, cualquier mes posterior que
+    // se navegue sale entero pintado, que es exactamente lo que significa.
+    if (this.openEnded) return date >= this.rangeStart;
+
     const end = this.rangeEnd || this.rangeStart;
     return date >= this.rangeStart && date <= end;
+  }
+
+  // Último día del mes que se está viendo cuando el tramo es indefinido: ahí
+  // va la marca de "sigue" (ver el ›› del template). Sin ella, el rango
+  // parecería terminar justo donde se acaba la cuadrícula.
+  public isOpenEndedTail(cell: CalendarCell): boolean {
+    if (!this.openEnded || !cell.date || !this.isInRange(cell.date)) return false;
+    const year = this.monthDate.getUTCFullYear();
+    const month = this.monthDate.getUTCMonth();
+    return cell.date === isoDate(year, month, daysInMonth(year, month));
   }
 
   private loadMonth(): void {
