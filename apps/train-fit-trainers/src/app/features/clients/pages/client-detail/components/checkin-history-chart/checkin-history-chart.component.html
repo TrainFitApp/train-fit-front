@@ -1,4 +1,5 @@
-<section class="history-chart" *ngIf="series.length">
+<!-- El canvas permanece disponible cuando llegan respuestas tras un estado vacío. -->
+<section class="history-chart" [hidden]="!series.length">
   <div class="history-chart__head">
     <h3 class="history-chart__title">Evolución</h3>
     <span class="history-chart__hint">{{ selected?.puntos?.length }} registros</span>

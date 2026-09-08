@@ -10,6 +10,7 @@ import { ApplyRoutineModalComponent } from './components/apply-routine-modal/app
 import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
 import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
+import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
@@ -30,6 +31,7 @@ import { TrainingComparisonChartComponent } from './pages/client-detail/componen
     ApplyRoutineModalComponent,
     NutritionCalendarComponent,
     CheckinHistoryChartComponent,
+    CheckinWorkspaceComponent,
     NutritionTrackingChartComponent,
     ClientSummaryComponent,
     ClientRosterComponent,

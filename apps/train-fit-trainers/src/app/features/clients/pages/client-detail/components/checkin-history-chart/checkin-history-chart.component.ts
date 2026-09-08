@@ -3,9 +3,11 @@ import {
   Component,
   ElementRef,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
@@ -44,13 +46,14 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
   @Input() public responses: CheckinResponseEntry[] = [];
   @Input() public customQuestions: CustomCheckinQuestion[] = [];
 
-  @ViewChild('chartCanvas') private chartCanvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartCanvas', { static: true }) private chartCanvas?: ElementRef<HTMLCanvasElement>;
 
   public series: SerieOption[] = [];
   public selectedKey: string | null = null;
 
   private chart: Chart | null = null;
   private vistaLista = false;
+  private readonly ngZone = inject(NgZone);
 
   public ngOnChanges(): void {
     this.series = this.buildSeries();
@@ -69,7 +72,10 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
   }
 
   public ngOnDestroy(): void {
-    this.chart?.destroy();
+    this.ngZone.runOutsideAngular(() => {
+      this.chart?.destroy();
+      this.chart = null;
+    });
   }
 
   public select(key: string): void {
@@ -140,6 +146,12 @@ export class CheckinHistoryChartComponent implements AfterViewInit, OnChanges, O
   }
 
   private render(): void {
+    // Chart.js observa todo el documento. Si sus callbacks entran en Angular,
+    // el histórico puede mutar el DOM y alimentar un bucle sin errores de red.
+    this.ngZone.runOutsideAngular(() => this.renderChart());
+  }
+
+  private renderChart(): void {
     const canvas = this.chartCanvas?.nativeElement;
     const serie = this.selected;
     this.chart?.destroy();

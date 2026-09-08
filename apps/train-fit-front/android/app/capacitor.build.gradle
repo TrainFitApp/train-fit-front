@@ -16,6 +16,7 @@ dependencies {
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-local-notifications')
     implementation project(':capacitor-network')
+    implementation project(':capacitor-push-notifications')
     implementation project(':capawesome-capacitor-android-edge-to-edge-support')
     implementation project(':capgo-capacitor-navigation-bar')
     implementation project(':capgo-capacitor-social-login')

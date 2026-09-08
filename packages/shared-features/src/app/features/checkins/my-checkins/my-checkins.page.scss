@@ -2,6 +2,23 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+.push-setup {
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #424242;
+  border-radius: 12px;
+  background: #1e1e1e;
+  p { margin: 0 0 12px; color: #c5c5c5; line-height: 1.5; }
+}
+
+.checkin-review {
+  border-top: 1px solid #424242;
+  margin-top: 16px;
+  padding-top: 16px;
+  strong { color: #c5c5c5; font-size: 13px; }
+  p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+}
+
 .my-checkins-content {
   --background: #0f0f0f;
   --padding-start: 16px;

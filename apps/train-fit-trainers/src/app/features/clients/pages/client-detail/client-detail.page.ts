@@ -515,7 +515,6 @@ export class ClientDetailPage implements OnInit {
     if (this.scopes.includes('nutrition')) this.loadNutrition();
     this.loadMeasurements();
     this.loadNotes();
-    this.loadCheckins();
     this.loadPayments();
     this.loadTasks();
     this.loadPreviousRelationCutoff();
@@ -2609,6 +2608,12 @@ export class ClientDetailPage implements OnInit {
       value: this.checkinValueLabel(value),
       raw: value,
     }));
+  }
+
+  // Las entradas se formatean en cada detección de cambios. Su clave estable
+  // evita sustituir el DOM y volver a despertar los observadores de la gráfica.
+  public trackByCheckinValueKey(_index: number, entry: { key: string }): string {
+    return entry.key;
   }
 
   // Movimiento 2 Coach Pro — "Nivel de estrés: 4" no dice nada; "4/5 ·
