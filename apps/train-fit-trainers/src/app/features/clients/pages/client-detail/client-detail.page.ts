@@ -631,6 +631,7 @@ export class ClientDetailPage implements OnInit {
         );
         this.latestWeight = (weights && weights[0]) || null;
         this.computeCompletedWorkouts();
+        this.rebuildProjectedTrainingDays();
         this.trainingState = 'loaded';
       })
       .catch(() => {
@@ -945,8 +946,10 @@ export class ClientDetailPage implements OnInit {
     this.routineAssignmentApi.getHistory(this.clientId).subscribe({
       next: (history) => {
         this.routinePhases = this.buildRoutinePhaseSequence(history || []);
-        this.routineHistory = history || [];
+        this.routineHistory = (history || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+        this.routinePhaseColorMap = buildPhaseColorMap(this.routineHistory.map((p) => p._id));
         this.routineHistoryState = 'loaded';
+        this.rebuildProjectedTrainingDays();
       },
       error: () => {
         this.routinePhases = [];
@@ -954,6 +957,23 @@ export class ClientDetailPage implements OnInit {
         this.routineHistoryState = 'error';
       },
     });
+  }
+
+  // Mismo patrón que phaseColorMap (nutrición, loadActivePlan): un color por
+  // fase de rutina, estable a lo largo de toda la secuencia (vigente +
+  // programadas), reutilizando phase-color.util.ts tal cual.
+  private routinePhaseColorMap = new Map<string, string>();
+
+  public routinePhaseColor(phase: RoutineAssignment | null): string {
+    if (!phase) return 'var(--tf-accent)';
+    return this.routinePhaseColorMap.get(phase._id) ?? 'var(--tf-accent)';
+  }
+
+  public routinePhaseSoftBackground(phase: RoutineAssignment | null): string {
+    if (!phase) return 'var(--tf-accent-soft)';
+    const color = this.routinePhaseColorMap.get(phase._id);
+    if (!color) return 'var(--tf-accent-soft)';
+    return this.hexToRgba(color, 0.14);
   }
 
   // Cronológico, excluyendo "ended" (reservado, sin uso real hoy — igual
@@ -1106,19 +1126,66 @@ export class ClientDetailPage implements OnInit {
   }
 
   // --- Tarea 4 (2026-09): proyección de la rutina sobre el calendario ---
-  public projectedTrainingDays: Map<string, { isPlannedRestDay: boolean; name: string }> = new Map();
+  // splitId/splitName (2026-09, ver plan de rediseño visual): derivados en
+  // frontend cruzando workoutId (ya presente en RoutineScheduleDay) contra
+  // splits[].workouts[] de la tabla en uso — null si no hay match (días de
+  // descanso, o mientras faltan tables/routinePhases por llegar).
+  public projectedTrainingDays: Map<
+    string,
+    { isPlannedRestDay: boolean; name: string; splitId: string | null; splitName: string | null }
+  > = new Map();
+  private rawScheduleDays: RoutineScheduleDay[] = [];
 
   private loadTrainingSchedule(range: { start: string; end: string }): void {
     this.routineAssignmentApi.getActiveSchedule(this.clientId, range.start, range.end).subscribe({
       next: (days: RoutineScheduleDay[]) => {
-        this.projectedTrainingDays = new Map(
-          (days || []).map((d) => [d.date, { isPlannedRestDay: d.isPlannedRestDay, name: d.name }])
-        );
+        this.rawScheduleDays = days || [];
+        this.rebuildProjectedTrainingDays();
       },
       error: () => {
-        this.projectedTrainingDays = new Map();
+        this.rawScheduleDays = [];
+        this.rebuildProjectedTrainingDays();
       },
     });
+  }
+
+  // tables (loadTraining) y routinePhases (loadActiveRoutine) llegan por
+  // fetches async independientes del schedule: se reconstruye cada vez que
+  // cualquiera de las tres piezas cambia, para no depender del orden de
+  // llegada entre ellas.
+  private rebuildProjectedTrainingDays(): void {
+    const splitByWorkoutId = this.buildWorkoutSplitMap();
+    this.projectedTrainingDays = new Map(
+      this.rawScheduleDays.map((d) => {
+        const split = d.workoutId ? splitByWorkoutId.get(d.workoutId) : undefined;
+        return [
+          d.date,
+          {
+            isPlannedRestDay: d.isPlannedRestDay,
+            name: d.name,
+            splitId: split?.splitId ?? null,
+            splitName: split?.splitName ?? null,
+          },
+        ];
+      })
+    );
+  }
+
+  // Deriva el split de cada workout de la tabla EN USO cruzando workoutId
+  // (ya presente en RoutineScheduleDay) contra splits[].workouts[] — sin
+  // endpoint nuevo. Mismo patrón de iteración que computeCompletedWorkouts().
+  private buildWorkoutSplitMap(): Map<string, { splitId: string; splitName: string }> {
+    const map = new Map<string, { splitId: string; splitName: string }>();
+    const tableId = this.currentRoutinePhase?.tableId;
+    if (!tableId) return map;
+    const table = this.tables.find((t) => t._id === tableId);
+    if (!table) return map;
+    for (const split of table.splits || []) {
+      for (const workout of split.workouts || []) {
+        map.set(workout._id, { splitId: split._id, splitName: split.name || 'Microciclo' });
+      }
+    }
+    return map;
   }
 
   // --- Medidas (antropometría) ---

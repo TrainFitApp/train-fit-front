@@ -25,7 +25,10 @@ export interface MyCheckinConfig {
   // Ausente en las configuraciones aplicadas antes de la Fase 5 — de ahí el
   // opcional, y de ahí que todo el código las trate como lista vacía.
   customQuestions?: CustomCheckinQuestion[];
-  cadence: CheckinCadence;
+  // Ausente cuando requestId está presente: una ocurrencia del sistema de
+  // calendario no tiene "cadence" (eso vive en CheckinSchedule) — el backend
+  // ya no la inventa, ver cadenceLabel() en my-checkins.page.ts.
+  cadence?: CheckinCadence;
   trainer: { name: string; lastname: string } | null;
 }
 

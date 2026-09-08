@@ -24,6 +24,13 @@
           <ion-icon name="create-outline" color="primary"></ion-icon>
         </button>
         <button
+          *ngIf="canEditScore"
+          class="action-button ripple-effect"
+          (click)="editScore()"
+        >
+          <ion-icon name="speedometer-outline" color="primary"></ion-icon>
+        </button>
+        <button
           class="action-button ripple-effect"
           *ngIf="!isCreateMode"
           [disabled]="isFavoritingExercise"

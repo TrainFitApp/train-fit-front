@@ -40,10 +40,15 @@
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
       [disabled]="!cell.date"
       [style.--fill-opacity]="fillOpacity(cell)"
+      [style.--split-color]="cell.projected?.splitId ? splitColorMap.get(cell.projected.splitId) : null"
       [title]="cellTitle(cell)"
       (click)="selectDay(cell)"
       (mouseenter)="onCellHover(cell)"
     >
+      <!-- Barra fina de color por split — capa independiente del relleno de
+           cumplimiento (--fill-opacity, verde): color = identidad/split,
+           opacidad = resultado. Mismo recorte que .nutrition-calendar__phase-bar. -->
+      <span class="training-calendar__split-bar" *ngIf="cell.projected?.splitId"></span>
       <span class="training-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
       <span class="training-calendar__monogram" *ngIf="cell.completed || cell.projected" [class.is-done]="cell.completed">{{
         monogram(cell)
@@ -52,7 +57,13 @@
   </div>
 
   <div class="training-calendar__legend">
-    <span class="legend-item"><span class="legend-swatch legend-swatch--projected-training"></span>Entreno previsto</span>
+    <span class="legend-item" *ngFor="let split of visibleSplitLegend">
+      <span class="legend-swatch" [style.background]="split.color"></span>
+      {{ split.label }}
+    </span>
+    <span class="legend-item" *ngIf="!visibleSplitLegend.length">
+      <span class="legend-swatch legend-swatch--projected-training"></span>Entreno previsto
+    </span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--projected-rest"></span>Descanso previsto</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--session"></span>Completado (más oscuro = más cumplimiento)</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--range"></span>Dentro del rango</span>

@@ -172,6 +172,20 @@
   }
 }
 
+// Barra de color por split — capa independiente del relleno de cumplimiento
+// (::before, verde): color = identidad de split, opacidad = resultado. Misma
+// receta que .nutrition-calendar__phase-bar.
+.training-calendar__split-bar {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  z-index: 1;
+  border-radius: 0 0 2px 2px;
+  background: var(--split-color);
+}
+
 .training-calendar__day-number {
   position: relative;
   z-index: 1;

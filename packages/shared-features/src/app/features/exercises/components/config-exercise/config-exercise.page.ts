@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChildren } from "@angular/core";
+import { Component, OnDestroy, OnInit, Optional, QueryList, ViewChildren } from "@angular/core";
 import { TranslateService } from "@ngx-translate/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -33,6 +33,7 @@ import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
 import { ExerciseService } from "src/app/core/services/exercise/exercise.service";
+import { ExerciseScoreEditHandler } from "src/app/core/services/exercise/exercise-score-edit-handler";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
 import { SearchFilterGroupExercises } from "src/app/shared/models/filterGroup";
 import { FilterInputPage } from "src/app/shared/components/filter-input/filter-input.page";
@@ -132,6 +133,27 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   public get exerciseIndex(): number {
     if (!this.workout?.exercises || !this.customExercise?._id) return -1;
     return this.workout.exercises.findIndex((e) => e._id === this.customExercise._id);
+  }
+
+  // Puntuar ejercicios ("Mi método") es exclusivo de train-fit-trainers —
+  // ver exercise-score-edit-handler.ts para por qué esto es un servicio
+  // inyectado opcionalmente en vez de un flag booleano: la implementación
+  // real (ExerciseScoresApiService, ScoreEditorModalComponent) solo existe
+  // en esa app y no se puede importar aquí sin romper la build de
+  // train-fit-front/train-fit-management. Se pidió poder editar
+  // puntuaciones desde aquí (Planner → buscar ejercicio → configurar) y no
+  // solo desde "Mi método", para no tener que salir de la rutina a medias.
+  public get scorableExercise(): Exercise | null {
+    return this.customExercise?.exercise || this.exercise || null;
+  }
+
+  public get canEditScore(): boolean {
+    return !this.isCreateMode && !!this.scoreEditHandler && !!this.scorableExercise?._id;
+  }
+
+  public editScore(): void {
+    if (!this.scorableExercise) return;
+    this.scoreEditHandler?.editScore(this.scorableExercise);
   }
 
   public get isCurrentExerciseCardio(): boolean {
@@ -271,7 +293,8 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
     private billingService: BillingService,
     private navigationService: NavigationService,
     private translate: TranslateService,
-    private pinnedExerciseNoteService: PinnedExerciseNoteService
+    private pinnedExerciseNoteService: PinnedExerciseNoteService,
+    @Optional() private scoreEditHandler: ExerciseScoreEditHandler | null
   ) {}
 
   public ngOnInit(): void {

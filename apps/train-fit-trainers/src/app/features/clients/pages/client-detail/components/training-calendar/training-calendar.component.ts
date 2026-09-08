@@ -1,8 +1,23 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
 
 interface ProjectedDay {
   isPlannedRestDay: boolean;
   name: string;
+  // 2026-09 (rediseño visual Plan->Entrenamiento) — derivado por el padre
+  // cruzando workoutId (ya presente en RoutineScheduleDay) contra
+  // splits[].workouts[] de la tabla en uso. null en días sin match (p.ej.
+  // descanso, o mientras faltan datos por llegar).
+  splitId: string | null;
+  splitName: string | null;
+}
+
+// Leyenda dinámica de splits visibles en el mes actual — mismo patrón que
+// PhaseLegendItem en <app-nutrition-calendar>.
+export interface SplitLegendItem {
+  id: string;
+  color: string;
+  label: string;
 }
 
 // Movimiento adherencia-por-fase (2026-09) — antes "hecho" era un booleano
@@ -117,15 +132,43 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   public activePreset: number | null = 90;
   public hoverDate: string | null = null;
 
+  // Color por split/microciclo + leyenda dinámica — mismo patrón que
+  // phaseColorMap/visiblePhaseLegend en <app-nutrition-calendar>, pero
+  // derivado de @Input() projectedDays en vez de una llamada a API propia.
+  public splitColorMap = new Map<string, string>();
+  public visibleSplitLegend: SplitLegendItem[] = [];
+
   public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectedDays']) {
+      this.splitColorMap = this.buildSplitColorMap();
+    }
     if (changes['completedDays'] || changes['projectedDays']) {
       this.cells = this.applyOverlays(this.cells.length ? this.cells : buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     }
   }
 
   public ngOnInit(): void {
+    this.splitColorMap = this.buildSplitColorMap();
     this.cells = this.applyOverlays(buildMonthGrid(this.monthDate.getUTCFullYear(), this.monthDate.getUTCMonth()));
     this.selectPresetRange(this.activePreset ?? 90);
+  }
+
+  // Orden por fecha de primera aparición del split en projectedDays — mismo
+  // criterio que buildPhaseColorMap ya asume para fases (ver
+  // phase-color.util.ts), así el color no cambia de un mes a otro dentro de
+  // la misma sesión.
+  private buildSplitColorMap(): Map<string, string> {
+    const orderedIds: string[] = [];
+    const seen = new Set<string>();
+    const entries = Array.from(this.projectedDays.entries()).sort(([dateA], [dateB]) =>
+      dateA.localeCompare(dateB)
+    );
+    for (const [, day] of entries) {
+      if (!day.splitId || seen.has(day.splitId)) continue;
+      seen.add(day.splitId);
+      orderedIds.push(day.splitId);
+    }
+    return buildPhaseColorMap(orderedIds);
   }
 
   public get monthLabel(): string {
@@ -148,11 +191,31 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
   }
 
   private applyOverlays(cells: TrainingCalendarCell[]): TrainingCalendarCell[] {
-    return cells.map((cell) => ({
+    const mapped = cells.map((cell) => ({
       ...cell,
       completed: (cell.date && this.completedDays.get(cell.date)) || null,
       projected: (cell.date && this.projectedDays.get(cell.date)) || null,
     }));
+    this.visibleSplitLegend = this.buildVisibleSplitLegend(mapped);
+    return mapped;
+  }
+
+  // Deduplica por id conservando el orden de aparición en el mes visible —
+  // mismo patrón que buildVisiblePhaseLegend en <app-nutrition-calendar>.
+  private buildVisibleSplitLegend(cells: TrainingCalendarCell[]): SplitLegendItem[] {
+    const seen = new Set<string>();
+    const legend: SplitLegendItem[] = [];
+    for (const cell of cells) {
+      const splitId = cell.projected?.splitId;
+      if (!splitId || seen.has(splitId)) continue;
+      seen.add(splitId);
+      legend.push({
+        id: splitId,
+        color: this.splitColorMap.get(splitId) ?? PHASE_COLORS[0],
+        label: cell.projected?.splitName || 'Microciclo',
+      });
+    }
+    return legend;
   }
 
   // Mismo patrón que <app-nutrition-calendar>#cellFillOpacity: tinte, nunca

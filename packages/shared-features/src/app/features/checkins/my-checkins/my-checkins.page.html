@@ -26,7 +26,6 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <div class="push-setup" *ngIf="push.native && !push.enabled"><p>Recibe un aviso cuando tengas un check-in disponible.</p><button type="button" class="submit-button" (click)="enablePush()">Activar avisos en el móvil</button><p role="status" *ngIf="pushMessage">{{ pushMessage }}</p></div>
     <p class="empty-hint" *ngIf="!configs.length">
       Ninguno de tus profesionales te ha pedido un check-in todavía.
     </p>

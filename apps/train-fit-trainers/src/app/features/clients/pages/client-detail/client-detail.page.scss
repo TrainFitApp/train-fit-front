@@ -317,6 +317,16 @@
   }
 }
 
+// Agrupa 2+ acciones dentro de un .section-row (p.ej. "Asignar
+// rutina"/"Programar" en Fases de entrenamiento) para que se queden juntas
+// a la derecha en vez de repartirse por el space-between del padre.
+.section-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
 // TASK-045 — cabecera clicable del historial de nutrición (colapsable).
 .nutrition-history-toggle {
   cursor: pointer;
@@ -391,18 +401,12 @@
   gap: var(--tf-space-6);
 }
 
+// 2026-09 — misma fila horizontal que "Fases del plan" de Nutrición
+// (.plan-track/.active-plan-card/.next-phase-card, definidas más abajo):
+// ya no hace falta ningún override aquí, la tarjeta de entrenamiento usa la
+// regla base compartida con nutrición tal cual.
 .training-phases {
   margin-bottom: var(--tf-space-5);
-
-  .active-plan-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 20px;
-    align-items: center;
-    .goal-header { grid-column: 1; min-width: 0; }
-    .history-subtitle { grid-column: 1; margin: 4px 0 0; }
-    .open-planner-btn { grid-column: 2; grid-row: 1 / 3; margin-top: 0; }
-  }
 
   .nutrition-history-toggle {
     width: 100%;
@@ -411,19 +415,65 @@
     background: transparent;
     color: var(--tf-text-secondary);
   }
+}
 
-  @media (max-width: 700px) {
-    .active-plan-card {
-      grid-template-columns: minmax(0, 1fr);
-      .open-planner-btn { grid-column: 1; grid-row: auto; margin-top: 10px; }
-    }
-    .next-phase-row .list-card {
-      display: grid;
-      grid-template-columns: 18px minmax(0, 1fr);
-      gap: 6px 8px;
-      .list-card-title { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
-      .scheduled-badge { grid-column: 2; justify-self: start; white-space: normal; }
-    }
+// A diferencia de .next-phase-card (nutrición: la tarjeta entera es un
+// <button> que abre la plantilla), aquí las acciones son botones propios
+// dentro de la tarjeta ("Cambiar fecha"/"Quitar fase") — la tarjeta en sí
+// no es clicable, así que se deshace el cursor:pointer heredado.
+.next-phase-card--routine {
+  cursor: default;
+}
+
+// Cabecera de la fase EN USO — mismo lenguaje visual que .active-plan-header
+// de Nutrición (icono + nombre/fecha apilados en una sola fila), pero sin
+// convertir la fila en botón: la única acción de la cabecera es "Quitar
+// fase" (icono a la derecha); "Abrir en el Planificador" ya es su propio
+// botón, debajo. Antes reutilizaba .goal-header (pensado para filas de
+// lista estrechas) con nombre+badge+botón en una sola línea apretada — de
+// ahí que se viera desalineada dentro de una card de 320px.
+.routine-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  > ion-icon:first-child {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+}
+
+.routine-phase-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.routine-phase-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.routine-phase-range {
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+}
+
+.next-phase-card__actions {
+  display: flex;
+  gap: var(--tf-space-2);
+  margin-top: auto;
+  padding-top: var(--tf-space-2);
+
+  .bulk-apply-btn {
+    flex: 1;
   }
 }
 

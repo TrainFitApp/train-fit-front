@@ -18,7 +18,6 @@ def capacitor_pods
   pod 'CapacitorKeyboard', :path => '../../../../node_modules/@capacitor/keyboard'
   pod 'CapacitorLocalNotifications', :path => '../../../../node_modules/@capacitor/local-notifications'
   pod 'CapacitorNetwork', :path => '../../../../node_modules/@capacitor/network'
-  pod 'CapacitorPushNotifications', :path => '../../../../node_modules/@capacitor/push-notifications'
   pod 'CapgoCapacitorNavigationBar', :path => '../../../../node_modules/@capgo/capacitor-navigation-bar'
   pod 'CapgoCapacitorSocialLogin', :path => '../../../../node_modules/@capgo/capacitor-social-login'
   pod 'RevenuecatPurchasesCapacitor', :path => '../../../../node_modules/@revenuecat/purchases-capacitor'

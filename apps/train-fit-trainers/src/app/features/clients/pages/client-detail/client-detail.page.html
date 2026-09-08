@@ -204,92 +204,136 @@
           <section class="training-phases" aria-label="Fases de entrenamiento">
           <div class="section-row">
             <h2 class="section-heading">Fases de entrenamiento</h2>
-            <button type="button" class="add-button" (click)="openApplyRoutinePhaseModal()">
-              <ion-icon name="calendar-outline"></ion-icon>
-              Programar
-            </button>
-          </div>
-
-          <div class="nutrition-card active-plan-card" *ngIf="currentRoutinePhase as phase">
-            <div class="goal-header">
-              <ion-icon name="checkmark-circle" color="success"></ion-icon>
-              <span class="list-card-title">{{ phase.tableName }}</span>
-              <span class="in-use-badge">En uso</span>
-              <!-- Borrado coherente de fases/rutinas — quitar la fase EN USO
-                   ahora mismo ya es una acción válida (el backend restaura
-                   la anterior, o limpia tableInUse si no había ninguna):
-                   mismo botón/handler que las demás filas del historial. -->
-              <button
-                class="bulk-apply-btn bulk-apply-btn--danger"
-                title="Quitar fase"
-                aria-label="Quitar fase"
-                [disabled]="cancellingRoutinePhaseId === phase._id"
-                (click)="confirmCancelRoutinePhase(phase, $event)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
-                <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
+            <div class="section-row-actions">
+              <!-- Misma acción que "Asignar rutina" en Rutinas, más abajo
+                   (openRoutinePanel) — atajo arriba para no tener que bajar
+                   a por la más habitual cuando el cliente aún no tiene
+                   ninguna rutina creada. -->
+              <button type="button" class="add-button" (click)="openRoutinePanel()">
+                <ion-icon name="add-outline"></ion-icon>
+                Asignar rutina
+              </button>
+              <button type="button" class="add-button" (click)="openApplyRoutinePhaseModal()">
+                <ion-icon name="calendar-outline"></ion-icon>
+                Programar
               </button>
             </div>
-            <p class="history-subtitle">
-              Desde el {{ phase.startDate | date: 'd MMM y' }}
-              <ng-container *ngIf="phase.estimatedEndDate">
-                · Fin previsto el {{ phase.estimatedEndDate | date: 'd MMM y' }}
-              </ng-container>
-            </p>
+          </div>
 
-            <!-- 2026-09 — el Planificador de la rutina EN USO estaba solo
-                 detrás del icono de una fila de la lista de rutinas, más
-                 abajo: la acción más frecuente del entrenador (abrir la
-                 rutina que el cliente está haciendo ahora) era la más
-                 escondida. Los accesos por fila siguen donde estaban; esto
-                 es un atajo directo, no un sustituto. -->
-            <button type="button" class="open-planner-btn" (click)="openPlannerForCurrentPhase()">
-              <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
-              <span>Abrir en el Planificador</span>
-              <ion-icon name="chevron-forward-outline" class="open-planner-chevron" aria-hidden="true"></ion-icon>
+          <!-- Misma fila horizontal que "Fases del plan" de Nutrición
+               (.plan-track/.active-plan-card/.next-phase-card, ver
+               client-detail.page.scss) — antes esto era una tarjeta vertical
+               distinta + filas de lista con badge de texto, sin color. Los
+               handlers de cada botón no cambian, solo el contenedor. -->
+          <div class="plan-track" *ngIf="currentRoutinePhase as phase">
+            <div
+              class="active-plan-card"
+              [style.--phase-color]="routinePhaseColor(phase)"
+              [style.--phase-bg]="routinePhaseSoftBackground(phase)"
+            >
+              <!-- Mismo lenguaje que .plan-phase-order--current de Nutrición:
+                   el color ya lo lleva la card entera (border/fondo), así que
+                   aquí solo hace falta la señal de "esto es lo vigente" —
+                   sin repetirla también en un badge de texto aparte. Solo se
+                   muestra si hay algo con lo que distinguirla (>1 fase). -->
+              <span class="plan-phase-order plan-phase-order--current" *ngIf="routinePhases.length > 1">
+                <ion-icon name="flash" aria-hidden="true"></ion-icon>
+                En curso
+              </span>
+              <!-- Icono + nombre/fecha apilados en una sola fila — mismo
+                   patrón que .active-plan-header de Nutrición (ver ahí), pero
+                   sin convertir la fila en botón: aquí la única acción de la
+                   cabecera es "Quitar fase" (icono a la derecha); "Abrir en
+                   el Planificador" ya es su propio botón, debajo. -->
+              <div class="routine-phase-header">
+                <ion-icon name="checkmark-circle" color="success" aria-hidden="true"></ion-icon>
+                <div class="routine-phase-info">
+                  <span class="routine-phase-name">{{ phase.tableName }}</span>
+                  <span class="routine-phase-range">
+                    Desde el {{ phase.startDate | date: 'd MMM y' }}
+                    <ng-container *ngIf="phase.estimatedEndDate">
+                      · Fin previsto el {{ phase.estimatedEndDate | date: 'd MMM y' }}
+                    </ng-container>
+                  </span>
+                </div>
+                <!-- Borrado coherente de fases/rutinas — quitar la fase EN USO
+                     ahora mismo ya es una acción válida (el backend restaura
+                     la anterior, o limpia tableInUse si no había ninguna):
+                     mismo botón/handler que las demás filas del historial. -->
+                <button
+                  class="bulk-apply-btn bulk-apply-btn--danger"
+                  title="Quitar fase"
+                  aria-label="Quitar fase"
+                  [disabled]="cancellingRoutinePhaseId === phase._id"
+                  (click)="confirmCancelRoutinePhase(phase, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                  <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
+                </button>
+              </div>
+
+              <!-- 2026-09 — el Planificador de la rutina EN USO estaba solo
+                   detrás del icono de una fila de la lista de rutinas, más
+                   abajo: la acción más frecuente del entrenador (abrir la
+                   rutina que el cliente está haciendo ahora) era la más
+                   escondida. Los accesos por fila siguen donde estaban; esto
+                   es un atajo directo, no un sustituto. -->
+              <button type="button" class="open-planner-btn" (click)="openPlannerForCurrentPhase()">
+                <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+                <span>Abrir en el Planificador</span>
+                <ion-icon name="chevron-forward-outline" class="open-planner-chevron" aria-hidden="true"></ion-icon>
+              </button>
+            </div>
+
+            <!-- Tarea 4bis (2026-09) — tarjeta accionable (título + badge +
+                 "Cambiar fecha"/"Quitar"): una fase programada admite acción
+                 (quitarla si el entrenador se equivoca, o si el plan cambia
+                 por lesión), no es un dato histórico cerrado. -->
+            <ng-container *ngFor="let phase of routinePhases; trackBy: trackByRoutinePhaseId">
+              <div
+                class="next-phase-card next-phase-card--routine"
+                *ngIf="!isCurrentRoutinePhase(phase)"
+                [style.--phase-color]="routinePhaseColor(phase)"
+              >
+                <h4 class="next-phase-card__name">{{ phase.tableName }}</h4>
+                <p class="next-phase-card__range">
+                  Programada · {{ phase.startDate | date: 'd MMM' }}
+                  <ng-container *ngIf="phase.estimatedEndDate">
+                    <br />→ {{ phase.estimatedEndDate | date: 'd MMM' }}
+                  </ng-container>
+                </p>
+                <div class="next-phase-card__actions">
+                  <button
+                    class="bulk-apply-btn"
+                    title="Cambiar fecha"
+                    aria-label="Cambiar fecha"
+                    [disabled]="cancellingRoutinePhaseId === phase._id"
+                    (click)="openRescheduleRoutinePhaseModal(phase, $event)"
+                  >
+                    <ion-icon name="calendar-outline"></ion-icon>
+                  </button>
+                  <button
+                    class="bulk-apply-btn bulk-apply-btn--danger"
+                    title="Quitar fase programada"
+                    aria-label="Quitar fase programada"
+                    [disabled]="cancellingRoutinePhaseId === phase._id"
+                    (click)="confirmCancelRoutinePhase(phase, $event)"
+                  >
+                    <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
+                    <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+
+            <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyRoutinePhaseModal()">
+              <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+              <span>Programar fase</span>
             </button>
           </div>
           <p class="empty-hint" *ngIf="routineHistoryState === 'loaded' && !currentRoutinePhase">
             Este cliente todavía no tiene ninguna rutina programada.
           </p>
-
-          <!-- Tarea 4bis (2026-09) — fila accionable (icono + título + badge
-               + botón "Quitar"): una fase programada admite acción
-               (quitarla si el entrenador se equivoca, o si el plan cambia
-               por lesión), no es un dato histórico cerrado. -->
-          <ng-container *ngFor="let phase of routinePhases; trackBy: trackByRoutinePhaseId">
-            <div class="routine-header-row next-phase-row" *ngIf="!isCurrentRoutinePhase(phase)">
-              <div class="list-card">
-                <ion-icon name="time-outline" color="medium"></ion-icon>
-                <span class="list-card-title">{{ phase.tableName }}</span>
-                <span class="scheduled-badge">
-                  Programada · {{ phase.startDate | date: 'd MMM' }}
-                  <ng-container *ngIf="phase.estimatedEndDate">
-                    → {{ phase.estimatedEndDate | date: 'd MMM' }}
-                  </ng-container>
-                </span>
-              </div>
-              <button
-                class="bulk-apply-btn"
-                title="Cambiar fecha"
-                aria-label="Cambiar fecha"
-                [disabled]="cancellingRoutinePhaseId === phase._id"
-                (click)="openRescheduleRoutinePhaseModal(phase, $event)"
-              >
-                <ion-icon name="calendar-outline"></ion-icon>
-              </button>
-              <button
-                class="bulk-apply-btn bulk-apply-btn--danger"
-                title="Quitar fase programada"
-                aria-label="Quitar fase programada"
-                [disabled]="cancellingRoutinePhaseId === phase._id"
-                (click)="confirmCancelRoutinePhase(phase, $event)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
-                <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
-              </button>
-            </div>
-          </ng-container>
 
           <button type="button" class="section-row nutrition-history-toggle" [attr.aria-expanded]="showRoutineHistory" (click)="toggleRoutineHistory()">
             <h3 class="subsection-heading">Historial de rutinas</h3>

@@ -1,7 +1,6 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CheckinPushService } from 'src/app/core/services/notifications/checkin-push.service';
 import {
   CHECKIN_FIELDS_BY_KEY,
   CheckinField,
@@ -34,9 +33,7 @@ const CADENCE_LABELS: Record<CheckinCadence, string> = {
 export class MyCheckinsPage implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
-  public readonly push = inject(CheckinPushService);
   private requestedId: string | null = null;
-  public pushMessage = '';
   public state: ViewState = 'loading';
   public configs: MyCheckinConfig[] = [];
 
@@ -71,11 +68,6 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public configKey(config: MyCheckinConfig): string { return config.requestId || config.trainerId; }
-
-  public async enablePush(): Promise<void> {
-    try { this.pushMessage = await this.push.enable() ? 'Registro solicitado. Los avisos se activarán cuando el dispositivo quede conectado.' : 'Activa las notificaciones de TrainFit en los ajustes del móvil.'; }
-    catch { this.pushMessage = 'No se pudieron activar los avisos. Puedes seguir viendo tus check-ins en la app.'; }
-  }
 
   // Antes volvía a '/tabs' (defaultHref del ion-back-button nativo que
   // sustituye este botón) — con el único punto de entrada ahora siendo la
@@ -160,7 +152,7 @@ export class MyCheckinsPage implements OnInit {
 
   public cadenceLabel(config: MyCheckinConfig): string {
     if (config.requestId) return config.closesAt ? `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}` : 'Solicitud puntual';
-    return CADENCE_LABELS[config.cadence] || config.cadence;
+    return CADENCE_LABELS[config.cadence!] || config.cadence!;
   }
 
   // Los campos del catálogo y las preguntas propias del coach salen por la

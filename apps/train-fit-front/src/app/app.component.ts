@@ -13,7 +13,6 @@ import { ThemeService } from 'src/app/core/services/util/theme.service';
 import { WorkoutService } from 'src/app/core/services/workout/workout.service';
 import { WorkoutNotificationService } from 'src/app/core/services/workout-notification/workout-notification.service';
 import { LiveActivityService } from 'src/app/core/services/live-activity/live-activity.service';
-import { CheckinPushService } from 'src/app/core/services/notifications/checkin-push.service';
 
 register();
 @Component({
@@ -37,8 +36,7 @@ export class AppComponent implements OnDestroy {
     private notificationService: NotificationService,
     private workoutService: WorkoutService,
     private workoutNotificationService: WorkoutNotificationService,
-    private liveActivityService: LiveActivityService,
-    private checkinPush: CheckinPushService
+    private liveActivityService: LiveActivityService
   ) {
     void this.initializeApp();
   }
@@ -54,7 +52,6 @@ export class AppComponent implements OnDestroy {
     void this.notificationService.initialize();
     void this.initWorkoutSetNotifications();
     this.initSessionTracking();
-    void this.checkinPush.initialize().catch(() => console.warn('[checkins] Push no disponible en este dispositivo'));
     this.routeOnStartup();
     this.restoreSessionOnStartup();
     this.initForegroundBillingRefresh();
