@@ -225,30 +225,27 @@ export class PautadoItemViewComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.quantity = quantity;
+        // Se escribe sobre el MISMO objeto que pinta la fila de la comida
+        // (llega por componentProps, por referencia): sin esto el delta
+        // "150g +5" de la lista seguiría con la cantidad anterior hasta la
+        // siguiente recarga del día.
         if (this.kind === 'product' && this.product) {
           this.product.quantity = quantity;
-          this.macros = this.customProductService.getMacros(this.product);
-          this.extraNutrition = this.buildProductExtraNutrition(this.product);
         } else if (this.kind === 'recipe' && this.recipeInstance) {
           this.recipeInstance.quantity = quantity;
-          const recipe =
-            typeof this.recipeInstance.recipe === 'object' ? this.recipeInstance.recipe : null;
-          if (recipe) {
-            const totals = this.recipeService.calculateCustomRecipeTotals(
-              recipe,
-              this.recipeInstance
-            );
-            this.macros = totals.portionMacros;
-            this.extraNutrition = this.buildRecipeExtraNutrition(
-              totals.ingredients,
-              totals.portionRatio
-            );
-          }
         }
         this.ionicUtilService.showToast({
           message: this.translate.instant('MEAL.QUANTITY_UPDATED'),
           duration: 800,
         });
+        // Guardar la cantidad es lo único que se puede hacer aquí, así que
+        // guardar ES terminar: quedarse en la vista obligaba a cerrar a mano
+        // una pantalla que ya no tenía nada pendiente. El toast se ve igual,
+        // vive fuera del modal.
+        //
+        // Por eso tampoco se recalculan aquí macros/extraNutrition: eran
+        // para repintar esta vista, que deja de estar delante.
+        this.dismiss();
       },
       error: () => {
         this.saving = false;
