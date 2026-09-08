@@ -61,6 +61,7 @@ export class CheckinTemplatesPage implements OnInit {
   // --- Panel: crear/editar plantilla ---
   public showEditPanel = false;
   public editingId: string | null = null;
+  public editingTemplate: CheckinTemplateDefinition | null = null;
   public formName = '';
   public formFields = new Set<string>();
   public formCadence: CheckinCadence = 'weekly';
@@ -134,6 +135,7 @@ export class CheckinTemplatesPage implements OnInit {
   // --- Crear/editar ---
   public openCreatePanel(): void {
     this.editingId = null;
+    this.editingTemplate = null;
     this.formName = '';
     this.formFields = new Set();
     this.formCadence = 'weekly';
@@ -143,6 +145,9 @@ export class CheckinTemplatesPage implements OnInit {
 
   public openEditPanel(template: CheckinTemplateDefinition): void {
     this.editingId = template._id;
+    // La plantilla entera y no solo su id: el botón de borrar del pie del
+    // panel necesita su nombre para el diálogo de confirmación.
+    this.editingTemplate = template;
     this.formName = template.name;
     this.formFields = new Set(template.enabledFields);
     this.formCadence = template.cadence;
@@ -213,6 +218,7 @@ export class CheckinTemplatesPage implements OnInit {
 
   public closeEditPanel(): void {
     this.showEditPanel = false;
+    this.editingTemplate = null;
   }
 
   public toggleField(key: string): void {
@@ -293,6 +299,9 @@ export class CheckinTemplatesPage implements OnInit {
     this.checkinTemplatesApi.delete(template._id).subscribe({
       next: () => {
         this.ionicUtilService.showToast({ message: 'Plantilla borrada', duration: 2000 });
+        // Borrada desde el propio panel: dejarlo abierto sería seguir
+        // editando algo que ya no existe.
+        if (this.editingId === template._id) this.closeEditPanel();
         this.load();
       },
       error: () => {

@@ -91,9 +91,17 @@
 
   <!-- Panel: crear/editar plantilla -->
   <div class="panel-backdrop" *ngIf="showEditPanel" (click)="closeEditPanel()"></div>
-  <div class="panel-sheet panel-sheet--tall" *ngIf="showEditPanel">
+  <div class="panel-sheet panel-sheet--tall" *ngIf="showEditPanel" role="dialog" aria-modal="true">
     <div class="panel-handle"></div>
-    <h3 class="panel-title">{{ editingId ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
+    <!-- El aspa es el único cierre visible arriba cuando el panel se
+         lateraliza: ahí desaparece el asa de arrastre (ver
+         tf-side-panel-handle). -->
+    <header class="panel-header">
+      <h3 class="panel-title">{{ editingId ? 'Editar plantilla' : 'Nueva plantilla' }}</h3>
+      <button type="button" class="panel-close" (click)="closeEditPanel()" aria-label="Cerrar">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
 
     <div class="input-wrapper">
       <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
@@ -248,13 +256,32 @@
 
     <p class="save-error" *ngIf="customQuestionsError">{{ customQuestionsError }}</p>
 
-    <button
-      class="submit-button"
-      (click)="saveTemplate()"
-      [disabled]="!formName.trim() || isSaving"
-    >
-      <span *ngIf="!isSaving">{{ editingId ? 'Guardar cambios' : 'Crear plantilla' }}</span>
-      <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
-    </button>
+    <!-- Pegado al fondo del panel: el formulario crece con cada grupo de
+         campos y cada pregunta propia, y con el botón al final del flujo
+         había que desplazar hasta abajo del todo para guardar. -->
+    <div class="panel-footer">
+      <button
+        class="submit-button"
+        (click)="saveTemplate()"
+        [disabled]="!formName.trim() || isSaving"
+      >
+        <span *ngIf="!isSaving">{{ editingId ? 'Guardar cambios' : 'Crear plantilla' }}</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+
+      <!-- Borrar desde aquí y no solo desde la papelera de la tarjeta:
+           editando es cuando se decide que la plantilla ya no sirve, y hasta
+           ahora había que cerrar el panel y buscarla otra vez en la lista.
+           Solo al editar: una plantilla que aún no existe no se borra. -->
+      <button
+        type="button"
+        class="panel-delete-button"
+        *ngIf="editingId && editingTemplate"
+        (click)="confirmDelete(editingTemplate)"
+      >
+        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        Eliminar plantilla
+      </button>
+    </div>
   </div>
 </ion-content>

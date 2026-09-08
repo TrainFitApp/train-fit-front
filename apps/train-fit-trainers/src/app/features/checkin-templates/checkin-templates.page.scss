@@ -272,26 +272,107 @@
 
 // --- Panel (bottom sheet) ---
 .panel-backdrop {
-  @include tf-panel-backdrop;
+  @include tf-side-panel-backdrop;
 }
 
+// Panel lateral derecho en escritorio (hoja inferior en móvil, ver
+// tf-side-panel). Este editor es de los más largos de la app —cadencia, seis
+// grupos de campos y hasta N preguntas propias con sus opciones— y a 88vh de
+// alto ocupaba prácticamente toda la pantalla sin ser una página: tapaba la
+// lista de plantillas que se está copiando o comparando mientras se rellena.
+//
+// 480px: los campos son filas de un solo control (interruptor o texto), no
+// necesitan el ancho del editor de intercambios.
 .panel-sheet {
-  @include tf-panel-sheet;
+  @include tf-side-panel(480px);
 
+  // El pie se queda abajo aunque el formulario sea corto, y el contenido
+  // desplaza por dentro (mismo montaje que supplements-panel).
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+
+  // --tall solo tenía sentido como hoja inferior: al lateralizar, el alto lo
+  // fija el propio panel (top/bottom 0). Se queda por si vuelve a usarse en
+  // móvil, donde el mixin sigue siendo bottom sheet.
   &--tall {
-    max-height: 88vh;
+    @media (max-width: 767px) {
+      max-height: 88vh;
+    }
   }
 }
 
 .panel-handle {
-  @include tf-panel-handle;
+  @include tf-side-panel-handle;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-3);
 }
 
 .panel-title {
+  flex: 1;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--tf-text);
-  margin: 0 0 4px;
+  margin: 0;
+}
+
+.panel-close {
+  @include tf-icon-button;
+  flex-shrink: 0;
+}
+
+// Guardar y borrar, pegados al fondo del panel.
+.panel-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-4);
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+// Borrar no compite con Guardar: sin relleno propio y en rojo solo el texto.
+// Es la acción destructiva de la pantalla y va debajo, no al lado, para que
+// no se pulse por error al apuntar al botón principal.
+.panel-delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--tf-radius-md);
+  color: var(--tf-danger);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+  }
 }
 
 .input-wrapper {
@@ -423,7 +504,7 @@
   @include tf-gradient-button;
   width: 100%;
   height: 50px;
-  margin-top: 4px;
+  margin-top: 0;
   font-size: 0.95rem;
   display: flex;
   align-items: center;
