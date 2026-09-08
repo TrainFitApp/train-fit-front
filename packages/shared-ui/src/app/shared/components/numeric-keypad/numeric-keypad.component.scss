@@ -1,0 +1,91 @@
+// Teclado a medida para app-numeric-input (peso/reps/velocidad/distancia)
+// — sustituye al teclado nativo del sistema: sin banner de aviso, sin
+// +/-2.5, con los colores de la app en vez de los azules de la referencia.
+// Alto total: 4 filas * 48px + 3 gaps * 6px + 8px padding arriba + 8px
+// abajo = 226px (sin contar el safe-area) — mantenerlo en sync con
+// ion-content.keypad-open en current-workout.page.scss.
+.numeric-keypad {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // Por encima de .rest-timer-bar (z-index 1000, current-workout.page.scss):
+  // si coinciden, gana el teclado porque es la interacción activa.
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #141414;
+  border-top: 1px solid #252525;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.35);
+  // Siempre montado (antes *ngIf) para poder animar la SALIDA — con *ngIf
+  // Angular lo destruye al instante, sin margen para transición. Oculto
+  // fuera de pantalla en vez de display:none, que no es animable.
+  transform: translateY(100%);
+  transition: transform 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+
+  &--visible {
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+.numeric-keypad__row {
+  display: flex;
+  gap: 6px;
+}
+
+.numeric-keypad__key {
+  flex: 1;
+  height: 48px;
+  border-radius: 10px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  color: var(--text-primary, #ffffff);
+  font-size: 20px;
+  font-weight: 600;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:active {
+    background: #272727;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--text-secondary);
+  }
+}
+
+// Ocultar teclado, +1, -1: acciones secundarias de la fila, un pelín más
+// apagadas que los dígitos para no competir con ellos visualmente.
+.numeric-keypad__key--muted {
+  background: #1a1a1a;
+  color: var(--text-secondary);
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// Intro/siguiente: única acción "positiva" del teclado, en el color de
+// acento de la app en vez del azul de la referencia.
+.numeric-keypad__key--accent {
+  background: rgba(var(--ion-color-primary-rgb), 0.14);
+  border-color: rgba(var(--ion-color-primary-rgb), 0.35);
+  color: var(--ion-color-primary);
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary);
+  }
+
+  &:active {
+    background: rgba(var(--ion-color-primary-rgb), 0.22);
+  }
+}

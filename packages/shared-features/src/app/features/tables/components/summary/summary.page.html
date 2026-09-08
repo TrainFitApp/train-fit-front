@@ -40,7 +40,9 @@
         <ion-icon name="chevron-forward-outline" class="premium-banner__arrow"></ion-icon>
       </button>
 
-      <!-- Botones de navegación principales -->
+      <!-- Buscar/crear rutina: siempre arriba del todo, haya o no rutina
+           activa (antes bajaban a secundarias al final de la página con
+           rutina activa — se quita esa segunda copia de más abajo). -->
       <div class="nav-buttons">
         <button class="nav-btn nav-btn--search" (click)="openSearchTables()">
           <ion-icon name="search-outline" class="nav-icon"></ion-icon>
@@ -52,19 +54,104 @@
         </button>
       </div>
 
-      <!-- Rutina en Uso -->
-      <div class="section current-routine">
-        <div *ngIf="tableInUse; else notTableInUse">
-          <div class="bottom-cards-row">
-            <div class="bottom-card" (click)="openMesocycle(); $event.stopPropagation()">
-              <ion-icon name="calendar-outline" class="bottom-card__icon"></ion-icon>
-              <span class="bottom-card__label">{{ 'TABLES.ROUTINE_IN_USE' | translate }}</span>
-            </div>
-            <div class="bottom-card bottom-card--orange" (click)="goToStatistics(); $event.stopPropagation()">
-              <ion-icon name="bar-chart-outline" class="bottom-card__icon"></ion-icon>
-              <span class="bottom-card__label">{{ 'TABLES.STATISTICS' | translate }}</span>
+      <!-- Card "Continuar" (Summary Screen Redesign): icono + nombre del
+           día + progreso + ejercicios completados, tarjeta ENTERA como
+           botón de reanudar (mismo destino, selectWorkout()). Estructura
+           calcada del diseño (icon-badge + columna de texto + chevron como
+           HERMANOS en fila, no el icono anidado dentro del título). -->
+      <ng-container *ngIf="tableInUse && workout && user.workoutInUse">
+        <span class="continue-label">{{ 'TABLES.CONTINUE_LABEL' | translate }}</span>
+        <div class="continue-card-group">
+          <button type="button" class="continue-card" (click)="selectWorkout()">
+            <!-- Icono info en vez de barbell: pulsarlo despliega el resumen
+                 de ejercicios de abajo en vez de reanudar — sustituye a la
+                 vieja card "Detalle del entrenamiento" que vivía suelta. -->
+            <span class="continue-card__icon-badge" (click)="toggleWorkoutSummary(); $event.stopPropagation()">
+              <ion-icon name="information-circle-outline"></ion-icon>
+            </span>
+            <span class="continue-card__body">
+              <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ workout.name | translateDb }}</span>
+              <span class="continue-card__subtitle">
+                {{ getCompletedExercises() }}/{{ workout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }} · {{ getWorkoutProgress() | number:'1.0-0' }}%
+              </span>
+              <span class="continue-card__progress">
+                <span class="continue-card__progress-fill" [style.width.%]="getWorkoutProgress()"></span>
+              </span>
+            </span>
+            <ion-icon name="chevron-forward-outline" class="continue-card__arrow"></ion-icon>
+          </button>
+
+          <div class="workout-summary" *ngIf="isWorkoutSummaryExpanded" (click)="$event.stopPropagation()">
+            <app-notes
+              *ngIf="workout.notes"
+              [notes]="workout.notes"
+              [object]="workout"
+              type="{{ 'TABLES.WORKOUT_NOTE_TYPE' | translate }}"
+              [isPrevious]="false"
+            ></app-notes>
+
+            <div class="workout-summary__exercise" *ngFor="let exercise of workout.exercises; let i = index">
+              <div class="workout-summary__exercise-header">
+                <span class="workout-summary__exercise-name" [class.completed]="isCustomExerciseCompleted(exercise)">
+                  {{ (exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
+                </span>
+                <span class="workout-summary__exercise-icons">
+                  <ion-icon
+                    *ngIf="getExercisePinnedNote(i)"
+                    name="pin"
+                    color="alternative"
+                    (click)="showPinnedNoteAlert(i); $event.stopPropagation()"
+                  ></ion-icon>
+                  <ion-icon
+                    *ngIf="exercise.notes"
+                    name="create-outline"
+                    color="primary"
+                    (click)="showExerciseNoteAlert(exercise); $event.stopPropagation()"
+                  ></ion-icon>
+                </span>
+                <span class="workout-summary__exercise-sets">
+                  {{ getExerciseCompletedSets(exercise) }}/{{ exercise.sets.length }}
+                </span>
+              </div>
+              <span class="workout-summary__exercise-progress">
+                <span
+                  class="workout-summary__exercise-progress-fill"
+                  [style.width.%]="getExerciseSetsProgress(exercise)"
+                ></span>
+              </span>
             </div>
           </div>
+        </div>
+      </ng-container>
+
+      <!-- Sin workout en uso pero con rutina activa: en lugar de la vieja
+           card "Sin entrenamiento en uso" (abajo, tras el heatmap), arriba
+           del todo sale cuál es el siguiente workout que le toca — mismo
+           sitio y misma estructura que "Continuar" pero apuntando a
+           openMesocycle() en vez de selectWorkout() (aun no hay
+           workoutInUse que reanudar). -->
+      <ng-container *ngIf="tableInUse && !user.workoutInUse && getNextWorkout() as nextWorkout">
+        <span class="continue-label">{{ 'TABLES.NEXT_WORKOUT_LABEL' | translate }}</span>
+        <button type="button" class="continue-card" (click)="openMesocycle()">
+          <span class="continue-card__icon-badge">
+            <ion-icon name="barbell-outline"></ion-icon>
+          </span>
+          <span class="continue-card__body">
+            <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ nextWorkout.name | translateDb }}</span>
+            <span class="continue-card__subtitle">
+              {{ nextWorkout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }}
+            </span>
+          </span>
+          <ion-icon name="chevron-forward-outline" class="continue-card__arrow"></ion-icon>
+        </button>
+      </ng-container>
+
+      <!-- Rutina en Uso -->
+      <div class="section current-routine">
+        <!-- Orden igual al del diseño: nombre/microciclo primero, barra de
+             progreso, y solo entonces las acciones (mesociclo/estadísticas
+             agrupadas, salir como enlace discreto al final). -->
+        <div *ngIf="tableInUse; else notTableInUse">
           <div class="routine-name">{{ tableInUse.name | translateDb }}</div>
           <div class="routine-description">
             {{ 'TABLES.MICROCYCLE_OF' | translate:{ current: countDoneSplits() + 1, total: tableInUse.splits.length } }}
@@ -79,10 +166,50 @@
               [ngClass]="getSplitClass(split)"
             ></div>
           </div>
-          <button class="exit-btn" (click)="unlinkTable(); $event.stopPropagation()">
-            <ion-icon name="log-out-outline" class="exit-btn__icon"></ion-icon>
-            {{ 'COMMON.EXIT' | translate }}
+
+          <!-- Separador entre la barra de splits y las acciones — presente
+               en el diseño, ausente antes. -->
+          <div class="routine-divider"></div>
+
+          <!-- Prueba: mapa de contribuciones dentro de la card de rutina,
+               encima de Ver mesociclo/Estadísticas (antes vivía suelto
+               debajo de esta card). -->
+          <app-sets-heatmap></app-sets-heatmap>
+
+          <div class="bottom-cards-row">
+            <div class="bottom-card bottom-card--orange" (click)="openMesocycle(); $event.stopPropagation()">
+              <ion-icon name="calendar-outline" class="bottom-card__icon"></ion-icon>
+              <span class="bottom-card__label">{{ 'TABLES.VIEW_MESOCYCLE' | translate }}</span>
+            </div>
+            <div class="bottom-card bottom-card--warning" (click)="goToStatistics(); $event.stopPropagation()">
+              <ion-icon name="bar-chart-outline" class="bottom-card__icon"></ion-icon>
+              <span class="bottom-card__label">{{ 'TABLES.STATISTICS' | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Enlace de texto discreto, no botón: acción destructiva y poco
+               frecuente, no debe competir visualmente con mesociclo/estadísticas. -->
+          <button
+            *ngIf="!isConfirmingExit"
+            class="exit-link"
+            (click)="requestExit(); $event.stopPropagation()"
+          >
+            <ion-icon name="log-out-outline" class="exit-link__icon"></ion-icon>
+            {{ 'TABLES.EXIT_ROUTINE' | translate }}
           </button>
+
+          <!-- Confirmación INLINE, no alert nativo — sin pregunta, solo
+               las dos acciones, mismo sitio donde estaba "Salir". -->
+          <div *ngIf="isConfirmingExit" class="exit-confirm" (click)="$event.stopPropagation()">
+            <span class="exit-confirm__actions">
+              <button class="exit-confirm__btn exit-confirm__btn--cancel" (click)="cancelExit()">
+                {{ 'COMMON.CANCEL' | translate }}
+              </button>
+              <button class="exit-confirm__btn exit-confirm__btn--danger" (click)="confirmExit()">
+                {{ 'COMMON.CONFIRM' | translate }}
+              </button>
+            </span>
+          </div>
         </div>
         <ng-template #notTableInUse>
           <div class="routine-name" (click)="openSearchTables()">
@@ -93,154 +220,6 @@
           </div>
         </ng-template>
       </div>
-
-      <!-- Entrenamiento en Uso -->
-      <div
-        *ngIf="user.tableInUse"
-        class="section"
-        (click)="handleWorkoutSectionClick(); $event.stopPropagation()"
-      >
-        <div
-          *ngIf="tableInUse && workout && user.workoutInUse; else notWorkoutInUse"
-          class="workout-card"
-        >
-          <div class="workout-header">
-            <div>
-              <div class="workout-title">{{ 'TABLES.DAY' | translate }} {{ workout.name | translateDb }}</div>
-            </div>
-            <div class="workout-status">{{ 'TABLES.IN_PROGRESS' | translate }}</div>
-          </div>
-
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              [style.width.%]="getWorkoutProgress()"
-            ></div>
-          </div>
-
-          <!-- Cards de estadísticas en la misma fila -->
-          <div class="stats-row">
-            <!-- Card para ejercicios completados -->
-            <div class="translucent-card">
-              <div class="stat-card">
-                <div class="stat-content">
-                  <div
-                    class="stat-value"
-                    [ngClass]="getCompletedExercises() === workout.exercises.length ? 'completed' : 'incomplete'"
-                  >
-                    {{ getCompletedExercises() }}/{{ workout.exercises.length }}
-                  </div>
-                  <div class="stat-label">{{ 'TABLES.EXERCISES' | translate }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card para series completadas -->
-            <div class="translucent-card">
-              <div class="stat-card">
-                <div class="stat-content">
-                  <div
-                    class="stat-value"
-                    [ngClass]="getCompletedSets() === getTotalSets() ? 'completed' : 'incomplete'"
-                  >
-                    {{ getCompletedSets() }}/{{ getTotalSets() }}
-                  </div>
-                  <div class="stat-label">{{ 'TABLES.SERIES' | translate }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Lista de ejercicios en accordion -->
-          <app-notes
-            *ngIf="workout && workout.notes"
-            [notes]="workout.notes"
-            [object]="workout"
-            type="{{ 'TABLES.WORKOUT_NOTE_TYPE' | translate }}"
-            [isPrevious]="false"
-            (click)="$event.stopPropagation()"
-          ></app-notes>
-          <ion-accordion-group
-            *ngIf="workout.exercises.length > 0"
-            (click)="$event.stopPropagation()"
-          >
-            <ion-accordion value="exercises">
-              <ion-item slot="header" color="light">
-                <ion-label
-                  >{{ 'TABLES.EXERCISE_LIST' | translate }} ({{ workout.exercises.length
-                  }})</ion-label
-                >
-              </ion-item>
-              <div class="exercises-list" slot="content">
-                <div
-                  class="exercise-item"
-                  *ngFor="let exercise of workout.exercises; let i = index"
-                >
-                  <div class="exercise-info">
-                    <div
-                      class="exercise-name"
-                      [class.completed]="isCustomExerciseCompleted(exercise)"
-                    >
-                      {{ (exercise.exercise?.name || 'Ejercicio eliminado del catálogo') | translateDb }}
-                    </div>
-                    <div class="exercise-icons">
-                      <ion-icon
-                        *ngIf="getExercisePinnedNote(i)"
-                        name="pin"
-                        color="alternative"
-                        class="pinned-icon-indicator"
-                        (click)="showPinnedNoteAlert(i); $event.stopPropagation()"
-                      ></ion-icon>
-                      <ion-icon
-                        *ngIf="exercise.notes"
-                        name="create-outline"
-                        color="primary"
-                        (click)="showExerciseNoteAlert(exercise); $event.stopPropagation()"
-                      ></ion-icon>
-                      <ion-icon
-                        [color]="isCustomExerciseCompleted(exercise) ? 'success' : 'medium'"
-                        [name]="isCustomExerciseCompleted(exercise) ? 'checkbox-outline' : 'square-outline'"
-                      ></ion-icon>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ion-accordion>
-          </ion-accordion-group>
-
-          <div
-            *ngIf="tableInUse && workout && user.workoutInUse"
-            class="info-card info-card--orange summary-info-card"
-            (click)="selectWorkout(); $event.stopPropagation()"
-          >
-            <ion-icon name="barbell-outline" class="info-icon"></ion-icon>
-            <div class="info-text">
-              <span class="info-title">{{ 'TABLES.RESUME_WORKOUT' | translate }}</span>
-            </div>
-            <ion-icon name="chevron-forward-outline" class="info-arrow"></ion-icon>
-          </div>
-        </div>
-
-        <ng-template #notWorkoutInUse>
-          <div
-            class="routine-empty"
-            (click)="openMesocycle(); $event.stopPropagation()"
-          >
-            <div class="routine-name">{{ 'TABLES.NO_WORKOUT_IN_USE' | translate }}</div>
-            <div class="routine-description">
-              {{ 'TABLES.SELECT_WORKOUT_TO_START' | translate }}
-            </div>
-          </div>
-        </ng-template>
-      </div>
-
-      <button class="nav-btn nav-btn--full" routerLink="/rm-calculator">
-        <ion-icon name="calculator-outline" class="nav-icon"></ion-icon>
-        <span class="nav-btn__text">
-          <span class="nav-btn__title">{{ 'TABLES.RM_CALCULATOR_BTN' | translate }}</span>
-        </span>
-        <ion-icon name="chevron-forward-outline" class="nav-btn__arrow"></ion-icon>
-      </button>
     </div>
   </div>
 </ion-content>

@@ -1099,6 +1099,11 @@
     "SEARCH_ROUTINES": "Buscar Rutinas",
     "CREATE_ROUTINE_BTN": "Crear Rutina",
     "RM_CALCULATOR_BTN": "Calculadora de RM",
+    "SETS_HEATMAP_TITLE": "Actividad de sesiones",
+    "SETS_HEATMAP_LESS": "Menos",
+    "SETS_HEATMAP_MORE": "Más",
+    "SETS_HEATMAP_INFO": "Series completadas",
+    "SETS_HEATMAP_INFO_MSG": "Cada día cuenta el número de series marcadas como completadas ese día, dentro de los microciclos de tu rutina activa.",
     "FILTER_DEFAULT": "Predeterminadas",
     "FILTER_MINE": "Mis rutinas",
     "NO_MATCHES": "No hay coincidencias",
@@ -1129,6 +1134,9 @@
     "WORKOUT_NOTE_TYPE": "Nota del entrenamiento",
     "EXERCISE_LIST": "Lista de Ejercicios",
     "RESUME_WORKOUT": "Reanudar entrenamiento",
+    "CONTINUE_LABEL": "Continuar",
+    "NEXT_WORKOUT_LABEL": "Siguiente entrenamiento",
+    "WORKOUT_DETAIL": "Detalle del entrenamiento",
     "NO_WORKOUT_IN_USE": "Sin entrenamiento en uso",
     "SELECT_WORKOUT_TO_START": "Selecciona un entrenamiento para comenzar",
     "NO_EXERCISES": "No hay ejercicios asignados",
@@ -1193,6 +1201,8 @@
     "EDIT_ROUTINE_NAME": "Editar nombre de rutina",
     "ROUTINE_NAME_UPDATED": "Nombre de rutina actualizado",
     "UNLINK_ROUTINE": "Salir de {{name}}",
+    "UNLINK_ROUTINE_INLINE": "¿Salir de {{name}}?",
+    "EXIT_ROUTINE": "Salir de rutina",
     "UNLINK_ROUTINE_MSG": "Podrás volver a encontrar esta rutina en Mis rutinas",
     "ADD_WORKOUT_ALERT": "Añadir entrenamiento",
     "ADD_WORKOUT_MSG": "Introduce el nombre del entrenamiento",
@@ -1307,6 +1317,7 @@
     "NAME_OPTION": "Nombre",
     "ROUTINE_IN_USE": "Rutina",
     "ROUTINE_IN_USE_MSG": "Tienes una rutina en uso actualmente, si seleccionas otra, se guardará la actual en Mis rutinas",
+    "VIEW_MESOCYCLE": "Ver mesociclo",
     "ROUTINE_ALREADY_IN_USE_TOAST": "Esta rutina ya está en uso",
     "ROUTINE_CAN_PAUSE": "Siempre puedes pausar y elegir otra",
     "ROUTINE_WILL_BE_ADDED": "Se añadirá a Mis rutinas y se iniciará",
@@ -2062,6 +2073,10 @@
     "MICROCYCLE": {
       "TITLE": "Microciclo",
       "DESCRIPTION": "Es un bloque de días consecutivos (entrenamientos y descansos) que tú mismo defines: no tiene por qué durar una semana, dura lo que tú decidas. Cuando terminas un microciclo, empieza el siguiente y así sucesivamente de manera cíclica."
+    },
+    "SESSION_ACTIVITY": {
+      "TITLE": "Actividad de sesiones",
+      "DESCRIPTION": "La actividad se mide según la cantidad de series completadas en cada sesión."
     },
     "ONE_RM": {
       "TITLE": "1RM (Repetición Máxima)",

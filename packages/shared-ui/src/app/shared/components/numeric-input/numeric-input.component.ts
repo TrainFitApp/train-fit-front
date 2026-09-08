@@ -8,6 +8,7 @@ import {
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { sanitizeDecimalString } from 'src/app/core/directives/decimal-input.directive';
+import { NumericKeypadService } from '../numeric-keypad/numeric-keypad.service';
 
 @Component({
   selector: 'app-numeric-input',
@@ -54,7 +55,7 @@ export class NumericInputComponent implements OnInit {
 
   public shimmerAnimationState = 'idle';
 
-  constructor() {}
+  constructor(private numericKeypadService: NumericKeypadService) {}
 
   ngOnInit(): void {
     if (!this.inputControl) {
@@ -71,6 +72,8 @@ export class NumericInputComponent implements OnInit {
   }
 
   public onInputFocus(event: FocusEvent): void {
+    this.numericKeypadService.show();
+
     const target = event?.target as HTMLElement | null;
     const setContainer =
       target?.closest('app-set') ??
@@ -80,6 +83,13 @@ export class NumericInputComponent implements OnInit {
     if (!setContainer) {
       return;
     }
+
+    // El teclado a medida es position:fixed y tapa ~226px de la parte baja
+    // de la pantalla (ver numeric-keypad.component.scss) — scrollIntoView
+    // con block:'center' no lo sabe, así que centraría el set justo detrás
+    // del teclado. scroll-margin-bottom resta ese alto del área que el
+    // navegador considera "visible" al calcular el centrado.
+    (setContainer as HTMLElement).style.scrollMarginBottom = '226px';
 
     // iOS puede abrir teclado y redimensionar con retraso; hacemos dos intentos.
     const scrollToFocusedSet = () => {
@@ -94,6 +104,10 @@ export class NumericInputComponent implements OnInit {
 
     scrollToFocusedSet();
     setTimeout(scrollToFocusedSet, 220);
+  }
+
+  public onInputBlur(): void {
+    this.numericKeypadService.hideIfFocusLeftKeypadInputs();
   }
 
   public onInputChange(event: any): void {

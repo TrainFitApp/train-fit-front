@@ -1,0 +1,28 @@
+{
+	"appId": "com.trainfit.trainers",
+	"appName": "TrainFit Trainers",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true,
+		"url": "http://192.168.1.19:8101"
+	},
+	"plugins": {
+		"StatusBar": {
+			"overlaysWebView": false
+		},
+		"Keyboard": {
+			"resize": "native",
+			"resizeOnFullScreen": false
+		},
+		"CapacitorCookies": {
+			"enabled": true
+		},
+		"CapacitorHttp": {
+			"enabled": true
+		},
+		"EdgeToEdge": {
+			"backgroundColor": "#000000"
+		}
+	}
+}

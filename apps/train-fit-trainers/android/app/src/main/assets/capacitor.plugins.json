@@ -1,0 +1,46 @@
+[
+	{
+		"pkg": "@capacitor/app",
+		"classpath": "com.capacitorjs.plugins.app.AppPlugin"
+	},
+	{
+		"pkg": "@capacitor/barcode-scanner",
+		"classpath": "com.capacitorjs.barcodescanner.CapacitorBarcodeScannerPlugin"
+	},
+	{
+		"pkg": "@capacitor/browser",
+		"classpath": "com.capacitorjs.plugins.browser.BrowserPlugin"
+	},
+	{
+		"pkg": "@capacitor/keyboard",
+		"classpath": "com.capacitorjs.plugins.keyboard.KeyboardPlugin"
+	},
+	{
+		"pkg": "@capacitor/network",
+		"classpath": "com.capacitorjs.plugins.network.NetworkPlugin"
+	},
+	{
+		"pkg": "@capawesome/capacitor-android-edge-to-edge-support",
+		"classpath": "io.capawesome.capacitorjs.plugins.androidedgetoedgesupport.EdgeToEdgePlugin"
+	},
+	{
+		"pkg": "@capgo/capacitor-navigation-bar",
+		"classpath": "ee.forgr.capacitor_navigation_bar.CapgoNavigationBarPlugin"
+	},
+	{
+		"pkg": "@capgo/capacitor-social-login",
+		"classpath": "ee.forgr.capacitor.social.login.SocialLoginPlugin"
+	},
+	{
+		"pkg": "@revenuecat/purchases-capacitor",
+		"classpath": "com.revenuecat.purchases.capacitor.PurchasesPlugin"
+	},
+	{
+		"pkg": "@revenuecat/purchases-capacitor-ui",
+		"classpath": "com.revenuecat.purchases.capacitor.ui.RevenueCatUIPlugin"
+	},
+	{
+		"pkg": "capacitor-secure-storage-plugin",
+		"classpath": "com.whitestein.securestorage.SecureStoragePluginPlugin"
+	}
+]

@@ -282,8 +282,41 @@ export class SummaryPage {
     return this.customExerciseService.isCustomExerciseCompleted(customExercise);
   }
 
+  // Resumen desplegable de la card "Continuar" (sustituye a la vieja card
+  // suelta "Detalle del entrenamiento") — toggle vía el icono info.
+  public isWorkoutSummaryExpanded = false;
+
+  public toggleWorkoutSummary(): void {
+    this.isWorkoutSummaryExpanded = !this.isWorkoutSummaryExpanded;
+  }
+
+  public getExerciseCompletedSets(exercise: CustomExercise): number {
+    return (exercise.sets || []).filter((set) => set.doned).length;
+  }
+
+  public getExerciseSetsProgress(exercise: CustomExercise): number {
+    const total = exercise.sets?.length || 0;
+    if (!total) return 0;
+    return Math.round((this.getExerciseCompletedSets(exercise) / total) * 100);
+  }
+
   public selectWorkout(): void {
     this.navigationService.goToCurrentWorkout();
+  }
+
+  // Primer workout sin fecha (no terminado), no rest, no descanso planeado,
+  // recorriendo splits/workouts en orden — mismo criterio que
+  // getCurrentPlayingSplit en UtilService, pero devuelve el workout, no el
+  // índice de split.
+  public getNextWorkout(): Workout | undefined {
+    if (!this.tableInUse?.splits) return undefined;
+    for (const split of this.tableInUse.splits) {
+      const next = split.workouts?.find(
+        (w) => !w.date && !w.rest && !w.isPlannedRestDay,
+      );
+      if (next) return next;
+    }
+    return undefined;
   }
 
   public countDoneSplits(): number {
@@ -327,32 +360,28 @@ export class SummaryPage {
     this.navigationService.goToSearchTables();
   }
 
-  public unlinkTable(): void {
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant('TABLES.UNLINK_ROUTINE', { name: this.tableInUse.name }),
-      message: this.translate.instant('TABLES.UNLINK_ROUTINE_MSG'),
-      buttons: [
-        {
-          text: this.translate.instant('COMMON.CANCEL'),
-          role: "cancel",
-        },
-        {
-          text: this.translate.instant('COMMON.CONFIRM'),
-          cssClass: "alert-button-primary",
-          handler: () => {
-            this.tableInUse = undefined;
-            this.user.tableInUse = undefined;
-            this.user.workoutInUse = undefined;
-            this.workout = undefined;
-            this.workoutService.setCurrentWorkout = undefined;
-            this.tableService.setCurrentTable = undefined;
-            this.userService.updateUser(this.user).subscribe();
-          },
-        },
-      ],
-    };
+  // Confirmación INLINE (Summary Screen Redesign), no alert nativo — "Salir"
+  // se cambia por una fila "¿Salir de {{rutina}}? Cancelar / Confirmar"
+  // dentro de la propia tarjeta, calcada del diseño de referencia.
+  public isConfirmingExit = false;
 
-    this.ionicUtilService.showAlert(alertOptions);
+  public requestExit(): void {
+    this.isConfirmingExit = true;
+  }
+
+  public cancelExit(): void {
+    this.isConfirmingExit = false;
+  }
+
+  public confirmExit(): void {
+    this.isConfirmingExit = false;
+    this.tableInUse = undefined;
+    this.user.tableInUse = undefined;
+    this.user.workoutInUse = undefined;
+    this.workout = undefined;
+    this.workoutService.setCurrentWorkout = undefined;
+    this.tableService.setCurrentTable = undefined;
+    this.userService.updateUser(this.user).subscribe();
   }
 
   public async goToStatistics(): Promise<void> {
@@ -458,13 +487,6 @@ export class SummaryPage {
     return this.workout.exercises.reduce((count, exercise) => {
       return count + exercise.sets.length;
     }, 0);
-  }
-
-  public handleWorkoutSectionClick(): void {
-    // Solo hacer scroll si no hay workout en uso
-    if (this.user.workoutInUse) {
-      this.ionicUtilService.scrollToBottom(this.ionContent);
-    }
   }
 
   public async showExerciseNoteAlert(exercise: CustomExercise): Promise<void> {

@@ -7,11 +7,12 @@
   <span class="input-label">{{ label }}</span>
   <input
     type="text"
-    inputmode="decimal"
+    inputmode="none"
     class="numeric-value-input"
     [attr.maxlength]="maxLength"
     [value]="displayValue"
     (focus)="onInputFocus($event)"
+    (blur)="onInputBlur()"
     (input)="onInputChange($event)"
     (click)="onInputClick()"
     [placeholder]="placeholder || '-'"
