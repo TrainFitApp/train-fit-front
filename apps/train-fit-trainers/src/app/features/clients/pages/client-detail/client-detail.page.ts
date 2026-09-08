@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { Chart, registerables } from 'chart.js';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -60,10 +61,7 @@ import {
   TrainingComparisonMetric,
   TrainingGranularity,
 } from './models/client-progress.model';
-import {
-  TrainingFilterPanelComponent,
-  TrainingFilterResult,
-} from './components/training-filter-panel/training-filter-panel.component';
+import { TrainingFilterPanelComponent, TrainingFilterResult } from './components/training-filter-panel/training-filter-panel.component';
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
@@ -686,7 +684,7 @@ export class ClientDetailPage implements OnInit {
   // --- Tarea 4 (2026-09), remodelado: comparación por microciclo ---
   // Sustituye a la Entrega 2 (volumen/récords/evolución de cargas) y al
   // calendario+gráfica de frecuencia de la Tarea 3 bis: un único sistema
-  // configurable (calendario de rango + gráfica + panel de filtro) en vez
+  // configurable (calendario de rango + gráfica + selectores) en vez
   // de varios bloques fijos. Resumen no se toca, sigue en modo `weeks`.
   public trainingComparisonRange: { start: string; end: string } | null = null;
   public trainingComparisonMetric: TrainingComparisonMetric = 'volume';
@@ -695,6 +693,8 @@ export class ClientDetailPage implements OnInit {
   // loadTrainingBlocks), esto solo decide cuál pinta la gráfica.
   public trainingGranularity: TrainingGranularity = 'block';
   public trainingBlocksState: SectionState = 'loading';
+  private trainingBlocksSubscription?: Subscription;
+  public readonly trainingMetricOptions = (Object.keys(TRAINING_COMPARISON_METRIC_LABELS) as TrainingComparisonMetric[]).map((value) => ({ value, label: TRAINING_COMPARISON_METRIC_LABELS[value] }));
   public trainingBlocks: TrainingBlock[] = [];
   public trainingBlockMuscleGroups: BlockMuscleGroup[] = [];
   // Readiness/esfuerzo (2026-09) — sale gratis de la misma petición, igual
@@ -719,11 +719,7 @@ export class ClientDetailPage implements OnInit {
   // sets antes de agregar), así que cambiarlo sí necesita volver a pedir.
   public trainingWorkoutNames: string[] = [];
   public selectedTrainingWorkout: string | null = null;
-  public trainingBlockComparison: ClientTrainingProgress['blockComparison'] = null;
 
-  public get trainingComparisonMetricLabel(): string {
-    return TRAINING_COMPARISON_METRIC_LABELS[this.trainingComparisonMetric];
-  }
 
   // Movimiento adherencia-por-fase (2026-09) — antes solo el Set de fechas
   // ISO con sesión (sessionDatesSet); ahora nombre + % de series cumplidas
@@ -756,11 +752,12 @@ export class ClientDetailPage implements OnInit {
     this.loadTrainingSchedule(range);
   }
 
-  private loadTrainingBlocks(): void {
+  public loadTrainingBlocks(): void {
     if (!this.trainingComparisonRange) return;
+    this.trainingBlocksSubscription?.unsubscribe();
     this.trainingBlocksState = 'loading';
     const { start, end } = this.trainingComparisonRange;
-    this.clientDetailApi
+    this.trainingBlocksSubscription = this.clientDetailApi
       .getTrainingBlocks(
         this.clientId,
         start,
@@ -768,6 +765,7 @@ export class ClientDetailPage implements OnInit {
         this.selectedTrainingExercises.length ? this.selectedTrainingExercises : undefined,
         this.selectedTrainingWorkout || undefined
       )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           this.trainingBlocks = data.blocks || [];
@@ -778,7 +776,6 @@ export class ClientDetailPage implements OnInit {
           this.trainingSessionMuscleGroups = data.sessionMuscleGroups || [];
           this.trainingSessionReadiness = data.sessionReadiness || [];
           this.trainingSessionAdherence = data.sessionAdherence || [];
-          this.trainingBlockComparison = data.blockComparison || null;
           this.trainingExerciseNames = data.exerciseNames || [];
           this.trainingBlockExerciseByName = data.blockExerciseByName || {};
           this.trainingSessionExerciseByName = data.sessionExerciseByName || {};
@@ -794,7 +791,6 @@ export class ClientDetailPage implements OnInit {
           this.trainingSessionMuscleGroups = [];
           this.trainingSessionReadiness = [];
           this.trainingSessionAdherence = [];
-          this.trainingBlockComparison = null;
           this.trainingExerciseNames = [];
           this.trainingBlockExerciseByName = {};
           this.trainingSessionExerciseByName = {};
@@ -838,6 +834,23 @@ export class ClientDetailPage implements OnInit {
     if ((data.metric === 'exercise' && exercisesChanged) || workoutChanged) {
       this.loadTrainingBlocks();
     }
+  }
+
+  public get selectedTrainingExercise(): string | null {
+    return this.selectedTrainingExercises.length === 1 ? this.selectedTrainingExercises[0] : null;
+  }
+
+  public onTrainingMetricChanged(metric: TrainingComparisonMetric): void {
+    this.trainingComparisonMetric = metric;
+    if (metric === 'exercise' && !this.selectedTrainingExercises.length && this.trainingExerciseNames.length) {
+      this.onTrainingExerciseChanged(this.trainingExerciseNames[0]);
+    }
+  }
+
+  public onTrainingExerciseChanged(exercise: string): void {
+    if (this.selectedTrainingExercises.length === 1 && exercise === this.selectedTrainingExercises[0]) return;
+    this.selectedTrainingExercises = [exercise];
+    this.loadTrainingBlocks();
   }
 
   // --- Tarea 3 bis: vista previa de sesiones (link a Progreso > Sesiones) ---

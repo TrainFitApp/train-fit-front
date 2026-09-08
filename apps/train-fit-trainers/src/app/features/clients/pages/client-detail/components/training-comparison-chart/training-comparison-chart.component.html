@@ -1,13 +1,50 @@
-<div class="chart-container">
-  <canvas #chartCanvas></canvas>
+<div class="comparison" [attr.aria-busy]="isLoading">
+  <p class="state-hint" *ngIf="isLoading" role="status">Cargando series realizadas…</p>
+  <div class="state-hint" *ngIf="hasError && !isLoading" role="alert">
+    No se pudo cargar el progreso. <button type="button" (click)="retry.emit()">Reintentar</button>
+  </div>
+  <p class="state-hint" *ngIf="!isLoading && !hasError && !hasData">
+    {{ emptyMessage }}
+  </p>
+  <div [hidden]="isLoading || hasError || !hasData || !showComparison">
+    <div class="block-selectors">
+      <label><span class="side-a">A · Referencia</span>
+        <select aria-label="Microciclo A de referencia" [ngModel]="referenceId" (ngModelChange)="selectSide('a', $event)">
+          <option value="" disabled>Sin otro microciclo</option>
+          <option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</option>
+        </select>
+      </label>
+      <label><span class="side-b">B · Comparar</span>
+        <select aria-label="Microciclo B a comparar" [ngModel]="comparisonId" (ngModelChange)="selectSide('b', $event)">
+          <option *ngFor="let block of blocks" [value]="block.splitId">{{ label(block) }}</option>
+        </select>
+      </label>
+    </div>
+    <div class="comparison-headline" aria-live="polite" *ngIf="primary as main">
+      <strong [attr.data-direction]="main.direction">{{ main.percentage || main.delta }}</strong>
+      <span>{{ metricLabel }} · B frente a A</span>
+    </div>
+    <p class="comparison-context">
+      {{ metric === 'muscleGroups' ? 'Series por sesión y grupo. Una serie puede implicar varios grupos.' : metric === 'exercise' ? 'Carga, reps y RIR de la misma serie. Más kg con menos reps o menor RIR implica otro esfuerzo.' : 'Trabajo realizado por sesión; las sesiones pueden estar parcialmente registradas.' }}
+    </p>
+    <p class="comparison-context" *ngIf="blocks.length < 2">Hace falta otro microciclo registrado para calcular cambios.</p>
+    <table>
+      <caption>{{ metricLabel }}. Datos realizados dentro del rango del calendario. Cambio B menos A.</caption>
+      <thead><tr><th scope="col">{{ metric === 'muscleGroups' ? 'Grupo · series / sesión' : 'Métrica' }}</th><th scope="col" class="side-a">A</th><th scope="col" class="side-b">B</th><th scope="col">Δ B − A</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let row of rows">
+          <th scope="row">{{ row.label }}<small *ngIf="row.unit">{{ row.unit }}</small></th>
+          <td>{{ row.textA || format(row.a) }}<i *ngIf="metric === 'muscleGroups'" class="meter meter-a" [style.width.%]="barWidth(row, 'a')" aria-hidden="true"></i></td>
+          <td class="value-b">{{ row.textB || format(row.b) }}<i *ngIf="metric === 'muscleGroups'" class="meter meter-b" [style.width.%]="barWidth(row, 'b')" aria-hidden="true"></i></td>
+          <td [attr.data-direction]="row.direction">{{ row.delta }}<small *ngIf="row.percentage">{{ row.percentage }}</small></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="comparison-context" *ngIf="metric === 'muscleGroups' && !rows.length">Sin grupos musculares registrados en A y B.</p>
+    <p class="comparison-footnote">↑ Aumenta · ↓ Disminuye · — Sin registro. El color indica dirección, no una mejora.</p>
+  </div>
+  <div class="chart-container" [style.height.px]="showComparison ? 175 : 260" [hidden]="isLoading || hasError || !hasData || (showComparison && metric === 'muscleGroups')">
+    <canvas #chartCanvas role="img" [attr.aria-label]="metricLabel + (showComparison ? ': evolución por microciclo. Valores de A y B en la tabla anterior.' : ': evolución del rango seleccionado.')"></canvas>
+  </div>
+  <p class="comparison-footnote" *ngIf="hasData && !hasError && !isLoading">{{ granularity === 'session' && metric !== 'sessions' ? 'Datos por sesión · rango del calendario.' : 'Rango del calendario · puede incluir microciclos parciales.' }}</p>
 </div>
-<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'exercise' && !selectedExercises.length">
-  Elige uno o varios ejercicios en "Comparar por" para ver su progresión.
-</p>
-<p class="empty-hint" *ngIf="!isLoading && !hasData && metric === 'readiness'">
-  El cliente todavía no ha dejado ningún pulso de readiness o esfuerzo en este rango — es opcional,
-  se lo pregunta la app al empezar y al terminar cada sesión.
-</p>
-<p class="empty-hint" *ngIf="!isLoading && !hasData && metric !== 'readiness' && !(metric === 'exercise' && !selectedExercises.length)">
-  {{ granularity === 'session' && metric !== 'sessions' ? 'No hay sesiones con series completadas en el rango elegido.' : 'No hay microciclos con series completadas en el rango elegido.' }}
-</p>

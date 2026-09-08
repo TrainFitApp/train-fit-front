@@ -1,12 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Chart, ChartConfiguration } from 'chart.js';
 import {
   BlockAdherence,
@@ -21,7 +13,9 @@ import {
   TrainingBlock,
   TrainingComparisonMetric,
   TrainingGranularity,
+  TRAINING_COMPARISON_METRIC_LABELS,
 } from '../../models/client-progress.model';
+import { blockMetric, ComparisonRow, exerciseRows, formatMetric, muscleRows, overviewRows } from './training-comparison';
 
 // Paleta categórica para grupos musculares y para comparar varios ejercicios
 // a la vez — misma familia desaturada que el resto de la app (PHASE_COLORS
@@ -37,7 +31,7 @@ const MUSCLE_GROUP_COLORS = ['#6e99cd', '#a18fd7', '#4d9b7f', '#cc7ba6', '#c09c4
   templateUrl: './training-comparison-chart.component.html',
   styleUrls: ['./training-comparison-chart.component.scss'],
 })
-export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
+export class TrainingComparisonChartComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() blocks: TrainingBlock[] = [];
   @Input() blockMuscleGroups: BlockMuscleGroup[] = [];
   @Input() blockReadiness: BlockReadiness[] = [];
@@ -59,32 +53,128 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   @Input() metric: TrainingComparisonMetric = 'volume';
   @Input() granularity: TrainingGranularity = 'block';
   @Input() isLoading = false;
+  @Input() hasError = false;
+  @Output() retry = new EventEmitter<void>();
 
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
 
+  public referenceId = '';
+  public comparisonId = '';
+  public rows: ComparisonRow[] = [];
+  public readonly format = formatMetric;
   private chart: Chart | null = null;
+  private viewReady = false;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes['blocks'] ||
-      changes['blockMuscleGroups'] ||
-      changes['blockExerciseByName'] ||
-      changes['blockReadiness'] ||
-      changes['blockAdherence'] ||
-      changes['sessionTraining'] ||
-      changes['sessionMuscleGroups'] ||
-      changes['sessionExerciseByName'] ||
-      changes['sessionReadiness'] ||
-      changes['sessionAdherence'] ||
-      changes['metric'] ||
-      changes['granularity']
-    ) {
-      this.renderChart();
+    const candidates = this.metric === 'exercise'
+      ? this.blocks.filter((block) => this.blockExercise.some((exercise) => exercise.splitId === block.splitId))
+      : this.blocks;
+    const available = candidates.length ? candidates : this.blocks;
+    if (!this.blocks.some((block) => block.splitId === this.comparisonId)) {
+      this.comparisonId = available[available.length - 1]?.splitId || '';
+      this.referenceId = available[available.length - 2]?.splitId || '';
     }
+    if (!this.blocks.some((block) => block.splitId === this.referenceId)) {
+      this.referenceId = available.find((block) => block.splitId !== this.comparisonId)?.splitId || '';
+    }
+    this.updateComparison();
   }
-
-  public ngOnDestroy(): void {
+  public ngAfterViewInit(): void { this.viewReady = true; this.renderChart(); }
+  public ngOnDestroy(): void { this.chart?.destroy(); }
+  public get reference(): TrainingBlock | undefined { return this.blocks.find((block) => block.splitId === this.referenceId); }
+  public get comparison(): TrainingBlock | undefined { return this.blocks.find((block) => block.splitId === this.comparisonId); }
+  public get metricLabel(): string {
+    return this.isSessionMode && this.metric === 'muscleGroups'
+      ? 'Volumen por grupo muscular (kg)'
+      : TRAINING_COMPARISON_METRIC_LABELS[this.metric];
+  }
+  public get primary(): ComparisonRow | undefined { return this.rows.find((row) => row.key === (this.metric === 'exercise' ? 'load' : this.metric)); }
+  public label(block: TrainingBlock): string {
+    const date = block.start?.slice(5).split('-').reverse().join('/');
+    return `${block.name} · ${date}`;
+  }
+  // A/B conserva el comparador compacto de microciclos. Los modos de la rama
+  // (sesión, varias curvas, readiness y adherencia) mantienen su gráfica.
+  public get showComparison(): boolean {
+    return !this.isSessionMode && this.metric !== 'readiness' && this.metric !== 'adherence' &&
+      (this.metric !== 'exercise' || this.selectedExercises.length <= 1);
+  }
+  public get selectedExercise(): string | null { return this.selectedExercises[0] || null; }
+  public get blockExercise(): BlockExerciseProgress[] {
+    return this.selectedExercise ? this.blockExerciseByName[this.selectedExercise] || [] : [];
+  }
+  public get emptyMessage(): string {
+    if (this.metric === 'exercise' && !this.selectedExercises.length) return 'Elige uno o varios ejercicios para ver su progresión.';
+    if (this.metric === 'readiness') return 'No hay registros de readiness o esfuerzo en este rango.';
+    if (this.metric === 'adherence') return 'No hay series pautadas para calcular adherencia en este rango.';
+    return this.isSessionMode ? 'No hay sesiones con series realizadas en el rango elegido.' : 'No hay microciclos con series realizadas para esta selección.';
+  }
+  public selectSide(side: 'a' | 'b', id: string): void {
+    if (side === 'a') {
+      if (id === this.comparisonId) this.comparisonId = this.referenceId;
+      this.referenceId = id;
+    } else {
+      if (id === this.referenceId) this.referenceId = this.comparisonId;
+      this.comparisonId = id;
+    }
+    this.updateComparison();
+  }
+  public barWidth(row: ComparisonRow, side: 'a' | 'b'): number {
+    const max = Math.max(...this.rows.flatMap((item) => [item.a ?? 0, item.b ?? 0]), 1);
+    return ((row[side] ?? 0) / max) * 100;
+  }
+  private updateComparison(): void {
+    if (!this.showComparison) { this.rows = []; this.renderChart(); return; }
+    if (this.metric === 'exercise') {
+      this.rows = exerciseRows(this.blockExercise.find((block) => block.splitId === this.referenceId), this.blockExercise.find((block) => block.splitId === this.comparisonId));
+    } else if (this.metric === 'muscleGroups') {
+      this.rows = muscleRows(this.blockMuscleGroups.find((block) => block.splitId === this.referenceId), this.blockMuscleGroups.find((block) => block.splitId === this.comparisonId), this.reference?.sessions || 0, this.comparison?.sessions || 0);
+    } else {
+      this.rows = overviewRows(this.reference, this.comparison);
+      this.rows.sort((a, b) => Number(b.key === this.metric) - Number(a.key === this.metric));
+    }
+    this.renderChart();
+  }
+  private renderComparisonChart(): void {
+    if (!this.viewReady) return;
     this.chart?.destroy();
+    this.chart = null;
+    if (this.isLoading || this.hasError || !this.hasData || this.metric === 'muscleGroups') return;
+    const ctx = this.chartCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
+    // En la primera carga Angular aún puede estar insertando estilos locales.
+    const tokens = getComputedStyle(document.documentElement);
+    const color = tokens.getPropertyValue('--tf-text-secondary').trim() || '#c7c7c7';
+    const accent = tokens.getPropertyValue('--ion-color-primary').trim() || '#fe9000';
+    const values = this.blocks.map((block) => this.metric === 'exercise'
+      ? this.blockExercise.find((exercise) => exercise.splitId === block.splitId)?.maxWeight ?? null
+      : blockMetric(block, this.metric));
+    const unit = this.metric === 'exercise' || this.metric === 'volume' ? 'kg' : this.metric === 'sets' ? 'series / sesión' : 'sesiones';
+    const config: ChartConfiguration<'line'> = {
+      type: 'line',
+      data: {
+        labels: this.blocks.map((block) => this.label(block)),
+        datasets: [{
+          label: this.metricLabel, data: values, borderColor: accent,
+          pointBackgroundColor: this.blocks.map((block) => block.splitId === this.referenceId ? '#8db6dd' : accent),
+          pointRadius: this.blocks.map((block) => [this.referenceId, this.comparisonId].includes(block.splitId) ? 5 : 2),
+          borderWidth: 2, tension: 0, fill: false, spanGaps: false,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (context) => `${formatMetric(context.parsed.y)} ${unit}` } },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color, maxRotation: 0, maxTicksLimit: 5, font: { size: 11 } } },
+          y: { beginAtZero: true, title: { display: true, text: unit, color }, ticks: { color }, grid: { color: 'rgba(128,128,128,0.15)' } },
+        },
+      },
+    };
+    this.chart = new Chart(ctx, config);
   }
 
   // 'sessions' (conteo DE sesiones por microciclo) no tiene lectura por
@@ -117,6 +207,11 @@ export class TrainingComparisonChartComponent implements OnChanges, OnDestroy {
   }
 
   private renderChart(): void {
+    if (!this.viewReady) return;
+    this.chart?.destroy();
+    this.chart = null;
+    if (this.isLoading || this.hasError || !this.hasData) return;
+    if (this.showComparison) { this.renderComparisonChart(); return; }
     const ctx = this.chartCanvas?.nativeElement.getContext('2d');
     if (!ctx) return;
 

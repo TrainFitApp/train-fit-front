@@ -213,61 +213,7 @@
         </div>
 
         <div class="training-main">
-      <!-- Tarea 4 (2026-09), remodelado — calendario de rango + gráfica de
-           comparación por microciclo configurable desde un panel lateral.
-           Sustituye por completo al calendario de solo lectura + gráfica de
-           frecuencia + récords + evolución de cargas (Entrega 2): un único
-           sistema configurable en vez de varios bloques fijos. Resumen no
-           se toca, sigue con su propia llamada en modo semanas. -->
-      <div class="nutrition-charts-row">
-        <div class="nutrition-card nutrition-calendar-col">
-          <app-training-calendar
-            [completedDays]="completedDaysMap"
-            [projectedDays]="projectedTrainingDays"
-            (rangeSelected)="onTrainingRangeSelected($event)"
-          ></app-training-calendar>
-        </div>
-        <div class="nutrition-card nutrition-chart-col">
-          <div class="section-row">
-            <h2 class="section-heading">{{ trainingComparisonMetricLabel }}</h2>
-            <button type="button" class="add-button" (click)="openTrainingFilterPanel()">
-              <ion-icon name="options-outline"></ion-icon>
-              Comparar por
-            </button>
-          </div>
-          <p class="history-subtitle" *ngIf="trainingBlockComparison as bc">
-            {{ bc.absolute >= 0 ? '+' : '' }}{{ bc.percentage }}% de volumen por sesión frente al microciclo anterior
-          </p>
-          <app-training-comparison-chart
-            [blocks]="trainingBlocks"
-            [blockMuscleGroups]="trainingBlockMuscleGroups"
-            [blockExerciseByName]="trainingBlockExerciseByName"
-            [blockReadiness]="trainingBlockReadiness"
-            [blockAdherence]="trainingBlockAdherence"
-            [sessionTraining]="trainingSessionTraining"
-            [sessionMuscleGroups]="trainingSessionMuscleGroups"
-            [sessionExerciseByName]="trainingSessionExerciseByName"
-            [sessionReadiness]="trainingSessionReadiness"
-            [sessionAdherence]="trainingSessionAdherence"
-            [selectedExercises]="selectedTrainingExercises"
-            [metric]="trainingComparisonMetric"
-            [granularity]="trainingGranularity"
-            [isLoading]="trainingBlocksState === 'loading'"
-          ></app-training-comparison-chart>
-        </div>
-      </div>
-
-      <!-- Tarea 4ter (2026-09), rediseño — antes "Fases", "Historial",
-           "Últimas sesiones" y "Rutinas" eran 4 bloques apilados a todo el
-           ancho de .training-main (1fr sin tope): en un monitor ancho cada
-           fila se estiraba a >1500px con el contenido pegado a los bordes.
-           Ahora son 2 columnas con significado propio — IZQUIERDA "cuándo"
-           (fases + sesiones recientes, orden cronológico), DERECHA "qué"
-           (el catálogo de rutinas) — igual que .nutrition-charts-row ya
-           reparte calendario+gráfica en vez de apilarlos. flex-wrap, no un
-           grid con breakpoint: se envuelve solo cuando de verdad no cabe. -->
-      <div class="training-plan-row">
-        <div class="training-plan-col">
+          <section class="training-phases" aria-label="Fases de entrenamiento">
           <div class="section-row">
             <h2 class="section-heading">Fases de entrenamiento</h2>
             <button type="button" class="add-button" (click)="openApplyRoutinePhaseModal()">
@@ -323,11 +269,8 @@
                + botón "Quitar"): una fase programada admite acción
                (quitarla si el entrenador se equivoca, o si el plan cambia
                por lesión), no es un dato histórico cerrado. -->
-          <div
-            class="routine-header-row next-phase-row"
-            *ngFor="let phase of routinePhases; trackBy: trackByRoutinePhaseId"
-          >
-            <ng-container *ngIf="!isCurrentRoutinePhase(phase)">
+          <ng-container *ngFor="let phase of routinePhases; trackBy: trackByRoutinePhaseId">
+            <div class="routine-header-row next-phase-row" *ngIf="!isCurrentRoutinePhase(phase)">
               <div class="list-card">
                 <ion-icon name="time-outline" color="medium"></ion-icon>
                 <span class="list-card-title">{{ phase.tableName }}</span>
@@ -357,13 +300,13 @@
                 <ion-spinner name="dots" *ngIf="cancellingRoutinePhaseId === phase._id"></ion-spinner>
                 <ion-icon name="close-circle-outline" *ngIf="cancellingRoutinePhaseId !== phase._id"></ion-icon>
               </button>
-            </ng-container>
-          </div>
+            </div>
+          </ng-container>
 
-          <div class="section-row nutrition-history-toggle" (click)="toggleRoutineHistory()">
+          <button type="button" class="section-row nutrition-history-toggle" [attr.aria-expanded]="showRoutineHistory" (click)="toggleRoutineHistory()">
             <h3 class="subsection-heading">Historial de rutinas</h3>
             <ion-icon [name]="showRoutineHistory ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-          </div>
+          </button>
           <ng-container *ngIf="showRoutineHistory">
             <p class="empty-hint" *ngIf="!routineHistory.length">Todavía no hay historial de rutinas.</p>
             <div class="history-card" *ngFor="let phase of routineHistory; trackBy: trackByRoutinePhaseId">
@@ -377,6 +320,61 @@
             </div>
           </ng-container>
 
+          </section>
+      <!-- Calendario de rango y comparación directa de trabajo realizado. -->
+      <div class="nutrition-charts-row">
+        <div class="nutrition-card nutrition-calendar-col">
+          <app-training-calendar
+            [completedDays]="completedDaysMap"
+            [projectedDays]="projectedTrainingDays"
+            (rangeSelected)="onTrainingRangeSelected($event)"
+          ></app-training-calendar>
+        </div>
+        <div class="nutrition-card nutrition-chart-col">
+          <div class="training-comparison-controls">
+            <label>Comparar por
+              <select [ngModel]="trainingComparisonMetric" (ngModelChange)="onTrainingMetricChanged($event)" aria-label="Comparar por">
+                <option *ngFor="let option of trainingMetricOptions" [value]="option.value">{{ trainingGranularity === 'session' && option.value === 'muscleGroups' ? 'Volumen por grupo muscular (kg)' : option.label }}</option>
+              </select>
+            </label>
+            <label *ngIf="trainingComparisonMetric === 'exercise'">Ejercicio con carga
+              <select [ngModel]="selectedTrainingExercise" (ngModelChange)="onTrainingExerciseChanged($event)" aria-label="Ejercicio a comparar">
+                <option [ngValue]="null" disabled>{{ selectedTrainingExercises.length > 1 ? selectedTrainingExercises.length + ' ejercicios seleccionados' : 'Selecciona un ejercicio' }}</option>
+                <option *ngIf="selectedTrainingExercise && !trainingExerciseNames.includes(selectedTrainingExercise)" [value]="selectedTrainingExercise">{{ selectedTrainingExercise }} · sin registros</option>
+                <option *ngFor="let name of trainingExerciseNames" [value]="name">{{ name }}</option>
+              </select>
+            </label>
+          </div>
+          <div class="section-row">
+            <span class="history-subtitle">{{ trainingGranularity === 'session' && trainingComparisonMetric !== 'sessions' ? 'Por sesión' : 'Por microciclo' }} · {{ selectedTrainingWorkout || 'Todos los entrenamientos' }}</span>
+            <button type="button" class="add-button" (click)="openTrainingFilterPanel()">
+              <ion-icon name="options-outline"></ion-icon>Más filtros
+            </button>
+          </div>
+          <app-training-comparison-chart
+            [blocks]="trainingBlocks"
+            [blockMuscleGroups]="trainingBlockMuscleGroups"
+            [blockExerciseByName]="trainingBlockExerciseByName"
+            [selectedExercises]="selectedTrainingExercises"
+            [blockReadiness]="trainingBlockReadiness"
+            [blockAdherence]="trainingBlockAdherence"
+            [sessionTraining]="trainingSessionTraining"
+            [sessionMuscleGroups]="trainingSessionMuscleGroups"
+            [sessionExerciseByName]="trainingSessionExerciseByName"
+            [sessionReadiness]="trainingSessionReadiness"
+            [sessionAdherence]="trainingSessionAdherence"
+            [granularity]="trainingGranularity"
+            [metric]="trainingComparisonMetric"
+            [isLoading]="trainingBlocksState === 'loading'"
+            [hasError]="trainingBlocksState === 'error'"
+            (retry)="loadTrainingBlocks()"
+          ></app-training-comparison-chart>
+        </div>
+      </div>
+
+      <!-- Sesiones recientes y catálogo de rutinas. -->
+      <div class="training-plan-row">
+        <div class="training-plan-col">
           <!-- Tarea 3 bis — vista previa, no el historial completo: eso ya
                vive en Progreso > Sesiones — aquí solo contexto de un
                vistazo con enlace directo. -->

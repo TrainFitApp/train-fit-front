@@ -67,7 +67,7 @@ const checkToken = (): boolean | UrlTree | Observable<boolean | UrlTree> => {
       return createLoginRedirect(router);
     }),
     catchError((err) => {
-      if (err?.error?.requiresRelogin || err?.requiresRelogin) {
+      if (authService.isTerminalAuthError(err)) {
         authService.logout();
         return of(false);
       }
@@ -76,6 +76,9 @@ const checkToken = (): boolean | UrlTree | Observable<boolean | UrlTree> => {
         status: err?.status,
         message: err?.message,
       });
+      // Un corte de red no invalida la sesión ni debe sacar del Planner.
+      // Cancela esta navegación; la siguiente petición vuelve a renovar.
+      if (authService.user) return of(false);
       return of(createLoginRedirect(router, true));
     })
   );

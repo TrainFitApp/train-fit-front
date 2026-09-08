@@ -13,6 +13,8 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
 import { PlannerRowSyncService } from './services/planner-row-sync.service';
 import { PlannerExerciseCopyService } from './services/planner-exercise-copy.service';
+import { ClientDetailApiService } from '../clients/pages/client-detail/services/client-detail-api.service';
+import { latestPlannerPain, PlannerPain } from './utils/planner-pain';
 import { TrainerInvitesApiService } from '../invites/services/trainer-invites-api.service';
 import {
   ClientIntake,
@@ -90,6 +92,11 @@ export class PlannerPage {
   // templateMode (biblioteca de plantillas propia del profesional, sin
   // cliente real) o si el cliente no ha respondido cuestionario aún.
   public clientIntake: ClientIntake | null = null;
+  public clientPain: PlannerPain[] = [];
+  public painEnabled = false;
+  public get activeClientPain(): PlannerPain[] { return this.clientPain.filter((entry) => entry.level > 0); }
+  public painState: 'loading' | 'loaded' | 'error' = 'loading';
+  private readonly clientDetailApi = inject(ClientDetailApiService);
 
   private readonly tableService = inject(TableService);
   private readonly splitService = inject(SplitService);
@@ -123,6 +130,25 @@ export class PlannerPage {
     });
 
     this.loadClientIntake();
+  }
+
+  public ionViewWillEnter(): void { this.loadClientPain(); }
+
+  public loadClientPain(): void {
+    const clientId = this.route.snapshot.paramMap.get('clientId');
+    this.painEnabled = !!clientId && !this.route.snapshot.data['templateMode'];
+    if (!clientId || this.route.snapshot.data['templateMode']) {
+      this.painState = 'loaded';
+      return;
+    }
+    this.painState = 'loading';
+    this.clientDetailApi.getClientPain(clientId, 7).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ entries, thresholds }) => {
+        this.clientPain = latestPlannerPain(entries, thresholds);
+        this.painState = 'loaded';
+      },
+      error: () => { this.painState = 'error'; },
+    });
   }
 
   // Punto 1 — mismo criterio que close(): clientId sale de la ruta, no de

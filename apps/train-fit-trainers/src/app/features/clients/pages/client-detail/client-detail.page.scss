@@ -391,6 +391,56 @@
   gap: var(--tf-space-6);
 }
 
+.training-phases {
+  margin-bottom: var(--tf-space-5);
+
+  .active-plan-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 20px;
+    align-items: center;
+    .goal-header { grid-column: 1; min-width: 0; }
+    .history-subtitle { grid-column: 1; margin: 4px 0 0; }
+    .open-planner-btn { grid-column: 2; grid-row: 1 / 3; margin-top: 0; }
+  }
+
+  .nutrition-history-toggle {
+    width: 100%;
+    min-height: 44px;
+    text-align: left;
+    background: transparent;
+    color: var(--tf-text-secondary);
+  }
+
+  @media (max-width: 700px) {
+    .active-plan-card {
+      grid-template-columns: minmax(0, 1fr);
+      .open-planner-btn { grid-column: 1; grid-row: auto; margin-top: 10px; }
+    }
+    .next-phase-row .list-card {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 6px 8px;
+      .list-card-title { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+      .scheduled-badge { grid-column: 2; justify-self: start; white-space: normal; }
+    }
+  }
+}
+
+.training-comparison-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 14px;
+  label { display: grid; gap: 5px; flex: 1 1 185px; min-width: 0; color: var(--tf-text-secondary); font-size: 12px; }
+  select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--tf-border-strong); border-radius: 8px; padding: 8px; background: var(--tf-surface-2); color: var(--tf-text); }
+  select:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
+}
+
+@media (max-width: 640px) {
+  .training-main .nutrition-charts-row > .nutrition-card { width: 100%; flex-basis: auto; }
+}
+
 .training-plan-col {
   flex: 1 1 420px;
   min-width: 0;

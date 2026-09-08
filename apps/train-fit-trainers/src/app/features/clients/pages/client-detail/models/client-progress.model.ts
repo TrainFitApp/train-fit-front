@@ -218,11 +218,11 @@ export type TrainingComparisonMetric =
   | 'adherence';
 
 export const TRAINING_COMPARISON_METRIC_LABELS: Record<TrainingComparisonMetric, string> = {
-  sessions: 'Entrenos completados',
-  sets: 'Series completadas',
-  volume: 'Volumen de entrenamiento',
-  muscleGroups: 'Grupos musculares implicados',
-  exercise: 'Un ejercicio concreto',
+  sessions: 'Sesiones registradas',
+  sets: 'Series por sesión',
+  volume: 'Volumen por sesión',
+  muscleGroups: 'Series por grupo muscular',
+  exercise: 'Progreso de un ejercicio',
   readiness: 'Readiness y esfuerzo percibido',
   adherence: 'Adherencia a lo pautado',
 };
@@ -248,6 +248,8 @@ export interface BlockExerciseProgress {
   maxWeight: number;
   volume: number;
   sets: number;
+  totalReps?: number;
+  bestSet?: { weight: number; reps: number; rir: number[] } | null;
 }
 
 // Movimiento 3 Coach Pro — el mismo trabajo agrupado por MICROCICLO.
@@ -301,7 +303,7 @@ export interface BlockMuscleGroup {
   name: string;
   start: string;
   end: string;
-  muscleGroups: { group: string; volume: number }[];
+  muscleGroups: { group: string; volume: number; sets?: number }[];
 }
 
 // 2026-09 — granularidad "Por sesión": los mismos agregados que arriba pero
