@@ -7,7 +7,7 @@ const PORT = ':3000';
 // tambien. Revertido una vez ya por un guardado desde el editor con buffer
 // viejo (mismo problema que en train-fit-back/app.js) — si vuelve a
 // aparecer 192.168.1.13, es eso, no un fallo de esta edicion.
-const API_URL_BASE = 'http://192.168.1.19' + PORT;
+const API_URL_BASE = 'http://192.168.1.11' + PORT;
 
 export const environment = {
   production: false,
