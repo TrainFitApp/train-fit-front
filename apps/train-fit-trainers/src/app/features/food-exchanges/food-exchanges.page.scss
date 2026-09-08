@@ -226,29 +226,53 @@
 // Editor
 // ---------------------------------------------------------------------------
 .panel-backdrop {
-  @include tf-panel-backdrop;
+  @include tf-side-panel-backdrop;
 }
 
+// Panel lateral derecho en escritorio (hoja inferior en móvil, ver
+// tf-side-panel). Antes era una hoja inferior centrada a 640px: un editor de
+// 10 filas de alimentos con 80vh de tope acababa desplazando por dentro de
+// una ventana que estaba medio vacía a los lados, y tapaba la lista de
+// grupos que se está copiando o comparando mientras se rellena.
+//
+// 520px y no los 440 del panel de suplementos: cada fila lleva nombre,
+// cantidad, unidad, nota y el botón de quitar en una línea. Por debajo de
+// ~500 la nota se queda en un hueco donde no cabe nada.
 .panel-sheet {
-  @include tf-panel-sheet;
+  @include tf-side-panel(520px);
 
-  @media (min-width: 768px) {
-    max-width: 640px;
-    margin: 0 auto;
-    right: 0;
-    left: 0;
-  }
+  // El pie se queda abajo aunque el formulario sea corto, y el contenido
+  // desplaza por dentro en vez de arrastrar los botones fuera de pantalla
+  // (mismo montaje que supplements-panel).
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
 }
 
 .panel-handle {
-  @include tf-panel-handle;
+  @include tf-side-panel-handle;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  margin-bottom: var(--tf-space-4);
 }
 
 .panel-title {
-  margin: 0 0 var(--tf-space-4);
+  flex: 1;
+  margin: 0;
   font-size: var(--tf-font-size-lg);
   font-weight: 600;
   color: var(--tf-text);
+}
+
+// Al lateralizar desaparece el asa de arrastre (no hay nada que arrastrar de
+// lado), así que sin esto el único cierre visible arriba sería tocar el velo.
+.panel-close {
+  @include tf-icon-button;
+  flex-shrink: 0;
 }
 
 .section-title {
@@ -404,11 +428,19 @@
   }
 }
 
+// Pegado al fondo del panel: el formulario crece con cada alimento que se
+// añade, y con los botones al final del flujo había que desplazar hasta abajo
+// para guardar cada vez.
 .panel-actions {
+  position: sticky;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: var(--tf-space-3);
   margin-top: var(--tf-space-6);
+  padding: var(--tf-space-3) 0 var(--tf-space-5);
+  background: var(--tf-surface-1);
+  border-top: 1px solid var(--tf-border-subtle);
 }
 
 .save-error {

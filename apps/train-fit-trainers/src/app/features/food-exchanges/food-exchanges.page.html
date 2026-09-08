@@ -83,9 +83,17 @@
 <div class="panel-backdrop" *ngIf="showEditor" (click)="closeEditor()"></div>
 <div class="panel-sheet" *ngIf="showEditor" role="dialog" aria-modal="true" aria-labelledby="exchange-editor-title">
   <div class="panel-handle" aria-hidden="true"></div>
-  <h2 class="panel-title" id="exchange-editor-title">
-    {{ editingId ? 'Editar grupo' : 'Nuevo grupo de intercambio' }}
-  </h2>
+  <!-- El aspa es el único cierre visible arriba una vez el panel se
+       lateraliza: ahí el asa de arrastre desaparece (ver
+       tf-side-panel-handle). -->
+  <header class="panel-header">
+    <h2 class="panel-title" id="exchange-editor-title">
+      {{ editingId ? 'Editar grupo' : 'Nuevo grupo de intercambio' }}
+    </h2>
+    <button type="button" class="panel-close" (click)="closeEditor()" aria-label="Cerrar">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
 
   <label class="field-label" for="exchange-name">Nombre</label>
   <div class="input-wrapper">
