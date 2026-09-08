@@ -1,14 +1,29 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Split, SPLIT_PURPOSES } from 'src/app/core/models/split';
-import { CompareExerciseRow, CompareResult, CompareWorkoutRow, compareSplits } from '../../utils/planner-compare';
 import {
-  ComparisonMode, MetricComparison, comparisonSnapshot, completionSummary,
-  exerciseMetrics, metricComparison, overviewMetrics,
+  CompareExerciseRow,
+  CompareResult,
+  CompareWorkoutRow,
+  compareSplits,
+} from '../../utils/planner-compare';
+import {
+  ComparisonMode,
+  MetricComparison,
+  comparisonSnapshot,
+  completionSummary,
+  exerciseMetrics,
+  metricComparison,
+  overviewMetrics,
 } from '../../utils/planner-comparison-view';
 
-type ExerciseView = CompareExerciseRow & { metrics: MetricComparison[]; details: { a: string; b: string }[] };
-type WorkoutView = Omit<CompareWorkoutRow, 'exercises'> & { exercises: ExerciseView[] };
+type ExerciseView = CompareExerciseRow & {
+  metrics: MetricComparison[];
+  details: { a: string; b: string }[];
+};
+type WorkoutView = Omit<CompareWorkoutRow, 'exercises'> & {
+  exercises: ExerciseView[];
+};
 
 /** Instantánea de solo lectura: el tablero no puede editarse bajo el modal. */
 @Component({
@@ -27,7 +42,11 @@ export class CompareSplitsModalComponent implements OnInit {
   public metrics: MetricComparison[] = [];
   public workouts: WorkoutView[] = [];
   public visibleWorkouts: WorkoutView[] = [];
-  public muscles: (CompareResult['muscles'][number] & { metric: MetricComparison; widthA: number; widthB: number })[] = [];
+  public muscles: (CompareResult['muscles'][number] & {
+    metric: MetricComparison;
+    widthA: number;
+    widthB: number;
+  })[] = [];
   public completionA = completionSummary(null);
   public completionB = completionSummary(null);
   public visibleCount = 0;
@@ -37,13 +56,24 @@ export class CompareSplitsModalComponent implements OnInit {
 
   public ngOnInit(): void {
     this.indexA = this.validIndex(this.indexA) ? this.indexA : 0;
-    this.indexB = this.validIndex(this.indexB) && this.indexB !== this.indexA ? this.indexB : (this.indexA === 0 ? 1 : 0);
+    this.indexB =
+      this.validIndex(this.indexB) && this.indexB !== this.indexA
+        ? this.indexB
+        : this.indexA === 0
+        ? 1
+        : 0;
     this.recalculate();
   }
 
-  public get splitA(): Split | null { return this.splits[this.indexA] || null; }
-  public get splitB(): Split | null { return this.splits[this.indexB] || null; }
-  public get hasPair(): boolean { return !!this.splitA && !!this.splitB && this.indexA !== this.indexB; }
+  public get splitA(): Split | null {
+    return this.splits[this.indexA] || null;
+  }
+  public get splitB(): Split | null {
+    return this.splits[this.indexB] || null;
+  }
+  public get hasPair(): boolean {
+    return !!this.splitA && !!this.splitB && this.indexA !== this.indexB;
+  }
 
   public recalculate(): void {
     const a = comparisonSnapshot(this.splitA, this.mode);
@@ -57,27 +87,56 @@ export class CompareSplitsModalComponent implements OnInit {
       exercises: workout.exercises.map((exercise) => ({
         ...exercise,
         metrics: exerciseMetrics(exercise),
-        details: Array.from({ length: Math.max(exercise.a?.details.length || 0, exercise.b?.details.length || 0) }, (_, index) => ({
-          a: exercise.a?.details[index] || '—', b: exercise.b?.details[index] || '—',
-        })),
+        details: Array.from(
+          {
+            length: Math.max(
+              exercise.a?.details.length || 0,
+              exercise.b?.details.length || 0
+            ),
+          },
+          (_, index) => ({
+            a: exercise.a?.details[index] || '—',
+            b: exercise.b?.details[index] || '—',
+          })
+        ),
       })),
     }));
-    const max = Math.max(1, ...this.result.muscles.flatMap((muscle) => [muscle.a, muscle.b]));
+    const max = Math.max(
+      1,
+      ...this.result.muscles.flatMap((muscle) => [muscle.a, muscle.b])
+    );
     this.muscles = this.result.muscles.map((muscle) => ({
       ...muscle,
       metric: metricComparison(muscle.name, muscle.name, muscle.a, muscle.b),
-      widthA: muscle.a / max * 100, widthB: muscle.b / max * 100,
+      widthA: (muscle.a / max) * 100,
+      widthB: (muscle.b / max) * 100,
     }));
-    this.totalCount = this.workouts.reduce((sum, row) => sum + row.exercises.length, 0);
+    this.totalCount = this.workouts.reduce(
+      (sum, row) => sum + row.exercises.length,
+      0
+    );
     this.filterWorkouts();
   }
 
   public filterWorkouts(): void {
-    this.visibleWorkouts = this.workouts.map((workout) => ({
-      ...workout,
-      exercises: workout.exercises.filter((exercise) => !this.onlyChanges || exercise.status !== 'same'),
-    })).filter((workout) => !this.onlyChanges || workout.exercises.length || workout.hasChanges || workout.onlyIn);
-    this.visibleCount = this.visibleWorkouts.reduce((sum, row) => sum + row.exercises.length, 0);
+    this.visibleWorkouts = this.workouts
+      .map((workout) => ({
+        ...workout,
+        exercises: workout.exercises.filter(
+          (exercise) => !this.onlyChanges || exercise.status !== 'same'
+        ),
+      }))
+      .filter(
+        (workout) =>
+          !this.onlyChanges ||
+          workout.exercises.length ||
+          workout.hasChanges ||
+          workout.onlyIn
+      );
+    this.visibleCount = this.visibleWorkouts.reduce(
+      (sum, row) => sum + row.exercises.length,
+      0
+    );
   }
 
   public onModeChange(value: unknown): void {
@@ -107,24 +166,42 @@ export class CompareSplitsModalComponent implements OnInit {
     this.recalculate();
   }
 
-  public labelFor(index: number): string { return `Microciclo ${index + 1}`; }
+  public labelFor(index: number): string {
+    return `Microciclo ${index + 1}`;
+  }
   public purposeLabel(split: Split | null): string {
-    return SPLIT_PURPOSES.find((purpose) => purpose.key === split?.purpose)?.label || 'Normal';
+    return (
+      SPLIT_PURPOSES.find((purpose) => purpose.key === split?.purpose)?.label ||
+      'Normal'
+    );
   }
   public statusLabel(exercise: CompareExerciseRow): string {
     switch (exercise.status) {
-      case 'added': return 'Solo en B';
-      case 'removed': return 'Solo en A';
-      case 'moved': return `Movido desde posición ${(exercise.movedFrom ?? 0) + 1}`;
-      case 'changed': return 'Modificado';
-      default: return 'Sin cambios';
+      case 'added':
+        return 'Solo en B';
+      case 'removed':
+        return 'Solo en A';
+      case 'moved':
+        return `Movido desde posición ${(exercise.movedFrom ?? 0) + 1}`;
+      case 'changed':
+        return 'Modificado';
+      default:
+        return 'Sin cambios';
     }
   }
   public trendIcon(metric: MetricComparison): string {
-    return metric.direction === 'up' ? 'arrow-up-outline' : metric.direction === 'down' ? 'arrow-down-outline' : 'remove-outline';
+    return metric.direction === 'up'
+      ? 'arrow-up-outline'
+      : metric.direction === 'down'
+      ? 'arrow-down-outline'
+      : 'remove-outline';
   }
-  public close(): void { void this.modalController.dismiss(); }
-  public trackByIndex(index: number): number { return index; }
+  public close(): void {
+    void this.modalController.dismiss();
+  }
+  public trackByIndex(index: number): number {
+    return index;
+  }
   private validIndex(index: number): boolean {
     return Number.isInteger(index) && index >= 0 && index < this.splits.length;
   }

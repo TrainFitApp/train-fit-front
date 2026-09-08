@@ -1,21 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>Antes de empezar</ion-title>
-    <!-- 2026-09 — antes esta pantalla no tenía NINGUNA salida (ni back, ni
-         tab bar, ni cerrar sesión) en cuanto la única relación pendiente
-         pasaba a "en_revision": el cliente quedaba atrapado hasta forzar el
-         cierre de la app. -->
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()">
-        <ion-icon slot="start" name="log-out-outline"></ion-icon>
-        {{ 'CONFIGURATION.LOGOUT' | translate }}
+  <ion-toolbar class="hub-toolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
+    <ion-title>Antes de empezar</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="onboarding-content">
   <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 80px;"></div>
     <div class="skeleton-block" style="height: 80px;"></div>
   </div>
 
@@ -25,172 +21,95 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
-    <p class="intro-text">
-      Antes de acceder a tu dieta y rutina, tu profesional necesita conocerte un poco mejor.
-    </p>
-
-    <p class="progress-text" *ngIf="pendingCount > 0">
-      Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
-    </p>
-
-    <!-- Invitaciones sin aceptar todavía — el cliente puede tener otra
-    relación bloqueándole el resto de la app y necesita aceptar esta para
-    poder rellenar su cuestionario, sin depender del tab de Coach (también
-    bloqueado). -->
-    <div class="trainer-group trainer-group--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
-      <div class="trainer-group-header">
-        <span class="trainer-group-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</span>
-        <span class="trainer-group-scopes">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }}</span>
-      </div>
-      <p class="waiting-hint">Te ha invitado a formar parte de sus clientes.</p>
-      <div class="invite-actions">
-        <button
-          class="secondary-button"
-          [disabled]="respondingInviteId === invite._id"
-          (click)="respondToInvite(invite, 'decline')"
-        >
-          Rechazar
-        </button>
-        <button
-          class="submit-button"
-          [disabled]="respondingInviteId === invite._id"
-          (click)="respondToInvite(invite, 'accept')"
-        >
-          <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
-          <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
-        </button>
-      </div>
+    <!-- Nada por hacer, solo esperar: unico caso que se lleva toda la
+    pantalla (misma logica visual que el paso de verificacion de email en
+    sign-up) — si hay una invitacion nueva de por medio, esa siempre es
+    accionable, asi que el hub gana. -->
+    <div class="waiting-screen" *ngIf="pendingCount === 0 && !pendingInvites.length; else hub">
+      <div class="waiting-icon"><ion-icon name="hourglass-outline"></ion-icon></div>
+      <h2 class="section-title">Esperando confirmación</h2>
+      <p class="section-subtitle waiting-subtitle">
+        Ya enviaste tu{{ groups.length === 1 ? '' : 's' }} cuestionario{{ groups.length === 1 ? '' : 's' }}. En
+        cuanto {{ groups.length === 1 ? 'tu profesional lo confirme' : 'lo confirmen' }} podrás entrar a tu
+        cuenta.
+      </p>
+      <p class="waiting-note">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>Puede tardar. Volveremos a comprobarlo automáticamente cada poco.</span>
+      </p>
     </div>
 
-    <div class="trainer-group" *ngFor="let group of groups; trackBy: trackByTrainerId">
-      <div class="trainer-group-header">
-        <span class="trainer-group-name">{{ group.trainerName }}</span>
-        <span class="trainer-group-scopes">{{ group.scopes.join(' · ') }}</span>
-      </div>
-
-      <button
-        class="action-button"
-        *ngIf="group.needsIntake && fillingTrainerId !== group.trainerId"
-        (click)="openIntakeForm(group)"
-      >
-        Completar cuestionario
-      </button>
-
-      <p class="waiting-hint" *ngIf="!group.needsIntake">
-        Cuestionario enviado. Esperando confirmación de {{ group.trainerName }}.
+    <ng-template #hub>
+      <p class="intro-text">
+        Antes de acceder a tu dieta y rutina, tu profesional necesita conocerte un poco mejor.
       </p>
 
-      <!-- Formulario del cuestionario inicial -->
-      <div class="intake-form" *ngIf="fillingTrainerId === group.trainerId">
-        <div class="detail-skeleton" *ngIf="isLoadingIntake">
-          <div class="skeleton-block" style="height: 40px;"></div>
-          <div class="skeleton-block" style="height: 40px;"></div>
+      <p class="progress-text" *ngIf="pendingCount > 0">
+        Te queda{{ pendingCount === 1 ? '' : 'n' }} {{ pendingCount }} cuestionario{{ pendingCount === 1 ? '' : 's' }} por completar.
+      </p>
+
+      <!-- Invitaciones sin aceptar todavia -->
+      <div class="trainer-row trainer-row--invite" *ngFor="let invite of pendingInvites; trackBy: trackByInviteId">
+        <div class="trainer-row-icon"><ion-icon name="person-add-outline"></ion-icon></div>
+        <div class="trainer-row-text">
+          <div class="trainer-row-name">{{ invite.trainer ? (invite.trainer.name + ' ' + invite.trainer.lastname) : 'Un profesional' }}</div>
+          <div class="trainer-row-scope">{{ invite.scope === 'training' ? 'Entrenamiento' : 'Nutrición' }} · te ha invitado</div>
         </div>
-
-        <ng-container *ngIf="!isLoadingIntake">
-        <ng-container *ngIf="group.enabledFields.has('goals')">
-          <label class="form-label">Objetivos</label>
-          <textarea class="form-textarea" rows="2" [(ngModel)]="goals" placeholder="¿Qué quieres conseguir?"></textarea>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('healthConditions')">
-          <label class="form-label">Salud y lesiones</label>
-          <textarea class="form-textarea" rows="2" [(ngModel)]="healthConditions" placeholder="Lesiones, condiciones médicas..."></textarea>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('experienceLevel')">
-          <label class="form-label">Experiencia</label>
-          <div class="option-row">
-            <button
-              class="option-chip"
-              *ngFor="let option of experienceOptions"
-              [class.option-chip--active]="experienceLevel === option.value"
-              (click)="experienceLevel = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('availability')">
-          <label class="form-label">Disponibilidad</label>
-          <input type="text" class="form-input" [(ngModel)]="availability" placeholder="Ej. 3 días/semana, tardes" />
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('equipment')">
-          <label class="form-label">Lugar de entrenamiento</label>
-          <div class="option-row">
-            <button
-              class="option-chip"
-              *ngFor="let option of trainingLocationOptions"
-              [class.option-chip--active]="trainingLocation === option.value"
-              (click)="trainingLocation = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-
-          <label class="form-label">Equipamiento disponible</label>
-          <div class="option-row">
-            <button
-              class="option-chip"
-              *ngFor="let option of equipmentTagOptions"
-              [class.option-chip--active]="equipmentTags.includes(option.value)"
-              (click)="toggleEquipmentTag(option.value)"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('allergies')">
-          <label class="form-label">Alergias</label>
-          <textarea class="form-textarea" rows="2" [(ngModel)]="allergies"></textarea>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('favoriteFoods')">
-          <label class="form-label">Alimentos favoritos</label>
-          <textarea class="form-textarea" rows="2" [(ngModel)]="favoriteFoods"></textarea>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('dislikedFoods')">
-          <label class="form-label">Alimentos que no te gustan</label>
-          <textarea class="form-textarea" rows="2" [(ngModel)]="dislikedFoods"></textarea>
-        </ng-container>
-
-        <ng-container *ngIf="group.enabledFields.has('cooksAtHome')">
-          <label class="form-label">¿Cocinas en casa?</label>
-          <div class="option-row">
-            <button
-              class="option-chip"
-              *ngFor="let option of cooksOptions"
-              [class.option-chip--active]="cooksAtHome === option.value"
-              (click)="cooksAtHome = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </ng-container>
-
-        <ng-container *ngFor="let question of group.customQuestions; trackBy: trackByQuestionId">
-          <label class="form-label">{{ question.label }}</label>
-          <textarea
-            class="form-textarea"
-            rows="2"
-            [ngModel]="customAnswers[question.id]"
-            (ngModelChange)="customAnswers[question.id] = $event"
-          ></textarea>
-        </ng-container>
-        </ng-container>
-
-        <div class="form-actions">
-          <button class="secondary-button" (click)="closeIntakeForm()">Cancelar</button>
-          <button class="submit-button" (click)="submitIntake()" [disabled]="isSubmitting || isLoadingIntake">
-            <span *ngIf="!isSubmitting">Enviar cuestionario</span>
-            <ion-spinner name="dots" *ngIf="isSubmitting"></ion-spinner>
+        <div class="trainer-row-actions">
+          <button
+            class="row-btn row-btn--ghost"
+            [disabled]="respondingInviteId === invite._id"
+            (click)="respondToInvite(invite, 'decline')"
+          >
+            Rechazar
+          </button>
+          <button
+            class="row-btn row-btn--accent"
+            [disabled]="respondingInviteId === invite._id"
+            (click)="respondToInvite(invite, 'accept')"
+          >
+            <span *ngIf="respondingInviteId !== invite._id">Aceptar</span>
+            <ion-spinner name="dots" *ngIf="respondingInviteId === invite._id"></ion-spinner>
           </button>
         </div>
       </div>
-    </div>
+
+      <!-- Entrenadores con relacion activa: cuestionario pendiente o ya
+      enviado (esperando confirmacion). -->
+      <div class="trainer-row" *ngFor="let group of groups; trackBy: trackByTrainerId">
+        <div class="trainer-row-icon"><ion-icon name="person-outline"></ion-icon></div>
+        <div class="trainer-row-text">
+          <div class="trainer-row-name">{{ group.trainerName }}</div>
+          <div class="trainer-row-scope">{{ group.scopes.join(' · ') }}</div>
+        </div>
+        <button
+          class="row-btn row-btn--accent"
+          *ngIf="group.needsIntake"
+          (click)="openIntakeForm(group)"
+        >
+          Completar
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+        <span class="trainer-row-waiting" *ngIf="!group.needsIntake">
+          <ion-icon name="hourglass-outline"></ion-icon>
+          Esperando
+        </span>
+      </div>
+    </ng-template>
   </ng-container>
 </ion-content>
+
+<div class="wizard-loading" *ngIf="fillingTrainerId && isLoadingIntake">
+  <ion-spinner name="crescent"></ion-spinner>
+</div>
+
+<app-intake-wizard
+  *ngIf="fillingTrainerId && !isLoadingIntake"
+  [trainerName]="fillingGroup?.trainerName || ''"
+  [enabledFields]="fillingGroup?.enabledFields || emptyFieldSet"
+  [customQuestions]="fillingGroup?.customQuestions || []"
+  [prefill]="intakePrefill"
+  [isSubmitting]="isSubmitting"
+  (submitted)="submitIntake($event)"
+  (cancelled)="closeIntakeForm()"
+></app-intake-wizard>

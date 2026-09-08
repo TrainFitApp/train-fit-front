@@ -118,7 +118,7 @@ export class CoachPage implements OnInit {
     private tasksApi: TasksApiService,
     private coachService: CoachService,
     private notificationsService: NotificationsService,
-    private onboardingService: OnboardingService,
+    public onboardingService: OnboardingService,
     private ionicUtilService: IonicUtilService
   ) {}
 
@@ -566,6 +566,16 @@ export class CoachPage implements OnInit {
 
   public trackByProfessionalId(_index: number, professional: ProfessionalSummary): string {
     return professional.user?._id || _index.toString();
+  }
+
+  // El cliente pudo elegir "Más tarde" en onboarding-status (ver
+  // OnboardingService#dismiss) — ya no lo bloquea, pero completar el
+  // cuestionario inicial sigue pendiente hasta que lo haga. Sin esto, una
+  // vez descartada esa pantalla no había forma de volver a ella salvo
+  // cerrar sesión y volver a entrar (el guard es el único sitio que
+  // navegaba ahí).
+  public goToOnboardingStatus(): void {
+    void this.router.navigate(['/onboarding-status']);
   }
 
   // --- Navegación desde "Pendiente de ti" a las pantallas ya existentes ---

@@ -11,7 +11,7 @@
 
 <ion-content class="compare-content">
   <div class="compare-picker">
-    <ion-select class="picker-select" interface="popover" label="A · Referencia" labelPlacement="stacked"
+    <ion-select class="picker-select" interface="popover" [label]="'A · ' + purposeLabel(splitA)" [selectedText]="labelFor(indexA)" labelPlacement="stacked"
       [value]="indexA" (ionChange)="onSelectA($event.detail.value)" [disabled]="splits.length < 2">
       <ion-select-option *ngFor="let split of splits; let i = index" [value]="i">
         {{ labelFor(i) }} · {{ purposeLabel(split) }}
@@ -20,7 +20,7 @@
     <button type="button" class="swap-button" (click)="swap()" aria-label="Intercambiar A y B" [disabled]="!hasPair">
       <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
     </button>
-    <ion-select class="picker-select" interface="popover" label="B · Comparar" labelPlacement="stacked"
+    <ion-select class="picker-select" interface="popover" [label]="'B · ' + purposeLabel(splitB)" [selectedText]="labelFor(indexB)" labelPlacement="stacked"
       [value]="indexB" (ionChange)="onSelectB($event.detail.value)" [disabled]="splits.length < 2">
       <ion-select-option *ngFor="let split of splits; let i = index" [value]="i">
         {{ labelFor(i) }} · {{ purposeLabel(split) }}
@@ -123,7 +123,7 @@
     </section>
 
     <details class="muscle-section">
-      <summary>Volumen por grupo muscular <span>{{ muscles.length }} grupos</span></summary>
+      <summary>Volumen por grupo muscular <span>{{ muscles.length }} {{ muscles.length === 1 ? 'grupo' : 'grupos' }}</span></summary>
       <p class="table-guide">Series por grupo principal · barras A / B en la misma escala · frecuencia en sesiones.</p>
       <div class="muscle-row" *ngFor="let muscle of muscles">
         <strong>{{ muscle.name | translateDb }}</strong>

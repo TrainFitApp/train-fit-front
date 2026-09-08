@@ -7,17 +7,12 @@ import {
   OnboardingRelation,
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
-import { AuthService } from 'src/app/core/services/auth/auth.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
 import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
-import {
-  EquipmentTag,
-  IntakeApiService,
-  IntakeSubmission,
-  TrainingLocation,
-} from './services/intake-api.service';
+import { IntakeApiService } from './services/intake-api.service';
+import { IntakeWizardPrefill, IntakeWizardResult } from './components/intake-wizard/intake-wizard.component';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -30,45 +25,25 @@ interface TrainerGroup {
   customQuestions: IntakeCustomQuestion[]; // preguntas de texto libre añadidas por el trainer
 }
 
-const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
-  { value: 'none', label: 'Sin experiencia' },
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' },
-];
-
-const COOKS_OPTIONS: { value: IntakeSubmission['cooksAtHome']; label: string }[] = [
-  { value: 'yes', label: 'Sí' },
-  { value: 'no', label: 'No' },
-  { value: 'sometimes', label: 'A veces' },
-];
-
-// Tarea 3 (Trainers, 2026-08) — "Equipamiento utilizado": sustituye el
-// antiguo textarea libre de `equipment` por lugar de entreno (select) +
-// maquinaria disponible (checkboxes de catálogo cerrado, ver
-// intake-api.service.ts#TrainingLocation/EquipmentTag).
-const TRAINING_LOCATION_OPTIONS: { value: TrainingLocation; label: string }[] = [
-  { value: 'gym', label: 'Gimnasio' },
-  { value: 'home', label: 'Casa' },
-  { value: 'outdoor', label: 'Exterior' },
-  { value: 'mixed', label: 'Mixto' },
-];
-
-const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
-  { value: 'dumbbells', label: 'Mancuernas' },
-  { value: 'barbell', label: 'Barra y discos' },
-  { value: 'machines', label: 'Máquinas de gimnasio' },
-  { value: 'bands', label: 'Bandas elásticas' },
-  { value: 'kettlebells', label: 'Kettlebells' },
-  { value: 'bench', label: 'Banco' },
-  { value: 'pullup_bar', label: 'Barra de dominadas' },
-  { value: 'none', label: 'Sin material' },
-];
+const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
+  goals: '',
+  healthConditions: '',
+  experienceLevel: null,
+  availability: '',
+  trainingLocation: null,
+  equipmentTags: [],
+  allergies: '',
+  favoriteFoods: '',
+  dislikedFoods: '',
+  cooksAtHome: null,
+  customAnswers: {},
+};
 
 // TAREA 3 (coach-tab) — pantalla que ve el cliente mientras no tiene ninguna
 // relación activa todavía: si alguno de sus profesionales sigue esperando el
-// cuestionario inicial, lo rellena aquí; si ya lo envió, ve un mensaje de
-// espera hasta que el profesional lo confirme explícitamente.
+// cuestionario inicial, lo rellena aquí (wizard paso a paso, ver
+// components/intake-wizard); si ya lo envió, ve un mensaje de espera hasta
+// que el profesional lo confirme explícitamente.
 @Component({
   selector: 'app-onboarding-status',
   templateUrl: 'onboarding-status.page.html',
@@ -77,26 +52,12 @@ const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
 export class OnboardingStatusPage implements OnDestroy {
   public state: ViewState = 'loading';
   public groups: TrainerGroup[] = [];
+  public readonly emptyFieldSet: Set<IntakeFieldKey> = new Set();
 
   public fillingTrainerId: string | null = null;
   public isSubmitting = false;
   public isLoadingIntake = false;
-  public readonly experienceOptions = EXPERIENCE_OPTIONS;
-  public readonly cooksOptions = COOKS_OPTIONS;
-  public readonly trainingLocationOptions = TRAINING_LOCATION_OPTIONS;
-  public readonly equipmentTagOptions = EQUIPMENT_TAG_OPTIONS;
-
-  public goals = '';
-  public healthConditions = '';
-  public experienceLevel: IntakeSubmission['experienceLevel'] = null;
-  public availability = '';
-  public trainingLocation: TrainingLocation | null = null;
-  public equipmentTags: EquipmentTag[] = [];
-  public allergies = '';
-  public favoriteFoods = '';
-  public dislikedFoods = '';
-  public cooksAtHome: IntakeSubmission['cooksAtHome'] = null;
-  public customAnswers: Record<string, string> = {};
+  public intakePrefill: IntakeWizardPrefill = EMPTY_INTAKE_PREFILL;
 
   // Invitaciones YA aceptadas por el cliente están en `groups` (relaciones
   // cuestionario_pendiente/en_revision). Estas son las que TODAVÍA no ha
@@ -109,13 +70,12 @@ export class OnboardingStatusPage implements OnDestroy {
 
   // Bug real (2026-09) — esta pantalla no tenía NINGÚN control de
   // navegación (ni back, ni tab bar —estructuralmente ausente mientras el
-  // guard bloquea /tabs—, ni cerrar sesión) en cuanto la única relación
-  // pendiente pasaba a "en_revision": el cliente quedaba atrapado hasta
-  // forzar el cierre de la app. Dos partes al fix, ninguna toca la
-  // condición del guard (onboardingMatchGuard/blocked ya está bien acotada,
-  // solo bloquea sin NINGUNA relación activa): (1) salida siempre
-  // disponible (logout), (2) auto-desatasco por si el entrenador confirma
-  // mientras el cliente sigue en esta pantalla.
+  // guard bloquea /tabs—) en cuanto la única relación pendiente pasaba a
+  // "en_revision": el cliente quedaba atrapado hasta forzar el cierre de la
+  // app. Auto-desatasco por si el entrenador confirma mientras el cliente
+  // sigue en esta pantalla, más una salida real (ver goBack/
+  // OnboardingService#dismiss): completar el cuestionario ya no es
+  // obligatorio para poder navegar.
   private pollHandle: ReturnType<typeof setInterval> | null = null;
 
   constructor(
@@ -124,8 +84,7 @@ export class OnboardingStatusPage implements OnDestroy {
     private intakeApi: IntakeApiService,
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
-    private ionicUtilService: IonicUtilService,
-    private authService: AuthService
+    private ionicUtilService: IonicUtilService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -156,11 +115,11 @@ export class OnboardingStatusPage implements OnDestroy {
         this.groups = this.groupByTrainer(status.relations);
         this.state = 'loaded';
 
-        // Nada que rellenar, solo esperar confirmación del entrenador: se
-        // sondea cada 30s para que el cliente entre solo a /tabs en cuanto
-        // se confirme, sin tener que forzar el cierre de la app. Mientras
-        // quede algún cuestionario por rellenar (pendingCount > 0) no hay
-        // nada que "esperar" todavía, así que no se sondea.
+        // Nada que rellenar, solo esperar confirmación: se sondea cada 30s
+        // para que el cliente entre solo a /tabs en cuanto se confirme, sin
+        // tener que forzar el cierre de la app. Mientras quede algún
+        // cuestionario por rellenar (pendingCount > 0) no hay nada que
+        // "esperar" todavía, así que no se sondea.
         if (this.pendingCount === 0) {
           this.startPolling();
         } else {
@@ -186,14 +145,16 @@ export class OnboardingStatusPage implements OnDestroy {
   }
 
   // Válvula de escape siempre disponible: la espera de confirmación del
-  // entrenador no tiene SLA (puede ser minutos o días), y hasta ahora esta
-  // pantalla no ofrecía ninguna forma de salir salvo forzar el cierre de la
-  // app. AuthService#logout() es autocontenido (limpia estado, avisa al
-  // backend y navega a login por su cuenta) — mismo método que ya usa
-  // Configuración.
-  public logout(): void {
+  // entrenador no tiene SLA (puede ser minutos o días), y el cuestionario
+  // deja de ser obligatorio para navegar en cuanto se llama a dismiss() —
+  // onboardingMatchGuard no vuelve a redirigir aquí hasta el próximo login.
+  // Vuelve a Coach (no a /tabs en general) porque es de donde sale el
+  // recordatorio que trae de vuelta aquí (ver CoachPage#goToOnboardingStatus)
+  // — esta pantalla no desaparece, sigue accesible para completarlo luego.
+  public goBack(): void {
     this.stopPolling();
-    this.authService.logout();
+    this.onboardingService.dismiss();
+    void this.router.navigate(['/tabs/coach']);
   }
 
   public respondToInvite(invite: PendingInvite, decision: 'accept' | 'decline'): void {
@@ -252,9 +213,13 @@ export class OnboardingStatusPage implements OnDestroy {
     return this.groups.filter((g) => g.needsIntake).length;
   }
 
+  public get fillingGroup(): TrainerGroup | undefined {
+    return this.groups.find((g) => g.trainerId === this.fillingTrainerId);
+  }
+
   public openIntakeForm(group: TrainerGroup): void {
     this.fillingTrainerId = group.trainerId;
-    this.resetIntakeForm();
+    this.intakePrefill = EMPTY_INTAKE_PREFILL;
 
     // El cuestionario es UNO por par (trainer, cliente) — si este trainer ya
     // le había respondido antes (p. ej. rellenó nutrición y ahora también
@@ -272,23 +237,23 @@ export class OnboardingStatusPage implements OnDestroy {
         // mientras la petición estaba en curso — no pisar lo que se esté
         // viendo ahora con una respuesta que ya no corresponde.
         if (this.fillingTrainerId !== group.trainerId) return;
-        if (intake) {
-          this.goals = intake.goals || '';
-          this.healthConditions = intake.healthConditions || '';
-          this.experienceLevel = intake.experienceLevel;
-          this.availability = intake.availability || '';
-          this.trainingLocation = intake.trainingLocation;
-          this.equipmentTags = intake.equipmentTags || [];
-          intake.customAnswers.forEach((answer) => {
-            this.customAnswers[answer.questionId] = answer.value;
-          });
-        }
-        if (preferences) {
-          this.allergies = preferences.allergies || '';
-          this.favoriteFoods = preferences.favoriteFoods || '';
-          this.dislikedFoods = preferences.dislikedFoods || '';
-          this.cooksAtHome = preferences.cooksAtHome;
-        }
+        const customAnswers: Record<string, string> = {};
+        intake?.customAnswers.forEach((answer) => {
+          customAnswers[answer.questionId] = answer.value;
+        });
+        this.intakePrefill = {
+          goals: intake?.goals || '',
+          healthConditions: intake?.healthConditions || '',
+          experienceLevel: intake?.experienceLevel ?? null,
+          availability: intake?.availability || '',
+          trainingLocation: intake?.trainingLocation ?? null,
+          equipmentTags: intake?.equipmentTags || [],
+          allergies: preferences?.allergies || '',
+          favoriteFoods: preferences?.favoriteFoods || '',
+          dislikedFoods: preferences?.dislikedFoods || '',
+          cooksAtHome: preferences?.cooksAtHome ?? null,
+          customAnswers,
+        };
         this.isLoadingIntake = false;
       },
       // Fallo silencioso — precargar es una mejora, no un requisito; el
@@ -299,56 +264,16 @@ export class OnboardingStatusPage implements OnDestroy {
     });
   }
 
-  private resetIntakeForm(): void {
-    this.goals = '';
-    this.healthConditions = '';
-    this.experienceLevel = null;
-    this.availability = '';
-    this.trainingLocation = null;
-    this.equipmentTags = [];
-    this.allergies = '';
-    this.favoriteFoods = '';
-    this.dislikedFoods = '';
-    this.cooksAtHome = null;
-    this.customAnswers = {};
-  }
-
-  public toggleEquipmentTag(tag: EquipmentTag): void {
-    this.equipmentTags = this.equipmentTags.includes(tag)
-      ? this.equipmentTags.filter((t) => t !== tag)
-      : [...this.equipmentTags, tag];
-  }
-
   public closeIntakeForm(): void {
     this.fillingTrainerId = null;
   }
 
-  public submitIntake(): void {
+  public submitIntake(result: IntakeWizardResult): void {
     if (!this.fillingTrainerId || this.isSubmitting) return;
-
-    const group = this.groups.find((g) => g.trainerId === this.fillingTrainerId);
-    const customAnswers = (group?.customQuestions || []).map((q) => ({
-      questionId: q.id,
-      label: q.label,
-      value: (this.customAnswers[q.id] || '').trim(),
-    }));
 
     this.isSubmitting = true;
     this.intakeApi
-      .submit({
-        trainerId: this.fillingTrainerId,
-        goals: this.goals.trim(),
-        healthConditions: this.healthConditions.trim(),
-        experienceLevel: this.experienceLevel,
-        availability: this.availability.trim(),
-        trainingLocation: this.trainingLocation,
-        equipmentTags: this.equipmentTags,
-        allergies: this.allergies.trim(),
-        favoriteFoods: this.favoriteFoods.trim(),
-        dislikedFoods: this.dislikedFoods.trim(),
-        cooksAtHome: this.cooksAtHome,
-        customAnswers,
-      })
+      .submit({ trainerId: this.fillingTrainerId, ...result })
       .subscribe({
         next: () => {
           this.isSubmitting = false;
@@ -372,9 +297,5 @@ export class OnboardingStatusPage implements OnDestroy {
 
   public trackByTrainerId(_index: number, group: TrainerGroup): string {
     return group.trainerId;
-  }
-
-  public trackByQuestionId(_index: number, question: IntakeCustomQuestion): string {
-    return question.id;
   }
 }

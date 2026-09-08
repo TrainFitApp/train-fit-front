@@ -1,0 +1,106 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const Module = require('node:module');
+const { buildSync } = require('esbuild');
+
+// Ejecuta las funciones TypeScript reales y resuelve los alias del monorepo.
+const bundled = buildSync({
+  stdin: { contents: "export * from './planner-compare'; export * from './planner-comparison-view';", resolveDir: __dirname, loader: 'ts' },
+  tsconfig: path.resolve(__dirname, '../../../../../tsconfig.json'),
+  bundle: true, platform: 'node', format: 'cjs', write: false,
+});
+const compiled = new Module(__filename);
+compiled._compile(bundled.outputFiles[0].text, __filename);
+const { compareSplits, comparisonSnapshot, exerciseMetrics, metricComparison, overviewMetrics, completionSummary } = compiled.exports;
+
+const series = (weight = 80, overrides = {}) => ({ order: 0, weight, expectedReps: [8], expectedRir: [2], ...overrides });
+const exercise = (id, sets, flags = {}) => ({ _id: `custom-${id}`, exercise: { _id: id, name: id, muscleGroups1: ['Pecho'], ...flags }, sets });
+const split = (exercises) => ({ _id: 'split', workouts: [{ _id: 'workout', name: 'Torso', exercises }] });
+const row = (a, b) => compareSplits(split([a]), split([b])).workouts[0].exercises[0];
+
+test('detecta cambios intermedios aunque máximo y envolvente sean iguales', () => {
+  const result = row(exercise('press', [series(60), series(70), series(80)]), exercise('press', [series(60), series(75), series(80)]));
+  assert.equal(result.status, 'changed');
+  assert.equal(result.stagnant, false);
+  assert.equal(result.weightTrend, 0);
+});
+
+test('detecta distribución de repeticiones con el mismo rango', () => {
+  const result = row(exercise('press', [series(80, { expectedReps: [8] }), series(80, { expectedReps: [10] })]),
+    exercise('press', [series(80, { expectedReps: [10] }), series(80, { expectedReps: [8] })]));
+  assert.equal(result.status, 'changed');
+});
+
+test('carga cero es válida; porcentaje desde cero no se inventa', () => {
+  const result = row(exercise('press', [series(0)]), exercise('press', [series(5)]));
+  assert.equal(result.weightTrend, 1);
+  assert.equal(exerciseMetrics(result)[0].percent, null);
+  assert.equal(exerciseMetrics(result)[0].delta, '+5 kg');
+});
+
+test('cardio e isométricos no generan tendencia de carga', () => {
+  for (const flag of ['isCardio', 'isIsometric']) {
+    const result = row(exercise('time', [series(80)], { [flag]: true }), exercise('time', [series(90)], { [flag]: true }));
+    assert.equal(result.weightTrend, 0);
+    assert.equal(result.b.weight, '—');
+  }
+});
+
+test('tiempo y distancia cambiados no se ocultan', () => {
+  const result = row(exercise('run', [series(0, { expectedTime: '5:00' })], { isCardio: true }),
+    exercise('run', [series(0, { expectedTime: '6:00' })], { isCardio: true }));
+  assert.equal(result.status, 'changed');
+  assert.match(result.b.details[0], /6:00/);
+});
+
+test('registro excluye copias no completadas y no rellena datos desde pauta', () => {
+  const source = split([exercise('press', [series(90, { doned: false, reps: 8, rir: 2 }), series(80, { doned: true })])]);
+  const original = structuredClone(source);
+  const done = comparisonSnapshot(source, 'done');
+  assert.equal(done.workouts[0].exercises[0].sets.length, 1);
+  assert.deepEqual(done.workouts[0].exercises[0].sets[0].expectedReps, []);
+  assert.deepEqual(done.workouts[0].exercises[0].sets[0].expectedRir, []);
+  assert.deepEqual(source, original);
+  assert.deepEqual(completionSummary(source), { done: 1, total: 2, percent: 50 });
+});
+
+test('RIR registrado normaliza escalares, rangos y fallo sin perder cero', () => {
+  const source = split([exercise('press', [series(80, { doned: true, reps: 0, rir: 0 }), series(80, { doned: true, rir: [2, 4] }), series(80, { doned: true, rir: -1 })])]);
+  const done = comparisonSnapshot(source, 'done');
+  const metrics = overviewMetrics(done, done);
+  assert.deepEqual(done.workouts[0].exercises[0].sets[0].expectedReps, [0]);
+  assert.equal(metrics.find((m) => m.key === 'rir').a, '1,5');
+  assert.equal(metrics.find((m) => m.key === 'failure').a, '1');
+});
+
+test('filas vacías no cuentan como sesiones con series y fallo no promedia', () => {
+  const source = split([exercise('press', [series(80, { expectedRir: [2, -1] })])]);
+  assert.equal(overviewMetrics(source, source)[1].a, '—');
+  assert.equal(overviewMetrics(source, source)[2].a, '1');
+  assert.equal(overviewMetrics(split([]), split([]))[3].a, '0');
+});
+
+test('empareja duplicados una sola vez y distingue sustituciones', () => {
+  const result = compareSplits(split([exercise('press', [series(80)]), exercise('press', [series(60)])]),
+    split([exercise('press', [series(80)]), exercise('row', [series(60)])]));
+  assert.deepEqual(result.workouts[0].exercises.map((e) => e.status), ['same', 'removed', 'added']);
+  assert.equal(result.progress.added, 1);
+  assert.equal(result.progress.removed, 1);
+});
+
+test('intercambiar referencia invierte delta y recalcula porcentaje', () => {
+  const forward = metricComparison('weight', 'Carga', 80, 100);
+  const reverse = metricComparison('weight', 'Carga', 100, 80);
+  assert.equal(forward.percent, '+25%');
+  assert.equal(reverse.percent, '−20%');
+  assert.equal(reverse.direction, 'down');
+  assert.equal(metricComparison('weight', 'Carga', null, 80).direction, 'unknown');
+});
+
+test('ausencia de microciclos y series devuelve una comparación vacía', () => {
+  assert.deepEqual(compareSplits(null, null).workouts, []);
+  assert.equal(metricComparison('x', 'x', 0, 0).percent, null);
+  assert.equal(row(exercise('press', []), exercise('press', [])).a.label, 'sin series');
+});
+

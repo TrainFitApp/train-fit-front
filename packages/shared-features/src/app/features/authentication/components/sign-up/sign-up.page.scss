@@ -1,19 +1,9 @@
-// Tokens (mismo sistema que trainfit-onboarding-prototype.html)
+// Tokens (mismo sistema que trainfit-onboarding-prototype.html; compartido
+// con sign-in y onboarding-status vía shared-theme/theme/_wizard-tokens)
+@import '../../../../../../../shared-theme/src/theme/wizard-tokens';
+
 :host {
-  --bg-primary: #000000;
-  --bg-secondary: #000000;
-  --bg-tertiary: #1c1c1e;
-  --border-primary: #2a2a2a;
-  --text-primary: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-tertiary: #5c5c5c;
-  --accent-primary: #fe9000;
-  --accent-soft: rgba(254, 144, 0, 0.13);
-  --accent-glow: rgba(254, 144, 0, 0.35);
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  @include tf-wizard-tokens;
 
   display: flex;
   flex-direction: column;

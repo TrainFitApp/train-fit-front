@@ -1,0 +1,372 @@
+@import '../../../../../../../shared-theme/src/theme/wizard-tokens';
+
+// Este componente vive DENTRO del ion-content de onboarding-status.page
+// (no es una pagina/ruta propia), pero visualmente tiene que comportarse
+// exactamente como sign-up: pantalla completa, con su propio scroll interno
+// y su propio header/footer — position:fixed lo saca del flujo del hub sin
+// tener que pelearse con el ion-content/ion-header que ya tiene la pagina
+// padre.
+:host {
+  @include tf-wizard-tokens;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-header {
+  flex-shrink: 0;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 12px;
+  background: var(--bg-secondary);
+}
+
+.progress-track {
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-primary);
+  border-radius: 4px;
+  transition: width 0.45s var(--ease);
+}
+
+// Igual que .signup-form en sign-up.page.scss: el contenedor scrolleable
+// tiene que ser display:flex (no solo flex:1 como item), si no
+// swiper-container (flex item dentro) se queda con su altura de contenido
+// natural en vez de la acotada, y el overflow nunca llega hasta aqui para
+// poder hacer scroll (mismo bug ya cazado y arreglado en sign-up).
+.wizard-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 12px 25px 20px;
+  box-sizing: border-box;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+swiper-container {
+  width: 100%;
+  flex: 1;
+}
+
+swiper-slide {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  height: auto;
+}
+
+.form-section {
+  flex: 0 0 100%;
+  width: 100%;
+  padding: 0 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+// Misma animacion de entrada por paso que sign-up.page.scss (stepChildIn).
+@keyframes stepChildIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.swiper-slide-active .form-section > * {
+  animation: stepChildIn 420ms var(--ease) both;
+}
+
+@for $i from 1 through 6 {
+  .swiper-slide-active .form-section > *:nth-child(#{$i}) {
+    animation-delay: #{($i - 1) * 60}ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swiper-slide-active .form-section > * {
+    animation: none;
+  }
+}
+
+.section-title {
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  text-align: left;
+}
+
+.section-subtitle {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+  line-height: 1.5;
+  text-align: left;
+  max-width: 320px;
+}
+
+// ---------- Campos (mismo patron floating-label que sign-up) ----------
+.field {
+  position: relative;
+  margin-top: 28px;
+
+  &:first-child {
+    margin-top: 8px;
+  }
+}
+
+.field-input {
+  width: 100%;
+  background: #000000;
+  border: 1.5px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 22px 16px 8px;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s var(--ease);
+
+  &::placeholder {
+    color: transparent;
+  }
+
+  &:focus {
+    border-color: var(--accent-primary);
+  }
+}
+
+input.field-input {
+  height: 60px;
+}
+
+// Unica pieza que sign-up no tenia: textarea con el mismo look que
+// field-input. Mismo alto minimo, sin resize (rompe el layout del wizard).
+.field-textarea {
+  min-height: 130px;
+  line-height: 1.5;
+  resize: none;
+}
+
+.field-label {
+  position: absolute;
+  left: 16px;
+  top: 20px;
+  font-size: 16px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: all 0.18s var(--ease);
+}
+
+.field-input:focus + .field-label,
+.field-input:not(:placeholder-shown) + .field-label {
+  top: 9px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+
+.field-input:focus + .field-label {
+  color: var(--accent-primary);
+}
+
+// ---------- Option cards (single/multi-select) ----------
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-tertiary);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.12s var(--ease);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.is-selected {
+    background: var(--accent-soft);
+    border-color: var(--accent-primary);
+
+    .option-icon {
+      background: var(--accent-primary);
+      color: #000;
+    }
+
+    .option-check {
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+
+      ion-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+}
+
+.option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+
+  ion-icon {
+    font-size: 19px;
+  }
+}
+
+.option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.option-title {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.option-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-primary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease);
+
+  ion-icon {
+    font-size: 13px;
+    opacity: 0;
+    transform: scale(0.5);
+    color: #000;
+    transition: all 0.2s var(--ease-spring);
+  }
+}
+
+// ---------- Footer (circulo atras/cerrar + CTA pill) ----------
+.wizard-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-secondary);
+}
+
+.btn-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s var(--ease), transform 0.12s var(--ease);
+
+  ion-icon {
+    font-size: 24px;
+  }
+
+  &:active {
+    transform: scale(0.9);
+    background: var(--border-primary);
+  }
+}
+
+.cta-btn {
+  width: auto;
+  flex: 1;
+  height: 54px;
+  --border-radius: 17px;
+  border-radius: 17px;
+  --background: var(--accent-primary);
+  --box-shadow: 0 10px 26px rgba(254, 144, 0, 0.28);
+  --color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  margin: 0;
+
+  // Ver sign-up.page.scss: ion-button no es form-associated, :disabled
+  // nunca matchea aunque tenga el atributo reflejado.
+  &[disabled] {
+    --background: var(--bg-tertiary);
+    --color: var(--text-tertiary);
+    --box-shadow: none;
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .field-input {
+    font-size: 16px;
+  }
+}
+
+@media (max-height: 700px) {
+  .section-title {
+    font-size: 21px;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+  }
+
+  .option-card {
+    padding: 11px 14px;
+  }
+
+  .field {
+    margin-top: 18px;
+  }
+}

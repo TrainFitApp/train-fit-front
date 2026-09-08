@@ -14,6 +14,21 @@
 </ion-header>
 
 <ion-content class="coach-content">
+  <!-- Recordatorio de cuestionario pendiente: el cliente eligió "Más tarde"
+  en onboarding-status (ya no le bloquea el resto de la app), pero mientras
+  no lo complete su profesional sigue sin poder empezar. Único punto para
+  volver a esa pantalla ahora que el guard ya no le obliga. -->
+  <button
+    type="button"
+    class="onboarding-reminder"
+    *ngIf="onboardingService.blocked()"
+    (click)="goToOnboardingStatus()"
+  >
+    <ion-icon name="clipboard-outline"></ion-icon>
+    <span class="onboarding-reminder-text">Tienes un cuestionario inicial pendiente</span>
+    <ion-icon name="chevron-forward-outline"></ion-icon>
+  </button>
+
   <!-- === Menú de un vistazo — antes toda la info de abajo aparecía apilada
        directamente; ahora estas tarjetas resumen cada sección y llevan a
        ella (scroll a su ancla más abajo, no hay pantallas propias por
