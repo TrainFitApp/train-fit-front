@@ -1944,11 +1944,28 @@ export class ClientDetailPage implements OnInit {
   // editor de LA plantilla aplicada (mismo builder que "Gestionar
   // plantillas", pero directo a esta en vez de a la lista completa).
   public openActivePlanTemplate(): void {
-    // sourceTemplateId, no planId: planId es la copia congelada exclusiva de
-    // este cliente (ver plan-assignment.model.ts) — editarla no debe ser
-    // posible desde aquí, así que este atajo va siempre a la plantilla real.
-    if (!this.activePlan?.sourceTemplateId) return;
-    this.router.navigate(['/tabs/diet-templates', this.activePlan.sourceTemplateId]);
+    if (this.activePlan) this.openPhaseTemplate(this.activePlan);
+  }
+
+  // Lo mismo para CUALQUIER fase de la fila, no solo la que rige: las
+  // programadas son justo las que más se retocan (se preparan con
+  // antelación) y hasta ahora eran las únicas tarjetas muertas al click —
+  // había que ir a "Plantillas de dieta" y buscarla por nombre.
+  public openPhaseTemplate(phase: PlanAssignment): void {
+    // sourceTemplateId, no _id: _id es la copia congelada exclusiva de este
+    // cliente (ver plan-assignment.model.ts) — editarla no debe ser posible
+    // desde aquí, así que este atajo va siempre a la plantilla real.
+    if (!phase.sourceTemplateId) {
+      // Puede faltar: la plantilla de origen se borró, o la fase se creó
+      // antes de que se guardara esa referencia. Antes esto era un click que
+      // no hacía nada y parecía la app colgada.
+      this.ionicUtilService.showToast({
+        message: 'Esta fase no conserva su plantilla de origen, no se puede editar desde aquí.',
+        duration: 3000,
+      });
+      return;
+    }
+    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId]);
   }
 
   // F20-octies — color de las píldoras del patrón `index`. Con un solo

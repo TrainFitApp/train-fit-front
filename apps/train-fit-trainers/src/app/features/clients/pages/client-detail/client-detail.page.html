@@ -916,11 +916,17 @@
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
                tienen sentido sobre la que está rigiendo. -->
+          <!-- <button>, no <article>: estas tarjetas abren su plantilla igual
+               que la cabecera de la fase en curso. Eran las únicas de la fila
+               que no respondían al click, y son las que más se retocan —
+               están programadas, todavía da tiempo a cambiarlas. -->
           <ng-container *ngFor="let phase of planPhases; let i = index">
-            <article
+            <button
+              type="button"
               class="next-phase-card"
               *ngIf="!isCurrentPhase(phase)"
               [style.--phase-color]="phaseColor(phase)"
+              (click)="openPhaseTemplate(phase)"
             >
               <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
               <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
@@ -928,7 +934,8 @@
                 desde {{ phase.startDate }}<br />
                 {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
               </p>
-            </article>
+              <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
+            </button>
           </ng-container>
 
           <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyTemplateModal()">

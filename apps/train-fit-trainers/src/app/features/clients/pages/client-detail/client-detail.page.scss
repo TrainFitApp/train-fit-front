@@ -1931,6 +1931,9 @@
   }
 }
 
+// Ahora es un <button> (abre su plantilla, igual que la fase en curso), así
+// que hay que deshacer el estilo propio del navegador: font/color heredados
+// y el texto alineado a la izquierda como cuando era un <article>.
 .next-phase-card {
   position: relative;
   flex: 0 0 180px;
@@ -1941,8 +1944,12 @@
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-md);
+  font: inherit;
+  color: inherit;
   text-align: left;
+  cursor: pointer;
   overflow: hidden;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
 
   // Misma barra superior que .active-plan-card — ver comentario allí.
   &::before {
@@ -1954,6 +1961,34 @@
     height: 3px;
     background: var(--phase-color, var(--tf-border));
   }
+
+  // El borde toma el color DE LA FASE al pasar por encima, no el acento
+  // naranja: la tarjeta ya se identifica por ese color en el calendario, y
+  // el naranja está reservado a navegación/UI.
+  &:hover:not(.next-phase-card--add) {
+    border-color: var(--phase-color, var(--tf-border-strong));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  // Deja libre la esquina donde va el lápiz — "3ª · PROGRAMADA" es corto,
+  // pero no hay nada que garantice que no crezca.
+  .plan-phase-order {
+    padding-right: 20px;
+  }
+}
+
+// Discreto y en la esquina: dice que la tarjeta se puede abrir sin competir
+// con el nombre de la fase, que es el dato.
+.next-phase-card__edit-icon {
+  position: absolute;
+  top: var(--tf-space-3);
+  right: var(--tf-space-2);
+  font-size: 1rem;
+  color: var(--tf-text-faint);
 }
 
 .next-phase-card__name {

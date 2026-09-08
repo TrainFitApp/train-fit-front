@@ -137,24 +137,45 @@
   font-size: 0.92rem;
 }
 
-// Auditoría de arquitectura (Fase 8) — selector de periodo
 // Los dos campos de fecha son <input type="date"> idénticos y estaban uno
 // debajo del otro sin nada que dijera cuál era cuál: había que deducirlo del
 // orden. El label lo dice, y de paso el `for`/`id` los ata para lectores de
 // pantalla, que antes solo oían "fecha".
+//
+// El ritmo vertical del formulario lo marcan estos labels: hueco GRANDE por
+// arriba (separa un campo del anterior) y pegado por abajo al input que
+// nombra. Antes todo iba con el mismo margin-top: 12px del .input-wrapper y
+// los campos se leían como un bloque continuo, sin saber qué label iba con
+// qué caja.
 .field-label {
   display: block;
-  margin: 12px 2px -2px;
+  margin: var(--tf-space-4) 2px 0;
   font-size: var(--tf-font-size-xs);
   font-weight: 600;
   color: var(--tf-text-muted);
 }
 
+// El label ya ha puesto la separación con lo de arriba — el margen propio del
+// input aquí solo lo despegaría de su propia etiqueta.
+.field-label + .input-wrapper,
+.field-label + .duration-row .input-wrapper {
+  margin-top: 5px;
+}
+
+// Auditoría de arquitectura (Fase 8) — selector de periodo. Encabeza su
+// propio bloque, así que se separa como tal y no como un campo más.
 .section-hint {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--tf-text-secondary);
-  margin: 16px 0 8px;
+  margin: var(--tf-space-5) 0 8px;
+}
+
+// El calendario es un bloque alto: pegado al selector de plantillas de arriba
+// o al primer label de abajo no se lee como una pieza propia.
+app-nutrition-calendar {
+  display: block;
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
 }
 
 .end-mode-options {
@@ -196,9 +217,10 @@
   margin: 10px 2px 0;
 }
 
-// Justificación de la fecha propuesta, bajo el campo.
+// Justificación de la fecha propuesta, bajo el campo. Pegada a él (6px, no
+// el hueco entre campos): explica ESE input, no abre uno nuevo.
 .date-hint {
-  margin: -4px 0 var(--tf-space-3);
+  margin: 6px 2px 0;
   font-size: var(--tf-font-size-xs);
   line-height: 1.45;
   color: var(--tf-text-faint);
@@ -214,7 +236,7 @@
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  margin: 0 0 var(--tf-space-3);
+  margin: var(--tf-space-4) 0 0;
   padding: var(--tf-space-3);
   background: var(--tf-danger-soft);
   border: 1px solid var(--tf-danger-border);

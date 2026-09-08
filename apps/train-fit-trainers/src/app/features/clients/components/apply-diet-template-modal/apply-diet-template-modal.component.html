@@ -1,10 +1,26 @@
+<!-- Mismo encabezado que el resto de paneles laterales (ver
+     apply-routine-template-modal): aspa a la izquierda, no un "Cerrar" de
+     texto a la derecha — este era el único panel que cerraba por otro sitio
+     y con otra forma. -->
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ forDirectCreate ? 'Crear dieta' : 'Aplicar plantilla' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          aria-label="Cerrar"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ forDirectCreate ? 'Crear dieta' : 'Aplicar plantilla' }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="apply-content">
