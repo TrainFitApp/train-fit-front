@@ -487,24 +487,12 @@
 
 // --- F20-bis: etiqueta de la fecha vigente sobre <app-nutrition-calendar>
 // (la navegación en sí ya no son flechas, ver ese componente) ---
-// F20-nonies — al cambiar de día en el calendario ya no se recarga toda la
-// pestaña (ver onNutritionDateSelected): solo esta etiqueta se atenúa
-// brevemente mientras llega el dietDay del día nuevo.
 .date-nav-label {
   min-width: 88px;
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--tf-text-secondary);
-  transition: opacity var(--tf-duration-base) var(--tf-ease-out);
-
-  &.is-updating {
-    opacity: 0.4;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 }
 
 .section-heading {
@@ -1947,6 +1935,28 @@
   overflow-x: auto;
   padding-bottom: var(--tf-space-2);
   scroll-snap-type: x proximity;
+
+  // Solo el pulgar, sin la canaleta gris del navegador: es una fila de
+  // tarjetas dentro del panel, no un contenedor con marco propio.
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-border-strong) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--tf-border-strong);
+    border-radius: 999px;
+
+    &:hover {
+      background: var(--tf-border-strongest);
+    }
+  }
 }
 
 // La vigente conserva todo su detalle y manda en el ancho; las programadas

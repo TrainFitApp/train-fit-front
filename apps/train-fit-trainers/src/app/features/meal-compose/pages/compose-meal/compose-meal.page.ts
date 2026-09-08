@@ -12,10 +12,8 @@ import {
   SearchFoodsTrainerContext,
   TrainerFoodSelection,
 } from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
-import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../shared/components/product-search-modal/product-search-modal.component';
+import { CreateProductPage } from 'src/app/features/diets/components/meal/components/search-foods/components/create-product/create-product.page';
+import { IProduct } from 'src/app/core/models/product';
 import { MealSnippetPickerComponent } from '../../../../shared/components/meal-snippet-picker/meal-snippet-picker.component';
 import { MealSnippetApiService } from '../../../../shared/services/meal-snippet-api.service';
 import { MealSnippet } from '../../../../shared/models/meal-snippet.model';
@@ -28,10 +26,10 @@ function todayIsoDate(): string {
 // MISMA comida a un grupo de clientes de una sola vez, en vez de que
 // "aplicar a otros clientes" sea solo una opción secundaria al final del
 // flujo de un cliente concreto (bulkApplyPrescribedMeal en client-detail).
-// Reutiliza SearchFoodsPage/ProductSearchModalComponent con un
-// trainerContext "sin cliente real" (clientUser/dietDay/meal vacíos, igual
-// que diet-template-builder cuando compone localmente) y el endpoint nuevo
-// POST /trainer/meals/apply-to-clients (sin cliente origen en la URL).
+// Reutiliza SearchFoodsPage con un trainerContext "sin cliente real"
+// (clientUser/dietDay/meal vacíos, igual que diet-template-builder cuando
+// compone localmente) y el endpoint nuevo POST /trainer/meals/apply-to-clients
+// (sin cliente origen en la URL).
 @Component({
   selector: 'app-compose-meal',
   templateUrl: 'compose-meal.page.html',
@@ -121,30 +119,30 @@ export class ComposeMealPage implements PendingChangesComponent {
     });
   }
 
+  // Directo a CreateProductPage (la pantalla real y completa), igual que
+  // pickCreateProduct en day-meal-editor-modal — no a través de
+  // ProductSearchModalComponent: aquí ya estamos dentro de UN modal
+  // (SearchFoodsPage, ver openProductSearch/buildTrainerContext) y ese
+  // componente ahora abre CreateProductPage como modal propio en cuanto se
+  // instancia (ver su comentario "--- Crear producto ---"). Meterlo aquí de
+  // por medio apilaba un tercer modal (SearchFoodsPage > ProductSearchModal
+  // > CreateProductPage) que Ionic no llevaba bien.
   private async confirmCreateProduct(itemIndex: number, closeOuter: () => void): Promise<void> {
     const modal = await this.modalController.create({
-      component: ProductSearchModalComponent,
-      componentProps: { startInCreateProduct: true },
+      component: CreateProductPage,
+      componentProps: { modalMode: true },
       cssClass: 'tf-panel-modal',
     });
     await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
+    const { data, role } = await modal.onDidDismiss<{ kind: 'product'; product: IProduct }>();
+    if (role !== 'confirm' || data?.kind !== 'product' || !data.product) return;
 
     const item = this.items[itemIndex];
-    if (data.kind === 'recipe' && data.recipe) {
-      item.recipeId = data.recipe._id;
-      item.recipeName = data.recipe.name;
-      item.productId = undefined;
-      item.productName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    } else if (data.product) {
-      item.productId = data.product._id;
-      item.productName = data.product.name;
-      item.recipeId = undefined;
-      item.recipeName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    }
+    item.productId = data.product._id;
+    item.productName = data.product.name;
+    item.recipeId = undefined;
+    item.recipeName = undefined;
+    item.quantity = 100;
     closeOuter();
   }
 

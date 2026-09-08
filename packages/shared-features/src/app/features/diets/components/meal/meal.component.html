@@ -75,12 +75,20 @@
   <!-- F28: alternativas nombradas propuestas por el profesional — selector
        persistente, se puede alternar entre opciones en cualquier momento,
        no solo elegir una vez. -->
-  <div class="meal-proposal-banner" *ngIf="load && proposals?.length" (click)="$event.stopPropagation()">
+  <div
+    class="meal-proposal-banner"
+    *ngIf="load && proposals?.length"
+    (click)="$event.stopPropagation()"
+  >
     <div class="meal-proposal-item" *ngFor="let proposal of proposals">
       <span class="meal-proposal-label">
-        {{ proposal.chosenIndex === null || proposal.chosenIndex === undefined
-          ? ('Tu profesional propone ' + proposal.alternatives.length + ' opciones. Elige una:')
-          : 'Alternar entre las opciones que te ha pautado tu profesional:' }}
+        {{
+          proposal.chosenIndex === null || proposal.chosenIndex === undefined
+            ? "Tu profesional propone " +
+              proposal.alternatives.length +
+              " opciones. Elige una:"
+            : "Alternar entre las opciones que te ha pautado tu profesional:"
+        }}
       </span>
       <div class="meal-proposal-chips">
         <ion-chip
@@ -89,7 +97,10 @@
           [disabled]="isChoosingProposal"
           (click)="chooseAlternative(proposal, i)"
         >
-          <ion-icon name="checkmark-circle" *ngIf="proposal.chosenIndex === i"></ion-icon>
+          <ion-icon
+            name="checkmark-circle"
+            *ngIf="proposal.chosenIndex === i"
+          ></ion-icon>
           {{ alt.label }}
         </ion-chip>
       </div>
@@ -97,7 +108,12 @@
   </div>
 
   <!-- Contenido real -->
-  <ion-accordion *ngIf="load" #mealAccordion [value]="'meal-' + mealIndex" (click)="arrowRotate = !arrowRotate">
+  <ion-accordion
+    *ngIf="load"
+    #mealAccordion
+    [value]="'meal-' + mealIndex"
+    (click)="arrowRotate = !arrowRotate"
+  >
     <ion-grid class="t-meal" slot="header">
       <ion-row>
         <ion-col class="ion-no-padding" size="9.6">
@@ -129,7 +145,10 @@
                 color="primary"
               ></ion-checkbox>
 
-              <span style="font-size: x-large">{{ meal.name | translateDb }}</span> &nbsp;
+              <span style="font-size: x-large">{{
+                meal.name | translateDb
+              }}</span>
+              &nbsp;
               <ion-icon
                 *ngIf="
                   meal.customProducts.length > 0 ||
@@ -217,7 +236,12 @@
             ></ion-button>
 
             <ion-button
-              *ngIf="!selectionMode && !pasteMode && !loadPaste && activeCopyMealIndex === undefined"
+              *ngIf="
+                !selectionMode &&
+                !pasteMode &&
+                !loadPaste &&
+                activeCopyMealIndex === undefined
+              "
               style="height: 100%; margin-left: -5%; font-size: xx-large"
               (click)="openSearchFoods(); $event.stopPropagation()"
               ><ion-icon color="primary" name="add-circle-outline"></ion-icon
@@ -251,10 +275,12 @@
       <ng-container *ngIf="hasPautadoItems(meal)">
         <div class="section-header pautado-header">
           <ion-label>
-            <ion-icon name="clipboard"></ion-icon>
-            <strong>{{ 'MEAL.PAUTADO_TITLE' | translate }}</strong>
+            <ion-icon name="clipboard-outline"></ion-icon>
+            <strong>{{ "MEAL.PAUTADO_TITLE" | translate }}</strong>
           </ion-label>
-          <p class="section-subtitle">{{ 'MEAL.PAUTADO_SUBTITLE' | translate }}</p>
+          <p class="section-subtitle">
+            {{ "MEAL.PAUTADO_SUBTITLE" | translate }}
+          </p>
         </div>
 
         <div
@@ -272,13 +298,23 @@
                      lo consumido pegado a la derecha — no la cantidad
                      consumida en sí, esa se ve (y se edita) dentro de la
                      vista de solo lectura (ver viewPautadoRecipe). -->
-                <span class="item-quantity">{{ recipeDisplayQuantity(instance) | number : "1.0-1" }}g</span>
+                <span class="item-quantity"
+                  >{{
+                    recipeDisplayQuantity(instance) | number : "1.0-1"
+                  }}g</span
+                >
                 <span
                   class="quantity-delta"
                   *ngIf="recipeAssignedDelta(instance) !== 0"
-                  [class.quantity-delta--positive]="recipeAssignedDelta(instance) > 0"
-                  [class.quantity-delta--negative]="recipeAssignedDelta(instance) < 0"
-                >{{ recipeAssignedDelta(instance) > 0 ? '+' : '' }}{{ recipeAssignedDelta(instance) }}</span>
+                  [class.quantity-delta--positive]="
+                    recipeAssignedDelta(instance) > 0
+                  "
+                  [class.quantity-delta--negative]="
+                    recipeAssignedDelta(instance) < 0
+                  "
+                  >{{ recipeAssignedDelta(instance) > 0 ? "+" : ""
+                  }}{{ recipeAssignedDelta(instance) }}</span
+                >
               </h3>
             </div>
 
@@ -342,35 +378,51 @@
                 <!-- Siempre la cantidad PAUTADA (fija) + delta a la derecha
                      — la consumida se ve/edita dentro de la vista de solo
                      lectura (ver viewPautadoProduct). -->
-                <span class="item-quantity">{{ productDisplayQuantity(product) | number : "1.0-1" }}g</span>
+                <span class="item-quantity"
+                  >{{
+                    productDisplayQuantity(product) | number : "1.0-1"
+                  }}g</span
+                >
                 <span
                   class="quantity-delta"
                   *ngIf="productAssignedDelta(product) !== 0"
-                  [class.quantity-delta--positive]="productAssignedDelta(product) > 0"
-                  [class.quantity-delta--negative]="productAssignedDelta(product) < 0"
-                >{{ productAssignedDelta(product) > 0 ? '+' : '' }}{{ productAssignedDelta(product) }}</span>
+                  [class.quantity-delta--positive]="
+                    productAssignedDelta(product) > 0
+                  "
+                  [class.quantity-delta--negative]="
+                    productAssignedDelta(product) < 0
+                  "
+                  >{{ productAssignedDelta(product) > 0 ? "+" : ""
+                  }}{{ productAssignedDelta(product) }}</span
+                >
               </h3>
             </div>
 
             <div class="nutrition-info">
               <div class="nutrition-item calories">
                 <span class="nutrition-value">{{
-                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy) | number : "1.0-0"
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy)
+                    | number : "1.0-0"
                 }}</span>
               </div>
               <div class="nutrition-item protein">
                 <span class="nutrition-value">{{
-                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein) | number : "1.1-1"
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein)
+                    | number : "1.1-1"
                 }}</span>
               </div>
               <div class="nutrition-item carbs">
                 <span class="nutrition-value">{{
-                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates) | number : "1.1-1"
+                  getCustomProductInfo(
+                    product,
+                    CUSTOM_PRODUCT_KEYS.carbohydrates
+                  ) | number : "1.1-1"
                 }}</span>
               </div>
               <div class="nutrition-item fat">
                 <span class="nutrition-value">{{
-                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat) | number : "1.1-1"
+                  getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat)
+                    | number : "1.1-1"
                 }}</span>
               </div>
             </div>
@@ -400,12 +452,11 @@
       </ng-container>
 
       <!-- Recipes Section -->
-      <div
-        *ngIf="getOwnRecipes(meal).length > 0"
-        class="section-header"
-      >
+      <div *ngIf="getOwnRecipes(meal).length > 0" class="section-header">
         <ion-label color="primary">
-          <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP' | translate }}</strong>
+          <strong>{{
+            "SEARCH_FOODS.ITEM_TYPE_RECIPES_CAP" | translate
+          }}</strong>
         </ion-label>
       </div>
 
@@ -413,18 +464,29 @@
         *ngFor="let instance of getOwnRecipes(meal)"
         class="meal-item recipe-item"
         [class.selected]="isRecipeSelected(instance)"
-        (click)="selectionMode ? toggleRecipeSelection(instance) : editCustomRecipe(instance)"
+        (click)="
+          selectionMode
+            ? toggleRecipeSelection(instance)
+            : editCustomRecipe(instance)
+        "
       >
-        <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteRecipe(meal, instance); $event.stopPropagation()">
+        <ion-button
+          *ngIf="!selectionMode"
+          class="item-delete-btn"
+          fill="clear"
+          (click)="deleteRecipe(meal, instance); $event.stopPropagation()"
+        >
           <ion-icon name="close-outline" color="danger"></ion-icon>
         </ion-button>
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
               {{ getRecipeName(instance) }}
-              <span class="item-quantity">{{
-                getRecipeConsumedQuantity(instance) | number : "1.0-1"
-              }}g</span>
+              <span class="item-quantity"
+                >{{
+                  getRecipeConsumedQuantity(instance) | number : "1.0-1"
+                }}g</span
+              >
             </h3>
           </div>
 
@@ -471,7 +533,9 @@
         style="margin-top: 10px"
       >
         <ion-label color="primary">
-          <strong>{{ 'SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP' | translate }}</strong>
+          <strong>{{
+            "SEARCH_FOODS.ITEM_TYPE_PRODUCTS_CAP" | translate
+          }}</strong>
         </ion-label>
       </div>
 
@@ -479,38 +543,53 @@
         *ngFor="let product of getOwnProducts(meal)"
         class="meal-item product-item"
         [class.selected]="isProductSelected(product)"
-        (click)="selectionMode ? toggleProductSelection(product) : editCustomProduct(product)"
+        (click)="
+          selectionMode
+            ? toggleProductSelection(product)
+            : editCustomProduct(product)
+        "
       >
-        <ion-button *ngIf="!selectionMode" class="item-delete-btn" fill="clear" (click)="deleteProduct(meal, product); $event.stopPropagation()">
+        <ion-button
+          *ngIf="!selectionMode"
+          class="item-delete-btn"
+          fill="clear"
+          (click)="deleteProduct(meal, product); $event.stopPropagation()"
+        >
           <ion-icon name="close-outline" color="danger"></ion-icon>
         </ion-button>
         <div class="item-content">
           <div class="item-header">
             <h3 class="item-name">
               {{ product.product?.name }}
-              <span class="item-quantity">{{ product.quantity | number : "1.0-1" }}g</span>
+              <span class="item-quantity"
+                >{{ product.quantity | number : "1.0-1" }}g</span
+              >
             </h3>
           </div>
 
           <div class="nutrition-info">
             <div class="nutrition-item calories">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy) | number : "1.0-0"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.energy)
+                  | number : "1.0-0"
               }}</span>
             </div>
             <div class="nutrition-item protein">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein) | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.protein)
+                  | number : "1.1-1"
               }}</span>
             </div>
             <div class="nutrition-item carbs">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates) | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.carbohydrates)
+                  | number : "1.1-1"
               }}</span>
             </div>
             <div class="nutrition-item fat">
               <span class="nutrition-value">{{
-                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat) | number : "1.1-1"
+                getCustomProductInfo(product, CUSTOM_PRODUCT_KEYS.fat)
+                  | number : "1.1-1"
               }}</span>
             </div>
           </div>

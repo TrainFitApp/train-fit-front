@@ -5,9 +5,22 @@
 // coach (¿iguala proteína? ¿calorías?) y del cliente concreto. Aquí solo se
 // guarda lo que el coach decide.
 
+import { IProduct } from 'src/app/core/models/product';
+
 export interface FoodExchangeItem {
   _id?: string;
+  // Vincular el alimento al catálogo real es OPCIONAL y siempre lo será: un
+  // coach puede querer escribir "Pan integral" sin buscarlo, y un grupo de
+  // texto sigue siendo un grupo válido. Lo que desbloquea vincularlo es poder
+  // generar alternativas de una comida desde este grupo (ver
+  // ExchangeGeneratorModalComponent): sin producto real no hay macros que
+  // pautar, solo un nombre.
   productId?: string | null;
+  // Solo de lectura, y solo lo rellena GET /trainer/food-exchanges — el
+  // backend lo devuelve APARTE de productId a propósito, para que guardar sea
+  // reenviar el item tal cual sin tener que aplanar nada. null = sin vincular,
+  // o vinculado a un producto que ya no existe.
+  product?: IProduct | null;
   name: string;
   quantity: number;
   unit: string;

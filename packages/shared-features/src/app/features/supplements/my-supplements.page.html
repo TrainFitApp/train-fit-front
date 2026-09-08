@@ -34,6 +34,9 @@
 
       <article class="supplement" *ngFor="let supplement of group.supplements; trackBy: trackById">
         <div class="supplement-head">
+          <span class="supplement-icon">
+            <ion-icon name="medical-outline" aria-hidden="true"></ion-icon>
+          </span>
           <span class="supplement-name">{{ supplement.name }}</span>
           <span class="supplement-dose">{{ supplement.dose }}</span>
         </div>

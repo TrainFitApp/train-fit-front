@@ -336,6 +336,10 @@
 
   &.has-items {
     background: var(--tf-accent-soft);
+    // Con contenido la celda se lee de arriba abajo (lista de alimentos), y
+    // el hueco de la derecha lo ocupa el botón de copiar, absoluto.
+    justify-content: flex-start;
+    padding-right: 28px;
   }
 
   &.drag-over {
@@ -378,6 +382,84 @@
 
   &:hover {
     color: var(--tf-accent);
+  }
+}
+
+// La celda pinta su contenido real (alimentos y macros) en vez de un
+// contador. Tipografía muy pequeña y una línea por alimento: el tablero
+// sigue siendo escaneable de un vistazo entre columnas.
+.cell-alt {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  & + & {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--tf-border);
+  }
+}
+
+.cell-alt-header {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tf-accent);
+
+  ion-icon {
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+}
+
+.cell-alt-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-food {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--tf-text);
+}
+
+.cell-food-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-food-qty {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+
+  .macro-tag {
+    font-size: 0.62rem;
   }
 }
 
@@ -463,6 +545,10 @@
   font-weight: 700;
   color: var(--tf-text-muted);
   font-variant-numeric: tabular-nums;
+
+  &--kcal {
+    color: var(--tf-text);
+  }
 
   &--protein {
     color: #60a5fa;

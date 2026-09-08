@@ -30,6 +30,8 @@ PODS:
     - Capacitor
   - CapacitorNetwork (7.0.4):
     - Capacitor
+  - CapacitorPushNotifications (7.0.7):
+    - Capacitor
   - CapacitorSecureStoragePlugin (0.12.0):
     - Capacitor
     - SwiftKeychainWrapper
@@ -98,6 +100,7 @@ DEPENDENCIES:
   - "CapacitorKeyboard (from `../../../../node_modules/@capacitor/keyboard`)"
   - "CapacitorLocalNotifications (from `../../../../node_modules/@capacitor/local-notifications`)"
   - "CapacitorNetwork (from `../../../../node_modules/@capacitor/network`)"
+  - "CapacitorPushNotifications (from `../../../../node_modules/@capacitor/push-notifications`)"
   - CapacitorSecureStoragePlugin (from `../../../../node_modules/capacitor-secure-storage-plugin`)
   - "CapgoCapacitorNavigationBar (from `../../../../node_modules/@capgo/capacitor-navigation-bar`)"
   - "CapgoCapacitorSocialLogin (from `../../../../node_modules/@capgo/capacitor-social-login`)"
@@ -146,6 +149,8 @@ EXTERNAL SOURCES:
     :path: "../../../../node_modules/@capacitor/local-notifications"
   CapacitorNetwork:
     :path: "../../../../node_modules/@capacitor/network"
+  CapacitorPushNotifications:
+    :path: "../../../../node_modules/@capacitor/push-notifications"
   CapacitorSecureStoragePlugin:
     :path: "../../../../node_modules/capacitor-secure-storage-plugin"
   CapgoCapacitorNavigationBar:
@@ -170,6 +175,7 @@ SPEC CHECKSUMS:
   CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
   CapacitorLocalNotifications: 71124afe526ac00585314bff34651bd023f86e37
   CapacitorNetwork: b719d692a8d1310da8d26d6648d3aa1ef1e100e1
+  CapacitorPushNotifications: 0527809a9619ed775439d5ab2c2d996122b48319
   CapacitorSecureStoragePlugin: 50de0808ad398aa401e00f9e58adf88c77cb3c25
   CapgoCapacitorNavigationBar: 3c59704af4b6774bebb36beaab82643c141dfa83
   CapgoCapacitorSocialLogin: a6084e910ce61d78173fa215460c00523a6c4536
@@ -193,6 +199,6 @@ SPEC CHECKSUMS:
   RevenueCatUI: c6acb3648fa58ccb4f0f178556ed0278b796234f
   SwiftKeychainWrapper: 807ba1d63c33a7d0613288512399cd1eda1e470c
 
-PODFILE CHECKSUM: 1069c522b7a1380a6c8553856b83eadfe89ce786
+PODFILE CHECKSUM: 5c5bc8d574a2bbc939105a6acb4e7f65865ccea4
 
 COCOAPODS: 1.16.2

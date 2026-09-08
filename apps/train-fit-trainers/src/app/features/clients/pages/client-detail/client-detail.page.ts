@@ -1,10 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  HostListener,
-  OnInit,
-  inject,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
@@ -81,15 +75,6 @@ import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { TableService } from 'src/app/core/services/table/table.service';
 import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../shared/components/product-search-modal/product-search-modal.component';
-import {
-  SearchFoodsPage,
-  SearchFoodsTrainerContext,
-  TrainerFoodSelection,
-} from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
-import {
   AdherenceSummary,
   AnthropometryEntry,
   AnthropometryRequest,
@@ -109,10 +94,6 @@ import {
   CompletedWorkoutEntry,
   TrainingGoal,
   TrainingGoalType,
-  DietDaySummary,
-  MealAlternativeInput,
-  MealFoodItemInput,
-  MealSummary,
   NutritionalGoal,
   NutritionComplianceSummary,
   TrainerNote,
@@ -277,7 +258,6 @@ export class ClientDetailPage implements OnInit {
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
   public nutritionDate: string = new Date().toISOString().slice(0, 10);
-  public dietDay: DietDaySummary | null = null;
   public goals: NutritionalGoal[] = [];
   public adherence: AdherenceSummary | null = null;
   // F20-bis — cumplimiento del plan (distinto de adherence, ver
@@ -312,14 +292,6 @@ export class ClientDetailPage implements OnInit {
   // debe mostrarse "en progreso" a la vez.
   public activatingGoalId: string | null = null;
   public isRevoking = false;
-
-  // --- Pautar comida (F12/F28) ---
-  public showPrescribePanel = false;
-  public prescribeMealTarget: MealSummary | null = null;
-  public prescribeAlternatives: MealAlternativeInput[] = [];
-  public isPrescribing = false;
-  public readonly maxAlternatives = 4;
-  public readonly maxFoodItemsPerAlternative = 8;
 
   // --- Preferencias nutricionales (F29, transversal a nutrición) ---
   public nutritionPreferences: ClientNutritionPreferences | null = null;
@@ -1523,14 +1495,6 @@ export class ClientDetailPage implements OnInit {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
 
-    // F12/F28 — comida del día real, necesaria para poder pautar directamente
-    // desde esta pantalla (ver openPrescribePanel). No bloquea el resto de
-    // la sección si falla, es un widget aparte.
-    this.clientDetailApi.getDiet(this.clientId, date).subscribe({
-      next: (dietDay) => (this.dietDay = dietDay),
-      error: () => (this.dietDay = null),
-    });
-
     this.clientDetailApi
       .getNutritionalGoals(this.clientId)
       .toPromise()
@@ -1598,33 +1562,17 @@ export class ClientDetailPage implements OnInit {
     this.customTrackingRange = range;
   }
 
-  // F20-nonies — solo lo que DE VERDAD depende del día seleccionado
-  // (dietDay) se vuelve a pedir aquí; goals/adherence/complianceSummary/
-  // nutritionPreferences/activePlan no cambian según qué día se esté
-  // mirando, así que no hace falta releerlos ni pasar nutritionState por
-  // 'loading' (eso disparaba el skeleton de LA PESTAÑA ENTERA en cada
-  // click de día — demasiado, para lo poco que realmente cambia).
-  // isSwitchingDate solo atenúa la etiqueta de fecha mientras llega el
-  // nuevo dietDay, en vez de un skeleton.
-  public isSwitchingDate = false;
-
   // F20-bis — llamado por <app-nutrition-calendar> al hacer click en un día;
   // sustituye a los antiguos botones ±1 día (changeNutritionDate), que no
   // daban vista de conjunto ni salto directo a una fecha.
+  //
+  // Ya no pide nada al cambiar de día (antes releía el dietDay para poder
+  // pautar comida a comida desde aquí — ver Replanteamiento MVP en
+  // client-detail.page.html): goals/adherence/complianceSummary/
+  // nutritionPreferences/activePlan tampoco cambian según el día que se
+  // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
-    if (date === this.nutritionDate) return;
     this.nutritionDate = date;
-    this.isSwitchingDate = true;
-    this.clientDetailApi.getDiet(this.clientId, date).subscribe({
-      next: (dietDay) => {
-        this.dietDay = dietDay;
-        this.isSwitchingDate = false;
-      },
-      error: () => {
-        this.dietDay = null;
-        this.isSwitchingDate = false;
-      },
-    });
   }
 
   private todayIsoDate(): string {
@@ -2080,355 +2028,6 @@ export class ClientDetailPage implements OnInit {
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-
-  // --- Pautar comida (F12: 1 alternativa = aplicación inmediata;
-  // F28: 2+ alternativas nombradas = el cliente elige cuál se aplica) ---
-  public openPrescribePanel(meal: MealSummary): void {
-    this.prescribeMealTarget = meal;
-    this.prescribeAlternatives = [this.emptyAlternative()];
-    this.showPrescribePanel = true;
-  }
-
-  public closePrescribePanel(): void {
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — atajo de escritorio: con el panel de
-  // "Pautar" abierto, Ctrl/Cmd+K abre el buscador directamente sobre el
-  // primer hueco sin producto/receta (o añade uno si no queda ninguno),
-  // sin tener que ir a buscar el botón con el ratón.
-  @HostListener('document:keydown', ['$event'])
-  public onGlobalKeydown(event: KeyboardEvent): void {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k')
-      return;
-    if (!this.showPrescribePanel || !this.prescribeAlternatives.length) return;
-    event.preventDefault();
-
-    for (
-      let altIndex = 0;
-      altIndex < this.prescribeAlternatives.length;
-      altIndex++
-    ) {
-      const alt = this.prescribeAlternatives[altIndex];
-      const itemIndex = alt.items.findIndex(
-        (item) => !item.productId && !item.recipeId
-      );
-      if (itemIndex !== -1) {
-        void this.openProductSearch(altIndex, itemIndex);
-        return;
-      }
-    }
-
-    const lastAltIndex = this.prescribeAlternatives.length - 1;
-    const alt = this.prescribeAlternatives[lastAltIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-    void this.openProductSearch(lastAltIndex, alt.items.length - 1);
-  }
-
-  private emptyFoodItem(): MealFoodItemInput {
-    return {};
-  }
-
-  private emptyAlternative(): MealAlternativeInput {
-    return { label: '', items: [this.emptyFoodItem()] };
-  }
-
-  // Cada alternativa nueva se pone ARRIBA de las anteriores (más reciente
-  // primero) — así lo pidió el trainer, en vez de acumularse al final.
-  public addAlternative(): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    this.prescribeAlternatives.unshift(this.emptyAlternative());
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
-  // todos los alimentos (mismo carbohidrato/grasa, solo cambia la proteína).
-  // Duplicar copia la composición entera para editar solo lo que cambia, en
-  // vez de repetir el ciclo de búsqueda completo por cada opción.
-  public duplicateAlternative(index: number): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    const source = this.prescribeAlternatives[index];
-    const copy: MealAlternativeInput = {
-      label: source.label ? `${source.label} (copia)` : '',
-      items: source.items.map((item) => ({ ...item })),
-    };
-    this.prescribeAlternatives.splice(index + 1, 0, copy);
-  }
-
-  public removeAlternative(index: number): void {
-    if (this.prescribeAlternatives.length <= 1) return;
-    this.prescribeAlternatives.splice(index, 1);
-  }
-
-  // Replanteamiento MVP (nutrición) — antes cada alternativa era UN solo
-  // alimento y volver a pautar sobrescribía la comida entera; ahora cada
-  // alternativa acumula VARIOS alimentos (this.maxFoodItemsPerAlternative)
-  // que se envían juntos en un único customProducts al pautar.
-  public addFoodItem(altIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-  }
-
-  public removeFoodItem(altIndex: number, itemIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length <= 1) return;
-    alt.items.splice(itemIndex, 1);
-  }
-
-  // TAREA1/TAREA5 — buscador real de search-foods (misma pantalla/tarjetas
-  // que el consumidor, con productos+recetas+filtros) como panel lateral.
-  // Sus acciones de escritura (compose/deleteMealCustomRecipe/AddProductPage)
-  // llaman a endpoints con auth propia del consumidor logueado, sin
-  // clientId — no sirven para "la dieta de un cliente". Por eso
-  // SearchFoodsPage recibe un trainerContext con callbacks propios: al
-  // elegir un producto/receta, se abre un segundo panel pequeño
-  // (ProductSearchModalComponent, reutilizado aquí solo para el paso de
-  // cantidad/confirmar) que sí aplica el resultado con la lógica de esta
-  // página y cierra ambos paneles. Ver MVP-trainers/tareas-grandes/TAREA5.
-  public async openProductSearch(
-    altIndex: number,
-    itemIndex: number
-  ): Promise<void> {
-    const outerModal = await this.modalController.create({
-      component: SearchFoodsPage,
-      componentProps: {
-        trainerContext: this.buildSearchFoodsTrainerContext(
-          altIndex,
-          itemIndex,
-          () => void outerModal.dismiss()
-        ),
-      },
-      cssClass: 'tf-panel-modal',
-    });
-    await outerModal.present();
-    await outerModal.onDidDismiss();
-  }
-
-  private buildSearchFoodsTrainerContext(
-    altIndex: number,
-    itemIndex: number,
-    closeOuter: () => void
-  ): SearchFoodsTrainerContext {
-    return {
-      clientUser: {
-        _id: this.clientId,
-        name: this.name,
-        dietInUse: this.dietDay?.dietId,
-      } as any,
-      dietDay: (this.dietDay || {}) as any,
-      meal: (this.prescribeMealTarget || {}) as any,
-      targetLabel: this.prescribeMealTarget?.name,
-      confirmSelection: (items) =>
-        this.applyTrainerSelection(altIndex, itemIndex, items),
-      closeSelf: closeOuter,
-      pickCreateProduct: () =>
-        void this.confirmPickedFood(
-          altIndex,
-          itemIndex,
-          { kind: 'create' },
-          closeOuter
-        ),
-    };
-  }
-
-  // TAREA5 (auditoría UX) — selección múltiple: el primer alimento marcado
-  // rellena el hueco donde se pulsó "Buscar producto o receta real"; cada
-  // alimento adicional de la misma pasada de búsqueda se añade como un
-  // nuevo alimento de la alternativa, sin repetir el ciclo de búsqueda.
-  private applyTrainerSelection(
-    altIndex: number,
-    itemIndex: number,
-    items: TrainerFoodSelection[]
-  ): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (!alt || !items.length) return;
-
-    items.forEach((selection, i) => {
-      let targetIndex = itemIndex;
-      if (i > 0) {
-        if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-        alt.items.push(this.emptyFoodItem());
-        targetIndex = alt.items.length - 1;
-      }
-      const item = alt.items[targetIndex];
-      if (selection.kind === 'recipe' && selection.recipe) {
-        item.recipeId = selection.recipe._id;
-        item.recipeName = selection.recipe.name;
-        item.productId = undefined;
-        item.productName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      } else if (selection.kind === 'product' && selection.product) {
-        item.productId = selection.product._id;
-        item.productName = selection.product.name;
-        item.recipeId = undefined;
-        item.recipeName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      }
-    });
-  }
-
-  private async confirmPickedFood(
-    altIndex: number,
-    itemIndex: number,
-    _picked: { kind: 'create' },
-    closeOuter: () => void
-  ): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ProductSearchModalComponent,
-      componentProps: { startInCreateProduct: true },
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
-
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    if (data.kind === 'recipe' && data.recipe) {
-      item.recipeId = data.recipe._id;
-      item.recipeName = data.recipe.name;
-      item.productId = undefined;
-      item.productName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    } else if (data.product) {
-      item.productId = data.product._id;
-      item.productName = data.product.name;
-      item.recipeId = undefined;
-      item.recipeName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    }
-    closeOuter();
-  }
-
-  public clearProduct(altIndex: number, itemIndex: number): void {
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    item.productId = undefined;
-    item.productName = undefined;
-    item.recipeId = undefined;
-    item.recipeName = undefined;
-    item.quantity = undefined;
-  }
-
-  public get prescribeIsMultiple(): boolean {
-    return this.prescribeAlternatives.length >= 2;
-  }
-
-  public get canSubmitPrescribe(): boolean {
-    if (!this.prescribeAlternatives.length) return false;
-    return this.prescribeAlternatives.every(
-      (a) =>
-        a.items.length > 0 &&
-        a.items.every((item) => !!(item.productId || item.recipeId)) &&
-        (!this.prescribeIsMultiple || a.label.trim())
-    );
-  }
-
-  public submitPrescribe(): void {
-    if (
-      !this.canSubmitPrescribe ||
-      this.isPrescribing ||
-      !this.prescribeMealTarget ||
-      !this.dietDay
-    ) {
-      return;
-    }
-
-    this.isPrescribing = true;
-    const meal = this.prescribeMealTarget;
-    const date = this.dietDay.date;
-
-    if (!this.prescribeIsMultiple) {
-      const { customProducts, customRecipes } = this.alternativeToCustomEntries(
-        this.prescribeAlternatives[0]
-      );
-      this.clientDetailApi
-        .prescribeMeal(this.clientId, date, meal._id, {
-          customProducts,
-          customRecipes,
-          merge: false,
-        })
-        .subscribe({
-          next: () =>
-            this.onPrescribeSuccess(`"${meal.name}" pautada para ${this.name}`),
-          error: (err) => this.onPrescribeError(err),
-        });
-      return;
-    }
-
-    const alternatives = this.prescribeAlternatives.map((a) => ({
-      label: a.label.trim(),
-      ...this.alternativeToCustomEntries(a),
-    }));
-    this.clientDetailApi
-      .proposeMealAlternatives(this.clientId, date, meal.name, alternatives)
-      .subscribe({
-        next: () =>
-          this.onPrescribeSuccess(
-            `${alternatives.length} alternativas propuestas para "${meal.name}"`
-          ),
-        error: (err) => this.onPrescribeError(err),
-      });
-  }
-
-  // TAREA5 — cada alimento de una alternativa es SIEMPRE un producto o una
-  // receta real (ver canSubmitPrescribe), nunca macros tecleadas a mano;
-  // aquí solo se reparte en los dos arrays que espera el backend
-  // (mealModel.pasteMeal trata ambos de forma uniforme).
-  private alternativeToCustomEntries(alt: MealAlternativeInput): {
-    customProducts: Record<string, unknown>[];
-    customRecipes: Record<string, unknown>[];
-  } {
-    const customProducts: Record<string, unknown>[] = [];
-    const customRecipes: Record<string, unknown>[] = [];
-
-    for (const item of alt.items) {
-      if (item.recipeId) {
-        customRecipes.push({
-          recipe: item.recipeId,
-          quantity: item.quantity || null,
-        });
-      } else if (item.productId) {
-        customProducts.push({
-          product: item.productId,
-          quantity: item.quantity || 100,
-        });
-      }
-    }
-
-    return { customProducts, customRecipes };
-  }
-
-  private onPrescribeSuccess(message: string): void {
-    this.isPrescribing = false;
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-    this.ionicUtilService.showToast({ message, duration: 3000 });
-    this.loadNutrition();
-  }
-
-  private onPrescribeError(err: any): void {
-    this.isPrescribing = false;
-    this.ionicUtilService.showErrorToast(
-      err?.error?.message || 'No se pudo pautar la comida',
-      'Error',
-      3500
-    );
-  }
-
-  public mealContentSummary(meal: {
-    customProducts: unknown[];
-    customRecipes: unknown[];
-  }): string {
-    const products = meal.customProducts?.length || 0;
-    const recipes = meal.customRecipes?.length || 0;
-    if (!products && !recipes) return 'Vacía';
-    const parts: string[] = [];
-    if (products)
-      parts.push(`${products} producto${products === 1 ? '' : 's'}`);
-    if (recipes) parts.push(`${recipes} receta${recipes === 1 ? '' : 's'}`);
-    return parts.join(' · ');
   }
 
   public trackByTableId(_index: number, table: ClientTable): string {

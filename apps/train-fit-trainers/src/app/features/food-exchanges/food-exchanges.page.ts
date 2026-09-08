@@ -1,5 +1,16 @@
 import { Component } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import {
+  ExchangeCount,
+  exchangesFor,
+} from 'src/app/core/utils/exchange-math.util';
+import {
+  ProductSearchModalComponent,
+  ProductSearchResult,
+// Ruta relativa y no 'src/app/shared/...': ese alias apunta al paquete
+// shared-ui, no al shared local de esta app (ver paths en tsconfig.json).
+} from '../../shared/components/product-search-modal/product-search-modal.component';
 import { FoodExchangesApiService } from './services/food-exchanges-api.service';
 import {
   EXCHANGE_BASES,
@@ -56,7 +67,8 @@ export class FoodExchangesPage {
 
   constructor(
     private foodExchangesApi: FoodExchangesApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private modalController: ModalController
   ) {}
 
   public ionViewWillEnter(): void {
@@ -114,16 +126,11 @@ export class FoodExchangesPage {
    * Devuelve null cuando falta algo, en vez de un 0 que se leería como "este
    * producto no cuenta".
    */
-  public get calculatedExchanges(): { exact: number; rounded: number } | null {
-    if (!this.hasBasis) return null;
-    const amount = Number(this.labelAmount);
-    if (!Number.isFinite(amount) || amount <= 0) return null;
-
-    const exact = amount / Number(this.basisAmount);
-    return {
-      exact: Math.round(exact * 100) / 100,
-      rounded: Math.round(exact * 2) / 2,
-    };
+  public get calculatedExchanges(): ExchangeCount | null {
+    return exchangesFor(
+      { basis: this.basis, basisAmount: Number(this.basisAmount) },
+      Number(this.labelAmount)
+    );
   }
 
   public setBasis(basis: ExchangeBasis): void {
@@ -138,7 +145,46 @@ export class FoodExchangesPage {
   }
 
   private emptyItem(): FoodExchangeItem {
-    return { name: '', quantity: 100, unit: 'g', note: '' };
+    return { name: '', quantity: 100, unit: 'g', note: '', productId: null, product: null };
+  }
+
+  // --- Vincular el alimento al catálogo real ---
+  //
+  // Opcional, y así se queda: un grupo escrito a mano sigue siendo válido y es
+  // lo que eran todos hasta ahora. Vincular es lo que permite luego generar
+  // alternativas de una comida desde este grupo, porque una pauta necesita un
+  // producto con macros, no un nombre suelto.
+  public async linkProduct(index: number): Promise<void> {
+    const item = this.items[index];
+    if (!item) return;
+
+    const modal = await this.modalController.create({
+      component: ProductSearchModalComponent,
+      // Sin recetas: un item solo guarda productId, una receta no cabría.
+      componentProps: { productsOnly: true },
+      cssClass: 'tf-panel-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
+    if (role !== 'confirm' || data?.kind !== 'product' || !data.product) return;
+
+    item.productId = data.product._id;
+    item.product = data.product;
+    // El nombre sigue siendo del coach: solo se rellena si estaba en blanco,
+    // porque "Pechuga de pollo (sin piel)" que él escribió vale más para su
+    // cliente que el nombre del catálogo.
+    if (!item.name.trim()) item.name = data.product.name;
+    // La cantidad que trae el buscador es la del producto, no la equivalencia
+    // que el coach quiere para SU ración — esa la decide él, y por eso no se
+    // toca lo que ya hubiera escrito.
+    if (!(Number(item.quantity) > 0)) item.quantity = data.quantity || 100;
+  }
+
+  public unlinkProduct(index: number): void {
+    const item = this.items[index];
+    if (!item) return;
+    item.productId = null;
+    item.product = null;
   }
 
   public addItem(): void {
@@ -181,7 +227,10 @@ export class FoodExchangesPage {
       // base no significa nada. El backend aplica la misma regla.
       basis: this.hasBasis ? this.basis : null,
       basisAmount: this.hasBasis ? Number(this.basisAmount) : null,
-      items: this.items.map((item) => ({
+      // `product` fuera: es de solo lectura, lo pone el backend al listar, y
+      // reenviarlo sería mandar el producto entero por la red para que lo
+      // descarte.
+      items: this.items.map(({ product, ...item }) => ({
         ...item,
         name: item.name.trim(),
         quantity: Number(item.quantity),

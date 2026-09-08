@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { amountForExchanges } from 'src/app/core/utils/exchange-math.util';
 import {
   MyExchangeGroup,
   MyExchangeItem,
@@ -108,8 +109,8 @@ export class MyFoodExchangesPage implements OnInit {
    * raciones son 200 g. La equivalencia sigue siendo suya.
    */
   public amountFor(item: MyExchangeItem, count: number): string {
-    const quantity = Math.round(item.quantity * count * 10) / 10;
-    return `${quantity} ${item.unit}`;
+    const amount = amountForExchanges(item, count);
+    return amount ? `${amount.quantity} ${amount.unit}` : '';
   }
 
   // --- Lista de grupos ---

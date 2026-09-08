@@ -20,6 +20,7 @@ import {
   TemplateDayPattern,
   TemplateFoodItem,
   TemplateMeal,
+  TemplateMealAlternative,
   TemplateMode,
   WEEKDAYS,
 } from '../../models/diet-template.model';
@@ -517,6 +518,43 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       return `${n} alimento${n === 1 ? '' : 's'}`;
     }
     return `${alternatives.length} alternativas`;
+  }
+
+  // La celda del tablero ya no pinta un contador ("3 alimentos") sino lo que
+  // hay dentro: nombre y gramos de cada alimento más los macros de esa
+  // alternativa — que es justo lo que se quiere comparar de un vistazo entre
+  // columnas sin abrir el editor. Mismo criterio que dayTotals(): los macros
+  // de cada TemplateFoodItem ya vienen calculados para su quantity actual.
+  // Devuelve null (y no un total de ceros) cuando la alternativa aún no tiene
+  // ningún alimento elegido — así la fila de macros no aparece vacía en la
+  // celda mientras se está componiendo la comida.
+  public alternativeTotals(alt: TemplateMealAlternative): {
+    kcal: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  } | null {
+    const items = (alt.items || []).filter((item) => item.productId || item.recipeId);
+    if (!items.length) return null;
+    const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
+    for (const item of items) {
+      totals.kcal += item.kcal || 0;
+      totals.protein += item.protein || 0;
+      totals.carbs += item.carbs || 0;
+      totals.fat += item.fat || 0;
+    }
+    return totals;
+  }
+
+  public itemLabel(item: TemplateFoodItem): string {
+    return (item.recipeId ? item.recipeName : item.productName) || 'Sin alimento';
+  }
+
+  // Misma numeración descendente que las cabeceras del editor de comida
+  // (day-meal-editor-modal.component.html), para que "Opción 2" sea la misma
+  // en el tablero y dentro del modal.
+  public alternativeLabel(alt: TemplateMealAlternative, index: number, total: number): string {
+    return alt.label?.trim() || `Opción ${total - index}`;
   }
 
   // --- Editor de celda (día × comida) ---

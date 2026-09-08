@@ -180,7 +180,11 @@
   </div>
 
   <h3 class="section-title">Alimentos</h3>
-  <p class="section-hint">El primero es la referencia: los demás se leen contra él.</p>
+  <p class="section-hint">
+    El primero es la referencia: los demás se leen contra él. Vincula cada uno a un producto real
+    (opcional) y podrás generar las alternativas de una comida desde este grupo, sin repetir la
+    sustitución a mano.
+  </p>
 
   <div class="item-editor" *ngFor="let item of items; let i = index; trackBy: trackByIndex">
     <span class="item-index" [class.item-index--reference]="i === 0" aria-hidden="true">
@@ -215,6 +219,35 @@
           [(ngModel)]="item.note"
           [attr.aria-label]="'Nota del alimento ' + (i + 1)"
         />
+      </div>
+
+      <!-- Vincular al catálogo: opcional, y un grupo de texto sigue siendo
+           válido. Lo que desbloquea es generar alternativas de una comida
+           desde el grupo, que necesita macros reales. -->
+      <button
+        type="button"
+        class="link-product-button"
+        *ngIf="!item.productId"
+        (click)="linkProduct(i)"
+        [attr.aria-label]="'Vincular el alimento ' + (i + 1) + ' a un producto'"
+      >
+        <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
+        Vincular producto
+      </button>
+
+      <div class="linked-product" *ngIf="item.productId">
+        <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+        <button type="button" class="linked-product-name" (click)="linkProduct(i)" title="Cambiar producto">
+          {{ item.product?.name || 'Producto vinculado' }}
+        </button>
+        <button
+          type="button"
+          class="linked-product-unlink"
+          (click)="unlinkProduct(i)"
+          [attr.aria-label]="'Desvincular el producto del alimento ' + (i + 1)"
+        >
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
       </div>
     </div>
 

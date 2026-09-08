@@ -103,6 +103,16 @@
   }
 }
 
+.item-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: #6b6b6b;
+
+  .item--checked & {
+    color: rgba(107, 107, 107, 0.6);
+  }
+}
+
 .item-name {
   flex: 1;
   min-width: 0;

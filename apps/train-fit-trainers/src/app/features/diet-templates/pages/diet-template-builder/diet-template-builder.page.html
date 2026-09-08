@@ -125,7 +125,35 @@
             (drop)="onCellDrop(d, s, $event)"
             (click)="openMealEditor(d, s)"
           >
-            <span class="board-cell-summary">{{ mealSummary(row.meals[s]) }}</span>
+            <span class="board-cell-summary" *ngIf="!row.meals[s].alternatives.length">Vacía</span>
+
+            <!-- Contenido real de la celda: cada alternativa con sus
+                 alimentos (nombre + gramos) y sus macros. Con 2+ alternativas
+                 cada bloque lleva su icono e etiqueta, que es lo que
+                 distingue "el cliente elige" de una comida normal. -->
+            <div
+              class="cell-alt"
+              *ngFor="let alt of row.meals[s].alternatives; let a = index; trackBy: trackByIndex"
+            >
+              <span class="cell-alt-header" *ngIf="row.meals[s].alternatives.length > 1">
+                <ion-icon name="swap-horizontal-outline"></ion-icon>
+                <span class="cell-alt-label">{{ alternativeLabel(alt, a, row.meals[s].alternatives.length) }}</span>
+              </span>
+
+              <ng-container *ngFor="let item of alt.items; trackBy: trackByIndex">
+                <span class="cell-food" *ngIf="item.productId || item.recipeId">
+                  <span class="cell-food-name">{{ itemLabel(item) }}</span>
+                  <span class="cell-food-qty" *ngIf="item.quantity">{{ item.quantity }}g</span>
+                </span>
+              </ng-container>
+
+              <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
+                <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
+                <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+              </span>
+            </div>
             <button
               type="button"
               class="board-cell-action"
