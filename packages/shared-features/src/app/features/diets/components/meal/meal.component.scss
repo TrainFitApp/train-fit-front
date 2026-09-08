@@ -114,6 +114,27 @@
             font-weight: 500;
             margin-left: 6px;
           }
+
+          // Delta sobre lo pautado, a la derecha de la cantidad — mismo
+          // verde/rojo que el resto de la app usa para "más"/"menos" (ver
+          // pautado-item-view.component.scss, mismo criterio ahí).
+          .quantity-delta {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+
+            &--positive {
+              color: var(--ion-color-success);
+              background: rgba(var(--ion-color-success-rgb), 0.14);
+            }
+
+            &--negative {
+              color: var(--ion-color-danger);
+              background: rgba(var(--ion-color-danger-rgb), 0.14);
+            }
+          }
         }
 
         // Información nutricional

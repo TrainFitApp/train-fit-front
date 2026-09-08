@@ -67,6 +67,7 @@ import { SelectClientsModalComponent } from '../../components/select-clients-mod
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
 import { RoutineAssignmentApiService } from '../../../../shared/services/routine-assignment-api.service';
 import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
@@ -327,19 +328,32 @@ export class ClientDetailPage implements OnInit {
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
   public activePlan: PlanAssignment | null = null;
   public planPhases: PlanAssignment[] = [];
+  // Historial COMPLETO (incluye fases ya terminadas), ordenado por fecha de
+  // inicio — a diferencia de planPhases (solo vigente+futuras, ver
+  // buildPhaseSequence). Existe para que phaseColorMap se construya sobre la
+  // MISMA secuencia que usa el calendario (PHASE_COLORS/assignPhaseColors en
+  // phase-color.util.ts, que también cuenta las terminadas): si usara
+  // planPhases, una fase ya cerrada desplazaría a las que siguen un puesto
+  // en la secuencia y el color dejaría de coincidir con el del calendario.
+  private allPhasesHistory: PlanAssignment[] = [];
+  // Color por fase — recalculado junto con allPhasesHistory (ver
+  // loadActivePlan), no en cada llamada a phaseColor(): assignPhaseColors
+  // mira varias fases hacia atrás por cada una, buscarlo por índice en el
+  // array sería EXTRA trabajo repetido sin necesidad.
+  private phaseColorMap = new Map<string, string>();
   public isCreatingException = false;
   // F20-quinquies — píldoras L/M/X/J/V/S/D del plan activo (solo
   // mode:'recurring'), mismo catálogo que usa el propio editor de plantillas.
   public readonly weekdayOptions = WEEKDAYS;
   // F20-octies — un color por patrón cuando el plan tiene 2+ (mismo criterio
-  // categórico que las fases del calendario, PHASE_COLORS en
-  // nutrition-calendar.component.ts) — con un solo patrón se queda en el
-  // naranja de acento de siempre, sin inventar distinción donde no hace falta.
-  // impeccable/quieter — mismo origen que PHASE_COLORS en
-  // nutrition-calendar.component.ts (paleta Tailwind *-400 original,
-  // desaturada ~48% de saturación / −6pp de luminosidad): un solo patrón
-  // conceptual, dos usos, cambiar aquí implica cambiar allí también.
-  private readonly weekdayPatternColors = ['#6e99cd', '#cc7ba6', '#4d9b7f', '#c09c41', '#a18fd7', '#4f9fc2'];
+  // categórico que las fases del calendario) — con un solo patrón se queda
+  // en el naranja de acento de siempre, sin inventar distinción donde no
+  // hace falta. Misma paleta que PHASE_COLORS (phase-color.util.ts) — un
+  // patrón dentro de UN plan es un conjunto pequeño y no espacial (no hay
+  // "cercanía" que razonar como en el calendario), así que aquí basta el
+  // índice simple sobre la paleta compartida en vez del algoritmo de
+  // proximidad completo.
+  private readonly weekdayPatternColors = PHASE_COLORS;
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
   // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
   // (30 días centrados en hoy) en vez de null: antes dependía de que el
@@ -1631,6 +1645,10 @@ export class ClientDetailPage implements OnInit {
       .toPromise()
       .then((res) => {
         this.activePlan = res?.active || null;
+        this.allPhasesHistory = (res?.history || [])
+          .slice()
+          .sort((a, b) => a.startDate.localeCompare(b.startDate));
+        this.phaseColorMap = buildPhaseColorMap(this.allPhasesHistory.map((p) => p._id));
         this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
@@ -1660,6 +1678,27 @@ export class ClientDetailPage implements OnInit {
   public isCurrentPhase(phase: PlanAssignment): boolean {
     const hoy = new Date().toISOString().slice(0, 10);
     return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
+  }
+
+  // Mismo color que este tramo pinta en <app-nutrition-calendar> — mismo
+  // phaseColorMap, construido sobre allPhasesHistory (TODA la secuencia,
+  // fases terminadas incluidas), exactamente como hace el calendario en
+  // phase-color.util.ts.
+  public phaseColor(phase: PlanAssignment | null): string {
+    if (!phase) return 'var(--tf-accent)';
+    return this.phaseColorMap.get(phase._id) ?? 'var(--tf-accent)';
+  }
+
+  // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
+  // acento (mismo criterio "esto es tuyo, no del sistema" que llevó a
+  // sacar el naranja de las próximas: la fase activa tampoco es un estado
+  // de navegación/UI, es un dato del cliente como cualquier otra fase).
+  // Reutiliza hexToRgba, igual que weekdayPatternSoftBackground.
+  public phaseSoftBackground(phase: PlanAssignment | null): string {
+    if (!phase) return 'var(--tf-accent-soft)';
+    const color = this.phaseColorMap.get(phase._id);
+    if (!color) return 'var(--tf-accent-soft)';
+    return this.hexToRgba(color, 0.14);
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
@@ -1936,11 +1975,17 @@ export class ClientDetailPage implements OnInit {
     this.router.navigate(['/tabs/diet-templates']);
   }
 
-  // "Crear dieta" — mismo modal que "Aplicar plantilla" (ApplyDietTemplateModalComponent
-  // #forDirectCreate), pero solo para recoger nombre y fechas: el contenido
-  // no existe todavía, se construye en el builder (diet-template-builder.page.ts,
-  // ruta for-client/:clientId) al que se navega justo después.
+  // "Crear dieta" — mismo modal que "Aplicar plantilla"
+  // (ApplyDietTemplateModalComponent#forDirectCreate): recoge el nombre y
+  // las FECHAS, con el mismo calendario y las mismas opciones de fin. El
+  // contenido se construye después en el builder
+  // (diet-template-builder.page.ts, ruta for-client/:clientId), que al
+  // guardar crea la dieta propia del cliente y la aplica como fase con estas
+  // fechas. Mismo formulario de fechas en los dos sitios, misma validación
+  // de solape en el backend.
   public async openCreateDietModal(): Promise<void> {
+    // Misma propuesta de fecha que al aplicar una plantilla: encadenar con
+    // el final de la última fase, para no dejar un hueco sin plan.
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
     const finAnterior = ultima?.endDate || null;
 
@@ -1969,11 +2014,28 @@ export class ClientDetailPage implements OnInit {
   // editor de LA plantilla aplicada (mismo builder que "Gestionar
   // plantillas", pero directo a esta en vez de a la lista completa).
   public openActivePlanTemplate(): void {
-    // sourceTemplateId, no planId: planId es la copia congelada exclusiva de
-    // este cliente (ver plan-assignment.model.ts) — editarla no debe ser
-    // posible desde aquí, así que este atajo va siempre a la plantilla real.
-    if (!this.activePlan?.sourceTemplateId) return;
-    this.router.navigate(['/tabs/diet-templates', this.activePlan.sourceTemplateId]);
+    if (this.activePlan) this.openPhaseTemplate(this.activePlan);
+  }
+
+  // Lo mismo para CUALQUIER fase de la fila, no solo la que rige: las
+  // programadas son justo las que más se retocan (se preparan con
+  // antelación) y hasta ahora eran las únicas tarjetas muertas al click —
+  // había que ir a "Plantillas de dieta" y buscarla por nombre.
+  public openPhaseTemplate(phase: PlanAssignment): void {
+    // sourceTemplateId, no _id: _id es la copia congelada exclusiva de este
+    // cliente (ver plan-assignment.model.ts) — editarla no debe ser posible
+    // desde aquí, así que este atajo va siempre a la plantilla real.
+    if (!phase.sourceTemplateId) {
+      // Puede faltar: la plantilla de origen se borró, o la fase se creó
+      // antes de que se guardara esa referencia. Antes esto era un click que
+      // no hacía nada y parecía la app colgada.
+      this.ionicUtilService.showToast({
+        message: 'Esta fase no conserva su plantilla de origen, no se puede editar desde aquí.',
+        duration: 3000,
+      });
+      return;
+    }
+    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId]);
   }
 
   // F20-octies — color de las píldoras del patrón `index`. Con un solo

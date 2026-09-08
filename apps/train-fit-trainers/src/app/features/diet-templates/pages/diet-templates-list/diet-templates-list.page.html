@@ -70,10 +70,19 @@
         *ngFor="let template of templates; trackBy: trackByTemplateId"
       >
         <button type="button" class="template-row-main" (click)="openTemplate(template)">
-          <ion-icon name="restaurant-outline" class="template-row-icon"></ion-icon>
+          <!-- Las dietas propias de un cliente (ownerClientId) también salen
+               aquí: si no, quedarían sin ningún sitio donde volver a
+               editarlas tras crearlas desde su ficha. -->
+          <ion-icon
+            [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"
+            class="template-row-icon"
+          ></ion-icon>
           <div class="template-info">
             <span class="template-name">{{ template.name }}</span>
-            <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+            <span class="template-meta">
+              {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
+              <ng-container *ngIf="template.ownerClientId"> · de un cliente</ng-container>
+            </span>
           </div>
         </button>
         <button

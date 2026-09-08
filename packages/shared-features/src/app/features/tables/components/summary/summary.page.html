@@ -60,7 +60,6 @@
            calcada del diseño (icon-badge + columna de texto + chevron como
            HERMANOS en fila, no el icono anidado dentro del título). -->
       <ng-container *ngIf="tableInUse && workout && user.workoutInUse">
-        <span class="continue-label">{{ 'TABLES.CONTINUE_LABEL' | translate }}</span>
         <div class="continue-card-group">
           <button type="button" class="continue-card" (click)="selectWorkout()">
             <!-- Icono info en vez de barbell: pulsarlo despliega el resumen
@@ -131,12 +130,12 @@
            openMesocycle() en vez de selectWorkout() (aun no hay
            workoutInUse que reanudar). -->
       <ng-container *ngIf="tableInUse && !user.workoutInUse && getNextWorkout() as nextWorkout">
-        <span class="continue-label">{{ 'TABLES.NEXT_WORKOUT_LABEL' | translate }}</span>
         <button type="button" class="continue-card" (click)="openMesocycle()">
           <span class="continue-card__icon-badge">
             <ion-icon name="barbell-outline"></ion-icon>
           </span>
           <span class="continue-card__body">
+            <span class="continue-card__eyebrow">{{ 'TABLES.NEXT_WORKOUT_LABEL' | translate }}</span>
             <span class="continue-card__title">{{ 'TABLES.DAY' | translate }} {{ nextWorkout.name | translateDb }}</span>
             <span class="continue-card__subtitle">
               {{ nextWorkout.exercises.length }} {{ 'TABLES.EXERCISES' | translate }}

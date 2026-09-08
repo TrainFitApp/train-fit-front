@@ -12,12 +12,39 @@ import {
 export class DietTemplateApiService {
   constructor(private http: HttpService) {}
 
-  public list(): Observable<DietTemplate[]> {
-    return this.http.get<DietTemplate[]>('trainer/diet-templates');
+  // Sin parámetros: solo plantillas generales — lo que espera cualquier
+  // selector genérico (protocolos, plantillas), sin colar dietas que son de
+  // un cliente concreto.
+  // forClientId acota al material aplicable a ese cliente; onlyOwned deja
+  // SOLO las suyas (filtro activo del selector de fase).
+  // includeOwned las devuelve todas — solo la biblioteca lo usa.
+  public list(
+    options: { forClientId?: string | null; onlyOwned?: boolean; includeOwned?: boolean } = {}
+  ): Observable<DietTemplate[]> {
+    const params: string[] = [];
+    if (options.forClientId) params.push(`forClientId=${encodeURIComponent(options.forClientId)}`);
+    if (options.onlyOwned) params.push('onlyOwned=true');
+    if (options.includeOwned) params.push('includeOwned=true');
+    const query = params.length ? `?${params.join('&')}` : '';
+    return this.http.get<DietTemplate[]>(`trainer/diet-templates${query}`);
   }
 
-  public create(name: string, days: DietTemplateDayPayload[]): Observable<DietTemplate> {
-    return this.http.post<DietTemplate>('trainer/diet-templates', { name, days });
+  // ownerClientId puesto = dieta exclusiva de ese cliente, no material
+  // general de la biblioteca.
+  public create(
+    name: string,
+    days: DietTemplateDayPayload[],
+    ownerClientId?: string | null,
+    mode?: TemplateMode,
+    dayPatterns?: DietTemplateDayPatternPayload[]
+  ): Observable<DietTemplate> {
+    return this.http.post<DietTemplate>('trainer/diet-templates', {
+      name,
+      days,
+      mode,
+      dayPatterns,
+      ownerClientId: ownerClientId || null,
+    });
   }
 
   public update(

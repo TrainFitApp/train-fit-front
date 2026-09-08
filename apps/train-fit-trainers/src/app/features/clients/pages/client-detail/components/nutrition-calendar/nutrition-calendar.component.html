@@ -1,4 +1,4 @@
-<div class="nutrition-calendar">
+<div class="nutrition-calendar" [class.nutrition-calendar--picker]="isPickerMode">
   <div class="nutrition-calendar__header">
     <button
       type="button"
@@ -39,7 +39,7 @@
         (click)="clearRange()"
       >
         <ion-icon name="close-circle-outline"></ion-icon>
-        {{ rangeStart }} → {{ rangeEnd }}
+        {{ rangeStart }} → {{ openEnded ? 'indefinido' : rangeEnd }}
       </button>
     </div>
   </div>
@@ -63,24 +63,53 @@
       [class.is-in-range]="isInRange(cell.date)"
       [class.is-range-endpoint]="cell.date === rangeStart || cell.date === rangeEnd"
       [class.is-range-pick-mode]="isRangeMode"
+      [class.is-occupied]="isPickerMode && !!cell.phase?.blocksNewPhase"
+      [class.is-open-ended-tail]="isOpenEndedTail(cell)"
       [disabled]="!cell.date"
+      [attr.aria-disabled]="isPickerMode && !!cell.phase?.blocksNewPhase ? 'true' : null"
       [style.--fill-opacity]="cellFillOpacity(cell)"
       [style.--phase-color]="cell.phase?.color"
-      [title]="cell.phase?.planName || null"
       (click)="selectDay(cell)"
-      (mouseenter)="onCellHover(cell)"
+      (mouseenter)="onCellHover(cell, $event)"
     >
-      <span class="nutrition-calendar__phase-bar" *ngIf="cell.phase"></span>
+      <!-- Fuera del selector: barra fina arriba (convive con el relleno de
+           cumplimiento). Dentro del selector: cuadradito sólido entero (ver
+           .nutrition-calendar--picker en el scss) — aquí el color de fase
+           es el único dato que importa, ocupa toda la celda para que
+           "ocupado" se vea a la primera, no en una franja de 3px.
+           Excepción: una fase indefinida en curso SÍ admite empezar encima
+           (el backend la corta), así que se queda en barra — sólido
+           significa "no puedes", y ahí sí puedes. -->
+      <span
+        class="nutrition-calendar__phase-bar"
+        *ngIf="cell.phase && (!isPickerMode || !cell.phase.blocksNewPhase)"
+      ></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
       <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
+      <!-- Tramo indefinido: sin esto el rango parecería acabar donde acaba
+           la cuadrícula, que es justo lo contrario de lo que significa. -->
+      <span class="nutrition-calendar__open-end" *ngIf="isOpenEndedTail(cell)" aria-hidden="true">››</span>
     </button>
+
+    <!-- Por qué no se puede (o sí, pero cortando) elegir el día que hay
+         debajo del ratón. Va aquí, hijo de la rejilla, para posicionarse con
+         los offsets de la celda sin depender del scroll de la página. -->
+    <div
+      class="nutrition-calendar__tooltip"
+      *ngIf="occupiedTooltip"
+      role="tooltip"
+      [style.left.px]="occupiedTooltip.left"
+      [style.top.px]="occupiedTooltip.top"
+    >
+      {{ occupiedTooltip.text }}
+    </div>
   </div>
 
   <!-- La leyenda va en DOS bloques porque cada casilla superpone dos cosas
        distintas: lo que dice del cliente (relleno, barra, excepciones) y
        dónde estás mirando tú (hoy, seleccionado, rango). Mezclarlas en una
        fila hacía leer el borde naranja del rango como si fuera un dato. -->
-  <div class="nutrition-calendar__legend">
+  <div class="nutrition-calendar__legend" *ngIf="!isPickerMode">
     <p class="legend-title">Qué dice del cliente</p>
 
     <!-- Escala, no un cuadradito: el cumplimiento se lee por INTENSIDAD del
@@ -95,7 +124,17 @@
       Cumplimiento: de nada a todo
     </span>
 
-    <span class="legend-item">
+    <!-- Una entrada por fase que de verdad aparece este mes, con su color
+         real — antes era un único swatch genérico ("un color por fase") sin
+         decir cuál era cuál. -->
+    <span
+      class="legend-item"
+      *ngFor="let phase of visiblePhaseLegend"
+    >
+      <span class="legend-swatch legend-swatch--phase" [style.background]="phase.color"></span>
+      {{ phase.label }}
+    </span>
+    <span class="legend-item" *ngIf="!visiblePhaseLegend.length">
       <span class="legend-swatch legend-swatch--phase"></span>
       Fase del plan (un color por fase)
     </span>
@@ -103,7 +142,33 @@
     <span class="legend-item"><span class="legend-swatch legend-swatch--empty"></span>Sin plan ese día</span>
   </div>
 
-  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav">
+  <!-- Selector de fechas para una fase nueva: lo único que importa aquí es
+       "¿este día ya es de otra fase o está libre?" — cumplimiento,
+       excepciones y "sin plan" son datos de seguimiento pasado, irrelevantes
+       al programar fechas. -->
+  <div class="nutrition-calendar__legend" *ngIf="isPickerMode">
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch--occupied"></span>
+      Ocupado (otra fase, no seleccionable)
+    </span>
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch--empty"></span>
+      Libre
+    </span>
+    <!-- Solo si de verdad hay una en pantalla: si no, es una regla de más
+         que nadie necesita leer. -->
+    <span class="legend-item" *ngIf="hasOpenEndedVisible">
+      <span class="legend-swatch legend-swatch--phase-bar"></span>
+      Plan indefinido en curso — puedes empezar encima, se corta solo
+    </span>
+  </div>
+
+  <p class="range-error" *ngIf="isPickerMode && rangeError">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    {{ rangeError }}
+  </p>
+
+  <div class="nutrition-calendar__legend nutrition-calendar__legend--nav" *ngIf="!isPickerMode">
     <p class="legend-title">Dónde estás mirando</p>
     <span class="legend-item"><span class="legend-swatch legend-swatch--today"></span>Hoy</span>
     <span class="legend-item"><span class="legend-swatch legend-swatch--selected"></span>Día seleccionado</span>

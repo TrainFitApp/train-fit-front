@@ -131,4 +131,20 @@ export class MealService {
   ): Observable<Meal> {
     return this.mealAPIService.setCustomRecipeConsumed(mealId, customRecipeId, consumed);
   }
+
+  public setCustomProductQuantity(
+    mealId: string,
+    customProductId: string,
+    quantity: number
+  ): Observable<Meal> {
+    return this.mealAPIService.setCustomProductQuantity(mealId, customProductId, quantity);
+  }
+
+  public setCustomRecipeQuantity(
+    mealId: string,
+    customRecipeId: string,
+    quantity: number
+  ): Observable<Meal> {
+    return this.mealAPIService.setCustomRecipeQuantity(mealId, customRecipeId, quantity);
+  }
 }

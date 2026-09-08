@@ -583,14 +583,33 @@
 
 // Auditoría de arquitectura (Fase 8) — plan vigente en la cabecera de "Dieta"
 .active-plan-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px;
   margin-bottom: 12px;
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent);
+  // Antes fijo en el naranja de acento (reservado para navegación/UI: hoy,
+  // seleccionado...) — la fase vigente ahora lleva SU color, igual que las
+  // programadas (.next-phase-card); el fallback deja intacta la card de
+  // rutina homónima de más arriba, que no fija --phase-bg/--phase-color.
+  background: var(--phase-bg, var(--tf-accent-soft));
+  border: 1px solid var(--phase-color, var(--tf-accent));
   border-radius: 12px;
+  overflow: hidden;
+
+  // Misma barra superior que pinta esta fase en el calendario (ver
+  // .nutrition-calendar__phase-bar) — asocia tarjeta y tramo de días con el
+  // mismo color en vez de repetir el degradado de acento fijo.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--phase-color, var(--tf-accent));
+  }
 }
 
 // 2026-09 — atajo al Planificador de la rutina en uso. Ancho completo y con
@@ -1947,7 +1966,26 @@
   color: var(--tf-text-faint);
 }
 
+// Marca "esto es lo que rige ahora" con un icono, no con color — el color
+// ya lo lleva la card entera (phaseColor/phaseSoftBackground) igual que
+// las programadas, así que aquí hacía falta una señal aparte para seguir
+// distinguiendo "vigente" de "programada" de un vistazo.
+.plan-phase-order--current {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--phase-color, var(--tf-accent));
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+// Ahora es un <button> (abre su plantilla, igual que la fase en curso), así
+// que hay que deshacer el estilo propio del navegador: font/color heredados
+// y el texto alineado a la izquierda como cuando era un <article>.
 .next-phase-card {
+  position: relative;
   flex: 0 0 180px;
   scroll-snap-align: start;
   display: flex;
@@ -1956,7 +1994,51 @@
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-md);
+  font: inherit;
+  color: inherit;
   text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Misma barra superior que .active-plan-card — ver comentario allí.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--phase-color, var(--tf-border));
+  }
+
+  // El borde toma el color DE LA FASE al pasar por encima, no el acento
+  // naranja: la tarjeta ya se identifica por ese color en el calendario, y
+  // el naranja está reservado a navegación/UI.
+  &:hover:not(.next-phase-card--add) {
+    border-color: var(--phase-color, var(--tf-border-strong));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  // Deja libre la esquina donde va el lápiz — "3ª · PROGRAMADA" es corto,
+  // pero no hay nada que garantice que no crezca.
+  .plan-phase-order {
+    padding-right: 20px;
+  }
+}
+
+// Discreto y en la esquina: dice que la tarjeta se puede abrir sin competir
+// con el nombre de la fase, que es el dato.
+.next-phase-card__edit-icon {
+  position: absolute;
+  top: var(--tf-space-3);
+  right: var(--tf-space-2);
+  font-size: 1rem;
+  color: var(--tf-text-faint);
 }
 
 .next-phase-card__name {

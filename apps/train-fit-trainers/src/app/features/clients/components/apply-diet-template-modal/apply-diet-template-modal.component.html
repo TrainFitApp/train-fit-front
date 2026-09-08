@@ -1,10 +1,26 @@
+<!-- Mismo encabezado que el resto de paneles laterales (ver
+     apply-routine-template-modal): aspa a la izquierda, no un "Cerrar" de
+     texto a la derecha — este era el único panel que cerraba por otro sitio
+     y con otra forma. -->
 <ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>{{ forDirectCreate ? 'Crear dieta' : 'Aplicar plantilla' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Cerrar</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button
+          type="button"
+          class="tf-page-header__back-button"
+          (click)="dismiss()"
+          aria-label="Cerrar"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">{{ forDirectCreate ? 'Crear dieta' : 'Aplicar plantilla' }}</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="apply-content">
@@ -24,7 +40,23 @@
     </div>
 
     <ng-container *ngIf="!forDirectCreate">
-      <p class="empty-hint" *ngIf="!templates.length">
+      <!-- Activo al abrir: pautando a este cliente, lo habitual es aplicarle
+           material suyo. Quitarlo añade las generales de la biblioteca. -->
+      <button
+        type="button"
+        class="owned-filter-chip"
+        [class.is-active]="onlyOwnedByClient"
+        (click)="toggleOwnedFilter()"
+      >
+        <ion-icon [name]="onlyOwnedByClient ? 'person' : 'people-outline'"></ion-icon>
+        {{ onlyOwnedByClient ? ('Solo dietas de ' + clientName) : 'Todas: generales + suyas' }}
+      </button>
+
+      <p class="empty-hint" *ngIf="!templates.length && onlyOwnedByClient">
+        {{ clientName }} todavía no tiene dietas propias. Créale una con "Crear dieta",
+        o quita el filtro para aplicarle una plantilla general.
+      </p>
+      <p class="empty-hint" *ngIf="!templates.length && !onlyOwnedByClient">
         Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
       </p>
 
@@ -34,10 +66,13 @@
         [class.template-row--selected]="selectedTemplateId === template._id"
         (click)="select(template)"
       >
-        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-icon [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"></ion-icon>
         <div class="template-info">
           <span class="template-name">{{ template.name }}</span>
-          <span class="template-meta">{{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}</span>
+          <span class="template-meta">
+            {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
+            <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
+          </span>
         </div>
         <ion-icon
           class="selected-check"
@@ -49,23 +84,33 @@
 
     <!-- El mismo calendario de la ficha, en modo selección de rango: pinta
          las fases ya pautadas, así que las fechas ocupadas se ven ANTES de
-         elegirlas en vez de descubrirse al guardar. -->
+         elegirlas en vez de descubrirse al guardar. [rangePreview] es la otra
+         mitad: lo que se teclee abajo (duración, fecha exacta, indefinido) se
+         pinta aquí arriba al momento, sin esperar a guardar.
+         Va también en "Crear dieta": esa dieta se aplica como fase nada más
+         construirla, así que necesita las mismas fechas. -->
     <app-nutrition-calendar
-      *ngIf="forDirectCreate || selectedTemplateId"
+      *ngIf="showDatePicker"
       [clientId]="clientId"
       [pickerMode]="true"
       [selectedDate]="startDate"
+      [rangePreview]="rangePreview"
       (rangeSelected)="onRangePicked($event)"
+      (rangeStartPicked)="onStartPicked($event)"
+      (dateSelected)="onStartPicked($event)"
     ></app-nutrition-calendar>
 
-    <div class="input-wrapper" *ngIf="forDirectCreate || selectedTemplateId">
-      <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-      <input type="date" class="input-field" [(ngModel)]="startDate" />
-    </div>
+    <ng-container *ngIf="showDatePicker">
+      <label class="field-label" for="phase-start-date">Fecha de inicio</label>
+      <div class="input-wrapper">
+        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+        <input id="phase-start-date" type="date" class="input-field" [(ngModel)]="startDate" />
+      </div>
+    </ng-container>
 
     <!-- De dónde sale la fecha propuesta: sin decirlo, un campo ya relleno
          con una fecha futura parece un valor arbitrario. -->
-    <p class="date-hint" *ngIf="(forDirectCreate || selectedTemplateId) && previousPhaseEnd">
+    <p class="date-hint" *ngIf="showDatePicker && previousPhaseEnd">
       Encadena con
       <strong *ngIf="previousPhaseName">{{ previousPhaseName }}</strong>
       <span *ngIf="!previousPhaseName">la fase anterior</span>, que termina el
@@ -78,7 +123,7 @@
     </p>
 
     <!-- Auditoría de arquitectura (Fase 8) — hasta cuándo aplica, no solo desde cuándo -->
-    <ng-container *ngIf="forDirectCreate || selectedTemplateId">
+    <ng-container *ngIf="showDatePicker">
       <p class="section-hint">¿Hasta cuándo?</p>
       <div class="end-mode-options">
         <button type="button" class="end-mode-option" [class.selected]="endMode === 'fixedDate'" (click)="endMode = 'fixedDate'">
@@ -92,23 +137,29 @@
         </button>
       </div>
 
-      <div class="input-wrapper" *ngIf="endMode === 'fixedDate'">
-        <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-        <input type="date" class="input-field" [(ngModel)]="fixedEndDate" />
-      </div>
+      <ng-container *ngIf="endMode === 'fixedDate'">
+        <label class="field-label" for="phase-end-date">Fecha de finalización</label>
+        <div class="input-wrapper">
+          <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+          <input id="phase-end-date" type="date" class="input-field" [(ngModel)]="fixedEndDate" />
+        </div>
+      </ng-container>
 
-      <div class="duration-row" *ngIf="endMode === 'duration'">
-        <div class="input-wrapper duration-value">
-          <ion-icon name="time-outline" class="input-icon"></ion-icon>
-          <input type="number" min="1" class="input-field" [(ngModel)]="durationValue" />
+      <ng-container *ngIf="endMode === 'duration'">
+        <label class="field-label" for="phase-duration">Cuánto dura desde la fecha de inicio</label>
+        <div class="duration-row">
+          <div class="input-wrapper duration-value">
+            <ion-icon name="time-outline" class="input-icon"></ion-icon>
+            <input id="phase-duration" type="number" min="1" class="input-field" [(ngModel)]="durationValue" />
+          </div>
+          <div class="input-wrapper duration-unit">
+            <select class="input-field" [(ngModel)]="durationUnit" aria-label="Unidad de la duración">
+              <option value="weeks">semanas</option>
+              <option value="days">días</option>
+            </select>
+          </div>
         </div>
-        <div class="input-wrapper duration-unit">
-          <select class="input-field" [(ngModel)]="durationUnit">
-            <option value="weeks">semanas</option>
-            <option value="days">días</option>
-          </select>
-        </div>
-      </div>
+      </ng-container>
 
       <p class="end-date-preview" *ngIf="endMode !== 'indefinite' && computedEndDate">
         Termina el {{ computedEndDate }}

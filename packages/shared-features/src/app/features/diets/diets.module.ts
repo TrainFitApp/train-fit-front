@@ -6,6 +6,7 @@ import { DailyWeightComponent } from './components/daily-weight/daily-weight.com
 import { SearchFoodsPageModule } from './components/meal/components/search-foods/search-foods.module';
 import { MealComponent } from './components/meal/meal.component';
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
+import { PautadoItemViewComponent } from './components/pautado-item-view/pautado-item-view.component';
 import { DatesSliderComponent } from './components/toolbar-calendar/components/dates-slider/dates-slider.component';
 import { ToolbarCalendarComponent } from './components/toolbar-calendar/toolbar-calendar.component';
 import { DietsPageRoutingModule } from './diets-routing.module';
@@ -20,6 +21,7 @@ import { MacrosBarsModule } from './components/macros-bars/macros-bars.module';
     DailyWeightComponent,
     MealComponent,
     ClipboardMealModalComponent,
+    PautadoItemViewComponent,
   ],
   imports: [
     SharedModule,

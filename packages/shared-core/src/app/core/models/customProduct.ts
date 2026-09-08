@@ -15,6 +15,12 @@ export class CustomProduct {
   // si un profesional pautó este producto. Protegido de borrado/edición
   // directa (backend, meal-service.js#assertMealEditable).
   assignedByTrainerId?: string | null;
+  // Cantidad ORIGINAL pautada (gramos), fija — ver custom-product-schema.js.
+  // `quantity` es la cantidad realmente consumida, editable por el cliente
+  // (vía setCustomProductQuantity); assignedQuantity es la referencia para
+  // el delta que se le muestra (+46/-28 sobre lo pautado). null si nunca
+  // fue pautado.
+  assignedQuantity?: number | null;
   // El cliente lo marca como tomado — nunca bloqueado por assignedByTrainerId.
   consumed?: boolean;
 

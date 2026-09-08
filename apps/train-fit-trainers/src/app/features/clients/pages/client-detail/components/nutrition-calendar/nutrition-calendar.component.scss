@@ -1,3 +1,16 @@
+// Muestras de la leyenda: primer y último color de PHASE_COLORS
+// (nutrition-calendar.component.ts). Representan "un color de fase
+// cualquiera", no una fase concreta — las entradas por fase real sí
+// reciben su color por [style.background] desde el template.
+//
+// Un único sitio que tocar aquí si cambia la paleta: antes estos hex
+// estaban repetidos en tres reglas distintas y se quedaron desfasados en
+// cada repaso de PHASE_COLORS.
+:host {
+  --phase-sample-a: #5db530;
+  --phase-sample-b: #12b7f3;
+}
+
 .nutrition-calendar {
   display: flex;
   flex-direction: column;
@@ -121,6 +134,10 @@
 }
 
 .nutrition-calendar__grid {
+  // Marco de referencia del globo de aviso: las celdas se posicionan contra
+  // esta caja (offsetLeft/offsetTop en updateOccupiedTooltip), así que el
+  // globo se coloca con esos mismos números sin medir nada más.
+  position: relative;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
@@ -129,6 +146,32 @@
   &.is-loading {
     opacity: 0.5;
   }
+}
+
+// Aviso de "este día ya es de otra fase". Encima de la celda y centrado en
+// ella; pointer-events:none para que no se robe el propio hover que lo ha
+// abierto y empiece a parpadear.
+.nutrition-calendar__tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 6px));
+  // Sin límite se estira a lo ancho de la rejilla y en las columnas de los
+  // extremos se sale del panel; con él parte en dos líneas y se queda dentro.
+  max-width: 190px;
+  width: max-content;
+  padding: 6px 8px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-5);
+  // El borde más marcado de la escala, y sombra: --tf-surface-5 (#252525)
+  // apenas se despega del fondo del panel, y un globo flotante que no se
+  // recorta contra lo de debajo no se lee como flotante.
+  border: 1px solid var(--tf-border-strongest);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  color: var(--tf-text);
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-align: left;
+  pointer-events: none;
 }
 
 .nutrition-calendar__cell {
@@ -210,6 +253,55 @@
   }
 }
 
+// Selector de fechas para una fase nueva (apply-diet-template-modal) — aquí
+// el color de fase es el ÚNICO dato que importa, así que ocupa la celda
+// entera en vez de una barra de 3px: "esto ya es de otra fase" tiene que
+// verse a la primera, no fijándose en el borde superior.
+// .is-occupied, no .has-phase: una fase indefinida en curso también tiene
+// fase, pero SÍ se puede elegir (ver blocksNewPhase), y pintarla sólida
+// diría lo contrario — esa se queda con la barra de siempre.
+.nutrition-calendar--picker .nutrition-calendar__cell.is-occupied {
+  background: var(--phase-color);
+  // Texto oscuro fijo: los 6 colores de fase son vivos y claros, así que el
+  // gris de texto normal (pensado para fondo oscuro) se perdería encima.
+  // Blanco tampoco vale — sobre esta paleta se queda entre 1.4:1 y 3.8:1,
+  // muy por debajo del mínimo. Al 86% de negro el peor de los seis queda en
+  // 4.9:1 (al 78% que había antes, el índigo se quedaba en 4.4:1, por
+  // debajo de AA).
+  color: rgba(0, 0, 0, 0.86);
+  // No lleva [disabled] a propósito: un botón deshabilitado no dispara
+  // eventos de ratón y sin ellos el globo que explica POR QUÉ está ocupado
+  // no llegaría a salir nunca, justo en las celdas que hay que explicar. El
+  // click ya se ignora en selectDay, y aria-disabled lo dice a lectores de
+  // pantalla; aquí solo queda decirlo con el cursor.
+  cursor: not-allowed;
+
+  &:hover {
+    transform: none;
+    // El color pleno ES la señal de "ocupado" — el realce de hover normal
+    // insinuaría que se puede pulsar.
+    border-color: transparent;
+  }
+}
+
+// Marca de "el tramo sigue más allá" en el último día del mes cuando la fase
+// es indefinida.
+.nutrition-calendar__open-end {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 0.6rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--tf-accent);
+}
+
+.nutrition-calendar__cell.is-open-ended-tail {
+  // Borde derecho discontinuo: el rango no se corta aquí, se sale de la
+  // cuadrícula.
+  border-right: 1px dashed var(--tf-accent);
+}
+
 .nutrition-calendar__day-number {
   font-variant-numeric: tabular-nums;
 }
@@ -276,10 +368,11 @@
   height: 8px;
   border-radius: 2px;
 
-  // impeccable/quieter — mismos 2 primeros tonos que PHASE_COLORS (ya
-  // desaturados), no reinventados aquí.
+  // Mismos 2 primeros tonos que PHASE_COLORS — desactualizado dos veces
+  // (quedó con la paleta original tras cada repaso de PHASE_COLORS); no se
+  // regenera solo, hay que tocarlo a mano si vuelve a cambiar la paleta.
   &--phase {
-    background: linear-gradient(90deg, #6e99cd, #a18fd7);
+    background: linear-gradient(90deg, var(--phase-sample-a), var(--phase-sample-b));
     border-radius: 2px;
   }
 
@@ -313,6 +406,42 @@
   &--empty {
     background: var(--tf-surface-2);
     border: 1px solid var(--tf-border);
+  }
+
+  // Selector de fase nueva — la celda entera pintada: "este día ya es de
+  // otra fase y no se puede elegir". Mismos dos tonos que --phase (la
+  // muestra representa "cualquier color de fase", no uno concreto).
+  &--occupied {
+    background: linear-gradient(135deg, var(--phase-sample-a), var(--phase-sample-b));
+  }
+
+  // El otro caso del selector: fase indefinida en curso, que se pinta con
+  // barra y SÍ es seleccionable. La muestra imita la barra, no el bloque,
+  // para que se lea distinta de --occupied de un vistazo.
+  &--phase-bar {
+    background: transparent;
+    border-top: 3px solid var(--phase-sample-a);
+    border-radius: 0;
+  }
+}
+
+// Por qué se ha rechazado el tramo recién marcado (ver handleRangeClick) —
+// mismo tratamiento que .overlap-error del modal que lo contiene: el aviso
+// va junto a donde se acaba de actuar, no en un toast que tape el
+// calendario.
+.range-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: var(--tf-space-2) 0 0;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.4;
+  color: var(--tf-danger);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 14px;
   }
 }
 

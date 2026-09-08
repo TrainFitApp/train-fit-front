@@ -115,4 +115,28 @@ export class MealAPIService {
       { consumed }
     );
   }
+
+  // Cantidad realmente consumida de un pautado — mismo patrón que
+  // setCustomProductConsumed/setCustomRecipeConsumed de arriba.
+  public setCustomProductQuantity(
+    mealId: string,
+    customProductId: string,
+    quantity: number
+  ): Observable<Meal> {
+    return this.http.patch<Meal>(
+      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customproducts/${customProductId}/quantity`,
+      { quantity }
+    );
+  }
+
+  public setCustomRecipeQuantity(
+    mealId: string,
+    customRecipeId: string,
+    quantity: number
+  ): Observable<Meal> {
+    return this.http.patch<Meal>(
+      `${MealAPIService.MEAL_ENDPOINT}/${mealId}/customrecipes/${customRecipeId}/quantity`,
+      { quantity }
+    );
+  }
 }

@@ -1,0 +1,116 @@
+<ion-header class="modal-header" mode="ios">
+  <div class="modal-toolbar">
+    <div class="toolbar-title-group">
+      <ion-icon name="ribbon-outline" class="pautado-view-icon"></ion-icon>
+      <ion-title>{{ 'MEAL.PAUTADO_TITLE' | translate }}</ion-title>
+    </div>
+    <button
+      class="close-action-button ripple-effect"
+      aria-label="Cerrar"
+      (click)="dismiss()"
+    >
+      <ion-icon name="close" color="primary"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="modal-content">
+  <!-- Modo lectura salvo por la cantidad: es el único campo editable de
+       toda esta vista (ver saveQuantity en pautado-item-view.component.ts). -->
+  <h2 class="pautado-view-name">{{ name }}</h2>
+
+  <div class="quantity-edit-block">
+    <span class="quantity-edit-label">{{ 'MEAL.EDIT_CONSUMED_QUANTITY_HEADER' | translate }}</span>
+    <div class="quantity-edit-row">
+      <div class="quantity-input-wrap">
+        <ion-input
+          type="number"
+          inputmode="decimal"
+          min="0"
+          [(ngModel)]="editableQuantity"
+          [placeholder]="'MEAL.QUANTITY_PLACEHOLDER' | translate"
+          [disabled]="saving"
+        ></ion-input>
+        <span class="quantity-input-unit">g</span>
+      </div>
+      <span
+        class="quantity-delta"
+        *ngIf="delta !== 0"
+        [class.quantity-delta--positive]="delta > 0"
+        [class.quantity-delta--negative]="delta < 0"
+      >{{ delta > 0 ? '+' : '' }}{{ delta }}</span>
+      <ion-button
+        class="save-quantity-btn"
+        [disabled]="!quantityChanged || saving"
+        (click)="saveQuantity()"
+      >
+        <ion-spinner *ngIf="saving" name="dots"></ion-spinner>
+        <span *ngIf="!saving">{{ 'MEAL.SAVE_QUANTITY' | translate }}</span>
+      </ion-button>
+    </div>
+    <p class="pautado-view-assigned-hint" *ngIf="assignedQuantity !== null">
+      {{ 'MEAL.QUANTITY_ASSIGNED_HINT' | translate : { quantity: assignedQuantity } }}
+    </p>
+  </div>
+
+  <div class="nutrition-info pautado-view-macros">
+    <div class="nutrition-item calories">
+      <span class="nutrition-value">{{ macros.kcal | number : '1.0-0' }}</span>
+      <span class="nutrition-label">Kcal</span>
+    </div>
+    <div class="nutrition-item protein">
+      <span class="nutrition-value">{{ macros.protein | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.PROTEIN_LABEL' | translate }}</span>
+    </div>
+    <div class="nutrition-item carbs">
+      <span class="nutrition-value">{{ macros.carbs | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.CARBS_LABEL' | translate }}</span>
+    </div>
+    <div class="nutrition-item fat">
+      <span class="nutrition-value">{{ macros.fat | number : '1.1-1' }}</span>
+      <span class="nutrition-label">{{ 'MEAL.FAT_LABEL' | translate }}</span>
+    </div>
+  </div>
+
+  <!-- Ingredientes reales de la receta (overrides/añadidos/quitados ya
+       resueltos) — solo 'recipe'. -->
+  <ng-container *ngIf="kind === 'recipe' && ingredientRows.length">
+    <h3 class="extra-nutrition-title">{{ 'ADD_PRODUCT.INGREDIENTS' | translate }}</h3>
+    <div class="extra-nutrition-list">
+      <div class="extra-nutrition-row" *ngFor="let ingredient of ingredientRows">
+        <span class="extra-nutrition-label">{{ ingredient.name }}</span>
+        <span class="extra-nutrition-value">{{ ingredient.quantity | number : '1.0-1' }} g</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Micros: en un producto salen directos de sus campos; en una receta se
+       suman ingrediente a ingrediente y se escalan por la misma proporción
+       que ya usa la app para las kcal (ver buildRecipeExtraNutrition en
+       pautado-item-view.component.ts) — solo los campos con valor real. -->
+  <ng-container *ngIf="extraNutrition.length">
+    <h3 class="extra-nutrition-title">{{ 'MEAL.NUTRITION_INFO_EXTENDED' | translate }}</h3>
+    <div class="extra-nutrition-list">
+      <div class="extra-nutrition-row" *ngFor="let row of extraNutrition">
+        <span class="extra-nutrition-label">{{ row.label }}</span>
+        <span class="extra-nutrition-value">{{ row.value | number : '1.0-2' }} {{ row.unit }}</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Alérgenos/trazas — solo 'product'. -->
+  <ng-container *ngIf="kind === 'product' && (allergens.length || traces.length)">
+    <h3 class="extra-nutrition-title">{{ 'ADD_PRODUCT.ALLERGENS' | translate }}</h3>
+    <p class="allergens-line" *ngIf="allergens.length">{{ allergens.join(', ') }}</p>
+    <h3 class="extra-nutrition-title" *ngIf="traces.length">{{ 'ADD_PRODUCT.TRACES' | translate }}</h3>
+    <p class="allergens-line" *ngIf="traces.length">{{ traces.join(', ') }}</p>
+  </ng-container>
+
+  <!-- No existe campo "instrucciones" en el modelo de Recipe — description
+       es lo más parecido que hay, oculto si esa receta no tiene nada
+       escrito ahí. Solo 'recipe'. -->
+  <ng-container *ngIf="kind === 'recipe' && instructions">
+    <h3 class="extra-nutrition-title">{{ 'MEAL.RECIPE_INSTRUCTIONS' | translate }}</h3>
+    <p class="instructions-text">{{ instructions }}</p>
+  </ng-container>
+</ion-content>

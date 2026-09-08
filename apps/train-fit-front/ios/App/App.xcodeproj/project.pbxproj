@@ -7,18 +7,58 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		164C13808A8E27C11A529096 /* WorkoutLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 845856DACC1262B85A15B85B /* WorkoutLiveActivityWidget.swift */; };
+		26F09F57C3E67122B6B910B4 /* LiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE0E07FECA43D9DB72E36DA /* LiveActivityPlugin.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		482A165ACBD6E34E3DEBF556 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE491436B26D448B9E976EA9 /* MainViewController.swift */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		5DD3398F2696FF0966F60E79 /* WorkoutSetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CD42968679CE0778D9E1647 /* WorkoutSetIntents.swift */; };
+		707086CFBF009FFAD8CF7A07 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AD96E32AB9F8F2D9C438C6 /* WorkoutActivityAttributes.swift */; };
+		89C3C332755E62466837E308 /* WorkoutActivityShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = C588CAEBFD826E33AD953613 /* WorkoutActivityShared.swift */; };
+		925F9A3F7F83AA00CA6E77DE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BECE579983167C284BBF6E37 /* Foundation.framework */; };
+		9268CBBA951EB8A526D44BE2 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AD96E32AB9F8F2D9C438C6 /* WorkoutActivityAttributes.swift */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
+		A75B64050896282AE90A27C6 /* WorkoutActivityShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = C588CAEBFD826E33AD953613 /* WorkoutActivityShared.swift */; };
+		AEB60A5FC02519EEF3ECC24A /* TrainFitWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0D80479D7C809921A3EEF869 /* TrainFitWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D5A20B35DE04C483C616E85B /* TrainFitWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9FF5CFEC9D8EDFD89D13FCF /* TrainFitWidgetBundle.swift */; };
+		D634C6B748496BA2A2228D7B /* WorkoutSetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CD42968679CE0778D9E1647 /* WorkoutSetIntents.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		E57E6E954BB9A59AFF870F8B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F14FBF7298CE39BA3EF3E927;
+			remoteInfo = TrainFitWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F4BC8BF0B9DAE0EE19C0A44A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AEB60A5FC02519EEF3ECC24A /* TrainFitWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		0D80479D7C809921A3EEF869 /* TrainFitWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TrainFitWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		39AD96E32AB9F8F2D9C438C6 /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
+		3CD42968679CE0778D9E1647 /* WorkoutSetIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutSetIntents.swift; sourceTree = "<group>"; };
+		4AE0E07FECA43D9DB72E36DA /* LiveActivityPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LiveActivityPlugin.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -26,14 +66,29 @@
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		55C0352936643094402355DA /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6E4C6749A0565C5EAF2D6102 /* TrainFitWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = TrainFitWidget.entitlements; sourceTree = "<group>"; };
+		845856DACC1262B85A15B85B /* WorkoutLiveActivityWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutLiveActivityWidget.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
+		BECE579983167C284BBF6E37 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		C588CAEBFD826E33AD953613 /* WorkoutActivityShared.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutActivityShared.swift; sourceTree = "<group>"; };
+		CE491436B26D448B9E976EA9 /* MainViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		F9FF5CFEC9D8EDFD89D13FCF /* TrainFitWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrainFitWidgetBundle.swift; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0F60F5D578A4C0E26C26BE18 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				925F9A3F7F83AA00CA6E77DE /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -49,9 +104,30 @@
 			isa = PBXGroup;
 			children = (
 				AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */,
+				39A86E4BECBB616CDCDAD54B /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
+		};
+		39A86E4BECBB616CDCDAD54B /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				BECE579983167C284BBF6E37 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		4FD574FE884D112DCE9B4437 /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				C588CAEBFD826E33AD953613 /* WorkoutActivityShared.swift */,
+				39AD96E32AB9F8F2D9C438C6 /* WorkoutActivityAttributes.swift */,
+				3CD42968679CE0778D9E1647 /* WorkoutSetIntents.swift */,
+				4AE0E07FECA43D9DB72E36DA /* LiveActivityPlugin.swift */,
+			);
+			name = LiveActivity;
+			path = App/LiveActivity;
+			sourceTree = SOURCE_ROOT;
 		};
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
@@ -60,6 +136,7 @@
 				504EC3051FED79650016851F /* Products */,
 				7F8756D8B27F46E3366F6CEA /* Pods */,
 				27E2DDA53C4D2A4D1A88CE4A /* Frameworks */,
+				CCA20B7906D6B36259353B46 /* TrainFitWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +144,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				0D80479D7C809921A3EEF869 /* TrainFitWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +161,8 @@
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* App.entitlements */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				4FD574FE884D112DCE9B4437 /* LiveActivity */,
+				CE491436B26D448B9E976EA9 /* MainViewController.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -95,6 +175,18 @@
 			);
 			name = Pods;
 			sourceTree = "<group>";
+		};
+		CCA20B7906D6B36259353B46 /* TrainFitWidget */ = {
+			isa = PBXGroup;
+			children = (
+				F9FF5CFEC9D8EDFD89D13FCF /* TrainFitWidgetBundle.swift */,
+				845856DACC1262B85A15B85B /* WorkoutLiveActivityWidget.swift */,
+				55C0352936643094402355DA /* Info.plist */,
+				6E4C6749A0565C5EAF2D6102 /* TrainFitWidget.entitlements */,
+			);
+			name = TrainFitWidget;
+			path = TrainFitWidget;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -109,15 +201,34 @@
 				504EC3021FED79650016851F /* Resources */,
 				9592DBEFFC6D2A0C8D5DEB22 /* [CP] Embed Pods Frameworks */,
 				B602643F3A0C8ACE151D80A7 /* [CP] Copy Pods Resources */,
+				F4BC8BF0B9DAE0EE19C0A44A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				96D8135A1CC2D5F1D195E123 /* PBXTargetDependency */,
 			);
 			name = App;
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		F14FBF7298CE39BA3EF3E927 /* TrainFitWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 825FD631A0615861B233A86A /* Build configuration list for PBXNativeTarget "TrainFitWidget" */;
+			buildPhases = (
+				0D57245FED80633F03B86877 /* Sources */,
+				0F60F5D578A4C0E26C26BE18 /* Frameworks */,
+				6A4EA471F9B2888CD4419640 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TrainFitWidget;
+			productName = TrainFitWidget;
+			productReference = 0D80479D7C809921A3EEF869 /* TrainFitWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -149,6 +260,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				F14FBF7298CE39BA3EF3E927 /* TrainFitWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -164,6 +276,13 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6A4EA471F9B2888CD4419640 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,15 +340,41 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0D57245FED80633F03B86877 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				89C3C332755E62466837E308 /* WorkoutActivityShared.swift in Sources */,
+				707086CFBF009FFAD8CF7A07 /* WorkoutActivityAttributes.swift in Sources */,
+				D634C6B748496BA2A2228D7B /* WorkoutSetIntents.swift in Sources */,
+				D5A20B35DE04C483C616E85B /* TrainFitWidgetBundle.swift in Sources */,
+				164C13808A8E27C11A529096 /* WorkoutLiveActivityWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3001FED79650016851F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				A75B64050896282AE90A27C6 /* WorkoutActivityShared.swift in Sources */,
+				9268CBBA951EB8A526D44BE2 /* WorkoutActivityAttributes.swift in Sources */,
+				5DD3398F2696FF0966F60E79 /* WorkoutSetIntents.swift in Sources */,
+				26F09F57C3E67122B6B910B4 /* LiveActivityPlugin.swift in Sources */,
+				482A165ACBD6E34E3DEBF556 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		96D8135A1CC2D5F1D195E123 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = TrainFitWidget;
+			target = F14FBF7298CE39BA3EF3E927 /* TrainFitWidget */;
+			targetProxy = E57E6E954BB9A59AFF870F8B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -363,17 +508,26 @@
 			baseConfigurationReference = FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4YRKMJXVS6;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 101.3.48;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+					"-weak_framework",
+					AppIntents,
+					"-weak_framework",
+					WidgetKit,
+				);
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.trainfit.trainfit;
-				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
@@ -386,22 +540,82 @@
 			baseConfigurationReference = AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4YRKMJXVS6;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 101.3.48;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-weak_framework",
+					ActivityKit,
+					"-weak_framework",
+					AppIntents,
+					"-weak_framework",
+					WidgetKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.trainfit.trainfit;
-				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
-				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		7D8774F9BD0559913DCC5A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = TrainFitWidget/TrainFitWidget.entitlements;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4YRKMJXVS6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TrainFitWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 101.3.48;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trainfit.trainfit.TrainFitWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		FA8610F31C5A318E57896439 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = TrainFitWidget/TrainFitWidget.entitlements;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4YRKMJXVS6;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TrainFitWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 101.3.48;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trainfit.trainfit.TrainFitWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
@@ -420,6 +634,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		825FD631A0615861B233A86A /* Build configuration list for PBXNativeTarget "TrainFitWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D8774F9BD0559913DCC5A5A /* Release */,
+				FA8610F31C5A318E57896439 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

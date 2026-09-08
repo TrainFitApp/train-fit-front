@@ -123,6 +123,11 @@ export interface DietTemplateDayPatternPayload {
 export interface DietTemplate {
   _id: string;
   trainerId: string;
+  // Puesto = dieta de biblioteca exclusiva de ese cliente; null = plantilla
+  // general, aplicable a cualquiera (ver diet-template-schema.js en el
+  // backend). No confundir con `clientId`, que allí marca una copia ya
+  // asignada como fase y nunca llega a estos listados.
+  ownerClientId?: string | null;
   name: string;
   mode: TemplateMode;
   days: DietTemplateDayPayload[];

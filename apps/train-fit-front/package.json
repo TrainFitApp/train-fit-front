@@ -19,8 +19,8 @@
     "build:a:pre": "ionic build --configuration=pre && npx cap sync android && npx cap open android && npx cap run android",
     "build:i:pro": "ionic build --configuration=production && npx cap sync ios && npx cap open ios && npx cap run ios",
     "build:a:pro": "ionic build --configuration=production && npx cap sync android && npx cap open android && npx cap run android",
-    "live:i": "ionic cap run ios --livereload --external --host=0.0.0.0 --configuration=live",
-    "live:a": "ionic cap run android --livereload --external --host=0.0.0.0 --configuration=live"
+    "live:i": "CAP_LIVE=true ionic cap run ios --livereload --external --host=0.0.0.0 --configuration=live",
+    "live:a": "CAP_LIVE=true ionic cap run android --livereload --external --host=0.0.0.0 --configuration=live"
   },
   "private": true,
   "dependencies": {

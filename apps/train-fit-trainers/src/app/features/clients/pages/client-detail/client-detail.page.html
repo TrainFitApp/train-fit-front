@@ -865,8 +865,22 @@
                donde se espera que aparezca. Con muchas, la fila desplaza
                dentro de su caja en vez de estirar la página. -->
           <div class="plan-track" *ngIf="activePlan">
-          <div class="active-plan-card">
-            <span class="plan-phase-order" *ngIf="planPhases.length > 1">1ª · en curso</span>
+          <!-- Mismo color que este tramo pinta en el calendario de abajo
+               (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
+               vistazo la tarjeta con su franja de días. -->
+          <div
+            class="active-plan-card"
+            [style.--phase-color]="phaseColor(activePlan)"
+            [style.--phase-bg]="phaseSoftBackground(activePlan)"
+          >
+            <!-- El naranja de acento se queda solo para navegación/UI (hoy,
+                 seleccionado...) — la fase vigente es un dato del cliente
+                 como cualquier otra, con su propio color; lo que la marca
+                 como "en curso" es el icono, no un color reservado. -->
+            <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
+              <ion-icon name="flash" aria-hidden="true"></ion-icon>
+              1ª · en curso
+            </span>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
                  editar la plantilla aplicada, sin pasar por "Gestionar
                  plantillas" y buscarla en la lista. Las acciones de abajo
@@ -924,15 +938,26 @@
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
                tienen sentido sobre la que está rigiendo. -->
+          <!-- <button>, no <article>: estas tarjetas abren su plantilla igual
+               que la cabecera de la fase en curso. Eran las únicas de la fila
+               que no respondían al click, y son las que más se retocan —
+               están programadas, todavía da tiempo a cambiarlas. -->
           <ng-container *ngFor="let phase of planPhases; let i = index">
-            <article class="next-phase-card" *ngIf="!isCurrentPhase(phase)">
+            <button
+              type="button"
+              class="next-phase-card"
+              *ngIf="!isCurrentPhase(phase)"
+              [style.--phase-color]="phaseColor(phase)"
+              (click)="openPhaseTemplate(phase)"
+            >
               <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
               <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
               <p class="next-phase-card__range">
                 desde {{ phase.startDate }}<br />
                 {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
               </p>
-            </article>
+              <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
+            </button>
           </ng-container>
 
           <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyTemplateModal()">

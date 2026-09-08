@@ -41,7 +41,7 @@ export class DietTemplatesListPage implements OnInit {
 
   public load(): void {
     this.state = 'loading';
-    this.dietTemplateApi.list().subscribe({
+    this.dietTemplateApi.list({ includeOwned: true }).subscribe({
       next: (templates) => {
         this.templates = templates || [];
         this.state = 'loaded';
