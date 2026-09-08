@@ -1422,57 +1422,9 @@
     <app-pain-panel [clientId]="clientId"></app-pain-panel>
   </div>
 
-  <!-- === CHECK-INS (F17) === -->
+  <!-- Agenda de check-ins independiente del resto de secciones. -->
   <div class="tab-panel" *ngIf="activeTab === 'checkins'">
-    <div class="detail-skeleton" *ngIf="checkinsState === 'loading'">
-      <div class="skeleton-block skeleton-block--md"></div>
-      <div class="skeleton-block skeleton-block--md"></div>
-    </div>
-
-    <div class="section-error" *ngIf="checkinsState === 'error'">
-      <p>No se pudieron cargar los check-ins de este cliente.</p>
-      <button class="retry-button" (click)="loadCheckins()">Reintentar</button>
-    </div>
-
-    <ng-container *ngIf="checkinsState === 'loaded'">
-      <h2 class="section-heading">Configuración activa</h2>
-      <p class="empty-hint" *ngIf="!checkinConfig || !checkinConfig.enabledFields.length">
-        Este cliente no tiene ningún check-in activo. Aplícale una plantilla desde "Plantillas de check-in" en tu Configuración.
-      </p>
-      <div class="checkin-config-card" *ngIf="checkinConfig?.enabledFields?.length">
-        <span
-          class="scope-chip"
-          *ngFor="let key of checkinConfig?.enabledFields"
-        >{{ checkinFieldLabel(key) }}</span>
-      </div>
-
-      <!-- La evolución ANTES del listado: la pregunta que trae a esta
-           pestaña es "¿cómo va?", y eso lo responde la serie; el detalle de
-           cada respuesta viene después, para quien quiera bajar al dato. -->
-      <h2 class="section-heading section-heading--top">Evolución</h2>
-      <app-checkin-history-chart
-        [responses]="checkinResponses"
-        [customQuestions]="checkinConfig?.customQuestions || []"
-      ></app-checkin-history-chart>
-
-      <h2 class="section-heading section-heading--top">Histórico de respuestas</h2>
-      <p class="empty-hint" *ngIf="!checkinResponses.length">Este cliente todavía no ha respondido ningún check-in.</p>
-
-      <div class="history-card" *ngFor="let response of checkinResponses; trackBy: trackByResponseId">
-        <div class="history-card-header">
-          <span class="list-card-title">{{ response.respondedAt | date: 'd MMM y' }}</span>
-        </div>
-        <div class="checkin-response-values">
-          <span class="checkin-value-item" *ngFor="let entry of checkinValueEntries(response)">
-            {{ checkinFieldLabel(entry.key) }}:
-            <strong>{{ entry.value }}{{ checkinScaleSuffix(entry.key) }}</strong>
-            <!-- Movimiento 2 Coach Pro — la frase que eligió el cliente, no
-                 solo el número que le tocó. -->
-            <span class="checkin-value-anchor" *ngIf="checkinAnchor(entry.key, entry.raw) as anchor">{{ anchor }}</span>
-          </span>
-        </div>
-      </div>
-    </ng-container>
+    <app-checkin-workspace [clientId]="clientId"></app-checkin-workspace>
   </div>
     </div>
   </div>

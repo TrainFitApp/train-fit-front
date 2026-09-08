@@ -15,8 +15,10 @@ export class MyCheckinsApiService {
   // tipo sí/no, que se guarda como booleano y no como texto.
   public respond(
     trainerId: string,
-    values: Record<string, number | string | boolean>
+    values: Record<string, number | string | boolean>,
+    requestId?: string
   ): Observable<unknown> {
+    if (requestId) return this.http.post(`trainer/checkins/requests/${encodeURIComponent(requestId)}/respond`, { values });
     return this.http.post(`trainer/checkins/${trainerId}/respond`, { values });
   }
 

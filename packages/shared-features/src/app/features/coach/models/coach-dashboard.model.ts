@@ -14,6 +14,8 @@ export interface CoachProfessional {
 export interface CoachPendingCheckin {
   trainerId: string;
   trainerName: string;
+  requestId?: string;
+  name?: string;
 }
 
 export interface CoachPendingMealProposal {
@@ -63,6 +65,7 @@ export type CoachNotificationType =
   | 'payment_created'
   | 'nutrition_preferences_requested'
   | 'checkin_requested'
+  | 'checkin_reviewed'
   | 'routine_assigned'
   | 'goal_assigned'
   | 'task_assigned'

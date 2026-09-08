@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CheckinPushService } from 'src/app/core/services/notifications/checkin-push.service';
 import {
   CHECKIN_FIELDS_BY_KEY,
   CheckinField,
@@ -30,6 +32,11 @@ const CADENCE_LABELS: Record<CheckinCadence, string> = {
   styleUrls: ['my-checkins.page.scss'],
 })
 export class MyCheckinsPage implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  public readonly push = inject(CheckinPushService);
+  private requestedId: string | null = null;
+  public pushMessage = '';
   public state: ViewState = 'loading';
   public configs: MyCheckinConfig[] = [];
 
@@ -49,7 +56,25 @@ export class MyCheckinsPage implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.requestedId = params.get('requestId');
+      this.focusRequested();
+    });
     this.load();
+  }
+
+  private focusRequested(): void {
+    if (!this.requestedId) return;
+    const pending = this.configs.find(c => c.requestId === this.requestedId);
+    if (pending) { this.expandedTrainerId = this.configKey(pending); this.formValues = {}; }
+    else this.showHistory = true;
+  }
+
+  public configKey(config: MyCheckinConfig): string { return config.requestId || config.trainerId; }
+
+  public async enablePush(): Promise<void> {
+    try { this.pushMessage = await this.push.enable() ? 'Registro solicitado. Los avisos se activarán cuando el dispositivo quede conectado.' : 'Activa las notificaciones de TrainFit en los ajustes del móvil.'; }
+    catch { this.pushMessage = 'No se pudieron activar los avisos. Puedes seguir viendo tus check-ins en la app.'; }
   }
 
   // Antes volvía a '/tabs' (defaultHref del ion-back-button nativo que
@@ -71,6 +96,7 @@ export class MyCheckinsPage implements OnInit {
           (c) => c.enabledFields?.length || c.customQuestions?.some((q) => q.enabled !== false)
         );
         this.state = 'loaded';
+        this.focusRequested();
       },
       error: () => {
         this.state = 'error';
@@ -118,7 +144,7 @@ export class MyCheckinsPage implements OnInit {
 
   public historyEntries(entry: CheckinHistoryEntry): { label: string; value: string }[] {
     return Object.entries(entry.values).map(([key, value]) => ({
-      label: this.historyFieldLabel(key),
+      label: entry.customQuestions?.find(q => customQuestionKey(q._id) === key)?.label || this.historyFieldLabel(key),
       value: this.historyValueLabel(value),
     }));
   }
@@ -133,6 +159,7 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public cadenceLabel(config: MyCheckinConfig): string {
+    if (config.requestId) return config.closesAt ? `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}` : 'Solicitud puntual';
     return CADENCE_LABELS[config.cadence] || config.cadence;
   }
 
@@ -215,11 +242,11 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public toggleExpand(config: MyCheckinConfig): void {
-    if (this.expandedTrainerId === config.trainerId) {
+    if (this.expandedTrainerId === this.configKey(config)) {
       this.expandedTrainerId = null;
       return;
     }
-    this.expandedTrainerId = config.trainerId;
+    this.expandedTrainerId = this.configKey(config);
     this.formValues = {};
   }
 
@@ -267,11 +294,12 @@ export class MyCheckinsPage implements OnInit {
     if (!Object.keys(values).length) return;
 
     this.isSubmitting = true;
-    this.myCheckinsApi.respond(config.trainerId, values).subscribe({
+    this.myCheckinsApi.respond(config.trainerId, values, config.requestId).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.expandedTrainerId = null;
-        this.submittedTrainerIds.add(config.trainerId);
+        this.submittedTrainerIds.add(this.configKey(config));
+        this.load();
         this.ionicUtilService.showToast({
           message: `Check-in enviado a ${this.trainerName(config)}`,
           duration: 3000,
@@ -289,7 +317,8 @@ export class MyCheckinsPage implements OnInit {
   }
 
   public trackByTrainerId(_index: number, config: MyCheckinConfig): string {
-    return config.trainerId;
+    // NgFor ejecuta este callback sin el contexto de la página.
+    return config.requestId || config.trainerId;
   }
 
   public trackByFieldKey(_index: number, field: CheckinField): string {

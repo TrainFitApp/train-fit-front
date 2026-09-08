@@ -16,6 +16,10 @@ export interface CustomCheckinQuestion {
 
 export interface MyCheckinConfig {
   _id: string;
+  requestId?: string;
+  name?: string;
+  scheduledAt?: string;
+  closesAt?: string | null;
   trainerId: string;
   enabledFields: string[];
   // Ausente en las configuraciones aplicadas antes de la Fase 5 — de ahí el
@@ -28,6 +32,11 @@ export interface MyCheckinConfig {
 // coach-tab FASE2 — "formularios completados": una respuesta pasada.
 export interface CheckinHistoryEntry {
   _id: string;
+  name?: string;
+  customQuestions?: CustomCheckinQuestion[];
+  status?: 'responded' | 'reviewed';
+  reviewedAt?: string | null;
+  reviewComment?: string;
   trainerId: string;
   respondedAt: string;
   // Las respuestas a preguntas propias viajan aquí mismo, con la clave

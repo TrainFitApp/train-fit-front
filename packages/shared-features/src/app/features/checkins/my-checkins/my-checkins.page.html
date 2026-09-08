@@ -26,6 +26,7 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
+    <div class="push-setup" *ngIf="push.native && !push.enabled"><p>Recibe un aviso cuando tengas un check-in disponible.</p><button type="button" class="submit-button" (click)="enablePush()">Activar avisos en el móvil</button><p role="status" *ngIf="pushMessage">{{ pushMessage }}</p></div>
     <p class="empty-hint" *ngIf="!configs.length">
       Ninguno de tus profesionales te ha pedido un check-in todavía.
     </p>
@@ -33,18 +34,19 @@
     <div class="checkin-card" *ngFor="let config of configs; trackBy: trackByTrainerId">
       <button class="checkin-card-header" (click)="toggleExpand(config)">
         <div class="checkin-card-title-group">
-          <span class="list-card-title">{{ trainerName(config) }}</span>
+          <span class="list-card-title">{{ config.name || trainerName(config) }}</span>
+          <span class="checkin-card-subtitle" *ngIf="config.name">{{ trainerName(config) }}</span>
           <span class="checkin-card-subtitle">
             {{ cadenceLabel(config) }} · {{ fieldsFor(config).length }} campos
-            <ion-icon name="checkmark-circle" class="submitted-icon" *ngIf="submittedTrainerIds.has(config.trainerId)"></ion-icon>
+            <ion-icon name="checkmark-circle" class="submitted-icon" *ngIf="submittedTrainerIds.has(configKey(config))"></ion-icon>
           </span>
         </div>
         <ion-icon
-          [name]="expandedTrainerId === config.trainerId ? 'chevron-up-outline' : 'chevron-down-outline'"
+          [name]="expandedTrainerId === configKey(config) ? 'chevron-up-outline' : 'chevron-down-outline'"
         ></ion-icon>
       </button>
 
-      <div class="checkin-form" *ngIf="expandedTrainerId === config.trainerId">
+      <div class="checkin-form" *ngIf="expandedTrainerId === configKey(config)">
         <div class="checkin-field" *ngFor="let field of fieldsFor(config); trackBy: trackByFieldKey">
           <span class="checkin-field-label">
             {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
@@ -161,6 +163,7 @@
 
       <ng-container *ngIf="showHistory">
         <div class="history-card" *ngFor="let entry of history; trackBy: trackByHistoryId">
+          <h3 *ngIf="entry.name">{{ entry.name }}</h3>
           <div class="history-card-header">
             <span class="mp-name">{{ historyTrainerName(entry) }}</span>
             <span class="history-date">{{ entry.respondedAt | date: 'd MMM y' }}</span>
@@ -170,6 +173,7 @@
               <strong>{{ item.label }}:</strong> {{ item.value }}
             </span>
           </div>
+          <div class="checkin-review" *ngIf="entry.status === 'reviewed'"><strong>Revisado por tu profesional · {{ entry.reviewedAt | date: 'd MMM y' }}</strong><p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p></div>
         </div>
       </ng-container>
     </div>

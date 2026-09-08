@@ -165,12 +165,12 @@
 
       <button
         class="action-card"
-        *ngFor="let item of d.pendingCheckins; trackBy: trackByTrainerId"
-        (click)="goToCheckins()"
+        *ngFor="let item of d.pendingCheckins; trackBy: trackByCheckinId"
+        (click)="goToCheckins(item.requestId)"
       >
         <ion-icon name="clipboard-outline" class="action-icon"></ion-icon>
         <div class="action-info">
-          <span class="action-title">Check-in pendiente</span>
+          <span class="action-title">{{ item.name || 'Check-in pendiente' }}</span>
           <span class="action-subtitle">Pedido por {{ item.trainerName }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>

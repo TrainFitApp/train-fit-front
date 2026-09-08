@@ -40,6 +40,7 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   payment_created: 'cash-outline',
   nutrition_preferences_requested: 'nutrition-outline',
   checkin_requested: 'clipboard-outline',
+  checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
   goal_assigned: 'flame-outline',
   task_assigned: 'checkbox-outline',
@@ -57,6 +58,7 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'meal_proposal',
   'nutrition_preferences_requested',
   'checkin_requested',
+  'checkin_reviewed',
   'routine_assigned',
   'goal_assigned',
   'meal_prescribed',
@@ -260,6 +262,8 @@ export class CoachPage implements OnInit {
         return 'Te ha pedido tus preferencias nutricionales';
       case 'checkin_requested':
         return `Nuevo check-in: ${p.templateName || ''}`;
+      case 'checkin_reviewed':
+        return `Check-in revisado: ${p.templateName || ''}`;
       case 'routine_assigned':
         return `Nueva rutina asignada: ${p.routineName || ''}`;
       case 'goal_assigned':
@@ -295,7 +299,8 @@ export class CoachPage implements OnInit {
         void this.router.navigate(['/nutrition-preferences']);
         break;
       case 'checkin_requested':
-        void this.router.navigate(['/my-checkins']);
+      case 'checkin_reviewed':
+        void this.router.navigate(['/my-checkins'], { queryParams: p.requestId ? { requestId: p.requestId } : {} });
         break;
       case 'routine_assigned':
         void this.router.navigate(['/tabs/summary']);
@@ -579,8 +584,12 @@ export class CoachPage implements OnInit {
   }
 
   // --- Navegación desde "Pendiente de ti" a las pantallas ya existentes ---
-  public goToCheckins(): void {
-    void this.router.navigate(['/my-checkins']);
+  public goToCheckins(requestId?: string): void {
+    void this.router.navigate(['/my-checkins'], { queryParams: requestId ? { requestId } : {} });
+  }
+
+  public trackByCheckinId(_index: number, item: { trainerId: string; requestId?: string }): string {
+    return item.requestId || item.trainerId;
   }
 
   public goToNutritionPreferences(): void {
