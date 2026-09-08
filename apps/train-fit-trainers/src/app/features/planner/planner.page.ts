@@ -151,7 +151,7 @@ export class PlannerPage {
     });
   }
 
-  // Punto 1 — mismo criterio que close(): clientId sale de la ruta, no de
+  // Punto 1 — clientId sale de la ruta, no de
   // this.table (puede tardar en poblarse vía el resolver). En templateMode
   // no hay cliente real (table.userId es el propio profesional), así que no
   // tiene sentido pedir un cuestionario que no existe.
@@ -181,40 +181,14 @@ export class PlannerPage {
     return !!(this.clientIntake?.trainingLocation || this.clientIntake?.equipmentTags?.length);
   }
 
-  // TASK-027 (MASTER_BACKLOG.md) — antes usaba location.back(): si el
-  // Planner era la primera navegación de la sesión (deep link o F5), no
-  // había ninguna entrada previa en el historial DENTRO de la app y el
-  // usuario quedaba atascado (o salía de la app, o volvía a una pantalla de
-  // otra sesión de navegación). Navegación explícita en vez de "volver a
-  // donde sea que estuviera antes" — mismo criterio que el "Volver" de
-  // RoutineBuilderPage (TASK-043/planificador).
-  // Rutinas -> Plantillas (rediseño 2026-08): el Planificador ahora se abre
-  // también sin cliente (biblioteca de plantillas propia del profesional,
-  // ver shell-routing.module.ts data.templateMode) — table.userId en ese
-  // caso ES el propio profesional, no un clientId real, así que no sirve
-  // como destino de "Volver".
-  // Bug real (2026-09): "Volver" siempre aterrizaba en Resumen, aunque se
-  // hubiera entrado desde Entrenamiento — ClientDetailPage#
-  // initTabsAndLoadSections abre en 'summary' salvo que la URL traiga
-  // ?tab=, y esta navegación nunca lo mandaba. openPlanner (client-detail.
-  // page.ts) ahora adjunta ?returnTab=<pestaña de origen> al entrar aquí;
-  // esto solo lo reenvía como ?tab= al volver, mismo mecanismo de ?tab= que
-  // ya usan los enlaces de notificación — sin inventar uno nuevo.
-  public close(): void {
-    if (this.route.snapshot.data['templateMode']) {
-      void this.router.navigate(['/tabs', 'routine-templates']);
-      return;
-    }
-    // table.userId es el clientId (ver Table#userId); se usa el de la ruta
-    // como fallback por si se cierra antes de que el resolver termine de
-    // poblar this.table.
-    const clientId = this.table?.userId || this.route.snapshot.paramMap.get('clientId');
-    const returnTab = this.route.snapshot.queryParamMap.get('returnTab');
-    void this.router.navigate(
-      clientId ? ['/tabs', 'clients', clientId] : ['/tabs', 'clients'],
-      returnTab ? { queryParams: { tab: returnTab } } : undefined
-    );
-  }
+  // El "Volver" del Planificador lo resuelve ahora la cabecera común
+  // (app-page-header + TrainerNavigationService): historial real primero y,
+  // sin él (deep link o F5), el `data.parent` declarado en el routing —
+  // '/tabs/routine-templates' en modo plantilla y '/tabs/clients/:clientId'
+  // cuando se abre desde la ficha de un cliente. Esto sustituye al antiguo
+  // close() y al parche ?returnTab=, que solo servía para que ClientDetailPage
+  // reabriera la pestaña correcta: esa pestaña la restaura ahora la propia
+  // ficha desde su estado de vista.
 
   // El título del header no tenía forma de editarse — sobre el propio Table
   // (tableService.updateTableName, ya existente en shared-core, nunca

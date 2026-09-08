@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ModalOptions } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { WorkoutTemplateApiService } from 'src/app/core/services/workout-template/workout-template-api.service';
@@ -12,6 +12,8 @@ import {
   WorkoutTemplateLevel,
 } from 'src/app/core/models/workout-template';
 import { Exercise } from 'src/app/core/models/exercise';
+import { PendingChangesComponent } from 'src/app/core/guards/pending-changes.guard';
+import { confirmDiscardChanges } from '../../../../shared/navigation/confirm-discard-changes';
 import { SearchExercisesPage } from 'src/app/shared/components/search-exercises/search-exercises.page';
 import {
   ExerciseScheme,
@@ -69,7 +71,7 @@ const LEVEL_LABELS: Record<WorkoutTemplateLevel, string> = {
   templateUrl: 'routine-builder.page.html',
   styleUrls: ['routine-builder.page.scss'],
 })
-export class RoutineBuilderPage implements OnInit {
+export class RoutineBuilderPage implements OnInit, PendingChangesComponent {
   public state: ViewState = 'loading';
   public templateId = '';
 
@@ -82,6 +84,11 @@ export class RoutineBuilderPage implements OnInit {
 
   public isSaving = false;
 
+  // Sin autoguardado: lo editado solo existe en memoria hasta pulsar
+  // "Guardar". Se compara el payload actual contra el de la última carga o
+  // guardado para saber si hay cambios que perder (pendingChangesGuard).
+  private savedSnapshot = '';
+
   public readonly levels = LEVEL_LABELS;
   public readonly levelKeys: WorkoutTemplateLevel[] = ['principiante', 'intermedio', 'avanzado'];
   public readonly blockTypeLabels = BLOCK_TYPE_LABELS;
@@ -91,7 +98,6 @@ export class RoutineBuilderPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private workoutTemplateApi: WorkoutTemplateApiService,
     private ionicUtilService: IonicUtilService
   ) {}
@@ -121,6 +127,7 @@ export class RoutineBuilderPage implements OnInit {
           return;
         }
         this.applyTemplate(template);
+        this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
       },
       error: () => {
@@ -369,10 +376,7 @@ export class RoutineBuilderPage implements OnInit {
     return this.name.trim().length > 0 && !this.isSaving;
   }
 
-  public save(): void {
-    if (!this.canSave) return;
-    this.isSaving = true;
-
+  private buildPayload(): Partial<WorkoutTemplate> {
     const tags = this.tagsText
       .split(',')
       .map((t) => t.trim())
@@ -401,18 +405,37 @@ export class RoutineBuilderPage implements OnInit {
       })),
     }));
 
+    return {
+      name: this.name.trim(),
+      description: this.description.trim(),
+      level: this.level,
+      tags,
+      equipment,
+      blocks,
+    };
+  }
+
+  private snapshot(): string {
+    return JSON.stringify(this.buildPayload());
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.state !== 'loaded' || this.snapshot() === this.savedSnapshot) return true;
+    return confirmDiscardChanges(this.ionicUtilService);
+  }
+
+  public save(): void {
+    if (!this.canSave) return;
+    this.isSaving = true;
+
+    const payload = this.buildPayload();
+
     this.workoutTemplateApi
-      .update(this.templateId, {
-        name: this.name.trim(),
-        description: this.description.trim(),
-        level: this.level,
-        tags,
-        equipment,
-        blocks,
-      })
+      .update(this.templateId, payload)
       .subscribe({
         next: () => {
           this.isSaving = false;
+          this.savedSnapshot = JSON.stringify(payload);
           this.ionicUtilService.showToast({ message: 'Plantilla guardada', duration: 1500 });
         },
         error: () => {
@@ -420,9 +443,5 @@ export class RoutineBuilderPage implements OnInit {
           this.ionicUtilService.showToast({ message: 'No se pudo guardar la plantilla', duration: 2500 });
         },
       });
-  }
-
-  public goBack(): void {
-    this.router.navigate(['/tabs/routines']);
   }
 }

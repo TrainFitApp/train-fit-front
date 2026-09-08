@@ -1,23 +1,11 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="goToClientsList()" aria-label="Volver">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ name }}</h1>
-      </div>
-      <div class="tf-page-header__actions"></div>
-    </div>
-  </div>
+  <app-page-header [title]="name"></app-page-header>
 </ion-header>
 
 <!-- Layout de 2 columnas (mockup "TrainFit Panel" > Perfil cliente): tarjeta
      de resumen persistente + pestañas reales ya existentes, sin tocar su
      lógica ni sus datos — solo se reordena el envoltorio HTML. -->
-<ion-content class="detail-content">
+<ion-content class="detail-content" [appScrollMemory]="'client-detail:' + clientId">
   <!-- TASK-012 (MASTER_BACKLOG.md) — sin name/scopes en la URL (deep link
        directo), se resuelven vía resolveClientIdentityFallback(). Mientras
        tanto (o si falla), se avisa en vez de dejar las pestañas en blanco

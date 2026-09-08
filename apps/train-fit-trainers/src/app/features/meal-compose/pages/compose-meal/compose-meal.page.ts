@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { PendingChangesComponent } from 'src/app/core/guards/pending-changes.guard';
+import { confirmDiscardChanges } from '../../../../shared/navigation/confirm-discard-changes';
 import { MEAL_SLOTS, MealSlot } from '../../../diet-templates/models/diet-template.model';
 import { ComposeMealFoodItem, BulkApplyResult } from '../../models/meal-compose.model';
 import { MealComposeApiService } from '../../services/meal-compose-api.service';
@@ -36,7 +37,7 @@ function todayIsoDate(): string {
   templateUrl: 'compose-meal.page.html',
   styleUrls: ['compose-meal.page.scss'],
 })
-export class ComposeMealPage {
+export class ComposeMealPage implements PendingChangesComponent {
   public readonly mealSlots = MEAL_SLOTS;
   public mealSlot: MealSlot = MEAL_SLOTS[0];
   public date = todayIsoDate();
@@ -48,8 +49,7 @@ export class ComposeMealPage {
     private modalController: ModalController,
     private mealComposeApi: MealComposeApiService,
     private mealSnippetApi: MealSnippetApiService,
-    private ionicUtilService: IonicUtilService,
-    private router: Router
+    private ionicUtilService: IonicUtilService
   ) {}
 
   public addFoodItem(): void {
@@ -306,7 +306,11 @@ export class ComposeMealPage {
     return index;
   }
 
-  public goBack(): void {
-    this.router.navigate(['/tabs/templates']);
+  // La comida compuesta solo existe en esta pantalla hasta que se aplica a
+  // clientes (showResultToast vacía items al terminar bien), así que salir
+  // con alimentos en la lista pierde el trabajo.
+  public async canDeactivate(): Promise<boolean> {
+    if (!this.items.length) return true;
+    return confirmDiscardChanges(this.ionicUtilService);
   }
 }

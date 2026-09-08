@@ -1,0 +1,52 @@
+<div class="routine-calendar">
+  <div class="calendar-header">
+    <ion-button fill="clear" (click)="changeMonth(-1)">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </ion-button>
+    <div class="month-label">{{ monthYearString }}</div>
+    <ion-button fill="clear" (click)="changeMonth(1)">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="calendar-grid">
+    <div class="day-header" *ngFor="let d of weekDaysHeader">{{ d }}</div>
+    <div
+      class="day-cell"
+      *ngFor="let day of calendarDays"
+      [class.inactive]="day.inactive"
+      [class.completed]="day.completed"
+      [class.clickable]="day.sessions.length"
+      (click)="openDay(day)"
+    >
+      <!-- Badge de microciclo arriba a la derecha: M1 (microciclo 1), M2... -->
+      <span class="microcycle-badges" *ngIf="day.microcycles.length">
+        <span class="microcycle-badge" *ngFor="let m of day.microcycles">M{{ m }}</span>
+      </span>
+      <span class="day-number">{{ day.day }}</span>
+      <div class="workout-indicators" *ngIf="day.workouts.length">
+        <div
+          class="workout-dot"
+          *ngFor="let w of day.workouts"
+          [style.background-color]="w.color"
+          [title]="w.name"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="calendar-legend"
+    *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
+  >
+    <div class="legend-items">
+      <ion-chip
+        *ngFor="let type of uniqueWorkoutTypes"
+        class="legend-chip"
+      >
+        <div class="workout-dot" [style.background-color]="type.color"></div>
+        <ion-label>{{ type.name | translateDb }}</ion-label>
+      </ion-chip>
+    </div>
+  </div>
+</div>

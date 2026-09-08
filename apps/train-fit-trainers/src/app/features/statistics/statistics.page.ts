@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Chart, registerables } from "chart.js";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { AlertOptions } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
 import { Table } from "src/app/core/models/table";
@@ -261,7 +261,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   constructor(
     private tableService: TableService,
-    private router: Router,
     private ionicUtilService: IonicUtilService,
     private exerciseHistoryService: ExerciseHistoryService,
     private route: ActivatedRoute,
@@ -312,21 +311,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
     if (this.chart) {
       this.chart.destroy();
     }
-  }
-
-  // Navegación explícita en vez de navCtrl.back() (histórico del navegador):
-  // si esta pantalla es la primera de la sesión (deep link, F5), "atrás" deja
-  // al entrenador varado — mismo criterio que PlannerPage#close().
-  // Mismo fix que PlannerPage#close() (mismo criterio, ver comentario de
-  // arriba): reenvía ?returnTab= (adjuntado por
-  // ClientDetailPage#openStatistics) como ?tab= al volver, para no caer
-  // siempre en Resumen.
-  public goBack() {
-    const returnTab = this.route.snapshot.queryParamMap.get('returnTab');
-    void this.router.navigate(
-      ['/tabs', 'clients', this.clientIdForHistory],
-      returnTab ? { queryParams: { tab: returnTab } } : undefined
-    );
   }
 
   // --- Data Pre-processing ---

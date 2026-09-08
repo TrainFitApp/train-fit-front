@@ -11,6 +11,7 @@ const routes: Routes = [
   {
     path: ':id',
     component: ClientDetailPage,
+    data: { parent: '/tabs/clients' },
   },
 ];
 

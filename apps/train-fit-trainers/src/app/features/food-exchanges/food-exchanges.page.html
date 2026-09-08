@@ -1,24 +1,14 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" routerLink="/tabs/templates" aria-label="Volver a plantillas">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Intercambios</h1>
-      </div>
-      <div class="tf-page-header__actions">
-        <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo grupo de intercambio">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-page-header title="Intercambios">
+    <ng-container pageActions>
+      <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo grupo de intercambio">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </ng-container>
+  </app-page-header>
 </ion-header>
 
-<ion-content class="exchanges-content">
+<ion-content class="exchanges-content" appScrollMemory="food-exchanges">
   <div class="page-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block group-card-skeleton"></div>
     <div class="skeleton-block group-card-skeleton"></div>

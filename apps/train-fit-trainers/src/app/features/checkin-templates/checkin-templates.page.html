@@ -1,27 +1,19 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Plantillas de check-in</h1>
-      </div>
-      <div class="tf-page-header__actions">
-        <button
-          type="button"
-          class="tf-page-header__back-button"
-          (click)="openCreatePanel()"
-          aria-label="Nueva plantilla de check-in"
-        >
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-page-header title="Plantillas de check-in">
+    <ng-container pageActions>
+      <button
+        type="button"
+        class="tf-page-header__back-button"
+        (click)="openCreatePanel()"
+        aria-label="Nueva plantilla de check-in"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </ng-container>
+  </app-page-header>
 </ion-header>
 
-<ion-content class="checkin-content">
+<ion-content class="checkin-content" appScrollMemory="checkin-templates">
   <div class="templates-grid templates-skeleton" *ngIf="state === 'loading'">
     <div class="template-card template-card--skeleton" *ngFor="let i of [1, 2, 3, 4, 5, 6]">
       <div class="template-card-main">

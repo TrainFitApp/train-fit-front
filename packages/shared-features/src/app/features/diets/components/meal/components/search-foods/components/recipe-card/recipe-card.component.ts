@@ -95,6 +95,14 @@ export class RecipeCardComponent implements OnInit, OnChanges, OnDestroy {
     return !!this.foundInstance?.assignedByTrainerId;
   }
 
+  // Mismo badge +N/-N que la fila de la comida (ver
+  // MealComponent#recipeAssignedDelta) — diferencia entre lo pautado y lo
+  // ya consumido. Solo tiene sentido si isPautado (ver arriba).
+  public get recipeAssignedDelta(): number {
+    if (this.foundInstance?.assignedQuantity == null) return 0;
+    return Math.round((Number(this.foundInstance.quantity) || 0) - this.foundInstance.assignedQuantity);
+  }
+
   public ngOnInit(): void {
     this.setTopIngredients();
     this.checkFavorite();

@@ -6,7 +6,9 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationStart, Router } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
+import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientRosterApiService } from '../../services/client-roster-api.service';
 import {
   AdherenceDimensionKey,
@@ -15,6 +17,15 @@ import {
 } from '../../models/client-roster.model';
 
 type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
+
+interface RosterViewState {
+  searchQuery: string;
+  showFilters: boolean;
+  filterWeakest: AdherenceDimensionKey | null;
+  filterOnlyWithAlerts: boolean;
+  filterOnlyOverdueCheckin: boolean;
+  sort: SortState;
+}
 
 // Por qué se ordena por columnas y no por un "score" único: cualquier
 // fórmula que mezcle adherencia, peso y alertas en un número esconde
@@ -150,7 +161,20 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   // ion-content.
   @ViewChild('panelHost') private panelHost!: ElementRef<HTMLElement>;
 
-  constructor(private rosterApi: ClientRosterApiService, private router: Router) {}
+  // Búsqueda, filtros y orden se recuperan al VOLVER a la cartera (desde la
+  // ficha de un cliente, por ejemplo): perder el filtro montado para revisar
+  // a diez clientes en cuanto se abre el primero obligaba a rehacerlo diez
+  // veces. Entrar de nuevo desde el menú lateral, en cambio, arranca limpio
+  // (ver TrainerNavigationService#consumeViewState).
+  private static readonly VIEW_STATE_KEY = 'clients-roster';
+
+  private navigationSubscription: Subscription | null = null;
+
+  constructor(
+    private rosterApi: ClientRosterApiService,
+    private router: Router,
+    private navigation: TrainerNavigationService
+  ) {}
 
   public ngAfterViewInit(): void {
     document.body.appendChild(this.panelHost.nativeElement);
@@ -158,10 +182,45 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
 
   public ngOnDestroy(): void {
     this.panelHost?.nativeElement?.remove();
+    this.navigationSubscription?.unsubscribe();
+    this.rememberViewState();
   }
 
   public ngOnInit(): void {
+    this.restoreViewState();
     this.load();
+
+    // ion-router-outlet mantiene viva la página mientras se navega hacia
+    // dentro, así que ngOnDestroy puede no llegar: se anota el estado al
+    // arrancar cada navegación.
+    this.navigationSubscription = this.router.events
+      .pipe(filter((event) => event instanceof NavigationStart))
+      .subscribe(() => this.rememberViewState());
+  }
+
+  private rememberViewState(): void {
+    this.navigation.saveViewState(ClientRosterComponent.VIEW_STATE_KEY, {
+      searchQuery: this.searchQuery,
+      showFilters: this.showFilters,
+      filterWeakest: this.filterWeakest,
+      filterOnlyWithAlerts: this.filterOnlyWithAlerts,
+      filterOnlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      sort: this.sort,
+    });
+  }
+
+  private restoreViewState(): void {
+    const stored = this.navigation.consumeViewState<RosterViewState>(
+      ClientRosterComponent.VIEW_STATE_KEY
+    );
+    if (!stored) return;
+    this.searchQuery = stored.searchQuery;
+    this.showFilters = stored.showFilters;
+    this.filterWeakest = stored.filterWeakest;
+    this.filterOnlyWithAlerts = stored.filterOnlyWithAlerts;
+    this.filterOnlyOverdueCheckin = stored.filterOnlyOverdueCheckin;
+    // El orden se aplica sobre las filas en load(), que llega después.
+    this.sort = stored.sort;
   }
 
   public load(): void {

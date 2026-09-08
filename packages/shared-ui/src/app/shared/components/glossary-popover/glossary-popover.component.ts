@@ -9,8 +9,7 @@ export type GlossaryTermKey =
   | 'EFFECTIVE_VOLUME'
   | 'SETS_COMPARISON'
   | 'PINNED_NOTE'
-  | 'SET_OBJECTIVE'
-  | 'SESSION_ACTIVITY';
+  | 'SET_OBJECTIVE';
 
 // Movimiento 2 Coach Pro — un nivel concreto de una escala, con su
 // significado escrito. Ver el comentario de `levels` más abajo.

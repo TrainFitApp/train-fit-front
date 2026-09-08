@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { DietTemplatesPageRoutingModule } from './diet-templates-routing.module';
 import { ProductSearchModalModule } from '../../shared/components/product-search-modal/product-search-modal.module';
 import { MealSnippetPickerModule } from '../../shared/components/meal-snippet-picker/meal-snippet-picker.module';
@@ -13,6 +14,7 @@ import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-temp
 @NgModule({
   imports: [
     SharedModule,
+    NavigationModule,
     DietTemplatesPageRoutingModule,
     ProductSearchModalModule,
     MealSnippetPickerModule,

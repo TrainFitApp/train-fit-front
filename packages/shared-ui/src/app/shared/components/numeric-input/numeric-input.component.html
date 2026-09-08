@@ -4,10 +4,10 @@
   [@shimmerAnimation]="shimmerAnimationState"
   [class.shimmer-run]="shimmerAnimationState === 'animate'"
 >
-  <span class="input-label">{{ label }}</span>
+  <span class="input-label" *ngIf="label">{{ label }}</span>
   <input
     type="text"
-    inputmode="none"
+    [attr.inputmode]="inputMode"
     class="numeric-value-input"
     [attr.maxlength]="maxLength"
     [value]="displayValue"

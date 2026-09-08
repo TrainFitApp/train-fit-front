@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { ClientsPageRoutingModule } from './clients-routing.module';
 import { ClientsPage } from './clients.page';
 import { ClientDetailPage } from './pages/client-detail/client-detail.page';
@@ -21,7 +22,7 @@ import { TrainingCalendarComponent } from './pages/client-detail/components/trai
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 
 @NgModule({
-  imports: [SharedModule, ClientsPageRoutingModule, ProductSearchModalModule, SelectClientsModalModule],
+  imports: [SharedModule, NavigationModule, ClientsPageRoutingModule, ProductSearchModalModule, SelectClientsModalModule],
   declarations: [
     ClientsPage,
     ClientDetailPage,

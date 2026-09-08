@@ -43,6 +43,10 @@ import { ClipboardExercisesModalComponent } from "./components/clipboard-exercis
 import { DB_ES_EN_MAP } from "src/app/shared/constants/db-translations/es-en-db.map";
 import { EXERCISE_NAMES_ES_EN } from "src/app/shared/constants/db-translations/exercise-names-es-en.map";
 import { APP_SHELL_CONFIG } from "src/app/app-shell.config";
+import {
+  OPEN_WORKOUT_FROM_CALENDAR_KEY,
+  OpenWorkoutFromCalendarState,
+} from "../routine-calendar/routine-calendar.component";
 
 interface PreserveFinishedWorkoutSplitState {
   tableId: string;
@@ -329,6 +333,10 @@ export class MesocyclePage implements OnInit, AfterViewInit {
 
     if (!this.tableInUse?.splits?.length) return;
 
+    // Llegada desde el calendario de rutina (pulsar un día): posicionar en
+    // esa sesión concreta y hacer el parpadeo, gane a cualquier otra lógica.
+    if (this.tryOpenWorkoutFromCalendar()) return;
+
     // Si no hay entrenamiento en uso, auto-posicionamos según progreso (caso Summary -> Mesocycle)
     if (!this.user?.workoutInUse) {
       if (this.restoreFinishedWorkoutSplit()) return;
@@ -458,6 +466,89 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     }
 
     return true;
+  }
+
+  // Traspaso desde <app-routine-calendar>: el usuario pulsó un día con
+  // sesión. Nos colocamos en su microciclo + su workout y disparamos el
+  // parpadeo (mismo patrón visual que "serie añadida/editada/borrada").
+  private tryOpenWorkoutFromCalendar(): boolean {
+    const state =
+      this.navigationService.getTempData<OpenWorkoutFromCalendarState>(
+        OPEN_WORKOUT_FROM_CALENDAR_KEY,
+      );
+    if (!state) return false;
+
+    this.navigationService.clearTempData(OPEN_WORKOUT_FROM_CALENDAR_KEY);
+
+    if (!this.tableInUse?.splits?.length) return false;
+    if (
+      state.tableId &&
+      this.tableInUse._id &&
+      state.tableId !== this.tableInUse._id
+    ) {
+      return false;
+    }
+
+    // Preferimos localizar por workoutId (robusto si se reordenaron los
+    // workouts); si no aparece, caemos al índice guardado.
+    let targetSplitIndex = -1;
+    let targetWorkoutIndex = -1;
+
+    if (state.workoutId) {
+      for (let s = 0; s < this.tableInUse.splits.length; s++) {
+        const wIndex = this.tableInUse.splits[s]?.workouts?.findIndex(
+          (w) => w?._id === state.workoutId,
+        );
+        if (wIndex !== undefined && wIndex !== -1) {
+          targetSplitIndex = s;
+          targetWorkoutIndex = wIndex;
+          break;
+        }
+      }
+    }
+
+    if (
+      targetSplitIndex === -1 &&
+      state.splitIndex >= 0 &&
+      state.splitIndex < this.tableInUse.splits.length
+    ) {
+      targetSplitIndex = state.splitIndex;
+      targetWorkoutIndex = Math.max(0, state.workoutIndex ?? 0);
+    }
+
+    if (targetSplitIndex === -1) return false;
+
+    this.openWorkoutIndex = targetWorkoutIndex;
+    if (targetSplitIndex === this.currentSplitIndex) {
+      this.updateCurrentSplit();
+      this.scrollToOpenWorkout();
+    } else {
+      this.currentSplitIndex = targetSplitIndex;
+    }
+
+    this.flashWorkoutWithRetry(targetWorkoutIndex);
+    return true;
+  }
+
+  // Espera a que el acordeón del workout esté en el DOM (cambiar de split lo
+  // re-renderiza) y le añade la clase de parpadeo un par de segundos —
+  // calcado de scrollToExerciseWithRetry pero a nivel de workout.
+  private flashWorkoutWithRetry(workoutIndex: number, attempt = 0): void {
+    const maxAttempts = 20;
+    const delay = attempt === 0 ? 700 : 200;
+
+    setTimeout(() => {
+      const element = document.getElementById(`workout-${workoutIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        element.classList.add("highlight-workout");
+        setTimeout(() => {
+          element.classList.remove("highlight-workout");
+        }, 2000);
+      } else if (attempt < maxAttempts) {
+        this.flashWorkoutWithRetry(workoutIndex, attempt + 1);
+      }
+    }, delay);
   }
 
   public ionViewWillLeave(): void {

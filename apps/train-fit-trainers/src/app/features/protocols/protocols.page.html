@@ -1,24 +1,14 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" routerLink="/tabs/templates" aria-label="Volver a plantillas">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Protocolos</h1>
-      </div>
-      <div class="tf-page-header__actions">
-        <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo protocolo">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-page-header title="Protocolos">
+    <ng-container pageActions>
+      <button type="button" class="tf-page-header__back-button" (click)="openEditor()" aria-label="Nuevo protocolo">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </ng-container>
+  </app-page-header>
 </ion-header>
 
-<ion-content class="protocols-content">
+<ion-content class="protocols-content" appScrollMemory="protocols">
   <div class="page-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block protocol-card-skeleton"></div>
     <div class="skeleton-block protocol-card-skeleton"></div>

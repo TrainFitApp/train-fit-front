@@ -16,7 +16,7 @@
                  en product.component.html. -->
             <ion-icon
               *ngIf="isPautado"
-              name="clipboard"
+              name="clipboard-outline"
               class="pautado-product-icon"
             ></ion-icon>
             <ion-icon
@@ -40,6 +40,15 @@
                 : "-"
             }}
           </span>
+          <!-- Diferencia sobre lo pautado — mismo badge que en la fila de
+               la comida (ver MealComponent), aquí también sin abrir la
+               vista de solo lectura. -->
+          <span
+            class="quantity-delta"
+            *ngIf="isPautado && recipeAssignedDelta !== 0"
+            [class.quantity-delta--positive]="recipeAssignedDelta > 0"
+            [class.quantity-delta--negative]="recipeAssignedDelta < 0"
+          >{{ recipeAssignedDelta > 0 ? '+' : '' }}{{ recipeAssignedDelta }}</span>
         </div>
         <span class="recipe-ingredients">{{ topIngredients }}</span>
       </div>

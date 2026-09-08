@@ -1,18 +1,8 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Plantillas de rutina</h1>
-      </div>
-      <div class="tf-page-header__actions"></div>
-    </div>
-  </div>
+  <app-page-header title="Plantillas de rutina"></app-page-header>
 </ion-header>
 
-<ion-content class="routine-templates-content">
+<ion-content class="routine-templates-content" appScrollMemory="routine-templates">
   <div class="templates-page">
     <p class="templates-hint">
       Crea una plantilla de rutina completa (microciclos, entrenamientos y ejercicios) con el

@@ -170,10 +170,11 @@
                en el diseño, ausente antes. -->
           <div class="routine-divider"></div>
 
-          <!-- Prueba: mapa de contribuciones dentro de la card de rutina,
-               encima de Ver mesociclo/Estadísticas (antes vivía suelto
-               debajo de esta card). -->
-          <app-sets-heatmap></app-sets-heatmap>
+          <!-- Calendario de rutina + tipos de entrenamiento (mismo
+               componente que la página de Estadísticas). Los días con
+               sesión llevan un badge M1/M2... con su microciclo. Sustituye
+               al antiguo mapa de contribuciones. -->
+          <app-routine-calendar></app-routine-calendar>
 
           <div class="bottom-cards-row">
             <div class="bottom-card bottom-card--orange" (click)="openMesocycle(); $event.stopPropagation()">

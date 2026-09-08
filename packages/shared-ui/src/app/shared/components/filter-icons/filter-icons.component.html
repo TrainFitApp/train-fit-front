@@ -10,51 +10,9 @@
       >
         <ion-icon name="apps-outline"></ion-icon>
         <span class="label">{{
-          currentMode === 'products' ? ('FILTER.CHIP_ALL_PRODUCTS' | translate) : ('FILTER.CHIP_ALL_RECIPES' | translate)
-        }}</span>
-        <ion-ripple-effect></ion-ripple-effect>
-      </button>
-
-      <button
-        type="button"
-        class="modern-pill"
-        [class.is-active]="ownFilter"
-        [class.is-disabled]="shieldFilter"
-        [disabled]="disabled"
-        (click)="onOwnChipClick()"
-      >
-        <ion-icon name="person"></ion-icon>
-        <span class="label">{{
-          currentMode === 'products' ? ('FILTER.CHIP_ADDED_BY_ME_PRODUCTS' | translate) : ('FILTER.CHIP_ADDED_BY_ME_RECIPES' | translate)
-        }}</span>
-        <ion-ripple-effect></ion-ripple-effect>
-      </button>
-
-      <button
-        type="button"
-        class="modern-pill"
-        [class.is-active]="shieldFilter"
-        [class.is-disabled]="ownFilter"
-        [disabled]="disabled"
-        (click)="onShieldChipClick()"
-      >
-        <ion-icon name="shield"></ion-icon>
-        <span class="label">{{
-          currentMode === 'products' ? ('FILTER.CHIP_VERIFIED_PRODUCTS' | translate) : ('FILTER.CHIP_VERIFIED_RECIPES' | translate)
-        }}</span>
-        <ion-ripple-effect></ion-ripple-effect>
-      </button>
-
-      <button
-        type="button"
-        class="modern-pill"
-        [class.is-active]="favFilter"
-        [disabled]="disabled"
-        (click)="addFilter(PRODUCT_FILTERS.fav)"
-      >
-        <ion-icon name="bookmark"></ion-icon>
-        <span class="label">{{
-          currentMode === 'products' ? ('FILTER.CHIP_FAVORITES_PRODUCTS' | translate) : ('FILTER.CHIP_FAVORITES_RECIPES' | translate)
+          currentMode === "products"
+            ? ("FILTER.CHIP_ALL_PRODUCTS" | translate)
+            : ("FILTER.CHIP_ALL_RECIPES" | translate)
         }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
@@ -72,7 +30,57 @@
         (click)="addFilter(PRODUCT_FILTERS.pautado)"
       >
         <ion-icon name="clipboard"></ion-icon>
-        <span class="label">{{ 'FILTER.CHIP_PAUTADO' | translate }}</span>
+        <span class="label">{{ "FILTER.CHIP_PAUTADO" | translate }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="ownFilter"
+        [class.is-disabled]="shieldFilter"
+        [disabled]="disabled"
+        (click)="onOwnChipClick()"
+      >
+        <ion-icon name="person"></ion-icon>
+        <span class="label">{{
+          currentMode === "products"
+            ? ("FILTER.CHIP_ADDED_BY_ME_PRODUCTS" | translate)
+            : ("FILTER.CHIP_ADDED_BY_ME_RECIPES" | translate)
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="shieldFilter"
+        [class.is-disabled]="ownFilter"
+        [disabled]="disabled"
+        (click)="onShieldChipClick()"
+      >
+        <ion-icon name="shield"></ion-icon>
+        <span class="label">{{
+          currentMode === "products"
+            ? ("FILTER.CHIP_VERIFIED_PRODUCTS" | translate)
+            : ("FILTER.CHIP_VERIFIED_RECIPES" | translate)
+        }}</span>
+        <ion-ripple-effect></ion-ripple-effect>
+      </button>
+
+      <button
+        type="button"
+        class="modern-pill"
+        [class.is-active]="favFilter"
+        [disabled]="disabled"
+        (click)="addFilter(PRODUCT_FILTERS.fav)"
+      >
+        <ion-icon name="bookmark"></ion-icon>
+        <span class="label">{{
+          currentMode === "products"
+            ? ("FILTER.CHIP_FAVORITES_PRODUCTS" | translate)
+            : ("FILTER.CHIP_FAVORITES_RECIPES" | translate)
+        }}</span>
         <ion-ripple-effect></ion-ripple-effect>
       </button>
     </div>

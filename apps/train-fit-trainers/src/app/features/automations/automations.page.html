@@ -1,22 +1,14 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Automatizaciones</h1>
-      </div>
-      <div class="tf-page-header__actions">
-        <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nueva automatización">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-page-header title="Automatizaciones">
+    <ng-container pageActions>
+      <button type="button" class="tf-page-header__back-button" (click)="createRule()" aria-label="Nueva automatización">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </ng-container>
+  </app-page-header>
 </ion-header>
 
-<ion-content class="automations-content">
+<ion-content class="automations-content" appScrollMemory="automations">
   <div class="page-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block rule-card-skeleton"></div>
     <div class="skeleton-block rule-card-skeleton"></div>

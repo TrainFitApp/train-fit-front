@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Platform } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 import { TrainerReviewStatusService } from 'src/app/features/invites/services/trainer-review-status.service';
+import { TrainerNavigationService } from '../../core/services/trainer-navigation.service';
 
 export interface ShellMenuItem {
   label: string;
@@ -50,7 +53,7 @@ function buildMenuItems(items: ShellMenuItemInput[]): ShellMenuItem[] {
   templateUrl: 'shell.page.html',
   styleUrls: ['shell.page.scss'],
 })
-export class ShellPage implements OnInit {
+export class ShellPage implements OnInit, OnDestroy {
   // Sidebar contraíble en escritorio (no forma parte del mockup original,
   // pedido aparte por el usuario) — persistido para que no vuelva a
   // expandirse solo por navegar o recargar.
@@ -101,7 +104,13 @@ export class ShellPage implements OnInit {
     return this.menuGroups.flatMap((group) => group.items);
   }
 
-  constructor(private trainerReviewStatus: TrainerReviewStatusService) {}
+  private backButtonSubscription: Subscription | null = null;
+
+  constructor(
+    private trainerReviewStatus: TrainerReviewStatusService,
+    private navigation: TrainerNavigationService,
+    private platform: Platform
+  ) {}
 
   // TASK-023 (MASTER_BACKLOG.md) — antes un cliente con cuestionario ya
   // enviado (status "en_revision", esperando confirmación del trainer) solo
@@ -118,5 +127,18 @@ export class ShellPage implements OnInit {
     });
     this.trainerReviewStatus.refresh();
 
+    // El atrás del sistema ejecuta exactamente lo mismo que el botón de la
+    // cabecera (regla de docs/frontend.md: ambos llevan al mismo sitio). El
+    // atrás del navegador no necesita enganche: es una navegación normal del
+    // Router, y TrainerNavigationService la reconoce como "hacia atrás" —
+    // restaura el mismo estado de vista que el botón.
+    this.backButtonSubscription = this.platform.backButton.subscribeWithPriority(
+      10,
+      () => this.navigation.back()
+    );
+  }
+
+  public ngOnDestroy(): void {
+    this.backButtonSubscription?.unsubscribe();
   }
 }

@@ -1,17 +1,5 @@
 <ion-header>
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button class="tf-page-header__back-button" (click)="goBack()" [attr.aria-label]="'COMMON.BACK' | translate">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ 'TABLES.STATS_PAGE_TITLE' | translate }}</h1>
-      </div>
-      <div class="tf-page-header__actions"></div>
-    </div>
-  </div>
+  <app-page-header [title]="'TABLES.STATS_PAGE_TITLE' | translate"></app-page-header>
 </ion-header>
 
 

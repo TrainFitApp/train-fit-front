@@ -13,6 +13,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
@@ -386,7 +387,8 @@ export class ClientDetailPage implements OnInit {
     private planAssignmentApi: PlanAssignmentApiService,
     private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
-    private trainerInvitesApi: TrainerInvitesApiService
+    private trainerInvitesApi: TrainerInvitesApiService,
+    private navigation: TrainerNavigationService
   ) {}
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
@@ -435,6 +437,17 @@ export class ClientDetailPage implements OnInit {
   public ionViewWillEnter(): void {
     if (!this.clientId) return;
     this.initTabsAndLoadSections();
+  }
+
+  // ion-router-outlet mantiene viva esta instancia mientras se navega hacia
+  // dentro, así que ionViewWillLeave es el único punto fiable para anotar en
+  // qué pestaña se estaba antes de salir.
+  public ionViewWillLeave(): void {
+    this.navigation.saveViewState(this.viewStateKey, this.activeTab);
+  }
+
+  private get viewStateKey(): string {
+    return `client-detail:${this.clientId}`;
   }
 
   private parseScopes(rawScopes: string): ClientScope[] {
@@ -489,7 +502,13 @@ export class ClientDetailPage implements OnInit {
     // notificación de "check-in respondido" tiene que abrir en Check-ins,
     // no dejarte en Resumen buscándolo. selectTab valida el destino, así
     // que un tab inventado en la URL no rompe nada.
-    const tabPedida = this.route.snapshot.queryParamMap.get('tab') as ClientDetailTab | null;
+    // Al volver de una pantalla hija (Planificador, Estadísticas, crear
+    // dieta) se recupera la pestaña que estaba abierta. Sustituye al antiguo
+    // ?returnTab=, que obligaba a cada pantalla hija a reenviar la pestaña de
+    // vuelta: aquí la ficha se acuerda de la suya y nadie más tiene que saberlo.
+    const tabGuardada = this.navigation.consumeViewState<ClientDetailTab>(this.viewStateKey);
+    const tabPedida =
+      tabGuardada || (this.route.snapshot.queryParamMap.get('tab') as ClientDetailTab | null);
     this.selectTab(tabPedida && SECTION_BY_TAB[tabPedida] ? tabPedida : 'summary');
 
     if (this.scopes.includes('training')) this.loadTraining();
@@ -1386,17 +1405,10 @@ export class ClientDetailPage implements OnInit {
   // (features/routines/pages/routine-builder), una pantalla completamente
   // distinta (autoría de una WorkoutTemplate reutilizable) — este método
   // abre el Planificador (Table ya asignada a este cliente), no eso.
-  // El botón "Volver" del Planificador (PlannerPage#close()) necesita saber
-  // a qué pestaña regresar — sin esto siempre caía en Resumen (el valor por
-  // defecto de initTabsAndLoadSections cuando no hay ?tab= en la URL),
-  // aunque se hubiera entrado desde Entrenamiento. returnTab viaja en la
-  // URL de ida; PlannerPage se limita a reenviarlo como `tab` al volver,
-  // reutilizando el mecanismo de ?tab= que ya existe (ver
-  // initTabsAndLoadSections, usado hoy por los enlaces de notificación).
   // 2026-09 — atajo directo al Planificador de la rutina EN USO desde la
   // tarjeta "En uso". Navega por tableId de la fase (la tabla puede no estar
   // todavía en `this.tables`, que se carga aparte) reutilizando la MISMA ruta
-  // y el mismo returnTab que openPlanner, sin duplicar criterio.
+  // que openPlanner, sin duplicar criterio.
   public async openPlannerForCurrentPhase(): Promise<void> {
     const phase = this.currentRoutinePhase;
     if (!phase?.tableId) return;
@@ -1404,22 +1416,27 @@ export class ClientDetailPage implements OnInit {
   }
 
   public async openPlanner(table: ClientTable): Promise<void> {
-    await this.router.navigate(
-      ['/tabs', 'clients', this.clientId, 'tables', table._id, 'planner'],
-      { queryParams: { returnTab: this.activeTab } }
-    );
+    await this.router.navigate([
+      '/tabs',
+      'clients',
+      this.clientId,
+      'tables',
+      table._id,
+      'planner',
+    ]);
   }
 
   // TASK-007 — mismo patrón que openPlanner: ruta completa +
   // TableInContextResolver siembra la tabla del cliente antes de activar.
-  // Mismo motivo que openPlanner de arriba: StatisticsPage#goBack() sigue
-  // el mismo criterio (comentario propio: "mismo criterio que
-  // PlannerPage#close()"), así que necesita el mismo returnTab.
   public async openStatistics(table: ClientTable): Promise<void> {
-    await this.router.navigate(
-      ['/tabs', 'clients', this.clientId, 'tables', table._id, 'statistics'],
-      { queryParams: { returnTab: this.activeTab } }
-    );
+    await this.router.navigate([
+      '/tabs',
+      'clients',
+      this.clientId,
+      'tables',
+      table._id,
+      'statistics',
+    ]);
   }
 
   // TASK-019 (MASTER_BACKLOG.md) — antes no existía forma de eliminar una

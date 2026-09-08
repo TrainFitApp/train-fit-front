@@ -121,15 +121,6 @@ interface ComparisonData {
   maxHoldPct?: number;
 }
 
-interface CalendarDay {
-  day: number | string;
-  date: string;
-  workoutNames: string[];
-  workouts: Array<{ name: string; color: string }>;
-  completed: boolean;
-  inactive: boolean;
-}
-
 @Component({
   selector: "app-statistics",
   templateUrl: "./statistics.page.html",
@@ -192,44 +183,9 @@ export class StatisticsPage implements OnInit, OnDestroy {
     return !this.isCardio && !this.isIsometric;
   }
 
-  // Calendar State
-  public calendarCurrentDate: Date = new Date();
-  public calendarDays: CalendarDay[] = [];
-  public monthYearString: string = "";
-  public hasCompletedWorkouts: boolean = false;
-  public uniqueWorkoutTypes: Array<{ name: string; color: string }> = [];
-
-  // Data structures for efficient lookup
-  private workoutMap: Map<string, string[]> = new Map();
-  private workoutColors: Map<string, string> = new Map();
+  // El calendario de rutina + leyenda de tipos vive ahora en
+  // <app-routine-calendar> (componente compartido con el resumen).
   private langChangeSubscription: any;
-
-  private readonly SET_COLORS = [
-    "#fe9000",
-    "#d4af37",
-    "#3880ff",
-    "#2dd36f",
-    "#eb445a",
-    "#a78bfa",
-    "#ffc409",
-    "#00d98b",
-    "#4a9eff",
-    "#ffd359",
-  ];
-
-  private availableColors = [
-    "#fe9000",
-    "#3880ff",
-    "#2dd36f",
-    "#ffd359",
-    "#ffc455",
-    "#eb445a",
-    "#a78bfa",
-    "#00d98b",
-    "#ffc409",
-    "#4a9eff",
-  ];
-  public weekDaysHeader: string[];
 
   public historicalStats: ExerciseHistoryStats | null = null;
   public historicalStatsLoading = false;
@@ -257,35 +213,14 @@ export class StatisticsPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.weekDaysHeader = [
-      this.translate.instant("COMMON.MON"),
-      this.translate.instant("COMMON.TUE"),
-      this.translate.instant("COMMON.WED"),
-      this.translate.instant("COMMON.THU"),
-      this.translate.instant("COMMON.FRI"),
-      this.translate.instant("COMMON.SAT"),
-      this.translate.instant("COMMON.SUN"),
-    ];
     this.clientIdForHistory = this.route.snapshot.paramMap.get("clientId");
 
     this.table = this.tableService.currentTable();
     if (this.table && this.table.splits) {
       this.extractWorkouts();
-      this.preProcessWorkoutData();
-      this.updateCalendarDisplay();
     }
 
     this.langChangeSubscription = this.translate.onLangChange.subscribe(() => {
-      this.weekDaysHeader = [
-        this.translate.instant("COMMON.MON"),
-        this.translate.instant("COMMON.TUE"),
-        this.translate.instant("COMMON.WED"),
-        this.translate.instant("COMMON.THU"),
-        this.translate.instant("COMMON.FRI"),
-        this.translate.instant("COMMON.SAT"),
-        this.translate.instant("COMMON.SUN"),
-      ];
-      this.updateCalendarDisplay();
       if (this.chart) {
         this.updateChart();
       }
@@ -347,111 +282,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
     });
 
     this.workouts = Array.from(workoutMap.values());
-  }
-
-  private preProcessWorkoutData() {
-    this.workoutMap.clear();
-    this.workoutColors.clear();
-
-    if (!this.table || !this.table.splits) return;
-
-    this.table.splits.forEach((split) => {
-      split.workouts.forEach((w) => {
-        if (w.date) {
-          const dateObj = new Date(w.date);
-          const dateStr = this.formatDate(dateObj);
-
-          if (!this.workoutMap.has(dateStr)) {
-            this.workoutMap.set(dateStr, []);
-          }
-
-          const workoutsOnDate = this.workoutMap.get(dateStr)!;
-          if (!workoutsOnDate.includes(w.name)) {
-            workoutsOnDate.push(w.name);
-          }
-
-          if (!this.workoutColors.has(w.name)) {
-            const colorIndex =
-              this.workoutColors.size % this.availableColors.length;
-            this.workoutColors.set(w.name, this.availableColors[colorIndex]);
-          }
-        }
-      });
-    });
-
-    const types: Array<{ name: string; color: string }> = [];
-    this.workoutColors.forEach((color, name) => {
-      types.push({ name, color });
-    });
-    this.uniqueWorkoutTypes = types.sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }
-
-  private updateCalendarDisplay() {
-    this.generateMonthYearString();
-    this.generateCalendarDays();
-    this.hasCompletedWorkouts = this.calendarDays.some((d) => d.completed);
-  }
-
-  private generateMonthYearString() {
-    const locale = this.translate.currentLang === "en" ? "en" : "es";
-    this.monthYearString = this.calendarCurrentDate.toLocaleDateString(locale, {
-      month: "long",
-      year: "numeric",
-    });
-  }
-
-  private generateCalendarDays() {
-    this.calendarDays = [];
-    const year = this.calendarCurrentDate.getFullYear();
-    const month = this.calendarCurrentDate.getMonth();
-
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-
-    const startDayOfWeek = firstDay.getDay();
-    let adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
-
-    for (let i = 0; i < adjustedStartDay; i++) {
-      this.calendarDays.push({
-        day: "",
-        date: "",
-        workoutNames: [],
-        workouts: [],
-        completed: false,
-        inactive: true,
-      });
-    }
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      const dateStr = this.formatDate(new Date(year, month, i));
-      const workoutNames = this.workoutMap.get(dateStr) || [];
-
-      const workoutsWithColors = workoutNames.map((name) => ({
-        name,
-        color: this.workoutColors.get(name) || "#ff6b35",
-      }));
-
-      this.calendarDays.push({
-        day: i,
-        date: dateStr,
-        workoutNames: workoutNames,
-        workouts: workoutsWithColors,
-        completed: workoutNames.length > 0,
-        inactive: false,
-      });
-    }
-  }
-
-  public changeMonth(delta: number) {
-    this.calendarCurrentDate = new Date(
-      this.calendarCurrentDate.getFullYear(),
-      this.calendarCurrentDate.getMonth() + delta,
-      1,
-    );
-    this.updateCalendarDisplay();
   }
 
   // --- Events ---
@@ -1310,13 +1140,6 @@ export class StatisticsPage implements OnInit, OnDestroy {
 
   public formatSeconds(seconds: number): string {
     return formatSecondsAsTime(seconds || 0);
-  }
-
-  private formatDate(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
   }
 
   private isExerciseStarted(ex: CustomExercise): boolean {

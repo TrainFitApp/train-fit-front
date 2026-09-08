@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { CustomProduct } from 'src/app/core/models/customProduct';
@@ -7,6 +8,7 @@ import { CustomProductService } from 'src/app/core/services/custom-product/custo
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { NumericKeypadService } from 'src/app/shared/components/numeric-keypad/numeric-keypad.service';
 
 interface NutritionRow {
   label: string;
@@ -72,7 +74,7 @@ const EXTRA_NUTRITION_FIELDS: Array<[keyof CustomProduct, string, string]> = [
   templateUrl: './pautado-item-view.component.html',
   styleUrls: ['./pautado-item-view.component.scss'],
 })
-export class PautadoItemViewComponent implements OnInit {
+export class PautadoItemViewComponent implements OnInit, OnDestroy {
   @Input()
   public kind!: 'product' | 'recipe';
 
@@ -104,7 +106,9 @@ export class PautadoItemViewComponent implements OnInit {
   // Recipe (ni backend ni frontend); esto es lo más parecido que hay.
   public instructions = '';
 
-  public editableQuantity = 0;
+  // La cantidad se teclea con app-numeric-input (teclado a medida), que
+  // trabaja contra un FormControl, no con ngModel.
+  public readonly quantityControl = new FormControl<number | null>(null);
   public saving = false;
 
   constructor(
@@ -113,7 +117,8 @@ export class PautadoItemViewComponent implements OnInit {
     private recipeService: RecipeService,
     private mealService: MealService,
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    public numericKeypadService: NumericKeypadService
   ) {}
 
   public ngOnInit(): void {
@@ -146,7 +151,7 @@ export class PautadoItemViewComponent implements OnInit {
         this.extraNutrition = this.buildRecipeExtraNutrition(totals.ingredients, totals.portionRatio);
       }
     }
-    this.editableQuantity = this.quantity;
+    this.quantityControl.setValue(this.quantity);
   }
 
   private buildProductExtraNutrition(product: CustomProduct): NutritionRow[] {
@@ -191,15 +196,19 @@ export class PautadoItemViewComponent implements OnInit {
     return Math.round(this.quantity - this.assignedQuantity);
   }
 
+  // Campo vacío (null) no es "cambiar a 0": deja Guardar deshabilitado en
+  // vez de arriesgar un borrado accidental de la cantidad consumida.
   public get quantityChanged(): boolean {
-    return Number(this.editableQuantity) !== this.quantity;
+    const value = this.quantityControl.value;
+    return value !== null && Number(value) !== this.quantity;
   }
 
   // Único campo editable de toda la vista. Vía controlada del backend
   // (seguimiento, no composición) — nunca toca nada más del producto/receta.
   public saveQuantity(): void {
-    const quantity = Number(this.editableQuantity);
-    if (!Number.isFinite(quantity) || quantity < 0) {
+    const rawQuantity = this.quantityControl.value;
+    const quantity = Number(rawQuantity);
+    if (rawQuantity === null || !Number.isFinite(quantity) || quantity < 0) {
       this.ionicUtilService.showErrorToast(
         this.translate.instant('MEAL.INVALID_QUANTITY'),
         this.translate.instant('COMMON.ERROR'),
@@ -249,7 +258,7 @@ export class PautadoItemViewComponent implements OnInit {
       },
       error: () => {
         this.saving = false;
-        this.editableQuantity = this.quantity;
+        this.quantityControl.setValue(this.quantity);
         this.ionicUtilService.showErrorToast(
           this.translate.instant('MEAL.QUANTITY_UPDATE_ERROR'),
           this.translate.instant('COMMON.ERROR'),
@@ -261,5 +270,12 @@ export class PautadoItemViewComponent implements OnInit {
 
   public dismiss(): void {
     this.modalController.dismiss();
+  }
+
+  // NumericKeypadService es un singleton de raíz: si el modal se cierra con
+  // el teclado abierto, su estado "visible" seguiría en true y la siguiente
+  // pantalla con teclado lo pintaría de entrada.
+  public ngOnDestroy(): void {
+    this.numericKeypadService.hide();
   }
 }

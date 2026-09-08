@@ -192,6 +192,15 @@ export class ProductComponent implements OnInit, OnChanges {
     return this.customProduct || this.recentCustomProduct || null;
   }
 
+  // Mismo badge +N/-N que la fila de la comida (ver
+  // MealComponent#productAssignedDelta) — diferencia entre lo pautado y lo
+  // ya consumido, para que se vea también aquí sin tener que abrir la
+  // vista de solo lectura. Solo tiene sentido si isPautado (ver arriba).
+  public get productAssignedDelta(): number {
+    if (this.customProduct?.assignedQuantity == null) return 0;
+    return Math.round((Number(this.customProduct.quantity) || 0) - this.customProduct.assignedQuantity);
+  }
+
   public onCardClick(): void {
     if (this.isBusy) return;
 

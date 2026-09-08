@@ -3,6 +3,16 @@ import { RouterModule, Routes } from '@angular/router';
 import { ShellPage } from './shell.page';
 import { TableInContextResolver } from 'src/app/features/clients/resolvers/table-in-context.resolver';
 
+// Enrutado coherente (2026-09) — cada ruta que NO es una sección del menú
+// lateral declara `data.parent`: el destino canónico de "Volver" cuando no hay
+// historial que seguir (deep link, recarga con F5, primera pantalla de la
+// sesión). TrainerNavigationService lo usa como fallback; con historial vuelve
+// a la pantalla anterior real. Admite parámetros de ruta
+// (`/tabs/clients/:clientId`), que se resuelven contra la rama activa.
+//
+// Sin `data.parent` = sección raíz: la cabecera muestra el botón de menú, no
+// el de volver (Hoy, Clientes, Biblioteca, Mi método, Mi cuenta,
+// Configuración; todas son destinos del menú lateral).
 const routes: Routes = [
   {
     path: '',
@@ -41,6 +51,7 @@ const routes: Routes = [
         // entrenador. Alcanzable desde Mi método: es literalmente eso, y no
         // material que se le dé al cliente.
         path: 'exercise-scores',
+        data: { parent: '/tabs/method' },
         loadChildren: () =>
           import('src/app/features/exercise-scores/exercise-scores.module').then(
             (m) => m.ExerciseScoresPageModule
@@ -60,6 +71,7 @@ const routes: Routes = [
         // ejercicios + tabla de días/series. Visual únicamente por ahora
         // (Fase 1), sin conexión al motor real de rutinas.
         path: 'routines',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/routines/routines.module').then(
             (m) => m.RoutinesPageModule
@@ -77,7 +89,7 @@ const routes: Routes = [
         // 'clients/:clientId/tables/:tableId/planner' vs 'clients').
         path: 'routine-templates/:tableId/planner',
         resolve: { table: TableInContextResolver },
-        data: { templateMode: true },
+        data: { templateMode: true, parent: '/tabs/routine-templates' },
         loadChildren: () =>
           import('src/app/features/planner/planner.module').then(
             (m) => m.PlannerPageModule
@@ -85,6 +97,7 @@ const routes: Routes = [
       },
       {
         path: 'routine-templates',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/routine-templates/routine-templates.module').then(
             (m) => m.RoutineTemplatesPageModule
@@ -95,6 +108,7 @@ const routes: Routes = [
         // propia, alcanzable desde la categoría "Ejercicios" en Biblioteca
         // (/tabs/templates), no como destino nuevo del sidebar.
         path: 'exercises',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/exercise-library/exercise-library.module').then(
             (m) => m.ExerciseLibraryPageModule
@@ -116,6 +130,7 @@ const routes: Routes = [
         // sigue sembrando la tabla del cliente antes de activar la ruta.
         path: 'clients/:clientId/tables/:tableId/planner',
         resolve: { table: TableInContextResolver },
+        data: { parent: '/tabs/clients/:clientId' },
         loadChildren: () =>
           import('src/app/features/planner/planner.module').then(
             (m) => m.PlannerPageModule
@@ -129,6 +144,7 @@ const routes: Routes = [
         // Misma posición relativa que 'planner' (más específica antes que
         // 'clients') y mismo resolver, reutilizado tal cual.
         path: 'clients/:clientId/tables/:tableId/statistics',
+        data: { parent: '/tabs/clients/:clientId' },
         resolve: { table: TableInContextResolver },
         loadChildren: () =>
           import('src/app/features/statistics/statistics.module').then(
@@ -144,6 +160,7 @@ const routes: Routes = [
       },
       {
         path: 'invites',
+        data: { parent: '/tabs/clients' },
         loadChildren: () =>
           import('src/app/features/invites/invites.module').then(
             (m) => m.InvitesPageModule
@@ -174,6 +191,7 @@ const routes: Routes = [
       {
         // Replanteamiento MVP (nutrición) — biblioteca de plantillas de dieta.
         path: 'diet-templates',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/diet-templates/diet-templates.module').then(
             (m) => m.DietTemplatesPageModule
@@ -193,6 +211,7 @@ const routes: Routes = [
       {
         // MVP-trainers F02 — paywall/suscripción del profesional.
         path: 'subscription',
+        data: { parent: '/tabs/account' },
         loadChildren: () =>
           import('src/app/features/subscription/subscription.module').then(
             (m) => m.SubscriptionPageModule
@@ -201,6 +220,7 @@ const routes: Routes = [
       {
         // MVP-trainers F17 — plantillas de check-in del profesional.
         path: 'checkin-templates',
+        data: { parent: '/tabs/method' },
         loadChildren: () =>
           import('src/app/features/checkin-templates/checkin-templates.module').then(
             (m) => m.CheckinTemplatesPageModule
@@ -210,6 +230,7 @@ const routes: Routes = [
         // Fase 5 Coach Pro — grupos de intercambio de alimentos (§16).
         // Alcanzable desde Biblioteca: es material para el cliente.
         path: 'food-exchanges',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/food-exchanges/food-exchanges.module').then(
             (m) => m.FoodExchangesPageModule
@@ -220,6 +241,7 @@ const routes: Routes = [
         // Alcanzable desde Mi método (method.page.ts), no como destino propio
         // del sidebar: se define una vez, no es un flujo de trabajo diario.
         path: 'protocols',
+        data: { parent: '/tabs/method' },
         loadChildren: () =>
           import('src/app/features/protocols/protocols.module').then(
             (m) => m.ProtocolsPageModule
@@ -231,6 +253,7 @@ const routes: Routes = [
         // en un panel: es un formulario largo y el botón de volver del móvil
         // debe salir de la regla, no de la sección.
         path: 'automations',
+        data: { parent: '/tabs/method' },
         loadChildren: () =>
           import('src/app/features/automations/automations.module').then(
             (m) => m.AutomationsPageModule
@@ -240,6 +263,7 @@ const routes: Routes = [
         // TAREA5 (auditoría UX, Fase D) — componer una comida y aplicarla
         // de una vez a varios clientes, sin pasar por la ficha de uno solo.
         path: 'meal-compose',
+        data: { parent: '/tabs/templates' },
         loadChildren: () =>
           import('src/app/features/meal-compose/meal-compose.module').then(
             (m) => m.MealComposePageModule

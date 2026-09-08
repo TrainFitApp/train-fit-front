@@ -27,59 +27,7 @@
       </ion-card-header>
 
       <ion-card-content>
-        <div class="calendar-header">
-          <ion-button fill="clear" (click)="changeMonth(-1)">
-            <ion-icon name="chevron-back-outline"></ion-icon>
-          </ion-button>
-          <div class="month-label">{{ monthYearString }}</div>
-          <ion-button fill="clear" (click)="changeMonth(1)">
-            <ion-icon name="chevron-forward-outline"></ion-icon>
-          </ion-button>
-        </div>
-
-        <div class="calendar-grid">
-          <div class="day-header" *ngFor="let d of weekDaysHeader">{{ d }}</div>
-          <div
-            class="day-cell"
-            *ngFor="let day of calendarDays"
-            [class.inactive]="day.inactive"
-            [class.completed]="day.completed"
-          >
-            <span class="day-number">{{ day.day }}</span>
-            <div
-              class="workout-indicators"
-              *ngIf="day.completed && day.workouts"
-            >
-              <div
-                class="workout-dot"
-                *ngFor="let w of day.workouts"
-                [style.background-color]="w.color"
-                [title]="w.name"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="calendar-legend"
-          *ngIf="hasCompletedWorkouts && uniqueWorkoutTypes.length > 0"
-        >
-          <ion-text color="medium">
-            <p class="legend-title">{{ 'TABLES.STATS_TRAINING_TYPES' | translate }}</p>
-          </ion-text>
-          <div class="legend-items">
-            <ion-chip
-              *ngFor="let type of uniqueWorkoutTypes"
-              class="legend-chip"
-            >
-              <div
-                class="workout-dot"
-                [style.background-color]="type.color"
-              ></div>
-              <ion-label>{{ type.name | translateDb }}</ion-label>
-            </ion-chip>
-          </div>
-        </div>
+        <app-routine-calendar></app-routine-calendar>
       </ion-card-content>
     </ion-card>
 

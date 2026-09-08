@@ -18,7 +18,7 @@
                  que puedes hacer con la card es que lo mandó tu profesional. -->
             <ion-icon
               *ngIf="isPautado"
-              name="clipboard"
+              name="clipboard-outline"
               class="pautado-product-icon"
             ></ion-icon>
             <ion-icon
@@ -45,6 +45,15 @@
                 : "-"
             }}
           </span>
+          <!-- Diferencia sobre lo pautado — mismo badge que en la fila de
+               la comida (ver MealComponent), aquí también sin abrir la
+               vista de solo lectura. -->
+          <span
+            class="quantity-delta"
+            *ngIf="isPautado && productAssignedDelta !== 0"
+            [class.quantity-delta--positive]="productAssignedDelta > 0"
+            [class.quantity-delta--negative]="productAssignedDelta < 0"
+          >{{ productAssignedDelta > 0 ? '+' : '' }}{{ productAssignedDelta }}</span>
         </div>
         <span *ngIf="brand" class="product-brand">[{{ brand }}]</span>
       </div>

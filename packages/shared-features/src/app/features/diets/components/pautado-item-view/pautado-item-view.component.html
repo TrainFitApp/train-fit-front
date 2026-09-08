@@ -14,7 +14,11 @@
   </div>
 </ion-header>
 
-<ion-content class="modal-content">
+<ion-content
+  class="modal-content"
+  [class.keypad-open]="numericKeypadService.visible$ | async"
+  (click)="numericKeypadService.hideKeyboardIfInteractingElsewhere($event.target)"
+>
   <!-- Modo lectura salvo por la cantidad: es el único campo editable de
        toda esta vista (ver saveQuantity en pautado-item-view.component.ts). -->
   <h2 class="pautado-view-name">{{ name }}</h2>
@@ -22,17 +26,14 @@
   <div class="quantity-edit-block">
     <span class="quantity-edit-label">{{ 'MEAL.EDIT_CONSUMED_QUANTITY_HEADER' | translate }}</span>
     <div class="quantity-edit-row">
-      <div class="quantity-input-wrap">
-        <ion-input
-          type="number"
-          inputmode="decimal"
-          min="0"
-          [(ngModel)]="editableQuantity"
-          [placeholder]="'MEAL.QUANTITY_PLACEHOLDER' | translate"
-          [disabled]="saving"
-        ></ion-input>
-        <span class="quantity-input-unit">g</span>
-      </div>
+      <app-numeric-input
+        class="quantity-input"
+        [class.quantity-input--saving]="saving"
+        [inputControl]="quantityControl"
+        label=""
+        [placeholder]="'MEAL.QUANTITY_PLACEHOLDER' | translate"
+        [maxLength]="6"
+      ></app-numeric-input>
       <span
         class="quantity-delta"
         *ngIf="delta !== 0"
@@ -114,3 +115,8 @@
     <p class="instructions-text">{{ instructions }}</p>
   </ng-container>
 </ion-content>
+
+<!-- Teclado a medida para la cantidad consumida — el mismo que usa el
+     entrenamiento actual, en vez del teclado nativo (ver
+     NumericKeypadService). -->
+<app-numeric-keypad></app-numeric-keypad>

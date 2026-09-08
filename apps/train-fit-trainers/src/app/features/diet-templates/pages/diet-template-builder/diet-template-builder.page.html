@@ -1,17 +1,5 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="goBack()" aria-label="Volver">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ isCreatingForClient ? 'Crear dieta' : 'Editar plantilla' }}</h1>
-      </div>
-      <div class="tf-page-header__actions"></div>
-    </div>
-  </div>
+  <app-page-header [title]="isCreatingForClient ? 'Crear dieta' : 'Editar plantilla'"></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content">

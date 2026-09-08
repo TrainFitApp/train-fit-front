@@ -21,13 +21,12 @@
     box-shadow: 0 0 0 1px var(--ion-color-alternative);
   }
 
-  // Pautado por el profesional: azul y más redondeado, para que se distinga
-  // de un vistazo del resto de resultados sin tener que leer nada. Va
-  // después de .product-selected a propósito — un pautado SIEMPRE está en la
-  // comida, así que lleva también esa clase y sin este orden ganaría el
-  // naranja de "ya añadido", que aquí no es lo que hay que contar.
+  // Pautado por el profesional: azul (mismo border-radius que el resto), para
+  // que se distinga de un vistazo sin tener que leer nada. Va después de
+  // .product-selected a propósito — un pautado SIEMPRE está en la comida, así
+  // que lleva también esa clase y sin este orden ganaría el naranja de "ya
+  // añadido", que aquí no es lo que hay que contar.
   &.is-pautado {
-    border-radius: 20px;
     border-color: var(--ion-color-alternative);
     background-color: rgba(var(--ion-color-alternative-rgb), 0.08);
     // Es de solo lectura, pero sigue abriendo su ficha nutricional: el
@@ -105,6 +104,28 @@
   color: #888;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+// Delta sobre lo pautado — mismo verde/rojo y mismo criterio que
+// meal.component.scss .quantity-delta, un solo lenguaje de color para
+// "más"/"menos" en toda la sección Diets.
+.quantity-delta {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+  flex-shrink: 0;
+
+  &--positive {
+    color: var(--ion-color-success);
+    background: rgba(var(--ion-color-success-rgb), 0.14);
+  }
+
+  &--negative {
+    color: var(--ion-color-danger);
+    background: rgba(var(--ion-color-danger-rgb), 0.14);
+  }
 }
 
 .product-brand {

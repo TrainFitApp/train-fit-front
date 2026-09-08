@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 
 const NUMERIC_INPUT_SELECTOR = '.numeric-value-input';
@@ -17,7 +18,13 @@ export class NumericKeypadService {
   private readonly visibleSubject = new BehaviorSubject<boolean>(false);
   public readonly visible$ = this.visibleSubject.asObservable();
 
+  // El teclado a medida solo tiene sentido en nativo: en web (navegador de
+  // escritorio o movil) se escribe con el teclado del sistema, asi que el
+  // input deja de ser inputmode="none" y este componente no se muestra.
+  public readonly enabled = Capacitor.isNativePlatform();
+
   public show(): void {
+    if (!this.enabled) return;
     this.visibleSubject.next(true);
   }
 

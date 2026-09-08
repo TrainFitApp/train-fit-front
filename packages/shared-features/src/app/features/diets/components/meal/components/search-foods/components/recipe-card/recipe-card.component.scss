@@ -17,11 +17,10 @@
     }
 
     // Pautada por el profesional — mismo tratamiento que en
-    // product.component.scss: azul, más redondeada, y después de .is-checked
-    // (una pautada siempre está en la comida, así que lleva las dos clases y
-    // el orden decide cuál gana).
+    // product.component.scss: azul, mismo border-radius que el resto, y
+    // después de .is-checked (una pautada siempre está en la comida, así que
+    // lleva las dos clases y el orden decide cuál gana).
     &.is-pautado {
-        border-radius: 20px;
         border-color: var(--ion-color-alternative);
         background-color: rgba(var(--ion-color-alternative-rgb), 0.08);
         cursor: pointer;
@@ -102,6 +101,28 @@
     font-size: 0.85rem;
     white-space: nowrap;
     flex-shrink: 0;
+}
+
+// Delta sobre lo pautado — mismo verde/rojo y mismo criterio que
+// meal.component.scss .quantity-delta, un solo lenguaje de color para
+// "más"/"menos" en toda la sección Diets.
+.quantity-delta {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-left: 4px;
+    flex-shrink: 0;
+
+    &--positive {
+        color: var(--ion-color-success);
+        background: rgba(var(--ion-color-success-rgb), 0.14);
+    }
+
+    &--negative {
+        color: var(--ion-color-danger);
+        background: rgba(var(--ion-color-danger-rgb), 0.14);
+    }
 }
 
 .recipe-ingredients {

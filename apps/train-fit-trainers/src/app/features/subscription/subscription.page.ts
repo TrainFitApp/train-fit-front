@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerBillingApiService } from './services/trainer-billing-api.service';
 import { TrainerEntitlements, TrainerTier } from './models/trainer-entitlements.model';
@@ -52,7 +51,6 @@ export class SubscriptionPage implements OnInit {
   ];
 
   constructor(
-    private router: Router,
     private trainerBillingApi: TrainerBillingApiService,
     private ionicUtilService: IonicUtilService
   ) {}
@@ -76,10 +74,6 @@ export class SubscriptionPage implements OnInit {
         this.state = 'error';
       },
     });
-  }
-
-  public close(): void {
-    void this.router.navigate(['/tabs/profile']);
   }
 
   public isCurrentPlan(tier: TrainerTier): boolean {

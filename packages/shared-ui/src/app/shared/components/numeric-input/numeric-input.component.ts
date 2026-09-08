@@ -57,6 +57,13 @@ export class NumericInputComponent implements OnInit {
 
   constructor(private numericKeypadService: NumericKeypadService) {}
 
+  // 'none' bloquea el teclado del sistema para dejar sitio al teclado a
+  // medida; en web ese teclado no existe, asi que hay que permitir el
+  // nativo (y el fisico) con un inputmode real.
+  public get inputMode(): string {
+    return this.numericKeypadService.enabled ? 'none' : 'decimal';
+  }
+
   ngOnInit(): void {
     if (!this.inputControl) {
       this.inputControl = new FormControl(null);
@@ -73,6 +80,12 @@ export class NumericInputComponent implements OnInit {
 
   public onInputFocus(event: FocusEvent): void {
     this.numericKeypadService.show();
+
+    // Sin teclado a medida no hay nada que tape el set: el navegador ya
+    // desplaza el input enfocado por su cuenta.
+    if (!this.numericKeypadService.enabled) {
+      return;
+    }
 
     const target = event?.target as HTMLElement | null;
     const setContainer =

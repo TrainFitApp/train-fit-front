@@ -2,6 +2,9 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { PendingChangesComponent } from 'src/app/core/guards/pending-changes.guard';
+import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
+import { confirmDiscardChanges } from '../../../../shared/navigation/confirm-discard-changes';
 import { CustomProduct } from 'src/app/core/models/customProduct';
 import { CustomRecipe } from 'src/app/core/models/customRecipe';
 import { CustomProductService } from 'src/app/core/services/custom-product/custom-product.service';
@@ -56,8 +59,12 @@ interface BoardCellRef {
   templateUrl: 'diet-template-builder.page.html',
   styleUrls: ['diet-template-builder.page.scss'],
 })
-export class DietTemplateBuilderPage implements OnInit {
+export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent {
   public state: ViewState = 'loading';
+
+  // Referencia de "lo último guardado" (pendingChangesGuard): el builder no
+  // autoguarda — una dieta a medio componer se pierde entera al salir.
+  private savedSnapshot = '';
   public templateId = '';
   public name = '';
   public days: TemplateDay[] = [];
@@ -117,6 +124,7 @@ export class DietTemplateBuilderPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private navigation: TrainerNavigationService,
     private dietTemplateApi: DietTemplateApiService,
     private planAssignmentApi: PlanAssignmentApiService,
     private ionicUtilService: IonicUtilService,
@@ -179,6 +187,7 @@ export class DietTemplateBuilderPage implements OnInit {
     this.mode = 'sequential';
     this.days = [];
     this.dayPatterns = [];
+    this.savedSnapshot = this.snapshot();
     this.state = 'loaded';
   }
 
@@ -192,6 +201,7 @@ export class DietTemplateBuilderPage implements OnInit {
           return;
         }
         this.applyTemplate(template);
+        this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
       },
       error: () => {
@@ -678,6 +688,7 @@ export class DietTemplateBuilderPage implements OnInit {
     this.dietTemplateApi.update(this.templateId, this.name.trim(), daysToSave, this.mode, dayPatternsToSave).subscribe({
       next: () => {
         this.isSaving = false;
+        this.savedSnapshot = this.snapshot();
         this.ionicUtilService.showToast({ message: 'Plantilla guardada', duration: 2000 });
       },
       error: () => {
@@ -724,6 +735,7 @@ export class DietTemplateBuilderPage implements OnInit {
       .subscribe({
         next: () => {
           this.isSaving = false;
+          this.savedSnapshot = this.snapshot();
           this.ionicUtilService.showToast({
             message: `Dieta creada y aplicada a ${this.clientName} desde el ${fechas.startDate}.`,
             duration: 3000,
@@ -733,6 +745,9 @@ export class DietTemplateBuilderPage implements OnInit {
         error: (err) => {
           this.isSaving = false;
           if (err?.status === 409) {
+            // La dieta SÍ quedó creada (paso 1); solo faltan las fechas. No
+            // hay cambios que perder al salir hacia la ficha del cliente.
+            this.savedSnapshot = this.snapshot();
             this.ionicUtilService.showErrorToast(
               err?.error?.message ||
                 `La dieta quedó guardada como dieta de ${this.clientName}, pero esas fechas se solapan con otra fase. Aplícala desde "Siguiente fase".`,
@@ -747,11 +762,23 @@ export class DietTemplateBuilderPage implements OnInit {
       });
   }
 
+  private snapshot(): string {
+    return JSON.stringify({
+      name: this.name.trim(),
+      mode: this.mode,
+      days: this.days,
+      dayPatterns: this.dayPatterns,
+    });
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.state !== 'loaded' || this.snapshot() === this.savedSnapshot) return true;
+    return confirmDiscardChanges(this.ionicUtilService);
+  }
+
+  // El botón de la cabecera lo resuelve app-page-header; esto lo usa el
+  // estado de error de la plantilla ("Volver").
   public goBack(): void {
-    if (this.isCreatingForClient) {
-      this.router.navigate(['/tabs/clients', this.clientId]);
-      return;
-    }
-    this.router.navigate(['/tabs/diet-templates']);
+    this.navigation.back();
   }
 }

@@ -2380,8 +2380,26 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
         ),
     );
 
+    // Las pautadas por el profesional van SIEMPRE las primeras, por delante
+    // del resto de recetas de la comida.
+    const pautadoRecipeIds = new Set(
+      (this.meal.customRecipes || [])
+        .filter((customRecipe) => !!customRecipe?.assignedByTrainerId)
+        .map((customRecipe) =>
+          typeof customRecipe.recipe === "object"
+            ? customRecipe.recipe?._id
+            : customRecipe.recipe,
+        )
+        .filter((id): id is string => !!id),
+    );
+    const orderedRecipesOnMeal = [...recipesOnMeal].sort(
+      (a, b) =>
+        Number(pautadoRecipeIds.has(b._id)) -
+        Number(pautadoRecipeIds.has(a._id)),
+    );
+
     // Poner las recipes de la meal al inicio
-    this.recipes = [...recipesOnMeal, ...this.recipes];
+    this.recipes = [...orderedRecipesOnMeal, ...this.recipes];
 
     console.log(
       "[setCustomRecipesFirst] ✅ Final recipes count:",
@@ -2853,7 +2871,21 @@ export class SearchFoodsPage implements OnInit, OnDestroy {
       (productTemp) => !productsOnMealIds.has(productTemp._id),
     );
 
-    this.products = [...productsOnMeal, ...this.products];
+    // Los pautados por el profesional van SIEMPRE los primeros de la lista,
+    // por delante del resto de productos de la comida.
+    const pautadoProductIds = new Set(
+      (this.meal.customProducts || [])
+        .filter((customProductTemp) => !!customProductTemp?.assignedByTrainerId)
+        .map((customProductTemp) => customProductTemp.product?._id)
+        .filter((id): id is string => !!id),
+    );
+    const orderedProductsOnMeal = [...productsOnMeal].sort(
+      (a, b) =>
+        Number(pautadoProductIds.has(b._id)) -
+        Number(pautadoProductIds.has(a._id)),
+    );
+
+    this.products = [...orderedProductsOnMeal, ...this.products];
   }
 
   private setSelectedIngredientsFirst(): void {

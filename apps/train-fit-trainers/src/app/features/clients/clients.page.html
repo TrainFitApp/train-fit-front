@@ -1,25 +1,17 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">Clientes</h1>
-      </div>
-      <div class="tf-page-header__actions">
-        <!-- Con texto: un icono de persona con un "+" no dice si añade un
-             cliente, lo invita o abre su agenda. -->
-        <button type="button" class="header-add-btn" (click)="goToInvite()">
-          <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-          Cliente
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-page-header title="Clientes">
+    <ng-container pageActions>
+      <!-- Con texto: un icono de persona con un "+" no dice si añade un
+           cliente, lo invita o abre su agenda. -->
+      <button type="button" class="header-add-btn" (click)="goToInvite()">
+        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+        Cliente
+      </button>
+    </ng-container>
+  </app-page-header>
 </ion-header>
 
-<ion-content class="clients-content">
+<ion-content class="clients-content" appScrollMemory="clients">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>

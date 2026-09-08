@@ -1,20 +1,10 @@
 <ion-header class="ion-no-border">
-  <div class="tf-page-header">
-    <div class="tf-page-header__content">
-      <div class="tf-page-header__back-section">
-        <button type="button" class="tf-page-header__back-button" (click)="close()" [attr.aria-label]="'COMMON.BACK' | translate">
-          <ion-icon name="chevron-back-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__title-section">
-        <button type="button" class="tf-page-header__title routine-title-button" (click)="renameTable()">
-          <span class="routine-title-text">{{ table?.name }}</span>
-          <ion-icon name="pencil-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="tf-page-header__actions"></div>
-    </div>
-  </div>
+  <app-page-header>
+    <button type="button" pageTitle class="tf-page-header__title routine-title-button" (click)="renameTable()">
+      <span class="routine-title-text">{{ table?.name }}</span>
+      <ion-icon name="pencil-outline"></ion-icon>
+    </button>
+  </app-page-header>
 
   <div class="planner-toolbar">
     <div class="planner-toolbar-actions">

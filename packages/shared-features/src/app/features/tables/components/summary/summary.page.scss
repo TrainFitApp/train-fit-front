@@ -743,6 +743,14 @@
       margin: 16px 0;
     }
 
+    // Calendario de rutina embebido: el routine-divider ya da aire por
+    // arriba; abajo necesita su propia separación para no pegarse a los
+    // chips de "Ver mesociclo / Estadísticas".
+    app-routine-calendar {
+      display: block;
+      margin-bottom: 20px;
+    }
+
     // 50/50 bottom cards row
     // Sin margin-bottom propio: en el diseño la separación hasta "Salir" (o
     // la confirmación inline) la pone SU margin-top, no esta fila — con las

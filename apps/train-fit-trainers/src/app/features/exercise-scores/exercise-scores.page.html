@@ -4,19 +4,7 @@
      editor de puntuación. -->
 <ng-container *ngIf="showPicker">
   <ion-header class="ion-no-border">
-    <div class="tf-page-header">
-      <div class="tf-page-header__content">
-        <div class="tf-page-header__back-section">
-          <button type="button" class="tf-page-header__back-button" (click)="closePicker()" aria-label="Volver">
-            <ion-icon name="chevron-back-outline"></ion-icon>
-          </button>
-        </div>
-        <div class="tf-page-header__title-section">
-          <h1 class="tf-page-header__title">Elige un ejercicio</h1>
-        </div>
-        <div class="tf-page-header__actions"></div>
-      </div>
-    </div>
+    <app-page-header title="Elige un ejercicio" (back)="closePicker()"></app-page-header>
   </ion-header>
 
   <app-search-exercises mode="library" (exerciseSelected)="onExerciseSelected($event)"></app-search-exercises>
@@ -24,24 +12,16 @@
 
 <ng-container *ngIf="!showPicker">
   <ion-header class="ion-no-border">
-    <div class="tf-page-header">
-      <div class="tf-page-header__content">
-        <div class="tf-page-header__back-section">
-          <ion-menu-button class="tf-page-header__back-button" aria-label="Abrir menú de navegación"></ion-menu-button>
-        </div>
-        <div class="tf-page-header__title-section">
-          <h1 class="tf-page-header__title">Puntuaciones</h1>
-        </div>
-        <div class="tf-page-header__actions">
-          <button type="button" class="tf-page-header__back-button" (click)="openPicker()" aria-label="Puntuar un ejercicio">
-            <ion-icon name="add-outline"></ion-icon>
-          </button>
-        </div>
-      </div>
-    </div>
+    <app-page-header title="Puntuaciones">
+      <ng-container pageActions>
+        <button type="button" class="tf-page-header__back-button" (click)="openPicker()" aria-label="Puntuar un ejercicio">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </ng-container>
+    </app-page-header>
   </ion-header>
 
-  <ion-content class="scores-content">
+  <ion-content class="scores-content" appScrollMemory="exercise-scores">
     <p class="page-hint">
       Cuánto estimula cada ejercicio a cada músculo y cuánto castiga a cada articulación,
       según tu criterio. El planificador lo suma mientras montas una sesión.

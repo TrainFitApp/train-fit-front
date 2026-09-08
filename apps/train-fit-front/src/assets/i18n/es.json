@@ -553,7 +553,7 @@
     "CONSUMED_UPDATE_ERROR": "No se pudo actualizar",
     "QUANTITY_CONSUMED_LABEL": "Cantidad consumida",
     "QUANTITY_ASSIGNED_HINT": "Pautado: {{quantity}}g",
-    "EDIT_CONSUMED_QUANTITY_HEADER": "Cantidad consumida",
+    "EDIT_CONSUMED_QUANTITY_HEADER": "Cantidad consumida (g)",
     "QUANTITY_PLACEHOLDER": "Gramos",
     "INVALID_QUANTITY": "Introduce una cantidad válida",
     "QUANTITY_UPDATE_ERROR": "No se pudo actualizar la cantidad",
@@ -1112,12 +1112,6 @@
     "SEARCH_ROUTINES": "Buscar Rutinas",
     "CREATE_ROUTINE_BTN": "Crear Rutina",
     "RM_CALCULATOR_BTN": "Calculadora de RM",
-    "SETS_HEATMAP_TITLE": "Actividad de sesiones",
-    "SETS_HEATMAP_AXIS": "SESIONES",
-    "SETS_HEATMAP_LESS": "Menos",
-    "SETS_HEATMAP_MORE": "Más",
-    "SETS_HEATMAP_INFO": "Series completadas",
-    "SETS_HEATMAP_INFO_MSG": "Cada día cuenta el número de series marcadas como completadas ese día, dentro de los microciclos de tu rutina activa.",
     "FILTER_DEFAULT": "Predeterminadas",
     "FILTER_MINE": "Mis rutinas",
     "NO_MATCHES": "No hay coincidencias",
@@ -2090,10 +2084,6 @@
     "MICROCYCLE": {
       "TITLE": "Microciclo",
       "DESCRIPTION": "Es un bloque de días consecutivos (entrenamientos y descansos) que tú mismo defines: no tiene por qué durar una semana, dura lo que tú decidas. Cuando terminas un microciclo, empieza el siguiente y así sucesivamente de manera cíclica."
-    },
-    "SESSION_ACTIVITY": {
-      "TITLE": "Actividad de sesiones",
-      "DESCRIPTION": "La actividad se mide según la cantidad de series completadas en cada sesión."
     },
     "ONE_RM": {
       "TITLE": "1RM (Repetición Máxima)",

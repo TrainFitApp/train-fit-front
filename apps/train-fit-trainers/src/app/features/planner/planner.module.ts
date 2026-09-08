@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { SharedModule } from 'src/app/shared/shared.module';
+import { NavigationModule } from '../../shared/navigation/navigation.module';
 import { WorkoutComponentModule } from 'src/app/features/tables/components/summary/components/mesocycle/components/workout/workout.module';
 import { PlannerPageRoutingModule } from './planner-routing.module';
 import { PlannerPage } from './planner.page';
@@ -12,7 +13,7 @@ import { PlannerInsightsPanelComponent } from './components/planner-insights-pan
 import { CompareSplitsModalComponent } from './components/compare-splits-modal/compare-splits-modal.component';
 
 @NgModule({
-  imports: [SharedModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
+  imports: [SharedModule, NavigationModule, PlannerPageRoutingModule, DragDropModule, WorkoutComponentModule],
   declarations: [
     PlannerPage,
     PlannerColumnComponent,

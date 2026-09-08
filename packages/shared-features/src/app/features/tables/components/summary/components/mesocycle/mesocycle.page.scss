@@ -779,6 +779,25 @@ ion-accordion-group {
   overflow: hidden;
 }
 
+// Parpadeo al llegar desde el calendario de rutina (pulsar un día) — mismo
+// lenguaje visual que highlightNewSet/highlightUpdatedSet del workout, pero
+// a nivel de bloque de entrenamiento y en color primario (es navegación,
+// no una edición). Se quita sola tras 2s (ver flashWorkoutWithRetry).
+@keyframes highlightWorkoutFromCalendar {
+  0% {
+    border-color: rgba(var(--ion-color-primary-rgb), 0.9);
+    box-shadow: 0 0 16px rgba(var(--ion-color-primary-rgb), 0.55);
+  }
+  100% {
+    border-color: #252525;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+ion-accordion-group.highlight-workout {
+  animation: highlightWorkoutFromCalendar 2s ease-in-out forwards;
+}
+
 .t-add-workout {
   --background: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary-shade);

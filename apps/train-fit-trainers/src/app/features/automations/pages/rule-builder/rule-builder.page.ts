@@ -2,7 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { PendingChangesComponent } from 'src/app/core/guards/pending-changes.guard';
+import { confirmDiscardChanges } from '../../../../shared/navigation/confirm-discard-changes';
 import { SelectClientsModalComponent } from 'src/app/features/clients/components/select-clients-modal/select-clients-modal.component';
+import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { CoachRulesApiService } from '../../services/coach-rules-api.service';
 import {
   CoachRule,
@@ -39,7 +42,7 @@ const MAX_ACTIONS = 3;
   templateUrl: 'rule-builder.page.html',
   styleUrls: ['rule-builder.page.scss'],
 })
-export class RuleBuilderPage implements OnInit {
+export class RuleBuilderPage implements OnInit, PendingChangesComponent {
   public readonly levels = RULE_LEVELS;
   public readonly triggers = RULE_TRIGGERS;
   public readonly groupLabels = RULE_GROUP_LABELS;
@@ -68,12 +71,17 @@ export class RuleBuilderPage implements OnInit {
   // plantilla (que se evalúa en cada ciclo de detección de cambios).
   private metricsByKey = new Map<string, RuleMetric>();
 
+  // Referencia de "lo último guardado" para pendingChangesGuard: esta pantalla
+  // no autoguarda, así que salir sin guardar pierde la regla entera.
+  private savedSnapshot = '';
+
   constructor(
     private coachRulesApi: CoachRulesApiService,
     private ionicUtilService: IonicUtilService,
     private modalController: ModalController,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private navigation: TrainerNavigationService
   ) {}
 
   public ngOnInit(): void {
@@ -91,6 +99,7 @@ export class RuleBuilderPage implements OnInit {
         this.metricsByKey = new Map(catalog.metrics.map((m) => [m.key, m]));
         if (this.isNew) {
           this.seedNewRule();
+          this.savedSnapshot = this.snapshot();
           this.state = 'loaded';
         } else {
           this.loadExistingRule();
@@ -119,6 +128,7 @@ export class RuleBuilderPage implements OnInit {
           return;
         }
         this.applyRule(rule);
+        this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
       },
       error: () => {
@@ -275,16 +285,8 @@ export class RuleBuilderPage implements OnInit {
     return null;
   }
 
-  public save(): void {
-    const error = this.validationError;
-    if (error) {
-      void this.ionicUtilService.showWarningToast(error);
-      return;
-    }
-    if (this.isSaving) return;
-    this.isSaving = true;
-
-    const payload: Partial<CoachRule> = {
+  private buildPayload(): Partial<CoachRule> {
+    return {
       name: this.name.trim(),
       description: this.description.trim(),
       level: this.level,
@@ -296,6 +298,27 @@ export class RuleBuilderPage implements OnInit {
       clientIds: this.appliesTo === 'selected' ? this.clientIds : [],
       enabled: true,
     };
+  }
+
+  private snapshot(): string {
+    return JSON.stringify(this.buildPayload());
+  }
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.state !== 'loaded' || this.snapshot() === this.savedSnapshot) return true;
+    return confirmDiscardChanges(this.ionicUtilService);
+  }
+
+  public save(): void {
+    const error = this.validationError;
+    if (error) {
+      void this.ionicUtilService.showWarningToast(error);
+      return;
+    }
+    if (this.isSaving) return;
+    this.isSaving = true;
+
+    const payload = this.buildPayload();
 
     const request$ = this.isNew
       ? this.coachRulesApi.create(payload)
@@ -304,6 +327,8 @@ export class RuleBuilderPage implements OnInit {
     request$.subscribe({
       next: () => {
         this.isSaving = false;
+        // Guardado: ya no hay cambios pendientes que confirmar al salir.
+        this.savedSnapshot = JSON.stringify(payload);
         void this.router.navigate(['/tabs/automations']);
       },
       error: (error) => {
@@ -313,8 +338,10 @@ export class RuleBuilderPage implements OnInit {
     });
   }
 
+  // El botón de la cabecera lo resuelve app-page-header; esto lo usa el
+  // estado de error de la plantilla ("Volver").
   public goBack(): void {
-    void this.router.navigate(['/tabs/automations']);
+    this.navigation.back();
   }
 
   public trackByIndex(index: number): number {
