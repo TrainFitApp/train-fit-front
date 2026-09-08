@@ -88,9 +88,14 @@ export class DietTemplateBuilderPage implements OnInit {
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
   // cuanto la navegación termina, y ngOnInit ya corre después) — mismo
   // motivo por el que Angular documenta leerlo aquí y no más abajo.
-  private readonly navigationState = (this.routerNavigationState() || {}) as Partial<ForClientNavigationState> & {
-    clientName?: string;
-  };
+  //
+  // Se asigna en el CUERPO del constructor, no como inicializador de campo:
+  // con target es2022, los inicializadores de campo corren antes que las
+  // parameter properties (this.router = router), así que un inicializador
+  // aquí arriba llamaría a this.router.getCurrentNavigation() con
+  // this.router todavía undefined. Bug real, no de este cambio — ya venía
+  // así desde que se añadió este campo.
+  private readonly navigationState: Partial<ForClientNavigationState> & { clientName?: string };
 
   constructor(
     private route: ActivatedRoute,
@@ -99,7 +104,11 @@ export class DietTemplateBuilderPage implements OnInit {
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService
-  ) {}
+  ) {
+    this.navigationState = (this.routerNavigationState() || {}) as Partial<ForClientNavigationState> & {
+      clientName?: string;
+    };
+  }
 
   private routerNavigationState(): unknown {
     return this.router.getCurrentNavigation()?.extras?.state ?? history.state;
