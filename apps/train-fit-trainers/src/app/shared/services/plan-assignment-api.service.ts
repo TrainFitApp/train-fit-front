@@ -22,6 +22,13 @@ export interface CreateDirectPlanRequest {
   fixedEndDate?: string;
   durationValue?: number;
   durationUnit?: DurationUnit;
+  phase?: {
+    name: string;
+    focus: 'cut' | 'maintain' | 'bulk' | null;
+    targetKcalDelta: number;
+    ratePerCycle: number;
+  };
+  cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
 }
 
 @Injectable({ providedIn: 'root' })

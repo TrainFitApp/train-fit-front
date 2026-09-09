@@ -35,6 +35,13 @@ export interface PlanAssignment {
   // B cubre X/D" en vez de una única lista mezclada. null para
   // sequential/choice.
   recurringPatterns?: { name: string; appliesTo: number[] }[] | null;
+  // Sugerencias de dieta — la fase a la que pertenece este ciclo. `phaseId`
+  // apunta al primer ciclo de la fase; phaseName/phaseFocus solo vienen
+  // rellenos en ese primer ciclo.
+  phaseId?: string | null;
+  phaseName?: string | null;
+  phaseFocus?: 'cut' | 'maintain' | 'bulk' | null;
+  cycleTargetKcal?: number | null;
 }
 
 export interface ApplyPlanRequest {
@@ -43,6 +50,17 @@ export interface ApplyPlanRequest {
   fixedEndDate?: string;
   durationValue?: number;
   durationUnit?: DurationUnit;
+  // Sugerencias de dieta — presentes solo cuando se EMPIEZA una fase desde el
+  // cajón (Hipertrofia / Minicut / ...). Sin ellos, aplicar un plan se
+  // comporta como siempre. Tipos en
+  // features/diet-templates/models/diet-suggestion.model.ts.
+  phase?: {
+    name: string;
+    focus: 'cut' | 'maintain' | 'bulk' | null;
+    targetKcalDelta: number;
+    ratePerCycle: number;
+  };
+  cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
 }
 
 // TASK-045 (MASTER_BACKLOG.md) — excepción puntual sobre una fecha exacta

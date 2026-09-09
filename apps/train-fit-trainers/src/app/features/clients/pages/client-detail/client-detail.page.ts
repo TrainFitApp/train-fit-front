@@ -60,6 +60,7 @@ import { TrainingFilterPanelComponent, TrainingFilterResult } from './components
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
+import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
@@ -1973,15 +1974,39 @@ export class ClientDetailPage implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
+  // Sugerencias de dieta — "empezar fase" abre el cajón de sugerencias
+  // (filtros autorrellenados + plantillas rankeadas por cercanía al objetivo
+  // del cliente). El cajón aplica la fase él mismo. El modal antiguo
+  // (ApplyDietTemplateModalComponent) sigue disponible desde "Aplicar
+  // plantilla concreta".
   public async openApplyTemplateModal(): Promise<void> {
-    // La última fase de la secuencia es contra la que se encadena, no la
-    // vigente: si ya hay dos programadas, la nueva va DETRÁS de la última.
+    const ultima = this.planPhases[this.planPhases.length - 1] || null;
+    const finAnterior = ultima?.endDate || null;
+
+    const modal = await this.modalController.create({
+      component: DietSuggestionDrawerComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.name,
+        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+      },
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    void this.loadActivePlan();
+    this.loadNutrition();
+  }
+
+  // Aplicar UNA plantilla concreta sin pasar por el ranking (flujo antiguo).
+  public async openApplyExactTemplateModal(): Promise<void> {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
     const finAnterior = ultima?.endDate || null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
-      // Panel derecho, como el resto de formularios largos de la app.
       cssClass: 'tf-panel-modal',
       componentProps: {
         clientId: this.clientId,

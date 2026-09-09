@@ -133,4 +133,11 @@ export interface DietTemplate {
   days: DietTemplateDayPayload[];
   dayPatterns: DietTemplateDayPatternPayload[];
   createdAt: string;
+  // Sugerencias de dieta — aptitud dietética DERIVADA del contenido
+  // (vegana / sin gluten / ...). `suitableFor` lo calcula el backend en cada
+  // guardado; `suitableForOverride` son las que el entrenador fuerza a mano.
+  suitableFor?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
+  suitableForOverride?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
+  // true = dieta predefinida de administración (sale en el ranking de todos).
+  verified?: boolean;
 }

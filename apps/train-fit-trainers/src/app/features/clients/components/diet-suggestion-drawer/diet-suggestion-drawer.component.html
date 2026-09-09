@@ -1,0 +1,156 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Empezar fase de nutrición</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="drawer-content">
+  <!-- Guard: sin biométricos no hay objetivo -->
+  <div class="guard-box" *ngIf="state === 'missing-biometrics'">
+    <ion-icon name="body-outline"></ion-icon>
+    <h2>Faltan datos de {{ clientName }}</h2>
+    <p>
+      Para calcular su objetivo hace falta:
+      <strong>{{ missing.join(', ') }}</strong>.
+    </p>
+    <p class="muted">Pídele una antropometría (o que responda un check-in con peso) y vuelve aquí.</p>
+    <ion-button expand="block" fill="outline" (click)="dismiss()">Entendido</ion-button>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudieron cargar las sugerencias.</p>
+    <ion-button size="small" fill="outline" (click)="queueRefetch()">Reintentar</ion-button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready' || (state === 'loading' && data)">
+    <!-- ===== Filtros ===== -->
+    <section class="filters">
+      <label class="field-label">¿Qué quieres hacer?</label>
+      <div class="focus-buttons">
+        <button type="button" [class.is-active]="focus === 'cut'" (click)="setFocus('cut')">Definir</button>
+        <button type="button" [class.is-active]="focus === 'maintain'" (click)="setFocus('maintain')">Mantener</button>
+        <button type="button" [class.is-active]="focus === 'bulk'" (click)="setFocus('bulk')">Volumen</button>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Nombre de la fase</label>
+          <input type="text" [(ngModel)]="phaseName" (ngModelChange)="queueRefetch()" />
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Ajuste de kcal</label>
+          <input type="number" step="50" [(ngModel)]="kcalDelta" (ngModelChange)="queueRefetch()" />
+        </div>
+        <div class="field">
+          <label class="field-label">Ritmo por ciclo</label>
+          <input type="number" step="50" [(ngModel)]="ratePerCycle" />
+        </div>
+      </div>
+
+      <label class="field-label">Restricciones</label>
+      <div class="flag-chips">
+        <button
+          type="button"
+          *ngFor="let opt of dietaryFlagOptions"
+          [class.is-active]="dietaryFlags.has(opt.key)"
+          (click)="toggleFlag(opt.key)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== Objetivo calculado ===== -->
+    <section class="target-card" *ngIf="data as d">
+      <div class="target-head">
+        <span class="target-kcal">{{ d.target.kcal }} kcal</span>
+        <span class="target-macros">
+          P {{ d.target.protein }} g · C {{ d.target.carbs }} g · G {{ d.target.fat }} g
+        </span>
+      </div>
+      <p class="target-source">
+        Peso {{ d.weightSource.weightKg }} kg — tomado de la antropometría del {{ d.weightSource.date }}
+      </p>
+    </section>
+
+    <!-- ===== Ranking ===== -->
+    <section class="ranking" *ngIf="data as d">
+      <p class="empty-hint" *ngIf="!d.ranked.length">
+        No hay plantillas que encajen. Crea dietas base desde "Plantillas de dieta".
+      </p>
+
+      <button
+        type="button"
+        class="suggestion-card"
+        *ngFor="let t of d.ranked"
+        [class.is-podium]="t.rank <= 3"
+        [class.is-first]="t.rank === 1"
+        [class.is-selected]="selectedTemplateId === t._id"
+        (click)="select(t)"
+      >
+        <div class="card-top">
+          <span class="medal" *ngIf="medal(t.rank)">{{ medal(t.rank) }}</span>
+          <span class="card-name">{{ t.name }}</span>
+          <span class="verified-tag" *ngIf="t.verified">de fábrica</span>
+        </div>
+        <p class="card-lead" *ngIf="t.rank === 1">La más adecuada para {{ focusVerb() }} a {{ clientName }}</p>
+        <div class="card-macros">
+          <span>{{ t.profile.kcal }} kcal <em>({{ deltaLabel(t.deltas.kcal) }})</em></span>
+          <span>P {{ t.profile.protein }} <em>({{ deltaLabel(t.deltas.protein) }})</em></span>
+          <span>C {{ t.profile.carbs }} <em>({{ deltaLabel(t.deltas.carbs) }})</em></span>
+          <span>G {{ t.profile.fat }} <em>({{ deltaLabel(t.deltas.fat) }})</em></span>
+        </div>
+        <p class="card-note" *ngIf="t.basedOnDays > 1">media de los {{ t.basedOnDays }} días del ciclo</p>
+        <div class="card-flags" *ngIf="t.effectiveSuitableFor?.length">
+          <span *ngFor="let f of t.effectiveSuitableFor">{{ flagLabel(f) }}</span>
+        </div>
+      </button>
+
+      <!-- Ocultas por el filtro dietético -->
+      <div class="hidden-block" *ngIf="d.hidden.length">
+        <button type="button" class="hidden-toggle" (click)="showHidden = !showHidden">
+          {{ showHidden ? 'Ocultar' : (d.hidden.length + ' dietas ocultas por las restricciones') }}
+        </button>
+        <ul *ngIf="showHidden">
+          <li *ngFor="let h of d.hidden">
+            {{ h.name }} <em>— no marcada como {{ h.missingFlags.join(', ') }}</em>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== Confirmar ===== -->
+    <section class="confirm-box" *ngIf="selectedTemplateId">
+      <label class="field-label">Fecha de inicio</label>
+      <input type="date" [(ngModel)]="startDate" />
+      <p class="muted">La fase queda abierta; cada ciclo la va ajustando según los check-ins.</p>
+    </section>
+  </ng-container>
+
+  <div class="detail-skeleton" *ngIf="state === 'loading' && !data">
+    <div class="skeleton-block" style="height: 120px"></div>
+    <div class="skeleton-block" style="height: 80px"></div>
+    <div class="skeleton-block" style="height: 80px"></div>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state === 'ready'">
+  <div class="footer-actions">
+    <ion-button expand="block" [disabled]="!canConfirm" (click)="confirm()">
+      {{ applying ? 'Aplicando…' : 'Empezar fase con esta dieta' }}
+    </ion-button>
+  </div>
+</ion-footer>
