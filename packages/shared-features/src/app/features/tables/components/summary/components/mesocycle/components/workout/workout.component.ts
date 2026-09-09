@@ -48,6 +48,10 @@ import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import { WorkoutTemplateApiService } from "src/app/core/services/workout-template/workout-template-api.service";
 import { RestTimerService } from "src/app/core/services/rest-timer/rest-timer.service";
 import { ConfigExercisePage } from "src/app/features/exercises/components/config-exercise/config-exercise.page";
+import {
+  SessionCheckinModalComponent,
+  SessionCheckinResult,
+} from "src/app/features/tables/components/summary/components/current-workout/session-checkin-modal/session-checkin-modal.component";
 import { SearchExercisesPage } from "src/app/shared/components/search-exercises/search-exercises.page";
 import { ActionsSheetComponent } from "src/app/shared/components/actions-sheet/actions-sheet.component";
 import {
@@ -2322,20 +2326,45 @@ export class WorkoutComponent implements OnDestroy {
     );
 
     if (!dangling) {
-      this.proceedStartWorkoutAndNavigate();
+      this.promptReadinessThenStart();
       return;
     }
 
     if (!this.workoutService.hasProgress(dangling)) {
       this.stopDanglingWorkout(dangling, () =>
-        this.proceedStartWorkoutAndNavigate(),
+        this.promptReadinessThenStart(),
       );
       return;
     }
 
     this.showResolveDanglingWorkoutAlert(dangling, () =>
-      this.proceedStartWorkoutAndNavigate(),
+      this.promptReadinessThenStart(),
     );
+  }
+
+  // Mismo check-in que current-workout.page.ts#promptReadinessThenStart —
+  // faltaba aquí porque este flujo (Mesociclo) es una copia paralela de
+  // startWorkoutFlow/proceedStartWorkoutFlow que nunca llegó a incorporarlo.
+  // Opcional y saltable, igual que allí: no bloquea nunca el inicio.
+  private async promptReadinessThenStart(): Promise<void> {
+    const dismissed = await this.ionicUtilService.showModal({
+      component: SessionCheckinModalComponent,
+      componentProps: {
+        readiness: this.workout.readinessPre ?? null,
+        soreness: this.workout.sorenessPre || [],
+      },
+    });
+
+    const result = (dismissed?.data as SessionCheckinResult) || null;
+
+    // null = saltó o cerró el modal. No se toca nada: lo que hubiera
+    // guardado de un intento anterior se queda como estaba.
+    if (result) {
+      this.workout.readinessPre = result.readiness;
+      this.workout.sorenessPre = result.soreness;
+    }
+
+    this.proceedStartWorkoutAndNavigate();
   }
 
   // Además de limpiar el startedAt en backend, hay que mutar el objeto local:

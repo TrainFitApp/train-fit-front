@@ -6,6 +6,7 @@
 }
 
 .planner-column {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -14,7 +15,8 @@
   border: 1px solid var(--tf-border);
   overflow: hidden;
   transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
-    box-shadow var(--tf-duration-fast) var(--tf-ease-out);
+    box-shadow var(--tf-duration-fast) var(--tf-ease-out),
+    outline-color var(--tf-duration-fast) var(--tf-ease-out);
 
   &--selected {
     border-color: var(--tf-accent);
@@ -48,6 +50,42 @@
   &--completed#{&}--selected {
     border-color: var(--tf-accent);
   }
+
+  // "Alinear filas" (2026-09) — outline en vez de border-color a propósito:
+  // seleccionado/completado ya se disputan border-color entre ellos (ver
+  // combo de arriba), y "alinear filas" es un estado GLOBAL del tablero
+  // (todas las columnas a la vez, ver rowSync.compareAllMode), no del
+  // microciclo — necesita su propia capa que conviva con cualquier
+  // combinación de los otros dos sin pisarlos.
+  &--row-sync {
+    outline: 2px solid var(--tf-secondary);
+    outline-offset: 2px;
+  }
+}
+
+// Reordenar microciclos (2026-09) — insignia flotante en la esquina, mismo
+// criterio que "Alinear filas": visible SOLO con el modo activo. Naranja
+// (--tf-accent-text) para que se lea como la MISMA señal que el botón
+// activo de la toolbar (toolbar-btn--active ya usa acento ahí), distinto del
+// dorado de "Alinear filas" — cada modo con su propio color.
+// pointer-events: none — es decorativo, no debe robarle el gesto de
+// arrastre a la columna que tiene debajo.
+.planner-column-drag-handle {
+  position: absolute;
+  top: var(--tf-space-2);
+  right: var(--tf-space-2);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  border: 1px solid var(--tf-accent-soft-border);
+  color: var(--tf-accent-text);
+  font-size: 16px;
+  pointer-events: none;
 }
 
 .planner-column-header {

@@ -1243,6 +1243,10 @@
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUAR SIN SALTAR",
     "SKIPPED_DAY_LABEL": "Saltado",
     "PLANNED_REST_DAY_LABEL": "Descanso planificado",
+    "ADD_REST_DAY": "Día de descanso",
+    "REST_DAY_DEFAULT_NAME": "Descanso",
+    "REST_DAY_ADDED": "Día de descanso añadido",
+    "REST_DAY_ADD_ERROR": "No se pudo añadir el día de descanso",
     "DELETE_EXERCISE": "Eliminar ejercicio",
     "DELETE_EXERCISE_CONFIRM": "¿Estás seguro de que quieres eliminar {{name}}? Esto lo eliminará también de todos los micro-ciclos.",
     "CREATE_ROUTINE_MSG_MESO": "Introduce el nombre de la rutina",
@@ -1431,6 +1435,9 @@
     "STATS_FAILURE": "FALLO",
     "STATS_DROP": "Drop {{n}}",
     "STATS_RP": "RP {{n}}",
+    "STATS_CUSTOM_RANGE": "Rango",
+    "STATS_RANGE_PICKING": "Toca inicio y fin",
+    "STATS_CLEAR_RANGE": "Quitar rango",
     "STATS_SELECT_ROUTINE_EXERCISE": "Selecciona Rutina y Ejercicio",
     "STATS_SELECT_HINT": "Para ver estadísticas detalladas de tu progreso.",
     "STATS_NO_DATA": "Sin Datos",
@@ -2096,6 +2103,18 @@
     "EFFECTIVE_VOLUME": {
       "TITLE": "Volumen efectivo",
       "DESCRIPTION": "Suma de peso por repeticiones de cada serie, pero dando más peso a las series hechas cerca del fallo (RIR bajo) que a las más alejadas. Así refleja mejor el estímulo real de entrenamiento que el volumen total. Comparado entre los dos microciclos seleccionados: la flecha y el color indican si subió o bajó, y el porcentaje indica cuánto cambió."
+    },
+    "TOTAL_VOLUME": {
+      "TITLE": "Volumen real",
+      "DESCRIPTION": "Peso por repeticiones sumado de todas las series de este ejercicio, sin ponderar por lo cerca que estuvieras del fallo — a diferencia del volumen efectivo, aquí una serie floja cuenta igual que una al límite. Útil para ver cuánto peso total moviste en total."
+    },
+    "DROP_SET": {
+      "TITLE": "Drop set (DS)",
+      "DESCRIPTION": "Al llegar al fallo (o cerca) bajas el peso sin descansar y sigues haciendo repeticiones. Cada bajada de peso dentro de la misma serie es un \"drop\" — se numeran (Drop 1, Drop 2...) debajo de la serie principal."
+    },
+    "REST_PAUSE": {
+      "TITLE": "Rest-pause (RP)",
+      "DESCRIPTION": "Al llegar al fallo (o cerca) descansas unos segundos con el mismo peso y haces unas pocas repeticiones más, repitiendo varias veces. Cada bloque de repeticiones tras la pausa se numera (RP 1, RP 2...) debajo de la serie principal."
     },
     "SETS_COMPARISON": {
       "TITLE": "Series",

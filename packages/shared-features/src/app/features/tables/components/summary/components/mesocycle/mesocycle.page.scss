@@ -798,22 +798,59 @@ ion-accordion-group.highlight-workout {
   animation: highlightWorkoutFromCalendar 2s ease-in-out forwards;
 }
 
+// "Crear entrenamiento" + "Día de descanso" en fila (2026-09) — mismas dos
+// formas de añadir una fila al microciclo, ya no principal/secundaria
+// apiladas. flex:1 a partes iguales; min-width:0 es lo que permite que el
+// texto de dentro pueda envolver a 2 líneas en pantallas estrechas en vez de
+// forzar el ancho del botón o desbordar.
+.add-row-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin: 16px;
+
+  ion-button {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0;
+  }
+}
+
 .t-add-workout {
   --background: var(--ion-color-primary);
   --background-activated: var(--ion-color-primary-shade);
   --color: white;
   --border-radius: 16px;
   border-radius: 16px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
-  font-size: 1rem;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  margin: 16px;
+  letter-spacing: 0.3px;
+
+  strong {
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
+
+// Día de descanso — outline en vez de solido: sigue siendo la acción
+// secundaria a "Crear entrenamiento" aunque ahora compartan fila; el peso
+// visual lo marca el relleno, no el orden.
+.t-add-rest-day {
+  --color: var(--ion-color-medium);
+  --border-color: var(--ion-color-step-300, #4d4d4d);
+  --border-width: 1px;
+  --border-radius: 16px;
+  border-radius: 16px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: normal;
 
   ion-icon {
-    font-size: 1.2rem;
-    margin-right: 8px;
+    font-size: 1.05rem;
   }
 }
 

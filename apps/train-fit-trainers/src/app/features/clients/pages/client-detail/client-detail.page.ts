@@ -582,7 +582,10 @@ export class ClientDetailPage implements OnInit {
 
   public get visibleSections(): ClientDetailSectionDef[] {
     // Una sección cuyas subpestañas dependan todas de un scope que este
-    // cliente no tiene no llega a mostrarse (hoy solo puede pasarle a Plan).
+    // cliente no tiene no llega a mostrarse. Plan ya no puede vaciarse así
+    // desde que Hábitos vive ahí (sin requiresScope, siempre visible) —
+    // el caso real hoy es Progreso con un cliente sin scope de entrenamiento
+    // (pierde "Sesiones", pero conserva Medidas/Check-ins/Dolor).
     return this.sections.filter((section) => this.visibleTabsOf(section).length > 0);
   }
 
@@ -780,9 +783,28 @@ export class ClientDetailPage implements OnInit {
   }
 
   public onTrainingRangeSelected(range: { start: string; end: string }): void {
+    this.trainingSelectedDay = null;
     this.trainingComparisonRange = range;
     this.loadTrainingBlocks();
     this.loadTrainingSchedule(range);
+  }
+
+  // 2026-09 (día suelto) — alternativa a la comparativa por rango: el
+  // entrenador toca un día en <app-training-calendar> (fuera del modo
+  // rango) y ve la ficha de ESE día en vez del gráfico. Sale de
+  // completedWorkouts/projectedTrainingDays, ya cargados — sin llamada
+  // nueva (ver <app-training-day-detail>).
+  public trainingSelectedDay: string | null = null;
+
+  public get trainingSelectedDayWorkouts(): CompletedWorkoutEntry[] {
+    if (!this.trainingSelectedDay) return [];
+    return this.completedWorkouts.filter(
+      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === this.trainingSelectedDay
+    );
+  }
+
+  public onTrainingDaySelected(date: string): void {
+    this.trainingSelectedDay = date;
   }
 
   public loadTrainingBlocks(): void {

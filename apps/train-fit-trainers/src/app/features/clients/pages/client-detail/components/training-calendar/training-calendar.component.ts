@@ -121,12 +121,20 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
 
   @Output() rangeSelected = new EventEmitter<{ start: string; end: string }>();
 
+  // 2026-09 (día suelto) — antes CADA clic pasaba por handleRangeClick (un
+  // rango de 2 toques, nunca un solo día). El entrenador quiere elegir UN
+  // día tan fácil como un rango: por defecto un toque selecciona ese día al
+  // momento; este toggle es el único que arma el flujo de 2 toques de
+  // siempre, sin cambiar cómo funciona ese flujo.
+  @Output() daySelected = new EventEmitter<string>();
+
   public readonly weekdayLabels = WEEKDAY_LABELS;
   public readonly rangePresets = RANGE_PRESETS;
   public monthDate = new Date();
   public cells: TrainingCalendarCell[] = [];
   public readonly todayIso = todayIso();
 
+  public isRangeMode = false;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
   public activePreset: number | null = 90;
@@ -266,9 +274,34 @@ export class TrainingCalendarComponent implements OnChanges, OnInit {
     this.rangeSelected.emit({ start, end });
   }
 
+  // Despacha el tap de una celda: en modo rango arma/cierra el rango de 2
+  // toques de siempre; si no (por defecto), selecciona ese día al momento.
   public selectDay(cell: TrainingCalendarCell): void {
     if (!cell.date) return;
-    this.handleRangeClick(cell.date);
+    if (this.isRangeMode) {
+      this.handleRangeClick(cell.date);
+      return;
+    }
+    this.selectSingleDay(cell.date);
+  }
+
+  // Arma/desarma el modo de rango a mano (clic-clic). Salir a medio
+  // seleccionar (ya se pulsó el inicio, falta el fin) abandona esa
+  // selección a medias sin tocar el último día/rango ya confirmado.
+  public toggleRangeMode(): void {
+    this.isRangeMode = !this.isRangeMode;
+    this.hoverDate = null;
+    if (!this.isRangeMode && this.rangeStart && !this.rangeEnd) {
+      this.rangeStart = null;
+    }
+  }
+
+  private selectSingleDay(date: string): void {
+    this.rangeStart = date;
+    this.rangeEnd = date;
+    this.activePreset = null;
+    this.hoverDate = null;
+    this.daySelected.emit(date);
   }
 
   private handleRangeClick(date: string): void {

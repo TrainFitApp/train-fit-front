@@ -53,6 +53,60 @@
   }
 }
 
+// Presets + rango a mano — mismo lenguaje visual que el resto del
+// calendario (--orange como acento, --medium-gray de borde), oculto salvo
+// que el host active enableRangeSelector.
+.range-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.preset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--medium-gray);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &.is-active {
+    background: rgba(254, 144, 0, 0.16);
+    border-color: var(--orange, #fe9000);
+    color: var(--orange, #fe9000);
+  }
+}
+
+.range-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--orange, #fe9000);
+  font-variant-numeric: tabular-nums;
+}
+
+.clear-range-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -132,12 +186,27 @@
   }
 
   // Día con sesión: pulsable, navega a Mesociclo y resalta ese workout.
+  // En modo rango, "pulsable" pasa a significar "puedes marcarlo como
+  // inicio/fin" en vez de "abre Mesociclo" — ver onCellClick().
   &.clickable {
     cursor: pointer;
 
     &:active {
       background: rgba(255, 255, 255, 0.12);
     }
+  }
+
+  // Rango en curso o ya confirmado — capa independiente de .completed, para
+  // que un día completado dentro del rango siga leyéndose como completado.
+  &.is-in-range {
+    box-shadow: inset 0 0 0 1px rgba(254, 144, 0, 0.35);
+    background: rgba(254, 144, 0, 0.1);
+  }
+
+  &.is-range-endpoint {
+    background: var(--orange, #fe9000);
+    color: #1a1a1a;
+    font-weight: 700;
   }
 
   .day-number {

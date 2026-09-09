@@ -302,14 +302,39 @@
         </ion-accordion-group>
       </ng-container>
 
-      <ion-button
+      <!-- 2026-09 — "Crear entrenamiento" y "Día de descanso" en la misma
+           fila: son las dos formas de añadir una fila al microciclo, ya no
+           una principal y una secundaria apiladas debajo. flex:1 a partes
+           iguales + min-width:0 para que el texto envuelva a 2 líneas en vez
+           de desbordar en pantallas estrechas (ver .t-add-workout/.t-add-rest-day). -->
+      <div
+        class="add-row-actions"
         *ngIf="!loadingSplit && !exercisePasteMode && !exerciseCopyActive && stateSelected === STATES.static && !isReadonly"
-        expand="block"
-        shape="round"
-        class="ion-margin t-add-workout"
-        (click)="addWorkout()"
-        ><strong>{{ 'TABLES.CREATE_WORKOUT' | translate }}</strong>
-      </ion-button>
+      >
+        <ion-button
+          expand="block"
+          shape="round"
+          class="t-add-workout"
+          (click)="addWorkout()"
+          ><strong>{{ 'TABLES.CREATE_WORKOUT' | translate }}</strong>
+        </ion-button>
+
+        <!-- El cliente ahora puede crearse un día de descanso él mismo,
+             mismo criterio que ya usa train-fit-trainers para el
+             entrenador (planner-column#chooseRestDayCard): sin prompt de
+             nombre, un clic basta. -->
+        <ion-button
+          expand="block"
+          shape="round"
+          fill="outline"
+          [disabled]="loadingFab"
+          class="t-add-rest-day"
+          (click)="addRestDay()"
+        >
+          <ion-icon name="moon-outline" slot="start"></ion-icon>
+          {{ 'TABLES.ADD_REST_DAY' | translate }}
+        </ion-button>
+      </div>
 
       <section
         class="workout-template-panel"

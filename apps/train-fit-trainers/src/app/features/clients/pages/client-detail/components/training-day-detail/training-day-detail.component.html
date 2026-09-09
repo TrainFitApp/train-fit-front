@@ -1,0 +1,54 @@
+<div class="day-detail">
+  <div class="day-detail__header">
+    <span class="day-detail__date">{{ date | date: 'EEEE d MMM y' }}</span>
+    <button type="button" class="day-detail__close" (click)="close.emit()" aria-label="Volver a la comparativa">
+      <ion-icon name="close-outline"></ion-icon>
+      Volver
+    </button>
+  </div>
+
+  <ng-container *ngIf="summaries.length; else emptyState">
+    <div class="day-detail__card" *ngFor="let s of summaries">
+      <div class="day-detail__card-header">
+        <span class="list-card-title">{{ s.workout.name }}</span>
+        <span
+          class="day-detail__completion"
+          *ngIf="s.completionPercentage !== null"
+          [class.is-full]="s.completionPercentage >= 100"
+        >
+          {{ s.completionPercentage }}%
+        </span>
+      </div>
+      <p class="history-subtitle" *ngIf="s.splitLabel">{{ s.splitLabel }}</p>
+
+      <div class="day-detail__stat-row">
+        <span class="day-detail__stat">
+          <ion-icon name="barbell-outline"></ion-icon>
+          {{ s.volume | number: '1.0-0' }} kg
+        </span>
+      </div>
+
+      <div class="history-meta" *ngIf="s.workout.readinessPre || s.workout.perceivedEffortPost || s.sorenessText">
+        <span class="pulse-badge" *ngIf="s.workout.readinessPre">Readiness {{ s.workout.readinessPre }}/5</span>
+        <span class="pulse-badge" *ngIf="s.workout.perceivedEffortPost">Esfuerzo {{ s.workout.perceivedEffortPost }}/5</span>
+        <span class="pulse-badge" *ngIf="s.sorenessText">Agujetas al llegar: {{ s.sorenessText }}</span>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="day-detail__empty" *ngIf="projectedDay as p; else noPlan">
+      <ion-icon [name]="p.isPlannedRestDay ? 'moon-outline' : 'time-outline'"></ion-icon>
+      <p *ngIf="p.isPlannedRestDay">Descanso previsto — sin sesión este día.</p>
+      <p *ngIf="!p.isPlannedRestDay">
+        Previsto: {{ p.name }}<ng-container *ngIf="p.splitName"> · {{ p.splitName }}</ng-container> — todavía sin registrar.
+      </p>
+    </div>
+    <ng-template #noPlan>
+      <div class="day-detail__empty">
+        <ion-icon name="calendar-clear-outline"></ion-icon>
+        <p>Sin actividad registrada este día.</p>
+      </div>
+    </ng-template>
+  </ng-template>
+</div>

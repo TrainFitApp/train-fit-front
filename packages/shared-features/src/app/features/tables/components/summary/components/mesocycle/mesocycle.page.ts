@@ -978,6 +978,46 @@ export class MesocyclePage implements OnInit, AfterViewInit {
     });
   }
 
+  // 2026-09 — el cliente no tenía forma de crearse un día de descanso
+  // propio: train-fit-trainers ya lo permite para el entrenador pautando a
+  // un cliente (planner-column.component.ts#addRestDayCard, mismo endpoint),
+  // pero aquí solo existía "Crear entrenamiento" con nombre libre. Sin
+  // prompt de nombre a propósito — igual que la versión de trainers, un
+  // descanso no necesita que el usuario elija nada, el nombre por defecto ya
+  // lo dice todo.
+  public addRestDay(): void {
+    if (this.isCurrentSplitLocked()) {
+      this.openPremiumFromLockedSplit();
+      return;
+    }
+    if (this.loadingFab) return;
+    this.loadingFab = true;
+
+    const workout = new Workout();
+    workout.name = this.translate.instant('TABLES.REST_DAY_DEFAULT_NAME');
+    workout.exercises = [];
+    workout.isPlannedRestDay = true;
+
+    this.workoutService.addWorkoutsToSplits(this.tableInUse._id, workout).subscribe({
+      next: (resSplits) => {
+        this.tableInUse.splits = resSplits;
+        this.tableService.setCurrentTable = this.tableInUse;
+        this.loadingFab = false;
+        this.ionicUtilService.showToast({
+          message: this.translate.instant('TABLES.REST_DAY_ADDED'),
+          duration: 800,
+        } as ToastOptions);
+      },
+      error: (error) => {
+        this.loadingFab = false;
+        this.ionicUtilService.showErrorToast(
+          error,
+          this.translate.instant('TABLES.REST_DAY_ADD_ERROR')
+        );
+      },
+    });
+  }
+
   public get shouldShowWorkoutTemplates(): boolean {
     const workoutCount =
       this.tableInUse?.splits?.reduce(

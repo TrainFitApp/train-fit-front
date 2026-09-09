@@ -262,24 +262,46 @@
 
     <p class="empty-hint" *ngIf="!notifications.length">No tienes notificaciones todavía.</p>
 
-    <button
-      class="notification-card"
+    <ion-item-sliding
+      #slidingItem
+      mode="ios"
+      class="notification-sliding-item"
+      [@notificationLeave]
       *ngFor="let notification of visibleNotifications; trackBy: trackByNotificationId"
-      [class.notification-card--unread]="!notification.read"
-      (click)="openNotification(notification)"
     >
-      <span class="notification-dot" *ngIf="!notification.read"></span>
-      <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
-      <div class="action-info">
-        <span class="action-title">{{ notificationTitle(notification) }}</span>
-        <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
-      </div>
-      <ion-icon
-        *ngIf="isNotificationInteractive(notification)"
-        name="chevron-forward-outline"
-        class="action-chevron"
-      ></ion-icon>
-    </button>
+      <ion-item button [detail]="false" class="notification-card-item" (click)="openNotification(notification)">
+        <div class="notification-card" [class.notification-card--unread]="!notification.read">
+          <span class="notification-dot" *ngIf="!notification.read"></span>
+          <ion-icon [name]="notificationIcon(notification)" class="action-icon"></ion-icon>
+          <div class="action-info">
+            <span class="action-title">{{ notificationTitle(notification) }}</span>
+            <span class="action-subtitle">{{ notificationTrainerName(notification) }} · {{ notification.createdAt | date: 'd MMM' }}</span>
+          </div>
+          <ion-icon
+            *ngIf="isNotificationInteractive(notification)"
+            name="chevron-forward-outline"
+            class="action-chevron"
+          ></ion-icon>
+        </div>
+      </ion-item>
+
+      <!-- Deslizar revela el borrado — pulsarlo confirma. Seguir deslizando
+           más allá del botón lo expande y borra al soltar (patrón
+           Gmail/Spotify vía [expandable] + (ionSwipe), gesto nativo de
+           Ionic, no reinventado a mano). Dos formas de llegar al mismo
+           gesto de confirmación deliberado, cero alert nativa. -->
+      <ion-item-options side="end" (ionSwipe)="deleteNotification(notification, slidingItem)">
+        <ion-item-option
+          color="danger"
+          class="notification-delete-option"
+          aria-label="Eliminar notificación"
+          [expandable]="true"
+          (click)="deleteNotification(notification, slidingItem)"
+        >
+          <ion-icon slot="icon-only" name="trash-outline" aria-hidden="true"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
   </div>
 
   <!-- === Tareas de hoy (coach-tab FASE4) === -->

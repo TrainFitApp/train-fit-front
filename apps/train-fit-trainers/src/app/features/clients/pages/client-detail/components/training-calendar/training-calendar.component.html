@@ -19,6 +19,15 @@
     >
       {{ preset }}d
     </button>
+    <button
+      type="button"
+      class="preset-btn range-toggle-btn"
+      [class.is-active]="isRangeMode"
+      (click)="toggleRangeMode()"
+    >
+      <ion-icon name="calendar-outline"></ion-icon>
+      {{ isRangeMode ? 'Toca inicio y fin' : 'Rango' }}
+    </button>
     <span class="range-label" *ngIf="rangeStart && rangeEnd">{{ rangeStart }} → {{ rangeEnd }}</span>
   </div>
 

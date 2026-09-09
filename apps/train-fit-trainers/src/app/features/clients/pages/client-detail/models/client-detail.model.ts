@@ -67,6 +67,15 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
     tabs: [
       { key: 'training', label: 'Entrenamiento', icon: 'barbell-outline', requiresScope: 'training' },
       { key: 'nutrition', label: 'Nutrición', icon: 'nutrition-outline', requiresScope: 'nutrition' },
+      // "Tareas" chocaba con las tareas del propio coach del panel Hoy: estas
+      // son cosas que hace EL CLIENTE cada día, de ahí "Hábitos". Vivió antes
+      // en Gestión ("lo que el ENTRENADOR tiene pendiente") y luego en
+      // Progreso (una de las cuatro dimensiones de adherencia) — aquí es
+      // donde se pauta el hábito en sí, junto a lo demás que el entrenador
+      // le marca al cliente. Sin requiresScope: no depende de tener
+      // entrenamiento o nutrición activos, un cliente puede tener hábitos
+      // pautados con cualquier combinación de scopes.
+      { key: 'tasks', label: 'Hábitos', icon: 'repeat-outline' },
     ],
   },
   {
@@ -88,15 +97,6 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
       // hechas, y "Entrenamientos" se distinguiría del "Entrenamiento" de
       // *Plan* por una sola letra.
       { key: 'history', label: 'Sesiones', icon: 'time-outline', requiresScope: 'training' },
-      // "Tareas" chocaba con las tareas del propio coach del panel Hoy: estas
-      // son cosas que hace EL CLIENTE cada día, de ahí "Hábitos".
-      //
-      // Vivían en Gestión, que es "lo que el ENTRENADOR tiene pendiente"
-      // (notas, cobros). Pero el cumplimiento de hábitos es una de las cuatro
-      // dimensiones de la adherencia, y las otras tres se consultan aquí o en
-      // Plan. El Resumen podía decir "Donde más falla: Hábitos" y mandarte a
-      // buscarlo en tu propia administración.
-      { key: 'tasks', label: 'Hábitos', icon: 'repeat-outline' },
     ],
   },
   {

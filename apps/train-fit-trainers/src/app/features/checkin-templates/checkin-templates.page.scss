@@ -173,31 +173,6 @@
   gap: 8px;
 }
 
-// Cadencia como badge visible de un vistazo (antes solo texto plano en
-// .template-meta) — es la pregunta que más importa al elegir entre
-// plantillas parecidas: ¿cada cuánto le llega esto al cliente?
-.cadence-badge {
-  flex-shrink: 0;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: var(--tf-accent-text);
-  background: var(--tf-accent-soft);
-  border: 1px solid var(--tf-accent-soft-border);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-
-  // "Una vez" no es una cadencia recurrente — distinguirla del acento
-  // reservado para semanal/quincenal evita leerla como "la opción activa".
-  &--once {
-    color: var(--tf-text-secondary);
-    background: var(--tf-surface-3);
-    border-color: var(--tf-border-strong);
-  }
-}
-
 // Desglose por grupo — el detalle real que pidió reemplazar al conteo
 // plano de "8 campos" que no decía nada sobre QUÉ mide la plantilla.
 .field-summary {
@@ -468,32 +443,6 @@
   color: var(--tf-text-muted);
   font-size: 0.74rem;
   line-height: 1.35;
-}
-
-.cadence-options {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.cadence-option {
-  flex: 1;
-  padding: 10px 8px;
-  background: var(--tf-surface-2);
-  border: 1px solid var(--tf-border-subtle);
-  border-radius: 10px;
-  color: var(--tf-text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: inherit;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out), color 160ms var(--tf-ease-out);
-
-  &--active {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
-  }
 }
 
 .field-toggle-icon--active {

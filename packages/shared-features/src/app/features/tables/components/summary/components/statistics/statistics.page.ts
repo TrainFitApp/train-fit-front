@@ -156,8 +156,8 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public compareIndexB: number = 0; // "a"  (destino, más reciente)
 
   // Opciones válidas para cada selector (se recalculan al cambiar selección)
-  public optionsForA: Array<{ idx: number; splitIndex: number }> = [];
-  public optionsForB: Array<{ idx: number; splitIndex: number }> = [];
+  public optionsForA: Array<{ idx: number; splitIndex: number; date: Date }> = [];
+  public optionsForB: Array<{ idx: number; splitIndex: number; date: Date }> = [];
 
   public get compareSplitIndexA(): number | undefined {
     return this.optionsForA.find((o) => o.idx === this.compareIndexA)
@@ -167,6 +167,17 @@ export class StatisticsPage implements OnInit, OnDestroy {
   public get compareSplitIndexB(): number | undefined {
     return this.optionsForB.find((o) => o.idx === this.compareIndexB)
       ?.splitIndex;
+  }
+
+  // Fecha de la sesión elegida en cada selector — para que "Microciclo 3" no
+  // obligue a cruzar con la tabla de abajo para saber de qué sesión se
+  // habla.
+  public get compareDateA(): Date | undefined {
+    return this.optionsForA.find((o) => o.idx === this.compareIndexA)?.date;
+  }
+
+  public get compareDateB(): Date | undefined {
+    return this.optionsForB.find((o) => o.idx === this.compareIndexB)?.date;
   }
 
   // Metrics
@@ -377,6 +388,26 @@ export class StatisticsPage implements OnInit, OnDestroy {
       });
   }
 
+  // Rango del calendario de arriba (app-routine-calendar,
+  // enableRangeSelector) — única fuente de verdad para acotar fechas en
+  // esta página, sin selector de rango propio duplicado. null = sin
+  // acotar, se ve el historial completo (comportamiento de siempre).
+  public selectedRange: { start: string; end: string } | null = null;
+
+  public onStatsRangeSelected(range: { start: string; end: string } | null): void {
+    this.selectedRange = range;
+    if (this.selectedWorkoutName && this.selectedExerciseId) {
+      this.generateHistoryData();
+    }
+  }
+
+  private toIsoDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
   public onChartModeChange(event: any) {
     this.chartMode = event.detail.value;
     setTimeout(() => this.updateChart());
@@ -397,12 +428,12 @@ export class StatisticsPage implements OnInit, OnDestroy {
   private refreshCompareOptions() {
     // optionsForA: solo microciclos con índice > compareIndexB (más antiguos que B)
     this.optionsForA = this.filteredHistory
-      .map((s, i) => ({ idx: i, splitIndex: s.splitIndex }))
+      .map((s, i) => ({ idx: i, splitIndex: s.splitIndex, date: s.date }))
       .filter((o) => o.idx > this.compareIndexB);
 
     // optionsForB: solo microciclos con índice < compareIndexA (más recientes que A)
     this.optionsForB = this.filteredHistory
-      .map((s, i) => ({ idx: i, splitIndex: s.splitIndex }))
+      .map((s, i) => ({ idx: i, splitIndex: s.splitIndex, date: s.date }))
       .filter((o) => o.idx < this.compareIndexA);
   }
 
@@ -567,7 +598,16 @@ export class StatisticsPage implements OnInit, OnDestroy {
     });
 
     this.historyData.sort((a, b) => b.splitIndex - a.splitIndex);
-    this.filteredHistory = [...this.historyData];
+    // historyData se queda SIEMPRE completo (lo usan los récords "de
+    // siempre" vía ExerciseHistoryStats, que son otra fuente aparte) —
+    // filteredHistory es lo único que respeta el rango del calendario de
+    // arriba (selectedRange), y de ahí leen tabla/comparación/gráfico.
+    this.filteredHistory = this.selectedRange
+      ? this.historyData.filter((h) => {
+          const iso = this.toIsoDate(h.date);
+          return iso >= this.selectedRange!.start && iso <= this.selectedRange!.end;
+        })
+      : [...this.historyData];
 
     // Calcular cuántas series máximas hay para este ejercicio en el historial
     const maxSets = Math.max(...this.historyData.map((h) => h.sets.length), 0);

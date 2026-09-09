@@ -468,6 +468,13 @@ ion-grid {
     white-space: nowrap;
   }
 
+  // Fecha de la sesión junto al número de microciclo — para no obligar a
+  // cruzar con la tabla de historial de abajo para saber cuál es cuál.
+  .trigger-date {
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
   .trigger-chevron {
     font-size: 12px;
     color: var(--orange);

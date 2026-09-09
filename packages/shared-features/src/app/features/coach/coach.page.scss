@@ -15,6 +15,22 @@
 
 .coach-content {
   --background: #0f0f0f;
+
+  // Diferenciar secciones — antes la única señal era el padding interno de
+  // cada bloque (12-16px, distinto según fuera tarjeta/menú/skeleton) y un
+  // heading que ni siquiera existía en el primer grupo de accesos rápidos;
+  // el resultado era que todo se leía como un único bloque continuo. Un
+  // hueco fijo + una línea fina arriba de CADA sección de primer nivel
+  // (mismo lenguaje que ya usan .pro-card-header/.pro-row más abajo) marca
+  // "esto es un tema nuevo" de un vistazo, sin depender solo de aire.
+  // `>` lo limita a los hijos directos del contenido — nunca entra dentro de
+  // una tarjeta a separar sus filas — y ng-container no genera nodo propio,
+  // así que las secciones que viven dentro de un *ngIf cuentan igual como
+  // hijo directo.
+  & > * + * {
+    margin-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
 }
 
 .onboarding-reminder {
@@ -306,6 +322,34 @@
 }
 
 // --- coach-tab FASE3: notificaciones ---
+// ion-item-sliding ya viene con overflow:hidden de fábrica (así oculta las
+// opciones antes de deslizar) — solo añadimos el radio para que el rojo
+// revelado quede recortado con las mismas esquinas que la tarjeta, en vez de
+// asomar en ángulo recto por detrás, más el espaciado entre notificaciones.
+.notification-sliding-item {
+  margin-bottom: 8px;
+  border-radius: 14px;
+}
+
+// ion-item es solo el vehículo del gesto/accesibilidad (rol de botón nativo,
+// foco de teclado) — invisible a propósito. Todo el look real vive en
+// .notification-card, el div de dentro, igual que antes de añadir el swipe.
+.notification-card-item {
+  --background: transparent;
+  --background-activated: transparent;
+  --background-activated-opacity: 0;
+  --background-hover: transparent;
+  --background-hover-opacity: 0;
+  --background-focused-opacity: 0;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  --min-height: 0;
+  font-family: inherit;
+}
+
 .notification-card {
   position: relative;
   width: 100%;
@@ -313,16 +357,19 @@
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  margin-bottom: 8px;
   background: #141414;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  // Mismo radio que .notification-sliding-item — si solo redondea el
+  // contenedor exterior (overflow:hidden) y esta tarjeta se queda cuadrada
+  // por dentro, las dos curvas de recorte no coinciden en el borde recto de
+  // 1px y la esquina sale difuminada/con flecos en vez de nítida.
   border-radius: 14px;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   transition: transform 160ms var(--ease-out);
 
-  &:active {
+  .notification-card-item:active & {
     transform: scale(0.98);
   }
 
@@ -333,6 +380,17 @@
     .action-title {
       font-weight: 700;
     }
+  }
+}
+
+// Único botón de la opción revelada — icono centrado, mismo rojo "danger"
+// que el resto de acciones destructivas de la app (Rechazar en hover,
+// Desvincular en hover).
+.notification-delete-option {
+  width: 72px;
+
+  ion-icon {
+    font-size: 20px;
   }
 }
 
@@ -779,18 +837,15 @@
   flex-shrink: 0;
 }
 
-/* Movimiento final — el menú se agrupa. El aire va ENTRE grupos, no dentro:
-   separar visualmente es todo el trabajo que hace el agrupado. */
-.coach-menu-group {
-  & + & {
-    margin-top: 22px;
-  }
-}
-
 /* Etiqueta de orientación, no un destino: si compitiera en peso con las
-   tarjetas sería ruido. */
+   tarjetas sería ruido. Padding horizontal explícito — antes no lo tenía y
+   quedaba pegada al borde izquierdo, desalineada 16px respecto a las
+   tarjetas de .coach-menu-grid justo debajo. El margen superior la separa
+   de la línea divisoria de sección (ver .coach-content > * + *) igual que
+   .section-heading se separa de la suya vía el padding-top de .section-card. */
 .coach-menu-group-label {
-  margin: 0 0 8px;
+  margin: 20px 0 8px;
+  padding: 0 16px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;

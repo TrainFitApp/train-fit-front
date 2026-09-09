@@ -27,7 +27,10 @@
       </ion-card-header>
 
       <ion-card-content>
-        <app-routine-calendar></app-routine-calendar>
+        <app-routine-calendar
+          [enableRangeSelector]="true"
+          (rangeSelected)="onStatsRangeSelected($event)"
+        ></app-routine-calendar>
       </ion-card-content>
     </ion-card>
 
@@ -144,6 +147,7 @@
             <ion-card-content>
               <div class="stat-label">
                 {{ (isCardio || isIsometric) ? ('TABLES.STATS_SESSIONS_DONE' | translate) : ('TABLES.STATS_ACTUAL_VOLUME' | translate) }}
+                <app-glossary-info *ngIf="isStrength" term="TOTAL_VOLUME" size="sm"></app-glossary-info>
               </div>
               <div class="stat-value">
                 {{ metrics.totalVolume | esNumber:'1.0-0' }}
@@ -265,7 +269,13 @@
           <div class="comparison-selectors">
             <div class="select-wrapper compare-select-wrapper">
               <button type="button" class="microcycle-trigger">
-                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexA} }}</span>
+                <span class="trigger-value"
+                  >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexA} }}<small
+                    *ngIf="compareDateA"
+                    class="trigger-date"
+                    > · {{ compareDateA | date:'d MMM' }}</small
+                  ></span
+                >
                 <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
               </button>
               <ion-select
@@ -277,7 +287,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForA" [value]="o.idx">
-                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | date:'d MMM y' }}
                 </ion-select-option>
               </ion-select>
             </div>
@@ -287,7 +297,13 @@
             ></ion-icon>
             <div class="select-wrapper compare-select-wrapper">
               <button type="button" class="microcycle-trigger">
-                <span class="trigger-value">{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexB} }}</span>
+                <span class="trigger-value"
+                  >{{ 'TABLES.STATS_MICROCYCLE' | translate: {n: compareSplitIndexB} }}<small
+                    *ngIf="compareDateB"
+                    class="trigger-date"
+                    > · {{ compareDateB | date:'d MMM' }}</small
+                  ></span
+                >
                 <ion-icon name="chevron-down" class="trigger-chevron"></ion-icon>
               </button>
               <ion-select
@@ -299,7 +315,7 @@
                 (ionChange)="onCompareChange()"
               >
                 <ion-select-option *ngFor="let o of optionsForB" [value]="o.idx">
-                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }}
+                  {{ 'TABLES.STATS_MICROCYCLE' | translate: {n: o.splitIndex} }} · {{ o.date | date:'d MMM y' }}
                 </ion-select-option>
               </ion-select>
             </div>
@@ -545,6 +561,7 @@
                 *ngIf="comparisonData.prevDropSets > 0 || comparisonData.currDropSets > 0"
               >
                 <span class="t-label">DS</span>
+                <app-glossary-info term="DROP_SET" size="sm"></app-glossary-info>
                 {{ comparisonData.prevDropSets }} → {{
                 comparisonData.currDropSets }}
                 <ion-icon
@@ -557,6 +574,7 @@
                 *ngIf="comparisonData.prevRestPauses > 0 || comparisonData.currRestPauses > 0"
               >
                 <span class="t-label">RP</span>
+                <app-glossary-info term="REST_PAUSE" size="sm"></app-glossary-info>
                 {{ comparisonData.prevRestPauses }} → {{
                 comparisonData.currRestPauses }}
                 <ion-icon
@@ -617,6 +635,10 @@
           <ion-card-title>{{ 'TABLES.STATS_WORKLOAD' | translate }}</ion-card-title>
           <ion-text color="medium" style="font-size: 0.8rem">
             {{ isCardio ? ('TABLES.STATS_TIME_VS_SPEED' | translate) : isIsometric ? ('TABLES.STATS_HOLD_WORKLOAD' | translate) : ('TABLES.STATS_EFF_VOLUME_VS_RIR' | translate) }}
+            <ng-container *ngIf="isStrength">
+              <app-glossary-info term="EFFECTIVE_VOLUME" size="sm"></app-glossary-info>
+              <app-glossary-info term="RIR" size="sm"></app-glossary-info>
+            </ng-container>
           </ion-text>
         </div>
       </ion-card-header>
@@ -655,7 +677,10 @@
             <span class="header-col-weight">{{ 'TABLES.STATS_TIME' | translate }}</span>
           </ng-container>
 
-          <span class="header-col-rir" *ngIf="isStrength">{{ 'TABLES.STATS_INTENSITY' | translate }}</span>
+          <span class="header-col-rir" *ngIf="isStrength">
+            {{ 'TABLES.STATS_INTENSITY' | translate }}
+            <app-glossary-info term="RIR" size="sm"></app-glossary-info>
+          </span>
         </div>
 
         <ion-list lines="none" class="history-list">

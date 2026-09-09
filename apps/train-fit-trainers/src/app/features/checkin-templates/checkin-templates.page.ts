@@ -4,7 +4,6 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { ApplyCheckinTemplateModalComponent } from './components/apply-checkin-template-modal/apply-checkin-template-modal.component';
 import {
   CUSTOM_QUESTION_TYPES,
-  CheckinCadence,
   CheckinTemplateDefinition,
   CustomCheckinQuestion,
 } from './models/checkin-template.model';
@@ -27,18 +26,6 @@ const GROUP_ICONS: Record<CheckinFieldGroup, string> = {
   composicion_corporal: 'body-outline',
   perimetros: 'resize-outline',
   bienestar: 'heart-outline',
-};
-
-export const CADENCE_OPTIONS: { value: CheckinCadence; label: string }[] = [
-  { value: 'weekly', label: 'Semanal' },
-  { value: 'biweekly', label: 'Quincenal' },
-  { value: 'once', label: 'Una vez' },
-];
-
-const CADENCE_LABELS: Record<CheckinCadence, string> = {
-  weekly: 'semanal',
-  biweekly: 'quincenal',
-  once: 'una vez',
 };
 
 @Component({
@@ -64,18 +51,13 @@ export class CheckinTemplatesPage implements OnInit {
   public editingTemplate: CheckinTemplateDefinition | null = null;
   public formName = '';
   public formFields = new Set<string>();
-  public formCadence: CheckinCadence = 'weekly';
   public isSaving = false;
-  public CADENCE_OPTIONS = CADENCE_OPTIONS;
   // Fase 5 Coach Pro — preguntas propias del coach (§7). Conviven con
   // formFields, que sigue siendo el catálogo cerrado.
   public formCustomQuestions: CustomCheckinQuestion[] = [];
   public readonly questionTypes = CUSTOM_QUESTION_TYPES;
   public readonly maxCustomQuestions = MAX_CUSTOM_QUESTIONS;
   public readonly maxQuestionOptions = MAX_QUESTION_OPTIONS;
-  public cadenceLabel(template: CheckinTemplateDefinition): string {
-    return CADENCE_LABELS[template.cadence] || template.cadence;
-  }
 
   // Desglose por grupo ("3 composición corporal", "5 perímetros"...) para
   // que la card muestre de un vistazo QUÉ tiene activado la plantilla, no
@@ -138,7 +120,6 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = null;
     this.formName = '';
     this.formFields = new Set();
-    this.formCadence = 'weekly';
     this.formCustomQuestions = [];
     this.showEditPanel = true;
   }
@@ -150,7 +131,6 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = template;
     this.formName = template.name;
     this.formFields = new Set(template.enabledFields);
-    this.formCadence = template.cadence;
     // Copia, no referencia: cancelar el panel no debe dejar editada la
     // plantilla de la lista de detrás.
     this.formCustomQuestions = (template.customQuestions || []).map((q) => ({
@@ -254,10 +234,9 @@ export class CheckinTemplatesPage implements OnInit {
       ? this.checkinTemplatesApi.update(this.editingId, {
           name,
           enabledFields,
-          cadence: this.formCadence,
           customQuestions,
         })
-      : this.checkinTemplatesApi.create(name, enabledFields, this.formCadence, customQuestions);
+      : this.checkinTemplatesApi.create(name, enabledFields, customQuestions);
 
     request$.subscribe({
       next: () => {

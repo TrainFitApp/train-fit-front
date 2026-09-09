@@ -1,4 +1,4 @@
-import { Component, DoCheck, OnDestroy, OnInit } from "@angular/core";
+import { Component, DoCheck, EventEmitter, Input, OnDestroy, OnInit, Output } from "@angular/core";
 import { Subscription } from "rxjs";
 import { TranslateService } from "@ngx-translate/core";
 import { Table } from "src/app/core/models/table";
@@ -35,6 +35,11 @@ interface CalendarDay {
   inactive: boolean;
 }
 
+// Presets de rango (7/30/90d) — mismo mecanismo que el calendario de
+// nutrición/entrenamiento en trainers (RANGE_PRESETS + selectPresetRange
+// centrado en hoy). Solo visible cuando el host activa enableRangeSelector.
+const RANGE_PRESETS = [7, 30, 90];
+
 // Clave de traspaso a Mesociclo (NavigationService.tempData). La lee
 // MesocyclePage.ionViewDidEnter para posicionarse en la sesión pulsada.
 export const OPEN_WORKOUT_FROM_CALENDAR_KEY = "openWorkoutFromCalendar";
@@ -56,6 +61,20 @@ export interface OpenWorkoutFromCalendarState {
   styleUrls: ["./routine-calendar.component.scss"],
 })
 export class RoutineCalendarComponent implements OnInit, OnDestroy, DoCheck {
+  // Selector de rango (7/30/90d + rango a mano) — apagado por defecto: la
+  // card compacta "Rutina en uso" del resumen no tiene nada que filtrar con
+  // un rango, solo lo activa Estadísticas. Sin esto, el calendario se
+  // comporta exactamente igual que antes (tocar un día abre Mesociclo).
+  @Input() public enableRangeSelector = false;
+  @Output() public rangeSelected = new EventEmitter<{ start: string; end: string } | null>();
+
+  public readonly rangePresets = RANGE_PRESETS;
+  public isRangeMode = false;
+  public rangeStart: string | null = null;
+  public rangeEnd: string | null = null;
+  public activePreset: number | null = null;
+  public hoverDate: string | null = null;
+
   public calendarCurrentDate: Date = new Date();
   public calendarDays: CalendarDay[] = [];
   public monthYearString = "";
@@ -123,6 +142,97 @@ export class RoutineCalendarComponent implements OnInit, OnDestroy, DoCheck {
       1,
     );
     this.updateCalendarDisplay();
+  }
+
+  // Despacha el tap de una celda: en modo rango arma/cierra el rango; si
+  // no, mantiene el comportamiento de siempre (abrir Mesociclo).
+  public onCellClick(day: CalendarDay): void {
+    if (this.isRangeMode) {
+      if (!day.date) return;
+      this.handleRangeClick(day.date);
+      return;
+    }
+    this.openDay(day);
+  }
+
+  // Arma/desarma el modo de selección de rango a mano (clic-clic). Salir a
+  // medio seleccionar (ya se pulsó el inicio, falta el fin) abandona esa
+  // selección a medias sin tocar un rango ya confirmado antes.
+  public toggleRangeMode(): void {
+    this.isRangeMode = !this.isRangeMode;
+    this.hoverDate = null;
+    if (!this.isRangeMode && this.rangeStart && !this.rangeEnd) {
+      this.rangeStart = null;
+    }
+  }
+
+  // Mismo mecanismo que el calendario de nutrición/entrenamiento en
+  // trainers: rango centrado en hoy (mitad hacia atrás, mitad hacia
+  // delante). Los presets no dependen de isRangeMode — son botones aparte,
+  // no interfieren con el tap normal de una celda.
+  public selectPresetRange(days: number): void {
+    const daysBack = Math.ceil(days / 2);
+    const daysForward = Math.floor(days / 2);
+    this.rangeStart = this.addIsoDays(-daysBack);
+    this.rangeEnd = this.addIsoDays(daysForward);
+    this.activePreset = days;
+    this.isRangeMode = false;
+    this.hoverDate = null;
+    this.rangeSelected.emit({ start: this.rangeStart, end: this.rangeEnd });
+  }
+
+  public clearRange(): void {
+    this.rangeStart = null;
+    this.rangeEnd = null;
+    this.activePreset = null;
+    this.isRangeMode = false;
+    this.hoverDate = null;
+    this.rangeSelected.emit(null);
+  }
+
+  private handleRangeClick(date: string): void {
+    if (!this.rangeStart || this.rangeEnd) {
+      this.rangeStart = date;
+      this.rangeEnd = null;
+      this.activePreset = null;
+      return;
+    }
+
+    const start = this.rangeStart <= date ? this.rangeStart : date;
+    const end = this.rangeStart <= date ? date : this.rangeStart;
+    this.rangeStart = start;
+    this.rangeEnd = end;
+    this.hoverDate = null;
+    this.isRangeMode = false;
+    this.rangeSelected.emit({ start, end });
+  }
+
+  public onCellHover(day: CalendarDay): void {
+    if (!this.isRangeMode || !day.date || !this.rangeStart || this.rangeEnd) return;
+    this.hoverDate = day.date;
+  }
+
+  public onGridMouseLeave(): void {
+    this.hoverDate = null;
+  }
+
+  public isInRange(date: string): boolean {
+    if (!date || !this.rangeStart) return false;
+
+    if (!this.rangeEnd && this.hoverDate) {
+      const start = this.rangeStart <= this.hoverDate ? this.rangeStart : this.hoverDate;
+      const end = this.rangeStart <= this.hoverDate ? this.hoverDate : this.rangeStart;
+      return date >= start && date <= end;
+    }
+
+    const end = this.rangeEnd || this.rangeStart;
+    return date >= this.rangeStart && date <= end;
+  }
+
+  private addIsoDays(deltaDays: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + deltaDays);
+    return this.formatDate(date);
   }
 
   // Pulsar un día con sesión: navega a Mesociclo y abre esa sesión (su

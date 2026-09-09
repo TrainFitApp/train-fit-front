@@ -49,9 +49,6 @@
         <div class="template-card-main" (click)="openEditPanel(template)">
           <div class="template-card-top">
             <span class="list-card-title">{{ template.name }}</span>
-            <span class="cadence-badge" [class.cadence-badge--once]="template.cadence === 'once'">
-              {{ cadenceLabel(template) }}
-            </span>
           </div>
 
           <div class="field-summary" *ngIf="templateGroupSummary(template).length; else noFields">
@@ -103,18 +100,6 @@
         placeholder="Nombre (ej. Básico, Pro)"
         [(ngModel)]="formName"
       />
-    </div>
-
-    <h4 class="field-group-heading">Cadencia</h4>
-    <div class="cadence-options">
-      <button
-        class="cadence-option"
-        *ngFor="let option of CADENCE_OPTIONS"
-        [class.cadence-option--active]="formCadence === option.value"
-        (click)="formCadence = option.value"
-      >
-        {{ option.label }}
-      </button>
     </div>
 
     <div class="field-group" *ngFor="let group of groups">

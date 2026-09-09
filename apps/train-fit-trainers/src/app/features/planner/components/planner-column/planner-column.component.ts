@@ -59,6 +59,15 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // se puede reordenar dentro del mismo microciclo.
   @Input() dimmed = false;
 
+  // Reordenar microciclos (2026-09) — mismo modo que activa cdkDrag en la
+  // columna (ver planner.page.ts#reorderMode). Mientras está activo, las
+  // cards se fuerzan cerradas y bloqueadas (ver isCardOpen +
+  // ion-accordion-group[disabled] en el template): arrastrar toda la
+  // columna con una card abierta debajo invita a soltar el drag encima del
+  // acordeón y toquetear su contenido sin querer, además de que el
+  // scroll/gesto de abrir choca con el de arrastrar en móvil.
+  @Input() reorderMode = false;
+
   // <app-workout> gatea varias acciones (botón "Agregar ejercicios", menú
   // "⋮") a stateSelected === STATES.static — sin pasarlo explícitamente
   // queda undefined y esas acciones desaparecen/se deshabilitan. El
@@ -208,6 +217,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // split) sale del servicio compartido (mismo para todas las columnas) en
   // vez del Set local de esta columna.
   public isCardOpen(workoutId: string, index: number): boolean {
+    if (this.reorderMode) return false;
     if (this.rowSync.compareAllMode) return this.rowSync.isOpen(index);
     return !this.collapsedCardIds.has(workoutId);
   }
@@ -263,6 +273,10 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
     index: number,
     workout?: Workout
   ): void {
+    // [disabled] en el ion-accordion-group ya evita el toggle por click, pero
+    // ionChange sigue siendo un evento del propio componente Ionic — no fiarse
+    // solo del atributo si algo lo dispara igualmente.
+    if (this.reorderMode) return;
     const isOpen = event.detail?.value === 'open';
 
     // Movimiento 6 Coach Pro — abrir una card es lo más parecido a "estoy

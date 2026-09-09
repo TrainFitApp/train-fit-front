@@ -1,0 +1,144 @@
+// Mismo lenguaje visual que .history-card/.list-card-title/.history-meta/
+// .pulse-badge de client-detail.page.scss — se replican aquí en vez de
+// compartirlos (encapsulación de componente por defecto), a propósito para
+// no acoplar este componente nuevo a los estilos de la página que lo aloja.
+
+.day-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.day-detail__date {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--tf-text);
+  text-transform: capitalize;
+}
+
+.day-detail__close {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:hover {
+    border-color: var(--tf-border-strong);
+    color: var(--tf-text);
+  }
+}
+
+.day-detail__card {
+  padding: 14px;
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.day-detail__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.list-card-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.history-subtitle {
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+  margin: 0 0 8px;
+}
+
+.day-detail__completion {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--tf-text-secondary);
+  background: var(--tf-surface-2);
+  border-radius: 6px;
+  padding: 2px 8px;
+
+  &.is-full {
+    color: var(--tf-success);
+    background: var(--tf-success-soft);
+  }
+}
+
+.day-detail__stat-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.day-detail__stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--tf-text-secondary);
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--tf-text-muted);
+  }
+}
+
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.76rem;
+  color: var(--tf-text-secondary);
+}
+
+.pulse-badge {
+  color: var(--tf-accent-text) !important;
+  background: var(--tf-accent-soft);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.day-detail__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--tf-text-muted);
+  font-size: 0.82rem;
+
+  ion-icon {
+    font-size: 26px;
+    color: var(--tf-text-faint);
+  }
+
+  p {
+    margin: 0;
+  }
+}

@@ -3,7 +3,20 @@
   [class.planner-column--selected]="selected"
   [class.planner-column--dimmed]="dimmed"
   [class.planner-column--completed]="isCompleted"
+  [class.planner-column--row-sync]="rowSync.compareAllMode"
 >
+  <!-- Reordenar microciclos (2026-09) — mismo patrón que "Alinear filas":
+       icono de agarre visible SOLO con el modo activo, para que el
+       entrenador sepa de un vistazo que ahora mismo puede arrastrar esta
+       columna (antes cdkDrag estaba siempre activo y sin señal propia). -->
+  <ion-icon
+    *ngIf="reorderMode"
+    name="reorder-three-outline"
+    class="planner-column-drag-handle"
+    [title]="'PLANNER.REORDER_WEEKS_MODE_HINT' | translate"
+    aria-hidden="true"
+  ></ion-icon>
+
   <div class="planner-column-header" (click)="selectColumn()">
     <div class="planner-column-title">
       <span class="planner-column-name">
@@ -86,6 +99,7 @@
     >
       <ion-accordion-group
         [value]="isCardOpen(workout._id, i) ? 'open' : 'closed'"
+        [disabled]="reorderMode"
         (ionChange)="onCardAccordionChange($event, workout._id, i, workout)"
       >
         <app-workout

@@ -120,6 +120,7 @@
       [columnIndex]="i"
       [selected]="split._id === selectedSplitId"
       [dimmed]="draggingFromSplitId !== null && draggingFromSplitId !== split._id"
+      [reorderMode]="reorderMode"
       (columnSelected)="selectSplit(split._id)"
       (cardDragStarted)="onCardDragStarted(split._id)"
       (cardDragEnded)="onCardDragEnded()"

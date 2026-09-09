@@ -1237,6 +1237,10 @@
     "CONTINUE_WITHOUT_SKIP_BTN": "CONTINUE WITHOUT SKIPPING",
     "SKIPPED_DAY_LABEL": "Skipped",
     "PLANNED_REST_DAY_LABEL": "Planned rest day",
+    "ADD_REST_DAY": "Rest day",
+    "REST_DAY_DEFAULT_NAME": "Rest",
+    "REST_DAY_ADDED": "Rest day added",
+    "REST_DAY_ADD_ERROR": "Couldn't add the rest day",
     "DELETE_EXERCISE": "Delete exercise",
     "DELETE_EXERCISE_CONFIRM": "Are you sure you want to delete {{name}}? This will also remove it from all micro-cycles.",
     "CREATE_ROUTINE_MSG_MESO": "Enter the routine name",
@@ -1425,6 +1429,9 @@
     "STATS_FAILURE": "FAILURE",
     "STATS_DROP": "Drop {{n}}",
     "STATS_RP": "RP {{n}}",
+    "STATS_CUSTOM_RANGE": "Range",
+    "STATS_RANGE_PICKING": "Tap start and end",
+    "STATS_CLEAR_RANGE": "Clear range",
     "STATS_SELECT_ROUTINE_EXERCISE": "Select Routine and Exercise",
     "STATS_SELECT_HINT": "To see detailed statistics of your progress.",
     "STATS_NO_DATA": "No Data",
@@ -2090,6 +2097,18 @@
     "EFFECTIVE_VOLUME": {
       "TITLE": "Effective volume",
       "DESCRIPTION": "Weight times reps for each set, but giving more weight to sets done close to failure (low RIR) than to sets further from it. This reflects the real training stimulus better than total volume. Compared between the two selected microcycles: the arrow and color show whether it went up or down, and the percentage shows how much it changed."
+    },
+    "TOTAL_VOLUME": {
+      "TITLE": "Actual volume",
+      "DESCRIPTION": "Weight times reps added up across every set of this exercise, without weighting by how close you were to failure — unlike effective volume, an easy set counts the same as one taken to the limit here. Useful to see how much total weight you moved."
+    },
+    "DROP_SET": {
+      "TITLE": "Drop set (DS)",
+      "DESCRIPTION": "When you reach failure (or close to it) you drop the weight without resting and keep doing reps. Each weight drop within the same set is a \"drop\" — numbered (Drop 1, Drop 2...) under the main set."
+    },
+    "REST_PAUSE": {
+      "TITLE": "Rest-pause (RP)",
+      "DESCRIPTION": "When you reach failure (or close to it) you rest a few seconds with the same weight and squeeze out a few more reps, repeating several times. Each block of reps after the pause is numbered (RP 1, RP 2...) under the main set."
     },
     "SETS_COMPARISON": {
       "TITLE": "Sets",

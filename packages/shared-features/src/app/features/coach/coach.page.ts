@@ -1,5 +1,7 @@
+import { animate, style, transition, trigger } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { IonItemSliding } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
@@ -65,6 +67,22 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'anthropometry_requested',
 ]);
 
+// Al borrar una notificación, quitarla del array de golpe hacía que
+// *ngFor la desmontara en el mismo frame: las de abajo saltaban a rellenar
+// el hueco de golpe, sin transición. Con :leave, Angular retrasa el
+// desmontaje hasta que esta animación termina — la altura arranca en su
+// valor real ('*', calculado en ese instante) y baja a 0, así que el hueco
+// se cierra en el propio frame a frame del layout y las siguientes
+// notificaciones suben deslizándose en vez de saltar. Misma curva que ya usa
+// el resto de esta pantalla (--ease-out) para que se sienta parte del mismo
+// sistema, no un efecto aparte.
+const notificationLeave = trigger('notificationLeave', [
+  transition(':leave', [
+    style({ height: '*', marginBottom: '*', opacity: 1 }),
+    animate('260ms cubic-bezier(0.23, 1, 0.32, 1)', style({ height: 0, marginBottom: 0, opacity: 0 })),
+  ]),
+]);
+
 // Tab Coach, Fase 1 — hub único de todo lo relacionado con los profesionales
 // del cliente (entrenador/nutricionista): invitaciones, profesionales
 // activos, historial, más el dashboard (check-ins/comidas/preferencias/
@@ -77,6 +95,7 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   selector: 'app-coach',
   templateUrl: 'coach.page.html',
   styleUrls: ['coach.page.scss'],
+  animations: [notificationLeave],
 })
 export class CoachPage implements OnInit {
   public state: ViewState = 'loading';
@@ -324,6 +343,40 @@ export class CoachPage implements OnInit {
 
   public trackByNotificationId(_index: number, notification: CoachNotification): string {
     return notification._id;
+  }
+
+  // Borrado por deslizamiento (ion-item-sliding) — dos gestos llegan aquí:
+  // revelar el botón rojo y pulsarlo, o deslizar de un tirón hasta el final
+  // (expandable + ionSwipe en la plantilla, estilo Gmail/Spotify). Ambos
+  // cuentan como confirmación deliberada, sin alerta nativa encima. Guard de
+  // índice: si los dos gestos llegaran a disparar sobre la misma notificación
+  // (p.ej. el soltar del swipe completo también registrase como click), la
+  // segunda llamada no debe volver a insertar algo que ya se borró.
+  // Optimista: si el backend falla, se reinserta en su posición original y se
+  // avisa por toast, igual que el resto de acciones de esta pantalla.
+  public deleteNotification(notification: CoachNotification, slidingItem: IonItemSliding): void {
+    const index = this.notifications.indexOf(notification);
+    if (index === -1) return;
+
+    const wasUnread = !notification.read;
+    this.notifications = this.notifications.filter((n) => n !== notification);
+    this.updateVisibleNotifications();
+
+    this.notificationsApi.delete(notification._id).subscribe({
+      next: () => {
+        if (wasUnread) this.notificationsService.decrementBy(1);
+      },
+      error: () => {
+        // Solo aquí hace falta cerrar el swipe — la notificación vuelve a su
+        // sitio y debe verse en reposo, no a medio deslizar. En el camino
+        // feliz no se llama: el item se borra abierto/expandido tal cual
+        // estaba, la animación de salida (:leave) lo encoge entero.
+        void slidingItem.close();
+        this.notifications.splice(index, 0, notification);
+        this.updateVisibleNotifications();
+        this.ionicUtilService.showErrorToast('No se pudo eliminar la notificación', 'Error', 2500);
+      },
+    });
   }
 
   // --- Tareas de hoy (coach-tab FASE4) ---

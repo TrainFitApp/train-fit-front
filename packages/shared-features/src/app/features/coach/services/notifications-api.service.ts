@@ -18,4 +18,8 @@ export class NotificationsApiService {
   public markAllRead(): Observable<unknown> {
     return this.http.post('notifications/mark-all-read', {});
   }
+
+  public delete(id: string): Observable<unknown> {
+    return this.http.delete(`notifications/${id}`);
+  }
 }

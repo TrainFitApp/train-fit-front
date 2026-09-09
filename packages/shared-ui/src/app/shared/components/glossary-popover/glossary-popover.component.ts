@@ -7,6 +7,9 @@ export type GlossaryTermKey =
   | 'ONE_RM'
   | 'BEST_SET'
   | 'EFFECTIVE_VOLUME'
+  | 'TOTAL_VOLUME'
+  | 'DROP_SET'
+  | 'REST_PAUSE'
   | 'SETS_COMPARISON'
   | 'PINNED_NOTE'
   | 'SET_OBJECTIVE';

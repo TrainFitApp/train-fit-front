@@ -10,6 +10,7 @@ import { LowercaseEmailInputDirective } from 'src/app/core/directives/lowercase-
 import { RoutineCalendarComponent } from 'src/app/features/tables/components/summary/components/routine-calendar/routine-calendar.component';
 import { VideoModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/video-modal/video-modal.component';
 import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/workout-summary-modal/workout-summary-modal.component';
+import { SessionCheckinModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/session-checkin-modal/session-checkin-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
 import { ActionsSheetComponent } from './components/actions-sheet/actions-sheet.component';
 import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
@@ -64,6 +65,7 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     RoutineCalendarComponent,
     VideoModalComponent,
     WorkoutSummaryModalComponent,
+    SessionCheckinModalComponent,
     CursorEndDirective,
     DecimalInputDirective,
     HideKeyboardOnScrollDirective,

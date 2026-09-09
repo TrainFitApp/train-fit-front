@@ -61,6 +61,13 @@
   // sobre naranja (#fe9000 contra blanco ≈ 2:1, contra negro ≈ 8:1).
   --tf-accent-contrast: #0f0f0f;
 
+  // Dorado, mismo valor que --ion-color-secondary en shared-theme —
+  // referenciado, no repetido. Reservado para indicadores de MODO ACTIVO a
+  // nivel de tablero (p. ej. "Alinear filas"): tiene que leerse distinto del
+  // naranja de selección/acento y del verde de completado a la vez, sin
+  // introducir un azul/gris genérico ajeno a la paleta de marca.
+  --tf-secondary: var(--ion-color-secondary, #ffc455);
+
   // --- Semánticos ---
   // Verde intencionalmente distinto de --ion-color-success (#2dd36f) — más
   // cercano al verde "success" de iOS, mejor contraste sobre fondo oscuro.

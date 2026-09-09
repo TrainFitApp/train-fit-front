@@ -68,6 +68,19 @@
   }
 }
 
+// Botón que arma el clic-clic de rango — antes cada tap era ya rango
+// (2 toques, nunca un solo día); ahora un tap suelto elige el día al
+// momento, y este botón es la única puerta al flujo de 2 toques de siempre.
+.range-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
 .range-label {
   font-size: 0.68rem;
   color: var(--tf-accent-text);
