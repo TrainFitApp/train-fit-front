@@ -10,6 +10,8 @@ export interface LiveActivitySetItem {
   reps: number;
   weight: number;
   rir: number;
+  /** Serie ya completada: el widget pinta el check encendido. */
+  doned: boolean;
   /** URL remota; el plugin la descarga al App Group (el widget no tiene red). */
   imageUrl?: string;
 }
@@ -22,12 +24,14 @@ export interface LiveActivitySessionOptions {
   items: LiveActivitySetItem[];
 }
 
-/** Serie confirmada desde la Live Activity que la app aún no ha persistido. */
+/** Serie marcada o desmarcada desde la Live Activity que la app aún no ha persistido. */
 export interface LiveActivityPendingAction {
   setId: string;
   reps: number;
   weight: number;
   rir: number;
+  /** Estado al que la lleva el check: `true` marcarla, `false` desmarcarla. */
+  doned: boolean;
   skipped: boolean;
   at: string;
 }
