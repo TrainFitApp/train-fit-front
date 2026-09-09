@@ -32,14 +32,14 @@
               #rla="routerLinkActive"
               [routerLinkActiveOptions]="item.routerLinkActiveOptions"
               [attr.aria-current]="rla.isActive ? 'page' : null"
-              [title]="collapsed ? item.label : null"
+              [attr.title]="collapsed ? item.label : null"
             >
               <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
               <span *ngIf="!collapsed">{{ item.label }}</span>
               <span
                 class="menu-item-badge"
                 *ngIf="item.badgeCount"
-                [title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
+                [attr.title]="collapsed ? item.badgeCount + ' cliente(s) esperando revisión' : null"
               >{{ item.badgeCount }}</span>
             </a>
           </ion-menu-toggle>
@@ -47,7 +47,7 @@
       </nav>
 
       <div class="app-menu-footer">
-        <a class="footer-user" routerLink="/tabs/account" [title]="collapsed ? 'Mi cuenta' : null">
+        <a class="footer-user" routerLink="/tabs/account" [attr.title]="collapsed ? 'Mi cuenta' : null">
           <span class="footer-user-avatar"><ion-icon name="person" aria-hidden="true"></ion-icon></span>
           <span class="footer-user-label" *ngIf="!collapsed">Mi cuenta</span>
         </a>

@@ -62,6 +62,7 @@
             *ngIf="field.type === 'number'"
             type="number"
             class="checkin-input"
+            [placeholder]="numberPlaceholder(field)"
             [(ngModel)]="formValues[field.key]"
           />
 

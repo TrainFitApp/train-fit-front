@@ -150,7 +150,13 @@
           <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId">
             <td [attr.colspan]="8">
               <div class="dimension-grid">
-                <div class="dimension" *ngFor="let key of dimensionKeys; trackBy: trackByDimension">
+                <button
+                  type="button"
+                  class="dimension"
+                  *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
+                  (click)="openClientDimension(row, key, $event)"
+                  [attr.aria-label]="'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName"
+                >
                   <span class="dimension-label">{{ dimensionLabel(key) }}</span>
                   <span
                     class="dimension-value"
@@ -161,7 +167,7 @@
                   <span class="dimension-detail" *ngIf="row.adherence.dimensions[key].applicable">
                     {{ row.adherence.dimensions[key].detail }}
                   </span>
-                </div>
+                </button>
               </div>
 
               <p class="detail-line">{{ weightDetail(row) }}</p>

@@ -282,10 +282,21 @@ thead .col-name {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: 100%;
   padding: var(--tf-space-3);
   background: var(--tf-surface-1);
   border: 1px solid var(--tf-border);
   border-radius: var(--tf-radius-md);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--tf-accent);
+    background: var(--tf-surface-2);
+  }
 }
 
 .dimension-label {

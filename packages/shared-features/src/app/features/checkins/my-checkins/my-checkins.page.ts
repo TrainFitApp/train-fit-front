@@ -187,6 +187,16 @@ export class MyCheckinsPage implements OnInit {
     return FREQUENCY_OPTIONS;
   }
 
+  // El catálogo trae min/max para validar en el backend (isPlausibleValue),
+  // pero el cliente nunca los veía hasta enviar y que el servidor rechazara
+  // el valor. Las preguntas propias del coach no declaran min/max (no hay
+  // forma de fijarlos al crearlas) — placeholder vacío en ese caso, no un
+  // rango inventado.
+  public numberPlaceholder(field: CheckinField): string {
+    if (field.min === undefined || field.max === undefined) return '';
+    return `Entre ${field.min} y ${field.max}`;
+  }
+
   public optionsFor(field: CheckinField): string[] {
     return field.type === 'frequency' ? FREQUENCY_OPTIONS : field.options || [];
   }

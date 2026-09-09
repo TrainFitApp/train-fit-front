@@ -15,6 +15,7 @@ import {
   RosterClient,
   RosterDimension,
 } from '../../models/client-roster.model';
+import { ClientDetailTab } from '../../pages/client-detail/models/client-detail.model';
 
 type ViewState = 'loading' | 'error' | 'empty' | 'loaded';
 
@@ -51,6 +52,16 @@ const DIMENSION_LABELS: Record<AdherenceDimensionKey, string> = {
   training: 'Entrenamiento',
   habits: 'Hábitos',
   checkins: 'Check-ins',
+};
+
+// A qué subpestaña de la ficha del cliente lleva cada dimensión del
+// desglose. "habits" se llama "tasks" ahí (ver client-detail.model.ts) —
+// mismo desajuste de nombres que ya existe entre Roster y la ficha.
+const DIMENSION_TAB: Record<AdherenceDimensionKey, ClientDetailTab> = {
+  nutrition: 'nutrition',
+  training: 'training',
+  habits: 'tasks',
+  checkins: 'checkins',
 };
 
 // Mismas etiquetas que la pestaña Resumen de la ficha
@@ -350,6 +361,15 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public openClient(row: RosterClient): void {
     this.router.navigate(['/tabs/clients', row.clientId], {
       queryParams: { name: row.clientName },
+    });
+  }
+
+  // Cada card del desglose abre la ficha directamente en su sección, en vez
+  // de dejar que el entrenador la busque él mismo entre las subpestañas.
+  public openClientDimension(row: RosterClient, key: AdherenceDimensionKey, event: Event): void {
+    event.stopPropagation();
+    this.router.navigate(['/tabs/clients', row.clientId], {
+      queryParams: { name: row.clientName, tab: DIMENSION_TAB[key] },
     });
   }
 
