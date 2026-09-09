@@ -43,6 +43,16 @@ interface ForClientNavigationState {
   fixedEndDate?: string;
   durationValue?: number;
   durationUnit?: DurationUnit;
+  // Sugerencias de dieta — si se llegó aquí desde el cajón con "empezar de
+  // cero", esta dieta es el ciclo 1 de una fase: al aplicarla se escriben
+  // phaseName/focus y se crea el objetivo del ciclo.
+  phase?: {
+    name: string;
+    focus: 'cut' | 'maintain' | 'bulk' | null;
+    targetKcalDelta: number;
+    ratePerCycle: number;
+  };
+  cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
 }
 
 interface BoardCellRef {
@@ -92,6 +102,19 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   private draggedFrom: BoardCellRef | null = null;
   public dragOverCell: BoardCellRef | null = null;
 
+  // Sugerencias de dieta — aptitud dietética. `suitableForDerived` lo calcula
+  // el backend en cada guardado (solo lectura aquí); `suitableForOverride`
+  // son las que el entrenador fuerza cuando la deriva no basta (productos sin
+  // el flag rellenado). Solo aplican al editar una plantilla ya guardada.
+  public readonly dietaryFlagOptions: { key: string; label: string }[] = [
+    { key: 'vegan', label: 'Vegana' },
+    { key: 'vegetarian', label: 'Vegetariana' },
+    { key: 'lactoseFree', label: 'Sin lactosa' },
+    { key: 'glutenFree', label: 'Sin gluten' },
+  ];
+  public suitableForDerived: string[] = [];
+  public suitableForOverride = new Set<string>();
+
   // "Crear dieta" (ver diet-templates-routing.module.ts, ruta
   // for-client/:clientId) — mismo tablero, pero sin plantilla que cargar:
   // guardar crea una dieta de biblioteca PROPIA de este cliente
@@ -108,6 +131,10 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     durationValue?: number;
     durationUnit?: DurationUnit;
   } | null = null;
+  // Sugerencias de dieta — bloque de fase si se llegó desde el cajón con
+  // "empezar de cero" (ver ForClientNavigationState).
+  private phasePayload: ForClientNavigationState['phase'] | null = null;
+  private cycleTargetPayload: ForClientNavigationState['cycleTarget'] | null = null;
 
   private readonly destroyRef = inject(DestroyRef);
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
@@ -185,6 +212,8 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       durationValue: nav.durationValue,
       durationUnit: nav.durationUnit,
     };
+    this.phasePayload = nav.phase ?? null;
+    this.cycleTargetPayload = nav.cycleTarget ?? null;
     this.mode = 'sequential';
     this.days = [];
     this.dayPatterns = [];
@@ -223,6 +252,24 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       appliesTo: Array.isArray(pattern.appliesTo) ? pattern.appliesTo : [],
       meals: this.mealsFromPayload(pattern.meals),
     }));
+    this.suitableForDerived = template.suitableFor || [];
+    this.suitableForOverride = new Set(template.suitableForOverride || []);
+  }
+
+  // Sugerencias de dieta — la aptitud efectiva que verá el filtro del cajón.
+  public isSuitable(flag: string): boolean {
+    return this.suitableForDerived.includes(flag) || this.suitableForOverride.has(flag);
+  }
+
+  public isForced(flag: string): boolean {
+    return !this.suitableForDerived.includes(flag) && this.suitableForOverride.has(flag);
+  }
+
+  public toggleSuitableOverride(flag: string): void {
+    // No tiene sentido "forzar" algo que la deriva ya da por bueno.
+    if (this.suitableForDerived.includes(flag)) return;
+    if (this.suitableForOverride.has(flag)) this.suitableForOverride.delete(flag);
+    else this.suitableForOverride.add(flag);
   }
 
   private mealsFromPayload(meals: any[] | undefined): TemplateMeal[] {
@@ -723,7 +770,11 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       return;
     }
 
-    this.dietTemplateApi.update(this.templateId, this.name.trim(), daysToSave, this.mode, dayPatternsToSave).subscribe({
+    this.dietTemplateApi
+      .update(this.templateId, this.name.trim(), daysToSave, this.mode, dayPatternsToSave, [
+        ...this.suitableForOverride,
+      ])
+      .subscribe({
       next: () => {
         this.isSaving = false;
         this.savedSnapshot = this.snapshot();
@@ -767,6 +818,12 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
             fixedEndDate: fechas.fixedEndDate,
             durationValue: fechas.durationValue,
             durationUnit: fechas.durationUnit,
+            // Sugerencias de dieta — si se llegó desde el cajón con "empezar
+            // de cero", esta dieta arranca una fase (con progresión por
+            // ciclos) en vez de una fase suelta sin phaseId.
+            ...(this.phasePayload && this.cycleTargetPayload
+              ? { phase: this.phasePayload, cycleTarget: this.cycleTargetPayload }
+              : {}),
           })
         )
       )
@@ -806,6 +863,7 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       mode: this.mode,
       days: this.days,
       dayPatterns: this.dayPatterns,
+      suitableForOverride: [...this.suitableForOverride].sort(),
     });
   }
 

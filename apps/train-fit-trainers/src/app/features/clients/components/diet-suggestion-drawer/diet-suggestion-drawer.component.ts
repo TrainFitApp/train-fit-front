@@ -201,6 +201,31 @@ export class DietSuggestionDrawerComponent implements OnInit {
       });
   }
 
+  // "Empezar de cero" — ninguna plantilla encaja (o el entrenador quiere
+  // construirla). Se lleva el objetivo calculado + el bloque de fase al
+  // builder, que al guardar crea la dieta y la aplica como ciclo 1.
+  public createFromScratch(): void {
+    if (!this.data) return;
+    const target = this.data.target;
+    void this.modalController.dismiss(
+      {
+        forDirectCreate: true,
+        startDate: this.startDate,
+        phase: {
+          name: this.phaseName.trim() || this.phaseName,
+          focus: this.focus,
+          targetKcalDelta: Number(this.kcalDelta) || 0,
+          ratePerCycle: Number(this.ratePerCycle) || 0,
+        },
+        cycleTarget: {
+          kcal: target.kcal,
+          macros: { protein: target.protein, carbs: target.carbs, fat: target.fat },
+        },
+      },
+      'create-from-scratch'
+    );
+  }
+
   public dismiss(): void {
     void this.modalController.dismiss(null, 'cancel');
   }

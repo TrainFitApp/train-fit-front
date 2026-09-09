@@ -119,6 +119,10 @@
         </div>
       </button>
 
+      <button type="button" class="scratch-link" (click)="createFromScratch()">
+        …o empezar de cero y construir la dieta
+      </button>
+
       <!-- Ocultas por el filtro dietético -->
       <div class="hidden-block" *ngIf="d.hidden.length">
         <button type="button" class="hidden-toggle" (click)="showHidden = !showHidden">

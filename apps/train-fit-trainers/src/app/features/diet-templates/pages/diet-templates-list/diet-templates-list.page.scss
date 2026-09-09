@@ -238,6 +238,23 @@
   color: var(--tf-text-muted);
 }
 
+// Sugerencias de dieta — badges de aptitud dietética.
+.template-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.template-flag {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--tf-surface-2, #f0f0f0);
+  color: var(--tf-text-secondary, #555);
+}
+
 // Objetivo táctil de 44px (PRODUCT.md) — antes 36px. Transparente por
 // defecto para no leerse como una card anidada dentro de la fila.
 .delete-template-btn {

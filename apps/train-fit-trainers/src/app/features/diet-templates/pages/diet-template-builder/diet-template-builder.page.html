@@ -35,6 +35,34 @@
       />
     </div>
 
+    <!-- Sugerencias de dieta — aptitud dietética. La deriva el backend de los
+         alimentos; el entrenador solo puede FORZAR las que la deriva no da
+         (productos sin el flag rellenado). Solo al editar una plantilla ya
+         guardada. -->
+    <div class="suitable-for" *ngIf="!isCreatingForClient">
+      <p class="section-hint">Apta para</p>
+      <div class="suitable-chips">
+        <button
+          type="button"
+          *ngFor="let opt of dietaryFlagOptions"
+          class="suitable-chip"
+          [class.is-on]="isSuitable(opt.key)"
+          [class.is-forced]="isForced(opt.key)"
+          [class.is-locked]="suitableForDerived.includes(opt.key)"
+          [title]="suitableForDerived.includes(opt.key) ? 'Todos los alimentos lo cumplen' : 'Forzar a mano'"
+          (click)="toggleSuitableOverride(opt.key)"
+        >
+          {{ opt.label }}
+          <span *ngIf="suitableForDerived.includes(opt.key)">✓</span>
+          <span *ngIf="isForced(opt.key)">(forzada)</span>
+        </button>
+      </div>
+      <p class="section-hint suitable-hint">
+        ✓ = todos los alimentos lo cumplen. "Forzada" = tú lo marcas pese a
+        alimentos sin ese dato. Se usa en el filtro del cajón de sugerencias.
+      </p>
+    </div>
+
     <!-- Auditoría de arquitectura (Fase 8/9) — mismo tablero, tres maneras de
          indexar las columnas: días secuenciales (Día 1..N), patrones fijos
          por día de la semana ("Entre semana"/"Fin de semana"), o menús que

@@ -100,4 +100,21 @@ export class DietTemplatesListPage implements OnInit {
   public dayCount(template: DietTemplate): number {
     return template.days?.length || 0;
   }
+
+  // Sugerencias de dieta — aptitud efectiva (derivada ∪ forzada a mano).
+  private readonly flagLabels: Record<string, string> = {
+    vegan: 'Vegana',
+    vegetarian: 'Vegetariana',
+    lactoseFree: 'Sin lactosa',
+    glutenFree: 'Sin gluten',
+  };
+
+  public effectiveSuitableFor(template: DietTemplate): string[] {
+    const set = new Set([...(template.suitableFor || []), ...(template.suitableForOverride || [])]);
+    return [...set];
+  }
+
+  public flagLabel(flag: string): string {
+    return this.flagLabels[flag] ?? flag;
+  }
 }

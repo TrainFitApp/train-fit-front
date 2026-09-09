@@ -72,6 +72,11 @@
             <span class="template-meta">
               {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
               <ng-container *ngIf="template.ownerClientId"> · de un cliente</ng-container>
+              <ng-container *ngIf="template.verified"> · de fábrica</ng-container>
+            </span>
+            <!-- Sugerencias de dieta — aptitud dietética derivada del contenido. -->
+            <span class="template-flags" *ngIf="effectiveSuitableFor(template).length">
+              <span class="template-flag" *ngFor="let f of effectiveSuitableFor(template)">{{ flagLabel(f) }}</span>
             </span>
           </div>
         </button>

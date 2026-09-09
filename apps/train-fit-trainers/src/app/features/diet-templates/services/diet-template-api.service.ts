@@ -52,9 +52,18 @@ export class DietTemplateApiService {
     name: string,
     days: DietTemplateDayPayload[],
     mode?: TemplateMode,
-    dayPatterns?: DietTemplateDayPatternPayload[]
+    dayPatterns?: DietTemplateDayPatternPayload[],
+    // Sugerencias de dieta — aptitudes que el entrenador fuerza a mano
+    // (el array derivado lo recalcula el backend, nunca se manda).
+    suitableForOverride?: string[]
   ): Observable<DietTemplate> {
-    return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, { name, days, mode, dayPatterns });
+    return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, {
+      name,
+      days,
+      mode,
+      dayPatterns,
+      suitableForOverride,
+    });
   }
 
   public delete(id: string): Observable<void> {

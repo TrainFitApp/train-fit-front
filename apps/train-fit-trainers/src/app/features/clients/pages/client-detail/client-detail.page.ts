@@ -2001,7 +2001,24 @@ export class ClientDetailPage implements OnInit {
       },
     });
     await modal.present();
-    const { role } = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role === 'create-from-scratch' && data) {
+      // "Empezar de cero" desde el cajón → builder, arrastrando el objetivo
+      // y el bloque de fase (mismo state que openCreateDietModal + phase).
+      void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
+        state: {
+          clientName: this.name,
+          name: data.phase?.name || 'Nueva dieta',
+          startDate: data.startDate,
+          endMode: 'indefinite',
+          phase: data.phase,
+          cycleTarget: data.cycleTarget,
+        },
+      });
+      return;
+    }
+
     if (role !== 'confirm') return;
 
     void this.loadActivePlan();

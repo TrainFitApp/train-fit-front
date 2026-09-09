@@ -147,6 +147,48 @@
   margin-top: -4px;
 }
 
+// Sugerencias de dieta — aptitud dietética.
+.suitable-for {
+  margin-bottom: 14px;
+
+  .suitable-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .suitable-chip {
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--tf-border, #d7d7d7);
+    background: transparent;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+
+    &.is-on {
+      color: var(--tf-text, inherit);
+      border-color: var(--tf-accent, #fe9000);
+    }
+
+    &.is-forced {
+      background: var(--tf-accent-soft, #fff3e0);
+    }
+
+    &.is-locked {
+      cursor: default;
+      opacity: 0.9;
+    }
+  }
+
+  .suitable-hint {
+    font-weight: 400;
+    color: var(--tf-text-muted);
+    margin-top: 6px;
+  }
+}
+
 .end-mode-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
