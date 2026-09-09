@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <div class="tf-page-header">
+    <div class="tf-page-header__content">
+      <div class="tf-page-header__back-section">
+        <button type="button" class="tf-page-header__back-button" (click)="dismiss()" aria-label="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="tf-page-header__title-section">
+        <h1 class="tf-page-header__title">Siguiente ciclo</h1>
+      </div>
+      <div class="tf-page-header__actions"></div>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="cycle-content">
+  <div class="detail-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block" style="height: 90px"></div>
+    <div class="skeleton-block" style="height: 60px"></div>
+  </div>
+
+  <div class="section-error" *ngIf="state === 'error'">
+    <p>No se pudo calcular el siguiente ciclo.</p>
+    <ion-button size="small" fill="outline" (click)="dismiss()">Cerrar</ion-button>
+  </div>
+
+  <ng-container *ngIf="state === 'ready' && data as d">
+    <section class="reason-card" [class.is-flagged]="d.suggestion.flag">
+      <p class="reason-text">{{ d.suggestion.reason }}</p>
+      <div class="weight-row" *ngIf="d.suggestion.hasData">
+        Peso {{ d.weightStartKg }} → {{ d.weightEndKg }} kg
+        <span *ngIf="d.suggestion.actualWeeklyRateKg !== null">
+          ({{ deltaLabel(d.suggestion.actualWeeklyRateKg) }} kg/sem)
+        </span>
+      </div>
+    </section>
+
+    <section class="target-edit">
+      <label class="field-label">kcal del siguiente ciclo</label>
+      <input type="number" step="50" [(ngModel)]="targetKcal" />
+      <p class="delta-hint">
+        Ciclo actual: {{ d.currentCycleKcal || '—' }} kcal
+        <span *ngIf="d.currentCycleKcal">· cambio {{ deltaLabel(kcalDelta) }} kcal</span>
+      </p>
+
+      <label class="field-label">Fecha de inicio</label>
+      <input type="date" [(ngModel)]="startDate" />
+
+      <p class="muted">
+        El contenido del ciclo se copia del actual con las cantidades escaladas
+        para dar en estas kcal. Podrás retocarlo después en el editor de la dieta.
+      </p>
+    </section>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="state === 'ready'">
+  <div class="footer-actions">
+    <ion-button expand="block" [disabled]="applying || !targetKcal" (click)="confirm()">
+      {{ applying ? 'Aplicando…' : 'Aplicar ciclo nuevo' }}
+    </ion-button>
+  </div>
+</ion-footer>

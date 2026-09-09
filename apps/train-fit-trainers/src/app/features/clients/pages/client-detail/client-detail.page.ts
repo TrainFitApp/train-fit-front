@@ -61,6 +61,7 @@ import { CompletedDay } from './components/training-calendar/training-calendar.c
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
+import { NextCycleModalComponent } from '../../components/next-cycle-modal/next-cycle-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
@@ -1613,7 +1614,14 @@ export class ClientDetailPage implements OnInit {
         this.allPhasesHistory = (res?.history || [])
           .slice()
           .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        this.phaseColorMap = buildPhaseColorMap(this.allPhasesHistory.map((p) => p._id));
+        // Sugerencias de dieta — los ciclos de una fase comparten color
+        // (banda de fase). Color por phaseId; sin phaseId, por _id.
+        const phaseKeys: string[] = [];
+        for (const p of this.allPhasesHistory) {
+          const key = p.phaseId || p._id;
+          if (!phaseKeys.includes(key)) phaseKeys.push(key);
+        }
+        this.phaseColorMap = buildPhaseColorMap(phaseKeys);
         this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
@@ -1651,7 +1659,7 @@ export class ClientDetailPage implements OnInit {
   // phase-color.util.ts.
   public phaseColor(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent)';
-    return this.phaseColorMap.get(phase._id) ?? 'var(--tf-accent)';
+    return this.phaseColorMap.get(phase.phaseId || phase._id) ?? 'var(--tf-accent)';
   }
 
   // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
@@ -1661,7 +1669,7 @@ export class ClientDetailPage implements OnInit {
   // Reutiliza hexToRgba, igual que weekdayPatternSoftBackground.
   public phaseSoftBackground(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent-soft)';
-    const color = this.phaseColorMap.get(phase._id);
+    const color = this.phaseColorMap.get(phase.phaseId || phase._id);
     if (!color) return 'var(--tf-accent-soft)';
     return this.hexToRgba(color, 0.14);
   }
@@ -1990,6 +1998,29 @@ export class ClientDetailPage implements OnInit {
         clientId: this.clientId,
         clientName: this.name,
         suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+      },
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    void this.loadActivePlan();
+    this.loadNutrition();
+  }
+
+  // Sugerencias de dieta — progresión ciclo a ciclo. Abre el modal que lee
+  // la tendencia de peso + adherencia y sugiere las kcal del siguiente ciclo.
+  public async openNextCycleModal(): Promise<void> {
+    const phaseId = this.activePlan?.phaseId;
+    if (!phaseId) return;
+
+    const modal = await this.modalController.create({
+      component: NextCycleModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        phaseId,
+        clientName: this.name,
       },
     });
     await modal.present();

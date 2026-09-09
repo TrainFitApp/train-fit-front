@@ -2118,6 +2118,40 @@
 }
 
 // Cierra la fila por la derecha: la fase nueva aparece justo aquí.
+// Sugerencias de dieta — botón de progresión ciclo a ciclo dentro de la
+// tarjeta de la fase vigente.
+.next-cycle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--tf-border, #e0e0e0);
+  border-radius: 10px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text, inherit);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &__hint {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--tf-text-muted);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
 .next-phase-card--add {
   align-items: center;
   justify-content: center;

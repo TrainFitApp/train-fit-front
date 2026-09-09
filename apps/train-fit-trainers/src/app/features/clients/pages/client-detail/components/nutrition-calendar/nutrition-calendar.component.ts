@@ -507,7 +507,15 @@ export class NutritionCalendarComponent implements OnChanges {
         // Orden estable por fecha de inicio — así el color de cada fase no
         // cambia de un mes a otro dentro de la misma sesión.
         this.planPhases = (phases || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
-        this.phaseColorMap = buildPhaseColorMap(this.planPhases.map((p) => p._id));
+        // Sugerencias de dieta — los ciclos de una misma fase comparten
+        // color (banda de fase). Se colorea por phaseId; un ciclo sin
+        // phaseId (fases anteriores a la feature) usa su propio _id.
+        const phaseKeys: string[] = [];
+        for (const p of this.planPhases) {
+          const key = p.phaseId || p._id;
+          if (!phaseKeys.includes(key)) phaseKeys.push(key);
+        }
+        this.phaseColorMap = buildPhaseColorMap(phaseKeys);
         this.cells = this.withPhases(this.cells);
       },
       error: () => {
@@ -566,7 +574,7 @@ export class NutritionCalendarComponent implements OnChanges {
     const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
     return {
       id: phase._id,
-      color: this.phaseColorMap.get(phase._id) ?? PHASE_COLORS[0],
+      color: this.phaseColorMap.get(phase.phaseId || phase._id) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
       blocksNewPhase: phase.endDate !== null,
     };

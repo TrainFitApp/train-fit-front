@@ -941,6 +941,22 @@
               <ion-icon name="alert-circle-outline"></ion-icon>
               {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
             </p>
+
+            <!-- Sugerencias de dieta — progresión ciclo a ciclo dentro de la
+                 fase vigente (solo si la fase tiene phaseId, es decir se
+                 empezó desde el cajón de sugerencias). -->
+            <button
+              type="button"
+              class="next-cycle-btn"
+              *ngIf="activePlan.phaseId"
+              (click)="openNextCycleModal()"
+            >
+              <ion-icon name="trending-down-outline" aria-hidden="true"></ion-icon>
+              Siguiente ciclo
+              <span class="next-cycle-btn__hint" *ngIf="activePlan.cycleTargetKcal">
+                (ahora {{ activePlan.cycleTargetKcal }} kcal)
+              </span>
+            </button>
           </div>
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
