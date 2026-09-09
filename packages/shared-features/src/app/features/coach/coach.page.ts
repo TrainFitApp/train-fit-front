@@ -599,6 +599,11 @@ export class CoachPage implements OnInit {
   // Fase 5 Coach Pro (§16) — qué puede comer en lugar de qué. Enlazado desde
   // aquí y no desde el tab de dietas porque es contenido de SU profesional,
   // que es lo que agrupa esta pantalla.
+  //
+  // Sin consumidor ahora mismo (2026-09) — el botón está bloqueado como
+  // "Próximamente" en coach.page.html (mismo motivo que la tarjeta del
+  // entrenador en templates.page.ts). Se deja sin borrar para que
+  // desbloquearlo sea solo devolverle el (click) al botón.
   public goToFoodExchanges(): void {
     void this.router.navigate(['/my-food-exchanges']);
   }

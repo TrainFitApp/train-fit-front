@@ -118,14 +118,42 @@ export class MyFoodExchangesPage implements OnInit {
     this.expandedGroupId = this.expandedGroupId === group._id ? null : group._id;
   }
 
-  // "100 g de pollo" — la referencia contra la que se leen los demás.
-  public referenceLabel(group: MyExchangeGroup): string {
-    const first = group.items?.[0];
-    return first ? `${first.quantity} ${first.unit} de ${first.name}` : '';
+  /**
+   * "1 ración = 110 kcal · 20 g de proteína".
+   *
+   * Sustituye a la antigua línea "Referencia: 100 g de pollo", que decía que
+   * el primer alimento era especial y los demás se leían contra él. No lo
+   * era: cada alimento de la lista, en su cantidad, vale una ración — y así
+   * es como los multiplica `amountForExchanges` desde siempre.
+   */
+  public servingLabel(group: MyExchangeGroup): string {
+    if (group.freeQuantity) return 'Cantidad libre: no hace falta pesarlo';
+    const serving = group.serving;
+    const parts: string[] = [];
+    if (serving?.kcal !== null && serving?.kcal !== undefined) parts.push(`${serving.kcal} kcal`);
+    if (serving?.protein !== null && serving?.protein !== undefined) {
+      parts.push(`${serving.protein} g de proteína`);
+    }
+    if (serving?.carbs !== null && serving?.carbs !== undefined) {
+      parts.push(`${serving.carbs} g de hidratos`);
+    }
+    if (serving?.fat !== null && serving?.fat !== undefined) parts.push(`${serving.fat} g de grasa`);
+    return parts.length ? `1 ración = ${parts.join(' · ')}` : '';
   }
 
-  public alternatives(group: MyExchangeGroup): MyExchangeItem[] {
-    return (group.items || []).slice(1);
+  /**
+   * Los grupos que NO salen en su reparto.
+   *
+   * Antes esta sección repetía TODOS los grupos, incluidos los de arriba, y
+   * con peor información: los de arriba ya vienen con las cantidades
+   * multiplicadas por sus raciones, y aquí salían en crudo. Eran los mismos
+   * alimentos leídos dos veces, y la segunda lectura era la mala.
+   */
+  public get otherGroups(): MyExchangeGroup[] {
+    const used = new Set(
+      this.meals.flatMap((meal) => (meal.exchanges || []).map((exchange) => exchange.groupId))
+    );
+    return this.groups.filter((group) => !used.has(group._id));
   }
 
   public trackByGroupId(_index: number, group: MyExchangeGroup): string {

@@ -123,9 +123,15 @@
   <div class="coach-menu-group">
     <p class="coach-menu-group-label">Lo que te ha pautado</p>
     <div class="coach-menu-grid">
-      <button type="button" class="coach-menu-card" (click)="goToFoodExchanges()">
+      <!-- Bloqueada como "Próximamente" (2026-09) — la pantalla y el backend
+           ya funcionan, pero se mantiene cerrada al cliente hasta que su
+           profesional pueda usarla de verdad (ver templates.page.ts, misma
+           fecha, mismo motivo, lado entrenador). disabled y sin (click):
+           igual que allí, no navega a ningún sitio todavía. -->
+      <button type="button" class="coach-menu-card coach-menu-card--locked" disabled aria-label="Intercambios, próximamente">
         <div class="coach-menu-icon"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
         <span class="coach-menu-name">Intercambios</span>
+        <span class="coach-menu-badge">Próximamente</span>
       </button>
 
       <button type="button" class="coach-menu-card" (click)="goToSupplements()">

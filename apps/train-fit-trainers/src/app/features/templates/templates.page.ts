@@ -59,11 +59,18 @@ export class TemplatesPage implements OnInit {
     {
       // Fase 5 Coach Pro (§16) — qué puede comer el cliente en lugar de qué.
       // Las equivalencias las define el coach: el sistema no las calcula.
+      //
+      // locked: true — bloqueada como "Próximamente" a propósito (2026-09):
+      // la pantalla y el backend ya funcionan, pero se mantiene cerrada al
+      // entrenador hasta que se valide del todo. `path` se deja intacto
+      // (sigue siendo una ruta real, /tabs/food-exchanges) para no tener que
+      // tocarlo el día que se desbloquee — solo hay que quitar esta línea.
       name: 'Intercambios',
       description: 'Grupos de alimentos equivalentes que tus clientes pueden consultar',
       icon: 'swap-horizontal-outline',
       colorVar: 'var(--ion-color-tertiary, #ffd359)',
       path: '/tabs/food-exchanges',
+      locked: true,
     },
     {
       name: 'Componer para varios clientes',

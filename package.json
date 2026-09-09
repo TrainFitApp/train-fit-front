@@ -32,7 +32,7 @@
     "live:a": "npm run live:a --workspace @trainfit/train-fit-front",
     "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
     "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
-    "test": "node --test packages/shared-core/src/app/core/utils/body-metrics.test.js packages/shared-core/src/app/core/utils/exchange-math.test.js",
+    "test": "node --test packages/shared-core/src/app/core/utils/body-metrics.test.js packages/shared-core/src/app/core/utils/exchange-math.test.js packages/shared-core/src/app/core/utils/exchange-plan.test.js",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management",
     "serve:t": "npm run start --workspace @trainfit/train-fit-trainers",

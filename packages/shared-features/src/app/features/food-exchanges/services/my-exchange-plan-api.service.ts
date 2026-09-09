@@ -29,6 +29,15 @@ export interface MyExchangeGroup {
   category: string;
   equivalenceNote: string;
   items: MyExchangeItem[];
+  /** Qué lleva UNA ración. Cada macro puede faltar por separado. */
+  serving?: {
+    kcal: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+  } | null;
+  /** El grupo que no se pesa: "come lo que quieras de estos". */
+  freeQuantity?: boolean;
 }
 
 export interface MyExchangePlan {

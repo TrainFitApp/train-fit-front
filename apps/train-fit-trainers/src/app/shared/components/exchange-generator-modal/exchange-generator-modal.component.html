@@ -45,7 +45,7 @@
           <span class="group-option-name">{{ group.name }}</span>
           <span class="pivot-chip" *ngIf="containsPivot(group)">Contiene este alimento</span>
         </span>
-        <span class="group-option-reference">{{ referenceLabel(group) }}</span>
+        <span class="group-option-reference">{{ servingLabel(group) }}</span>
         <!-- Es lo único que decide si merece la pena entrar: un grupo con 6
              alimentos escritos a mano y ninguno vinculado no genera nada. -->
         <span class="group-option-usable" [class.group-option-usable--none]="!usableCount(group)">

@@ -1665,6 +1665,49 @@ export class ClientDetailPage implements OnInit {
     return this.hexToRgba(color, 0.14);
   }
 
+  // Borrado coherente de fases (nutrición) — mismo patrón que
+  // confirmCancelRoutinePhase para entrenamiento: quitar CUALQUIER fase
+  // (vigente, programada o ya sustituida), con el mismo diálogo de
+  // confirmación. Si era la fase en curso, el backend reactiva sola la que
+  // queda más reciente — nunca deja al cliente sin ninguna.
+  public cancellingPlanPhaseId: string | null = null;
+
+  public async confirmCancelPlanPhase(phase: PlanAssignment, event: Event): Promise<void> {
+    event.stopPropagation();
+    await this.ionicUtilService.showAlert({
+      header: 'Quitar fase',
+      message: `¿Seguro que quieres quitar "${phase.planName || 'Plan aplicado'}", desde el ${this.formatShortDate(phase.startDate)}?`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Quitar',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.cancellingPlanPhaseId = phase._id;
+            this.planAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+              next: () => {
+                this.cancellingPlanPhaseId = null;
+                this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+                void this.loadActivePlan();
+                // El historial de abajo es de carga perezosa (toggleNutritionHistory)
+                // — solo se refresca si ya estaba abierto, para no disparar una
+                // petición que nadie va a ver.
+                if (this.nutritionHistoryLoaded) this.loadNutritionHistory();
+              },
+              error: (err) => {
+                this.cancellingPlanPhaseId = null;
+                this.ionicUtilService.showToast({
+                  message: err?.error?.message || 'No se pudo quitar la fase',
+                  duration: 2500,
+                });
+              },
+            });
+          },
+        },
+      ],
+    });
+  }
+
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
   // (GET .../nutrition-plans/history, endpoint ya existía sin consumidor,
   // mismo patrón que TASK-020) con las excepciones puntuales (nuevo GET
@@ -1802,6 +1845,32 @@ export class ClientDetailPage implements OnInit {
   // que se edita con su propio componente, y meterla en un FormArray dentro
   // de un formulario de cinco números solo añadiría ceremonia.
   public goalMealExchanges: GoalMeal[] = [];
+
+  /**
+   * Los gramos del formulario, con los nombres que entiende el cuadre.
+   *
+   * Se lee del FormGroup en vivo y no de una copia: el entrenador sube las
+   * kcal y el cuadre de abajo tiene que moverse con ellas, que es justo lo
+   * que hace que las dos formas de pautar dejen de ir cada una por su lado.
+   */
+  public get goalMacroTargets(): {
+    kcal: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+  } {
+    const value = this.goalForm.value;
+    const read = (raw: unknown): number | null => {
+      const parsed = Number(raw);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    };
+    return {
+      kcal: read(value.kcalTotal),
+      protein: read(value.proteinsGTotal),
+      carbs: read(value.carbohydratesGTotal),
+      fat: read(value.fatGTotal),
+    };
+  }
 
   // El objetivo vigente del cliente. Se deriva de la lista en vez de
   // guardarse aparte: dos copias del "cuál está activo" se desincronizan en

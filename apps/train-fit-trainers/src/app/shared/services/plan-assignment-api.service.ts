@@ -48,6 +48,14 @@ export class PlanAssignmentApiService {
     return this.http.get<PlanAssignment[]>(`${this.base(clientId)}/history`);
   }
 
+  // Quitar CUALQUIER fase (futura, pasada/sustituida, o la vigente ahora
+  // mismo) — mismo patrón que RoutineAssignmentApiService#cancel para
+  // entrenamiento. Si era la fase "active" (el tip de la cadena), el backend
+  // reactiva sola la que queda más reciente.
+  public cancel(clientId: string, planId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(clientId)}/${planId}`);
+  }
+
   public createException(
     clientId: string,
     body: { date: string; mealSlot?: string; action: 'override' | 'skip'; override?: unknown }

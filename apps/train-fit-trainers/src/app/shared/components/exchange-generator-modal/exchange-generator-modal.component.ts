@@ -98,9 +98,22 @@ export class ExchangeGeneratorModalComponent implements OnInit {
     return (group.items || []).filter((item) => !this.blockedReason(item)).length;
   }
 
-  public referenceLabel(group: FoodExchangeGroup): string {
-    const first = group.items?.[0];
-    return first ? `${first.quantity} ${first.unit} de ${first.name}` : '';
+  /**
+   * Qué lleva una ración del grupo.
+   *
+   * Sustituye a la antigua "referencia" (el primer alimento de la lista): no
+   * era una referencia, todos los alimentos valen una ración. Lo que dice si
+   * este grupo sirve para la comida que está montando es su perfil.
+   */
+  public servingLabel(group: FoodExchangeGroup): string {
+    if (group.freeQuantity) return 'Cantidad libre';
+    const serving = group.serving;
+    const parts: string[] = [];
+    if (serving?.kcal !== null && serving?.kcal !== undefined) parts.push(`${serving.kcal} kcal`);
+    if (serving?.protein !== null && serving?.protein !== undefined) parts.push(`${serving.protein} g P`);
+    if (serving?.carbs !== null && serving?.carbs !== undefined) parts.push(`${serving.carbs} g HC`);
+    if (serving?.fat !== null && serving?.fat !== undefined) parts.push(`${serving.fat} g G`);
+    return parts.length ? `1 ración = ${parts.join(' · ')}` : 'Sin perfil de ración';
   }
 
   public selectGroup(group: FoodExchangeGroup): void {

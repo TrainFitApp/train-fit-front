@@ -861,14 +861,33 @@
             [style.--phase-color]="phaseColor(activePlan)"
             [style.--phase-bg]="phaseSoftBackground(activePlan)"
           >
-            <!-- El naranja de acento se queda solo para navegación/UI (hoy,
-                 seleccionado...) — la fase vigente es un dato del cliente
-                 como cualquier otra, con su propio color; lo que la marca
-                 como "en curso" es el icono, no un color reservado. -->
-            <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
-              <ion-icon name="flash" aria-hidden="true"></ion-icon>
-              1ª · en curso
-            </span>
+            <!-- Borrado coherente de fases (nutrición) — fila propia y no
+                 dentro de .active-plan-header: esa es un <button> entero
+                 (abre la plantilla), y no puede anidar otro botón dentro.
+                 margin-left:auto en el botón manda el quitar a la derecha
+                 tanto si el badge "en curso" está como si no (con 1 sola
+                 fase no se pinta). -->
+            <div class="active-plan-top-row">
+              <!-- El naranja de acento se queda solo para navegación/UI (hoy,
+                   seleccionado...) — la fase vigente es un dato del cliente
+                   como cualquier otra, con su propio color; lo que la marca
+                   como "en curso" es el icono, no un color reservado. -->
+              <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
+                <ion-icon name="flash" aria-hidden="true"></ion-icon>
+                1ª · en curso
+              </span>
+              <button
+                type="button"
+                class="bulk-apply-btn bulk-apply-btn--danger"
+                title="Quitar fase"
+                aria-label="Quitar fase"
+                [disabled]="cancellingPlanPhaseId === activePlan._id"
+                (click)="confirmCancelPlanPhase(activePlan, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
+                <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== activePlan._id"></ion-icon>
+              </button>
+            </div>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
                  editar la plantilla aplicada, sin pasar por "Gestionar
                  plantillas" y buscarla en la lista. Las acciones de abajo
@@ -926,26 +945,39 @@
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
                tienen sentido sobre la que está rigiendo. -->
-          <!-- <button>, no <article>: estas tarjetas abren su plantilla igual
-               que la cabecera de la fase en curso. Eran las únicas de la fila
-               que no respondían al click, y son las que más se retocan —
-               están programadas, todavía da tiempo a cambiarlas. -->
+          <!-- <div>, ya no <button>: sigue abriendo su plantilla igual que la
+               cabecera de la fase en curso (ahora en .next-phase-card__open,
+               el <button> interior), pero necesita un segundo botón para
+               quitarla — y un <button> no puede anidar otro <button>. Mismo
+               cambio que sufrió .active-plan-card más arriba, por el mismo
+               motivo. -->
           <ng-container *ngFor="let phase of planPhases; let i = index">
-            <button
-              type="button"
+            <div
               class="next-phase-card"
               *ngIf="!isCurrentPhase(phase)"
               [style.--phase-color]="phaseColor(phase)"
-              (click)="openPhaseTemplate(phase)"
             >
-              <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
-              <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
-              <p class="next-phase-card__range">
-                desde {{ phase.startDate }}<br />
-                {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
-              </p>
-              <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
-            </button>
+              <button type="button" class="next-phase-card__open" (click)="openPhaseTemplate(phase)">
+                <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
+                <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
+                <p class="next-phase-card__range">
+                  desde {{ phase.startDate }}<br />
+                  {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
+                </p>
+                <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
+              </button>
+              <button
+                type="button"
+                class="bulk-apply-btn bulk-apply-btn--danger next-phase-card__remove"
+                title="Quitar fase programada"
+                [attr.aria-label]="'Quitar ' + (phase.planName || 'la fase programada')"
+                [disabled]="cancellingPlanPhaseId === phase._id"
+                (click)="confirmCancelPlanPhase(phase, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
+                <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
+              </button>
+            </div>
           </ng-container>
 
           <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyTemplateModal()">
@@ -1109,6 +1141,7 @@
              objetivo sin reparto se comporta exactamente como hasta ahora. -->
         <app-meal-exchanges-editor
           [meals]="goalMealExchanges"
+          [targets]="goalMacroTargets"
           (mealsChange)="goalMealExchanges = $event"
         ></app-meal-exchanges-editor>
 
