@@ -1599,6 +1599,22 @@
   }
 }
 
+// Sugerencias de dieta — al elegir dieta para la fase, la lista manda: la
+// columna lateral de contexto (adherencia/preferencias/objetivos) se
+// esconde y la principal ocupa todo el ancho, para que las tarjetas de
+// dieta quepan de sobra al lado del panel de parámetros (400px, ver
+// .diet-selection-mode { padding-right }). El objetivo calculado ya lo
+// muestra ese panel, así que no se pierde contexto necesario.
+.nutrition-layout--choosing {
+  @media (min-width: 768px) {
+    display: block;
+
+    .nutrition-sidebar {
+      display: none;
+    }
+  }
+}
+
 // Tarea 3 (2026-08) — mismo patrón de columnas que Nutrición
 // (.nutrition-layout de arriba): sidebar de contexto fijo + columna
 // principal. Reutiliza el mismo breakpoint y las mismas proporciones a

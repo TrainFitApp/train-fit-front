@@ -674,7 +674,7 @@
     </div>
 
     <ng-container *ngIf="nutritionState === 'loaded'">
-      <div class="nutrition-layout">
+      <div class="nutrition-layout" [class.nutrition-layout--choosing]="dietSelectionMode">
         <!-- Columna fija: de un vistazo, sin desplazarse — adherencia,
              preferencias del cliente y objetivos vigentes. Al no compartir
              ancho completo con el resto, tarjetas cortas ya no dejan hueco
