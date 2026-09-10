@@ -20,6 +20,19 @@ import {
   IntakeSubmission,
   TrainingLocation,
 } from '../../services/intake-api.service';
+// Las MISMAS constantes que usa sign-up.page.ts — una sola fuente de verdad
+// para pasos / actividad / frecuencia de entrenamiento / sexo.
+import { STEPS, STEPS_TYPES, STEPS_VALUES } from 'src/app/shared/constants/steps';
+import { ACTIVITY_FACTOR_VALUES } from 'src/app/shared/constants/activity-factor';
+import { calculateTrainingValues } from 'src/app/shared/constants/training';
+import { SEX_TYPES } from 'src/app/shared/constants/sex';
+
+const STEPS_NOT_COUNTED = STEPS[STEPS_TYPES.notCounted].value;
+
+const SEX_OPTIONS: { value: number; label: string }[] = [
+  { value: SEX_TYPES.female, label: 'Femenino' },
+  { value: SEX_TYPES.male, label: 'Masculino' },
+];
 
 export type IntakeWizardResult = Omit<IntakeSubmission, 'trainerId'>;
 
@@ -35,6 +48,14 @@ export interface IntakeWizardPrefill {
   dislikedFoods: string;
   cooksAtHome: IntakeSubmission['cooksAtHome'];
   dietaryFlags: DietaryFlag[];
+  // Perfil que el cliente metió al registrarse — el intake solo lo confirma.
+  weight: number | null;
+  height: number | null;
+  sex: number | null;
+  birth: string; // "YYYY-MM-DD"
+  steps: number | null; // STEPS[x].value
+  activity: number | null; // ACTIVITY_FACTOR[x].value
+  training: number | null; // valor resuelto de calculateTrainingValues
   customAnswers: Record<string, string>;
 }
 
@@ -120,6 +141,16 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public readonly trainingLocationOptions = TRAINING_LOCATION_OPTIONS;
   public readonly equipmentTagOptions = EQUIPMENT_TAG_OPTIONS;
   public readonly dietaryFlagOptions = DIETARY_FLAG_OPTIONS;
+  public readonly sexOptions = SEX_OPTIONS;
+  // Los `value` de STEPS/TRAINING están tipados como string en el origen pero
+  // en realidad son números (igual que sign-up los trata) — se normalizan.
+  public readonly stepsOptions: { name: string; value: number }[] = STEPS_VALUES.map((s) => ({
+    name: s.name,
+    value: Number(s.value),
+  }));
+  public readonly activityOptions = ACTIVITY_FACTOR_VALUES;
+  public readonly stepsNotCounted = Number(STEPS_NOT_COUNTED);
+  public trainingOptions: { name: string; value: number }[] = [];
 
   public goals = '';
   public healthConditions = '';
@@ -132,6 +163,13 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public dislikedFoods = '';
   public cooksAtHome: IntakeSubmission['cooksAtHome'] = null;
   public dietaryFlags: DietaryFlag[] = [];
+  public weight: number | null = null;
+  public height: number | null = null;
+  public sex: number | null = null;
+  public birth = '';
+  public steps: number | null = null;
+  public activity: number | null = null;
+  public training: number | null = null;
   public customAnswers: Record<string, string> = {};
 
   private stepIds: string[] = [];
@@ -162,6 +200,14 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.dislikedFoods = p?.dislikedFoods || '';
     this.cooksAtHome = p?.cooksAtHome ?? null;
     this.dietaryFlags = p?.dietaryFlags ? [...p.dietaryFlags] : [];
+    this.weight = p?.weight ?? null;
+    this.height = p?.height ?? null;
+    this.sex = p?.sex ?? null;
+    this.birth = p?.birth || '';
+    this.steps = p?.steps ?? null;
+    this.activity = p?.activity ?? null;
+    this.training = p?.training ?? null;
+    this.updateTrainingOptions();
     this.customAnswers = { ...(p?.customAnswers || {}) };
   }
 
@@ -172,6 +218,12 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   // pregunta.
   private buildStepOrder(): string[] {
     const ids: string[] = [];
+    if (this.enabledFields.has('profileBiometrics')) ids.push('profileBiometrics');
+    if (this.enabledFields.has('activityProfile')) {
+      ids.push('steps');
+      ids.push('activity');
+      ids.push('trainingFreq');
+    }
     if (this.enabledFields.has('goals')) ids.push('goals');
     if (this.enabledFields.has('healthConditions')) ids.push('healthConditions');
     if (this.enabledFields.has('experienceLevel')) ids.push('experienceLevel');
@@ -288,6 +340,36 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       : [...this.dietaryFlags, flag];
   }
 
+  private updateTrainingOptions(): void {
+    const step = this.steps ?? Number(STEPS[STEPS_TYPES.between2000And6000].value);
+    const values = calculateTrainingValues(step);
+    this.trainingOptions = values
+      ? Object.values(values).map((t) => ({ name: t.name, value: Number(t.value) }))
+      : [];
+  }
+
+  public selectSex(value: number): void {
+    this.selectSingleChip((v) => (this.sex = v), value);
+  }
+
+  // Igual que sign-up: al cambiar los pasos se resetea la frecuencia (las
+  // opciones cambian) y la actividad solo aplica si "no cuenta pasos".
+  public selectSteps(value: number): void {
+    this.steps = value;
+    if (value !== STEPS_NOT_COUNTED) this.activity = null;
+    this.training = null;
+    this.updateTrainingOptions();
+    this.selectSingleChip(() => {}, value);
+  }
+
+  public selectActivity(value: number): void {
+    this.selectSingleChip((v) => (this.activity = v), value);
+  }
+
+  public selectTraining(value: number): void {
+    this.selectSingleChip((v) => (this.training = v), value);
+  }
+
   public submit(): void {
     if (this.isSubmitting) return;
 
@@ -309,6 +391,13 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       dislikedFoods: this.dislikedFoods.trim(),
       cooksAtHome: this.cooksAtHome,
       dietaryFlags: this.dietaryFlags,
+      weight: this.weight,
+      height: this.height,
+      sex: this.sex,
+      birth: this.birth || null,
+      steps: this.steps,
+      activity: this.steps === STEPS_NOT_COUNTED ? this.activity : null,
+      training: this.training,
       customAnswers,
     });
   }

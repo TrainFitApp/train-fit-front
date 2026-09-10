@@ -15,9 +15,12 @@ export type IntakeFieldKey =
   | 'favoriteFoods'
   | 'dislikedFoods'
   | 'cooksAtHome'
-  // Restricciones dietéticas — no toggleable por el entrenador: el backend
-  // (getOnboardingStatus) lo fuerza en toda relación de scope nutrición.
-  | 'dietaryFlags';
+  // No toggleables por el entrenador — el backend (getOnboardingStatus) los
+  // fuerza: dietaryFlags en scope nutrición; profileBiometrics/activityProfile
+  // siempre (confirman datos del registro y se reescriben en User).
+  | 'dietaryFlags'
+  | 'profileBiometrics'
+  | 'activityProfile';
 
 export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'goals',
@@ -30,6 +33,8 @@ export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'dislikedFoods',
   'cooksAtHome',
   'dietaryFlags',
+  'profileBiometrics',
+  'activityProfile',
 ];
 
 export interface IntakeCustomQuestion {

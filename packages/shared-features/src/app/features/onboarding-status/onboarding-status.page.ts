@@ -8,6 +8,7 @@ import {
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
 import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
@@ -37,6 +38,13 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   dislikedFoods: '',
   cooksAtHome: null,
   dietaryFlags: [],
+  weight: null,
+  height: null,
+  sex: null,
+  birth: '',
+  steps: null,
+  activity: null,
+  training: null,
   customAnswers: {},
 };
 
@@ -85,7 +93,8 @@ export class OnboardingStatusPage implements OnDestroy {
     private intakeApi: IntakeApiService,
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private userService: UserService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -258,6 +267,9 @@ export class OnboardingStatusPage implements OnDestroy {
           dislikedFoods: preferences?.dislikedFoods || '',
           cooksAtHome: preferences?.cooksAtHome ?? null,
           dietaryFlags: preferences?.dietaryFlags || [],
+          // Reciclar lo del registro: el cliente autenticado ya tiene su
+          // perfil cargado en local, el intake solo lo confirma.
+          ...this.profilePrefillFromUser(),
           customAnswers,
         };
         this.isLoadingIntake = false;
@@ -272,6 +284,25 @@ export class OnboardingStatusPage implements OnDestroy {
 
   public closeIntakeForm(): void {
     this.fillingTrainerId = null;
+  }
+
+  // El perfil (peso/altura/sexo/pasos/actividad/frecuencia) que el cliente ya
+  // metió al registrarse — el wizard lo enseña prerellenado y el cliente solo
+  // ajusta lo que haya cambiado.
+  private profilePrefillFromUser(): Pick<
+    IntakeWizardPrefill,
+    'weight' | 'height' | 'sex' | 'birth' | 'steps' | 'activity' | 'training'
+  > {
+    const u = this.userService.getLocalUser;
+    return {
+      weight: Number.isFinite(u?.weight) ? u!.weight : null,
+      height: Number.isFinite(u?.height) ? u!.height : null,
+      sex: u?.sex === 0 || u?.sex === 1 ? u!.sex : null,
+      birth: u?.birth ? new Date(u.birth).toISOString().slice(0, 10) : '',
+      steps: Number.isFinite(u?.steps) ? u!.steps : null,
+      activity: Number.isFinite(u?.activity) ? u!.activity : null,
+      training: Number.isFinite(u?.training) ? u!.training : null,
+    };
   }
 
   public submitIntake(result: IntakeWizardResult): void {

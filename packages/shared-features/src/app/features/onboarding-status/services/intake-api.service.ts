@@ -37,6 +37,16 @@ export interface IntakeSubmission {
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
   // Restricciones dietéticas estructuradas → ClientNutritionPreferences.
   dietaryFlags: DietaryFlag[];
+  // Perfil del cliente (confirmación de lo del registro) → se reescribe en
+  // `User`. steps/activity/training = el `.value` numérico del enum, ya
+  // resuelto por el wizard (mismo criterio que sign-up).
+  weight: number | null;
+  height: number | null;
+  sex: number | null;
+  birth: string | null;
+  steps: number | null;
+  activity: number | null;
+  training: number | null;
   customAnswers: IntakeCustomAnswer[];
 }
 

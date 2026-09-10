@@ -6,6 +6,100 @@
 
 <div class="wizard-body">
   <swiper-container init="false" #intakeSwiper>
+    <!-- Perfil: lo que el cliente ya metió al registrarse, prerellenado -->
+    <swiper-slide *ngIf="enabledFields.has('profileBiometrics')">
+      <div class="form-section">
+        <h2 class="section-title">Confirma tus datos</h2>
+        <p class="section-subtitle">Los usamos para calcular tus calorías y macros. Ajusta lo que haya cambiado.</p>
+        <div class="field">
+          <input type="number" class="field-input" inputmode="decimal" placeholder=" " [(ngModel)]="weight" />
+          <label class="field-label">Peso (kg)</label>
+        </div>
+        <div class="field">
+          <input type="number" class="field-input" inputmode="numeric" placeholder=" " [(ngModel)]="height" />
+          <label class="field-label">Altura (cm)</label>
+        </div>
+        <div class="field">
+          <input type="date" class="field-input" [(ngModel)]="birth" />
+          <label class="field-label">Fecha de nacimiento</label>
+        </div>
+        <div class="options-list options-list--inline">
+          <div
+            class="option-card"
+            *ngFor="let option of sexOptions"
+            [class.is-selected]="sex === option.value"
+            (click)="selectSex(option.value)"
+          >
+            <div class="option-text"><div class="option-title">{{ option.label }}</div></div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('activityProfile')">
+      <div class="form-section">
+        <h2 class="section-title">¿Cuántos pasos das al día?</h2>
+        <p class="section-subtitle">Una estimación aproximada está bien.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of stepsOptions"
+            [class.is-selected]="steps === option.value"
+            (click)="selectSteps(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="walk-outline"></ion-icon></div>
+            <div class="option-text"><div class="option-title">{{ option.name | translate }}</div></div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('activityProfile')">
+      <div class="form-section">
+        <h2 class="section-title">¿Tu nivel de actividad diaria?</h2>
+        <p class="section-subtitle" *ngIf="steps === stepsNotCounted">Al margen del entrenamiento con pesas.</p>
+        <p class="section-subtitle" *ngIf="steps !== stepsNotCounted">
+          Como ya nos has dicho tus pasos, esto es opcional — puedes saltarlo.
+        </p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of activityOptions"
+            [class.is-selected]="activity === option.value"
+            (click)="selectActivity(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="pulse-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.name | translate }}</div>
+              <div class="option-desc">{{ option.description | translate }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
+    <swiper-slide *ngIf="enabledFields.has('activityProfile')">
+      <div class="form-section">
+        <h2 class="section-title">¿Cuántos días entrenas a la semana?</h2>
+        <p class="section-subtitle">Entrenamiento con pesas.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of trainingOptions"
+            [class.is-selected]="training === option.value"
+            (click)="selectTraining(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="barbell-outline"></ion-icon></div>
+            <div class="option-text"><div class="option-title">{{ option.name | translate }}</div></div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
     <swiper-slide *ngIf="enabledFields.has('goals')">
       <div class="form-section">
         <h2 class="section-title">Tus objetivos</h2>
