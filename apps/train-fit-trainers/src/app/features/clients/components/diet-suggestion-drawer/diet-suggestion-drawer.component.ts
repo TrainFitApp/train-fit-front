@@ -116,8 +116,15 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   }
 
   public toggleSource(source: DietSource): void {
-    if (this.sources.has(source)) this.sources.delete(source);
-    else this.sources.add(source);
+    if (this.sources.has(source)) {
+      // Siempre al menos un origen activo: el backend trata `sources: []`
+      // igual que "sin filtro" (las tres), así que quitar el último no
+      // vaciaría la lista, la llenaría — confuso. Mejor no dejar quitarlo.
+      if (this.sources.size === 1) return;
+      this.sources.delete(source);
+    } else {
+      this.sources.add(source);
+    }
     this.queueRefetch();
   }
 

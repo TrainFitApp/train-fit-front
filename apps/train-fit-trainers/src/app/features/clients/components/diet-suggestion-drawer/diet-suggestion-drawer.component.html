@@ -87,7 +87,7 @@
         <span class="target-macros">P {{ t.protein }} g · C {{ t.carbs }} g · G {{ t.fat }} g</span>
       </div>
       <p class="target-source" *ngIf="weightSource as w">
-        Peso {{ w.weightKg }} kg —
+        Peso {{ w.weightKg | number: '1.0-1' }} kg —
         {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
       </p>
     </section>

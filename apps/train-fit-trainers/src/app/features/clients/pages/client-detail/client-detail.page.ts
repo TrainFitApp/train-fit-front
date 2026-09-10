@@ -1711,7 +1711,12 @@ export class ClientDetailPage implements OnInit {
               next: () => {
                 this.cancellingPlanPhaseId = null;
                 this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
-                void this.loadActivePlan();
+                // loadNutrition (no solo loadActivePlan): quitar una fase
+                // también borra el objetivo de su ciclo en el backend
+                // (cancelPhase -> cleanupCycleGoal), así que la lista de
+                // OBJETIVOS NUTRICIONALES hay que recargarla o queda un
+                // objetivo fantasma "En uso" hasta el próximo refresco.
+                this.loadNutrition();
                 // El historial de abajo es de carga perezosa (toggleNutritionHistory)
                 // — solo se refresca si ya estaba abierto, para no disparar una
                 // petición que nadie va a ver.
