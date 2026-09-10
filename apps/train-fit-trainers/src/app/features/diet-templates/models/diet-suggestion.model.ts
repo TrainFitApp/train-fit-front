@@ -50,6 +50,8 @@ export interface DietSuggestionResponse {
   // Objetivo del cliente al registrarse (delta kcal con signo). El cajón lo
   // usa para arrancar en el focus correcto.
   clientObjetive?: number | null;
+  // Restricciones dietéticas del cliente (del intake) — el cajón las pre-marca.
+  clientDietaryFlags?: DietaryFlag[];
   requiredFlags: DietaryFlag[];
   ranked: RankedTemplate[];
   hidden: HiddenTemplate[];

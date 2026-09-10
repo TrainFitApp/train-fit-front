@@ -75,7 +75,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   private readonly refetch$ = new Subject<void>();
   private readonly subs = new Subscription();
   private userTouchedFilters = false;
-  private appliedClientObjetive = false;
+  private appliedClientDefaults = false;
 
   constructor(
     private modalController: ModalController,
@@ -147,15 +147,14 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (res) => {
-          if (
-            !this.userTouchedFilters &&
-            !this.appliedClientObjetive &&
-            typeof res.clientObjetive === 'number'
-          ) {
-            this.appliedClientObjetive = true;
-            const before = this.kcalDelta;
-            this.applyClientObjetive(res.clientObjetive);
-            if (this.kcalDelta !== before) {
+          // Primera respuesta, sin que el entrenador haya tocado nada:
+          // arrancar del objetivo + restricciones que el cliente declaró.
+          if (!this.userTouchedFilters && !this.appliedClientDefaults) {
+            this.appliedClientDefaults = true;
+            const before = { kcal: this.kcalDelta, flags: this.dietaryFlags.size };
+            if (typeof res.clientObjetive === 'number') this.applyClientObjetive(res.clientObjetive);
+            for (const f of res.clientDietaryFlags || []) this.dietaryFlags.add(f);
+            if (this.kcalDelta !== before.kcal || this.dietaryFlags.size !== before.flags) {
               this.fetch();
               return;
             }
