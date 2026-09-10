@@ -12,21 +12,34 @@
 
 :root {
   // --- Superficies (de más profunda a más elevada) ---
-  --tf-bg: #0f0f0f;
-  --tf-surface-1: #141414;
-  --tf-surface-2: #1a1a1a;
-  --tf-surface-3: #1e1e1e;
-  --tf-surface-4: #222222;
-  // Fondo de botón/chip secundario (ligeramente más elevado que surface-4).
-  // Mismo valor que --ion-color-step-100 en shared-theme — referenciado, no repetido.
-  --tf-surface-5: var(--ion-color-step-100, #252525);
+  //
+  // Corregido (2026-09): la escala original subía de 2 en 2 puntos hex
+  // (#0f→#14→#1a→#1e→#22→#25) — sobre negro, esa diferencia es invisible en
+  // pantalla real: página, tarjeta, fila y botón se veían del mismo fondo
+  // plano. La escala nueva mantiene el mismo orden y la misma identidad
+  // (negro casi puro, no gris urbano) pero cada salto es 2-3× mayor, para
+  // que una tarjeta se note "encima" de la página y un botón se note
+  // "encima" de la tarjeta sin necesitar solo el borde para distinguirlos.
+  // --tf-surface-5 deja de heredar --ion-color-step-100 de shared-theme
+  // (que fijaba el techo de la escala en #252525, justo el valor viejo):
+  // esta escala es de esta app, así que se define entera aquí.
+  --tf-bg: #0a0a0a;
+  --tf-surface-1: #181818;
+  --tf-surface-2: #212121;
+  --tf-surface-3: #2b2b2b;
+  --tf-surface-4: #363636;
+  // Fondo de botón/chip secundario (más elevado que surface-4).
+  --tf-surface-5: #424242;
 
   // --- Bordes ---
-  --tf-border-subtle: rgba(255, 255, 255, 0.08);
-  --tf-border: rgba(255, 255, 255, 0.1);
-  --tf-border-strong: rgba(255, 255, 255, 0.16);
+  // Subidos junto con las superficies: un borde al 8-10% de blanco casi no
+  // se ve sobre fondos ya oscuros — sube el peso relativo del borde como
+  // segunda señal de "esto es una sección", no solo el relleno.
+  --tf-border-subtle: rgba(255, 255, 255, 0.1);
+  --tf-border: rgba(255, 255, 255, 0.14);
+  --tf-border-strong: rgba(255, 255, 255, 0.2);
   // Handle de bottom-sheet, borde de hover en tarjetas — más visible que strong.
-  --tf-border-strongest: rgba(255, 255, 255, 0.2);
+  --tf-border-strongest: rgba(255, 255, 255, 0.26);
   --tf-border-focus: var(--tf-accent);
   // Scrim de fondo detrás de bottom sheets/modales.
   --tf-overlay: rgba(0, 0, 0, 0.5);
@@ -119,7 +132,32 @@
   --tf-font-size-base: 0.9rem;
   --tf-font-size-md: 1rem;
   --tf-font-size-lg: 1.1rem;
+  // Escalones de DATO (no de título). Existían de hecho pero no de nombre:
+  // tracking-status ya escribía `var(--tf-font-size-xl, 1.35rem)` contra un
+  // token que nunca se definió, así que el valor real de la cifra grande de
+  // Seguimiento venía del fallback y no de la escala. Definidos aquí, la
+  // cifra protagonista de una pantalla mide lo mismo que la de la de al lado.
+  --tf-font-size-xl: 1.3rem;
+  --tf-font-size-2xl: 1.7rem;
   --tf-line-height-base: 1.5;
+
+  // --- Pesos y tracking por PAPEL ---
+  // Un dato ("80 kg") y su etiqueta ("Peso inicial") no se distinguen por
+  // color: se distinguen por tamaño + peso + caja + espaciado a la vez, y
+  // el color solo refuerza. Nombrarlos aquí evita que cada componente
+  // reinvente su propia pareja de pesos y acaben pareciéndose todos.
+  --tf-weight-regular: 400;
+  --tf-weight-medium: 500;
+  --tf-weight-label: 600;
+  --tf-weight-title: 650;
+  --tf-weight-value: 700;
+  // Versalita de ETIQUETA. A partir de aquí, en las pantallas migradas, las
+  // mayúsculas pequeñas espaciadas significan "esto nombra un dato" y nada
+  // más: ni ayudas, ni fechas, ni cadencias, ni sub-textos de fila.
+  --tf-tracking-label: 0.06em;
+  // Los números grandes en tabular necesitan cerrar un poco para no
+  // deshilacharse; nunca por debajo de -0.04em (ilegible).
+  --tf-tracking-value: -0.01em;
 
   // --- Movimiento (mismas curvas ya usadas en el panel de pautar/constructor) ---
   --tf-ease-out: cubic-bezier(0.23, 1, 0.32, 1);

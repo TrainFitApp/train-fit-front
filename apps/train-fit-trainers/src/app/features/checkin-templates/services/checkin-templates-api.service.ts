@@ -42,7 +42,13 @@ export class CheckinTemplatesApiService {
     return this.http.delete(`trainer/checkin-templates/${id}`);
   }
 
-  public apply(id: string, clientIds: string[]): Observable<ApplyResult> {
-    return this.http.post<ApplyResult>(`trainer/checkin-templates/${id}/apply`, { clientIds });
+  // Fase 8b — timing es opcional: sin él, el backend aplica hoy a la hora y
+  // periodicidad por defecto de la plantilla (comportamiento de siempre).
+  public apply(
+    id: string,
+    clientIds: string[],
+    timing?: { startDate?: string; time?: string; frequency?: string; interval?: number; timeZone?: string }
+  ): Observable<ApplyResult> {
+    return this.http.post<ApplyResult>(`trainer/checkin-templates/${id}/apply`, { clientIds, ...timing });
   }
 }

@@ -11,9 +11,8 @@ import { Anthropometry } from './models/anthropometry';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { AnthropometryModalComponent } from 'src/app/shared/components/anthropometry';
 import { CalendarComponent } from '../calendar/calendar.component';
-import { AnthropometryRequestApiService } from './services/anthropometry-request-api.service';
-import { PendingAnthropometryRequest } from './models/anthropometry-request';
-import { CHECKIN_FIELDS_BY_KEY } from 'src/app/core/constants/checkin-fields';
+import { WeightPlanApiService } from './services/weight-plan-api.service';
+import { MyWeightPlan } from './models/weight-plan';
 
 @Component({
   selector: 'app-weight-info',
@@ -46,17 +45,30 @@ export class WeightInfoPage implements OnDestroy {
   public CHART_RANGES = CHART_RANGES;
   public chartRange: string;
 
-  // Peticiones de medidas activas de cualquier trainer con relación activa
-  // — el modal ya deja rellenar cualquier campo, así que el banner solo
-  // informa de que "toca", no filtra qué campos mostrar.
-  public pendingRequests: PendingAnthropometryRequest[] = [];
+  // Pauta de peso de cualquier profesional con relación activa. El banner
+  // solo dice si toca pesarse: los perímetros y la composición corporal ya
+  // no se piden por aquí, se piden como check-in.
+  public weightPlans: MyWeightPlan[] = [];
+
+  // La que más urge. Con dos profesionales, manda la más atrasada; sin
+  // ninguna atrasada, cualquiera vale para recordar la pauta que hay.
+  public get weightPlan(): MyWeightPlan | null {
+    if (!this.weightPlans.length) return null;
+    return [...this.weightPlans].sort(
+      (a, b) => b.compliance.overdueDays - a.compliance.overdueDays
+    )[0];
+  }
+
+  public get isWeighInDue(): boolean {
+    return !!this.weightPlan && !this.weightPlan.compliance.upToDate;
+  }
 
   private translate = inject(TranslateService);
 
   constructor(
     public utilService: UtilService,
     private anthropometryService: AnthropometryService,
-    private anthropometryRequestApi: AnthropometryRequestApiService,
+    private weightPlanApi: WeightPlanApiService,
     private cdref: ChangeDetectorRef,
     private navigationService: NavigationService,
     private ionicUtilService: IonicUtilService
@@ -82,29 +94,14 @@ export class WeightInfoPage implements OnDestroy {
     this.chartRange = CHART_RANGES.month;
     this.getChartConfigurationByRange();
     this.loadAnthropometryData();
-    this.loadPendingRequests();
+    this.loadWeightPlans();
   }
 
-  private loadPendingRequests(): void {
-    this.anthropometryRequestApi.getMine().subscribe({
-      next: (requests) => (this.pendingRequests = requests || []),
-      error: () => (this.pendingRequests = []),
+  private loadWeightPlans(): void {
+    this.weightPlanApi.getMine().subscribe({
+      next: (plans) => (this.weightPlans = plans || []),
+      error: () => (this.weightPlans = []),
     });
-  }
-
-  // Sin trainer, o con trainer pero sin ninguna petición activa, se ve el
-  // catálogo completo (null = sin filtro, ver AnthropometryModalComponent).
-  // Con petición(es) activa(s), solo esos campos — traduce la clave del
-  // catálogo de check-in (p. ej. "perimeter_waist") al nombre real del
-  // campo en Anthropometry (p. ej. "waist"), que es lo que el formulario
-  // usa como formControlName.
-  private get requestedAnthropometryFieldKeys(): string[] | null {
-    if (!this.pendingRequests.length) return null;
-    const modelFieldNames = this.pendingRequests
-      .flatMap((request) => request.fields)
-      .map((catalogKey) => CHECKIN_FIELDS_BY_KEY.get(catalogKey)?.anthropometryField)
-      .filter((key): key is string => !!key);
-    return [...new Set(modelFieldNames)];
   }
 
   public chartRangeChange(event: any): void {
@@ -203,7 +200,6 @@ export class WeightInfoPage implements OnDestroy {
         selectedDate: this.selectedDate,
         existingData: this.currentAnthropometry,
         allAnthropometryData: this.allAnthropometryData,
-        visibleFieldKeys: this.requestedAnthropometryFieldKeys,
       },
       cssClass: 'fullscreen-modal',
     });
@@ -222,7 +218,7 @@ export class WeightInfoPage implements OnDestroy {
 
       this.weightCalendar?.refreshDietDaysForMonth();
       this.loadAnthropometryData();
-      this.loadPendingRequests();
+      this.loadWeightPlans();
     }
   }
 

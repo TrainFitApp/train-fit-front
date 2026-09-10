@@ -4,7 +4,7 @@
   </div>
 </div>
 
-<div class="wizard-body">
+<div class="wizard-body" (input)="saveDraft()" [attr.inert]="isSubmitting ? '' : null">
   <swiper-container init="false" #intakeSwiper>
     <swiper-slide *ngIf="enabledFields.has('goals')">
       <div class="form-section">
@@ -202,11 +202,35 @@
         </div>
       </div>
     </swiper-slide>
+    <swiper-slide *ngIf="measurementDefinitions.length">
+      <div class="form-section">
+        <h2 class="section-title">Tus medidas iniciales</h2>
+        <app-initial-measurements-editor
+          [definitions]="measurementDefinitions" [rows]="measurementDrafts"
+          [recent]="recentMeasurements" [today]="today" [disabled]="isSubmitting"
+          [errors]="measurementErrors" (rowsChange)="updateMeasurements($event)"
+        ></app-initial-measurements-editor>
+      </div>
+    </swiper-slide>
   </swiper-container>
 </div>
 
+<div class="submission-feedback" *ngIf="serverError || formError" role="alert">
+  {{ serverError || formError }}
+  <ion-button *ngIf="canReload" fill="clear" [disabled]="isSubmitting" (click)="reloadRequested.emit()">Actualizar cuestionario</ion-button>
+</div>
+<app-measurement-conflict [conflicts]="conflicts" [disabled]="isSubmitting"
+  (confirmed)="conflictConfirmed.emit()" (cancelled)="conflictCancelled.emit()"></app-measurement-conflict>
+<div class="missing-warning" *ngIf="showMissingWarning" role="alert">
+  <strong>Quedan medidas por completar</strong>
+  <ul><li *ngFor="let measurement of missingMeasurements">{{ measurement.label }}</li></ul>
+  <p>Puedes enviar el cuestionario y añadir estas medidas después.</p>
+  <button type="button" (click)="showMissingWarning = false">Volver a las medidas</button>
+  <button type="button" class="continue-missing" [disabled]="isSubmitting" (click)="submit(true)">Enviar con medidas pendientes</button>
+</div>
+
 <div class="wizard-footer">
-  <button type="button" class="btn-icon btn-icon--footer" (click)="handleBack()">
+  <button type="button" class="btn-icon btn-icon--footer" [disabled]="isSubmitting" aria-label="Volver" (click)="handleBack()">
     <ion-icon [name]="existPrev ? 'arrow-back-outline' : 'close-outline'"></ion-icon>
   </button>
 

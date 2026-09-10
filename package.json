@@ -33,6 +33,8 @@
     "live:i:m": "npm run live:i --workspace @trainfit/train-fit-management",
     "live:a:m": "npm run live:a --workspace @trainfit/train-fit-management",
     "test": "node --test packages/shared-core/src/app/core/utils/body-metrics.test.js",
+    "test:overview": "node --experimental-strip-types --test packages/shared-core/src/app/core/utils/measurement-weeks.test.cjs packages/shared-features/src/app/features/onboarding-status/models/initial-measurements.test.js packages/shared-features/src/app/features/onboarding-status/components/initial-measurements-pending/initial-measurements-pending.test.js apps/train-fit-trainers/src/app/features/clients/pages/client-detail/components/client-overview/weekly-weight-chart.test.cjs",
+    "test:overview:browser": "node --test tests/client-overview-rendering.browser.cjs tests/initial-measurements-rendering.browser.cjs",
     "lint": "npm run lint --workspace @trainfit/train-fit-front",
     "lint:m": "npm run lint --workspace @trainfit/train-fit-management",
     "serve:t": "npm run start --workspace @trainfit/train-fit-trainers",

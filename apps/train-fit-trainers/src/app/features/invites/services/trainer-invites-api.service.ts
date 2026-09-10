@@ -55,12 +55,14 @@ export class TrainerInvitesApiService {
   public updateIntakeConfig(
     enabledFields: IntakeFieldKey[],
     customQuestions: CustomIntakeQuestion[],
-    lastScopes: TrainerInviteScope[]
+    lastScopes: TrainerInviteScope[],
+    measurementFields?: string[]
   ): Observable<TrainerIntakeConfig> {
     return this.http.put<TrainerIntakeConfig>('trainer/intake-config', {
       enabledFields,
       customQuestions,
       lastScopes,
+      ...(measurementFields !== undefined ? { measurementFields } : {}),
     });
   }
 

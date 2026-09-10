@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, HostBinding, Input, OnInit, OnChanges, SimpleChanges, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { TranslateService, LangChangeEvent } from '@ngx-translate/core';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
@@ -10,10 +10,42 @@ import { Anthropometry } from 'src/app/features/diet-days/components/weight-info
 })
 export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input() data: Anthropometry[] = [];
+
+  /**
+   * Modo compacto: para cuando la gráfica es UNA sección más de una pantalla
+   * larga (la pestaña Medidas de la ficha del entrenador) y no la pantalla
+   * entera (weight-info del cliente, que se queda como estaba).
+   *
+   * Lo que encogía de verdad no era el lienzo: era la cabecera. El selector
+   * de métricas pinta un botón por CADA entrada de metricConfig — 26 — y
+   * deja apagadas las que ese cliente no tiene. Con el catálogo completo eso
+   * son cinco o seis filas de píldoras encima de un gráfico recortado a
+   * 140px: la tarjeta ocupaba media pantalla y el gráfico era la parte
+   * pequeña. En compacto solo se ofrecen las métricas que ese cliente TIENE
+   * (que es exactamente lo único que se puede activar), así que la cabecera
+   * baja a una o dos filas y el lienzo puede recuperar altura legible
+   * quedando aun así la tarjeta mucho más baja que antes.
+   */
+  @Input() compact = false;
+
+  @HostBinding('class.is-compact')
+  get isCompact(): boolean {
+    return this.compact;
+  }
+
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
 
   chart: Chart | null = null;
   availableMetrics: string[] = [];
+  /**
+   * Métricas que se ofrecen en el selector. PRECALCULADO, nunca un getter
+   * enlazado desde la plantilla: un getter que devuelve un array nuevo cambia
+   * de identidad en cada ciclo de detección de cambios y Angular destruye y
+   * recrea el *ngFor entero (con sus ion-icon, que programan tareas
+   * asíncronas) hasta congelar la pantalla. Ya ha pasado dos veces en este
+   * frontend.
+   */
+  toggleMetrics: { key: string; label: string; color: string; unit: string; yAxisID: string }[] = [];
   selectedMetrics: Set<string> = new Set();
   private langChangeSubscription: any;
 
@@ -67,6 +99,9 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['compact'] && !changes['compact'].firstChange) {
+      this.updateToggleMetrics();
+    }
     if (changes['data'] && this.chart) {
       this.updateAvailableMetrics();
       this.selectDefaultMetrics();
@@ -92,6 +127,13 @@ export class AnthropometryChartComponent implements OnInit, OnChanges, OnDestroy
       });
     });
     this.availableMetrics = Array.from(metricsWithData);
+    this.updateToggleMetrics();
+  }
+
+  private updateToggleMetrics(): void {
+    this.toggleMetrics = this.compact
+      ? this.metricConfig.filter((m) => this.availableMetrics.includes(m.key))
+      : this.metricConfig;
   }
 
   private selectDefaultMetrics(): void {

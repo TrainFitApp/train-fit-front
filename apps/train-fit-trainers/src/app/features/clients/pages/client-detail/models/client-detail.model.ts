@@ -84,7 +84,12 @@ export const CLIENT_DETAIL_SECTIONS: ClientDetailSectionDef[] = [
     label: 'Progreso',
     tabs: [
       { key: 'measurements', label: 'Medidas', icon: 'body-outline', requiresScope: 'any' },
-      { key: 'checkins', label: 'Check-ins', icon: 'clipboard-outline' },
+      // "Seguimiento" y no "Check-ins": aquí dentro está también la pauta de
+      // peso. Y una sola pestaña, no dos: un check-in es a la vez lo que se
+      // pide y lo que vuelve, así que partirlo entre Plan y Progreso obliga a
+      // ir y venir para una sola tarea. Se ordena por frecuencia de uso —
+      // arriba lo que se mira cada semana, abajo lo que se configura una vez.
+      { key: 'checkins', label: 'Seguimiento', icon: 'clipboard-outline' },
       // Movimiento final — el dolor sale de dentro de Medidas a su propia
       // subpestaña. Estaba como tercera tarjeta bajo el gráfico y la
       // calculadora, y es justo lo que un entrenador mira ANTES de
@@ -149,21 +154,14 @@ export interface CompletedWorkoutEntry extends Workout {
   splitName: string;
 }
 
-// F17 — configuración de check-in ya aplicada a este cliente por este profesional.
-export interface CheckinConfig {
-  _id: string;
-  enabledFields: string[];
-  // Fase 5 Coach Pro — copia de las preguntas propias del coach en el
-  // momento de aplicar. Ausente en configuraciones anteriores.
-  customQuestions?: CustomCheckinQuestion[];
-  cadence: 'weekly';
-  sourceTemplateId: string | null;
-  updatedAt: string;
-}
-
 export interface CheckinResponseEntry {
   _id: string;
+  name?: string;
   respondedAt: string;
+  // El enunciado de las preguntas propias viaja EN la respuesta: cada
+  // solicitud guarda su copia, así que no hay que ir a buscarlo a ninguna
+  // configuración aparte.
+  customQuestions?: CustomCheckinQuestion[];
   // Las respuestas a preguntas propias comparten este mismo contenedor, con
   // la clave "custom:<id>" — de ahí que el valor ya no sea solo numérico.
   values: Record<string, number | string | boolean>;
@@ -340,22 +338,6 @@ export interface TrainerTask {
   unit: string;
   active: boolean;
   createdAt: string;
-}
-
-// "Solicitar antropometría" — cadencia propia, independiente de la del
-// check-in de bienestar (mismo catálogo de campos, ver checkin-fields.ts,
-// filtrado a storage === 'anthropometry').
-export type AnthropometryRequestCadence = 'once' | 'daily' | 'weekly' | 'monthly' | 'custom';
-
-export interface AnthropometryRequest {
-  _id: string;
-  fields: string[];
-  notes: string;
-  cadence: AnthropometryRequestCadence;
-  customIntervalDays: number | null;
-  active: boolean;
-  lastRequestedAt: string;
-  lastFulfilledAt: string | null;
 }
 
 export interface NutritionalGoal {

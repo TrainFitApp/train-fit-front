@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
+import { InitialMeasurementValue } from '../models/initial-measurements';
 
 export interface IntakeCustomAnswer {
   questionId: string;
@@ -36,6 +37,11 @@ export interface IntakeSubmission {
   dislikedFoods: string;
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
   customAnswers: IntakeCustomAnswer[];
+  measurements?: InitialMeasurementValue[];
+  missingMeasurementsAcknowledged?: boolean;
+  requestId?: string;
+  timeZone?: string;
+  intakeConfigVersion?: number;
 }
 
 // Lo que ya se le respondió a este trainer, si algo — para precargar el

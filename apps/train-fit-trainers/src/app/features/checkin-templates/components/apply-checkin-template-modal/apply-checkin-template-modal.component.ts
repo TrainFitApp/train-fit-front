@@ -36,6 +36,17 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
   public searchQuery = '';
   public filteredClients: TrainerClientSummary[] = [];
 
+  // Fase 8b — antes esto aplicaba SIEMPRE hoy y en la periodicidad por
+  // defecto de la plantilla, sin poder elegir otra cosa desde aquí; había
+  // que aplicar y luego entrar cliente a cliente a cambiar la fecha en su
+  // programación. Arranca con la periodicidad de la propia plantilla:
+  // cambiarla aquí es la excepción, no lo normal.
+  public today = new Date().toISOString().slice(0, 10);
+  public startDate = this.today;
+  public time = '09:00';
+  public frequency: 'once' | 'daily' | 'weekly' | 'monthly' = 'weekly';
+  public interval = 1;
+
   constructor(
     private modalController: ModalController,
     private checkinTemplatesApi: CheckinTemplatesApiService,
@@ -44,11 +55,20 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
+    this.frequency = this.template.frequency || 'weekly';
+    this.interval = this.template.interval || 1;
     this.trainerClientsApi.getMyClients().subscribe((clients) => {
       this.myClients = clients || [];
       this.loadingClients = false;
       this.applyFilteredClients();
     });
+  }
+
+  // Mismo texto que checkin-workspace.component.ts#cadence, para que
+  // "cada cuánto" se lea igual en las dos superficies que programan
+  // check-ins (Fase 8c).
+  public intervalUnitLabel(): string {
+    return this.frequency === 'daily' ? 'cuántos días' : this.frequency === 'weekly' ? 'cuántas semanas' : 'cuántos meses';
   }
 
   public dismiss(): void {
@@ -86,7 +106,13 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
     if (!this.selectedClientIds.size || this.isApplying) return;
 
     this.isApplying = true;
-    this.checkinTemplatesApi.apply(this.template._id, [...this.selectedClientIds]).subscribe({
+    this.checkinTemplatesApi.apply(this.template._id, [...this.selectedClientIds], {
+      startDate: this.startDate,
+      time: this.time,
+      frequency: this.frequency,
+      interval: this.interval,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }).subscribe({
       next: (result) => {
         this.isApplying = false;
         const total = result.applied.length + result.skipped.length;
@@ -99,9 +125,9 @@ export class ApplyCheckinTemplateModalComponent implements OnInit {
         });
         this.modalController.dismiss(true);
       },
-      error: () => {
+      error: (err) => {
         this.isApplying = false;
-        this.ionicUtilService.showErrorToast('No se pudo aplicar la plantilla', 'Error', 3000);
+        this.ionicUtilService.showErrorToast(err?.error?.message || 'No se pudo aplicar la plantilla', 'Error', 3000);
       },
     });
   }

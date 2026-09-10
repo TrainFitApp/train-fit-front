@@ -38,6 +38,29 @@
     </span>
   </div>
 
+  <!-- ---------- Check-ins por revisar ---------- -->
+  <!-- Solo aparece cuando hay algo que revisar: una tarjeta permanentemente
+       vacía enseña a ignorar la zona en la que vive. -->
+  <section class="panel-card review-panel" *ngIf="pendingReviews.length">
+    <div class="panel-card-header">
+      <h2 class="panel-card-title">Esperando tu respuesta</h2>
+      <span class="review-count">{{ pendingReviews.length }}</span>
+    </div>
+    <button
+      type="button"
+      class="review-row"
+      *ngFor="let review of pendingReviews; trackBy: trackByReviewId"
+      (click)="openPendingReview(review)"
+    >
+      <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
+      <span class="review-info">
+        <span class="review-client">{{ review.clientName }}</span>
+        <span class="review-meta">{{ review.name }} · {{ review.respondedAt | date: 'd MMM' }}</span>
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </section>
+
   <!-- ---------- Requiere acción ---------- -->
   <section class="panel-card alerts-panel" id="alerts-section">
     <div class="panel-card-header">

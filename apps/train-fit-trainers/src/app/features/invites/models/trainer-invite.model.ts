@@ -118,6 +118,9 @@ export interface TrainerIntakeConfig {
   // recuerdan entre visitas, no es el scope de ninguna invitación concreta.
   lastScopes: TrainerInviteScope[];
   catalog?: IntakeFieldKey[];
+  measurementFields?: string[];
+  measurementCatalog?: { key: string; label: string; unit: string; min: number; max: number; hint?: string }[];
+  version?: number;
 }
 
 // GET /trainer/clients/check-email — mismos 4 estados que bloquean el

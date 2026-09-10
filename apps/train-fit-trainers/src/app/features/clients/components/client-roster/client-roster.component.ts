@@ -25,6 +25,7 @@ interface RosterViewState {
   filterWeakest: AdherenceDimensionKey | null;
   filterOnlyWithAlerts: boolean;
   filterOnlyOverdueCheckin: boolean;
+  filterOnlyOverdueWeightPlan: boolean;
   sort: SortState;
 }
 
@@ -85,11 +86,6 @@ const UNAVAILABLE_LABELS: Record<string, string> = {
 const ADHERENCE_LOW = 70;
 const ADHERENCE_CRITICAL = 50;
 
-// Espejo de CHECKIN_CADENCE_DAYS (components/trainerCheckins/checkin-due.js).
-// "once" no está a propósito: un check-in de una sola vez no se puede
-// "atrasar", igual que en el backend.
-const CHECKIN_CADENCE_DAYS: Record<string, number> = { weekly: 7, biweekly: 14 };
-
 /**
  * Movimiento 1 Coach Pro — la CARTERA.
  *
@@ -120,6 +116,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
   public filterWeakest: AdherenceDimensionKey | null = null;
   public filterOnlyWithAlerts = false;
   public filterOnlyOverdueCheckin = false;
+  public filterOnlyOverdueWeightPlan = false;
 
   public get visibleRows(): RosterClient[] {
     const consulta = this.searchQuery.trim().toLowerCase();
@@ -132,7 +129,10 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       if (this.filterOnlyWithAlerts && !row.openAlerts) return false;
       // "Vencido" = más de un ciclo sin responder. El dato exacto lo tiene el
       // motor de alertas; aquí basta con el umbral visible de la columna.
-      if (this.filterOnlyOverdueCheckin && (row.daysSinceCheckin ?? 0) <= 7) return false;
+      if (this.filterOnlyOverdueCheckin && !row.checkinOverdue) return false;
+      // Mismo criterio: null (cliente "libre", sin pauta) no cuenta como
+      // atrasado, así que no aparece al filtrar por este check.
+      if (this.filterOnlyOverdueWeightPlan && !this.isWeightPlanOverdue(row)) return false;
       return true;
     });
   }
@@ -141,7 +141,8 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return (
       (this.filterWeakest ? 1 : 0) +
       (this.filterOnlyWithAlerts ? 1 : 0) +
-      (this.filterOnlyOverdueCheckin ? 1 : 0)
+      (this.filterOnlyOverdueCheckin ? 1 : 0) +
+      (this.filterOnlyOverdueWeightPlan ? 1 : 0)
     );
   }
 
@@ -149,6 +150,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterWeakest = null;
     this.filterOnlyWithAlerts = false;
     this.filterOnlyOverdueCheckin = false;
+    this.filterOnlyOverdueWeightPlan = false;
   }
 
   // Por defecto, la adherencia más baja primero: es el orden que responde
@@ -216,6 +218,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
       filterWeakest: this.filterWeakest,
       filterOnlyWithAlerts: this.filterOnlyWithAlerts,
       filterOnlyOverdueCheckin: this.filterOnlyOverdueCheckin,
+      filterOnlyOverdueWeightPlan: this.filterOnlyOverdueWeightPlan,
       sort: this.sort,
     });
   }
@@ -230,6 +233,7 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     this.filterWeakest = stored.filterWeakest;
     this.filterOnlyWithAlerts = stored.filterOnlyWithAlerts;
     this.filterOnlyOverdueCheckin = stored.filterOnlyOverdueCheckin;
+    this.filterOnlyOverdueWeightPlan = stored.filterOnlyOverdueWeightPlan ?? false;
     // El orden se aplica sobre las filas en load(), que llega después.
     this.sort = stored.sort;
   }
@@ -345,13 +349,32 @@ export class ClientRosterComponent implements AfterViewInit, OnDestroy, OnInit {
     return `Hace ${row.daysSinceCheckin} días`;
   }
 
-  // Un check-in "atrasado" solo tiene sentido si hay cadencia periódica
-  // configurada: sin ella (o con cadencia "once") no hay nada que incumplir.
-  // Mismos días que CHECKIN_CADENCE_DAYS en checkin-due.js.
+  // "Atrasado" lo decide el backend contando solicitudes reales cerradas sin
+  // responder (ver checkin-occurrences.js). Antes se calculaba aquí a partir
+  // de una cadencia declarada que solo tenía el sistema legacy: un cliente
+  // con check-ins de calendario nunca salía vencido, respondiera o no.
   public isCheckinOverdue(row: RosterClient): boolean {
-    const cadenceDays = CHECKIN_CADENCE_DAYS[row.checkinCadence || ''];
-    if (!cadenceDays) return false;
-    return row.daysSinceCheckin === null || row.daysSinceCheckin > cadenceDays;
+    return row.checkinOverdue;
+  }
+
+  // Fase 6 — mismo criterio que isCheckinOverdue: el backend ya decide qué es
+  // "atrasado" (complianceFor, weight-plan-service.js), esto solo lo lee.
+  public isWeightPlanOverdue(row: RosterClient): boolean {
+    return !!row.weightPlan && !row.weightPlan.upToDate;
+  }
+
+  public weightPlanLabel(row: RosterClient): string {
+    const plan = row.weightPlan;
+    if (!plan) return 'Libre';
+    if (plan.upToDate) return 'Al día';
+    if (plan.neverWeighed) return 'Sin pesar';
+    return `Atrasado ${plan.overdueDays} día${plan.overdueDays === 1 ? '' : 's'}`;
+  }
+
+  public weightPlanDetail(row: RosterClient): string {
+    const plan = row.weightPlan;
+    if (!plan) return 'Sin pauta de peso asignada';
+    return `Pauta cada ${plan.intervalDays} día${plan.intervalDays === 1 ? '' : 's'}`;
   }
 
   public toggleRow(row: RosterClient): void {

@@ -36,7 +36,7 @@
           <span class="list-card-title">{{ config.name || trainerName(config) }}</span>
           <span class="checkin-card-subtitle" *ngIf="config.name">{{ trainerName(config) }}</span>
           <span class="checkin-card-subtitle">
-            {{ cadenceLabel(config) }} · {{ fieldsFor(config).length }} campos
+            {{ cadenceLabel(config) }} · {{ fieldCount(config) }} campos
             <ion-icon name="checkmark-circle" class="submitted-icon" *ngIf="submittedTrainerIds.has(configKey(config))"></ion-icon>
           </span>
         </div>
@@ -46,7 +46,9 @@
       </button>
 
       <div class="checkin-form" *ngIf="expandedTrainerId === configKey(config)">
-        <div class="checkin-field" *ngFor="let field of fieldsFor(config); trackBy: trackByFieldKey">
+        <ng-container *ngFor="let grupo of fieldGroups; trackBy: trackByGroupLabel">
+        <h3 class="checkin-group-label" *ngIf="grupo.label">{{ grupo.label }}</h3>
+        <div class="checkin-field" *ngFor="let field of grupo.fields; trackBy: trackByFieldKey">
           <span class="checkin-field-label">
             {{ field.label }}<span *ngIf="field.unit"> ({{ field.unit }})</span
             ><span class="required-mark" *ngIf="field.required" aria-hidden="true">*</span>
@@ -57,6 +59,12 @@
                control, no debajo: leerlo después de haber medido no sirve
                de nada. -->
           <p class="checkin-field-hint" *ngIf="field.hint">{{ field.hint }}</p>
+
+          <!-- Ya lo apuntó hoy: llega relleno y se puede corregir. Decirlo
+               evita la duda de si lo que se envía es esto o lo de antes. -->
+          <p class="checkin-field-prefilled" *ngIf="measurementRegisteredToday(field) !== null">
+            Ya registrado hoy · puedes corregirlo
+          </p>
 
           <input
             *ngIf="field.type === 'number'"
@@ -138,6 +146,7 @@
             </button>
           </div>
         </div>
+        </ng-container>
 
         <p class="required-hint" *ngIf="missingRequiredLabel(config) as missing">
           Falta responder: <strong>{{ missing }}</strong>
@@ -169,7 +178,7 @@
             <span class="history-date">{{ entry.respondedAt | date: 'd MMM y' }}</span>
           </div>
           <div class="history-values">
-            <span class="history-value" *ngFor="let item of historyEntries(entry)">
+            <span class="history-value" *ngFor="let item of historyRows.get(entry._id)">
               <strong>{{ item.label }}:</strong> {{ item.value }}
             </span>
           </div>

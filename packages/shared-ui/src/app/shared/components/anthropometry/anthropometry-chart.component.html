@@ -1,7 +1,7 @@
 <div class="chart-container">
   <div class="chart-header">
     <div class="chart-title-section">
-      <h3>{{ 'ANTHROPOMETRY.CHART_TITLE' | translate }}</h3>
+      <h3 class="chart-title">{{ 'ANTHROPOMETRY.CHART_TITLE' | translate }}</h3>
       <p class="chart-subtitle">{{ 'ANTHROPOMETRY.CHART_SUBTITLE' | translate }}</p>
     </div>
 
@@ -12,7 +12,7 @@
           <button
             type="button"
             class="metric-toggle"
-            *ngFor="let metric of metricConfig"
+            *ngFor="let metric of toggleMetrics"
             [class.active]="isMetricSelected(metric.key)"
             [class.disabled]="!isMetricAvailable(metric.key)"
             (click)="isMetricAvailable(metric.key) && toggleMetric(metric.key)"

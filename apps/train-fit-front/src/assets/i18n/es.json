@@ -1,4 +1,11 @@
 {
+  "MEASUREMENT_WEEK": {
+    "ZONE": "Zona de referencia",
+    "USE_ZONE": "Usar {{zone}}",
+    "ZONE_ERROR": "No se pudo cambiar la zona. Vuelve a intentarlo.",
+    "COUNT": "{{count}} pesajes",
+    "PARTIAL": "Semana en curso"
+  },
   "ACTIONS": {
     "EDIT": "Editar",
     "COPY": "Copiar",
@@ -2050,8 +2057,9 @@
     "WEIGHT_AXIS": "Peso (kg)",
     "BODY_AXIS": "Medidas corporales (cm)",
     "BODY_MEASUREMENTS": "Medidas corporales",
-    "REQUEST_PENDING_TITLE": "Tu entrenador te ha pedido nuevas medidas",
-    "REQUEST_PENDING_CTA": "Añadir medición"
+    "WEIGHT_PLAN_TITLE": "Tu entrenador te ha pedido que te peses cada {{days}} días",
+    "WEIGHT_PLAN_DUE_TITLE": "Toca pesarte",
+    "WEIGHT_PLAN_CTA": "Registrar peso"
   },
   "GLOSSARY": {
     "RIR": {

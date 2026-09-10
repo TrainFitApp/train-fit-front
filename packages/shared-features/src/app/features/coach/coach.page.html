@@ -159,9 +159,26 @@
     <div
       class="section-card"
       id="section-pending"
-      *ngIf="d.pendingCheckins.length || d.pendingMealProposals.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
+      *ngIf="d.pendingCheckins.length || d.pendingWeighIns.length || d.pendingMealProposals.length || d.nutritionPreferences?.pending || d.pendingPayments.length"
     >
       <h2 class="section-heading">Pendiente de ti</h2>
+
+      <button
+        class="action-card"
+        *ngFor="let item of d.pendingWeighIns; trackBy: trackByWeighInTrainerId"
+        (click)="goToWeightInfo()"
+      >
+        <ion-icon name="scale-outline" class="action-icon"></ion-icon>
+        <div class="action-info">
+          <span class="action-title">Toca pesarte</span>
+          <span class="action-subtitle">
+            Cada {{ item.intervalDays }} {{ item.intervalDays === 1 ? 'día' : 'días' }} para {{ item.trainerName }}
+            <ng-container *ngIf="item.lastWeightAt">· último el {{ item.lastWeightAt | date: 'd MMM' }}</ng-container>
+            <ng-container *ngIf="!item.lastWeightAt">· todavía sin registros</ng-container>
+          </span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="action-chevron"></ion-icon>
+      </button>
 
       <button
         class="action-card"

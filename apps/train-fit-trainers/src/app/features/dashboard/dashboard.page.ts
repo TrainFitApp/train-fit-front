@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpService } from 'src/app/core/services/http/http.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { TrainerClientsApiService } from '../clients/services/trainer-clients-api.service';
 import { TrainerNotificationsApiService } from './services/trainer-notifications-api.service';
@@ -73,6 +74,15 @@ const MONTH_LABELS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 's
 //     lista — cuenta y sirve para algo, no solo cuenta.
 //   - "Mis pendientes" es nuevo: hasta ahora el profesional no tenía dónde
 //     anotar lo que debía hacer, y las alertas no tenían adónde desembocar.
+// Un check-in ya contestado que espera respuesta del entrenador.
+interface PendingCheckinReview {
+  requestId: string;
+  clientId: string;
+  clientName: string;
+  name: string;
+  respondedAt: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.page.html',
@@ -83,6 +93,12 @@ export class DashboardPage implements OnInit {
 
   public activeClientsCount: number | null = null;
   public paymentsSummary: PaymentsSummary | null = null;
+
+  // --- Check-ins por revisar ---
+  // El cliente que contesta recibe señal de que alguien lo ha leído. Sin
+  // esto, revisar dependía de acordarse de entrar cliente a cliente, y el
+  // trabajo de contestar un check-in se quedaba sin respuesta al otro lado.
+  public pendingReviews: PendingCheckinReview[] = [];
 
   // --- Alertas ---
   public alertsState: ViewState = 'loading';
@@ -114,7 +130,8 @@ export class DashboardPage implements OnInit {
     private coachAlertsApi: CoachAlertsApiService,
     private coachTasksApi: CoachTasksApiService,
     private ionicUtilService: IonicUtilService,
-    private router: Router
+    private router: Router,
+    private http: HttpService
   ) {}
 
   public ngOnInit(): void {
@@ -134,6 +151,23 @@ export class DashboardPage implements OnInit {
     this.loadNotifications();
     this.loadClientsCount();
     this.loadPaymentsSummary();
+    this.loadPendingReviews();
+  }
+
+  private loadPendingReviews(): void {
+    this.http.get<PendingCheckinReview[]>('trainer/checkins/pending-reviews').subscribe({
+      next: (reviews) => (this.pendingReviews = reviews || []),
+      // Es una banda auxiliar: si falla, el panel sigue sirviendo.
+      error: () => (this.pendingReviews = []),
+    });
+  }
+
+  public openPendingReview(review: PendingCheckinReview): void {
+    void this.router.navigate(['/tabs/clients', review.clientId], { queryParams: { tab: 'checkins' } });
+  }
+
+  public trackByReviewId(_index: number, review: PendingCheckinReview): string {
+    return review.requestId;
   }
 
   // --- Alertas ---

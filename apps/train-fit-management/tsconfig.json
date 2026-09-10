@@ -3,6 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
+      "src/app/features/onboarding-status/*": [
+        "../../packages/shared-features/src/app/features/onboarding-status/*"
+      ],
       "src/app/core/*": [
         "../../packages/shared-core/src/app/core/*"
       ],

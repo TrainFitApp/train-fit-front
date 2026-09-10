@@ -1,0 +1,215 @@
+@import '../../../../theme/hierarchy';
+@import '../../../../theme/buttons';
+
+// Catálogo de campos de check-in — superficie única de las tres pantallas que
+// eligen campos. Se monta sobre --tf-surface-1 (el fondo de panel-sheet), así
+// que la escala de aquí es: panel (1) < fila de campo (2) < cabecera de
+// sección (3, es un control). Nunca al revés: lo que se pulsa va por encima
+// de lo que solo se lee.
+:host {
+  display: block;
+}
+
+// --- Recuento total -----------------------------------------------------
+// Con las secciones plegadas hay que poder decir de un vistazo si el
+// formulario que estás montando tiene tres preguntas o treinta.
+.selector-total {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: 0 0 var(--tf-space-3);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+
+  strong {
+    font-weight: var(--tf-weight-value);
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text);
+  }
+
+  ion-icon {
+    font-size: var(--tf-font-size-md);
+    color: var(--tf-accent);
+  }
+
+  &--empty {
+    color: var(--tf-text-muted);
+
+    strong { color: var(--tf-text-secondary); }
+    ion-icon { color: var(--tf-text-faint); }
+  }
+}
+
+.field-group {
+  margin-bottom: var(--tf-space-3);
+
+  &:last-of-type { margin-bottom: var(--tf-space-2); }
+}
+
+// --- Cabecera de sección: interruptor Y resumen -------------------------
+// El dibujo vive en theme/_buttons.scss (tf-collapsible-head): lo comparte
+// con las "preguntas propias" de checkin-templates, que se pliega igual pero
+// está en otro componente y no puede compartir clases, solo el mixin.
+.group-head {
+  @include tf-collapsible-head;
+}
+
+.group-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: var(--tf-text-muted);
+}
+
+.group-head--filled .group-icon { color: var(--tf-accent); }
+
+.group-label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-label);
+}
+
+// Recuento del grupo: el número que importa pesa, el total es contexto.
+// Sobre --tf-surface-3 (el fondo de la cabecera) NO cabe aquí ni
+// --tf-text-faint (2,5:1) ni --tf-text-muted (3,98:1): los dos se quedan por
+// debajo del 4,5 que pide AA para texto. Lo que separa el dato de su total es
+// el peso y el color del dato, no bajarle el contraste al total.
+.group-count {
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-secondary);
+
+  strong {
+    font-weight: var(--tf-weight-value);
+    color: var(--tf-text);
+  }
+}
+
+.group-head--filled .group-count strong { color: var(--tf-accent-text); }
+
+.group-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-muted);
+}
+
+// La barra de relleno es lo que hace que plegar no cueste nada: con la
+// sección cerrada sigue diciendo qué parte de ella está activa. Va pegada al
+// borde inferior de la cabecera, 2px — es un dato, no un adorno.
+.group-meter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--tf-border-subtle);
+
+  i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--tf-accent);
+    transition: width var(--tf-duration-base) var(--tf-ease-out);
+  }
+}
+
+// --- Rejilla de campos ---------------------------------------------------
+// Rejilla y no una fila por campo a todo el ancho: con 18 perímetros eso era
+// una columna larguísima con el nombre a la izquierda y la casilla a
+// kilómetros a la derecha.
+.field-toggle-grid {
+  @include tf-collapsible-body;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--tf-space-2);
+}
+
+.field-toggle-row {
+  display: flex;
+  // flex-start y no center: con la descripción debajo del nombre la fila
+  // crece a dos o tres líneas y la casilla debe quedarse arriba, alineada
+  // con el nombre, no flotando en el centro del bloque.
+  align-items: flex-start;
+  gap: var(--tf-space-2);
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border: 1px solid var(--tf-border-subtle);
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // Al pasar por encima cambia SOLO el borde, y hacia el acento: dice lo que
+  // va a pasar al pulsar. Subir el fondo a surface-3 no lo decía y además
+  // dejaba la ayuda de la fila en 3,98:1, por debajo de AA.
+  &:hover:not(:disabled) {
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &:disabled { opacity: 0.4; cursor: default; }
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
+
+  // ACTIVO. Cuatro señales a la vez y no solo el color del icono, que era lo
+  // único que cambiaba antes: borde de acento, fondo teñido, nombre en
+  // blanco y con más peso, y la casilla marcada. Quien no distinga el naranja
+  // sigue viendo la casilla y el peso del nombre.
+  &--on {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-text-secondary);
+
+    &:hover { background: var(--tf-accent-soft); border-color: var(--tf-accent); }
+    .field-name { color: var(--tf-text); font-weight: var(--tf-weight-label); }
+    .field-box { color: var(--tf-accent); }
+  }
+}
+
+.field-box {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 18px;
+  color: var(--tf-text-faint);
+}
+
+.field-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.field-name {
+  color: var(--tf-text-secondary);
+  line-height: 1.35;
+}
+
+.field-unit {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+}
+
+// Recortado a dos líneas: "Al levantarte, después de ir al baño y antes de
+// desayunar. Siempre el mismo día de la semana." son cuatro líneas en media
+// columna, y con 18 perímetros la rejilla se hacía tan larga que anulaba lo
+// que gana el plegado. Dos líneas bastan para lo que hay que decidir aquí
+// (por el ombligo o por la parte más estrecha); el texto completo lo lee el
+// cliente en el formulario, que es donde tiene que medir.
+.field-toggle-detail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.35;
+}

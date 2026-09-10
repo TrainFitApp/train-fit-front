@@ -1,4 +1,11 @@
 {
+  "MEASUREMENT_WEEK": {
+    "ZONE": "Reference time zone",
+    "USE_ZONE": "Use {{zone}}",
+    "ZONE_ERROR": "Could not change the time zone. Please try again.",
+    "COUNT": "{{count}} weigh-ins",
+    "PARTIAL": "Week in progress"
+  },
   "ACTIONS": {
     "EDIT": "Edit",
     "COPY": "Copy",
@@ -2044,8 +2051,9 @@
     "WEIGHT_AXIS": "Weight (kg)",
     "BODY_AXIS": "Body measurements (cm)",
     "BODY_MEASUREMENTS": "Body measurements",
-    "REQUEST_PENDING_TITLE": "Your trainer requested new measurements",
-    "REQUEST_PENDING_CTA": "Add measurement"
+    "WEIGHT_PLAN_TITLE": "Your trainer asked you to weigh in every {{days}} days",
+    "WEIGHT_PLAN_DUE_TITLE": "Time to weigh in",
+    "WEIGHT_PLAN_CTA": "Log weight"
   },
   "GLOSSARY": {
     "RIR": {

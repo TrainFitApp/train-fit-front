@@ -16,6 +16,7 @@
 </ion-header>
 
 <ion-content>
+  <app-initial-measurements-pending *ngIf="user?.roles?.includes('user')"></app-initial-measurements-pending>
   <!-- Profile Section -->
   <div class="profile-section">
     <header class="profile-header">
@@ -181,8 +182,9 @@
       <div class="weight-metric" (click)="showInfo('PROFILE.PREV_WEEK_AVG_INFO')">
         <div class="weight-metric-label">{{ 'PROFILE.PREV_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
-          {{ (prevWeightAverage || 0) | number:'1.0-2' }}kg
+          {{ prevWeightAverage == null ? '—' : (prevWeightAverage | number:'1.0-2') + ' kg' }}
         </div>
+        <small>{{ 'MEASUREMENT_WEEK.COUNT' | translate:{ count: prevWeightCount } }}</small>
       </div>
 
       <div
@@ -191,8 +193,7 @@
       >
         <div class="weight-metric-label">{{ 'PROFILE.CURR_WEEK_AVG' | translate }}</div>
         <div class="weight-metric-value">
-          {{ currWeightAverage === 0 ? '-' : ((currWeightAverage || 0) |
-          number:'1.0-2') + 'kg' }}
+          {{ currWeightAverage == null ? '—' : (currWeightAverage | number:'1.0-2') + ' kg' }}
           <span
             class="weight-change"
             [ngClass]="getWeightChangeClass(currWeightAverage, prevWeightAverage)"
@@ -202,6 +203,11 @@
             getWeightChangeText(currWeightAverage, prevWeightAverage) }}
           </span>
         </div>
+        <small>{{ 'MEASUREMENT_WEEK.COUNT' | translate:{ count: currWeightCount } }} · {{ 'MEASUREMENT_WEEK.PARTIAL' | translate }}</small>
+        <small>{{ 'MEASUREMENT_WEEK.ZONE' | translate }}: {{ measurementTimeZone }}</small>
+        <ion-button fill="clear" size="small" *ngIf="deviceTimeZone !== measurementTimeZone" [disabled]="updatingMeasurementTimeZone" (click)="$event.stopPropagation(); useDeviceMeasurementTimeZone()">
+          {{ 'MEASUREMENT_WEEK.USE_ZONE' | translate:{ zone: deviceTimeZone } }}
+        </ion-button>
       </div>
     </div>
 

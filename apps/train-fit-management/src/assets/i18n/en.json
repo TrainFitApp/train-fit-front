@@ -1,4 +1,11 @@
 {
+  "MEASUREMENT_WEEK": {
+    "ZONE": "Reference time zone",
+    "USE_ZONE": "Use {{zone}}",
+    "ZONE_ERROR": "Could not change the time zone. Please try again.",
+    "COUNT": "{{count}} weigh-ins",
+    "PARTIAL": "Week in progress"
+  },
   "ACTIONS": {
     "EDIT": "Edit",
     "COPY": "Copy",

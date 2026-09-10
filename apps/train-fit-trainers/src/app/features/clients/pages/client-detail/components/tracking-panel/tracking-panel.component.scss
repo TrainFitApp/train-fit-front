@@ -1,0 +1,250 @@
+@import '../../../../../../../theme/hierarchy';
+
+// Segunda mitad de la banda de configuración: va pegada a las
+// programaciones del workspace, sin regla propia, para que se lean como un
+// solo bloque y no como dos secciones sueltas.
+:host { display: block; }
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-6) 0;
+  text-align: center;
+
+  ion-icon { font-size: 28px; color: var(--tf-text-faint); }
+  p { @include tf-help; }
+}
+
+// Dos columnas que se reparten el ancho: pauta y presets son dos formas de lo
+// mismo (dejar montado el seguimiento), y apiladas dejaban media pantalla
+// vacía a la derecha.
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  // Cada tarjeta a su altura: estiradas para igualarse, la de la pauta
+  // quedaba con un tercio de hueco muerto debajo del botón.
+  align-items: start;
+  gap: var(--tf-space-4);
+  margin-top: var(--tf-space-4);
+}
+
+// Tarjeta INFORMATIVA: contiene acciones, pero ella misma no se pulsa. Se
+// queda en el escalón bajo de superficie (--tf-surface-1) y con el borde
+// suave; lo que sí se pulsa dentro va por encima de ella.
+.setup-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-5);
+  @include tf-card-static;
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+}
+
+// El título se queda con el ancho que sobre y el enlace de la derecha no se
+// estira ni se parte: con nombres largos, "Pauta de peso" caía a dos líneas.
+.card-title { @include tf-card-title; flex: 1 1 auto; min-width: 0; }
+.card-head .danger-link { flex: 0 0 auto; white-space: nowrap; }
+.card-sub { @include tf-help; }
+.card-foot { @include tf-meta; }
+
+// --- Parejas etiqueta → dato -------------------------------------------
+// El encargo literal: "Peso inicial" es etiqueta secundaria y "80 kg" es el
+// dato protagonista. Dentro de la pareja hay 2px; entre parejas, 28px.
+.card-state {
+  @include tf-pair-group(var(--tf-space-8));
+
+  margin: var(--tf-space-1) 0 var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+}
+
+.field { @include tf-pair(var(--tf-space-1)); }
+.field-label { @include tf-label; }
+.field-value { @include tf-value(var(--tf-font-size-md)); }
+.field-meta { @include tf-meta; }
+
+.field-value--empty {
+  color: var(--tf-text-secondary);
+  font-weight: var(--tf-weight-label);
+  font-size: var(--tf-font-size-sm);
+}
+
+.interval-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.interval-fieldset .field-label { padding: 0 0 var(--tf-space-2); }
+
+.interval-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+}
+
+// Selector de una sola opción: píldora, no botón. La forma dice que es una
+// elección entre varias y no una acción que dispara algo.
+.interval-option {
+  min-height: 34px;
+  padding: 0 var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover:not(.interval-option--active) { background: var(--tf-surface-3); color: var(--tf-text); }
+
+  &--active {
+    border-color: var(--tf-accent);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    font-weight: var(--tf-weight-label);
+  }
+
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; }
+}
+
+// --- Filas de preset: se pulsan ENTERAS ---------------------------------
+// Sin borde a propósito: una caja con borde dentro de otra caja con borde se
+// lee como tarjeta anidada. El relleno un escalón por encima de la tarjeta
+// (surface-2 sobre surface-1) más el chevron y el "Aplicar" en acento ya
+// dicen que se pulsa, sin repetir el marco.
+.preset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-2);
+}
+
+.preset-row {
+  @include tf-card-interactive;
+
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-3);
+  border: 0;
+  border-radius: var(--tf-radius-md);
+}
+
+.preset-main { @include tf-pair(var(--tf-space-1)); }
+
+// Flex + wrap para que la etiqueta "objetivo de este cliente" caiga ENTERA a
+// la línea siguiente cuando no cabe: como texto en línea se partía por la
+// mitad y la píldora salía cortada en dos trozos (visto a 375px).
+.preset-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tf-space-2);
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-label);
+  color: var(--tf-text);
+}
+
+// Mismo motivo que en checkin-workspace: al pasar el ratón la fila sube a
+// surface-3 y ahí --tf-text-muted se queda en 3,98:1, por debajo de AA.
+.preset-detail { @include tf-meta; display: block; color: var(--tf-text-secondary); }
+
+.preset-tag {
+  white-space: nowrap;
+  padding: 1px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+}
+
+// "Aplicar" escrito en cada fila: el chevron solo no dice qué va a pasar.
+.preset-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  color: var(--tf-accent-text);
+
+  ion-icon { font-size: var(--tf-font-size-base); }
+}
+
+// --- Acciones ----------------------------------------------------------
+.btn-primary { @include tf-btn-primary; }
+.btn-secondary { @include tf-btn-secondary; }
+
+// La acción que cierra la tarjeta ocupa su ancho: en una columna estrecha un
+// botón alineado a la izquierda se pierde entre el texto de arriba.
+.card-action {
+  width: 100%;
+  margin-top: var(--tf-space-1);
+}
+
+.danger-link,
+.plain-link {
+  padding: 4px 0;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  color: var(--tf-text-muted);
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:disabled { opacity: 0.5; cursor: default; }
+  &:focus-visible { outline: 2px solid var(--tf-accent); outline-offset: 2px; border-radius: 4px; }
+}
+
+.danger-link:hover:not(:disabled) { color: var(--tf-danger-text, #e5484d); }
+.plain-link:hover:not(:disabled) { color: var(--tf-text); }
+
+.puntual-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  margin-top: var(--tf-space-2);
+}
+
+// Estado con forma propia además de color, para que no dependa del matiz.
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--tf-space-1);
+  padding: 3px 9px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  white-space: nowrap;
+
+  &--alert {
+    background: rgba(237, 87, 107, 0.14);
+    color: var(--tf-danger-text, #ed576b);
+  }
+
+  ion-icon { font-size: var(--tf-font-size-sm); }
+}

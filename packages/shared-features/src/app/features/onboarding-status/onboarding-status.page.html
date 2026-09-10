@@ -103,13 +103,29 @@
   <ion-spinner name="crescent"></ion-spinner>
 </div>
 
+<div class="wizard-loading" *ngIf="fillingTrainerId && intakeLoadError" role="alert">
+  <p>{{ intakeLoadError }}</p>
+  <ion-button *ngIf="fillingGroup as group" (click)="openIntakeForm(group)">Reintentar</ion-button>
+  <ion-button fill="clear" (click)="closeIntakeForm()">Volver</ion-button>
+</div>
+
 <app-intake-wizard
-  *ngIf="fillingTrainerId && !isLoadingIntake"
+  *ngIf="fillingTrainerId && !isLoadingIntake && !intakeLoadError"
   [trainerName]="fillingGroup?.trainerName || ''"
   [enabledFields]="fillingGroup?.enabledFields || emptyFieldSet"
   [customQuestions]="fillingGroup?.customQuestions || []"
   [prefill]="intakePrefill"
   [isSubmitting]="isSubmitting"
+  [measurementDefinitions]="measurementDefinitions"
+  [recentMeasurements]="measurementsState?.recent || []"
+  [today]="measurementToday"
+  [serverError]="submitError"
+  [conflicts]="measurementConflicts"
+  [canReload]="canReloadIntake"
+  (reloadRequested)="reloadIntake()"
+  (conflictConfirmed)="confirmMeasurementConflict()"
+  (conflictCancelled)="measurementConflicts = []"
+  (draftChanged)="saveDraft($event)"
   (submitted)="submitIntake($event)"
   (cancelled)="closeIntakeForm()"
 ></app-intake-wizard>

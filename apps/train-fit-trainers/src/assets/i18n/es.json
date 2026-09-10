@@ -1,4 +1,11 @@
 {
+  "MEASUREMENT_WEEK": {
+    "ZONE": "Zona de referencia",
+    "USE_ZONE": "Usar {{zone}}",
+    "ZONE_ERROR": "No se pudo cambiar la zona. Vuelve a intentarlo.",
+    "COUNT": "{{count}} pesajes",
+    "PARTIAL": "Semana en curso"
+  },
   "ACTIONS": {
     "EDIT": "Editar",
     "COPY": "Copiar",

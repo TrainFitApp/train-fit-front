@@ -1,6 +1,5 @@
 import { CheckinFieldType } from 'src/app/core/constants/checkin-fields';
 
-export type CheckinCadence = 'weekly' | 'biweekly' | 'once';
 
 // Fase 5 Coach Pro — pregunta propia del coach (§7). Espejo de
 // components/trainerCheckins/checkin-custom-question.js.
@@ -20,7 +19,10 @@ export interface CheckinTemplateDefinition {
   enabledFields: string[];
   // Ausente en plantillas creadas antes de la Fase 5 — de ahí el opcional.
   customQuestions?: CustomCheckinQuestion[];
-  cadence: CheckinCadence;
+  // Periodicidad por defecto al aplicar la plantilla a un cliente, en el
+  // mismo vocabulario que la programación real.
+  frequency: "once" | "daily" | "weekly" | "monthly";
+  interval: number;
   createdAt: string;
 }
 

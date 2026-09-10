@@ -15,8 +15,9 @@ import {
   IntakeFieldKey,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import { EquipmentTag, IntakeSubmission, TrainingLocation } from '../../services/intake-api.service';
+import { InitialMeasurementConflict, InitialMeasurementDefinition, InitialMeasurementDraft, InitialMeasurementValue, validateInitialMeasurements } from '../../models/initial-measurements';
 
-export type IntakeWizardResult = Omit<IntakeSubmission, 'trainerId'>;
+export type IntakeWizardResult = Omit<IntakeSubmission, 'trainerId' | 'requestId' | 'timeZone' | 'intakeConfigVersion'>;
 
 export interface IntakeWizardPrefill {
   goals: string;
@@ -30,6 +31,8 @@ export interface IntakeWizardPrefill {
   dislikedFoods: string;
   cooksAtHome: IntakeSubmission['cooksAtHome'];
   customAnswers: Record<string, string>;
+  measurementDrafts?: InitialMeasurementDraft[];
+  step?: number;
 }
 
 const EXPERIENCE_OPTIONS: { value: IntakeSubmission['experienceLevel']; label: string }[] = [
@@ -87,16 +90,26 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   // isProcessing en sign-up.page.ts vive en el componente top-level): este
   // wizard solo refleja el estado para deshabilitar su propio boton/spinner.
   @Input() public isSubmitting = false;
+  @Input() public measurementDefinitions: InitialMeasurementDefinition[] = [];
+  @Input() public recentMeasurements: InitialMeasurementValue[] = [];
+  @Input() public today = '';
+  @Input() public serverError = '';
+  @Input() public conflicts: InitialMeasurementConflict[] = [];
+  @Input() public canReload = false;
 
   @Output() public submitted = new EventEmitter<IntakeWizardResult>();
   @Output() public cancelled = new EventEmitter<void>();
+  @Output() public draftChanged = new EventEmitter<IntakeWizardPrefill>();
+  @Output() public conflictConfirmed = new EventEmitter<void>();
+  @Output() public conflictCancelled = new EventEmitter<void>();
+  @Output() public reloadRequested = new EventEmitter<void>();
 
   @ViewChild('intakeSwiper')
   public swiperRef:
     | ElementRef<HTMLElement & { swiper?: Swiper } & { initialize: () => void }>
     | undefined;
 
-  private swiper: Swiper;
+  private swiper: Swiper | undefined;
 
   public currentStep = 0;
   public existNext = true;
@@ -118,11 +131,16 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public dislikedFoods = '';
   public cooksAtHome: IntakeSubmission['cooksAtHome'] = null;
   public customAnswers: Record<string, string> = {};
+  public measurementDrafts: InitialMeasurementDraft[] = [];
+  public measurementErrors: Record<string, string> = {};
+  public missingMeasurements: InitialMeasurementDefinition[] = [];
+  public showMissingWarning = false;
+  public formError = '';
 
   private stepIds: string[] = [];
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['enabledFields'] || changes['customQuestions']) {
+    if (changes['enabledFields'] || changes['customQuestions'] || changes['measurementDefinitions']) {
       this.stepIds = this.buildStepOrder();
     }
     if (changes['prefill']) {
@@ -147,6 +165,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.dislikedFoods = p?.dislikedFoods || '';
     this.cooksAtHome = p?.cooksAtHome ?? null;
     this.customAnswers = { ...(p?.customAnswers || {}) };
+    this.measurementDrafts = (p?.measurementDrafts || []).map((row) => ({ ...row }));
   }
 
   // Mismo orden que tenia el formulario de una sola pantalla (para no
@@ -169,6 +188,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     if (this.enabledFields.has('dislikedFoods')) ids.push('dislikedFoods');
     if (this.enabledFields.has('cooksAtHome')) ids.push('cooksAtHome');
     this.customQuestions.forEach((q) => ids.push(`custom:${q.id}`));
+    if (this.measurementDefinitions.length) ids.push('measurements');
     return ids;
   }
 
@@ -199,23 +219,29 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
 
   public setCustomAnswer(questionId: string, value: string): void {
     this.customAnswers[questionId] = value;
+    this.saveDraft();
   }
 
   private swiperReady(): void {
-    const swiperEl = Object.assign(this.swiperRef?.nativeElement, {
+    const element = this.swiperRef?.nativeElement;
+    if (!element) return;
+    const swiperEl = Object.assign(element, {
       allowTouchMove: false,
     });
     swiperEl.initialize();
 
-    this.swiper = this.swiperRef?.nativeElement.swiper;
-    this.swiper.on('slideChange', () => this.checkNextAndPrev());
+    this.swiper = element.swiper;
+    this.swiper?.on('slideChange', () => this.checkNextAndPrev());
+    this.swiper?.slideTo(Math.min(this.prefill?.step || 0, Math.max(0, this.stepCount - 1)), 0);
   }
 
   private checkNextAndPrev(): void {
+    if (!this.swiper) return;
     const activeIndex = this.swiper.activeIndex;
     this.currentStep = activeIndex;
     this.existNext = activeIndex < this.swiper.slides.length - 1;
     this.existPrev = activeIndex > 0;
+    this.saveDraft();
   }
 
   public nextStep(): void {
@@ -239,6 +265,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   // equipmentTags (multi-select) queda fuera a proposito.
   public selectSingleChip<T>(setter: (value: T) => void, value: T): void {
     setter(value);
+    this.saveDraft();
     const stepAtSelection = this.currentStep;
     setTimeout(() => {
       if (this.currentStep === stepAtSelection) {
@@ -263,10 +290,51 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.equipmentTags = this.equipmentTags.includes(tag)
       ? this.equipmentTags.filter((t) => t !== tag)
       : [...this.equipmentTags, tag];
+    this.saveDraft();
   }
 
-  public submit(): void {
+  public updateMeasurements(rows: InitialMeasurementDraft[]): void {
+    this.measurementDrafts = rows;
+    this.measurementErrors = {};
+    this.showMissingWarning = false;
+    this.saveDraft();
+  }
+
+  public saveDraft(): void {
     if (this.isSubmitting) return;
+    this.draftChanged.emit({
+      goals: this.goals, healthConditions: this.healthConditions,
+      experienceLevel: this.experienceLevel, availability: this.availability,
+      trainingLocation: this.trainingLocation, equipmentTags: [...this.equipmentTags],
+      allergies: this.allergies, favoriteFoods: this.favoriteFoods,
+      dislikedFoods: this.dislikedFoods, cooksAtHome: this.cooksAtHome,
+      customAnswers: { ...this.customAnswers },
+      measurementDrafts: this.measurementDrafts.map((row) => ({ ...row })),
+      step: this.currentStep,
+    });
+  }
+
+  public submit(acknowledgeMissing = false): void {
+    if (this.isSubmitting) return;
+    this.formError = '';
+    // Mantiene el carácter opcional de las preguntas existentes y sus límites.
+    const textFields = [this.goals, this.healthConditions, this.allergies, this.favoriteFoods, this.dislikedFoods, ...Object.values(this.customAnswers)];
+    if (textFields.some((value) => value.trim().length > 1000) || this.availability.trim().length > 500) {
+      this.formError = 'Revisa la longitud: hasta 1.000 caracteres por respuesta y 500 en disponibilidad.';
+      return;
+    }
+    const validation = validateInitialMeasurements(this.measurementDefinitions, this.measurementDrafts, this.today);
+    this.measurementErrors = validation.errors;
+    this.missingMeasurements = validation.missing;
+    if (Object.keys(validation.errors).length) {
+      this.swiper?.slideTo(this.stepIds.indexOf('measurements'));
+      return;
+    }
+    if (validation.missing.length && !acknowledgeMissing) {
+      this.showMissingWarning = true;
+      return;
+    }
+    this.showMissingWarning = false;
 
     const customAnswers = this.customQuestions.map((q) => ({
       questionId: q.id,
@@ -286,6 +354,8 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       dislikedFoods: this.dislikedFoods.trim(),
       cooksAtHome: this.cooksAtHome,
       customAnswers,
+      measurements: validation.values,
+      missingMeasurementsAcknowledged: acknowledgeMissing,
     });
   }
 }

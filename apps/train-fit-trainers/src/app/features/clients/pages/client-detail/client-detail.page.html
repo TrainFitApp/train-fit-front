@@ -63,13 +63,21 @@
        Toda la lógica vive en su propio componente: esta página ya carga 8
        secciones en 1.800 líneas, y meter aquí una novena la habría dejado
        definitivamente inmantenible. -->
-  <div class="tab-panel" *ngIf="activeTab === 'summary'">
-    <app-client-summary
+  <div class="tab-panel overview-tab-panel" *ngIf="activeTab === 'summary'">
+    <app-client-overview
       [clientId]="clientId"
       [clientName]="name"
       [hasTrainingScope]="scopes.includes('training')"
       (openTab)="selectTab($event)"
-    ></app-client-summary>
+      (clientNameChanged)="name = $event"
+      (contextChanged)="applyOverviewContext($event)"
+      (changed)="loadNotes()"
+    >
+      <details #summaryAnalytics class="overview-analytics" (toggle)="detailedSummaryOpen = summaryAnalytics.open">
+        <summary>Consultar analítica detallada</summary>
+        <app-client-summary *ngIf="detailedSummaryOpen" [clientId]="clientId" [clientName]="name" [hasTrainingScope]="scopes.includes('training')" (openTab)="selectTab($event)"></app-client-summary>
+      </details>
+    </app-client-overview>
   </div>
 
   <!-- === ENTRENAMIENTO === -->
@@ -591,57 +599,32 @@
     </div>
 
     <ng-container *ngIf="measurementsState === 'loaded'">
+      <!-- Fase 7 — mismo estado que ya enseña Seguimiento (state-pill),
+           aquí en un aviso de una línea: Medidas es la vista de análisis,
+           no duplica la gestión de la pauta que vive en Seguimiento. -->
+      <div class="weight-plan-banner" *ngIf="weightPlan as plan">
+        <div class="weight-plan-banner__field">
+          <span class="field-label">Pauta de peso</span>
+          <span class="state-pill" [class.state-pill--alert]="!plan.compliance.upToDate">
+            <ion-icon [name]="plan.compliance.upToDate ? 'checkmark-circle-outline' : 'alert-circle-outline'" aria-hidden="true"></ion-icon>
+            {{ plan.compliance.upToDate ? 'Al día' : 'Atrasada ' + plan.compliance.overdueDays + ' d' }}
+          </span>
+        </div>
+        <div class="weight-plan-banner__field">
+          <span class="field-label">Frecuencia</span>
+          <span class="field-value">cada {{ plan.intervalDays }} días</span>
+        </div>
+      </div>
+
       <app-anthropometry-chart
+        class="measurements-chart"
         *ngIf="anthropometryEntries.length"
         [data]="anthropometryEntries"
+        [compact]="true"
       ></app-anthropometry-chart>
       <p class="empty-hint" *ngIf="!anthropometryEntries.length">
         Este cliente todavía no tiene medidas registradas.
       </p>
-
-      <!-- Movimiento 3 Coach Pro — las cuentas sobre la última medición
-           (basal, % graso, composición y proporciones). Van aquí, en
-           Medidas, y no en Resumen: son la lectura detallada de estos
-           números, no el titular. Nada se guarda: se derivan de la medición
-           que ya está arriba. Ver body-calculator.component.ts. -->
-      <div class="calculator-wrapper" *ngIf="anthropometryEntries.length">
-        <app-body-calculator
-          [profile]="bodyProfile"
-          [measurement]="latestMeasurement"
-        ></app-body-calculator>
-      </div>
-
-      <div class="section-row section-row--top">
-        <h2 class="section-heading">Solicitar antropometría</h2>
-        <button class="add-button" *ngIf="!anthropometryRequest" (click)="openMeasurementsRequestPanel()">
-          <ion-icon name="add-outline"></ion-icon>
-          Solicitar
-        </button>
-      </div>
-
-      <p class="empty-hint" *ngIf="!anthropometryRequest">
-        Pídele medidas puntuales o programadas — el cliente recibe una notificación cada vez que toca.
-      </p>
-
-      <div class="request-status-card" *ngIf="anthropometryRequest as request">
-        <div class="request-status-header">
-          <span class="list-card-title">{{ measurementCadenceLabel(request) }}</span>
-          <button class="add-button" (click)="openMeasurementsRequestPanel()">
-            <ion-icon name="create-outline"></ion-icon>
-            Editar
-          </button>
-        </div>
-        <div class="request-status-fields">
-          <span class="scope-chip" *ngFor="let key of request.fields">{{ checkinFieldLabel(key) }}</span>
-        </div>
-        <p class="request-status-notes" *ngIf="request.notes">{{ request.notes }}</p>
-        <p class="request-status-meta">
-          Última vez atendida: {{ request.lastFulfilledAt ? (request.lastFulfilledAt | date: 'd MMM y') : 'todavía no' }}
-        </p>
-        <button class="danger-link" (click)="cancelMeasurementsRequest()" [disabled]="isCancelingMeasurementsRequest">
-          Cancelar petición
-        </button>
-      </div>
 
       <!-- Fotos de progreso — mock: todavía sin subida real, placeholder
            para que el flujo se vea completo en la ficha. -->
@@ -656,67 +639,6 @@
       <p class="empty-hint">Próximamente: el cliente podrá subir fotos de progreso desde su app.</p>
     </ng-container>
 
-    <!-- Panel: Solicitar antropometría -->
-    <div class="panel-backdrop" *ngIf="showMeasurementsRequestPanel" (click)="closeMeasurementsRequestPanel()"></div>
-    <div class="panel-sheet" *ngIf="showMeasurementsRequestPanel">
-      <div class="panel-handle"></div>
-      <h3 class="panel-title">Solicitar antropometría</h3>
-
-      <form [formGroup]="measurementsRequestForm" (ngSubmit)="submitMeasurementsRequest()">
-        <ng-container *ngFor="let group of measurementFieldGroups">
-          <span class="measurement-field-group-label">{{ group.label }}</span>
-          <div class="cadence-options">
-            <button
-              type="button"
-              class="cadence-option"
-              *ngFor="let field of measurementFieldsInGroup(group.key)"
-              [class.cadence-option--active]="isMeasurementFieldSelected(field.key)"
-              (click)="toggleMeasurementField(field.key)"
-            >
-              {{ field.label }}
-            </button>
-          </div>
-        </ng-container>
-
-        <span class="measurement-field-group-label">Cadencia</span>
-        <div class="cadence-options">
-          <button
-            type="button"
-            class="cadence-option"
-            *ngFor="let option of measurementCadenceOptions"
-            [class.cadence-option--active]="measurementsRequestForm.value.cadence === option.value"
-            (click)="measurementsRequestForm.get('cadence')?.setValue(option.value)"
-          >
-            {{ option.label }}
-          </button>
-        </div>
-
-        <div class="input-wrapper" *ngIf="measurementsRequestForm.value.cadence === 'custom'">
-          <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-          <input
-            type="number"
-            formControlName="customIntervalDays"
-            class="input-field"
-            placeholder="Cada cuántos días"
-            min="1"
-          />
-        </div>
-
-        <div class="input-wrapper">
-          <ion-icon name="chatbox-ellipses-outline" class="input-icon"></ion-icon>
-          <input type="text" formControlName="notes" class="input-field" placeholder="Notas para el cliente (opcional)" />
-        </div>
-
-        <button
-          type="submit"
-          class="submit-button"
-          [disabled]="!isMeasurementsRequestSubmittable || isSavingMeasurementsRequest"
-        >
-          <span *ngIf="!isSavingMeasurementsRequest">Solicitar</span>
-          <ion-spinner name="dots" *ngIf="isSavingMeasurementsRequest"></ion-spinner>
-        </button>
-      </form>
-    </div>
   </div>
 
   <!-- === NUTRICIÓN === -->
@@ -1471,7 +1393,15 @@
 
   <!-- Agenda de check-ins independiente del resto de secciones. -->
   <div class="tab-panel" *ngIf="activeTab === 'checkins'">
+    <!-- Estado primero: qué debe este cliente ahora mismo. Es lo más rápido
+         de leer y estaba al final de la pantalla. -->
+    <app-tracking-status [clientId]="clientId"></app-tracking-status>
+
     <app-checkin-workspace [clientId]="clientId"></app-checkin-workspace>
+
+    <!-- Cierra la banda de configuración que abren las programaciones: pauta
+         de peso y presets. Se hace una vez por cliente, así que va al final. -->
+    <app-tracking-panel [clientId]="clientId" [clientName]="name"></app-tracking-panel>
   </div>
     </div>
   </div>

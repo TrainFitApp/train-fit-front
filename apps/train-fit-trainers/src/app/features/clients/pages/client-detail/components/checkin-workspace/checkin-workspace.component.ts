@@ -31,7 +31,18 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public busy = false;
   public data: CheckinCalendarData | null = null;
   public scheduleFilter = '';
-  public reviewOnly = false;
+  // Fase 9c — "Check-ins programados" es una lista de configuración, no de
+  // historial: una programación "una sola vez" que ya lanzó su única
+  // solicitud (nextRunAt vuelve a null en cuanto se materializa, ver
+  // checkin-calendar-service.js#materializeLocked) no tiene ya nada que
+  // gestionar ahí y se queda ocupando sitio para siempre si no se filtra.
+  // Precalculado en rebuild(), NO como getter: un getter que hace .filter()
+  // en la plantilla devuelve un array nuevo cada ciclo de detección de
+  // cambios, y eso ya colgó esta app dos veces (ver memoria del proyecto).
+  public visibleSchedules: CheckinSchedule[] = [];
+  // Abre por "Por revisar": es la pregunta diaria del entrenador. Antes
+  // abría en el día seleccionado, que la mayoría de días no tiene nada.
+  public reviewOnly = true;
   public agenda: CalendarCheckin[] = [];
   public selected: CalendarCheckin | null = null;
   public referenceId = '';
@@ -40,12 +51,16 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public trendResponses: CheckinResponseEntry[] = [];
   public readonly emptyQuestions = [];
   public showEvolution = false;
-  public showSchedules = false;
   public comment = '';
   public templates: CheckinTemplateDefinition[] = [];
   public templatesState: 'loading' | 'loaded' | 'error' = 'loading';
   public editor: CheckinScheduleDraft | null = null;
   public editingId: string | null = null;
+  // Fase 8 — solo importa al CREAR: de dónde salen las preguntas de la
+  // programación nueva. Al editar, el formulario nunca vuelve a tocar
+  // enabledFields (ver comentario en CheckinScheduleDraft), así que el modo
+  // no se muestra ni se lee.
+  public sourceMode: 'template' | 'fields' = 'template';
   private requestKeys = new Map<string, string>();
 
   public ngOnChanges(): void { if (this.clientId) { this.data = null; this.selected = null; this.load(); } }
@@ -57,7 +72,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
     const to = localDate(new Date(this.month.getFullYear(), this.month.getMonth() + 1, 0));
     this.loadSubscription = this.http.get<CheckinCalendarData>(`${this.base}/checkin-calendar?from=${from}&to=${to}`)
       .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: data => { this.data = data; this.state = 'loaded'; this.rebuild(); },
+        next: data => { this.data = data; this.state = 'loaded'; if (!data.reviewCount) this.reviewOnly = false; this.rebuild(); },
         error: () => { this.state = 'error'; },
       });
   }
@@ -78,6 +93,7 @@ export class CheckinWorkspaceComponent implements OnChanges {
     return schedule.interval === 1 ? 'Cada día' : `Cada ${schedule.interval} ${unit}`;
   }
   public rebuild(): void {
+    this.visibleSchedules = (this.data?.schedules || []).filter(s => !(s.frequency === 'once' && !s.nextRunAt));
     const entries = (this.data?.entries || []).filter(e => !this.scheduleFilter || e.scheduleId === this.scheduleFilter);
     this.monthLabel = this.month.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     const first = new Date(this.month); first.setDate(1 - (first.getDay() + 6) % 7);
@@ -109,15 +125,15 @@ export class CheckinWorkspaceComponent implements OnChanges {
     this.trendResponses = [...(entry?.respondedAt ? [entry] : []), ...history].filter((r): r is CalendarCheckin & { respondedAt: string } => !!r.respondedAt).map(r => ({ _id: r._id, respondedAt: r.respondedAt, values: r.values || {} }));
   }
   public updateComparison(): void { this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : []; }
-  public async openEditor(schedule?: CheckinSchedule, legacy = false): Promise<void> {
+  public async openEditor(schedule?: CheckinSchedule): Promise<void> {
     this.error = ''; this.editingId = schedule?._id || null;
+    this.sourceMode = 'template';
     this.editor = schedule ? { ...schedule } : {
-      name: legacy ? 'Check-in habitual' : '', sourceTemplateId: null,
-      legacyConfigId: legacy ? this.data?.legacyConfig?._id : null,
+      name: '', sourceTemplateId: null, enabledFields: [],
       startDate: this.selectedDate < this.today ? this.today : this.selectedDate,
       time: '09:00', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid', frequency: 'weekly', interval: 1,
     };
-    if (!schedule && !legacy) await this.loadTemplates();
+    if (!schedule) await this.loadTemplates();
   }
   public async loadTemplates(): Promise<void> {
     this.templatesState = 'loading';
@@ -125,8 +141,24 @@ export class CheckinWorkspaceComponent implements OnChanges {
     catch { this.templatesState = 'error'; }
   }
   public chooseTemplate(id: string): void { if (this.editor) { this.editor.sourceTemplateId = id; this.editor.name = this.templates.find(t => t._id === id)?.name || ''; } }
+  // Fase 8a — elegir plantilla o elegir campos son alternativas EXCLUYENTES
+  // para el backend (saveSchedule mira sourceTemplateId antes que
+  // enabledFields): cambiar de modo limpia el otro camino para que no quede
+  // un sourceTemplateId de una plantilla ya no visible en el formulario.
+  public chooseSourceMode(mode: 'template' | 'fields'): void {
+    this.sourceMode = mode;
+    if (!this.editor) return;
+    if (mode === 'fields') this.editor.sourceTemplateId = null;
+    else this.editor.enabledFields = [];
+  }
+  public setDraftFields(fields: string[]): void { if (this.editor) this.editor.enabledFields = fields; }
+  public get canSave(): boolean {
+    if (!this.editor || this.busy) return false;
+    if (this.editingId) return true;
+    return this.sourceMode === 'template' ? !!this.editor.sourceTemplateId : !!this.editor.enabledFields?.length;
+  }
   public async save(): Promise<void> {
-    if (!this.editor || this.busy) return;
+    if (!this.editor || this.busy || !this.canSave) return;
     const draft = { ...this.editor };
     await this.mutate(() => this.editingId ? firstValueFrom(this.http.put(`${this.base}/checkin-schedules/${this.editingId}`, draft)) : firstValueFrom(this.http.post(`${this.base}/checkin-schedules`, draft)), 'Programación guardada', () => { this.editor = null; });
   }

@@ -3,6 +3,7 @@ import {
   DestroyRef,
   HostListener,
   OnInit,
+  ViewChild,
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -17,6 +18,9 @@ import { TrainerNavigationService } from '../../../../core/services/trainer-navi
 import { ClientDetailApiService } from './services/client-detail-api.service';
 import { TrainerClientsApiService } from '../../services/trainer-clients-api.service';
 import { TrainerInvitesApiService } from '../../../invites/services/trainer-invites-api.service';
+import { ClientOverviewApiService } from './components/client-overview/client-overview-api.service';
+import { ClientOverviewComponent } from './components/client-overview/client-overview.component';
+import { OverviewContextValues } from './components/client-overview/client-overview.model';
 import {
   ClientIntake,
   EQUIPMENT_TAG_LABELS,
@@ -49,7 +53,6 @@ import {
   BlockExerciseProgress,
   BlockMuscleGroup,
   BlockReadiness,
-  ClientBodyProfile,
   ClientTrainingProgress,
   GoalMeal,
   SessionAdherence,
@@ -57,6 +60,7 @@ import {
   SessionMuscleGroup,
   SessionReadiness,
   SessionTraining,
+  WeightPlanStatus,
   TRAINING_COMPARISON_METRIC_LABELS,
   TrainingBlock,
   TrainingComparisonMetric,
@@ -92,10 +96,7 @@ import {
 import {
   AdherenceSummary,
   AnthropometryEntry,
-  AnthropometryRequest,
-  AnthropometryRequestCadence,
   BulkApplyResult,
-  CheckinConfig,
   CheckinResponseEntry,
   ClientDetailSection,
   ClientDetailSectionDef,
@@ -143,8 +144,10 @@ function defaultTrackingRange(): { start: string; end: string } {
   styleUrls: ['client-detail.page.scss'],
 })
 export class ClientDetailPage implements OnInit {
+  @ViewChild(ClientOverviewComponent) private overviewComponent?: ClientOverviewComponent;
   public clientId = '';
   public name = 'Cliente';
+  public detailedSummaryOpen = false;
   public scopes: ClientScope[] = [];
   public activeTab: ClientDetailTab = 'training';
   // Movimiento 1 Coach Pro — las 9 pestañas planas pasan a 4 secciones con
@@ -167,7 +170,6 @@ export class ClientDetailPage implements OnInit {
 
   // --- Check-ins (F17, transversal a los scopes) ---
   public checkinsState: SectionState = 'loading';
-  public checkinConfig: CheckinConfig | null = null;
   public checkinResponses: CheckinResponseEntry[] = [];
 
   // --- Cobros (F26, transversal a los scopes) ---
@@ -241,38 +243,6 @@ export class ClientDetailPage implements OnInit {
   // los de nutrición. ---
   public measurementsState: SectionState = 'loading';
   public anthropometryEntries: AnthropometryEntry[] = [];
-  public anthropometryRequest: AnthropometryRequest | null = null;
-  public showMeasurementsRequestPanel = false;
-  public isSavingMeasurementsRequest = false;
-  public isCancelingMeasurementsRequest = false;
-  // Mismo catálogo que los check-ins (ver checkin-fields.ts), filtrado a lo
-  // que realmente alimenta Anthropometry — no duplica etiquetas nuevas.
-  public readonly measurementFieldOptions = CHECKIN_FIELDS.filter(
-    (f) => f.storage === 'anthropometry'
-  );
-  public readonly measurementFieldGroups: { key: string; label: string }[] = [
-    { key: 'composicion_corporal', label: 'Composición corporal' },
-    { key: 'perimetros', label: 'Perímetros' },
-  ];
-  public readonly measurementCadenceOptions: {
-    value: AnthropometryRequestCadence;
-    label: string;
-  }[] = [
-    { value: 'once', label: 'Puntual' },
-    { value: 'daily', label: 'Diaria' },
-    { value: 'weekly', label: 'Semanal' },
-    { value: 'monthly', label: 'Mensual' },
-    { value: 'custom', label: 'Personalizada' },
-  ];
-  public measurementsRequestForm: FormGroup = new FormGroup({
-    fields: new FormControl<string[]>([], Validators.required),
-    cadence: new FormControl<AnthropometryRequestCadence>(
-      'once',
-      Validators.required
-    ),
-    customIntervalDays: new FormControl<number | null>(null),
-    notes: new FormControl(''),
-  });
 
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
@@ -388,6 +358,7 @@ export class ClientDetailPage implements OnInit {
     private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService,
+    private clientOverviewApi: ClientOverviewApiService,
     private navigation: TrainerNavigationService
   ) {}
 
@@ -437,6 +408,7 @@ export class ClientDetailPage implements OnInit {
   public ionViewWillEnter(): void {
     if (!this.clientId) return;
     this.initTabsAndLoadSections();
+    void this.overviewComponent?.refresh();
   }
 
   // ion-router-outlet mantiene viva esta instancia mientras se navega hacia
@@ -766,7 +738,11 @@ export class ClientDetailPage implements OnInit {
   // resto de la app: series con expectedReps[], no todas las series (una
   // serie sin rango prescrito no es incumplimiento, es un dato que no
   // aplica).
-  public get completedDaysMap(): Map<string, CompletedDay> {
+  // Se recalcula SOLO cuando cambian los entrenamientos (ver
+  // computeCompletedWorkouts), no en cada lectura.
+  public completedDaysMap = new Map<string, CompletedDay>();
+
+  private buildCompletedDaysMap(): Map<string, CompletedDay> {
     const map = new Map<string, CompletedDay>();
     for (const workout of this.completedWorkouts) {
       if (!workout.date) continue;
@@ -925,7 +901,15 @@ export class ClientDetailPage implements OnInit {
     this.trainerInvitesApi.getClientIntake(this.clientId).subscribe({
       next: (intake) => {
         this.clientIntake = intake;
-        this.clientIntakeState = 'loaded';
+        this.clientOverviewApi.getContext(this.clientId).subscribe({
+          next: (context) => {
+            this.applyOverviewContext(context.values);
+            this.clientIntakeState = 'loaded';
+          },
+          error: (error: { status?: number }) => {
+            this.clientIntakeState = error.status === 404 ? 'loaded' : 'error';
+          },
+        });
       },
       error: () => {
         this.clientIntakeState = 'error';
@@ -935,6 +919,16 @@ export class ClientDetailPage implements OnInit {
 
   public trainingLocationLabel(location: TrainingLocation | null): string {
     return location ? TRAINING_LOCATION_LABELS[location] || location : 'No indicado';
+  }
+
+  public applyOverviewContext(context: OverviewContextValues): void {
+    const location = context.trainingLocation && Object.prototype.hasOwnProperty.call(TRAINING_LOCATION_LABELS, context.trainingLocation)
+      ? context.trainingLocation as TrainingLocation : null;
+    const tags = (context.equipmentTags || []).filter((tag): tag is EquipmentTag => Object.prototype.hasOwnProperty.call(EQUIPMENT_TAG_LABELS, tag));
+    this.clientIntake = {
+      goals: '', healthConditions: '', availability: '', experienceLevel: null, customAnswers: [], submittedAt: '',
+      ...this.clientIntake, equipment: context.equipment || '', trainingLocation: location, equipmentTags: tags,
+    };
   }
 
   public equipmentTagLabel(tag: EquipmentTag): string {
@@ -1211,145 +1205,30 @@ export class ClientDetailPage implements OnInit {
   }
 
   // --- Medidas (antropometría) ---
-  // Movimiento 3 Coach Pro — altura/sexo/nacimiento para la calculadora
-  // corporal. Lo demás que necesita (las mediciones) ya se carga aquí.
-  public bodyProfile: ClientBodyProfile | null = null;
-
-  // La medición MÁS RECIENTE. getAnthropometry devuelve orden descendente
-  // (lo último primero), igual que el gráfico de arriba espera.
-  public get latestMeasurement(): AnthropometryEntry | null {
-    return this.anthropometryEntries[0] || null;
-  }
+  // Fase 7 — estado de la pauta de peso, mismo endpoint que ya consume el
+  // panel de Seguimiento. Null tanto si el cliente no tiene pauta como
+  // mientras carga: el aviso simplemente no se pinta hasta tener respuesta.
+  public weightPlan: WeightPlanStatus | null = null;
 
   public loadMeasurements(): void {
     this.measurementsState = 'loading';
-    Promise.all([
-      this.clientDetailApi.getAnthropometry(this.clientId).toPromise(),
-      this.clientDetailApi.getAnthropometryRequest(this.clientId).toPromise(),
-    ])
-      .then(([entries, request]) => {
+    this.clientDetailApi
+      .getAnthropometry(this.clientId)
+      .toPromise()
+      .then((entries) => {
         this.anthropometryEntries = entries || [];
-        this.anthropometryRequest = request || null;
         this.measurementsState = 'loaded';
       })
       .catch(() => {
         this.measurementsState = 'error';
       });
 
-    // Aparte del Promise.all: que falte el perfil (o falle su consulta) no
-    // debe dejar la pestaña de Medidas en estado de error — el gráfico y el
-    // histórico se leen igual sin él. La calculadora dirá qué le falta.
-    this.clientDetailApi.getBodyProfile(this.clientId).subscribe({
-      next: (profile) => (this.bodyProfile = profile),
-      error: () => (this.bodyProfile = null),
+    // Sin pauta o si falla la consulta, Medidas se ve igual que hoy — el
+    // aviso es un añadido, no una condición para cargar la pestaña.
+    this.clientDetailApi.getWeightPlan(this.clientId).subscribe({
+      next: (plan) => (this.weightPlan = plan),
+      error: () => (this.weightPlan = null),
     });
-  }
-
-  public measurementFieldsInGroup(
-    group: string
-  ): { key: string; label: string; unit?: string }[] {
-    return this.measurementFieldOptions.filter((f) => f.group === group);
-  }
-
-  public isMeasurementFieldSelected(key: string): boolean {
-    return (this.measurementsRequestForm.value.fields || []).includes(key);
-  }
-
-  public get isMeasurementsRequestSubmittable(): boolean {
-    const { fields, cadence, customIntervalDays } =
-      this.measurementsRequestForm.value;
-    if (!fields?.length) return false;
-    if (cadence === 'custom' && !(Number(customIntervalDays) > 0)) return false;
-    return true;
-  }
-
-  public toggleMeasurementField(key: string): void {
-    const current: string[] = this.measurementsRequestForm.value.fields || [];
-    const next = current.includes(key)
-      ? current.filter((k) => k !== key)
-      : [...current, key];
-    this.measurementsRequestForm.get('fields')?.setValue(next);
-  }
-
-  public openMeasurementsRequestPanel(): void {
-    this.showMeasurementsRequestPanel = true;
-    this.measurementsRequestForm.reset({
-      fields: this.anthropometryRequest?.fields || [],
-      cadence: this.anthropometryRequest?.cadence || 'once',
-      customIntervalDays: this.anthropometryRequest?.customIntervalDays || null,
-      notes: this.anthropometryRequest?.notes || '',
-    });
-  }
-
-  public closeMeasurementsRequestPanel(): void {
-    this.showMeasurementsRequestPanel = false;
-  }
-
-  public submitMeasurementsRequest(): void {
-    if (
-      !this.isMeasurementsRequestSubmittable ||
-      this.isSavingMeasurementsRequest
-    )
-      return;
-    const { fields, cadence, customIntervalDays, notes } =
-      this.measurementsRequestForm.value;
-
-    this.isSavingMeasurementsRequest = true;
-    this.clientDetailApi
-      .upsertAnthropometryRequest(this.clientId, {
-        fields,
-        cadence,
-        customIntervalDays:
-          cadence === 'custom' ? Number(customIntervalDays) : null,
-        notes: notes || '',
-      })
-      .subscribe({
-        next: (request) => {
-          this.isSavingMeasurementsRequest = false;
-          this.showMeasurementsRequestPanel = false;
-          this.anthropometryRequest = request;
-          this.ionicUtilService.showToast({
-            message: `Medidas solicitadas a ${this.name}`,
-            duration: 3000,
-          });
-        },
-        error: (err) => {
-          this.isSavingMeasurementsRequest = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo solicitar la antropometría',
-            'Error',
-            3500
-          );
-        },
-      });
-  }
-
-  public cancelMeasurementsRequest(): void {
-    if (this.isCancelingMeasurementsRequest) return;
-    this.isCancelingMeasurementsRequest = true;
-    this.clientDetailApi.cancelAnthropometryRequest(this.clientId).subscribe({
-      next: () => {
-        this.isCancelingMeasurementsRequest = false;
-        this.anthropometryRequest = null;
-      },
-      error: (err) => {
-        this.isCancelingMeasurementsRequest = false;
-        this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo cancelar la petición',
-          'Error',
-          3500
-        );
-      },
-    });
-  }
-
-  public measurementCadenceLabel(request: AnthropometryRequest): string {
-    if (request.cadence === 'custom')
-      return `Cada ${request.customIntervalDays} días`;
-    return (
-      this.measurementCadenceOptions.find((o) => o.value === request.cadence)
-        ?.label || request.cadence
-    );
   }
 
   public workoutDuration(workout: {
@@ -1437,6 +1316,7 @@ export class ClientDetailPage implements OnInit {
       (a, b) =>
         new Date(b.date as Date).getTime() - new Date(a.date as Date).getTime()
     );
+    this.completedDaysMap = this.buildCompletedDaysMap();
   }
 
   // Movimiento 2 Coach Pro — "Cuádriceps 4 · Glúteo 3". Devuelve cadena
@@ -2650,12 +2530,10 @@ export class ClientDetailPage implements OnInit {
   // --- Check-ins (F17) ---
   public loadCheckins(): void {
     this.checkinsState = 'loading';
-    Promise.all([
-      this.clientDetailApi.getCheckinConfig(this.clientId).toPromise(),
-      this.clientDetailApi.getCheckinResponses(this.clientId).toPromise(),
-    ])
-      .then(([config, responses]) => {
-        this.checkinConfig = config || null;
+    this.clientDetailApi
+      .getCheckinResponses(this.clientId)
+      .toPromise()
+      .then((responses) => {
         this.checkinResponses = responses || [];
         this.checkinsState = 'loaded';
       })
@@ -2664,17 +2542,19 @@ export class ClientDetailPage implements OnInit {
       });
   }
 
-  // Fase 5 Coach Pro — las respuestas a preguntas propias del coach viajan
-  // con la clave "custom:<id>", que no está en el catálogo: su enunciado se
-  // busca en la configuración aplicada a ESTE cliente. Sin esto, el
-  // histórico mostraría "custom:507f1f77bcf86cd799439011".
+  // Las respuestas a preguntas propias del coach viajan con la clave
+  // "custom:<id>", que no está en el catálogo. Su enunciado viaja EN la
+  // propia respuesta desde que cada solicitud guarda su copia: antes había
+  // que ir a buscarlo a la configuración aplicada del cliente, que ya no
+  // existe.
   public checkinFieldLabel(key: string): string {
     if (key.startsWith('custom:')) {
       const questionId = key.slice('custom:'.length);
-      const question = (this.checkinConfig?.customQuestions || []).find(
-        (q) => String(q._id) === questionId
-      );
-      return question?.label || 'Pregunta eliminada';
+      for (const response of this.checkinResponses) {
+        const question = (response.customQuestions || []).find((q) => String(q._id) === questionId);
+        if (question) return question.label;
+      }
+      return 'Pregunta eliminada';
     }
     return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
   }

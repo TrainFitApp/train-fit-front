@@ -102,35 +102,40 @@
       />
     </div>
 
-    <div class="field-group" *ngFor="let group of groups">
-      <h4 class="field-group-heading">{{ group.label }}</h4>
-      <div class="field-toggle-grid">
-        <button
-          class="field-toggle-row"
-          *ngFor="let field of group.fields; trackBy: trackByFieldKey"
-          (click)="toggleField(field.key)"
-        >
-          <span class="field-toggle-text">
-            <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
-            <!-- Movimiento 2 Coach Pro — qué va a leer el cliente realmente.
-                 Activar "Nivel de estrés" sin saber que su 5 es "desbordado,
-                 me afecta al sueño" es activarlo a ciegas. -->
-            <span class="field-toggle-detail" *ngIf="fieldDetail(field)">{{ fieldDetail(field) }}</span>
-          </span>
-          <ion-icon
-            [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
-            [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
-          ></ion-icon>
-        </button>
-      </div>
-    </div>
+    <!-- El catálogo de campos vive en un solo sitio (app/shared/components/
+         checkin-field-selector): esta pantalla tenía su propia copia del mismo
+         bloque, así que "elegir campos" se veía distinto según desde dónde se
+         abriera y había que arreglar cada mejora dos veces. -->
+    <app-checkin-field-selector
+      [selected]="formFields"
+      (selectedChange)="onFieldsChange($event)"
+    ></app-checkin-field-selector>
 
     <!-- ===== Preguntas propias (Fase 5 Coach Pro, §7) =====
          Van al final, después del catálogo: son el añadido del coach sobre
          lo que el sistema ya sabe medir, no la forma principal de armar un
          check-in. -->
     <div class="field-group">
-      <h4 class="field-group-heading">Tus propias preguntas</h4>
+      <button
+        type="button"
+        class="group-head"
+        [class.group-head--open]="showCustomQuestions"
+        [class.group-head--filled]="formCustomQuestions.length"
+        (click)="showCustomQuestions = !showCustomQuestions"
+        [attr.aria-expanded]="showCustomQuestions"
+        aria-controls="preguntas-propias"
+      >
+        <ion-icon class="group-icon" name="help-circle-outline" aria-hidden="true"></ion-icon>
+        <span class="group-label">Tus propias preguntas</span>
+        <span class="group-count"><strong>{{ formCustomQuestions.length }}</strong></span>
+        <ion-icon
+          class="group-chevron"
+          [name]="showCustomQuestions ? 'chevron-up-outline' : 'chevron-down-outline'"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+
+      <div class="field-group-body" id="preguntas-propias" *ngIf="showCustomQuestions">
       <p class="field-group-hint">
         Lo que el catálogo de arriba no cubra. Estas respuestas se guardan y se te muestran, pero
         no alimentan gráficas ni automatizaciones — para eso están los campos del catálogo.
@@ -229,6 +234,7 @@
       >
         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>Añadir pregunta
       </button>
+      </div>
     </div>
 
     <p class="save-error" *ngIf="customQuestionsError">{{ customQuestionsError }}</p>

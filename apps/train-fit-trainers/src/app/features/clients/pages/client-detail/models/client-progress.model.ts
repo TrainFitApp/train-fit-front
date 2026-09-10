@@ -116,7 +116,7 @@ export interface ClientSummary {
   latestWeight: number | null;
   latestWeightDate: string | null;
   lastCheckinAt: string | null;
-  checkinCadence: string | null;
+  checkinRequests: { scheduledAt: string; closesAt: string | null; status: string }[];
   activePlan: { _id: string; startDate: string; endDate: string | null } | null;
   goal: {
     _id: string;
@@ -155,11 +155,21 @@ export interface GoalMeal {
   exchanges: GoalMealExchange[];
 }
 
-export interface ClientBodyProfile {
-  heightCm: number | null;
-  // 0 = femenino, 1 = masculino (SEX_TYPES).
-  sex: number | null;
-  birth: string | null;
+// Fase 7 — mismo shape que ya consume tracking-panel.component.ts para la
+// pestaña Seguimiento; se comparte aquí porque ahora también lo lee Medidas.
+export interface WeightPlanCompliance {
+  intervalDays: number;
+  lastWeightAt: string | null;
+  lastWeightKg: number | null;
+  neverWeighed: boolean;
+  upToDate: boolean;
+  overdueDays: number;
+}
+
+export interface WeightPlanStatus {
+  _id: string;
+  intervalDays: number;
+  compliance: WeightPlanCompliance;
 }
 
 export const PROGRESS_WEEK_OPTIONS: readonly number[] = [4, 8, 12];

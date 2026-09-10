@@ -140,7 +140,7 @@
         <span class="context-value">
           {{ data.lastCheckinAt ? (data.lastCheckinAt | date: 'd MMM') : '—' }}
         </span>
-        <span class="context-sub">{{ data.checkinCadence ? 'Configurado' : 'Sin configurar' }}</span>
+        <span class="context-sub">{{ data.checkinRequests?.length ? 'Programado' : 'Sin programar' }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">

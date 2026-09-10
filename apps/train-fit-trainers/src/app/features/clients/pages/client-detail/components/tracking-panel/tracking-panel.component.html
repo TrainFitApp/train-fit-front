@@ -1,0 +1,138 @@
+<div class="state-message" *ngIf="state === 'error'">
+  <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+  <p>No se pudo cargar la configuración del seguimiento.</p>
+  <button type="button" class="btn-secondary" (click)="load()">Reintentar</button>
+</div>
+
+<ng-container *ngIf="state === 'loaded' && data as d">
+  <div class="setup-grid">
+    <!-- Pauta de peso -->
+    <section class="setup-card" aria-labelledby="pauta-peso">
+      <div class="card-head">
+        <h3 class="card-title" id="pauta-peso">Pauta de peso</h3>
+        <button type="button" class="danger-link" *ngIf="d.weightPlan" (click)="removeWeightPlan()" [disabled]="busy">
+          Quitar pauta
+        </button>
+      </div>
+      <p class="card-sub">
+        Cada cuánto debe registrar su peso. No es un formulario: lo apunta en su app y aquí ves si va al día.
+      </p>
+
+      <!-- Cada dato con su etiqueta encima y separado del siguiente: antes
+           el estado y el último pesaje iban seguidos en una misma línea gris,
+           y no se distinguía dónde acababa un dato y empezaba el otro. -->
+      <div class="card-state" *ngIf="d.weightPlan as plan">
+        <div class="field">
+          <span class="field-label">Estado</span>
+          <span class="state-pill" [class.state-pill--alert]="!plan.compliance.upToDate">
+            <ion-icon [name]="plan.compliance.upToDate ? 'checkmark-circle-outline' : 'alert-circle-outline'" aria-hidden="true"></ion-icon>
+            {{ plan.compliance.upToDate ? 'Al día' : 'Atrasado ' + plan.compliance.overdueDays + ' día(s)' }}
+          </span>
+        </div>
+
+        <div class="field" *ngIf="plan.compliance.lastWeightAt">
+          <span class="field-label">Último registro</span>
+          <span class="field-value">{{ plan.compliance.lastWeightKg }} kg</span>
+          <span class="field-meta">{{ plan.compliance.lastWeightAt | date: 'd MMM' }}</span>
+        </div>
+
+        <div class="field" *ngIf="!plan.compliance.lastWeightAt">
+          <span class="field-label">Último registro</span>
+          <span class="field-value field-value--empty">Todavía sin ninguno</span>
+        </div>
+      </div>
+
+      <fieldset class="interval-fieldset">
+        <legend class="field-label">{{ d.weightPlan ? 'Cambiar a' : 'Pedirle que se pese' }}</legend>
+        <div class="interval-options">
+          <button
+            type="button"
+            class="interval-option"
+            *ngFor="let days of intervalOptions"
+            [class.interval-option--active]="weightIntervalDraft === days"
+            [attr.aria-pressed]="weightIntervalDraft === days"
+            (click)="weightIntervalDraft = days"
+          >
+            {{ intervalLabel(days) }}
+          </button>
+        </div>
+      </fieldset>
+
+      <!-- Acción que cierra esta tarjeta: relleno de acento. Es la única de
+           la tarjeta que guarda algo, así que no compite con ninguna otra. -->
+      <button
+        type="button"
+        class="btn-primary card-action"
+        (click)="saveWeightPlan()"
+        [disabled]="busy || weightIntervalDraft === d.weightPlan?.intervalDays"
+      >
+        <ion-icon name="scale-outline" aria-hidden="true"></ion-icon>
+        {{ d.weightPlan ? 'Guardar la nueva frecuencia' : 'Activar la pauta de peso' }}
+      </button>
+    </section>
+
+    <!-- Presets -->
+    <section class="setup-card" aria-labelledby="presets">
+      <div class="card-head">
+        <h3 class="card-title" id="presets">Empezar con un seguimiento recomendado</h3>
+      </div>
+      <p class="card-sub">
+        Deja montado de una vez el check-in de bienestar, el de medidas y la pauta de peso. Todo queda editable después.
+      </p>
+
+      <!-- Estas filas SÍ se pulsan enteras, así que arrancan un escalón de
+           superficie por encima de la tarjeta que las contiene y con el borde
+           más marcado: en una captura quieta ya se ve cuál es pulsable y cuál
+           es solo información. -->
+      <ul class="preset-list">
+        <li *ngFor="let preset of presets">
+          <button
+            type="button"
+            class="preset-row"
+            (click)="applyPreset(preset)"
+            [disabled]="busy"
+            [attr.aria-label]="'Aplicar el seguimiento de ' + preset.label"
+          >
+            <span class="preset-main">
+              <span class="preset-name">
+                {{ preset.label }}
+                <span class="preset-tag" *ngIf="preset.key === suggestedPreset">objetivo de este cliente</span>
+              </span>
+              <small class="preset-detail">{{ presetSummary(preset) }}</small>
+            </span>
+            <span class="preset-cta">Aplicar<ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></span>
+          </button>
+        </li>
+      </ul>
+      <p class="card-foot">Aplicarlo crea las programaciones y envía el primer check-in hoy mismo.</p>
+    </section>
+
+    <!-- Pedir algo puntual (Fase 9) -->
+    <section class="setup-card" aria-labelledby="pedir-puntual">
+      <div class="card-head">
+        <h3 class="card-title" id="pedir-puntual">Pedir algo puntual</h3>
+      </div>
+      <p class="card-sub">
+        "Necesito tu peso de esta semana": elige qué le pides y se envía hoy mismo, sin dejar nada programado.
+      </p>
+
+      <!-- Abrir el selector no envía nada: es un paso previo, va en
+           secundario. El envío de después es el primario de la tarjeta. -->
+      <button type="button" class="btn-secondary card-action" *ngIf="!showPuntual" (click)="openPuntual()">
+        <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+        Elegir qué pedir
+      </button>
+
+      <ng-container *ngIf="showPuntual">
+        <app-checkin-field-selector [selected]="puntualFields" (selectedChange)="setPuntualFields($event)"></app-checkin-field-selector>
+        <div class="puntual-actions">
+          <button type="button" class="plain-link" (click)="closePuntual()" [disabled]="puntualBusy">Cancelar</button>
+          <button type="button" class="btn-primary" (click)="sendPuntual()" [disabled]="puntualBusy || !puntualFields.length">
+            <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+            {{ puntualBusy ? 'Enviando…' : 'Enviar hoy mismo' }}
+          </button>
+        </div>
+      </ng-container>
+    </section>
+  </div>
+</ng-container>

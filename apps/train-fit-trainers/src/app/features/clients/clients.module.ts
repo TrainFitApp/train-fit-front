@@ -11,10 +11,12 @@ import { ProductSearchModalModule } from '../../shared/components/product-search
 import { NutritionCalendarComponent } from './pages/client-detail/components/nutrition-calendar/nutrition-calendar.component';
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
+import { TrackingPanelComponent } from './pages/client-detail/components/tracking-panel/tracking-panel.component';
+import { TrackingStatusComponent } from './pages/client-detail/components/tracking-status/tracking-status.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
+import { ClientOverviewComponent } from './pages/client-detail/components/client-overview/client-overview.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
-import { BodyCalculatorComponent } from './pages/client-detail/components/body-calculator/body-calculator.component';
 import { PainPanelComponent } from './pages/client-detail/components/pain-panel/pain-panel.component';
 import { MealExchangesEditorComponent } from './pages/client-detail/components/meal-exchanges-editor/meal-exchanges-editor.component';
 import { SupplementsPanelComponent } from './pages/client-detail/components/supplements-panel/supplements-panel.component';
@@ -22,9 +24,18 @@ import { ShoppingListPanelComponent } from './pages/client-detail/components/sho
 import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
+import { CheckinFieldSelectorComponent } from '../../shared/components/checkin-field-selector/checkin-field-selector.component';
 
 @NgModule({
-  imports: [SharedModule, NavigationModule, ClientsPageRoutingModule, ProductSearchModalModule, SelectClientsModalModule],
+  imports: [
+    SharedModule,
+    NavigationModule,
+    ClientsPageRoutingModule,
+    ProductSearchModalModule,
+    SelectClientsModalModule,
+    ClientOverviewComponent,
+    CheckinFieldSelectorComponent,
+  ],
   declarations: [
     ClientsPage,
     ClientDetailPage,
@@ -33,10 +44,11 @@ import { TrainingDayDetailComponent } from './pages/client-detail/components/tra
     NutritionCalendarComponent,
     CheckinHistoryChartComponent,
     CheckinWorkspaceComponent,
+    TrackingPanelComponent,
+    TrackingStatusComponent,
     NutritionTrackingChartComponent,
     ClientSummaryComponent,
     ClientRosterComponent,
-    BodyCalculatorComponent,
     PainPanelComponent,
     MealExchangesEditorComponent,
     SupplementsPanelComponent,

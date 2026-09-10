@@ -22,6 +22,19 @@
 <ion-content class="apply-modal-content">
   <p class="panel-subtitle">Selecciona los clientes a los que quieres aplicar esta plantilla.</p>
 
+  <!-- Fase 8b — antes esto era siempre "hoy, con la periodicidad de la
+       plantilla", sin poder elegirlo desde aquí. -->
+  <div class="timing-fields">
+    <div class="form-row">
+      <label>Primera solicitud<input type="date" name="startDate" [(ngModel)]="startDate" [min]="today" required></label>
+      <label>Hora del aviso<input type="time" name="time" [(ngModel)]="time" required></label>
+    </div>
+    <div class="form-row">
+      <label>Repetir<select name="frequency" [(ngModel)]="frequency"><option value="once">Una sola vez</option><option value="daily">Por días</option><option value="weekly">Por semanas</option><option value="monthly">Por meses</option></select></label>
+      <label *ngIf="frequency !== 'once'">Cada {{ intervalUnitLabel() }}<input type="number" name="interval" [(ngModel)]="interval" min="1" max="52" required></label>
+    </div>
+  </div>
+
   <div class="input-wrapper" *ngIf="myClients.length">
     <ion-icon name="search-outline" class="input-icon"></ion-icon>
     <input

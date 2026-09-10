@@ -13,13 +13,13 @@ export class MyCheckinsApiService {
 
   // `boolean` desde la Fase 5: las preguntas propias del coach admiten un
   // tipo sí/no, que se guarda como booleano y no como texto.
+  // Todo check-in es ya una solicitud concreta: la vía antigua, que
+  // respondía "al profesional" sin decir a qué ocurrencia, ya no existe.
   public respond(
-    trainerId: string,
-    values: Record<string, number | string | boolean>,
-    requestId?: string
+    requestId: string,
+    values: Record<string, number | string | boolean>
   ): Observable<unknown> {
-    if (requestId) return this.http.post(`trainer/checkins/requests/${encodeURIComponent(requestId)}/respond`, { values });
-    return this.http.post(`trainer/checkins/${trainerId}/respond`, { values });
+    return this.http.post(`trainer/checkins/requests/${encodeURIComponent(requestId)}/respond`, { values });
   }
 
   // coach-tab FASE2 — "formularios completados".

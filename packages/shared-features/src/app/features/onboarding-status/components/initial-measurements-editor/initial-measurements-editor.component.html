@@ -1,0 +1,25 @@
+<p class="measurement-intro">Indica cuándo tomaste cada medida. Puedes completar las que falten más adelante.</p>
+<fieldset class="measurement-row" *ngFor="let definition of definitions; trackBy: trackByKey" [disabled]="disabled">
+  <legend>{{ definition.label }}</legend>
+  <p class="measurement-hint" *ngIf="definition.hint" [id]="'measurement-hint-' + definition.key">{{ definition.hint }}</p>
+  <div class="measurement-fields">
+    <label>
+      <span>Valor ({{ definition.unit }})</span>
+      <input type="text" inputmode="decimal" autocomplete="off" [ngModel]="row(definition.key).value"
+        (ngModelChange)="edit(definition.key, 'value', $event)" [attr.aria-invalid]="errors[definition.key] ? 'true' : null"
+        [attr.aria-describedby]="'measurement-hint-' + definition.key + ' measurement-error-' + definition.key" />
+    </label>
+    <label>
+      <span>Fecha de medición</span>
+      <input type="date" [max]="today" [ngModel]="row(definition.key).date"
+        (ngModelChange)="edit(definition.key, 'date', $event)" />
+    </label>
+  </div>
+  <div class="previous-measurement" *ngIf="previous(definition.key) as previousValue">
+    <p>Ya registrada: <strong>{{ previousValue.value }} {{ definition.unit }}</strong> · {{ formatDate(previousValue.date) }}</p>
+    <button type="button" (click)="reuse(previousValue)" [disabled]="disabled || row(definition.key).confirmedExisting">
+      {{ row(definition.key).confirmedExisting ? 'Confirmada como referencia' : 'Usar esta medida como referencia' }}
+    </button>
+  </div>
+  <p class="measurement-error" [id]="'measurement-error-' + definition.key" *ngIf="errors[definition.key]" role="alert">{{ errors[definition.key] }}</p>
+</fieldset>

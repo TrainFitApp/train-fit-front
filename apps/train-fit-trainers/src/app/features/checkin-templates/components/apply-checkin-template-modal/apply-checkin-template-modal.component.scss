@@ -15,6 +15,45 @@
   margin: 0 0 14px;
 }
 
+// Fase 8b — mismas reglas que checkin-workspace.component.scss (.form-row,
+// label, input/select): mismo formulario de fecha/hora/repetición, mismo
+// aspecto, para que programar se sienta igual se abra desde donde se abra.
+.timing-fields {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--tf-border);
+}
+
+.timing-fields .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--tf-space-3);
+}
+
+.timing-fields .form-row + .form-row {
+  margin-top: var(--tf-space-3);
+}
+
+.timing-fields label {
+  display: grid;
+  gap: var(--tf-space-2);
+  color: var(--tf-text-secondary);
+  font-size: var(--tf-font-size-sm);
+}
+
+.timing-fields input,
+.timing-fields select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--tf-touch-min);
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  border-radius: var(--tf-radius-sm);
+  color-scheme: dark;
+}
+
 .input-wrapper {
   @include tf-input-wrapper(var(--tf-surface-2));
   height: 50px;

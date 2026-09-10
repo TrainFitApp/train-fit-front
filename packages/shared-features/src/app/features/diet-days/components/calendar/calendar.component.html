@@ -29,6 +29,9 @@
 
           <div class="week-average">
             {{ week?.averageWeight?.toFixed(2) || "-" }}
+            <small *ngIf="week.weightCount" [attr.title]="('MEASUREMENT_WEEK.COUNT' | translate:{ count: week.weightCount }) + ' · ' + week.start + ' — ' + week.end">
+              {{ week.weightCount }} <span *ngIf="week.partial">· {{ 'MEASUREMENT_WEEK.PARTIAL' | translate }}</span>
+            </small>
           </div>
         </div>
       </div>

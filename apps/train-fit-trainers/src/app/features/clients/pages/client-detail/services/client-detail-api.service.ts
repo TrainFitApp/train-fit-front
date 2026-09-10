@@ -4,10 +4,7 @@ import { HttpService } from 'src/app/core/services/http/http.service';
 import {
   AdherenceSummary,
   AnthropometryEntry,
-  AnthropometryRequest,
-  AnthropometryRequestCadence,
   BulkApplyResult,
-  CheckinConfig,
   CheckinResponseEntry,
   ClientNutritionPreferences,
   ClientScope,
@@ -26,11 +23,11 @@ import {
 } from '../models/client-detail.model';
 import { PainEntry, PainThreshold } from 'src/app/core/constants/pain';
 import {
-  ClientBodyProfile,
   ClientProgress,
   ClientSummary,
   ClientTrainingProgress,
   PlanChange,
+  WeightPlanStatus,
 } from '../models/client-progress.model';
 
 function todayIsoDate(): string {
@@ -136,21 +133,6 @@ export class ClientDetailApiService {
     );
   }
 
-  public getAnthropometryRequest(clientId: string): Observable<AnthropometryRequest | null> {
-    return this.http.get<AnthropometryRequest | null>(`${this.base(clientId)}/anthropometry-request`);
-  }
-
-  public upsertAnthropometryRequest(
-    clientId: string,
-    body: { fields: string[]; notes: string; cadence: AnthropometryRequestCadence; customIntervalDays: number | null }
-  ): Observable<AnthropometryRequest> {
-    return this.http.put<AnthropometryRequest>(`${this.base(clientId)}/anthropometry-request`, body);
-  }
-
-  public cancelAnthropometryRequest(clientId: string): Observable<unknown> {
-    return this.http.delete(`${this.base(clientId)}/anthropometry-request`);
-  }
-
   public getNotes(clientId: string): Observable<TrainerNote[]> {
     return this.http.get<TrainerNote[]>(`${this.base(clientId)}/notes`);
   }
@@ -173,10 +155,6 @@ export class ClientDetailApiService {
     return this.http.patch<TrainerNote>(`${this.base(clientId)}/notes/${noteId}`, { pinned });
   }
 
-  public getCheckinConfig(clientId: string): Observable<CheckinConfig | null> {
-    return this.http.get<CheckinConfig | null>(`${this.base(clientId)}/checkin-config`);
-  }
-
   public getCheckinResponses(clientId: string): Observable<CheckinResponseEntry[]> {
     return this.http.get<CheckinResponseEntry[]>(`${this.base(clientId)}/checkin-responses`);
   }
@@ -192,12 +170,12 @@ export class ClientDetailApiService {
     return this.http.get<ClientSummary>(`${this.base(clientId)}/summary`);
   }
 
-  // Movimiento 3 Coach Pro — altura, sexo y nacimiento del cliente, lo único
-  // que le falta a la calculadora corporal (las mediciones ya las carga la
-  // pestaña). Llamada propia y barata (una consulta): colgarla de
-  // getSummary obligaría a Medidas a pagar las ~9 consultas de Resumen.
-  public getBodyProfile(clientId: string): Observable<ClientBodyProfile> {
-    return this.http.get<ClientBodyProfile>(`${this.base(clientId)}/body-profile`);
+  // Fase 7 — mismo endpoint que ya usa el panel de Seguimiento
+  // (weight-plan-controller.js#getForClient); null si el cliente no tiene
+  // pauta. Sin backend nuevo: Medidas solo necesita el estado, no las
+  // programaciones ni el resto de tracking-controller#getForClient.
+  public getWeightPlan(clientId: string): Observable<WeightPlanStatus | null> {
+    return this.http.get<WeightPlanStatus | null>(`${this.base(clientId)}/weight-plan`);
   }
 
   // Movimiento 5 Coach Pro — suplementación pautada. El catálogo de momentos

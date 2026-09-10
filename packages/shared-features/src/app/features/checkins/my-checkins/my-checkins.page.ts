@@ -8,7 +8,6 @@ import {
 } from 'src/app/core/constants/checkin-fields';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import {
-  CheckinCadence,
   CheckinHistoryEntry,
   FREQUENCY_OPTIONS,
   MyCheckinConfig,
@@ -16,13 +15,17 @@ import {
   isCustomQuestionKey,
 } from './models/my-checkin.model';
 import { MyCheckinsApiService } from './services/my-checkins-api.service';
+import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
-const CADENCE_LABELS: Record<CheckinCadence, string> = {
-  weekly: 'Semanal',
-  biweekly: 'Quincenal',
-  once: 'Una vez',
+// Mismos grupos que el catálogo (checkin-fields.ts). Un check-in de medidas
+// llega con doce perímetros seguidos y sin estas cabeceras se lee como un
+// muro de casillas.
+const FIELD_GROUP_LABELS: Record<string, string> = {
+  composicion_corporal: 'Composición corporal',
+  perimetros: 'Perímetros',
+  bienestar: 'Cómo te encuentras',
 };
 
 @Component({
@@ -49,7 +52,8 @@ export class MyCheckinsPage implements OnInit {
   constructor(
     private myCheckinsApi: MyCheckinsApiService,
     private ionicUtilService: IonicUtilService,
-    private router: Router
+    private router: Router,
+    private anthropometryService: AnthropometryService
   ) {}
 
   public ngOnInit(): void {
@@ -57,13 +61,14 @@ export class MyCheckinsPage implements OnInit {
       this.requestedId = params.get('requestId');
       this.focusRequested();
     });
+    this.loadTodayMeasurements();
     this.load();
   }
 
   private focusRequested(): void {
     if (!this.requestedId) return;
     const pending = this.configs.find(c => c.requestId === this.requestedId);
-    if (pending) { this.expandedTrainerId = this.configKey(pending); this.formValues = {}; }
+    if (pending) { this.expandedTrainerId = this.configKey(pending); this.fieldGroups = this.buildFieldGroups(pending); this.formValues = this.prefillFrom(pending); }
     else this.showHistory = true;
   }
 
@@ -97,7 +102,10 @@ export class MyCheckinsPage implements OnInit {
 
     // No bloquea el resto de la pantalla si falla, es una sección aparte.
     this.myCheckinsApi.getHistory().subscribe({
-      next: (history) => (this.history = history || []),
+      next: (history) => {
+        this.history = history || [];
+        this.buildHistoryRows();
+      },
       error: () => (this.history = []),
     });
   }
@@ -134,11 +142,23 @@ export class MyCheckinsPage implements OnInit {
     return String(value);
   }
 
-  public historyEntries(entry: CheckinHistoryEntry): { label: string; value: string }[] {
-    return Object.entries(entry.values).map(([key, value]) => ({
-      label: entry.customQuestions?.find(q => customQuestionKey(q._id) === key)?.label || this.historyFieldLabel(key),
-      value: this.historyValueLabel(value),
-    }));
+  // Precalculado al cargar el histórico: llamarlo desde el *ngFor devolvía
+  // un array nuevo de objetos nuevos en cada ciclo de detección de cambios,
+  // que es lo que hace que Angular no pare nunca de repintar.
+  public historyRows = new Map<string, { label: string; value: string }[]>();
+
+  private buildHistoryRows(): void {
+    this.historyRows = new Map(
+      this.history.map((entry) => [
+        entry._id,
+        Object.entries(entry.values).map(([key, value]) => ({
+          label:
+            entry.customQuestions?.find((q) => customQuestionKey(q._id) === key)?.label ||
+            this.historyFieldLabel(key),
+          value: this.historyValueLabel(value),
+        })),
+      ])
+    );
   }
 
   public trackByHistoryId(_index: number, entry: CheckinHistoryEntry): string {
@@ -150,15 +170,27 @@ export class MyCheckinsPage implements OnInit {
     return `${config.trainer.name} ${config.trainer.lastname}`.trim();
   }
 
+  // Cada check-in es una solicitud con su propia ventana: lo útil es hasta
+  // cuándo se puede contestar, no cada cuánto llega.
   public cadenceLabel(config: MyCheckinConfig): string {
-    if (config.requestId) return config.closesAt ? `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}` : 'Solicitud puntual';
-    return CADENCE_LABELS[config.cadence!] || config.cadence!;
+    if (!config.closesAt) return 'Sin fecha límite';
+    return `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}`;
   }
 
   // Los campos del catálogo y las preguntas propias del coach salen por la
   // misma lista: convertir las segundas a la forma de CheckinField deja que
   // la plantilla las pinte con el mismo código, en vez de duplicar todo el
   // formulario para un segundo tipo de pregunta.
+  // Cuántas preguntas tiene un check-in SIN construir su lista: la cabecera
+  // lo pinta para cada tarjeta de la pantalla, y `fieldsFor` monta un array
+  // nuevo cada vez que se le llama.
+  public fieldCount(config: MyCheckinConfig): number {
+    return (
+      (config.enabledFields?.length || 0) +
+      (config.customQuestions || []).filter((question) => question.enabled !== false).length
+    );
+  }
+
   public fieldsFor(config: MyCheckinConfig): CheckinField[] {
     const catalogFields = config.enabledFields
       .map((key) => CHECKIN_FIELDS_BY_KEY.get(key))
@@ -246,10 +278,78 @@ export class MyCheckinsPage implements OnInit {
   public toggleExpand(config: MyCheckinConfig): void {
     if (this.expandedTrainerId === this.configKey(config)) {
       this.expandedTrainerId = null;
+      this.fieldGroups = [];
       return;
     }
     this.expandedTrainerId = this.configKey(config);
-    this.formValues = {};
+    this.fieldGroups = this.buildFieldGroups(config);
+    this.formValues = this.prefillFrom(config);
+  }
+
+  // --- Lo que el cliente ya apuntó hoy ---
+  //
+  // El peso (y cualquier otra medida) puede haberse registrado esta mañana
+  // desde la pantalla de peso. Volver a pedirlo en blanco obliga a teclear
+  // dos veces el mismo número y deja al cliente sin saber cuál de los dos
+  // cuenta. Llega relleno y editable: se corrige, no se reescribe.
+  private todayMeasurements: Record<string, number> = {};
+
+  private loadTodayMeasurements(): void {
+    const today = new Date().toISOString().slice(0, 10);
+    this.anthropometryService.getAnthropometryByDate(today).subscribe({
+      next: (entry) => {
+        this.todayMeasurements = {};
+        if (!entry) return;
+        for (const [key, value] of Object.entries(entry)) {
+          if (typeof value === 'number') this.todayMeasurements[key] = value;
+        }
+      },
+      // Sin medidas de hoy el formulario funciona igual, solo que en blanco.
+      error: () => (this.todayMeasurements = {}),
+    });
+  }
+
+  private prefillFrom(config: MyCheckinConfig): Record<string, number | string | boolean | null> {
+    const values: Record<string, number | string | boolean | null> = {};
+    for (const field of this.fieldsFor(config)) {
+      const already = this.measurementRegisteredToday(field);
+      if (already !== null) values[field.key] = already;
+    }
+    return values;
+  }
+
+  public measurementRegisteredToday(field: CheckinField): number | null {
+    if (field.storage !== 'anthropometry' || !field.anthropometryField) return null;
+    const value = this.todayMeasurements[field.anthropometryField];
+    return typeof value === 'number' ? value : null;
+  }
+
+  // --- Agrupación del formulario ---
+  //
+  // Un check-in de medidas puede traer doce perímetros seguidos. En una
+  // lista plana eso se lee como un muro; separados por su grupo se lee como
+  // tres bloques cortos. Con un solo grupo no se pinta cabecera: nombrar el
+  // único grupo que hay no informa de nada.
+  //
+  // Se calcula UNA vez al abrir el check-in y se guarda aquí. Llamarlo desde
+  // el *ngFor de la plantilla devolvía un array nuevo en cada ciclo de
+  // detección de cambios, así que Angular destruía y recreaba el formulario
+  // entero —iconos incluidos— sin parar, y la pantalla se quedaba colgada.
+  public fieldGroups: { label: string; fields: CheckinField[] }[] = [];
+
+  private buildFieldGroups(config: MyCheckinConfig): { label: string; fields: CheckinField[] }[] {
+    const byGroup = new Map<string, CheckinField[]>();
+    for (const field of this.fieldsFor(config)) {
+      const previos = byGroup.get(field.group) || [];
+      byGroup.set(field.group, [...previos, field]);
+    }
+    if (byGroup.size <= 1) {
+      return [{ label: '', fields: this.fieldsFor(config) }];
+    }
+    return [...byGroup.entries()].map(([group, fields]) => ({
+      label: FIELD_GROUP_LABELS[group] || '',
+      fields,
+    }));
   }
 
   // Acepta boolean además de number: sí/no reutiliza este mismo control de
@@ -296,7 +396,7 @@ export class MyCheckinsPage implements OnInit {
     if (!Object.keys(values).length) return;
 
     this.isSubmitting = true;
-    this.myCheckinsApi.respond(config.trainerId, values, config.requestId).subscribe({
+    this.myCheckinsApi.respond(config.requestId, values).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.expandedTrainerId = null;
@@ -321,6 +421,10 @@ export class MyCheckinsPage implements OnInit {
   public trackByTrainerId(_index: number, config: MyCheckinConfig): string {
     // NgFor ejecuta este callback sin el contexto de la página.
     return config.requestId || config.trainerId;
+  }
+
+  public trackByGroupLabel(_index: number, grupo: { label: string }): string {
+    return grupo.label;
   }
 
   public trackByFieldKey(_index: number, field: CheckinField): string {

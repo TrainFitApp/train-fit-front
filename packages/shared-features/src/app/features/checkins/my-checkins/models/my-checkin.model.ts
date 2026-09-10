@@ -1,6 +1,5 @@
 import { CheckinFieldType } from 'src/app/core/constants/checkin-fields';
 
-export type CheckinCadence = 'weekly' | 'biweekly' | 'once';
 
 // Fase 5 Coach Pro — pregunta propia del coach dentro de un check-in (§7).
 // Espejo de components/trainerCheckins/checkin-custom-question.js.
@@ -14,21 +13,18 @@ export interface CustomCheckinQuestion {
   enabled?: boolean;
 }
 
+// Un check-in abierto del cliente. Siempre es una solicitud concreta, con su
+// fecha de apertura y su fecha de cierre: la "configuración aplicada" del
+// sistema antiguo, que estaba abierta para siempre, ya no existe.
 export interface MyCheckinConfig {
   _id: string;
-  requestId?: string;
+  requestId: string;
   name?: string;
   scheduledAt?: string;
   closesAt?: string | null;
   trainerId: string;
   enabledFields: string[];
-  // Ausente en las configuraciones aplicadas antes de la Fase 5 — de ahí el
-  // opcional, y de ahí que todo el código las trate como lista vacía.
   customQuestions?: CustomCheckinQuestion[];
-  // Ausente cuando requestId está presente: una ocurrencia del sistema de
-  // calendario no tiene "cadence" (eso vive en CheckinSchedule) — el backend
-  // ya no la inventa, ver cadenceLabel() en my-checkins.page.ts.
-  cadence?: CheckinCadence;
   trainer: { name: string; lastname: string } | null;
 }
 

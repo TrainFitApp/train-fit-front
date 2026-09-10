@@ -104,6 +104,20 @@
           </button>
         </div>
 
+        <ng-container *ngIf="measurementCatalog.length">
+          <h4 class="intake-config-subheading">Medidas iniciales</h4>
+          <p class="intake-config-hint">Peso y perímetros que necesitas como referencia. Cada medida conserva su fecha; el cliente podrá completar después las que le falten.</p>
+          <div class="field-toggle-grid">
+            <button type="button" class="field-toggle-row" *ngFor="let measurement of measurementCatalog"
+              [disabled]="isSending" [attr.aria-pressed]="selectedMeasurementFields.has(measurement.key)"
+              (click)="toggleMeasurementField(measurement.key)" [title]="measurement.hint || ''">
+              <span>{{ measurement.label }} ({{ measurement.unit }})</span>
+              <ion-icon [name]="selectedMeasurementFields.has(measurement.key) ? 'checkbox' : 'square-outline'"
+                [class.field-toggle-icon--active]="selectedMeasurementFields.has(measurement.key)"></ion-icon>
+            </button>
+          </div>
+        </ng-container>
+
         <h4 class="intake-config-subheading">Preguntas personalizadas</h4>
 
         <div class="custom-question-list" *ngIf="customQuestions.length">

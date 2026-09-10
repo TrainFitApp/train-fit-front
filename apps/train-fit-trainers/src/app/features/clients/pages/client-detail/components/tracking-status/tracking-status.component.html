@@ -1,0 +1,70 @@
+<section class="status-block" *ngIf="state === 'loaded' && data as d" aria-labelledby="seguimiento-estado">
+  <header class="block-head">
+    <h2 class="block-title" id="seguimiento-estado">Cómo va el seguimiento</h2>
+    <p class="block-sub">Check-ins de los últimos {{ d.windowDays }} días y estado de la pauta de peso.</p>
+  </header>
+
+  <div class="status-bar">
+    <!-- Etiqueta arriba, cifra debajo: el ojo lee primero QUÉ se cuenta y
+         luego CUÁNTO. En una línea ("3 esperan tu respuesta") la cifra y su
+         nombre pesaban casi lo mismo y había que leer la frase entera para
+         saber de qué iba cada número.
+         Lo único sobre lo que el entrenador actúa hoy va primero y es lo
+         único con acento: si las tres cifras gritan, ninguna dice nada. -->
+    <div class="stat" [class.stat--action]="d.answered">
+      <span class="stat-label">
+        <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+        {{ d.answered === 1 ? 'Espera tu respuesta' : 'Esperan tu respuesta' }}
+      </span>
+      <span class="stat-value">{{ d.answered }}</span>
+    </div>
+
+    <div class="stat" [class.stat--alert]="d.missed">
+      <span class="stat-label">
+        <ion-icon name="remove-circle-outline" aria-hidden="true"></ion-icon>
+        {{ d.missed === 1 ? 'Se cerró sin responder' : 'Se cerraron sin responder' }}
+      </span>
+      <span class="stat-value">{{ d.missed }}</span>
+    </div>
+
+    <div class="stat">
+      <span class="stat-label">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        {{ d.open === 1 ? 'Abierto, aún puede responder' : 'Abiertos, aún puede responder' }}
+      </span>
+      <span class="stat-value">{{ d.open }}</span>
+    </div>
+
+    <!-- El peso no es un check-in: es una pauta sin formulario. Va separado
+         para que no se lea como una cuarta cifra de la misma serie. Misma
+         estructura etiqueta→dato→contexto que las cifras de al lado, para
+         que la separación se lea como "otro asunto", no como "otro
+         componente". -->
+    <div class="weight-block">
+      <span class="stat-label">
+        <ion-icon name="scale-outline" aria-hidden="true"></ion-icon>
+        Pauta de peso
+      </span>
+      <ng-container *ngIf="d.weightPlan as plan">
+        <span class="stat-value stat-value--text">{{ weightCadence(plan) }}</span>
+        <span class="weight-detail">
+          <span class="state-pill" [class.state-pill--alert]="!plan.compliance.upToDate">
+            <ion-icon [name]="plan.compliance.upToDate ? 'checkmark-circle-outline' : 'alert-circle-outline'" aria-hidden="true"></ion-icon>
+            {{ plan.compliance.upToDate ? 'Al día' : 'Atrasado ' + plan.compliance.overdueDays + ' d' }}
+          </span>
+          <span class="weight-last">{{ weightLast(plan) }}</span>
+        </span>
+      </ng-container>
+      <ng-container *ngIf="!d.weightPlan">
+        <span class="stat-value stat-value--text stat-value--empty">Sin pauta</span>
+        <span class="weight-detail weight-last">Configúrala más abajo</span>
+      </ng-container>
+    </div>
+  </div>
+</section>
+
+<div class="status-block status-block--quiet" *ngIf="state === 'loading'" role="status">
+  <span class="skeleton-chip"></span>
+  <span class="skeleton-chip"></span>
+  <span class="skeleton-chip"></span>
+</div>

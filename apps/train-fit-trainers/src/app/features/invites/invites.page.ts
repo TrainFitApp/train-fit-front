@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { of, switchMap, tap } from 'rxjs';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { IntakeFieldKey } from 'src/app/core/services/onboarding/onboarding.service';
 import { TrainerInvitesApiService } from './services/trainer-invites-api.service';
@@ -9,6 +10,7 @@ import {
   CustomIntakeQuestion,
   TrainerInvite,
   TrainerInviteScope,
+  TrainerIntakeConfig,
 } from './models/trainer-invite.model';
 
 type ListState = 'loading' | 'error' | 'loaded';
@@ -136,6 +138,8 @@ export class InvitesPage implements OnInit {
   // esperar la respuesta para saber qué checkboxes mostrar.
   public readonly intakeConfigFields = Object.keys(this.intakeFieldLabels) as IntakeFieldKey[];
   public selectedIntakeFields = new Set<IntakeFieldKey>();
+  public selectedMeasurementFields = new Set<string>(['weight']);
+  public measurementCatalog: NonNullable<TrainerIntakeConfig['measurementCatalog']> = [];
   public savingIntakeConfig = false;
   // El panel ya no es un accordion manual — aparece solo en cuanto se marca
   // Entrenamiento y/o Nutrición arriba (ver hasScopeSelected/template), y se
@@ -313,22 +317,33 @@ export class InvitesPage implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.intakeConfigRequested && this.intakeConfigState !== 'loaded') {
+      this.ionicUtilService.showErrorToast('Espera a que se cargue el cuestionario o vuelve a intentarlo.', 'Cuestionario pendiente de cargar', 3000);
+      return;
+    }
 
     // El cuestionario (checkboxes + preguntas custom) ya no se guarda en
     // cada click — se manda junto con la invitación, solo si el trainer
     // llegó a abrir el panel (si no, no hay nada que guardar).
-    if (this.intakeConfigRequested) {
-      this.saveIntakeConfig();
-    }
-
     const scopes: TrainerInviteScope[] = [
       ...(this.form.value.training ? (['training'] as const) : []),
       ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
     ];
+    const clientEmail = this.form.value.clientEmail.trim().toLowerCase();
 
     this.isSending = true;
-    this.trainerInvitesApi
-      .sendInvite(this.form.value.clientEmail.trim().toLowerCase(), scopes)
+    // La configuración debe estar guardada antes de crear la invitación.
+    // Si falla, se conserva la selección y no se invita con otro formulario.
+    const config$ = this.intakeConfigRequested
+      ? this.trainerInvitesApi.updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, scopes, [...this.selectedMeasurementFields]).pipe(
+          tap((config) => {
+            this.selectedMeasurementFields = new Set(config.measurementFields ?? ['weight']);
+            this.customQuestions = config.customQuestions || [];
+          })
+        )
+      : of(null);
+    config$
+      .pipe(switchMap(() => this.trainerInvitesApi.sendInvite(clientEmail, scopes)))
       .subscribe({
         next: (response) => {
           this.isSending = false;
@@ -481,6 +496,8 @@ export class InvitesPage implements OnInit {
           { emitEvent: false }
         );
         this.selectedIntakeFields = this.filterFieldsForActiveScopes(new Set(config.enabledFields));
+        this.selectedMeasurementFields = new Set(config.measurementFields ?? ['weight']);
+        this.measurementCatalog = config.measurementCatalog || [];
         // Al entrar normal a la pantalla, las preguntas custom ya guardadas
         // aparecen SIN marcar — el trainer las vuelve a marcar a mano si
         // quiere incluirlas en esta tanda. Solo aparecen marcadas de
@@ -502,6 +519,11 @@ export class InvitesPage implements OnInit {
     } else {
       this.selectedIntakeFields.add(field);
     }
+  }
+
+  public toggleMeasurementField(field: string): void {
+    if (this.selectedMeasurementFields.has(field)) this.selectedMeasurementFields.delete(field);
+    else this.selectedMeasurementFields.add(field);
   }
 
   public get canAddCustomQuestion(): boolean {
@@ -546,12 +568,13 @@ export class InvitesPage implements OnInit {
       ...(this.form.value.nutrition ? (['nutrition'] as const) : []),
     ];
     this.trainerInvitesApi
-      .updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, lastScopes)
+      .updateIntakeConfig([...this.selectedIntakeFields], this.customQuestions, lastScopes, [...this.selectedMeasurementFields])
       .subscribe({
         next: (config) => {
           this.savingIntakeConfig = false;
           this.selectedIntakeFields = new Set(config.enabledFields);
           this.customQuestions = config.customQuestions || [];
+          this.selectedMeasurementFields = new Set(config.measurementFields ?? ['weight']);
         },
         error: (err) => {
           this.savingIntakeConfig = false;

@@ -20,6 +20,15 @@ export interface RosterWeightChange {
   measurements: number;
 }
 
+// Fase 6 — estado de la pauta de peso ("pésate cada X días"). null = cliente
+// "libre", sin pauta asignada: no es un estado peor, es la ausencia de uno.
+export interface RosterWeightPlan {
+  intervalDays: number;
+  upToDate: boolean;
+  overdueDays: number;
+  neverWeighed: boolean;
+}
+
 export interface RosterClient {
   clientId: string;
   clientName: string;
@@ -36,7 +45,11 @@ export interface RosterClient {
   weightChange: RosterWeightChange | null;
   lastCheckinAt: string | null;
   daysSinceCheckin: number | null;
-  checkinCadence: string | null;
+  // Se le cerró algún check-in sin responder dentro de la ventana. Antes
+  // esto se deducía en el frontend de una cadencia declarada, que solo
+  // existía en el sistema legacy.
+  checkinOverdue: boolean;
+  weightPlan: RosterWeightPlan | null;
   lastActivityAt: string | null;
   daysSinceActivity: number | null;
   sessions: number;

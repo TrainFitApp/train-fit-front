@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, effect, inject } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -11,6 +11,7 @@ import {
 } from '@ionic/angular';
 import { Chart, ChartData, ChartOptions } from 'chart.js';
 import { Subscription, forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { CustomExercise } from 'src/app/core/models/customExercise';
 import { Diet } from 'src/app/core/models/diet';
 import { DietDay } from 'src/app/core/models/dietDay';
@@ -19,6 +20,9 @@ import { User } from 'src/app/core/models/user';
 import { NutritionalGoal } from 'src/app/core/models/nutritional-goal';
 import { Workout } from 'src/app/core/models/workout';
 import { AnthropometryService } from 'src/app/core/services/anthropometry/anthropometry.service';
+import { MeasurementProfileService } from 'src/app/core/services/anthropometry/measurement-profile.service';
+import { InitialMeasurementsPendingComponent } from '../onboarding-status/components/initial-measurements-pending/initial-measurements-pending.component';
+import { addCivilDays, measurementToday, mondayOf, positiveWeight, weightAverage } from 'src/app/core/utils/measurement-weeks.util';
 import { CoachService } from 'src/app/core/services/coach/coach.service';
 import { DietDayService } from 'src/app/core/services/diet-day/diet-day.service';
 import { NutritionalGoalService } from 'src/app/core/services/nutritional-goal/nutritional-goal.service';
@@ -67,6 +71,7 @@ import { RemoteConfigGateService } from 'src/app/core/services/remote-config/rem
   styleUrls: ['profile.page.scss'],
 })
 export class ProfilePage implements OnInit {
+  @ViewChild(InitialMeasurementsPendingComponent) private initialMeasurements?: InitialMeasurementsPendingComponent;
   public readonly appShellConfig = APP_SHELL_CONFIG;
   public user: User;
   public dietInUse: Diet;
@@ -81,8 +86,13 @@ export class ProfilePage implements OnInit {
   public isWorkoutInUseEnded: boolean;
   public completedExercises: number = 0;
 
-  public prevWeightAverage: number;
-  public currWeightAverage: number;
+  public prevWeightAverage: number | null = null;
+  public currWeightAverage: number | null = null;
+  public prevWeightCount = 0;
+  public currWeightCount = 0;
+  public measurementTimeZone = 'UTC';
+  public readonly deviceTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  public updatingMeasurementTimeZone = false;
 
   public objetiveMessage: string;
   public iconArrowObjetive: string;
@@ -108,6 +118,8 @@ export class ProfilePage implements OnInit {
   public prevDietDayWeights: number[];
   public currDietDayWeights: number[];
   private lastDietWeightsFetchKey?: string;
+  private weightsRequest = 0;
+  private measurementDate = measurementToday('UTC');
 
   public kcalChartConfig: any;
   public proteinChartConfig: any;
@@ -164,6 +176,7 @@ export class ProfilePage implements OnInit {
     private ionicUtilService: IonicUtilService,
     private themeService: ThemeService,
     private anthropometryService: AnthropometryService,
+    private measurementProfile: MeasurementProfileService,
     private dietDayService: DietDayService,
     private nutritionalGoalService: NutritionalGoalService,
     private navigationService: NavigationService,
@@ -235,6 +248,7 @@ export class ProfilePage implements OnInit {
   }
 
   public ionViewWillEnter(): void {
+    this.initialMeasurements?.refresh();
     void this.refreshPremiumState();
     this.lastDietWeightsFetchKey = undefined;
     this.setWeekRanges();
@@ -320,15 +334,12 @@ export class ProfilePage implements OnInit {
     }
   }
 
-  getWeightChangeClass(current: number, previous: number): string {
-    if (!current || !previous) return '';
-
-    if (current < previous) return 'positive';
-    if (current > previous) return 'negative';
+  getWeightChangeClass(current: number | null, previous: number | null): string {
+    // La dirección del peso no determina por sí sola si se cumple el objetivo.
     return '';
   }
 
-  getWeightChangeText(current: number, previous: number): string {
+  getWeightChangeText(current: number | null, previous: number | null): string {
     if (!current || !previous) return '';
 
     const diff = current - previous;
@@ -336,7 +347,7 @@ export class ProfilePage implements OnInit {
     return `${sign}${diff.toFixed(2)}kg`;
   }
 
-  getWeightChangeIcon(current: number, previous: number): string {
+  getWeightChangeIcon(current: number | null, previous: number | null): string {
     if (!current || !previous) return '';
 
     if (current < previous) return '↓ ';
@@ -740,19 +751,16 @@ export class ProfilePage implements OnInit {
   }
 
   private setWeekRanges(): void {
-    const prevDate = new Date(new Date().setDate(new Date().getDate() - 7));
-    const currDate = new Date(new Date().setDate(new Date().getDate()));
-    this.prevWeekDateRange = this.utilService.getWeekRange(prevDate).dateRange;
-    this.currWeekDateRange = this.utilService.getWeekRange(currDate).dateRange;
+    const monday = mondayOf(this.measurementDate);
+    this.prevWeekDateRange = new DateRange(addCivilDays(monday, -7), addCivilDays(monday, -1));
+    this.currWeekDateRange = new DateRange(monday, addCivilDays(monday, 6));
   }
 
   public setDietDayWeightsAverages(): void {
-    this.prevWeightAverage = Number(
-      this.utilService.average(this.prevDietDayWeights).toFixed(2)
-    );
-    this.currWeightAverage = Number(
-      this.utilService.average(this.currDietDayWeights).toFixed(2)
-    );
+    this.prevWeightAverage = weightAverage(this.prevDietDayWeights || []);
+    this.currWeightAverage = weightAverage(this.currDietDayWeights || []);
+    this.prevWeightCount = (this.prevDietDayWeights || []).filter(positiveWeight).length;
+    this.currWeightCount = (this.currDietDayWeights || []).filter(positiveWeight).length;
   }
 
   private setDietDaysWeights(): void {
@@ -761,6 +769,7 @@ export class ProfilePage implements OnInit {
     }
 
     const currentFetchKey = [
+      this.user?._id,
       this.prevWeekDateRange?.minDate,
       this.prevWeekDateRange?.maxDate,
       this.currWeekDateRange?.minDate,
@@ -772,20 +781,48 @@ export class ProfilePage implements OnInit {
     }
 
     this.lastDietWeightsFetchKey = currentFetchKey;
+    const request = ++this.weightsRequest;
+    this.measurementProfile.get().pipe(switchMap((profile) => {
+      this.measurementDate = profile.today;
+      this.measurementTimeZone = profile.timeZone;
+      this.setWeekRanges();
+      return forkJoin([
+        this.anthropometryService.getAnthropometriesBetweenDates(this.prevWeekDateRange.minDate, this.prevWeekDateRange.maxDate),
+        this.anthropometryService.getAnthropometriesBetweenDates(this.currWeekDateRange.minDate, this.measurementDate),
+      ]);
+    })).subscribe({
+      next: ([resPrev, resCurr]) => {
+        if (request !== this.weightsRequest) return;
+        this.prevDietDayWeights = resPrev.map((a) => a.weight).filter(positiveWeight);
+        this.currDietDayWeights = resCurr.map((a) => a.weight).filter(positiveWeight);
+        this.setDietDayWeightsAverages();
+      },
+      error: () => {
+        if (request !== this.weightsRequest) return;
+        this.lastDietWeightsFetchKey = undefined;
+        this.prevDietDayWeights = [];
+        this.currDietDayWeights = [];
+        this.setDietDayWeightsAverages();
+      },
+    });
+  }
 
-    forkJoin([
-      this.anthropometryService.getAnthropometriesBetweenDates(
-        this.prevWeekDateRange.minDate,
-        this.prevWeekDateRange.maxDate
-      ),
-      this.anthropometryService.getAnthropometriesBetweenDates(
-        this.currWeekDateRange.minDate,
-        this.currWeekDateRange.maxDate
-      ),
-    ]).subscribe(([resPrev, resCurr]) => {
-      this.prevDietDayWeights = resPrev.map((a) => a.weight).filter((w): w is number => w != null);
-      this.currDietDayWeights = resCurr.map((a) => a.weight).filter((w): w is number => w != null);
-      this.setDietDayWeightsAverages();
+  public useDeviceMeasurementTimeZone(): void {
+    if (this.updatingMeasurementTimeZone) return;
+    this.updatingMeasurementTimeZone = true;
+    this.measurementProfile.update(this.deviceTimeZone).subscribe({
+      next: (profile) => {
+        this.updatingMeasurementTimeZone = false;
+        this.measurementTimeZone = profile.timeZone;
+        this.measurementDate = profile.today;
+        this.lastDietWeightsFetchKey = undefined;
+        this.setWeekRanges();
+        this.setDietDaysWeights();
+      },
+      error: () => {
+        this.updatingMeasurementTimeZone = false;
+        this.ionicUtilService.showToast({ message: this.translate.instant('MEASUREMENT_WEEK.ZONE_ERROR'), duration: 3000 });
+      },
     });
   }
 

@@ -876,3 +876,42 @@
     justify-content: flex-start;
   }
 }
+
+// --- Check-ins por revisar ---
+// Banda corta y arriba del todo: no compite con "Requiere acción" (que son
+// decisiones), es trabajo que ya está hecho a medias y solo falta cerrarlo.
+.review-panel {
+  .review-count {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent);
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .review-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--tf-space-3);
+    width: 100%;
+    padding: var(--tf-space-3);
+    border: 0;
+    border-top: 1px solid var(--tf-border-subtle);
+    background: transparent;
+    color: var(--tf-text);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover { background: var(--tf-surface-2); }
+
+    > ion-icon:first-child { color: var(--tf-accent); font-size: 18px; }
+    > ion-icon:last-child { color: var(--tf-text-muted); }
+  }
+
+  .review-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .review-client { font-weight: 600; }
+  .review-meta { font-size: var(--tf-font-size-xs); color: var(--tf-text-muted); }
+}

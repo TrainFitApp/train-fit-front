@@ -33,10 +33,18 @@
       ></app-calendar>
     </div>
 
-    <div class="pending-request-banner" *ngIf="pendingRequests.length" (click)="openAnthropometryModal()">
-      <ion-icon name="alert-circle-outline" class="pending-request-icon"></ion-icon>
-      <span class="pending-request-title">{{ 'ANTHROPOMETRY.REQUEST_PENDING_TITLE' | translate }}</span>
-      <span class="pending-request-cta">{{ 'ANTHROPOMETRY.REQUEST_PENDING_CTA' | translate }}</span>
+    <div
+      class="pending-request-banner"
+      *ngIf="weightPlan"
+      [class.pending-request-banner--due]="isWeighInDue"
+      (click)="openAnthropometryModal()"
+    >
+      <ion-icon [name]="isWeighInDue ? 'alert-circle-outline' : 'time-outline'" class="pending-request-icon"></ion-icon>
+      <span class="pending-request-title">
+        {{ (isWeighInDue ? 'ANTHROPOMETRY.WEIGHT_PLAN_DUE_TITLE' : 'ANTHROPOMETRY.WEIGHT_PLAN_TITLE')
+            | translate: { days: weightPlan.intervalDays } }}
+      </span>
+      <span class="pending-request-cta">{{ 'ANTHROPOMETRY.WEIGHT_PLAN_CTA' | translate }}</span>
     </div>
 
     <div class="add-measurement-section">

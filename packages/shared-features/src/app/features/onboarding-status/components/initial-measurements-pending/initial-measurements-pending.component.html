@@ -1,0 +1,44 @@
+<section class="pending-measurements" *ngIf="items.length || listError || success" aria-label="Medidas iniciales">
+  <p class="saved-message" *ngIf="success" role="status">{{ success }}</p>
+  <div class="pending-row" *ngFor="let item of items; trackBy: trackByTrainerId">
+    <div><strong>Medidas iniciales pendientes</strong><p>{{ item.trainerName }} · {{ item.missingFields.length }} por completar</p></div>
+    <button type="button" class="action" (click)="open(item)">Completar</button>
+  </div>
+  <div *ngIf="listError"><p>No se pudieron comprobar tus medidas iniciales pendientes.</p><button type="button" class="action" (click)="refresh()">Reintentar</button></div>
+</section>
+
+<ion-modal [isOpen]="selected !== null" [canDismiss]="!saving" (didDismiss)="close()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Medidas iniciales</ion-title>
+        <ion-buttons slot="end"><ion-button [disabled]="saving" (click)="close()" aria-label="Cerrar medidas iniciales"><ion-icon name="close-outline" slot="icon-only"></ion-icon></ion-button></ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <div class="completion-content">
+        <p class="trainer-name">{{ selected?.trainerName }}</p>
+        <ion-spinner *ngIf="loading" aria-label="Cargando medidas"></ion-spinner>
+        <div *ngIf="error" role="alert" class="error"><p>{{ error }}</p><button *ngIf="!state" type="button" class="action" (click)="load()">Reintentar</button></div>
+        <ng-container *ngIf="state && !loading">
+          <p *ngIf="!definitions.length">Todas las medidas iniciales solicitadas están completas.</p>
+          <app-initial-measurements-editor *ngIf="definitions.length" [definitions]="definitions" [rows]="rows"
+            [recent]="state.recent" [errors]="errors" [today]="today" [disabled]="saving" (rowsChange)="changeRows($event)"></app-initial-measurements-editor>
+          <app-measurement-conflict [conflicts]="conflicts" [disabled]="saving" (confirmed)="confirmConflict()" (cancelled)="conflicts = []"></app-measurement-conflict>
+          <div class="missing-warning" *ngIf="showMissing" role="alert">
+            <strong>Estas medidas seguirán pendientes</strong>
+            <ul><li *ngFor="let definition of missing">{{ definition.label }}</li></ul>
+            <button type="button" class="action" (click)="showMissing = false">Seguir completando</button>
+            <button type="button" class="action" (click)="submit(true)">Guardar las que he añadido</button>
+          </div>
+        </ng-container>
+      </div>
+    </ion-content>
+    <ion-footer *ngIf="state && definitions.length">
+      <ion-toolbar><ion-button expand="block" [disabled]="saving || loading" (click)="submit()">
+        <ion-spinner *ngIf="saving" name="dots"></ion-spinner>
+        <span *ngIf="!saving">Guardar medidas iniciales</span>
+      </ion-button></ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

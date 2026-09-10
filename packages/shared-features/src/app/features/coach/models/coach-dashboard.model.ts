@@ -72,7 +72,8 @@ export type CoachNotificationType =
   | 'intake_submitted'
   | 'client_confirmed'
   | 'meal_prescribed'
-  | 'anthropometry_requested';
+  | 'anthropometry_requested'
+  | 'weight_due';
 
 export interface CoachNotification {
   _id: string;
@@ -97,9 +98,20 @@ export interface CoachTask {
   completedToday: boolean;
 }
 
+// Pauta de peso vencida. Solo llega cuando de verdad toca: una pauta al día
+// no es nada pendiente y no debe ocupar sitio en esta lista.
+export interface CoachPendingWeighIn {
+  trainerId: string;
+  trainerName: string;
+  intervalDays: number;
+  overdueDays: number;
+  lastWeightAt: string | null;
+}
+
 export interface CoachDashboard {
   professionals: CoachProfessional[];
   pendingCheckins: CoachPendingCheckin[];
+  pendingWeighIns: CoachPendingWeighIn[];
   pendingMealProposals: CoachPendingMealProposal[];
   nutritionPreferences: CoachNutritionPreferencesStatus | null;
   pendingPayments: CoachPendingPayment[];

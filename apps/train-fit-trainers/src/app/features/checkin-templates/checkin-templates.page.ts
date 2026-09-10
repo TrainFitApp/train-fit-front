@@ -50,11 +50,19 @@ export class CheckinTemplatesPage implements OnInit {
   public editingId: string | null = null;
   public editingTemplate: CheckinTemplateDefinition | null = null;
   public formName = '';
-  public formFields = new Set<string>();
+  // Array y no Set: es lo que enlaza <app-checkin-field-selector>, y hay que
+  // pasarle SIEMPRE la misma identidad hasta que cambie de verdad. Un
+  // `Array.from(set)` en la plantilla devolvería un array nuevo en cada ciclo
+  // de detección de cambios y recrearía el selector entero (la trampa de
+  // re-render que ya ha colgado dos pantallas de este frontend).
+  public formFields: string[] = [];
   public isSaving = false;
   // Fase 5 Coach Pro — preguntas propias del coach (§7). Conviven con
   // formFields, que sigue siendo el catálogo cerrado.
   public formCustomQuestions: CustomCheckinQuestion[] = [];
+  // Plegada por defecto al crear; abierta al editar una plantilla que ya
+  // tiene preguntas propias, que es lo que se viene a revisar.
+  public showCustomQuestions = false;
   public readonly questionTypes = CUSTOM_QUESTION_TYPES;
   public readonly maxCustomQuestions = MAX_CUSTOM_QUESTIONS;
   public readonly maxQuestionOptions = MAX_QUESTION_OPTIONS;
@@ -119,8 +127,9 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingId = null;
     this.editingTemplate = null;
     this.formName = '';
-    this.formFields = new Set();
+    this.formFields = [];
     this.formCustomQuestions = [];
+    this.showCustomQuestions = false;
     this.showEditPanel = true;
   }
 
@@ -130,13 +139,14 @@ export class CheckinTemplatesPage implements OnInit {
     // panel necesita su nombre para el diálogo de confirmación.
     this.editingTemplate = template;
     this.formName = template.name;
-    this.formFields = new Set(template.enabledFields);
+    this.formFields = [...template.enabledFields];
     // Copia, no referencia: cancelar el panel no debe dejar editada la
     // plantilla de la lista de detrás.
     this.formCustomQuestions = (template.customQuestions || []).map((q) => ({
       ...q,
       options: [...(q.options || [])],
     }));
+    this.showCustomQuestions = this.formCustomQuestions.length > 0;
     this.showEditPanel = true;
   }
 
@@ -201,13 +211,8 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = null;
   }
 
-  public toggleField(key: string): void {
-    if (this.formFields.has(key)) this.formFields.delete(key);
-    else this.formFields.add(key);
-  }
-
-  public isFieldEnabled(key: string): boolean {
-    return this.formFields.has(key);
+  public onFieldsChange(keys: string[]): void {
+    this.formFields = keys;
   }
 
   public saveTemplate(): void {
@@ -305,10 +310,6 @@ export class CheckinTemplatesPage implements OnInit {
 
   public trackByTemplateId(_index: number, template: CheckinTemplateDefinition): string {
     return template._id;
-  }
-
-  public trackByFieldKey(_index: number, field: CheckinField): string {
-    return field.key;
   }
 
   /**

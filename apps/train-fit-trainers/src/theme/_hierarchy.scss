@@ -1,0 +1,280 @@
+// Jerarquía visual de trainers — SEIS papeles y un solo criterio.
+//
+// EL PROBLEMA QUE RESUELVE (visto en la pestaña Seguimiento de la ficha):
+// título de sección, título de tarjeta, etiqueta de un dato, el dato en sí,
+// la ayuda y el meta se dibujaban casi igual. En checkin-workspace una sola
+// regla — `.muted, small, .request-timing, .group-row th` — ponía en
+// VERSALITA a la vez una ayuda ("Toca uno para ver sus respuestas"), una
+// cadencia ("Por semanas · 09:00"), una fecha y una cabecera de grupo de
+// tabla. Cuatro papeles distintos con el mismo dibujo: de ahí que "cueste
+// identificar qué es cada cosa".
+//
+// LA REGLA, que es la parte que hay que recordar:
+//
+//   MAYÚSCULAS PEQUEÑAS ESPACIADAS = ETIQUETA. Nada más.
+//
+// Si un texto va en versalita, nombra un dato. Todo lo demás (ayudas,
+// fechas, cadencias, sub-textos) va en caja normal. Con eso, la versalita
+// deja de ser decoración y pasa a ser información: el ojo la usa para
+// encontrar dónde empieza cada pareja etiqueta→valor.
+//
+// Los seis papeles, de más a menos peso visual:
+//
+//   1. tf-section-title  Título de sección   1.1rem / 650 / --tf-text
+//   2. tf-card-title     Título de tarjeta   0.9rem / 600 / --tf-text
+//   3. tf-value          EL DATO             1.1-1.7rem / 700 / --tf-text
+//   4. tf-label          Etiqueta del dato   0.76rem / 600 / VERSALITA / muted
+//   5. tf-help           Texto de ayuda      0.82rem / 400 / secondary
+//   6. tf-meta           Dato de contexto    0.76rem / 400 / muted
+//
+// Fíjate en que el DATO pesa más que su ETIQUETA aunque la etiqueta vaya
+// antes: es exactamente el caso "Peso inicial: 80 kg" del que salió esto.
+//
+// Este archivo NO emite CSS (solo mixins), igual que theme/_buttons.scss —
+// se puede importar desde tantos componentes como haga falta sin duplicar
+// nada en el bundle.
+
+// --- 1. Título de sección ---------------------------------------------
+// Manda sobre un bloque entero de la pantalla ("Cómo va el seguimiento",
+// "Respuestas", "Qué le pides a este cliente"). Caja normal: la versalita
+// está reservada para etiquetas, y un título en versalita compite con ellas.
+@mixin tf-section-title {
+  margin: 0;
+  font-size: var(--tf-font-size-lg);
+  font-weight: var(--tf-weight-title);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--tf-text);
+}
+
+// Bajada del título de sección: dice para qué sirve el bloque.
+@mixin tf-section-sub {
+  margin: var(--tf-space-1) 0 0;
+  max-width: 62ch;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-regular);
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--tf-text-secondary);
+}
+
+// --- 2. Título de tarjeta ---------------------------------------------
+// Un escalón por debajo del de sección: más pequeño Y sin el tracking
+// negativo, para que la diferencia se note también cuando las dos líneas
+// no están una encima de otra.
+@mixin tf-card-title {
+  margin: 0;
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-weight-label);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--tf-text);
+}
+
+// --- 3. El dato -------------------------------------------------------
+// Protagonista. Tabular siempre: en una columna de cifras, los dígitos de
+// ancho variable hacen que 111 parezca más corto que 999.
+@mixin tf-value($size: var(--tf-font-size-lg)) {
+  display: block;
+  font-size: $size;
+  font-weight: var(--tf-weight-value);
+  letter-spacing: var(--tf-tracking-value);
+  line-height: 1.15;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+}
+
+// --- 4. Etiqueta del dato ---------------------------------------------
+@mixin tf-label {
+  display: block;
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  letter-spacing: var(--tf-tracking-label);
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--tf-text-muted);
+}
+
+// --- 5. Ayuda ---------------------------------------------------------
+@mixin tf-help {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-regular);
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--tf-text-secondary);
+}
+
+// --- 6. Meta ----------------------------------------------------------
+// Fechas, próximas ejecuciones, "3 check-ins". Acompaña a un dato pero no
+// es el dato.
+@mixin tf-meta {
+  margin: 0;
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-regular);
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--tf-text-muted);
+}
+
+// --- Agrupación etiqueta + valor --------------------------------------
+// La otra mitad del encargo: que se vea qué etiqueta va con qué valor. La
+// pareja se pega (gap de 2px) y lo que la separa de la siguiente pareja es
+// el gap del contenedor, que tiene que ser MUCHO mayor — de ahí
+// tf-pair-group, que fija esa proporción en un sitio en vez de dejarla al
+// criterio de cada pantalla.
+@mixin tf-pair($gap: 2px) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+  min-width: 0;
+}
+
+// Contenedor de varias parejas. El gap entre parejas es ~6x el de dentro de
+// una pareja: por debajo de 4x el ojo empieza a emparejar mal.
+@mixin tf-pair-group($gap: var(--tf-space-5)) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-4) $gap;
+  align-items: flex-start;
+}
+
+// --- Botones: tres niveles, ni uno más ---------------------------------
+//
+// PRIMARIO   relleno de acento — la acción que cierra la región. Uno por
+//            región (tarjeta, panel, formulario), nunca dos adyacentes.
+// SECUNDARIO relleno de superficie + borde fuerte — acciones de igual
+//            rango entre sí ("Cambiar fechas" / "Enviarlo ahora" /
+//            "Pausar envíos"), o el paso previo a un primario.
+// DISCRETO   sin caja — navegación y escapes ("Cancelar", "Gestionar
+//            plantillas"). Nunca para algo que guarda o envía.
+@mixin tf-btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  min-height: 40px;
+  padding: 0 var(--tf-space-4);
+  border-radius: var(--tf-radius-md);
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: var(--tf-weight-label);
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: var(--tf-font-size-base);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+@mixin tf-btn-primary {
+  @include tf-btn-base;
+
+  border: 1px solid transparent;
+  background: var(--tf-accent);
+  color: var(--tf-accent-contrast);
+  font-weight: var(--tf-weight-value);
+
+  &:hover:not(:disabled) {
+    background: var(--tf-accent-text);
+  }
+}
+
+@mixin tf-btn-secondary {
+  @include tf-btn-base;
+
+  border: 1px solid var(--tf-border-strong);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+
+  &:hover:not(:disabled) {
+    background: var(--tf-surface-4);
+    border-color: var(--tf-border-strongest);
+  }
+}
+
+@mixin tf-btn-quiet {
+  @include tf-btn-base;
+
+  min-height: 36px;
+  padding: 0 var(--tf-space-2);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--tf-accent-text);
+
+  &:hover:not(:disabled) {
+    background: var(--tf-accent-soft);
+  }
+}
+
+// --- Tarjetas: informativa vs. pulsable --------------------------------
+//
+// El aspecto tiene que decir la verdad sobre el comportamiento. La
+// diferencia no es solo el hover (que no existe con el dedo): la tarjeta
+// pulsable arranca UN escalón de superficie por encima y con el borde más
+// marcado, así que en una captura estática ya se distingue cuál se pulsa.
+@mixin tf-card-static {
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-1);
+}
+
+@mixin tf-card-interactive {
+  width: 100%;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-lg);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out),
+    transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover:not(:disabled) {
+    background: var(--tf-surface-3);
+    border-color: var(--tf-accent-soft-border);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}

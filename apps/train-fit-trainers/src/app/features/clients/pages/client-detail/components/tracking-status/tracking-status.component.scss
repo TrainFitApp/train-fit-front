@@ -1,0 +1,157 @@
+@import '../../../../../../../theme/hierarchy';
+
+:host { display: block; }
+
+// Cabecera de bloque: nombra la sección y dice para qué sirve. Sin ella, las
+// tres cifras eran tres números sueltos sin contexto ni ventana temporal.
+.block-head { margin-bottom: var(--tf-space-3); }
+.block-title { @include tf-section-title; }
+.block-sub { @include tf-section-sub; }
+
+// Una sola fila, no tres tarjetas: son tres cifras del mismo asunto y
+// encajonar cada una en su caja las separaba más de lo que se parecen.
+//
+// El reparto de espacio es la mitad del trabajo de jerarquía: dentro de una
+// pareja etiqueta→dato hay 2px, entre parejas hay --tf-space-8 (32px). Esa
+// proporción de 16:1 es lo que hace que se vea de un vistazo qué etiqueta
+// va con qué número sin necesitar bordes entre ellas.
+.status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tf-space-5) var(--tf-space-8);
+  padding: var(--tf-space-5);
+  @include tf-card-static;
+}
+
+.stat {
+  @include tf-pair(var(--tf-space-1));
+}
+
+.stat-value {
+  @include tf-value(var(--tf-font-size-xl));
+}
+
+// Variante para cuando el dato es texto y no cifra ("Cada 3 días"): mismo
+// papel, un punto menos de tamaño porque una palabra larga a 1.3rem
+// desequilibra la fila frente a un dígito suelto.
+.stat-value--text {
+  font-size: var(--tf-font-size-md);
+  letter-spacing: normal;
+}
+
+.stat-value--empty {
+  color: var(--tf-text-secondary);
+  font-weight: var(--tf-weight-label);
+}
+
+.stat-label {
+  @include tf-label;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+
+  ion-icon {
+    font-size: var(--tf-font-size-base);
+    color: var(--tf-text-faint);
+  }
+}
+
+// Solo se tiñe lo accionable, y el color nunca va solo: la cifra ya pesa
+// más que su etiqueta, lleva icono y lleva frase. Quien no distinga el
+// matiz sigue leyendo la jerarquía entera.
+.stat--action {
+  .stat-value { color: var(--tf-accent-text); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-accent-text); }
+}
+.stat--alert {
+  .stat-value { color: var(--tf-danger-text, #ed576b); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-danger-text, #ed576b); }
+}
+
+// El peso se separa con una regla: no es una cuarta cifra de la misma serie,
+// es otra cosa (una pauta sin formulario).
+.weight-block {
+  @include tf-pair(var(--tf-space-1));
+
+  margin-left: auto;
+  padding-left: var(--tf-space-6);
+  border-left: 1px solid var(--tf-border);
+}
+
+.weight-detail {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+  margin-top: var(--tf-space-1);
+}
+
+.weight-last { @include tf-meta; }
+
+// Estado con forma propia además de color: quien no distinga el matiz sigue
+// leyendo "Al día" o "Atrasado 4 d".
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-1);
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-weight-label);
+  white-space: nowrap;
+
+  &--alert {
+    background: rgba(237, 87, 107, 0.14);
+    color: var(--tf-danger-text, #ed576b);
+  }
+
+  ion-icon { font-size: var(--tf-font-size-sm); }
+}
+
+.status-block--quiet {
+  display: flex;
+  gap: var(--tf-space-4);
+  padding: var(--tf-space-5);
+  @include tf-card-static;
+}
+
+.skeleton-chip {
+  width: 130px;
+  height: 46px;
+  border-radius: var(--tf-radius-sm);
+  background: var(--tf-surface-2);
+}
+
+@media (max-width: 860px) {
+  .status-bar {
+    gap: var(--tf-space-4) var(--tf-space-6);
+    padding: var(--tf-space-4);
+  }
+
+  // El peso baja a línea propia y cambia la regla lateral por una superior.
+  .weight-block {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: var(--tf-space-4);
+    border-left: 0;
+    border-top: 1px solid var(--tf-border);
+  }
+}
+
+// En móvil las tres cifras se reparten el ancho en vez de amontonarse: cada
+// pareja necesita su carril para que el gap entre parejas siga siendo mayor
+// que el de dentro de la pareja.
+@media (max-width: 560px) {
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tf-space-4);
+  }
+
+  .weight-block { grid-column: 1 / -1; }
+}

@@ -13,6 +13,9 @@ import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
 import { IntakeApiService } from './services/intake-api.service';
 import { IntakeWizardPrefill, IntakeWizardResult } from './components/intake-wizard/intake-wizard.component';
+import { InitialMeasurementConflict, InitialMeasurementDefinition, InitialMeasurementsState, deviceTimeZone, initialMeasurementConflicts, newIntakeRequestId, todayInTimeZone } from './models/initial-measurements';
+import { InitialMeasurementsApiService } from './services/initial-measurements-api.service';
+import { IntakeDraftService } from './services/intake-draft.service';
 
 type ViewState = 'loading' | 'error' | 'loaded';
 
@@ -23,6 +26,13 @@ interface TrainerGroup {
   needsIntake: boolean; // true si alguna relación sigue en cuestionario_pendiente
   enabledFields: Set<IntakeFieldKey>; // TASK-049 — campos activos del cuestionario de este trainer
   customQuestions: IntakeCustomQuestion[]; // preguntas de texto libre añadidas por el trainer
+  intakeConfigVersion?: number;
+}
+
+interface IntakeDraftEnvelope {
+  form: IntakeWizardPrefill;
+  requestId: string;
+  signature: string;
 }
 
 const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
@@ -58,6 +68,20 @@ export class OnboardingStatusPage implements OnDestroy {
   public isSubmitting = false;
   public isLoadingIntake = false;
   public intakePrefill: IntakeWizardPrefill = EMPTY_INTAKE_PREFILL;
+  public measurementsState: InitialMeasurementsState | null = null;
+  public measurementDefinitions: InitialMeasurementDefinition[] = [];
+  public intakeLoadError = '';
+  public submitError = '';
+  public canReloadIntake = false;
+  public measurementConflicts: InitialMeasurementConflict[] = [];
+  private lastSubmission: IntakeWizardResult | null = null;
+  public readonly timeZone = deviceTimeZone();
+  private draftKey = '';
+  private requestId = '';
+  private requestSignature = '';
+  private latestDraft: IntakeWizardPrefill = EMPTY_INTAKE_PREFILL;
+
+  public get measurementToday(): string { return todayInTimeZone(this.timeZone); }
 
   // Invitaciones YA aceptadas por el cliente están en `groups` (relaciones
   // cuestionario_pendiente/en_revision). Estas son las que TODAVÍA no ha
@@ -84,7 +108,9 @@ export class OnboardingStatusPage implements OnDestroy {
     private intakeApi: IntakeApiService,
     private nutritionPreferencesApi: NutritionPreferencesApiService,
     private professionalsApi: ProfessionalsApiService,
-    private ionicUtilService: IonicUtilService
+    private ionicUtilService: IonicUtilService,
+    private initialMeasurementsApi: InitialMeasurementsApiService,
+    private drafts: IntakeDraftService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -197,6 +223,7 @@ export class OnboardingStatusPage implements OnDestroy {
           needsIntake: false,
           enabledFields: new Set(relation.intakeEnabledFields),
           customQuestions: relation.intakeCustomQuestions,
+          intakeConfigVersion: (relation as OnboardingRelation & { intakeConfigVersion?: number }).intakeConfigVersion,
         });
       }
       const group = byTrainer.get(relation.trainerId)!;
@@ -218,8 +245,14 @@ export class OnboardingStatusPage implements OnDestroy {
   }
 
   public openIntakeForm(group: TrainerGroup): void {
+    this.stopPolling();
     this.fillingTrainerId = group.trainerId;
     this.intakePrefill = EMPTY_INTAKE_PREFILL;
+    this.measurementsState = null;
+    this.measurementDefinitions = [];
+    this.intakeLoadError = '';
+    this.submitError = '';
+    this.canReloadIntake = false;
 
     // El cuestionario es UNO por par (trainer, cliente) — si este trainer ya
     // le había respondido antes (p. ej. rellenó nutrición y ahora también
@@ -231,8 +264,9 @@ export class OnboardingStatusPage implements OnDestroy {
     forkJoin({
       intake: this.intakeApi.getMine(group.trainerId),
       preferences: this.nutritionPreferencesApi.getMine(),
+      measurements: this.initialMeasurementsApi.get(group.trainerId),
     }).subscribe({
-      next: ({ intake, preferences }) => {
+      next: ({ intake, preferences, measurements }) => {
         // El cliente pudo cerrar este formulario o abrir el de otro trainer
         // mientras la petición estaba en curso — no pisar lo que se esté
         // viendo ahora con una respuesta que ya no corresponde.
@@ -241,7 +275,13 @@ export class OnboardingStatusPage implements OnDestroy {
         intake?.customAnswers.forEach((answer) => {
           customAnswers[answer.questionId] = answer.value;
         });
-        this.intakePrefill = {
+        this.measurementsState = measurements;
+        this.measurementDefinitions = measurements.catalog.filter((definition) =>
+          measurements.requestedFields.includes(definition.key) && measurements.missingFields.includes(definition.key)
+        );
+        this.draftKey = this.drafts.key('intake', group.trainerId, measurements.stageId);
+        const saved = this.drafts.read<IntakeDraftEnvelope>(this.draftKey);
+        this.intakePrefill = saved?.form || {
           goals: intake?.goals || '',
           healthConditions: intake?.healthConditions || '',
           experienceLevel: intake?.experienceLevel ?? null,
@@ -254,38 +294,62 @@ export class OnboardingStatusPage implements OnDestroy {
           cooksAtHome: preferences?.cooksAtHome ?? null,
           customAnswers,
         };
+        this.latestDraft = this.intakePrefill;
+        this.requestId = saved?.requestId || newIntakeRequestId();
+        this.requestSignature = saved?.signature || '';
         this.isLoadingIntake = false;
       },
-      // Fallo silencioso — precargar es una mejora, no un requisito; el
-      // formulario ya está en blanco y se puede rellenar igual.
       error: () => {
+        if (this.fillingTrainerId !== group.trainerId) return;
+        this.intakeLoadError = 'No se pudo cargar el cuestionario y sus medidas. Reintenta para conservar tus datos anteriores.';
         this.isLoadingIntake = false;
       },
     });
   }
 
   public closeIntakeForm(): void {
+    if (this.isSubmitting) return;
     this.fillingTrainerId = null;
+  }
+
+  public saveDraft(form: IntakeWizardPrefill): void {
+    if (this.isSubmitting) return;
+    this.latestDraft = form;
+    this.measurementConflicts = [];
+    this.drafts.save(this.draftKey, { form, requestId: this.requestId, signature: this.requestSignature });
   }
 
   public submitIntake(result: IntakeWizardResult): void {
     if (!this.fillingTrainerId || this.isSubmitting) return;
-
+    const trainerId = this.fillingTrainerId;
+    this.lastSubmission = result;
+    const payload = { trainerId, ...result, timeZone: this.timeZone, intakeConfigVersion: this.measurementsState?.configVersion ?? this.fillingGroup?.intakeConfigVersion };
+    const signature = JSON.stringify(payload);
+    if (this.requestSignature && this.requestSignature !== signature) this.requestId = newIntakeRequestId();
+    this.requestSignature = signature;
+    this.drafts.save(this.draftKey, { form: this.latestDraft, requestId: this.requestId, signature });
+    this.submitError = '';
     this.isSubmitting = true;
     this.intakeApi
-      .submit({ trainerId: this.fillingTrainerId, ...result })
+      .submit({ ...payload, requestId: this.requestId })
       .subscribe({
         next: () => {
+          this.drafts.clear(this.draftKey);
           this.isSubmitting = false;
           this.fillingTrainerId = null;
           this.ionicUtilService.showToast({
-            message: 'Cuestionario enviado. Tu profesional lo revisará en breve.',
+            message: result.missingMeasurementsAcknowledged
+              ? 'Cuestionario enviado. Puedes completar las medidas pendientes desde tu perfil.'
+              : 'Cuestionario enviado. Tu profesional lo revisará en breve.',
             duration: 3500,
           });
           this.load();
         },
         error: (err) => {
           this.isSubmitting = false;
+          this.submitError = err?.error?.message || 'No se pudo enviar el cuestionario. Conservamos tus respuestas; puedes reintentar.';
+          this.measurementConflicts = initialMeasurementConflicts(err, result.measurements || [], this.measurementDefinitions);
+          this.canReloadIntake = ['INTAKE_CONFIG_CHANGED', 'INTAKE_ALREADY_SUBMITTED'].includes(err?.error?.code);
           this.ionicUtilService.showErrorToast(
             err?.error?.message || 'No se pudo enviar el cuestionario',
             'Error',
@@ -293,6 +357,29 @@ export class OnboardingStatusPage implements OnDestroy {
           );
         },
       });
+  }
+
+  public confirmMeasurementConflict(): void {
+    if (!this.lastSubmission || !this.measurementConflicts.length) return;
+    const measurements = (this.lastSubmission.measurements || []).map((value) => {
+      const conflict = this.measurementConflicts.find((item) => item.field === value.field);
+      return conflict ? { ...value, confirmedExisting: false, expectedValue: conflict.currentValue } : value;
+    });
+    this.latestDraft = { ...this.latestDraft, measurementDrafts: measurements.map((value) => ({ ...value, value: String(value.value) })) };
+    this.intakePrefill = this.latestDraft;
+    this.measurementConflicts = [];
+    this.submitIntake({ ...this.lastSubmission, measurements });
+  }
+
+  public reloadIntake(): void {
+    if (this.isSubmitting || !this.fillingTrainerId) return;
+    const trainerId = this.fillingTrainerId;
+    this.onboardingService.refresh().subscribe((status) => {
+      this.groups = this.groupByTrainer(status.relations);
+      const group = this.groups.find((item) => item.trainerId === trainerId);
+      if (group?.needsIntake) this.openIntakeForm(group);
+      else { this.fillingTrainerId = null; this.load(); }
+    });
   }
 
   public trackByTrainerId(_index: number, group: TrainerGroup): string {

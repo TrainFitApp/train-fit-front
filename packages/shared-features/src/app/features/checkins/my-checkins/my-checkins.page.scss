@@ -225,6 +225,24 @@
   color: #9a9a9a;
 }
 
+// Un check-in de medidas trae doce perímetros seguidos: sin estas cabeceras
+// se lee como un muro de casillas.
+.checkin-group-label {
+  margin: 18px 0 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+
+.checkin-field-prefilled {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ion-color-success, #2dd36f);
+}
+
 /* Escala con anclas escritas.
    En columna y no en fila: la frase de cada nivel es lo que hay que leer, y
    cinco frases en horizontal no caben ni se leen. El número se queda al

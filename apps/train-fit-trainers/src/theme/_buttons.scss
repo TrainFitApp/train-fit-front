@@ -123,3 +123,70 @@
     right: 0;
   }
 }
+
+// Cabecera de sección plegable.
+//
+// PARA QUÉ: el catálogo de campos de check-in (36 campos en tres grupos) y
+// las preguntas propias del coach viven en el mismo panel y se pliegan igual,
+// pero en componentes distintos —el catálogo es un componente standalone con
+// su propia encapsulación—, así que las clases no se pueden compartir: solo
+// el mixin.
+//
+// La cabecera es a la vez el interruptor de la sección y su resumen: con la
+// sección cerrada sigue enseñando su recuento, así que plegar no esconde
+// información, solo el detalle.
+//
+// $open-class: la clase que marca "desplegada". Cuadra las esquinas de abajo
+// para que la cabecera y su contenido se lean como una sola pieza.
+@mixin tf-collapsible-head($open-class: '&--open') {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  width: 100%;
+  min-height: var(--tf-touch-min);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  overflow: hidden;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-3);
+  color: var(--tf-text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    background: var(--tf-surface-4);
+    border-color: var(--tf-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  #{$open-class} {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+  }
+}
+
+// Cuerpo de una sección plegable: se acopla por debajo de tf-collapsible-head
+// sin borde superior, para que las dos cajas sean una.
+@mixin tf-collapsible-body {
+  padding: var(--tf-space-3);
+  border: 1px solid var(--tf-border);
+  border-top: 0;
+  border-radius: 0 0 var(--tf-radius-md) var(--tf-radius-md);
+  background: var(--tf-surface-1);
+  animation: tf-collapsible-in var(--tf-duration-base) var(--tf-ease-out);
+}
+
+@keyframes tf-collapsible-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}

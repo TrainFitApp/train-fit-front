@@ -50,6 +50,7 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   client_confirmed: 'checkmark-done-outline',
   meal_prescribed: 'restaurant-outline',
   anthropometry_requested: 'body-outline',
+  weight_due: 'scale-outline',
 };
 
 // Mismo conjunto de tipos que navegan a algo en openNotification() — de
@@ -65,6 +66,7 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'goal_assigned',
   'meal_prescribed',
   'anthropometry_requested',
+  'weight_due',
 ]);
 
 // Al borrar una notificación, quitarla del array de golpe hacía que
@@ -192,6 +194,7 @@ export class CoachPage implements OnInit {
     if (!this.dashboard) return 0;
     return (
       this.dashboard.pendingCheckins.length +
+      this.dashboard.pendingWeighIns.length +
       this.dashboard.pendingMealProposals.length +
       (this.dashboard.nutritionPreferences?.pending ? 1 : 0) +
       this.dashboard.pendingPayments.length
@@ -297,6 +300,8 @@ export class CoachPage implements OnInit {
         return `Nueva comida pautada: ${p.mealName || ''}`;
       case 'anthropometry_requested':
         return 'Te ha pedido nuevas medidas corporales';
+      case 'weight_due':
+        return 'Toca pesarte';
       default:
         return 'Nueva actividad';
     }
@@ -331,6 +336,7 @@ export class CoachPage implements OnInit {
         void this.router.navigate(['/tabs/diets'], { state: { selectedDate: p.date } });
         break;
       case 'anthropometry_requested':
+      case 'weight_due':
         void this.router.navigate(['/weight-info']);
         break;
       // payment_created, task_assigned, intake_submitted, client_confirmed:
@@ -643,6 +649,14 @@ export class CoachPage implements OnInit {
 
   public trackByCheckinId(_index: number, item: { trainerId: string; requestId?: string }): string {
     return item.requestId || item.trainerId;
+  }
+
+  public goToWeightInfo(): void {
+    void this.router.navigate(['/weight-info']);
+  }
+
+  public trackByWeighInTrainerId(_index: number, item: { trainerId: string }): string {
+    return item.trainerId;
   }
 
   public goToNutritionPreferences(): void {

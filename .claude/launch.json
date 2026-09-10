@@ -4,14 +4,35 @@
     {
       "name": "train-fit-trainers",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "serve:t"],
+      "runtimeArgs": [
+        "run",
+        "serve:t"
+      ],
       "port": 8100
     },
     {
       "name": "train-fit-front",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:pre", "--workspace", "@trainfit/train-fit-front"],
+      "runtimeArgs": [
+        "run",
+        "start:pre",
+        "--workspace",
+        "@trainfit/train-fit-front"
+      ],
       "port": 8100
+    },
+    {
+      "name": "ui-harness",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "http-server",
+        ".tmp/ui-harness",
+        "-p",
+        "8791",
+        "-c-1"
+      ],
+      "port": 8791
     }
   ]
 }

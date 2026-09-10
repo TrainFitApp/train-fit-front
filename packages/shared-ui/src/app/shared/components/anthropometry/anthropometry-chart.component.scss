@@ -233,3 +233,94 @@
     }
   }
 }
+/* ------------------------------------------------------------------------
+   Modo compacto (:host(.is-compact), lo activa [compact]="true")
+
+   Para cuando la gráfica es UNA sección de una pantalla larga y no la
+   pantalla entera. Solo cambia densidad y tamaños: los colores de marca de
+   quien la incruste se quedan donde estaban (la ficha del entrenador ya los
+   sobreescribe desde su propia hoja).
+
+   El reparto es lo importante: antes la cabecera pesaba más que el gráfico
+   (26 píldoras de métrica sobre un lienzo de 140px). Aquí la cabecera cae a
+   una o dos filas — solo se ofrecen las métricas que ese cliente tiene — y
+   el lienzo sube a 200px, que es donde una línea de peso vuelve a ser
+   legible. Total de la tarjeta: bastante menos alto que antes, con más
+   gráfico dentro.
+   ------------------------------------------------------------------------ */
+:host(.is-compact) {
+  display: block;
+
+  .chart-container {
+    min-height: 0;
+    padding: 16px;
+    border-radius: 14px;
+
+    .chart-header {
+      gap: 10px;
+      margin-bottom: 4px;
+
+      .chart-title-section .chart-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 2px 0;
+      }
+
+      .chart-title-section .chart-subtitle {
+        font-size: 11px;
+      }
+
+      .metric-toggles .toggle-group {
+        gap: 8px;
+
+        .toggles {
+          gap: 6px;
+        }
+
+        .metric-toggle {
+          padding: 5px 10px;
+          border-width: 1px;
+          font-size: 11px;
+        }
+      }
+    }
+
+    // `flex: 1` (del modo normal) pone flex-basis a 0 y hace que el lienzo se
+    // coma todo el alto sobrante de la tarjeta: por eso una altura declarada
+    // aquí no se respetaba y salían 225px donde pedía 200. En compacto el
+    // lienzo deja de ser elástico y mide exactamente lo que dice.
+    .canvas-wrapper {
+      flex: 0 0 auto;
+      height: 190px;
+      min-height: 0;
+    }
+
+    /* La leyenda repite exactamente lo que ya dicen los botones de arriba,
+       que además son el mismo interruptor. En una tarjeta compacta es la
+       altura que menos rinde. */
+    .chart-legend {
+      display: none;
+    }
+
+    .no-data {
+      min-height: 160px;
+
+      ion-icon {
+        font-size: 34px;
+        margin-bottom: 10px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  :host(.is-compact) .chart-container {
+    padding: 14px;
+
+    .canvas-wrapper {
+      flex: 0 0 auto;
+      height: 165px;
+      min-height: 0;
+    }
+  }
+}

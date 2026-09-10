@@ -1,12 +1,16 @@
 import { CustomCheckinQuestion, CheckinTemplateDefinition } from '../../../../../checkin-templates/models/checkin-template.model';
-import { CheckinConfig, CheckinResponseEntry } from '../../models/client-detail.model';
+import { CheckinResponseEntry } from '../../models/client-detail.model';
 
 export type CheckinStatus = 'scheduled' | 'pending' | 'unanswered' | 'responded' | 'reviewed' | 'cancelled' | 'legacy';
 export type CheckinFrequency = 'once' | 'daily' | 'weekly' | 'monthly';
 export interface CheckinScheduleDraft {
   name: string;
   sourceTemplateId: string | null;
-  legacyConfigId?: string | null;
+  // Fase 8 — alternativa a sourceTemplateId al CREAR: campos sueltos del
+  // catálogo, sin pasar por una plantilla guardada. Solo se manda al
+  // backend cuando sourceTemplateId es null; al editar una programación
+  // existente no se toca (mismo criterio que ya tenía sourceTemplateId).
+  enabledFields?: string[];
   startDate: string;
   time: string;
   timeZone: string;
@@ -42,7 +46,6 @@ export interface CheckinCalendarData {
   responses: CalendarCheckin[];
   pendingReviews: CalendarCheckin[];
   reviewCount: number;
-  legacyConfig: CheckinConfig | null;
   legacyResponses: CheckinResponseEntry[];
 }
 export interface CheckinDay {
@@ -55,6 +58,12 @@ export interface CheckinDay {
 }
 export interface CheckinComparisonRow {
   key: string;
+  // Grupo del catálogo al que pertenece el dato. La tabla lo usa para meter
+  // una cabecera cuando cambia: peso, cintura y calidad del sueño no son la
+  // misma clase de número y no deben leerse en una lista plana.
+  group: string;
+  // Solo la primera fila de cada grupo lo lleva; las demás, cadena vacía.
+  groupLabel: string;
   label: string;
   previous: string;
   current: string;
