@@ -20,17 +20,13 @@
 
   <p class="empty-hint" *ngIf="!d.ranked.length">
     No hay dietas que encajen con los filtros. Ajusta los parámetros a la derecha,
-    o crea dietas base desde "Plantillas de dieta".
+    o crea una desde cero.
   </p>
 
-  <div class="hidden-block" *ngIf="d.hidden.length">
-    <button type="button" class="hidden-toggle" (click)="showHidden = !showHidden">
-      {{ showHidden ? 'Ocultar' : (d.hidden.length + ' dietas ocultas por las restricciones') }}
-    </button>
-    <ul *ngIf="showHidden">
-      <li *ngFor="let h of d.hidden">{{ h.name }} <em>— no marcada como {{ h.missingFlags.join(', ') }}</em></li>
-    </ul>
-  </div>
+  <p class="hidden-note" *ngIf="d.hidden.length">
+    {{ d.hidden.length }} dieta{{ d.hidden.length === 1 ? '' : 's' }} no
+    {{ d.hidden.length === 1 ? 'aparece' : 'aparecen' }} por las restricciones dietéticas.
+  </p>
 </ng-container>
 
 <ng-template #loadingOrEmpty>

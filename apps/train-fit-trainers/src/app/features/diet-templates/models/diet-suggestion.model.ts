@@ -61,9 +61,13 @@ export interface MissingBiometricsError {
   missing: string[];
 }
 
+export type DietSource = 'general' | 'client' | 'verified';
+
 export interface DietSuggestionRequest {
   objetiveKcalDelta: number;
   dietaryFlags?: DietaryFlag[];
+  // Origen de las dietas a incluir. Sin este campo = las tres.
+  sources?: DietSource[];
 }
 
 // Bloque que viaja con apply / createDirect cuando se EMPIEZA una fase.

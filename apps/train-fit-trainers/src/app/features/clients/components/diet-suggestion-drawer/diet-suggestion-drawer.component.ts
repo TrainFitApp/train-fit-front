@@ -8,6 +8,7 @@ import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service'
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import {
   DietaryFlag,
+  DietSource,
   PhaseFocus,
   RankedTemplate,
 } from '../../../diet-templates/models/diet-suggestion.model';
@@ -55,6 +56,14 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public ratePerCycle = FOCUS_DEFAULTS.cut.rate;
   public readonly dietaryFlagOptions = DIETARY_FLAGS;
   public dietaryFlags = new Set<DietaryFlag>();
+
+  // Origen de las dietas — las tres marcadas por defecto.
+  public readonly sourceOptions: { key: DietSource; label: string }[] = [
+    { key: 'general', label: 'Generales' },
+    { key: 'client', label: 'De este cliente' },
+    { key: 'verified', label: 'De fábrica' },
+  ];
+  public sources = new Set<DietSource>(['general', 'client', 'verified']);
 
   // --- Confirmación ---
   public startDate = new Date().toISOString().slice(0, 10);
@@ -106,6 +115,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     this.queueRefetch();
   }
 
+  public toggleSource(source: DietSource): void {
+    if (this.sources.has(source)) this.sources.delete(source);
+    else this.sources.add(source);
+    this.queueRefetch();
+  }
+
   public queueRefetch(): void {
     this.userTouchedFilters = true;
     this.refetch$.next();
@@ -128,6 +143,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       .suggest(this.clientId, {
         objetiveKcalDelta: Number(this.kcalDelta) || 0,
         dietaryFlags: [...this.dietaryFlags],
+        sources: [...this.sources],
       })
       .subscribe({
         next: (res) => {

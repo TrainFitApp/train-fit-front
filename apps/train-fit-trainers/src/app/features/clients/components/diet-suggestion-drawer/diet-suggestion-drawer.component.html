@@ -66,6 +66,18 @@
           {{ opt.label }}
         </button>
       </div>
+
+      <label class="field-label">Origen</label>
+      <div class="flag-chips">
+        <button
+          type="button"
+          *ngFor="let opt of sourceOptions"
+          [class.is-active]="sources.has(opt.key)"
+          (click)="toggleSource(opt.key)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
     </section>
 
     <!-- ===== Objetivo calculado ===== -->

@@ -12,29 +12,10 @@ app-diet-card.span-all {
   grid-column: 1 / -1;
 }
 
-.hidden-block {
-  margin-top: 14px;
-
-  .hidden-toggle {
-    background: none;
-    border: none;
-    padding: 6px 0;
-    font-size: 0.82rem;
-    color: var(--tf-text-muted);
-    text-decoration: underline;
-    cursor: pointer;
-  }
-
-  ul {
-    margin: 4px 0 0;
-    padding-left: 18px;
-    font-size: 0.82rem;
-    color: var(--tf-text-secondary, #555);
-
-    em {
-      color: var(--tf-text-muted);
-    }
-  }
+.hidden-note {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
 }
 
 .empty-hint {

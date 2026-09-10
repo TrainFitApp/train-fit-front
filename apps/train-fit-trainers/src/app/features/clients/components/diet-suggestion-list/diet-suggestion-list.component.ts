@@ -20,8 +20,6 @@ export class DietSuggestionListComponent {
   public readonly selectedId$: Observable<string | null>;
   public readonly loading$: Observable<boolean>;
 
-  public showHidden = false;
-
   constructor(private session: DietSuggestionSessionService) {
     this.results$ = this.session.results$;
     this.selectedId$ = this.session.selectedId$;
