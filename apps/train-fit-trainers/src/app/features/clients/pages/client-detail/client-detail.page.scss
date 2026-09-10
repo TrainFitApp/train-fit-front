@@ -555,6 +555,38 @@
   margin-bottom: 12px;
 }
 
+// Sugerencias de dieta — zona de la lista rankeada (modo "elegir dieta").
+// Deja hueco a la derecha para que el panel de parámetros (400px) no la tape.
+.diet-selection-mode {
+  margin-bottom: 16px;
+
+  @media (min-width: 768px) {
+    padding-right: 416px;
+  }
+
+  .diet-selection-title {
+    margin: 0;
+    font-size: var(--tf-font-size-md, 1rem);
+    font-weight: 700;
+  }
+
+  .diet-selection-cancel {
+    background: none;
+    border: none;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--tf-text);
+      text-decoration: underline;
+    }
+  }
+}
+
 .manage-templates-link {
   background: none;
   border: none;

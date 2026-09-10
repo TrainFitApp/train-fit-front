@@ -61,6 +61,7 @@ import { CompletedDay } from './components/training-calendar/training-calendar.c
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
 import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
+import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 import { NextCycleModalComponent } from '../../components/next-cycle-modal/next-cycle-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
@@ -362,8 +363,21 @@ export class ClientDetailPage implements OnInit {
     private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService,
-    private navigation: TrainerNavigationService
+    private navigation: TrainerNavigationService,
+    public dietSuggestionSession: DietSuggestionSessionService
   ) {}
+
+  // Sugerencias de dieta — cuando está activo, la sección de nutrición pinta
+  // la lista rankeada (app-diet-suggestion-list) en vez de las tarjetas de
+  // fase, y hay un panel de parámetros abierto a la derecha.
+  public dietSelectionMode = false;
+  private dietDrawerModal: HTMLIonModalElement | null = null;
+
+  // "Cancelar" desde la zona de la lista — cierra el panel de parámetros,
+  // que a su vez apaga el modo (ver openApplyTemplateModal).
+  public closeDietSelection(): void {
+    void this.dietDrawerModal?.dismiss(null, 'cancel');
+  }
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
   // de route.snapshot en ngOnInit. Sin explotar hoy (no hay ningún enlace
@@ -1994,26 +2008,36 @@ export class ClientDetailPage implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
-  // Sugerencias de dieta — "empezar fase" abre el cajón de sugerencias
-  // (filtros autorrellenados + plantillas rankeadas por cercanía al objetivo
-  // del cliente). El cajón aplica la fase él mismo. El modal antiguo
-  // (ApplyDietTemplateModalComponent) sigue disponible desde "Aplicar
-  // plantilla concreta".
+  // Sugerencias de dieta — "empezar fase": la sección de nutrición pasa a
+  // modo lista (app-diet-suggestion-list, zona principal) y se abre el panel
+  // de parámetros a la derecha. El panel aplica la fase; la lista solo
+  // marca cuál. El modal antiguo (ApplyDietTemplateModalComponent) sigue
+  // disponible desde "Aplicar plantilla concreta".
   public async openApplyTemplateModal(): Promise<void> {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
     const finAnterior = ultima?.endDate || null;
 
+    this.dietSuggestionSession.reset();
+    this.dietSelectionMode = true;
+
     const modal = await this.modalController.create({
       component: DietSuggestionDrawerComponent,
-      cssClass: 'tf-panel-modal',
+      cssClass: 'tf-panel-modal-overlay',
+      showBackdrop: false,
+      backdropDismiss: false,
       componentProps: {
         clientId: this.clientId,
         clientName: this.name,
         suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
       },
     });
+    this.dietDrawerModal = modal;
     await modal.present();
     const { data, role } = await modal.onDidDismiss();
+
+    this.dietDrawerModal = null;
+    this.dietSelectionMode = false;
+    this.dietSuggestionSession.reset();
 
     if (role === 'create-from-scratch' && data) {
       // "Empezar de cero" desde el cajón → builder, arrastrando el objetivo

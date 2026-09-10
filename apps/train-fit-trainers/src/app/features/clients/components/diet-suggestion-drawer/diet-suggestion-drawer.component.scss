@@ -70,6 +70,53 @@
   flex: 0 0 auto;
 }
 
+.chosen-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--ion-color-primary, #fe9000);
+  background: var(--ion-color-primary-tint, #fff3e0);
+
+  &--empty {
+    border-color: var(--ion-color-step-200, #d7d7d7);
+    background: var(--ion-color-step-50, #f7f7f7);
+    color: var(--ion-color-medium);
+  }
+
+  .chosen-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ion-color-primary-shade, #b45f00);
+  }
+
+  .chosen-name {
+    margin: 4px 0 2px;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  .chosen-lead {
+    margin: 0 0 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .chosen-macros {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+  }
+}
+
+.small {
+  font-size: 0.75rem !important;
+}
+
+.field {
+  margin-bottom: 4px;
+}
+
 .target-card {
   margin-top: 18px;
   padding: 14px 16px;

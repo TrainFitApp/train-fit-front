@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
 import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
 import {
   DietaryFlag,
-  DietSuggestionResponse,
   PhaseFocus,
   RankedTemplate,
 } from '../../../diet-templates/models/diet-suggestion.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
+import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 
 const FOCUS_DEFAULTS: Record<PhaseFocus, { delta: number; rate: number }> = {
   cut: { delta: -500, rate: -100 },
@@ -29,10 +29,10 @@ const DIETARY_FLAGS: { key: DietaryFlag; label: string }[] = [
 
 type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 
-// Sugerencias de dieta — el cajón lateral que se abre al empezar una fase de
-// nutrición en la ficha del cliente. Filtros autorrellenados (objetivo,
-// restricciones), plantillas rankeadas por cercanía al objetivo del cliente
-// (podio 🥇🥈🥉 + resto), y al elegir una se aplica como ciclo 1 de la fase.
+// Sugerencias de dieta — el panel DERECHO al empezar una fase: solo los
+// parámetros (objetivo, restricciones), el objetivo calculado del cliente y
+// la sugerencia principal + CTA. La LISTA rankeada va en la zona principal
+// (diet-suggestion-list). Estado compartido en DietSuggestionSessionService.
 @Component({
   selector: 'app-diet-suggestion-drawer',
   standalone: true,
@@ -40,7 +40,7 @@ type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
   templateUrl: './diet-suggestion-drawer.component.html',
   styleUrls: ['./diet-suggestion-drawer.component.scss'],
 })
-export class DietSuggestionDrawerComponent implements OnInit {
+export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
   @Input() public suggestedStartDate: string | null = null;
@@ -56,36 +56,39 @@ export class DietSuggestionDrawerComponent implements OnInit {
   public readonly dietaryFlagOptions = DIETARY_FLAGS;
   public dietaryFlags = new Set<DietaryFlag>();
 
-  // --- Resultado ---
-  public data: DietSuggestionResponse | null = null;
-  public showHidden = false;
-
   // --- Confirmación ---
   public startDate = new Date().toISOString().slice(0, 10);
-  public selectedTemplateId: string | null = null;
   public applying = false;
 
-  private refetch$ = new Subject<void>();
+  // Reflejo local del estado compartido (para el template).
+  public selectedId: string | null = null;
+
+  private readonly refetch$ = new Subject<void>();
+  private readonly subs = new Subscription();
+  private userTouchedFilters = false;
+  private appliedClientObjetive = false;
 
   constructor(
     private modalController: ModalController,
     private suggestionApi: DietSuggestionApiService,
     private planApi: PlanAssignmentApiService,
-    private ionicUtil: IonicUtilService
+    private ionicUtil: IonicUtilService,
+    private session: DietSuggestionSessionService
   ) {}
 
   public ngOnInit(): void {
+    this.session.reset();
     if (this.suggestedStartDate) this.startDate = this.suggestedStartDate;
-    this.refetch$.pipe(debounceTime(350)).subscribe(() => this.fetch());
+    this.subs.add(this.refetch$.pipe(debounceTime(350)).subscribe(() => this.fetch()));
+    this.subs.add(this.session.selectedId$.subscribe((id) => (this.selectedId = id)));
     this.fetch();
   }
 
-  // --- Filtros ---
+  public ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
 
-  // Se marca en cuanto el entrenador toca un filtro: a partir de ahí el
-  // objetivo del cliente (clientObjetive) ya no re-ajusta nada.
-  private userTouchedFilters = false;
-  private appliedClientObjetive = false;
+  // --- Filtros ---
 
   public setFocus(focus: PhaseFocus): void {
     this.userTouchedFilters = true;
@@ -103,9 +106,13 @@ export class DietSuggestionDrawerComponent implements OnInit {
     this.queueRefetch();
   }
 
-  // El objetivo del cliente al registrarse decide en qué focus arranca el
-  // cajón (en vez de siempre "Definir"). Solo antes de que el entrenador
-  // toque nada, y solo una vez.
+  public queueRefetch(): void {
+    this.userTouchedFilters = true;
+    this.refetch$.next();
+  }
+
+  // El objetivo del cliente al registrarse decide en qué focus arranca (en
+  // vez de siempre "Definir"). Solo antes de que el entrenador toque nada.
   private applyClientObjetive(delta: number): void {
     const focus: PhaseFocus = delta < -50 ? 'cut' : delta > 50 ? 'bulk' : 'maintain';
     this.focus = focus;
@@ -114,13 +121,9 @@ export class DietSuggestionDrawerComponent implements OnInit {
     this.ratePerCycle = FOCUS_DEFAULTS[focus].rate;
   }
 
-  public queueRefetch(): void {
-    this.userTouchedFilters = true;
-    this.refetch$.next();
-  }
-
   private fetch(): void {
-    this.state = this.data ? this.state : 'loading';
+    if (this.state !== 'ready') this.state = 'loading';
+    this.session.setLoading(true);
     this.suggestionApi
       .suggest(this.clientId, {
         objetiveKcalDelta: Number(this.kcalDelta) || 0,
@@ -128,9 +131,6 @@ export class DietSuggestionDrawerComponent implements OnInit {
       })
       .subscribe({
         next: (res) => {
-          // Primera respuesta y el entrenador no ha tocado nada: arrancar en
-          // el focus que encaja con el objetivo que el cliente eligió al
-          // registrarse, y volver a pedir con ese delta.
           if (
             !this.userTouchedFilters &&
             !this.appliedClientObjetive &&
@@ -144,19 +144,18 @@ export class DietSuggestionDrawerComponent implements OnInit {
               return;
             }
           }
-          this.data = res;
+          this.session.setResults(res);
+          this.session.setLoading(false);
           this.state = 'ready';
-          if (this.selectedTemplateId && !res.ranked.some((r) => r._id === this.selectedTemplateId)) {
-            this.selectedTemplateId = null;
-          }
         },
         error: (err) => {
+          this.session.setLoading(false);
           if (err?.status === 422 && err?.error?.code === 'MISSING_BIOMETRICS') {
             this.missing = err.error.missing || [];
             this.state = 'missing-biometrics';
             return;
           }
-          this.state = this.data ? 'ready' : 'error';
+          this.state = this.session.results ? 'ready' : 'error';
           this.ionicUtil.showErrorToast(
             err?.error?.message || 'No se pudieron cargar las sugerencias',
             'Error',
@@ -166,54 +165,62 @@ export class DietSuggestionDrawerComponent implements OnInit {
       });
   }
 
-  // --- Render helpers ---
+  // --- Sugerencia principal / lo que se va a aplicar ---
 
-  public medal(rank: number): string {
-    return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+  public get target(): { kcal: number; protein: number; carbs: number; fat: number } | null {
+    return this.session.results?.target ?? null;
   }
 
-  public deltaLabel(value: number, unit = ''): string {
-    const sign = value > 0 ? '+' : '';
-    return `${sign}${value}${unit}`;
+  public get weightSource(): { weightKg: number; from: string; date?: string } | null {
+    return this.session.results?.weightSource ?? null;
+  }
+
+  // La que el entrenador va a aplicar: la elegida en la lista, o la #1.
+  public get chosen(): RankedTemplate | null {
+    const r = this.session.results?.ranked ?? [];
+    if (this.selectedId) return r.find((t) => t._id === this.selectedId) ?? null;
+    return r[0] ?? null;
+  }
+
+  public get chosenIsTop(): boolean {
+    return !!this.chosen && this.chosen.rank === 1 && !this.selectedId;
   }
 
   public focusVerb(): string {
     return this.focus === 'cut' ? 'definir' : this.focus === 'bulk' ? 'coger volumen' : 'mantener';
   }
 
-  public flagLabel(flag: DietaryFlag): string {
-    return DIETARY_FLAGS.find((f) => f.key === flag)?.label ?? flag;
-  }
-
   // --- Acciones ---
 
-  public select(template: RankedTemplate): void {
-    this.selectedTemplateId = this.selectedTemplateId === template._id ? null : template._id;
+  public get canConfirm(): boolean {
+    return !!this.chosen && !!this.startDate && !this.applying;
   }
 
-  public get canConfirm(): boolean {
-    return !!this.selectedTemplateId && !!this.startDate && !this.applying;
+  private phasePayload() {
+    const t = this.target!;
+    return {
+      phase: {
+        name: this.phaseName.trim() || this.phaseName,
+        focus: this.focus,
+        targetKcalDelta: Number(this.kcalDelta) || 0,
+        ratePerCycle: Number(this.ratePerCycle) || 0,
+      },
+      cycleTarget: {
+        kcal: t.kcal,
+        macros: { protein: t.protein, carbs: t.carbs, fat: t.fat },
+      },
+    };
   }
 
   public confirm(): void {
-    if (!this.canConfirm || !this.data) return;
+    if (!this.canConfirm || !this.target || !this.chosen) return;
     this.applying = true;
-    const target = this.data.target;
 
     this.planApi
-      .apply(this.clientId, this.selectedTemplateId as string, {
+      .apply(this.clientId, this.chosen._id, {
         startDate: this.startDate,
         endMode: 'indefinite',
-        phase: {
-          name: this.phaseName.trim() || this.phaseName,
-          focus: this.focus,
-          targetKcalDelta: Number(this.kcalDelta) || 0,
-          ratePerCycle: Number(this.ratePerCycle) || 0,
-        },
-        cycleTarget: {
-          kcal: target.kcal,
-          macros: { protein: target.protein, carbs: target.carbs, fat: target.fat },
-        },
+        ...this.phasePayload(),
       })
       .subscribe({
         next: (assignment) => {
@@ -221,6 +228,7 @@ export class DietSuggestionDrawerComponent implements OnInit {
             message: `Fase "${this.phaseName}" aplicada a ${this.clientName} desde ${this.startDate}`,
             duration: 3000,
           });
+          this.session.reset();
           void this.modalController.dismiss({ assignment, phaseName: this.phaseName }, 'confirm');
         },
         error: (err) => {
@@ -236,32 +244,17 @@ export class DietSuggestionDrawerComponent implements OnInit {
       });
   }
 
-  // "Empezar de cero" — ninguna plantilla encaja (o el entrenador quiere
-  // construirla). Se lleva el objetivo calculado + el bloque de fase al
-  // builder, que al guardar crea la dieta y la aplica como ciclo 1.
   public createFromScratch(): void {
-    if (!this.data) return;
-    const target = this.data.target;
+    if (!this.target) return;
+    this.session.reset();
     void this.modalController.dismiss(
-      {
-        forDirectCreate: true,
-        startDate: this.startDate,
-        phase: {
-          name: this.phaseName.trim() || this.phaseName,
-          focus: this.focus,
-          targetKcalDelta: Number(this.kcalDelta) || 0,
-          ratePerCycle: Number(this.ratePerCycle) || 0,
-        },
-        cycleTarget: {
-          kcal: target.kcal,
-          macros: { protein: target.protein, carbs: target.carbs, fat: target.fat },
-        },
-      },
+      { forDirectCreate: true, startDate: this.startDate, ...this.phasePayload() },
       'create-from-scratch'
     );
   }
 
   public dismiss(): void {
+    this.session.reset();
     void this.modalController.dismiss(null, 'cancel');
   }
 }

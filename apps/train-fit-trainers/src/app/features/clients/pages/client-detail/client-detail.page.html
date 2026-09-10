@@ -830,7 +830,20 @@
                Junto con la tarjeta de plan activo, va ANTES del calendario/
                gráfica: es lo primero que se decide (qué plan rige), lo de
                abajo (calendario/seguimiento) es la consecuencia de eso. -->
-          <div class="template-actions-row">
+          <!-- Sugerencias de dieta — modo "elegir dieta para la fase": la
+               lista rankeada ocupa la zona principal; los parámetros y la
+               sugerencia van en el panel derecho (diet-suggestion-drawer). -->
+          <div class="diet-selection-mode" *ngIf="dietSelectionMode">
+            <div class="section-row">
+              <h3 class="diet-selection-title">Elige una dieta para la fase</h3>
+              <button type="button" class="diet-selection-cancel" (click)="closeDietSelection()">
+                Cancelar
+              </button>
+            </div>
+            <app-diet-suggestion-list></app-diet-suggestion-list>
+          </div>
+
+          <div class="template-actions-row" *ngIf="!dietSelectionMode">
             <button type="button" class="add-button" (click)="openApplyTemplateModal()">
               <ion-icon name="download-outline"></ion-icon>
               Aplicar plantilla
@@ -856,7 +869,7 @@
                programadas. Añadir una fase la encadena al final, que es
                donde se espera que aparezca. Con muchas, la fila desplaza
                dentro de su caja en vez de estirar la página. -->
-          <div class="plan-track" *ngIf="activePlan">
+          <div class="plan-track" *ngIf="activePlan && !dietSelectionMode">
           <!-- Mismo color que este tramo pinta en el calendario de abajo
                (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
                vistazo la tarjeta con su franja de días. -->
