@@ -186,6 +186,27 @@
       </div>
     </swiper-slide>
 
+    <swiper-slide *ngIf="enabledFields.has('dietaryFlags')">
+      <div class="form-section">
+        <h2 class="section-title">¿Sigues alguna dieta especial?</h2>
+        <p class="section-subtitle">Marca las que apliquen. Deja todo sin marcar si comes de todo.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of dietaryFlagOptions"
+            [class.is-selected]="dietaryFlags.includes(option.value)"
+            (click)="toggleDietaryFlag(option.value)"
+          >
+            <div class="option-icon"><ion-icon name="leaf-outline"></ion-icon></div>
+            <div class="option-text">
+              <div class="option-title">{{ option.label }}</div>
+            </div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
     <swiper-slide *ngFor="let question of customQuestions; trackBy: trackByQuestionId">
       <div class="form-section">
         <h2 class="section-title">{{ question.label }}</h2>

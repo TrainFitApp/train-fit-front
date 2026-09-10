@@ -35,8 +35,12 @@ export interface IntakeSubmission {
   favoriteFoods: string;
   dislikedFoods: string;
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
+  // Restricciones dietéticas estructuradas → ClientNutritionPreferences.
+  dietaryFlags: DietaryFlag[];
   customAnswers: IntakeCustomAnswer[];
 }
+
+export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 
 // Lo que ya se le respondió a este trainer, si algo — para precargar el
 // formulario cuando el mismo trainer añade un scope nuevo más tarde en vez

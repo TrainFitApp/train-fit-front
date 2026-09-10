@@ -768,6 +768,10 @@
               <span class="preferences-label">No le gustan</span>
               <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
             </div>
+            <div class="preferences-field" *ngIf="nutritionPreferences?.dietaryFlags?.length">
+              <span class="preferences-label">Dieta especial</span>
+              <p class="preferences-value">{{ dietaryFlagsLabel(nutritionPreferences.dietaryFlags) }}</p>
+            </div>
             <div class="preferences-field">
               <span class="preferences-label">¿Cocina en casa?</span>
               <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>

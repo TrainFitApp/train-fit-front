@@ -320,6 +320,8 @@ export interface ClientNutritionPreferences {
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
+  // Restricciones estructuradas — filtro duro del cajón de sugerencias.
+  dietaryFlags?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
   disabledMealSlots: string[];
   mealSlotLabels: Record<string, string>;

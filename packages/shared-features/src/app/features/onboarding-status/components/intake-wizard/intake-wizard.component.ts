@@ -14,7 +14,12 @@ import {
   IntakeCustomQuestion,
   IntakeFieldKey,
 } from 'src/app/core/services/onboarding/onboarding.service';
-import { EquipmentTag, IntakeSubmission, TrainingLocation } from '../../services/intake-api.service';
+import {
+  DietaryFlag,
+  EquipmentTag,
+  IntakeSubmission,
+  TrainingLocation,
+} from '../../services/intake-api.service';
 
 export type IntakeWizardResult = Omit<IntakeSubmission, 'trainerId'>;
 
@@ -29,6 +34,7 @@ export interface IntakeWizardPrefill {
   favoriteFoods: string;
   dislikedFoods: string;
   cooksAtHome: IntakeSubmission['cooksAtHome'];
+  dietaryFlags: DietaryFlag[];
   customAnswers: Record<string, string>;
 }
 
@@ -50,6 +56,13 @@ const TRAINING_LOCATION_OPTIONS: { value: TrainingLocation; label: string }[] = 
   { value: 'home', label: 'Casa' },
   { value: 'outdoor', label: 'Exterior' },
   { value: 'mixed', label: 'Mixto' },
+];
+
+const DIETARY_FLAG_OPTIONS: { value: DietaryFlag; label: string }[] = [
+  { value: 'vegan', label: 'Vegana' },
+  { value: 'vegetarian', label: 'Vegetariana' },
+  { value: 'lactoseFree', label: 'Sin lactosa' },
+  { value: 'glutenFree', label: 'Sin gluten' },
 ];
 
 const EQUIPMENT_TAG_OPTIONS: { value: EquipmentTag; label: string }[] = [
@@ -106,6 +119,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public readonly cooksOptions = COOKS_OPTIONS;
   public readonly trainingLocationOptions = TRAINING_LOCATION_OPTIONS;
   public readonly equipmentTagOptions = EQUIPMENT_TAG_OPTIONS;
+  public readonly dietaryFlagOptions = DIETARY_FLAG_OPTIONS;
 
   public goals = '';
   public healthConditions = '';
@@ -117,6 +131,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public favoriteFoods = '';
   public dislikedFoods = '';
   public cooksAtHome: IntakeSubmission['cooksAtHome'] = null;
+  public dietaryFlags: DietaryFlag[] = [];
   public customAnswers: Record<string, string> = {};
 
   private stepIds: string[] = [];
@@ -146,6 +161,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.favoriteFoods = p?.favoriteFoods || '';
     this.dislikedFoods = p?.dislikedFoods || '';
     this.cooksAtHome = p?.cooksAtHome ?? null;
+    this.dietaryFlags = p?.dietaryFlags ? [...p.dietaryFlags] : [];
     this.customAnswers = { ...(p?.customAnswers || {}) };
   }
 
@@ -168,6 +184,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     if (this.enabledFields.has('favoriteFoods')) ids.push('favoriteFoods');
     if (this.enabledFields.has('dislikedFoods')) ids.push('dislikedFoods');
     if (this.enabledFields.has('cooksAtHome')) ids.push('cooksAtHome');
+    if (this.enabledFields.has('dietaryFlags')) ids.push('dietaryFlags');
     this.customQuestions.forEach((q) => ids.push(`custom:${q.id}`));
     return ids;
   }
@@ -265,6 +282,12 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       : [...this.equipmentTags, tag];
   }
 
+  public toggleDietaryFlag(flag: DietaryFlag): void {
+    this.dietaryFlags = this.dietaryFlags.includes(flag)
+      ? this.dietaryFlags.filter((f) => f !== flag)
+      : [...this.dietaryFlags, flag];
+  }
+
   public submit(): void {
     if (this.isSubmitting) return;
 
@@ -285,6 +308,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       favoriteFoods: this.favoriteFoods.trim(),
       dislikedFoods: this.dislikedFoods.trim(),
       cooksAtHome: this.cooksAtHome,
+      dietaryFlags: this.dietaryFlags,
       customAnswers,
     });
   }

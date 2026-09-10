@@ -118,7 +118,9 @@ export class InvitesPage implements OnInit {
   }
 
   // TASK-049 (MASTER_BACKLOG.md) — personalización del cuestionario inicial.
-  public readonly intakeFieldLabels: Record<IntakeFieldKey, string> = {
+  // Partial: `dietaryFlags` es un IntakeFieldKey pero NO toggleable (el
+  // backend lo fuerza en scope nutrición), así que no aparece aquí.
+  public readonly intakeFieldLabels: Partial<Record<IntakeFieldKey, string>> = {
     goals: 'Objetivos',
     healthConditions: 'Salud y lesiones',
     experienceLevel: 'Nivel de experiencia',

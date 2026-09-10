@@ -36,6 +36,7 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   favoriteFoods: '',
   dislikedFoods: '',
   cooksAtHome: null,
+  dietaryFlags: [],
   customAnswers: {},
 };
 
@@ -195,11 +196,15 @@ export class OnboardingStatusPage implements OnDestroy {
             : 'Tu profesional',
           scopes: [],
           needsIntake: false,
-          enabledFields: new Set(relation.intakeEnabledFields),
+          enabledFields: new Set(),
           customQuestions: relation.intakeCustomQuestions,
         });
       }
       const group = byTrainer.get(relation.trainerId)!;
+      // Unión entre las relaciones del mismo trainer: enabledFields es por
+      // trainer, PERO el backend fuerza `dietaryFlags` solo en la relación
+      // de scope nutrición, así que hay que juntar todas.
+      relation.intakeEnabledFields.forEach((f) => group.enabledFields.add(f));
       group.scopes.push(relation.scope === 'training' ? 'Entrenamiento' : 'Nutrición');
       if (relation.status === 'cuestionario_pendiente') group.needsIntake = true;
     }
@@ -252,6 +257,7 @@ export class OnboardingStatusPage implements OnDestroy {
           favoriteFoods: preferences?.favoriteFoods || '',
           dislikedFoods: preferences?.dislikedFoods || '',
           cooksAtHome: preferences?.cooksAtHome ?? null,
+          dietaryFlags: preferences?.dietaryFlags || [],
           customAnswers,
         };
         this.isLoadingIntake = false;

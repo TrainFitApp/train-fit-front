@@ -1849,6 +1849,18 @@ export class ClientDetailPage implements OnInit {
     return 'Sin especificar';
   }
 
+  private readonly dietaryFlagLabels: Record<string, string> = {
+    vegan: 'Vegana',
+    vegetarian: 'Vegetariana',
+    lactoseFree: 'Sin lactosa',
+    glutenFree: 'Sin gluten',
+  };
+
+  public dietaryFlagsLabel(flags: string[] | undefined): string {
+    if (!flags?.length) return 'Ninguna';
+    return flags.map((f) => this.dietaryFlagLabels[f] ?? f).join(', ');
+  }
+
   // Movimiento 5 Coach Pro — reparto por comidas en intercambios. Fuera del
   // FormGroup a propósito: es una estructura anidada (comidas -> raciones)
   // que se edita con su propio componente, y meterla en un FormArray dentro

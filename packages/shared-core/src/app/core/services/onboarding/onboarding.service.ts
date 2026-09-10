@@ -14,7 +14,10 @@ export type IntakeFieldKey =
   | 'allergies'
   | 'favoriteFoods'
   | 'dislikedFoods'
-  | 'cooksAtHome';
+  | 'cooksAtHome'
+  // Restricciones dietéticas — no toggleable por el entrenador: el backend
+  // (getOnboardingStatus) lo fuerza en toda relación de scope nutrición.
+  | 'dietaryFlags';
 
 export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'goals',
@@ -26,6 +29,7 @@ export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'favoriteFoods',
   'dislikedFoods',
   'cooksAtHome',
+  'dietaryFlags',
 ];
 
 export interface IntakeCustomQuestion {
