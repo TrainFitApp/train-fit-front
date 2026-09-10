@@ -26,6 +26,7 @@ import { STEPS, STEPS_TYPES, STEPS_VALUES } from 'src/app/shared/constants/steps
 import { ACTIVITY_FACTOR_VALUES } from 'src/app/shared/constants/activity-factor';
 import { calculateTrainingValues } from 'src/app/shared/constants/training';
 import { SEX_TYPES } from 'src/app/shared/constants/sex';
+import { OBJETIVES_VALUES } from 'src/app/shared/constants/objetives';
 
 const STEPS_NOT_COUNTED = STEPS[STEPS_TYPES.notCounted].value;
 
@@ -56,6 +57,7 @@ export interface IntakeWizardPrefill {
   steps: number | null; // STEPS[x].value
   activity: number | null; // ACTIVITY_FACTOR[x].value
   training: number | null; // valor resuelto de calculateTrainingValues
+  objective: number | null; // User.objetive (delta kcal con signo)
   customAnswers: Record<string, string>;
 }
 
@@ -151,6 +153,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public readonly activityOptions = ACTIVITY_FACTOR_VALUES;
   public readonly stepsNotCounted = Number(STEPS_NOT_COUNTED);
   public trainingOptions: { name: string; value: number }[] = [];
+  public readonly objectiveOptions = OBJETIVES_VALUES;
 
   public goals = '';
   public healthConditions = '';
@@ -170,6 +173,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
   public steps: number | null = null;
   public activity: number | null = null;
   public training: number | null = null;
+  public objective: number | null = null;
   public customAnswers: Record<string, string> = {};
 
   private stepIds: string[] = [];
@@ -207,6 +211,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.steps = p?.steps ?? null;
     this.activity = p?.activity ?? null;
     this.training = p?.training ?? null;
+    this.objective = p?.objective ?? null;
     this.updateTrainingOptions();
     this.customAnswers = { ...(p?.customAnswers || {}) };
   }
@@ -224,6 +229,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       ids.push('activity');
       ids.push('trainingFreq');
     }
+    if (this.enabledFields.has('objective')) ids.push('objective');
     if (this.enabledFields.has('goals')) ids.push('goals');
     if (this.enabledFields.has('healthConditions')) ids.push('healthConditions');
     if (this.enabledFields.has('experienceLevel')) ids.push('experienceLevel');
@@ -370,6 +376,10 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
     this.selectSingleChip((v) => (this.training = v), value);
   }
 
+  public selectObjective(value: number): void {
+    this.selectSingleChip((v) => (this.objective = v), value);
+  }
+
   public submit(): void {
     if (this.isSubmitting) return;
 
@@ -398,6 +408,7 @@ export class IntakeWizardComponent implements OnChanges, AfterViewInit {
       steps: this.steps,
       activity: this.steps === STEPS_NOT_COUNTED ? this.activity : null,
       training: this.training,
+      objetive: this.objective,
       customAnswers,
     });
   }

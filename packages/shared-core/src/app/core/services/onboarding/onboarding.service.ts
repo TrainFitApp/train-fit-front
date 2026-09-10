@@ -20,7 +20,8 @@ export type IntakeFieldKey =
   // siempre (confirman datos del registro y se reescriben en User).
   | 'dietaryFlags'
   | 'profileBiometrics'
-  | 'activityProfile';
+  | 'activityProfile'
+  | 'objective';
 
 export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'goals',
@@ -35,6 +36,7 @@ export const ALL_INTAKE_FIELDS: IntakeFieldKey[] = [
   'dietaryFlags',
   'profileBiometrics',
   'activityProfile',
+  'objective',
 ];
 
 export interface IntakeCustomQuestion {

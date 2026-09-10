@@ -45,6 +45,7 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   steps: null,
   activity: null,
   training: null,
+  objective: null,
   customAnswers: {},
 };
 
@@ -291,7 +292,7 @@ export class OnboardingStatusPage implements OnDestroy {
   // ajusta lo que haya cambiado.
   private profilePrefillFromUser(): Pick<
     IntakeWizardPrefill,
-    'weight' | 'height' | 'sex' | 'birth' | 'steps' | 'activity' | 'training'
+    'weight' | 'height' | 'sex' | 'birth' | 'steps' | 'activity' | 'training' | 'objective'
   > {
     const u = this.userService.getLocalUser;
     return {
@@ -302,6 +303,7 @@ export class OnboardingStatusPage implements OnDestroy {
       steps: Number.isFinite(u?.steps) ? u!.steps : null,
       activity: Number.isFinite(u?.activity) ? u!.activity : null,
       training: Number.isFinite(u?.training) ? u!.training : null,
+      objective: Number.isFinite(u?.objetive) ? u!.objetive : null,
     };
   }
 

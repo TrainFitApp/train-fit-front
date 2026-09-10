@@ -47,6 +47,8 @@ export interface IntakeSubmission {
   steps: number | null;
   activity: number | null;
   training: number | null;
+  // `objetive` (sic) — mismo nombre que el campo de `User`. Delta kcal.
+  objetive: number | null;
   customAnswers: IntakeCustomAnswer[];
 }
 

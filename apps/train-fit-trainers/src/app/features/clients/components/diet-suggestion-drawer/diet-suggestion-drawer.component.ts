@@ -82,7 +82,13 @@ export class DietSuggestionDrawerComponent implements OnInit {
 
   // --- Filtros ---
 
+  // Se marca en cuanto el entrenador toca un filtro: a partir de ahí el
+  // objetivo del cliente (clientObjetive) ya no re-ajusta nada.
+  private userTouchedFilters = false;
+  private appliedClientObjetive = false;
+
   public setFocus(focus: PhaseFocus): void {
+    this.userTouchedFilters = true;
     this.focus = focus;
     this.kcalDelta = FOCUS_DEFAULTS[focus].delta;
     this.ratePerCycle = FOCUS_DEFAULTS[focus].rate;
@@ -91,12 +97,25 @@ export class DietSuggestionDrawerComponent implements OnInit {
   }
 
   public toggleFlag(flag: DietaryFlag): void {
+    this.userTouchedFilters = true;
     if (this.dietaryFlags.has(flag)) this.dietaryFlags.delete(flag);
     else this.dietaryFlags.add(flag);
     this.queueRefetch();
   }
 
+  // El objetivo del cliente al registrarse decide en qué focus arranca el
+  // cajón (en vez de siempre "Definir"). Solo antes de que el entrenador
+  // toque nada, y solo una vez.
+  private applyClientObjetive(delta: number): void {
+    const focus: PhaseFocus = delta < -50 ? 'cut' : delta > 50 ? 'bulk' : 'maintain';
+    this.focus = focus;
+    this.phaseName = focus === 'cut' ? 'Definición' : focus === 'bulk' ? 'Volumen' : 'Mantenimiento';
+    this.kcalDelta = Math.round(delta) || FOCUS_DEFAULTS[focus].delta;
+    this.ratePerCycle = FOCUS_DEFAULTS[focus].rate;
+  }
+
   public queueRefetch(): void {
+    this.userTouchedFilters = true;
     this.refetch$.next();
   }
 
@@ -109,6 +128,22 @@ export class DietSuggestionDrawerComponent implements OnInit {
       })
       .subscribe({
         next: (res) => {
+          // Primera respuesta y el entrenador no ha tocado nada: arrancar en
+          // el focus que encaja con el objetivo que el cliente eligió al
+          // registrarse, y volver a pedir con ese delta.
+          if (
+            !this.userTouchedFilters &&
+            !this.appliedClientObjetive &&
+            typeof res.clientObjetive === 'number'
+          ) {
+            this.appliedClientObjetive = true;
+            const before = this.kcalDelta;
+            this.applyClientObjetive(res.clientObjetive);
+            if (this.kcalDelta !== before) {
+              this.fetch();
+              return;
+            }
+          }
           this.data = res;
           this.state = 'ready';
           if (this.selectedTemplateId && !res.ranked.some((r) => r._id === this.selectedTemplateId)) {

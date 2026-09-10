@@ -100,6 +100,25 @@
       </div>
     </swiper-slide>
 
+    <swiper-slide *ngIf="enabledFields.has('objective')">
+      <div class="form-section">
+        <h2 class="section-title">¿Cuál es tu objetivo?</h2>
+        <p class="section-subtitle">Tu entrenador lo afinará, pero nos da el punto de partida.</p>
+        <div class="options-list">
+          <div
+            class="option-card"
+            *ngFor="let option of objectiveOptions"
+            [class.is-selected]="objective === option.value"
+            (click)="selectObjective(option.value!)"
+          >
+            <div class="option-icon"><ion-icon name="flag-outline"></ion-icon></div>
+            <div class="option-text"><div class="option-title">{{ option.name | translate }}</div></div>
+            <div class="option-check"><ion-icon name="checkmark"></ion-icon></div>
+          </div>
+        </div>
+      </div>
+    </swiper-slide>
+
     <swiper-slide *ngIf="enabledFields.has('goals')">
       <div class="form-section">
         <h2 class="section-title">Tus objetivos</h2>

@@ -46,7 +46,10 @@ export interface DietSuggestionResponse {
   target: NutritionTarget;
   // `from: 'anthropometry'` trae `date`; `from: 'signup'` no (viene del
   // registro del cliente, sin fecha).
-  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string };
+  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+  // Objetivo del cliente al registrarse (delta kcal con signo). El cajón lo
+  // usa para arrancar en el focus correcto.
+  clientObjetive?: number | null;
   requiredFlags: DietaryFlag[];
   ranked: RankedTemplate[];
   hidden: HiddenTemplate[];
