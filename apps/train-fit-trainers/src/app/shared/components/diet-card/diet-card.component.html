@@ -1,0 +1,38 @@
+<button
+  type="button"
+  class="diet-card"
+  [class.is-podium]="!!medal"
+  [class.is-highlight]="highlight"
+  [class.is-selected]="selected"
+  (click)="picked.emit()"
+>
+  <div class="card-top">
+    <span class="medal" *ngIf="medal">{{ medal }}</span>
+    <span class="card-name">{{ name }}</span>
+    <span class="tag tag--verified" *ngIf="verified">de fábrica</span>
+    <span class="tag tag--owned" *ngIf="ownedByClient">de un cliente</span>
+  </div>
+
+  <p class="card-lead" *ngIf="lead">{{ lead }}</p>
+
+  <div class="card-macros" *ngIf="profile">
+    <span>
+      {{ profile.kcal }} kcal
+      <em *ngIf="deltas">({{ deltaLabel(deltas.kcal) }})</em>
+    </span>
+    <span>P {{ profile.protein }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.protein) }})</em></span>
+    <span>C {{ profile.carbs }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.carbs) }})</em></span>
+    <span>G {{ profile.fat }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.fat) }})</em></span>
+  </div>
+
+  <p class="card-note" *ngIf="dayCount">
+    {{ dayCount }} día{{ dayCount === 1 ? '' : 's' }} de menú
+  </p>
+  <p class="card-note" *ngIf="!dayCount && basedOnDays > 1">
+    media de los {{ basedOnDays }} días del ciclo
+  </p>
+
+  <div class="card-flags" *ngIf="flags?.length">
+    <span *ngFor="let f of flags">{{ flagLabel(f) }}</span>
+  </div>
+</button>

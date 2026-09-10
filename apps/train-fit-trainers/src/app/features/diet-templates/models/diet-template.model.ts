@@ -140,4 +140,7 @@ export interface DietTemplate {
   suitableForOverride?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
   // true = dieta predefinida de administración (sale en el ranking de todos).
   verified?: boolean;
+  // Perfil de macros de un día tipo — lo calcula el backend en el listado
+  // (GET /trainer/diet-templates) para pintar las cards.
+  macroProfile?: { kcal: number; protein: number; carbs: number; fat: number; basedOnDays: number };
 }

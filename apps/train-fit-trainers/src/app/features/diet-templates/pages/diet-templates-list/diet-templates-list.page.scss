@@ -257,11 +257,23 @@
 
 // Objetivo táctil de 44px (PRODUCT.md) — antes 36px. Transparente por
 // defecto para no leerse como una card anidada dentro de la fila.
+// Sugerencias de dieta — cada plantilla es una card (app-diet-card) con el
+// botón de borrar superpuesto arriba a la derecha.
+.template-cell {
+  position: relative;
+}
+
+.template-cell .delete-template-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+}
+
 .delete-template-btn {
   flex-shrink: 0;
   width: var(--tf-touch-min);
   height: var(--tf-touch-min);
-  margin-right: var(--tf-space-1);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,18 +1,10 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
-  DietaryFlag,
   DietSuggestionResponse,
   RankedTemplate,
 } from '../../../diet-templates/models/diet-suggestion.model';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
-
-const FLAG_LABELS: Record<DietaryFlag, string> = {
-  vegan: 'Vegana',
-  vegetarian: 'Vegetariana',
-  lactoseFree: 'Sin lactosa',
-  glutenFree: 'Sin gluten',
-};
 
 // Sugerencias de dieta — la LISTA rankeada, en la zona principal de la
 // sección de nutrición (ancho completo). Los parámetros y la sugerencia
@@ -42,14 +34,6 @@ export class DietSuggestionListComponent {
 
   public medal(rank: number): string {
     return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
-  }
-
-  public deltaLabel(value: number): string {
-    return (value > 0 ? '+' : '') + value;
-  }
-
-  public flagLabel(flag: DietaryFlag): string {
-    return FLAG_LABELS[flag] ?? flag;
   }
 
   public trackById(_i: number, t: RankedTemplate): string {

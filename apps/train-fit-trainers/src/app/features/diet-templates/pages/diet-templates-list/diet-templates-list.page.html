@@ -55,31 +55,16 @@
     </div>
 
     <div class="templates-grid" *ngIf="templates.length">
-      <div
-        class="template-row"
-        *ngFor="let template of templates; trackBy: trackByTemplateId"
-      >
-        <button type="button" class="template-row-main" (click)="openTemplate(template)">
-          <!-- Las dietas propias de un cliente (ownerClientId) también salen
-               aquí: si no, quedarían sin ningún sitio donde volver a
-               editarlas tras crearlas desde su ficha. -->
-          <ion-icon
-            [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"
-            class="template-row-icon"
-          ></ion-icon>
-          <div class="template-info">
-            <span class="template-name">{{ template.name }}</span>
-            <span class="template-meta">
-              {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
-              <ng-container *ngIf="template.ownerClientId"> · de un cliente</ng-container>
-              <ng-container *ngIf="template.verified"> · de fábrica</ng-container>
-            </span>
-            <!-- Sugerencias de dieta — aptitud dietética derivada del contenido. -->
-            <span class="template-flags" *ngIf="effectiveSuitableFor(template).length">
-              <span class="template-flag" *ngFor="let f of effectiveSuitableFor(template)">{{ flagLabel(f) }}</span>
-            </span>
-          </div>
-        </button>
+      <div class="template-cell" *ngFor="let template of templates; trackBy: trackByTemplateId">
+        <app-diet-card
+          [name]="template.name"
+          [profile]="template.macroProfile || null"
+          [dayCount]="dayCount(template)"
+          [verified]="!!template.verified"
+          [ownedByClient]="!!template.ownerClientId"
+          [flags]="effectiveSuitableFor(template)"
+          (picked)="openTemplate(template)"
+        ></app-diet-card>
         <button
           type="button"
           class="delete-template-btn"
