@@ -861,32 +861,17 @@
             [style.--phase-color]="phaseColor(activePlan)"
             [style.--phase-bg]="phaseSoftBackground(activePlan)"
           >
-            <!-- Borrado coherente de fases (nutrición) — fila propia y no
-                 dentro de .active-plan-header: esa es un <button> entero
-                 (abre la plantilla), y no puede anidar otro botón dentro.
-                 margin-left:auto en el botón manda el quitar a la derecha
-                 tanto si el badge "en curso" está como si no (con 1 sola
-                 fase no se pinta). -->
-            <div class="active-plan-top-row">
-              <!-- El naranja de acento se queda solo para navegación/UI (hoy,
-                   seleccionado...) — la fase vigente es un dato del cliente
-                   como cualquier otra, con su propio color; lo que la marca
-                   como "en curso" es el icono, no un color reservado. -->
-              <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
+            <!-- El naranja de acento se queda solo para navegación/UI (hoy,
+                 seleccionado...) — la fase vigente es un dato del cliente
+                 como cualquier otra, con su propio color; lo que la marca
+                 como "en curso" es el icono, no un color reservado.
+                 "Quitar fase" ya no vive aquí como icono danger: es una
+                 acción secundaria, va en el pie de la tarjeta como texto. -->
+            <div class="active-plan-top-row" *ngIf="planPhases.length > 1">
+              <span class="plan-phase-order plan-phase-order--current">
                 <ion-icon name="flash" aria-hidden="true"></ion-icon>
                 1ª · en curso
               </span>
-              <button
-                type="button"
-                class="bulk-apply-btn bulk-apply-btn--danger"
-                title="Quitar fase"
-                aria-label="Quitar fase"
-                [disabled]="cancellingPlanPhaseId === activePlan._id"
-                (click)="confirmCancelPlanPhase(activePlan, $event)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
-                <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== activePlan._id"></ion-icon>
-              </button>
             </div>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
                  editar la plantilla aplicada, sin pasar por "Gestionar
@@ -942,21 +927,34 @@
               {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
             </p>
 
-            <!-- Sugerencias de dieta — progresión ciclo a ciclo dentro de la
-                 fase vigente (solo si la fase tiene phaseId, es decir se
-                 empezó desde el cajón de sugerencias). -->
-            <button
-              type="button"
-              class="next-cycle-btn"
-              *ngIf="activePlan.phaseId"
-              (click)="openNextCycleModal()"
-            >
-              <ion-icon name="trending-down-outline" aria-hidden="true"></ion-icon>
-              Siguiente ciclo
-              <span class="next-cycle-btn__hint" *ngIf="activePlan.cycleTargetKcal">
-                (ahora {{ activePlan.cycleTargetKcal }} kcal)
-              </span>
-            </button>
+            <div class="active-plan-actions">
+              <!-- Sugerencias de dieta — progresión ciclo a ciclo dentro de
+                   la fase vigente (solo si se empezó desde el cajón). -->
+              <button
+                type="button"
+                class="next-cycle-btn"
+                *ngIf="activePlan.phaseId"
+                (click)="openNextCycleModal()"
+              >
+                <ion-icon name="trending-down-outline" aria-hidden="true"></ion-icon>
+                Siguiente ciclo
+                <span class="next-cycle-btn__hint" *ngIf="activePlan.cycleTargetKcal">
+                  (ahora {{ activePlan.cycleTargetKcal }} kcal)
+                </span>
+              </button>
+
+              <!-- Acción secundaria y destructiva: texto discreto, no un
+                   icono danger compitiendo con "editar". -->
+              <button
+                type="button"
+                class="phase-remove-link"
+                [disabled]="cancellingPlanPhaseId === activePlan._id"
+                (click)="confirmCancelPlanPhase(activePlan, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
+                <span *ngIf="cancellingPlanPhaseId !== activePlan._id">Quitar fase</span>
+              </button>
+            </div>
           </div>
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo

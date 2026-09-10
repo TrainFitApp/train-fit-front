@@ -600,17 +600,13 @@
   }
 }
 
-// Borrado coherente de fases (nutrición) — fila que aloja el "Quitar fase"
-// junto al badge "en curso". margin-left:auto en el botón (más abajo) lo
-// manda a la derecha aunque el badge no se pinte (1 sola fase).
+// Fila del badge "1ª · en curso". "Quitar fase" ya no vive aquí (pasó al
+// pie de la tarjeta, ver .active-plan-actions).
 .active-plan-top-row {
   display: flex;
   align-items: center;
   gap: 8px;
-
-  .bulk-apply-btn {
-    margin-left: auto;
-  }
+  margin-bottom: 8px;
 }
 
 // 2026-09 — atajo al Planificador de la rutina en uso. Ancho completo y con
@@ -2118,6 +2114,45 @@
 }
 
 // Cierra la fila por la derecha: la fase nueva aparece justo aquí.
+// Sugerencias de dieta — pie de la tarjeta de fase vigente: acciones
+// secundarias (siguiente ciclo, quitar fase). "Quitar fase" ya no es un
+// icono danger arriba compitiendo con "editar".
+.active-plan-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.phase-remove-link {
+  align-self: flex-end;
+  min-height: 32px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    color: var(--tf-danger);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
 // Sugerencias de dieta — botón de progresión ciclo a ciclo dentro de la
 // tarjeta de la fase vigente.
 .next-cycle-btn {
@@ -2125,7 +2160,6 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  margin-top: 10px;
   padding: 9px 12px;
   border: 1px solid var(--tf-border, #e0e0e0);
   border-radius: 10px;
