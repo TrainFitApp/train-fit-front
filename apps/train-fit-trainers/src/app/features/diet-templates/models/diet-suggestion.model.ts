@@ -44,7 +44,9 @@ export interface HiddenTemplate {
 
 export interface DietSuggestionResponse {
   target: NutritionTarget;
-  weightSource: { weightKg: number; date: string };
+  // `from: 'anthropometry'` trae `date`; `from: 'signup'` no (viene del
+  // registro del cliente, sin fecha).
+  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string };
   requiredFlags: DietaryFlag[];
   ranked: RankedTemplate[];
   hidden: HiddenTemplate[];

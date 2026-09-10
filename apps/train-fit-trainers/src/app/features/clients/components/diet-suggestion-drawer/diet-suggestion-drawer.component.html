@@ -81,8 +81,11 @@
           P {{ d.target.protein }} g · C {{ d.target.carbs }} g · G {{ d.target.fat }} g
         </span>
       </div>
-      <p class="target-source">
-        Peso {{ d.weightSource.weightKg }} kg — tomado de la antropometría del {{ d.weightSource.date }}
+      <p class="target-source" *ngIf="d.weightSource">
+        Peso {{ d.weightSource.weightKg }} kg —
+        {{ d.weightSource.from === 'anthropometry'
+            ? 'de la antropometría del ' + d.weightSource.date
+            : 'del registro del cliente' }}
       </p>
     </section>
 
