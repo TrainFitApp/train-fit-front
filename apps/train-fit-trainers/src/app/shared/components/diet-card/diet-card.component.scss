@@ -3,15 +3,23 @@
 }
 
 .diet-card {
+  position: relative;
   width: 100%;
   text-align: left;
-  padding: 12px 14px;
+  // +2px arriba: hueco propio para la franja de macros (.card-macro-bar,
+  // 4px) sin que empuje .card-top pegado al borde.
+  padding: 14px 14px 12px;
   border-radius: 14px;
   border: 1px solid var(--tf-border, #e2e2e2);
   background: var(--tf-surface-1, #fff);
   cursor: pointer;
   font-family: inherit;
   color: inherit;
+  // overflow:hidden recorta la franja a las esquinas redondeadas (mismo
+  // truco que .active-plan-card/.next-phase-card con su barra de color de
+  // fase) — el outline de foco y el anillo de :is-selected pintan FUERA de
+  // la caja, así que no se ven afectados.
+  overflow: hidden;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 
   &.is-podium {
@@ -36,6 +44,39 @@
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: 2px;
+  }
+}
+
+// Huella de macros de esta dieta, de un vistazo — mismo mecanismo que
+// .totals-macro-bar en diet-template-builder.page.ts (3 segmentos por kcal
+// aportada, no por gramos) y mismo trío de color que sus .macro-tag: es el
+// lenguaje visual que YA existe para "proteína/carbos/grasa" en esta misma
+// familia de pantallas (dietas), llevado aquí a la cabecera de la card en
+// vez de dejarlo sin ningún color, que es como estaba.
+.card-macro-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 4px;
+}
+
+.card-macro-bar__segment {
+  flex-basis: 0;
+  flex-shrink: 0;
+  min-width: 0;
+
+  &--protein {
+    background: #60a5fa;
+  }
+
+  &--carbs {
+    background: #34d399;
+  }
+
+  &--fat {
+    background: #f472b6;
   }
 }
 
@@ -91,14 +132,64 @@
 .card-macros {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px 12px;
-  margin-top: 6px;
-  font-size: 0.8rem;
+  align-items: baseline;
+  column-gap: 14px;
+  row-gap: 4px;
+  margin-top: 10px;
+}
 
-  em {
-    font-style: normal;
+// kcal como cifra hero — mismo tratamiento que .target-kcal en
+// diet-suggestion-drawer.component.scss (la otra cifra "hero" de esta misma
+// familia de pantallas): grande, en negrita, coloreada de acento. Antes era
+// texto plano del mismo gris que todo lo demás — el número que más importa
+// no se distinguía de su propia unidad.
+.card-macros__kcal {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--tf-accent-text, #b45f00);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+
+  small {
+    margin-left: 2px;
+    font-size: 0.6rem;
+    font-weight: 700;
     color: var(--tf-text-muted);
+    text-transform: uppercase;
   }
+}
+
+// P/C/G en el MISMO color que su segmento en la franja de arriba — la
+// franja deja de ser decoración suelta y pasa a ser la leyenda de estos tres
+// números, no un elemento aparte que hay que descifrar.
+.card-macros__macro {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  // Mismo hex que su segmento en la franja de arriba (no una variante más
+  // oscura): la app es de tema oscuro (--tf-surface-1 ronda #141414, ver
+  // tokens.scss) y estos tonos claros son los que de verdad se leen ahí.
+  &--protein {
+    color: #60a5fa;
+  }
+
+  &--carbs {
+    color: #34d399;
+  }
+
+  &--fat {
+    color: #f472b6;
+  }
+}
+
+.card-macros__kcal em,
+.card-macros__macro em {
+  margin-left: 3px;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
 }
 
 .card-note {

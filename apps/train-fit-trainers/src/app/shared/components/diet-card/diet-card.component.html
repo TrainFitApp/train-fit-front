@@ -6,6 +6,18 @@
   [class.is-selected]="selected"
   (click)="picked.emit()"
 >
+  <!-- Franja de macros — misma mecánica que .totals-macro-bar del
+       constructor de dietas (3 segmentos por kcal-aportada), como remate
+       superior: mismo sitio que ya ocupa el color de fase en
+       .active-plan-card/.next-phase-card, aquí con el color de MACRO en vez
+       del de fase — es el dato que de verdad distingue una card de otra en
+       esta lista. -->
+  <div class="card-macro-bar" *ngIf="profile as p">
+    <span class="card-macro-bar__segment card-macro-bar__segment--protein" [style.flex-grow]="macroBarSegments().protein || 0.001"></span>
+    <span class="card-macro-bar__segment card-macro-bar__segment--carbs" [style.flex-grow]="macroBarSegments().carbs || 0.001"></span>
+    <span class="card-macro-bar__segment card-macro-bar__segment--fat" [style.flex-grow]="macroBarSegments().fat || 0.001"></span>
+  </div>
+
   <div class="card-top">
     <span class="medal" *ngIf="medal">{{ medal }}</span>
     <span class="card-name">{{ name }}</span>
@@ -17,14 +29,20 @@
        elige igual y se cambian esos alimentos después. -->
   <p class="card-missing" *ngIf="missingFlags.length">No cumple: {{ missingFlagsLabel() }}</p>
 
-  <div class="card-macros" *ngIf="profile">
-    <span>
-      {{ profile.kcal }} kcal
-      <em *ngIf="deltas">({{ deltaLabel(deltas.kcal) }})</em>
+  <div class="card-macros" *ngIf="profile as p">
+    <span class="card-macros__kcal">
+      {{ p.kcal }}<small>kcal</small>
+      <em *ngIf="deltas">{{ deltaLabel(deltas.kcal) }}</em>
     </span>
-    <span>P {{ profile.protein }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.protein) }})</em></span>
-    <span>C {{ profile.carbs }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.carbs) }})</em></span>
-    <span>G {{ profile.fat }}<em *ngIf="deltas"> ({{ deltaLabel(deltas.fat) }})</em></span>
+    <span class="card-macros__macro card-macros__macro--protein">
+      P {{ p.protein }}<em *ngIf="deltas">{{ deltaLabel(deltas.protein) }}</em>
+    </span>
+    <span class="card-macros__macro card-macros__macro--carbs">
+      C {{ p.carbs }}<em *ngIf="deltas">{{ deltaLabel(deltas.carbs) }}</em>
+    </span>
+    <span class="card-macros__macro card-macros__macro--fat">
+      G {{ p.fat }}<em *ngIf="deltas">{{ deltaLabel(deltas.fat) }}</em>
+    </span>
   </div>
 
   <p class="card-note" *ngIf="dayCount">

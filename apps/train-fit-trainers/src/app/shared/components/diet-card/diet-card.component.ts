@@ -54,4 +54,24 @@ export class DietCardComponent {
   public deltaLabel(value: number): string {
     return (value > 0 ? '+' : '') + Math.round(value);
   }
+
+  // Franja de macros de la cabecera — misma cuenta que macroBarSegments() en
+  // diet-template-builder.page.ts (kcal de cada macro sobre el total, no
+  // gramos: 1g de grasa pesa más del doble que 1g de proteína/carbo).
+  // Reutilizado aquí y no importado de allí porque el builder no expone un
+  // servicio, solo un método de página.
+  public macroBarSegments(): { protein: number; carbs: number; fat: number } {
+    const p = this.profile;
+    if (!p) return { protein: 0, carbs: 0, fat: 0 };
+    const proteinKcal = (p.protein || 0) * 4;
+    const carbsKcal = (p.carbs || 0) * 4;
+    const fatKcal = (p.fat || 0) * 9;
+    const sum = proteinKcal + carbsKcal + fatKcal;
+    if (sum <= 0) return { protein: 0, carbs: 0, fat: 0 };
+    return {
+      protein: (proteinKcal / sum) * 100,
+      carbs: (carbsKcal / sum) * 100,
+      fat: (fatKcal / sum) * 100,
+    };
+  }
 }
