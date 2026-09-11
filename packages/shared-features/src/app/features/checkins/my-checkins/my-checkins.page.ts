@@ -48,6 +48,11 @@ export class MyCheckinsPage implements OnInit {
   // coach-tab FASE2 — "formularios completados".
   public history: CheckinHistoryEntry[] = [];
   public showHistory = false;
+  // Qué entradas del histórico tienen sus propias respuestas desplegadas.
+  // Colapsadas por defecto: lo que el cliente quiere ver de un vistazo es
+  // lo que ha dicho su entrenador, no releer sus propios números. Se
+  // inicializa al cargar el histórico (ver load()), no aquí.
+  public expandedValuesIds = new Set<string>();
 
   constructor(
     private myCheckinsApi: MyCheckinsApiService,
@@ -105,6 +110,12 @@ export class MyCheckinsPage implements OnInit {
       next: (history) => {
         this.history = history || [];
         this.buildHistoryRows();
+        // Solo se ocultan por defecto cuando hay algo más que enseñar
+        // primero (la nota del entrenador). Si todavía no ha revisado, sus
+        // propias respuestas son el único contenido de la tarjeta.
+        this.expandedValuesIds = new Set(
+          this.history.filter((entry) => entry.status !== 'reviewed').map((entry) => entry._id)
+        );
       },
       error: () => (this.history = []),
     });
@@ -163,6 +174,15 @@ export class MyCheckinsPage implements OnInit {
 
   public trackByHistoryId(_index: number, entry: CheckinHistoryEntry): string {
     return entry._id;
+  }
+
+  public valuesExpanded(entry: CheckinHistoryEntry): boolean {
+    return this.expandedValuesIds.has(entry._id);
+  }
+
+  public toggleValues(entry: CheckinHistoryEntry): void {
+    if (this.expandedValuesIds.has(entry._id)) this.expandedValuesIds.delete(entry._id);
+    else this.expandedValuesIds.add(entry._id);
   }
 
   public trainerName(config: MyCheckinConfig): string {

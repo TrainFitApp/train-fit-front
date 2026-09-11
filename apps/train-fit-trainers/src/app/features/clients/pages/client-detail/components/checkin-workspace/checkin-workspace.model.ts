@@ -56,14 +56,17 @@ export interface CheckinDay {
   statuses: CheckinStatus[];
   label: string;
 }
+// Las siete pestañas de la revisión, en el orden en que se muestran. Un
+// dato concreto puede aparecer en como mucho una — ver tabOf() en
+// checkin-comparison.ts para el reparto exacto.
+export type ComparisonTab = 'peso' | 'composicion_corporal' | 'perimetros' | 'entrenamiento' | 'bienestar' | 'comentario' | 'custom';
 export interface CheckinComparisonRow {
   key: string;
-  // Grupo del catálogo al que pertenece el dato. La tabla lo usa para meter
-  // una cabecera cuando cambia: peso, cintura y calidad del sueño no son la
-  // misma clase de número y no deben leerse en una lista plana.
-  group: string;
-  // Solo la primera fila de cada grupo lo lleva; las demás, cadena vacía.
-  groupLabel: string;
+  // Pestaña a la que pertenece el dato: peso, composición corporal,
+  // perímetros, seguimiento del entrenamiento, bienestar (el resto de
+  // preguntas de bienestar que no tienen pestaña propia), comentario o tus
+  // preguntas. Cada dato aparece en una única pestaña.
+  tab: ComparisonTab;
   label: string;
   previous: string;
   current: string;

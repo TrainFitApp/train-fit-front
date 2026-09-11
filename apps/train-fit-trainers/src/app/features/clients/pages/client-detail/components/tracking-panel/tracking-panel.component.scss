@@ -228,6 +228,8 @@
 }
 
 // Estado con forma propia además de color, para que no dependa del matiz.
+// Verde = al día (resuelto); rojo = atrasado — mismo criterio que
+// tracking-status y el calendario de checkin-workspace.
 .state-pill {
   display: inline-flex;
   align-items: center;
@@ -235,14 +237,14 @@
   gap: var(--tf-space-1);
   padding: 3px 9px;
   border-radius: var(--tf-radius-pill);
-  background: var(--tf-accent-soft);
-  color: var(--tf-accent-text);
+  background: var(--tf-success-soft);
+  color: var(--tf-success);
   font-size: var(--tf-font-size-xs);
   font-weight: var(--tf-weight-label);
   white-space: nowrap;
 
   &--alert {
-    background: rgba(237, 87, 107, 0.14);
+    background: var(--tf-danger-soft);
     color: var(--tf-danger-text, #ed576b);
   }
 

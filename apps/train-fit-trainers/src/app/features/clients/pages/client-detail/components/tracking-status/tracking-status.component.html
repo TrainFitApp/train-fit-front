@@ -27,7 +27,7 @@
       <span class="stat-value">{{ d.missed }}</span>
     </div>
 
-    <div class="stat">
+    <div class="stat" [class.stat--open]="d.open">
       <span class="stat-label">
         <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
         {{ d.open === 1 ? 'Abierto, aún puede responder' : 'Abiertos, aún puede responder' }}

@@ -68,8 +68,8 @@
         <div class="panel-heading"><h3>{{ reviewOnly ? 'Contestados y sin revisar' : formatDate(selectedDate + 'T12:00:00') }}</h3><span class="panel-count">{{ agenda.length }} {{ agenda.length === 1 ? 'check-in' : 'check-ins' }}</span></div>
         <p class="muted list-hint" *ngIf="agenda.length > 1">Toca uno para ver sus respuestas.</p>
         <div class="day-requests" *ngIf="agenda.length > 1 || reviewOnly">
-          <button type="button" *ngFor="let item of agenda; trackBy: trackId" [class.selected]="selected?._id === item._id" (click)="selectEntry(item)">
-            <ion-icon [name]="statusIcons[item.status]" aria-hidden="true"></ion-icon><span><strong>{{ item.name }}</strong><small>{{ formatDate(item.scheduledAt) }} · {{ statusLabels[item.status] }}</small></span><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+          <button type="button" *ngFor="let item of agenda; trackBy: trackId" [class.selected]="selected?._id === item._id" [attr.data-status]="item.status" (click)="selectEntry(item)">
+            <ion-icon [name]="statusIcons[item.status]" class="row-status-icon" aria-hidden="true"></ion-icon><span><strong>{{ item.name }}</strong><small>{{ formatDate(item.scheduledAt) }} · {{ statusLabels[item.status] }}</small></span><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
           </button>
         </div>
         <div class="empty-state" *ngIf="!agenda.length">
@@ -84,7 +84,17 @@
           <p class="request-timing">Previsto {{ formatDate(entry.scheduledAt) }} · {{ formatTime(entry) }}<span *ngIf="entry.respondedAt"> · Respondido {{ formatDate(entry.respondedAt) }}</span></p>
           <ng-container *ngIf="entry.respondedAt; else waitingRequest">
             <label class="reference-picker">Comparar con la respuesta del<select [ngModel]="referenceId" (ngModelChange)="referenceId = $event; updateComparison()" aria-label="Respuesta de referencia"><option value="">Sin referencia</option><option *ngFor="let reference of references; trackBy: trackId" [value]="reference._id">{{ formatDate(reference.respondedAt) }}</option></select></label>
-            <div class="comparison-table-wrap"><table class="comparison-table"><caption>Respuesta actual frente a la referencia del mismo formulario</caption><thead><tr><th scope="col">Dato</th><th scope="col">Referencia</th><th scope="col">Actual</th><th scope="col">Cambio</th></tr></thead><tbody><ng-container *ngFor="let row of rows; trackBy: trackRow"><tr class="group-row" *ngIf="row.groupLabel"><th scope="colgroup" colspan="4">{{ row.groupLabel }}</th></tr><tr><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></ng-container></tbody></table></div>
+            <!-- Pestañas por dato — Peso / Composición corporal / Perímetros /
+                 Seguimiento del entrenamiento / Bienestar / Comentario / Tus
+                 preguntas. Solo se listan las que este check-in responde
+                 (comparisonTabs ya viene filtrado), y se recuerda cuál estaba
+                 abierta al cambiar de referencia. -->
+            <div class="comparison-tabs" role="tablist" aria-label="Qué parte de la respuesta ver" *ngIf="comparisonTabs.length > 1">
+              <button type="button" role="tab" *ngFor="let tab of comparisonTabs; trackBy: trackTab" [class.active]="selectedComparisonTab === tab.key" [attr.aria-selected]="selectedComparisonTab === tab.key" (click)="chooseComparisonTab(tab.key)">
+                {{ tab.label }}<span class="count-chip">{{ tab.count }}</span>
+              </button>
+            </div>
+            <div class="comparison-table-wrap"><table class="comparison-table"><caption>Respuesta actual frente a la referencia del mismo formulario</caption><thead><tr><th scope="col">Dato</th><th scope="col">Referencia</th><th scope="col">Actual</th><th scope="col">Cambio</th></tr></thead><tbody><tr *ngFor="let row of visibleComparisonRows; trackBy: trackRow"><th scope="row">{{ row.label }}</th><td>{{ row.previous }}</td><td class="current-value">{{ row.current }}<small *ngIf="row.anchor">{{ row.anchor }}</small></td><td [attr.data-direction]="row.direction"><ion-icon *ngIf="row.direction === 'up' || row.direction === 'down'" [name]="row.direction === 'up' ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true"></ion-icon>{{ row.change }}</td></tr></tbody></table></div>
             <p class="comparison-note"><ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>La flecha indica hacia dónde se ha movido el dato, no si es bueno o malo.</p>
             <button type="button" class="evolution-toggle" [attr.aria-expanded]="showEvolution" (click)="showEvolution = !showEvolution"><ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>{{ showEvolution ? 'Ocultar evolución' : 'Ver evolución de todas sus respuestas' }}<ion-icon [name]="showEvolution ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon></button>
             <app-checkin-history-chart *ngIf="showEvolution" [responses]="trendResponses" [customQuestions]="entry.customQuestions || emptyQuestions"></app-checkin-history-chart>
@@ -130,7 +140,7 @@
         <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
         <p><strong>Todavía no le pides ningún check-in.</strong><br>Programa uno, o aplica abajo un seguimiento recomendado según su objetivo.</p>
       </div>
-      <div class="schedule-row" *ngFor="let schedule of visibleSchedules; trackBy: trackId">
+      <div class="schedule-row" [class.schedule-row--paused]="!schedule.active" *ngFor="let schedule of visibleSchedules; trackBy: trackId">
         <div class="schedule-row-main">
           <strong>{{ schedule.name }}</strong>
           <span class="schedule-cadence">{{ schedule.active ? cadence(schedule) + ' · ' + schedule.time : 'Pausado' }}</span>

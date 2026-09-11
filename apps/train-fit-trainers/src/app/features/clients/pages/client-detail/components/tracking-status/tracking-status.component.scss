@@ -8,24 +8,24 @@
 .block-title { @include tf-section-title; }
 .block-sub { @include tf-section-sub; }
 
-// Una sola fila, no tres tarjetas: son tres cifras del mismo asunto y
-// encajonar cada una en su caja las separaba más de lo que se parecen.
-//
-// El reparto de espacio es la mitad del trabajo de jerarquía: dentro de una
-// pareja etiqueta→dato hay 2px, entre parejas hay --tf-space-8 (32px). Esa
-// proporción de 16:1 es lo que hace que se vea de un vistazo qué etiqueta
-// va con qué número sin necesitar bordes entre ellas.
+// Cada cifra en su propia tarjeta: antes eran tres pares en una sola fila,
+// que a este tamaño de letra se leía como un bloque de texto más que como
+// datos independientes. Ahora cada una tiene su propio fondo, borde y color
+// — se distinguen aunque se lean sueltas, fuera de la frase que las rodea.
 .status-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--tf-space-5) var(--tf-space-8);
-  padding: var(--tf-space-5);
-  @include tf-card-static;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--tf-space-3);
 }
 
 .stat {
   @include tf-pair(var(--tf-space-1));
+
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-left: 3px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
 }
 
 .stat-value {
@@ -58,26 +58,50 @@
   }
 }
 
-// Solo se tiñe lo accionable, y el color nunca va solo: la cifra ya pesa
-// más que su etiqueta, lleva icono y lleva frase. Quien no distinga el
-// matiz sigue leyendo la jerarquía entera.
+// Cuatro colores, cuatro significados — el mismo criterio en toda la
+// pantalla de Seguimiento (calendario, píldoras de estado, estas tarjetas):
+//   naranja  = requiere tu acción ahora
+//   rojo     = urgente / se ha quedado atrás
+//   dorado   = abierto, informativo, sin prisa
+//   verde    = resuelto / al día
+// El color nunca va solo: cada tarjeta ya se distingue por su icono, su
+// frase y por ser la cifra más grande de la fila — el tinte solo refuerza
+// lo que ya se lee sin él.
 .stat--action {
+  background: var(--tf-accent-soft);
+  border-color: var(--tf-accent-soft-border);
+  border-left-color: var(--tf-accent);
   .stat-value { color: var(--tf-accent-text); }
   .stat-label, .stat-label ion-icon { color: var(--tf-accent-text); }
 }
 .stat--alert {
+  background: var(--tf-danger-soft);
+  border-color: var(--tf-danger-border);
+  border-left-color: var(--tf-danger);
   .stat-value { color: var(--tf-danger-text, #ed576b); }
   .stat-label, .stat-label ion-icon { color: var(--tf-danger-text, #ed576b); }
 }
+.stat--open {
+  background: rgba(255, 196, 85, 0.1);
+  border-color: rgba(255, 196, 85, 0.3);
+  border-left-color: var(--tf-secondary);
+  .stat-value { color: var(--tf-secondary); }
+  .stat-label, .stat-label ion-icon { color: var(--tf-secondary); }
+}
 
-// El peso se separa con una regla: no es una cuarta cifra de la misma serie,
-// es otra cosa (una pauta sin formulario).
+// El peso no es un check-in: es una pauta sin formulario. Misma tarjeta que
+// las tres de al lado (mismo fondo, borde y forma) pero con su propio
+// carril de color — así se lee "otro asunto", no "otro componente".
 .weight-block {
   @include tf-pair(var(--tf-space-1));
 
-  margin-left: auto;
-  padding-left: var(--tf-space-6);
-  border-left: 1px solid var(--tf-border);
+  grid-column: span 2;
+  min-width: 0;
+  padding: var(--tf-space-4);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-left: 3px solid var(--tf-accent-2);
+  border-radius: var(--tf-radius-md);
 }
 
 .weight-detail {
@@ -91,21 +115,23 @@
 .weight-last { @include tf-meta; }
 
 // Estado con forma propia además de color: quien no distinga el matiz sigue
-// leyendo "Al día" o "Atrasado 4 d".
+// leyendo "Al día" o "Atrasado 4 d". Verde para "al día": es un asunto
+// resuelto, no una acción pendiente — el naranja se queda para lo que sí
+// exige algo de ti hoy (ver .stat--action más arriba).
 .state-pill {
   display: inline-flex;
   align-items: center;
   gap: var(--tf-space-1);
   padding: 2px 8px;
   border-radius: var(--tf-radius-pill);
-  background: var(--tf-accent-soft);
-  color: var(--tf-accent-text);
+  background: var(--tf-success-soft);
+  color: var(--tf-success);
   font-size: var(--tf-font-size-xs);
   font-weight: var(--tf-weight-label);
   white-space: nowrap;
 
   &--alert {
-    background: rgba(237, 87, 107, 0.14);
+    background: var(--tf-danger-soft);
     color: var(--tf-danger-text, #ed576b);
   }
 
@@ -124,23 +150,6 @@
   height: 46px;
   border-radius: var(--tf-radius-sm);
   background: var(--tf-surface-2);
-}
-
-@media (max-width: 860px) {
-  .status-bar {
-    gap: var(--tf-space-4) var(--tf-space-6);
-    padding: var(--tf-space-4);
-  }
-
-  // El peso baja a línea propia y cambia la regla lateral por una superior.
-  .weight-block {
-    flex-basis: 100%;
-    margin-left: 0;
-    padding-left: 0;
-    padding-top: var(--tf-space-4);
-    border-left: 0;
-    border-top: 1px solid var(--tf-border);
-  }
 }
 
 // En móvil las tres cifras se reparten el ancho en vez de amontonarse: cada

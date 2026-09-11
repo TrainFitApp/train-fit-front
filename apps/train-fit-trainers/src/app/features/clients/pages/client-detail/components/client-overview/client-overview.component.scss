@@ -1,36 +1,42 @@
+@import '../../../../../../../theme/hierarchy';
+
 :host {
   display: block;
   color: var(--tf-text);
   font-size: var(--tf-font-size-md);
   line-height: var(--tf-line-height-base);
-  --overview-focus: var(--tf-accent);
-  --overview-title-size: 1.5rem;
-  --overview-section-size: 1.125rem;
-  --overview-label-size: 0.8125rem;
-  --overview-value-size: 2rem;
 }
 
 * { box-sizing: border-box; }
 ::selection { background: var(--tf-accent); color: var(--tf-accent-contrast); }
 h2, h3, h4, p, dl { margin: 0; }
-h2 { font-size: var(--overview-title-size); font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; text-wrap: balance; }
-h3 { font-size: var(--overview-section-size); font-weight: 700; line-height: 1.4; }
-h4 { font-size: var(--tf-font-size-md); font-weight: 700; }
+// Título de sección (uno por tarjeta: "Punto de partida y evolución",
+// "Seguimiento y siguiente paso"). El nombre del cliente es la excepción —
+// es la identidad de toda la pantalla, no el título de una tarjeta más, así
+// que .context-section h2 sube un escalón por encima (ver más abajo).
+h2 { @include tf-section-title; text-wrap: balance; }
+h3 { @include tf-card-title; }
+// Único uso real: "Siguiente paso acordado" / "Siguiente paso", siempre
+// etiquetando el párrafo que viene justo debajo.
+h4 { @include tf-label; margin-bottom: var(--tf-space-2); }
 p, dd { overflow-wrap: anywhere; }
 button, input, select, textarea { font: inherit; }
 button, select, input { min-height: var(--tf-touch-min); }
 button { cursor: pointer; }
 button:disabled, select:disabled, input:disabled { opacity: .5; cursor: default; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--overview-focus, var(--tf-accent));
+  outline: 2px solid var(--tf-accent);
   outline-offset: 3px;
 }
 button { transition: background-color var(--tf-duration-fast) ease, border-color var(--tf-duration-fast) ease, color var(--tf-duration-fast) ease, transform var(--tf-duration-fast) var(--tf-ease-out); }
 button:active:not(:disabled) { transform: scale(.98); }
-.muted, .hint { color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 400; line-height: 1.5; }
+// "Ayuda" del sistema de jerarquía: frase explicativa o texto secundario.
+// .muted cubre el mismo registro que .hint (texto de acompañamiento), así
+// que comparten el mismo papel — mismo criterio que checkin-workspace.
+.muted, .hint { @include tf-help; }
 .hint { margin-top: var(--tf-space-3); max-width: 75ch; }
 .preserve-lines { white-space: pre-line; }
-.warning-text { color: var(--tf-accent-text); font-size: var(--tf-font-size-sm); }
+.warning-text { color: var(--tf-accent-text); font-size: var(--tf-font-size-sm); font-weight: var(--tf-weight-label); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .overview-toolbar, .section-heading, .comparison-head, .weekly-heading, .context-footer, .editor-footer {
@@ -42,7 +48,7 @@ button:active:not(:disabled) { transform: scale(.98); }
 .overview-toolbar { padding-bottom: var(--tf-space-4); }
 .stage-select { flex: 1; min-width: 0; }
 .stage-select select { max-width: 100%; padding: 0 var(--tf-space-3); }
-.workspace-section { padding: var(--tf-space-6); background: var(--tf-surface-1); border: 1px solid var(--tf-border); border-radius: var(--tf-radius-lg); margin-bottom: var(--tf-space-6); min-width: 0; }
+.workspace-section { @include tf-card-static; padding: var(--tf-space-6); margin-bottom: var(--tf-space-6); min-width: 0; }
 .section-heading { align-items: center; padding-bottom: var(--tf-space-6); margin-bottom: var(--tf-space-6); border-bottom: 1px solid var(--tf-border); flex-wrap: wrap; }
 .section-heading > div:first-child { min-width: 0; }
 .section-heading p { margin-top: var(--tf-space-2); max-width: 70ch; }
@@ -52,51 +58,44 @@ button:active:not(:disabled) { transform: scale(.98); }
 .actions, .inline-links { display: flex; gap: var(--tf-space-2); flex-wrap: wrap; align-items: center; }
 .actions { justify-content: flex-end; min-width: 0; }
 .inline-links { margin-top: var(--tf-space-5); padding-top: var(--tf-space-5); border-top: 1px solid var(--tf-border); }
+// Franja de atención: cada botón lleva a otra pestaña — tienen que leerse
+// como pulsables desde una captura quieta, no solo al pasar el ratón.
 .attention-strip { display: flex; flex-wrap: wrap; gap: var(--tf-space-2); margin-bottom: var(--tf-space-6); }
-.attention-strip > button { position: relative; min-width: 0; flex: 1 1 11rem; text-align: left; background: var(--tf-surface-2); border: 1px solid var(--tf-border-strongest); border-radius: var(--tf-radius-sm); padding: var(--tf-space-4) var(--tf-space-12) var(--tf-space-4) var(--tf-space-3); color: var(--tf-text); max-width: 100%; }
-.attention-strip > button > span { display: block; color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 500; line-height: 1.4; }
+.attention-strip > button {
+  @include tf-card-interactive;
+  position: relative;
+  min-width: 0;
+  flex: 1 1 11rem;
+  padding: var(--tf-space-4) var(--tf-space-12) var(--tf-space-4) var(--tf-space-3);
+  border-radius: var(--tf-radius-md);
+  max-width: 100%;
+}
+// Etiqueta ("Check-ins por revisar") sobre el valor (el número o el título).
+.attention-strip > button > span { @include tf-label; }
 .attention-strip > button > ion-icon { position: absolute; right: var(--tf-space-2); top: 50%; transform: translateY(-50%); width: var(--tf-space-4); height: var(--tf-space-4); padding: var(--tf-space-1); box-sizing: content-box; border: 1px solid var(--tf-border-strong); border-radius: var(--tf-radius-sm); background: var(--tf-surface-3); color: var(--tf-text); }
-.attention-strip strong { display: block; font-size: var(--tf-font-size-md); font-weight: 600; margin-top: var(--tf-space-2); font-variant-numeric: tabular-nums; }
-.attention-strip .attention-count { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
-.attention-strip .task-title { max-width: 38ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attention-strip strong { @include tf-value(var(--tf-font-size-md)); margin-top: var(--tf-space-2); }
+.attention-strip .attention-count { @include tf-value(1.75rem); margin-top: var(--tf-space-2); }
+// El título de una tarea es un nombre, no una cifra: un escalón por debajo
+// del resto de valores de esta franja, sin el tracking negativo de tf-value.
+.attention-strip .task-title { @include tf-card-title; margin-top: var(--tf-space-2); max-width: 38ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .attention-strip > .needs-attention { border-color: var(--tf-accent-soft-border); background: var(--tf-accent-soft); }
 .attention-strip > .needs-attention strong, .attention-strip > .needs-attention > ion-icon { color: var(--tf-accent-text); }
 @media (hover: hover) and (pointer: fine) {
-  .attention-strip > button:hover { background: var(--tf-surface-3); border-color: var(--tf-accent-soft-border); }
   .attention-strip > button:hover > span { text-decoration: underline; text-underline-offset: 3px; }
 }
-.text-button, .secondary-button, .primary-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--tf-space-2);
-  border-radius: var(--tf-radius-sm);
-  text-decoration: none;
-  min-height: var(--tf-touch-min);
-  padding: var(--tf-space-2) var(--tf-space-3);
-  line-height: 1.3;
-  font-weight: 600;
-  font-size: 0.875rem;
-  max-width: 100%;
-  flex-shrink: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-// Mismos roles en tarjetas y modales: registro principal en acento,
-// alternativa neutra con relleno y consultas auxiliares con contorno.
-.text-button { color: var(--tf-text); background: transparent; border: 1px solid var(--tf-border-strongest); }
-.secondary-button { color: var(--tf-text); background: var(--tf-surface-3); border: 1px solid var(--tf-border-strongest); }
-.primary-button { color: var(--tf-accent-contrast); background: var(--tf-accent); border: 0; padding-inline: var(--tf-space-4); font-weight: 700; }
-.text-button > ion-icon, .secondary-button > ion-icon, .primary-button > ion-icon { flex: 0 0 auto; font-size: var(--tf-font-size-lg); }
+// Tres niveles, mismo criterio que el resto de la ficha (checkin-workspace,
+// tracking-panel): DISCRETO para navegar o cancelar, SECUNDARIO para una
+// acción de igual rango que otra, PRIMARIO para la que cierra la región —
+// como máximo uno visible a la vez en cada tarjeta.
+.text-button { @include tf-btn-quiet; min-height: var(--tf-touch-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.secondary-button { @include tf-btn-secondary; min-height: var(--tf-touch-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.primary-button { @include tf-btn-primary; min-height: var(--tf-touch-min); max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .primary-button ion-spinner { width: var(--tf-space-5); height: var(--tf-space-5); color: inherit; }
-@media (hover: hover) and (pointer: fine) {
-  .text-button:hover { background: var(--tf-surface-3); }
-  .secondary-button:hover { background: var(--tf-surface-4); }
-  .primary-button:hover { background: var(--tf-accent-text); }
-}
 
-.context-section h2 { font-size: 1.625rem; }
-.identity-meta { font-size: var(--tf-font-size-base); }
+// Nombre del cliente: identidad de toda la pantalla, un escalón por encima
+// de un título de sección normal.
+.context-section h2 { font-size: var(--tf-font-size-2xl); }
+.identity-meta { @include tf-help; font-size: var(--tf-font-size-base); }
 .context-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--tf-space-8); }
 .context-main h3 { color: var(--tf-text); margin-bottom: var(--tf-space-2); }
 .context-main h3:not(:first-child) { margin-top: var(--tf-space-6); }
@@ -122,32 +121,34 @@ button:active:not(:disabled) { transform: scale(.98); }
 .note-date { display: block; margin-top: var(--tf-space-2); }
 
 .comparison-head { margin-bottom: var(--tf-space-4); flex-wrap: wrap; }
+// La tarjeta "Peso inicial: 80 kg" que dio origen a este sistema — ver
+// theme/_hierarchy.scss. Fondo propio (--tf-bg, más hundido que la tarjeta
+// que la contiene) para que se lea como un bloque destacado, no una fila más.
 .weight-comparison { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: var(--tf-space-5); background: var(--tf-bg); border-radius: var(--tf-radius-md); margin-bottom: var(--tf-space-8); }
-.weight-comparison > div { display: flex; flex-direction: column; gap: var(--tf-space-2); padding-right: var(--tf-space-4); }
+.weight-comparison > div { @include tf-pair(var(--tf-space-2)); padding-right: var(--tf-space-4); }
 .weight-comparison > div + div { padding-left: var(--tf-space-5); border-left: 1px solid var(--tf-border-strong); }
-.weight-comparison .muted { color: var(--tf-text-secondary); }
 .weight-comparison .metric-label { min-height: 2.8em; }
 // Etiquetas y valores comparten escala en contexto, medidas y detalles.
-// Tamaño, peso y separación mantienen la relación sin depender del color.
+// Tamaño, peso, mayúscula y separación mantienen la relación sin depender
+// solo del color.
 .metric-label,
 .context-facts dt,
 .wellbeing-facts dt,
 .intake-answers dt,
 .perimeter-comparison dt {
-  color: var(--tf-text-secondary);
-  font-size: var(--overview-label-size);
-  font-weight: 500;
+  @include tf-label;
 }
 .context-facts dd,
 .wellbeing-facts dd,
 .intake-answers dd,
 .perimeter-comparison dd {
-  font-weight: 600;
-  color: var(--tf-text);
-  font-size: var(--tf-font-size-md);
+  @include tf-value(var(--tf-font-size-md));
+  white-space: pre-line;
 }
-.weight-comparison strong { display: block; color: var(--tf-text); font-weight: 700; font-size: var(--overview-value-size); line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.02em; overflow-wrap: anywhere; }
-.weight-comparison small { color: var(--tf-text-secondary); font-weight: 400; font-size: var(--tf-font-size-md); letter-spacing: normal; }
+// El dato protagonista: el peso en sí, más grande que cualquier otro número
+// de esta pantalla salvo los contadores de la franja de atención.
+.weight-comparison strong { @include tf-value(var(--tf-font-size-2xl)); overflow-wrap: anywhere; }
+.weight-comparison small { @include tf-meta; font-size: var(--tf-font-size-md); }
 .weekly-heading { margin-top: var(--tf-space-3); margin-bottom: var(--tf-space-4); flex-wrap: wrap; }
 .table-scroll { overflow: auto; scrollbar-width: thin; scrollbar-color: var(--tf-border-strongest) var(--tf-surface-1); }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--tf-font-size-base); font-variant-numeric: tabular-nums; }
@@ -155,13 +156,13 @@ button:active:not(:disabled) { transform: scale(.98); }
 .data-table th:first-child, .data-table td:first-child { padding-left: 0; }
 .data-table th:last-child, .data-table td:last-child { padding-right: 0; }
 .data-table thead { color: var(--tf-text-secondary); }
-.data-table thead th { font-size: var(--overview-label-size); font-weight: 500; border-bottom: 1px solid var(--tf-border-strong); white-space: nowrap; }
+.data-table thead th { @include tf-label; display: table-cell; border-bottom: 1px solid var(--tf-border-strong); white-space: nowrap; }
 .data-table tbody tr + tr { border-top: 1px solid var(--tf-border-subtle); }
-.data-table tbody th { font-weight: 600; }
+.data-table tbody th { font-weight: var(--tf-weight-label); }
 .data-table td { white-space: nowrap; }
-.data-table small, .data-table th span { display: block; color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 400; margin-top: var(--tf-space-1); }
-.metric-value { color: var(--tf-text); font-size: var(--tf-font-size-lg); font-weight: 600; line-height: 1.4; font-variant-numeric: tabular-nums; }
-.metric-unit { color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 400; }
+.data-table small, .data-table th span { @include tf-meta; display: block; margin-top: var(--tf-space-1); }
+.metric-value { @include tf-value(var(--tf-font-size-lg)); display: inline; line-height: 1.4; }
+.metric-unit { @include tf-meta; display: inline; }
 .data-table .metric-missing, .perimeter-comparison .metric-missing { color: var(--tf-text-secondary); font-weight: 400; }
 .data-table th .warning-text { color: var(--tf-accent-text); }
 .hint + .comparison-head { margin-top: var(--tf-space-6); }
@@ -171,23 +172,23 @@ button:active:not(:disabled) { transform: scale(.98); }
 .weekly-table th, .weekly-table td { white-space: normal; overflow-wrap: anywhere; }
 .weekly-table thead th { white-space: normal; }
 .weekly-table .week-date { margin: 0; color: inherit; font-size: inherit; font-weight: inherit; }
-.weekly-table td:last-child { color: var(--tf-text-secondary); font-size: var(--overview-label-size); }
+.weekly-table td:last-child { @include tf-meta; }
 .weight-chart { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--tf-space-2); margin: var(--tf-space-3) 0 var(--tf-space-4); }
-.weight-chart-scale { display: flex; flex-direction: column; justify-content: space-between; height: 128px; padding-block: var(--tf-space-1); color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-variant-numeric: tabular-nums; }
+.weight-chart-scale { @include tf-meta; display: flex; flex-direction: column; justify-content: space-between; height: 128px; padding-block: var(--tf-space-1); font-variant-numeric: tabular-nums; }
 .weight-chart-plot { min-width: 0; }
 .weight-chart svg { display: block; width: 100%; height: 128px; overflow: visible; }
 .chart-guide { stroke: var(--tf-border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .chart-line { fill: none; stroke: var(--tf-text-secondary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .chart-point { fill: var(--tf-text-secondary); stroke: var(--tf-text-secondary); stroke-width: 2; vector-effect: non-scaling-stroke; }
-.weight-chart-dates { display: flex; justify-content: space-between; gap: var(--tf-space-3); padding-inline: var(--tf-space-1); color: var(--tf-text-secondary); font-size: var(--overview-label-size); }
+.weight-chart-dates { @include tf-meta; display: flex; justify-content: space-between; gap: var(--tf-space-3); padding-inline: var(--tf-space-1); }
 .perimeters-mobile { display: none; }
 
 .attention-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--tf-space-8); }
 .attention-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--tf-space-3); }
 .attention-row p { margin-top: var(--tf-space-1); }
-.attention-row strong { display: block; font-size: var(--tf-font-size-md); font-weight: 600; }
+.attention-row strong { @include tf-value(var(--tf-font-size-md)); display: inline; }
 .attention-row > div { min-width: 0; }
-.attention-row .attention-count { font-size: 1.75rem; font-weight: 700; margin-right: var(--tf-space-1); font-variant-numeric: tabular-nums; }
+.attention-row .attention-count { @include tf-value(1.75rem); display: inline; margin-right: var(--tf-space-1); }
 .plan-status { margin-top: var(--tf-space-6); }
 .plan-status p { margin-top: var(--tf-space-2); }
 .plan-status > p:not(.muted) { font-weight: 500; }
@@ -197,16 +198,21 @@ button:active:not(:disabled) { transform: scale(.98); }
 .wellbeing-facts dd { margin: var(--tf-space-1) 0 0; }
 .review-heading { margin-top: var(--tf-space-6); margin-bottom: var(--tf-space-2); }
 .review-heading ~ .preserve-lines { margin-top: var(--tf-space-3); }
+// Caja destacada anidada dentro de la tarjeta de seguimiento: mismo fondo
+// hundido que .weight-comparison, sin borde propio para no leerse como una
+// tarjeta dentro de otra tarjeta.
 .next-step { margin-block: var(--tf-space-5); padding: var(--tf-space-4); background: var(--tf-bg); border-radius: var(--tf-radius-sm); }
-.next-step h4 { color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 500; margin-bottom: var(--tf-space-2); }
-.next-step p { font-weight: 600; }
+.next-step p { font-weight: var(--tf-weight-label); }
 .tasks-section { border-left: 1px solid var(--tf-border); padding-left: var(--tf-space-6); min-width: 0; }
 .tasks-section > .text-button { margin-top: var(--tf-space-4); }
-.count { display: inline-block; color: var(--tf-text-secondary); margin-left: var(--tf-space-1); font-size: inherit; font-weight: 400; font-variant-numeric: tabular-nums; }
+.count { @include tf-meta; display: inline-block; margin-left: var(--tf-space-1); }
 .task-row { display: flex; align-items: flex-start; gap: var(--tf-space-2); padding: var(--tf-space-3) 0; border-bottom: 1px solid var(--tf-border-subtle); }
 .task-row > div { min-width: 0; padding-top: var(--tf-space-2); }
-.task-row p { margin-bottom: var(--tf-space-2); font-weight: 600; }
-.task-row p.muted { font-weight: 400; }
+// El nombre de la tarea es el dato protagonista de la fila; sus notas
+// (.muted) vuelven a pisar la ayuda encima, que si no perdería por
+// especificidad frente a esta regla.
+.task-row p { @include tf-card-title; margin-bottom: var(--tf-space-2); }
+.task-row p.muted { @include tf-help; margin-bottom: var(--tf-space-2); }
 .task-complete { flex: 0 0 var(--tf-touch-min); display: inline-flex; align-items: center; justify-content: center; background: var(--tf-surface-3); border: 1px solid var(--tf-border-strong); color: var(--tf-text-secondary); border-radius: var(--tf-radius-sm); }
 .task-complete ion-icon, .task-complete ion-spinner { width: var(--tf-space-6); height: var(--tf-space-6); }
 
@@ -251,8 +257,8 @@ legend { color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); fon
 .option-grid, .form-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--tf-space-3) var(--tf-space-5); }
 .intake-answers { margin-top: var(--tf-space-6); }
 .intake-answers > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--tf-space-6); padding: var(--tf-space-5) 0; border-top: 1px solid var(--tf-border); }
-.intake-answers dd { margin: 0; white-space: pre-line; font-weight: 500; }
-.intake-answers small { display: block; color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 400; margin-top: var(--tf-space-2); }
+.intake-answers dd { @include tf-value(var(--tf-font-size-md)); white-space: pre-line; }
+.intake-answers small { @include tf-meta; display: block; margin-top: var(--tf-space-2); }
 .history-entry { padding: var(--tf-space-5) 0; border-bottom: 1px solid var(--tf-border); }
 .history-entry > p { margin-top: var(--tf-space-2); }
 
@@ -264,8 +270,7 @@ legend { color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); fon
   .workspace-section { padding: var(--tf-space-5) var(--tf-space-3); }
   .section-title { flex-basis: 100%; gap: var(--tf-space-2); }
   .section-title > ion-icon { width: var(--tf-space-6); height: var(--tf-space-6); }
-  .section-heading h2 { font-size: 1.25rem; }
-  .context-section h2 { font-size: 1.375rem; }
+  .context-section h2 { font-size: var(--tf-font-size-xl); }
   .section-heading > .actions { width: 100%; justify-content: flex-start; }
   .section-heading > .actions > button { flex: 1 1 7rem; }
   .attention-strip > button { flex-basis: calc(50% - var(--tf-space-2)); }
@@ -279,8 +284,7 @@ legend { color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); fon
   .weight-comparison > div { padding-right: 0; }
   .weight-comparison > div + div { padding-left: var(--tf-space-2); }
   .weight-comparison > div + div:last-child { grid-column: 1 / -1; padding: var(--tf-space-4) 0 0; border-left: 0; border-top: 1px solid var(--tf-border); }
-  .weight-comparison strong { font-size: 1.75rem; }
-  .weight-comparison small { font-size: 0.875rem; }
+  .weight-comparison strong { font-size: var(--tf-font-size-xl); }
   .data-table th, .data-table td { padding-inline: var(--tf-space-3); }
   .weekly-table th, .weekly-table td { padding-inline: var(--tf-space-2); }
   .weekly-table th:first-child { padding-left: 0; }
@@ -292,8 +296,7 @@ legend { color: var(--tf-text-secondary); font-size: var(--tf-font-size-sm); fon
   .perimeter-mobile-row .warning-text { margin-bottom: var(--tf-space-2); }
   .perimeter-comparison { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--tf-space-2); font-variant-numeric: tabular-nums; }
   .perimeter-comparison dd { margin: var(--tf-space-2) 0 0; }
-  .perimeter-comparison .metric-value { font-size: 1.25rem; }
-  .perimeter-comparison small { display: block; margin-top: var(--tf-space-2); color: var(--tf-text-secondary); font-size: var(--overview-label-size); font-weight: 400; }
+  .perimeter-comparison small { @include tf-meta; display: block; margin-top: var(--tf-space-2); }
   .attention-row { flex-wrap: wrap; }
   .overview-toolbar { gap: var(--tf-space-1); }
   ion-modal.overview-modal, ion-modal.editor-modal { --width: 100%; --height: 100%; --border-radius: 0; }

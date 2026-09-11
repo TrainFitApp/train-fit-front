@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { CheckinResponseEntry } from '../../models/client-detail.model';
-import { CalendarCheckin, CheckinCalendarData, CheckinComparisonRow, CheckinDay, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition } from './checkin-workspace.model';
-import { compareCheckins } from './checkin-comparison';
+import { CalendarCheckin, CheckinCalendarData, CheckinComparisonRow, CheckinDay, CheckinSchedule, CheckinScheduleDraft, CheckinStatus, CheckinTemplateDefinition, ComparisonTab } from './checkin-workspace.model';
+import { compareCheckins, tabsFor } from './checkin-comparison';
 
 function localDate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -48,6 +48,17 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public referenceId = '';
   public references: CalendarCheckin[] = [];
   public rows: CheckinComparisonRow[] = [];
+  // Fase "pestañas por dato" — la revisión de un check-in se divide en
+  // Peso / Composición corporal / Perímetros / Seguimiento del
+  // entrenamiento / Bienestar / Comentario / Tus preguntas. Solo se listan
+  // las que tienen algo que enseñar en ESTE check-in (tabsFor ya filtra),
+  // así que un check-in de solo medidas no arrastra pestañas vacías.
+  public comparisonTabs: { key: ComparisonTab; label: string; count: number }[] = [];
+  public selectedComparisonTab: ComparisonTab | null = null;
+  public get visibleComparisonRows(): CheckinComparisonRow[] {
+    return this.rows.filter(row => row.tab === this.selectedComparisonTab);
+  }
+  public chooseComparisonTab(tab: ComparisonTab): void { this.selectedComparisonTab = tab; }
   public trendResponses: CheckinResponseEntry[] = [];
   public readonly emptyQuestions = [];
   public showEvolution = false;
@@ -124,7 +135,18 @@ export class CheckinWorkspaceComponent implements OnChanges {
     this.updateComparison();
     this.trendResponses = [...(entry?.respondedAt ? [entry] : []), ...history].filter((r): r is CalendarCheckin & { respondedAt: string } => !!r.respondedAt).map(r => ({ _id: r._id, respondedAt: r.respondedAt, values: r.values || {} }));
   }
-  public updateComparison(): void { this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : []; }
+  public updateComparison(): void {
+    this.rows = this.selected?.respondedAt ? compareCheckins(this.selected, this.references.find(r => r._id === this.referenceId) || null) : [];
+    this.comparisonTabs = tabsFor(this.rows);
+    // Se conserva la pestaña activa si sigue teniendo datos (p. ej. al
+    // cambiar la referencia de comparación sobre el mismo check-in); si no
+    // existe ya o no había ninguna elegida, se abre en la primera de la
+    // lista — que sigue el orden fijo de TAB_ORDER, así que "Peso" gana
+    // cuando está presente.
+    if (!this.comparisonTabs.some(tab => tab.key === this.selectedComparisonTab)) {
+      this.selectedComparisonTab = this.comparisonTabs[0]?.key || null;
+    }
+  }
   public async openEditor(schedule?: CheckinSchedule): Promise<void> {
     this.error = ''; this.editingId = schedule?._id || null;
     this.sourceMode = 'template';
@@ -184,4 +206,5 @@ export class CheckinWorkspaceComponent implements OnChanges {
   public trackId(_index: number, item: { _id: string }): string { return item._id; }
   public trackDay(_index: number, item: CheckinDay): string { return item.date; }
   public trackRow(_index: number, item: CheckinComparisonRow): string { return item.key; }
+  public trackTab(_index: number, item: { key: ComparisonTab }): string { return item.key; }
 }

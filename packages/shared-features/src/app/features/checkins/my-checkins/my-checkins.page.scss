@@ -2,12 +2,71 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.checkin-review {
-  border-top: 1px solid #424242;
-  margin-top: 16px;
-  padding-top: 16px;
-  strong { color: #c5c5c5; font-size: 13px; }
-  p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+// El momento en el que el cliente lee lo que su entrenador le ha respondido
+// era el mismo gris apagado que una fecha de metadato — nada distinguía un
+// comentario real de una línea de estado. Fondo propio (sin borde: ya está
+// dentro de .history-card, y un borde aquí se leería como tarjeta anidada)
+// más un icono de mensaje para que se reconozca de un vistazo, antes de
+// leer una sola palabra.
+.coach-note {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(254, 144, 0, 0.08);
+}
+
+.coach-note-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(254, 144, 0, 0.16);
+  color: #fe9000;
+
+  ion-icon { font-size: 16px; }
+}
+
+.coach-note-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.coach-note-meta {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.74rem;
+  color: #9a9a9a;
+}
+
+// El dato protagonista de este bloque es lo que ha escrito el entrenador,
+// no la fecha: letra más legible y más contraste que el resto de texto
+// secundario de la tarjeta.
+.coach-note-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #f2f2f2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+// Revisado sin comentario: no es el mismo momento que recibir una nota, así
+// que no lleva el mismo peso visual — solo la confirmación de que alguien
+// lo miró.
+.reviewed-quiet {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  color: #8b8b8b;
+
+  ion-icon { font-size: 15px; color: var(--ion-color-success, #2dd36f); }
 }
 
 .my-checkins-content {
@@ -389,10 +448,34 @@
   color: #6b6b6b;
 }
 
+// Mismo lenguaje que .history-toggle (el desplegable de "Formularios
+// completados"): texto + icono, sin caja, para no competir visualmente con
+// la nota del entrenador que va justo encima.
+.values-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #9a9a9a;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon { font-size: 15px; }
+
+  &:hover { color: #c7c7c7; }
+  &:focus-visible { outline: 2px solid #fe9000; outline-offset: 2px; border-radius: 4px; }
+}
+
 .history-values {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  margin-top: 10px;
 }
 
 .history-value {

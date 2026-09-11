@@ -177,12 +177,31 @@
             <span class="mp-name">{{ historyTrainerName(entry) }}</span>
             <span class="history-date">{{ entry.respondedAt | date: 'd MMM y' }}</span>
           </div>
-          <div class="history-values">
+          <ng-container *ngIf="entry.status === 'reviewed'">
+            <div class="coach-note" *ngIf="entry.reviewComment; else reviewedQuiet">
+              <span class="coach-note-icon"><ion-icon name="chatbubble-ellipses-outline"></ion-icon></span>
+              <div class="coach-note-body">
+                <span class="coach-note-meta">Comentario de tu entrenador · {{ entry.reviewedAt | date: 'd MMM' }}</span>
+                <p class="coach-note-text">{{ entry.reviewComment }}</p>
+              </div>
+            </div>
+            <ng-template #reviewedQuiet>
+              <p class="reviewed-quiet"><ion-icon name="checkmark-circle-outline"></ion-icon>Revisado el {{ entry.reviewedAt | date: 'd MMM y' }}</p>
+            </ng-template>
+          </ng-container>
+
+          <!-- Las respuestas propias quedan detrás de un interruptor: una
+               vez revisado el check-in, lo que el cliente quiere ver es lo
+               que ha dicho su entrenador, no releer sus propios números. -->
+          <button type="button" class="values-toggle" (click)="toggleValues(entry)" [attr.aria-expanded]="valuesExpanded(entry)">
+            <ion-icon [name]="valuesExpanded(entry) ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            {{ valuesExpanded(entry) ? 'Ocultar tus respuestas' : 'Ver tus respuestas' }}
+          </button>
+          <div class="history-values" *ngIf="valuesExpanded(entry)">
             <span class="history-value" *ngFor="let item of historyRows.get(entry._id)">
               <strong>{{ item.label }}:</strong> {{ item.value }}
             </span>
           </div>
-          <div class="checkin-review" *ngIf="entry.status === 'reviewed'"><strong>Revisado por tu profesional · {{ entry.reviewedAt | date: 'd MMM y' }}</strong><p *ngIf="entry.reviewComment">{{ entry.reviewComment }}</p></div>
         </div>
       </ng-container>
     </div>
