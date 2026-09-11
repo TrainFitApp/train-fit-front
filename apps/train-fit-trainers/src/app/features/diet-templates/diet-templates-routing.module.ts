@@ -3,9 +3,20 @@ import { RouterModule, Routes } from '@angular/router';
 import { pendingChangesGuard } from 'src/app/core/guards/pending-changes.guard';
 import { DietTemplatesListPage } from './pages/diet-templates-list/diet-templates-list.page';
 import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-template-builder.page';
+import { DietPhasePickerPage } from './pages/diet-phase-picker/diet-phase-picker.page';
 
 const routes: Routes = [
   { path: '', component: DietTemplatesListPage },
+  // Sugerencias de dieta — "Empezar fase" desde la ficha del cliente: la
+  // misma biblioteca, ordenada por lo que pide ese cliente, con el panel de
+  // parámetros a la derecha. Ruta propia (y no un modo de la lista) para que
+  // el atrás, el deep link y un F5 en medio de la elección funcionen solos.
+  {
+    path: 'for-phase/:clientId',
+    component: DietPhasePickerPage,
+    // Se entró desde la ficha del cliente, no desde la biblioteca.
+    data: { parent: '/tabs/clients/:clientId' },
+  },
   // "Crear dieta" — mismo builder, en modo "para este cliente" en vez de
   // "editar plantilla existente" (ver diet-template-builder.page.ts).
   {

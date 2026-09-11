@@ -60,8 +60,6 @@ import { TrainingFilterPanelComponent, TrainingFilterResult } from './components
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
-import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
-import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 import { NextCycleModalComponent } from '../../components/next-cycle-modal/next-cycle-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
@@ -363,21 +361,8 @@ export class ClientDetailPage implements OnInit {
     private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService,
-    private navigation: TrainerNavigationService,
-    public dietSuggestionSession: DietSuggestionSessionService
+    private navigation: TrainerNavigationService
   ) {}
-
-  // Sugerencias de dieta — cuando está activo, la sección de nutrición pinta
-  // la lista rankeada (app-diet-suggestion-list) en vez de las tarjetas de
-  // fase, y hay un panel de parámetros abierto a la derecha.
-  public dietSelectionMode = false;
-  private dietDrawerModal: HTMLIonModalElement | null = null;
-
-  // "Cancelar" desde la zona de la lista — cierra el panel de parámetros,
-  // que a su vez apaga el modo (ver openApplyTemplateModal).
-  public closeDietSelection(): void {
-    void this.dietDrawerModal?.dismiss(null, 'cancel');
-  }
 
   // TASK-051/TASK-073 (MASTER_BACKLOG.md) — antes leía el :id una sola vez
   // de route.snapshot en ngOnInit. Sin explotar hoy (no hay ningún enlace
@@ -1477,7 +1462,7 @@ export class ClientDetailPage implements OnInit {
   // assignTemplateRoutine en ClientDetailApiService, escrito hace tiempo pero
   // nunca consumido desde ningún componente): elegir una plantilla de rutina
   // completa ya construida (propia del profesional) en vez de partir de cero.
-  // Mismo patrón que openApplyTemplateModal() (nutrición) un poco más abajo.
+  // Hermano de startDietPhase() (nutrición) un poco más abajo.
   public async openApplyRoutineTemplateModal(): Promise<void> {
     this.closeRoutinePanel();
     const modal = await this.modalController.create({
@@ -1662,7 +1647,21 @@ export class ClientDetailPage implements OnInit {
       .sort((a, b) => a.startDate.localeCompare(b.startDate));
   }
 
+  // BUG (2026-09-11) — encadenar una fase que empieza en el FUTURO (p.ej.
+  // "Siguiente fase" con fecha propuesta = día después de que acabe la
+  // actual) la duplicaba en el track: `activePlan` la pintaba arriba como
+  // "en curso" (getActive va por STATUS — el tip de la cadena, sea cual sea
+  // su fecha, ver plan-assignment-controller.js#getActive) y el `*ngFor` de
+  // abajo la volvía a pintar como "programada", porque por FECHA esta
+  // función decía `false` (aún no ha empezado) — el filtro solo miraba si
+  // el phase cubría hoy, nunca si YA era el que activePlan señala. La
+  // comparación por identidad cierra ese hueco sin tocar la de fecha, que
+  // sigue haciendo falta para el caso contrario: la fase vieja que el
+  // encadenado marca "superseded" en el acto pero sigue rigiendo hoy (ver
+  // buildPhaseSequence más arriba) — esa no es `activePlan` y aun así debe
+  // seguir excluida de "programada".
   public isCurrentPhase(phase: PlanAssignment): boolean {
+    if (this.activePlan && phase._id === this.activePlan._id) return true;
     const hoy = new Date().toISOString().slice(0, 10);
     return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
   }
@@ -1688,51 +1687,59 @@ export class ClientDetailPage implements OnInit {
     return this.hexToRgba(color, 0.14);
   }
 
-  // Borrado coherente de fases (nutrición) — mismo patrón que
+  // Borrado coherente de fases (nutrición) — mismo criterio que
   // confirmCancelRoutinePhase para entrenamiento: quitar CUALQUIER fase
-  // (vigente, programada o ya sustituida), con el mismo diálogo de
-  // confirmación. Si era la fase en curso, el backend reactiva sola la que
-  // queda más reciente — nunca deja al cliente sin ninguna.
+  // (vigente, programada o ya sustituida). Si era la fase en curso, el
+  // backend reactiva sola la que queda más reciente — nunca deja al cliente
+  // sin ninguna.
+  //
+  // 2026-09 — la confirmación pasó de `ion-alert` (un diálogo aparte,
+  // tapando el resto de la ficha) a dos botones pequeños INLINE en el
+  // propio sitio del "Quitar fase": pedir confirmación para una acción
+  // sobre UNA fila de una lista no necesita interrumpir toda la pantalla,
+  // y evita el salto de foco de abrir/cerrar un modal para una fase que a
+  // menudo se quita por error nada más aplicarla.
   public cancellingPlanPhaseId: string | null = null;
+  // Fase para la que están abiertos los botones "Cancelar/Quitar" — como
+  // mucho una a la vez (pedir para otra cierra la anterior sin tocarla).
+  public confirmingCancelPlanPhaseId: string | null = null;
 
-  public async confirmCancelPlanPhase(phase: PlanAssignment, event: Event): Promise<void> {
+  public requestCancelPlanPhase(phase: PlanAssignment, event: Event): void {
     event.stopPropagation();
-    await this.ionicUtilService.showAlert({
-      header: 'Quitar fase',
-      message: `¿Seguro que quieres quitar "${phase.planName || 'Plan aplicado'}", desde el ${this.formatShortDate(phase.startDate)}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Quitar',
-          cssClass: 'alert-button-danger',
-          handler: () => {
-            this.cancellingPlanPhaseId = phase._id;
-            this.planAssignmentApi.cancel(this.clientId, phase._id).subscribe({
-              next: () => {
-                this.cancellingPlanPhaseId = null;
-                this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
-                // loadNutrition (no solo loadActivePlan): quitar una fase
-                // también borra el objetivo de su ciclo en el backend
-                // (cancelPhase -> cleanupCycleGoal), así que la lista de
-                // OBJETIVOS NUTRICIONALES hay que recargarla o queda un
-                // objetivo fantasma "En uso" hasta el próximo refresco.
-                this.loadNutrition();
-                // El historial de abajo es de carga perezosa (toggleNutritionHistory)
-                // — solo se refresca si ya estaba abierto, para no disparar una
-                // petición que nadie va a ver.
-                if (this.nutritionHistoryLoaded) this.loadNutritionHistory();
-              },
-              error: (err) => {
-                this.cancellingPlanPhaseId = null;
-                this.ionicUtilService.showToast({
-                  message: err?.error?.message || 'No se pudo quitar la fase',
-                  duration: 2500,
-                });
-              },
-            });
-          },
-        },
-      ],
+    this.confirmingCancelPlanPhaseId = phase._id;
+  }
+
+  public dismissCancelPlanPhase(event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelPlanPhaseId = null;
+  }
+
+  public confirmCancelPlanPhase(phase: PlanAssignment, event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelPlanPhaseId = null;
+    this.cancellingPlanPhaseId = phase._id;
+    this.planAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+      next: () => {
+        this.cancellingPlanPhaseId = null;
+        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        // loadNutrition (no solo loadActivePlan): quitar una fase también
+        // borra el objetivo de su ciclo en el backend (cancelPhase ->
+        // cleanupCycleGoal), así que la lista de OBJETIVOS NUTRICIONALES
+        // hay que recargarla o queda un objetivo fantasma "En uso" hasta el
+        // próximo refresco.
+        this.loadNutrition();
+        // El historial de abajo es de carga perezosa (toggleNutritionHistory)
+        // — solo se refresca si ya estaba abierto, para no disparar una
+        // petición que nadie va a ver.
+        if (this.nutritionHistoryLoaded) this.loadNutritionHistory();
+      },
+      error: (err) => {
+        this.cancellingPlanPhaseId = null;
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'No se pudo quitar la fase',
+          duration: 2500,
+        });
+      },
     });
   }
 
@@ -2013,57 +2020,26 @@ export class ClientDetailPage implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
-  // Sugerencias de dieta — "empezar fase": la sección de nutrición pasa a
-  // modo lista (app-diet-suggestion-list, zona principal) y se abre el panel
-  // de parámetros a la derecha. El panel aplica la fase; la lista solo
-  // marca cuál. El modal antiguo (ApplyDietTemplateModalComponent) sigue
-  // disponible desde "Aplicar plantilla concreta".
-  public async openApplyTemplateModal(): Promise<void> {
+  // Sugerencias de dieta — "empezar fase" lleva a la biblioteca de dietas
+  // (/tabs/diet-templates/for-phase/:clientId), que las lista ordenadas por
+  // lo cerca que quedan del objetivo de este cliente y abre ahí el panel de
+  // parámetros. Antes la lista rankeada se pintaba en esta misma pantalla,
+  // en un "modo" que escondía media ficha: elegir una dieta es entrar en la
+  // biblioteca, no una vista más de la ficha. El nombre y la fecha
+  // propuesta viajan por query param (y no por router state) para que la
+  // pantalla sobreviva a un F5. El modal antiguo
+  // (ApplyDietTemplateModalComponent) sigue disponible desde
+  // "Aplicar plantilla concreta".
+  public startDietPhase(): void {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
     const finAnterior = ultima?.endDate || null;
 
-    this.dietSuggestionSession.reset();
-    this.dietSelectionMode = true;
-
-    const modal = await this.modalController.create({
-      component: DietSuggestionDrawerComponent,
-      cssClass: 'tf-panel-modal-overlay',
-      showBackdrop: false,
-      backdropDismiss: false,
-      componentProps: {
-        clientId: this.clientId,
-        clientName: this.name,
-        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+    void this.router.navigate(['/tabs/diet-templates/for-phase', this.clientId], {
+      queryParams: {
+        name: this.name,
+        start: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
       },
     });
-    this.dietDrawerModal = modal;
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss();
-
-    this.dietDrawerModal = null;
-    this.dietSelectionMode = false;
-    this.dietSuggestionSession.reset();
-
-    if (role === 'create-from-scratch' && data) {
-      // "Empezar de cero" desde el cajón → builder, arrastrando el objetivo
-      // y el bloque de fase (mismo state que openCreateDietModal + phase).
-      void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
-        state: {
-          clientName: this.name,
-          name: data.phase?.name || 'Nueva dieta',
-          startDate: data.startDate,
-          endMode: 'indefinite',
-          phase: data.phase,
-          cycleTarget: data.cycleTarget,
-        },
-      });
-      return;
-    }
-
-    if (role !== 'confirm') return;
-
-    void this.loadActivePlan();
-    this.loadNutrition();
   }
 
   // Sugerencias de dieta — progresión ciclo a ciclo. Abre el modal que lee
@@ -2182,7 +2158,13 @@ export class ClientDetailPage implements OnInit {
       });
       return;
     }
-    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId]);
+    // El constructor no sabría de quién viene: se le pasa el cliente para que
+    // enseñe de quién es la dieta y su objetivo como referencia. Por query
+    // param, no por router state, para que sobreviva a un F5 — mismo criterio
+    // que startDietPhase.
+    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId], {
+      queryParams: { clientId: this.clientId, name: this.name },
+    });
   }
 
   // F20-octies — color de las píldoras del patrón `index`. Con un solo

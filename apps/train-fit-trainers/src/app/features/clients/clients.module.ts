@@ -21,7 +21,6 @@ import { SupplementsPanelComponent } from './pages/client-detail/components/supp
 import { ShoppingListPanelComponent } from './pages/client-detail/components/shopping-list-panel/shopping-list-panel.component';
 import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
-import { DietSuggestionListComponent } from './components/diet-suggestion-list/diet-suggestion-list.component';
 import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 
 @NgModule({
@@ -51,7 +50,6 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     ShoppingListPanelComponent,
     TrainingCalendarComponent,
     TrainingComparisonChartComponent,
-    DietSuggestionListComponent,
   ],
 })
 export class ClientsPageModule {}

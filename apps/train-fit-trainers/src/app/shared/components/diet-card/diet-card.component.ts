@@ -15,9 +15,9 @@ const FLAG_LABELS: Record<string, string> = {
 };
 
 // Una sola card de dieta — se usa en la biblioteca de plantillas y en la
-// lista de sugerencias al empezar una fase. `deltas`/`medal`/`lead` solo
-// aparecen en el contexto de sugerencia (hay un objetivo de cliente contra
-// el que comparar); `dayCount` en el de biblioteca.
+// lista de sugerencias al empezar una fase. `deltas`/`medal` solo aparecen
+// en el contexto de sugerencia (hay un objetivo de cliente contra el que
+// comparar); `dayCount` en el de biblioteca.
 @Component({
   selector: 'app-diet-card',
   templateUrl: './diet-card.component.html',
@@ -28,12 +28,16 @@ export class DietCardComponent {
   @Input() public profile: DietCardProfile | null = null;
   @Input() public deltas: DietCardProfile | null = null;
   @Input() public medal = '';
-  @Input() public lead = '';
   @Input() public verified = false;
   @Input() public ownedByClient = false;
   @Input() public dayCount: number | null = null;
   @Input() public basedOnDays = 0;
   @Input() public flags: string[] = [];
+  // Restricciones del cliente que esta dieta NO cumple (ver missingFlags en
+  // diet-suggestion.model.ts). Se avisa nombrando la restricción incumplida
+  // y no acusando al contenido: un flag falta tanto si algún alimento no lo
+  // cumple como si el catálogo simplemente no lo declara.
+  @Input() public missingFlags: string[] = [];
   @Input() public selected = false;
   @Input() public highlight = false;
 
@@ -41,6 +45,10 @@ export class DietCardComponent {
 
   public flagLabel(flag: string): string {
     return FLAG_LABELS[flag] ?? flag;
+  }
+
+  public missingFlagsLabel(): string {
+    return this.missingFlags.map((flag) => this.flagLabel(flag)).join(', ');
   }
 
   public deltaLabel(value: number): string {

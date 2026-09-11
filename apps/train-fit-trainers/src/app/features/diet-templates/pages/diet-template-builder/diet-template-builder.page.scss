@@ -29,6 +29,90 @@
   text-align: center;
 }
 
+// Contexto de cliente (2026-09) — de quién es la dieta y contra qué objetivo
+// se ajusta. No es contenido editable sino el marco de todo lo que hay
+// debajo, de ahí la superficie propia: el resto de la pantalla va suelto
+// sobre el fondo.
+.client-context {
+  margin-bottom: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  background: var(--tf-surface-1);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--tf-space-2);
+    margin: 0;
+    font-size: var(--tf-font-size-base);
+    color: var(--tf-text-secondary);
+
+    strong {
+      color: var(--tf-text);
+    }
+
+    ion-icon {
+      flex-shrink: 0;
+      font-size: 20px;
+      color: var(--tf-accent-text);
+    }
+  }
+
+  // El alcance del cambio, que es lo que de verdad se malinterpreta: se
+  // edita la plantilla, no la copia congelada que rige su plan.
+  &__scope {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tf-space-2);
+    margin: var(--tf-space-2) 0 0;
+    font-size: var(--tf-font-size-xs);
+    line-height: var(--tf-line-height-base);
+    color: var(--tf-text-muted);
+
+    ion-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-size: 14px;
+    }
+  }
+
+  &__target {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--tf-space-2) var(--tf-space-3);
+    margin-top: var(--tf-space-3);
+    padding-top: var(--tf-space-3);
+    border-top: 1px solid var(--tf-border-subtle);
+  }
+
+  // --tf-text-muted y no --tf-text-faint: este es texto real (una etiqueta
+  // que hay que leer para saber de dónde sale la cifra), y faint se queda en
+  // 3,46:1 — por debajo del 4,5 de AA. Ver tokens.scss.
+  &__target-label {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--tf-text-muted);
+  }
+
+  &__target-values {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--tf-space-3);
+    font-variant-numeric: tabular-nums;
+
+    strong {
+      font-size: var(--tf-font-size-md);
+      font-weight: 800;
+      color: var(--tf-accent-text);
+    }
+  }
+}
+
 // Estado de error a pantalla completa — mismo patrón que clients.page.scss /
 // dashboard.page.scss (icono + h2 + p + CTA), en vez del párrafo suelto que
 // tenía antes esta pantalla.
@@ -580,6 +664,33 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+// Contexto de cliente — desvío del día respecto al objetivo del cliente.
+// Neutro por defecto y VERDE solo al entrar en tolerancia: lo que se busca
+// mientras se monta el día es ver cuáles ya están bien, no que media
+// pantalla se pinte de rojo por cifras que todavía se están tecleando.
+.totals-deviation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.deviation-chip {
+  padding: 1px 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &.is-on-target {
+    background: var(--tf-success-soft);
+    color: var(--tf-success);
+  }
 }
 
 .macro-tag {

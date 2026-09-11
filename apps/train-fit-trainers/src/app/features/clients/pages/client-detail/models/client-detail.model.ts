@@ -375,6 +375,12 @@ export interface NutritionalGoal {
   // cliente puede tener en uso un objetivo propio aunque el trainer le
   // haya asignado otro que todavía no activó, o viceversa.
   isInUse: boolean;
+  // Sugerencias de dieta — puesto cuando este objetivo lo creó el arranque
+  // de una FASE (plan-assignment-service.js -> assignToClient), que además
+  // lo deja en uso. Ausente = objetivo "de siempre", no atado a ninguna
+  // fase. Sirve para decir de dónde sale la cifra cuando se usa como
+  // referencia en otra pantalla.
+  phaseId?: string | null;
   // Fase 5 Coach Pro — "fibra si procede". null = este objetivo no la pauta,
   // que no es lo mismo que 0 g.
   fiberGTotal?: number | null;

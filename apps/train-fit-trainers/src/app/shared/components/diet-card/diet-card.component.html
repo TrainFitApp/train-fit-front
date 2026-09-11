@@ -13,7 +13,9 @@
     <span class="tag tag--owned" *ngIf="ownedByClient">de un cliente</span>
   </div>
 
-  <p class="card-lead" *ngIf="lead">{{ lead }}</p>
+  <!-- Cuadra de macros pero incumple alguna restricción del cliente: se
+       elige igual y se cambian esos alimentos después. -->
+  <p class="card-missing" *ngIf="missingFlags.length">No cumple: {{ missingFlagsLabel() }}</p>
 
   <div class="card-macros" *ngIf="profile">
     <span>

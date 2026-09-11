@@ -1,0 +1,26 @@
+.phase-picker-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-6);
+
+  // El panel de parámetros (.tf-panel-modal-overlay, 400px) flota a la
+  // derecha SIN velo y con la lista clicable debajo: sin este hueco taparía
+  // la última columna de tarjetas. Por debajo de 768px el panel pasa a ser
+  // un modal a pantalla completa y el hueco sobra.
+  @media (min-width: 768px) {
+    --padding-end: 416px;
+  }
+}
+
+.page-hint {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  line-height: var(--tf-line-height-base);
+  margin: 0 0 var(--tf-space-4);
+
+  strong {
+    color: var(--tf-text);
+  }
+}

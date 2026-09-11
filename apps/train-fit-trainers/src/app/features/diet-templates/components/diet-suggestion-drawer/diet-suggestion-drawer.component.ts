@@ -5,13 +5,13 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
+import { DietSuggestionApiService } from '../../services/diet-suggestion-api.service';
 import {
   DietaryFlag,
   DietSource,
   PhaseFocus,
   RankedTemplate,
-} from '../../../diet-templates/models/diet-suggestion.model';
+} from '../../models/diet-suggestion.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
 
@@ -32,8 +32,9 @@ type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 
 // Sugerencias de dieta — el panel DERECHO al empezar una fase: solo los
 // parámetros (objetivo, restricciones), el objetivo calculado del cliente y
-// la sugerencia principal + CTA. La LISTA rankeada va en la zona principal
-// (diet-suggestion-list). Estado compartido en DietSuggestionSessionService.
+// la sugerencia principal + CTA. La LISTA rankeada la pinta la pantalla que
+// lo abre (diet-phase-picker: la biblioteca de dietas ordenada para este
+// cliente). Estado compartido en DietSuggestionSessionService.
 @Component({
   selector: 'app-diet-suggestion-drawer',
   standalone: true,
@@ -197,15 +198,35 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return this.session.results?.weightSource ?? null;
   }
 
-  // La que el entrenador va a aplicar: la elegida en la lista, o la #1.
+  // La que el entrenador va a aplicar: la elegida en la lista o, si no ha
+  // elegido, la primera COMPATIBLE — no la primera a secas. Las que
+  // incumplen las restricciones salen listadas (detrás, con su aviso) pero
+  // nunca se proponen solas: este botón aplica la fase de un click y nadie
+  // debería acabar con gluten por no haber tocado nada. Si no hay ninguna
+  // compatible no se propone ninguna y hay que elegirla a mano.
   public get chosen(): RankedTemplate | null {
     const r = this.session.results?.ranked ?? [];
     if (this.selectedId) return r.find((t) => t._id === this.selectedId) ?? null;
-    return r[0] ?? null;
+    return r.find((t) => t._id === this.session.topSuggestionId) ?? null;
   }
 
   public get chosenIsTop(): boolean {
-    return !!this.chosen && this.chosen.rank === 1 && !this.selectedId;
+    return !!this.chosen && this.chosen._id === this.session.topSuggestionId && !this.selectedId;
+  }
+
+  // Hay dietas, aunque ninguna sea compatible — distingue "no tienes nada
+  // que encaje con estos parámetros" de "tienes, pero ninguna cumple sus
+  // restricciones", que se arreglan de formas distintas.
+  public get hasResults(): boolean {
+    return !!this.session.results?.ranked.length;
+  }
+
+  // Restricciones que incumple la elegida, para avisar ANTES de aplicarla.
+  public get chosenMissingLabels(): string {
+    const missing = this.chosen?.missingFlags ?? [];
+    return missing
+      .map((flag) => DIETARY_FLAGS.find((opt) => opt.key === flag)?.label ?? flag)
+      .join(', ');
   }
 
   public focusVerb(): string {

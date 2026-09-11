@@ -27,9 +27,27 @@ import {
 import { DayMealEditorModalComponent } from './components/day-meal-editor-modal/day-meal-editor-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { DurationUnit, PlanEndMode } from '../../../../shared/models/plan-assignment.model';
+import { ClientDetailApiService } from '../../../clients/pages/client-detail/services/client-detail-api.service';
 import { switchMap } from 'rxjs/operators';
 
 type ViewState = 'loading' | 'error' | 'loaded';
+
+// De quién es la dieta que se está tocando, cuando se llega con un cliente
+// detrás:
+//   'new'    — "Crear dieta": nace para él y se le aplica al guardar.
+//   'own'    — plantilla SUYA (ownerClientId), abierta desde su ficha.
+//   'shared' — plantilla GENERAL de la biblioteca, abierta desde su ficha.
+// La distinción importa por lo que se puede prometer: en 'own'/'shared' se
+// edita la plantilla, NUNCA la copia congelada que rige su plan (ver
+// diet-template-schema.js), y en 'shared' además hay más clientes detrás.
+type ClientContextKind = 'new' | 'own' | 'shared';
+
+interface MacroTarget {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
 
 // Lo que trae el modal de "Crear dieta" (ver ApplyDietTemplateModalComponent
 // #forDirectCreate) antes de llegar aquí: el nombre y CUÁNDO va a regir. El
@@ -136,6 +154,27 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   private phasePayload: ForClientNavigationState['phase'] | null = null;
   private cycleTargetPayload: ForClientNavigationState['cycleTarget'] | null = null;
 
+  // --- Contexto de cliente (2026-09) ---
+  //
+  // Antes esta pantalla era idéntica viniera de donde viniera: al abrir la
+  // plantilla de una fase desde la ficha de un cliente no se decía de quién
+  // era, ni contra qué cifras había que ajustarla — el objetivo que la
+  // fase tiene que cumplir se quedaba en la pantalla anterior, justo cuando
+  // hace falta para montar las comidas.
+  public clientContextKind: ClientContextKind | null = null;
+  public clientContextName = '';
+  public clientTarget: MacroTarget | null = null;
+  public clientTargetLabel = '';
+  // Cliente del que se viene al EDITAR una plantilla (ruta :id) — llega por
+  // query param desde openPhaseTemplate en la ficha.
+  private fromClientId = '';
+
+  // Margen con el que un día se da por bueno contra el objetivo. No hay un
+  // estándar: ±100 kcal es el escalón con el que ya trabaja el cajón de
+  // sugerencias (mueve el delta de 100 en 100) y ±10 g es el grano al que
+  // se pauta una comida.
+  private readonly targetTolerance = { kcal: 100, macro: 10 };
+
   private readonly destroyRef = inject(DestroyRef);
   // Solo fiable en el constructor (getCurrentNavigation() vuelve a null en
   // cuanto la navegación termina, y ngOnInit ya corre después) — mismo
@@ -155,6 +194,7 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     private navigation: TrainerNavigationService,
     private dietTemplateApi: DietTemplateApiService,
     private planAssignmentApi: PlanAssignmentApiService,
+    private clientDetailApi: ClientDetailApiService,
     private ionicUtilService: IonicUtilService,
     private customProductService: CustomProductService,
     private recipeService: RecipeService
@@ -182,6 +222,11 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
         return;
       }
       this.templateId = params.get('id') || '';
+      // De qué cliente se viene, si se viene de alguno (ver openPhaseTemplate
+      // en la ficha). Por query param para que un F5 no lo pierda.
+      const query = this.route.snapshot.queryParamMap;
+      this.fromClientId = query.get('clientId') || '';
+      this.clientContextName = query.get('name') || 'este cliente';
       this.load();
     });
   }
@@ -214,6 +259,25 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     };
     this.phasePayload = nav.phase ?? null;
     this.cycleTargetPayload = nav.cycleTarget ?? null;
+    this.clientContextKind = 'new';
+    this.clientContextName = this.clientName;
+    // Si se llegó desde el cajón ("empezar de cero"), el objetivo del ciclo 1
+    // ya viene calculado y todavía NO existe como objetivo del cliente: la
+    // fase no se ha aplicado. Si se llegó por "Crear dieta" a secas, no hay
+    // tal cálculo y la referencia es el objetivo que ya tenga en uso.
+    if (nav.cycleTarget) {
+      this.clientTarget = {
+        kcal: nav.cycleTarget.kcal,
+        protein: nav.cycleTarget.macros?.protein || 0,
+        carbs: nav.cycleTarget.macros?.carbs || 0,
+        fat: nav.cycleTarget.macros?.fat || 0,
+      };
+      this.clientTargetLabel = nav.phase?.name
+        ? `Objetivo del ciclo 1 · ${nav.phase.name}`
+        : 'Objetivo de la fase';
+    } else {
+      this.loadClientTarget(clientId);
+    }
     this.mode = 'sequential';
     this.days = [];
     this.dayPatterns = [];
@@ -231,12 +295,47 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
           return;
         }
         this.applyTemplate(template);
+        // `ownerClientId` decide qué se puede decir del banner: una plantilla
+        // suya es "su dieta"; una general la comparte con otros clientes y
+        // tocarla les afecta a todos.
+        if (this.fromClientId) {
+          const owner = template.ownerClientId ? String(template.ownerClientId) : '';
+          this.clientContextKind = owner === this.fromClientId ? 'own' : 'shared';
+          this.loadClientTarget(this.fromClientId);
+        }
         this.savedSnapshot = this.snapshot();
         this.state = 'loaded';
       },
       error: () => {
         this.state = 'error';
       },
+    });
+  }
+
+  // El objetivo del ciclo de una fase empezada desde el cajón ES el objetivo
+  // EN USO del cliente: al aplicar la fase, el backend lo crea y lo activa de
+  // una vez (plan-assignment-service.js -> nutritionalGoalService
+  // .assignToClient). Por eso este único endpoint sirve para las dos
+  // referencias posibles, y `phaseId` distingue cuál de las dos se está
+  // mostrando sin tener que adivinarlo.
+  private loadClientTarget(clientId: string): void {
+    this.clientDetailApi.getNutritionalGoals(clientId).subscribe({
+      next: (goals) => {
+        const enUso = (goals || []).find((goal) => goal.isInUse);
+        if (!enUso) return;
+        this.clientTarget = {
+          kcal: enUso.kcalTotal,
+          protein: enUso.proteinsGTotal,
+          carbs: enUso.carbohydratesGTotal,
+          fat: enUso.fatGTotal,
+        };
+        this.clientTargetLabel = enUso.phaseId
+          ? `Objetivo del ciclo · ${enUso.name}`
+          : `Objetivo en uso · ${enUso.name}`;
+      },
+      // En silencio: la referencia ayuda a ajustar, no hace falta para
+      // editar. Un error aquí no debe estorbar el trabajo de la pantalla.
+      error: () => undefined,
     });
   }
 
@@ -533,6 +632,32 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
 
   public hasAnyItems(row: TemplateDay | TemplateDayPattern): boolean {
     return row.meals.some((meal) => (meal.alternatives?.[0]?.items?.length || 0) > 0);
+  }
+
+  // Contexto de cliente — cuánto se desvía este día del objetivo, para poder
+  // ajustar sin salir a mirar la cifra a otra pantalla. null cuando no hay
+  // cliente detrás (plantilla de biblioteca sin más) o el día está vacío:
+  // "-2200 kcal" sobre un día sin alimentos no informa de nada.
+  public targetDeviation(row: TemplateDay | TemplateDayPattern): MacroTarget | null {
+    if (!this.clientTarget || !this.hasAnyItems(row)) return null;
+    const totals = this.dayTotals(row);
+    return {
+      kcal: Math.round(totals.kcal - this.clientTarget.kcal),
+      protein: Math.round(totals.protein - this.clientTarget.protein),
+      carbs: Math.round(totals.carbs - this.clientTarget.carbs),
+      fat: Math.round(totals.fat - this.clientTarget.fat),
+    };
+  }
+
+  public deviationLabel(value: number): string {
+    // El signo SIEMPRE, también en el 0 ("±0"): un número pelado al lado de
+    // los gramos del total se confunde con otro total más.
+    if (value === 0) return '±0';
+    return `${value > 0 ? '+' : '−'}${Math.abs(value)}`;
+  }
+
+  public isOnTarget(value: number, kind: 'kcal' | 'macro'): boolean {
+    return Math.abs(value) <= this.targetTolerance[kind];
   }
 
   // Proporción de cada macro sobre el total de KCAL del día (no de gramos:

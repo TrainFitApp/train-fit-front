@@ -30,6 +30,13 @@
   &:hover:not(.is-selected) {
     border-color: var(--tf-accent, #fe9000);
   }
+
+  // La card ES el control de la lista y no tenía foco visible: con teclado
+  // no se sabía cuál estaba seleccionada.
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
 }
 
 .card-top {
@@ -68,13 +75,17 @@
   }
 }
 
-.card-lead {
-  margin: 6px 0 4px;
-  font-size: 0.8rem;
+// --tf-danger-text y no --tf-danger: es texto pequeño, y el rojo sólido se
+// queda en 4,41:1 sobre estas superficies (ver tokens.scss).
+.card-missing {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-danger-soft);
+  font-size: 0.68rem;
   font-weight: 700;
-  color: var(--tf-accent-text, #b45f00);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: var(--tf-danger-text);
 }
 
 .card-macros {

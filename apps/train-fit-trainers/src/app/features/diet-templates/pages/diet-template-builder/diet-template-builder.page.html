@@ -25,6 +25,52 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
+    <!-- Contexto de cliente (2026-09) — de quién es esta dieta y contra qué
+         cifras se ajusta. Antes la pantalla era idéntica viniera de donde
+         viniera: al abrir la plantilla de una fase desde la ficha no se
+         decía de quién era ni qué objetivo tenía que cumplir.
+         El aviso de alcance NO es decorativo: la fase que el cliente tiene
+         aplicada es una copia congelada (ver diet-template-schema.js), así
+         que editar la plantilla no cambia lo que come hoy. -->
+    <div class="client-context" *ngIf="clientContextKind as kind">
+      <p class="client-context__title">
+        <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+        <span [ngSwitch]="kind">
+          <ng-container *ngSwitchCase="'new'">
+            Nueva dieta para <strong>{{ clientContextName }}</strong>
+          </ng-container>
+          <ng-container *ngSwitchCase="'own'">
+            Dieta de <strong>{{ clientContextName }}</strong>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            Plantilla general, abierta desde la ficha de <strong>{{ clientContextName }}</strong>
+          </ng-container>
+        </span>
+      </p>
+
+      <p class="client-context__scope" *ngIf="kind !== 'new'">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span *ngIf="kind === 'own'">
+          Esto es la plantilla: los cambios no tocan la fase que ya tiene aplicada.
+        </span>
+        <span *ngIf="kind === 'shared'">
+          Esto es la plantilla, y la comparten otros clientes: los cambios no tocan
+          la fase que {{ clientContextName }} ya tiene aplicada, pero sí lo que se
+          aplique a partir de ahora.
+        </span>
+      </p>
+
+      <div class="client-context__target" *ngIf="clientTarget as target">
+        <span class="client-context__target-label">{{ clientTargetLabel }}</span>
+        <span class="client-context__target-values">
+          <strong>{{ target.kcal | number: '1.0-0' }} kcal</strong>
+          <span class="macro-tag macro-tag--protein">P {{ target.protein | number: '1.0-0' }}g</span>
+          <span class="macro-tag macro-tag--carbs">C {{ target.carbs | number: '1.0-0' }}g</span>
+          <span class="macro-tag macro-tag--fat">G {{ target.fat | number: '1.0-0' }}g</span>
+        </span>
+      </div>
+    </div>
+
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
@@ -224,6 +270,22 @@
               <span class="macro-tag macro-tag--protein">P {{ dayTotals(row).protein | number: '1.0-0' }}g</span>
               <span class="macro-tag macro-tag--carbs">C {{ dayTotals(row).carbs | number: '1.0-0' }}g</span>
               <span class="macro-tag macro-tag--fat">G {{ dayTotals(row).fat | number: '1.0-0' }}g</span>
+            </div>
+            <!-- Contexto de cliente — desvío de ESTE día respecto al objetivo
+                 de arriba. Solo aparece cuando hay un cliente detrás. -->
+            <div class="totals-deviation" *ngIf="targetDeviation(row) as dev">
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.kcal, 'kcal')">
+                {{ deviationLabel(dev.kcal) }} kcal
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.protein, 'macro')">
+                P {{ deviationLabel(dev.protein) }}
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.carbs, 'macro')">
+                C {{ deviationLabel(dev.carbs) }}
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.fat, 'macro')">
+                G {{ deviationLabel(dev.fat) }}
+              </span>
             </div>
           </ng-container>
           <ng-template #emptyTotals>

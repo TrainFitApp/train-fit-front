@@ -34,11 +34,10 @@ export interface RankedTemplate {
   distance: number;
   deltas: { kcal: number; protein: number; carbs: number; fat: number };
   rank: number;
-}
-
-export interface HiddenTemplate {
-  _id: string;
-  name: string;
+  // Restricciones del cliente que esta dieta NO cumple. Vacío = las cumple
+  // todas. No la descarta: sale igual en la lista, detrás de las que sí
+  // cumplen y con un aviso rojo — cambiar los alimentos que fallan suele ser
+  // más barato que descartar la que mejor cuadra de macros.
   missingFlags: DietaryFlag[];
 }
 
@@ -54,7 +53,6 @@ export interface DietSuggestionResponse {
   clientDietaryFlags?: DietaryFlag[];
   requiredFlags: DietaryFlag[];
   ranked: RankedTemplate[];
-  hidden: HiddenTemplate[];
 }
 
 // 422 cuando faltan datos biométricos del cliente.

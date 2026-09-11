@@ -21,12 +21,12 @@
     <h2>Faltan datos de {{ clientName }}</h2>
     <p>Para calcular su objetivo hace falta: <strong>{{ missing.join(', ') }}</strong>.</p>
     <p class="muted">Pídele una antropometría (o que responda un check-in con peso) y vuelve aquí.</p>
-    <ion-button expand="block" fill="outline" (click)="dismiss()">Entendido</ion-button>
+    <button type="button" class="secondary-button" (click)="dismiss()">Entendido</button>
   </div>
 
   <div class="section-error" *ngIf="state === 'error'">
     <p>No se pudieron cargar las sugerencias.</p>
-    <ion-button size="small" fill="outline" (click)="queueRefetch()">Reintentar</ion-button>
+    <button type="button" class="secondary-button" (click)="queueRefetch()">Reintentar</button>
   </div>
 
   <ng-container *ngIf="state === 'ready' || state === 'loading'">
@@ -100,11 +100,20 @@
       <p class="chosen-macros">
         {{ c.profile.kcal }} kcal · P {{ c.profile.protein }} · C {{ c.profile.carbs }} · G {{ c.profile.fat }}
       </p>
+      <!-- Último punto antes de crear la fase: si la elegida a mano incumple
+           alguna restricción, se dice aquí y no solo en la tarjeta. -->
+      <p class="chosen-missing" *ngIf="c.missingFlags?.length">
+        No cumple: {{ chosenMissingLabels }}. Tendrás que cambiar esos alimentos.
+      </p>
       <p class="muted small">Elige otra en la lista de la izquierda si lo prefieres.</p>
     </section>
 
     <section class="chosen-box chosen-box--empty" *ngIf="!chosen && state === 'ready'">
-      <p>Ninguna dieta encaja con estos parámetros.</p>
+      <p *ngIf="!hasResults">Ninguna dieta encaja con estos parámetros.</p>
+      <p *ngIf="hasResults">
+        Ninguna cumple las restricciones de {{ clientName }}. Elige una de la lista
+        si vas a cambiarle los alimentos, o empieza de cero.
+      </p>
     </section>
 
     <!-- ===== Fecha ===== -->
@@ -118,9 +127,9 @@
 
 <ion-footer class="ion-no-border" *ngIf="state === 'ready'">
   <div class="footer-actions">
-    <ion-button expand="block" [disabled]="!canConfirm" (click)="confirm()">
+    <button type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
       {{ applying ? 'Aplicando…' : 'Empezar fase con esta dieta' }}
-    </ion-button>
+    </button>
     <button type="button" class="scratch-link" (click)="createFromScratch()">
       …o empezar de cero y construir la dieta
     </button>

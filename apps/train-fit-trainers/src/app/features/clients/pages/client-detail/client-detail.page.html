@@ -674,7 +674,7 @@
     </div>
 
     <ng-container *ngIf="nutritionState === 'loaded'">
-      <div class="nutrition-layout" [class.nutrition-layout--choosing]="dietSelectionMode">
+      <div class="nutrition-layout">
         <!-- Columna fija: de un vistazo, sin desplazarse — adherencia,
              preferencias del cliente y objetivos vigentes. Al no compartir
              ancho completo con el resto, tarjetas cortas ya no dejan hueco
@@ -830,33 +830,28 @@
                Junto con la tarjeta de plan activo, va ANTES del calendario/
                gráfica: es lo primero que se decide (qué plan rige), lo de
                abajo (calendario/seguimiento) es la consecuencia de eso. -->
-          <!-- Sugerencias de dieta — modo "elegir dieta para la fase": la
-               lista rankeada ocupa la zona principal; los parámetros y la
-               sugerencia van en el panel derecho (diet-suggestion-drawer). -->
-          <div class="diet-selection-mode" *ngIf="dietSelectionMode">
-            <div class="section-row">
-              <h3 class="diet-selection-title">Elige una dieta para la fase</h3>
-              <button type="button" class="diet-selection-cancel" (click)="closeDietSelection()">
-                Cancelar
+          <div class="template-actions-row">
+            <!-- Las dos formas de darle un plan al cliente van juntas, a la
+                 izquierda: antes "justify-content: space-between" sobre los
+                 tres botones dejaba "Crear dieta" flotando solo en el
+                 CENTRO de la fila, con un hueco grande a cada lado en vez de
+                 al lado de "Aplicar plantilla", que es donde tiene sentido
+                 (misma decisión: qué contenido le doy al cliente). -->
+            <div class="template-actions-row__primary">
+              <button type="button" class="add-button" (click)="startDietPhase()">
+                <ion-icon name="download-outline"></ion-icon>
+                Aplicar plantilla
+              </button>
+              <!-- La otra forma de darle un plan al cliente, construida aquí
+                   mismo en vez de salir de la biblioteca de plantillas.
+                   Nunca crea una plantilla reutilizable — el resultado es
+                   exclusivo de este cliente desde el principio (ver
+                   createDirect en el backend). -->
+              <button type="button" class="add-button" (click)="openCreateDietModal()">
+                <ion-icon name="add-outline"></ion-icon>
+                Crear dieta
               </button>
             </div>
-            <app-diet-suggestion-list></app-diet-suggestion-list>
-          </div>
-
-          <div class="template-actions-row" *ngIf="!dietSelectionMode">
-            <button type="button" class="add-button" (click)="openApplyTemplateModal()">
-              <ion-icon name="download-outline"></ion-icon>
-              Aplicar plantilla
-            </button>
-            <!-- Al lado de "Aplicar plantilla": la otra forma de darle un
-                 plan al cliente, construida aquí mismo en vez de salir de la
-                 biblioteca de plantillas. Nunca crea una plantilla
-                 reutilizable — el resultado es exclusivo de este cliente
-                 desde el principio (ver createDirect en el backend). -->
-            <button type="button" class="add-button" (click)="openCreateDietModal()">
-              <ion-icon name="add-outline"></ion-icon>
-              Crear dieta
-            </button>
             <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
               Gestionar plantillas
             </button>
@@ -869,7 +864,7 @@
                programadas. Añadir una fase la encadena al final, que es
                donde se espera que aparezca. Con muchas, la fila desplaza
                dentro de su caja en vez de estirar la página. -->
-          <div class="plan-track" *ngIf="activePlan && !dietSelectionMode">
+          <div class="plan-track" *ngIf="activePlan">
           <!-- Mismo color que este tramo pinta en el calendario de abajo
                (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
                vistazo la tarjeta con su franja de días. -->
@@ -961,16 +956,31 @@
               </button>
 
               <!-- Acción secundaria y destructiva: texto discreto, no un
-                   icono danger compitiendo con "editar". -->
-              <button
-                type="button"
-                class="phase-remove-link"
-                [disabled]="cancellingPlanPhaseId === activePlan._id"
-                (click)="confirmCancelPlanPhase(activePlan, $event)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
-                <span *ngIf="cancellingPlanPhaseId !== activePlan._id">Quitar fase</span>
-              </button>
+                   icono danger compitiendo con "editar". Un segundo click
+                   pide confirmación EN EL SITIO — dos botones pequeños en
+                   vez de un ion-alert tapando la ficha entera. -->
+              <ng-container *ngIf="confirmingCancelPlanPhaseId !== activePlan._id; else confirmActivePlanRemove">
+                <button
+                  type="button"
+                  class="phase-remove-link"
+                  [disabled]="cancellingPlanPhaseId === activePlan._id"
+                  (click)="requestCancelPlanPhase(activePlan, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
+                  <span *ngIf="cancellingPlanPhaseId !== activePlan._id">Quitar fase</span>
+                </button>
+              </ng-container>
+              <ng-template #confirmActivePlanRemove>
+                <div class="phase-remove-confirm">
+                  <span class="phase-remove-confirm__label">¿Quitar esta fase?</span>
+                  <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelPlanPhase($event)">
+                    Cancelar
+                  </button>
+                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelPlanPhase(activePlan, $event)">
+                    Quitar
+                  </button>
+                </div>
+              </ng-template>
             </div>
           </div>
 
@@ -1003,15 +1013,41 @@
                 title="Quitar fase programada"
                 [attr.aria-label]="'Quitar ' + (phase.planName || 'la fase programada')"
                 [disabled]="cancellingPlanPhaseId === phase._id"
-                (click)="confirmCancelPlanPhase(phase, $event)"
+                *ngIf="confirmingCancelPlanPhaseId !== phase._id"
+                (click)="requestCancelPlanPhase(phase, $event)"
               >
                 <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
                 <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
               </button>
+              <!-- Mismo par cancelar/quitar que la fase vigente, en versión
+                   solo-icono: la tarjeta mide 180px, no caben dos botones de
+                   texto en la esquina donde vivía el icono único. -->
+              <div class="next-phase-card__remove-confirm" *ngIf="confirmingCancelPlanPhaseId === phase._id">
+                <button
+                  type="button"
+                  class="bulk-apply-btn"
+                  title="Cancelar"
+                  aria-label="Cancelar, no quitar la fase"
+                  (click)="dismissCancelPlanPhase($event)"
+                >
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="bulk-apply-btn bulk-apply-btn--danger"
+                  title="Confirmar"
+                  [attr.aria-label]="'Confirmar, quitar ' + (phase.planName || 'la fase programada')"
+                  [disabled]="cancellingPlanPhaseId === phase._id"
+                  (click)="confirmCancelPlanPhase(phase, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
+                  <ion-icon name="checkmark-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
+                </button>
+              </div>
             </div>
           </ng-container>
 
-          <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyTemplateModal()">
+          <button type="button" class="next-phase-card next-phase-card--add" (click)="startDietPhase()">
             <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
             <span>Siguiente fase</span>
           </button>

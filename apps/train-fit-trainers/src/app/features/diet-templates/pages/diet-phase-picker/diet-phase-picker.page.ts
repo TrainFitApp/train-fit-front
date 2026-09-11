@@ -1,0 +1,108 @@
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
+import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
+import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
+import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
+
+// Sugerencias de dieta — "Empezar fase" (ficha del cliente) trae AQUÍ, a la
+// biblioteca de dietas, en vez de pintar la lista rankeada dentro de la
+// propia ficha. Elegir la dieta de una fase es elegir de la biblioteca: es
+// la misma tarjeta (app-diet-card) y la misma colección, solo que ordenada
+// por lo que pide este cliente. Tenerla en dos sitios obligaba a mantener
+// dos rejillas y dejaba la ficha en un "modo" del que había que salir.
+//
+// El panel de parámetros (diet-suggestion-drawer) se abre a la derecha de
+// ESTA pantalla y es quien aplica la fase; la lista solo marca cuál. Estado
+// compartido en DietSuggestionSessionService.
+@Component({
+  selector: 'app-diet-phase-picker',
+  templateUrl: 'diet-phase-picker.page.html',
+  styleUrls: ['diet-phase-picker.page.scss'],
+})
+export class DietPhasePickerPage {
+  public clientId = '';
+  public clientName = 'este cliente';
+  public suggestedStartDate: string | null = null;
+
+  private drawer: HTMLIonModalElement | null = null;
+
+  // El panel se cierra desde dos sitios: él mismo (confirmar / cancelar) o
+  // esta página al abandonarla (botón Volver, atrás del sistema). Solo el
+  // primero decide a dónde se va después.
+  private leaving = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private modalController: ModalController,
+    private navigation: TrainerNavigationService,
+    private session: DietSuggestionSessionService
+  ) {}
+
+  // En ionViewWillEnter y no en ngOnInit: ion-router-outlet cachea la
+  // página, así que ngOnInit solo se dispara la primera vez y volver a
+  // entrar (otro cliente, u otra fase del mismo) no abriría el panel.
+  public ionViewWillEnter(): void {
+    this.clientId = this.route.snapshot.paramMap.get('clientId') || '';
+    this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
+    this.suggestedStartDate = this.route.snapshot.queryParamMap.get('start');
+    this.leaving = false;
+    void this.openDrawer();
+  }
+
+  // Sin esto, el panel se quedaría flotando sobre la pantalla anterior: un
+  // ion-modal vive en el injector raíz, no en el árbol de esta ruta.
+  public ionViewWillLeave(): void {
+    this.leaving = true;
+    void this.drawer?.dismiss(null, 'cancel');
+  }
+
+  private async openDrawer(): Promise<void> {
+    if (this.drawer) return;
+    this.session.reset();
+
+    const modal = await this.modalController.create({
+      component: DietSuggestionDrawerComponent,
+      cssClass: 'tf-panel-modal-overlay',
+      showBackdrop: false,
+      backdropDismiss: false,
+      componentProps: {
+        clientId: this.clientId,
+        clientName: this.clientName,
+        suggestedStartDate: this.suggestedStartDate,
+      },
+    });
+    this.drawer = modal;
+    await modal.present();
+
+    const { data, role } = await modal.onDidDismiss();
+    this.drawer = null;
+    this.session.reset();
+    if (this.leaving) return;
+
+    if (role === 'create-from-scratch' && data) {
+      // "Empezar de cero" → el builder en modo "para este cliente",
+      // arrastrando el objetivo y el bloque de fase que ya se había
+      // decidido en el panel.
+      void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
+        state: {
+          clientName: this.clientName,
+          name: data.phase?.name || 'Nueva dieta',
+          startDate: data.startDate,
+          endMode: 'indefinite',
+          phase: data.phase,
+          cycleTarget: data.cycleTarget,
+        },
+      });
+      return;
+    }
+
+    // Confirmada o cancelada, el sitio al que se vuelve es el mismo: la
+    // ficha del cliente. Por navigation.back() y no con un navigate propio
+    // para caer en la URL EXACTA de la que se vino (con sus query params) y
+    // que la ficha se reconozca como vuelta atrás y restaure su pestaña. Si
+    // la fase se ha aplicado, su ionViewWillEnter recarga plan y nutrición.
+    this.navigation.back();
+  }
+}

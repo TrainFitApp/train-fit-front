@@ -553,40 +553,16 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+
+  &__primary {
+    display: flex;
+    align-items: center;
+    gap: var(--tf-space-5);
+  }
 }
 
 // Sugerencias de dieta — zona de la lista rankeada (modo "elegir dieta").
 // Deja hueco a la derecha para que el panel de parámetros (400px) no la tape.
-.diet-selection-mode {
-  margin-bottom: 16px;
-
-  @media (min-width: 768px) {
-    padding-right: 416px;
-  }
-
-  .diet-selection-title {
-    margin: 0;
-    font-size: var(--tf-font-size-md, 1rem);
-    font-weight: 700;
-  }
-
-  .diet-selection-cancel {
-    background: none;
-    border: none;
-    padding: 6px 8px;
-    font-family: inherit;
-    font-size: var(--tf-font-size-sm);
-    font-weight: 600;
-    color: var(--tf-text-muted);
-    cursor: pointer;
-
-    &:hover {
-      color: var(--tf-text);
-      text-decoration: underline;
-    }
-  }
-}
-
 .manage-templates-link {
   background: none;
   border: none;
@@ -1599,22 +1575,6 @@
   }
 }
 
-// Sugerencias de dieta — al elegir dieta para la fase, la lista manda: la
-// columna lateral de contexto (adherencia/preferencias/objetivos) se
-// esconde y la principal ocupa todo el ancho, para que las tarjetas de
-// dieta quepan de sobra al lado del panel de parámetros (400px, ver
-// .diet-selection-mode { padding-right }). El objetivo calculado ya lo
-// muestra ese panel, así que no se pierde contexto necesario.
-.nutrition-layout--choosing {
-  @media (min-width: 768px) {
-    display: block;
-
-    .nutrition-sidebar {
-      display: none;
-    }
-  }
-}
-
 // Tarea 3 (2026-08) — mismo patrón de columnas que Nutrición
 // (.nutrition-layout de arriba): sidebar de contexto fijo + columna
 // principal. Reutiliza el mismo breakpoint y las mismas proporciones a
@@ -2198,6 +2158,85 @@
     outline: 2px solid var(--tf-danger);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+}
+
+// 2026-09 — sustituye al ion-alert de "Quitar fase" cuando se pulsa
+// .phase-remove-link: la etiqueta desaparece y en su sitio quedan estos dos
+// botones pequeños. Misma fila (align-self: flex-end) para que no salte el
+// layout de .active-plan-actions al cambiar de uno a otro.
+.phase-remove-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  align-self: flex-end;
+
+  &__label {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  &__cancel,
+  &__confirm {
+    @include tf-touch-expander-y(6px);
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: var(--tf-radius-pill);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+      background var(--tf-duration-fast) var(--tf-ease-out);
+  }
+
+  &__cancel {
+    background: none;
+    border: 1px solid var(--tf-border-strong);
+    color: var(--tf-text-secondary);
+
+    &:hover {
+      border-color: var(--tf-border-strongest);
+      color: var(--tf-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  &__confirm {
+    background: var(--tf-danger-soft);
+    border: 1px solid var(--tf-danger-border);
+    color: var(--tf-danger-text);
+
+    &:hover {
+      background: var(--tf-danger);
+      border-color: var(--tf-danger);
+      color: var(--tf-accent-contrast);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-danger);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Misma confirmación inline que .phase-remove-confirm, pero solo-icono: la
+// tarjeta de fase programada mide 180px (.next-phase-card) y vive en la
+// misma esquina que ocupaba el único botón "Quitar" (.next-phase-card__remove)
+// — dos botones de texto no caben ahí.
+.next-phase-card__remove-confirm {
+  position: absolute;
+  top: var(--tf-space-2);
+  left: var(--tf-space-2);
+  display: flex;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 16px;
   }
 }
 

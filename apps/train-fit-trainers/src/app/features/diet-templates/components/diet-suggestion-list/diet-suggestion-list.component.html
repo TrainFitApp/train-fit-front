@@ -2,17 +2,17 @@
   <div class="suggestion-grid">
     <app-diet-card
       *ngFor="let t of d.ranked; trackBy: trackById"
-      [class.span-all]="t.rank === 1"
+      [class.span-all]="t._id === (topSuggestionId$ | async)"
       [name]="t.name"
       [profile]="t.profile"
       [deltas]="t.deltas"
       [medal]="medal(t.rank)"
-      [lead]="t.rank === 1 ? 'Sugerencia principal' : ''"
       [verified]="t.verified"
       [ownedByClient]="!!t.ownerClientId"
       [basedOnDays]="t.basedOnDays"
       [flags]="t.effectiveSuitableFor || []"
-      [highlight]="t.rank === 1"
+      [missingFlags]="t.missingFlags || []"
+      [highlight]="t._id === (topSuggestionId$ | async)"
       [selected]="(selectedId$ | async) === t._id"
       (picked)="pick(t)"
     ></app-diet-card>
@@ -23,9 +23,11 @@
     o crea una desde cero.
   </p>
 
-  <p class="hidden-note" *ngIf="d.hidden.length">
-    {{ d.hidden.length }} dieta{{ d.hidden.length === 1 ? '' : 's' }} no
-    {{ d.hidden.length === 1 ? 'aparece' : 'aparecen' }} por las restricciones dietéticas.
+  <!-- Las que no cumplen ya no se esconden: se listan detrás con su aviso.
+       Esta nota explica el rojo y qué hacer con él. -->
+  <p class="missing-note" *ngIf="missingCount(d.ranked) as n">
+    {{ n }} de estas dietas no {{ n === 1 ? 'cumple' : 'cumplen' }} las restricciones del
+    cliente. Se pueden aplicar igual: cambia después los alimentos que fallen.
   </p>
 </ng-container>
 
