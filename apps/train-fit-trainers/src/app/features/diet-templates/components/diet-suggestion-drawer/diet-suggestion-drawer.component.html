@@ -130,6 +130,9 @@
     <button type="button" class="confirm-button" [disabled]="!canConfirm" (click)="confirm()">
       {{ applying ? 'Aplicando…' : 'Empezar fase con esta dieta' }}
     </button>
+    <button type="button" class="secondary-button" [disabled]="!canConfirm" (click)="editBeforeApplying()">
+      Editar antes de aplicar
+    </button>
     <button type="button" class="scratch-link" (click)="createFromScratch()">
       …o empezar de cero y construir la dieta
     </button>

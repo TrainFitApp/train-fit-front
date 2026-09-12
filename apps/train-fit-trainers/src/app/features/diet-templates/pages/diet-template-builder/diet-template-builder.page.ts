@@ -34,13 +34,17 @@ type ViewState = 'loading' | 'error' | 'loaded';
 
 // De quién es la dieta que se está tocando, cuando se llega con un cliente
 // detrás:
-//   'new'    — "Crear dieta": nace para él y se le aplica al guardar.
-//   'own'    — plantilla SUYA (ownerClientId), abierta desde su ficha.
-//   'shared' — plantilla GENERAL de la biblioteca, abierta desde su ficha.
+//   'new'      — "Crear dieta": nace para él y se le aplica al guardar.
+//   'own'      — plantilla SUYA (ownerClientId), abierta desde su ficha.
+//   'shared'   — plantilla GENERAL de la biblioteca, abierta desde su ficha.
+//   'assigned' — la copia YA ASIGNADA (fase/ciclo vigente o pasado): edita
+//                esa copia in-place por su propio _id, nunca una plantilla
+//                de biblioteca. Único modo que sirve también para ciclos 2+
+//                (sin sourceTemplateId).
 // La distinción importa por lo que se puede prometer: en 'own'/'shared' se
 // edita la plantilla, NUNCA la copia congelada que rige su plan (ver
 // diet-template-schema.js), y en 'shared' además hay más clientes detrás.
-type ClientContextKind = 'new' | 'own' | 'shared';
+type ClientContextKind = 'new' | 'own' | 'shared' | 'assigned';
 
 interface MacroTarget {
   kcal: number;
@@ -71,6 +75,15 @@ interface ForClientNavigationState {
     ratePerCycle: number;
   };
   cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
+  // Sugerencias de dieta — "Editar antes de aplicar" (diet-suggestion-drawer):
+  // contenido de la plantilla elegida, para precargar el tablero en vez de
+  // arrancar en blanco. La plantilla elegida en sí nunca se toca.
+  prefill?: {
+    name: string;
+    mode: TemplateMode;
+    days: DietTemplateDayPayload[];
+    dayPatterns: DietTemplateDayPatternPayload[];
+  };
 }
 
 interface BoardCellRef {
@@ -140,6 +153,11 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   public isCreatingForClient = false;
   public clientId = '';
   public clientName = '';
+  // Editar la dieta YA ASIGNADA a un cliente (ver diet-templates-routing.module.ts,
+  // ruta edit-assignment/:clientId/:planId) — guardar hace PUT sobre esa
+  // copia por su propio _id, nunca crea ni aplica nada nuevo.
+  public isEditingAssignedCopy = false;
+  private assignedPlanId = '';
   // Fechas elegidas en el modal previo — se guardan tal cual para aplicarlas
   // sin volver a preguntar. Sin ellas no se puede crear (ver startForClient).
   private phaseDates: {
@@ -217,6 +235,11 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
   public ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const clientId = params.get('clientId');
+      const planId = params.get('planId');
+      if (clientId && planId) {
+        this.startForAssignedCopy(clientId, planId);
+        return;
+      }
       if (clientId) {
         this.startForClient(clientId);
         return;
@@ -278,11 +301,39 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
     } else {
       this.loadClientTarget(clientId);
     }
-    this.mode = 'sequential';
-    this.days = [];
-    this.dayPatterns = [];
+    if (nav.prefill) {
+      this.applyTemplate(nav.prefill as unknown as DietTemplate);
+    } else {
+      this.mode = 'sequential';
+      this.days = [];
+      this.dayPatterns = [];
+    }
     this.savedSnapshot = this.snapshot();
     this.state = 'loaded';
+  }
+
+  // Editar la copia YA ASIGNADA de un cliente — por su propio _id, nunca por
+  // sourceTemplateId (los ciclos 2+ creados con "Siguiente ciclo" no lo
+  // tienen). Nunca toca ninguna plantilla de biblioteca.
+  private startForAssignedCopy(clientId: string, planId: string): void {
+    this.isEditingAssignedCopy = true;
+    this.assignedPlanId = planId;
+    this.clientId = clientId;
+    this.clientName = this.route.snapshot.queryParamMap.get('name') || 'este cliente';
+    this.clientContextKind = 'assigned';
+    this.clientContextName = this.clientName;
+    this.loadClientTarget(clientId);
+
+    this.planAssignmentApi.getContent(clientId, planId).subscribe({
+      next: (plan) => {
+        this.applyTemplate(plan as unknown as DietTemplate);
+        this.savedSnapshot = this.snapshot();
+        this.state = 'loaded';
+      },
+      error: () => {
+        this.state = 'error';
+      },
+    });
   }
 
   public load(): void {
@@ -890,6 +941,11 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
       meals: this.mealsToSave(pattern.meals),
     }));
 
+    if (this.isEditingAssignedCopy) {
+      this.saveAssignedCopy(daysToSave, dayPatternsToSave);
+      return;
+    }
+
     if (this.isCreatingForClient) {
       this.saveForClient(daysToSave, dayPatternsToSave);
       return;
@@ -978,6 +1034,30 @@ export class DietTemplateBuilderPage implements OnInit, PendingChangesComponent 
             return;
           }
           this.ionicUtilService.showErrorToast('No se pudo crear la dieta', 'Error', 3500);
+        },
+      });
+  }
+
+  // PUT directo sobre la copia asignada (su propio _id) — nunca crea ni
+  // aplica nada, y nunca toca ninguna plantilla de biblioteca.
+  private saveAssignedCopy(daysToSave: DietTemplateDayPayload[], dayPatternsToSave: DietTemplateDayPatternPayload[]): void {
+    this.planAssignmentApi
+      .updateContent(this.clientId, this.assignedPlanId, {
+        name: this.name.trim(),
+        mode: this.mode,
+        days: daysToSave,
+        dayPatterns: dayPatternsToSave,
+      })
+      .subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.savedSnapshot = this.snapshot();
+          this.ionicUtilService.showToast({ message: `Dieta actualizada para ${this.clientName}`, duration: 2500 });
+          this.router.navigate(['/tabs/clients', this.clientId]);
+        },
+        error: () => {
+          this.isSaving = false;
+          this.ionicUtilService.showErrorToast('No se pudieron guardar los cambios', 'Error', 3000);
         },
       });
   }

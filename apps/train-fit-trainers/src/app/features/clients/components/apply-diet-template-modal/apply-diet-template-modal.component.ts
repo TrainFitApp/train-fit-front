@@ -17,12 +17,24 @@ function addDaysToIsoDate(isoDate: string, deltaDays: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// Días que abarca un tramo contando los dos extremos (mismo criterio que
+// daysInRange en el backend: el mismo día da 1).
+function daysInRange(fromIso: string, toIso: string): number {
+  const ms = new Date(`${toIso}T00:00:00.000Z`).getTime() - new Date(`${fromIso}T00:00:00.000Z`).getTime();
+  return Math.round(ms / 86400000) + 1;
+}
+
 // Auditoría de arquitectura (nutrición, Fase 8) — aplicar un plan ya
-// construido a ESTE cliente eligiendo no solo cuándo EMPIEZA, sino cuándo
-// TERMINA (o si no termina): fecha exacta, duración, o indefinido. Antes
-// solo se pedía la fecha de inicio y el backend materializaba cada día de
-// golpe; ahora se crea una única PlanAssignment (POST .../apply) y los días
-// se resuelven bajo demanda (ver diet-day-resolver.js).
+// construido a ESTE cliente eligiendo cuándo EMPIEZA y cuánto se estima que
+// dura. Antes solo se pedía la fecha de inicio y el backend materializaba
+// cada día de golpe; ahora se crea una única PlanAssignment (POST .../apply)
+// y los días se resuelven bajo demanda (ver diet-day-resolver.js).
+//
+// 2026-09 — la fecha de fin dejó de cerrar la fase: lo que se elige aquí es
+// una ESTIMACIÓN (reserva el tramo y avisa cuando se acerca, pero la fase
+// corre hasta que se abra la siguiente). Por dentro se sigue mandando
+// endMode/durationValue/durationUnit: el backend los resuelve a
+// estimatedEndDate (ver plan-assignment-service.js#applyPlan).
 @Component({
   selector: 'app-apply-diet-template-modal',
   templateUrl: 'apply-diet-template-modal.component.html',
@@ -58,13 +70,23 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public previousPhaseEnd: string | null = null;
   @Input() public previousPhaseName = '';
 
-  // Rango elegido en el calendario: fija inicio y fin de una vez y cambia
-  // el modo de fin a "fecha exacta", que es lo que acaba de decidirse.
+  // Rango elegido en el calendario: fija el inicio y traduce el tramo a una
+  // DURACIÓN en días. Se convierte en vez de guardarlo como "fecha exacta"
+  // para que el formulario tenga una única fuente de verdad: si no, los
+  // campos de duración seguirían enseñando el valor viejo mientras la
+  // previsualización dice otra fecha.
   public onRangePicked(range: { start: string; end: string }): void {
     this.startDate = range.start;
-    this.fixedEndDate = range.end;
-    this.endMode = 'fixedDate';
+    this.durationValue = Math.max(1, daysInRange(range.start, range.end));
+    this.durationUnit = 'days';
+    this.endMode = 'duration';
     this.overlapError = null;
+  }
+
+  // "Sin estimación" ⇄ "poner una duración estimada". Sin estimación la fase
+  // corre igual, solo que no reserva tramo ni avisa en el dashboard.
+  public toggleEstimate(): void {
+    this.endMode = this.endMode === 'indefinite' ? 'duration' : 'indefinite';
   }
 
   // Primer click del rango: mueve ya la fecha de inicio sin tocar el modo de

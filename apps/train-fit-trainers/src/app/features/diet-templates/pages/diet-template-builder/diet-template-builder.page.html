@@ -1,5 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="isCreatingForClient ? 'Crear dieta' : 'Editar plantilla'"></app-page-header>
+  <app-page-header
+    [title]="isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla')"
+  ></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content">
@@ -8,11 +10,18 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="state-message" *ngIf="state === 'error' && isEditingAssignedCopy">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar la dieta</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
+    <button class="retry-button" (click)="goBack()">Volver</button>
   </div>
 
   <!-- Solo llega aquí si el modal previo (nombre + fechas) no dejó nada
@@ -42,6 +51,9 @@
           <ng-container *ngSwitchCase="'own'">
             Dieta de <strong>{{ clientContextName }}</strong>
           </ng-container>
+          <ng-container *ngSwitchCase="'assigned'">
+            Editando la dieta ya asignada a <strong>{{ clientContextName }}</strong>
+          </ng-container>
           <ng-container *ngSwitchDefault>
             Plantilla general, abierta desde la ficha de <strong>{{ clientContextName }}</strong>
           </ng-container>
@@ -57,6 +69,10 @@
           Esto es la plantilla, y la comparten otros clientes: los cambios no tocan
           la fase que {{ clientContextName }} ya tiene aplicada, pero sí lo que se
           aplique a partir de ahora.
+        </span>
+        <span *ngIf="kind === 'assigned'">
+          Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
+          cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
         </span>
       </p>
 
@@ -301,7 +317,7 @@
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : 'Guardar plantilla' }}</span>
+      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla') }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>

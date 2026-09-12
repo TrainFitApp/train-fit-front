@@ -735,6 +735,28 @@
 // de renglón cuando ya no caben (flex-wrap en el contenedor, no dentro de
 // cada grupo) — aprovecha el ancho en vez de una fila por patrón siempre.
 // Deliberadamente pequeñas ("chiquititos") — son un vistazo, no un control.
+// Cada cuánto se repite el contenido (dietas por días), a la derecha del todo
+// de la fila de "en curso". `margin-left: auto` y no un space-between en el
+// contenedor: así queda pegado a la derecha tanto si hay insignia de fase a
+// la izquierda como si es lo único de la fila (cliente con una sola fase).
+//
+// Peso visual por debajo del "EN CURSO" que tiene al lado: es contexto, no
+// el estado de la fase.
+.active-plan-cycle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 var(--tf-space-2) auto;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
 .active-plan-weekdays {
   display: flex;
   flex-wrap: wrap;
@@ -1024,6 +1046,61 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0 10px;
+}
+
+// Recomendación del panel "Asignar objetivos" — mismo patrón visual que
+// .focus-buttons del cajón de sugerencias de dieta (diet-suggestion-drawer):
+// selector exclusivo con acento sólido en el activo.
+.nutrition-target-calculator {
+  margin-bottom: 12px;
+
+  .preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .preset-button {
+    flex: 1 1 auto;
+    min-width: 90px;
+    min-height: var(--tf-touch-min, 44px);
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--tf-border-strong);
+    background: var(--tf-surface-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+
+    &:hover:not(.is-active) {
+      background: var(--tf-surface-3);
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent);
+      border-color: var(--tf-accent);
+      color: var(--tf-accent-contrast);
+    }
+  }
+
+  .calc-hint {
+    font-size: 0.78rem;
+    color: var(--tf-text-muted);
+    padding: 0 2px 8px;
+  }
+
+  .calc-hint--warning {
+    color: var(--ion-color-warning, #ffc409);
+  }
+
+  .calc-hint--result {
+    color: var(--tf-accent);
+    font-weight: 600;
+  }
 }
 
 .submit-button {

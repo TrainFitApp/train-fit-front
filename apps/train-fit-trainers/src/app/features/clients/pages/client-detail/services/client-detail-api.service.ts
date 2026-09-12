@@ -15,6 +15,7 @@ import {
   DietDaySummary,
   NutritionalGoal,
   NutritionComplianceSummary,
+  NutritionTargetResponse,
   NutritionTrackingSummary,
   Supplement,
   SupplementTiming,
@@ -133,6 +134,20 @@ export class ClientDetailApiService {
     return this.http.put<{ _id: string }>(
       `${this.base(clientId)}/nutritional-goals/${goalId}/activate`,
       {}
+    );
+  }
+
+  // Mismo cálculo que el cajón de sugerencias de dieta
+  // (POST .../diet-suggestions), pero sin rankear plantillas — solo el
+  // target, para autorrellenar el panel de "Asignar objetivos". Puede
+  // devolver 422 MISSING_BIOMETRICS (ver NutritionTargetResponse).
+  public getNutritionTarget(
+    clientId: string,
+    objetiveKcalDelta: number
+  ): Observable<NutritionTargetResponse> {
+    return this.http.post<NutritionTargetResponse>(
+      `${this.base(clientId)}/nutrition-target`,
+      { objetiveKcalDelta }
     );
   }
 

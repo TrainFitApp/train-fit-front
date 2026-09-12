@@ -53,6 +53,10 @@
         <div class="goal-card__header">
           <h3 class="goal-card__name">{{ goal.name }}</h3>
           <div class="goal-card__actions">
+            <span *ngIf="isTrainerAssigned(goal)" class="trainer-assigned-badge">
+              <ion-icon name="person-outline"></ion-icon>
+              {{ 'NUTRITION_GOALS.TRAINER_ASSIGNED' | translate }}
+            </span>
             <span *ngIf="isGoalLocked(goal)" class="locked-badge">
               <ion-icon name="lock-closed-outline"></ion-icon>
               {{ 'NUTRITION_GOALS.LOCKED' | translate }}
@@ -61,7 +65,7 @@
               <ion-icon name="checkmark-circle"></ion-icon>
               {{ 'NUTRITION_GOALS.IN_USE' | translate }}
             </span>
-            <button class="delete-goal-btn" (click)="deleteGoal(goal, $event)">
+            <button *ngIf="!isTrainerAssigned(goal)" class="delete-goal-btn" (click)="deleteGoal(goal, $event)">
               <ion-icon name="close-outline" color="danger"></ion-icon>
             </button>
           </div>

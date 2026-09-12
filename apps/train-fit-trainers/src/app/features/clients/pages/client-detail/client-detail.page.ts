@@ -68,6 +68,7 @@ import { RoutineAssignmentApiService } from '../../../../shared/services/routine
 import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
+import { MissingBiometricsError, NutritionTarget } from '../../../diet-templates/models/diet-suggestion.model';
 import {
   DietException,
   PlanAssignment,
@@ -288,6 +289,21 @@ export class ClientDetailPage implements OnInit {
     reason: new FormControl(''),
   });
   public isAssigningGoal = false;
+  // Calculadora de recomendación del panel "Asignar objetivos" — mismo
+  // cálculo que el cajón de sugerencias de dieta (computeNutritionTarget),
+  // pero compacta: sin editar peso/altura/actividad del cliente, solo el
+  // foco (déficit/mantenimiento/superávit) + delta. El entrenador retoca los
+  // 4 campos después si quiere.
+  public readonly nutritionObjectivePresets: { key: 'deficit' | 'maintain' | 'surplus'; label: string; delta: number }[] = [
+    { key: 'deficit', label: 'Déficit', delta: -500 },
+    { key: 'maintain', label: 'Mantenimiento', delta: 0 },
+    { key: 'surplus', label: 'Superávit', delta: 300 },
+  ];
+  public nutritionObjectivePreset: 'deficit' | 'maintain' | 'surplus' = 'deficit';
+  public nutritionObjectiveDelta = -500;
+  public isCalculatingNutritionTarget = false;
+  public nutritionTargetPreview: NutritionTarget | null = null;
+  public nutritionTargetMissing: string[] | null = null;
   // Tocar una card de objetivo ya EXISTENTE la pone en uso. Id (no un
   // booleano suelto) porque varias cards viven en la misma lista y solo una
   // debe mostrarse "en progreso" a la vez.
@@ -1675,6 +1691,41 @@ export class ClientDetailPage implements OnInit {
     return this.phaseColorMap.get(phase.phaseId || phase._id) ?? 'var(--tf-accent)';
   }
 
+  // Hasta cuándo va una fase. Tres estados distintos, y conviene que se
+  // distingan de un vistazo (2026-09):
+  //   · endDate       → ya se cortó: fecha de fin REAL, en pasado.
+  //   · estimatedEnd  → sigue corriendo; la fecha es una ESTIMACIÓN, no la
+  //                     corta nadie hasta que se abra la siguiente fase.
+  //   · ninguna       → corriendo sin estimación.
+  public phaseEndLabel(phase: PlanAssignment | null): string {
+    if (!phase) return '';
+    if (phase.endDate) return `hasta ${phase.endDate}`;
+    if (phase.estimatedEndDate) return `≈ hasta ${phase.estimatedEndDate}`;
+    return 'indefinido';
+  }
+
+  // Igual pero sin la preposición — para el formato "inicio → fin".
+  public phaseEndShort(phase: PlanAssignment | null): string {
+    if (!phase) return '';
+    if (phase.endDate) return phase.endDate;
+    if (phase.estimatedEndDate) return `≈ ${phase.estimatedEndDate}`;
+    return 'indefinido';
+  }
+
+  // Cada cuánto se repite el contenido de la fase — la misma vuelta que
+  // numera el badge C1/C2 del calendario (ver cycle-label.util.ts).
+  //
+  // Solo en 'sequential': en 'recurring' las píldoras L/M/X/J/V/S/D de la
+  // tarjeta ya dicen cómo se repite (y decir además "cada semana" sería
+  // repetirse), y en 'choice' no hay ciclo que anunciar — lo elige el
+  // cliente día a día.
+  public cycleLengthLabel(phase: PlanAssignment | null): string | null {
+    if (!phase || phase.mode === 'recurring' || phase.mode === 'choice') return null;
+    const dias = phase.daysCount || 0;
+    if (!dias) return null;
+    return `Ciclo de ${dias} día${dias === 1 ? '' : 's'}`;
+  }
+
   // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
   // acento (mismo criterio "esto es tuyo, no del sistema" que llevó a
   // sacar el naranja de las próximas: la fase activa tampoco es un estado
@@ -1942,6 +1993,52 @@ export class ClientDetailPage implements OnInit {
       name: meal.name,
       exchanges: [...(meal.exchanges || [])],
     }));
+
+    this.nutritionObjectivePreset = 'deficit';
+    this.nutritionObjectiveDelta = -500;
+    this.nutritionTargetPreview = null;
+    this.nutritionTargetMissing = null;
+  }
+
+  public selectNutritionObjectivePreset(preset: { key: 'deficit' | 'maintain' | 'surplus'; delta: number }): void {
+    this.nutritionObjectivePreset = preset.key;
+    this.nutritionObjectiveDelta = preset.delta;
+    this.calculateNutritionTarget();
+  }
+
+  public calculateNutritionTarget(): void {
+    if (this.isCalculatingNutritionTarget) return;
+
+    this.isCalculatingNutritionTarget = true;
+    this.nutritionTargetMissing = null;
+    this.clientDetailApi
+      .getNutritionTarget(this.clientId, this.nutritionObjectiveDelta)
+      .subscribe({
+        next: (res) => {
+          this.isCalculatingNutritionTarget = false;
+          this.nutritionTargetPreview = res.target;
+          this.goalForm.patchValue({
+            kcalTotal: res.target.kcal,
+            proteinsGTotal: res.target.protein,
+            carbohydratesGTotal: res.target.carbs,
+            fatGTotal: res.target.fat,
+          });
+        },
+        error: (err) => {
+          this.isCalculatingNutritionTarget = false;
+          this.nutritionTargetPreview = null;
+          const body: MissingBiometricsError | undefined = err?.error;
+          if (body?.code === 'MISSING_BIOMETRICS') {
+            this.nutritionTargetMissing = body.missing;
+            return;
+          }
+          this.ionicUtilService.showErrorToast(
+            'No se pudo calcular la recomendación',
+            'Error',
+            3000
+          );
+        },
+      });
   }
 
   public closeGoalPanel(): void {
@@ -2032,7 +2129,7 @@ export class ClientDetailPage implements OnInit {
   // "Aplicar plantilla concreta".
   public startDietPhase(): void {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
 
     void this.router.navigate(['/tabs/diet-templates/for-phase', this.clientId], {
       queryParams: {
@@ -2068,7 +2165,7 @@ export class ClientDetailPage implements OnInit {
   // Aplicar UNA plantilla concreta sin pasar por el ranking (flujo antiguo).
   public async openApplyExactTemplateModal(): Promise<void> {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
@@ -2110,7 +2207,7 @@ export class ClientDetailPage implements OnInit {
     // Misma propuesta de fecha que al aplicar una plantilla: encadenar con
     // el final de la última fase, para no dejar un hueco sin plan.
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
@@ -2144,26 +2241,17 @@ export class ClientDetailPage implements OnInit {
   // programadas son justo las que más se retocan (se preparan con
   // antelación) y hasta ahora eran las únicas tarjetas muertas al click —
   // había que ir a "Plantillas de dieta" y buscarla por nombre.
+  //
+  // Antes navegaba a `sourceTemplateId` (la plantilla de BIBLIOTECA de
+  // origen) — arriesgado si era general (compartida: tocarla afectaba a
+  // otros clientes) y directamente imposible en los ciclos 2+ creados con
+  // "Siguiente ciclo" (no guardan sourceTemplateId). Ahora edita siempre la
+  // copia de ESTE cliente por su propio `_id` (ver
+  // diet-template-builder.page.ts#startForAssignedCopy) — nunca toca una
+  // plantilla de biblioteca, funciona para cualquier ciclo.
   public openPhaseTemplate(phase: PlanAssignment): void {
-    // sourceTemplateId, no _id: _id es la copia congelada exclusiva de este
-    // cliente (ver plan-assignment.model.ts) — editarla no debe ser posible
-    // desde aquí, así que este atajo va siempre a la plantilla real.
-    if (!phase.sourceTemplateId) {
-      // Puede faltar: la plantilla de origen se borró, o la fase se creó
-      // antes de que se guardara esa referencia. Antes esto era un click que
-      // no hacía nada y parecía la app colgada.
-      this.ionicUtilService.showToast({
-        message: 'Esta fase no conserva su plantilla de origen, no se puede editar desde aquí.',
-        duration: 3000,
-      });
-      return;
-    }
-    // El constructor no sabría de quién viene: se le pasa el cliente para que
-    // enseñe de quién es la dieta y su objetivo como referencia. Por query
-    // param, no por router state, para que sobreviva a un F5 — mismo criterio
-    // que startDietPhase.
-    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId], {
-      queryParams: { clientId: this.clientId, name: this.name },
+    this.router.navigate(['/tabs/diet-templates/edit-assignment', this.clientId, phase._id], {
+      queryParams: { name: this.name },
     });
   }
 

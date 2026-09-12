@@ -879,10 +879,21 @@
                  como "en curso" es el icono, no un color reservado.
                  "Quitar fase" ya no vive aquí como icono danger: es una
                  acción secundaria, va en el pie de la tarjeta como texto. -->
-            <div class="active-plan-top-row" *ngIf="planPhases.length > 1">
-              <span class="plan-phase-order plan-phase-order--current">
+            <!-- La fila se pinta también con UNA sola fase: antes solo existía
+                 para el "1ª · en curso" (que sin más fases no dice nada), pero
+                 ahora lleva además cada cuánto se repite el ciclo, que aplica
+                 siempre. -->
+            <div class="active-plan-top-row" *ngIf="planPhases.length > 1 || cycleLengthLabel(activePlan)">
+              <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
                 <ion-icon name="flash" aria-hidden="true"></ion-icon>
                 1ª · en curso
+              </span>
+              <!-- Cada cuánto se repite el contenido — misma vuelta que numera
+                   el badge C1/C2 del calendario. A la derecha del todo: es un
+                   dato de contexto, no compite con el nombre de la fase. -->
+              <span class="active-plan-cycle" *ngIf="cycleLengthLabel(activePlan) as ciclo">
+                <ion-icon name="repeat-outline" aria-hidden="true"></ion-icon>
+                {{ ciclo }}
               </span>
             </div>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
@@ -896,7 +907,7 @@
                 <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
                 <span class="active-plan-range">
                   desde {{ activePlan.startDate }}
-                  · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
+                  · {{ phaseEndLabel(activePlan) }}
                 </span>
               </div>
               <ion-icon name="create-outline" class="active-plan-edit-icon"></ion-icon>
@@ -1003,7 +1014,8 @@
                 <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
                 <p class="next-phase-card__range">
                   desde {{ phase.startDate }}<br />
-                  {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
+                  {{ phaseEndLabel(phase) }}
+                  <ng-container *ngIf="cycleLengthLabel(phase) as ciclo"><br />{{ ciclo }}</ng-container>
                 </p>
                 <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
               </button>
@@ -1136,7 +1148,7 @@
                 <div class="history-card-header">
                   <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
                   <span class="history-date">
-                    {{ phase.startDate }} → {{ phase.endDate || 'indefinido' }}
+                    {{ phase.startDate }} → {{ phaseEndShort(phase) }}
                   </span>
                 </div>
                 <p class="history-subtitle">
@@ -1177,6 +1189,45 @@
           <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
           <input type="text" formControlName="name" class="input-field" placeholder="Nombre del objetivo" />
         </div>
+
+        <!-- Recomendación — mismo cálculo que el cajón de sugerencias de
+             dieta (Mifflin + gasto + reparto de macros), a partir de los
+             datos biométricos ya guardados del cliente. Rellena los 4
+             campos de abajo; el entrenador los puede retocar después. -->
+        <div class="nutrition-target-calculator">
+          <div class="preset-buttons">
+            <button
+              type="button"
+              *ngFor="let preset of nutritionObjectivePresets"
+              class="preset-button"
+              [class.is-active]="nutritionObjectivePreset === preset.key"
+              (click)="selectNutritionObjectivePreset(preset)"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="calculator-outline" class="input-icon"></ion-icon>
+            <input
+              type="number"
+              class="input-field"
+              placeholder="Delta kcal (déficit negativo, superávit positivo)"
+              [(ngModel)]="nutritionObjectiveDelta"
+              [ngModelOptions]="{ standalone: true }"
+              (change)="calculateNutritionTarget()"
+            />
+          </div>
+          <div class="calc-hint" *ngIf="isCalculatingNutritionTarget">Calculando…</div>
+          <div class="calc-hint calc-hint--warning" *ngIf="nutritionTargetMissing?.length">
+            Al cliente le falta: {{ nutritionTargetMissing?.join(', ') }} — no se puede calcular una
+            recomendación hasta que lo complete.
+          </div>
+          <div class="calc-hint calc-hint--result" *ngIf="nutritionTargetPreview && !isCalculatingNutritionTarget">
+            Recomendado: {{ nutritionTargetPreview.kcal }} kcal · P{{ nutritionTargetPreview.protein }}
+            C{{ nutritionTargetPreview.carbs }} G{{ nutritionTargetPreview.fat }}
+          </div>
+        </div>
+
         <div class="macro-grid">
           <div class="input-wrapper">
             <ion-icon name="flame-outline" class="input-icon"></ion-icon>

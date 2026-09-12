@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 import { TrainerNavigationService } from '../../../../core/services/trainer-navigation.service';
 import { DietSuggestionDrawerComponent } from '../../components/diet-suggestion-drawer/diet-suggestion-drawer.component';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
+import { DietTemplateApiService } from '../../services/diet-template-api.service';
 
 // Sugerencias de dieta — "Empezar fase" (ficha del cliente) trae AQUÍ, a la
 // biblioteca de dietas, en vez de pintar la lista rankeada dentro de la
@@ -37,7 +39,8 @@ export class DietPhasePickerPage {
     private router: Router,
     private modalController: ModalController,
     private navigation: TrainerNavigationService,
-    private session: DietSuggestionSessionService
+    private session: DietSuggestionSessionService,
+    private dietTemplateApi: DietTemplateApiService
   ) {}
 
   // En ionViewWillEnter y no en ngOnInit: ion-router-outlet cachea la
@@ -93,6 +96,31 @@ export class DietPhasePickerPage {
           endMode: 'indefinite',
           phase: data.phase,
           cycleTarget: data.cycleTarget,
+        },
+      });
+      return;
+    }
+
+    if (role === 'edit-before-apply' && data) {
+      // Mismo builder "para este cliente" que "empezar de cero", pero
+      // precargado con el contenido de la plantilla elegida (nunca se toca
+      // esa plantilla: el builder construye una NUEVA propia del cliente a
+      // partir de este contenido, igual que si se hubiera tecleado a mano).
+      const template = await firstValueFrom(this.dietTemplateApi.getById(data.sourceTemplateId));
+      void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
+        state: {
+          clientName: this.clientName,
+          name: data.phase?.name || template.name || 'Nueva dieta',
+          startDate: data.startDate,
+          endMode: 'indefinite',
+          phase: data.phase,
+          cycleTarget: data.cycleTarget,
+          prefill: {
+            name: template.name,
+            mode: template.mode,
+            days: template.days,
+            dayPatterns: template.dayPatterns,
+          },
         },
       });
       return;

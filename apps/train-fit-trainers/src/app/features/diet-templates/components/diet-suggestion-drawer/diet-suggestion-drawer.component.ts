@@ -296,6 +296,23 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     );
   }
 
+  // Editar la sugerencia elegida ANTES de aplicarla — mismo dismiss que
+  // createFromScratch (el consumidor, diet-phase-picker.page.ts, navega al
+  // builder), pero con el id de la plantilla elegida para que precargue su
+  // contenido en vez de arrancar en blanco. Nunca toca la plantilla elegida
+  // en sí: el builder construye una plantilla NUEVA propia de este cliente
+  // con ese contenido de partida (mismo camino que "empezar de cero").
+  public editBeforeApplying(): void {
+    if (!this.target || !this.chosen) return;
+    // Leer chosen/phasePayload ANTES de resetear la sesión — igual que
+    // confirm() lee this.chosen._id antes de session.reset(): al revés
+    // (como createFromScratch, que no necesita chosen), el reset deja
+    // this.chosen a null y el dismiss de abajo revienta leyendo _id de null.
+    const payload = { sourceTemplateId: this.chosen._id, startDate: this.startDate, ...this.phasePayload() };
+    this.session.reset();
+    void this.modalController.dismiss(payload, 'edit-before-apply');
+  }
+
   public dismiss(): void {
     this.session.reset();
     void this.modalController.dismiss(null, 'cancel');

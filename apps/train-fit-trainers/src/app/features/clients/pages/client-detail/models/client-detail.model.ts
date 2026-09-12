@@ -3,6 +3,7 @@ import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { CustomCheckinQuestion } from '../../../../checkin-templates/models/checkin-template.model';
 import { GoalMeal } from './client-progress.model';
+import { NutritionTarget } from '../../../../diet-templates/models/diet-suggestion.model';
 
 export type ClientScope = 'training' | 'nutrition';
 export type ClientDetailTab =
@@ -388,4 +389,13 @@ export interface NutritionalGoal {
   // ausente = objetivo pautado solo en gramos, que es lo que hacían todos
   // hasta ahora. Ver GoalMeal en client-progress.model.ts.
   mealExchanges?: GoalMeal[];
+}
+
+// Respuesta de POST .../nutrition-target — mismo cálculo que el cajón de
+// sugerencias de dieta (diet-suggestion.model.ts#NutritionTarget), pero sin
+// el ranking de plantillas: solo el número, para el panel "Asignar objetivos".
+export interface NutritionTargetResponse {
+  target: NutritionTarget;
+  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+  clientObjetive: number | null;
 }

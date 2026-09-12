@@ -122,50 +122,54 @@
       {{ overlapError }}
     </p>
 
-    <!-- Auditoría de arquitectura (Fase 8) — hasta cuándo aplica, no solo desde cuándo -->
+    <!-- 2026-09 — antes aquí se elegía CUÁNDO TERMINA (fecha exacta / duración
+         / indefinido) y esa fecha cerraba la fase de verdad. Ya no: una fase
+         corre hasta que el entrenador abre la siguiente, así que lo único que
+         se pide es cuánto se ESTIMA que va a durar. Sirve de referencia, avisa
+         en el dashboard cuando se acerca, y reserva el tramo para que no se
+         programe otra fase encima — pero no la corta. -->
     <ng-container *ngIf="showDatePicker">
-      <p class="section-hint">¿Hasta cuándo?</p>
-      <div class="end-mode-options">
-        <button type="button" class="end-mode-option" [class.selected]="endMode === 'fixedDate'" (click)="endMode = 'fixedDate'">
-          Fecha exacta
-        </button>
-        <button type="button" class="end-mode-option" [class.selected]="endMode === 'duration'" (click)="endMode = 'duration'">
-          Duración
-        </button>
-        <button type="button" class="end-mode-option" [class.selected]="endMode === 'indefinite'" (click)="endMode = 'indefinite'">
-          Indefinido
-        </button>
+      <p class="section-hint">¿Cuánto estimas que durará?</p>
+      <div class="duration-row">
+        <div class="input-wrapper duration-value">
+          <ion-icon name="time-outline" class="input-icon"></ion-icon>
+          <input
+            id="phase-duration"
+            type="number"
+            min="1"
+            class="input-field"
+            [disabled]="endMode === 'indefinite'"
+            [(ngModel)]="durationValue"
+            aria-label="Duración estimada"
+          />
+        </div>
+        <div class="input-wrapper duration-unit">
+          <select
+            class="input-field"
+            [disabled]="endMode === 'indefinite'"
+            [(ngModel)]="durationUnit"
+            aria-label="Unidad de la duración estimada"
+          >
+            <option value="weeks">semanas</option>
+            <option value="days">días</option>
+          </select>
+        </div>
       </div>
 
-      <ng-container *ngIf="endMode === 'fixedDate'">
-        <label class="field-label" for="phase-end-date">Fecha de finalización</label>
-        <div class="input-wrapper">
-          <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
-          <input id="phase-end-date" type="date" class="input-field" [(ngModel)]="fixedEndDate" />
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="endMode === 'duration'">
-        <label class="field-label" for="phase-duration">Cuánto dura desde la fecha de inicio</label>
-        <div class="duration-row">
-          <div class="input-wrapper duration-value">
-            <ion-icon name="time-outline" class="input-icon"></ion-icon>
-            <input id="phase-duration" type="number" min="1" class="input-field" [(ngModel)]="durationValue" />
-          </div>
-          <div class="input-wrapper duration-unit">
-            <select class="input-field" [(ngModel)]="durationUnit" aria-label="Unidad de la duración">
-              <option value="weeks">semanas</option>
-              <option value="days">días</option>
-            </select>
-          </div>
-        </div>
-      </ng-container>
+      <button
+        type="button"
+        class="no-estimate-toggle"
+        (click)="toggleEstimate()"
+      >
+        {{ endMode === 'indefinite' ? 'Poner una duración estimada' : 'Sin estimación' }}
+      </button>
 
       <p class="end-date-preview" *ngIf="endMode !== 'indefinite' && computedEndDate">
-        Termina el {{ computedEndDate }}
+        ≈ hasta el {{ computedEndDate }}. No se corta sola: sigue vigente hasta que
+        empieces la siguiente fase.
       </p>
       <p class="end-date-preview" *ngIf="endMode === 'indefinite'">
-        Sigue vigente hasta que se sustituya por otro plan.
+        Sin estimación: sigue vigente hasta que empieces la siguiente fase.
       </p>
     </ng-container>
   </ng-container>

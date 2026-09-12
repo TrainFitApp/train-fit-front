@@ -4,11 +4,15 @@ import { NutritionComplianceDay } from '../../models/client-detail.model';
 import { PlanAssignmentApiService } from '../../../../../../shared/services/plan-assignment-api.service';
 import { PlanAssignment } from '../../../../../../shared/models/plan-assignment.model';
 import { PHASE_COLORS, buildPhaseColorMap } from '../../phase-color.util';
+import { cycleLabelFor } from '../../cycle-label.util';
 
 interface CalendarPhaseInfo {
   id: string;
   color: string;
   planName: string | null;
+  // Vuelta de la fase en la que cae este día ("C3"), o null si no se puede
+  // numerar. Ver cycle-label.util.ts para qué cuenta como vuelta en cada modo.
+  cycleLabel: string | null;
   // ¿Impide que una fase nueva empiece en este día? Misma regla que el
   // backend (plan-assignment-service.js#blocksNewPhase): una fase con
   // fecha de fin cerrada bloquea; una INDEFINIDA ya en curso no, porque
@@ -378,9 +382,9 @@ export class NutritionCalendarComponent implements OnChanges {
     if (this.isPickerMode) {
       const choque = this.findBlockingPhaseInRange(start, end);
       if (choque) {
-        this.rangeError = `Ese tramo se solapa con otra fase (${choque.startDate} → ${
-          choque.endDate || 'indefinido'
-        }). Elige otras fechas.`;
+        this.rangeError =
+          `Ese tramo cae dentro de «${choque.planName || 'otra fase'}» (${choque.startDate} → ` +
+          `${this.phaseEndLabel(choque)}). Empiézala hoy para cortarla, o elige fechas posteriores.`;
         this.rangeStart = null;
         this.rangeEnd = null;
         this.hoverDate = null;
@@ -572,17 +576,30 @@ export class NutritionCalendarComponent implements OnChanges {
     if (!matches.length) return null;
 
     const phase = matches.find((p) => p.status === 'active') || matches[matches.length - 1];
+    const phaseKey = phase.phaseId || phase._id;
     return {
       id: phase._id,
-      color: this.phaseColorMap.get(phase.phaseId || phase._id) ?? PHASE_COLORS[0],
+      color: this.phaseColorMap.get(phaseKey) ?? PHASE_COLORS[0],
       planName: phase.planName || null,
-      blocksNewPhase: phase.endDate !== null,
+      // Solo los ciclos de ESTA fase: la numeración de vueltas se reinicia en
+      // cada fase nueva (ver cycle-label.util.ts).
+      cycleLabel: cycleLabelFor(
+        date,
+        this.planPhases.filter((p) => (p.phaseId || p._id) === phaseKey)
+      ),
+      // Misma regla que el backend (plan-assignment-service.js#blocksNewPhase):
+      // cambiar el plan "a partir de ya" siempre se puede; lo que no se puede
+      // es PROGRAMAR una fase futura dentro de un tramo ya reservado, sea por
+      // su fin real o por su duración estimada.
+      blocksNewPhase: phase.endDate !== null || date > this.todayIso,
     };
   }
 
-  // ¿Hay alguna fase con fin cerrado pisando este tramo? Misma condición de
-  // solape que findOverlapping en el backend, pero filtrando por la misma
-  // regla que blocksNewPhase: una indefinida ya en curso no cuenta.
+  // ¿Hay alguna fase pisando este tramo? Misma condición de solape que
+  // findOverlapping en el backend y misma regla que blocksNewPhase: el tramo
+  // reservado llega hasta el fin REAL si ya se cortó, y si no hasta su
+  // duración ESTIMADA; y empezar "a partir de ya" sobre la que está corriendo
+  // no cuenta como solape (la corta).
   //
   // Se comprueba contra planPhases (el historial ENTERO), no contra las
   // celdas del mes: un rango puede cruzar de un mes a otro y tragarse una
@@ -590,12 +607,21 @@ export class NutritionCalendarComponent implements OnChanges {
   private findBlockingPhaseInRange(start: string, end: string): PlanAssignment | null {
     return (
       this.planPhases.find((phase) => {
-        const solapa = phase.startDate <= end && (!phase.endDate || phase.endDate >= start);
+        const finEfectivo = phase.endDate || phase.estimatedEndDate || null;
+        const solapa = phase.startDate <= end && (!finEfectivo || finEfectivo >= start);
         if (!solapa) return false;
-        const abiertaYaEnCurso = phase.endDate === null && phase.startDate <= start;
-        return !abiertaYaEnCurso;
+        const cortableDesdeYa = !phase.endDate && phase.startDate <= start && start <= this.todayIso;
+        return !cortableDesdeYa;
       }) || null
     );
+  }
+
+  // Hasta cuándo tiene reservado el tramo una fase, para los mensajes de
+  // solape: el fin real si ya se cortó, la estimación si sigue corriendo.
+  private phaseEndLabel(phase: PlanAssignment): string {
+    if (phase.endDate) return phase.endDate;
+    if (phase.estimatedEndDate) return `≈ ${phase.estimatedEndDate}`;
+    return 'indefinido';
   }
 
   // impeccable/quieter — antes llegaba a 1.0 (naranja SÓLIDO) al 100% de

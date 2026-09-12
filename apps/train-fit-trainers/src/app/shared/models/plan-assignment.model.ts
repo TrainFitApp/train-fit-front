@@ -18,8 +18,18 @@ export interface PlanAssignment {
   trainerId: string;
   startDate: string;
   endMode: PlanEndMode;
+  // Fin REAL: null mientras la fase sigue corriendo, con fecha en cuanto otra
+  // la corta. Ya NO es la duración que eligió el entrenador — eso es
+  // estimatedEndDate (ver diet-template-schema.js en el backend).
   endDate: string | null;
+  // Duración estimada de la fase. No la cierra (sigue vigente hasta que se
+  // abra la siguiente), pero reserva el tramo: no se puede PROGRAMAR otra
+  // fase dentro. null = sin estimación.
+  estimatedEndDate: string | null;
   status: PlanAssignmentStatus;
+  // Nº de días del ciclo — para numerar las vueltas en el calendario
+  // (ver cycle-label.util.ts). 0/ausente en modos recurring/choice.
+  daysCount?: number | null;
   supersededBy: string | null;
   createdAt: string;
   planName?: string | null;

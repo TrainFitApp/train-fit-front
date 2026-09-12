@@ -31,6 +31,17 @@ export interface CreateDirectPlanRequest {
   cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
 }
 
+// Editor de fase/ciclo ya asignado — contenido completo de la copia de ESTE
+// cliente (nunca una plantilla de biblioteca), por su propio _id. Funciona
+// igual para el ciclo 1 que para cualquiera posterior (sin sourceTemplateId).
+export interface PlanContent {
+  _id: string;
+  name: string;
+  mode: TemplateMode;
+  days: DietTemplateDayPayload[];
+  dayPatterns: DietTemplateDayPatternPayload[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class PlanAssignmentApiService {
   private base(clientId: string): string {
@@ -53,6 +64,18 @@ export class PlanAssignmentApiService {
 
   public getHistory(clientId: string): Observable<PlanAssignment[]> {
     return this.http.get<PlanAssignment[]>(`${this.base(clientId)}/history`);
+  }
+
+  public getContent(clientId: string, planId: string): Observable<PlanContent> {
+    return this.http.get<PlanContent>(`${this.base(clientId)}/${planId}`);
+  }
+
+  public updateContent(
+    clientId: string,
+    planId: string,
+    body: { name?: string; mode?: TemplateMode; days?: DietTemplateDayPayload[]; dayPatterns?: DietTemplateDayPatternPayload[] }
+  ): Observable<PlanContent> {
+    return this.http.put<PlanContent>(`${this.base(clientId)}/${planId}`, body);
   }
 
   // Quitar CUALQUIER fase (futura, pasada/sustituida, o la vigente ahora
