@@ -1,0 +1,102 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ selectedGroup ? selectedGroup.name : 'Generar desde intercambio' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="selectedGroup" (click)="backToGroups()">Volver</ion-button>
+      <ion-button *ngIf="!selectedGroup" (click)="dismiss()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="generator-content">
+  <div class="page-skeleton" *ngIf="state === 'loading'">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+
+  <div class="page-state" *ngIf="state === 'error'">
+    <ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>
+    <p>No se pudieron cargar tus intercambios.</p>
+    <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <!-- ===== Elegir grupo ===== -->
+  <ng-container *ngIf="state === 'loaded' && !selectedGroup">
+    <p class="generator-hint">
+      Se creará una alternativa por cada alimento que elijas, copiando el resto de la comida y
+      cambiando solo <strong>{{ pivotName || 'el alimento' }}</strong>. Las cantidades son las que
+      escribiste tú en el grupo.
+    </p>
+
+    <div class="page-state" *ngIf="!groups.length">
+      <ion-icon name="swap-horizontal-outline" aria-hidden="true"></ion-icon>
+      <p>Todavía no tienes grupos de intercambio. Créalos en Biblioteca → Intercambios.</p>
+    </div>
+
+    <button
+      type="button"
+      class="group-option"
+      *ngFor="let group of groups; trackBy: trackByGroupId"
+      [disabled]="!usableCount(group)"
+      (click)="selectGroup(group)"
+    >
+      <span class="group-option-main">
+        <span class="group-option-head">
+          <span class="group-option-name">{{ group.name }}</span>
+          <span class="pivot-chip" *ngIf="containsPivot(group)">Contiene este alimento</span>
+        </span>
+        <span class="group-option-reference">{{ servingLabel(group) }}</span>
+        <!-- Es lo único que decide si merece la pena entrar: un grupo con 6
+             alimentos escritos a mano y ninguno vinculado no genera nada. -->
+        <span class="group-option-usable" [class.group-option-usable--none]="!usableCount(group)">
+          {{ usableCount(group) ? usableCount(group) + ' alimento(s) utilizable(s)' : 'Ningún alimento vinculado a un producto' }}
+        </span>
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </ng-container>
+
+  <!-- ===== Elegir alimentos del grupo ===== -->
+  <ng-container *ngIf="state === 'loaded' && selectedGroup as group">
+    <p class="equivalence-note" *ngIf="group.equivalenceNote">
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>{{ group.equivalenceNote }}
+    </p>
+
+    <p class="generator-hint">
+      Cada uno marcado será una alternativa nueva. Quedan
+      <strong>{{ slotsAvailable }}</strong> huecos en esta comida.
+    </p>
+
+    <button
+      type="button"
+      class="candidate"
+      *ngFor="let candidate of candidates; trackBy: trackByIndex"
+      [class.selected]="candidate.selected"
+      [disabled]="!!candidate.blockedReason || (isFull && !candidate.selected)"
+      [attr.aria-pressed]="candidate.selected"
+      (click)="toggle(candidate)"
+    >
+      <ion-icon
+        class="candidate-check"
+        [name]="candidate.selected ? 'checkbox-outline' : 'square-outline'"
+        aria-hidden="true"
+      ></ion-icon>
+      <span class="candidate-main">
+        <span class="candidate-name">{{ candidate.item.name }}</span>
+        <span class="candidate-detail">
+          {{ candidate.item.quantity }} {{ candidate.item.unit }}
+          <span class="candidate-note" *ngIf="candidate.item.note">· {{ candidate.item.note }}</span>
+        </span>
+        <!-- El motivo, no el silencio: el coach escribió este alimento y sin
+             explicación volvería a la biblioteca a buscar un error que no hay. -->
+        <span class="candidate-blocked" *ngIf="candidate.blockedReason">{{ candidate.blockedReason }}</span>
+      </span>
+    </button>
+  </ng-container>
+</ion-content>
+
+<ion-footer class="generator-footer" *ngIf="selectedGroup">
+  <button type="button" class="confirm-button" [disabled]="!selectedCount" (click)="confirm()">
+    Generar {{ selectedCount }} alternativa(s)
+  </button>
+</ion-footer>

@@ -10,6 +10,9 @@ import { RecipeIngredientsEditorModalModule } from '../../shared/components/reci
 import { ProductDetailPanelModule } from '../../shared/components/product-detail-panel/product-detail-panel.module';
 import { DietTemplatesListPage } from './pages/diet-templates-list/diet-templates-list.page';
 import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-template-builder.page';
+import { DietPhasePickerPage } from './pages/diet-phase-picker/diet-phase-picker.page';
+import { DietSuggestionListComponent } from './components/diet-suggestion-list/diet-suggestion-list.component';
+import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 
 @NgModule({
   imports: [
@@ -22,7 +25,13 @@ import { DietTemplateBuilderPage } from './pages/diet-template-builder/diet-temp
     RecipeBuilderModalModule,
     RecipeIngredientsEditorModalModule,
     ProductDetailPanelModule,
+    DietCardModule,
   ],
-  declarations: [DietTemplatesListPage, DietTemplateBuilderPage],
+  declarations: [
+    DietTemplatesListPage,
+    DietTemplateBuilderPage,
+    DietPhasePickerPage,
+    DietSuggestionListComponent,
+  ],
 })
 export class DietTemplatesPageModule {}

@@ -87,6 +87,18 @@
           >
             <ion-icon name="options-outline"></ion-icon>
           </button>
+          <!-- Solo sobre un producto: un grupo de intercambio lista productos,
+               no recetas, así que sobre una receta no habría nada que ofrecer. -->
+          <button
+            type="button"
+            class="remove-alternative-btn"
+            aria-label="Generar alternativas desde un intercambio"
+            title="Generar alternativas cambiando solo este alimento"
+            *ngIf="item.productId"
+            (click)="generateFromExchange(i, j)"
+          >
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+          </button>
           <button
             type="button"
             class="remove-alternative-btn"

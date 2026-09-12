@@ -340,7 +340,10 @@
     "CREATE_ACCOUNT_ERROR_WITH_PROVIDER": "Error al crear cuenta con {{provider}}",
     "REGISTER_ERROR_WITH_PROVIDER": "No se pudo completar el registro con {{provider}}",
     "SOCIAL_AUTH_RETRY": "No se pudo iniciar sesión con {{provider}}. Inténtalo de nuevo",
-    "UNEXPECTED_ERROR": "Ha ocurrido un error inesperado"
+    "UNEXPECTED_ERROR": "Ha ocurrido un error inesperado",
+    "ALREADY_HAVE_ACCOUNT": "¿Ya tienes cuenta?",
+    "OR": "o",
+    "LOGIN_SUBTITLE": "Introduce tus datos para acceder a tu cuenta."
   },
   "RESTORE_PASSWORD": {
     "TITLE": "Restaurar contraseña",
@@ -1094,6 +1097,8 @@
     "DELETE_WEEK_ERROR": "No se pudo eliminar el microciclo",
     "ADD_WEEK_ERROR": "No se pudo añadir el microciclo",
     "REORDER_WEEKS_ERROR": "No se pudo reordenar los microciclos",
+    "REORDER_WEEKS_MODE": "Reordenar",
+    "REORDER_WEEKS_MODE_HINT": "Modo reordenar activo: arrastra un microciclo para moverlo",
     "RENAME_WEEK": "Renombrar microciclo",
     "RENAME_WEEK_ERROR": "No se pudo renombrar el microciclo",
     "RENAME_ROUTINE": "Renombrar rutina",
@@ -1352,7 +1357,7 @@
     "REPS": "REPS",
     "RIR": "RIR",
     "REST_LABEL": "Desc.",
-    "ADD_SET_QUICK": "+ Serie",
+    "ADD_SET_QUICK": "Serie",
     "UPDATE_SET_ERROR": "No se pudo actualizar la serie",
     "ADD_SET_ERROR": "No se pudo añadir la serie",
     "REORDER_EXERCISES_HANDLE": "Arrastrar para reordenar el ejercicio",

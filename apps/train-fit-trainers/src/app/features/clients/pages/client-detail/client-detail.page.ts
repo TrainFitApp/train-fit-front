@@ -1,10 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  HostListener,
-  OnInit,
-  inject,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { skip } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
@@ -66,6 +60,7 @@ import { TrainingFilterPanelComponent, TrainingFilterResult } from './components
 import { CompletedDay } from './components/training-calendar/training-calendar.component';
 import { SelectClientsModalComponent } from '../../components/select-clients-modal/select-clients-modal.component';
 import { ApplyDietTemplateModalComponent } from '../../components/apply-diet-template-modal/apply-diet-template-modal.component';
+import { NextCycleModalComponent } from '../../components/next-cycle-modal/next-cycle-modal.component';
 import { ApplyRoutineTemplateModalComponent } from '../../components/apply-routine-template-modal/apply-routine-template-modal.component';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { PHASE_COLORS, buildPhaseColorMap } from './phase-color.util';
@@ -73,6 +68,7 @@ import { RoutineAssignmentApiService } from '../../../../shared/services/routine
 import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
+import { MissingBiometricsError, NutritionTarget } from '../../../diet-templates/models/diet-suggestion.model';
 import {
   DietException,
   PlanAssignment,
@@ -80,15 +76,6 @@ import {
 import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { TableService } from 'src/app/core/services/table/table.service';
-import {
-  ProductSearchModalComponent,
-  ProductSearchResult,
-} from '../../../../shared/components/product-search-modal/product-search-modal.component';
-import {
-  SearchFoodsPage,
-  SearchFoodsTrainerContext,
-  TrainerFoodSelection,
-} from 'src/app/features/diets/components/meal/components/search-foods/search-foods.page';
 import {
   AdherenceSummary,
   AnthropometryEntry,
@@ -109,10 +96,6 @@ import {
   CompletedWorkoutEntry,
   TrainingGoal,
   TrainingGoalType,
-  DietDaySummary,
-  MealAlternativeInput,
-  MealFoodItemInput,
-  MealSummary,
   NutritionalGoal,
   NutritionComplianceSummary,
   TrainerNote,
@@ -277,7 +260,6 @@ export class ClientDetailPage implements OnInit {
   // --- Nutrición ---
   public nutritionState: SectionState = 'loading';
   public nutritionDate: string = new Date().toISOString().slice(0, 10);
-  public dietDay: DietDaySummary | null = null;
   public goals: NutritionalGoal[] = [];
   public adherence: AdherenceSummary | null = null;
   // F20-bis — cumplimiento del plan (distinto de adherence, ver
@@ -307,19 +289,26 @@ export class ClientDetailPage implements OnInit {
     reason: new FormControl(''),
   });
   public isAssigningGoal = false;
+  // Calculadora de recomendación del panel "Asignar objetivos" — mismo
+  // cálculo que el cajón de sugerencias de dieta (computeNutritionTarget),
+  // pero compacta: sin editar peso/altura/actividad del cliente, solo el
+  // foco (déficit/mantenimiento/superávit) + delta. El entrenador retoca los
+  // 4 campos después si quiere.
+  public readonly nutritionObjectivePresets: { key: 'deficit' | 'maintain' | 'surplus'; label: string; delta: number }[] = [
+    { key: 'deficit', label: 'Déficit', delta: -500 },
+    { key: 'maintain', label: 'Mantenimiento', delta: 0 },
+    { key: 'surplus', label: 'Superávit', delta: 300 },
+  ];
+  public nutritionObjectivePreset: 'deficit' | 'maintain' | 'surplus' = 'deficit';
+  public nutritionObjectiveDelta = -500;
+  public isCalculatingNutritionTarget = false;
+  public nutritionTargetPreview: NutritionTarget | null = null;
+  public nutritionTargetMissing: string[] | null = null;
   // Tocar una card de objetivo ya EXISTENTE la pone en uso. Id (no un
   // booleano suelto) porque varias cards viven en la misma lista y solo una
   // debe mostrarse "en progreso" a la vez.
   public activatingGoalId: string | null = null;
   public isRevoking = false;
-
-  // --- Pautar comida (F12/F28) ---
-  public showPrescribePanel = false;
-  public prescribeMealTarget: MealSummary | null = null;
-  public prescribeAlternatives: MealAlternativeInput[] = [];
-  public isPrescribing = false;
-  public readonly maxAlternatives = 4;
-  public readonly maxFoodItemsPerAlternative = 8;
 
   // --- Preferencias nutricionales (F29, transversal a nutrición) ---
   public nutritionPreferences: ClientNutritionPreferences | null = null;
@@ -1578,7 +1567,7 @@ export class ClientDetailPage implements OnInit {
   // assignTemplateRoutine en ClientDetailApiService, escrito hace tiempo pero
   // nunca consumido desde ningún componente): elegir una plantilla de rutina
   // completa ya construida (propia del profesional) en vez de partir de cero.
-  // Mismo patrón que openApplyTemplateModal() (nutrición) un poco más abajo.
+  // Hermano de startDietPhase() (nutrición) un poco más abajo.
   public async openApplyRoutineTemplateModal(): Promise<void> {
     this.closeRoutinePanel();
     const modal = await this.modalController.create({
@@ -1611,14 +1600,6 @@ export class ClientDetailPage implements OnInit {
   public loadNutrition(date: string = this.nutritionDate): void {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
-
-    // F12/F28 — comida del día real, necesaria para poder pautar directamente
-    // desde esta pantalla (ver openPrescribePanel). No bloquea el resto de
-    // la sección si falla, es un widget aparte.
-    this.clientDetailApi.getDiet(this.clientId, date).subscribe({
-      next: (dietDay) => (this.dietDay = dietDay),
-      error: () => (this.dietDay = null),
-    });
 
     this.clientDetailApi
       .getNutritionalGoals(this.clientId)
@@ -1687,33 +1668,17 @@ export class ClientDetailPage implements OnInit {
     this.customTrackingRange = range;
   }
 
-  // F20-nonies — solo lo que DE VERDAD depende del día seleccionado
-  // (dietDay) se vuelve a pedir aquí; goals/adherence/complianceSummary/
-  // nutritionPreferences/activePlan no cambian según qué día se esté
-  // mirando, así que no hace falta releerlos ni pasar nutritionState por
-  // 'loading' (eso disparaba el skeleton de LA PESTAÑA ENTERA en cada
-  // click de día — demasiado, para lo poco que realmente cambia).
-  // isSwitchingDate solo atenúa la etiqueta de fecha mientras llega el
-  // nuevo dietDay, en vez de un skeleton.
-  public isSwitchingDate = false;
-
   // F20-bis — llamado por <app-nutrition-calendar> al hacer click en un día;
   // sustituye a los antiguos botones ±1 día (changeNutritionDate), que no
   // daban vista de conjunto ni salto directo a una fecha.
+  //
+  // Ya no pide nada al cambiar de día (antes releía el dietDay para poder
+  // pautar comida a comida desde aquí — ver Replanteamiento MVP en
+  // client-detail.page.html): goals/adherence/complianceSummary/
+  // nutritionPreferences/activePlan tampoco cambian según el día que se
+  // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
-    if (date === this.nutritionDate) return;
     this.nutritionDate = date;
-    this.isSwitchingDate = true;
-    this.clientDetailApi.getDiet(this.clientId, date).subscribe({
-      next: (dietDay) => {
-        this.dietDay = dietDay;
-        this.isSwitchingDate = false;
-      },
-      error: () => {
-        this.dietDay = null;
-        this.isSwitchingDate = false;
-      },
-    });
   }
 
   private todayIsoDate(): string {
@@ -1753,7 +1718,14 @@ export class ClientDetailPage implements OnInit {
         this.allPhasesHistory = (res?.history || [])
           .slice()
           .sort((a, b) => a.startDate.localeCompare(b.startDate));
-        this.phaseColorMap = buildPhaseColorMap(this.allPhasesHistory.map((p) => p._id));
+        // Sugerencias de dieta — los ciclos de una fase comparten color
+        // (banda de fase). Color por phaseId; sin phaseId, por _id.
+        const phaseKeys: string[] = [];
+        for (const p of this.allPhasesHistory) {
+          const key = p.phaseId || p._id;
+          if (!phaseKeys.includes(key)) phaseKeys.push(key);
+        }
+        this.phaseColorMap = buildPhaseColorMap(phaseKeys);
         this.planPhases = this.buildPhaseSequence(res?.history || []);
       })
       .catch(() => {
@@ -1780,7 +1752,21 @@ export class ClientDetailPage implements OnInit {
       .sort((a, b) => a.startDate.localeCompare(b.startDate));
   }
 
+  // BUG (2026-09-11) — encadenar una fase que empieza en el FUTURO (p.ej.
+  // "Siguiente fase" con fecha propuesta = día después de que acabe la
+  // actual) la duplicaba en el track: `activePlan` la pintaba arriba como
+  // "en curso" (getActive va por STATUS — el tip de la cadena, sea cual sea
+  // su fecha, ver plan-assignment-controller.js#getActive) y el `*ngFor` de
+  // abajo la volvía a pintar como "programada", porque por FECHA esta
+  // función decía `false` (aún no ha empezado) — el filtro solo miraba si
+  // el phase cubría hoy, nunca si YA era el que activePlan señala. La
+  // comparación por identidad cierra ese hueco sin tocar la de fecha, que
+  // sigue haciendo falta para el caso contrario: la fase vieja que el
+  // encadenado marca "superseded" en el acto pero sigue rigiendo hoy (ver
+  // buildPhaseSequence más arriba) — esa no es `activePlan` y aun así debe
+  // seguir excluida de "programada".
   public isCurrentPhase(phase: PlanAssignment): boolean {
+    if (this.activePlan && phase._id === this.activePlan._id) return true;
     const hoy = new Date().toISOString().slice(0, 10);
     return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
   }
@@ -1791,7 +1777,42 @@ export class ClientDetailPage implements OnInit {
   // phase-color.util.ts.
   public phaseColor(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent)';
-    return this.phaseColorMap.get(phase._id) ?? 'var(--tf-accent)';
+    return this.phaseColorMap.get(phase.phaseId || phase._id) ?? 'var(--tf-accent)';
+  }
+
+  // Hasta cuándo va una fase. Tres estados distintos, y conviene que se
+  // distingan de un vistazo (2026-09):
+  //   · endDate       → ya se cortó: fecha de fin REAL, en pasado.
+  //   · estimatedEnd  → sigue corriendo; la fecha es una ESTIMACIÓN, no la
+  //                     corta nadie hasta que se abra la siguiente fase.
+  //   · ninguna       → corriendo sin estimación.
+  public phaseEndLabel(phase: PlanAssignment | null): string {
+    if (!phase) return '';
+    if (phase.endDate) return `hasta ${phase.endDate}`;
+    if (phase.estimatedEndDate) return `≈ hasta ${phase.estimatedEndDate}`;
+    return 'indefinido';
+  }
+
+  // Igual pero sin la preposición — para el formato "inicio → fin".
+  public phaseEndShort(phase: PlanAssignment | null): string {
+    if (!phase) return '';
+    if (phase.endDate) return phase.endDate;
+    if (phase.estimatedEndDate) return `≈ ${phase.estimatedEndDate}`;
+    return 'indefinido';
+  }
+
+  // Cada cuánto se repite el contenido de la fase — la misma vuelta que
+  // numera el badge C1/C2 del calendario (ver cycle-label.util.ts).
+  //
+  // Solo en 'sequential': en 'recurring' las píldoras L/M/X/J/V/S/D de la
+  // tarjeta ya dicen cómo se repite (y decir además "cada semana" sería
+  // repetirse), y en 'choice' no hay ciclo que anunciar — lo elige el
+  // cliente día a día.
+  public cycleLengthLabel(phase: PlanAssignment | null): string | null {
+    if (!phase || phase.mode === 'recurring' || phase.mode === 'choice') return null;
+    const dias = phase.daysCount || 0;
+    if (!dias) return null;
+    return `Ciclo de ${dias} día${dias === 1 ? '' : 's'}`;
   }
 
   // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
@@ -1801,9 +1822,65 @@ export class ClientDetailPage implements OnInit {
   // Reutiliza hexToRgba, igual que weekdayPatternSoftBackground.
   public phaseSoftBackground(phase: PlanAssignment | null): string {
     if (!phase) return 'var(--tf-accent-soft)';
-    const color = this.phaseColorMap.get(phase._id);
+    const color = this.phaseColorMap.get(phase.phaseId || phase._id);
     if (!color) return 'var(--tf-accent-soft)';
     return this.hexToRgba(color, 0.14);
+  }
+
+  // Borrado coherente de fases (nutrición) — mismo criterio que
+  // confirmCancelRoutinePhase para entrenamiento: quitar CUALQUIER fase
+  // (vigente, programada o ya sustituida). Si era la fase en curso, el
+  // backend reactiva sola la que queda más reciente — nunca deja al cliente
+  // sin ninguna.
+  //
+  // 2026-09 — la confirmación pasó de `ion-alert` (un diálogo aparte,
+  // tapando el resto de la ficha) a dos botones pequeños INLINE en el
+  // propio sitio del "Quitar fase": pedir confirmación para una acción
+  // sobre UNA fila de una lista no necesita interrumpir toda la pantalla,
+  // y evita el salto de foco de abrir/cerrar un modal para una fase que a
+  // menudo se quita por error nada más aplicarla.
+  public cancellingPlanPhaseId: string | null = null;
+  // Fase para la que están abiertos los botones "Cancelar/Quitar" — como
+  // mucho una a la vez (pedir para otra cierra la anterior sin tocarla).
+  public confirmingCancelPlanPhaseId: string | null = null;
+
+  public requestCancelPlanPhase(phase: PlanAssignment, event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelPlanPhaseId = phase._id;
+  }
+
+  public dismissCancelPlanPhase(event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelPlanPhaseId = null;
+  }
+
+  public confirmCancelPlanPhase(phase: PlanAssignment, event: Event): void {
+    event.stopPropagation();
+    this.confirmingCancelPlanPhaseId = null;
+    this.cancellingPlanPhaseId = phase._id;
+    this.planAssignmentApi.cancel(this.clientId, phase._id).subscribe({
+      next: () => {
+        this.cancellingPlanPhaseId = null;
+        this.ionicUtilService.showToast({ message: 'Fase quitada', duration: 1500 });
+        // loadNutrition (no solo loadActivePlan): quitar una fase también
+        // borra el objetivo de su ciclo en el backend (cancelPhase ->
+        // cleanupCycleGoal), así que la lista de OBJETIVOS NUTRICIONALES
+        // hay que recargarla o queda un objetivo fantasma "En uso" hasta el
+        // próximo refresco.
+        this.loadNutrition();
+        // El historial de abajo es de carga perezosa (toggleNutritionHistory)
+        // — solo se refresca si ya estaba abierto, para no disparar una
+        // petición que nadie va a ver.
+        if (this.nutritionHistoryLoaded) this.loadNutritionHistory();
+      },
+      error: (err) => {
+        this.cancellingPlanPhaseId = null;
+        this.ionicUtilService.showToast({
+          message: err?.error?.message || 'No se pudo quitar la fase',
+          duration: 2500,
+        });
+      },
+    });
   }
 
   // TASK-045 (MASTER_BACKLOG.md) — combina el historial de fases
@@ -1938,11 +2015,49 @@ export class ClientDetailPage implements OnInit {
     return 'Sin especificar';
   }
 
+  private readonly dietaryFlagLabels: Record<string, string> = {
+    vegan: 'Vegana',
+    vegetarian: 'Vegetariana',
+    lactoseFree: 'Sin lactosa',
+    glutenFree: 'Sin gluten',
+  };
+
+  public dietaryFlagsLabel(flags: string[] | undefined): string {
+    if (!flags?.length) return 'Ninguna';
+    return flags.map((f) => this.dietaryFlagLabels[f] ?? f).join(', ');
+  }
+
   // Movimiento 5 Coach Pro — reparto por comidas en intercambios. Fuera del
   // FormGroup a propósito: es una estructura anidada (comidas -> raciones)
   // que se edita con su propio componente, y meterla en un FormArray dentro
   // de un formulario de cinco números solo añadiría ceremonia.
   public goalMealExchanges: GoalMeal[] = [];
+
+  /**
+   * Los gramos del formulario, con los nombres que entiende el cuadre.
+   *
+   * Se lee del FormGroup en vivo y no de una copia: el entrenador sube las
+   * kcal y el cuadre de abajo tiene que moverse con ellas, que es justo lo
+   * que hace que las dos formas de pautar dejen de ir cada una por su lado.
+   */
+  public get goalMacroTargets(): {
+    kcal: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
+  } {
+    const value = this.goalForm.value;
+    const read = (raw: unknown): number | null => {
+      const parsed = Number(raw);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    };
+    return {
+      kcal: read(value.kcalTotal),
+      protein: read(value.proteinsGTotal),
+      carbs: read(value.carbohydratesGTotal),
+      fat: read(value.fatGTotal),
+    };
+  }
 
   // El objetivo vigente del cliente. Se deriva de la lista en vez de
   // guardarse aparte: dos copias del "cuál está activo" se desincronizan en
@@ -1967,6 +2082,52 @@ export class ClientDetailPage implements OnInit {
       name: meal.name,
       exchanges: [...(meal.exchanges || [])],
     }));
+
+    this.nutritionObjectivePreset = 'deficit';
+    this.nutritionObjectiveDelta = -500;
+    this.nutritionTargetPreview = null;
+    this.nutritionTargetMissing = null;
+  }
+
+  public selectNutritionObjectivePreset(preset: { key: 'deficit' | 'maintain' | 'surplus'; delta: number }): void {
+    this.nutritionObjectivePreset = preset.key;
+    this.nutritionObjectiveDelta = preset.delta;
+    this.calculateNutritionTarget();
+  }
+
+  public calculateNutritionTarget(): void {
+    if (this.isCalculatingNutritionTarget) return;
+
+    this.isCalculatingNutritionTarget = true;
+    this.nutritionTargetMissing = null;
+    this.clientDetailApi
+      .getNutritionTarget(this.clientId, this.nutritionObjectiveDelta)
+      .subscribe({
+        next: (res) => {
+          this.isCalculatingNutritionTarget = false;
+          this.nutritionTargetPreview = res.target;
+          this.goalForm.patchValue({
+            kcalTotal: res.target.kcal,
+            proteinsGTotal: res.target.protein,
+            carbohydratesGTotal: res.target.carbs,
+            fatGTotal: res.target.fat,
+          });
+        },
+        error: (err) => {
+          this.isCalculatingNutritionTarget = false;
+          this.nutritionTargetPreview = null;
+          const body: MissingBiometricsError | undefined = err?.error;
+          if (body?.code === 'MISSING_BIOMETRICS') {
+            this.nutritionTargetMissing = body.missing;
+            return;
+          }
+          this.ionicUtilService.showErrorToast(
+            'No se pudo calcular la recomendación',
+            'Error',
+            3000
+          );
+        },
+      });
   }
 
   public closeGoalPanel(): void {
@@ -2045,15 +2206,58 @@ export class ClientDetailPage implements OnInit {
     return fecha.toISOString().slice(0, 10);
   }
 
-  public async openApplyTemplateModal(): Promise<void> {
-    // La última fase de la secuencia es contra la que se encadena, no la
-    // vigente: si ya hay dos programadas, la nueva va DETRÁS de la última.
+  // Sugerencias de dieta — "empezar fase" lleva a la biblioteca de dietas
+  // (/tabs/diet-templates/for-phase/:clientId), que las lista ordenadas por
+  // lo cerca que quedan del objetivo de este cliente y abre ahí el panel de
+  // parámetros. Antes la lista rankeada se pintaba en esta misma pantalla,
+  // en un "modo" que escondía media ficha: elegir una dieta es entrar en la
+  // biblioteca, no una vista más de la ficha. El nombre y la fecha
+  // propuesta viajan por query param (y no por router state) para que la
+  // pantalla sobreviva a un F5. El modal antiguo
+  // (ApplyDietTemplateModalComponent) sigue disponible desde
+  // "Aplicar plantilla concreta".
+  public startDietPhase(): void {
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
+
+    void this.router.navigate(['/tabs/diet-templates/for-phase', this.clientId], {
+      queryParams: {
+        name: this.name,
+        start: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
+      },
+    });
+  }
+
+  // Sugerencias de dieta — progresión ciclo a ciclo. Abre el modal que lee
+  // la tendencia de peso + adherencia y sugiere las kcal del siguiente ciclo.
+  public async openNextCycleModal(): Promise<void> {
+    const phaseId = this.activePlan?.phaseId;
+    if (!phaseId) return;
+
+    const modal = await this.modalController.create({
+      component: NextCycleModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        phaseId,
+        clientName: this.name,
+      },
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    void this.loadActivePlan();
+    this.loadNutrition();
+  }
+
+  // Aplicar UNA plantilla concreta sin pasar por el ranking (flujo antiguo).
+  public async openApplyExactTemplateModal(): Promise<void> {
+    const ultima = this.planPhases[this.planPhases.length - 1] || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
-      // Panel derecho, como el resto de formularios largos de la app.
       cssClass: 'tf-panel-modal',
       componentProps: {
         clientId: this.clientId,
@@ -2092,7 +2296,7 @@ export class ClientDetailPage implements OnInit {
     // Misma propuesta de fecha que al aplicar una plantilla: encadenar con
     // el final de la última fase, para no dejar un hueco sin plan.
     const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima?.endDate || null;
+    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
@@ -2126,21 +2330,18 @@ export class ClientDetailPage implements OnInit {
   // programadas son justo las que más se retocan (se preparan con
   // antelación) y hasta ahora eran las únicas tarjetas muertas al click —
   // había que ir a "Plantillas de dieta" y buscarla por nombre.
+  //
+  // Antes navegaba a `sourceTemplateId` (la plantilla de BIBLIOTECA de
+  // origen) — arriesgado si era general (compartida: tocarla afectaba a
+  // otros clientes) y directamente imposible en los ciclos 2+ creados con
+  // "Siguiente ciclo" (no guardan sourceTemplateId). Ahora edita siempre la
+  // copia de ESTE cliente por su propio `_id` (ver
+  // diet-template-builder.page.ts#startForAssignedCopy) — nunca toca una
+  // plantilla de biblioteca, funciona para cualquier ciclo.
   public openPhaseTemplate(phase: PlanAssignment): void {
-    // sourceTemplateId, no _id: _id es la copia congelada exclusiva de este
-    // cliente (ver plan-assignment.model.ts) — editarla no debe ser posible
-    // desde aquí, así que este atajo va siempre a la plantilla real.
-    if (!phase.sourceTemplateId) {
-      // Puede faltar: la plantilla de origen se borró, o la fase se creó
-      // antes de que se guardara esa referencia. Antes esto era un click que
-      // no hacía nada y parecía la app colgada.
-      this.ionicUtilService.showToast({
-        message: 'Esta fase no conserva su plantilla de origen, no se puede editar desde aquí.',
-        duration: 3000,
-      });
-      return;
-    }
-    this.router.navigate(['/tabs/diet-templates', phase.sourceTemplateId]);
+    this.router.navigate(['/tabs/diet-templates/edit-assignment', this.clientId, phase._id], {
+      queryParams: { name: this.name },
+    });
   }
 
   // F20-octies — color de las píldoras del patrón `index`. Con un solo
@@ -2169,355 +2370,6 @@ export class ClientDetailPage implements OnInit {
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-
-  // --- Pautar comida (F12: 1 alternativa = aplicación inmediata;
-  // F28: 2+ alternativas nombradas = el cliente elige cuál se aplica) ---
-  public openPrescribePanel(meal: MealSummary): void {
-    this.prescribeMealTarget = meal;
-    this.prescribeAlternatives = [this.emptyAlternative()];
-    this.showPrescribePanel = true;
-  }
-
-  public closePrescribePanel(): void {
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — atajo de escritorio: con el panel de
-  // "Pautar" abierto, Ctrl/Cmd+K abre el buscador directamente sobre el
-  // primer hueco sin producto/receta (o añade uno si no queda ninguno),
-  // sin tener que ir a buscar el botón con el ratón.
-  @HostListener('document:keydown', ['$event'])
-  public onGlobalKeydown(event: KeyboardEvent): void {
-    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k')
-      return;
-    if (!this.showPrescribePanel || !this.prescribeAlternatives.length) return;
-    event.preventDefault();
-
-    for (
-      let altIndex = 0;
-      altIndex < this.prescribeAlternatives.length;
-      altIndex++
-    ) {
-      const alt = this.prescribeAlternatives[altIndex];
-      const itemIndex = alt.items.findIndex(
-        (item) => !item.productId && !item.recipeId
-      );
-      if (itemIndex !== -1) {
-        void this.openProductSearch(altIndex, itemIndex);
-        return;
-      }
-    }
-
-    const lastAltIndex = this.prescribeAlternatives.length - 1;
-    const alt = this.prescribeAlternatives[lastAltIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-    void this.openProductSearch(lastAltIndex, alt.items.length - 1);
-  }
-
-  private emptyFoodItem(): MealFoodItemInput {
-    return {};
-  }
-
-  private emptyAlternative(): MealAlternativeInput {
-    return { label: '', items: [this.emptyFoodItem()] };
-  }
-
-  // Cada alternativa nueva se pone ARRIBA de las anteriores (más reciente
-  // primero) — así lo pidió el trainer, en vez de acumularse al final.
-  public addAlternative(): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    this.prescribeAlternatives.unshift(this.emptyAlternative());
-  }
-
-  // TAREA5 (auditoría UX, Fase E) — la mayoría de alternativas comparten casi
-  // todos los alimentos (mismo carbohidrato/grasa, solo cambia la proteína).
-  // Duplicar copia la composición entera para editar solo lo que cambia, en
-  // vez de repetir el ciclo de búsqueda completo por cada opción.
-  public duplicateAlternative(index: number): void {
-    if (this.prescribeAlternatives.length >= this.maxAlternatives) return;
-    const source = this.prescribeAlternatives[index];
-    const copy: MealAlternativeInput = {
-      label: source.label ? `${source.label} (copia)` : '',
-      items: source.items.map((item) => ({ ...item })),
-    };
-    this.prescribeAlternatives.splice(index + 1, 0, copy);
-  }
-
-  public removeAlternative(index: number): void {
-    if (this.prescribeAlternatives.length <= 1) return;
-    this.prescribeAlternatives.splice(index, 1);
-  }
-
-  // Replanteamiento MVP (nutrición) — antes cada alternativa era UN solo
-  // alimento y volver a pautar sobrescribía la comida entera; ahora cada
-  // alternativa acumula VARIOS alimentos (this.maxFoodItemsPerAlternative)
-  // que se envían juntos en un único customProducts al pautar.
-  public addFoodItem(altIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-    alt.items.push(this.emptyFoodItem());
-  }
-
-  public removeFoodItem(altIndex: number, itemIndex: number): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (alt.items.length <= 1) return;
-    alt.items.splice(itemIndex, 1);
-  }
-
-  // TAREA1/TAREA5 — buscador real de search-foods (misma pantalla/tarjetas
-  // que el consumidor, con productos+recetas+filtros) como panel lateral.
-  // Sus acciones de escritura (compose/deleteMealCustomRecipe/AddProductPage)
-  // llaman a endpoints con auth propia del consumidor logueado, sin
-  // clientId — no sirven para "la dieta de un cliente". Por eso
-  // SearchFoodsPage recibe un trainerContext con callbacks propios: al
-  // elegir un producto/receta, se abre un segundo panel pequeño
-  // (ProductSearchModalComponent, reutilizado aquí solo para el paso de
-  // cantidad/confirmar) que sí aplica el resultado con la lógica de esta
-  // página y cierra ambos paneles. Ver MVP-trainers/tareas-grandes/TAREA5.
-  public async openProductSearch(
-    altIndex: number,
-    itemIndex: number
-  ): Promise<void> {
-    const outerModal = await this.modalController.create({
-      component: SearchFoodsPage,
-      componentProps: {
-        trainerContext: this.buildSearchFoodsTrainerContext(
-          altIndex,
-          itemIndex,
-          () => void outerModal.dismiss()
-        ),
-      },
-      cssClass: 'tf-panel-modal',
-    });
-    await outerModal.present();
-    await outerModal.onDidDismiss();
-  }
-
-  private buildSearchFoodsTrainerContext(
-    altIndex: number,
-    itemIndex: number,
-    closeOuter: () => void
-  ): SearchFoodsTrainerContext {
-    return {
-      clientUser: {
-        _id: this.clientId,
-        name: this.name,
-        dietInUse: this.dietDay?.dietId,
-      } as any,
-      dietDay: (this.dietDay || {}) as any,
-      meal: (this.prescribeMealTarget || {}) as any,
-      targetLabel: this.prescribeMealTarget?.name,
-      confirmSelection: (items) =>
-        this.applyTrainerSelection(altIndex, itemIndex, items),
-      closeSelf: closeOuter,
-      pickCreateProduct: () =>
-        void this.confirmPickedFood(
-          altIndex,
-          itemIndex,
-          { kind: 'create' },
-          closeOuter
-        ),
-    };
-  }
-
-  // TAREA5 (auditoría UX) — selección múltiple: el primer alimento marcado
-  // rellena el hueco donde se pulsó "Buscar producto o receta real"; cada
-  // alimento adicional de la misma pasada de búsqueda se añade como un
-  // nuevo alimento de la alternativa, sin repetir el ciclo de búsqueda.
-  private applyTrainerSelection(
-    altIndex: number,
-    itemIndex: number,
-    items: TrainerFoodSelection[]
-  ): void {
-    const alt = this.prescribeAlternatives[altIndex];
-    if (!alt || !items.length) return;
-
-    items.forEach((selection, i) => {
-      let targetIndex = itemIndex;
-      if (i > 0) {
-        if (alt.items.length >= this.maxFoodItemsPerAlternative) return;
-        alt.items.push(this.emptyFoodItem());
-        targetIndex = alt.items.length - 1;
-      }
-      const item = alt.items[targetIndex];
-      if (selection.kind === 'recipe' && selection.recipe) {
-        item.recipeId = selection.recipe._id;
-        item.recipeName = selection.recipe.name;
-        item.productId = undefined;
-        item.productName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      } else if (selection.kind === 'product' && selection.product) {
-        item.productId = selection.product._id;
-        item.productName = selection.product.name;
-        item.recipeId = undefined;
-        item.recipeName = undefined;
-        item.quantity = selection.quantity ?? undefined;
-      }
-    });
-  }
-
-  private async confirmPickedFood(
-    altIndex: number,
-    itemIndex: number,
-    _picked: { kind: 'create' },
-    closeOuter: () => void
-  ): Promise<void> {
-    const modal = await this.modalController.create({
-      component: ProductSearchModalComponent,
-      componentProps: { startInCreateProduct: true },
-      cssClass: 'tf-panel-modal',
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss<ProductSearchResult>();
-    if (role !== 'confirm' || !data) return;
-
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    if (data.kind === 'recipe' && data.recipe) {
-      item.recipeId = data.recipe._id;
-      item.recipeName = data.recipe.name;
-      item.productId = undefined;
-      item.productName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    } else if (data.product) {
-      item.productId = data.product._id;
-      item.productName = data.product.name;
-      item.recipeId = undefined;
-      item.recipeName = undefined;
-      item.quantity = data.quantity ?? undefined;
-    }
-    closeOuter();
-  }
-
-  public clearProduct(altIndex: number, itemIndex: number): void {
-    const item = this.prescribeAlternatives[altIndex].items[itemIndex];
-    item.productId = undefined;
-    item.productName = undefined;
-    item.recipeId = undefined;
-    item.recipeName = undefined;
-    item.quantity = undefined;
-  }
-
-  public get prescribeIsMultiple(): boolean {
-    return this.prescribeAlternatives.length >= 2;
-  }
-
-  public get canSubmitPrescribe(): boolean {
-    if (!this.prescribeAlternatives.length) return false;
-    return this.prescribeAlternatives.every(
-      (a) =>
-        a.items.length > 0 &&
-        a.items.every((item) => !!(item.productId || item.recipeId)) &&
-        (!this.prescribeIsMultiple || a.label.trim())
-    );
-  }
-
-  public submitPrescribe(): void {
-    if (
-      !this.canSubmitPrescribe ||
-      this.isPrescribing ||
-      !this.prescribeMealTarget ||
-      !this.dietDay
-    ) {
-      return;
-    }
-
-    this.isPrescribing = true;
-    const meal = this.prescribeMealTarget;
-    const date = this.dietDay.date;
-
-    if (!this.prescribeIsMultiple) {
-      const { customProducts, customRecipes } = this.alternativeToCustomEntries(
-        this.prescribeAlternatives[0]
-      );
-      this.clientDetailApi
-        .prescribeMeal(this.clientId, date, meal._id, {
-          customProducts,
-          customRecipes,
-          merge: false,
-        })
-        .subscribe({
-          next: () =>
-            this.onPrescribeSuccess(`"${meal.name}" pautada para ${this.name}`),
-          error: (err) => this.onPrescribeError(err),
-        });
-      return;
-    }
-
-    const alternatives = this.prescribeAlternatives.map((a) => ({
-      label: a.label.trim(),
-      ...this.alternativeToCustomEntries(a),
-    }));
-    this.clientDetailApi
-      .proposeMealAlternatives(this.clientId, date, meal.name, alternatives)
-      .subscribe({
-        next: () =>
-          this.onPrescribeSuccess(
-            `${alternatives.length} alternativas propuestas para "${meal.name}"`
-          ),
-        error: (err) => this.onPrescribeError(err),
-      });
-  }
-
-  // TAREA5 — cada alimento de una alternativa es SIEMPRE un producto o una
-  // receta real (ver canSubmitPrescribe), nunca macros tecleadas a mano;
-  // aquí solo se reparte en los dos arrays que espera el backend
-  // (mealModel.pasteMeal trata ambos de forma uniforme).
-  private alternativeToCustomEntries(alt: MealAlternativeInput): {
-    customProducts: Record<string, unknown>[];
-    customRecipes: Record<string, unknown>[];
-  } {
-    const customProducts: Record<string, unknown>[] = [];
-    const customRecipes: Record<string, unknown>[] = [];
-
-    for (const item of alt.items) {
-      if (item.recipeId) {
-        customRecipes.push({
-          recipe: item.recipeId,
-          quantity: item.quantity || null,
-        });
-      } else if (item.productId) {
-        customProducts.push({
-          product: item.productId,
-          quantity: item.quantity || 100,
-        });
-      }
-    }
-
-    return { customProducts, customRecipes };
-  }
-
-  private onPrescribeSuccess(message: string): void {
-    this.isPrescribing = false;
-    this.showPrescribePanel = false;
-    this.prescribeMealTarget = null;
-    this.ionicUtilService.showToast({ message, duration: 3000 });
-    this.loadNutrition();
-  }
-
-  private onPrescribeError(err: any): void {
-    this.isPrescribing = false;
-    this.ionicUtilService.showErrorToast(
-      err?.error?.message || 'No se pudo pautar la comida',
-      'Error',
-      3500
-    );
-  }
-
-  public mealContentSummary(meal: {
-    customProducts: unknown[];
-    customRecipes: unknown[];
-  }): string {
-    const products = meal.customProducts?.length || 0;
-    const recipes = meal.customRecipes?.length || 0;
-    if (!products && !recipes) return 'Vacía';
-    const parts: string[] = [];
-    if (products)
-      parts.push(`${products} producto${products === 1 ? '' : 's'}`);
-    if (recipes) parts.push(`${recipes} receta${recipes === 1 ? '' : 's'}`);
-    return parts.join(' · ');
   }
 
   public trackByTableId(_index: number, table: ClientTable): string {

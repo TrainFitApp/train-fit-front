@@ -1,10 +1,24 @@
 <div class="category-grid">
-  <a class="category-card" *ngFor="let c of categories; trackBy: trackByPath" [routerLink]="c.path">
-    <div class="category-icon" [style.background]="c.colorVar">
-      <ion-icon [name]="c.icon"></ion-icon>
+  <ng-container *ngFor="let c of categories; trackBy: trackByPath">
+    <!-- Bloqueada: <div>, no <a> — nada que navegar todavía. Mismo aspecto
+         que las demás (icono, nombre, descripción) para que se entienda qué
+         es, atenuada y con el badge en vez del enlace "Ver todas". -->
+    <div class="category-card category-card--locked" *ngIf="c.locked" [attr.aria-label]="c.name + ', próximamente'">
+      <div class="category-icon" [style.background]="c.colorVar">
+        <ion-icon [name]="c.icon"></ion-icon>
+      </div>
+      <span class="category-name">{{ c.name }}</span>
+      <span class="category-desc">{{ c.description }}</span>
+      <span class="category-badge">Próximamente</span>
     </div>
-    <span class="category-name">{{ c.name }}</span>
-    <span class="category-desc">{{ c.description }}</span>
-    <span class="category-link">Ver todas <ion-icon name="chevron-forward"></ion-icon></span>
-  </a>
+
+    <a class="category-card" *ngIf="!c.locked" [routerLink]="c.path">
+      <div class="category-icon" [style.background]="c.colorVar">
+        <ion-icon [name]="c.icon"></ion-icon>
+      </div>
+      <span class="category-name">{{ c.name }}</span>
+      <span class="category-desc">{{ c.description }}</span>
+      <span class="category-link">Ver todas <ion-icon name="chevron-forward"></ion-icon></span>
+    </a>
+  </ng-container>
 </div>

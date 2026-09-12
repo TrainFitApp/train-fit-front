@@ -3,6 +3,7 @@ import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { CustomCheckinQuestion } from '../../../../checkin-templates/models/checkin-template.model';
 import { GoalMeal } from './client-progress.model';
+import { NutritionTarget } from '../../../../diet-templates/models/diet-suggestion.model';
 
 export type ClientScope = 'training' | 'nutrition';
 export type ClientDetailTab =
@@ -320,6 +321,8 @@ export interface ClientNutritionPreferences {
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
+  // Restricciones estructuradas — filtro duro del cajón de sugerencias.
+  dietaryFlags?: ('vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree')[];
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
   disabledMealSlots: string[];
   mealSlotLabels: Record<string, string>;
@@ -373,6 +376,12 @@ export interface NutritionalGoal {
   // cliente puede tener en uso un objetivo propio aunque el trainer le
   // haya asignado otro que todavía no activó, o viceversa.
   isInUse: boolean;
+  // Sugerencias de dieta — puesto cuando este objetivo lo creó el arranque
+  // de una FASE (plan-assignment-service.js -> assignToClient), que además
+  // lo deja en uso. Ausente = objetivo "de siempre", no atado a ninguna
+  // fase. Sirve para decir de dónde sale la cifra cuando se usa como
+  // referencia en otra pantalla.
+  phaseId?: string | null;
   // Fase 5 Coach Pro — "fibra si procede". null = este objetivo no la pauta,
   // que no es lo mismo que 0 g.
   fiberGTotal?: number | null;
@@ -380,4 +389,13 @@ export interface NutritionalGoal {
   // ausente = objetivo pautado solo en gramos, que es lo que hacían todos
   // hasta ahora. Ver GoalMeal en client-progress.model.ts.
   mealExchanges?: GoalMeal[];
+}
+
+// Respuesta de POST .../nutrition-target — mismo cálculo que el cajón de
+// sugerencias de dieta (diet-suggestion.model.ts#NutritionTarget), pero sin
+// el ranking de plantillas: solo el número, para el panel "Asignar objetivos".
+export interface NutritionTargetResponse {
+  target: NutritionTarget;
+  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
+  clientObjetive: number | null;
 }

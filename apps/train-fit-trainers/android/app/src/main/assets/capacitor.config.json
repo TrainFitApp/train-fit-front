@@ -18,7 +18,7 @@
 			"enabled": true
 		},
 		"CapacitorHttp": {
-			"enabled": true
+			"enabled": false
 		},
 		"EdgeToEdge": {
 			"backgroundColor": "#000000"

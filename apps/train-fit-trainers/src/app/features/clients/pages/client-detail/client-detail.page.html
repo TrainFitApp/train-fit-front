@@ -827,6 +827,10 @@
               <span class="preferences-label">No le gustan</span>
               <p class="preferences-value">{{ nutritionPreferences?.dislikedFoods || 'Sin especificar' }}</p>
             </div>
+            <div class="preferences-field" *ngIf="nutritionPreferences?.dietaryFlags?.length">
+              <span class="preferences-label">Dieta especial</span>
+              <p class="preferences-value">{{ dietaryFlagsLabel(nutritionPreferences.dietaryFlags) }}</p>
+            </div>
             <div class="preferences-field">
               <span class="preferences-label">¿Cocina en casa?</span>
               <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
@@ -886,19 +890,27 @@
                gráfica: es lo primero que se decide (qué plan rige), lo de
                abajo (calendario/seguimiento) es la consecuencia de eso. -->
           <div class="template-actions-row">
-            <button type="button" class="add-button" (click)="openApplyTemplateModal()">
-              <ion-icon name="download-outline"></ion-icon>
-              Aplicar plantilla
-            </button>
-            <!-- Al lado de "Aplicar plantilla": la otra forma de darle un
-                 plan al cliente, construida aquí mismo en vez de salir de la
-                 biblioteca de plantillas. Nunca crea una plantilla
-                 reutilizable — el resultado es exclusivo de este cliente
-                 desde el principio (ver createDirect en el backend). -->
-            <button type="button" class="add-button" (click)="openCreateDietModal()">
-              <ion-icon name="add-outline"></ion-icon>
-              Crear dieta
-            </button>
+            <!-- Las dos formas de darle un plan al cliente van juntas, a la
+                 izquierda: antes "justify-content: space-between" sobre los
+                 tres botones dejaba "Crear dieta" flotando solo en el
+                 CENTRO de la fila, con un hueco grande a cada lado en vez de
+                 al lado de "Aplicar plantilla", que es donde tiene sentido
+                 (misma decisión: qué contenido le doy al cliente). -->
+            <div class="template-actions-row__primary">
+              <button type="button" class="add-button" (click)="startDietPhase()">
+                <ion-icon name="download-outline"></ion-icon>
+                Aplicar plantilla
+              </button>
+              <!-- La otra forma de darle un plan al cliente, construida aquí
+                   mismo en vez de salir de la biblioteca de plantillas.
+                   Nunca crea una plantilla reutilizable — el resultado es
+                   exclusivo de este cliente desde el principio (ver
+                   createDirect en el backend). -->
+              <button type="button" class="add-button" (click)="openCreateDietModal()">
+                <ion-icon name="add-outline"></ion-icon>
+                Crear dieta
+              </button>
+            </div>
             <button type="button" class="manage-templates-link" (click)="goToDietTemplates()">
               Gestionar plantillas
             </button>
@@ -923,11 +935,26 @@
             <!-- El naranja de acento se queda solo para navegación/UI (hoy,
                  seleccionado...) — la fase vigente es un dato del cliente
                  como cualquier otra, con su propio color; lo que la marca
-                 como "en curso" es el icono, no un color reservado. -->
-            <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
-              <ion-icon name="flash" aria-hidden="true"></ion-icon>
-              1ª · en curso
-            </span>
+                 como "en curso" es el icono, no un color reservado.
+                 "Quitar fase" ya no vive aquí como icono danger: es una
+                 acción secundaria, va en el pie de la tarjeta como texto. -->
+            <!-- La fila se pinta también con UNA sola fase: antes solo existía
+                 para el "1ª · en curso" (que sin más fases no dice nada), pero
+                 ahora lleva además cada cuánto se repite el ciclo, que aplica
+                 siempre. -->
+            <div class="active-plan-top-row" *ngIf="planPhases.length > 1 || cycleLengthLabel(activePlan)">
+              <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
+                <ion-icon name="flash" aria-hidden="true"></ion-icon>
+                1ª · en curso
+              </span>
+              <!-- Cada cuánto se repite el contenido — misma vuelta que numera
+                   el badge C1/C2 del calendario. A la derecha del todo: es un
+                   dato de contexto, no compite con el nombre de la fase. -->
+              <span class="active-plan-cycle" *ngIf="cycleLengthLabel(activePlan) as ciclo">
+                <ion-icon name="repeat-outline" aria-hidden="true"></ion-icon>
+                {{ ciclo }}
+              </span>
+            </div>
             <!-- F20-quinquies — la cabecera es ahora el punto de entrada para
                  editar la plantilla aplicada, sin pasar por "Gestionar
                  plantillas" y buscarla en la lista. Las acciones de abajo
@@ -939,7 +966,7 @@
                 <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
                 <span class="active-plan-range">
                   desde {{ activePlan.startDate }}
-                  · {{ activePlan.endDate ? ('hasta ' + activePlan.endDate) : 'indefinido' }}
+                  · {{ phaseEndLabel(activePlan) }}
                 </span>
               </div>
               <ion-icon name="create-outline" class="active-plan-edit-icon"></ion-icon>
@@ -981,33 +1008,117 @@
               <ion-icon name="alert-circle-outline"></ion-icon>
               {{ activePlan.stuckDaysCount }} día{{ activePlan.stuckDaysCount !== 1 ? 's' : '' }} sin que el cliente elija menú
             </p>
+
+            <div class="active-plan-actions">
+              <!-- Sugerencias de dieta — progresión ciclo a ciclo dentro de
+                   la fase vigente (solo si se empezó desde el cajón). -->
+              <button
+                type="button"
+                class="next-cycle-btn"
+                *ngIf="activePlan.phaseId"
+                (click)="openNextCycleModal()"
+              >
+                <ion-icon name="trending-down-outline" aria-hidden="true"></ion-icon>
+                Siguiente ciclo
+                <span class="next-cycle-btn__hint" *ngIf="activePlan.cycleTargetKcal">
+                  (ahora {{ activePlan.cycleTargetKcal }} kcal)
+                </span>
+              </button>
+
+              <!-- Acción secundaria y destructiva: texto discreto, no un
+                   icono danger compitiendo con "editar". Un segundo click
+                   pide confirmación EN EL SITIO — dos botones pequeños en
+                   vez de un ion-alert tapando la ficha entera. -->
+              <ng-container *ngIf="confirmingCancelPlanPhaseId !== activePlan._id; else confirmActivePlanRemove">
+                <button
+                  type="button"
+                  class="phase-remove-link"
+                  [disabled]="cancellingPlanPhaseId === activePlan._id"
+                  (click)="requestCancelPlanPhase(activePlan, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
+                  <span *ngIf="cancellingPlanPhaseId !== activePlan._id">Quitar fase</span>
+                </button>
+              </ng-container>
+              <ng-template #confirmActivePlanRemove>
+                <div class="phase-remove-confirm">
+                  <span class="phase-remove-confirm__label">¿Quitar esta fase?</span>
+                  <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelPlanPhase($event)">
+                    Cancelar
+                  </button>
+                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelPlanPhase(activePlan, $event)">
+                    Quitar
+                  </button>
+                </div>
+              </ng-template>
+            </div>
           </div>
 
           <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
                tienen sentido sobre la que está rigiendo. -->
-          <!-- <button>, no <article>: estas tarjetas abren su plantilla igual
-               que la cabecera de la fase en curso. Eran las únicas de la fila
-               que no respondían al click, y son las que más se retocan —
-               están programadas, todavía da tiempo a cambiarlas. -->
+          <!-- <div>, ya no <button>: sigue abriendo su plantilla igual que la
+               cabecera de la fase en curso (ahora en .next-phase-card__open,
+               el <button> interior), pero necesita un segundo botón para
+               quitarla — y un <button> no puede anidar otro <button>. Mismo
+               cambio que sufrió .active-plan-card más arriba, por el mismo
+               motivo. -->
           <ng-container *ngFor="let phase of planPhases; let i = index">
-            <button
-              type="button"
+            <div
               class="next-phase-card"
               *ngIf="!isCurrentPhase(phase)"
               [style.--phase-color]="phaseColor(phase)"
-              (click)="openPhaseTemplate(phase)"
             >
-              <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
-              <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
-              <p class="next-phase-card__range">
-                desde {{ phase.startDate }}<br />
-                {{ phase.endDate ? 'hasta ' + phase.endDate : 'indefinido' }}
-              </p>
-              <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
-            </button>
+              <button type="button" class="next-phase-card__open" (click)="openPhaseTemplate(phase)">
+                <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
+                <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
+                <p class="next-phase-card__range">
+                  desde {{ phase.startDate }}<br />
+                  {{ phaseEndLabel(phase) }}
+                  <ng-container *ngIf="cycleLengthLabel(phase) as ciclo"><br />{{ ciclo }}</ng-container>
+                </p>
+                <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
+              </button>
+              <button
+                type="button"
+                class="bulk-apply-btn bulk-apply-btn--danger next-phase-card__remove"
+                title="Quitar fase programada"
+                [attr.aria-label]="'Quitar ' + (phase.planName || 'la fase programada')"
+                [disabled]="cancellingPlanPhaseId === phase._id"
+                *ngIf="confirmingCancelPlanPhaseId !== phase._id"
+                (click)="requestCancelPlanPhase(phase, $event)"
+              >
+                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
+                <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
+              </button>
+              <!-- Mismo par cancelar/quitar que la fase vigente, en versión
+                   solo-icono: la tarjeta mide 180px, no caben dos botones de
+                   texto en la esquina donde vivía el icono único. -->
+              <div class="next-phase-card__remove-confirm" *ngIf="confirmingCancelPlanPhaseId === phase._id">
+                <button
+                  type="button"
+                  class="bulk-apply-btn"
+                  title="Cancelar"
+                  aria-label="Cancelar, no quitar la fase"
+                  (click)="dismissCancelPlanPhase($event)"
+                >
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="bulk-apply-btn bulk-apply-btn--danger"
+                  title="Confirmar"
+                  [attr.aria-label]="'Confirmar, quitar ' + (phase.planName || 'la fase programada')"
+                  [disabled]="cancellingPlanPhaseId === phase._id"
+                  (click)="confirmCancelPlanPhase(phase, $event)"
+                >
+                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
+                  <ion-icon name="checkmark-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
+                </button>
+              </div>
+            </div>
           </ng-container>
 
-          <button type="button" class="next-phase-card next-phase-card--add" (click)="openApplyTemplateModal()">
+          <button type="button" class="next-phase-card next-phase-card--add" (click)="startDietPhase()">
             <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
             <span>Siguiente fase</span>
           </button>
@@ -1023,7 +1134,7 @@
                    (sin vista de conjunto ni salto directo a una fecha). -->
               <div class="section-row">
                 <h2 class="section-heading">Dieta</h2>
-                <span class="date-nav-label" [class.is-updating]="isSwitchingDate">{{ nutritionDateLabel }}</span>
+                <span class="date-nav-label">{{ nutritionDateLabel }}</span>
               </div>
               <div class="nutrition-card">
                 <app-nutrition-calendar
@@ -1096,7 +1207,7 @@
                 <div class="history-card-header">
                   <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
                   <span class="history-date">
-                    {{ phase.startDate }} → {{ phase.endDate || 'indefinido' }}
+                    {{ phase.startDate }} → {{ phaseEndShort(phase) }}
                   </span>
                 </div>
                 <p class="history-subtitle">
@@ -1137,6 +1248,45 @@
           <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
           <input type="text" formControlName="name" class="input-field" placeholder="Nombre del objetivo" />
         </div>
+
+        <!-- Recomendación — mismo cálculo que el cajón de sugerencias de
+             dieta (Mifflin + gasto + reparto de macros), a partir de los
+             datos biométricos ya guardados del cliente. Rellena los 4
+             campos de abajo; el entrenador los puede retocar después. -->
+        <div class="nutrition-target-calculator">
+          <div class="preset-buttons">
+            <button
+              type="button"
+              *ngFor="let preset of nutritionObjectivePresets"
+              class="preset-button"
+              [class.is-active]="nutritionObjectivePreset === preset.key"
+              (click)="selectNutritionObjectivePreset(preset)"
+            >
+              {{ preset.label }}
+            </button>
+          </div>
+          <div class="input-wrapper">
+            <ion-icon name="calculator-outline" class="input-icon"></ion-icon>
+            <input
+              type="number"
+              class="input-field"
+              placeholder="Delta kcal (déficit negativo, superávit positivo)"
+              [(ngModel)]="nutritionObjectiveDelta"
+              [ngModelOptions]="{ standalone: true }"
+              (change)="calculateNutritionTarget()"
+            />
+          </div>
+          <div class="calc-hint" *ngIf="isCalculatingNutritionTarget">Calculando…</div>
+          <div class="calc-hint calc-hint--warning" *ngIf="nutritionTargetMissing?.length">
+            Al cliente le falta: {{ nutritionTargetMissing?.join(', ') }} — no se puede calcular una
+            recomendación hasta que lo complete.
+          </div>
+          <div class="calc-hint calc-hint--result" *ngIf="nutritionTargetPreview && !isCalculatingNutritionTarget">
+            Recomendado: {{ nutritionTargetPreview.kcal }} kcal · P{{ nutritionTargetPreview.protein }}
+            C{{ nutritionTargetPreview.carbs }} G{{ nutritionTargetPreview.fat }}
+          </div>
+        </div>
+
         <div class="macro-grid">
           <div class="input-wrapper">
             <ion-icon name="flame-outline" class="input-icon"></ion-icon>
@@ -1168,6 +1318,7 @@
              objetivo sin reparto se comporta exactamente como hasta ahora. -->
         <app-meal-exchanges-editor
           [meals]="goalMealExchanges"
+          [targets]="goalMacroTargets"
           (mealsChange)="goalMealExchanges = $event"
         ></app-meal-exchanges-editor>
 

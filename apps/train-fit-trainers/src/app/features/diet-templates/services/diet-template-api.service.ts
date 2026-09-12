@@ -29,6 +29,13 @@ export class DietTemplateApiService {
     return this.http.get<DietTemplate[]>(`trainer/diet-templates${query}`);
   }
 
+  // Una sola plantilla con su contenido completo (days/dayPatterns) — para
+  // cuando solo se conoce el id (p. ej. precargar el builder con la
+  // plantilla elegida en el cajón de sugerencias antes de aplicarla).
+  public getById(id: string): Observable<DietTemplate> {
+    return this.http.get<DietTemplate>(`trainer/diet-templates/${id}`);
+  }
+
   // ownerClientId puesto = dieta exclusiva de ese cliente, no material
   // general de la biblioteca.
   public create(
@@ -52,9 +59,18 @@ export class DietTemplateApiService {
     name: string,
     days: DietTemplateDayPayload[],
     mode?: TemplateMode,
-    dayPatterns?: DietTemplateDayPatternPayload[]
+    dayPatterns?: DietTemplateDayPatternPayload[],
+    // Sugerencias de dieta — aptitudes que el entrenador fuerza a mano
+    // (el array derivado lo recalcula el backend, nunca se manda).
+    suitableForOverride?: string[]
   ): Observable<DietTemplate> {
-    return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, { name, days, mode, dayPatterns });
+    return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, {
+      name,
+      days,
+      mode,
+      dayPatterns,
+      suitableForOverride,
+    });
   }
 
   public delete(id: string): Observable<void> {

@@ -146,6 +146,16 @@ export interface GoalMealExchange {
   groupName: string;
   // Decimal a propósito: media ración es una pauta real.
   count: number;
+  // El perfil de la ración CONGELADO al pautar, mismo motivo que groupName
+  // llevado un paso más lejos: si el profesional retoca el grupo, la pauta
+  // que el cliente ya tiene no puede cambiar de significado sola. Lo estampa
+  // el backend al guardar (trainer-client-data-controller.js); el front lo
+  // rellena también al añadir, para poder cuadrar en vivo mientras edita.
+  serving?: { kcal: number | null; protein: number | null; carbs: number | null; fat: number | null } | null;
+  servingFrozenAt?: string | null;
+  // El grupo que no se pesa: no suma en el cuadre, y eso NO es lo mismo que
+  // faltarle el perfil.
+  freeQuantity?: boolean;
 }
 
 export interface GoalMeal {

@@ -43,6 +43,25 @@
   gap: 10px;
 }
 
+// Un mismo icono para todos: no hay tipo de suplemento en los datos
+// (proteína/creatina/vitamina...), así que distinguir por icono sería
+// inventar una categoría que el backend no manda.
+.supplement-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(254, 144, 0, 0.14);
+  color: #fe9b1a;
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
 .supplement-name {
   flex: 1;
   min-width: 0;

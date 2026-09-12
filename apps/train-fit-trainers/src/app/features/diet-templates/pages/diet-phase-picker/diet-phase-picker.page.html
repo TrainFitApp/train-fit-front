@@ -1,0 +1,13 @@
+<ion-header class="ion-no-border">
+  <app-page-header title="Elige una dieta para la fase"></app-page-header>
+</ion-header>
+
+<ion-content class="phase-picker-content">
+  <p class="page-hint">
+    Tus plantillas de dieta, ordenadas por lo cerca que quedan del objetivo de
+    <strong>{{ clientName }}</strong>: la primera es la que más encaja. Ajusta los
+    parámetros en el panel de la derecha y la lista se recalcula sola.
+  </p>
+
+  <app-diet-suggestion-list></app-diet-suggestion-list>
+</ion-content>

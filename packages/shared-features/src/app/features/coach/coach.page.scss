@@ -131,6 +131,48 @@
   color: #ffffff;
 }
 
+// "Próximamente" — mismo tratamiento que .category-card--locked del lado
+// entrenador (category-grid.component.scss): icono desaturado, texto
+// atenuado, sin los estados táctiles de :active/:hover de una tarjeta que
+// sí navega. `disabled` ya quita el cursor de puntero y los taps; esto es
+// solo lo visual.
+.coach-menu-card--locked {
+  cursor: default;
+
+  &:active {
+    transform: none;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .coach-menu-icon {
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+
+  .coach-menu-name {
+    opacity: 0.6;
+  }
+}
+
+.coach-menu-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #8b8b8b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .coach-menu-stat {
   font-size: 0.74rem;
   color: #8b8b8b;

@@ -85,6 +85,14 @@
         *ngIf="cell.phase && (!isPickerMode || !cell.phase.blocksNewPhase)"
       ></span>
       <span class="nutrition-calendar__day-number" *ngIf="cell.dayNumber">{{ cell.dayNumber }}</span>
+      <!-- Vuelta de la fase (C1, C2…) — en qué pasada al contenido de la dieta
+           va este día. Fuera del selector: ahí la celda es un cuadrado sólido
+           de color y el número sobraría. -->
+      <span
+        class="nutrition-calendar__cycle-badge"
+        *ngIf="cell.phase?.cycleLabel && !isPickerMode"
+        [attr.aria-label]="'Ciclo ' + cell.phase?.cycleLabel"
+      >{{ cell.phase?.cycleLabel }}</span>
       <span class="nutrition-calendar__exception-dot" *ngIf="cell.compliance?.hasException"></span>
       <!-- Tramo indefinido: sin esto el rango parecería acabar donde acaba
            la cuadrícula, que es justo lo contrario de lo que significa. -->

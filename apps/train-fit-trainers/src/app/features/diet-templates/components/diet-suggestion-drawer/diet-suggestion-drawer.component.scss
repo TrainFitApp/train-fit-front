@@ -1,0 +1,403 @@
+@import '../../../../../theme/buttons';
+
+// Este panel se escribió contra la paleta CLARA de Ionic (--ion-color-*, con
+// fallbacks #fff/#f7f7f7/#d7d7d7) dentro de una app de tema OSCURO. De ahí
+// salían las combinaciones imposibles que corrige este archivo:
+//   · --ion-color-primary-tint NO es un tinte pálido, es naranja sólido
+//     (#fe9b1a): la tarjeta de objetivo y la de sugerencia eran bloques
+//     naranjas con texto casi blanco encima (2:1 medido, AA pide 4,5).
+//   · --ion-color-primary-contrast vale `whitesmoke`, así que el CTA y los
+//     chips activos pintaban blanco sobre naranja — justo lo que
+//     --tf-accent-contrast (negro) existe para evitar (ver tokens.scss).
+//   · los chips inactivos usaban --ion-color-medium-shade (#63636893, con
+//     alfa) sobre fondo oscuro: ilegibles.
+// Todo pasa ahora por los tokens --tf-*, como el resto de la app.
+
+.drawer-content {
+  --background: var(--tf-bg);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-3);
+  --padding-bottom: var(--tf-space-6);
+}
+
+// El cierre del panel mide 40px por la cabecera global compartida; el
+// expansor lo lleva a los 44 que pide PRODUCT.md sin mover el layout.
+.tf-page-header__back-button {
+  @include tf-touch-expander(2px);
+}
+
+.field-label {
+  display: block;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: var(--tf-space-4) 0 var(--tf-space-2);
+}
+
+// Campos sueltos, sin el wrapper con icono de tf-input-wrapper: aquí no hay
+// icono que envolver. Mismos valores que el otro formulario de la app con
+// inputs desnudos (checkin-workspace), incluido `color-scheme: dark` — sin
+// él, el icono nativo del selector de fecha se pinta negro sobre el fondo
+// oscuro y desaparece.
+.filters,
+.confirm-box {
+  input[type='text'],
+  input[type='number'],
+  input[type='date'] {
+    width: 100%;
+    min-height: var(--tf-touch-min);
+    padding: var(--tf-space-2) var(--tf-space-3);
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-surface-2);
+    color: var(--tf-text);
+    color-scheme: dark;
+    font-family: inherit;
+    font-size: var(--tf-font-size-base);
+    transition: border-color var(--tf-duration-base) var(--tf-ease-out);
+
+    &::placeholder {
+      color: var(--tf-text-muted);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--tf-accent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.field-row {
+  display: flex;
+  gap: var(--tf-space-3);
+
+  .field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.field {
+  margin-bottom: var(--tf-space-1);
+}
+
+// Selector EXCLUSIVO (definir / mantener / volumen): la decisión que manda
+// en el panel, así que el activo va en acento sólido — mismo par
+// acento + acento-contrast que usa el chip de día seleccionado del
+// constructor de dietas. Los chips de restricción/origen de abajo son
+// conmutadores múltiples y secundarios: acento SUAVE, como el resto de
+// chips de la app (apply-diet-template-modal, gráfica de nutrición).
+.focus-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+
+  button {
+    flex: 1 1 auto;
+    min-width: 90px;
+    min-height: var(--tf-touch-min);
+    padding: 0 var(--tf-space-3);
+    border-radius: var(--tf-radius-pill);
+    border: 1px solid var(--tf-border-strong);
+    background: var(--tf-surface-2);
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out),
+      border-color var(--tf-duration-fast) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:hover:not(.is-active) {
+      background: var(--tf-surface-3);
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent);
+      border-color: var(--tf-accent);
+      color: var(--tf-accent-contrast);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.flag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-2);
+
+  button {
+    // 34px de alto real: el expansor solo VERTICAL los lleva a 44 sin que
+    // un chip se coma los toques del que tiene al lado en la misma fila.
+    @include tf-touch-expander-y(5px);
+    flex: 0 0 auto;
+    padding: var(--tf-space-2) var(--tf-space-3);
+    border-radius: var(--tf-radius-pill);
+    border: 1px solid var(--tf-border);
+    background: var(--tf-surface-2);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+    transition: background var(--tf-duration-fast) var(--tf-ease-out),
+      border-color var(--tf-duration-fast) var(--tf-ease-out),
+      color var(--tf-duration-fast) var(--tf-ease-out);
+
+    &:hover:not(.is-active) {
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent-soft);
+      border-color: var(--tf-accent);
+      color: var(--tf-accent-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// El objetivo calculado: el dato, no un cartel. Superficie oscura con el
+// número en acento, en vez del bloque naranja saturado de antes.
+.target-card {
+  margin-top: var(--tf-space-5);
+  padding: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+
+  .target-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tf-space-1);
+  }
+
+  .target-kcal {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--tf-accent-text);
+    letter-spacing: -0.02em;
+  }
+
+  .target-macros {
+    font-size: var(--tf-font-size-base);
+    color: var(--tf-text-secondary);
+  }
+
+  .target-source {
+    margin: var(--tf-space-2) 0 0;
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+}
+
+// La dieta que se va a aplicar — el único bloque con tinte de acento del
+// panel, porque es la respuesta a la pregunta que trae aquí al entrenador.
+.chosen-box {
+  margin-top: var(--tf-space-4);
+  padding: var(--tf-space-3) var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-accent-soft-border);
+  background: var(--tf-accent-soft);
+
+  &--empty {
+    border-color: var(--tf-border);
+    background: var(--tf-surface-2);
+    color: var(--tf-text-muted);
+
+    p {
+      margin: 0;
+      font-size: var(--tf-font-size-base);
+    }
+  }
+
+  .chosen-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tf-accent-text);
+  }
+
+  .chosen-name {
+    margin: var(--tf-space-1) 0 2px;
+    font-size: var(--tf-font-size-lg);
+    font-weight: 800;
+    color: var(--tf-text);
+    letter-spacing: -0.01em;
+  }
+
+  .chosen-lead {
+    margin: 0 0 var(--tf-space-2);
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+  }
+
+  .chosen-macros {
+    margin: var(--tf-space-1) 0 0;
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+  }
+
+  // Superficie OPACA y no --tf-danger-soft: este aviso vive dentro del
+  // bloque de acento, y un rojo translúcido sobre el tinte naranja compone
+  // un fondo cálido que deja el texto en 4,41:1 (medido) — por debajo de AA.
+  // Sobre --tf-surface-1 sube a 5,4:1, y el borde rojo lo separa del tinte.
+  .chosen-missing {
+    margin: var(--tf-space-2) 0 0;
+    padding: var(--tf-space-2) var(--tf-space-3);
+    border: 1px solid var(--tf-danger-border);
+    border-radius: var(--tf-radius-sm);
+    background: var(--tf-surface-1);
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    line-height: var(--tf-line-height-base);
+    color: var(--tf-danger-text);
+  }
+}
+
+.confirm-box {
+  margin-top: var(--tf-space-5);
+  padding: var(--tf-space-4);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border-subtle);
+  background: var(--tf-surface-1);
+}
+
+.guard-box {
+  text-align: center;
+  padding: var(--tf-space-10) var(--tf-space-5);
+
+  ion-icon {
+    font-size: 2.6rem;
+    color: var(--tf-text-muted);
+  }
+
+  h2 {
+    margin: var(--tf-space-3) 0 var(--tf-space-2);
+    font-size: var(--tf-font-size-lg);
+    color: var(--tf-text);
+  }
+
+  p {
+    color: var(--tf-text-secondary);
+    font-size: var(--tf-font-size-base);
+    line-height: var(--tf-line-height-base);
+  }
+
+  strong {
+    color: var(--tf-text);
+  }
+}
+
+.section-error {
+  text-align: center;
+  padding: var(--tf-space-8) var(--tf-space-4);
+  color: var(--tf-text-secondary);
+}
+
+// Botón secundario de la app (mismo bloque que .retry-button en la lista de
+// plantillas): superficie elevada + borde, nunca el naranja del primario.
+.secondary-button {
+  margin-top: var(--tf-space-2);
+  height: var(--tf-touch-min);
+  padding: 0 var(--tf-space-5);
+  background: var(--tf-surface-5);
+  color: var(--tf-text);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-sm);
+  font-family: inherit;
+  font-size: var(--tf-font-size-base);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out),
+    border-color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--tf-border-strongest);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-space-1);
+  padding: var(--tf-space-3) var(--tf-space-4)
+    calc(var(--tf-space-3) + var(--ion-safe-area-bottom, 0px));
+  background: var(--tf-bg);
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+// El MISMO botón primario que el modal hermano de aplicar plantilla
+// (.confirm-button): gradiente de acento con texto oscuro. Antes era un
+// <ion-button> con el naranja plano de Ionic y texto `whitesmoke`.
+.confirm-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 48px;
+  font-size: var(--tf-font-size-base);
+}
+
+// Salida alternativa, subordinada al CTA: enlace, no segundo botón.
+.scratch-link {
+  @include tf-touch-expander-y(6px);
+  align-self: center;
+  background: none;
+  border: none;
+  padding: var(--tf-space-2) 0;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-accent-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
+  }
+}
+
+.muted {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-sm);
+  line-height: var(--tf-line-height-base);
+}
+
+.small {
+  font-size: var(--tf-font-size-xs) !important;
+}

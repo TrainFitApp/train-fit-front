@@ -1,0 +1,45 @@
+@import '../../../../../theme/skeleton';
+
+:host {
+  display: block;
+}
+
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--tf-space-3);
+}
+
+app-diet-card.span-all {
+  grid-column: 1 / -1;
+}
+
+.missing-note {
+  margin-top: var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  line-height: var(--tf-line-height-base);
+  color: var(--tf-text-muted);
+}
+
+.empty-hint {
+  color: var(--tf-text-muted);
+  font-size: var(--tf-font-size-base);
+  line-height: var(--tf-line-height-base);
+  padding: var(--tf-space-6) var(--tf-space-2);
+  text-align: center;
+}
+
+// Antes un gradiente gris CLARO (#ececec → #f5f5f5) sobre el fondo oscuro de
+// la app: tres barras blancas parpadeando. El mixin de la casa parte de
+// --tf-surface-3 y barre con --tf-shimmer, y respeta prefers-reduced-motion.
+.list-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--tf-space-3);
+
+  .skeleton-block {
+    @include tf-skeleton-shimmer;
+    height: 96px;
+    border-radius: 14px;
+  }
+}

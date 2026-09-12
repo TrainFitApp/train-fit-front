@@ -58,6 +58,7 @@
 
           <div class="exchange-body" *ngIf="isMealExpanded(m, e)">
             <ng-container *ngIf="groupFor(exchange) as group">
+              <p class="serving-line" *ngIf="servingLabel(group) as serving">{{ serving }}</p>
               <p class="equivalence-note" *ngIf="group.equivalenceNote">{{ group.equivalenceNote }}</p>
               <p class="options-hint">Elige UNO de estos:</p>
 
@@ -79,14 +80,18 @@
       </section>
     </ng-container>
 
-    <!-- ===== Todos los grupos ===== -->
-    <ng-container *ngIf="groups.length">
+    <!-- ===== Los grupos que NO salen en el reparto =====
+         Antes esta sección repetía todos, incluidos los de arriba, y con peor
+         información: allí las cantidades ya vienen multiplicadas por las
+         raciones que le tocan, y aquí salían en crudo. Eran los mismos
+         alimentos leídos dos veces, y la segunda lectura era la mala. -->
+    <ng-container *ngIf="otherGroups.length">
       <h2 class="section-title" [class.section-title--second]="meals.length">
-        {{ meals.length ? 'Todos tus intercambios' : 'Tus intercambios' }}
+        {{ meals.length ? 'Otros intercambios de tu profesional' : 'Tus intercambios' }}
       </h2>
       <p class="page-hint">Qué puedes comer en lugar de qué, según tu profesional.</p>
 
-      <div class="group-card" *ngFor="let group of groups; trackBy: trackByGroupId">
+      <div class="group-card" *ngFor="let group of otherGroups; trackBy: trackByGroupId">
         <button
           type="button"
           class="group-head"
@@ -95,7 +100,7 @@
         >
           <span class="group-info">
             <span class="group-name">{{ group.name }}</span>
-            <span class="group-reference">{{ referenceLabel(group) }}</span>
+            <span class="group-serving">{{ servingLabel(group) }}</span>
           </span>
           <span class="category-chip" *ngIf="group.category">{{ group.category }}</span>
           <ion-icon
@@ -106,8 +111,12 @@
 
         <div class="group-body" *ngIf="expandedGroupId === group._id">
           <p class="equivalence-note" *ngIf="group.equivalenceNote">{{ group.equivalenceNote }}</p>
-          <p class="alternatives-title">En su lugar puedes tomar:</p>
-          <div class="alternative-row" *ngFor="let item of alternatives(group); trackBy: trackByIndex">
+          <!-- TODOS los alimentos, no del segundo en adelante. Cada uno, en su
+               cantidad, vale una ración: el primero no era la referencia
+               contra la que se leían los demás, y esconderlo dejaba fuera un
+               alimento que el cliente puede comer. -->
+          <p class="alternatives-title">Cualquiera de estos, y en esta cantidad:</p>
+          <div class="alternative-row" *ngFor="let item of group.items; trackBy: trackByIndex">
             <span class="alternative-quantity">{{ item.quantity }} {{ item.unit }}</span>
             <span class="alternative-name">{{ item.name }}</span>
             <span class="alternative-note" *ngIf="item.note">{{ item.note }}</span>

@@ -7,8 +7,7 @@ import { Recipe } from 'src/app/core/models/recipe';
 import { ProductAPIService } from 'src/app/core/services/product/product-api.service';
 import { RecipeApiService } from 'src/app/core/services/recipe/recipe-api.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
-import { UserService } from 'src/app/core/services/user/user.service';
-import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { CreateProductPage } from 'src/app/features/diets/components/meal/components/search-foods/components/create-product/create-product.page';
 
 type SearchMode = 'products' | 'recipes';
 type ViewState = 'idle' | 'loading' | 'error' | 'loaded';
@@ -43,13 +42,15 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   // búsqueda.
   @Input() preselectedProduct?: IProduct;
   @Input() preselectedRecipe?: Recipe;
-  @Input() startInCreateProduct = false;
+  // Oculta la pestaña "Recetas". Para quien solo puede quedarse con un
+  // producto — un alimento de un grupo de intercambio guarda `productId`, no
+  // hay campo donde meter una receta, así que ofrecerlas sería ofrecer algo
+  // que al confirmar no se puede guardar.
+  @Input() productsOnly = false;
 
   private readonly productApi = inject(ProductAPIService);
   private readonly recipeApi = inject(RecipeApiService);
   private readonly recipeService = inject(RecipeService);
-  private readonly userService = inject(UserService);
-  private readonly ionicUtilService = inject(IonicUtilService);
   private readonly modalController = inject(ModalController);
 
   public mode: SearchMode = 'products';
@@ -61,10 +62,6 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   public selectedProduct: IProduct | null = null;
   public selectedRecipe: Recipe | null = null;
   public quantity: number | null = 100;
-
-  public showCreateProduct = false;
-  public isSavingProduct = false;
-  public newProduct = this.emptyNewProduct();
 
   private searchTerm$ = new Subject<string>();
 
@@ -111,7 +108,6 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     if (this.preselectedProduct) this.selectProduct(this.preselectedProduct);
     if (this.preselectedRecipe) this.selectRecipe(this.preselectedRecipe);
-    if (this.startInCreateProduct) this.openCreateProduct();
   }
 
   public ngOnDestroy(): void {
@@ -121,7 +117,6 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   public setMode(mode: SearchMode): void {
     if (this.mode === mode) return;
     this.mode = mode;
-    this.showCreateProduct = false;
     this.products = [];
     this.recipes = [];
     this.state = 'idle';
@@ -165,12 +160,11 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
     return this.recipeService.getTopIngredients(recipe, 3);
   }
 
-  // Fix7 — el título reflejaba solo showCreateProduct; con preselectedRecipe
-  // (creación de receta nueva desde el trainer, ver RecipeBuilderModalComponent)
-  // este modal se abre directo en la vista "cantidad/confirmar" y seguía
-  // diciendo "Buscar alimento" aunque la búsqueda ni se mostraba.
+  // Fix7 — con preselectedRecipe (creación de receta nueva desde el trainer,
+  // ver RecipeBuilderModalComponent) este modal se abre directo en la vista
+  // "cantidad/confirmar" y seguía diciendo "Buscar alimento" aunque la
+  // búsqueda ni se mostraba.
   public get headerTitle(): string {
-    if (this.showCreateProduct) return 'Crear producto';
     if (this.selectedProduct || this.selectedRecipe) return 'Confirmar cantidad';
     return 'Buscar alimento';
   }
@@ -184,64 +178,29 @@ export class ProductSearchModalComponent implements OnInit, OnDestroy {
   }
 
   // --- Crear producto ---
-  private emptyNewProduct() {
-    return {
-      name: '',
-      energyKcal100g: null as number | null,
-      protein100g: null as number | null,
-      carbohydrates100g: null as number | null,
-      fat100g: null as number | null,
-    };
-  }
-
-  public openCreateProduct(): void {
-    this.showCreateProduct = true;
-    this.newProduct = this.emptyNewProduct();
-  }
-
-  public closeCreateProduct(): void {
-    this.showCreateProduct = false;
-  }
-
-  public get canSaveNewProduct(): boolean {
-    return (
-      !!this.newProduct.name.trim() &&
-      this.newProduct.energyKcal100g !== null &&
-      this.newProduct.energyKcal100g >= 0
-    );
-  }
-
-  public saveNewProduct(): void {
-    if (!this.canSaveNewProduct || this.isSavingProduct) return;
-
-    this.isSavingProduct = true;
-    const userId = this.userService.localUser()?._id;
-    this.productApi
-      .saveProduct({
-        name: this.newProduct.name.trim(),
-        energyKcal100g: this.newProduct.energyKcal100g || 0,
-        protein100g: this.newProduct.protein100g || 0,
-        carbohydrates100g: this.newProduct.carbohydrates100g || 0,
-        fat100g: this.newProduct.fat100g || 0,
-        productQuantity: 100,
-        userId,
-      } as IProduct)
-      .subscribe({
-        next: (product) => {
-          this.isSavingProduct = false;
-          this.showCreateProduct = false;
-          this.ionicUtilService.showToast({ message: `"${product.name}" creado`, duration: 2000 });
-          this.selectProduct(product);
-        },
-        error: (err) => {
-          this.isSavingProduct = false;
-          this.ionicUtilService.showErrorToast(
-            err?.error?.message || 'No se pudo crear el producto',
-            'Error',
-            3000
-          );
-        },
-      });
+  //
+  // Antes reimplementaba un formulario reducido propio (nombre + 4 macros),
+  // duplicando lo que ya hace CreateProductPage (la pantalla real y completa:
+  // macros+micros+alérgenos+vegano+escáner) — un producto creado desde aquí
+  // (p.ej. al vincular un alimento de un grupo de intercambio) se guardaba
+  // con menos datos que uno creado desde cualquier otro sitio de la app.
+  // Mismo patrón que pickCreateProduct en day-meal-editor-modal: se abre la
+  // pantalla real como modal (modalMode:true) y, al guardar, se cierra con
+  // {kind:'product', product, quantity:100} — el propio CreateProductPage ya
+  // muestra su toast de éxito, no hay que duplicarlo aquí.
+  public async openCreateProduct(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: CreateProductPage,
+      componentProps: { modalMode: true },
+      // Mismo marco de panel lateral que el resto de modales de escritorio
+      // (ver .tf-panel-modal en theme/tokens.scss): sin esto se abría a
+      // pantalla completa, tapando el panel desde el que se pulsó.
+      cssClass: 'tf-panel-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<{ kind: 'product'; product: IProduct }>();
+    if (role !== 'confirm' || data?.kind !== 'product' || !data.product) return;
+    this.selectProduct(data.product);
   }
 
   public dismiss(): void {

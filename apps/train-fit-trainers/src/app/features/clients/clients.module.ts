@@ -22,9 +22,17 @@ import { ShoppingListPanelComponent } from './pages/client-detail/components/sho
 import { TrainingCalendarComponent } from './pages/client-detail/components/training-calendar/training-calendar.component';
 import { TrainingComparisonChartComponent } from './pages/client-detail/components/training-comparison-chart/training-comparison-chart.component';
 import { TrainingDayDetailComponent } from './pages/client-detail/components/training-day-detail/training-day-detail.component';
+import { DietCardModule } from '../../shared/components/diet-card/diet-card.module';
 
 @NgModule({
-  imports: [SharedModule, NavigationModule, ClientsPageRoutingModule, ProductSearchModalModule, SelectClientsModalModule],
+  imports: [
+    SharedModule,
+    NavigationModule,
+    ClientsPageRoutingModule,
+    ProductSearchModalModule,
+    SelectClientsModalModule,
+    DietCardModule,
+  ],
   declarations: [
     ClientsPage,
     ClientDetailPage,

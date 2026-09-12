@@ -217,6 +217,21 @@ app-nutrition-calendar {
   margin: 10px 2px 0;
 }
 
+// "Sin estimación" — salida secundaria del campo de duración, no una opción
+// al mismo nivel: la inmensa mayoría de las fases se estiman, y poner las dos
+// como botones gemelos daba a entender que había que decidir algo.
+.no-estimate-toggle {
+  margin-top: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--tf-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 // Justificación de la fecha propuesta, bajo el campo. Pegada a él (6px, no
 // el hueco entre campos): explica ESE input, no abre uno nuevo.
 .date-hint {
