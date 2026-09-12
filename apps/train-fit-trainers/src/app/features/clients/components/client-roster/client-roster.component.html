@@ -1,18 +1,26 @@
 <div class="roster-skeleton" *ngIf="state === 'loading'">
-  <div class="skeleton-block roster-row-skeleton" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+  <div
+    class="skeleton-block roster-row-skeleton"
+    *ngFor="let i of [1, 2, 3, 4, 5]"
+  ></div>
 </div>
 
 <div class="state-message" *ngIf="state === 'error'">
   <ion-icon name="cloud-offline-outline"></ion-icon>
   <h2>No se pudo cargar tu cartera</h2>
   <p>Comprueba tu conexión e inténtalo de nuevo.</p>
-  <button type="button" class="retry-button" (click)="load()">Reintentar</button>
+  <button type="button" class="retry-button" (click)="load()">
+    Reintentar
+  </button>
 </div>
 
 <div class="state-message" *ngIf="state === 'empty'">
   <ion-icon name="people-outline"></ion-icon>
   <h2>Todavía no hay nada que comparar</h2>
-  <p>Cuando tengas clientes activos verás aquí su adherencia, su peso y sus check-ins uno al lado del otro.</p>
+  <p>
+    Cuando tengas clientes activos verás aquí su adherencia, su peso y sus
+    check-ins uno al lado del otro.
+  </p>
 </div>
 
 <ng-container *ngIf="state === 'loaded'">
@@ -21,7 +29,11 @@
        botón que abre el panel. -->
   <div class="roster-toolbar">
     <div class="roster-search">
-      <ion-icon name="search-outline" class="roster-search__icon" aria-hidden="true"></ion-icon>
+      <ion-icon
+        name="search-outline"
+        class="roster-search__icon"
+        aria-hidden="true"
+      ></ion-icon>
       <input
         type="search"
         class="roster-search__input"
@@ -39,12 +51,15 @@
       aria-label="Filtrar clientes"
     >
       <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
-      <span class="roster-filter-btn__count" *ngIf="activeFilterCount">{{ activeFilterCount }}</span>
+      <span class="roster-filter-btn__count" *ngIf="activeFilterCount">{{
+        activeFilterCount
+      }}</span>
     </button>
   </div>
 
   <p class="roster-hint">
-    Últimos {{ periodDays }} días. Pulsa una columna para ordenar por ella, o una fila para ver el desglose.
+    Últimos {{ periodDays }} días. Pulsa una columna para ordenar por ella, o
+    una fila para ver el desglose.
   </p>
 
   <!-- La tabla desborda en horizontal dentro de su propio contenedor; el
@@ -55,41 +70,80 @@
       <thead>
         <tr>
           <th scope="col" class="col-name">
-            <button type="button" class="sort-button" (click)="toggleSort('name')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('name')"
+            >
               Cliente
               <ion-icon [name]="sortIcon('name')" aria-hidden="true"></ion-icon>
             </button>
           </th>
           <th scope="col">
-            <button type="button" class="sort-button" (click)="toggleSort('adherence')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('adherence')"
+            >
               Adherencia
-              <ion-icon [name]="sortIcon('adherence')" aria-hidden="true"></ion-icon>
+              <ion-icon
+                [name]="sortIcon('adherence')"
+                aria-hidden="true"
+              ></ion-icon>
             </button>
           </th>
           <th scope="col">Punto débil</th>
           <th scope="col">
-            <button type="button" class="sort-button" (click)="toggleSort('weight')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('weight')"
+            >
               Peso
-              <ion-icon [name]="sortIcon('weight')" aria-hidden="true"></ion-icon>
+              <ion-icon
+                [name]="sortIcon('weight')"
+                aria-hidden="true"
+              ></ion-icon>
             </button>
           </th>
           <th scope="col">
-            <button type="button" class="sort-button" (click)="toggleSort('checkin')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('checkin')"
+            >
               Último check-in
-              <ion-icon [name]="sortIcon('checkin')" aria-hidden="true"></ion-icon>
+              <ion-icon
+                [name]="sortIcon('checkin')"
+                aria-hidden="true"
+              ></ion-icon>
             </button>
           </th>
           <th scope="col">Pauta de peso</th>
           <th scope="col">
-            <button type="button" class="sort-button" (click)="toggleSort('sessions')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('sessions')"
+            >
               Sesiones
-              <ion-icon [name]="sortIcon('sessions')" aria-hidden="true"></ion-icon>
+              <ion-icon
+                [name]="sortIcon('sessions')"
+                aria-hidden="true"
+              ></ion-icon>
             </button>
           </th>
           <th scope="col">
-            <button type="button" class="sort-button" (click)="toggleSort('alerts')">
+            <button
+              type="button"
+              class="sort-button"
+              (click)="toggleSort('alerts')"
+            >
               Alertas
-              <ion-icon [name]="sortIcon('alerts')" aria-hidden="true"></ion-icon>
+              <ion-icon
+                [name]="sortIcon('alerts')"
+                aria-hidden="true"
+              ></ion-icon>
             </button>
           </th>
           <th scope="col"><span class="sr-only">Abrir ficha</span></th>
@@ -108,7 +162,10 @@
             </th>
 
             <td>
-              <span class="adherence-pill" [attr.data-level]="adherenceLevel(row)">
+              <span
+                class="adherence-pill"
+                [attr.data-level]="adherenceLevel(row)"
+              >
                 {{ adherenceLabel(row) }}
               </span>
             </td>
@@ -116,11 +173,16 @@
             <td class="cell-muted">{{ weakestLabel(row) }}</td>
 
             <td>
-              <span class="weight-value" [title]="weightDetail(row)">{{ weightLabel(row) }}</span>
+              <span class="weight-value" [title]="weightDetail(row)">{{
+                weightLabel(row)
+              }}</span>
             </td>
 
             <td>
-              <span class="checkin-value" [class.checkin-value--overdue]="isCheckinOverdue(row)">
+              <span
+                class="checkin-value"
+                [class.checkin-value--overdue]="isCheckinOverdue(row)"
+              >
                 {{ checkinLabel(row) }}
               </span>
             </td>
@@ -138,7 +200,11 @@
             <td class="cell-number">{{ row.sessions }}</td>
 
             <td>
-              <span class="alert-count" *ngIf="row.openAlerts" [class.alert-count--urgent]="row.urgentAlerts">
+              <span
+                class="alert-count"
+                *ngIf="row.openAlerts"
+                [class.alert-count--urgent]="row.urgentAlerts"
+              >
                 {{ row.openAlerts }}
               </span>
               <span class="cell-muted" *ngIf="!row.openAlerts">—</span>
@@ -158,7 +224,10 @@
 
           <!-- Desglose: los cuatro números detrás de la media, y el motivo
                por el que alguno no se puede medir. -->
-          <tr class="roster-detail-row" *ngIf="expandedClientId === row.clientId">
+          <tr
+            class="roster-detail-row"
+            *ngIf="expandedClientId === row.clientId"
+          >
             <td [attr.colspan]="9">
               <div class="dimension-grid">
                 <button
@@ -166,25 +235,37 @@
                   class="dimension"
                   *ngFor="let key of dimensionKeys; trackBy: trackByDimension"
                   (click)="openClientDimension(row, key, $event)"
-                  [attr.aria-label]="'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName"
+                  [attr.aria-label]="
+                    'Abrir ' + dimensionLabel(key) + ' de ' + row.clientName
+                  "
                 >
                   <span class="dimension-label">{{ dimensionLabel(key) }}</span>
                   <span
                     class="dimension-value"
-                    [class.dimension-value--unavailable]="!row.adherence.dimensions[key].applicable"
+                    [class.dimension-value--unavailable]="
+                      !row.adherence.dimensions[key].applicable
+                    "
                   >
                     {{ dimensionValue(row.adherence.dimensions[key]) }}
                   </span>
-                  <span class="dimension-detail" *ngIf="row.adherence.dimensions[key].applicable">
+                  <span
+                    class="dimension-detail"
+                    *ngIf="row.adherence.dimensions[key].applicable"
+                  >
                     {{ row.adherence.dimensions[key].detail }}
                   </span>
                 </button>
               </div>
 
               <p class="detail-line">{{ weightDetail(row) }}</p>
-              <p class="detail-line">{{ weightPlanDetail(row) }} — {{ weightPlanLabel(row) }}</p>
+              <!-- "Llega a su duración estimada", no "termina": una fase ya no
+                   se corta sola en ninguna fecha, corre hasta que se abre la
+                   siguiente. Esto es un recordatorio de revisarla. -->
               <p class="detail-line" *ngIf="row.planEndingSoon">
-                Su plan termina en {{ row.planEndingSoon.daysLeft }} día(s) ({{ row.planEndingSoon.endDate }}).
+                Su plan llega a la duración estimada en
+                {{ row.planEndingSoon.daysLeft }} día(s) ({{
+                  row.planEndingSoon.endDate
+                }}).
               </p>
             </td>
           </tr>
@@ -198,7 +279,11 @@
      traslada al body, porque dentro del árbol su position:fixed queda a
      merced del contain de ion-content. -->
 <div class="panel-portal" #panelHost>
-  <div class="panel-backdrop" *ngIf="showFilters" (click)="showFilters = false"></div>
+  <div
+    class="panel-backdrop"
+    *ngIf="showFilters"
+    (click)="showFilters = false"
+  ></div>
   <div
     class="panel-sheet"
     *ngIf="showFilters"
@@ -210,7 +295,12 @@
 
     <header class="sheet-header">
       <h3 class="panel-title" id="roster-filters-title">Filtrar</h3>
-      <button type="button" class="close-button" (click)="showFilters = false" aria-label="Cerrar">
+      <button
+        type="button"
+        class="close-button"
+        (click)="showFilters = false"
+        aria-label="Cerrar"
+      >
         <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
       </button>
     </header>
@@ -255,7 +345,9 @@
     </section>
 
     <footer class="sheet-footer">
-      <button type="button" class="ghost-button" (click)="clearFilters()">Quitar filtros</button>
+      <button type="button" class="ghost-button" (click)="clearFilters()">
+        Quitar filtros
+      </button>
       <button type="button" class="submit-button" (click)="showFilters = false">
         Ver {{ visibleRows.length }}
       </button>

@@ -3,6 +3,11 @@
 // trainer-cliente.
 export type CooksAtHome = 'yes' | 'no' | 'sometimes';
 
+// Restricciones dietéticas estructuradas — las pauta el intake del
+// entrenador (no el editor de preferencias del cliente). Filtro duro del
+// cajón de sugerencias de dieta.
+export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
+
 // TASK-004 (MASTER_BACKLOG.md) — fix mínimo: los 6 slots siguen siendo un
 // enum fijo en el resto del sistema; esto es solo una preferencia de
 // presentación por cliente (qué slots le aplican, cómo prefiere llamarlos).
@@ -22,6 +27,7 @@ export interface NutritionPreferences {
   allergies: string;
   favoriteFoods: string;
   dislikedFoods: string;
+  dietaryFlags?: DietaryFlag[];
   cooksAtHome: CooksAtHome | null;
   disabledMealSlots: string[];
   mealSlotLabels: Record<string, string>;

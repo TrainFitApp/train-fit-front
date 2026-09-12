@@ -89,7 +89,7 @@
 
   <ng-container *ngIf="!isRecipe">
     <div class="nutrient-table" *ngIf="secondaryRows.length">
-      <div class="nutrient-row" *ngFor="let row of secondaryRows">
+      <div class="nutrient-row" *ngFor="let row of secondaryRows; trackBy: trackByLabel">
         <span class="nutrient-label">{{ row.label }}</span>
         <span class="nutrient-value">{{ row.value | number : '1.0-1' }} {{ row.unit }}</span>
       </div>
@@ -97,7 +97,7 @@
 
     <h3 class="section-title" *ngIf="microRows.length">Micronutrientes</h3>
     <div class="nutrient-table" *ngIf="microRows.length">
-      <div class="nutrient-row" *ngFor="let row of microRows">
+      <div class="nutrient-row" *ngFor="let row of microRows; trackBy: trackByLabel">
         <span class="nutrient-label">{{ row.label }}</span>
         <span class="nutrient-value">{{ row.value | number : '1.0-2' }} {{ row.unit }}</span>
       </div>

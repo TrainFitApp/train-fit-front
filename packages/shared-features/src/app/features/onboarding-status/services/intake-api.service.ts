@@ -36,6 +36,20 @@ export interface IntakeSubmission {
   favoriteFoods: string;
   dislikedFoods: string;
   cooksAtHome: 'yes' | 'no' | 'sometimes' | null;
+  // Restricciones dietéticas estructuradas → ClientNutritionPreferences.
+  dietaryFlags: DietaryFlag[];
+  // Perfil del cliente (confirmación de lo del registro) → se reescribe en
+  // `User`. steps/activity/training = el `.value` numérico del enum, ya
+  // resuelto por el wizard (mismo criterio que sign-up).
+  weight: number | null;
+  height: number | null;
+  sex: number | null;
+  birth: string | null;
+  steps: number | null;
+  activity: number | null;
+  training: number | null;
+  // `objetive` (sic) — mismo nombre que el campo de `User`. Delta kcal.
+  objetive: number | null;
   customAnswers: IntakeCustomAnswer[];
   measurements?: InitialMeasurementValue[];
   missingMeasurementsAcknowledged?: boolean;
@@ -43,6 +57,8 @@ export interface IntakeSubmission {
   timeZone?: string;
   intakeConfigVersion?: number;
 }
+
+export type DietaryFlag = 'vegan' | 'vegetarian' | 'lactoseFree' | 'glutenFree';
 
 // Lo que ya se le respondió a este trainer, si algo — para precargar el
 // formulario cuando el mismo trainer añade un scope nuevo más tarde en vez

@@ -8,6 +8,7 @@ import {
   OnboardingService,
 } from 'src/app/core/services/onboarding/onboarding.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
+import { UserService } from 'src/app/core/services/user/user.service';
 import { NutritionPreferencesApiService } from '../nutrition-preferences/services/nutrition-preferences-api.service';
 import { PendingInvite } from '../coach/models/professional-relation.model';
 import { ProfessionalsApiService } from '../coach/services/professionals-api.service';
@@ -46,6 +47,15 @@ const EMPTY_INTAKE_PREFILL: IntakeWizardPrefill = {
   favoriteFoods: '',
   dislikedFoods: '',
   cooksAtHome: null,
+  dietaryFlags: [],
+  weight: null,
+  height: null,
+  sex: null,
+  birth: '',
+  steps: null,
+  activity: null,
+  training: null,
+  objective: null,
   customAnswers: {},
 };
 
@@ -110,7 +120,8 @@ export class OnboardingStatusPage implements OnDestroy {
     private professionalsApi: ProfessionalsApiService,
     private ionicUtilService: IonicUtilService,
     private initialMeasurementsApi: InitialMeasurementsApiService,
-    private drafts: IntakeDraftService
+    private drafts: IntakeDraftService,
+    private userService: UserService
   ) {}
 
   public ionViewWillEnter(): void {
@@ -221,12 +232,16 @@ export class OnboardingStatusPage implements OnDestroy {
             : 'Tu profesional',
           scopes: [],
           needsIntake: false,
-          enabledFields: new Set(relation.intakeEnabledFields),
+          enabledFields: new Set(),
           customQuestions: relation.intakeCustomQuestions,
           intakeConfigVersion: (relation as OnboardingRelation & { intakeConfigVersion?: number }).intakeConfigVersion,
         });
       }
       const group = byTrainer.get(relation.trainerId)!;
+      // Unión entre las relaciones del mismo trainer: enabledFields es por
+      // trainer, PERO el backend fuerza `dietaryFlags` solo en la relación
+      // de scope nutrición, así que hay que juntar todas.
+      relation.intakeEnabledFields.forEach((f) => group.enabledFields.add(f));
       group.scopes.push(relation.scope === 'training' ? 'Entrenamiento' : 'Nutrición');
       if (relation.status === 'cuestionario_pendiente') group.needsIntake = true;
     }
@@ -281,19 +296,28 @@ export class OnboardingStatusPage implements OnDestroy {
         );
         this.draftKey = this.drafts.key('intake', group.trainerId, measurements.stageId);
         const saved = this.drafts.read<IntakeDraftEnvelope>(this.draftKey);
-        this.intakePrefill = saved?.form || {
-          goals: intake?.goals || '',
-          healthConditions: intake?.healthConditions || '',
-          experienceLevel: intake?.experienceLevel ?? null,
-          availability: intake?.availability || '',
-          trainingLocation: intake?.trainingLocation ?? null,
-          equipmentTags: intake?.equipmentTags || [],
-          allergies: preferences?.allergies || '',
-          favoriteFoods: preferences?.favoriteFoods || '',
-          dislikedFoods: preferences?.dislikedFoods || '',
-          cooksAtHome: preferences?.cooksAtHome ?? null,
-          customAnswers,
-        };
+        // Un borrador guardado antes de que el intake pidiera el perfil no trae
+        // esas claves: el perfil del registro las rellena, pero sin pisar lo que
+        // el cliente ya haya escrito (aunque lo haya dejado a null a proposito).
+        this.intakePrefill = saved?.form
+          ? { ...this.profilePrefillFromUser(), ...saved.form }
+          : {
+              goals: intake?.goals || '',
+              healthConditions: intake?.healthConditions || '',
+              experienceLevel: intake?.experienceLevel ?? null,
+              availability: intake?.availability || '',
+              trainingLocation: intake?.trainingLocation ?? null,
+              equipmentTags: intake?.equipmentTags || [],
+              allergies: preferences?.allergies || '',
+              favoriteFoods: preferences?.favoriteFoods || '',
+              dislikedFoods: preferences?.dislikedFoods || '',
+              cooksAtHome: preferences?.cooksAtHome ?? null,
+              dietaryFlags: preferences?.dietaryFlags || [],
+              // Reciclar lo del registro: el cliente autenticado ya tiene su
+              // perfil cargado en local, el intake solo lo confirma.
+              ...this.profilePrefillFromUser(),
+              customAnswers,
+            };
         this.latestDraft = this.intakePrefill;
         this.requestId = saved?.requestId || newIntakeRequestId();
         this.requestSignature = saved?.signature || '';
@@ -310,6 +334,26 @@ export class OnboardingStatusPage implements OnDestroy {
   public closeIntakeForm(): void {
     if (this.isSubmitting) return;
     this.fillingTrainerId = null;
+  }
+
+  // El perfil (peso/altura/sexo/pasos/actividad/frecuencia) que el cliente ya
+  // metió al registrarse — el wizard lo enseña prerellenado y el cliente solo
+  // ajusta lo que haya cambiado.
+  private profilePrefillFromUser(): Pick<
+    IntakeWizardPrefill,
+    'weight' | 'height' | 'sex' | 'birth' | 'steps' | 'activity' | 'training' | 'objective'
+  > {
+    const u = this.userService.getLocalUser;
+    return {
+      weight: Number.isFinite(u?.weight) ? u!.weight : null,
+      height: Number.isFinite(u?.height) ? u!.height : null,
+      sex: u?.sex === 0 || u?.sex === 1 ? u!.sex : null,
+      birth: u?.birth ? new Date(u.birth).toISOString().slice(0, 10) : '',
+      steps: Number.isFinite(u?.steps) ? u!.steps : null,
+      activity: Number.isFinite(u?.activity) ? u!.activity : null,
+      training: Number.isFinite(u?.training) ? u!.training : null,
+      objective: Number.isFinite(u?.objetive) ? u!.objetive : null,
+    };
   }
 
   public saveDraft(form: IntakeWizardPrefill): void {

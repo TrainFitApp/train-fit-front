@@ -3,6 +3,12 @@
     <ion-icon [name]="expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
     <span class="editor-toggle-label">Repartir en intercambios</span>
     <span class="editor-toggle-count" *ngIf="totalExchanges">{{ totalExchanges }} raciones</span>
+    <!-- El semáforo, visible con el panel plegado: si el reparto no cuadra,
+         no hace falta abrirlo para enterarse. -->
+    <span class="toggle-badge toggle-badge--ok" *ngIf="totalExchanges && isBalanced">Cuadra</span>
+    <span class="toggle-badge toggle-badge--warn" *ngIf="totalExchanges && !isBalanced && hasTargets">
+      Revisar
+    </span>
   </button>
 
   <div class="editor-body" *ngIf="expanded">
@@ -16,7 +22,29 @@
       repartirlos aquí.
     </p>
 
-    <!-- Comidas -->
+    <!-- ===== Proponer el reparto ===== -->
+    <div class="propose-box" *ngIf="canPropose">
+      <div class="propose-head">
+        <span class="propose-title">Calcular el reparto desde los gramos</span>
+        <button type="button" class="propose-button" (click)="propose()">
+          <ion-icon name="calculator-outline" aria-hidden="true"></ion-icon>
+          Calcular
+        </button>
+      </div>
+      <p class="propose-hint">
+        Resuelve en orden: fija lo que le digas, reparte los hidratos, luego la proteína
+        descontando la que ya aportan, y por último la grasa. Después lo mueves a tu gusto.
+      </p>
+      <div class="fixed-row" *ngIf="rolesToFix.length">
+        <label class="fixed-field" *ngFor="let role of rolesToFix; trackBy: trackByIndex">
+          <span>{{ role.label }}</span>
+          <input type="number" min="0" step="0.5" [(ngModel)]="fixedServings[role.key]" />
+        </label>
+      </div>
+      <p class="propose-note" *ngFor="let note of proposalNotes; trackBy: trackByIndex">{{ note }}</p>
+    </div>
+
+    <!-- ===== Comidas ===== -->
     <div class="meal" *ngFor="let meal of meals; let mealIndex = index; trackBy: trackByIndex">
       <div class="meal-head">
         <input
@@ -27,6 +55,9 @@
           (change)="renameMeal(mealIndex, $any($event.target).value)"
           [attr.aria-label]="'Nombre de la comida ' + (mealIndex + 1)"
         />
+        <!-- Un día que cuadra puede estar mal repartido, y eso no se ve en el
+             total. -->
+        <span class="meal-kcal" *ngIf="mealKcal(meal)">{{ mealKcal(meal) }} kcal</span>
         <button
           type="button"
           class="meal-remove"
@@ -38,7 +69,15 @@
       </div>
 
       <div class="exchange-row" *ngFor="let exchange of meal.exchanges; let i = index; trackBy: trackByIndex">
-        <span class="exchange-name">{{ exchange.groupName }}</span>
+        <span class="exchange-name">
+          {{ exchange.groupName }}
+          <ion-icon
+            class="exchange-warning"
+            name="alert-circle-outline"
+            *ngIf="isExchangeIncomplete(exchange)"
+            title="Este grupo no tiene perfil de ración: no suma en el cuadre"
+          ></ion-icon>
+        </span>
         <div class="exchange-stepper">
           <button
             type="button"
@@ -99,5 +138,53 @@
         {{ total.groupName }}: <strong>{{ total.count }}</strong>
       </span>
     </div>
+
+    <!-- ===== El cuadre =====
+         Las dos formas de pautar el mismo día, una al lado de la otra. Hasta
+         ahora nada comprobaba que dijeran lo mismo. -->
+    <div class="cuadre" *ngIf="totalExchanges && hasTargets">
+      <div class="cuadre-head">
+        <span class="cuadre-title">Cuadre contra los gramos</span>
+        <span class="cuadre-verdict" [class.cuadre-verdict--ok]="isBalanced">
+          {{ isBalanced ? 'Cuadra' : 'Revisar' }}
+        </span>
+      </div>
+
+      <table class="cuadre-table">
+        <tr *ngFor="let row of cuadreRows; trackBy: trackByIndex" [class.cuadre-row--off]="!row.withinTolerance">
+          <th scope="row">{{ macroLabel(row.macro) }}</th>
+          <td>{{ row.planned }} {{ macroUnit(row.macro) }}</td>
+          <td class="cuadre-target">de {{ row.target }}</td>
+          <td class="cuadre-diff">
+            {{ row.diff > 0 ? '+' : '' }}{{ row.diff }}
+            <span class="cuadre-pct">({{ row.pct > 0 ? '+' : '' }}{{ row.pct }}%)</span>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Un grupo libre no suma y está BIEN que no sume: nota, no problema.
+           Confundirlo con un agujero enseña a ignorar el aviso. -->
+      <p class="cuadre-note" *ngIf="sum.free.length">
+        Fuera del cuadre por ser libres: {{ freeLabel }}
+      </p>
+
+      <!-- Esto sí impide dar el cuadre por bueno: el total está sacado de
+           parte de las raciones y parece correcto. -->
+      <p class="cuadre-blocked" *ngIf="sum.incomplete.length">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        No se puede cuadrar del todo: {{ incompleteLabel }} sin perfil de ración. Complétalo en
+        Biblioteca → Intercambios.
+      </p>
+
+      <!-- Un paso, no una solución completa: ve qué mover y decide. -->
+      <button type="button" class="cuadre-fix" *ngIf="fix as suggestion" (click)="applyFix()">
+        <ion-icon name="build-outline" aria-hidden="true"></ion-icon>
+        {{ fixLabel(suggestion) }}
+      </button>
+    </div>
+
+    <p class="editor-hint" *ngIf="totalExchanges && !hasTargets">
+      Pon los gramos del objetivo arriba y aquí verás si el reparto cuadra con ellos.
+    </p>
   </div>
 </div>

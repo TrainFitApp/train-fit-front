@@ -1,0 +1,82 @@
+<button
+  type="button"
+  class="diet-card"
+  [class.is-podium]="!!medal"
+  [class.is-highlight]="highlight"
+  [class.is-selected]="selected"
+  (click)="picked.emit()"
+>
+  <div class="card-top">
+    <span class="medal" *ngIf="medal">{{ medal }}</span>
+    <span class="card-name">{{ name }}</span>
+    <span class="tag tag--verified" *ngIf="verified">de fábrica</span>
+    <span class="tag tag--owned" *ngIf="ownedByClient">de un cliente</span>
+  </div>
+
+  <!-- Cuadra de macros pero incumple alguna restricción del cliente: se
+       elige igual y se cambian esos alimentos después. -->
+  <p class="card-missing" *ngIf="missingFlags.length">No cumple: {{ missingFlagsLabel() }}</p>
+
+  <!-- Panel de kcal + macros — mismo recuadro que .target-card en
+       diet-suggestion-drawer.component.scss (superficie propia, borde,
+       kcal en acento): es el mismo dato "hero" de esa pantalla hermana,
+       aquí dentro de la card en vez de aparte. Un solo recuadro con
+       superficie elevada, no cuatro cards sueltas — evita justo el "card
+       sobre card" que PRODUCT.md pide no repetir. -->
+  <div class="card-hero" *ngIf="profile as p">
+    <div class="card-hero__kcal">
+      <span class="card-hero__kcal-value">{{ p.kcal }}</span>
+      <span class="card-hero__kcal-unit">kcal</span>
+      <em *ngIf="deltas">{{ deltaLabel(deltas.kcal) }}</em>
+    </div>
+
+    <div class="card-hero__macros">
+      <div class="card-hero__macro">
+        <span class="card-hero__macro-label">
+          <i class="card-hero__macro-dot card-hero__macro-dot--protein"></i>P
+        </span>
+        <span class="card-hero__macro-value card-hero__macro-value--protein">
+          {{ p.protein }}<em *ngIf="deltas">{{ deltaLabel(deltas.protein) }}</em>
+        </span>
+        <span class="card-hero__macro-bar">
+          <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--protein" [style.width.%]="macroBarSegments().protein"></span>
+        </span>
+      </div>
+
+      <div class="card-hero__macro">
+        <span class="card-hero__macro-label">
+          <i class="card-hero__macro-dot card-hero__macro-dot--carbs"></i>C
+        </span>
+        <span class="card-hero__macro-value card-hero__macro-value--carbs">
+          {{ p.carbs }}<em *ngIf="deltas">{{ deltaLabel(deltas.carbs) }}</em>
+        </span>
+        <span class="card-hero__macro-bar">
+          <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--carbs" [style.width.%]="macroBarSegments().carbs"></span>
+        </span>
+      </div>
+
+      <div class="card-hero__macro">
+        <span class="card-hero__macro-label">
+          <i class="card-hero__macro-dot card-hero__macro-dot--fat"></i>G
+        </span>
+        <span class="card-hero__macro-value card-hero__macro-value--fat">
+          {{ p.fat }}<em *ngIf="deltas">{{ deltaLabel(deltas.fat) }}</em>
+        </span>
+        <span class="card-hero__macro-bar">
+          <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--fat" [style.width.%]="macroBarSegments().fat"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <p class="card-note" *ngIf="dayCount">
+    {{ dayCount }} día{{ dayCount === 1 ? '' : 's' }} de menú
+  </p>
+  <p class="card-note" *ngIf="!dayCount && basedOnDays > 1">
+    media de los {{ basedOnDays }} días del ciclo
+  </p>
+
+  <div class="card-flags" *ngIf="flags?.length">
+    <span *ngFor="let f of flags">{{ flagLabel(f) }}</span>
+  </div>
+</button>

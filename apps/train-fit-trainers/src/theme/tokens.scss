@@ -307,6 +307,31 @@
     pointer-events: auto;
   }
 
+  // Sugerencias de dieta (2026) — panel derecho de parámetros con la LISTA
+  // de dietas visible y CLICABLE detrás (es la propia página, no otro
+  // modal). Mismo marco que .tf-panel-modal + el paso de pointer-events que
+  // usan los paneles hermanos: el host cubre el viewport y se comería los
+  // clicks del listado si no se apaga.
+  .tf-panel-modal-overlay {
+    --width: 400px;
+    --height: 100%;
+    --border-radius: 0;
+    --box-shadow: -8px 0 28px rgba(0, 0, 0, 0.4);
+
+    align-items: stretch;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+
+  .tf-panel-modal-overlay::part(backdrop) {
+    pointer-events: none;
+  }
+
+  .tf-panel-modal-overlay .ion-page {
+    border-left: 1px solid var(--tf-border-strong);
+    pointer-events: auto;
+  }
+
   // Comparar microciclos (2026-09) — centrado y ancho, no panel lateral:
   // enfrenta dos microciclos ejercicio a ejercicio y en 420px las dos
   // columnas no caben. Por debajo de 768px cae al modal nativo a pantalla
@@ -315,5 +340,28 @@
     --width: min(1080px, 94vw);
     --height: min(88vh, 900px);
     --border-radius: var(--tf-radius-lg);
+  }
+}
+
+// Por debajo de 768px, el bloque de arriba no aplica NADA — el comentario de
+// cabecera decía que el modal "cae al comportamiento nativo de pantalla
+// completa", pero eso nunca se forzó: Ionic 7 en iOS presenta un ion-modal
+// SIN --height/--width explícitos como modal "card" (con presentingElement
+// implícito, tira de swipe-to-dismiss), no a pantalla completa — el margen
+// que dejaba arriba/abajo variaba con el contenido y, con listas largas
+// (el buscador de alimentos, con filtros + resultados), esa card no reserva
+// altura para el contenido antes de que Ionic termine de medirlo, y el
+// resultado era una card casi vacía (header visible, cuerpo en blanco) hasta
+// que se interactuaba. Forzar 100% aquí abajo es más barato y más fiable que
+// depender del "auto" de Ionic.
+@media (max-width: 767.98px) {
+  .tf-panel-modal,
+  .tf-panel-modal-left,
+  .tf-panel-modal-detail-1,
+  .tf-panel-modal-detail-2,
+  .tf-panel-modal-overlay {
+    --width: 100%;
+    --height: 100%;
+    --border-radius: 0;
   }
 }

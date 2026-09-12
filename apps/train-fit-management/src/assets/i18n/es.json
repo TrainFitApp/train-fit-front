@@ -1481,7 +1481,10 @@
     "LIMIT_REACHED_PRO": "Has alcanzado el máximo de 10 objetivos nutricionales.",
     "LOCKED": "Pro",
     "LOCKED_FREE": "Este objetivo está bloqueado en el modo Free. Activa Pro para usar y modificar hasta 10 objetivos nutricionales.",
-    "MINIMUM_ONE_MSG": "Debes tener al menos un objetivo nutricional. Crea otro antes de eliminar este."
+    "MINIMUM_ONE_MSG": "Debes tener al menos un objetivo nutricional. Crea otro antes de eliminar este.",
+    "TRAINER_ASSIGNED": "Pautado",
+    "TRAINER_ASSIGNED_ALERT_HEADER": "Objetivo pautado",
+    "TRAINER_ASSIGNED_ALERT_MSG": "Este objetivo lo definió tu entrenador. Si quieres cambiarlo, coméntaselo directamente."
   },
   "MAINTENANCE": {
     "MODAL": {
@@ -1852,7 +1855,8 @@
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
     "OMEGA_9": "Omega-9",
-    "GOAL": "Objetivo Nutricional"
+    "GOAL": "Objetivo Nutricional",
+    "TRAINER_ASSIGNED": "Pautado por tu entrenador"
   },
   "SUGGESTIONS": {
     "TITLE": "Reportes y sugerencias",

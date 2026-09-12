@@ -33,6 +33,11 @@ import {
   RecipeIngredientsEditResult,
 } from '../../../../../../shared/components/recipe-ingredients-editor-modal/recipe-ingredients-editor-modal.component';
 import { ProductDetailPanelComponent } from '../../../../../../shared/components/product-detail-panel/product-detail-panel.component';
+import {
+  ExchangeGeneratorModalComponent,
+  ExchangeGeneratorResult,
+} from '../../../../../../shared/components/exchange-generator-modal/exchange-generator-modal.component';
+import { FoodExchangeItem } from '../../../../../food-exchanges/models/food-exchange.model';
 
 // Extraído de diet-template-builder.page.ts a un modal standalone real —
 // mismo motivo y mismo arreglo que ApplyCheckinTemplateModalComponent
@@ -130,6 +135,76 @@ export class DayMealEditorModalComponent {
     this.meal.alternatives.splice(altIndex, 1);
   }
 
+  // --- Generar alternativas desde un grupo de intercambio ---
+  //
+  // El paso siguiente de duplicateAlternative: casi todas las alternativas de
+  // una comida cambian UN alimento, y qué se puede poner en su lugar y en qué
+  // cantidad el coach ya lo escribió en su grupo de intercambio. Antes de esto
+  // volvía a teclearlo aquí, una búsqueda por opción.
+  //
+  // No inventa equivalencias — sigue sin haber ninguna regla que convierta un
+  // alimento en otro. Las cantidades salen tal cual del grupo.
+  public async generateFromExchange(altIndex: number, itemIndex: number): Promise<void> {
+    const source = this.meal.alternatives[altIndex];
+    const pivot = source?.items[itemIndex];
+    if (!source || !pivot) return;
+
+    const slotsAvailable = this.maxAlternatives - this.meal.alternatives.length;
+    if (slotsAvailable <= 0) {
+      void this.ionicUtilService.showWarningToast(
+        `Esta comida ya tiene ${this.maxAlternatives} alternativas. Quita alguna para generar otras.`
+      );
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: ExchangeGeneratorModalComponent,
+      componentProps: {
+        pivotName: pivot.productName || pivot.recipeName || '',
+        pivotProductId: pivot.productId || null,
+        slotsAvailable,
+      },
+      cssClass: 'tf-panel-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<ExchangeGeneratorResult>();
+    if (role !== 'confirm' || !data?.items.length) return;
+
+    // La etiqueta se pide a partir de 2 alternativas (isMultiple), y generar
+    // siempre deja 2+: si la de origen no tenía, se le pone la del alimento que
+    // la distingue — es lo que el cliente va a leer para elegir.
+    if (!source.label.trim()) source.label = pivot.productName || pivot.recipeName || '';
+
+    const generated = data.items.map((exchangeItem) =>
+      this.alternativeSwapping(source, itemIndex, exchangeItem)
+    );
+    // Justo detrás de la de origen: las alternativas generadas y la que las
+    // originó se leen juntas, y al final de la lista habría que buscarlas.
+    this.meal.alternatives.splice(altIndex + 1, 0, ...generated);
+  }
+
+  // Copia la alternativa entera y sustituye SOLO el alimento pivote — el resto
+  // de la comida (arroz, ensalada, aceite) se mantiene, que es justo lo que
+  // hacía a mano el ciclo duplicar + volver a buscar.
+  private alternativeSwapping(
+    source: TemplateMealAlternative,
+    itemIndex: number,
+    exchangeItem: FoodExchangeItem
+  ): TemplateMealAlternative {
+    const items = source.items.map((item) => ({ ...item }));
+    const swapped: TemplateFoodItem = {
+      productId: exchangeItem.productId || undefined,
+      // El nombre que escribió el coach en el grupo ("Pechuga de pollo, sin
+      // piel"), no el del catálogo: es el que él decidió que lea su cliente.
+      productName: exchangeItem.name,
+      quantity: exchangeItem.quantity,
+      product: exchangeItem.product || undefined,
+    };
+    this.recalculateItemMacros(swapped);
+    items[itemIndex] = swapped;
+    return { label: exchangeItem.name, items };
+  }
+
   // Va directo al buscador real (mismo criterio que "Buscar producto o
   // receta real" en un item ya existente) en vez de crear un placeholder
   // "Alimento N" en blanco que hubiera que rellenar en un segundo paso.
@@ -158,23 +233,36 @@ export class DayMealEditorModalComponent {
   public async openProductSearch(altIndex: number, itemIndex: number | null): Promise<void> {
     if (this.isOpeningPicker) return;
     this.isOpeningPicker = true;
+
+    const outerModal = await this.modalController.create({
+      component: SearchFoodsPage,
+      componentProps: {
+        trainerContext: this.buildSearchFoodsTrainerContext(altIndex, itemIndex, () =>
+          void outerModal.dismiss()
+        ),
+      },
+      cssClass: 'tf-panel-modal',
+    });
+    this.pickerModal = outerModal;
+
+    // El cerrojo se suelta EN CUANTO el modal está creado, no cuando el
+    // buscador se cierra: solo existe para el doble tap durante el `await
+    // create()` (ver isOpeningPicker). Manteniéndolo hasta onDidDismiss, un
+    // present() que no resolviera dejaba el editor muerto para siempre —
+    // "Añadir alimento" deshabilitado y sin forma de recuperarlo salvo
+    // cerrando la pestaña. present() puede no resolver por causas ajenas a
+    // esta pantalla: espera (deepReady) a que TODOS los web components de
+    // Ionic dentro del modal estén hidratados, y si alguno no llega a
+    // renderizar (pestaña en segundo plano, chunk lazy que falla) se queda
+    // esperando indefinidamente.
+    this.isOpeningPicker = false;
+
     try {
-      const outerModal = await this.modalController.create({
-        component: SearchFoodsPage,
-        componentProps: {
-          trainerContext: this.buildSearchFoodsTrainerContext(altIndex, itemIndex, () =>
-            void outerModal.dismiss()
-          ),
-        },
-        cssClass: 'tf-panel-modal',
-      });
-      this.pickerModal = outerModal;
       await outerModal.present();
       await outerModal.onDidDismiss();
+    } finally {
       this.pickerModal = null;
       await this.closeDetailPanel();
-    } finally {
-      this.isOpeningPicker = false;
     }
   }
 

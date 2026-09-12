@@ -12,6 +12,7 @@ import {
   DietDaySummary,
   NutritionalGoal,
   NutritionComplianceSummary,
+  NutritionTargetResponse,
   NutritionTrackingSummary,
   Supplement,
   SupplementTiming,
@@ -50,10 +51,15 @@ export class ClientDetailApiService {
     return this.http.get<TrainingGoal>(`${this.base(clientId)}/training-goal`);
   }
 
-  public updateTrainingGoal(clientId: string, goal: TrainingGoal): Observable<TrainingGoal> {
-    return this.http.put<TrainingGoal>(`${this.base(clientId)}/training-goal`, goal);
+  public updateTrainingGoal(
+    clientId: string,
+    goal: TrainingGoal
+  ): Observable<TrainingGoal> {
+    return this.http.put<TrainingGoal>(
+      `${this.base(clientId)}/training-goal`,
+      goal
+    );
   }
-
 
   public getAvailableTemplates(clientId: string): Observable<ClientTable[]> {
     return this.http.get<ClientTable[]>(
@@ -61,7 +67,10 @@ export class ClientDetailApiService {
     );
   }
 
-  public assignNewRoutine(clientId: string, name: string): Observable<ClientTable> {
+  public assignNewRoutine(
+    clientId: string,
+    name: string
+  ): Observable<ClientTable> {
     return this.http.post<ClientTable>(`${this.base(clientId)}/tables`, {
       mode: 'new',
       name,
@@ -79,7 +88,9 @@ export class ClientDetailApiService {
   }
 
   public getAnthropometry(clientId: string): Observable<AnthropometryEntry[]> {
-    return this.http.get<AnthropometryEntry[]>(`${this.base(clientId)}/anthropometry`);
+    return this.http.get<AnthropometryEntry[]>(
+      `${this.base(clientId)}/anthropometry`
+    );
   }
 
   // TASK-019 (MASTER_BACKLOG.md) — antes solo se podía vaciar una Table
@@ -92,17 +103,25 @@ export class ClientDetailApiService {
     return this.http.delete(`tables/${clientId}/${tableId}`);
   }
 
-  public getDiet(clientId: string, date: string = todayIsoDate()): Observable<DietDaySummary | null> {
+  public getDiet(
+    clientId: string,
+    date: string = todayIsoDate()
+  ): Observable<DietDaySummary | null> {
     return this.http.get<DietDaySummary | null>(
       `${this.base(clientId)}/diet?date=${encodeURIComponent(date)}`
     );
   }
 
   public getNutritionalGoals(clientId: string): Observable<NutritionalGoal[]> {
-    return this.http.get<NutritionalGoal[]>(`${this.base(clientId)}/nutritional-goals`);
+    return this.http.get<NutritionalGoal[]>(
+      `${this.base(clientId)}/nutritional-goals`
+    );
   }
 
-  public revokeRelation(clientId: string, scope: ClientScope): Observable<unknown> {
+  public revokeRelation(
+    clientId: string,
+    scope: ClientScope
+  ): Observable<unknown> {
     return this.http.delete(`trainer/clients/${clientId}?scope=${scope}`);
   }
 
@@ -126,10 +145,27 @@ export class ClientDetailApiService {
     );
   }
 
-  public activateNutritionalGoal(clientId: string, goalId: string): Observable<{ _id: string }> {
+  public activateNutritionalGoal(
+    clientId: string,
+    goalId: string
+  ): Observable<{ _id: string }> {
     return this.http.put<{ _id: string }>(
       `${this.base(clientId)}/nutritional-goals/${goalId}/activate`,
       {}
+    );
+  }
+
+  // Mismo cálculo que el cajón de sugerencias de dieta
+  // (POST .../diet-suggestions), pero sin rankear plantillas — solo el
+  // target, para autorrellenar el panel de "Asignar objetivos". Puede
+  // devolver 422 MISSING_BIOMETRICS (ver NutritionTargetResponse).
+  public getNutritionTarget(
+    clientId: string,
+    objetiveKcalDelta: number
+  ): Observable<NutritionTargetResponse> {
+    return this.http.post<NutritionTargetResponse>(
+      `${this.base(clientId)}/nutrition-target`,
+      { objetiveKcalDelta }
     );
   }
 
@@ -141,22 +177,37 @@ export class ClientDetailApiService {
   // fue revocado por este trainer, si alguna. null si nunca lo fue (caso
   // normal). Se usa para separar visualmente notas/tareas "de una relación
   // anterior" sin necesidad de purgarlas.
-  public getPreviousRelationCutoff(clientId: string): Observable<{ cutoffDate: string | null }> {
+  public getPreviousRelationCutoff(
+    clientId: string
+  ): Observable<{ cutoffDate: string | null }> {
     return this.http.get<{ cutoffDate: string | null }>(
       `${this.base(clientId)}/previous-relation-cutoff`
     );
   }
 
   public createNote(clientId: string, text: string): Observable<TrainerNote> {
-    return this.http.post<TrainerNote>(`${this.base(clientId)}/notes`, { text });
+    return this.http.post<TrainerNote>(`${this.base(clientId)}/notes`, {
+      text,
+    });
   }
 
-  public setNotePinned(clientId: string, noteId: string, pinned: boolean): Observable<TrainerNote> {
-    return this.http.patch<TrainerNote>(`${this.base(clientId)}/notes/${noteId}`, { pinned });
+  public setNotePinned(
+    clientId: string,
+    noteId: string,
+    pinned: boolean
+  ): Observable<TrainerNote> {
+    return this.http.patch<TrainerNote>(
+      `${this.base(clientId)}/notes/${noteId}`,
+      { pinned }
+    );
   }
 
-  public getCheckinResponses(clientId: string): Observable<CheckinResponseEntry[]> {
-    return this.http.get<CheckinResponseEntry[]>(`${this.base(clientId)}/checkin-responses`);
+  public getCheckinResponses(
+    clientId: string
+  ): Observable<CheckinResponseEntry[]> {
+    return this.http.get<CheckinResponseEntry[]>(
+      `${this.base(clientId)}/checkin-responses`
+    );
   }
 
   public getAdherence(clientId: string): Observable<AdherenceSummary> {
@@ -175,22 +226,32 @@ export class ClientDetailApiService {
   // pauta. Sin backend nuevo: Medidas solo necesita el estado, no las
   // programaciones ni el resto de tracking-controller#getForClient.
   public getWeightPlan(clientId: string): Observable<WeightPlanStatus | null> {
-    return this.http.get<WeightPlanStatus | null>(`${this.base(clientId)}/weight-plan`);
+    return this.http.get<WeightPlanStatus | null>(
+      `${this.base(clientId)}/weight-plan`
+    );
   }
 
   // Movimiento 5 Coach Pro — suplementación pautada. El catálogo de momentos
   // lo decide el backend, igual que el de dolor y el de reglas: así es
   // imposible que la interfaz ofrezca uno que el validador no conoce.
   public getSupplementTimings(): Observable<{ timings: SupplementTiming[] }> {
-    return this.http.get<{ timings: SupplementTiming[] }>('supplements/timings');
+    return this.http.get<{ timings: SupplementTiming[] }>(
+      'supplements/timings'
+    );
   }
 
   public getSupplements(clientId: string): Observable<Supplement[]> {
     return this.http.get<Supplement[]>(`${this.base(clientId)}/supplements`);
   }
 
-  public createSupplement(clientId: string, payload: Partial<Supplement>): Observable<Supplement> {
-    return this.http.post<Supplement>(`${this.base(clientId)}/supplements`, payload);
+  public createSupplement(
+    clientId: string,
+    payload: Partial<Supplement>
+  ): Observable<Supplement> {
+    return this.http.post<Supplement>(
+      `${this.base(clientId)}/supplements`,
+      payload
+    );
   }
 
   public updateSupplement(
@@ -204,8 +265,13 @@ export class ClientDetailApiService {
     );
   }
 
-  public deleteSupplement(clientId: string, supplementId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base(clientId)}/supplements/${supplementId}`);
+  public deleteSupplement(
+    clientId: string,
+    supplementId: string
+  ): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base(clientId)}/supplements/${supplementId}`
+    );
   }
 
   // Movimiento 5 Coach Pro — qué tiene que comprar el cliente para cumplir
@@ -234,17 +300,26 @@ export class ClientDetailApiService {
   public getClientPain(
     clientId: string,
     days: number
-  ): Observable<{ days: number; entries: PainEntry[]; thresholds: PainThreshold[] }> {
-    return this.http.get<{ days: number; entries: PainEntry[]; thresholds: PainThreshold[] }>(
-      `${this.base(clientId)}/pain?days=${days}`
-    );
+  ): Observable<{
+    days: number;
+    entries: PainEntry[];
+    thresholds: PainThreshold[];
+  }> {
+    return this.http.get<{
+      days: number;
+      entries: PainEntry[];
+      thresholds: PainThreshold[];
+    }>(`${this.base(clientId)}/pain?days=${days}`);
   }
 
   public savePainThreshold(
     clientId: string,
     threshold: PainThreshold
   ): Observable<PainThreshold> {
-    return this.http.put<PainThreshold>(`${this.base(clientId)}/pain/thresholds`, threshold);
+    return this.http.put<PainThreshold>(
+      `${this.base(clientId)}/pain/thresholds`,
+      threshold
+    );
   }
 
   public removePainThreshold(clientId: string, zone: string): Observable<void> {
@@ -256,8 +331,13 @@ export class ClientDetailApiService {
   // Serie semanal + comparativa de la última semana contra la anterior. La
   // comparativa no es otra llamada: son los dos últimos elementos de la
   // misma serie, calculados en el backend para no duplicar la aritmética.
-  public getProgress(clientId: string, weeks: number): Observable<ClientProgress> {
-    return this.http.get<ClientProgress>(`${this.base(clientId)}/progress?weeks=${weeks}`);
+  public getProgress(
+    clientId: string,
+    weeks: number
+  ): Observable<ClientProgress> {
+    return this.http.get<ClientProgress>(
+      `${this.base(clientId)}/progress?weeks=${weeks}`
+    );
   }
 
   // Fase 4 Coach Pro — qué le he cambiado a este cliente y por qué.
@@ -293,9 +373,13 @@ export class ClientDetailApiService {
     const exercisesParam = (exercises || [])
       .map((name) => `&exercises=${encodeURIComponent(name)}`)
       .join('');
-    const workoutParam = workout ? `&workout=${encodeURIComponent(workout)}` : '';
+    const workoutParam = workout
+      ? `&workout=${encodeURIComponent(workout)}`
+      : '';
     return this.http.get<ClientTrainingProgress>(
-      `${this.base(clientId)}/training-progress?from=${from}&to=${to}${exercisesParam}${workoutParam}`
+      `${this.base(
+        clientId
+      )}/training-progress?from=${from}&to=${to}${exercisesParam}${workoutParam}`
     );
   }
 
@@ -307,7 +391,9 @@ export class ClientDetailApiService {
     to: string
   ): Observable<NutritionComplianceSummary> {
     return this.http.get<NutritionComplianceSummary>(
-      `${this.base(clientId)}/nutrition-compliance?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+      `${this.base(clientId)}/nutrition-compliance?from=${encodeURIComponent(
+        from
+      )}&to=${encodeURIComponent(to)}`
     );
   }
 
@@ -319,7 +405,9 @@ export class ClientDetailApiService {
     to: string
   ): Observable<NutritionTrackingSummary> {
     return this.http.get<NutritionTrackingSummary>(
-      `${this.base(clientId)}/nutrition-tracking?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+      `${this.base(clientId)}/nutrition-tracking?from=${encodeURIComponent(
+        from
+      )}&to=${encodeURIComponent(to)}`
     );
   }
 
@@ -331,11 +419,21 @@ export class ClientDetailApiService {
     clientId: string,
     payment: { amount: number; dueDate: string; note?: string }
   ): Observable<TrainerPayment> {
-    return this.http.post<TrainerPayment>(`${this.base(clientId)}/payments`, payment);
+    return this.http.post<TrainerPayment>(
+      `${this.base(clientId)}/payments`,
+      payment
+    );
   }
 
-  public setPaymentPaid(clientId: string, paymentId: string, paid: boolean): Observable<TrainerPayment> {
-    return this.http.patch<TrainerPayment>(`${this.base(clientId)}/payments/${paymentId}`, { paid });
+  public setPaymentPaid(
+    clientId: string,
+    paymentId: string,
+    paid: boolean
+  ): Observable<TrainerPayment> {
+    return this.http.patch<TrainerPayment>(
+      `${this.base(clientId)}/payments/${paymentId}`,
+      { paid }
+    );
   }
 
   // coach-tab FASE4 — tareas/hábitos.
@@ -345,7 +443,12 @@ export class ClientDetailApiService {
 
   public createTask(
     clientId: string,
-    task: { type: TrainerTaskType; label?: string; target: number; unit: string }
+    task: {
+      type: TrainerTaskType;
+      label?: string;
+      target: number;
+      unit: string;
+    }
   ): Observable<TrainerTask> {
     return this.http.post<TrainerTask>(`${this.base(clientId)}/tasks`, task);
   }
@@ -359,7 +462,11 @@ export class ClientDetailApiService {
     clientId: string,
     date: string,
     mealId: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean }
+    body: {
+      customProducts: unknown[];
+      customRecipes: unknown[];
+      merge: boolean;
+    }
   ): Observable<unknown> {
     return this.http.post(
       `${this.base(clientId)}/diet-days/${date}/meals/${mealId}/prescribe`,
@@ -372,22 +479,32 @@ export class ClientDetailApiService {
     clientId: string,
     date: string,
     mealSlot: string,
-    alternatives: { label: string; customProducts: unknown[]; customRecipes: unknown[] }[]
+    alternatives: {
+      label: string;
+      customProducts: unknown[];
+      customRecipes: unknown[];
+    }[]
   ): Observable<unknown> {
     return this.http.post(
-      `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/propose`,
+      `${this.base(clientId)}/diet-days/${date}/meals/${encodeURIComponent(
+        mealSlot
+      )}/propose`,
       { alternatives }
     );
   }
 
   // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
-  public getNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences | null> {
+  public getNutritionPreferences(
+    clientId: string
+  ): Observable<ClientNutritionPreferences | null> {
     return this.http.get<ClientNutritionPreferences | null>(
       `${this.base(clientId)}/nutrition-preferences`
     );
   }
 
-  public requestNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences> {
+  public requestNutritionPreferences(
+    clientId: string
+  ): Observable<ClientNutritionPreferences> {
     return this.http.post<ClientNutritionPreferences>(
       `${this.base(clientId)}/nutrition-preferences/request`,
       {}
@@ -409,18 +526,32 @@ export class ClientDetailApiService {
     sourceClientId: string,
     date: string,
     mealSlot: string,
-    body: { customProducts: unknown[]; customRecipes: unknown[]; merge: boolean },
+    body: {
+      customProducts: unknown[];
+      customRecipes: unknown[];
+      merge: boolean;
+    },
     targetClientIds: string[]
   ): Observable<BulkApplyResult[]> {
     return this.http.post<BulkApplyResult[]>(
-      `${this.base(sourceClientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/apply-to-clients`,
+      `${this.base(
+        sourceClientId
+      )}/diet-days/${date}/meals/${encodeURIComponent(
+        mealSlot
+      )}/apply-to-clients`,
       { ...body, targetClientIds }
     );
   }
 
   public applyGoalToClients(
     sourceClientId: string,
-    goal: { name: string; kcalTotal: number; proteinsGTotal: number; carbohydratesGTotal: number; fatGTotal: number },
+    goal: {
+      name: string;
+      kcalTotal: number;
+      proteinsGTotal: number;
+      carbohydratesGTotal: number;
+      fatGTotal: number;
+    },
     targetClientIds: string[]
   ): Observable<BulkApplyResult[]> {
     return this.http.post<BulkApplyResult[]>(

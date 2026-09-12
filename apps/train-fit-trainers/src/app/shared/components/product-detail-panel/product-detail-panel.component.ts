@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { IProduct } from 'src/app/core/models/product';
 import { Recipe } from 'src/app/core/models/recipe';
@@ -27,7 +27,7 @@ interface NutrientRow {
   templateUrl: './product-detail-panel.component.html',
   styleUrls: ['./product-detail-panel.component.scss'],
 })
-export class ProductDetailPanelComponent {
+export class ProductDetailPanelComponent implements OnInit {
   @Input() product?: IProduct;
   @Input() recipe?: Recipe;
   @Input() quantity: number | null = 100;
@@ -78,6 +78,36 @@ export class ProductDetailPanelComponent {
     { label: 'Vitamina B12', field: 'vitaminB12100g', unit: 'µg', toDisplay: 1000000 },
   ];
 
+  // Calculados UNA vez (ngOnInit y cada vez que cambia la cantidad o el
+  // producto), no con getters.
+  //
+  // Eran getters que devolvían un array nuevo, con objetos nuevos, en cada
+  // llamada — y la plantilla los consulta desde un *ngIf Y un *ngFor sin
+  // trackBy. Con eso Angular no reutilizaba ni una fila: destruía y volvía a
+  // crear todo el DOM de la tabla en CADA ciclo de detección de cambios, y
+  // como esto vive dentro de un ion-content (que observa cambios de tamaño,
+  // y ese observer está parcheado por zone.js) cada reconstrucción disparaba
+  // otro ciclo. Bucle infinito, síncrono, sin errores en consola ni tráfico
+  // de red: la pestaña se quedaba bloqueada hasta cerrarla.
+  //
+  // Solo se notaba en algunos productos porque buildRows() conserva los
+  // ceros y solo salta null/undefined: un producto importado con TODOS los
+  // micronutrientes a 0 genera las 27 filas (23 micros + 4 secundarias),
+  // mientras que uno con la mayoría a null genera 4 o 5 y el ciclo, aun
+  // siendo igual de incorrecto, salía barato.
+  public macros: { kcal: number; protein: number; carbs: number; fat: number } = {
+    kcal: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  };
+  public secondaryRows: { label: string; value: number; unit: NutrientRow['unit'] }[] = [];
+  public microRows: { label: string; value: number; unit: NutrientRow['unit'] }[] = [];
+
+  public ngOnInit(): void {
+    this.recalculate();
+  }
+
   public dismiss(): void {
     void this.modalController.dismiss();
   }
@@ -86,7 +116,16 @@ export class ProductDetailPanelComponent {
     return !!this.recipe;
   }
 
-  public get macros(): { kcal: number; protein: number; carbs: number; fat: number } {
+  private recalculate(): void {
+    this.macros = this.computeMacros();
+    // Filas "por cantidad": el valor guardado es por 100g, se escala igual
+    // que las macros principales — mismo criterio que totalCalories/... en
+    // AddProductPage, sin reinventar la fórmula.
+    this.secondaryRows = this.buildRows(ProductDetailPanelComponent.SECONDARY_MACROS);
+    this.microRows = this.buildRows(ProductDetailPanelComponent.MICRONUTRIENTS);
+  }
+
+  private computeMacros(): { kcal: number; protein: number; carbs: number; fat: number } {
     if (this.recipe) {
       return this.recipeService.calculateCustomRecipeTotals(this.recipe, {
         quantity: this.quantity ?? undefined,
@@ -102,15 +141,8 @@ export class ProductDetailPanelComponent {
     return { kcal: 0, protein: 0, carbs: 0, fat: 0 };
   }
 
-  // Filas "por cantidad": el valor guardado es por 100g, se escala igual
-  // que las macros principales — mismo criterio que totalCalories/... en
-  // AddProductPage, sin reinventar la fórmula.
-  public get secondaryRows(): { label: string; value: number; unit: NutrientRow['unit'] }[] {
-    return this.buildRows(ProductDetailPanelComponent.SECONDARY_MACROS);
-  }
-
-  public get microRows(): { label: string; value: number; unit: NutrientRow['unit'] }[] {
-    return this.buildRows(ProductDetailPanelComponent.MICRONUTRIENTS);
+  public trackByLabel(_index: number, row: { label: string }): string {
+    return row.label;
   }
 
   private buildRows(rows: NutrientRow[]): { label: string; value: number; unit: NutrientRow['unit'] }[] {
@@ -129,6 +161,7 @@ export class ProductDetailPanelComponent {
     const parsed = parseFloat(value);
     const next = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     this.quantity = next;
+    this.recalculate();
     this.onQuantityChange?.(next);
   }
 
@@ -158,6 +191,7 @@ export class ProductDetailPanelComponent {
     const { data, role } = await modal.onDidDismiss<{ product: IProduct }>();
     if (role === 'confirm' && data?.product) {
       this.product = data.product;
+      this.recalculate();
     }
   }
 }

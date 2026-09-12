@@ -64,7 +64,7 @@
   color: #ffffff;
 }
 
-.group-reference {
+.group-serving {
   font-size: 0.78rem;
   color: #8b8b8b;
 }
@@ -302,4 +302,12 @@
   flex-basis: 100%;
   font-size: 0.76rem;
   color: #6b6b6b;
+}
+
+/* Qué lleva una ración, dentro del reparto del día. Es lo que evita que "2
+   raciones de proteína" sea un número sin significado. */
+.serving-line {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--tf-text-secondary, #888);
 }

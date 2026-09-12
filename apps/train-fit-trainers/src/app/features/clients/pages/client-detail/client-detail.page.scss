@@ -541,24 +541,12 @@
 
 // --- F20-bis: etiqueta de la fecha vigente sobre <app-nutrition-calendar>
 // (la navegación en sí ya no son flechas, ver ese componente) ---
-// F20-nonies — al cambiar de día en el calendario ya no se recarga toda la
-// pestaña (ver onNutritionDateSelected): solo esta etiqueta se atenúa
-// brevemente mientras llega el dietDay del día nuevo.
 .date-nav-label {
   min-width: 88px;
   text-align: center;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--tf-text-secondary);
-  transition: opacity var(--tf-duration-base) var(--tf-ease-out);
-
-  &.is-updating {
-    opacity: 0.4;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 }
 
 .section-heading {
@@ -619,8 +607,16 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+
+  &__primary {
+    display: flex;
+    align-items: center;
+    gap: var(--tf-space-5);
+  }
 }
 
+// Sugerencias de dieta — zona de la lista rankeada (modo "elegir dieta").
+// Deja hueco a la derecha para que el panel de parámetros (400px) no la tape.
 .manage-templates-link {
   background: none;
   border: none;
@@ -664,6 +660,15 @@
     height: 3px;
     background: var(--phase-color, var(--tf-accent));
   }
+}
+
+// Fila del badge "1ª · en curso". "Quitar fase" ya no vive aquí (pasó al
+// pie de la tarjeta, ver .active-plan-actions).
+.active-plan-top-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 // 2026-09 — atajo al Planificador de la rutina en uso. Ancho completo y con
@@ -784,6 +789,28 @@
 // de renglón cuando ya no caben (flex-wrap en el contenedor, no dentro de
 // cada grupo) — aprovecha el ancho en vez de una fila por patrón siempre.
 // Deliberadamente pequeñas ("chiquititos") — son un vistazo, no un control.
+// Cada cuánto se repite el contenido (dietas por días), a la derecha del todo
+// de la fila de "en curso". `margin-left: auto` y no un space-between en el
+// contenedor: así queda pegado a la derecha tanto si hay insignia de fase a
+// la izquierda como si es lo único de la fila (cliente con una sola fase).
+//
+// Peso visual por debajo del "EN CURSO" que tiene al lado: es contexto, no
+// el estado de la fase.
+.active-plan-cycle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 var(--tf-space-2) auto;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
 .active-plan-weekdays {
   display: flex;
   flex-wrap: wrap;
@@ -1073,6 +1100,61 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0 10px;
+}
+
+// Recomendación del panel "Asignar objetivos" — mismo patrón visual que
+// .focus-buttons del cajón de sugerencias de dieta (diet-suggestion-drawer):
+// selector exclusivo con acento sólido en el activo.
+.nutrition-target-calculator {
+  margin-bottom: 12px;
+
+  .preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .preset-button {
+    flex: 1 1 auto;
+    min-width: 90px;
+    min-height: var(--tf-touch-min, 44px);
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--tf-border-strong);
+    background: var(--tf-surface-2);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+    cursor: pointer;
+
+    &:hover:not(.is-active) {
+      background: var(--tf-surface-3);
+      color: var(--tf-text);
+    }
+
+    &.is-active {
+      background: var(--tf-accent);
+      border-color: var(--tf-accent);
+      color: var(--tf-accent-contrast);
+    }
+  }
+
+  .calc-hint {
+    font-size: 0.78rem;
+    color: var(--tf-text-muted);
+    padding: 0 2px 8px;
+  }
+
+  .calc-hint--warning {
+    color: var(--ion-color-warning, #ffc409);
+  }
+
+  .calc-hint--result {
+    color: var(--tf-accent);
+    font-weight: 600;
+  }
 }
 
 .submit-button {
@@ -2074,6 +2156,28 @@
   overflow-x: auto;
   padding-bottom: var(--tf-space-2);
   scroll-snap-type: x proximity;
+
+  // Solo el pulgar, sin la canaleta gris del navegador: es una fila de
+  // tarjetas dentro del panel, no un contenedor con marco propio.
+  scrollbar-width: thin;
+  scrollbar-color: var(--tf-border-strong) transparent;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--tf-border-strong);
+    border-radius: 999px;
+
+    &:hover {
+      background: var(--tf-border-strongest);
+    }
+  }
 }
 
 // La vigente conserva todo su detalle y manda en el ancho; las programadas
@@ -2108,9 +2212,12 @@
   }
 }
 
-// Ahora es un <button> (abre su plantilla, igual que la fase en curso), así
-// que hay que deshacer el estilo propio del navegador: font/color heredados
-// y el texto alineado a la izquierda como cuando era un <article>.
+// Contenedor de la tarjeta programada — <div>, ya no <button>: necesita dos
+// acciones propias (abrir/quitar, ver .next-phase-card__open y
+// .next-phase-card__remove más abajo) y un botón no puede anidar otro
+// botón. font/color/text-align/cursor de aquí abajo los sigue necesitando
+// .next-phase-card--add, que SÍ es un <button> real (la card "Siguiente
+// fase") y no redeclara los suyos propios.
 .next-phase-card {
   position: relative;
   flex: 0 0 180px;
@@ -2124,7 +2231,6 @@
   font: inherit;
   color: inherit;
   text-align: left;
-  cursor: pointer;
   overflow: hidden;
   transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
 
@@ -2151,21 +2257,57 @@
     outline-offset: 2px;
   }
 
-  // Deja libre la esquina donde va el lápiz — "3ª · PROGRAMADA" es corto,
-  // pero no hay nada que garantice que no crezca.
+  // Deja libres las dos esquinas: el lápiz a la derecha (ver
+  // .next-phase-card__edit-icon) y el botón de quitar a la izquierda (ver
+  // .next-phase-card__remove) — "3ª · PROGRAMADA" es corto, pero no hay
+  // nada que garantice que no crezca.
   .plan-phase-order {
-    padding-right: 20px;
+    padding: 0 20px;
+  }
+}
+
+// El <button> real: abre la plantilla, igual que .active-plan-header. Reset
+// de estilos nativos — .next-phase-card ya no es un botón, así que esto no
+// puede heredarlo de ahí.
+.next-phase-card__open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+    border-radius: var(--tf-radius-sm);
   }
 }
 
 // Discreto y en la esquina: dice que la tarjeta se puede abrir sin competir
-// con el nombre de la fase, que es el dato.
+// con el nombre de la fase, que es el dato. `position: absolute` sigue
+// resolviendo contra .next-phase-card (position: relative) aunque ahora
+// esté un nivel más adentro, dentro de .next-phase-card__open — un ancestro
+// sin position no interrumpe la cadena.
 .next-phase-card__edit-icon {
   position: absolute;
   top: var(--tf-space-3);
   right: var(--tf-space-2);
   font-size: 1rem;
   color: var(--tf-text-faint);
+}
+
+// Mismo botón que "Quitar fase" en .active-plan-top-row (.bulk-apply-btn),
+// reposicionado a la esquina opuesta al lápiz — aquí sí hace falta
+// position:absolute explícito porque .bulk-apply-btn no lo trae de serie.
+.next-phase-card__remove {
+  position: absolute;
+  top: var(--tf-space-2);
+  left: var(--tf-space-2);
 }
 
 .next-phase-card__name {
@@ -2184,6 +2326,157 @@
 }
 
 // Cierra la fila por la derecha: la fase nueva aparece justo aquí.
+// Sugerencias de dieta — pie de la tarjeta de fase vigente: acciones
+// secundarias (siguiente ciclo, quitar fase). "Quitar fase" ya no es un
+// icono danger arriba compitiendo con "editar".
+.active-plan-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.phase-remove-link {
+  align-self: flex-end;
+  min-height: 32px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    color: var(--tf-danger);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-danger);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+// 2026-09 — sustituye al ion-alert de "Quitar fase" cuando se pulsa
+// .phase-remove-link: la etiqueta desaparece y en su sitio quedan estos dos
+// botones pequeños. Misma fila (align-self: flex-end) para que no salte el
+// layout de .active-plan-actions al cambiar de uno a otro.
+.phase-remove-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  align-self: flex-end;
+
+  &__label {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-muted);
+  }
+
+  &__cancel,
+  &__confirm {
+    @include tf-touch-expander-y(6px);
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: var(--tf-radius-pill);
+    font-family: inherit;
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+      background var(--tf-duration-fast) var(--tf-ease-out);
+  }
+
+  &__cancel {
+    background: none;
+    border: 1px solid var(--tf-border-strong);
+    color: var(--tf-text-secondary);
+
+    &:hover {
+      border-color: var(--tf-border-strongest);
+      color: var(--tf-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  &__confirm {
+    background: var(--tf-danger-soft);
+    border: 1px solid var(--tf-danger-border);
+    color: var(--tf-danger-text);
+
+    &:hover {
+      background: var(--tf-danger);
+      border-color: var(--tf-danger);
+      color: var(--tf-accent-contrast);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tf-danger);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Misma confirmación inline que .phase-remove-confirm, pero solo-icono: la
+// tarjeta de fase programada mide 180px (.next-phase-card) y vive en la
+// misma esquina que ocupaba el único botón "Quitar" (.next-phase-card__remove)
+// — dos botones de texto no caben ahí.
+.next-phase-card__remove-confirm {
+  position: absolute;
+  top: var(--tf-space-2);
+  left: var(--tf-space-2);
+  display: flex;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+// Sugerencias de dieta — botón de progresión ciclo a ciclo dentro de la
+// tarjeta de la fase vigente.
+.next-cycle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--tf-border, #e0e0e0);
+  border-radius: 10px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text, inherit);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &__hint {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--tf-text-muted);
+  }
+
+  &:hover {
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+}
+
 .next-phase-card--add {
   align-items: center;
   justify-content: center;

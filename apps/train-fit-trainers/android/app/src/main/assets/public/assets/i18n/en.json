@@ -340,7 +340,10 @@
     "CREATE_ACCOUNT_ERROR_WITH_PROVIDER": "Error creating account with {{provider}}",
     "REGISTER_ERROR_WITH_PROVIDER": "Could not complete registration with {{provider}}",
     "SOCIAL_AUTH_RETRY": "Could not sign in with {{provider}}. Please try again",
-    "UNEXPECTED_ERROR": "An unexpected error occurred"
+    "UNEXPECTED_ERROR": "An unexpected error occurred",
+    "ALREADY_HAVE_ACCOUNT": "Already have an account?",
+    "OR": "or",
+    "LOGIN_SUBTITLE": "Enter your details to access your account."
   },
   "RESTORE_PASSWORD": {
     "TITLE": "Restore Password",
@@ -1088,6 +1091,8 @@
     "DELETE_WEEK_ERROR": "Couldn't delete the microcycle",
     "ADD_WEEK_ERROR": "Couldn't add the microcycle",
     "REORDER_WEEKS_ERROR": "Couldn't reorder the microcycles",
+    "REORDER_WEEKS_MODE": "Reorder",
+    "REORDER_WEEKS_MODE_HINT": "Reorder mode active: drag a microcycle to move it",
     "RENAME_WEEK": "Rename microcycle",
     "RENAME_WEEK_ERROR": "Couldn't rename the microcycle",
     "RENAME_ROUTINE": "Rename routine",
@@ -1346,7 +1351,7 @@
     "REPS": "REPS",
     "RIR": "RIR",
     "REST_LABEL": "Rest",
-    "ADD_SET_QUICK": "+ Set",
+    "ADD_SET_QUICK": "Set",
     "UPDATE_SET_ERROR": "Couldn't update the set",
     "ADD_SET_ERROR": "Couldn't add the set",
     "REORDER_EXERCISES_HANDLE": "Drag to reorder the exercise",

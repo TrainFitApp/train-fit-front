@@ -140,7 +140,7 @@
   font-weight: 600;
 }
 
-.group-reference {
+.group-serving {
   margin: var(--tf-space-2) 0 0;
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
@@ -324,20 +324,6 @@
 
 // El primer alimento es la referencia contra la que se leen los demás: se
 // marca con la palabra, no solo con la posición.
-.item-index {
-  flex-shrink: 0;
-  min-width: 34px;
-  padding-top: 12px;
-  color: var(--tf-text-muted);
-  font-size: var(--tf-font-size-xs);
-  font-weight: 700;
-  text-align: center;
-
-  &--reference {
-    color: var(--tf-accent-text);
-  }
-}
-
 .item-fields {
   flex: 1;
   min-width: 0;
@@ -394,6 +380,91 @@
   option {
     background: var(--tf-surface-1);
     color: var(--tf-text);
+  }
+}
+
+// Vincular al catálogo real. Discreto a propósito: es opcional, y un grupo
+// escrito a mano sigue siendo un grupo válido — si pesara visualmente como el
+// nombre o la cantidad, parecería obligatorio.
+.link-product-button {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--tf-space-2);
+  padding: 4px 0;
+  background: transparent;
+  border: 0;
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+.linked-product {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  min-width: 0;
+  font-size: var(--tf-font-size-xs);
+
+  > ion-icon {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: var(--tf-accent);
+  }
+}
+
+.linked-product-name {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  color: var(--tf-text-secondary);
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+    text-decoration: underline;
+  }
+}
+
+.linked-product-unlink {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px;
+  background: transparent;
+  border: 0;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  ion-icon {
+    font-size: 15px;
   }
 }
 
@@ -546,4 +617,276 @@
 .calculator-exact {
   color: var(--tf-text-muted);
   font-size: var(--tf-font-size-xs);
+}
+
+/* --- Estado de la biblioteca --- */
+
+.library-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0 12px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--tf-warning, #e6a54a);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tf-warning, #e6a54a);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.selected {
+    background: var(--tf-warning, #e6a54a);
+    color: #1a1a1a;
+  }
+}
+
+.library-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--tf-accent-2, #4fc79a);
+}
+
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--tf-border, #333);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tf-text-secondary, #aaa);
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--tf-text, #fff);
+    border-color: var(--tf-text-secondary, #aaa);
+  }
+
+  &--small {
+    margin-top: 0;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* El estado del grupo, con el mismo criterio en toda la app: lo calcula el
+   backend (exchange-profile.js#groupStatus) y aquí solo se pinta. */
+.status-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &--ready {
+    background: rgba(79, 199, 154, 0.15);
+    color: var(--tf-accent-2, #4fc79a);
+  }
+
+  &--incomplete,
+  &--no-anchor {
+    background: rgba(230, 165, 74, 0.15);
+    color: var(--tf-warning, #e6a54a);
+  }
+
+  &--free {
+    background: rgba(170, 170, 170, 0.15);
+    color: var(--tf-text-secondary, #aaa);
+  }
+}
+
+.group-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--tf-warning, #e6a54a);
+}
+
+.group-spread,
+.group-linked {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--tf-text-secondary, #888);
+}
+
+.item-preview-row--off .item-name {
+  color: var(--tf-warning, #e6a54a);
+}
+
+.item-deviation {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tf-warning, #e6a54a);
+}
+
+/* --- El perfil de la ración, en el editor --- */
+
+.serving-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.serving-field .field-label {
+  margin-bottom: 4px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0 14px;
+  cursor: pointer;
+
+  input {
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+}
+
+.switch-label {
+  font-size: 14px;
+  color: var(--tf-text, #fff);
+
+  small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--tf-text-secondary, #888);
+  }
+}
+
+.save-warning {
+  margin: 6px 0 10px;
+  font-size: 13px;
+  color: var(--tf-warning, #e6a54a);
+}
+
+.tolerance-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 4px;
+
+  .field-label {
+    margin: 0;
+    flex: 1;
+  }
+}
+
+.input-wrapper--narrow {
+  position: relative;
+  width: 96px;
+  flex-shrink: 0;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--tf-text-secondary, #888);
+  pointer-events: none;
+}
+
+/* --- La verificación por alimento --- */
+
+.item-check {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--tf-accent-2, #4fc79a);
+
+  &--off {
+    color: var(--tf-warning, #e6a54a);
+  }
+}
+
+.fix-link {
+  padding: 2px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- Perfiles de referencia --- */
+
+.reference-box {
+  margin: 10px 0 4px;
+  padding: 10px;
+  border: 1px dashed var(--tf-border, #333);
+  border-radius: 12px;
+}
+
+.reference-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--tf-text-secondary, #888);
+}
+
+.reference-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--tf-border, #333);
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &:hover {
+    border-color: var(--tf-accent, #ffd359);
+  }
+}
+
+.reference-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tf-text, #fff);
+}
+
+.reference-stretch {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tf-warning, #e6a54a);
+}
+
+.reference-macros {
+  font-size: 12px;
+  color: var(--tf-text-secondary, #888);
 }

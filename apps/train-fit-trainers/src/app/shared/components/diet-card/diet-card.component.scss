@@ -1,0 +1,257 @@
+:host {
+  display: block;
+}
+
+.diet-card {
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--tf-border, #e2e2e2);
+  background: var(--tf-surface-1, #fff);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+
+  &.is-podium {
+    border-color: var(--tf-accent, #fe9000);
+  }
+
+  &.is-highlight {
+    border-width: 2px;
+    background: var(--tf-accent-soft, #fff3e0);
+  }
+
+  &.is-selected {
+    box-shadow: 0 0 0 2px var(--tf-accent, #fe9000);
+  }
+
+  &:hover:not(.is-selected) {
+    border-color: var(--tf-accent, #fe9000);
+  }
+
+  // La card ES el control de la lista y no tenía foco visible: con teclado
+  // no se sabía cuál estaba seleccionada.
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.medal {
+  font-size: 1.1rem;
+}
+
+.card-name {
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 2px 6px;
+  border-radius: 6px;
+
+  &--verified {
+    background: var(--tf-success-soft, #d7f5e3);
+    color: var(--tf-success, #1b7a45);
+  }
+
+  &--owned {
+    background: var(--tf-surface-2, #f0f0f0);
+    color: var(--tf-text-secondary, #555);
+  }
+}
+
+// --tf-danger-text y no --tf-danger: es texto pequeño, y el rojo sólido se
+// queda en 4,41:1 sobre estas superficies (ver tokens.scss).
+.card-missing {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 2px 8px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-danger-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tf-danger-text);
+}
+
+// Panel de kcal + macros — mismo recuadro que .target-card en
+// diet-suggestion-drawer.component.scss (misma familia de pantallas:
+// superficie propia, borde, kcal en acento). Reutilizado tal cual en vez de
+// inventar un tratamiento nuevo — es el mismo dato "hero", solo que dentro
+// de la card de lista en lugar de aparte en el panel.
+.card-hero {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--tf-radius-md);
+  border: 1px solid var(--tf-border);
+  background: var(--tf-surface-2);
+}
+
+.card-hero__kcal {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--tf-accent-text, #b45f00);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.card-hero__kcal-unit {
+  margin-left: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.card-hero__kcal em {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
+// Fila de 3 columnas, cada una con su punto de color + cifra + barra propia
+// — mismo trío de color que .macro-tag en diet-template-builder.page.ts, es
+// el lenguaje visual que ya existe para "proteína/carbos/grasa" en esta
+// misma familia de pantallas (dietas). SIN borde ni superficie propia por
+// columna a propósito: un recuadro por macro (4 recuadros en total dentro
+// de la card) sí sería el "card sobre card" que PRODUCT.md pide evitar —
+// aquí compiten solo por color y peso tipográfico, todo sobre la misma
+// superficie de .card-hero.
+.card-hero__macros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--tf-border-subtle);
+}
+
+.card-hero__macro {
+  min-width: 0;
+}
+
+.card-hero__macro-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tf-text-muted);
+}
+
+.card-hero__macro-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  // Mismo hex que el resto del trío de macro en la app (tema oscuro: estos
+  // tonos claros son los que se leen bien sobre --tf-surface-2).
+  &--protein {
+    background: #60a5fa;
+  }
+
+  &--carbs {
+    background: #34d399;
+  }
+
+  &--fat {
+    background: #f472b6;
+  }
+}
+
+.card-hero__macro-value {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--protein {
+    color: #60a5fa;
+  }
+
+  &--carbs {
+    color: #34d399;
+  }
+
+  &--fat {
+    color: #f472b6;
+  }
+
+  em {
+    margin-left: 3px;
+    font-style: normal;
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+  }
+}
+
+.card-hero__macro-bar {
+  display: block;
+  margin-top: 5px;
+  height: 3px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  overflow: hidden;
+}
+
+.card-hero__macro-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--tf-duration-base, 180ms) var(--tf-ease-out, ease);
+
+  &--protein {
+    background: #60a5fa;
+  }
+
+  &--carbs {
+    background: #34d399;
+  }
+
+  &--fat {
+    background: #f472b6;
+  }
+}
+
+.card-note {
+  margin: 6px 0 0;
+  font-size: 0.7rem;
+  color: var(--tf-text-muted);
+}
+
+.card-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+
+  span {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--tf-surface-2, #f0f0f0);
+    color: var(--tf-text-secondary, #555);
+  }
+}

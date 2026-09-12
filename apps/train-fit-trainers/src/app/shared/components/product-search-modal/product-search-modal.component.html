@@ -2,47 +2,15 @@
   <ion-toolbar>
     <ion-title>{{ headerTitle }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button *ngIf="showCreateProduct" (click)="closeCreateProduct()">Volver</ion-button>
-      <ion-button *ngIf="!showCreateProduct" (click)="dismiss()">Cerrar</ion-button>
+      <ion-button (click)="dismiss()">Cerrar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="product-search-content">
-  <!-- === CREAR PRODUCTO === -->
-  <ng-container *ngIf="showCreateProduct">
-    <div class="input-wrapper">
-      <ion-icon name="pricetag-outline" class="input-icon"></ion-icon>
-      <input type="text" class="input-field" placeholder="Nombre del producto" [(ngModel)]="newProduct.name" [ngModelOptions]="{ standalone: true }" />
-    </div>
-    <p class="section-hint">Valores por 100g:</p>
-    <div class="macro-grid">
-      <div class="input-wrapper">
-        <ion-icon name="flame-outline" class="input-icon"></ion-icon>
-        <input type="number" class="input-field" placeholder="Kcal" [(ngModel)]="newProduct.energyKcal100g" [ngModelOptions]="{ standalone: true }" />
-      </div>
-      <div class="input-wrapper">
-        <ion-icon name="fitness-outline" class="input-icon"></ion-icon>
-        <input type="number" class="input-field" placeholder="Proteína (g)" [(ngModel)]="newProduct.protein100g" [ngModelOptions]="{ standalone: true }" />
-      </div>
-      <div class="input-wrapper">
-        <ion-icon name="nutrition-outline" class="input-icon"></ion-icon>
-        <input type="number" class="input-field" placeholder="Carbohidratos (g)" [(ngModel)]="newProduct.carbohydrates100g" [ngModelOptions]="{ standalone: true }" />
-      </div>
-      <div class="input-wrapper">
-        <ion-icon name="water-outline" class="input-icon"></ion-icon>
-        <input type="number" class="input-field" placeholder="Grasas (g)" [(ngModel)]="newProduct.fat100g" [ngModelOptions]="{ standalone: true }" />
-      </div>
-    </div>
-    <button type="button" class="confirm-button" [disabled]="!canSaveNewProduct || isSavingProduct" (click)="saveNewProduct()">
-      <span *ngIf="!isSavingProduct">Crear y usar este producto</span>
-      <ion-spinner name="dots" *ngIf="isSavingProduct"></ion-spinner>
-    </button>
-  </ng-container>
-
   <!-- === BÚSQUEDA === -->
-  <ng-container *ngIf="!showCreateProduct && !selectedProduct && !selectedRecipe">
-    <div class="mode-toggle">
+  <ng-container *ngIf="!selectedProduct && !selectedRecipe">
+    <div class="mode-toggle" *ngIf="!productsOnly">
       <button type="button" class="mode-option" [class.selected]="mode === 'products'" (click)="setMode('products')">Productos</button>
       <button type="button" class="mode-option" [class.selected]="mode === 'recipes'" (click)="setMode('recipes')">Recetas</button>
     </div>

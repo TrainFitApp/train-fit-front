@@ -1,5 +1,7 @@
 <ion-header class="ion-no-border">
-  <app-page-header [title]="isCreatingForClient ? 'Crear dieta' : 'Editar plantilla'"></app-page-header>
+  <app-page-header
+    [title]="isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla')"
+  ></app-page-header>
 </ion-header>
 
 <ion-content class="builder-content">
@@ -8,11 +10,18 @@
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
+  </div>
+
+  <div class="state-message" *ngIf="state === 'error' && isEditingAssignedCopy">
+    <ion-icon name="cloud-offline-outline"></ion-icon>
+    <h2>No se pudo cargar la dieta</h2>
+    <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
+    <button class="retry-button" (click)="goBack()">Volver</button>
   </div>
 
   <!-- Solo llega aquí si el modal previo (nombre + fechas) no dejó nada
@@ -25,6 +34,59 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded'">
+    <!-- Contexto de cliente (2026-09) — de quién es esta dieta y contra qué
+         cifras se ajusta. Antes la pantalla era idéntica viniera de donde
+         viniera: al abrir la plantilla de una fase desde la ficha no se
+         decía de quién era ni qué objetivo tenía que cumplir.
+         El aviso de alcance NO es decorativo: la fase que el cliente tiene
+         aplicada es una copia congelada (ver diet-template-schema.js), así
+         que editar la plantilla no cambia lo que come hoy. -->
+    <div class="client-context" *ngIf="clientContextKind as kind">
+      <p class="client-context__title">
+        <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
+        <span [ngSwitch]="kind">
+          <ng-container *ngSwitchCase="'new'">
+            Nueva dieta para <strong>{{ clientContextName }}</strong>
+          </ng-container>
+          <ng-container *ngSwitchCase="'own'">
+            Dieta de <strong>{{ clientContextName }}</strong>
+          </ng-container>
+          <ng-container *ngSwitchCase="'assigned'">
+            Editando la dieta ya asignada a <strong>{{ clientContextName }}</strong>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            Plantilla general, abierta desde la ficha de <strong>{{ clientContextName }}</strong>
+          </ng-container>
+        </span>
+      </p>
+
+      <p class="client-context__scope" *ngIf="kind !== 'new'">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span *ngIf="kind === 'own'">
+          Esto es la plantilla: los cambios no tocan la fase que ya tiene aplicada.
+        </span>
+        <span *ngIf="kind === 'shared'">
+          Esto es la plantilla, y la comparten otros clientes: los cambios no tocan
+          la fase que {{ clientContextName }} ya tiene aplicada, pero sí lo que se
+          aplique a partir de ahora.
+        </span>
+        <span *ngIf="kind === 'assigned'">
+          Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
+          cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
+        </span>
+      </p>
+
+      <div class="client-context__target" *ngIf="clientTarget as target">
+        <span class="client-context__target-label">{{ clientTargetLabel }}</span>
+        <span class="client-context__target-values">
+          <strong>{{ target.kcal | number: '1.0-0' }} kcal</strong>
+          <span class="macro-tag macro-tag--protein">P {{ target.protein | number: '1.0-0' }}g</span>
+          <span class="macro-tag macro-tag--carbs">C {{ target.carbs | number: '1.0-0' }}g</span>
+          <span class="macro-tag macro-tag--fat">G {{ target.fat | number: '1.0-0' }}g</span>
+        </span>
+      </div>
+    </div>
+
     <div class="input-wrapper">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
@@ -33,6 +95,34 @@
         [placeholder]="isCreatingForClient ? 'Nombre de la dieta' : 'Nombre de la plantilla'"
         [(ngModel)]="name"
       />
+    </div>
+
+    <!-- Sugerencias de dieta — aptitud dietética. La deriva el backend de los
+         alimentos; el entrenador solo puede FORZAR las que la deriva no da
+         (productos sin el flag rellenado). Solo al editar una plantilla ya
+         guardada. -->
+    <div class="suitable-for" *ngIf="!isCreatingForClient">
+      <p class="section-hint">Apta para</p>
+      <div class="suitable-chips">
+        <button
+          type="button"
+          *ngFor="let opt of dietaryFlagOptions"
+          class="suitable-chip"
+          [class.is-on]="isSuitable(opt.key)"
+          [class.is-forced]="isForced(opt.key)"
+          [class.is-locked]="suitableForDerived.includes(opt.key)"
+          [title]="suitableForDerived.includes(opt.key) ? 'Todos los alimentos lo cumplen' : 'Forzar a mano'"
+          (click)="toggleSuitableOverride(opt.key)"
+        >
+          {{ opt.label }}
+          <span *ngIf="suitableForDerived.includes(opt.key)">✓</span>
+          <span *ngIf="isForced(opt.key)">(forzada)</span>
+        </button>
+      </div>
+      <p class="section-hint suitable-hint">
+        ✓ = todos los alimentos lo cumplen. "Forzada" = tú lo marcas pese a
+        alimentos sin ese dato. Se usa en el filtro del cajón de sugerencias.
+      </p>
     </div>
 
     <!-- Auditoría de arquitectura (Fase 8/9) — mismo tablero, tres maneras de
@@ -125,7 +215,35 @@
             (drop)="onCellDrop(d, s, $event)"
             (click)="openMealEditor(d, s)"
           >
-            <span class="board-cell-summary">{{ mealSummary(row.meals[s]) }}</span>
+            <span class="board-cell-summary" *ngIf="!row.meals[s].alternatives.length">Vacía</span>
+
+            <!-- Contenido real de la celda: cada alternativa con sus
+                 alimentos (nombre + gramos) y sus macros. Con 2+ alternativas
+                 cada bloque lleva su icono e etiqueta, que es lo que
+                 distingue "el cliente elige" de una comida normal. -->
+            <div
+              class="cell-alt"
+              *ngFor="let alt of row.meals[s].alternatives; let a = index; trackBy: trackByIndex"
+            >
+              <span class="cell-alt-header" *ngIf="row.meals[s].alternatives.length > 1">
+                <ion-icon name="swap-horizontal-outline"></ion-icon>
+                <span class="cell-alt-label">{{ alternativeLabel(alt, a, row.meals[s].alternatives.length) }}</span>
+              </span>
+
+              <ng-container *ngFor="let item of alt.items; trackBy: trackByIndex">
+                <span class="cell-food" *ngIf="item.productId || item.recipeId">
+                  <span class="cell-food-name">{{ itemLabel(item) }}</span>
+                  <span class="cell-food-qty" *ngIf="item.quantity">{{ item.quantity }}g</span>
+                </span>
+              </ng-container>
+
+              <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
+                <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
+                <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
+                <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+              </span>
+            </div>
             <button
               type="button"
               class="board-cell-action"
@@ -169,6 +287,22 @@
               <span class="macro-tag macro-tag--carbs">C {{ dayTotals(row).carbs | number: '1.0-0' }}g</span>
               <span class="macro-tag macro-tag--fat">G {{ dayTotals(row).fat | number: '1.0-0' }}g</span>
             </div>
+            <!-- Contexto de cliente — desvío de ESTE día respecto al objetivo
+                 de arriba. Solo aparece cuando hay un cliente detrás. -->
+            <div class="totals-deviation" *ngIf="targetDeviation(row) as dev">
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.kcal, 'kcal')">
+                {{ deviationLabel(dev.kcal) }} kcal
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.protein, 'macro')">
+                P {{ deviationLabel(dev.protein) }}
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.carbs, 'macro')">
+                C {{ deviationLabel(dev.carbs) }}
+              </span>
+              <span class="deviation-chip" [class.is-on-target]="isOnTarget(dev.fat, 'macro')">
+                G {{ deviationLabel(dev.fat) }}
+              </span>
+            </div>
           </ng-container>
           <ng-template #emptyTotals>
             <span class="totals-empty">Sin alimentos</span>
@@ -183,7 +317,7 @@
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : 'Guardar plantilla' }}</span>
+      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla') }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>

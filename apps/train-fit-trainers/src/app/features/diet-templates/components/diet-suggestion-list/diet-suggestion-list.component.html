@@ -1,0 +1,43 @@
+<ng-container *ngIf="results$ | async as d; else loadingOrEmpty">
+  <div class="suggestion-grid">
+    <app-diet-card
+      *ngFor="let t of d.ranked; trackBy: trackById"
+      [class.span-all]="t._id === (topSuggestionId$ | async)"
+      [name]="t.name"
+      [profile]="t.profile"
+      [deltas]="t.deltas"
+      [medal]="medal(t.rank)"
+      [verified]="t.verified"
+      [ownedByClient]="!!t.ownerClientId"
+      [basedOnDays]="t.basedOnDays"
+      [flags]="t.effectiveSuitableFor || []"
+      [missingFlags]="t.missingFlags || []"
+      [highlight]="t._id === (topSuggestionId$ | async)"
+      [selected]="(selectedId$ | async) === t._id"
+      (picked)="pick(t)"
+    ></app-diet-card>
+  </div>
+
+  <p class="empty-hint" *ngIf="!d.ranked.length">
+    No hay dietas que encajen con los filtros. Ajusta los parámetros a la derecha,
+    o crea una desde cero.
+  </p>
+
+  <!-- Las que no cumplen ya no se esconden: se listan detrás con su aviso.
+       Esta nota explica el rojo y qué hacer con él. -->
+  <p class="missing-note" *ngIf="missingCount(d.ranked) as n">
+    {{ n }} de estas dietas no {{ n === 1 ? 'cumple' : 'cumplen' }} las restricciones del
+    cliente. Se pueden aplicar igual: cambia después los alimentos que fallen.
+  </p>
+</ng-container>
+
+<ng-template #loadingOrEmpty>
+  <div class="list-skeleton" *ngIf="loading$ | async; else pickParams">
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+    <div class="skeleton-block"></div>
+  </div>
+  <ng-template #pickParams>
+    <p class="empty-hint">Elige los parámetros en el panel de la derecha para ver las dietas sugeridas.</p>
+  </ng-template>
+</ng-template>

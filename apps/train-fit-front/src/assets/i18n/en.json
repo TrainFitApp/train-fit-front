@@ -1802,7 +1802,10 @@
     "LIMIT_REACHED_PRO": "You have reached the maximum of 10 nutritional goals.",
     "LOCKED": "Pro",
     "LOCKED_FREE": "This goal is locked in Free mode. Activate Pro to use and edit up to 10 nutritional goals.",
-    "MINIMUM_ONE_MSG": "You must have at least one nutritional goal. Create another before deleting this one."
+    "MINIMUM_ONE_MSG": "You must have at least one nutritional goal. Create another before deleting this one.",
+    "TRAINER_ASSIGNED": "Prescribed",
+    "TRAINER_ASSIGNED_ALERT_HEADER": "Prescribed goal",
+    "TRAINER_ASSIGNED_ALERT_MSG": "This goal was set by your trainer. If you want to change it, talk to them directly."
   },
   "NUTRITIONAL_OBJECTIVES": {
     "TITLE": "Detailed Information",
@@ -1840,7 +1843,8 @@
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
     "OMEGA_9": "Omega-9",
-    "GOAL": "Nutrition Goal"
+    "GOAL": "Nutrition Goal",
+    "TRAINER_ASSIGNED": "Prescribed by your trainer"
   },
   "SUGGESTIONS": {
     "TITLE": "Reports & Suggestions",

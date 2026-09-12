@@ -6,6 +6,11 @@ export interface CategoryCard {
   icon: string;
   colorVar: string;
   path: string;
+  // Tarjeta visible pero no navegable, con badge "Próximamente" — una
+  // función que ya se enseña en la Biblioteca pero todavía no se abre a
+  // los entrenadores. `path` se mantiene igual (algunas plantillas la usan
+  // para el trackBy) aunque no se navegue a él.
+  locked?: boolean;
 }
 
 // Movimiento 1 Coach Pro — extraído tal cual del interior de TemplatesPage al
