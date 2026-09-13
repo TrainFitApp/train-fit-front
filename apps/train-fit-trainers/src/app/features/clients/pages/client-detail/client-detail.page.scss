@@ -2481,14 +2481,21 @@
     width: 100%;
   }
 
-  &__next-tag {
+  // Mismo hueco que ocupaba PRÓXIMO — ahora también EN CURSO en el ciclo
+  // actual, mismo sitio (misma fila que el título, alineado a la derecha).
+  &__tag {
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.04em;
-    // No el acento (eso es para la acción/estado que ya tiene la card, p.
-    // ej. is-edited): esto es solo contexto, un tono apagado como el resto
-    // de metadatos de la tarjeta.
+    // Por defecto (PRÓXIMO), no el acento: es solo contexto, un tono
+    // apagado como el resto de metadatos de la tarjeta.
     color: var(--tf-text-faint);
+
+    // EN CURSO sí lleva el acento — mismo lenguaje que "· en curso" en la
+    // card grande de la fase (.plan-phase-order--current).
+    &--accent {
+      color: var(--tf-accent-text);
+    }
   }
 
   &__label {

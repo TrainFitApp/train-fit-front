@@ -1138,7 +1138,7 @@
                   >
                     <span class="cycle-tile__title-row">
                       <span class="cycle-tile__label">Ciclo {{ pc.next.number }}</span>
-                      <span class="cycle-tile__next-tag">PRÓXIMO</span>
+                      <span class="cycle-tile__tag">PRÓXIMO</span>
                     </span>
                     <span class="cycle-tile__dates">{{ cycleDateRange(pc.next) }}</span>
                     <span class="cycle-tile__kcal">{{ nextCycleKcal || '—' }} kcal</span>
@@ -1151,7 +1151,10 @@
                     aria-label="Ver resumen del ciclo actual"
                     (click)="openCurrentCycleSummary()"
                   >
-                    <span class="cycle-tile__label">Ciclo {{ pc.current.number }}</span>
+                    <span class="cycle-tile__title-row">
+                      <span class="cycle-tile__label">Ciclo {{ pc.current.number }}</span>
+                      <span class="cycle-tile__tag cycle-tile__tag--accent">EN CURSO</span>
+                    </span>
                     <span class="cycle-tile__dates">{{ cycleDateRange(pc.current) }}</span>
                     <span class="cycle-tile__kcal">{{ pc.current.override.profile.kcal || '—' }} kcal</span>
                   </button>
