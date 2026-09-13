@@ -1413,6 +1413,14 @@
                       <button
                         type="button"
                         class="range-preset-btn"
+                        [class.is-active]="cyclesPreset === 1"
+                        (click)="applyCyclesPreset(1)"
+                      >
+                        Ciclo actual
+                      </button>
+                      <button
+                        type="button"
+                        class="range-preset-btn"
                         [class.is-active]="cyclesPreset === 3"
                         (click)="applyCyclesPreset(3)"
                       >

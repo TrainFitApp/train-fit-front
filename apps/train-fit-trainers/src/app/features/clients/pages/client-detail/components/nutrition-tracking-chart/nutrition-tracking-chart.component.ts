@@ -142,10 +142,20 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
     return Math.max(1, Math.round((to - from) / 86400000) + 1);
   }
 
+  // Los días futuros del rango SÍ pueden tener contenido pautado (el ciclo
+  // entero se crea de una vez), pero "0% consumido" en un día que aún no ha
+  // llegado no es un incumplimiento — es que no ha pasado. Se pide desde
+  // el backend hasta hoy como mucho; más allá no hay nada real que dibujar.
   private load(): void {
     if (!this.clientId || !this.customRange) return;
+    const from = this.customRange.start;
+    const to = this.clampToToday(this.customRange.end);
+    if (from > to) {
+      this.dailyTracking = [];
+      this.renderChart();
+      return;
+    }
     this.isLoading = true;
-    const { start: from, end: to } = this.customRange;
     this.clientDetailApi.getNutritionTracking(this.clientId, from, to).subscribe({
       next: (summary) => {
         this.isLoading = false;
@@ -158,6 +168,23 @@ export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDes
         this.renderChart();
       },
     });
+  }
+
+  private clampToToday(date: string): string {
+    const today = this.todayIso();
+    return date < today ? date : today;
+  }
+
+  // Fecha LOCAL, no UTC — mismo criterio que client-detail.page.ts
+  // (todayIsoDate/formatLocalIsoDate): con el navegador en un huso por
+  // delante de UTC, toISOString() da la fecha de AYER hasta que UTC
+  // alcanza la medianoche local.
+  private todayIso(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   private renderChart(): void {

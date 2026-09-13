@@ -105,10 +105,20 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
     };
   }
 
+  // Un día que todavía no ha llegado no tiene ni cumplimiento ni pesaje
+  // real que enseñar — se pide como mucho hasta hoy, aunque el rango
+  // elegido (p. ej. un preset de días que reparte mitad pasado/mitad
+  // futuro para previsualizar la fase) llegue más lejos.
   private load(): void {
     if (!this.clientId || !this.customRange) return;
+    const from = this.customRange.start;
+    const to = this.clampToToday(this.customRange.end);
+    if (from > to) {
+      this.days = [];
+      this.renderChart();
+      return;
+    }
     this.isLoading = true;
-    const { start: from, end: to } = this.customRange;
 
     forkJoin({
       compliance: this.clientDetailApi.getNutritionCompliance(this.clientId, from, to),
@@ -125,6 +135,23 @@ export class WeightAdherenceChartComponent implements OnChanges, OnInit, OnDestr
         this.renderChart();
       },
     });
+  }
+
+  private clampToToday(date: string): string {
+    const today = this.todayIso();
+    return date < today ? date : today;
+  }
+
+  // Fecha LOCAL, no UTC — mismo criterio que client-detail.page.ts
+  // (todayIsoDate/formatLocalIsoDate): con el navegador en un huso por
+  // delante de UTC, toISOString() da la fecha de AYER hasta que UTC
+  // alcanza la medianoche local.
+  private todayIso(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   // Un día por fecha del rango completo, aunque falte compliance o pesaje

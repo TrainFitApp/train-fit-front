@@ -396,6 +396,10 @@ export class ClientDetailPage implements OnInit {
   // días) — es otra forma de aterrizar en el mismo {start,end} de siempre,
   // solo que alineada a fronteras de ciclo y con las mismas Cn de por
   // medio que ya usa el resto de la app.
+  // 'days' de partida es solo el fallback sin fase (sin ciclos, "por
+  // ciclo" no tiene sentido) — con fase, applyInitialTrackingRangeDefault
+  // lo cambia a 'cycles' en cuanto loadPhaseCycles resuelve, antes de que
+  // el trainer llegue a ver nada.
   public nutritionRangeMode: 'days' | 'cycles' = 'days';
   // Nº de ciclos del preset activo en modo 'cycles' (null = "todos" desde
   // C1). Equivalente a nutritionPreset pero contando ciclos, no días.
@@ -405,7 +409,9 @@ export class ClientDetailPage implements OnInit {
     if (this.nutritionRangeMode === mode) return;
     this.nutritionRangeMode = mode;
     if (mode === 'cycles') {
-      this.applyCyclesPreset(3);
+      // El ciclo actual, no un histórico — mismo criterio que el rango con
+      // el que arranca Seguimiento al entrar (applyInitialTrackingRangeDefault).
+      this.applyCyclesPreset(1);
     } else {
       this.onNutritionPresetSelected(this.nutritionPreset ?? 30);
     }
@@ -441,27 +447,32 @@ export class ClientDetailPage implements OnInit {
   // Modo ciclo — cualquier selección (día suelto o rango arrastrado) se
   // expande a cubrir los ciclos completos que toca, para no dejar un
   // "medio ciclo" fuera de lugar en una unidad que se supone que es el
-  // ciclo entero. Sin ciclos que la cubran (fuera de cualquier ventana
-  // conocida), se deja la selección tal cual llegó.
+  // ciclo entero. Busca en TODAS las ventanas conocidas (windows: de C1 al
+  // siguiente incluido), no solo en las ya empezadas — clicar un día del
+  // ciclo siguiente (ya calendarizado, con su Cn pintado) debe resaltarlo
+  // entero igual que uno pasado; las gráficas ya recortan en hoy por su
+  // cuenta, así que un rango que asome al futuro no pinta nada falso. Sin
+  // ciclos que la cubran (fuera de cualquier ventana conocida), se deja la
+  // selección tal cual llegó.
   private snapRangeToCycles(range: { start: string; end: string }): { start: string; end: string } {
-    const overlapping = this.startedCycleWindows.filter(
+    const overlapping = (this.phaseCycles?.windows || []).filter(
       (w) => w.start <= range.end && w.end >= range.start
     );
     if (!overlapping.length) return range;
-    const today = this.todayIsoDate();
-    const lastEnd = overlapping[overlapping.length - 1].end;
     return {
       start: overlapping[0].start,
-      end: lastEnd < today ? lastEnd : today,
+      end: overlapping[overlapping.length - 1].end,
     };
   }
 
   // Etiqueta de la card en modo ciclo — "C1 28 ago → C4 6 sept" (un solo
-  // ciclo: "C1 28 ago → 3 sept", sin repetir el número).
+  // ciclo: "C1 28 ago → 3 sept", sin repetir el número). Busca en TODAS las
+  // ventanas (no solo empezadas) — mismo motivo que snapRangeToCycles: el
+  // rango puede apuntar al ciclo siguiente tras un click en el calendario.
   public get cycleRangeLabel(): string {
     if (!this.customTrackingRange) return '';
     const range = this.customTrackingRange;
-    const overlapping = this.startedCycleWindows.filter(
+    const overlapping = (this.phaseCycles?.windows || []).filter(
       (w) => w.start <= range.end && w.end >= range.start
     );
     if (!overlapping.length) return '';
@@ -1742,14 +1753,6 @@ export class ClientDetailPage implements OnInit {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
 
-    // F20-ter — sin un rango de partida <app-nutrition-tracking-chart> no
-    // pide nada (su ngOnInit exige customRange) y se queda en "Sin nada
-    // pautado de lo seleccionado en este rango" aunque el cliente sí tenga
-    // datos: el calendario no emite un rango por defecto por su cuenta.
-    if (!this.customTrackingRange) {
-      this.onNutritionPresetSelected(30);
-    }
-
     this.clientDetailApi
       .getNutritionalGoals(this.clientId)
       .toPromise()
@@ -1995,12 +1998,36 @@ export class ClientDetailPage implements OnInit {
     const phaseId = this.activePlan?.phaseId;
     if (!phaseId) {
       this.phaseCycles = null;
+      this.applyInitialTrackingRangeDefault();
       return;
     }
     this.dietSuggestionApi.getPhaseCycles(this.clientId, phaseId).subscribe({
-      next: (res) => (this.phaseCycles = res),
-      error: () => (this.phaseCycles = null),
+      next: (res) => {
+        this.phaseCycles = res;
+        this.applyInitialTrackingRangeDefault();
+      },
+      error: () => {
+        this.phaseCycles = null;
+        this.applyInitialTrackingRangeDefault();
+      },
     });
+  }
+
+  // F20-unvicies — hasta no saber si hay fase (loadPhaseCycles, async) no
+  // se puede decidir el rango de arranque de Seguimiento: sin ciclos que
+  // enseñar, "por ciclo" no tiene sentido. Por eso el rango por defecto no
+  // se fija en loadNutrition (se dispara antes de tener esta respuesta),
+  // sino aquí. Solo aplica la PRIMERA vez (customTrackingRange sigue null)
+  // — loadPhaseCycles se repite tras cualquier cambio de plan/ciclo, y no
+  // debe pisar un rango que el trainer ya haya elegido.
+  private applyInitialTrackingRangeDefault(): void {
+    if (this.customTrackingRange) return;
+    if (this.startedCycleWindows.length) {
+      this.nutritionRangeMode = 'cycles';
+      this.applyCyclesPreset(1);
+    } else {
+      this.onNutritionPresetSelected(30);
+    }
   }
 
   // Mismo color que este tramo pinta en <app-nutrition-calendar> — mismo
