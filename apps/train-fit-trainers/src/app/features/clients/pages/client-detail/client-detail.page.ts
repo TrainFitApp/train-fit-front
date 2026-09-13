@@ -80,6 +80,7 @@ import {
   DietException,
   PlanAssignment,
 } from '../../../../shared/models/plan-assignment.model';
+import { cycleWindowsUntil } from './cycle-label.util';
 import { forkJoin } from 'rxjs';
 import { UserService } from 'src/app/core/services/user/user.service';
 import { TableService } from 'src/app/core/services/table/table.service';
@@ -444,20 +445,35 @@ export class ClientDetailPage implements OnInit {
     };
   }
 
+  // Asignaciones (docs de contenido) de la fase vigente — el mismo material
+  // con el que <app-nutrition-calendar> calcula los badges C1/C2/C3 de cada
+  // día (cycleLabelFor, filtrando allPhasesHistory por phaseId). A
+  // diferencia de phaseCycles.windows (que el backend solo rellena hasta el
+  // ciclo SIGUIENTE, pensado para el cajón de sugerencia), esto permite
+  // proyectar cualquier Cn, por lejano que esté, con la misma cuenta que ya
+  // ve pintada el trainer en el calendario.
+  private get activePhaseCycleAssignments(): PlanAssignment[] {
+    const phaseKey = this.activePlan?.phaseId || this.activePlan?._id;
+    if (!phaseKey) return [];
+    return this.allPhasesHistory.filter((p) => (p.phaseId || p._id) === phaseKey);
+  }
+
   // Modo ciclo — cualquier selección (día suelto o rango arrastrado) se
   // expande a cubrir los ciclos completos que toca, para no dejar un
   // "medio ciclo" fuera de lugar en una unidad que se supone que es el
-  // ciclo entero. Busca en TODAS las ventanas conocidas (windows: de C1 al
-  // siguiente incluido), no solo en las ya empezadas — clicar un día del
-  // ciclo siguiente (ya calendarizado, con su Cn pintado) debe resaltarlo
-  // entero igual que uno pasado; las gráficas ya recortan en hoy por su
-  // cuenta, así que un rango que asome al futuro no pinta nada falso. Sin
-  // ciclos que la cubran (fuera de cualquier ventana conocida), se deja la
-  // selección tal cual llegó.
+  // ciclo entero. cycleWindowsUntil calcula las ventanas de la fase desde
+  // C1 hasta la que contiene la fecha dada — sin el límite de
+  // phaseCycles.windows (que el backend solo rellena hasta el ciclo
+  // siguiente): clicar un día de C3, C4... (ya con su Cn pintado en el
+  // calendario aunque no exista contenido propio persistido todavía) debe
+  // resaltarlo entero igual que uno pasado. Las gráficas ya recortan en hoy
+  // por su cuenta, así que un rango que asome al futuro no pinta nada
+  // falso. Sin ciclos que la cubran, se deja la selección tal cual llegó.
   private snapRangeToCycles(range: { start: string; end: string }): { start: string; end: string } {
-    const overlapping = (this.phaseCycles?.windows || []).filter(
-      (w) => w.start <= range.end && w.end >= range.start
-    );
+    const cycles = this.activePhaseCycleAssignments;
+    if (!cycles.length) return range;
+    const windows = cycleWindowsUntil(range.end, cycles);
+    const overlapping = windows.filter((w) => w.start <= range.end && w.end >= range.start);
     if (!overlapping.length) return range;
     return {
       start: overlapping[0].start,
@@ -466,15 +482,16 @@ export class ClientDetailPage implements OnInit {
   }
 
   // Etiqueta de la card en modo ciclo — "C1 28 ago → C4 6 sept" (un solo
-  // ciclo: "C1 28 ago → 3 sept", sin repetir el número). Busca en TODAS las
-  // ventanas (no solo empezadas) — mismo motivo que snapRangeToCycles: el
-  // rango puede apuntar al ciclo siguiente tras un click en el calendario.
+  // ciclo: "C1 28 ago → 3 sept", sin repetir el número). Mismo cálculo sin
+  // límite que snapRangeToCycles — el rango puede apuntar a cualquier Cn
+  // tras un click en el calendario.
   public get cycleRangeLabel(): string {
     if (!this.customTrackingRange) return '';
     const range = this.customTrackingRange;
-    const overlapping = (this.phaseCycles?.windows || []).filter(
-      (w) => w.start <= range.end && w.end >= range.start
-    );
+    const cycles = this.activePhaseCycleAssignments;
+    if (!cycles.length) return '';
+    const windows = cycleWindowsUntil(range.end, cycles);
+    const overlapping = windows.filter((w) => w.start <= range.end && w.end >= range.start);
     if (!overlapping.length) return '';
     const fmt = (iso: string): string =>
       new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
