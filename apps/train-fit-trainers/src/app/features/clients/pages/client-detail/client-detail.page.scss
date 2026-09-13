@@ -317,6 +317,122 @@
   }
 }
 
+// F20-vicies — alterna entre <app-nutrition-tracking-chart> y
+// <app-weight-adherence-chart> en la sección Seguimiento (QUÉ gráfica).
+// F20-unvicies — .range-mode-toggle/.range-mode-btn son el mismo patrón
+// visual para un control hermano pero distinto: CÓMO se elige el rango
+// (por días sueltos o por ciclos completos) — comparten regla para que las
+// dos parejas de píldoras que conviven en esa tarjeta se lean como la
+// misma familia.
+.chart-view-toggle,
+.range-mode-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.chart-view-btn,
+.range-mode-btn {
+  min-height: 30px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
+// F20-unvicies — fila de "cómo elegir el rango" dentro de la card de
+// Seguimiento: el toggle días/ciclo, la etiqueta de fechas (o de ciclos:
+// "C1 28 ago → C4 6 sept") y sus presets — antes vivía repetida dentro de
+// cada gráfica (NutritionTrackingChartComponent/WeightAdherenceChartComponent);
+// ahora es una sola fila compartida por las dos.
+.range-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--tf-space-3);
+  padding-bottom: var(--tf-space-3);
+  border-bottom: 1px solid var(--tf-border-subtle);
+}
+
+.range-dates {
+  font-size: var(--tf-font-size-sm);
+  font-weight: 600;
+  color: var(--tf-text);
+}
+
+.range-preset-group {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.range-preset-btn {
+  position: relative;
+  min-height: 30px;
+  padding: 0 var(--tf-space-3);
+  background: var(--tf-surface-2);
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-pill);
+  color: var(--tf-text-muted);
+  font-family: inherit;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--tf-duration-fast) var(--tf-ease-out),
+    color var(--tf-duration-fast) var(--tf-ease-out);
+
+  // 30px pintados, 44 pulsables.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: var(--tf-touch-min, 44px);
+    transform: translateY(-50%);
+  }
+
+  &:hover {
+    color: var(--tf-text);
+  }
+
+  &.is-active {
+    background: var(--tf-accent-soft);
+    border-color: var(--tf-accent);
+    color: var(--tf-accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+}
+
 // Agrupa 2+ acciones dentro de un .section-row (p.ej. "Asignar
 // rutina"/"Programar" en Fases de entrenamiento) para que se queden juntas
 // a la derecha en vez de repartirse por el space-between del padre.

@@ -68,6 +68,7 @@ import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
 import {
+  CycleWindow,
   MissingBiometricsError,
   NutritionTarget,
   PhaseCyclesResponse,
@@ -371,11 +372,127 @@ export class ClientDetailPage implements OnInit {
   // proximidad completo.
   private readonly weekdayPatternColors = PHASE_COLORS;
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
-  // inicio/fin, o sus botones 7/30/90d). Null de entrada a propósito: sin
-  // rango preseleccionado al abrir la ficha, ni gráfica ni calendario
-  // pintan nada hasta que el trainer elija uno.
+  // inicio/fin, o sus botones 7/30/90d). Empieza en null pero loadNutrition()
+  // lo rellena con un preset de 1 mes si sigue sin elegirse — sin eso
+  // <app-nutrition-tracking-chart> y <app-weight-adherence-chart> no piden
+  // nada hasta que el trainer toca algo (ver loadNutrition()).
   public customTrackingRange: { start: string; end: string } | null = null;
   public nutritionPreset: number | null = null;
+
+  // F20-vicies — qué vista de "Seguimiento" está activa: cumplimiento/macros
+  // día a día, o peso vs. adherencia. Comparten customTrackingRange —
+  // alternar no reinicia el rango elegido.
+  public nutritionChartView: 'daily' | 'weight' = 'daily';
+
+  public setNutritionChartView(view: 'daily' | 'weight'): void {
+    this.nutritionChartView = view;
+  }
+
+  // F20-unvicies — CÓMO se elige customTrackingRange, ortogonal a
+  // nutritionChartView: mismo rango, misma gráfica, solo cambia si los
+  // presets/el calendario piensan en días sueltos o en ciclos completos.
+  // "Por ciclo" NO es una gráfica distinta (eso se probó y se descartó —
+  // filtrar por ciclos es, para el usuario, tan simple como filtrar por
+  // días) — es otra forma de aterrizar en el mismo {start,end} de siempre,
+  // solo que alineada a fronteras de ciclo y con las mismas Cn de por
+  // medio que ya usa el resto de la app.
+  public nutritionRangeMode: 'days' | 'cycles' = 'days';
+  // Nº de ciclos del preset activo en modo 'cycles' (null = "todos" desde
+  // C1). Equivalente a nutritionPreset pero contando ciclos, no días.
+  public cyclesPreset: number | null = null;
+
+  public setNutritionRangeMode(mode: 'days' | 'cycles'): void {
+    if (this.nutritionRangeMode === mode) return;
+    this.nutritionRangeMode = mode;
+    if (mode === 'cycles') {
+      this.applyCyclesPreset(3);
+    } else {
+      this.onNutritionPresetSelected(this.nutritionPreset ?? 30);
+    }
+  }
+
+  // Ciclos que ya han empezado (start <= hoy) — los futuros (el "next" de
+  // phaseCycles) no tienen nada que mostrar todavía.
+  private get startedCycleWindows(): CycleWindow[] {
+    const today = this.todayIsoDate();
+    return (this.phaseCycles?.windows || []).filter((w) => w.start <= today);
+  }
+
+  // "Últimos 3/6 ciclos" o "Todos" (count null): equivalente en ciclos a
+  // onNutritionPresetSelected. Cierra en hoy si el último ciclo del tramo
+  // sigue en curso (mismo criterio que el resto de Seguimiento: no pedir
+  // días futuros sin datos).
+  public applyCyclesPreset(count: number | null): void {
+    this.cyclesPreset = count;
+    const windows = this.startedCycleWindows;
+    if (!windows.length) {
+      this.customTrackingRange = null;
+      return;
+    }
+    const slice = count ? windows.slice(-count) : windows;
+    const today = this.todayIsoDate();
+    const lastEnd = slice[slice.length - 1].end;
+    this.customTrackingRange = {
+      start: slice[0].start,
+      end: lastEnd < today ? lastEnd : today,
+    };
+  }
+
+  // Modo ciclo — cualquier selección (día suelto o rango arrastrado) se
+  // expande a cubrir los ciclos completos que toca, para no dejar un
+  // "medio ciclo" fuera de lugar en una unidad que se supone que es el
+  // ciclo entero. Sin ciclos que la cubran (fuera de cualquier ventana
+  // conocida), se deja la selección tal cual llegó.
+  private snapRangeToCycles(range: { start: string; end: string }): { start: string; end: string } {
+    const overlapping = this.startedCycleWindows.filter(
+      (w) => w.start <= range.end && w.end >= range.start
+    );
+    if (!overlapping.length) return range;
+    const today = this.todayIsoDate();
+    const lastEnd = overlapping[overlapping.length - 1].end;
+    return {
+      start: overlapping[0].start,
+      end: lastEnd < today ? lastEnd : today,
+    };
+  }
+
+  // Etiqueta de la card en modo ciclo — "C1 28 ago → C4 6 sept" (un solo
+  // ciclo: "C1 28 ago → 3 sept", sin repetir el número).
+  public get cycleRangeLabel(): string {
+    if (!this.customTrackingRange) return '';
+    const range = this.customTrackingRange;
+    const overlapping = this.startedCycleWindows.filter(
+      (w) => w.start <= range.end && w.end >= range.start
+    );
+    if (!overlapping.length) return '';
+    const fmt = (iso: string): string =>
+      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+      });
+    const first = overlapping[0];
+    const last = overlapping[overlapping.length - 1];
+    if (first.number === last.number) {
+      return `C${first.number} ${fmt(range.start)} → ${fmt(range.end)}`;
+    }
+    return `C${first.number} ${fmt(range.start)} → C${last.number} ${fmt(range.end)}`;
+  }
+
+  // Etiqueta de la card en modo días — "29 ago → 28 sept". Antes vivía
+  // dentro de cada gráfica (NutritionTrackingChartComponent/
+  // WeightAdherenceChartComponent); ahora que el selector de rango es uno
+  // solo, compartido por las dos, la etiqueta también.
+  public get trackingRangeLabel(): string {
+    if (!this.customTrackingRange) return '';
+    const fmt = (iso: string): string =>
+      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+      });
+    return `${fmt(this.customTrackingRange.start)} → ${fmt(this.customTrackingRange.end)}`;
+  }
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
   // Perezoso (solo al expandir) — no todos los trainers necesitan mirar
@@ -1625,6 +1742,14 @@ export class ClientDetailPage implements OnInit {
     this.nutritionDate = date;
     this.nutritionState = 'loading';
 
+    // F20-ter — sin un rango de partida <app-nutrition-tracking-chart> no
+    // pide nada (su ngOnInit exige customRange) y se queda en "Sin nada
+    // pautado de lo seleccionado en este rango" aunque el cliente sí tenga
+    // datos: el calendario no emite un rango por defecto por su cuenta.
+    if (!this.customTrackingRange) {
+      this.onNutritionPresetSelected(30);
+    }
+
     this.clientDetailApi
       .getNutritionalGoals(this.clientId)
       .toPromise()
@@ -1687,6 +1812,13 @@ export class ClientDetailPage implements OnInit {
   }
 
   public onNutritionRangeSelected(range: { start: string; end: string }): void {
+    if (this.nutritionRangeMode === 'cycles') {
+      // Manual en modo ciclo: deja de haber preset de Nº de ciclos activo,
+      // y el rango arrastrado se expande a los ciclos completos que toca.
+      this.cyclesPreset = null;
+      this.customTrackingRange = this.snapRangeToCycles(range);
+      return;
+    }
     // Rango elegido a mano en el calendario: deja de haber preset activo.
     this.nutritionPreset = null;
     this.customTrackingRange = range;
@@ -1703,6 +1835,13 @@ export class ClientDetailPage implements OnInit {
   // esté mirando, así que no queda nada de verdad que releer.
   public onNutritionDateSelected(date: string): void {
     this.nutritionDate = date;
+    // Modo ciclo — un click suelto (sin arrastrar) también cuenta como
+    // selección de rango para Seguimiento: el ciclo que contiene ese día
+    // se resalta entero, igual que un rango arrastrado (onNutritionRangeSelected).
+    if (this.nutritionRangeMode === 'cycles') {
+      this.cyclesPreset = null;
+      this.customTrackingRange = this.snapRangeToCycles({ start: date, end: date });
+    }
   }
 
   // Fecha de calendario LOCAL, no UTC: `startDate` de una fase es el día

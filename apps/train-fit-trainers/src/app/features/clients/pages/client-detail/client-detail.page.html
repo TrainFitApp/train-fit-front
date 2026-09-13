@@ -1318,14 +1318,136 @@
             <div class="nutrition-chart-col">
               <div class="section-row">
                 <h2 class="section-heading">Seguimiento</h2>
+                <!-- F20-vicies — alterna entre la gráfica diaria (macros
+                     pautado/consumido) y peso vs. adherencia, sin perder el
+                     rango de fechas elegido (ambas comparten
+                     customTrackingRange). QUÉ gráfica se ve — distinto de
+                     CÓMO se elige el rango (días/ciclo), ver más abajo. -->
+                <div class="chart-view-toggle" role="group" aria-label="Vista de la gráfica de seguimiento">
+                  <button
+                    type="button"
+                    class="chart-view-btn"
+                    [class.is-active]="nutritionChartView === 'daily'"
+                    (click)="setNutritionChartView('daily')"
+                  >
+                    Cumplimiento
+                  </button>
+                  <button
+                    type="button"
+                    class="chart-view-btn"
+                    [class.is-active]="nutritionChartView === 'weight'"
+                    (click)="setNutritionChartView('weight')"
+                  >
+                    Peso y adherencia
+                  </button>
+                </div>
               </div>
               <div class="nutrition-card">
+                <!-- F20-unvicies — CÓMO se elige customTrackingRange: por
+                     días sueltos (como siempre) o por ciclos completos.
+                     Compartido por las dos gráficas de arriba — mismo
+                     rango, misma tarjeta, solo cambia cómo se aterriza en
+                     él. "Por ciclo" solo tiene sentido si hay una fase con
+                     ciclos que enseñar (phaseCycles); sin fase, se queda en
+                     días sin más (por eso el `|| !phaseCycles` de abajo:
+                     si la fase desaparece mientras se mira, no se queda
+                     enseñando los controles de ciclo sin forma de salir de
+                     ahí). -->
+                <div class="range-mode-row">
+                  <div
+                    class="range-mode-toggle"
+                    role="group"
+                    aria-label="Cómo elegir el rango de fechas"
+                    *ngIf="phaseCycles"
+                  >
+                    <button
+                      type="button"
+                      class="range-mode-btn"
+                      [class.is-active]="nutritionRangeMode === 'days'"
+                      (click)="setNutritionRangeMode('days')"
+                    >
+                      Por días
+                    </button>
+                    <button
+                      type="button"
+                      class="range-mode-btn"
+                      [class.is-active]="nutritionRangeMode === 'cycles'"
+                      (click)="setNutritionRangeMode('cycles')"
+                    >
+                      Por ciclo
+                    </button>
+                  </div>
+
+                  <ng-container *ngIf="nutritionRangeMode === 'days' || !phaseCycles; else cycleRangeControls">
+                    <span class="range-dates" *ngIf="customTrackingRange">{{ trackingRangeLabel }}</span>
+                    <div class="range-preset-group">
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="nutritionPreset === 7"
+                        (click)="onNutritionPresetSelected(7)"
+                      >
+                        Una semana
+                      </button>
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="nutritionPreset === 30"
+                        (click)="onNutritionPresetSelected(30)"
+                      >
+                        1 mes
+                      </button>
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="nutritionPreset === 90"
+                        (click)="onNutritionPresetSelected(90)"
+                      >
+                        3 meses
+                      </button>
+                    </div>
+                  </ng-container>
+                  <ng-template #cycleRangeControls>
+                    <span class="range-dates" *ngIf="cycleRangeLabel">{{ cycleRangeLabel }}</span>
+                    <div class="range-preset-group">
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="cyclesPreset === 3"
+                        (click)="applyCyclesPreset(3)"
+                      >
+                        Últimos 3 ciclos
+                      </button>
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="cyclesPreset === 6"
+                        (click)="applyCyclesPreset(6)"
+                      >
+                        Últimos 6 ciclos
+                      </button>
+                      <button
+                        type="button"
+                        class="range-preset-btn"
+                        [class.is-active]="cyclesPreset === null"
+                        (click)="applyCyclesPreset(null)"
+                      >
+                        Todos
+                      </button>
+                    </div>
+                  </ng-template>
+                </div>
+
                 <app-nutrition-tracking-chart
+                  *ngIf="nutritionChartView === 'daily'"
                   [clientId]="clientId"
                   [customRange]="customTrackingRange"
-                  [activePreset]="nutritionPreset"
-                  (presetSelected)="onNutritionPresetSelected($event)"
                 ></app-nutrition-tracking-chart>
+                <app-weight-adherence-chart
+                  *ngIf="nutritionChartView === 'weight'"
+                  [clientId]="clientId"
+                  [customRange]="customTrackingRange"
+                ></app-weight-adherence-chart>
               </div>
             </div>
           </div>

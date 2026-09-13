@@ -12,6 +12,7 @@ import { NutritionCalendarComponent } from './pages/client-detail/components/nut
 import { CheckinHistoryChartComponent } from './pages/client-detail/components/checkin-history-chart/checkin-history-chart.component';
 import { CheckinWorkspaceComponent } from './pages/client-detail/components/checkin-workspace/checkin-workspace.component';
 import { NutritionTrackingChartComponent } from './pages/client-detail/components/nutrition-tracking-chart/nutrition-tracking-chart.component';
+import { WeightAdherenceChartComponent } from './pages/client-detail/components/weight-adherence-chart/weight-adherence-chart.component';
 import { ClientSummaryComponent } from './pages/client-detail/components/client-summary/client-summary.component';
 import { ClientRosterComponent } from './components/client-roster/client-roster.component';
 import { BodyCalculatorComponent } from './pages/client-detail/components/body-calculator/body-calculator.component';
@@ -42,6 +43,7 @@ import { DietCardModule } from '../../shared/components/diet-card/diet-card.modu
     CheckinHistoryChartComponent,
     CheckinWorkspaceComponent,
     NutritionTrackingChartComponent,
+    WeightAdherenceChartComponent,
     ClientSummaryComponent,
     ClientRosterComponent,
     BodyCalculatorComponent,

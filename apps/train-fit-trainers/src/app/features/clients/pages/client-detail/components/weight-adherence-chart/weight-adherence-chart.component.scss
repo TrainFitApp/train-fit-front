@@ -1,0 +1,91 @@
+.weight-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-hint {
+  font-size: 0.86rem;
+  color: var(--tf-text-muted);
+  margin: 0;
+}
+
+.weight-chart__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tf-space-3);
+}
+
+.weight-chart__summary-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--tf-text-muted);
+
+  strong {
+    color: var(--tf-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+}
+
+.weight-chart__summary-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--adherence {
+    background: #fe9000;
+  }
+
+  &--weight {
+    background: #d4af37;
+  }
+}
+
+// Mismo criterio que .tracking-chart__canvas-wrap (componente hermano):
+// alto fijo + responsive:true/maintainAspectRatio:false en Chart.js.
+.weight-chart__canvas-wrap {
+  position: relative;
+  height: 180px;
+  transition: opacity var(--tf-duration-fast) var(--tf-ease-out);
+
+  &.is-loading {
+    opacity: 0.5;
+  }
+}
+
+.weight-chart__legend {
+  display: flex;
+  gap: var(--tf-space-4);
+}
+
+.weight-chart .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-muted);
+}
+
+.weight-chart__no-weight {
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-text-faint);
+  font-style: italic;
+}
+
+.weight-chart .legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+
+  &--adherence {
+    background: #fe9000;
+  }
+
+  &--weight {
+    background: repeating-linear-gradient(90deg, #d4af37 0 3px, transparent 3px 6px);
+  }
+}

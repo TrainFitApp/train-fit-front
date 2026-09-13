@@ -1,9 +1,7 @@
 import {
   Component,
   ElementRef,
-  EventEmitter,
   Input,
-  Output,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -41,11 +39,11 @@ const METRIC_OPTIONS: MetricOption[] = [
 
 const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "100% de lo pautado"
 
-// F20-terdecies — el rango de fechas (7/30/90d o uno elegido a mano) ya no
-// vive aquí, vive en <app-nutrition-calendar>: "qué fechas ver" se decide
-// en un único sitio (el calendario) y esta gráfica se limita a dibujar
-// [customRange]. Sin selector propio de rango — depende por completo de lo
-// que le llegue del padre.
+// F20-terdecies/F20-unvicies — el rango de fechas (días sueltos o ciclos
+// completos, con sus presets) ya no vive aquí: vive en client-detail.page
+// (compartido con <app-weight-adherence-chart>, que necesita exactamente
+// el mismo selector). Esta gráfica se limita a dibujar [customRange] — sin
+// UI propia de rango, depende por completo de lo que le llegue del padre.
 //
 // F20-ter/sexies — un único gráfico de LÍNEAS que compara, día a día, lo
 // PAUTADO contra lo REALMENTE consumido, con selección MÚLTIPLE de qué
@@ -65,37 +63,11 @@ const REFERENCE_COLOR = '#8b8b8b'; // --tf-text-muted — línea de referencia "
 })
 export class NutritionTrackingChartComponent implements OnChanges, OnInit, OnDestroy {
   @Input() clientId = '';
-  // F20-quinquies — rango exacto elegido en <app-nutrition-calendar> (a
-  // mano o vía sus botones 7/30/90d). El calendario ya emite un rango por
-  // defecto al cargar, así que en la práctica esto rara vez llega null.
+  // F20-quinquies/F20-unvicies — rango exacto elegido en el padre (días
+  // sueltos o ciclos completos — ver client-detail.page.ts). El padre ya
+  // rellena un rango por defecto al cargar, así que en la práctica esto
+  // rara vez llega null.
   @Input() customRange: { start: string; end: string } | null = null;
-  @Input() activePreset: number | null = 30;
-  @Output() presetSelected = new EventEmitter<number>();
-
-  // "7d/30d/90d" era jerga de panel; el trainer piensa en semanas y meses.
-  // Los días siguen siendo el valor real que viaja: solo cambia cómo se
-  // nombra.
-  public readonly rangePresets = [
-    { days: 7, label: 'Una semana' },
-    { days: 30, label: '1 mes' },
-    { days: 90, label: '3 meses' },
-  ];
-
-  public selectPreset(days: number): void {
-    this.presetSelected.emit(days);
-  }
-
-  // "1 mar → 31 mar" en vez de dos fechas ISO crudas.
-  public get rangeLabel(): string {
-    if (!this.customRange) return '';
-    const fmt = (iso: string): string =>
-      new Date(iso + 'T00:00:00Z').toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'short',
-        timeZone: 'UTC',
-      });
-    return `${fmt(this.customRange.start)} → ${fmt(this.customRange.end)}`;
-  }
 
   // static:true → resuelto antes de ngOnInit (a diferencia de
   // ngAfterViewInit), mismo criterio que AnthropometryChartComponent.
