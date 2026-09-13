@@ -3,7 +3,7 @@ import { Observable, take } from 'rxjs';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { CustomProduct } from '../../models/customProduct';
 import { CustomRecipe } from '../../models/customRecipe';
-import { DietDay } from '../../models/dietDay';
+import { DietDay, DietDayCycle, DietTimeline, PlannedTarget } from '../../models/dietDay';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { User } from '../../models/user';
 import { HttpService } from '../http/http.service';
@@ -17,11 +17,24 @@ export class DietDayAPIService {
   public getDietDayByIdDietAndDate(
     id: string,
     date: string
-  ): Observable<{ dietDay: DietDay; anthropometry: Anthropometry | null }> {
-    return this.http.post<{ dietDay: DietDay; anthropometry: Anthropometry | null }>(
-      `${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${id}`,
-      { date }
-    );
+  ): Observable<{
+    dietDay: DietDay;
+    anthropometry: Anthropometry | null;
+    plannedTarget?: PlannedTarget | null;
+    cycle?: DietDayCycle | null;
+  }> {
+    return this.http.post<{
+      dietDay: DietDay;
+      anthropometry: Anthropometry | null;
+      plannedTarget?: PlannedTarget | null;
+      cycle?: DietDayCycle | null;
+    }>(`${DietDayAPIService.DIET_DAYS_ENDPOINT}/date/${id}`, { date });
+  }
+
+  // Ciclos por contenido — fases y ciclos del cliente en un rango, para el
+  // slider de días de la pantalla de dieta.
+  public getTimeline(from: string, to: string): Observable<DietTimeline> {
+    return this.http.get<DietTimeline>(`${DietDayAPIService.DIET_DAYS_ENDPOINT}/timeline?from=${from}&to=${to}`);
   }
 
   public getDietDaysBetweenDatesByIdDiet(

@@ -33,10 +33,13 @@ export class MacrosBarsComponent implements OnDestroy {
   public user: User;
   public activeGoal: NutritionalGoal | null = null;
 
-  public get _kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
-  public get _proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
-  public get _carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
-  public get _fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
+  // Ciclos por contenido — con dieta pautada, la meta del día es lo que suma
+  // lo pautado (dietDay.plannedTarget); sin pauta ese día, el objetivo en
+  // uso de siempre.
+  public get _kcalTotal(): number { return this.dietDay?.plannedTarget?.kcal || this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
+  public get _proteinsGTotal(): number { return this.dietDay?.plannedTarget?.protein || this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
+  public get _carbohydratesGTotal(): number { return this.dietDay?.plannedTarget?.carbs || this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
+  public get _fatGTotal(): number { return this.dietDay?.plannedTarget?.fat || this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
 
   public macrosData: MacrosData = new MacrosData();
 

@@ -796,15 +796,23 @@
           <!-- F29 -->
           <div class="section-row">
             <h2 class="section-heading">Preferencias nutricionales</h2>
-            <button
-              class="add-button"
-              *ngIf="!nutritionPreferencesPending"
-              (click)="requestNutritionPreferences()"
-              [disabled]="isRequestingPreferences"
-            >
-              <ion-icon name="paper-plane-outline"></ion-icon>
-              {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar cuestionario' }}
-            </button>
+            <div class="section-row-actions">
+              <!-- Editar directamente en vez de esperar a que el cliente
+                   responda el cuestionario. -->
+              <button class="add-button" (click)="openNutritionPreferencesPanel()">
+                <ion-icon name="create-outline"></ion-icon>
+                Editar
+              </button>
+              <button
+                class="add-button"
+                *ngIf="!nutritionPreferencesPending"
+                (click)="requestNutritionPreferences()"
+                [disabled]="isRequestingPreferences"
+              >
+                <ion-icon name="paper-plane-outline"></ion-icon>
+                {{ nutritionPreferences ? 'Volver a solicitar' : 'Solicitar cuestionario' }}
+              </button>
+            </div>
           </div>
 
           <p class="empty-hint" *ngIf="nutritionPreferencesPending">
@@ -835,13 +843,102 @@
               <span class="preferences-label">¿Cocina en casa?</span>
               <p class="preferences-value">{{ cooksAtHomeLabel(nutritionPreferences?.cooksAtHome ?? null) }}</p>
             </div>
-            <!-- TASK-004 — solo lectura: lo configura el propio cliente en Mis
-                 preferencias nutricionales. Nota: todavía no afecta a la dieta
-                 real que ve el cliente (ver seguimiento en MASTER_BACKLOG.md). -->
+            <!-- TASK-004 — lo configura el cliente en Mis preferencias
+                 nutricionales, o el profesional desde "Editar" arriba. Nota:
+                 todavía no afecta a la dieta real que ve el cliente (ver
+                 seguimiento en MASTER_BACKLOG.md). -->
             <div class="preferences-field" *ngIf="nutritionPreferences?.disabledMealSlots?.length">
               <span class="preferences-label">Comidas que no hace</span>
               <p class="preferences-value">{{ nutritionPreferences.disabledMealSlots.join(', ') }}</p>
             </div>
+          </div>
+
+          <!-- Panel: editar preferencias nutricionales (el profesional las
+               rellena/edita directamente en vez de esperar la respuesta del
+               cliente). Mismos campos que el editor del propio cliente. -->
+          <div class="panel-backdrop" *ngIf="showNutritionPreferencesPanel" (click)="closeNutritionPreferencesPanel()"></div>
+          <div class="panel-sheet" *ngIf="showNutritionPreferencesPanel">
+            <div class="panel-handle"></div>
+            <h3 class="panel-title">Editar preferencias nutricionales</h3>
+
+            <span class="measurement-field-group-label">Alergias / intolerancias</span>
+            <textarea
+              class="note-textarea"
+              rows="2"
+              placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
+              maxlength="1000"
+              [(ngModel)]="nutritionPrefAllergies"
+            ></textarea>
+
+            <span class="measurement-field-group-label">Alimentos favoritos</span>
+            <textarea
+              class="note-textarea"
+              rows="2"
+              placeholder="p. ej. Pollo, arroz, plátano..."
+              maxlength="1000"
+              [(ngModel)]="nutritionPrefFavoriteFoods"
+            ></textarea>
+
+            <span class="measurement-field-group-label">Alimentos que no le gustan</span>
+            <textarea
+              class="note-textarea"
+              rows="2"
+              placeholder="p. ej. Brócoli, pescado azul..."
+              maxlength="1000"
+              [(ngModel)]="nutritionPrefDislikedFoods"
+            ></textarea>
+
+            <span class="measurement-field-group-label">¿Cocina en casa habitualmente?</span>
+            <div class="cadence-options">
+              <button
+                type="button"
+                class="cadence-option"
+                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'yes'"
+                (click)="setNutritionPrefCooksAtHome('yes')"
+              >
+                Sí
+              </button>
+              <button
+                type="button"
+                class="cadence-option"
+                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'sometimes'"
+                (click)="setNutritionPrefCooksAtHome('sometimes')"
+              >
+                A veces
+              </button>
+              <button
+                type="button"
+                class="cadence-option"
+                [class.cadence-option--active]="nutritionPrefCooksAtHome === 'no'"
+                (click)="setNutritionPrefCooksAtHome('no')"
+              >
+                No
+              </button>
+            </div>
+
+            <span class="measurement-field-group-label">Comidas al día</span>
+            <p class="empty-hint">Desmarca las que no haga (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.</p>
+            <div class="cadence-options">
+              <button
+                type="button"
+                class="cadence-option"
+                *ngFor="let slot of nutritionPrefMealSlots"
+                [class.cadence-option--active]="!nutritionPrefDisabledMealSlots[slot]"
+                (click)="toggleNutritionPrefMealSlot(slot)"
+              >
+                {{ slot }}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              class="submit-button"
+              [disabled]="isSavingNutritionPreferences"
+              (click)="saveNutritionPreferences()"
+            >
+              <span *ngIf="!isSavingNutritionPreferences">Guardar preferencias</span>
+              <ion-spinner name="dots" *ngIf="isSavingNutritionPreferences"></ion-spinner>
+            </button>
           </div>
 
           <div class="section-row">
@@ -906,7 +1003,7 @@
                    Nunca crea una plantilla reutilizable — el resultado es
                    exclusivo de este cliente desde el principio (ver
                    createDirect en el backend). -->
-              <button type="button" class="add-button" (click)="openCreateDietModal()">
+              <button type="button" class="add-button" (click)="goToCreateDiet()">
                 <ion-icon name="add-outline"></ion-icon>
                 Crear dieta
               </button>
@@ -918,17 +1015,23 @@
 
           <!-- Auditoría de arquitectura (Fase 8) — qué plan hay vigente y hasta
                cuándo, sin tener que ir día por día para averiguarlo. -->
-          <!-- Las fases del plan como SECUENCIA, en horizontal: la vigente
-               con todo su detalle y, a su derecha, las que ya están
-               programadas. Añadir una fase la encadena al final, que es
-               donde se espera que aparezca. Con muchas, la fila desplaza
-               dentro de su caja en vez de estirar la página. -->
+          <!-- Las fases del plan como SECUENCIA, en horizontal: TODAS
+               (terminadas, la vigente y las programadas), de la más reciente
+               a la más antigua (phaseTimeline) — antes las terminadas se
+               escondían del todo salvo que se desplegara el historial de más
+               abajo, y crear una fase inmediatamente tras otra se veía como
+               si "desapareciera"/solapara en vez de quedar listada. Con
+               muchas, la fila desplaza dentro de su caja en vez de estirar
+               la página. -->
           <div class="plan-track" *ngIf="activePlan">
+          <ng-container *ngFor="let phase of phaseTimeline; trackBy: trackByPhaseId">
+          <!-- ===== La vigente: card grande con todo el detalle ===== -->
           <!-- Mismo color que este tramo pinta en el calendario de abajo
                (phaseColor(), indexado sobre allPhasesHistory) — asocia de un
                vistazo la tarjeta con su franja de días. -->
           <div
             class="active-plan-card"
+            *ngIf="isCurrentPhaseGroup(phase)"
             [style.--phase-color]="phaseColor(activePlan)"
             [style.--phase-bg]="phaseSoftBackground(activePlan)"
           >
@@ -938,14 +1041,14 @@
                  como "en curso" es el icono, no un color reservado.
                  "Quitar fase" ya no vive aquí como icono danger: es una
                  acción secundaria, va en el pie de la tarjeta como texto. -->
-            <!-- La fila se pinta también con UNA sola fase: antes solo existía
-                 para el "1ª · en curso" (que sin más fases no dice nada), pero
-                 ahora lleva además cada cuánto se repite el ciclo, que aplica
-                 siempre. -->
-            <div class="active-plan-top-row" *ngIf="planPhases.length > 1 || cycleLengthLabel(activePlan)">
-              <span class="plan-phase-order plan-phase-order--current" *ngIf="planPhases.length > 1">
+            <!-- "En curso" siempre visible, haya o no más fases: con una sola
+                 fase (cliente recién empezado) seguía sin decir nada quitarlo
+                 justo ahí, y confirmar que la fase de hoy está vigente
+                 importa igual aunque sea la única que existe. -->
+            <div class="active-plan-top-row">
+              <span class="plan-phase-order plan-phase-order--current">
                 <ion-icon name="flash" aria-hidden="true"></ion-icon>
-                1ª · en curso
+                {{ phaseOrder(activePlan) }}ª · en curso
               </span>
               <!-- Cada cuánto se repite el contenido — misma vuelta que numera
                    el badge C1/C2 del calendario. A la derecha del todo: es un
@@ -963,10 +1066,13 @@
             <button type="button" class="active-plan-header" (click)="openActivePlanTemplate()">
               <ion-icon name="calendar-number-outline"></ion-icon>
               <div class="active-plan-info">
-                <span class="active-plan-name">{{ activePlan.planName || 'Plan aplicado' }}</span>
+                <span class="active-plan-name">{{ activePhase?.planName || activePlan.planName || 'Plan aplicado' }}</span>
                 <span class="active-plan-range">
-                  desde {{ activePlan.startDate }}
-                  · {{ phaseEndLabel(activePlan) }}
+                  <ng-container *ngIf="!isSingleDayPhase(activePhase); else activePlanSingleDay">
+                    desde {{ activePhase?.startDate }}
+                    <ng-container *ngIf="phaseEndLabel(activePhase) as endLabel"> · {{ endLabel }}</ng-container>
+                  </ng-container>
+                  <ng-template #activePlanSingleDay>{{ activePhase?.startDate }}</ng-template>
                 </span>
               </div>
               <ion-icon name="create-outline" class="active-plan-edit-icon"></ion-icon>
@@ -1010,34 +1116,86 @@
             </p>
 
             <div class="active-plan-actions">
-              <!-- Sugerencias de dieta — progresión ciclo a ciclo dentro de
-                   la fase vigente (solo si se empezó desde el cajón). -->
-              <button
-                type="button"
-                class="next-cycle-btn"
-                *ngIf="activePlan.phaseId"
-                (click)="openNextCycleModal()"
-              >
-                <ion-icon name="trending-down-outline" aria-hidden="true"></ion-icon>
-                Siguiente ciclo
-                <span class="next-cycle-btn__hint" *ngIf="activePlan.cycleTargetKcal">
-                  (ahora {{ activePlan.cycleTargetKcal }} kcal)
-                </span>
-              </button>
+              <!-- Ciclos por contenido (docs/plan-ciclos-por-contenido.md): los
+                   ciclos existen solos con el tiempo. Pasados y actual = solo
+                   lectura (abren su resumen); el siguiente abre la sugerencia
+                   y se prepara en el builder. El número va SIN "C": es el
+                   mismo ciclo que el badge del calendario.
+
+                   Orden de toda la fila, de izquierda a derecha: más reciente
+                   -> más antiguo por fecha (siguiente, luego actual, luego los
+                   pasados de mayor a menor número) — un solo criterio
+                   cronológico en vez de partir la fila en dos grupos. -->
+              <ng-container *ngIf="phaseCycles as pc">
+                <div class="cycle-tiles">
+                  <!-- Siguiente: lo que viene. -->
+                  <button
+                    type="button"
+                    class="cycle-tile cycle-tile--next"
+                    [class.is-edited]="nextCycleState === 'edited'"
+                    [attr.aria-label]="nextCycleState === 'suggested' ? 'Revisar siguiente ciclo' : 'Preparar siguiente ciclo'"
+                    (click)="openNextCycleModal()"
+                  >
+                    <span class="cycle-tile__title-row">
+                      <span class="cycle-tile__label">Ciclo {{ pc.next.number }}</span>
+                      <span class="cycle-tile__next-tag">PRÓXIMO</span>
+                    </span>
+                    <span class="cycle-tile__dates">{{ cycleDateRange(pc.next) }}</span>
+                    <span class="cycle-tile__kcal">{{ nextCycleKcal || '—' }} kcal</span>
+                  </button>
+
+                  <!-- Ciclo actual: lo que el cliente come ahora. Solo lectura. -->
+                  <button
+                    type="button"
+                    class="cycle-tile cycle-tile--current"
+                    aria-label="Ver resumen del ciclo actual"
+                    (click)="openCurrentCycleSummary()"
+                  >
+                    <span class="cycle-tile__label">Ciclo {{ pc.current.number }}</span>
+                    <span class="cycle-tile__dates">{{ cycleDateRange(pc.current) }}</span>
+                    <span class="cycle-tile__kcal">{{ pc.current.override.profile.kcal || '—' }} kcal</span>
+                  </button>
+                </div>
+
+                <div class="cycle-chips" *ngIf="visiblePastCycles.length">
+                  <button
+                    type="button"
+                    class="cycle-chip"
+                    *ngFor="let entry of visiblePastCycles"
+                    [attr.aria-label]="'Ver el resumen del ciclo ' + entry.number"
+                    (click)="openCycleSummary(entry)"
+                  >
+                    <span class="cycle-chip__number">{{ entry.number }}</span>
+                    <span class="cycle-chip__kcal" *ngIf="entry.profile.kcal">{{ entry.profile.kcal }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="cycle-chip cycle-chip--more"
+                    *ngIf="hiddenCyclesCount"
+                    (click)="showMoreCycles()"
+                  >
+                    +{{ hiddenCyclesCount }}
+                  </button>
+                </div>
+              </ng-container>
 
               <!-- Acción secundaria y destructiva: texto discreto, no un
                    icono danger compitiendo con "editar". Un segundo click
                    pide confirmación EN EL SITIO — dos botones pequeños en
                    vez de un ion-alert tapando la ficha entera. -->
-              <ng-container *ngIf="confirmingCancelPlanPhaseId !== activePlan._id; else confirmActivePlanRemove">
+              <!-- Se quita la FASE entera (el head, ver activePhase): el
+                   backend se lleva con él sus ciclos preparados. -->
+              <ng-container *ngIf="activePhase as fase">
+              <ng-container *ngIf="confirmingCancelPlanPhaseId !== fase._id; else confirmActivePlanRemove">
                 <button
                   type="button"
                   class="phase-remove-link"
-                  [disabled]="cancellingPlanPhaseId === activePlan._id"
-                  (click)="requestCancelPlanPhase(activePlan, $event)"
+                  [disabled]="cancellingPlanPhaseId === fase._id"
+                  (click)="requestCancelPlanPhase(fase, $event)"
                 >
-                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === activePlan._id"></ion-spinner>
-                  <span *ngIf="cancellingPlanPhaseId !== activePlan._id">Quitar fase</span>
+                  <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === fase._id"></ion-spinner>
+                  <span *ngIf="cancellingPlanPhaseId !== fase._id">Quitar fase</span>
                 </button>
               </ng-container>
               <ng-template #confirmActivePlanRemove>
@@ -1046,76 +1204,75 @@
                   <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelPlanPhase($event)">
                     Cancelar
                   </button>
-                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelPlanPhase(activePlan, $event)">
+                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelPlanPhase(fase, $event)">
                     Quitar
                   </button>
                 </div>
               </ng-template>
+              </ng-container>
             </div>
           </div>
 
-          <!-- Las que aún no han empezado: sin patrones ni avisos, que solo
-               tienen sentido sobre la que está rigiendo. -->
+          <!-- ===== Cualquier otra fase: card compacta ===== -->
           <!-- <div>, ya no <button>: sigue abriendo su plantilla igual que la
                cabecera de la fase en curso (ahora en .next-phase-card__open,
-               el <button> interior), pero necesita un segundo botón para
+               el <button> interior), pero necesita un segundo control para
                quitarla — y un <button> no puede anidar otro <button>. Mismo
                cambio que sufrió .active-plan-card más arriba, por el mismo
-               motivo. -->
-          <ng-container *ngFor="let phase of planPhases; let i = index">
-            <div
-              class="next-phase-card"
-              *ngIf="!isCurrentPhase(phase)"
-              [style.--phase-color]="phaseColor(phase)"
-            >
-              <button type="button" class="next-phase-card__open" (click)="openPhaseTemplate(phase)">
-                <span class="plan-phase-order">{{ i + 1 }}ª · programada</span>
-                <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
-                <p class="next-phase-card__range">
-                  desde {{ phase.startDate }}<br />
-                  {{ phaseEndLabel(phase) }}
-                  <ng-container *ngIf="cycleLengthLabel(phase) as ciclo"><br />{{ ciclo }}</ng-container>
-                </p>
-                <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
-              </button>
-              <button
-                type="button"
-                class="bulk-apply-btn bulk-apply-btn--danger next-phase-card__remove"
-                title="Quitar fase programada"
-                [attr.aria-label]="'Quitar ' + (phase.planName || 'la fase programada')"
-                [disabled]="cancellingPlanPhaseId === phase._id"
-                *ngIf="confirmingCancelPlanPhaseId !== phase._id"
-                (click)="requestCancelPlanPhase(phase, $event)"
-              >
-                <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
-                <ion-icon name="close-circle-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
-              </button>
-              <!-- Mismo par cancelar/quitar que la fase vigente, en versión
-                   solo-icono: la tarjeta mide 180px, no caben dos botones de
-                   texto en la esquina donde vivía el icono único. -->
-              <div class="next-phase-card__remove-confirm" *ngIf="confirmingCancelPlanPhaseId === phase._id">
+               motivo. Terminada vs. programada se distingue por fecha
+               (phaseCompactLabel) — quitar solo se ofrece en las programadas:
+               borrar una fase ya terminada es tocar historial real, fuera de
+               lo que pide este botón. Quitar reutiliza el MISMO enlace
+               inline + confirmación en el sitio que ya tiene la fase vigente
+               (.phase-remove-link/.phase-remove-confirm) en vez del icono
+               solo-icono de antes — una sola forma de quitar una fase en
+               toda la ficha. -->
+          <div
+            class="next-phase-card"
+            *ngIf="!isCurrentPhaseGroup(phase)"
+            [class.next-phase-card--ended]="isPhaseEnded(phase)"
+            [style.--phase-color]="phaseColor(phase)"
+          >
+            <button type="button" class="next-phase-card__open" (click)="openPhaseTemplate(phase)">
+              <span class="plan-phase-order">{{ phaseCompactLabel(phase) }}</span>
+              <h4 class="next-phase-card__name">{{ phase.planName || 'Plan aplicado' }}</h4>
+              <p class="next-phase-card__range">
+                <ng-container *ngIf="!isSingleDayPhase(phase); else compactSingleDay">
+                  desde {{ phase.startDate }}
+                  <ng-container *ngIf="phaseEndLabel(phase) as endLabel"><br />{{ endLabel }}</ng-container>
+                </ng-container>
+                <ng-template #compactSingleDay>{{ phase.startDate }}</ng-template>
+                <ng-container *ngIf="cycleLengthLabel(phase) as ciclo"><br />{{ ciclo }}</ng-container>
+              </p>
+              <ion-icon name="create-outline" class="next-phase-card__edit-icon" aria-hidden="true"></ion-icon>
+            </button>
+
+            <ng-container *ngIf="!isPhaseEnded(phase)">
+              <ng-container *ngIf="confirmingCancelPlanPhaseId !== phase._id; else confirmPhaseRemove">
                 <button
                   type="button"
-                  class="bulk-apply-btn"
-                  title="Cancelar"
-                  aria-label="Cancelar, no quitar la fase"
-                  (click)="dismissCancelPlanPhase($event)"
-                >
-                  <ion-icon name="close-outline"></ion-icon>
-                </button>
-                <button
-                  type="button"
-                  class="bulk-apply-btn bulk-apply-btn--danger"
-                  title="Confirmar"
-                  [attr.aria-label]="'Confirmar, quitar ' + (phase.planName || 'la fase programada')"
+                  class="phase-remove-link"
                   [disabled]="cancellingPlanPhaseId === phase._id"
-                  (click)="confirmCancelPlanPhase(phase, $event)"
+                  (click)="requestCancelPlanPhase(phase, $event)"
                 >
                   <ion-spinner name="dots" *ngIf="cancellingPlanPhaseId === phase._id"></ion-spinner>
-                  <ion-icon name="checkmark-outline" *ngIf="cancellingPlanPhaseId !== phase._id"></ion-icon>
+                  <span *ngIf="cancellingPlanPhaseId !== phase._id">Quitar fase</span>
                 </button>
-              </div>
-            </div>
+              </ng-container>
+              <ng-template #confirmPhaseRemove>
+                <div class="phase-remove-confirm">
+                  <span class="phase-remove-confirm__label">¿Quitar esta fase?</span>
+                  <button type="button" class="phase-remove-confirm__cancel" (click)="dismissCancelPlanPhase($event)">
+                    Cancelar
+                  </button>
+                  <button type="button" class="phase-remove-confirm__confirm" (click)="confirmCancelPlanPhase(phase, $event)">
+                    Quitar
+                  </button>
+                </div>
+              </ng-template>
+            </ng-container>
+          </div>
+
           </ng-container>
 
           <button type="button" class="next-phase-card next-phase-card--add" (click)="startDietPhase()">
@@ -1207,7 +1364,10 @@
                 <div class="history-card-header">
                   <span class="list-card-title">{{ phase.planName || 'Plan aplicado' }}</span>
                   <span class="history-date">
-                    {{ phase.startDate }} → {{ phaseEndShort(phase) }}
+                    <ng-container *ngIf="!isSingleDayPhase(phase); else historySingleDay">
+                      {{ phase.startDate }}<ng-container *ngIf="phaseEndShort(phase) as endShort"> → {{ endShort }}</ng-container>
+                    </ng-container>
+                    <ng-template #historySingleDay>{{ phase.startDate }}</ng-template>
                   </span>
                 </div>
                 <p class="history-subtitle">

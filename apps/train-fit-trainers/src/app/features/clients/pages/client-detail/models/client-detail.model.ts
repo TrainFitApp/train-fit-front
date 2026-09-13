@@ -267,6 +267,24 @@ export interface NutritionTrackingSummary {
   dailyTracking: NutritionTrackingDay[];
 }
 
+// Cumplimiento alimento a alimento de un rango (panel de resumen de un ciclo).
+// `plannedDays` = en cuántos días se le pautó; `consumedDays` = en cuántos lo
+// marcó como hecho. Vienen ordenados de peor a mejor cumplimiento.
+export interface NutritionFoodCompliance {
+  name: string;
+  plannedDays: number;
+  consumedDays: number;
+  plannedQuantity: number;
+  consumedQuantity: number;
+}
+
+export interface NutritionFoodsSummary {
+  status: 'ok';
+  items: NutritionFoodCompliance[];
+  from: string;
+  to: string;
+}
+
 // F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
 export interface BulkApplyResult {
   clientId: string;
@@ -376,12 +394,6 @@ export interface NutritionalGoal {
   // cliente puede tener en uso un objetivo propio aunque el trainer le
   // haya asignado otro que todavía no activó, o viceversa.
   isInUse: boolean;
-  // Sugerencias de dieta — puesto cuando este objetivo lo creó el arranque
-  // de una FASE (plan-assignment-service.js -> assignToClient), que además
-  // lo deja en uso. Ausente = objetivo "de siempre", no atado a ninguna
-  // fase. Sirve para decir de dónde sale la cifra cuando se usa como
-  // referencia en otra pantalla.
-  phaseId?: string | null;
   // Fase 5 Coach Pro — "fibra si procede". null = este objetivo no la pauta,
   // que no es lo mismo que 0 g.
   fiberGTotal?: number | null;

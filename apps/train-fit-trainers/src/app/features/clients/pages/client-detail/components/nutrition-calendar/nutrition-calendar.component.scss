@@ -228,21 +228,20 @@
     border-color: var(--tf-border-strongest);
   }
 
+  &.has-exception.is-skip-exception {
+    background: var(--tf-danger-soft);
+  }
+
   &.is-selected {
     border-color: var(--tf-accent);
     box-shadow: 0 0 0 1px var(--tf-accent);
   }
 
-  &.has-exception.is-skip-exception {
-    background: var(--tf-danger-soft);
-  }
-
-  // F20-quinquies — banda del rango elegido (calendario -> gráfica de
-  // seguimiento). Borde, no background sólido: el relleno de cumplimiento
-  // (--fill-opacity) sigue viéndose debajo, ambas señales conviven.
+  // Todos los días del tramo, no solo los extremos — antes solo inicio y fin
+  // (is-range-endpoint) se distinguían y el resto del rango se leía como
+  // fuera de la selección.
   &.is-in-range {
-    border-color: var(--tf-accent-soft-border);
-    box-shadow: inset 0 0 0 1px var(--tf-accent-soft-border);
+    border-color: var(--tf-accent);
   }
 
   &.is-range-endpoint {
@@ -430,11 +429,6 @@
     background: transparent;
     border: 1px solid var(--tf-accent);
     box-shadow: 0 0 0 1px var(--tf-accent);
-  }
-
-  &--range {
-    background: transparent;
-    border: 1px solid var(--tf-accent-soft-border);
   }
 
   &--endpoint {

@@ -32,7 +32,6 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import {
   CHECKIN_FIELDS,
-  CHECKIN_FIELDS_BY_KEY,
   checkinAnchorFor,
   checkinScaleSuffix,
 } from 'src/app/core/constants/checkin-fields';
@@ -68,7 +67,14 @@ import { RoutineAssignmentApiService } from '../../../../shared/services/routine
 import { RoutineAssignment, RoutineScheduleDay } from '../../../../shared/models/routine-assignment.model';
 import { ApplyRoutineModalComponent } from '../../components/apply-routine-modal/apply-routine-modal.component';
 import { WEEKDAYS } from '../../../diet-templates/models/diet-template.model';
-import { MissingBiometricsError, NutritionTarget } from '../../../diet-templates/models/diet-suggestion.model';
+import {
+  MissingBiometricsError,
+  NutritionTarget,
+  PhaseCyclesResponse,
+} from '../../../diet-templates/models/diet-suggestion.model';
+import { DietSuggestionApiService } from '../../../diet-templates/services/diet-suggestion-api.service';
+import { checkinFieldLabel, checkinValueLabel } from '../../checkin-labels.util';
+import { CycleSummaryPanelComponent } from '../../components/cycle-summary-panel/cycle-summary-panel.component';
 import {
   DietException,
   PlanAssignment,
@@ -106,18 +112,27 @@ import {
 
 type SectionState = 'loading' | 'error' | 'loaded';
 
-// F20-quindecies — mismo reparto que NutritionCalendarComponent
-// #selectPresetRange(30): 15 días hacia atrás, 15 hacia delante. Vive aquí
-// TAMBIÉN (no solo en el calendario) para que customTrackingRange arranque
-// con un valor real desde el primer render, sin depender de que el
-// calendario emita a tiempo durante el arranque de Angular.
-function defaultTrackingRange(): { start: string; end: string } {
-  const addDays = (days: number): string => {
-    const date = new Date();
-    date.setUTCDate(date.getUTCDate() + days);
-    return date.toISOString().slice(0, 10);
-  };
-  return { start: addDays(-15), end: addDays(15) };
+
+// Una FASE por entrada, no un doc por entrada: los ciclos preparados de una
+// fase son docs DietTemplate con el mismo phaseId (ciclos por contenido), y
+// listarlos sueltos los duplicaba. Cada grupo se resume en su head (nombre,
+// inicio) con el fin del último doc (null = sigue abierta). Ascendente por
+// inicio; `docs` viene ordenado como lo devuelve el backend (desc) o no —
+// se reordena aquí.
+function groupPhaseDocs(docs: PlanAssignment[]): PlanAssignment[] {
+  const groups = new Map<string, PlanAssignment[]>();
+  for (const doc of [...docs].sort((a, b) => a.startDate.localeCompare(b.startDate))) {
+    const key = doc.phaseId || doc._id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(doc);
+  }
+  return [...groups.values()]
+    .map((members) => {
+      const head = members.find((d) => d._id === (d.phaseId || d._id)) || members[0];
+      const last = members[members.length - 1];
+      return { ...head, endDate: last.endDate ?? null, status: last.status };
+    })
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
 
 @Component({
@@ -314,17 +329,28 @@ export class ClientDetailPage implements OnInit {
   public nutritionPreferences: ClientNutritionPreferences | null = null;
   public isRequestingPreferences = false;
 
+  // El profesional puede rellenarlas/editarlas directamente en vez de
+  // esperar a que el cliente responda el cuestionario. Mismos campos que
+  // el editor del propio cliente (packages/shared-features/nutrition-preferences).
+  public showNutritionPreferencesPanel = false;
+  public isSavingNutritionPreferences = false;
+  public readonly nutritionPrefMealSlots = ['Desayuno', 'Almuerzo', 'Comida', 'Merienda', 'Cena', 'Recena'];
+  public nutritionPrefAllergies = '';
+  public nutritionPrefFavoriteFoods = '';
+  public nutritionPrefDislikedFoods = '';
+  public nutritionPrefCooksAtHome: 'yes' | 'no' | 'sometimes' | null = null;
+  public nutritionPrefDisabledMealSlots: Record<string, boolean> = {};
+  public nutritionPrefMealSlotLabels: Record<string, string> = {};
+
   // Auditoría de arquitectura (nutrición, Fase 8) — plan vigente del cliente,
   // resuelto vía PlanAssignment en vez de inferido de los DietDay ya escritos.
   public activePlan: PlanAssignment | null = null;
-  public planPhases: PlanAssignment[] = [];
   // Historial COMPLETO (incluye fases ya terminadas), ordenado por fecha de
-  // inicio — a diferencia de planPhases (solo vigente+futuras, ver
-  // buildPhaseSequence). Existe para que phaseColorMap se construya sobre la
-  // MISMA secuencia que usa el calendario (PHASE_COLORS/assignPhaseColors en
-  // phase-color.util.ts, que también cuenta las terminadas): si usara
-  // planPhases, una fase ya cerrada desplazaría a las que siguen un puesto
-  // en la secuencia y el color dejaría de coincidir con el del calendario.
+  // inicio. Única fuente de la fila horizontal de fases (ver phaseTimeline
+  // más abajo) y de phaseColorMap, que la comparte con PHASE_COLORS/
+  // assignPhaseColors del calendario (phase-color.util.ts) — antes existía
+  // una segunda lista (planPhases, solo vigente+futuras) que dejaba las
+  // terminadas invisibles salvo que se desplegara el historial de abajo.
   private allPhasesHistory: PlanAssignment[] = [];
   // Color por fase — recalculado junto con allPhasesHistory (ver
   // loadActivePlan), no en cada llamada a phaseColor(): assignPhaseColors
@@ -345,14 +371,11 @@ export class ClientDetailPage implements OnInit {
   // proximidad completo.
   private readonly weekdayPatternColors = PHASE_COLORS;
   // F20-quindecies — rango elegido en <app-nutrition-calendar> (click día
-  // inicio/fin, o sus botones 7/30/90d). Se inicializa YA con un valor real
-  // (30 días centrados en hoy) en vez de null: antes dependía de que el
-  // calendario emitiera su rango por defecto en el momento justo del
-  // arranque de Angular — funcionaba en teoría, pero es una dependencia
-  // frágil entre dos componentes hermanos para algo que la propia página
-  // puede fijar de entrada sin depender de nadie.
-  public customTrackingRange: { start: string; end: string } | null = defaultTrackingRange();
-  public nutritionPreset: number | null = 30;
+  // inicio/fin, o sus botones 7/30/90d). Null de entrada a propósito: sin
+  // rango preseleccionado al abrir la ficha, ni gráfica ni calendario
+  // pintan nada hasta que el trainer elija uno.
+  public customTrackingRange: { start: string; end: string } | null = null;
+  public nutritionPreset: number | null = null;
 
   // TASK-045 (MASTER_BACKLOG.md) — historial de fases + excepciones puntuales.
   // Perezoso (solo al expandir) — no todos los trainers necesitan mirar
@@ -377,6 +400,7 @@ export class ClientDetailPage implements OnInit {
     private routineAssignmentApi: RoutineAssignmentApiService,
     private trainerClientsApi: TrainerClientsApiService,
     private trainerInvitesApi: TrainerInvitesApiService,
+    private dietSuggestionApi: DietSuggestionApiService,
     private navigation: TrainerNavigationService
   ) {}
 
@@ -1681,14 +1705,28 @@ export class ClientDetailPage implements OnInit {
     this.nutritionDate = date;
   }
 
+  // Fecha de calendario LOCAL, no UTC: `startDate` de una fase es el día
+  // pautado en la agenda del entrenador (sin hora ni huso), y toISOString()
+  // convierte a UTC — con la máquina/navegador en un huso por delante de UTC
+  // (España, p. ej.), de medianoche local en adelante seguía dando la fecha
+  // de AYER en UTC. Una fase que empieza literalmente hoy comparaba
+  // `startDate <= hoy` como false y no se reconocía como vigente ("EN
+  // CURSO" no salía) hasta que UTC alcanzaba la fecha local.
+  private formatLocalIsoDate(d: Date): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   private todayIsoDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    return this.formatLocalIsoDate(new Date());
   }
 
   private isoDateDaysAgo(days: number): string {
     const date = new Date();
-    date.setUTCDate(date.getUTCDate() - days);
-    return date.toISOString().slice(0, 10);
+    date.setDate(date.getDate() - days);
+    return this.formatLocalIsoDate(date);
   }
 
   // F20-bis — % medio de cumplimiento (días con plan) de la ventana de 30
@@ -1714,7 +1752,6 @@ export class ClientDetailPage implements OnInit {
     })
       .toPromise()
       .then((res) => {
-        this.activePlan = res?.active || null;
         this.allPhasesHistory = (res?.history || [])
           .slice()
           .sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -1726,49 +1763,105 @@ export class ClientDetailPage implements OnInit {
           if (!phaseKeys.includes(key)) phaseKeys.push(key);
         }
         this.phaseColorMap = buildPhaseColorMap(phaseKeys);
-        this.planPhases = this.buildPhaseSequence(res?.history || []);
+
+        // BUG conocido (2026-09-11, parcheado a medias): `res.active` es el
+        // TIP de la cadena por status, no la fase que de verdad cubre hoy —
+        // si se pre-programa la siguiente fase con fecha futura, el backend
+        // ya la marca "vigente" aunque hoy siga corriendo la anterior (ver
+        // markSuperseded en plan-assignment-service.js). Resolverlo aquí por
+        // FECHA es lo que evita la card grande (con ciclos/acciones) enseñando
+        // una fase que aún no ha empezado mientras la que de verdad rige hoy
+        // desaparece de la fila. Con la cadena sana solo hay una que cubra
+        // hoy y coincide con `res.active`; el fallback es solo para datos
+        // atípicos (huecos, fases legacy sin encadenar bien).
+        const hoy = this.todayIsoDate();
+        const vigentesHoy = this.allPhasesHistory.filter(
+          (p) => p.startDate <= hoy && (!p.endDate || p.endDate >= hoy)
+        );
+        this.activePlan = vigentesHoy[vigentesHoy.length - 1] || res?.active || null;
+        this.loadPhaseCycles();
       })
       .catch(() => {
         this.activePlan = null;
-        this.planPhases = [];
+        this.allPhasesHistory = [];
+        this.phaseCycles = null;
       });
   }
 
   /**
-   * Las fases en el orden en que rigen: de la más antigua a la más futura.
-   *
-   * Se quedan fuera las ya terminadas —el histórico vive en su propio
-   * bloque, más abajo—: aquí interesa lo vigente y lo que viene después,
-   * que es sobre lo que se decide.
-   *
-   * Ojo con `status`: al programar una fase futura, applyPlan marca la
-   * anterior como "superseded" EN EL ACTO, aunque siga siendo la que rige
-   * hoy. Por eso lo vigente se decide por FECHA y no por el status.
+   * Todas las fases del cliente (terminadas, la vigente y las programadas),
+   * de la más reciente a la más antigua por fecha de inicio — la vigente
+   * queda donde le toque cronológicamente, no fija a la izquierda: si hay
+   * una programada a futuro, esa va antes. Única lista para la fila
+   * horizontal: nada se esconde en el historial colapsado de más abajo.
    */
-  private buildPhaseSequence(history: PlanAssignment[]): PlanAssignment[] {
-    const hoy = new Date().toISOString().slice(0, 10);
-    return history
-      .filter((phase) => !phase.endDate || phase.endDate >= hoy)
-      .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  public get phaseTimeline(): PlanAssignment[] {
+    return [...this.phaseGroups()].reverse();
   }
 
-  // BUG (2026-09-11) — encadenar una fase que empieza en el FUTURO (p.ej.
-  // "Siguiente fase" con fecha propuesta = día después de que acabe la
-  // actual) la duplicaba en el track: `activePlan` la pintaba arriba como
-  // "en curso" (getActive va por STATUS — el tip de la cadena, sea cual sea
-  // su fecha, ver plan-assignment-controller.js#getActive) y el `*ngFor` de
-  // abajo la volvía a pintar como "programada", porque por FECHA esta
-  // función decía `false` (aún no ha empezado) — el filtro solo miraba si
-  // el phase cubría hoy, nunca si YA era el que activePlan señala. La
-  // comparación por identidad cierra ese hueco sin tocar la de fecha, que
-  // sigue haciendo falta para el caso contrario: la fase vieja que el
-  // encadenado marca "superseded" en el acto pero sigue rigiendo hoy (ver
-  // buildPhaseSequence más arriba) — esa no es `activePlan` y aun así debe
-  // seguir excluida de "programada".
-  public isCurrentPhase(phase: PlanAssignment): boolean {
-    if (this.activePlan && phase._id === this.activePlan._id) return true;
-    const hoy = new Date().toISOString().slice(0, 10);
-    return phase.startDate <= hoy && (!phase.endDate || phase.endDate >= hoy);
+  // Una FASE por fila, no un doc por fila: los ciclos preparados de una fase
+  // son docs DietTemplate con el mismo phaseId (ciclos por contenido), y
+  // pintarlos como fases aparte los duplicaba en la fila. Cada grupo se
+  // resume en su head (nombre, inicio) con el fin del último doc (null =
+  // sigue abierta). Ascendente por inicio.
+  private phaseGroups(): PlanAssignment[] {
+    return groupPhaseDocs(this.allPhasesHistory);
+  }
+
+  private phaseKeyOf(doc: PlanAssignment): string {
+    return doc.phaseId || doc._id;
+  }
+
+  // ¿Esta fase (grupo) es la que contiene el doc vigente hoy?
+  public isCurrentPhaseGroup(phase: PlanAssignment): boolean {
+    return !!this.activePlan && this.phaseKeyOf(this.activePlan) === this.phaseKeyOf(phase);
+  }
+
+  // La fase vigente resumida (head + fin real del grupo) — para nombre y
+  // fechas de la card grande; `activePlan` sigue siendo el doc que rige hoy
+  // (patrones de semana, días atascados, ciclos).
+  public get activePhase(): PlanAssignment | null {
+    if (!this.activePlan) return null;
+    const key = this.phaseKeyOf(this.activePlan);
+    return this.phaseGroups().find((g) => this.phaseKeyOf(g) === key) || this.activePlan;
+  }
+
+  // Orden cronológico real de esta fase entre TODAS las del cliente (1ª,
+  // 2ª…) — independiente del orden en que se PINTA (phaseTimeline, invertido).
+  public phaseOrder(phase: PlanAssignment): number {
+    const key = this.phaseKeyOf(phase);
+    return this.phaseGroups().findIndex((g) => this.phaseKeyOf(g) === key) + 1;
+  }
+
+  public isPhaseEnded(phase: PlanAssignment): boolean {
+    return !!phase.endDate && phase.endDate < this.todayIsoDate();
+  }
+
+  // Etiqueta de las cards compactas (todo menos la vigente, que ya dice "en
+  // curso" aparte): "programada" si su inicio todavía no ha llegado,
+  // "finalizada" si ya se cerró.
+  public phaseCompactLabel(phase: PlanAssignment): string {
+    const estado = phase.startDate > this.todayIsoDate() ? 'programada' : 'finalizada';
+    return `${this.phaseOrder(phase)}ª · ${estado}`;
+  }
+
+  public trackByPhaseId(_index: number, phase: PlanAssignment): string {
+    return phase._id;
+  }
+
+  // Ciclos virtuales — actual, siguiente (con sugerencia) y pasados de la
+  // fase vigente. Solo si la fase se empezó desde el cajón (tiene phaseId);
+  // una dieta aplicada "de siempre" no tiene ciclos que enseñar.
+  private loadPhaseCycles(): void {
+    const phaseId = this.activePlan?.phaseId;
+    if (!phaseId) {
+      this.phaseCycles = null;
+      return;
+    }
+    this.dietSuggestionApi.getPhaseCycles(this.clientId, phaseId).subscribe({
+      next: (res) => (this.phaseCycles = res),
+      error: () => (this.phaseCycles = null),
+    });
   }
 
   // Mismo color que este tramo pinta en <app-nutrition-calendar> — mismo
@@ -1785,11 +1878,16 @@ export class ClientDetailPage implements OnInit {
   //   · endDate       → ya se cortó: fecha de fin REAL, en pasado.
   //   · estimatedEnd  → sigue corriendo; la fecha es una ESTIMACIÓN, no la
   //                     corta nadie hasta que se abra la siguiente fase.
-  //   · ninguna       → corriendo sin estimación.
+  //   · ninguna       → corriendo sin estimación... salvo que YA haya una
+  //                     fase programada después: entonces "indefinido" ha
+  //                     dejado de ser cierto (esta se cortará en cuanto la
+  //                     siguiente arranque), pero tampoco se sabe todavía
+  //                     cuándo exactamente — mejor no decir nada de fecha de
+  //                     fin que decir un dato que ya se sabe que está mal.
   public phaseEndLabel(phase: PlanAssignment | null): string {
     if (!phase) return '';
     if (phase.endDate) return `hasta ${phase.endDate}`;
-    if (phase.estimatedEndDate) return `≈ hasta ${phase.estimatedEndDate}`;
+    if (this.phaseHasScheduledSuccessor(phase)) return '';
     return 'indefinido';
   }
 
@@ -1797,22 +1895,147 @@ export class ClientDetailPage implements OnInit {
   public phaseEndShort(phase: PlanAssignment | null): string {
     if (!phase) return '';
     if (phase.endDate) return phase.endDate;
-    if (phase.estimatedEndDate) return `≈ ${phase.estimatedEndDate}`;
+    if (this.phaseHasScheduledSuccessor(phase)) return '';
     return 'indefinido';
   }
 
-  // Cada cuánto se repite el contenido de la fase — la misma vuelta que
-  // numera el badge C1/C2 del calendario (ver cycle-label.util.ts).
+  // ¿Hay alguna fase que empiece más tarde que esta? (programada, o ya en
+  // marcha si "esta" es una fase antigua superada). Ver phaseEndLabel.
+  private phaseHasScheduledSuccessor(phase: PlanAssignment): boolean {
+    const key = this.phaseKeyOf(phase);
+    return this.phaseGroups().some((g) => this.phaseKeyOf(g) !== key && g.startDate > phase.startDate);
+  }
+
+  // Fase cortada el mismo día en que empezó (p. ej. dos fases creadas
+  // seguidas, la segunda con fecha de hoy: chainIfNeeded le pone a la
+  // primera endDate = su propio startDate, ver plan-assignment-service.js).
+  // "Desde 13 jun hasta 13 jun" no dice más que "13 jun" — un solo día.
+  public isSingleDayPhase(phase: PlanAssignment | null): boolean {
+    return !!phase?.endDate && phase.endDate === phase.startDate;
+  }
+
+  // --- Ciclos de la fase vigente (docs/plan-ciclos-por-contenido.md) ---
   //
-  // Solo en 'sequential': en 'recurring' las píldoras L/M/X/J/V/S/D de la
-  // tarjeta ya dicen cómo se repite (y decir además "cada semana" sería
-  // repetirse), y en 'choice' no hay ciclo que anunciar — lo elige el
-  // cliente día a día.
+  // No se crean: existen con el tiempo (ventanas encadenadas por días de
+  // contenido). La ficha enseña el ACTUAL (solo lectura, abre su resumen) y
+  // el SIGUIENTE (con sugerencia; se prepara en el builder), y los pasados
+  // como chips que abren su resumen. Todo sale de una llamada
+  // (getPhaseCycles), que se repite tras guardar.
+  public phaseCycles: PhaseCyclesResponse | null = null;
+
+  private readonly cyclesPageSize = 5;
+  // Cuántos ciclos pasados se enseñan de golpe. "+N" suma otra página en vez
+  // de destaparlos todos — con fases largas (20+ ciclos) volcar todo junto
+  // sería una cuadrícula ilegible.
+  public visibleCyclesLimit = this.cyclesPageSize;
+
+  // Pasados, el más reciente a la izquierda.
+  public get pastCycles(): PhaseCyclesResponse['past'] {
+    return (this.phaseCycles?.past || []).slice().reverse();
+  }
+
+  public get visiblePastCycles(): PhaseCyclesResponse['past'] {
+    return this.pastCycles.slice(0, this.visibleCyclesLimit);
+  }
+
+  public get hiddenCyclesCount(): number {
+    return Math.max(0, this.pastCycles.length - this.visibleCyclesLimit);
+  }
+
+  public showMoreCycles(): void {
+    this.visibleCyclesLimit += this.cyclesPageSize;
+  }
+
+  // Las kcal que va a tener el siguiente: las del ciclo ya preparado, si lo
+  // hay; si no, las sugeridas; si no hay sugerencia, las que hereda.
+  public get nextCycleKcal(): number | null {
+    const next = this.phaseCycles?.next;
+    if (!next) return null;
+    if (next.override) return next.override.profile.kcal;
+    if (next.suggestion.hasData) return next.suggestion.nextCycleKcal;
+    return next.inherits?.profile.kcal ?? null;
+  }
+
+  public get nextCycleState(): 'edited' | 'suggested' | 'same' {
+    const next = this.phaseCycles?.next;
+    if (next?.override) return 'edited';
+    if (next?.suggestion.hasData && next.suggestion.deltaKcal !== 0) return 'suggested';
+    return 'same';
+  }
+
+  public cycleDateRange(window: { start: string; end: string }): string {
+    const fmt = (iso: string): string =>
+      new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return `${fmt(window.start)} – ${fmt(window.end)}`;
+  }
+
+  public shortDay(iso: string): string {
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  }
+
+  // Resumen de un ciclo (pasado o el actual): solo lectura. El actual no se
+  // edita (plan §3): lo que cambia de un día son excepciones, no el ciclo.
+  public async openCycleSummary(entry: { number: number; start: string; end: string; overrideId: string }): Promise<void> {
+    const cycle = this.allPhasesHistory.find((p) => p._id === entry.overrideId);
+    if (!cycle) return;
+    const modal = await this.modalController.create({
+      component: CycleSummaryPanelComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        cycle,
+        cycleNumber: entry.number,
+        window: { start: entry.start, end: entry.end },
+        clientName: this.name,
+      },
+    });
+    await modal.present();
+  }
+
+  public openCurrentCycleSummary(): void {
+    const current = this.phaseCycles?.current;
+    if (!current) return;
+    void this.openCycleSummary({ number: current.number, start: current.start, end: current.end, overrideId: current.override.id });
+  }
+
+  // El siguiente ciclo: sugerencia + kcal → se prepara en el builder (o se
+  // descarta si ya estaba preparado). Sin fecha que elegir.
+  public async openNextCycleModal(): Promise<void> {
+    const phaseId = this.activePlan?.phaseId;
+    if (!phaseId || !this.phaseCycles) return;
+
+    const modal = await this.modalController.create({
+      component: NextCycleModalComponent,
+      cssClass: 'tf-panel-modal',
+      componentProps: {
+        clientId: this.clientId,
+        phaseId,
+        clientName: this.name,
+        cycles: this.phaseCycles,
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role === 'prepare' && data?.kcal) {
+      void this.router.navigate(['/tabs/diet-templates/next-cycle', this.clientId, phaseId], {
+        queryParams: { kcal: data.kcal, name: this.name },
+      });
+      return;
+    }
+    if (role === 'discarded') {
+      void this.loadActivePlan();
+      this.loadNutrition();
+    }
+  }
+
+  // Cada cuánto se repite el CONTENIDO de la fase = lo que dura un ciclo
+  // (ciclos por contenido). Solo informativo en la card de fase.
   public cycleLengthLabel(phase: PlanAssignment | null): string | null {
-    if (!phase || phase.mode === 'recurring' || phase.mode === 'choice') return null;
-    const dias = phase.daysCount || 0;
+    if (!phase) return null;
+    const dias = phase.cycleDays || 0;
     if (!dias) return null;
-    return `Ciclo de ${dias} día${dias === 1 ? '' : 's'}`;
+    return `Ciclos de ${dias} día${dias === 1 ? '' : 's'}`;
   }
 
   // Fondo suave de phaseColor() — la vigente ya no lleva el naranja fijo de
@@ -1903,7 +2126,8 @@ export class ClientDetailPage implements OnInit {
       exceptions: this.planAssignmentApi.getExceptions(this.clientId),
     }).subscribe({
       next: ({ history, exceptions }) => {
-        this.nutritionHistory = history || [];
+        // Del más reciente al más antiguo, una entrada por fase.
+        this.nutritionHistory = groupPhaseDocs(history || []).reverse();
         this.dietExceptions = exceptions || [];
         this.nutritionHistoryLoaded = true;
         this.nutritionHistoryState = 'loaded';
@@ -2006,6 +2230,73 @@ export class ClientDetailPage implements OnInit {
         );
       },
     });
+  }
+
+  public openNutritionPreferencesPanel(): void {
+    this.nutritionPrefAllergies = this.nutritionPreferences?.allergies || '';
+    this.nutritionPrefFavoriteFoods = this.nutritionPreferences?.favoriteFoods || '';
+    this.nutritionPrefDislikedFoods = this.nutritionPreferences?.dislikedFoods || '';
+    this.nutritionPrefCooksAtHome = this.nutritionPreferences?.cooksAtHome ?? null;
+    this.nutritionPrefDisabledMealSlots = this.nutritionPrefMealSlots.reduce(
+      (acc, slot) => ({
+        ...acc,
+        [slot]: !!this.nutritionPreferences?.disabledMealSlots?.includes(slot),
+      }),
+      {} as Record<string, boolean>
+    );
+    this.nutritionPrefMealSlotLabels = { ...(this.nutritionPreferences?.mealSlotLabels || {}) };
+    this.showNutritionPreferencesPanel = true;
+  }
+
+  public closeNutritionPreferencesPanel(): void {
+    this.showNutritionPreferencesPanel = false;
+  }
+
+  public toggleNutritionPrefMealSlot(slot: string): void {
+    this.nutritionPrefDisabledMealSlots[slot] = !this.nutritionPrefDisabledMealSlots[slot];
+  }
+
+  public setNutritionPrefCooksAtHome(value: 'yes' | 'no' | 'sometimes'): void {
+    this.nutritionPrefCooksAtHome = value;
+  }
+
+  public saveNutritionPreferences(): void {
+    if (this.isSavingNutritionPreferences) return;
+    this.isSavingNutritionPreferences = true;
+    this.clientDetailApi
+      .updateNutritionPreferences(this.clientId, {
+        allergies: this.nutritionPrefAllergies.trim(),
+        favoriteFoods: this.nutritionPrefFavoriteFoods.trim(),
+        dislikedFoods: this.nutritionPrefDislikedFoods.trim(),
+        cooksAtHome: this.nutritionPrefCooksAtHome,
+        disabledMealSlots: this.nutritionPrefMealSlots.filter(
+          (slot) => this.nutritionPrefDisabledMealSlots[slot]
+        ),
+        mealSlotLabels: Object.fromEntries(
+          Object.entries(this.nutritionPrefMealSlotLabels).filter(
+            ([, label]) => (label || '').trim().length > 0
+          )
+        ),
+      })
+      .subscribe({
+        next: (preferences) => {
+          this.isSavingNutritionPreferences = false;
+          this.nutritionPreferences = preferences;
+          this.showNutritionPreferencesPanel = false;
+          this.ionicUtilService.showToast({
+            message: 'Preferencias nutricionales guardadas',
+            duration: 2500,
+          });
+        },
+        error: (err) => {
+          this.isSavingNutritionPreferences = false;
+          this.ionicUtilService.showErrorToast(
+            err?.error?.message || 'No se pudieron guardar las preferencias',
+            'Error',
+            3000
+          );
+        },
+      });
   }
 
   public cooksAtHomeLabel(value: 'yes' | 'no' | 'sometimes' | null): string {
@@ -2217,8 +2508,8 @@ export class ClientDetailPage implements OnInit {
   // (ApplyDietTemplateModalComponent) sigue disponible desde
   // "Aplicar plantilla concreta".
   public startDietPhase(): void {
-    const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
+    const ultima = this.phaseGroups().pop() || null;
+    const finAnterior = ultima ? ultima.endDate || null : null;
 
     void this.router.navigate(['/tabs/diet-templates/for-phase', this.clientId], {
       queryParams: {
@@ -2228,33 +2519,10 @@ export class ClientDetailPage implements OnInit {
     });
   }
 
-  // Sugerencias de dieta — progresión ciclo a ciclo. Abre el modal que lee
-  // la tendencia de peso + adherencia y sugiere las kcal del siguiente ciclo.
-  public async openNextCycleModal(): Promise<void> {
-    const phaseId = this.activePlan?.phaseId;
-    if (!phaseId) return;
-
-    const modal = await this.modalController.create({
-      component: NextCycleModalComponent,
-      cssClass: 'tf-panel-modal',
-      componentProps: {
-        clientId: this.clientId,
-        phaseId,
-        clientName: this.name,
-      },
-    });
-    await modal.present();
-    const { role } = await modal.onDidDismiss();
-    if (role !== 'confirm') return;
-
-    void this.loadActivePlan();
-    this.loadNutrition();
-  }
-
   // Aplicar UNA plantilla concreta sin pasar por el ranking (flujo antiguo).
   public async openApplyExactTemplateModal(): Promise<void> {
-    const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
+    const ultima = this.phaseGroups().pop() || null;
+    const finAnterior = ultima ? ultima.endDate || null : null;
 
     const modal = await this.modalController.create({
       component: ApplyDietTemplateModalComponent,
@@ -2284,38 +2552,21 @@ export class ClientDetailPage implements OnInit {
     this.router.navigate(['/tabs/diet-templates']);
   }
 
-  // "Crear dieta" — mismo modal que "Aplicar plantilla"
-  // (ApplyDietTemplateModalComponent#forDirectCreate): recoge el nombre y
-  // las FECHAS, con el mismo calendario y las mismas opciones de fin. El
-  // contenido se construye después en el builder
-  // (diet-template-builder.page.ts, ruta for-client/:clientId), que al
-  // guardar crea la dieta propia del cliente y la aplica como fase con estas
-  // fechas. Mismo formulario de fechas en los dos sitios, misma validación
-  // de solape en el backend.
-  public async openCreateDietModal(): Promise<void> {
-    // Misma propuesta de fecha que al aplicar una plantilla: encadenar con
-    // el final de la última fase, para no dejar un hueco sin plan.
-    const ultima = this.planPhases[this.planPhases.length - 1] || null;
-    const finAnterior = ultima ? (ultima.endDate || ultima.estimatedEndDate || null) : null;
-
-    const modal = await this.modalController.create({
-      component: ApplyDietTemplateModalComponent,
-      cssClass: 'tf-panel-modal',
-      componentProps: {
-        clientId: this.clientId,
-        clientName: this.name,
-        forDirectCreate: true,
-        suggestedStartDate: finAnterior ? this.addDaysToIso(finAnterior, 1) : null,
-        previousPhaseEnd: finAnterior,
-        previousPhaseName: ultima?.planName || '',
-      },
-    });
-    await modal.present();
-    const { data, role } = await modal.onDidDismiss();
-    if (role !== 'confirm' || !data) return;
-
+  // "Crear dieta" — antes pasaba por un modal a pedir nombre + duración
+  // estimada (mismo que "Aplicar plantilla", #forDirectCreate). El
+  // nutricionista va improvisando ciclo a ciclo según cómo responda el
+  // cliente: esa duración nunca se usaba de verdad, así que deja de
+  // preguntarse. Directo al builder (for-client/:clientId) — nombre en
+  // blanco (editable ahí mismo) y fase abierta desde HOY sin fin estimado
+  // (endMode: 'indefinite'; ver startForClient en diet-template-builder.page.ts,
+  // que ya trata "sin fechas en el state" como este caso, no como un error).
+  public goToCreateDiet(): void {
     void this.router.navigate(['/tabs/diet-templates/for-client', this.clientId], {
-      state: { ...data, clientName: this.name },
+      state: {
+        clientName: this.name,
+        startDate: this.todayIsoDate(),
+        endMode: 'indefinite',
+      },
     });
   }
 
@@ -2516,26 +2767,14 @@ export class ClientDetailPage implements OnInit {
       });
   }
 
-  // Fase 5 Coach Pro — las respuestas a preguntas propias del coach viajan
-  // con la clave "custom:<id>", que no está en el catálogo: su enunciado se
-  // busca en la configuración aplicada a ESTE cliente. Sin esto, el
-  // histórico mostraría "custom:507f1f77bcf86cd799439011".
+  // La lógica vive en checkin-labels.util.ts — la comparte con el panel de
+  // resumen de ciclo, que enseña estas mismas respuestas.
   public checkinFieldLabel(key: string): string {
-    if (key.startsWith('custom:')) {
-      const questionId = key.slice('custom:'.length);
-      const question = (this.checkinConfig?.customQuestions || []).find(
-        (q) => String(q._id) === questionId
-      );
-      return question?.label || 'Pregunta eliminada';
-    }
-    return CHECKIN_FIELDS_BY_KEY.get(key)?.label || key;
+    return checkinFieldLabel(key, this.checkinConfig?.customQuestions || []);
   }
 
-  // Un booleano crudo se leería como "true"/"false".
   public checkinValueLabel(value: number | string | boolean): string {
-    if (value === true) return 'Sí';
-    if (value === false) return 'No';
-    return String(value);
+    return checkinValueLabel(value);
   }
 
   // `raw` además de `value`: el segundo ya viene formateado a texto (un

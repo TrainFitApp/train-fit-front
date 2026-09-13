@@ -152,7 +152,17 @@ export class MyCheckinsPage implements OnInit {
 
   public cadenceLabel(config: MyCheckinConfig): string {
     if (config.requestId) return config.closesAt ? `Disponible hasta ${new Date(config.closesAt).toLocaleDateString('es-ES')}` : 'Solicitud puntual';
+    // Ciclos por contenido — con fase de dieta el check-in va por ciclo, no
+    // por cadencia.
+    if (config.cycleCheckin) {
+      const c = config.cycleCheckin;
+      return `Ciclo ${c.number} · ${this.shortDay(c.start)} – ${this.shortDay(c.end)}${c.hasResponse ? ' · respondido' : ''}`;
+    }
     return CADENCE_LABELS[config.cadence!] || config.cadence!;
+  }
+
+  private shortDay(iso: string): string {
+    return new Date(`${iso}T00:00:00Z`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
   }
 
   // Los campos del catálogo y las preguntas propias del coach salen por la
@@ -295,6 +305,23 @@ export class MyCheckinsPage implements OnInit {
     }
     if (!Object.keys(values).length) return;
 
+    // Ciclos por contenido — un check-in por ciclo: si ya hay uno, este lo
+    // sobreescribe. Se avisa antes.
+    if (config.cycleCheckin?.hasResponse) {
+      void this.ionicUtilService.showAlert({
+        header: `Ya respondiste el ciclo ${config.cycleCheckin.number}`,
+        message: 'Este check-in sobreescribirá el que guardaste para este ciclo. ¿Enviar igualmente?',
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          { text: 'Sobreescribir', handler: () => this.send(config, values) },
+        ],
+      });
+      return;
+    }
+    this.send(config, values);
+  }
+
+  private send(config: MyCheckinConfig, values: Record<string, number | string | boolean>): void {
     this.isSubmitting = true;
     this.myCheckinsApi.respond(config.trainerId, values, config.requestId).subscribe({
       next: () => {

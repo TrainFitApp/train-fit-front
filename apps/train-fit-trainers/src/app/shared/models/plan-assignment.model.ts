@@ -1,8 +1,6 @@
 // Auditoría de arquitectura (nutrición) — la pieza que hoy no existía:
 // "este plan aplica a este cliente desde tal fecha, hasta tal otra o
 // indefinidamente". Ver MVP-trainers/tareas-grandes/TAREA5 (Fase 8).
-export type PlanEndMode = 'fixedDate' | 'duration' | 'indefinite';
-export type DurationUnit = 'days' | 'weeks';
 export type PlanAssignmentStatus = 'active' | 'superseded' | 'ended';
 export type DietTemplateMode = 'sequential' | 'recurring' | 'choice';
 
@@ -17,19 +15,17 @@ export interface PlanAssignment {
   clientId: string;
   trainerId: string;
   startDate: string;
-  endMode: PlanEndMode;
   // Fin REAL: null mientras la fase sigue corriendo, con fecha en cuanto otra
-  // la corta. Ya NO es la duración que eligió el entrenador — eso es
-  // estimatedEndDate (ver diet-template-schema.js en el backend).
+  // la corta. No hay fin estimado (ciclos por contenido: una fase acaba
+  // cuando empieza otra).
   endDate: string | null;
-  // Duración estimada de la fase. No la cierra (sigue vigente hasta que se
-  // abra la siguiente), pero reserva el tramo: no se puede PROGRAMAR otra
-  // fase dentro. null = sin estimación.
-  estimatedEndDate: string | null;
   status: PlanAssignmentStatus;
-  // Nº de días del ciclo — para numerar las vueltas en el calendario
-  // (ver cycle-label.util.ts). 0/ausente en modos recurring/choice.
+  // Nº de días de contenido del doc (days[]). 0 en recurring/choice.
   daysCount?: number | null;
+  // Días que dura un ciclo de ESTE doc (contenido): days.length, 7, o
+  // choiceCycleDays. Ver cycle-window.js en el backend.
+  cycleDays?: number | null;
+  choiceCycleDays?: number | null;
   supersededBy: string | null;
   createdAt: string;
   planName?: string | null;
@@ -51,26 +47,21 @@ export interface PlanAssignment {
   phaseId?: string | null;
   phaseName?: string | null;
   phaseFocus?: 'cut' | 'maintain' | 'bulk' | null;
-  cycleTargetKcal?: number | null;
+}
+
+// El bloque con el que nace toda fase (objetivo elegido en el builder al
+// crear el C1, o en el cajón de sugerencias). Sin él la copia es un plan
+// "de siempre", sin ciclos.
+export interface PhasePayload {
+  name: string;
+  focus: 'cut' | 'maintain' | 'bulk' | null;
+  targetKcalDelta: number;
+  ratePerCycle: number;
 }
 
 export interface ApplyPlanRequest {
   startDate: string;
-  endMode: PlanEndMode;
-  fixedEndDate?: string;
-  durationValue?: number;
-  durationUnit?: DurationUnit;
-  // Sugerencias de dieta — presentes solo cuando se EMPIEZA una fase desde el
-  // cajón (Hipertrofia / Minicut / ...). Sin ellos, aplicar un plan se
-  // comporta como siempre. Tipos en
-  // features/diet-templates/models/diet-suggestion.model.ts.
-  phase?: {
-    name: string;
-    focus: 'cut' | 'maintain' | 'bulk' | null;
-    targetKcalDelta: number;
-    ratePerCycle: number;
-  };
-  cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
+  phase?: PhasePayload;
 }
 
 // TASK-045 (MASTER_BACKLOG.md) — excepción puntual sobre una fecha exacta

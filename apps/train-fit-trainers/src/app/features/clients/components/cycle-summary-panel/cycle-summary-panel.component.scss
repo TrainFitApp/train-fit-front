@@ -1,0 +1,204 @@
+.cycle-summary {
+  --background: var(--tf-surface-1);
+  --padding-start: var(--tf-space-4);
+  --padding-end: var(--tf-space-4);
+  --padding-top: var(--tf-space-4);
+  --padding-bottom: var(--tf-space-6);
+}
+
+.summary-block {
+  margin-bottom: var(--tf-space-5);
+}
+
+.summary-block__title {
+  margin: 0 0 8px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tf-text-faint);
+}
+
+.summary-empty,
+.summary-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+// --- Lo pautado ---
+
+.cycle-dates {
+  margin: 0;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+}
+
+.cycle-days {
+  color: var(--tf-text-muted);
+}
+
+.target-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 6px;
+}
+
+.target-kcal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--tf-accent);
+}
+
+.target-macros {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+}
+
+// --- Macros ---
+
+.macro-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tf-font-size-sm);
+
+  th,
+  td {
+    padding: 6px 0;
+    text-align: right;
+  }
+
+  thead th {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--tf-text-faint);
+  }
+
+  tbody th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--tf-text-secondary);
+  }
+
+  tbody td {
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text);
+  }
+
+  tbody tr + tr {
+    border-top: 1px solid var(--tf-border);
+  }
+}
+
+// Comer de menos y comer de más no son el mismo problema, así que no se
+// pintan igual: por debajo es lo esperable en un déficit que se cumple a
+// medias, por encima es lo que revienta el plan.
+.macro-delta {
+  margin-left: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-danger);
+
+  &.is-under {
+    color: var(--tf-text-muted);
+  }
+}
+
+// --- Alimentos ---
+
+.food-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.food-row + .food-row {
+  margin-top: 10px;
+}
+
+.food-row__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.food-row__name {
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text);
+  // Un nombre largo de receta no puede empujar el contador fuera de la fila.
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.food-row__count {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-muted);
+}
+
+.food-row__bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--tf-surface-3);
+  overflow: hidden;
+}
+
+// Verde y no acento: es un resultado del cliente, no una acción de la app
+// (mismo criterio que el relleno de cumplimiento del calendario).
+.food-row__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tf-success);
+}
+
+// --- Check-ins ---
+
+.checkin-card {
+  padding: 10px 12px;
+  border: 1px solid var(--tf-border);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+
+  & + .checkin-card {
+    margin-top: 8px;
+  }
+}
+
+.checkin-date {
+  margin: 0 0 6px;
+  font-size: var(--tf-font-size-xs);
+  font-weight: 600;
+  color: var(--tf-text-faint);
+}
+
+.checkin-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.checkin-value {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.checkin-value__key {
+  color: var(--tf-text-muted);
+}
+
+.checkin-value__number {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+}

@@ -37,6 +37,15 @@ const routes: Routes = [
     data: { parent: '/tabs/clients/:clientId' },
     canDeactivate: [pendingChangesGuard],
   },
+  // Preparar el SIGUIENTE ciclo de una fase (ciclos por contenido): mismo
+  // builder, precargado con el contenido del ciclo vigente escalado a las
+  // kcal del query param (ver diet-template-builder.page.ts#startForNextCycle).
+  {
+    path: 'next-cycle/:clientId/:phaseId',
+    component: DietTemplateBuilderPage,
+    data: { parent: '/tabs/clients/:clientId' },
+    canDeactivate: [pendingChangesGuard],
+  },
   {
     path: ':id',
     component: DietTemplateBuilderPage,

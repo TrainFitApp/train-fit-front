@@ -30,6 +30,19 @@ export interface MyCheckinConfig {
   // ya no la inventa, ver cadenceLabel() en my-checkins.page.ts.
   cadence?: CheckinCadence;
   trainer: { name: string; lastname: string } | null;
+  // Ciclos por contenido — con fase de dieta, el check-in va por ciclo: cuál
+  // es el de hoy y si ya se respondió (un segundo envío lo sobreescribe).
+  cycleCheckin?: CycleCheckin | null;
+}
+
+export interface CycleCheckin {
+  phaseId: string;
+  number: number;
+  start: string;
+  end: string;
+  hasResponse: boolean;
+  responseId: string | null;
+  respondedAt: string | null;
 }
 
 // coach-tab FASE2 — "formularios completados": una respuesta pasada.

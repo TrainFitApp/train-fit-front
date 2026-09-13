@@ -50,12 +50,6 @@ const MONTH_LABELS = [
 // completo de cómo se eligieron estos 6 tonos ahí, junto con el porqué de
 // asignarlos por proximidad y no por índice%6).
 
-// F20-terdecies — presets de rango (7/30/90d), antes vivían en
-// <app-nutrition-tracking-chart> — se mueven aquí porque conceptualmente
-// "qué rango de fechas ver" es del calendario, no de la gráfica; la
-// gráfica solo se limita a dibujar lo que le llega por [customRange].
-const RANGE_PRESETS = [7, 30, 90];
-
 function isoDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
@@ -66,13 +60,6 @@ function daysInMonth(year: number, month: number): number {
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-// deltaDays negativo = hacia atrás, positivo = hacia delante.
-function addIsoDays(deltaDays: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + deltaDays);
-  return date.toISOString().slice(0, 10);
 }
 
 function buildMonthGrid(year: number, month: number): CalendarCell[] {
@@ -188,7 +175,6 @@ export class NutritionCalendarComponent implements OnChanges {
   @Output() rangeStartPicked = new EventEmitter<string>();
 
   public readonly weekdayLabels = WEEKDAY_LABELS;
-  public readonly rangePresets = RANGE_PRESETS;
   public monthDate = new Date();
   public cells: CalendarCell[] = [];
   public isLoading = false;
@@ -221,10 +207,6 @@ export class NutritionCalendarComponent implements OnChanges {
   public rangeError: string | null = null;
   public rangeStart: string | null = null;
   public rangeEnd: string | null = null;
-  // F20-terdecies — qué preset está activo (null si el rango actual es uno
-  // elegido a mano). Puramente de UI (qué botón se ve resaltado); el rango
-  // real que ve la gráfica es siempre rangeStart/rangeEnd.
-  public activePreset: number | null = 30;
   // F20-terdecies — día bajo el ratón mientras se elige el día final (entre
   // el primer click y el segundo): previsualiza el tramo antes de
   // confirmarlo, mismo gesto que cualquier selector de rango de fechas.
@@ -264,15 +246,6 @@ export class NutritionCalendarComponent implements OnChanges {
       this.monthDate = this.selectedDate ? new Date(`${this.selectedDate}T00:00:00.000Z`) : new Date();
       this.loadPlanPhases();
       this.loadMonth();
-      // Emite un rango por defecto (30d) sin esperar a que el usuario toque
-      // nada — <app-nutrition-tracking-chart> ya no tiene fallback propio,
-      // depende por completo de lo que le llegue aquí.
-      //
-      // En el selector NO: ahí no hay gráfica que alimentar y ese rango de
-      // cortesía se colaba como si el trainer lo hubiera elegido — pisaba las
-      // fechas del formulario (rangeSelected -> onRangePicked) nada más abrir
-      // el panel, antes de que nadie tocara el calendario.
-      if (!this.isPickerMode) this.selectPresetRange(this.activePreset ?? 30);
     }
   }
 
@@ -334,28 +307,6 @@ export class NutritionCalendarComponent implements OnChanges {
     this.openEnded = false;
     this.isRangeMode = false;
     this.awaitingRangeEnd = false;
-    this.activePreset = null;
-  }
-
-  // F20-quattuordecies — CENTRADO en hoy, no "los últimos N días": un
-  // trainer pautea a menudo unos días por delante (p. ej. un patrón
-  // recurring que cae la semana que viene) y quiere verlo reflejado en la
-  // gráfica sin tener que ir a "Seleccionar rango" a mano cada vez. Reparte
-  // días hacia atrás/adelante a partes iguales (algo más de historia que
-  // de futuro si N es impar — ceil hacia atrás).
-  public selectPresetRange(days: number): void {
-    const daysBack = Math.ceil(days / 2);
-    const daysForward = Math.floor(days / 2);
-    const start = addIsoDays(-daysBack);
-    const end = addIsoDays(daysForward);
-    this.rangeStart = start;
-    this.rangeEnd = end;
-    this.openEnded = false;
-    this.activePreset = days;
-    this.isRangeMode = false;
-    this.hoverDate = null;
-    this.awaitingRangeEnd = false;
-    this.rangeSelected.emit({ start, end });
   }
 
   private handleRangeClick(date: string): void {
@@ -366,7 +317,6 @@ export class NutritionCalendarComponent implements OnChanges {
       this.rangeEnd = null;
       this.openEnded = false;
       this.awaitingRangeEnd = true;
-      this.activePreset = null;
       this.rangeError = null;
       this.rangeStartPicked.emit(date);
       return;
@@ -597,8 +547,8 @@ export class NutritionCalendarComponent implements OnChanges {
 
   // ¿Hay alguna fase pisando este tramo? Misma condición de solape que
   // findOverlapping en el backend y misma regla que blocksNewPhase: el tramo
-  // reservado llega hasta el fin REAL si ya se cortó, y si no hasta su
-  // duración ESTIMADA; y empezar "a partir de ya" sobre la que está corriendo
+  // reservado llega hasta el fin REAL si ya se cortó (o no acaba nunca si
+  // sigue abierta); y empezar "a partir de ya" sobre la que está corriendo
   // no cuenta como solape (la corta).
   //
   // Se comprueba contra planPhases (el historial ENTERO), no contra las
@@ -607,7 +557,7 @@ export class NutritionCalendarComponent implements OnChanges {
   private findBlockingPhaseInRange(start: string, end: string): PlanAssignment | null {
     return (
       this.planPhases.find((phase) => {
-        const finEfectivo = phase.endDate || phase.estimatedEndDate || null;
+        const finEfectivo = phase.endDate || null;
         const solapa = phase.startDate <= end && (!finEfectivo || finEfectivo >= start);
         if (!solapa) return false;
         const cortableDesdeYa = !phase.endDate && phase.startDate <= start && start <= this.todayIso;
@@ -617,10 +567,9 @@ export class NutritionCalendarComponent implements OnChanges {
   }
 
   // Hasta cuándo tiene reservado el tramo una fase, para los mensajes de
-  // solape: el fin real si ya se cortó, la estimación si sigue corriendo.
+  // solape: el fin real si ya se cortó, "indefinido" si sigue corriendo.
   private phaseEndLabel(phase: PlanAssignment): string {
     if (phase.endDate) return phase.endDate;
-    if (phase.estimatedEndDate) return `≈ ${phase.estimatedEndDate}`;
     return 'indefinido';
   }
 

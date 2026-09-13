@@ -38,6 +38,7 @@ import {
   ExchangeGeneratorResult,
 } from '../../../../../../shared/components/exchange-generator-modal/exchange-generator-modal.component';
 import { FoodExchangeItem } from '../../../../../food-exchanges/models/food-exchange.model';
+import { computeItemMicros } from '../../../../utils/nutrient-fields';
 
 // Extraído de diet-template-builder.page.ts a un modal standalone real —
 // mismo motivo y mismo arreglo que ApplyCheckinTemplateModalComponent
@@ -443,6 +444,7 @@ export class DayMealEditorModalComponent {
       item.carbs = macros.carbs;
       item.fat = macros.fat;
     }
+    item.micros = computeItemMicros(this.customProductService, this.recipeService, item);
   }
 
   // Fix7 — crear una receta nueva reutiliza el mismo paso de "confirmar

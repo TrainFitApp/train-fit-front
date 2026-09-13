@@ -16,7 +16,7 @@
         </button>
       </div>
       <div class="tf-page-header__title-section">
-        <h1 class="tf-page-header__title">{{ forDirectCreate ? 'Crear dieta' : 'Aplicar plantilla' }}</h1>
+        <h1 class="tf-page-header__title">Aplicar plantilla</h1>
       </div>
       <div class="tf-page-header__actions"></div>
     </div>
@@ -34,71 +34,65 @@
   </div>
 
   <ng-container *ngIf="state === 'loaded' || state === 'applying'">
-    <div class="input-wrapper" *ngIf="forDirectCreate">
-      <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
-      <input type="text" class="input-field" placeholder="Nombre de la dieta" [(ngModel)]="name" />
+    <!-- Activo al abrir: pautando a este cliente, lo habitual es aplicarle
+         material suyo. Quitarlo añade las generales de la biblioteca. -->
+    <button
+      type="button"
+      class="owned-filter-chip"
+      [class.is-active]="onlyOwnedByClient"
+      (click)="toggleOwnedFilter()"
+    >
+      <ion-icon [name]="onlyOwnedByClient ? 'person' : 'people-outline'"></ion-icon>
+      {{ onlyOwnedByClient ? ('Solo dietas de ' + clientName) : 'Todas: generales + suyas' }}
+    </button>
+
+    <p class="empty-hint" *ngIf="!templates.length && onlyOwnedByClient">
+      {{ clientName }} todavía no tiene dietas propias. Créale una con "Crear dieta",
+      o quita el filtro para aplicarle una plantilla general.
+    </p>
+    <p class="empty-hint" *ngIf="!templates.length && !onlyOwnedByClient">
+      Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
+    </p>
+
+    <div
+      class="template-row"
+      *ngFor="let template of templates; trackBy: trackByTemplateId"
+      [class.template-row--selected]="selectedTemplateId === template._id"
+      (click)="select(template)"
+    >
+      <ion-icon [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"></ion-icon>
+      <div class="template-info">
+        <span class="template-name">{{ template.name }}</span>
+        <span class="template-meta">
+          {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
+          <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
+        </span>
+      </div>
+      <ion-icon
+        class="selected-check"
+        *ngIf="selectedTemplateId === template._id"
+        name="checkmark-circle"
+      ></ion-icon>
     </div>
 
-    <ng-container *ngIf="!forDirectCreate">
-      <!-- Activo al abrir: pautando a este cliente, lo habitual es aplicarle
-           material suyo. Quitarlo añade las generales de la biblioteca. -->
-      <button
-        type="button"
-        class="owned-filter-chip"
-        [class.is-active]="onlyOwnedByClient"
-        (click)="toggleOwnedFilter()"
-      >
-        <ion-icon [name]="onlyOwnedByClient ? 'person' : 'people-outline'"></ion-icon>
-        {{ onlyOwnedByClient ? ('Solo dietas de ' + clientName) : 'Todas: generales + suyas' }}
-      </button>
-
-      <p class="empty-hint" *ngIf="!templates.length && onlyOwnedByClient">
-        {{ clientName }} todavía no tiene dietas propias. Créale una con "Crear dieta",
-        o quita el filtro para aplicarle una plantilla general.
-      </p>
-      <p class="empty-hint" *ngIf="!templates.length && !onlyOwnedByClient">
-        Todavía no tienes plantillas. Créalas desde "Plantillas de dieta".
-      </p>
-
-      <div
-        class="template-row"
-        *ngFor="let template of templates; trackBy: trackByTemplateId"
-        [class.template-row--selected]="selectedTemplateId === template._id"
-        (click)="select(template)"
-      >
-        <ion-icon [name]="template.ownerClientId ? 'person' : 'restaurant-outline'"></ion-icon>
-        <div class="template-info">
-          <span class="template-name">{{ template.name }}</span>
-          <span class="template-meta">
-            {{ dayCount(template) }} día{{ dayCount(template) === 1 ? '' : 's' }}
-            <ng-container *ngIf="template.ownerClientId"> · suya</ng-container>
-          </span>
-        </div>
-        <ion-icon
-          class="selected-check"
-          *ngIf="selectedTemplateId === template._id"
-          name="checkmark-circle"
-        ></ion-icon>
-      </div>
-    </ng-container>
-
-    <!-- El mismo calendario de la ficha, en modo selección de rango: pinta
-         las fases ya pautadas, así que las fechas ocupadas se ven ANTES de
-         elegirlas en vez de descubrirse al guardar. [rangePreview] es la otra
-         mitad: lo que se teclee abajo (duración, fecha exacta, indefinido) se
-         pinta aquí arriba al momento, sin esperar a guardar.
-         Va también en "Crear dieta": esa dieta se aplica como fase nada más
-         construirla, así que necesita las mismas fechas. -->
+    <!-- El mismo calendario de la ficha, en modo selección: pinta las fases
+         ya pautadas, así que las fechas ocupadas se ven ANTES de elegir en
+         vez de descubrirse al guardar. Solo se elige el INICIO — la fase
+         corre hasta que empiece la siguiente. -->
     <app-nutrition-calendar
       *ngIf="showDatePicker"
       [clientId]="clientId"
       [pickerMode]="true"
       [selectedDate]="startDate"
       [rangePreview]="rangePreview"
-      (rangeSelected)="onRangePicked($event)"
       (rangeStartPicked)="onStartPicked($event)"
       (dateSelected)="onStartPicked($event)"
     ></app-nutrition-calendar>
+
+    <!-- Cómo se va a resolver el contenido de la fase elegida. -->
+    <p class="phase-mode-info" *ngIf="selectedTemplate">
+      <strong>{{ phaseModeLabel }}</strong> — {{ phaseModeHint }}
+    </p>
 
     <ng-container *ngIf="showDatePicker">
       <label class="field-label" for="phase-start-date">Fecha de inicio</label>
@@ -122,56 +116,9 @@
       {{ overlapError }}
     </p>
 
-    <!-- 2026-09 — antes aquí se elegía CUÁNDO TERMINA (fecha exacta / duración
-         / indefinido) y esa fecha cerraba la fase de verdad. Ya no: una fase
-         corre hasta que el entrenador abre la siguiente, así que lo único que
-         se pide es cuánto se ESTIMA que va a durar. Sirve de referencia, avisa
-         en el dashboard cuando se acerca, y reserva el tramo para que no se
-         programe otra fase encima — pero no la corta. -->
-    <ng-container *ngIf="showDatePicker">
-      <p class="section-hint">¿Cuánto estimas que durará?</p>
-      <div class="duration-row">
-        <div class="input-wrapper duration-value">
-          <ion-icon name="time-outline" class="input-icon"></ion-icon>
-          <input
-            id="phase-duration"
-            type="number"
-            min="1"
-            class="input-field"
-            [disabled]="endMode === 'indefinite'"
-            [(ngModel)]="durationValue"
-            aria-label="Duración estimada"
-          />
-        </div>
-        <div class="input-wrapper duration-unit">
-          <select
-            class="input-field"
-            [disabled]="endMode === 'indefinite'"
-            [(ngModel)]="durationUnit"
-            aria-label="Unidad de la duración estimada"
-          >
-            <option value="weeks">semanas</option>
-            <option value="days">días</option>
-          </select>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        class="no-estimate-toggle"
-        (click)="toggleEstimate()"
-      >
-        {{ endMode === 'indefinite' ? 'Poner una duración estimada' : 'Sin estimación' }}
-      </button>
-
-      <p class="end-date-preview" *ngIf="endMode !== 'indefinite' && computedEndDate">
-        ≈ hasta el {{ computedEndDate }}. No se corta sola: sigue vigente hasta que
-        empieces la siguiente fase.
-      </p>
-      <p class="end-date-preview" *ngIf="endMode === 'indefinite'">
-        Sin estimación: sigue vigente hasta que empieces la siguiente fase.
-      </p>
-    </ng-container>
+    <p class="end-date-preview" *ngIf="showDatePicker">
+      Sin fecha de fin: sigue vigente hasta que empieces la siguiente fase.
+    </p>
   </ng-container>
 </ion-content>
 
@@ -182,7 +129,7 @@
       [disabled]="!canConfirm || state === 'applying'"
       (click)="confirm()"
     >
-      <span *ngIf="state !== 'applying'">{{ forDirectCreate ? 'Continuar' : ('Aplicar a ' + clientName) }}</span>
+      <span *ngIf="state !== 'applying'">Aplicar a {{ clientName }}</span>
       <ion-spinner name="dots" *ngIf="state === 'applying'"></ion-spinner>
     </button>
   </ion-toolbar>

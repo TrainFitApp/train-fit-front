@@ -60,6 +60,8 @@
           [name]="template.name"
           [profile]="template.macroProfile || null"
           [dayCount]="dayCount(template)"
+          [basedOnDays]="template.macroProfile?.basedOnDays || 0"
+          [mode]="template.mode"
           [verified]="!!template.verified"
           [ownedByClient]="!!template.ownerClientId"
           [flags]="effectiveSuitableFor(template)"

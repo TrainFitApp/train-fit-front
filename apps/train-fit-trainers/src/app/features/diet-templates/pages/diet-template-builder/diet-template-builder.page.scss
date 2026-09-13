@@ -231,6 +231,134 @@
   margin-top: -4px;
 }
 
+// Inputs numéricos sueltos (sin el wrapper con icono): mismo look que los
+// del cajón de sugerencias.
+%bare-number-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  color-scheme: dark;
+  font-family: inherit;
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+// Objetivo de la fase (ciclos por contenido §8) — solo al crear el C1.
+.phase-objective {
+  margin: 12px 0 4px;
+
+  &__row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  &__field {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+
+    .input-field {
+      @extend %bare-number-input;
+    }
+  }
+
+  &__hint {
+    font-weight: 400;
+    color: var(--tf-text-muted);
+    margin-top: 6px;
+  }
+}
+
+// Días por ciclo en mode choice (ciclos por contenido §1).
+.choice-cycle-days {
+  margin: -2px 0 10px;
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+
+    .input-field {
+      @extend %bare-number-input;
+      width: 90px;
+    }
+  }
+
+  .section-hint {
+    font-weight: 400;
+    color: var(--tf-text-muted);
+    margin-top: 4px;
+  }
+}
+
+// Preparar siguiente ciclo — kcal objetivo + reescalar, dentro del bloque
+// de contexto de cliente.
+.next-cycle-kcal {
+  margin-top: 10px;
+
+  &__label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--tf-text-muted);
+    margin-bottom: 4px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 8px;
+
+    .input-field {
+      @extend %bare-number-input;
+      flex: 1;
+    }
+  }
+
+  &__btn {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--tf-accent);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__hint {
+    margin: 6px 0 0;
+    font-size: 0.75rem;
+    color: var(--tf-text-muted);
+  }
+}
+
 // Sugerencias de dieta — aptitud dietética.
 .suitable-for {
   margin-bottom: 14px;
@@ -463,13 +591,22 @@
   &.has-items {
     background: var(--tf-accent-soft);
     // Con contenido la celda se lee de arriba abajo (lista de alimentos), y
-    // el hueco de la derecha lo ocupa el botón de copiar, absoluto.
+    // el hueco de la derecha lo ocupa la fila de iconos (vaciar/copiar/
+    // pegar), absoluta — se reserva sitio para los tres a la vez aunque no
+    // siempre estén los tres visibles.
     justify-content: flex-start;
-    padding-right: 28px;
+    padding-right: 76px;
   }
 
   &.drag-over {
     outline: 2px dashed var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  // Última celda en la que se abrió el editor — se mantiene marcada aunque
+  // se cierre el modal, para saber de un vistazo en cuál se estaba.
+  &.active-cell {
+    outline: 2px solid var(--tf-accent);
     outline-offset: -2px;
   }
 
@@ -488,10 +625,16 @@
   }
 }
 
-.board-cell-action {
+.board-cell-actions {
   position: absolute;
   top: 4px;
   right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.board-cell-action {
   width: 22px;
   height: 22px;
   display: flex;
@@ -508,6 +651,10 @@
 
   &:hover {
     color: var(--tf-accent);
+  }
+
+  &--danger:hover {
+    color: var(--tf-danger);
   }
 }
 
@@ -714,6 +861,27 @@
   &--fat {
     color: #f472b6;
   }
+}
+
+// Micronutrientes/macros secundarios del total del día — mismo lenguaje
+// visual que .deviation-chip (chip neutro), pero sin semántica de
+// desviación: aquí solo se informa el dato, no se compara contra objetivo.
+.totals-micros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.micro-tag {
+  padding: 1px 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .totals-empty {

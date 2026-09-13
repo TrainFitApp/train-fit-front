@@ -60,6 +60,18 @@
       ><strong>{{ 'DIETS.PASTE_DAY' | translate }}</strong>
     </ion-button>
 
+    <!-- Ciclos por contenido — check-in del ciclo en el que está: pendiente
+         (CTA) o ya respondido (editar, lo sobreescribe). Encima del peso
+         diario. -->
+    <button type="button" class="cycle-checkin-card" *ngIf="cycleCheckin" [class.is-done]="cycleCheckin.hasResponse" (click)="goToCycleCheckin()">
+      <ion-icon [name]="cycleCheckin.hasResponse ? 'checkmark-circle-outline' : 'clipboard-outline'" aria-hidden="true"></ion-icon>
+      <span class="cycle-checkin-card__text">
+        <strong>{{ cycleCheckin.hasResponse ? 'Editar check-in del ciclo ' + cycleCheckin.number : 'Check-in del ciclo ' + cycleCheckin.number + ' pendiente' }}</strong>
+        <small>{{ cycleCheckin.hasResponse ? 'Si lo vuelves a enviar, sustituye al anterior.' : 'Tu entrenador lo usa para ajustar el siguiente ciclo.' }}</small>
+      </span>
+      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+    </button>
+
     <app-daily-weight
       [user]="user"
       [selectedDate]="selectedDate"
@@ -69,19 +81,31 @@
     ></app-daily-weight>
   </div>
 
-  <!-- Fase 9 — solo visible con un plan activo de "menús elegidos por el
-       cliente" y ningún tipo de día marcado todavía para esta fecha. -->
-  <div class="day-type-banner" *ngIf="dayTypeStatus?.needsChoice">
-    <span class="day-type-banner__title">¿Qué día es hoy?</span>
-    <div class="day-type-banner__options">
+  <!-- Plan "el cliente elige cada día" (ciclos por contenido §11): chips de
+       los menús disponibles encima de las comidas — el elegido marcado. Click
+       = preview y "Elegir"; con uno elegido, "Salir del menú". -->
+  <div class="menu-chips" *ngIf="menuOptions.length">
+    <span class="menu-chips__title">{{ selectedMenu ? 'Menú de hoy' : '¿Qué menú te toca hoy?' }}</span>
+    <div class="menu-chips__row">
       <button
         type="button"
-        class="day-type-banner__option"
-        *ngFor="let option of dayTypeStatus.options"
-        [disabled]="isChoosingDayType"
-        (click)="chooseDayType(option)"
+        class="menu-chips__chip"
+        *ngFor="let option of menuOptions"
+        [class.is-selected]="selectedMenu === option"
+        [disabled]="isChoosingDayType || isLeavingDayType"
+        (click)="openMenuPreview(option)"
       >
+        <ion-icon name="checkmark-outline" *ngIf="selectedMenu === option" aria-hidden="true"></ion-icon>
         {{ option }}
+      </button>
+      <button
+        type="button"
+        class="menu-chips__leave"
+        *ngIf="selectedMenu"
+        [disabled]="isLeavingDayType"
+        (click)="leaveDayType()"
+      >
+        {{ isLeavingDayType ? 'Saliendo…' : 'Salir del menú' }}
       </button>
     </div>
   </div>

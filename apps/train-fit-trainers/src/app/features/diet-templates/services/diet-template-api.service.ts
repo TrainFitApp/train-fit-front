@@ -43,7 +43,9 @@ export class DietTemplateApiService {
     days: DietTemplateDayPayload[],
     ownerClientId?: string | null,
     mode?: TemplateMode,
-    dayPatterns?: DietTemplateDayPatternPayload[]
+    dayPatterns?: DietTemplateDayPatternPayload[],
+    // Solo en mode 'choice': días que dura un ciclo (ver plan ciclos por contenido).
+    choiceCycleDays?: number | null
   ): Observable<DietTemplate> {
     return this.http.post<DietTemplate>('trainer/diet-templates', {
       name,
@@ -51,6 +53,7 @@ export class DietTemplateApiService {
       mode,
       dayPatterns,
       ownerClientId: ownerClientId || null,
+      ...(choiceCycleDays != null ? { choiceCycleDays } : {}),
     });
   }
 
@@ -62,7 +65,8 @@ export class DietTemplateApiService {
     dayPatterns?: DietTemplateDayPatternPayload[],
     // Sugerencias de dieta — aptitudes que el entrenador fuerza a mano
     // (el array derivado lo recalcula el backend, nunca se manda).
-    suitableForOverride?: string[]
+    suitableForOverride?: string[],
+    choiceCycleDays?: number | null
   ): Observable<DietTemplate> {
     return this.http.put<DietTemplate>(`trainer/diet-templates/${id}`, {
       name,
@@ -70,6 +74,7 @@ export class DietTemplateApiService {
       mode,
       dayPatterns,
       suitableForOverride,
+      ...(choiceCycleDays != null ? { choiceCycleDays } : {}),
     });
   }
 

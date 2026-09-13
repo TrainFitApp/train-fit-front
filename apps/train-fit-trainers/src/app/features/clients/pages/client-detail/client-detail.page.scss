@@ -807,6 +807,65 @@
   }
 }
 
+// Ciclos PASADOS de la fase, el más reciente a la izquierda. Máximo 5 a la
+// vez (ver visibleCyclesLimit); "+N" suma otros 5 en vez de destaparlos
+// todos. La fila siempre puede deslizarse en horizontal — así la tarjeta
+// nunca crece hacia abajo ni empuja el resto del plan.
+.cycle-chips {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+
+  // Sin esto, los chips se encogerían para caber en vez de desbordar.
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+.cycle-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 42px;
+  padding: 5px 6px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 9px;
+  background: var(--tf-surface-2);
+  color: var(--tf-text-secondary);
+  cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out),
+    background var(--tf-duration-fast) var(--tf-ease-out);
+
+  &:hover {
+    border-color: var(--phase-color, var(--tf-accent));
+  }
+}
+
+.cycle-chip__number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.cycle-chip__kcal {
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-muted);
+  line-height: 1.1;
+}
+
+.cycle-chip--more {
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+}
+
 .active-plan-weekdays {
   display: flex;
   flex-wrap: wrap;
@@ -2136,11 +2195,11 @@
 }
 
 // Contenedor de la tarjeta programada — <div>, ya no <button>: necesita dos
-// acciones propias (abrir/quitar, ver .next-phase-card__open y
-// .next-phase-card__remove más abajo) y un botón no puede anidar otro
-// botón. font/color/text-align/cursor de aquí abajo los sigue necesitando
-// .next-phase-card--add, que SÍ es un <button> real (la card "Siguiente
-// fase") y no redeclara los suyos propios.
+// acciones propias (abrir/quitar, ver .next-phase-card__open y el enlace
+// .phase-remove-link de más abajo, mismo control que la fase vigente) y un
+// botón no puede anidar otro botón. font/color/text-align/cursor de aquí
+// abajo los sigue necesitando .next-phase-card--add, que SÍ es un <button>
+// real (la card "Siguiente fase") y no redeclara los suyos propios.
 .next-phase-card {
   position: relative;
   flex: 0 0 180px;
@@ -2180,12 +2239,26 @@
     outline-offset: 2px;
   }
 
-  // Deja libres las dos esquinas: el lápiz a la derecha (ver
-  // .next-phase-card__edit-icon) y el botón de quitar a la izquierda (ver
-  // .next-phase-card__remove) — "3ª · PROGRAMADA" es corto, pero no hay
-  // nada que garantice que no crezca.
+  // Deja libre la esquina del lápiz (ver .next-phase-card__edit-icon) —
+  // "3ª · PROGRAMADA" es corto, pero no hay nada que garantice que no crezca.
+  // Quitar fase ya no es un icono en la esquina opuesta (ver
+  // .phase-remove-link, debajo del contenido, no encima).
   .plan-phase-order {
-    padding: 0 20px;
+    padding: 0 20px 0 0;
+  }
+}
+
+// Fase ya terminada (a diferencia de una programada, que todavía va a
+// pasar): atenuada, para que el ojo vaya primero a la vigente y a lo que
+// viene, no a lo que ya se acabó — sigue siendo clicable (abre su plantilla,
+// mismo historial de siempre) pero sin el botón de quitar (ver
+// *ngIf="!isPhaseEnded(phase)" en el HTML: borrar una fase ya cerrada es
+// tocar historial real, no "he cambiado de idea antes de que empiece").
+.next-phase-card--ended {
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 0.85;
   }
 }
 
@@ -2222,15 +2295,6 @@
   right: var(--tf-space-2);
   font-size: 1rem;
   color: var(--tf-text-faint);
-}
-
-// Mismo botón que "Quitar fase" en .active-plan-top-row (.bulk-apply-btn),
-// reposicionado a la esquina opuesta al lápiz — aquí sí hace falta
-// position:absolute explícito porque .bulk-apply-btn no lo trae de serie.
-.next-phase-card__remove {
-  position: absolute;
-  top: var(--tf-space-2);
-  left: var(--tf-space-2);
 }
 
 .next-phase-card__name {
@@ -2295,6 +2359,7 @@
 .phase-remove-confirm {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--tf-space-2);
   align-self: flex-end;
 
@@ -2351,54 +2416,103 @@
   }
 }
 
-// Misma confirmación inline que .phase-remove-confirm, pero solo-icono: la
-// tarjeta de fase programada mide 180px (.next-phase-card) y vive en la
-// misma esquina que ocupaba el único botón "Quitar" (.next-phase-card__remove)
-// — dos botones de texto no caben ahí.
-.next-phase-card__remove-confirm {
-  position: absolute;
-  top: var(--tf-space-2);
-  left: var(--tf-space-2);
+// Ciclos virtuales — cuadraditos (actual / siguiente) del pie de la fase
+// vigente. Antes eran tarjetas anchas con nota + sugerencia + icono de
+// acción aparte; demasiado detalle para algo que vive dentro de la card de
+// fase, que ya de por sí compite por espacio con calendario/gráfico. Ahora
+// el resumen mínimo (ciclo, fechas, kcal) y el resto — sugerencia, aviso de
+// bloqueo, cambio a mitad de ciclo — vive en CycleEditModalComponent, que
+// abre el propio cuadradito al pulsarlo (ya no hace falta un icono aparte).
+// El actual va en el color de la fase; el siguiente, neutro hasta que se
+// prepara, y en acento cuando ya está editado.
+.cycle-tiles {
   display: flex;
-  gap: 4px;
-
-  ion-icon {
-    font-size: 16px;
-  }
+  gap: 8px;
 }
 
-// Sugerencias de dieta — botón de progresión ciclo a ciclo dentro de la
-// tarjeta de la fase vigente.
-.next-cycle-btn {
+.cycle-tile {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 92px;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--tf-border, #e0e0e0);
-  border-radius: 10px;
-  background: transparent;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--tf-space-3) var(--tf-space-2);
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 12px;
+  background: var(--tf-surface-2);
   font-family: inherit;
-  font-size: var(--tf-font-size-sm);
-  font-weight: 600;
-  color: var(--tf-text, inherit);
+  text-align: left;
   cursor: pointer;
+  transition: border-color var(--tf-duration-fast) var(--tf-ease-out);
 
-  ion-icon {
-    font-size: 18px;
+  &:not(:disabled):hover {
+    border-color: var(--phase-color, var(--tf-accent));
   }
 
-  &__hint {
-    margin-left: auto;
-    font-weight: 400;
+  &:focus-visible {
+    outline: 2px solid var(--tf-accent);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &--current {
+    border-color: var(--phase-color, var(--tf-accent));
+    background: var(--phase-bg, var(--tf-surface-3));
+  }
+
+  &--next.is-edited {
+    border-color: var(--tf-accent-soft-border);
+    background: var(--tf-accent-tint);
+  }
+
+  // Misma fila que el título ("Ciclo N"), no flotando aparte arriba: se lee
+  // como una etiqueta del propio título, no como un aviso separado.
+  &__title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+  }
+
+  &__next-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    // No el acento (eso es para la acción/estado que ya tiene la card, p.
+    // ej. is-edited): esto es solo contexto, un tono apagado como el resto
+    // de metadatos de la tarjeta.
+    color: var(--tf-text-faint);
+  }
+
+  &__label {
+    font-size: var(--tf-font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--tf-text-muted);
   }
 
-  &:hover {
-    border-color: var(--tf-accent);
-    color: var(--tf-accent);
+  &__dates {
+    font-size: var(--tf-font-size-xs);
+    color: var(--tf-text-secondary);
+  }
+
+  &__kcal {
+    margin-top: 2px;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text);
   }
 }
+
 
 .next-phase-card--add {
   align-items: center;

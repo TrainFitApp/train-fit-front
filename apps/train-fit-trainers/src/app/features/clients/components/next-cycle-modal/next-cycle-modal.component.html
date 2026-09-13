@@ -15,50 +15,72 @@
 </ion-header>
 
 <ion-content class="cycle-content">
-  <div class="detail-skeleton" *ngIf="state === 'loading'">
-    <div class="skeleton-block" style="height: 90px"></div>
-    <div class="skeleton-block" style="height: 60px"></div>
-  </div>
+  <p class="cycle-period">
+    <strong>Ciclo {{ next.number }}</strong> · {{ periodLabel }} · {{ next.len }} día{{ next.len === 1 ? '' : 's' }}
+    <span class="cycle-period__edited" *ngIf="alreadyPrepared">· ya preparado</span>
+  </p>
 
-  <div class="section-error" *ngIf="state === 'error'">
-    <p>No se pudo calcular el siguiente ciclo.</p>
-    <ion-button size="small" fill="outline" (click)="dismiss()">Cerrar</ion-button>
-  </div>
-
-  <ng-container *ngIf="state === 'ready' && data as d">
-    <section class="reason-card" [class.is-flagged]="d.suggestion.flag">
-      <p class="reason-text">{{ d.suggestion.reason }}</p>
-      <div class="weight-row" *ngIf="d.suggestion.hasData">
-        Peso {{ d.weightStartKg }} → {{ d.weightEndKg }} kg
-        <span *ngIf="d.suggestion.actualWeeklyRateKg !== null">
-          ({{ deltaLabel(d.suggestion.actualWeeklyRateKg) }} kg/sem)
-        </span>
+  <!-- La sugerencia mira cómo respondió el peso en el ciclo actual y cómo se
+       siguió la dieta. Nunca bloquea: con adherencia baja avisa, y decide el
+       entrenador. -->
+  <section class="reason-card" [class.is-flagged]="suggestion.flag">
+    <ion-icon
+      class="reason-icon"
+      [name]="suggestion.flag ? 'alert-circle-outline' : 'sparkles-outline'"
+      aria-hidden="true"
+    ></ion-icon>
+    <div class="reason-body">
+      <span class="reason-label">{{ suggestion.flag ? 'Aviso' : 'Sugerencia' }}</span>
+      <p class="reason-text">{{ suggestion.reason }}</p>
+      <div class="weight-row" *ngIf="suggestion.hasData">
+        Peso {{ suggestion.weightStartKg }} → {{ suggestion.weightEndKg }} kg
+        <span *ngIf="suggestion.actualWeeklyRateKg !== null">({{ deltaLabel(suggestion.actualWeeklyRateKg) }} kg/sem)</span>
+        <span *ngIf="suggestion.comparedToCycle"> · vs ciclo {{ suggestion.comparedToCycle }}</span>
       </div>
-    </section>
+      <div class="weight-row" *ngIf="suggestion.adherencePct !== null">
+        Adherencia del ciclo actual: <strong>{{ suggestion.adherencePct }} %</strong>
+        <span class="muted-inline">({{ suggestion.adherenceDays }} día{{ suggestion.adherenceDays === 1 ? '' : 's' }} con pauta)</span>
+      </div>
+    </div>
+  </section>
 
-    <section class="target-edit">
-      <label class="field-label">kcal del siguiente ciclo</label>
-      <input type="number" step="50" [(ngModel)]="targetKcal" />
-      <p class="delta-hint">
-        Ciclo actual: {{ d.currentCycleKcal || '—' }} kcal
-        <span *ngIf="d.currentCycleKcal">· cambio {{ deltaLabel(kcalDelta) }} kcal</span>
-      </p>
+  <!-- Día a día: qué comió fuera de pauta y qué no marcó. Plegado por
+       defecto — es el detalle que justifica el aviso, no lo primero que hay
+       que leer. -->
+  <section class="deviations" *ngIf="deviations.length">
+    <button type="button" class="deviations__toggle" (click)="showDeviations = !showDeviations">
+      <ion-icon [name]="showDeviations ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+      {{ deviations.length }} día{{ deviations.length === 1 ? '' : 's' }} con desvíos
+    </button>
+    <ul class="deviations__list" *ngIf="showDeviations">
+      <li *ngFor="let d of deviations">
+        <span class="deviations__date">{{ fmt(d.date) }}</span>
+        <span class="deviations__text">{{ deviationLine(d) }}</span>
+      </li>
+    </ul>
+  </section>
 
-      <label class="field-label">Fecha de inicio</label>
-      <input type="date" [(ngModel)]="startDate" />
-
-      <p class="muted">
-        El contenido del ciclo se copia del actual con las cantidades escaladas
-        para dar en estas kcal. Podrás retocarlo después en el editor de la dieta.
-      </p>
-    </section>
-  </ng-container>
+  <section class="target-edit">
+    <label class="field-label">kcal del ciclo {{ next.number }}</label>
+    <input type="number" step="50" [(ngModel)]="targetKcal" />
+    <p class="delta-hint">
+      Ciclo actual: {{ baseKcal || '—' }} kcal
+      <span *ngIf="baseKcal">· cambio con respecto al ciclo anterior: {{ deltaLabel(kcalDelta) }} kcal</span>
+    </p>
+    <p class="muted">
+      Al preparar, todas las cantidades del ciclo actual se escalan en proporción a estas kcal y se abren
+      en el editor para retocarlas. Si no cambias nada, el ciclo {{ next.number }} repetirá el actual.
+    </p>
+  </section>
 </ion-content>
 
-<ion-footer class="ion-no-border" *ngIf="state === 'ready'">
+<ion-footer class="ion-no-border">
   <div class="footer-actions">
-    <ion-button expand="block" [disabled]="applying || !targetKcal" (click)="confirm()">
-      {{ applying ? 'Aplicando…' : 'Aplicar ciclo nuevo' }}
-    </ion-button>
+    <button type="button" class="confirm-button" [disabled]="!(targetKcal > 0)" (click)="prepare()">
+      Preparar ciclo {{ next.number }} en el editor
+    </button>
+    <button type="button" class="discard-link" *ngIf="alreadyPrepared" [disabled]="discarding" (click)="discard()">
+      {{ discarding ? 'Descartando…' : 'Descartar el ciclo preparado' }}
+    </button>
   </div>
 </ion-footer>

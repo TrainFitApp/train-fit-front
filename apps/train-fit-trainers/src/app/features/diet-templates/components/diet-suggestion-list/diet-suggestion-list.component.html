@@ -10,6 +10,7 @@
       [verified]="t.verified"
       [ownedByClient]="!!t.ownerClientId"
       [basedOnDays]="t.basedOnDays"
+      [mode]="t.mode"
       [flags]="t.effectiveSuitableFor || []"
       [missingFlags]="t.missingFlags || []"
       [highlight]="t._id === (topSuggestionId$ | async)"

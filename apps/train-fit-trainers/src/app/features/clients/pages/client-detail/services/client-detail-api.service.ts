@@ -15,6 +15,7 @@ import {
   DietDaySummary,
   NutritionalGoal,
   NutritionComplianceSummary,
+  NutritionFoodsSummary,
   NutritionTargetResponse,
   NutritionTrackingSummary,
   Supplement,
@@ -360,6 +361,19 @@ export class ClientDetailApiService {
     );
   }
 
+  // Cumplimiento alimento a alimento del rango — panel de resumen de un ciclo.
+  // El backend acota `to` a hoy: los días futuros aún no materializados se
+  // resuelven con consumed:false y falsearían el cumplimiento.
+  public getNutritionFoods(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionFoodsSummary> {
+    return this.http.get<NutritionFoodsSummary>(
+      `${this.base(clientId)}/nutrition-foods?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
   public getPayments(clientId: string): Observable<TrainerPayment[]> {
     return this.http.get<TrainerPayment[]>(`${this.base(clientId)}/payments`);
   }
@@ -417,7 +431,7 @@ export class ClientDetailApiService {
     );
   }
 
-  // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
+  // F29 — preferencias nutricionales del cliente.
   public getNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences | null> {
     return this.http.get<ClientNutritionPreferences | null>(
       `${this.base(clientId)}/nutrition-preferences`
@@ -428,6 +442,23 @@ export class ClientDetailApiService {
     return this.http.post<ClientNutritionPreferences>(
       `${this.base(clientId)}/nutrition-preferences/request`,
       {}
+    );
+  }
+
+  // El profesional edita directamente las preferencias en vez de esperar a
+  // que el cliente responda el cuestionario.
+  public updateNutritionPreferences(
+    clientId: string,
+    payload: Partial<
+      Pick<
+        ClientNutritionPreferences,
+        'allergies' | 'favoriteFoods' | 'dislikedFoods' | 'cooksAtHome' | 'disabledMealSlots' | 'mealSlotLabels'
+      >
+    >
+  ): Observable<ClientNutritionPreferences> {
+    return this.http.put<ClientNutritionPreferences>(
+      `${this.base(clientId)}/nutrition-preferences`,
+      payload
     );
   }
 

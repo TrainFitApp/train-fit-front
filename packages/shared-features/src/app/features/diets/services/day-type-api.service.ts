@@ -17,4 +17,10 @@ export class DayTypeApiService {
   public choose(date: string, patternName: string): Observable<DietDay> {
     return this.http.put<DietDay>(`dietdays/date/${date}/day-type`, { patternName });
   }
+
+  // Ciclos por contenido — "salir del menú": el día vuelve a quedar sin
+  // menú; se quita lo pautado (y sus marcas), lo anotado a mano se queda.
+  public leave(date: string): Observable<DietDay> {
+    return this.http.delete<DietDay>(`dietdays/date/${date}/day-type`);
+  }
 }
