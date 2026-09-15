@@ -8,7 +8,7 @@
   </div>
 
   <ng-container *ngIf="summaries.length; else emptyState">
-    <div class="day-detail__card" *ngFor="let s of summaries">
+    <div class="day-detail__card" *ngFor="let s of summaries; trackBy: trackBySummary">
       <div class="day-detail__card-header">
         <span class="list-card-title">{{ s.workout.name }}</span>
         <span

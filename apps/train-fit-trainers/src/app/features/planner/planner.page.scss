@@ -288,8 +288,11 @@ app-planner-insights-panel {
 }
 
 .planner-board-column {
-  flex: 0 0 320px;
-  width: 320px;
+  // 320 -> 340: la edición inline de reps/RIR pasó a 2 cajas (mín/máx) en
+  // vez de un único campo con guion, y necesitaba algo más de aire para
+  // que 2 dígitos no queden apretados contra el borde del input.
+  flex: 0 0 340px;
+  width: 340px;
   height: 100%;
 
   @media (max-width: 900px) {

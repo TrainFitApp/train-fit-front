@@ -755,7 +755,11 @@ export class ClientDetailPage implements OnInit {
   // resto de la app: series con expectedReps[], no todas las series (una
   // serie sin rango prescrito no es incumplimiento, es un dato que no
   // aplica).
-  public get completedDaysMap(): Map<string, CompletedDay> {
+  // Se recalcula SOLO cuando cambian los entrenamientos (ver
+  // computeCompletedWorkouts), no en cada lectura.
+  public completedDaysMap = new Map<string, CompletedDay>();
+
+  private buildCompletedDaysMap(): Map<string, CompletedDay> {
     const map = new Map<string, CompletedDay>();
     for (const workout of this.completedWorkouts) {
       if (!workout.date) continue;
@@ -785,15 +789,20 @@ export class ClientDetailPage implements OnInit {
   // nueva (ver <app-training-day-detail>).
   public trainingSelectedDay: string | null = null;
 
-  public get trainingSelectedDayWorkouts(): CompletedWorkoutEntry[] {
-    if (!this.trainingSelectedDay) return [];
-    return this.completedWorkouts.filter(
-      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === this.trainingSelectedDay
-    );
-  }
+  // Campo, no getter: un getter aquí devuelve un array NUEVO en cada ciclo de
+  // detección de cambios (Angular lo llama varias veces por ciclo), y ese
+  // array alimenta el *ngFor de <app-training-day-detail> sin trackBy — con
+  // referencias distintas cada vez, Angular lo trata como "todo ha cambiado"
+  // y destruye/recrea las tarjetas en cada ciclo, sin parar. Al calcularlo
+  // solo aquí (una vez por selección real), la referencia se mantiene estable
+  // entre ciclos.
+  public trainingSelectedDayWorkouts: CompletedWorkoutEntry[] = [];
 
   public onTrainingDaySelected(date: string): void {
     this.trainingSelectedDay = date;
+    this.trainingSelectedDayWorkouts = this.completedWorkouts.filter(
+      (w) => w.date && new Date(w.date as Date).toISOString().slice(0, 10) === date
+    );
   }
 
   public loadTrainingBlocks(): void {
@@ -1426,6 +1435,7 @@ export class ClientDetailPage implements OnInit {
       (a, b) =>
         new Date(b.date as Date).getTime() - new Date(a.date as Date).getTime()
     );
+    this.completedDaysMap = this.buildCompletedDaysMap();
   }
 
   // Movimiento 2 Coach Pro — "Cuádriceps 4 · Glúteo 3". Devuelve cadena

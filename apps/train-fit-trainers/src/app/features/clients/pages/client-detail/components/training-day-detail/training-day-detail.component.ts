@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { formatSoreness } from 'src/app/core/constants/soreness';
 import { CompletedWorkoutEntry } from '../../models/client-detail.model';
 
@@ -28,14 +28,22 @@ interface WorkoutDaySummary {
   templateUrl: './training-day-detail.component.html',
   styleUrls: ['./training-day-detail.component.scss'],
 })
-export class TrainingDayDetailComponent {
+export class TrainingDayDetailComponent implements OnChanges {
   @Input() public date: string | null = null;
   @Input() public workouts: CompletedWorkoutEntry[] = [];
   @Input() public projectedDay: DayProjection | null = null;
   @Output() public close = new EventEmitter<void>();
 
-  public get summaries(): WorkoutDaySummary[] {
-    return this.workouts.map((workout) => ({
+  // Campo, no getter: el *ngFor de la plantilla no lleva trackBy, así que una
+  // referencia nueva en cada ciclo de detección de cambios (lo que hace un
+  // getter que mapea `workouts`) hace que Angular destruya y recree las
+  // tarjetas en cada ciclo — se recalcula solo cuando `workouts` cambia de
+  // verdad.
+  public summaries: WorkoutDaySummary[] = [];
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['workouts']) return;
+    this.summaries = this.workouts.map((workout) => ({
       workout,
       splitLabel: [workout.tableName, workout.splitName].filter(Boolean).join(' · '),
       completionPercentage: this.completionPercentage(workout),
@@ -63,5 +71,9 @@ export class TrainingDayDetailComponent {
     return sets
       .filter((set) => set.doned)
       .reduce((acc, set) => acc + (set.weight || 0) * (set.reps || 0), 0);
+  }
+
+  public trackBySummary(index: number, summary: WorkoutDaySummary): string {
+    return summary.workout._id;
   }
 }

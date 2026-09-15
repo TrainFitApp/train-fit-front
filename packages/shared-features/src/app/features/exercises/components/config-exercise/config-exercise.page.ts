@@ -29,6 +29,7 @@ import { IonicUtilService } from "src/app/core/services/util/ionic-util.service"
 import { UtilService } from "src/app/core/services/util/util.service";
 import { WorkoutService } from "src/app/core/services/workout/workout.service";
 import { ManageSetComponent } from "src/app/features/tables/components/summary/components/manage-set/manage-set.component";
+import { QuickSeriesModalComponent } from "../quick-series-modal/quick-series-modal.component";
 import { AdMobService } from "src/app/core/services/util/ad-mob.service";
 import { BillingService } from "src/app/core/services/billing/billing.service";
 import { NavigationService } from "src/app/core/services/util/navigation.service";
@@ -969,82 +970,19 @@ export class ConfigExercisePage implements OnInit, OnDestroy {
   // (`manage-set.component.ts#submit()`) y el mismo flujo de alta que
   // `configSets()`/`copySet()` (id temporal negativo, `displayOrder`,
   // `setsToCreate`, `normalizeSetOrder()`).
-  public openQuickSeriesGenerator(): void {
+  public async openQuickSeriesGenerator(): Promise<void> {
     const isCardio = this.isCurrentExerciseCardio;
     const isIsometric = this.isCurrentExerciseIsometric;
 
-    const inputs: AlertInput[] = [
-      {
-        name: "count",
-        type: "number",
-        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_COUNT"),
-        value: 3,
-        min: 1,
-        max: 20,
-      },
-    ];
+    const modal = await this.modalController.create({
+      component: QuickSeriesModalComponent,
+      componentProps: { isCardio, isIsometric },
+      cssClass: "tf-panel-modal",
+    });
+    await modal.present();
 
-    if (isCardio) {
-      inputs.push(
-        {
-          name: "expectedTime",
-          type: "text",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
-        },
-        {
-          name: "expectedDistance",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_DISTANCE"),
-        },
-      );
-    } else if (isIsometric) {
-      inputs.push({
-        name: "expectedTime",
-        type: "text",
-        placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_TIME"),
-      });
-    } else {
-      inputs.push(
-        {
-          name: "repsMin",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MIN"),
-          value: 8,
-        },
-        {
-          name: "repsMax",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_REPS_MAX"),
-          value: 12,
-        },
-        {
-          name: "rirMin",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MIN"),
-          value: 1,
-        },
-        {
-          name: "rirMax",
-          type: "number",
-          placeholder: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_RIR_MAX"),
-          value: 2,
-        },
-      );
-    }
-
-    const alertOptions: AlertOptions = {
-      header: this.translate.instant("EXERCISE_CONFIG.QUICK_SERIES_GENERATOR"),
-      inputs,
-      buttons: [
-        { text: this.translate.instant("COMMON.CANCEL"), role: "cancel" },
-        {
-          text: this.translate.instant("EXERCISE_CONFIG.GENERATE"),
-          handler: (res) => this.applyQuickSeries(res, isCardio, isIsometric),
-        },
-      ],
-    };
-
-    this.ionicUtilService.showAlert(alertOptions);
+    const { data } = await modal.onDidDismiss();
+    if (data) this.applyQuickSeries(data, isCardio, isIsometric);
   }
 
   private applyQuickSeries(

@@ -348,7 +348,7 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
 
   public chooseBlankCard(): void {
     this.showAddCardPanel = false;
-    this.addCard();
+    void this.addCard();
   }
 
   public chooseCardFromTemplate(): void {
@@ -477,12 +477,48 @@ export class PlannerColumnComponent implements AfterViewInit, OnDestroy {
   // POST workouts/multiple/:idTable). Antes solo se creaba en este split
   // (splitService.addWorkoutToSplit), obligando a repetir la acción semana a
   // semana para mantener la misma estructura entre microciclos.
-  public addCard(): void {
+  // Pide nombre antes de crear (antes se creaba directo como "Nuevo
+  // entrenamiento" y había que entrar a renombrarlo aparte). Mismo patrón de
+  // ion-alert que renameTable() en planner.page.ts.
+  public async addCard(): Promise<void> {
     if (this.addingCard) return;
+
+    await this.ionicUtilService.showAlert({
+      header: this.translate.instant('PLANNER.NEW_CARD_NAME_TITLE'),
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: this.translate.instant('PLANNER.NEW_CARD_NAME_PLACEHOLDER'),
+          attributes: { maxlength: 100 },
+        },
+      ],
+      buttons: [
+        { text: this.translate.instant('COMMON.CANCEL'), role: 'cancel' },
+        {
+          text: this.translate.instant('COMMON.CONFIRM'),
+          handler: (data: any) => {
+            const name = (data?.name || '').trim();
+            if (!name) {
+              this.ionicUtilService.showToast({
+                message: this.translate.instant('PLANNER.NEW_CARD_NAME_EMPTY'),
+                duration: 2000,
+              });
+              return false;
+            }
+            this.createBlankCard(name);
+            return true;
+          },
+        },
+      ],
+    });
+  }
+
+  private createBlankCard(name: string): void {
     this.addingCard = true;
 
     const workout = new Workout();
-    workout.name = this.translate.instant('PLANNER.NEW_CARD_DEFAULT_NAME');
+    workout.name = name;
     workout.exercises = [];
 
     this.workoutService.addWorkoutsToSplits(this.table._id, workout).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
