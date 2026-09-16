@@ -42,7 +42,6 @@ export interface RosterClient {
   sessions: number;
   openAlerts: number;
   urgentAlerts: number;
-  planEndingSoon: { daysLeft: number; endDate: string } | null;
 }
 
 export interface RosterResponse {

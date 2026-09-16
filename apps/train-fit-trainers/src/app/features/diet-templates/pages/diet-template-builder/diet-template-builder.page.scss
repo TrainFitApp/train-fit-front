@@ -1,6 +1,9 @@
 @import '../../../../../theme/skeleton';
 @import '../../../../../theme/buttons';
 @import '../../../../../theme/inputs';
+@import '../../../../../theme/panel-sheet';
+
+$clipboard-panel-width: 320px;
 
 .builder-content {
   --background: var(--tf-bg);
@@ -8,6 +11,18 @@
   --padding-end: 16px;
   --padding-top: 12px;
   --padding-bottom: 24px;
+
+  // Modo copia: el sidenav del portapapeles (fixed, sin velo) tapa el borde
+  // derecho — se le hace sitio para que el tablero siga entero a la vista.
+  &.has-clipboard {
+    @media (min-width: 768px) {
+      --padding-end: calc(16px + #{$clipboard-panel-width});
+    }
+
+    @media (max-width: 767px) {
+      --padding-bottom: 45vh;
+    }
+  }
 }
 
 .detail-skeleton {
@@ -231,6 +246,134 @@
   margin-top: -4px;
 }
 
+// Inputs numéricos sueltos (sin el wrapper con icono): mismo look que los
+// del cajón de sugerencias.
+%bare-number-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  color: var(--tf-text);
+  color-scheme: dark;
+  font-family: inherit;
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--tf-accent);
+  }
+}
+
+// Objetivo de la fase (ciclos por contenido §8) — solo al crear el C1.
+.phase-objective {
+  margin: 12px 0 4px;
+
+  &__row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  &__field {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
+
+    .input-field {
+      @extend %bare-number-input;
+    }
+  }
+
+  &__hint {
+    font-weight: 400;
+    color: var(--tf-text-muted);
+    margin-top: 6px;
+  }
+}
+
+// Días por ciclo en mode choice (ciclos por contenido §1).
+.choice-cycle-days {
+  margin: -2px 0 10px;
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+
+    .input-field {
+      @extend %bare-number-input;
+      width: 90px;
+    }
+  }
+
+  .section-hint {
+    font-weight: 400;
+    color: var(--tf-text-muted);
+    margin-top: 4px;
+  }
+}
+
+// Preparar siguiente ciclo — kcal objetivo + reescalar, dentro del bloque
+// de contexto de cliente.
+.next-cycle-kcal {
+  margin-top: 10px;
+
+  &__label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--tf-text-muted);
+    margin-bottom: 4px;
+  }
+
+  &__row {
+    display: flex;
+    gap: 8px;
+
+    .input-field {
+      @extend %bare-number-input;
+      flex: 1;
+    }
+  }
+
+  &__btn {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--tf-accent);
+    border-radius: var(--tf-radius-md);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  &__hint {
+    margin: 6px 0 0;
+    font-size: 0.75rem;
+    color: var(--tf-text-muted);
+  }
+}
+
 // Sugerencias de dieta — aptitud dietética.
 .suitable-for {
   margin-bottom: 14px;
@@ -295,6 +438,11 @@
     color: var(--tf-accent);
     background: var(--tf-accent-soft);
   }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
 }
 
 // No hay token semántico de "warning" en tokens.scss — este aviso no bloquea
@@ -346,6 +494,11 @@
     color: var(--tf-accent-contrast, #fff);
     background: var(--tf-accent);
   }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
 }
 
 // === TAREA5 (auditoría UX, Fase C) — tablero semanal ===
@@ -393,17 +546,28 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px;
+
+  // Modo copia (día): origen y destinos marcados igual que las celdas.
+  &.is-clipboard-source {
+    outline: 2px dashed var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  &.is-paste-target {
+    background: var(--tf-accent-soft);
+  }
 }
 
 .board-day-header-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
 }
 
 .board-day-header .day-label-input {
   flex: 1;
   min-width: 0;
+  height: 24px;
   background: transparent;
   border: none;
   color: var(--tf-text);
@@ -413,9 +577,21 @@
   &:focus {
     outline: none;
   }
+
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
-.board-day-remove {
+// Iconos del día en vertical (eliminar / copiar, o solo pegar en modo copia).
+.board-day-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.board-day-action {
   width: 24px;
   height: 24px;
   display: flex;
@@ -425,14 +601,27 @@
   border: none;
   color: var(--tf-text-muted);
   cursor: pointer;
-  flex-shrink: 0;
 
   ion-icon {
     font-size: 14px;
   }
 
   &:hover {
+    color: var(--tf-accent);
+  }
+
+  &--danger:hover {
     color: var(--tf-danger);
+  }
+
+  // Pegar en color secundario: destaca dónde se puede soltar lo copiado.
+  &--paste {
+    color: var(--tf-secondary);
+
+    &:hover {
+      color: var(--tf-secondary);
+      filter: brightness(1.15);
+    }
   }
 }
 
@@ -463,13 +652,36 @@
   &.has-items {
     background: var(--tf-accent-soft);
     // Con contenido la celda se lee de arriba abajo (lista de alimentos), y
-    // el hueco de la derecha lo ocupa el botón de copiar, absoluto.
+    // el hueco de la derecha lo ocupa la columna de iconos (vaciar/copiar,
+    // o pegar), absoluta.
     justify-content: flex-start;
-    padding-right: 28px;
+    padding-right: 32px;
+  }
+
+  // Modo copia: el cuerpo de la celda no abre el editor ni se arrastra —
+  // solo el icono de pegar (si es destino) hace algo.
+  &.is-locked {
+    cursor: default;
+  }
+
+  &.is-clipboard-source {
+    outline: 2px dashed var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  &.is-paste-target {
+    padding-right: 32px;
   }
 
   &.drag-over {
     outline: 2px dashed var(--tf-accent);
+    outline-offset: -2px;
+  }
+
+  // Última celda en la que se abrió el editor — se mantiene marcada aunque
+  // se cierre el modal, para saber de un vistazo en cuál se estaba.
+  &.active-cell {
+    outline: 2px solid var(--tf-accent);
     outline-offset: -2px;
   }
 
@@ -488,10 +700,18 @@
   }
 }
 
-.board-cell-action {
+// Iconos de la celda en vertical (vaciar / copiar, o solo pegar).
+.board-cell-actions {
   position: absolute;
   top: 4px;
   right: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.board-cell-action {
   width: 22px;
   height: 22px;
   display: flex;
@@ -508,6 +728,161 @@
 
   &:hover {
     color: var(--tf-accent);
+  }
+
+  &--danger:hover {
+    color: var(--tf-danger);
+  }
+
+  // Pegar en color secundario: destaca dónde se puede soltar lo copiado.
+  &--paste {
+    color: var(--tf-secondary);
+
+    &:hover {
+      color: var(--tf-secondary);
+      filter: brightness(1.15);
+    }
+  }
+}
+
+// === Sidenav del portapapeles (modo copia) ===
+// Panel lateral derecho en escritorio, hoja inferior en móvil (mixin
+// tf-side-panel), SIN velo: el tablero sigue operable para pegar.
+
+// El portal vive en el body (ver ngAfterViewInit): no ocupa sitio ni captura
+// clics cuando no hay nada copiado.
+.clipboard-portal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tf-z-modal, 500);
+  pointer-events: none;
+}
+
+.clipboard-portal > * {
+  pointer-events: auto;
+}
+
+.clipboard-panel {
+  @include tf-side-panel($clipboard-panel-width);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 45vh;
+
+  @media (min-width: 768px) {
+    max-height: 100vh;
+    padding-bottom: var(--tf-space-5);
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__head {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--tf-secondary);
+
+    ion-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__close {
+    @include tf-icon-button(36px, 10px, 18px);
+    flex-shrink: 0;
+  }
+
+  &__label {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  &__hint {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--tf-text-muted);
+
+    ion-icon {
+      font-size: 13px;
+      color: var(--tf-secondary);
+    }
+  }
+
+  // Solo lo que ocupa el contenido (con scroll interno si es mucho); el
+  // pie con Cancelar se queda abajo con margin-top:auto.
+  &__body {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    padding: 8px;
+    background: var(--tf-accent-soft);
+    border-radius: 8px;
+  }
+
+  &__cancel {
+    margin-top: auto;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid var(--tf-border-strong);
+    border-radius: 8px;
+    color: var(--tf-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 16px;
+    }
+
+    &:hover {
+      border-color: var(--tf-danger);
+      color: var(--tf-danger);
+    }
+  }
+}
+
+// Día copiado: una fila por comida con contenido.
+.clipboard-meal {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.74rem;
+
+  &__slot {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  &__summary {
+    flex: 1;
+    color: var(--tf-text-muted);
+  }
+
+  &__kcal {
+    font-weight: 600;
+    color: var(--tf-accent);
+    white-space: nowrap;
   }
 }
 
@@ -714,6 +1089,27 @@
   &--fat {
     color: #f472b6;
   }
+}
+
+// Micronutrientes/macros secundarios del total del día — mismo lenguaje
+// visual que .deviation-chip (chip neutro), pero sin semántica de
+// desviación: aquí solo se informa el dato, no se compara contra objetivo.
+.totals-micros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.micro-tag {
+  padding: 1px 6px;
+  border-radius: var(--tf-radius-pill);
+  background: var(--tf-surface-4);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--tf-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .totals-empty {

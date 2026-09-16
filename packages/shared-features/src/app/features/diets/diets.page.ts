@@ -39,8 +39,12 @@ import { Anthropometry } from '../diet-days/components/weight-info/models/anthro
 import { ClipboardMealModalComponent } from './components/clipboard-meal-modal/clipboard-meal-modal.component';
 import { MealProposal } from './models/meal-proposal.model';
 import { MealProposalApiService } from './services/meal-proposal-api.service';
-import { DayTypeStatus } from './models/day-type.model';
+import { DayTypePreview, DayTypeStatus } from './models/day-type.model';
 import { DayTypeApiService } from './services/day-type-api.service';
+import { MenuPreviewModalComponent } from './components/menu-preview-modal/menu-preview-modal.component';
+import { MyCheckinsApiService } from '../checkins/my-checkins/services/my-checkins-api.service';
+import { CycleCheckin, MyCheckinConfig } from '../checkins/my-checkins/models/my-checkin.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-diets',
@@ -85,6 +89,12 @@ export class DietsPage implements OnInit {
   // se muestra ningún aviso.
   public dayTypeStatus: DayTypeStatus | null = null;
   public isChoosingDayType = false;
+  public isLeavingDayType = false;
+
+  // Ciclos por contenido — el check-in del ciclo en el que está el cliente
+  // (uno por ciclo, sobreescribible). null = sin fase de dieta con ciclos.
+  public cycleCheckin: CycleCheckin | null = null;
+  private cycleCheckinTrainerId: string | null = null;
 
   public MONTHS = MONTHS;
   public CUSTOM_PRODUCT_VALUES = CUSTOM_PRODUCT_VALUES;
@@ -108,6 +118,8 @@ export class DietsPage implements OnInit {
     private recipeService: RecipeService,
     private mealProposalApiService: MealProposalApiService,
     private dayTypeApiService: DayTypeApiService,
+    private myCheckinsApi: MyCheckinsApiService,
+    private router: Router,
     private navigationService: NavigationService,
     private cdr: ChangeDetectorRef,
     private translate: TranslateService,
@@ -489,6 +501,89 @@ export class DietsPage implements OnInit {
       next: (status) => (this.dayTypeStatus = status),
       error: () => (this.dayTypeStatus = null),
     });
+
+    this.loadCycleCheckin();
+  }
+
+  // Ciclos por contenido — ¿hay check-in del ciclo actual pendiente? Solo
+  // tiene sentido mirando HOY (el ciclo es el de hoy, no el del día que se
+  // esté viendo). En silencio si falla.
+  private loadCycleCheckin(): void {
+    this.myCheckinsApi.getMine().subscribe({
+      next: (configs: MyCheckinConfig[]) => {
+        const withCycle = (configs || []).find((c) => c.cycleCheckin && !c.requestId);
+        this.cycleCheckin = withCycle?.cycleCheckin || null;
+        this.cycleCheckinTrainerId = withCycle?.trainerId || null;
+      },
+      error: () => (this.cycleCheckin = null),
+    });
+  }
+
+  public goToCycleCheckin(): void {
+    // returnUrl: el botón atrás de Mis check-ins vuelve aquí, no al tab Coach.
+    void this.router.navigate(['/my-checkins'], {
+      queryParams: {
+        returnUrl: '/tabs/diets',
+        ...(this.cycleCheckinTrainerId ? { trainerId: this.cycleCheckinTrainerId } : {}),
+      },
+    });
+  }
+
+  // --- Plan "choice": chips de menús, preview, elegir y salir ---
+
+  public get menuOptions(): string[] {
+    return this.dayTypeStatus?.options || [];
+  }
+
+  public get selectedMenu(): string | null {
+    return this.dayTypeStatus?.selected || null;
+  }
+
+  // Click en un chip: preview del menú (solo lectura) y, si no es el ya
+  // elegido, "Elegir" desde ahí.
+  public async openMenuPreview(option: string): Promise<void> {
+    const preview: DayTypePreview = (this.dayTypeStatus?.previews || []).find((p) => p.name === option) || {
+      name: option,
+      meals: [],
+    };
+    const modal = await this.modalController.create({
+      component: MenuPreviewModalComponent,
+      componentProps: { preview, isSelected: this.selectedMenu === option },
+    });
+    await modal.present();
+    const { role, data } = await modal.onDidDismiss();
+    if (role === 'choose' && data?.name) this.chooseDayType(data.name);
+  }
+
+  // "Salir del menú": el día vuelve a quedar sin menú. Se borra lo pautado
+  // (y lo que hubiera marcado de ello); lo que anotó por su cuenta se queda.
+  public leaveDayType(): void {
+    if (this.isLeavingDayType || !this.selectedMenu) return;
+    const alertOptions: AlertOptions = {
+      header: 'Salir del menú',
+      message:
+        'Se borrará lo que has marcado de lo pautado de este día. Lo que hayas anotado por tu cuenta se queda. ¿Seguro?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Salir',
+          role: 'destructive',
+          handler: () => {
+            this.isLeavingDayType = true;
+            this.dayTypeApiService.leave(this.selectedDate).subscribe({
+              next: () => {
+                this.isLeavingDayType = false;
+                this.setDietDayByDate(this.selectedDate);
+              },
+              error: () => {
+                this.isLeavingDayType = false;
+              },
+            });
+          },
+        },
+      ],
+    };
+    this.ionicUtilService.showAlert(alertOptions);
   }
 
   // Fase 9 — el cliente marca qué menú le toca hoy (p. ej. "Entrenamiento" /
@@ -519,6 +614,22 @@ export class DietsPage implements OnInit {
   public onProposalChosen(event: { proposalId: string; chosenIndex: number }): void {
     const proposal = this.mealProposals.find((p) => p._id === event.proposalId);
     if (proposal) proposal.chosenIndex = event.chosenIndex;
+    this.refreshPlannedTarget();
+  }
+
+  // Opciones de comida — la meta del día (máximo a consumir, ver
+  // macros-bars) es lo que suma lo PAUTADO y la calcula el backend; al
+  // cambiar de opción cambia lo pautado, así que se vuelve a pedir el día
+  // solo para refrescar plannedTarget, sin recargar la pantalla entera.
+  private refreshPlannedTarget(): void {
+    this.dietDayService
+      .getDietDayByIdDietAndDate(this.user.dietInUse, this.selectedDate)
+      .subscribe((fresh) => {
+        if (!fresh || !this.dietDay || fresh.date !== this.dietDay.date) return;
+        this.dietDay.plannedTarget = fresh.plannedTarget ?? null;
+        this.dietDayService.setCurrentDietDay = { ...this.dietDay };
+        this.cdr.detectChanges();
+      });
   }
 
   public onAnthropometrySaved(anthropometry: Anthropometry): void {

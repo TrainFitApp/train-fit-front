@@ -10,7 +10,7 @@
 <ion-content class="product-search-content">
   <!-- === BÚSQUEDA === -->
   <ng-container *ngIf="!selectedProduct && !selectedRecipe">
-    <div class="mode-toggle" *ngIf="!productsOnly">
+    <div class="mode-toggle">
       <button type="button" class="mode-option" [class.selected]="mode === 'products'" (click)="setMode('products')">Productos</button>
       <button type="button" class="mode-option" [class.selected]="mode === 'recipes'" (click)="setMode('recipes')">Recetas</button>
     </div>

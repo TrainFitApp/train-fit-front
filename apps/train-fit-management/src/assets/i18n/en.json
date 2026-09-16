@@ -479,6 +479,13 @@
     "DELETE_PRODUCT_CONFIRM": "Are you sure you want to delete {{name}}?",
     "PASTE_HEADER": "Paste",
     "PASTE_MERGE_MESSAGE": "Do you want to merge both meals?",
+    "ALTERNATIVES_LABEL": "Options from your professional",
+    "ALTERNATIVE_DEFAULT_LABEL": "Option {{n}}",
+    "ALTERNATIVE_SWITCH_HEADER": "Switch to {{label}}",
+    "ALTERNATIVE_SWITCH_MESSAGE": "Foods from the current option you already checked will be unchecked. Anything you added yourself stays.",
+    "ALTERNATIVE_SWITCH_CONFIRM": "Switch",
+    "ALTERNATIVE_CHOOSE_ERROR": "Could not apply the chosen option",
+    "ALTERNATIVE_CHANGED": "Switched to {{label}} in {{meal}}",
     "PASTE_REPLACE": "REPLACE",
     "PASTE_MERGE": "MERGE",
     "PRODUCTS_COPIED": "Products copied",
@@ -1836,10 +1843,7 @@
     "LIMIT_REACHED_PRO": "You have reached the maximum of 10 nutritional goals.",
     "LOCKED": "Pro",
     "LOCKED_FREE": "This goal is locked in Free mode. Activate Pro to use and edit up to 10 nutritional goals.",
-    "MINIMUM_ONE_MSG": "You must have at least one nutritional goal. Create another before deleting this one.",
-    "TRAINER_ASSIGNED": "Prescribed",
-    "TRAINER_ASSIGNED_ALERT_HEADER": "Prescribed goal",
-    "TRAINER_ASSIGNED_ALERT_MSG": "This goal was set by your trainer. If you want to change it, talk to them directly."
+    "MINIMUM_ONE_MSG": "You must have at least one nutritional goal. Create another before deleting this one."
   },
   "MAINTENANCE": {
     "MODAL": {
@@ -1960,8 +1964,7 @@
     "OMEGA_3": "Omega-3",
     "OMEGA_6": "Omega-6",
     "OMEGA_9": "Omega-9",
-    "GOAL": "Nutrition Goal",
-    "TRAINER_ASSIGNED": "Prescribed by your trainer"
+    "GOAL": "Nutrition Goal"
   },
   "ORDER_EXERCISES": {
     "TITLE": "Sort",

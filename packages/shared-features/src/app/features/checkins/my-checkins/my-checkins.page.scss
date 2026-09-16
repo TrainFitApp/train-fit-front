@@ -3,11 +3,34 @@
 }
 
 .checkin-review {
-  border-top: 1px solid #424242;
-  margin-top: 16px;
-  padding-top: 16px;
-  strong { color: #c5c5c5; font-size: 13px; }
-  p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(45, 211, 111, 0.08);
+  border: 1px solid rgba(45, 211, 111, 0.22);
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #2dd36f;
+
+    ion-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 0.84rem;
+    color: #e5e5e5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
 }
 
 .my-checkins-content {
@@ -83,18 +106,44 @@
   color: #ffffff;
 }
 
+// Color de acento por tipo de check-in (badge, borde izquierdo y pill):
+// ciclo = naranja de marca, solicitud puntual = azul, periódico = violeta.
+// Respondido siempre verde, sea del tipo que sea.
 .checkin-card {
+  --accent: #fe9000;
+  --accent-soft: rgba(254, 144, 0, 0.14);
   background: #141414;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--accent);
   border-radius: 14px;
   margin-bottom: 8px;
   overflow: hidden;
+
+  &--request {
+    --accent: #4da3ff;
+    --accent-soft: rgba(77, 163, 255, 0.14);
+  }
+
+  &--periodic {
+    --accent: #a78bfa;
+    --accent-soft: rgba(167, 139, 250, 0.14);
+  }
+
+  &.is-done {
+    --accent: #2dd36f;
+    --accent-soft: rgba(45, 211, 111, 0.14);
+  }
+
+  &.is-open {
+    border-color: rgba(255, 255, 255, 0.18);
+    border-left-color: var(--accent);
+  }
 }
 
 .checkin-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   width: 100%;
   padding: 14px;
   background: none;
@@ -104,17 +153,58 @@
   text-align: left;
   cursor: pointer;
 
-  ion-icon {
-    flex-shrink: 0;
-    font-size: 18px;
-    color: #8b8b8b;
+  &:active {
+    background: rgba(255, 255, 255, 0.03);
   }
 }
 
+.checkin-card-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--accent);
+  }
+}
+
+.checkin-card-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #8b8b8b;
+}
+
 .checkin-card-title-group {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.checkin-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.checkin-card-pill {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .checkin-card-subtitle {
@@ -123,11 +213,6 @@
   gap: 6px;
   font-size: 0.76rem;
   color: #8b8b8b;
-}
-
-.submitted-icon {
-  color: #2dd36f !important;
-  font-size: 14px !important;
 }
 
 .checkin-form {
@@ -316,74 +401,205 @@
 }
 
 // --- coach-tab FASE2: "formularios completados" ---
-.mp-section {
+// Misma anatomía que .checkin-card (badge + título + subtítulo + chevron)
+// para que la sección se lea como una tarjeta más, no como un título suelto.
+.history-section {
+  --accent: #8b8b8b;
+  --accent-soft: rgba(255, 255, 255, 0.08);
   margin-top: 20px;
-}
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--accent);
+  border-radius: 14px;
+  overflow: hidden;
 
-.section-heading {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #8b8b8b;
-  margin: 0;
-}
-
-.history-toggle {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: none;
-  border: none;
-  padding: 0 0 10px;
-  cursor: pointer;
-
-  ion-icon {
-    font-size: 16px;
-    color: #8b8b8b;
+  &.is-open {
+    --accent: #c7c7c7;
+    border-color: rgba(255, 255, 255, 0.18);
+    border-left-color: var(--accent);
   }
 }
 
+.history-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+.history-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--accent);
+  }
+}
+
+.history-toggle__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}
+
 .history-card {
-  padding: 12px 14px;
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  margin-bottom: 8px;
+  --accent: #4da3ff;
+  --accent-soft: rgba(77, 163, 255, 0.14);
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+
+  &.is-reviewed {
+    --accent: #2dd36f;
+    --accent-soft: rgba(45, 211, 111, 0.14);
+  }
+
+  &.is-open {
+    border-color: rgba(255, 255, 255, 0.16);
+  }
 }
 
 .history-card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.03);
+  }
 }
 
-.mp-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #ffffff;
+// Fecha como "calendario": día grande, mes debajo. Es lo que distingue una
+// respuesta de otra en la lista, así que va donde va el icono en las
+// tarjetas de arriba.
+.history-card-date {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  line-height: 1;
+
+  &__day {
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+
+  &__month {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
 }
 
-.history-date {
-  font-size: 0.76rem;
-  color: #6b6b6b;
+.history-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.history-card-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
 }
 
 .history-values {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .history-value {
-  font-size: 0.82rem;
-  color: #c7c7c7;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 
-  strong {
+  &__label {
+    font-size: 0.7rem;
     color: #8b8b8b;
-    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    overflow-wrap: anywhere;
+  }
+
+  &--wide {
+    grid-column: 1 / -1;
+
+    .history-value__value {
+      font-weight: 500;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
   }
 }
 

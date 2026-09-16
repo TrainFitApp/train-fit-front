@@ -3,25 +3,12 @@ import { ModalController } from '@ionic/angular';
 import { DietTemplateApiService } from '../../../diet-templates/services/diet-template-api.service';
 import { DietTemplate } from '../../../diet-templates/models/diet-template.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
-import { PlanEndMode, DurationUnit } from '../../../../shared/models/plan-assignment.model';
+import { phaseModeLabel, phaseModeHint } from '../../../../shared/utils/phase-mode-label.util';
 
 type ViewState = 'loading' | 'error' | 'loaded' | 'applying';
 
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function addDaysToIsoDate(isoDate: string, deltaDays: number): string {
-  const d = new Date(`${isoDate}T00:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + deltaDays);
-  return d.toISOString().slice(0, 10);
-}
-
-// Días que abarca un tramo contando los dos extremos (mismo criterio que
-// daysInRange en el backend: el mismo día da 1).
-function daysInRange(fromIso: string, toIso: string): number {
-  const ms = new Date(`${toIso}T00:00:00.000Z`).getTime() - new Date(`${fromIso}T00:00:00.000Z`).getTime();
-  return Math.round(ms / 86400000) + 1;
 }
 
 // Auditoría de arquitectura (nutrición, Fase 8) — aplicar un plan ya
@@ -30,11 +17,14 @@ function daysInRange(fromIso: string, toIso: string): number {
 // cada día de golpe; ahora se crea una única PlanAssignment (POST .../apply)
 // y los días se resuelven bajo demanda (ver diet-day-resolver.js).
 //
-// 2026-09 — la fecha de fin dejó de cerrar la fase: lo que se elige aquí es
-// una ESTIMACIÓN (reserva el tramo y avisa cuando se acerca, pero la fase
-// corre hasta que se abra la siguiente). Por dentro se sigue mandando
-// endMode/durationValue/durationUnit: el backend los resuelve a
-// estimatedEndDate (ver plan-assignment-service.js#applyPlan).
+// Ciclos por contenido (2026-09): solo se elige CUÁNDO empieza. No hay
+// duración ni fin estimado — una fase acaba cuando empieza la siguiente.
+//
+// "Crear dieta" (ficha del cliente) usaba este mismo modal para pedir
+// nombre + fechas antes de pasar al builder; ya no — el nutricionista va
+// improvisando ciclo a ciclo y esa duración estimada no le servía de nada
+// (ver client-detail.page.ts#goToCreateDiet, que ahora navega directo al
+// builder). Este modal vuelve a ser solo "aplicar una plantilla concreta".
 @Component({
   selector: 'app-apply-diet-template-modal',
   templateUrl: 'apply-diet-template-modal.component.html',
@@ -43,20 +33,6 @@ function daysInRange(fromIso: string, toIso: string): number {
 export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public clientId!: string;
   @Input() public clientName = 'este cliente';
-
-  // "Crear dieta" reusa este mismo modal solo para la parte de fecha/nombre
-  // — el contenido no existe todavía, se construye después en el builder
-  // (ver client-detail.page.ts#openCreateDietModal). En este modo no hay
-  // plantilla que listar ni que aplicar: confirm() solo devuelve lo
-  // recogido aquí, nunca llama a la API.
-  //
-  // Las FECHAS sí se piden aquí, igual que al aplicar una plantilla: crear
-  // una dieta para un cliente y no decir cuándo rige dejaba el trabajo a
-  // medias — había que volver a "Siguiente fase" a repetir la elección. El
-  // builder las arrastra y, al guardar, crea la dieta y la aplica de una vez
-  // (ver diet-template-builder.page.ts#saveForClient).
-  @Input() public forDirectCreate = false;
-  public name = '';
 
   // Fecha con la que arranca el formulario cuando se encadena una fase: el
   // día siguiente al fin de la anterior, para que no quede un hueco sin
@@ -70,50 +46,20 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   @Input() public previousPhaseEnd: string | null = null;
   @Input() public previousPhaseName = '';
 
-  // Rango elegido en el calendario: fija el inicio y traduce el tramo a una
-  // DURACIÓN en días. Se convierte en vez de guardarlo como "fecha exacta"
-  // para que el formulario tenga una única fuente de verdad: si no, los
-  // campos de duración seguirían enseñando el valor viejo mientras la
-  // previsualización dice otra fecha.
-  public onRangePicked(range: { start: string; end: string }): void {
-    this.startDate = range.start;
-    this.durationValue = Math.max(1, daysInRange(range.start, range.end));
-    this.durationUnit = 'days';
-    this.endMode = 'duration';
-    this.overlapError = null;
-  }
-
-  // "Sin estimación" ⇄ "poner una duración estimada". Sin estimación la fase
-  // corre igual, solo que no reserva tramo ni avisa en el dashboard.
-  public toggleEstimate(): void {
-    this.endMode = this.endMode === 'indefinite' ? 'duration' : 'indefinite';
-  }
-
-  // Primer click del rango: mueve ya la fecha de inicio sin tocar el modo de
-  // fin. Así, si el fin lo decide el formulario (duración o indefinido), el
-  // tramo se repinta al instante y a menudo no hace falta un segundo click.
+  // Click en el calendario: mueve la fecha de inicio.
   public onStartPicked(date: string): void {
     this.startDate = date;
     this.overlapError = null;
   }
 
-  // Lo que el calendario tiene que pintar AHORA mismo con lo que hay puesto
-  // en el formulario. `end: null` significa "no termina" y solo se manda en
-  // indefinido — en fecha exacta o duración a medio rellenar se manda el
-  // propio día de inicio, que es un tramo de un día, no uno infinito.
+  // Lo que el calendario pinta: desde el inicio, sin fin (indefinido).
   public get rangePreview(): { start: string; end: string | null } | null {
     if (!this.startDate) return null;
-    if (this.endMode === 'indefinite') return { start: this.startDate, end: null };
-    const end = this.computedEndDate;
-    // Un fin anterior al inicio (se teclea una fecha suelta y queda al revés)
-    // no se pinta como rango invertido: se queda en el día de inicio hasta
-    // que la fecha tenga sentido.
-    return { start: this.startDate, end: end && end >= this.startDate ? end : this.startDate };
+    return { start: this.startDate, end: null };
   }
 
-  // Nombre aparte, las fechas se piden igual en los dos modos.
   public get showDatePicker(): boolean {
-    return this.forDirectCreate || !!this.selectedTemplateId;
+    return !!this.selectedTemplateId;
   }
 
   // Mensaje del 409 del backend: las fechas pisan otra fase.
@@ -123,11 +69,6 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   public templates: DietTemplate[] = [];
   public selectedTemplateId: string | null = null;
   public startDate = todayIsoDate();
-
-  public endMode: PlanEndMode = 'duration';
-  public fixedEndDate = '';
-  public durationValue = 8;
-  public durationUnit: DurationUnit = 'weeks';
 
   constructor(
     private dietTemplateApi: DietTemplateApiService,
@@ -142,10 +83,6 @@ export class ApplyDietTemplateModalComponent implements OnInit {
   public onlyOwnedByClient = true;
 
   public ngOnInit(): void {
-    if (this.forDirectCreate) {
-      this.state = 'loaded';
-      return;
-    }
     this.loadTemplates();
   }
 
@@ -177,6 +114,23 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     this.selectedTemplateId = template._id;
   }
 
+  public get selectedTemplate(): DietTemplate | null {
+    return this.templates.find((t) => t._id === this.selectedTemplateId) || null;
+  }
+
+  // Cómo se va a resolver el contenido de la fase (sequential/recurring/
+  // choice) — solo tiene sentido con una plantilla ya elegida; en "Crear
+  // dieta" el contenido no existe todavía (se construye en el builder).
+  public get phaseModeLabel(): string {
+    const t = this.selectedTemplate;
+    return t ? phaseModeLabel(t.mode, t.days?.length || null) : '';
+  }
+
+  public get phaseModeHint(): string {
+    const t = this.selectedTemplate;
+    return t ? phaseModeHint(t.mode, t.days?.length || null) : '';
+  }
+
   public dayCount(template: DietTemplate): number {
     return template.days?.length || 0;
   }
@@ -189,57 +143,16 @@ export class ApplyDietTemplateModalComponent implements OnInit {
     void this.modalController.dismiss(null, 'cancel');
   }
 
-  public get computedEndDate(): string | null {
-    if (this.endMode === 'indefinite') return null;
-    if (this.endMode === 'fixedDate') return this.fixedEndDate || null;
-    if (!this.durationValue) return null;
-    const days = this.durationUnit === 'weeks' ? this.durationValue * 7 : this.durationValue;
-    return addDaysToIsoDate(this.startDate, days - 1);
-  }
-
   public get canConfirm(): boolean {
-    if (this.forDirectCreate && !this.name.trim()) return false;
-    if (!this.forDirectCreate && !this.selectedTemplateId) return false;
-
-    if (!this.startDate) return false;
-    if (this.endMode === 'fixedDate') return !!this.fixedEndDate;
-    if (this.endMode === 'duration') return !!this.durationValue && this.durationValue > 0;
-    return true; // indefinite
+    return !!this.selectedTemplateId && !!this.startDate;
   }
 
   public confirm(): void {
-    if (!this.canConfirm) return;
-
-    if (this.forDirectCreate) {
-      // Nada que aplicar todavía — no hay contenido que asignar. Se llevan
-      // nombre Y fechas al builder, que al guardar crea la dieta propia del
-      // cliente y la aplica como fase con estas mismas fechas, en un solo
-      // gesto (ver diet-template-builder.page.ts#saveForClient).
-      void this.modalController.dismiss(
-        {
-          name: this.name.trim(),
-          startDate: this.startDate,
-          endMode: this.endMode,
-          fixedEndDate: this.endMode === 'fixedDate' ? this.fixedEndDate : undefined,
-          durationValue: this.endMode === 'duration' ? this.durationValue : undefined,
-          durationUnit: this.endMode === 'duration' ? this.durationUnit : undefined,
-        },
-        'confirm'
-      );
-      return;
-    }
-
-    if (!this.selectedTemplateId) return;
+    if (!this.canConfirm || !this.selectedTemplateId) return;
     this.state = 'applying';
     this.overlapError = null;
     this.planAssignmentApi
-      .apply(this.clientId, this.selectedTemplateId, {
-        startDate: this.startDate,
-        endMode: this.endMode,
-        fixedEndDate: this.endMode === 'fixedDate' ? this.fixedEndDate : undefined,
-        durationValue: this.endMode === 'duration' ? this.durationValue : undefined,
-        durationUnit: this.endMode === 'duration' ? this.durationUnit : undefined,
-      })
+      .apply(this.clientId, this.selectedTemplateId, { startDate: this.startDate })
       .subscribe({
         next: (result) => void this.modalController.dismiss(result, 'confirm'),
         error: (err) => {

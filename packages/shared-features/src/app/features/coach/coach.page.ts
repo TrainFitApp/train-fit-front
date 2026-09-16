@@ -44,7 +44,6 @@ const NOTIFICATION_ICONS: Record<CoachNotificationType, string> = {
   checkin_requested: 'clipboard-outline',
   checkin_reviewed: 'checkmark-circle-outline',
   routine_assigned: 'barbell-outline',
-  goal_assigned: 'flame-outline',
   task_assigned: 'checkbox-outline',
   intake_submitted: 'document-text-outline',
   client_confirmed: 'checkmark-done-outline',
@@ -62,7 +61,6 @@ const NAVIGABLE_NOTIFICATION_TYPES = new Set<CoachNotificationType>([
   'checkin_requested',
   'checkin_reviewed',
   'routine_assigned',
-  'goal_assigned',
   'meal_prescribed',
   'anthropometry_requested',
 ]);
@@ -285,8 +283,6 @@ export class CoachPage implements OnInit {
         return `Check-in revisado: ${p.templateName || ''}`;
       case 'routine_assigned':
         return `Nueva rutina asignada: ${p.routineName || ''}`;
-      case 'goal_assigned':
-        return `Nuevo objetivo asignado: ${p.goalName || ''}`;
       case 'task_assigned':
         return `Nuevo hábito: ${p.taskLabel || ''}`;
       case 'intake_submitted':
@@ -323,9 +319,6 @@ export class CoachPage implements OnInit {
         break;
       case 'routine_assigned':
         void this.router.navigate(['/tabs/summary']);
-        break;
-      case 'goal_assigned':
-        void this.router.navigate(['/tabs/diets/nutritional-objectives']);
         break;
       case 'meal_prescribed':
         void this.router.navigate(['/tabs/diets'], { state: { selectedDate: p.date } });
@@ -649,29 +642,15 @@ export class CoachPage implements OnInit {
     void this.router.navigate(['/nutrition-preferences']);
   }
 
-  // Fase 5 Coach Pro (§16) — qué puede comer en lugar de qué. Enlazado desde
-  // aquí y no desde el tab de dietas porque es contenido de SU profesional,
-  // que es lo que agrupa esta pantalla.
-  //
-  // Sin consumidor ahora mismo (2026-09) — el botón está bloqueado como
-  // "Próximamente" en coach.page.html (mismo motivo que la tarjeta del
-  // entrenador en templates.page.ts). Se deja sin borrar para que
-  // desbloquearlo sea solo devolverle el (click) al botón.
-  public goToFoodExchanges(): void {
-    void this.router.navigate(['/my-food-exchanges']);
-  }
-
   // Movimiento 3 Coach Pro — registro diario de dolor por zona. Enlazado
-  // desde aquí por el mismo motivo que los intercambios: lo lee su
-  // profesional, y esta pantalla es la que agrupa todo lo que tiene que ver
+  // desde aquí porque lo lee su profesional, y esta pantalla es la que agrupa todo lo que tiene que ver
   // con él.
   public goToPain(): void {
     void this.router.navigate(['/my-pain']);
   }
 
   // --- Movimiento 5 Coach Pro ---
-  // Las tres viven aquí por el mismo motivo que los intercambios: son
-  // contenido de SU profesional, y esta pantalla es la que lo agrupa.
+  // Las tres viven aquí porque son contenido de SU profesional, y esta pantalla es la que lo agrupa.
 
 
   public goToSupplements(): void {

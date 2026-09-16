@@ -75,6 +75,10 @@
   }
 }
 
+.filters {
+  margin-top: var(--tf-space-5);
+}
+
 .field-row {
   display: flex;
   gap: var(--tf-space-3);
@@ -144,6 +148,9 @@
     // 34px de alto real: el expansor solo VERTICAL los lleva a 44 sin que
     // un chip se coma los toques del que tiene al lado en la misma fila.
     @include tf-touch-expander-y(5px);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     flex: 0 0 auto;
     padding: var(--tf-space-2) var(--tf-space-3);
     border-radius: var(--tf-radius-pill);
@@ -157,6 +164,10 @@
     transition: background var(--tf-duration-fast) var(--tf-ease-out),
       border-color var(--tf-duration-fast) var(--tf-ease-out),
       color var(--tf-duration-fast) var(--tf-ease-out);
+
+    ion-icon {
+      font-size: 1rem;
+    }
 
     &:hover:not(.is-active) {
       color: var(--tf-text);
@@ -173,12 +184,40 @@
       outline-offset: 2px;
     }
   }
+
+  // Restricciones — un color por flag (a juego con diet-card.component.scss,
+  // mismas cards donde luego se ve el resultado) para que el chip activo y
+  // lo que filtra se lean como una sola cosa, no solo texto genérico.
+  button.flag-vegan.is-active {
+    background: rgba(52, 211, 153, 0.14);
+    border-color: #34d399;
+    color: #34d399;
+  }
+
+  button.flag-vegetarian.is-active {
+    background: rgba(45, 212, 191, 0.14);
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+
+  button.flag-lactose-free.is-active {
+    background: rgba(96, 165, 250, 0.14);
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  button.flag-gluten-free.is-active {
+    background: rgba(255, 196, 85, 0.16);
+    border-color: var(--tf-secondary, #ffc455);
+    color: var(--tf-secondary, #ffc455);
+  }
 }
 
 // El objetivo calculado: el dato, no un cartel. Superficie oscura con el
-// número en acento, en vez del bloque naranja saturado de antes.
+// número en acento, en vez del bloque naranja saturado de antes. Va primero
+// en el panel (antes del propio formulario): es el número que justifica los
+// parámetros de abajo, no una consecuencia de ellos.
 .target-card {
-  margin-top: var(--tf-space-5);
   padding: var(--tf-space-4);
   border-radius: var(--tf-radius-lg);
   border: 1px solid var(--tf-border);
@@ -209,69 +248,24 @@
   }
 }
 
-// La dieta que se va a aplicar — el único bloque con tinte de acento del
-// panel, porque es la respuesta a la pregunta que trae aquí al entrenador.
-.chosen-box {
-  margin-top: var(--tf-space-4);
-  padding: var(--tf-space-3) var(--tf-space-4);
-  border-radius: var(--tf-radius-lg);
-  border: 1px solid var(--tf-accent-soft-border);
-  background: var(--tf-accent-soft);
+// Flecha entre el objetivo y la card de la dieta elegida: deja claro que
+// una sale DE la otra (comparación), no que son dos bloques sueltos uno
+// debajo del otro.
+.chosen-arrow {
+  display: flex;
+  justify-content: center;
+  margin: var(--tf-space-2) 0;
+  color: var(--tf-text-muted);
+  font-size: 1.1rem;
+}
 
-  &--empty {
-    border-color: var(--tf-border);
-    background: var(--tf-surface-2);
-    color: var(--tf-text-muted);
+// La card reutiliza app-diet-card (misma pieza que la lista de sugerencias):
+// aquí no hay que repetir kcal/macros/desviaciones a mano, ya las pinta ella.
+.chosen-card {
+  margin-bottom: var(--tf-space-2);
 
-    p {
-      margin: 0;
-      font-size: var(--tf-font-size-base);
-    }
-  }
-
-  .chosen-tag {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--tf-accent-text);
-  }
-
-  .chosen-name {
-    margin: var(--tf-space-1) 0 2px;
-    font-size: var(--tf-font-size-lg);
-    font-weight: 800;
-    color: var(--tf-text);
-    letter-spacing: -0.01em;
-  }
-
-  .chosen-lead {
-    margin: 0 0 var(--tf-space-2);
-    font-size: var(--tf-font-size-sm);
-    font-weight: 600;
-    color: var(--tf-text-secondary);
-  }
-
-  .chosen-macros {
-    margin: var(--tf-space-1) 0 0;
-    font-size: var(--tf-font-size-sm);
-    color: var(--tf-text-secondary);
-  }
-
-  // Superficie OPACA y no --tf-danger-soft: este aviso vive dentro del
-  // bloque de acento, y un rojo translúcido sobre el tinte naranja compone
-  // un fondo cálido que deja el texto en 4,41:1 (medido) — por debajo de AA.
-  // Sobre --tf-surface-1 sube a 5,4:1, y el borde rojo lo separa del tinte.
-  .chosen-missing {
-    margin: var(--tf-space-2) 0 0;
-    padding: var(--tf-space-2) var(--tf-space-3);
-    border: 1px solid var(--tf-danger-border);
-    border-radius: var(--tf-radius-sm);
-    background: var(--tf-surface-1);
-    font-size: var(--tf-font-size-xs);
-    font-weight: 600;
-    line-height: var(--tf-line-height-base);
-    color: var(--tf-danger-text);
+  .diet-card {
+    cursor: pointer;
   }
 }
 

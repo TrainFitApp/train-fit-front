@@ -171,13 +171,6 @@
               </div>
 
               <p class="detail-line">{{ weightDetail(row) }}</p>
-              <!-- "Llega a su duración estimada", no "termina": una fase ya no
-                   se corta sola en ninguna fecha, corre hasta que se abre la
-                   siguiente. Esto es un recordatorio de revisarla. -->
-              <p class="detail-line" *ngIf="row.planEndingSoon">
-                Su plan llega a la duración estimada en {{ row.planEndingSoon.daysLeft }} día(s)
-                ({{ row.planEndingSoon.endDate }}).
-              </p>
             </td>
           </tr>
         </ng-container>

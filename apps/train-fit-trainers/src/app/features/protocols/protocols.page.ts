@@ -33,7 +33,7 @@ interface PickerOption {
 //
 // El editor vive en un panel dentro de esta misma página, no en una ruta
 // propia como el constructor de reglas: un protocolo es una lista corta de
-// elecciones (nombre, macros, 3 plantillas, hábitos), no un formulario con
+// elecciones (nombre, 3 plantillas, hábitos), no un formulario con
 // estructura anidada.
 @Component({
   selector: 'app-protocols',
@@ -59,10 +59,6 @@ export class ProtocolsPage {
   public isSaving = false;
   public name = '';
   public description = '';
-  public kcalTotal: number | null = null;
-  public proteinsGTotal: number | null = null;
-  public carbohydratesGTotal: number | null = null;
-  public fatGTotal: number | null = null;
   public checkinTemplateId: string | null = null;
   public dietTemplateId: string | null = null;
   public routineTemplateId: string | null = null;
@@ -125,10 +121,6 @@ export class ProtocolsPage {
     this.editingId = protocol?._id || null;
     this.name = protocol?.name || '';
     this.description = protocol?.description || '';
-    this.kcalTotal = protocol?.nutritionalGoal?.kcalTotal ?? null;
-    this.proteinsGTotal = protocol?.nutritionalGoal?.proteinsGTotal ?? null;
-    this.carbohydratesGTotal = protocol?.nutritionalGoal?.carbohydratesGTotal ?? null;
-    this.fatGTotal = protocol?.nutritionalGoal?.fatGTotal ?? null;
     this.checkinTemplateId = protocol?.checkinTemplateId || null;
     this.dietTemplateId = protocol?.dietTemplateId || null;
     this.routineTemplateId = protocol?.routineTemplateId || null;
@@ -177,13 +169,12 @@ export class ProtocolsPage {
     // Un protocolo que no hace nada se puede guardar sin error, pero avisa:
     // es casi seguro un olvido, no una intención.
     const hasContent =
-      this.kcalTotal !== null ||
       this.checkinTemplateId ||
       this.dietTemplateId ||
       this.routineTemplateId ||
       this.ruleIds.length ||
       this.dailyTasks.length;
-    if (!hasContent) return 'Añade al menos una cosa: macros, una plantilla, una regla o un hábito.';
+    if (!hasContent) return 'Añade al menos una cosa: una plantilla, una regla o un hábito.';
     return null;
   }
 
@@ -199,13 +190,6 @@ export class ProtocolsPage {
     const payload: Partial<CoachProtocol> = {
       name: this.name.trim(),
       description: this.description.trim(),
-      nutritionalGoal: {
-        kcalTotal: this.kcalTotal === null ? null : Number(this.kcalTotal),
-        proteinsGTotal: this.proteinsGTotal === null ? null : Number(this.proteinsGTotal),
-        carbohydratesGTotal:
-          this.carbohydratesGTotal === null ? null : Number(this.carbohydratesGTotal),
-        fatGTotal: this.fatGTotal === null ? null : Number(this.fatGTotal),
-      },
       checkinTemplateId: this.checkinTemplateId || null,
       dietTemplateId: this.dietTemplateId || null,
       routineTemplateId: this.routineTemplateId || null,
@@ -297,9 +281,6 @@ export class ProtocolsPage {
 
   public contentSummary(protocol: CoachProtocol): string[] {
     const parts: string[] = [];
-    if (protocol.nutritionalGoal?.kcalTotal !== null && protocol.nutritionalGoal?.kcalTotal !== undefined) {
-      parts.push(`${protocol.nutritionalGoal.kcalTotal} kcal`);
-    }
     if (protocol.checkinTemplateId) parts.push('Check-in');
     if (protocol.dietTemplateId) parts.push('Plan de dieta');
     if (protocol.routineTemplateId) parts.push('Rutina');

@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.need-empty,
+.need-computed {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--tf-text-muted);
+}
+
+.need-computed {
+  margin-top: 8px;
+}
+
+.need-missing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-warning, var(--tf-danger));
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+}
+
+// --- Resultado ---
+
+.need-result {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 10px;
+}
+
+.need-result__kcal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--tf-accent);
+}
+
+.need-result__macros,
+.need-result__planned {
+  font-size: 0.8rem;
+  color: var(--tf-text-muted);
+}
+
+.need-result__delta {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text-secondary);
+}
+
+// --- Datos que entraron ---
+
+.need-inputs {
+  margin: 0;
+  padding: 0;
+  font-size: var(--tf-font-size-sm);
+}
+
+.need-inputs__row {
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) 1fr;
+  gap: 8px;
+  padding: 5px 0;
+
+  & + .need-inputs__row {
+    border-top: 1px solid var(--tf-border);
+  }
+
+  dt {
+    margin: 0;
+    font-weight: 500;
+    color: var(--tf-text-secondary);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--tf-text);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.need-note {
+  color: var(--tf-text-muted);
+}
+
+// --- La cuenta ---
+
+.need-math__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--tf-accent);
+  cursor: pointer;
+}
+
+.need-math {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  list-style: none;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-surface-2);
+  font-size: 0.8rem;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 3px 0;
+  }
+}
+
+.need-math__label {
+  color: var(--tf-text-secondary);
+}
+
+.need-math__value {
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-text);
+
+  &--total {
+    color: var(--tf-accent);
+  }
+}

@@ -263,6 +263,12 @@
   position: relative;
 }
 
+// El nombre de la plantilla es flex:1 (ocupa toda la fila) y sin este hueco
+// queda bajo el icono de borrar superpuesto — reservamos su ancho.
+.template-cell ::ng-deep .card-top {
+  padding-right: 22px;
+}
+
 .template-cell .delete-template-btn {
   position: absolute;
   top: 6px;
@@ -272,27 +278,20 @@
 
 .delete-template-btn {
   flex-shrink: 0;
-  width: var(--tf-touch-min);
-  height: var(--tf-touch-min);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 4px;
   background: transparent;
   border: none;
-  border-radius: var(--tf-radius-sm);
   color: var(--tf-text-muted);
   cursor: pointer;
-  transition: color var(--tf-duration-fast) var(--tf-ease-out),
-    background var(--tf-duration-fast) var(--tf-ease-out);
+  transition: color var(--tf-duration-fast) var(--tf-ease-out);
 
   ion-icon {
-    font-size: 18px;
+    font-size: 15px;
   }
 
   &:hover,
   &:active {
     color: var(--tf-danger);
-    background: var(--tf-danger-soft);
   }
 
   &:focus-visible {

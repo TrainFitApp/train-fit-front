@@ -2,8 +2,6 @@ import { Table } from 'src/app/core/models/table';
 import { Workout } from 'src/app/core/models/workout';
 import { Anthropometry } from 'src/app/features/diet-days/components/weight-info/models/anthropometry';
 import { CustomCheckinQuestion } from '../../../../checkin-templates/models/checkin-template.model';
-import { GoalMeal } from './client-progress.model';
-import { NutritionTarget } from '../../../../diet-templates/models/diet-suggestion.model';
 
 export type ClientScope = 'training' | 'nutrition';
 export type ClientDetailTab =
@@ -180,7 +178,7 @@ export interface TrainerPayment {
   note?: string;
 }
 
-// F20 — vista de adherencia nutricional.
+// F20 — adherencia calórica: lo consumido contra lo pautado de cada día.
 // Fase 1 Coach Pro — `percentage` pasa a ser sobre los días CON PLAN (antes
 // sobre todos los días del calendario del rango, lo que hundía el número de
 // cualquier cliente cuyo plan no cubriera el rango entero) y puede venir
@@ -188,12 +186,13 @@ export interface TrainerPayment {
 // que un 0%. `coveragePercentage` es la otra mitad de la historia: qué parte
 // del rango tenía plan.
 export interface AdherenceSummary {
-  status: 'ok' | 'no_goal';
-  percentage?: number | null;
-  coveragePercentage?: number;
-  daysCounted?: number;
-  daysInRange?: number;
-  dailyBreakdown?: { date: string; kcal: number; withinMargin: boolean }[];
+  percentage: number | null;
+  coveragePercentage: number;
+  daysCounted: number;
+  daysInRange: number;
+  // kcal = lo consumido ese día; plannedKcal = lo pautado. Cuadra si queda a
+  // ±15 % de lo pautado.
+  dailyBreakdown: { date: string; kcal: number; plannedKcal: number; withinMargin: boolean }[];
 }
 
 // F20-bis — mismo tipo que alimenta <app-anthropometry-chart> (shared-ui):
@@ -265,6 +264,24 @@ export interface NutritionTrackingDay {
 export interface NutritionTrackingSummary {
   status: 'ok';
   dailyTracking: NutritionTrackingDay[];
+}
+
+// Cumplimiento alimento a alimento de un rango (panel de resumen de un ciclo).
+// `plannedDays` = en cuántos días se le pautó; `consumedDays` = en cuántos lo
+// marcó como hecho. Vienen ordenados de peor a mejor cumplimiento.
+export interface NutritionFoodCompliance {
+  name: string;
+  plannedDays: number;
+  consumedDays: number;
+  plannedQuantity: number;
+  consumedQuantity: number;
+}
+
+export interface NutritionFoodsSummary {
+  status: 'ok';
+  items: NutritionFoodCompliance[];
+  from: string;
+  to: string;
 }
 
 // F30 — resultado por cliente de una operación "aplicar en bloque" (rutina/objetivo).
@@ -361,41 +378,3 @@ export interface AnthropometryRequest {
   lastFulfilledAt: string | null;
 }
 
-export interface NutritionalGoal {
-  _id: string;
-  name: string;
-  kcalTotal: number;
-  proteinsGTotal: number;
-  carbohydratesGTotal: number;
-  fatGTotal: number;
-  // Histórico: quién CREÓ este objetivo (o null si lo hizo el propio
-  // cliente) — no cambia aunque se active/desactive.
-  assignedByTrainerId: string | null;
-  // Estado ACTUAL: si es el objetivo vigente del cliente ahora mismo
-  // (User.goalInUse en el backend) — independiente de quién lo creó, un
-  // cliente puede tener en uso un objetivo propio aunque el trainer le
-  // haya asignado otro que todavía no activó, o viceversa.
-  isInUse: boolean;
-  // Sugerencias de dieta — puesto cuando este objetivo lo creó el arranque
-  // de una FASE (plan-assignment-service.js -> assignToClient), que además
-  // lo deja en uso. Ausente = objetivo "de siempre", no atado a ninguna
-  // fase. Sirve para decir de dónde sale la cifra cuando se usa como
-  // referencia en otra pantalla.
-  phaseId?: string | null;
-  // Fase 5 Coach Pro — "fibra si procede". null = este objetivo no la pauta,
-  // que no es lo mismo que 0 g.
-  fiberGTotal?: number | null;
-  // Movimiento 5 Coach Pro — reparto del día en intercambios. Array vacío o
-  // ausente = objetivo pautado solo en gramos, que es lo que hacían todos
-  // hasta ahora. Ver GoalMeal en client-progress.model.ts.
-  mealExchanges?: GoalMeal[];
-}
-
-// Respuesta de POST .../nutrition-target — mismo cálculo que el cajón de
-// sugerencias de dieta (diet-suggestion.model.ts#NutritionTarget), pero sin
-// el ranking de plantillas: solo el número, para el panel "Asignar objetivos".
-export interface NutritionTargetResponse {
-  target: NutritionTarget;
-  weightSource: { weightKg: number; from: 'anthropometry' | 'signup'; date?: string } | null;
-  clientObjetive: number | null;
-}

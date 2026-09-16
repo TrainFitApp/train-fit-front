@@ -13,9 +13,8 @@ import {
   ClientScope,
   ClientTable,
   DietDaySummary,
-  NutritionalGoal,
   NutritionComplianceSummary,
-  NutritionTargetResponse,
+  NutritionFoodsSummary,
   NutritionTrackingSummary,
   Supplement,
   SupplementTiming,
@@ -102,53 +101,8 @@ export class ClientDetailApiService {
     );
   }
 
-  public getNutritionalGoals(clientId: string): Observable<NutritionalGoal[]> {
-    return this.http.get<NutritionalGoal[]>(`${this.base(clientId)}/nutritional-goals`);
-  }
-
   public revokeRelation(clientId: string, scope: ClientScope): Observable<unknown> {
     return this.http.delete(`trainer/clients/${clientId}?scope=${scope}`);
-  }
-
-  // `fiberGTotal` (Fase 5) y `reason` (Fase 4) son opcionales: los objetivos
-  // sin fibra y los cambios sin motivo siguen siendo válidos.
-  public assignNutritionalGoal(
-    clientId: string,
-    goal: {
-      name: string;
-      kcalTotal: number;
-      proteinsGTotal: number;
-      carbohydratesGTotal: number;
-      fatGTotal: number;
-      fiberGTotal?: number | null;
-      reason?: string;
-    }
-  ): Observable<NutritionalGoal> {
-    return this.http.post<NutritionalGoal>(
-      `${this.base(clientId)}/nutritional-goals`,
-      goal
-    );
-  }
-
-  public activateNutritionalGoal(clientId: string, goalId: string): Observable<{ _id: string }> {
-    return this.http.put<{ _id: string }>(
-      `${this.base(clientId)}/nutritional-goals/${goalId}/activate`,
-      {}
-    );
-  }
-
-  // Mismo cálculo que el cajón de sugerencias de dieta
-  // (POST .../diet-suggestions), pero sin rankear plantillas — solo el
-  // target, para autorrellenar el panel de "Asignar objetivos". Puede
-  // devolver 422 MISSING_BIOMETRICS (ver NutritionTargetResponse).
-  public getNutritionTarget(
-    clientId: string,
-    objetiveKcalDelta: number
-  ): Observable<NutritionTargetResponse> {
-    return this.http.post<NutritionTargetResponse>(
-      `${this.base(clientId)}/nutrition-target`,
-      { objetiveKcalDelta }
-    );
   }
 
   public getAnthropometryRequest(clientId: string): Observable<AnthropometryRequest | null> {
@@ -360,6 +314,19 @@ export class ClientDetailApiService {
     );
   }
 
+  // Cumplimiento alimento a alimento del rango — panel de resumen de un ciclo.
+  // El backend acota `to` a hoy: los días futuros aún no materializados se
+  // resuelven con consumed:false y falsearían el cumplimiento.
+  public getNutritionFoods(
+    clientId: string,
+    from: string,
+    to: string
+  ): Observable<NutritionFoodsSummary> {
+    return this.http.get<NutritionFoodsSummary>(
+      `${this.base(clientId)}/nutrition-foods?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+    );
+  }
+
   public getPayments(clientId: string): Observable<TrainerPayment[]> {
     return this.http.get<TrainerPayment[]>(`${this.base(clientId)}/payments`);
   }
@@ -417,7 +384,7 @@ export class ClientDetailApiService {
     );
   }
 
-  // F29 — preferencias nutricionales del cliente, solo lectura para el profesional.
+  // F29 — preferencias nutricionales del cliente.
   public getNutritionPreferences(clientId: string): Observable<ClientNutritionPreferences | null> {
     return this.http.get<ClientNutritionPreferences | null>(
       `${this.base(clientId)}/nutrition-preferences`
@@ -428,6 +395,29 @@ export class ClientDetailApiService {
     return this.http.post<ClientNutritionPreferences>(
       `${this.base(clientId)}/nutrition-preferences/request`,
       {}
+    );
+  }
+
+  // El profesional edita directamente las preferencias en vez de esperar a
+  // que el cliente responda el cuestionario.
+  public updateNutritionPreferences(
+    clientId: string,
+    payload: Partial<
+      Pick<
+        ClientNutritionPreferences,
+        | 'allergies'
+        | 'favoriteFoods'
+        | 'dislikedFoods'
+        | 'cooksAtHome'
+        | 'dietaryFlags'
+        | 'disabledMealSlots'
+        | 'mealSlotLabels'
+      >
+    >
+  ): Observable<ClientNutritionPreferences> {
+    return this.http.put<ClientNutritionPreferences>(
+      `${this.base(clientId)}/nutrition-preferences`,
+      payload
     );
   }
 
@@ -452,17 +442,6 @@ export class ClientDetailApiService {
     return this.http.post<BulkApplyResult[]>(
       `${this.base(sourceClientId)}/diet-days/${date}/meals/${encodeURIComponent(mealSlot)}/apply-to-clients`,
       { ...body, targetClientIds }
-    );
-  }
-
-  public applyGoalToClients(
-    sourceClientId: string,
-    goal: { name: string; kcalTotal: number; proteinsGTotal: number; carbohydratesGTotal: number; fatGTotal: number },
-    targetClientIds: string[]
-  ): Observable<BulkApplyResult[]> {
-    return this.http.post<BulkApplyResult[]>(
-      `${this.base(sourceClientId)}/nutrition-goals/apply-to-clients`,
-      { ...goal, targetClientIds }
     );
   }
 }

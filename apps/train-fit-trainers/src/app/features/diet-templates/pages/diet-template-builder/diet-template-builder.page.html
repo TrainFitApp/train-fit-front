@@ -1,35 +1,26 @@
 <ion-header class="ion-no-border">
   <app-page-header
-    [title]="isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla')"
+    [title]="isPreparingNextCycle ? ('Preparar ciclo ' + nextCycleNumber) : (isCreatingForClient ? 'Crear dieta' : (isEditingAssignedCopy ? 'Editar dieta' : 'Editar plantilla'))"
   ></app-page-header>
 </ion-header>
 
-<ion-content class="builder-content">
+<ion-content class="builder-content" [class.has-clipboard]="copyMode">
   <div class="detail-skeleton" *ngIf="state === 'loading'">
     <div class="skeleton-block" style="height: 60px;"></div>
     <div class="skeleton-block" style="height: 60px;"></div>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy">
+  <div class="state-message" *ngIf="state === 'error' && !isCreatingForClient && !isEditingAssignedCopy && !isPreparingNextCycle">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la plantilla</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo.</p>
     <button class="retry-button" (click)="load()">Reintentar</button>
   </div>
 
-  <div class="state-message" *ngIf="state === 'error' && isEditingAssignedCopy">
+  <div class="state-message" *ngIf="state === 'error' && (isEditingAssignedCopy || isPreparingNextCycle)">
     <ion-icon name="cloud-offline-outline"></ion-icon>
     <h2>No se pudo cargar la dieta</h2>
     <p>Comprueba tu conexión e inténtalo de nuevo desde la ficha del cliente.</p>
-    <button class="retry-button" (click)="goBack()">Volver</button>
-  </div>
-
-  <!-- Solo llega aquí si el modal previo (nombre + fechas) no dejó nada
-       que usar — página abierta directa, sin pasar por el flujo normal. -->
-  <div class="state-message" *ngIf="state === 'error' && isCreatingForClient">
-    <ion-icon name="calendar-outline"></ion-icon>
-    <h2>Faltan las fechas del plan</h2>
-    <p>Vuelve a la ficha del cliente y empieza de nuevo desde "Crear dieta".</p>
     <button class="retry-button" (click)="goBack()">Volver</button>
   </div>
 
@@ -54,6 +45,9 @@
           <ng-container *ngSwitchCase="'assigned'">
             Editando la dieta ya asignada a <strong>{{ clientContextName }}</strong>
           </ng-container>
+          <ng-container *ngSwitchCase="'next-cycle'">
+            Ciclo {{ nextCycleNumber }} de <strong>{{ clientContextName }}</strong> · {{ nextCycleRange }}
+          </ng-container>
           <ng-container *ngSwitchDefault>
             Plantilla general, abierta desde la ficha de <strong>{{ clientContextName }}</strong>
           </ng-container>
@@ -74,7 +68,24 @@
           Esto es lo que {{ clientContextName }} tiene aplicado ahora mismo — los
           cambios no tocan ninguna plantilla de biblioteca, solo esta fase.
         </span>
+        <span *ngIf="kind === 'next-cycle'">
+          Contenido del ciclo actual con las cantidades escaladas. Retoca lo que
+          quieras y guarda: si no cambias nada, el ciclo repetirá el actual.
+        </span>
       </p>
+
+      <!-- Preparar siguiente ciclo — las kcal objetivo, reescalables desde
+           aquí (mismo % a todos los alimentos, pisa los retoques a mano). -->
+      <div class="next-cycle-kcal" *ngIf="kind === 'next-cycle'">
+        <label class="next-cycle-kcal__label" for="next-cycle-kcal">kcal del ciclo</label>
+        <div class="next-cycle-kcal__row">
+          <input id="next-cycle-kcal" type="number" step="50" min="1" class="input-field" [(ngModel)]="nextCycleKcal" />
+          <button type="button" class="next-cycle-kcal__btn" [disabled]="rescaling || !(nextCycleKcal > 0)" (click)="rescaleNextCycle()">
+            {{ rescaling ? 'Escalando…' : 'Reescalar' }}
+          </button>
+        </div>
+        <p class="next-cycle-kcal__hint">Ciclo actual: {{ nextCycleBaseKcal | number: '1.0-0' }} kcal de media diaria.</p>
+      </div>
 
       <div class="client-context__target" *ngIf="clientTarget as target">
         <span class="client-context__target-label">{{ clientTargetLabel }}</span>
@@ -87,7 +98,8 @@
       </div>
     </div>
 
-    <div class="input-wrapper">
+    <!-- Los ciclos no se nombran (plan §4): al preparar uno no hay campo. -->
+    <div class="input-wrapper" *ngIf="!isPreparingNextCycle">
       <ion-icon name="restaurant-outline" class="input-icon"></ion-icon>
       <input
         type="text"
@@ -97,11 +109,43 @@
       />
     </div>
 
+    <!-- Objetivo de la fase (plan ciclos por contenido §8) — solo al crear el
+         C1. Es lo que usa la sugerencia del siguiente ciclo para saber qué
+         esperaba el entrenador ("bajas como esperabas" / "vas lento"). -->
+    <div class="phase-objective" *ngIf="isCreatingForClient">
+      <p class="section-hint">Objetivo de la fase</p>
+      <div class="end-mode-options">
+        <button
+          type="button"
+          class="end-mode-option"
+          *ngFor="let opt of focusOptions"
+          [class.selected]="phaseFocus === opt.key"
+          (click)="setPhaseFocus(opt.key)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+      <div class="phase-objective__row">
+        <label class="phase-objective__field">
+          <span>Ajuste de kcal</span>
+          <input type="number" step="50" class="input-field" [(ngModel)]="phaseKcalDelta" />
+        </label>
+        <label class="phase-objective__field">
+          <span>Ritmo por ciclo (kcal)</span>
+          <input type="number" step="50" class="input-field" [(ngModel)]="phaseRatePerCycle" />
+        </label>
+      </div>
+      <p class="section-hint phase-objective__hint">
+        Déficit/superávit respecto al gasto del cliente, y cuánto se moverán las kcal de un ciclo al siguiente
+        si va según lo previsto. Se puede ajustar en cada ciclo.
+      </p>
+    </div>
+
     <!-- Sugerencias de dieta — aptitud dietética. La deriva el backend de los
          alimentos; el entrenador solo puede FORZAR las que la deriva no da
          (productos sin el flag rellenado). Solo al editar una plantilla ya
          guardada. -->
-    <div class="suitable-for" *ngIf="!isCreatingForClient">
+    <div class="suitable-for" *ngIf="!isCreatingForClient && !isPreparingNextCycle">
       <p class="section-hint">Apta para</p>
       <div class="suitable-chips">
         <button
@@ -132,13 +176,13 @@
          Cambiar de modo no borra los otros conjuntos de columnas. -->
     <p class="section-hint">¿Cómo se repite esta plantilla?</p>
     <div class="end-mode-options">
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" (click)="setMode('sequential')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'sequential'" [disabled]="copyMode" (click)="setMode('sequential')">
         Días (1, 2, 3...)
       </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" (click)="setMode('recurring')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'recurring'" [disabled]="copyMode" (click)="setMode('recurring')">
         Por día de la semana
       </button>
-      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" (click)="setMode('choice')">
+      <button type="button" class="end-mode-option" [class.selected]="mode === 'choice'" [disabled]="copyMode" (click)="setMode('choice')">
         El cliente elige cada día
       </button>
     </div>
@@ -146,6 +190,16 @@
       El cliente marcará cada día cuál de estos menús le toca (p. ej. "Entrenamiento" / "Descanso") —
       no hace falta asignar días de la semana.
     </p>
+    <!-- Ciclos por contenido: en días/semana la longitud del ciclo sale sola
+         (los días de la dieta / la semana); aquí el cliente elige cada día,
+         así que hay que decirla. -->
+    <div class="choice-cycle-days" *ngIf="mode === 'choice'">
+      <label class="choice-cycle-days__field" for="choice-cycle-days">
+        <span>Días por ciclo</span>
+        <input id="choice-cycle-days" type="number" min="1" max="60" class="input-field" [(ngModel)]="choiceCycleDays" />
+      </label>
+      <p class="section-hint">Cada cuántos días se revisa el ciclo (check-in y sugerencia del siguiente).</p>
+    </div>
 
     <p class="empty-hint" *ngIf="!activeRows.length">
       {{ emptyRowsHint }}
@@ -166,26 +220,65 @@
     <!-- TAREA5 (auditoría UX, Fase C) — tablero semanal: columnas en días o
          menús, comidas en filas. Cada celda se arrastra entera (con todas
          sus alternativas) a otra celda para moverla; el icono de copiar la
-         duplica sin moverla del origen. Click en la celda abre el editor. -->
-    <div class="board-scroll" *ngIf="activeRows.length">
+         duplica sin moverla del origen. Click en la celda abre el editor.
+
+         Modo copia (copyMode): con algo en el portapapeles solo queda el
+         icono de pegar en los destinos del mismo tipo — copiar un DÍA
+         muestra pegar en las cabeceras de los otros días; copiar una COMIDA,
+         en las otras celdas. Todo lo demás (vaciar/copiar/eliminar, inputs,
+         chips de semana, click y arrastre de celda) se bloquea hasta
+         cancelar en el sidenav derecho (.clipboard-portal, al final). -->
+    <div class="board-scroll" *ngIf="activeRows.length" [class.is-copy-mode]="copyMode">
       <div class="board-grid" [style.grid-template-columns]="'128px repeat(' + activeRows.length + ', minmax(160px, 1fr))'">
         <div class="board-corner"></div>
-        <div class="board-day-header" *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex">
+        <div
+          class="board-day-header"
+          *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex"
+          [class.is-clipboard-source]="isDayClipboardSource(d)"
+          [class.is-paste-target]="copyingDay && !isDayClipboardSource(d)"
+        >
           <div class="board-day-header-row">
             <input
               type="text"
               class="day-label-input"
               [ngModel]="rowLabel(row)"
+              [disabled]="copyMode"
               (ngModelChange)="setRowLabel(row, $event)"
             />
-            <button
-              type="button"
-              class="board-day-remove"
-              [attr.aria-label]="'Eliminar ' + rowNoun"
-              (click)="removeRow(d)"
-            >
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
+            <!-- Iconos en vertical, mismo criterio que .board-cell-actions. -->
+            <div class="board-day-actions">
+              <ng-container *ngIf="!copyMode">
+                <button
+                  type="button"
+                  class="board-day-action board-day-action--danger"
+                  [attr.aria-label]="'Eliminar ' + rowNoun"
+                  [title]="'Eliminar ' + rowNoun"
+                  (click)="removeRow(d)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="board-day-action"
+                  *ngIf="rowHasFood(row)"
+                  [attr.aria-label]="'Copiar ' + rowNoun"
+                  [title]="'Copiar ' + rowNoun"
+                  (click)="copyDay(d, $event)"
+                >
+                  <ion-icon name="copy-outline"></ion-icon>
+                </button>
+              </ng-container>
+              <button
+                type="button"
+                class="board-day-action board-day-action--paste"
+                *ngIf="copyingDay && !isDayClipboardSource(d)"
+                title="Pegar aquí"
+                aria-label="Pegar aquí"
+                (click)="pasteDay(d, $event)"
+              >
+                <ion-icon name="clipboard-outline"></ion-icon>
+              </button>
+            </div>
           </div>
           <div class="weekday-picker" *ngIf="mode === 'recurring'">
             <button
@@ -193,6 +286,7 @@
               class="weekday-chip"
               *ngFor="let w of weekdays"
               [class.selected]="asPattern(row).appliesTo.includes(w.value)"
+              [disabled]="copyMode"
               (click)="toggleWeekday(asPattern(row), w.value)"
             >
               {{ w.short }}
@@ -206,16 +300,20 @@
             type="button"
             class="board-cell"
             *ngFor="let row of activeRows; let d = index; trackBy: trackByIndex"
-            [class.has-items]="row.meals[s].alternatives.length > 0"
+            [class.has-items]="mealHasFood(row.meals[s])"
             [class.drag-over]="dragOverCell?.dayIndex === d && dragOverCell?.mealIndex === s"
-            [attr.draggable]="row.meals[s].alternatives.length > 0"
+            [class.active-cell]="activeCell?.dayIndex === d && activeCell?.mealIndex === s"
+            [class.is-locked]="copyMode"
+            [class.is-clipboard-source]="isClipboardSource(d, s)"
+            [class.is-paste-target]="copyingMeal && !isClipboardSource(d, s)"
+            [attr.draggable]="!copyMode && row.meals[s].alternatives.length > 0"
             (dragstart)="onCellDragStart(d, s, $event)"
             (dragover)="onCellDragOver(d, s, $event)"
             (dragleave)="onCellDragLeave()"
             (drop)="onCellDrop(d, s, $event)"
             (click)="openMealEditor(d, s)"
           >
-            <span class="board-cell-summary" *ngIf="!row.meals[s].alternatives.length">Vacía</span>
+            <span class="board-cell-summary" *ngIf="!mealHasFood(row.meals[s])">Vacía</span>
 
             <!-- Contenido real de la celda: cada alternativa con sus
                  alimentos (nombre + gramos) y sus macros. Con 2+ alternativas
@@ -244,16 +342,38 @@
                 <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
               </span>
             </div>
-            <button
-              type="button"
-              class="board-cell-action"
-              *ngIf="row.meals[s].alternatives.length"
-              title="Copiar a otra columna"
-              aria-label="Copiar a otra columna"
-              (click)="duplicateMealTo(d, s, $event)"
-            >
-              <ion-icon name="copy-outline"></ion-icon>
-            </button>
+            <div class="board-cell-actions" *ngIf="(!copyMode && mealHasFood(row.meals[s])) || (copyingMeal && !isClipboardSource(d, s))">
+              <ng-container *ngIf="!copyMode">
+                <button
+                  type="button"
+                  class="board-cell-action board-cell-action--danger"
+                  title="Vaciar comida"
+                  aria-label="Vaciar comida"
+                  (click)="clearCell(d, s, $event)"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+                <button
+                  type="button"
+                  class="board-cell-action"
+                  title="Copiar a otro hueco"
+                  aria-label="Copiar a otro hueco"
+                  (click)="copyCell(d, s, $event)"
+                >
+                  <ion-icon name="copy-outline"></ion-icon>
+                </button>
+              </ng-container>
+              <button
+                type="button"
+                class="board-cell-action board-cell-action--paste"
+                *ngIf="copyingMeal && !isClipboardSource(d, s)"
+                title="Pegar aquí"
+                aria-label="Pegar aquí"
+                (click)="pasteCell(d, s, $event)"
+              >
+                <ion-icon name="clipboard-outline"></ion-icon>
+              </button>
+            </div>
           </button>
         </ng-container>
 
@@ -303,6 +423,18 @@
                 G {{ deviationLabel(dev.fat) }}
               </span>
             </div>
+
+            <!-- Micronutrientes/macros secundarios del día — solo los que
+                 tienen algún dato real en los alimentos usados (ver
+                 dayMicroRows()), nunca una fila a "0 mg". -->
+            <div class="totals-micros" *ngIf="dayMicroRows(row).length">
+              <span
+                class="micro-tag"
+                *ngFor="let micro of dayMicroRows(row); trackBy: trackByLabel"
+              >
+                {{ micro.label }}: {{ micro.value | number: '1.0-1' }} {{ micro.unit }}
+              </span>
+            </div>
           </ng-container>
           <ng-template #emptyTotals>
             <span class="totals-empty">Sin alimentos</span>
@@ -311,14 +443,78 @@
       </div>
     </div>
 
-    <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="activeRows.length >= activeRowsLimit">
+    <button type="button" class="add-alternative-btn" (click)="addRow()" [disabled]="copyMode || activeRows.length >= activeRowsLimit">
       <ion-icon name="add-outline"></ion-icon>
       {{ 'Añadir ' + rowNoun }}
     </button>
 
     <button type="button" class="submit-button" [disabled]="!canSave || isSaving" (click)="save()">
-      <span *ngIf="!isSaving">{{ isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla') }}</span>
+      <span *ngIf="!isSaving">{{ isPreparingNextCycle ? ('Preparar ciclo ' + nextCycleNumber) : (isCreatingForClient ? 'Crear y asignar' : (isEditingAssignedCopy ? 'Guardar cambios' : 'Guardar plantilla')) }}</span>
       <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
     </button>
   </ng-container>
 </ion-content>
+
+<!-- Panel lateral (sidenav derecho) del portapapeles: qué se ha copiado y
+     cómo salir del modo copia. Sin velo: hay que poder pulsar "Pegar" en el
+     tablero con el panel abierto. El contenedor se traslada al body al
+     montar (ngAfterViewInit) para que el fixed no lo capture ion-content. -->
+<div class="clipboard-portal" #clipboardHost>
+  <aside class="clipboard-panel" *ngIf="clipboard as clip" role="complementary" aria-label="Portapapeles">
+    <header class="clipboard-panel__header">
+      <div class="clipboard-panel__head">
+        <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+        <span>{{ clip.kind === 'day' ? (rowNoun | titlecase) + ' copiado' : 'Comida copiada' }}</span>
+      </div>
+      <button type="button" class="clipboard-panel__close" (click)="clearClipboard()" aria-label="Cancelar copia">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
+    <p class="clipboard-panel__label">{{ clip.label }}</p>
+    <p class="clipboard-panel__hint">
+      Pulsa <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+      en {{ clip.kind === 'day' ? 'otro ' + rowNoun : 'otra comida' }} para pegar.
+    </p>
+
+    <div class="clipboard-panel__body">
+      <!-- Comida: sus alternativas con alimentos y macros, mismo look que
+           la celda del tablero. -->
+      <ng-container *ngIf="clip.kind === 'meal'">
+        <div class="cell-alt" *ngFor="let alt of clip.alternatives; let a = index; trackBy: trackByIndex">
+          <span class="cell-alt-header" *ngIf="clip.alternatives.length > 1">
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+            <span class="cell-alt-label">{{ alternativeLabel(alt, a, clip.alternatives.length) }}</span>
+          </span>
+          <ng-container *ngFor="let item of alt.items; trackBy: trackByIndex">
+            <span class="cell-food" *ngIf="item.productId || item.recipeId">
+              <span class="cell-food-name">{{ itemLabel(item) }}</span>
+              <span class="cell-food-qty" *ngIf="item.quantity">{{ item.quantity }}g</span>
+            </span>
+          </ng-container>
+          <span class="cell-macros" *ngIf="alternativeTotals(alt) as t">
+            <span class="macro-tag macro-tag--kcal">{{ t.kcal | number: '1.0-0' }} kcal</span>
+            <span class="macro-tag macro-tag--protein">P {{ t.protein | number: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--carbs">C {{ t.carbs | number: '1.0-0' }}g</span>
+            <span class="macro-tag macro-tag--fat">G {{ t.fat | number: '1.0-0' }}g</span>
+          </span>
+        </div>
+      </ng-container>
+
+      <!-- Día: una línea por comida con contenido. -->
+      <ng-container *ngIf="clip.kind === 'day'">
+        <div class="clipboard-meal" *ngFor="let meal of clipboardMeals; trackBy: trackByIndex">
+          <span class="clipboard-meal__slot">{{ meal.slot }}</span>
+          <span class="clipboard-meal__summary">{{ mealSummary(meal) }}</span>
+          <span class="clipboard-meal__kcal" *ngIf="alternativeTotals(meal.alternatives[0]) as t">
+            {{ t.kcal | number: '1.0-0' }} kcal
+          </span>
+        </div>
+      </ng-container>
+    </div>
+
+    <button type="button" class="clipboard-panel__cancel" (click)="clearClipboard()">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      Cancelar
+    </button>
+  </aside>
+</div>

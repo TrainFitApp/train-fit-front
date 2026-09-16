@@ -1,0 +1,81 @@
+// Misma paleta oscura que el resto de la pantalla de dieta del cliente
+// (ver dates-slider.component.scss): superficie #111, borde #2a2a2a,
+// acento #FE9000.
+ion-toolbar {
+  --background: #1c1c1e;
+  --color: #ffffff;
+}
+
+.menu-preview {
+  --background: #0b0b0b;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 24px;
+
+  &__hint {
+    margin: 0 0 14px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #9ca3af;
+  }
+
+  &__meal {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    background: #111111;
+  }
+
+  &__meal-name {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fe9000;
+  }
+
+  &__items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+      font-size: 0.9rem;
+      color: #ffffff;
+      border-top: 1px solid #1f1f1f;
+
+      &:first-child {
+        border-top: none;
+      }
+    }
+  }
+
+  &__item-qty {
+    flex-shrink: 0;
+    color: #9ca3af;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__empty {
+    color: #9ca3af;
+    font-size: 0.9rem;
+  }
+
+  &__footer {
+    padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
+    background: #0b0b0b;
+  }
+
+  &__choose {
+    --background: #fe9000;
+    --color: #111111;
+    font-weight: 700;
+  }
+}

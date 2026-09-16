@@ -48,17 +48,6 @@ export interface CoachAssignedRoutine {
   assignedAt: string;
 }
 
-export interface CoachAssignedGoal {
-  goalId: string;
-  name: string;
-  kcalTotal: number;
-  proteinsGTotal: number;
-  carbohydratesGTotal: number;
-  fatGTotal: number;
-  assignedByTrainerName: string;
-  assignedAt: string;
-}
-
 // Tab Coach, Fase 3 — notificaciones in-app.
 export type CoachNotificationType =
   | 'meal_proposal'
@@ -67,7 +56,6 @@ export type CoachNotificationType =
   | 'checkin_requested'
   | 'checkin_reviewed'
   | 'routine_assigned'
-  | 'goal_assigned'
   | 'task_assigned'
   | 'intake_submitted'
   | 'client_confirmed'
@@ -104,5 +92,4 @@ export interface CoachDashboard {
   nutritionPreferences: CoachNutritionPreferencesStatus | null;
   pendingPayments: CoachPendingPayment[];
   assignedRoutine: CoachAssignedRoutine | null;
-  assignedGoal: CoachAssignedGoal | null;
 }

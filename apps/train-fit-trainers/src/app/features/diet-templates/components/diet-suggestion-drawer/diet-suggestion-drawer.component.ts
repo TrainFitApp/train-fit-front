@@ -14,6 +14,8 @@ import {
 } from '../../models/diet-suggestion.model';
 import { PlanAssignmentApiService } from '../../../../shared/services/plan-assignment-api.service';
 import { DietSuggestionSessionService } from '../../services/diet-suggestion-session.service';
+import { DIETARY_FLAG_UI } from '../../../../shared/utils/dietary-flag-ui.util';
+import { DietCardModule } from '../../../../shared/components/diet-card/diet-card.module';
 
 const FOCUS_DEFAULTS: Record<PhaseFocus, { delta: number; rate: number }> = {
   cut: { delta: -500, rate: -100 },
@@ -21,12 +23,9 @@ const FOCUS_DEFAULTS: Record<PhaseFocus, { delta: number; rate: number }> = {
   bulk: { delta: 300, rate: 100 },
 };
 
-const DIETARY_FLAGS: { key: DietaryFlag; label: string }[] = [
-  { key: 'vegan', label: 'Vegana' },
-  { key: 'vegetarian', label: 'Vegetariana' },
-  { key: 'lactoseFree', label: 'Sin lactosa' },
-  { key: 'glutenFree', label: 'Sin gluten' },
-];
+const DIETARY_FLAGS: { key: DietaryFlag; label: string; icon: string; colorClass: string }[] = (
+  ['vegan', 'vegetarian', 'lactoseFree', 'glutenFree'] as DietaryFlag[]
+).map((key) => ({ key, ...DIETARY_FLAG_UI[key] }));
 
 type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 
@@ -38,7 +37,7 @@ type ViewState = 'loading' | 'missing-biometrics' | 'ready' | 'error';
 @Component({
   selector: 'app-diet-suggestion-drawer',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule],
+  imports: [CommonModule, FormsModule, IonicModule, DietCardModule],
   templateUrl: './diet-suggestion-drawer.component.html',
   styleUrls: ['./diet-suggestion-drawer.component.scss'],
 })
@@ -58,13 +57,34 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
   public readonly dietaryFlagOptions = DIETARY_FLAGS;
   public dietaryFlags = new Set<DietaryFlag>();
 
-  // Origen de las dietas — las tres marcadas por defecto.
-  public readonly sourceOptions: { key: DietSource; label: string }[] = [
-    { key: 'general', label: 'Generales' },
-    { key: 'client', label: 'De este cliente' },
-    { key: 'verified', label: 'De fábrica' },
+  // Macros por kg de peso — alternativa a los % fijos de siempre: proteína y
+  // grasa se editan en g/kg (carbos = resto), igual que la fórmula que ya
+  // aplica el backend por defecto (train-fit-back/nutrition-target.js). Se
+  // rellenan solos con el resultado de esa fórmula hasta que el entrenador
+  // toca uno de los dos campos (ver syncMacroRatioFromTarget/userTouchedMacroRatio).
+  public proteinPerKg: number | null = null;
+  public fatPerKg: number | null = null;
+  private userTouchedMacroRatio = false;
+
+  // Origen de las dietas — combinables entre sí (mismo Set de siempre); el
+  // chip "Todas" es solo un atajo para marcar las tres de golpe, no un
+  // cuarto valor de origen.
+  public readonly sourceOptions: { key: DietSource; label: string; icon: string }[] = [
+    { key: 'general', label: 'Añadidas por mí', icon: 'person' },
+    { key: 'client', label: 'De este cliente', icon: 'person-circle' },
+    { key: 'verified', label: 'By TrainFit', icon: 'shield' },
   ];
   public sources = new Set<DietSource>(['general', 'client', 'verified']);
+
+  public get allSourcesSelected(): boolean {
+    return this.sources.size === this.sourceOptions.length;
+  }
+
+  public selectAllSources(): void {
+    if (this.allSourcesSelected) return;
+    this.sources = new Set(this.sourceOptions.map((o) => o.key));
+    this.queueRefetch();
+  }
 
   // --- Confirmación ---
   public startDate = new Date().toISOString().slice(0, 10);
@@ -134,6 +154,23 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     this.refetch$.next();
   }
 
+  // Tocar g/kg fija el override: a partir de aquí el target ya no sigue la
+  // fórmula por defecto del backend, sigue estos dos números (ver fetch()).
+  public onMacroRatioChange(): void {
+    this.userTouchedMacroRatio = true;
+    this.queueRefetch();
+  }
+
+  // Mientras el entrenador no haya tocado los campos de g/kg, se enseñan
+  // rellenos con el ratio que sale de la fórmula por defecto (protein/fat
+  // del target ÷ peso del cliente) — puramente informativo, no dispara un
+  // fetch nuevo (el target que ya llegó ya usa esa fórmula).
+  private syncMacroRatioFromTarget(protein: number, fat: number, weightKg: number | null | undefined): void {
+    if (this.userTouchedMacroRatio || !weightKg) return;
+    this.proteinPerKg = Math.round((protein / weightKg) * 10) / 10;
+    this.fatPerKg = Math.round((fat / weightKg) * 10) / 10;
+  }
+
   // El objetivo del cliente al registrarse decide en qué focus arranca (en
   // vez de siempre "Definir"). Solo antes de que el entrenador toque nada.
   private applyClientObjetive(delta: number): void {
@@ -152,6 +189,8 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
         objetiveKcalDelta: Number(this.kcalDelta) || 0,
         dietaryFlags: [...this.dietaryFlags],
         sources: [...this.sources],
+        ...(this.userTouchedMacroRatio && this.proteinPerKg ? { proteinPerKg: this.proteinPerKg } : {}),
+        ...(this.userTouchedMacroRatio && this.fatPerKg ? { fatPerKg: this.fatPerKg } : {}),
       })
       .subscribe({
         next: (res) => {
@@ -167,6 +206,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
               return;
             }
           }
+          this.syncMacroRatioFromTarget(res.target.protein, res.target.fat, res.weightSource?.weightKg);
           this.session.setResults(res);
           this.session.setLoading(false);
           this.state = 'ready';
@@ -188,7 +228,7 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
       });
   }
 
-  // --- Sugerencia principal / lo que se va a aplicar ---
+  // --- Objetivo calculado / dieta elegida ---
 
   public get target(): { kcal: number; protein: number; carbs: number; fat: number } | null {
     return this.session.results?.target ?? null;
@@ -210,27 +250,17 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     return r.find((t) => t._id === this.session.topSuggestionId) ?? null;
   }
 
-  public get chosenIsTop(): boolean {
-    return !!this.chosen && this.chosen._id === this.session.topSuggestionId && !this.selectedId;
+  // Solo la que el entrenador ha elegido A MANO en la lista (no la
+  // sugerencia principal por defecto): la card de detalle de abajo aparece
+  // como CONSECUENCIA de picar una tarjeta, no ya de entrada.
+  public get selectedTemplate(): RankedTemplate | null {
+    return this.selectedId ? this.chosen : null;
   }
 
-  // Hay dietas, aunque ninguna sea compatible — distingue "no tienes nada
-  // que encaje con estos parámetros" de "tienes, pero ninguna cumple sus
-  // restricciones", que se arreglan de formas distintas.
-  public get hasResults(): boolean {
-    return !!this.session.results?.ranked.length;
-  }
-
-  // Restricciones que incumple la elegida, para avisar ANTES de aplicarla.
-  public get chosenMissingLabels(): string {
-    const missing = this.chosen?.missingFlags ?? [];
-    return missing
-      .map((flag) => DIETARY_FLAGS.find((opt) => opt.key === flag)?.label ?? flag)
-      .join(', ');
-  }
-
-  public focusVerb(): string {
-    return this.focus === 'cut' ? 'definir' : this.focus === 'bulk' ? 'coger volumen' : 'mantener';
+  // La card de detalle vuelve a picarse igual que en la lista: pica de
+  // nuevo la misma dieta = la deselecciona (ver select() en el servicio).
+  public toggleSelected(template: RankedTemplate): void {
+    this.session.select(template);
   }
 
   // --- Acciones ---
@@ -247,6 +277,11 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
         focus: this.focus,
         targetKcalDelta: Number(this.kcalDelta) || 0,
         ratePerCycle: Number(this.ratePerCycle) || 0,
+        // Solo si el entrenador los tocó: sin tocar, el backend aplica su
+        // fórmula por defecto (misma que rellena estos campos) y así el
+        // resumen de ciclo puede decir "fórmula por defecto".
+        proteinPerKg: this.userTouchedMacroRatio && this.proteinPerKg ? Number(this.proteinPerKg) : null,
+        fatPerKg: this.userTouchedMacroRatio && this.fatPerKg ? Number(this.fatPerKg) : null,
       },
       cycleTarget: {
         kcal: t.kcal,
@@ -259,11 +294,12 @@ export class DietSuggestionDrawerComponent implements OnInit, OnDestroy {
     if (!this.canConfirm || !this.target || !this.chosen) return;
     this.applying = true;
 
+    // Solo `phase` viaja al backend: el objetivo calculado (cycleTarget) es
+    // informativo — las kcal del ciclo salen de los alimentos.
     this.planApi
       .apply(this.clientId, this.chosen._id, {
         startDate: this.startDate,
-        endMode: 'indefinite',
-        ...this.phasePayload(),
+        phase: this.phasePayload().phase,
       })
       .subscribe({
         next: (assignment) => {

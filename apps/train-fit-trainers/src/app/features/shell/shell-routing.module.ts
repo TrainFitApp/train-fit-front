@@ -35,7 +35,7 @@ const routes: Routes = [
       {
         // Mockup "TrainFit Panel" > Plantillas, hoy **Biblioteca**: lo que el
         // entrenador prepara para dárselo a un cliente (entrenamientos,
-        // rutinas, dietas, intercambios, ejercicios). La ruta sigue siendo
+        // rutinas, dietas, ejercicios). La ruta sigue siendo
         // 'templates' a propósito — renombrarla rompería los enlaces
         // guardados de quien ya usa la app sin ganar nada: el nombre que ve
         // el usuario está en la cabecera y en el menú, no en la URL.
@@ -213,16 +213,6 @@ const routes: Routes = [
         loadChildren: () =>
           import('src/app/features/checkin-templates/checkin-templates.module').then(
             (m) => m.CheckinTemplatesPageModule
-          ),
-      },
-      {
-        // Fase 5 Coach Pro — grupos de intercambio de alimentos (§16).
-        // Alcanzable desde Biblioteca: es material para el cliente.
-        path: 'food-exchanges',
-        data: { parent: '/tabs/templates' },
-        loadChildren: () =>
-          import('src/app/features/food-exchanges/food-exchanges.module').then(
-            (m) => m.FoodExchangesPageModule
           ),
       },
       {

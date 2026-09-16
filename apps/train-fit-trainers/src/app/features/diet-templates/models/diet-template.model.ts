@@ -24,6 +24,12 @@ export interface TemplateFoodItem {
   protein?: number;
   carbs?: number;
   fat?: number;
+  // Micronutrientes + macros secundarios (fibra, sodio, vitaminas...) de
+  // este item para su cantidad actual — mismo snapshot que kcal/protein/
+  // carbs/fat, ver computeItemMicros() en utils/nutrient-fields.ts. Clave =
+  // campo *100g de IProduct/CustomProduct (p.ej. 'sodium100g'); ausente o en
+  // 0 cuando el producto/receta no tiene ese dato.
+  micros?: Record<string, number>;
   // Producto/receta real cacheado en memoria (nunca viaja al backend, ver
   // itemsToCustomEntries en diet-template-builder.page.ts) — permite
   // recalcular macros en vivo al editar la cantidad in situ, sin volver a
@@ -130,6 +136,9 @@ export interface DietTemplate {
   ownerClientId?: string | null;
   name: string;
   mode: TemplateMode;
+  // Solo en mode 'choice': días que dura un ciclo (el cliente elige menú
+  // cada día, así que la longitud del ciclo hay que decirla).
+  choiceCycleDays?: number | null;
   days: DietTemplateDayPayload[];
   dayPatterns: DietTemplateDayPatternPayload[];
   createdAt: string;

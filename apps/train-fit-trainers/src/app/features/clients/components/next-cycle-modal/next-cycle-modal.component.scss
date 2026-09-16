@@ -1,4 +1,9 @@
+// Mismo panel lateral que diet-suggestion-drawer: tokens --tf-* (tema
+// oscuro), botón primario con el gradiente de la app.
+@import '../../../../../theme/buttons';
+
 .cycle-content {
+  --background: var(--tf-bg);
   --padding-start: 16px;
   --padding-end: 16px;
   --padding-top: 14px;
@@ -9,87 +14,520 @@
   display: block;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--ion-color-medium);
+  color: var(--tf-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin: 16px 0 6px;
 }
 
+// Qué ciclo y qué días abarca — línea de contexto, no un campo.
+.cycle-period {
+  margin: 0 0 12px;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+
+  strong {
+    color: var(--tf-accent-text);
+  }
+
+  &__edited {
+    color: var(--tf-accent-text);
+  }
+}
+
+// Sugerencia: fondo suave + icono/etiqueta en acento, cuerpo en texto
+// normal — se lee como una nota, no como una acción. Con aviso, en danger.
 .reason-card {
-  padding: 14px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
   border-radius: 14px;
-  background: var(--ion-color-primary-tint, #e8f0ff);
-  color: var(--ion-color-primary-contrast, #0b2545);
+  background: var(--tf-accent-soft);
+  border: 1px solid var(--tf-accent-soft-border);
+  color: var(--tf-text);
 
   &.is-flagged {
-    background: var(--ion-color-warning-tint, #fff3d6);
-    color: var(--ion-color-warning-shade, #8a6100);
+    background: var(--tf-danger-soft);
+    border-color: var(--tf-danger-border);
+  }
+
+  .reason-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 20px;
+    color: var(--tf-accent-text);
+  }
+
+  &.is-flagged .reason-icon {
+    color: var(--tf-danger-text);
+  }
+
+  .reason-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .reason-label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tf-accent-text);
+  }
+
+  &.is-flagged .reason-label {
+    color: var(--tf-danger-text);
   }
 
   .reason-text {
     margin: 0;
     font-weight: 600;
     font-size: 0.95rem;
+    color: var(--tf-text);
   }
 
   .weight-row {
     margin-top: 8px;
     font-size: 0.82rem;
-    opacity: 0.8;
+    color: var(--tf-text-secondary);
+
+    strong {
+      color: var(--tf-text);
+    }
+  }
+
+  .muted-inline {
+    color: var(--tf-text-muted);
+  }
+}
+
+// Desvíos día a día, plegados: el detalle del aviso.
+.deviations {
+  margin-top: 10px;
+
+  &__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    font-weight: 600;
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--tf-text);
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0 0 0 4px;
+    border-left: 2px solid var(--tf-border-strong);
+
+    li {
+      padding: 4px 0 4px 8px;
+      font-size: var(--tf-font-size-xs);
+      line-height: 1.4;
+      color: var(--tf-text-secondary);
+    }
+  }
+
+  &__date {
+    display: inline-block;
+    min-width: 52px;
+    font-weight: 700;
+    color: var(--tf-text);
+  }
+}
+
+// Necesidad con datos de hoy — referencia plegada (docs/plan-info-calculo-fase.md).
+.need-now {
+  margin: 12px 0 14px;
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  background: var(--tf-surface-2);
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__label {
+    flex: 1;
+    font-weight: 600;
+  }
+
+  &__kcal {
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-accent);
+
+    &--missing {
+      color: var(--tf-text-muted);
+    }
+  }
+
+  &__body {
+    padding: 0 12px 12px;
   }
 }
 
 .target-edit {
-  input[type='number'],
-  input[type='date'] {
+  input[type='number'] {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--ion-color-step-200, #d7d7d7);
+    border: 1px solid var(--tf-border-strong);
     border-radius: 10px;
+    background: var(--tf-surface-2);
+    color: var(--tf-text);
     font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: var(--tf-accent);
+    }
   }
 
   .delta-hint {
     margin: 6px 0 0;
     font-size: 0.8rem;
-    color: var(--ion-color-medium);
+    color: var(--tf-text-muted);
+  }
+
+  // El cambio respecto al ciclo actual, con signo y %: subir y bajar no se
+  // leen igual, así que tampoco se pintan igual.
+  .delta-hint__value {
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text);
+
+    &.is-up {
+      color: var(--tf-success);
+    }
+
+    &.is-down {
+      color: var(--tf-danger-text);
+    }
+  }
+}
+
+// --- Ajustar macros ---
+// Mismo trío azul/verde/rosa que diet-card y el resumen de ciclo.
+$macro-protein: #60a5fa;
+$macro-carbs: #34d399;
+$macro-fat: #f472b6;
+
+.macros-adjust {
+  margin: 14px 0 0;
+  border: 1px solid var(--tf-border);
+  border-radius: 10px;
+  background: var(--tf-surface-2);
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: var(--tf-font-size-sm);
+    color: var(--tf-text-secondary);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  &__body {
+    padding: 4px 12px 12px;
+  }
+
+  &__foot {
+    margin: 10px 0 0;
+    font-size: 0.8rem;
+    color: var(--tf-text-muted);
+
+    strong {
+      color: var(--tf-text);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__reset {
+    display: block;
+    margin-top: 4px;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tf-accent-text);
+    cursor: pointer;
+  }
+
+  .muted {
+    margin-top: 8px;
+  }
+}
+
+.macro-chip {
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0b0b0b;
+
+  &--protein {
+    background: $macro-protein;
+  }
+
+  &--carbs {
+    background: $macro-carbs;
+  }
+
+  &--fat {
+    background: $macro-fat;
+  }
+
+  &--touched {
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.macro-bar {
+  display: flex;
+  height: 6px;
+  margin: 6px 0 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--tf-surface-3);
+
+  &__seg {
+    display: block;
+    height: 100%;
+    transition: width 0.15s ease-out;
+
+    &--protein {
+      background: $macro-protein;
+    }
+
+    &--carbs {
+      background: $macro-carbs;
+    }
+
+    &--fat {
+      background: $macro-fat;
+    }
+  }
+}
+
+.macro-row {
+  padding: 8px 0;
+
+  & + .macro-row {
+    border-top: 1px solid var(--tf-border);
+  }
+
+  &.is-locked .macro-input input {
+    opacity: 0.55;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: var(--tf-font-size-sm);
+  }
+
+  &__name {
+    font-weight: 600;
+    color: var(--tf-text);
+  }
+
+  &__kcal {
+    font-size: 0.76rem;
+    color: var(--tf-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__delta {
+    margin-left: auto;
+    font-size: 0.76rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--tf-text-secondary);
+
+    &.is-up {
+      color: var(--tf-success);
+    }
+
+    &.is-down {
+      color: var(--tf-danger-text);
+    }
+  }
+
+  &__inputs {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.macro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--protein {
+    background: $macro-protein;
+  }
+
+  &--carbs {
+    background: $macro-carbs;
+  }
+
+  &--fat {
+    background: $macro-fat;
+  }
+}
+
+.macro-input {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--tf-border-strong);
+  border-radius: 8px;
+  background: var(--tf-surface-1);
+
+  &:focus-within {
+    border-color: var(--tf-accent);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 8px 0;
+    border: none;
+    background: none;
+    color: var(--tf-text);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  span {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--tf-text-muted);
+  }
+}
+
+.lock-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  border: 1px solid var(--tf-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--tf-text-muted);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &.is-locked {
+    border-color: var(--tf-accent-soft-border);
+    background: var(--tf-accent-soft);
+    color: var(--tf-accent-text);
   }
 }
 
 .muted {
-  color: var(--ion-color-medium);
+  color: var(--tf-text-muted);
   font-size: 0.8rem;
   margin-top: 14px;
-}
-
-.section-error {
-  text-align: center;
-  padding: 28px 16px;
-  color: var(--ion-color-medium);
+  line-height: 1.4;
 }
 
 .footer-actions {
-  padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
-}
-
-.detail-skeleton {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-
-  .skeleton-block {
-    border-radius: 14px;
-    background: linear-gradient(90deg, #ececec 25%, #f5f5f5 37%, #ececec 63%);
-    background-size: 400% 100%;
-    animation: shimmer 1.4s ease infinite;
-  }
+  gap: 4px;
+  padding: 10px 16px calc(10px + var(--ion-safe-area-bottom, 0px));
+  background: var(--tf-bg);
+  border-top: 1px solid var(--tf-border-subtle);
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 100% 0;
+.confirm-button {
+  @include tf-gradient-button;
+  width: 100%;
+  height: 48px;
+  font-size: var(--tf-font-size-base);
+}
+
+// Deshacer un ciclo preparado: enlace discreto, no un segundo botón.
+.discard-link {
+  align-self: center;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:not(:disabled):hover {
+    color: var(--tf-danger-text);
   }
-  100% {
-    background-position: -100% 0;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 }

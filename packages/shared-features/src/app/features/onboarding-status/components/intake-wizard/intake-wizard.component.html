@@ -12,11 +12,11 @@
         <h2 class="section-title">Confirma tus datos</h2>
         <p class="section-subtitle">Los usamos para calcular tus calorías y macros. Ajusta lo que haya cambiado.</p>
         <div class="field">
-          <input type="number" class="field-input" inputmode="decimal" placeholder=" " [(ngModel)]="weight" />
+          <input type="number" class="field-input" inputmode="decimal" appNumericKeypad placeholder=" " [(ngModel)]="weight" />
           <label class="field-label">Peso (kg)</label>
         </div>
         <div class="field">
-          <input type="number" class="field-input" inputmode="numeric" placeholder=" " [(ngModel)]="height" />
+          <input type="number" class="field-input" inputmode="numeric" appNumericKeypad placeholder=" " [(ngModel)]="height" />
           <label class="field-label">Altura (cm)</label>
         </div>
         <div class="field">

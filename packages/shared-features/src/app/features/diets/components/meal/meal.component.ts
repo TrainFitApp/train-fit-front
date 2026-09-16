@@ -43,6 +43,7 @@ import { ClipboardMealModalComponent } from '../clipboard-meal-modal/clipboard-m
 import { PautadoItemViewComponent } from '../pautado-item-view/pautado-item-view.component';
 import { MealProposal } from '../../models/meal-proposal.model';
 import { MealProposalApiService } from '../../services/meal-proposal-api.service';
+import { ConfirmSheetComponent } from 'src/app/shared/components/confirm-sheet/confirm-sheet.component';
 
 @Component({
   selector: 'app-meal',
@@ -585,13 +586,17 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
 
   // Marcar/desmarcar consumido — actualización optimista (mismo patrón que
   // set.component.ts para los sets de entrenamiento), revertida si el
-  // backend rechaza la petición.
+  // backend rechaza la petición. Se reemite el día (copia: el signal no
+  // notifica la misma referencia) porque lo pautado solo suma en la barra
+  // de macros cuando está consumido (ver DietDayService#countsAsIntake).
   public toggleProductConsumed(product: CustomProduct): void {
     const consumed = !product.consumed;
     product.consumed = consumed;
+    this.emitDietDay();
     this.mealService.setCustomProductConsumed(this.meal._id, product._id, consumed).subscribe({
       error: () => {
         product.consumed = !consumed;
+        this.emitDietDay();
         this.ionicUtilService.showErrorToast(
           this.translate.instant('MEAL.CONSUMED_UPDATE_ERROR'),
           this.translate.instant('COMMON.ERROR'),
@@ -604,9 +609,11 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
   public toggleRecipeConsumed(instance: CustomRecipe): void {
     const consumed = !instance.consumed;
     instance.consumed = consumed;
+    this.emitDietDay();
     this.mealService.setCustomRecipeConsumed(this.meal._id, instance._id, consumed).subscribe({
       error: () => {
         instance.consumed = !consumed;
+        this.emitDietDay();
         this.ionicUtilService.showErrorToast(
           this.translate.instant('MEAL.CONSUMED_UPDATE_ERROR'),
           this.translate.instant('COMMON.ERROR'),
@@ -614,6 +621,10 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         );
       },
     });
+  }
+
+  private emitDietDay(): void {
+    this.dietDayService.setCurrentDietDay = { ...this.dietDay };
   }
 
   public getRecipeName(instance: CustomRecipe): string {
@@ -1096,17 +1107,20 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  // F28 — el cliente elige (o cambia) una de las alternativas propuestas
-  // por su profesional; se aplica de verdad sobre esta comida (mismo
-  // resultado final que pautar con F12). Selector persistente: se puede
-  // volver a llamar cuantas veces se quiera para alternar, no es una
-  // elección de un solo uso — pasteMeal en el backend reemplaza el
-  // contenido cada vez (merge:false), así que cambiar de opción no
-  // acumula nada.
-  public chooseAlternative(proposal: MealProposal, index: number): void {
+  // Opciones de comida — el cliente alterna entre las opciones pautadas por
+  // su profesional (la 1ª viene aplicada de serie). El backend sustituye
+  // SOLO lo pautado: lo que el cliente añadió por su cuenta se queda. Si
+  // hay alimentos pautados ya marcados como consumidos, se pierden con el
+  // cambio: se avisa antes con una hoja de confirmación.
+  public async chooseAlternative(proposal: MealProposal, index: number): Promise<void> {
     if (this.isChoosingProposal || proposal.chosenIndex === index) return;
-    this.isChoosingProposal = true;
 
+    if (this.hasConsumedPautado(this.meal)) {
+      const confirmed = await this.confirmSwitchAlternative(proposal.alternatives[index]?.label);
+      if (!confirmed) return;
+    }
+
+    this.isChoosingProposal = true;
     this.mealProposalApiService.choose(this.dietDay.date, proposal._id, index).subscribe({
       next: (updatedMeal) => {
         this.isChoosingProposal = false;
@@ -1118,18 +1132,48 @@ export class MealComponent implements OnInit, OnDestroy, OnChanges {
         proposal.chosenIndex = index;
         this.proposalChosen.emit({ proposalId: proposal._id, chosenIndex: index });
         this.ionicUtilService.showToast({
-          message: this.translate.instant('MEAL.PRODUCTS_COPIED'),
-          duration: 2000,
+          message: this.translate.instant('MEAL.ALTERNATIVE_CHANGED', {
+            label:
+              proposal.alternatives[index]?.label ||
+              this.translate.instant('MEAL.ALTERNATIVE_DEFAULT_LABEL', { n: index + 1 }),
+            meal: this.meal.name,
+          }),
+          duration: 2500,
         });
       },
       error: (err) => {
         this.isChoosingProposal = false;
         this.ionicUtilService.showErrorToast(
-          err?.error?.message || 'No se pudo aplicar la alternativa elegida',
-          'Error',
+          err?.error?.message || this.translate.instant('MEAL.ALTERNATIVE_CHOOSE_ERROR'),
+          this.translate.instant('COMMON.ERROR'),
           3000
         );
       },
     });
+  }
+
+  private hasConsumedPautado(meal: Meal): boolean {
+    return (
+      this.getPautadoProducts(meal).some((p) => p.consumed) ||
+      this.getPautadoRecipes(meal).some((r) => r.consumed)
+    );
+  }
+
+  private async confirmSwitchAlternative(label?: string): Promise<boolean> {
+    const res = await this.ionicUtilService.showModal({
+      component: ConfirmSheetComponent,
+      componentProps: {
+        icon: 'swap-horizontal-outline',
+        iconColor: 'primary',
+        title: this.translate.instant('MEAL.ALTERNATIVE_SWITCH_HEADER', { label: label || '' }),
+        message: this.translate.instant('MEAL.ALTERNATIVE_SWITCH_MESSAGE'),
+        confirmText: this.translate.instant('MEAL.ALTERNATIVE_SWITCH_CONFIRM'),
+        cancelText: this.translate.instant('COMMON.CANCEL'),
+      },
+      cssClass: 'confirm-sheet-modal',
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+    return res.data === true;
   }
 }

@@ -15,7 +15,7 @@ import { CoachProtocol } from '../protocols/models/coach-protocol.model';
 // Movimiento 1 Coach Pro — mitad del antiguo hub "Plantillas".
 //
 // La otra mitad (Biblioteca, /tabs/templates) guarda lo que el entrenador
-// PREPARA PARA UN CLIENTE: entrenamientos, rutinas, dietas, intercambios.
+// PREPARA PARA UN CLIENTE: entrenamientos, rutinas, dietas.
 // Aquí vive lo que define CÓMO TRABAJA: qué le pregunta a cada cliente
 // (check-ins), qué le monta a uno nuevo de golpe (protocolos) y de qué se
 // entera solo sin mirar (automatizaciones). Es la misma distinción que un
@@ -220,19 +220,10 @@ export class MethodPage implements OnInit {
     this.router.navigate(['/tabs/protocols']);
   }
 
-  // Un protocolo puede referenciar objetivo, check-in, dieta, rutina, reglas
-  // y hábitos: se cuenta lo que realmente trae, no las ranuras que existen.
-  // El objetivo nutricional cuenta como UNO aunque tenga 4 macros — para el
-  // coach es una sola decisión, y "5 elementos" por poner kcal sería mentir.
+  // Un protocolo puede referenciar check-in, dieta, rutina, reglas y hábitos:
+  // se cuenta lo que realmente trae, no las ranuras que existen.
   public protocolMeta(protocol: CoachProtocol): string {
-    const goal = protocol.nutritionalGoal;
-    const hasGoal =
-      !!goal &&
-      [goal.kcalTotal, goal.proteinsGTotal, goal.carbohydratesGTotal, goal.fatGTotal].some(
-        (value) => value !== null && value !== undefined
-      );
     const pieces = [
-      hasGoal ? 1 : 0,
       protocol.checkinTemplateId ? 1 : 0,
       protocol.dietTemplateId ? 1 : 0,
       protocol.routineTemplateId ? 1 : 0,

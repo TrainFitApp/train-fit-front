@@ -246,6 +246,21 @@ app-nutrition-calendar {
   }
 }
 
+// Cómo se resuelve el contenido de la fase elegida (sequential/recurring/
+// choice) — mismo look que .date-hint, junto a la plantilla, no al campo de
+// fecha (no depende de la fecha, depende de la plantilla).
+.phase-mode-info {
+  margin: 4px 2px 12px;
+  font-size: var(--tf-font-size-xs);
+  line-height: 1.45;
+  color: var(--tf-text-faint);
+
+  strong {
+    color: var(--tf-text-muted);
+    font-weight: 600;
+  }
+}
+
 // Choque de fechas: junto al formulario, no en un toast que se va.
 .overlap-error {
   display: flex;

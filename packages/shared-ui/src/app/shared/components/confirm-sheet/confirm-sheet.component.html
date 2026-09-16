@@ -1,0 +1,14 @@
+<div class="sheet-body">
+  <ion-icon class="sheet-icon" [name]="icon" [color]="iconColor"></ion-icon>
+  <h2 class="sheet-title">{{ title }}</h2>
+  <p class="sheet-message">{{ message }}</p>
+</div>
+
+<div class="sheet-actions">
+  <ion-button expand="block" fill="outline" color="medium" (click)="cancel()">
+    {{ cancelText }}
+  </ion-button>
+  <ion-button expand="block" [color]="confirmColor" (click)="confirm()">
+    {{ confirmText }}
+  </ion-button>
+</div>

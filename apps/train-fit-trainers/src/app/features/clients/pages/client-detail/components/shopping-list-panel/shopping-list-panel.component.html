@@ -2,22 +2,33 @@
   <!-- Plegada de entrada y sin cargar nada: es una comprobación puntual, y
        su consulta trae los días de dieta poblados enteros. -->
   <button type="button" class="panel-toggle" [attr.aria-expanded]="expanded" (click)="toggle()">
-    <ion-icon [name]="expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" aria-hidden="true"></ion-icon>
+    <span class="panel-icon" aria-hidden="true">
+      <ion-icon name="cart-outline"></ion-icon>
+    </span>
     <span class="panel-toggle-label">Lista de la compra</span>
+    <ion-icon
+      class="panel-chevron"
+      [class.panel-chevron--open]="expanded"
+      name="chevron-down-outline"
+      aria-hidden="true"
+    ></ion-icon>
   </button>
 
   <div class="panel-body" *ngIf="expanded">
-    <div class="range-picker" role="group" aria-label="Periodo de la compra">
-      <button
-        type="button"
-        class="range-option"
-        *ngFor="let range of ranges; trackBy: trackByDays"
-        [class.selected]="selectedDays === range.days"
-        [attr.aria-pressed]="selectedDays === range.days"
-        (click)="selectRange(range.days)"
-      >
-        {{ range.label }}
-      </button>
+    <div class="range-row">
+      <ion-icon class="range-icon" name="calendar-outline" aria-hidden="true"></ion-icon>
+      <div class="range-picker" role="group" aria-label="Periodo de la compra">
+        <button
+          type="button"
+          class="range-option"
+          *ngFor="let range of ranges; trackBy: trackByDays"
+          [class.selected]="selectedDays === range.days"
+          [attr.aria-pressed]="selectedDays === range.days"
+          (click)="selectRange(range.days)"
+        >
+          {{ range.label }}
+        </button>
+      </div>
     </div>
 
     <div class="panel-skeleton" *ngIf="state === 'loading'">
@@ -30,19 +41,27 @@
     </div>
 
     <ng-container *ngIf="state === 'loaded'">
-      <p class="panel-empty" *ngIf="!items.length">
-        No hay nada pautado en este periodo, así que no hay nada que comprar.
-      </p>
+      <div class="panel-empty panel-empty--icon" *ngIf="!items.length">
+        <ion-icon name="basket-outline" aria-hidden="true"></ion-icon>
+        <p>No hay nada pautado en este periodo, así que no hay nada que comprar.</p>
+      </div>
 
       <ng-container *ngIf="items.length">
         <p class="panel-hint">
-          Suma de lo que le has pautado en {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }}
-          con plan. Es lo que ve el cliente en su app.
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          <span>
+            Suma de lo que le has pautado en {{ daysWithPlan }} día{{ daysWithPlan === 1 ? '' : 's' }}
+            con plan. Es lo que ve el cliente en su app.
+          </span>
         </p>
 
         <div class="item" *ngFor="let item of items; trackBy: trackByName">
+          <ion-icon class="item-icon" name="nutrition-outline" aria-hidden="true"></ion-icon>
           <span class="item-name">{{ item.name }}</span>
-          <span class="item-days">{{ item.dayCount }} día{{ item.dayCount === 1 ? '' : 's' }}</span>
+          <span class="item-days">
+            <ion-icon name="calendar-clear-outline" aria-hidden="true"></ion-icon>
+            {{ item.dayCount }} día{{ item.dayCount === 1 ? '' : 's' }}
+          </span>
           <span class="item-quantity">{{ quantityLabel(item) }}</span>
         </div>
       </ng-container>

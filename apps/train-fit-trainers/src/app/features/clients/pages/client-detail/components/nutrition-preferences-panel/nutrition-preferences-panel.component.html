@@ -1,0 +1,162 @@
+<!-- Este contenedor se traslada al body al montar (ngAfterViewInit).
+     Dentro de la ficha, su position:fixed lo capturaba el contain de
+     ion-content, y las gráficas (canvas, con capa propia de composición) se
+     dibujaban por encima del panel. -->
+<div class="panel-portal" #panelHost>
+  <div class="panel-backdrop" *ngIf="showPanel" (click)="close()"></div>
+  <div
+    class="panel-sheet"
+    *ngIf="showPanel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="nutrition-preferences-sheet-title"
+  >
+    <div class="panel-handle"></div>
+
+    <header class="sheet-header">
+      <h3 class="panel-title" id="nutrition-preferences-sheet-title">Editar preferencias nutricionales</h3>
+      <button type="button" class="close-button" (click)="close()" aria-label="Cerrar">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </header>
+
+    <!-- Alergias primero y con superficie propia: es el único campo que
+         puede hacer daño si se pasa por alto al montar la dieta. -->
+    <section class="form-group form-group--critical">
+      <label class="field-label field-label--critical" for="nutrition-pref-allergies">
+        <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+        Alergias / intolerancias
+      </label>
+      <textarea
+        id="nutrition-pref-allergies"
+        class="note-field note-field--critical"
+        rows="2"
+        maxlength="1000"
+        placeholder="p. ej. Alergia a los frutos secos, intolerancia a la lactosa..."
+        [(ngModel)]="allergies"
+      ></textarea>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="leaf-outline" aria-hidden="true"></ion-icon>
+        Restricciones dietéticas
+      </p>
+      <p class="field-hint">Filtro duro del cajón de sugerencias de dieta: solo se proponen dietas aptas.</p>
+      <div class="flag-chips">
+        <button
+          type="button"
+          *ngFor="let opt of dietaryFlagOptions"
+          [class]="opt.colorClass"
+          [class.is-active]="dietaryFlags.has(opt.key)"
+          [attr.aria-pressed]="dietaryFlags.has(opt.key)"
+          (click)="toggleDietaryFlag(opt.key)"
+        >
+          <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+          {{ opt.label }}
+          <ion-icon class="chip-check" name="checkmark" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+        Gustos
+      </p>
+
+      <div class="field">
+        <label class="field-label" for="nutrition-pref-favorites">
+          <ion-icon name="thumbs-up-outline" aria-hidden="true"></ion-icon>
+          Alimentos favoritos
+        </label>
+        <textarea
+          id="nutrition-pref-favorites"
+          class="note-field"
+          rows="2"
+          maxlength="1000"
+          placeholder="p. ej. Pollo, arroz, plátano..."
+          [(ngModel)]="favoriteFoods"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="nutrition-pref-disliked">
+          <ion-icon name="thumbs-down-outline" aria-hidden="true"></ion-icon>
+          Alimentos que no le gustan
+        </label>
+        <textarea
+          id="nutrition-pref-disliked"
+          class="note-field"
+          rows="2"
+          maxlength="1000"
+          placeholder="p. ej. Brócoli, pescado azul..."
+          [(ngModel)]="dislikedFoods"
+        ></textarea>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
+        ¿Cocina en casa habitualmente?
+      </p>
+      <div class="option-row">
+        <button
+          type="button"
+          class="option-card"
+          *ngFor="let opt of cooksAtHomeOptions"
+          [class.is-active]="cooksAtHome === opt.value"
+          [attr.aria-pressed]="cooksAtHome === opt.value"
+          (click)="setCooksAtHome(opt.value)"
+        >
+          <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+          {{ opt.label }}
+        </button>
+      </div>
+    </section>
+
+    <section class="form-group">
+      <p class="group-label">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        Comidas al día
+        <span class="group-count">{{ enabledMealSlotsCount }} de {{ mealSlots.length }}</span>
+      </p>
+      <p class="field-hint">Desmarca las que no haga (p. ej. ayuno intermitente) y, si quieres, cámbiales el nombre.</p>
+
+      <div class="meal-slot-row" *ngFor="let slot of mealSlots" [class.is-off]="disabledMealSlots[slot.key]">
+        <button
+          type="button"
+          class="meal-slot-toggle"
+          [attr.aria-pressed]="!disabledMealSlots[slot.key]"
+          (click)="toggleMealSlot(slot.key)"
+        >
+          <ion-icon
+            class="meal-slot-check"
+            [name]="disabledMealSlots[slot.key] ? 'square-outline' : 'checkbox'"
+            aria-hidden="true"
+          ></ion-icon>
+          <ion-icon class="meal-slot-icon" [name]="slot.icon" aria-hidden="true"></ion-icon>
+          <span class="meal-slot-name">{{ slot.key }}</span>
+        </button>
+        <input
+          type="text"
+          class="meal-slot-label-input"
+          [placeholder]="slot.key"
+          maxlength="50"
+          [disabled]="disabledMealSlots[slot.key]"
+          [attr.aria-label]="'Nombre para ' + slot.key"
+          [(ngModel)]="mealSlotLabels[slot.key]"
+        />
+      </div>
+    </section>
+
+    <footer class="sheet-footer">
+      <button type="button" class="ghost-button" (click)="close()" [disabled]="isSaving">Cancelar</button>
+      <button type="button" class="submit-button" (click)="save()" [disabled]="isSaving">
+        <span *ngIf="!isSaving">Guardar preferencias</span>
+        <ion-spinner name="dots" *ngIf="isSaving"></ion-spinner>
+      </button>
+    </footer>
+  </div>
+</div>

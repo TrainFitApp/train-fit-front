@@ -61,7 +61,9 @@
             <p class="field-summary-empty">Sin campos activados</p>
           </ng-template>
 
-          <span class="template-total-count">{{ template.enabledFields.length }} campos en total</span>
+          <span class="template-total-count">
+            {{ template.enabledFields.length }} campos en total<ng-container *ngIf="requiredCount(template) as required"> · {{ required }} {{ required === 1 ? 'obligatorio' : 'obligatorios' }}</ng-container>
+          </span>
         </div>
 
         <div class="template-actions">
@@ -105,23 +107,41 @@
     <div class="field-group" *ngFor="let group of groups">
       <h4 class="field-group-heading">{{ group.label }}</h4>
       <div class="field-toggle-grid">
-        <button
+        <!-- Dos botones hermanos y no uno anidado: activar el campo y
+             marcarlo obligatorio son acciones distintas, y un <button>
+             dentro de otro no es HTML válido. -->
+        <div
           class="field-toggle-row"
+          [class.field-toggle-row--on]="isFieldEnabled(field.key)"
           *ngFor="let field of group.fields; trackBy: trackByFieldKey"
-          (click)="toggleField(field.key)"
         >
-          <span class="field-toggle-text">
-            <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
-            <!-- Movimiento 2 Coach Pro — qué va a leer el cliente realmente.
-                 Activar "Nivel de estrés" sin saber que su 5 es "desbordado,
-                 me afecta al sueño" es activarlo a ciegas. -->
-            <span class="field-toggle-detail" *ngIf="fieldDetail(field)">{{ fieldDetail(field) }}</span>
-          </span>
-          <ion-icon
-            [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
-            [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
-          ></ion-icon>
-        </button>
+          <button type="button" class="field-toggle-main" (click)="toggleField(field.key)">
+            <ion-icon
+              [name]="isFieldEnabled(field.key) ? 'checkbox' : 'square-outline'"
+              [class.field-toggle-icon--active]="isFieldEnabled(field.key)"
+            ></ion-icon>
+            <span class="field-toggle-text">
+              <span>{{ field.label }}<span class="field-unit" *ngIf="field.unit"> ({{ field.unit }})</span></span>
+              <!-- Movimiento 2 Coach Pro — qué va a leer el cliente realmente.
+                   Activar "Nivel de estrés" sin saber que su 5 es "desbordado,
+                   me afecta al sueño" es activarlo a ciegas. -->
+              <span class="field-toggle-detail" *ngIf="fieldDetail(field)">{{ fieldDetail(field) }}</span>
+            </span>
+          </button>
+          <!-- Solo con el campo activado: un obligatorio apagado no existe. -->
+          <button
+            type="button"
+            class="required-toggle required-toggle--mini"
+            *ngIf="isFieldEnabled(field.key)"
+            [class.required-toggle--on]="isFieldRequired(field.key)"
+            (click)="toggleRequired(field.key)"
+            role="switch"
+            [attr.aria-checked]="isFieldRequired(field.key)"
+            [attr.aria-label]="'Obligatorio: ' + field.label"
+          >
+            Obligatorio
+          </button>
+        </div>
       </div>
     </div>
 

@@ -51,6 +51,9 @@ export class CheckinTemplatesPage implements OnInit {
   public editingTemplate: CheckinTemplateDefinition | null = null;
   public formName = '';
   public formFields = new Set<string>();
+  // Obligatorios: siempre subconjunto de formFields (desactivar un campo lo
+  // saca también de aquí, ver toggleField).
+  public formRequired = new Set<string>();
   public isSaving = false;
   // Fase 5 Coach Pro — preguntas propias del coach (§7). Conviven con
   // formFields, que sigue siendo el catálogo cerrado.
@@ -120,6 +123,7 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = null;
     this.formName = '';
     this.formFields = new Set();
+    this.formRequired = new Set();
     this.formCustomQuestions = [];
     this.showEditPanel = true;
   }
@@ -131,6 +135,9 @@ export class CheckinTemplatesPage implements OnInit {
     this.editingTemplate = template;
     this.formName = template.name;
     this.formFields = new Set(template.enabledFields);
+    this.formRequired = new Set(
+      (template.requiredFields || []).filter((key) => this.formFields.has(key))
+    );
     // Copia, no referencia: cancelar el panel no debe dejar editada la
     // plantilla de la lista de detrás.
     this.formCustomQuestions = (template.customQuestions || []).map((q) => ({
@@ -202,12 +209,31 @@ export class CheckinTemplatesPage implements OnInit {
   }
 
   public toggleField(key: string): void {
-    if (this.formFields.has(key)) this.formFields.delete(key);
-    else this.formFields.add(key);
+    if (this.formFields.has(key)) {
+      this.formFields.delete(key);
+      this.formRequired.delete(key);
+    } else {
+      this.formFields.add(key);
+    }
   }
 
   public isFieldEnabled(key: string): boolean {
     return this.formFields.has(key);
+  }
+
+  public toggleRequired(key: string): void {
+    if (!this.formFields.has(key)) return;
+    if (this.formRequired.has(key)) this.formRequired.delete(key);
+    else this.formRequired.add(key);
+  }
+
+  public isFieldRequired(key: string): boolean {
+    return this.formRequired.has(key);
+  }
+
+  public requiredCount(template: CheckinTemplateDefinition): number {
+    return (template.requiredFields || []).length +
+      (template.customQuestions || []).filter((q) => q.required && q.enabled !== false).length;
   }
 
   public saveTemplate(): void {
@@ -221,6 +247,7 @@ export class CheckinTemplatesPage implements OnInit {
     }
 
     const enabledFields = [...this.formFields];
+    const requiredFields = enabledFields.filter((key) => this.formRequired.has(key));
     // Se limpian antes de enviar: las opciones en blanco de un selector a
     // medio escribir no deben llegar a la plantilla que verá el cliente.
     const customQuestions = this.formCustomQuestions.map((q) => ({
@@ -234,9 +261,10 @@ export class CheckinTemplatesPage implements OnInit {
       ? this.checkinTemplatesApi.update(this.editingId, {
           name,
           enabledFields,
+          requiredFields,
           customQuestions,
         })
-      : this.checkinTemplatesApi.create(name, enabledFields, customQuestions);
+      : this.checkinTemplatesApi.create(name, enabledFields, customQuestions, requiredFields);
 
     request$.subscribe({
       next: () => {

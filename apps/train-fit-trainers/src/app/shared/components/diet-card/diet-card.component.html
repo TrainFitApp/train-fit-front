@@ -2,6 +2,9 @@
   type="button"
   class="diet-card"
   [class.is-podium]="!!medal"
+  [class.is-gold]="podiumTier === 'gold'"
+  [class.is-silver]="podiumTier === 'silver'"
+  [class.is-bronze]="podiumTier === 'bronze'"
   [class.is-highlight]="highlight"
   [class.is-selected]="selected"
   (click)="picked.emit()"
@@ -27,8 +30,11 @@
     <div class="card-hero__kcal">
       <span class="card-hero__kcal-value">{{ p.kcal }}</span>
       <span class="card-hero__kcal-unit">kcal</span>
-      <em *ngIf="deltas">{{ deltaLabel(deltas.kcal) }}</em>
+      <em *ngIf="deltas" [class]="deltaClass(deltas.kcal)">{{ deltaLabel(deltas.kcal) }}</em>
     </div>
+    <!-- Pegado al número que matiza: estas kcal son la media de varios
+         días, no lo que se come un día concreto. -->
+    <p class="card-hero__average" *ngIf="averageNote as note">{{ note }}</p>
 
     <div class="card-hero__macros">
       <div class="card-hero__macro">
@@ -36,7 +42,7 @@
           <i class="card-hero__macro-dot card-hero__macro-dot--protein"></i>P
         </span>
         <span class="card-hero__macro-value card-hero__macro-value--protein">
-          {{ p.protein }}<em *ngIf="deltas">{{ deltaLabel(deltas.protein) }}</em>
+          {{ p.protein }}<em *ngIf="deltas" [class]="deltaClass(deltas.protein)">{{ deltaLabel(deltas.protein) }}</em>
         </span>
         <span class="card-hero__macro-bar">
           <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--protein" [style.width.%]="macroBarSegments().protein"></span>
@@ -48,7 +54,7 @@
           <i class="card-hero__macro-dot card-hero__macro-dot--carbs"></i>C
         </span>
         <span class="card-hero__macro-value card-hero__macro-value--carbs">
-          {{ p.carbs }}<em *ngIf="deltas">{{ deltaLabel(deltas.carbs) }}</em>
+          {{ p.carbs }}<em *ngIf="deltas" [class]="deltaClass(deltas.carbs)">{{ deltaLabel(deltas.carbs) }}</em>
         </span>
         <span class="card-hero__macro-bar">
           <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--carbs" [style.width.%]="macroBarSegments().carbs"></span>
@@ -60,7 +66,7 @@
           <i class="card-hero__macro-dot card-hero__macro-dot--fat"></i>G
         </span>
         <span class="card-hero__macro-value card-hero__macro-value--fat">
-          {{ p.fat }}<em *ngIf="deltas">{{ deltaLabel(deltas.fat) }}</em>
+          {{ p.fat }}<em *ngIf="deltas" [class]="deltaClass(deltas.fat)">{{ deltaLabel(deltas.fat) }}</em>
         </span>
         <span class="card-hero__macro-bar">
           <span class="card-hero__macro-bar-fill card-hero__macro-bar-fill--fat" [style.width.%]="macroBarSegments().fat"></span>
@@ -69,14 +75,16 @@
     </div>
   </div>
 
-  <p class="card-note" *ngIf="dayCount">
-    {{ dayCount }} día{{ dayCount === 1 ? '' : 's' }} de menú
-  </p>
-  <p class="card-note" *ngIf="!dayCount && basedOnDays > 1">
-    media de los {{ basedOnDays }} días del ciclo
+  <!-- ¿Cómo se repite esta plantilla? -->
+  <p class="card-mode" *ngIf="mode">
+    <ion-icon [name]="modeIcon" aria-hidden="true"></ion-icon>
+    {{ modeLabel }}
   </p>
 
   <div class="card-flags" *ngIf="flags?.length">
-    <span *ngFor="let f of flags">{{ flagLabel(f) }}</span>
+    <span *ngFor="let f of flags" [class]="flagColorClass(f)">
+      <ion-icon [name]="flagIcon(f)"></ion-icon>
+      {{ flagLabel(f) }}
+    </span>
   </div>
 </button>

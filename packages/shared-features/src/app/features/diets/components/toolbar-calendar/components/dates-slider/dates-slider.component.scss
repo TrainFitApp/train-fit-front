@@ -116,3 +116,94 @@ div {
     font-weight: 600;
   }
 }
+// --- Ciclos por contenido (docs/plan-ciclos-por-contenido.md) ---
+//
+// Dos capas: una línea fina por FASE encima de la semana (color + nombre) y,
+// en cada día, un badge "Cn" arriba a la derecha con el color del ciclo.
+// Pequeño a propósito: es contexto, no debe robarle sitio al número del día.
+// Los `div` genéricos de arriba (font/tamaños del contenido del día) se
+// resetean aquí explícitamente — heredarían el 1rem/0.7rem del día.
+.phase-line {
+  display: flex;
+  gap: 4px;
+  padding: 0 6px;
+  margin: 0 0 -6px;
+  font-size: 0;
+  line-height: 1;
+
+  &__segment {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    margin: 0;
+    font-size: 0;
+
+    &:first-child,
+    &:last-child {
+      font-size: 0;
+      margin: 0;
+    }
+  }
+
+  &__name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    color: var(--phase-color, #9ca3af);
+    opacity: 0.9;
+  }
+
+  &__bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--phase-color, transparent);
+  }
+
+  &__segment.is-empty &__bar {
+    background: transparent;
+  }
+}
+
+ion-col {
+  position: relative;
+
+  // Misma especificidad que `.selected` de arriba y va después: sin el
+  // `:not(.selected)` pisaba el estado seleccionado y el día con ciclo no se
+  // distinguía al pulsarlo.
+  &.has-cycle:not(.selected):not(.active) {
+    border-color: color-mix(in srgb, var(--cycle-color) 55%, #2a2a2a);
+    background: color-mix(in srgb, var(--cycle-color) 12%, #111111);
+  }
+
+  // Seleccionado con ciclo: color del ciclo a tope (borde sólido + fondo
+  // más cargado + resplandor) para que se note frente a los vecinos.
+  &.has-cycle.selected,
+  &.has-cycle.active {
+    border-color: var(--cycle-color);
+    background: color-mix(in srgb, var(--cycle-color) 32%, #111111);
+    box-shadow: 0 0 0 1px var(--cycle-color), 0 0 10px color-mix(in srgb, var(--cycle-color) 45%, transparent);
+  }
+
+  .cycle-badge {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--cycle-color, #9ca3af);
+  }
+}

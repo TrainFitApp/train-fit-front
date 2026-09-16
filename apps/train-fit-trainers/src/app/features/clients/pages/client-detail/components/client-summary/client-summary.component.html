@@ -144,11 +144,9 @@
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('nutrition')">
-        <span class="context-label">Objetivo</span>
-        <span class="context-value">
-          {{ data.goal ? formatValue(data.goal.kcalTotal, 0) + ' kcal' : '—' }}
-        </span>
-        <span class="context-sub">{{ data.goal?.name || 'Sin asignar' }}</span>
+        <span class="context-label">Dieta</span>
+        <span class="context-value context-value--text">{{ data.activePlan?.name || '—' }}</span>
+        <span class="context-sub">{{ data.activePlan ? 'Desde ' + (data.activePlan.startDate | date: 'd MMM') : 'Sin asignar' }}</span>
       </button>
 
       <button type="button" class="context-item" (click)="openTab.emit('training')">

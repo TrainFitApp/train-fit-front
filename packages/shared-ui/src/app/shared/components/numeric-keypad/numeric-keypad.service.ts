@@ -2,16 +2,20 @@ import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 
-const NUMERIC_INPUT_SELECTOR = '.numeric-value-input';
+// Atributo que NumericKeypadDirective pone en el host (<input> o
+// <ion-input>) de cada campo que se edita con el teclado a medida. Es la
+// única forma en que el servicio reconoce "sus" inputs.
+export const NUMERIC_KEYPAD_ATTR = 'data-numeric-keypad';
+const NUMERIC_KEYPAD_HOST_SELECTOR = `[${NUMERIC_KEYPAD_ATTR}]`;
 
 /**
  * Puente entre el teclado a medida y el <input> nativo actualmente enfocado.
  * En vez de mantener un registro de instancias (frágil: los sets se
  * reordenan/añaden/eliminan en caliente), cada acción vuelve a resolver el
  * input activo contra document.activeElement y dispara un evento 'input'
- * real sobre él — así el pipeline de saneo/patch que ya vive en
- * NumericInputComponent.onInputChange() se reutiliza tal cual, sin
- * duplicar lógica ni guardar referencias a componentes.
+ * real sobre él — así el pipeline que ya cuelga de ese evento (value
+ * accessors de Angular/Ionic, appDecimalInput, (input) de cada pantalla) se
+ * reutiliza tal cual, sin duplicar lógica ni guardar referencias.
  */
 @Injectable({ providedIn: 'root' })
 export class NumericKeypadService {
@@ -20,7 +24,7 @@ export class NumericKeypadService {
 
   // El teclado a medida solo tiene sentido en nativo: en web (navegador de
   // escritorio o movil) se escribe con el teclado del sistema, asi que el
-  // input deja de ser inputmode="none" y este componente no se muestra.
+  // input conserva su inputmode y este componente no se muestra.
   public readonly enabled = Capacitor.isNativePlatform();
 
   public show(): void {
@@ -33,23 +37,42 @@ export class NumericKeypadService {
   }
 
   // Se llama en (blur) del input; diferido un tick porque un blur por
-  // "Siguiente" o por tocar otro numeric-input dispara focus en el
+  // "Siguiente" o por tocar otro input del teclado dispara focus en el
   // siguiente inmediatamente después — sin el defer, el teclado
   // parpadearía (hide + show) en cada salto entre inputs.
   public hideIfFocusLeftKeypadInputs(): void {
     setTimeout(() => {
-      if (!this.isNumericInput(document.activeElement)) {
+      if (!this.isKeypadInput(document.activeElement)) {
         this.hide();
       }
     });
   }
 
-  private isNumericInput(element: Element | null): element is HTMLInputElement {
-    return !!element && element instanceof HTMLInputElement && element.matches(NUMERIC_INPUT_SELECTOR);
+  // Un input de solo lectura o deshabilitado no es editable aunque tenga la
+  // marca: ni abre el teclado ni recibe pulsaciones.
+  public isKeypadInput(element: Element | null): element is HTMLInputElement {
+    return (
+      element instanceof HTMLInputElement &&
+      !element.readOnly &&
+      !element.disabled &&
+      !!element.closest(NUMERIC_KEYPAD_HOST_SELECTOR)
+    );
   }
 
   private get activeInput(): HTMLInputElement | null {
-    return this.isNumericInput(document.activeElement) ? document.activeElement : null;
+    return this.isKeypadInput(document.activeElement) ? document.activeElement : null;
+  }
+
+  // Inputs nativos editables y visibles, en orden de documento. Para
+  // <ion-input> el host no es el input: el nativo es el primer <input> que
+  // Ionic pinta dentro (los clones de scroll-assist van después).
+  private get keypadInputs(): HTMLInputElement[] {
+    return Array.from(document.querySelectorAll<HTMLElement>(NUMERIC_KEYPAD_HOST_SELECTOR))
+      .map((host) => (host instanceof HTMLInputElement ? host : host.querySelector('input')))
+      .filter(
+        (input): input is HTMLInputElement =>
+          this.isKeypadInput(input) && input.offsetParent !== null
+      );
   }
 
   private dispatchInput(input: HTMLInputElement, value: string): void {
@@ -75,12 +98,12 @@ export class NumericKeypadService {
     this.hide();
   }
 
-  // Para (click) en el ion-content de la página: cerrar el teclado si se
-  // interactúa con cualquier cosa que NO sea otro numeric-input (ese caso
-  // ya lo cubre su propio (focus) -> show(); cerrarlo aquí también pisaría
-  // esa apertura, porque el click llega DESPUÉS del focus del nuevo input).
+  // Para el click global del documento: cerrar el teclado si se interactúa
+  // con cualquier cosa que NO sea otro input del teclado (ese caso ya lo
+  // cubre su propio focus -> show(); cerrarlo aquí también pisaría esa
+  // apertura, porque el click llega DESPUÉS del focus del nuevo input).
   public hideKeyboardIfInteractingElsewhere(target: EventTarget | null): void {
-    if (target instanceof Element && target.closest(NUMERIC_INPUT_SELECTOR)) {
+    if (target instanceof Element && target.closest(NUMERIC_KEYPAD_HOST_SELECTOR)) {
       return;
     }
     this.hideKeyboard();
@@ -97,13 +120,13 @@ export class NumericKeypadService {
     this.dispatchInput(input, String(next));
   }
 
-  // Salta al siguiente .numeric-value-input en orden de documento (peso ->
+  // Salta al siguiente input del teclado en orden de documento (peso ->
   // reps de la misma serie, o al primer input de la siguiente si es el
   // último de su fila). Si no hay siguiente, oculta el teclado.
   public focusNext(): void {
     const input = this.activeInput;
     if (!input) return;
-    const inputs = Array.from(document.querySelectorAll<HTMLInputElement>(NUMERIC_INPUT_SELECTOR));
+    const inputs = this.keypadInputs;
     const next = inputs[inputs.indexOf(input) + 1];
     if (next) {
       next.focus();

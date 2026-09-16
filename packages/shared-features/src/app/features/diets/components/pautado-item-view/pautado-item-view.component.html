@@ -14,11 +14,7 @@
   </div>
 </ion-header>
 
-<ion-content
-  class="modal-content"
-  [class.keypad-open]="numericKeypadService.visible$ | async"
-  (click)="numericKeypadService.hideKeyboardIfInteractingElsewhere($event.target)"
->
+<ion-content class="modal-content">
   <!-- Modo lectura salvo por la cantidad: es el único campo editable de
        toda esta vista (ver saveQuantity en pautado-item-view.component.ts). -->
   <h2 class="pautado-view-name">{{ name }}</h2>
@@ -115,8 +111,3 @@
     <p class="instructions-text">{{ instructions }}</p>
   </ng-container>
 </ion-content>
-
-<!-- Teclado a medida para la cantidad consumida — el mismo que usa el
-     entrenamiento actual, en vez del teclado nativo (ver
-     NumericKeypadService). -->
-<app-numeric-keypad></app-numeric-keypad>

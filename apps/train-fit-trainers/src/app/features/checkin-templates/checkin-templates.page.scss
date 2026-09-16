@@ -257,7 +257,7 @@
 // lista de plantillas que se está copiando o comparando mientras se rellena.
 //
 // 480px: los campos son filas de un solo control (interruptor o texto), no
-// necesitan el ancho del editor de intercambios.
+// necesitan más ancho.
 .panel-sheet {
   @include tf-side-panel(480px);
 
@@ -396,28 +396,37 @@
 .field-toggle-row {
   display: flex;
   // flex-start y no center: con la descripción del campo debajo del nombre
-  // la fila crece a dos líneas, y la casilla debe quedarse arriba, alineada
-  // con el nombre, no flotando en el centro vertical del bloque.
+  // la fila crece a dos líneas, y la casilla y el pill deben quedarse
+  // arriba, alineados con el nombre, no flotando en el centro del bloque.
   align-items: flex-start;
-  gap: var(--tf-space-3);
-  justify-content: space-between;
+  gap: var(--tf-space-2);
   width: 100%;
   min-height: 44px;
-  padding: 10px 12px;
+  padding: 6px 10px 6px 12px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border-subtle);
   border-radius: 10px;
+  transition: border-color 160ms var(--tf-ease-out);
+
+  &--on {
+    border-color: var(--tf-border-strong);
+  }
+}
+
+.field-toggle-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+  padding: 4px 0;
+  background: none;
+  border: none;
   color: var(--tf-text-secondary);
   font-size: 0.86rem;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms var(--tf-ease-out);
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
 
   ion-icon {
     font-size: 20px;
@@ -582,6 +591,16 @@
     background: var(--tf-accent-soft);
     border-color: var(--tf-accent-soft-border);
     color: var(--tf-accent-text);
+  }
+
+  // Versión compacta para la fila del catálogo: 35 filas con un pill de
+  // 44px de alto cada una alargaban el panel sin aportar nada.
+  &--mini {
+    flex-shrink: 0;
+    min-height: 28px;
+    margin-top: 2px;
+    padding: 0 var(--tf-space-3);
+    font-size: 0.7rem;
   }
 
   &:focus-visible {

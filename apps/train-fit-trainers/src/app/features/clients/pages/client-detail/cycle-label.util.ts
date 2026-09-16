@@ -1,20 +1,13 @@
-// Numeración de VUELTAS de una fase de nutrición — el badge C1/C2/C3 que sale
+// Numeración de CICLOS de una fase de nutrición — el badge C1/C2/C3 que sale
 // arriba a la derecha de cada día en el calendario del entrenador.
 //
-// Una "vuelta" es una pasada completa al contenido de la dieta:
-//   · modo "sequential" (Día 1, 2, 3…): el bloque de días de la plantilla. Una
-//     dieta de 4 días → días 1-4 = C1, 5-8 = C2, 9-12 = C3… (el plan se
-//     resuelve así de verdad: plan-resolver.js hace days[elapsed % daysCount]).
-//   · modos "recurring" (por día de la semana) y "choice" (el cliente elige):
-//     no hay bloque que se repita, la vuelta real es la SEMANA natural. Se
-//     ancla a lunes, que además es como se dibujan las filas del calendario,
-//     así que el badge queda constante en cada fila.
-//
-// La cuenta NO se reinicia al abrir un ciclo de progresión (esos que crean una
-// copia nueva con las kcal ajustadas): sigue dentro de la FASE, sumando lo que
-// consumieron los ciclos anteriores. Solo vuelve a C1 en una fase nueva
-// (phaseId distinto), y de eso se encarga quien llama pasando únicamente las
-// asignaciones de una misma fase.
+// Ciclos por contenido (docs/plan-ciclos-por-contenido.md): cada doc de la
+// fase trae `cycleDays` (lo que dura su contenido: days.length en
+// sequential, 7 en recurring, choiceCycleDays en choice). Las ventanas se
+// ENCADENAN desde el inicio de la fase: C(n) empieza el día después de que
+// acabe C(n-1) y mide lo que mida el último doc persistido que ya había
+// empezado en esa fecha — el mismo cálculo que hace el backend
+// (cycle-window.js#windowsUntil).
 //
 // Sin imports a propósito: se prueba con node:test apuntado al .ts (mismo
 // criterio que body-metrics.util.ts en shared-core), y eso solo funciona con
@@ -24,68 +17,91 @@ export type CycleMode = 'sequential' | 'recurring' | 'choice';
 
 export interface CycleAssignment {
   startDate: string; // "YYYY-MM-DD"
-  // Fin REAL: null mientras sigue corriendo. No se usa estimatedEndDate aquí
-  // a propósito — la estimación no dice cuántas vueltas se dieron de verdad.
+  // Fin REAL: null mientras sigue corriendo.
   endDate: string | null;
   mode?: CycleMode | null;
   daysCount?: number | null;
+  choiceCycleDays?: number | null;
+  // Días que dura un ciclo con el contenido de ESTE doc (lo manda el
+  // backend). Si falta, se deriva de mode/daysCount/choiceCycleDays.
+  cycleDays?: number | null;
+}
+
+export interface CycleWindowInfo {
+  number: number;
+  start: string;
+  end: string;
+  len: number;
 }
 
 const MS_PER_DAY = 86400000;
+const DEFAULT_CYCLE_DAYS = 7;
+// Solo protege de un bucle infinito por datos rotos, nunca debería tocarse.
+const MAX_WINDOWS = 5000;
 
 function toUtc(iso: string): number {
   return new Date(`${iso}T00:00:00.000Z`).getTime();
 }
 
-function daysBetween(fromIso: string, toIso: string): number {
-  return Math.round((toUtc(toIso) - toUtc(fromIso)) / MS_PER_DAY);
-}
-
-/** Lunes de la semana que contiene esa fecha (ISO, semana L→D). */
-function mondayOf(iso: string): string {
+function addDays(iso: string, delta: number): string {
   const date = new Date(toUtc(iso));
-  const weekday = date.getUTCDay(); // 0=domingo
-  const offset = (weekday + 6) % 7; // lunes=0 … domingo=6
-  date.setUTCDate(date.getUTCDate() - offset);
+  date.setUTCDate(date.getUTCDate() + delta);
   return date.toISOString().slice(0, 10);
 }
 
-/** Días que abarca una vuelta en esta asignación. Semana en recurring/choice. */
-function blockSize(assignment: CycleAssignment): number {
-  if (assignment.mode === 'recurring' || assignment.mode === 'choice') return 7;
-  // Una dieta sin días (borrador) no puede dar vueltas de 0 días: se trata
-  // como de 1 para no dividir entre cero.
-  return Math.max(1, assignment.daysCount || 1);
+/** Días que dura un ciclo con el contenido de esta asignación. */
+export function contentCycleDays(assignment: CycleAssignment): number {
+  const explicit = Number(assignment.cycleDays);
+  if (Number.isFinite(explicit) && explicit >= 1) return Math.floor(explicit);
+  if (assignment.mode === 'recurring') return 7;
+  if (assignment.mode === 'choice') {
+    const n = Number(assignment.choiceCycleDays);
+    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : DEFAULT_CYCLE_DAYS;
+  }
+  const days = Number(assignment.daysCount);
+  return Number.isFinite(days) && days >= 1 ? Math.floor(days) : DEFAULT_CYCLE_DAYS;
 }
 
-/** Ancla desde la que se cuentan las vueltas de esta asignación. */
-function anchorOf(assignment: CycleAssignment): string {
-  return assignment.mode === 'recurring' || assignment.mode === 'choice'
-    ? mondayOf(assignment.startDate)
-    : assignment.startDate;
+function ordered(phaseCycles: CycleAssignment[]): CycleAssignment[] {
+  return (phaseCycles || [])
+    .filter((cycle) => !!cycle?.startDate)
+    .slice()
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
 
-/** En qué vuelta (1, 2, 3…) de ESTA asignación cae `date`. */
-function localCycle(assignment: CycleAssignment, date: string): number {
-  const elapsed = daysBetween(anchorOf(assignment), date);
-  return Math.floor(elapsed / blockSize(assignment)) + 1;
-}
-
-/**
- * Vueltas que consumió una asignación ya terminada. Una vuelta a medias cuenta
- * como consumida: si la fase cambió de ciclo a mitad de la semana 3, la
- * siguiente empieza en la 4 — nunca se repite un número hacia atrás.
- */
-function consumedCycles(assignment: CycleAssignment, lastDay: string): number {
-  return localCycle(assignment, lastDay);
+/** El doc persistido que rige en `date`: el último que ya había empezado. */
+function overrideAt(cycles: CycleAssignment[], date: string): CycleAssignment | null {
+  let found: CycleAssignment | null = null;
+  for (const c of cycles) if (c.startDate <= date) found = c;
+  return found;
 }
 
 /**
- * Etiqueta de vuelta para `date` dentro de una fase.
+ * Ventanas de la fase desde C1 hasta la que contiene `date` (inclusive).
+ * Vacío si la fase no tiene docs; solo C1 si `date` es anterior al inicio.
  *
- * @param date           día a etiquetar ("YYYY-MM-DD")
- * @param phaseCycles    asignaciones de UNA MISMA fase (en cualquier orden)
- * @returns "C3", o null si ese día no lo cubre ninguna
+ * @param phaseCycles  asignaciones de UNA MISMA fase (en cualquier orden)
+ */
+export function cycleWindowsUntil(date: string, phaseCycles: CycleAssignment[]): CycleWindowInfo[] {
+  const cycles = ordered(phaseCycles);
+  const head = cycles[0];
+  if (!head) return [];
+  const windows: CycleWindowInfo[] = [];
+  let start = head.startDate;
+  for (let number = 1; number <= MAX_WINDOWS; number++) {
+    const len = contentCycleDays(overrideAt(cycles, start) || head);
+    const end = addDays(start, len - 1);
+    windows.push({ number, start, end, len });
+    if (date <= end) break;
+    start = addDays(end, 1);
+  }
+  return windows;
+}
+
+/**
+ * Etiqueta de ciclo para `date` dentro de una fase.
+ *
+ * @returns "C3", o null si ese día no lo cubre ninguna asignación de la fase
  */
 export function cycleLabelFor(date: string, phaseCycles: CycleAssignment[]): string | null {
   const number = cycleNumberFor(date, phaseCycles);
@@ -94,41 +110,15 @@ export function cycleLabelFor(date: string, phaseCycles: CycleAssignment[]): str
 
 /** Igual que cycleLabelFor pero devolviendo el número pelado (para tests/orden). */
 export function cycleNumberFor(date: string, phaseCycles: CycleAssignment[]): number | null {
-  const ordered = (phaseCycles || [])
-    .filter((cycle) => !!cycle?.startDate)
-    .slice()
-    .sort((a, b) => a.startDate.localeCompare(b.startDate));
-  if (!ordered.length) return null;
+  const cycles = ordered(phaseCycles);
+  if (!cycles.length) return null;
 
-  // El que cubre la fecha. Si varios la cubren (datos inconsistentes), gana el
-  // que empezó más tarde: es el que de verdad rige ese día.
-  let coveringIndex = -1;
-  for (let i = 0; i < ordered.length; i++) {
-    const cycle = ordered[i];
-    const empezó = cycle.startDate <= date;
-    const sigueVivo = !cycle.endDate || cycle.endDate >= date;
-    if (empezó && sigueVivo) coveringIndex = i;
-  }
-  if (coveringIndex === -1) return null;
+  // Solo días que de verdad cubre la fase: desde su inicio hasta el fin real
+  // del último doc (null = sigue abierta).
+  if (date < cycles[0].startDate) return null;
+  const last = cycles[cycles.length - 1];
+  if (last.endDate && last.endDate < date) return null;
 
-  // Lo que ya consumieron los ciclos anteriores de esta misma fase. Cada uno
-  // duró hasta su fin real o, si nunca se estampó, hasta la víspera del
-  // siguiente (que es lo mismo, pero reconstruido).
-  let consumed = 0;
-  for (let i = 0; i < coveringIndex; i++) {
-    const cycle = ordered[i];
-    const siguiente = ordered[i + 1];
-    const lastDay = cycle.endDate || isoBefore(siguiente.startDate);
-    // Un ciclo que ni llegó a empezar (sustituido el mismo día) no suma.
-    if (lastDay < cycle.startDate) continue;
-    consumed += consumedCycles(cycle, lastDay);
-  }
-
-  return consumed + localCycle(ordered[coveringIndex], date);
-}
-
-function isoBefore(iso: string): string {
-  const date = new Date(toUtc(iso));
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
+  const windows = cycleWindowsUntil(date, cycles);
+  return windows.length ? windows[windows.length - 1].number : null;
 }

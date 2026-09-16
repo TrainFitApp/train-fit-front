@@ -304,7 +304,7 @@
                       (click)="startEditCell(entry.exercise, set, 'weight', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'weight')">{{ set.weight ? set.weight + " Kg" : "—"
                         }}</ng-container>
-                      <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal"
+                      <input *ngIf="isEditingCell(set, 'weight')" type="text" inputmode="decimal" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-weight'"
                         [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('weight')"
                         (click)="$event.stopPropagation()"
@@ -387,7 +387,7 @@
                       (click)="startEditCell(entry.exercise, set, 'rest', $event)">
                       <ng-container *ngIf="!isEditingCell(set, 'rest')">{{ set.restSeconds ? set.restSeconds + "s" :
                         "—" }}</ng-container>
-                      <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric"
+                      <input *ngIf="isEditingCell(set, 'rest')" type="text" inputmode="numeric" appNumericKeypad
                         class="tf-inline-input" [id]="'tf-cell-' + set._id + '-rest'" placeholder="90"
                         [(ngModel)]="editingCellValue" (ngModelChange)="sanitizeCellInput('rest')"
                         (click)="$event.stopPropagation()"

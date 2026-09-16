@@ -14,7 +14,7 @@
 .panel-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--tf-space-3);
   width: 100%;
   min-height: 52px;
   padding: 0 var(--tf-space-5);
@@ -27,15 +27,27 @@
   text-align: left;
   cursor: pointer;
 
-  ion-icon {
-    flex-shrink: 0;
-    font-size: 15px;
-    color: var(--tf-text-muted);
-  }
-
   &:focus-visible {
     outline: 2px solid var(--tf-accent);
     outline-offset: -2px;
+  }
+}
+
+// Mismo chip de cabecera que el panel de suplementación, justo encima:
+// los dos bloques de la columna se leen como hermanos.
+.panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--tf-radius-md);
+  background: var(--tf-accent-soft);
+  color: var(--tf-accent-text);
+
+  ion-icon {
+    font-size: 18px;
   }
 }
 
@@ -43,15 +55,40 @@
   flex: 1;
 }
 
+// Chevron a la derecha y girando, en vez de cambiar de icono a la
+// izquierda: es el patrón de acordeón que ya usa el resto de la app.
+.panel-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-muted);
+  transition: transform var(--tf-duration-fast) var(--tf-ease-out);
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
 .panel-body {
   padding: 0 var(--tf-space-5) var(--tf-space-5);
   border-top: 1px solid var(--tf-border-subtle);
 }
 
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  margin: var(--tf-space-3) 0;
+}
+
+.range-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--tf-text-muted);
+}
+
 .range-picker {
   display: inline-flex;
   gap: 2px;
-  margin: var(--tf-space-3) 0;
   padding: 3px;
   background: var(--tf-surface-2);
   border: 1px solid var(--tf-border);
@@ -104,6 +141,36 @@
   color: var(--tf-text-muted);
 }
 
+.panel-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 3px;
+    font-size: 15px;
+    color: var(--tf-accent-text);
+  }
+}
+
+.panel-empty--icon {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tf-space-3);
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 20px;
+    color: var(--tf-text-faint);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
 .section-error {
   font-size: var(--tf-font-size-sm);
   color: var(--tf-text-muted);
@@ -127,8 +194,8 @@
 
 .item {
   display: flex;
-  align-items: baseline;
-  gap: var(--tf-space-3);
+  align-items: center;
+  gap: var(--tf-space-2);
   padding: 8px 0;
   border-top: 1px solid var(--tf-border-subtle);
   font-size: var(--tf-font-size-sm);
@@ -136,6 +203,12 @@
   &:first-of-type {
     border-top: none;
   }
+}
+
+.item-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--tf-text-faint);
 }
 
 .item-name {
@@ -148,9 +221,17 @@
 }
 
 .item-days {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   flex-shrink: 0;
   font-size: var(--tf-font-size-xs);
   color: var(--tf-text-muted);
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 11px;
+  }
 }
 
 .item-quantity {

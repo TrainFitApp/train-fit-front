@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpService } from 'src/app/core/services/http/http.service';
-import { ApplyPlanRequest, DietException, DurationUnit, PlanAssignment, PlanEndMode } from '../models/plan-assignment.model';
+import { ApplyPlanRequest, NutritionHistoryResponse, PhasePayload, PlanAssignment } from '../models/plan-assignment.model';
 import {
   DietTemplateDayPatternPayload,
   DietTemplateDayPayload,
@@ -17,18 +17,9 @@ export interface CreateDirectPlanRequest {
   days: DietTemplateDayPayload[];
   mode: TemplateMode;
   dayPatterns: DietTemplateDayPatternPayload[];
+  choiceCycleDays?: number | null;
   startDate: string;
-  endMode: PlanEndMode;
-  fixedEndDate?: string;
-  durationValue?: number;
-  durationUnit?: DurationUnit;
-  phase?: {
-    name: string;
-    focus: 'cut' | 'maintain' | 'bulk' | null;
-    targetKcalDelta: number;
-    ratePerCycle: number;
-  };
-  cycleTarget?: { kcal: number; macros: { protein: number; carbs: number; fat: number } };
+  phase?: PhasePayload;
 }
 
 // Editor de fase/ciclo ya asignado — contenido completo de la copia de ESTE
@@ -37,7 +28,12 @@ export interface CreateDirectPlanRequest {
 export interface PlanContent {
   _id: string;
   name: string;
+  // Fase a la que pertenece (apunta al primer ciclo) y fecha de inicio de
+  // esta copia — para saber qué ciclo se está editando.
+  phaseId?: string | null;
+  startDate?: string | null;
   mode: TemplateMode;
+  choiceCycleDays?: number | null;
   days: DietTemplateDayPayload[];
   dayPatterns: DietTemplateDayPatternPayload[];
 }
@@ -73,7 +69,13 @@ export class PlanAssignmentApiService {
   public updateContent(
     clientId: string,
     planId: string,
-    body: { name?: string; mode?: TemplateMode; days?: DietTemplateDayPayload[]; dayPatterns?: DietTemplateDayPatternPayload[] }
+    body: {
+      name?: string;
+      mode?: TemplateMode;
+      days?: DietTemplateDayPayload[];
+      dayPatterns?: DietTemplateDayPatternPayload[];
+      choiceCycleDays?: number | null;
+    }
   ): Observable<PlanContent> {
     return this.http.put<PlanContent>(`${this.base(clientId)}/${planId}`, body);
   }
@@ -93,8 +95,9 @@ export class PlanAssignmentApiService {
     return this.http.post(`trainer/clients/${clientId}/diet-exceptions`, body);
   }
 
-  // TASK-045 (MASTER_BACKLOG.md)
-  public getExceptions(clientId: string): Observable<DietException[]> {
-    return this.http.get<DietException[]>(`trainer/clients/${clientId}/diet-exceptions`);
+  // Feed del bloque "Historial de nutrición" de la ficha (fases, ciclos,
+  // check-ins y excepciones).
+  public getNutritionHistory(clientId: string): Observable<NutritionHistoryResponse> {
+    return this.http.get<NutritionHistoryResponse>(`trainer/clients/${clientId}/nutrition-history`);
   }
 }

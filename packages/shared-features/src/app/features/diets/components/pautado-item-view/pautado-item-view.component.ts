@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -8,7 +8,6 @@ import { CustomProductService } from 'src/app/core/services/custom-product/custo
 import { MealService } from 'src/app/core/services/meal/meal.service';
 import { RecipeService } from 'src/app/core/services/recipe/recipe.service';
 import { IonicUtilService } from 'src/app/core/services/util/ionic-util.service';
-import { NumericKeypadService } from 'src/app/shared/components/numeric-keypad/numeric-keypad.service';
 
 interface NutritionRow {
   label: string;
@@ -74,7 +73,7 @@ const EXTRA_NUTRITION_FIELDS: Array<[keyof CustomProduct, string, string]> = [
   templateUrl: './pautado-item-view.component.html',
   styleUrls: ['./pautado-item-view.component.scss'],
 })
-export class PautadoItemViewComponent implements OnInit, OnDestroy {
+export class PautadoItemViewComponent implements OnInit {
   @Input()
   public kind!: 'product' | 'recipe';
 
@@ -117,8 +116,7 @@ export class PautadoItemViewComponent implements OnInit, OnDestroy {
     private recipeService: RecipeService,
     private mealService: MealService,
     private ionicUtilService: IonicUtilService,
-    private translate: TranslateService,
-    public numericKeypadService: NumericKeypadService
+    private translate: TranslateService
   ) {}
 
   public ngOnInit(): void {
@@ -270,12 +268,5 @@ export class PautadoItemViewComponent implements OnInit, OnDestroy {
 
   public dismiss(): void {
     this.modalController.dismiss();
-  }
-
-  // NumericKeypadService es un singleton de raíz: si el modal se cierra con
-  // el teclado abierto, su estado "visible" seguiría en true y la siguiente
-  // pantalla con teclado lo pintaría de entrada.
-  public ngOnDestroy(): void {
-    this.numericKeypadService.hide();
   }
 }

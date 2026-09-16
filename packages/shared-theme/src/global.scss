@@ -37,6 +37,30 @@ body.hide-tabs ion-tab-bar {
 }
 
 /*
+ * Teclado numérico a medida (app-numeric-keypad, montado fuera de ion-app en
+ * app.component.html). Mientras está abierto, ion-app se encoge para dejarle
+ * sitio, igual que hace el webview con el teclado del sistema
+ * (Keyboard.resize: 'native'): ningún input queda tapado, y las barras fijas
+ * al fondo (ion-footer, .rest-timer-bar…) suben con él. Alto = 4 filas de
+ * 48px + 3 gaps de 6px + 8px de padding arriba y abajo (+ safe-area) —
+ * mantener en sync con numeric-keypad.component.scss.
+ */
+:root {
+  --numeric-keypad-height: calc(226px + env(safe-area-inset-bottom, 0px));
+}
+
+ion-app.numeric-keypad-open {
+  bottom: var(--numeric-keypad-height);
+  /* El propio teclado ya cubre el safe-area inferior. */
+  --ion-safe-area-bottom: 0px;
+
+  /* Como con el teclado del sistema, que la oculta mientras está abierto. */
+  ion-tab-bar {
+    display: none;
+  }
+}
+
+/*
  * Unificación de estilos para ion-datetime en popovers/modales (global)
  * - Evita contenido cortado estableciendo overflow visible en el contenedor
  * - Alinea dimensiones del popover con diets.page.scss
@@ -1786,4 +1810,11 @@ ion-alert .alert-button-group .alert-button:first-child:nth-last-child(3) ~ .ale
   grid-column: 1 / -1 !important;
   width: 50% !important;
   justify-self: center !important;
+}
+
+/* Confirmación como modal-hoja (ConfirmSheetComponent) — alto fijo pequeño
+   con breakpoints [0, 1] para que salga pegada abajo sin ocupar la pantalla. */
+ion-modal.confirm-sheet-modal {
+  --height: 250px;
+  --border-radius: 20px 20px 0 0;
 }

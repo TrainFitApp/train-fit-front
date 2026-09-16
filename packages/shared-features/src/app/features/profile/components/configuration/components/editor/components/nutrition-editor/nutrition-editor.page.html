@@ -35,6 +35,7 @@
           [readonly]="state.lock.calories"
           (input)="onTargetKcalChange($event)"
           inputmode="numeric"
+          appNumericKeypad
           pattern="[0-9]*"
           placeholder="0"
           appCursorEnd
@@ -135,6 +136,7 @@
               [readonly]="state.lock.p"
               (input)="onMacroInput('p', $event)"
               inputmode="numeric"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd
@@ -149,6 +151,7 @@
               [readonly]="state.lock.p"
               (input)="onPercentInput('p', $event)"
               inputmode="decimal"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd
@@ -189,6 +192,7 @@
               [readonly]="state.lock.c"
               (input)="onMacroInput('c', $event)"
               inputmode="numeric"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd
@@ -203,6 +207,7 @@
               [readonly]="state.lock.c"
               (input)="onPercentInput('c', $event)"
               inputmode="decimal"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd
@@ -243,6 +248,7 @@
               [readonly]="state.lock.f"
               (input)="onMacroInput('f', $event)"
               inputmode="numeric"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd
@@ -257,6 +263,7 @@
               [readonly]="state.lock.f"
               (input)="onPercentInput('f', $event)"
               inputmode="decimal"
+              appNumericKeypad
               pattern="[0-9]*"
               placeholder="0"
               appCursorEnd

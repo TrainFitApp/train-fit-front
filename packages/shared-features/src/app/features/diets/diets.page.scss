@@ -221,47 +221,138 @@ ion-popover {
 
 // ─── Premium upgrade banner ───────────────────────────────────────────────────
 
-// Fase 9 — aviso para elegir el tipo de día (menús que decide el cliente),
-// mismo tratamiento visual que .premium-banner de abajo.
-.day-type-banner {
+// Ciclos por contenido §11 — chips de los menús de un plan "el cliente
+// elige cada día", encima de las comidas. Mismo tratamiento visual que
+// .premium-banner de abajo (tarjeta suave con el acento).
+.menu-chips {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: calc(100% - 14px);
   margin: 12px 7px 0;
-  padding: 13px 14px;
+  padding: 12px 14px;
   border-radius: 14px;
-  background: rgba(var(--ion-color-primary-rgb), 0.08);
-  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.22);
+  background: rgba(254, 144, 0, 0.08);
+  border: 1px solid rgba(254, 144, 0, 0.22);
 }
 
-.day-type-banner__title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ion-color-dark);
+.menu-chips__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
 }
 
-.day-type-banner__options {
+.menu-chips__row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.day-type-banner__option {
-  flex: 1;
-  min-width: 120px;
-  height: 40px;
-  border-radius: 10px;
-  border: none;
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
+.menu-chips__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #2a2a2a;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &.is-selected {
+    border-color: #fe9000;
+    background: #392610;
+    color: #fe9000;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.menu-chips__leave {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 
   &:disabled {
     opacity: 0.6;
     cursor: default;
+  }
+}
+
+// Ciclos por contenido — check-in del ciclo, encima del peso diario.
+.cycle-checkin-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 14px);
+  margin: 12px 7px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(254, 144, 0, 0.35);
+  background: rgba(254, 144, 0, 0.1);
+  color: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  > ion-icon:first-child {
+    flex-shrink: 0;
+    font-size: 22px;
+    color: #fe9000;
+  }
+
+  > ion-icon:last-child {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: #9ca3af;
+  }
+
+  &.is-done {
+    border-color: #2a2a2a;
+    background: #111111;
+
+    > ion-icon:first-child {
+      color: #5db530;
+    }
+  }
+}
+
+.cycle-checkin-card__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  small {
+    font-size: 0.75rem;
+    color: #9ca3af;
   }
 }
 

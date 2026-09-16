@@ -30,6 +30,44 @@
   </div>
 
   <ng-container *ngIf="state === 'ready' || state === 'loading'">
+    <!-- ===== Objetivo calculado ===== arriba del todo: es el dato que
+         justifica todo lo que hay debajo (parámetros, ranking). -->
+    <section class="target-card" *ngIf="target as t">
+      <div class="target-head">
+        <span class="target-kcal">{{ t.kcal }} kcal</span>
+        <span class="target-macros">P {{ t.protein }} g · C {{ t.carbs }} g · G {{ t.fat }} g</span>
+      </div>
+      <p class="target-source" *ngIf="weightSource as w">
+        Peso {{ w.weightKg | number: '1.0-1' }} kg —
+        {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
+      </p>
+    </section>
+
+    <!-- ===== Dieta elegida ===== solo aparece tras picar una tarjeta en la
+         lista (selectedTemplate, no el fallback a la sugerencia principal
+         de "chosen"): la flecha deja claro que esta card sale DEL objetivo
+         de arriba, con sus mismas desviaciones (deltas) que ya calcula
+         app-diet-card. -->
+    <div class="chosen-arrow" *ngIf="selectedTemplate" aria-hidden="true">
+      <ion-icon name="arrow-down-outline"></ion-icon>
+    </div>
+
+    <section class="chosen-card" *ngIf="selectedTemplate as c">
+      <app-diet-card
+        [name]="c.name"
+        [profile]="c.profile"
+        [deltas]="c.deltas"
+        [verified]="c.verified"
+        [ownedByClient]="!!c.ownerClientId"
+        [basedOnDays]="c.basedOnDays"
+        [mode]="c.mode"
+        [flags]="c.effectiveSuitableFor || []"
+        [missingFlags]="c.missingFlags || []"
+        [selected]="true"
+        (picked)="toggleSelected(c)"
+      ></app-diet-card>
+    </section>
+
     <!-- ===== Parámetros ===== -->
     <section class="filters">
       <label class="field-label">¿Qué quieres hacer?</label>
@@ -55,65 +93,52 @@
         </div>
       </div>
 
+      <!-- Macros por kg de peso — mismo reparto que ya calcula el backend
+           (proteína/grasa en g/kg según objetivo y sexo, carbos el resto),
+           aquí editable: tocar cualquiera de los dos recalcula el target y
+           el ranking. Sin tocar, siguen la fórmula por defecto. -->
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Proteína (g/kg)</label>
+          <input type="number" step="0.1" min="0" [(ngModel)]="proteinPerKg" (ngModelChange)="onMacroRatioChange()" />
+        </div>
+        <div class="field">
+          <label class="field-label">Grasa (g/kg)</label>
+          <input type="number" step="0.1" min="0" [(ngModel)]="fatPerKg" (ngModelChange)="onMacroRatioChange()" />
+        </div>
+      </div>
+      <p class="muted small">Los carbohidratos se calculan con el resto de las kcal objetivo.</p>
+
       <label class="field-label">Restricciones</label>
       <div class="flag-chips">
         <button
           type="button"
           *ngFor="let opt of dietaryFlagOptions"
+          [class]="opt.colorClass"
           [class.is-active]="dietaryFlags.has(opt.key)"
           (click)="toggleFlag(opt.key)"
         >
+          <ion-icon [name]="opt.icon"></ion-icon>
           {{ opt.label }}
         </button>
       </div>
 
       <label class="field-label">Origen</label>
       <div class="flag-chips">
+        <button type="button" [class.is-active]="allSourcesSelected" (click)="selectAllSources()">
+          <ion-icon name="apps-outline"></ion-icon>
+          Todas
+        </button>
         <button
           type="button"
           *ngFor="let opt of sourceOptions"
-          [class.is-active]="sources.has(opt.key)"
+          [class.is-active]="sources.has(opt.key) && !allSourcesSelected"
           (click)="toggleSource(opt.key)"
         >
+          <ion-icon [name]="opt.icon"></ion-icon>
           {{ opt.label }}
         </button>
       </div>
-    </section>
-
-    <!-- ===== Objetivo calculado ===== -->
-    <section class="target-card" *ngIf="target as t">
-      <div class="target-head">
-        <span class="target-kcal">{{ t.kcal }} kcal</span>
-        <span class="target-macros">P {{ t.protein }} g · C {{ t.carbs }} g · G {{ t.fat }} g</span>
-      </div>
-      <p class="target-source" *ngIf="weightSource as w">
-        Peso {{ w.weightKg | number: '1.0-1' }} kg —
-        {{ w.from === 'anthropometry' ? 'de la antropometría del ' + w.date : 'del registro del cliente' }}
-      </p>
-    </section>
-
-    <!-- ===== Sugerencia / lo que se va a aplicar ===== -->
-    <section class="chosen-box" *ngIf="chosen as c">
-      <span class="chosen-tag">{{ chosenIsTop ? 'Sugerencia principal' : 'Vas a aplicar' }}</span>
-      <h3 class="chosen-name">{{ c.name }}</h3>
-      <p class="chosen-lead" *ngIf="chosenIsTop">La más adecuada para {{ focusVerb() }} a {{ clientName }}</p>
-      <p class="chosen-macros">
-        {{ c.profile.kcal }} kcal · P {{ c.profile.protein }} · C {{ c.profile.carbs }} · G {{ c.profile.fat }}
-      </p>
-      <!-- Último punto antes de crear la fase: si la elegida a mano incumple
-           alguna restricción, se dice aquí y no solo en la tarjeta. -->
-      <p class="chosen-missing" *ngIf="c.missingFlags?.length">
-        No cumple: {{ chosenMissingLabels }}. Tendrás que cambiar esos alimentos.
-      </p>
-      <p class="muted small">Elige otra en la lista de la izquierda si lo prefieres.</p>
-    </section>
-
-    <section class="chosen-box chosen-box--empty" *ngIf="!chosen && state === 'ready'">
-      <p *ngIf="!hasResults">Ninguna dieta encaja con estos parámetros.</p>
-      <p *ngIf="hasResults">
-        Ninguna cumple las restricciones de {{ clientName }}. Elige una de la lista
-        si vas a cambiarle los alimentos, o empieza de cero.
-      </p>
     </section>
 
     <!-- ===== Fecha ===== -->

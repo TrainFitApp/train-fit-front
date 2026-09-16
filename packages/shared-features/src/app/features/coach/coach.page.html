@@ -59,7 +59,7 @@
       <button
         type="button"
         class="coach-menu-card"
-        *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine || dashboard?.assignedGoal"
+        *ngIf="dashboardState !== 'loaded' || dashboard?.assignedRoutine"
         (click)="scrollToSection('section-plan')"
       >
         <div class="coach-menu-icon"><ion-icon name="barbell-outline"></ion-icon></div>
@@ -117,23 +117,10 @@
     </div>
   </div>
 
-  <!-- Lo que el cliente CONSULTA: prescripciones, todas de solo lectura.
-       "Mi reparto del día" ya no está: se fusionó dentro de Intercambios,
-       porque eran dos pantallas para una sola pregunta (cuánto y de qué). -->
+  <!-- Lo que el cliente CONSULTA: prescripciones, todas de solo lectura. -->
   <div class="coach-menu-group">
     <p class="coach-menu-group-label">Lo que te ha pautado</p>
     <div class="coach-menu-grid">
-      <!-- Bloqueada como "Próximamente" (2026-09) — la pantalla y el backend
-           ya funcionan, pero se mantiene cerrada al cliente hasta que su
-           profesional pueda usarla de verdad (ver templates.page.ts, misma
-           fecha, mismo motivo, lado entrenador). disabled y sin (click):
-           igual que allí, no navega a ningún sitio todavía. -->
-      <button type="button" class="coach-menu-card coach-menu-card--locked" disabled aria-label="Intercambios, próximamente">
-        <div class="coach-menu-icon"><ion-icon name="swap-horizontal-outline"></ion-icon></div>
-        <span class="coach-menu-name">Intercambios</span>
-        <span class="coach-menu-badge">Próximamente</span>
-      </button>
-
       <button type="button" class="coach-menu-card" (click)="goToSupplements()">
         <div class="coach-menu-icon"><ion-icon name="medkit-outline"></ion-icon></div>
         <span class="coach-menu-name">Suplementos</span>
@@ -213,7 +200,7 @@
       </div>
     </div>
 
-    <div class="section-card" id="section-plan" *ngIf="d.assignedRoutine || d.assignedGoal">
+    <div class="section-card" id="section-plan" *ngIf="d.assignedRoutine">
       <h2 class="section-heading">Tu plan actual</h2>
 
       <div class="plan-card" *ngIf="d.assignedRoutine as routine">
@@ -221,14 +208,6 @@
         <div class="action-info">
           <span class="action-title">{{ routine.name }}</span>
           <span class="action-subtitle">Asignada por {{ routine.assignedByTrainerName }} · {{ routine.assignedAt | date: 'd MMM y' }}</span>
-        </div>
-      </div>
-
-      <div class="plan-card" *ngIf="d.assignedGoal as goal">
-        <ion-icon name="flame-outline" class="plan-icon"></ion-icon>
-        <div class="action-info">
-          <span class="action-title">{{ goal.name }} · {{ goal.kcalTotal }} kcal</span>
-          <span class="action-subtitle">Asignado por {{ goal.assignedByTrainerName }} · {{ goal.assignedAt | date: 'd MMM y' }}</span>
         </div>
       </div>
     </div>

@@ -154,10 +154,13 @@ export class ProfilePage implements OnInit {
 
   public activeGoal: NutritionalGoal | null = null;
 
-  private get _kcalTotal(): number { return this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
-  private get _proteinsGTotal(): number { return this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
-  private get _carbohydratesGTotal(): number { return this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
-  private get _fatGTotal(): number { return this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
+  // Ciclos por contenido — con dieta pautada hoy, la meta es lo que suma lo
+  // pautado (dietDay.plannedTarget, mismo criterio que macros-bars); sin
+  // pauta, el objetivo en uso de siempre.
+  private get _kcalTotal(): number { return this.dietDay?.plannedTarget?.kcal || this.activeGoal?.kcalTotal || (this.user as any)?.kcalTotal || 0; }
+  private get _proteinsGTotal(): number { return this.dietDay?.plannedTarget?.protein || this.activeGoal?.proteinsGTotal || (this.user as any)?.proteinsGTotal || 0; }
+  private get _carbohydratesGTotal(): number { return this.dietDay?.plannedTarget?.carbs || this.activeGoal?.carbohydratesGTotal || (this.user as any)?.carbohydratesGTotal || 0; }
+  private get _fatGTotal(): number { return this.dietDay?.plannedTarget?.fat || this.activeGoal?.fatGTotal || (this.user as any)?.fatGTotal || 0; }
 
   constructor(
     public utilService: UtilService,

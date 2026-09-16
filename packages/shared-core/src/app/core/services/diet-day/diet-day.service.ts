@@ -7,7 +7,7 @@ import { User } from 'src/app/core/models/user';
 import { UtilService } from 'src/app/core/services/util/util.service';
 import { DateRange } from 'src/app/shared/models/dateRange';
 import { MACROS_VALUES } from 'src/app/shared/models/macros-data';
-import { DietDay } from '../../models/dietDay';
+import { DietDay, DietTimeline } from '../../models/dietDay';
 import { MEAL_TYPES, Meal } from '../../models/meal';
 import { CustomProductService } from '../custom-product/custom-product.service';
 import { CustomRecipe } from '../../models/customRecipe';
@@ -57,14 +57,26 @@ export class DietDayService {
     date: string
   ): Observable<DietDay> {
     return this.dietDayAPIService.getDietDayByIdDietAndDate(id, date).pipe(
-      map((response: { dietDay: DietDay; anthropometry: any }) => {
+      map((response) => {
         // If anthropometry has weight, set it on the dietDay for backwards compatibility
         if (response?.dietDay && response?.anthropometry?.weight !== undefined) {
           response.dietDay.weight = response.anthropometry.weight;
         }
+        // Ciclos por contenido — la meta del día (lo pautado) y el ciclo
+        // viajan junto al día para que macros-bars y el slider los lean de
+        // aquí, sin otra petición.
+        if (response?.dietDay) {
+          response.dietDay.plannedTarget = response.plannedTarget ?? null;
+          response.dietDay.cycle = response.cycle ?? null;
+        }
         return response.dietDay;
       })
     );
+  }
+
+  // Ciclos por contenido — fases y ciclos del cliente en un rango.
+  public getTimeline(from: string, to: string): Observable<DietTimeline> {
+    return this.dietDayAPIService.getTimeline(from, to);
   }
 
   public getDietDaysBetweenDatesByIdDiet(
@@ -400,18 +412,26 @@ export class DietDayService {
     return recipeRef?._id?.toString?.() || recipeRef?.toString?.() || null;
   }
 
+  // Lo pautado por el trainer solo cuenta como ingesta cuando el cliente lo
+  // marca como consumido; lo que añade por su cuenta suma siempre.
+  private countsAsIntake(item: { assignedByTrainerId?: string | null; consumed?: boolean }): boolean {
+    return !item.assignedByTrainerId || !!item.consumed;
+  }
+
   public getDietDayKcal(dietDay: DietDay): number {
     let kcal = 0;
     dietDay.meals?.forEach((meal) => {
       // Sum products
       kcal +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).kcal;
         }, 0) || 0;
 
       // Sum recipes
       kcal +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).kcal;
         }, 0) || 0;
     });
@@ -423,11 +443,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       protein +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).protein;
         }, 0) || 0;
 
       protein +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).protein;
         }, 0) || 0;
     });
@@ -439,11 +461,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       carbs +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).carbs;
         }, 0) || 0;
 
       carbs +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).carbs;
         }, 0) || 0;
     });
@@ -455,11 +479,13 @@ export class DietDayService {
     dietDay.meals?.forEach((meal) => {
       fat +=
         meal.customProducts?.reduce((total, cp) => {
+          if (!this.countsAsIntake(cp)) return total;
           return total + this.customProductService.getMacros(cp).fat;
         }, 0) || 0;
 
       fat +=
         meal.customRecipes?.reduce((total, instance) => {
+          if (!this.countsAsIntake(instance)) return total;
           return total + this.calculateInstanceMacros(instance).fat;
         }, 0) || 0;
     });

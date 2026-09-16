@@ -323,6 +323,7 @@
           <span class="trainer-basket-name">{{ item.kind === 'recipe' ? item.recipe?.name : item.product?.name }}</span>
           <input
             type="number"
+            appNumericKeypad
             class="trainer-basket-qty"
             min="1"
             [(ngModel)]="item.quantity"

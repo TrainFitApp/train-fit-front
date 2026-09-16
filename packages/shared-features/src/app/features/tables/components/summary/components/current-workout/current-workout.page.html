@@ -102,11 +102,7 @@
   </div>
 </ion-header>
 
-<ion-content
-  [class.has-rest-timer]="restTimerService.active()"
-  [class.keypad-open]="numericKeypadService.visible$ | async"
-  (click)="numericKeypadService.hideKeyboardIfInteractingElsewhere($event.target)"
->
+<ion-content [class.has-rest-timer]="restTimerService.active()">
   <ion-item *ngIf="currentWorkout?.exercises.length === 0">
     <ion-label color="medium">{{ 'TABLES.NO_EXERCISES' | translate }}</ion-label>
   </ion-item>
@@ -230,10 +226,6 @@
     </ion-reorder-group>
   </ng-container>
 </ion-content>
-
-<!-- Teclado a medida para los app-numeric-input de esta página (peso/reps)
-     — sustituye al teclado nativo, ver NumericKeypadService. -->
-<app-numeric-keypad></app-numeric-keypad>
 
 <!-- Barra de descanso: fija en el borde inferior, nunca modal — no debe
      tapar la serie siguiente ni el resto del contenido. -->

@@ -18,6 +18,9 @@ export interface CheckinTemplateDefinition {
   _id: string;
   name: string;
   enabledFields: string[];
+  // Subconjunto de enabledFields que el cliente debe responder sí o sí.
+  // Ausente en plantillas anteriores a esta opción: todo opcional.
+  requiredFields?: string[];
   // Ausente en plantillas creadas antes de la Fase 5 — de ahí el opcional.
   customQuestions?: CustomCheckinQuestion[];
   cadence: CheckinCadence;

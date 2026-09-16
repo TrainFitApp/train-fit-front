@@ -1,0 +1,115 @@
+<ol class="feed" aria-label="Historial de nutrición">
+  <li
+    class="feed-item"
+    *ngFor="let event of events; trackBy: trackByEvent"
+    [class.feed-item--cycle]="event.type === 'cycle'"
+    [class.feed-item--minor]="event.type === 'checkin' || event.type === 'exception'"
+    [style.--phase-color]="phaseColorOf(event.phaseId)"
+  >
+    <!-- Fase: empieza / termina -->
+    <ng-container *ngIf="event.type === 'phase_started'">
+      <div class="feed-item__head">
+        <span class="feed-item__title">Empieza la fase «{{ phaseLabel(event) }}»</span>
+        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
+      </div>
+      <p class="feed-item__subtitle">
+        <ng-container *ngIf="focusLabel(event.phaseFocus) as focus">{{ focus }}</ng-container>
+        <ng-container *ngIf="focusLabel(event.phaseFocus) && modeLabel(event.mode)"> · </ng-container>
+        <ng-container *ngIf="modeLabel(event.mode) as mode">{{ mode }}</ng-container>
+      </p>
+    </ng-container>
+
+    <ng-container *ngIf="event.type === 'phase_ended'">
+      <div class="feed-item__head">
+        <span class="feed-item__title">Termina la fase «{{ phaseLabel(event) }}»</span>
+        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
+      </div>
+      <p class="feed-item__subtitle">
+        {{ event.status === 'superseded' ? 'Sustituida por otra fase' : 'Finalizada' }}
+        · {{ event.cyclesCount }} ciclo{{ event.cyclesCount === 1 ? '' : 's' }}
+      </p>
+    </ng-container>
+
+    <!-- Ciclo: el desglose. Click → resumen de solo lectura. -->
+    <button
+      type="button"
+      class="cycle"
+      *ngIf="event.type === 'cycle'"
+      (click)="requestOpen(event)"
+      [attr.aria-label]="'Ver resumen del ciclo ' + event.number"
+    >
+      <div class="feed-item__head">
+        <span class="feed-item__title">
+          <span class="cycle__number">C{{ event.number }}</span>
+          <span class="cycle__phase">{{ phaseLabel(event) }}</span>
+          <span [class]="'cycle__status cycle__status--' + event.status">{{ statusLabel(event.status) }}</span>
+        </span>
+        <span class="feed-item__date">
+          {{ event.start | date: 'd MMM' }} → {{ event.end | date: 'd MMM y' }}
+          <ng-container *ngIf="event.truncated"> · cortado</ng-container>
+        </span>
+      </div>
+
+      <dl class="cycle__facts">
+        <div class="cycle__fact">
+          <dt>Pautado</dt>
+          <dd>
+            {{ event.profile.kcal | number: '1.0-0' }} kcal
+            <span class="cycle__delta" *ngIf="kcalDeltaLabel(event) as delta">{{ delta }}</span>
+          </dd>
+        </div>
+        <div class="cycle__fact">
+          <dt>Adherencia</dt>
+          <dd *ngIf="event.adherencePct !== null; else noAdherence">
+            {{ event.adherencePct }} %
+            <span class="cycle__muted">· {{ event.adherenceDays }}/{{ event.periodDays }} días</span>
+          </dd>
+          <ng-template #noAdherence><dd class="cycle__muted">Sin registros</dd></ng-template>
+        </div>
+        <div class="cycle__fact cycle__fact--wide">
+          <dt>Check-in</dt>
+          <dd *ngIf="event.checkin as checkin; else noCheckin">
+            {{ checkin.respondedAt | date: 'd MMM y, HH:mm' }}
+            <span class="cycle__values">
+              <span class="cycle__value" *ngFor="let entry of checkinEntries(checkin); trackBy: trackByKey">
+                {{ entry.label }}: <strong>{{ entry.value }}</strong>
+              </span>
+            </span>
+          </dd>
+          <ng-template #noCheckin>
+            <dd class="cycle__muted">{{ event.status === 'running' ? 'Pendiente' : 'Sin check-in' }}</dd>
+          </ng-template>
+        </div>
+        <div class="cycle__fact cycle__fact--wide" *ngIf="event.exceptions.length">
+          <dt>Excepciones</dt>
+          <dd>
+            <span class="cycle__value" *ngFor="let exception of event.exceptions">
+              {{ exception.date | date: 'd MMM' }} · {{ exceptionLabel(exception) }}
+            </span>
+          </dd>
+        </div>
+      </dl>
+    </button>
+
+    <!-- Check-in / excepción: además de colgar del ciclo, son eventos. -->
+    <ng-container *ngIf="event.type === 'checkin'">
+      <div class="feed-item__head">
+        <span class="feed-item__title">Check-in del ciclo C{{ event.number }}</span>
+        <span class="feed-item__date">{{ event.checkin.respondedAt | date: 'd MMM y, HH:mm' }}</span>
+      </div>
+      <p class="feed-item__subtitle">
+        <span class="cycle__value" *ngFor="let entry of checkinEntries(event.checkin); trackBy: trackByKey">
+          {{ entry.label }}: <strong>{{ entry.value }}</strong>
+        </span>
+      </p>
+    </ng-container>
+
+    <ng-container *ngIf="event.type === 'exception'">
+      <div class="feed-item__head">
+        <span class="feed-item__title">{{ exceptionLabel(event.exception) }}</span>
+        <span class="feed-item__date">{{ event.date | date: 'd MMM y' }}</span>
+      </div>
+      <p class="feed-item__subtitle">Ciclo C{{ event.number }} · {{ phaseLabel(event) }}</p>
+    </ng-container>
+  </li>
+</ol>

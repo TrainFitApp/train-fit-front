@@ -13,6 +13,7 @@ import { WorkoutSummaryModalComponent } from 'src/app/features/tables/components
 import { SessionCheckinModalComponent } from 'src/app/features/tables/components/summary/components/current-workout/session-checkin-modal/session-checkin-modal.component';
 import { ActionsFabComponent } from './components/actions-fab/actions-fab.component';
 import { ActionsSheetComponent } from './components/actions-sheet/actions-sheet.component';
+import { ConfirmSheetComponent } from './components/confirm-sheet/confirm-sheet.component';
 import { AnthropometryCardComponent } from './components/anthropometry/anthropometry-card.component';
 import { AnthropometryModalComponent } from './components/anthropometry/anthropometry-modal.component';
 import { AnthropometryChartComponent } from './components/anthropometry/anthropometry-chart.component';
@@ -26,7 +27,7 @@ import { GlossaryPopoverComponent } from './components/glossary-popover/glossary
 import { MaintenanceWarningBannerComponent } from './components/maintenance-warning-banner/maintenance-warning-banner.component';
 import { NotesComponent } from './components/notes/notes.component';
 import { NumericInputComponent } from './components/numeric-input/numeric-input.component';
-import { NumericKeypadComponent } from './components/numeric-keypad/numeric-keypad.component';
+import { NumericKeypadModule } from './components/numeric-keypad/numeric-keypad.module';
 import { PopoverActionsComponent } from './components/popover-actions/popover-actions.component';
 import { SearchExercisesPage } from './components/search-exercises/search-exercises.page';
 import { RirPickerComponent } from './components/rir-picker/rir-picker.component';
@@ -43,10 +44,10 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
   declarations: [
     PopoverActionsComponent,
     ActionsSheetComponent,
+    ConfirmSheetComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
-    NumericKeypadComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     TableFilterIconsComponent,
@@ -77,19 +78,27 @@ import { TranslateDescPipe } from './pipes/translate-desc.pipe';
     GlossaryPopoverComponent,
     MaintenanceWarningBannerComponent,
   ],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, TranslateModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    IonicModule,
+    TranslateModule,
+    NumericKeypadModule,
+  ],
   exports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
     TranslateModule,
+    NumericKeypadModule,
     PopoverActionsComponent,
     ActionsSheetComponent,
+    ConfirmSheetComponent,
     FilterInputPage,
     NotesComponent,
     NumericInputComponent,
-    NumericKeypadComponent,
     FilterIconsComponent,
     ExerciseFilterIconsComponent,
     TableFilterIconsComponent,

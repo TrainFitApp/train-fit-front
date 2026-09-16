@@ -18,6 +18,21 @@
     border-color: var(--tf-accent, #fe9000);
   }
 
+  // Oro/plata/bronce por puesto — antes las tres cards del podio compartían
+  // el mismo borde de acento naranja y solo la medalla (🥇🥈🥉) distinguía el
+  // puesto; con el borde a juego se lee de un vistazo sin buscar el emoji.
+  &.is-gold {
+    border-color: #d4af37;
+  }
+
+  &.is-silver {
+    border-color: #b0b6bd;
+  }
+
+  &.is-bronze {
+    border-color: #b0703a;
+  }
+
   &.is-highlight {
     border-width: 2px;
     background: var(--tf-accent-soft, #fff3e0);
@@ -125,6 +140,25 @@
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--tf-text-muted);
+
+  // Desviación sobre el objetivo: verde sutil por encima, rojo sutil por
+  // debajo — antes +n/-n salían del mismo gris apagado y no decían si era
+  // "bien" o "mal" sin leer el signo.
+  &.is-positive {
+    color: var(--tf-success);
+  }
+
+  &.is-negative {
+    color: var(--tf-danger-text);
+  }
+}
+
+// "≈ media de los N días": matiz del número de arriba, no un dato más —
+// pequeño, apagado y sin peso.
+.card-hero__average {
+  margin: 3px 0 0;
+  font-size: 0.64rem;
+  color: var(--tf-text-muted);
 }
 
 // Fila de 3 columnas, cada una con su punto de color + cifra + barra propia
@@ -204,6 +238,14 @@
     font-size: 0.66rem;
     font-weight: 600;
     color: var(--tf-text-muted);
+
+    &.is-positive {
+      color: var(--tf-success);
+    }
+
+    &.is-negative {
+      color: var(--tf-danger-text);
+    }
   }
 }
 
@@ -235,12 +277,26 @@
   }
 }
 
-.card-note {
-  margin: 6px 0 0;
+// ¿Cómo se repite esta plantilla? — icono + texto, mismo tono apagado que
+// el resto de notas de contexto de la card.
+.card-mode {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 0;
   font-size: 0.7rem;
+  font-weight: 600;
   color: var(--tf-text-muted);
+
+  ion-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
 }
 
+// Restricciones que SÍ cumple ("apta para") — un color por flag en vez del
+// mismo gris para las 4, mismo criterio que el trío de macros de arriba:
+// aquí compiten por color+icono, no por una superficie propia cada una.
 .card-flags {
   display: flex;
   flex-wrap: wrap;
@@ -248,10 +304,38 @@
   margin-top: 8px;
 
   span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
     font-size: 0.68rem;
-    padding: 2px 7px;
+    font-weight: 600;
+    padding: 2px 8px;
     border-radius: 999px;
     background: var(--tf-surface-2, #f0f0f0);
     color: var(--tf-text-secondary, #555);
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+  }
+
+  .flag-vegan {
+    background: rgba(52, 211, 153, 0.14);
+    color: #34d399;
+  }
+
+  .flag-vegetarian {
+    background: rgba(45, 212, 191, 0.14);
+    color: #2dd4bf;
+  }
+
+  .flag-lactose-free {
+    background: rgba(96, 165, 250, 0.14);
+    color: #60a5fa;
+  }
+
+  .flag-gluten-free {
+    background: rgba(255, 196, 85, 0.16);
+    color: var(--tf-secondary, #ffc455);
   }
 }

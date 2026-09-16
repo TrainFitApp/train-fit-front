@@ -93,7 +93,6 @@ export class DietPhasePickerPage {
           clientName: this.clientName,
           name: data.phase?.name || 'Nueva dieta',
           startDate: data.startDate,
-          endMode: 'indefinite',
           phase: data.phase,
           cycleTarget: data.cycleTarget,
         },
@@ -112,7 +111,6 @@ export class DietPhasePickerPage {
           clientName: this.clientName,
           name: data.phase?.name || template.name || 'Nueva dieta',
           startDate: data.startDate,
-          endMode: 'indefinite',
           phase: data.phase,
           cycleTarget: data.cycleTarget,
           prefill: {

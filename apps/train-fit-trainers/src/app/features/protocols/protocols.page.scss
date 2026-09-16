@@ -425,16 +425,6 @@
   }
 }
 
-.macro-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--tf-space-3);
-}
-
-.macro-field .field-label {
-  margin-top: 0;
-}
-
 .rule-chips,
 .task-add-row {
   display: flex;
